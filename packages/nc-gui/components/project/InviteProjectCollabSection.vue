@@ -9,6 +9,65 @@ const inviteData = reactive({
   roles: ProjectRoles.VIEWER,
 })
 
+const focusRef = ref<HTMLInputElement>()
+const isDivFocused = ref(false)
+const divRef = ref<HTMLDivElement>()
+
+const emailValidation = reactive({
+  isError: false,
+  message: '',
+})
+
+const validateEmail = (email: string): boolean => {
+  const regEx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return regEx.test(email)
+}
+
+// all user input emails are stored here
+const emailBadges = ref<Array<string>>([])
+watch(inviteData, (newVal) => {
+  if (newVal.email.includes(',')) {
+    if (inviteData.email.length < 1) {
+      emailValidation.isError = true
+      emailValidation.message = 'email should not be empty'
+      return
+    }
+    if (!validateEmail(inviteData.email.trim())) {
+      emailValidation.isError = true
+      emailValidation.message = 'invalid email'
+      return
+    }
+    // if email is already enterd we just ignore the input
+    // no error is thrown
+    if (emailBadges.value.includes(newVal.email.split(',')[0])) {
+      inviteData.email = ''
+      return
+    }
+    const emailToAdd = newVal.email.split(',')[0].trim()
+    emailBadges.value.push(emailToAdd)
+    inviteData.email = ''
+  }
+  if (newVal.email.length < 1 && emailValidation.isError) {
+    emailValidation.isError = false
+  }
+})
+
+const handleEnter = () => {
+  if (inviteData.email.length < 1) {
+    emailValidation.isError = true
+    emailValidation.message = 'email should not be empty'
+    return
+  }
+  if (!validateEmail(inviteData.email.trim())) {
+    emailValidation.isError = true
+    emailValidation.message = 'invalid email'
+    return
+  }
+  inviteData.email += ','
+  emailValidation.isError = false
+  emailValidation.message = ''
+}
+
 const { dashboardUrl } = useDashboard()
 
 const { inviteUser } = useManageUsers()
@@ -36,6 +95,7 @@ const inviteCollaborator = async () => {
     if (usersData.value) {
       message.success('Invitation sent successfully')
       inviteData.email = ''
+      emailBadges.value = []
       emit('invited')
     }
   } catch (e: any) {
@@ -76,11 +136,25 @@ const copyUrl = async () => {
 
     // Copied shareable base url to clipboard!
     message.success(t('msg.success.shareableURLCopied'))
+    inviteData.email = ''
+    emailBadges.value = []
   } catch (e: any) {
     message.error(e.message)
   }
   $e('c:shared-base:copy-url')
 }
+
+const focusOnDiv = () => {
+  focusRef.value?.focus()
+  isDivFocused.value = true
+}
+
+// remove one email per backspace
+onKeyStroke('Backspace', () => {
+  if (isDivFocused.value && inviteData.email.length < 1) {
+    emailBadges.value.pop()
+  }
+})
 </script>
 
 <template>
@@ -128,12 +202,43 @@ const copyUrl = async () => {
       <div class="text-xl mb-4">Invite</div>
       <a-form>
         <div class="flex gap-2">
-          <a-input
-            id="email"
-            v-model:value="inviteData.email"
-            placeholder="Enter emails to send invitation"
-            class="!max-w-130 !rounded"
-          />
+          <div class="flex flex-col">
+            <div
+              ref="divRef"
+              class="flex w-130 border-1 gap-1 items-center min-h-8 flex-wrap max-h-30 overflow-y-scroll rounded-lg nc-scrollbar-md"
+              tabindex="0"
+              :class="{
+                'border-primary/100': isDivFocused,
+                'p-1': emailBadges.length > 1,
+              }"
+              @click="focusOnDiv"
+              @blur="isDivFocused = false"
+            >
+              <span
+                v-for="(email, index) in emailBadges"
+                :key="email"
+                class="text-[14px] border-1 text-brand-500 bg-brand-50 rounded-md ml-1 mt-1 p-0.5"
+              >
+                {{ email }}
+                <component
+                  :is="iconMap.close"
+                  class="ml-0.5 hover:cursor-pointer w-3.5 h-3.5"
+                  @click="emailBadges.splice(index, 1)"
+                />
+              </span>
+              <input
+                id="email"
+                ref="focusRef"
+                v-model="inviteData.email"
+                :placeholder="emailBadges.length < 1 ? 'Enter emails to send invitation' : ''"
+                class="min-w-50 !outline-0 !focus:outline-0 ml-2 mr-3 mt-1"
+                data-testid="email-input"
+                @keyup.enter="handleEnter"
+                @blur="isDivFocused = false"
+              />
+            </div>
+            <span v-if="emailValidation.isError" class="ml-2 text-red-500 text-[12px] mt-1">{{ emailValidation.message }}</span>
+          </div>
 
           <RolesSelector
             class="px-1"

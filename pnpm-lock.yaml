@@ -626,8 +626,8 @@ importers:
         specifier: ^3.1.20
         version: 3.1.20
       nc-help:
-        specifier: 0.3.0
-        version: 0.3.0(asn1.js@5.4.1)(debug@4.3.4)(knex@2.4.2)
+        specifier: 0.3.1
+        version: 0.3.1(asn1.js@5.4.1)(debug@4.3.4)(knex@2.4.2)
       nc-lib-gui:
         specifier: 0.111.4
         version: 0.111.4
@@ -16967,8 +16967,8 @@ packages:
     engines: {node: '>=10'}
     dev: false
 
-  /nc-help@0.3.0(asn1.js@5.4.1)(debug@4.3.4)(knex@2.4.2):
-    resolution: {integrity: sha512-2bNJkB5ivIDAxDAgwsqxTX7PYkStC4hXsVEpBAXdrgfZ2oNVP96CnQ7La3LjAB779JzB3xtgJWtwQiq/rXKAGQ==}
+  /nc-help@0.3.1(asn1.js@5.4.1)(debug@4.3.4)(knex@2.4.2):
+    resolution: {integrity: sha512-ljOh2/6gwTx6BEaPjtdQFzmKL0cWnagGXWxonmqYLhEgkGj/UGvfcukTd5HVDNtu1iKg+0IR/ViNacpu/ClCGA==}
     engines: {node: '>=18'}
     peerDependencies:
       knex: 2.4.2
@@ -16979,7 +16979,7 @@ packages:
       knex: 2.4.2(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6)(tedious@16.4.0)
       lodash: 4.17.21
       posthog-node: 1.3.0(debug@4.3.4)
-      snowflake-sdk: 1.7.0(asn1.js@5.4.1)
+      snowflake-sdk: 1.8.0(asn1.js@5.4.1)
     transitivePeerDependencies:
       - asn1.js
       - debug
@@ -20095,8 +20095,8 @@ packages:
     resolution: {integrity: sha512-MqR3fVulhjWuRNSMydnTlweu38UhQ0HXM4buStD/S3mc/BzX3CuM9OmhyQpmtYCvoYdl5ris6TI0ZqH355Ymqg==}
     dev: true
 
-  /snowflake-sdk@1.7.0(asn1.js@5.4.1):
-    resolution: {integrity: sha512-dSCq4NGBV67Ws9VPEO1md8AZw2mx8czoosBdq8CKdVSwUf9e9wUMpH+VEeIJUKy573M/B4vLU4CUYrhGlSkUHQ==}
+  /snowflake-sdk@1.8.0(asn1.js@5.4.1):
+    resolution: {integrity: sha512-zdU1c+ytIZclF4K6D4XPPHa5II6l6cOQdsLdvKP95IwSdTYJz324ESA7fPcg/rwYV7vUKnIZJ9OCjB1mE7D2IQ==}
     dependencies:
       '@azure/storage-blob': 12.15.0
       '@google-cloud/storage': 6.12.0
@@ -20104,7 +20104,6 @@ packages:
       agent-base: 6.0.2
       asn1.js-rfc2560: 5.0.1(asn1.js@5.4.1)
       asn1.js-rfc5280: 3.0.0
-      async: 3.2.4
       aws-sdk: 2.1455.0
       axios: 0.27.2(debug@3.2.7)
       big-integer: 1.6.51

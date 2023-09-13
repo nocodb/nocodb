@@ -20,17 +20,6 @@ const { isPg } = useProject()
 
 const meta = inject(MetaInj, ref())
 
-const sampleValue = computed(() => {
-  switch (vModel.value.uidt) {
-    case UITypes.SingleSelect:
-      return 'eg : a'
-    case UITypes.MultiSelect:
-      return 'eg : a,b,c'
-    default:
-      return sqlUi.value.getDefaultValueForDatatype(vModel.value.dt)
-  }
-})
-
 const hideLength = computed(() => {
   return [UITypes.SingleSelect, UITypes.MultiSelect].includes(vModel.value.uidt)
 })
@@ -44,7 +33,7 @@ vModel.value.au = !!vModel.value.au */
 </script>
 
 <template>
-  <div class="p-4 border-[0.1px] radius-1 border-grey w-full flex flex-col gap-2">
+  <div class="p-4 border-[0.1px] radius-1 rounded-md border-grey w-full flex flex-col gap-2">
     <template v-if="props.advancedDbOptions">
       <div class="flex justify-between w-full gap-1">
         <a-form-item label="NN">
@@ -91,10 +80,9 @@ vModel.value.au = !!vModel.value.au */
         </a-select>
       </a-form-item>
 
-      <LazySmartsheetColumnPgBinaryOptions v-if="isPg(meta.base_id) && vModel.dt === 'bytea'" v-model:value="vModel" />
-
       <a-form-item v-if="!hideLength" :label="$t('labels.lengthValue')">
         <a-input
+          class="!rounded-md"
           v-model:value="vModel.dtxp"
           :disabled="sqlUi.getDefaultLengthIsDisabled(vModel.dt) || !sqlUi.columnEditable(vModel)"
           @input="onAlter"
@@ -102,13 +90,10 @@ vModel.value.au = !!vModel.value.au */
       </a-form-item>
 
       <a-form-item v-if="sqlUi.showScale(vModel)" label="Scale">
-        <a-input v-model:value="vModel.dtxs" :disabled="!sqlUi.columnEditable(vModel)" @input="onAlter" />
+        <a-input v-model:value="vModel.dtxs" class="!rounded-md" :disabled="!sqlUi.columnEditable(vModel)" @input="onAlter" />
       </a-form-item>
-    </template>
 
-    <a-form-item :label="$t('placeholder.defaultValue')">
-      <a-textarea v-model:value="vModel.cdf" auto-size @input="onAlter(2, true)" />
-      <span class="text-gray-400 text-xs">{{ sampleValue }}</span>
-    </a-form-item>
+      <LazySmartsheetColumnPgBinaryOptions v-if="isPg(meta?.base_id) && vModel.dt === 'bytea'" v-model:value="vModel" />
+    </template>
   </div>
 </template>

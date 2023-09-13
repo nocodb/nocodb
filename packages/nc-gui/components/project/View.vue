@@ -101,7 +101,7 @@ watch(
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__access-settings">
               <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
-              <div>Members</div>
+              <div>Collaborator</div>
             </div>
           </template>
           <ProjectAccessSettings />
@@ -114,15 +114,6 @@ watch(
             </div>
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" />
-        </a-tab-pane>
-        <a-tab-pane v-if="false && isUIAllowed('acl')" key="ui-acl">
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__ui-acl">
-              <GeneralIcon icon="acl" />
-              <div>{{ $t('title.uiACL') }}</div>
-            </div>
-          </template>
-          <DashboardSettingsUIAclTabs class="mt-6" />
         </a-tab-pane>
       </a-tabs>
     </div>

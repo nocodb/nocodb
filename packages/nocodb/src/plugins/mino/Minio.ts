@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { promisify } from 'util';
 import { Client as MinioClient } from 'minio';
-import request from 'request';
+import axios from 'axios';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import type { Readable } from 'stream';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
@@ -95,20 +95,13 @@ export default class Minio implements IStorageAdapterV2 {
       ACL: 'public-read',
     };
     return new Promise((resolve, reject) => {
-      // Configure the file stream and obtain the upload parameters
-      request(
-        {
-          url: url,
-          encoding: null,
-        },
-        (err, _, body) => {
-          if (err) return reject(err);
-
-          uploadParams.Body = body;
+      axios
+        .get(url)
+        .then((response) => {
+          uploadParams.Body = response.data;
           uploadParams.Key = key;
+          uploadParams.ContentType = response.headers['content-type'];
 
-          // uploadParams.Body = fileStream;
-          // uploadParams.Key = key;
           const metaData = {
             // 'Content-Type': file.mimetype
             // 'X-Amz-Meta-Testing': 1234,
@@ -116,7 +109,7 @@ export default class Minio implements IStorageAdapterV2 {
           };
           // call S3 to retrieve upload file to specified bucket
           this.minioClient
-            .putObject(this.input?.bucket, key, body, metaData)
+            .putObject(this.input?.bucket, key, response.data, metaData)
             .then(() => {
               resolve(
                 `http${this.input.useSSL ? 's' : ''}://${this.input.endPoint}:${
@@ -125,8 +118,10 @@ export default class Minio implements IStorageAdapterV2 {
               );
             })
             .catch(reject);
-        },
-      );
+        })
+        .catch((error) => {
+          reject(error);
+        });
     });
   }
 

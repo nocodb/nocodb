@@ -28,11 +28,7 @@ const fixedSize = toRef(props, 'fixedSize')
 
 const extraStyle = toRef(props, 'extraStyle')
 
-const isPublic = inject(IsPublicInj, ref(false))
-
 const isGroupBy = inject(IsGroupByInj, ref(false))
-
-const { isLeftSidebarOpen, isRightSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isPaginationLoading } = storeToRefs(useViewsStore())
 

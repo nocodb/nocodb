@@ -261,13 +261,12 @@ export class SqliteUi {
       /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
     const match = query.match(reg);
     return match && match[1];
-  }
-
+  }*/
   static columnEditable(_colObj) {
     return true; // colObj.altered === 1;
   }
 
-  static handleRawOutput(result, headers) {
+  /*static handleRawOutput(result, headers) {
     console.log(result);
     if (Array.isArray(result) && result[0]) {
       const keys = Object.keys(result[0]);

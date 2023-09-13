@@ -41,6 +41,7 @@ export const DocsLocalPageInj: InjectionKey<Ref<PageSidebarNode | undefined>> = 
 export const ProjectRoleInj: InjectionKey<Ref<string | string[]>> = Symbol('project-roles-injection')
 export const ProjectInj: InjectionKey<Ref<NcProject>> = Symbol('project-injection')
 export const ProjectIdInj: InjectionKey<Ref<string>> = Symbol('project-id-injection')
+export const EditColumnInj: InjectionKey<Ref<boolean>> = Symbol('edit-column-injection')
 export const TreeViewInj: InjectionKey<{
   setMenuContext: (type: 'project' | 'base' | 'table' | 'main' | 'layout', value?: any) => void
   duplicateTable: (table: TableType) => void

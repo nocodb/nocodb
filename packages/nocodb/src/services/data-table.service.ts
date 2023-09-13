@@ -305,7 +305,7 @@ export class DataTableService {
       count = (await baseModel.hmListCount({
         colId: column.id,
         id: param.rowId,
-      })) as number;
+      }, param.query)) as number;
     } else {
       data = await baseModel.btRead(
         {

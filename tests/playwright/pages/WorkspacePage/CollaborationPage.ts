@@ -36,6 +36,7 @@ export class CollaborationPage extends BasePage {
 
     // email
     await this.input_email.fill(email);
+    await this.rootPage.keyboard.press('Enter');
 
     // role
     await this.selector_role.click();

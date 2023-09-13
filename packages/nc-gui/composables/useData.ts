@@ -243,6 +243,7 @@ export function useData(args: {
               col.uidt === UITypes.QrCode ||
               col.uidt === UITypes.Barcode ||
               col.uidt === UITypes.Rollup ||
+              col.uidt === UITypes.Checkbox ||
               col.au ||
               col.cdf?.includes(' on update ')
             )

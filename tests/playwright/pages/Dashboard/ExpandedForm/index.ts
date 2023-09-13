@@ -158,8 +158,12 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async openChildCard(param: { column: string; title: string }) {
-    const childList = this.get().locator(`[data-testid="nc-expand-col-${param.column}"]`);
-    await childList.locator(`.ant-card:has-text("${param.title}")`).click();
+    const childField = this.get().locator(`[data-testid="nc-expand-col-${param.column}"]`);
+    await childField.locator('.nc-datatype-link').click();
+
+    const card = await this.rootPage.locator(`.ant-card:has-text("${param.title}")`);
+    await card.hover();
+    await card.locator(`.nc-expand-item`).click();
   }
 
   async verifyCount({ count }: { count: number }) {

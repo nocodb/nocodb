@@ -113,7 +113,7 @@ const attachments: Attachment[] = computed(() => {
     <NcButton
       type="text"
       size="lg"
-      class="!px-2 !group-hover:block !hidden !absolute right-1 bottom-1"
+      class="!px-2 nc-expand-item !group-hover:block !hidden !absolute right-1 bottom-1"
       @click.stop="$emit('expand', row)"
     >
       <MaximizeIcon class="w-4 h-4" />

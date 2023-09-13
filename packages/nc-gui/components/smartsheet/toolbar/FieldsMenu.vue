@@ -350,7 +350,7 @@ useMenuCloseOnEsc(open)
               No fields found
             </div>
             <Draggable v-model="fields" item-key="id" @change="onMove($event)">
-              <template #item="{ element: field }">
+              <template #item="{ element: field, index: index }">
                 <div
                   v-if="
                     filteredFieldList
@@ -378,7 +378,7 @@ useMenuCloseOnEsc(open)
                       <span class="mt-0.65">{{ field.title }}</span>
                     </div>
 
-                    <NcSwitch v-e="['a:fields:show-hide']" :checked="field.show" :disabled="field.isViewEssentialField" />
+                    <NcSwitch :checked="field.show" v-e="['a:fields:show-hide']" :disabled="field.isViewEssentialField" />
                   </div>
 
                   <div class="flex-1" />

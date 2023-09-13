@@ -1,15 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import {
-  ActiveCellInj,
-  EditColumnInj,
-  ReadonlyInj,
-  inject,
-  onClickOutside,
-  useProject,
-  useSelectedCellKeyupListener,
-  watch,
-} from '#imports'
+import { ActiveCellInj, ReadonlyInj, inject, onClickOutside, useProject, useSelectedCellKeyupListener, watch } from '#imports'
 
 interface Props {
   modelValue?: string | null | undefined
@@ -29,8 +20,6 @@ const readOnly = inject(ReadonlyInj, ref(false))
 const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
-
-const isEditColumn = inject(EditColumnInj, ref(false))
 
 const column = inject(ColumnInj)!
 
@@ -87,17 +76,7 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => {
-  if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
-    return '(Optional)'
-  } else if (modelValue === null && showNull.value) {
-    return 'NULL'
-  } else if (isTimeInvalid.value) {
-    return 'Invalid time'
-  } else {
-    return ''
-  }
-})
+const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isTimeInvalid.value ? 'Invalid time' : ''))
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
@@ -122,7 +101,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :bordered="false"
     use12-hours
     format="HH:mm"
-    class="!w-full !px-1 !border-none"
+    class="!w-full !px-0 !border-none"
     :class="{ 'nc-null': modelValue === null && showNull }"
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"

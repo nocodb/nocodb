@@ -9,7 +9,6 @@ import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
-  EditColumnInj,
   EditModeInj,
   IsFormInj,
   IsKanbanInj,
@@ -59,8 +58,6 @@ const isOpen = ref(false)
 const isKanban = inject(IsKanbanInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
-
-const isEditColumn = inject(EditColumnInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -303,7 +300,6 @@ const selectedOpt = computed(() => {
       v-model:value="vModel"
       class="w-full overflow-hidden"
       :class="{ 'caret-transparent': !hasEditRoles }"
-      :placeholder="isEditColumn ? '(Optional)' : ''"
       :allow-clear="!column.rqd && editAllowed"
       :bordered="false"
       :open="isOpen && editAllowed"

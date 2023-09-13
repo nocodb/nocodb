@@ -30,6 +30,8 @@ const { sorts, saveOrUpdate, loadSorts, addSort: _addSort, deleteSort } = useVie
 
 const { showSystemFields, metaColumnById } = useViewColumns(view, meta)
 
+const removeIcon = ref<HTMLElement>()
+
 const showCreateSort = ref(false)
 
 const { isMobileMode } = useGlobal()

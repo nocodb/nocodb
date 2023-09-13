@@ -54,6 +54,9 @@ const { isGallery, isGrid, isForm, isKanban, isLocked, isMap } = useProvideSmart
 
 useSqlEditor()
 
+const { openedProject } = storeToRefs(useProjects())
+const { activeTable } = storeToRefs(useTablesStore())
+
 const reloadEventHook = createEventHook<void | boolean>()
 
 const reloadViewMetaEventHook = createEventHook<void | boolean>()

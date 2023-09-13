@@ -1,8 +1,10 @@
 <script setup lang="ts">
 const workspaceStore = useWorkspace()
+const projectStore = useProject()
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
+const { isSharedBase } = storeToRefs(projectStore)
 const { activeWorkspace, isWorkspaceLoading } = storeToRefs(workspaceStore)
 </script>
 

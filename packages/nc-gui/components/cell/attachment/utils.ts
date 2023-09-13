@@ -1,4 +1,5 @@
 import type { AttachmentType } from 'nocodb-sdk'
+import { readonly } from '@vue/reactivity'
 import RenameFile from './RenameFile.vue'
 import {
   ColumnInj,
@@ -32,6 +33,8 @@ import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
 export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
   (updateModelValue: (data: string | Record<string, any>[]) => void) => {
     const isReadonly = inject(ReadonlyInj, ref(false))
+
+    const isLockedMode = inject(IsLockedInj, ref(false))
 
     const isPublic = inject(IsPublicInj, ref(false))
 

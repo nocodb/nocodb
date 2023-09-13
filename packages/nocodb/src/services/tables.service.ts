@@ -1,12 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
-import {
-  isLinksOrLTAR,
-  isVirtualCol,
-  ModelTypes,
-  ProjectRoles,
-  UITypes,
-} from 'nocodb-sdk';
+import { isLinksOrLTAR, isVirtualCol, ModelTypes, ProjectRoles, UITypes } from 'nocodb-sdk'
 import { AppEvents } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';

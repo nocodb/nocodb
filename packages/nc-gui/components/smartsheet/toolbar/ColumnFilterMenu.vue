@@ -3,11 +3,13 @@ import type ColumnFilter from './ColumnFilter.vue'
 import {
   ActiveViewInj,
   IsLockedInj,
+  IsPublicInj,
   computed,
   inject,
   ref,
   useGlobal,
   useMenuCloseOnEsc,
+  useNuxtApp,
   useSmartsheetStoreOrThrow,
   useViewFilters,
   watch,
@@ -19,9 +21,13 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const activeView = inject(ActiveViewInj, ref())
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const { filterAutoSave, isMobileMode } = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
+
+const { $e } = useNuxtApp()
 
 const { nestedFilters } = useSmartsheetStoreOrThrow()
 

@@ -2176,7 +2176,7 @@ class BaseModelSqlv2 {
     return res;
   }
 
-  async updateByPk(id, data, trx?, cookie?, _disableOptimization = false) {
+  async updateByPk(id, data, trx?, cookie?, disableOptimization = false) {
     try {
       const updateObj = await this.model.mapAliasToColumn(
         data,

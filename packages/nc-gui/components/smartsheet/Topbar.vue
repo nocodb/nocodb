@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { IsPublicInj, inject, ref, useSmartsheetStoreOrThrow, useViewsStore } from '#imports'
+import { IsPublicInj, inject, ref, useSharedView, useSmartsheetStoreOrThrow, useUIPermission, useViewsStore } from '#imports'
 
 const { isGrid, isForm, isGallery, isKanban, isMap } = useSmartsheetStoreOrThrow()
 
@@ -11,6 +11,10 @@ const isPublic = inject(IsPublicInj, ref(false))
 const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { isMobileMode } = useGlobal()
+
+const { isUIAllowed } = useUIPermission()
+
+const { allowCSVDownload } = useSharedView()
 
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 </script>

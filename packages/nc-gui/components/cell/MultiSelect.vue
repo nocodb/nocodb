@@ -9,7 +9,6 @@ import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
-  EditColumnInj,
   EditModeInj,
   IsKanbanInj,
   ReadonlyInj,
@@ -61,8 +60,6 @@ const active = computed(() => activeCell.value || isEditable.value)
 const isPublic = inject(IsPublicInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
-
-const isEditColumn = inject(EditColumnInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
@@ -387,7 +384,6 @@ const selectedOpts = computed(() => {
       v-model:value="vModel"
       mode="multiple"
       class="w-full overflow-hidden"
-      :placeholder="isEditColumn ? '(Optional)' : ''"
       :bordered="false"
       clear-icon
       show-search

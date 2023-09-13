@@ -5,7 +5,6 @@ import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
-  EditColumnInj,
   ReadonlyInj,
   dateFormats,
   inject,
@@ -39,8 +38,6 @@ const active = inject(ActiveCellInj, ref(false))
 const editable = inject(EditModeInj, ref(false))
 
 const isLockedMode = inject(IsLockedInj, ref(false))
-
-const isEditColumn = inject(EditColumnInj, ref(false))
 
 const column = inject(ColumnInj)!
 
@@ -135,17 +132,7 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => {
-  if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
-    return '(Optional)'
-  } else if (modelValue === null && showNull.value) {
-    return 'NULL'
-  } else if (isDateInvalid.value) {
-    return 'Invalid date'
-  } else {
-    return ''
-  }
-})
+const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isDateInvalid.value ? 'Invalid date' : ''))
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
@@ -262,7 +249,7 @@ const isColDisabled = computed(() => {
     :disabled="isColDisabled"
     :show-time="true"
     :bordered="false"
-    class="!w-full !px-0 !py-1 !border-none"
+    class="!w-full !px-0 !border-none"
     :class="{ 'nc-null': modelValue === null && showNull }"
     :format="dateTimeFormat"
     :placeholder="placeholder"

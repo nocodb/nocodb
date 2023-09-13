@@ -2,7 +2,8 @@
 import type { ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
-import { useMetas } from '#imports'
+import { useTablesStore } from '~/store/tables'
+import { useMetas } from '~/composables/useMetas'
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()

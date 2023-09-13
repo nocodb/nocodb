@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, inject, useVModel } from '#imports'
+import { EditModeInj, IsExpandedFormOpenInj, inject, useVModel } from '#imports'
 
 interface Props {
   // when we set a number, then it is number type
@@ -21,8 +21,6 @@ const { showNull } = useGlobal()
 
 const editEnabled = inject(EditModeInj)
 
-const isEditColumn = inject(EditColumnInj, ref(false))
-
 const _vModel = useVModel(props, 'modelValue', emits)
 
 const vModel = computed({
@@ -40,7 +38,7 @@ const vModel = computed({
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
@@ -48,10 +46,9 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="outline-none px-1 border-none w-full h-full text-sm"
+    class="outline-none p-0 border-none w-full h-full text-sm"
     type="number"
     step="0.1"
-    :placeholder="isEditColumn ? '(Optional)' : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

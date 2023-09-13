@@ -2,7 +2,6 @@
 import {
   ActiveCellInj,
   ColumnInj,
-  EditColumnInj,
   IsFormInj,
   ReadonlyInj,
   getMdiIcon,
@@ -34,8 +33,6 @@ const column = inject(ColumnInj)
 
 const isForm = inject(IsFormInj)
 
-const isEditColumnMenu = inject(EditColumnInj, ref(false))
-
 const readOnly = inject(ReadonlyInj)
 
 const checkboxMeta = computed(() => {
@@ -50,7 +47,7 @@ const checkboxMeta = computed(() => {
 })
 
 const vModel = computed<boolean | number>({
-  get: () => !!props.modelValue && props.modelValue !== '0' && props.modelValue !== 0 && props.modelValue !== 'false',
+  get: () => !!props.modelValue && props.modelValue !== '0' && props.modelValue !== 0,
   set: (val: any) => emits('update:modelValue', isMssql(column?.value?.base_id) ? +val : val),
 })
 
@@ -78,7 +75,7 @@ useSelectedCellKeyupListener(active, (e) => {
 
 <template>
   <div
-    class="flex cursor-pointer w-full h-full py-1"
+    class="flex cursor-pointer w-full h-full"
     :class="{
       'justify-center': !isForm,
       'w-full': isForm,
@@ -87,22 +84,17 @@ useSelectedCellKeyupListener(active, (e) => {
     }"
     @click="onClick(false, $event)"
   >
-    <div
-      class="items-center"
-      :class="{ '!ml-[-8px]': readOnly, 'w-full justify-start': isEditColumnMenu }"
-      @click="onClick(true)"
-    >
-      <div class="p-1" :class="{ 'bg-gray-100 rounded-full ': !vModel }">
-        <Transition name="layout" mode="out-in" :duration="100">
-          <component
-            :is="getMdiIcon(vModel ? checkboxMeta.icon.checked : checkboxMeta.icon.unchecked)"
-            class="nc-checkbox"
-            :style="{
-              color: checkboxMeta.color,
-            }"
-          />
-        </Transition>
-      </div>
+    <div class="p-1 rounded-full items-center" :class="{ 'bg-gray-100': !vModel, '!ml-[-8px]': readOnly }">
+      <Transition name="layout" mode="out-in" :duration="100">
+        <component
+          :is="getMdiIcon(vModel ? checkboxMeta.icon.checked : checkboxMeta.icon.unchecked)"
+          class="nc-checkbox"
+          :style="{
+            color: checkboxMeta.color,
+          }"
+          @click="onClick(true)"
+        />
+      </Transition>
     </div>
   </div>
 </template>

@@ -1,1 +1,1 @@
-<template><span /></template>
+<template></template>

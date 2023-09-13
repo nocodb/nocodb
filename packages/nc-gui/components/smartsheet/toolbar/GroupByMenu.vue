@@ -10,7 +10,6 @@ import {
   inject,
   ref,
   useMenuCloseOnEsc,
-  useNuxtApp,
   useSmartsheetStoreOrThrow,
 } from '#imports'
 
@@ -28,8 +27,6 @@ const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
 
 const { gridViewCols, updateGridViewColumn } = useGridViewColumnOrThrow()
-
-const { $e } = useNuxtApp()
 
 const _groupBy = ref<{ fk_column_id?: string; sort: string; order: number }[]>([])
 
@@ -108,8 +105,6 @@ const saveGroupBy = async () => {
           })
         }
       }
-
-      $e('a:group-by:update', { groupBy: groupBy.value })
 
       eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
     } catch (e) {
@@ -205,13 +200,7 @@ watch(open, () => {
             </NcSelect>
 
             <a-tooltip placement="right" title="Remove">
-              <NcButton
-                v-e="['c:group-by:remove']"
-                class="nc-group-by-item-remove-btn"
-                size="small"
-                type="text"
-                @click.stop="removeFieldFromGroupBy(i)"
-              >
+              <NcButton class="nc-group-by-item-remove-btn" size="small" type="text" @click.stop="removeFieldFromGroupBy(i)">
                 <GeneralIcon icon="delete" class="" />
               </NcButton>
             </a-tooltip>
@@ -219,7 +208,6 @@ watch(open, () => {
         </div>
         <NcButton
           v-if="fieldsToGroupBy.length > _groupBy.length && _groupBy.length < 3"
-          v-e="['c:group-by:add']"
           class="nc-add-group-btn"
           style="width: fit-content"
           size="small"

@@ -33,9 +33,9 @@
     "test:debug:watch": "pnpm dlx nodemon -e ts -w ./ -x \"pnpm run test:debug\"",
     "test:debug:quick:sqlite": "./startPlayWrightServer.sh; PW_QUICK_TEST=1 PW_TEST_REUSE_CONTEXT=1 PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:31000/ PWDEBUG=console EE=true pnpm exec playwright test -c playwright.config.ts --headed --project=chromium --retries 0 --timeout 5 --workers 1 --max-failures=1",
     "ci:test": "pnpm exec playwright test --workers=2",
-    "ci:test:shard:1": "pnpm exec playwright test --workers=4 --shard=1/3",
-    "ci:test:shard:2": "pnpm exec playwright test --workers=4 --shard=2/3",
-    "ci:test:shard:3": "pnpm exec playwright test --workers=4 --shard=3/3",
+    "ci:test:shard:1": "EE=true pnpm exec playwright test --workers=4 --shard=1/3",
+    "ci:test:shard:2": "EE=true pnpm exec playwright test --workers=4 --shard=2/3",
+    "ci:test:shard:3": "EE=true pnpm exec playwright test --workers=4 --shard=3/3",
     "ci:test:mysql": "E2E_DB_TYPE=mysql EE=true pnpm exec playwright test --workers=2",
     "ci:test:pg": "E2E_DB_TYPE=pg EE=true pnpm exec playwright test --workers=2",
     "preinstall": "npx only-allow pnpm"

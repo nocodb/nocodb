@@ -73,7 +73,7 @@ jobs:
           cd packages/nocodb && npm install &&
           EE=true pnpm exec webpack --config webpack.cloud.config.js &&
           # remove nocodb-sdk since it's packed with the build
-          pnpm uninstall --save nocodb-sdk
+          pnpm uninstall --save-prod nocodb-sdk
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1

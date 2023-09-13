@@ -145,6 +145,7 @@ watch(expandedFormDlg, () => {
             :key="id"
             :row="refRow"
             :fields="fields"
+            data-testid="nc-child-list-item"
             :attachment="attachmentCol"
             :related-table-display-value-prop="relatedTableDisplayValueProp"
             :is-linked="isChildrenListLinked[Number.parseInt(id)]"

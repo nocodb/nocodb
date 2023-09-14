@@ -404,7 +404,8 @@
     "prevRow": "Previous Row",
     "addRowGrid": "Manually add data in grid view",
     "addRowForm": "Enter record data through a form",
-    "noAccess": "No access"
+    "noAccess": "No access",
+    "restApis": "Rest APIs"
   },
   "activity": {
     "moveProject": "Move Project",

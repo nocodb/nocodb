@@ -88,7 +88,7 @@ export class LeftSidebarPage extends BasePage {
     for (let i = 0; i < (await nodes.count()); i++) {
       const text = await getTextExcludeIconText(nodes.nth(i));
       if (text.toLowerCase() === param.title.toLowerCase()) {
-        await nodes.nth(i).click();
+        await nodes.nth(i).click({ force: true });
         break;
       }
     }

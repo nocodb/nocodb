@@ -2,7 +2,7 @@
   <a-sub-menu class="nc-sub-menu" popup-class-name="nc-submenu-popup">
     <template #title>
       <div class="flex flex-row items-center gap-x-1.5 py-1.75 justify-between group hover:text-gray-800">
-        <div class="flex flex-row items-center gap-x-1.5">
+        <div class="flex flex-row items-center gap-x-2">
           <slot name="title" />
         </div>
 
@@ -23,7 +23,7 @@
 }
 
 .nc-sub-menu > .ant-dropdown-menu-submenu-title {
-  @apply pl-1.5 py-0 w-full;
+  @apply pl-2 py-0 w-full;
 }
 
 .ant-dropdown-menu-submenu .ant-dropdown-menu-submenu-title:hover {

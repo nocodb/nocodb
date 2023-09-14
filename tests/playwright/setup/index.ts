@@ -390,7 +390,7 @@ const setup = async ({
       email: `user@nocodb.com`,
       password: getDefaultPwd(),
     });
-    await axios.post(`http://localhost:8080/api/v1/license`, { key: '' }, { headers: { 'xc-auth': admin.data.token } });
+    if (!isEE()) await axios.post(`http://localhost:8080/api/v1/license`, { key: '' }, { headers: { 'xc-auth': admin.data.token } });
   } catch (e) {
     // ignore error: some roles will not have permission for license reset
     // console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);

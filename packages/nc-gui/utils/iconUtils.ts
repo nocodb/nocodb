@@ -74,6 +74,13 @@ import Left from '~icons/material-symbols/chevron-left-rounded'
 import Up from '~icons/material-symbols/keyboard-arrow-up-rounded'
 import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
 
+// Roles
+import MaterialSymbolsManageAccountsOutline from '~icons/material-symbols/manage-accounts-outline'
+// account
+import MdiCommentAccountOutline from '~icons/mdi/comment-account-outline'
+import MaterialSymbolsPersonSearchOutline from '~icons/material-symbols/person-search-outline'
+import MaterialSymbolsBlock from '~icons/material-symbols/block'
+
 // keep it for reference
 // todo: remove it after all icons are migrated
 /* export const iconMapOld = {
@@ -396,6 +403,12 @@ export const iconMap = {
   magic1: MdiMagicStaff,
   workspace: h('span', { class: 'material-symbols' }, 'dataset'),
   notification: NcNotification,
+  role_owner: MaterialSymbolsManageAccountsOutline,
+  role_creator: MaterialSymbolsManageAccountsOutline,
+  role_editor: h('span', { class: 'material-symbols' }, 'person'),
+  role_commenter: MdiCommentAccountOutline,
+  role_viewer: MaterialSymbolsPersonSearchOutline,
+  role_no_access: MaterialSymbolsBlock,
 }
 
 export const getMdiIcon = (type: string): any => {

@@ -13,6 +13,7 @@ const props = defineProps<{
       'border-green-500 bg-green-100': props.color === 'green',
       'border-orange-500 bg-orange-100': props.color === 'orange',
       'border-yellow-500 bg-yellow-100': props.color === 'yellow',
+      'border-red-500 bg-red-100': props.color === 'red',
       'border-gray-300': !props.color,
     }"
   >

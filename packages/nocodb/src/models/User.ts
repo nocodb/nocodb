@@ -258,8 +258,7 @@ export default class User implements UserType {
     const projectRoles = await new Promise((resolve) => {
       if (args.projectId) {
         ProjectUser.get(args.projectId, user.id).then(async (projectUser) => {
-          let roles = projectUser?.roles;
-          roles = roles === 'owner' ? 'owner,creator' : roles;
+          const roles = projectUser?.roles;
           // + (user.roles ? `,${user.roles}` : '');
           if (roles) {
             resolve(extractRolesObj(roles));

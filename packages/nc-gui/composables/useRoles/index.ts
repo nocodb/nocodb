@@ -109,7 +109,7 @@ export const useRoles = createSharedComposable(() => {
       return previewAs.value === role
     }
 
-    return allRoles.value[role]
+    return allRoles.value?.[role]
   }
 
   return { allRoles, orgRoles, workspaceRoles, projectRoles, loadRoles, hasRole }

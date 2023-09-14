@@ -40,6 +40,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          echo "${{ github.event.client_payload }}"
           cd nocohub
           BRANCH_NAME=oss/$(cd ../nocodb;git rev-list -n 3 HEAD | tail -1 | cut -c1-8)
           git checkout -b $BRANCH_NAME

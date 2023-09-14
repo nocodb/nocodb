@@ -14,7 +14,6 @@ const emit = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-
 const projectType = computed(() => props.type ?? NcProjectType.DB)
 
 const projectsStore = useProjects()

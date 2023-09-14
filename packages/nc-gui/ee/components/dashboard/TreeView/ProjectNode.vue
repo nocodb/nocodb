@@ -639,8 +639,8 @@ onMounted(() => {
                   class="!text-red-500 !hover:bg-red-50"
                   @click="isProjectDeleteDialogVisible = true"
                 >
-                  <GeneralIcon icon="delete" />
-                  <div class="-ml-0.25">
+                  <GeneralIcon icon="delete" class="w-4" />
+                  <div>
                     {{ $t('general.delete') }}
                   </div>
                 </NcMenuItem>

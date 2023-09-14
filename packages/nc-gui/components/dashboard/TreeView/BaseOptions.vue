@@ -72,12 +72,12 @@ function openQuickImportDialog(type: string) {
       key="quick-import-airtable"
       @click="openAirtableImportDialog(base.id)"
     >
-      <GeneralIcon icon="airtable" class="group-hover:text-black" />
-      Airtable
+      <GeneralIcon icon="airtable" class="max-w-3.75 group-hover:text-black" />
+      <div class="ml-0.5">Airtable</div>
     </NcMenuItem>
 
     <NcMenuItem v-if="isUIAllowed('csvImport', false, projectRole)" key="quick-import-csv" @click="openQuickImportDialog('csv')">
-      <GeneralIcon icon="csv" class="group-hover:text-black" />
+      <GeneralIcon icon="csv" class="w-4 group-hover:text-black" />
       CSV file
     </NcMenuItem>
 
@@ -86,7 +86,7 @@ function openQuickImportDialog(type: string) {
       key="quick-import-json"
       @click="openQuickImportDialog('json')"
     >
-      <GeneralIcon icon="code" class="group-hover:text-black" />
+      <GeneralIcon icon="code" class="w-4 group-hover:text-black" />
       JSON file
     </NcMenuItem>
 
@@ -95,7 +95,7 @@ function openQuickImportDialog(type: string) {
       key="quick-import-excel"
       @click="openQuickImportDialog('excel')"
     >
-      <GeneralIcon icon="excel" class="group-hover:text-black" />
+      <GeneralIcon icon="excel" class="w-4 group-hover:text-black" />
       Microsoft Excel
     </NcMenuItem>
   </NcSubMenu>

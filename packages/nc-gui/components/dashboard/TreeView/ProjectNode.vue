@@ -514,7 +514,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   class="!text-red-500 !hover:bg-red-50"
                   @click="isProjectDeleteDialogVisible = true"
                 >
-                  <GeneralIcon icon="delete" />
+                  <GeneralIcon icon="delete" class="w-4" />
                   {{ $t('general.delete') }}
                 </NcMenuItem>
               </NcMenu>

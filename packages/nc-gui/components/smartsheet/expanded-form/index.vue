@@ -114,8 +114,6 @@ if (props.rowId) {
 
 useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
 
-provide(IsFormInj, ref(true))
-
 watch(
   state,
   () => {

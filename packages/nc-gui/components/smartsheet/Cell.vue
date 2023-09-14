@@ -204,8 +204,10 @@ onUnmounted(() => {
     :class="[
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
       { 'text-brand-500': isPrimary(column) && !props.virtual && !isForm },
-      { 'nc-grid-numeric-cell': isGrid && !isForm && isNumericField },
-      { 'h-[40px]': !props.editEnabled && isForm && !isSurveyForm && !isAttachment(column) && !props.virtual },
+      { 'nc-grid-numeric-cell': isGrid && !isForm && isNumericField && !isExpandedFormOpen },
+      {
+        'h-[40px]': !props.editEnabled && isForm && !isSurveyForm && !isAttachment(column) && !props.virtual,
+      },
     ]"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="navigate(NavigateDir.PREV, $event)"

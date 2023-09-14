@@ -45,6 +45,8 @@ const { addLTARRef, isNew } = useSmartsheetRowStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const saveRow = inject(SaveRowInj, () => {})
 
 const selectedRowIndex = ref(0)
@@ -141,7 +143,6 @@ watch(expandedFormDlg, () => {
   >
     <LazyVirtualCellComponentsHeader
       :relation="relation"
-      :linked-records="childrenListCount"
       :table-title="meta?.title"
       :related-table-title="relatedTableMeta?.title"
       :display-value="row.row[displayValueProp]"
@@ -223,7 +224,7 @@ watch(expandedFormDlg, () => {
     <div class="my-2 bg-gray-50 border-gray-50 border-b-2"></div>
 
     <div class="flex flex-row justify-between bg-white relative pt-1">
-      <div class="flex items-center justify-center px-2 rounded-md text-brand-500 bg-brand-50">
+      <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-brand-500 bg-brand-50">
         {{ relation === 'bt' ? (row.row[relatedTableMeta?.title] ? '1' : 0) : childrenListCount ?? 'No' }} records
         {{ childrenListCount !== 0 ? 'are' : '' }} linked
       </div>

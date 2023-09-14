@@ -68,7 +68,9 @@ watch(vModel, (nextVal, prevVal) => {
     /** reset query and limit */
     childrenExcludedListPagination.query = ''
     childrenExcludedListPagination.page = 1
-    loadChildrenList()
+    if (!isForm) {
+      loadChildrenList()
+    }
     loadChildrenExcludedList()
     selectedRowIndex.value = 0
   }
@@ -142,6 +144,7 @@ watch(expandedFormDlg, () => {
     wrap-class-name="nc-modal-link-record"
   >
     <LazyVirtualCellComponentsHeader
+      v-if="!isForm"
       :relation="relation"
       :table-title="meta?.title"
       :related-table-title="relatedTableMeta?.title"
@@ -192,9 +195,9 @@ watch(expandedFormDlg, () => {
       <div class="pb-2 pt-1">
         <div class="h-[420px] overflow-scroll nc-scrollbar-md pr-1 cursor-pointer">
           <LazyVirtualCellComponentsListItem
-            data-testid="nc-excluded-list-item"
             v-for="(refRow, id) in childrenExcludedList?.list ?? []"
             :key="id"
+            data-testid="nc-excluded-list-item"
             :row="refRow"
             :fields="fields"
             :attachment="attachmentCol"

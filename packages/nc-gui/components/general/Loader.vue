@@ -22,7 +22,7 @@ function getFontSize() {
 }
 
 const indicator = h(LoadingOutlined, {
-  class: `!${getFontSize()} flex flex-row items-center ${props.loaderClass || '!text-gray-400'}}`,
+  class: `!${getFontSize()} flex flex-row items-center !bg-inherit !hover:bg-inherit !text-inherit ${props.loaderClass}}`,
   spin: true,
 })
 </script>

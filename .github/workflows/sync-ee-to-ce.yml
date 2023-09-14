@@ -55,6 +55,24 @@ jobs:
 
           # Fetch origin/develop
           git fetch origin develop
+
+          # Rebase on top of origin/develop and check for errors
+          set +e
+          git rebase origin/develop
+          REBASE_EXIT_CODE=$?
+          set -e
+
+          # Check the exit status of the git rebase command
+          if [ $REBASE_EXIT_CODE -eq 0 ]; then
+              echo "Rebased successfully."
+          else
+              echo "Error: Failed to rebase."
+
+              echo "error=true" >> $GITHUB_OUTPUT
+              exit 1
+          fi
+
+
           echo "$(cat ./scripts/sync/exclude-list.txt | sed 's/^/":(exclude)/;s/$/"/' | tr '\n' ' ' | xargs git diff origin/develop -- :/)" > ../nocodb/git.patch
 
           cd ../nocodb

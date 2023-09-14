@@ -1,10 +1,10 @@
 import autoBind from 'auto-bind';
 import BaseApiBuilder from '../BaseApiBuilder';
-import NcProjectBuilder from '../NcProjectBuilder';
+import type NcProjectBuilder from '../NcProjectBuilder';
 import type { Router } from 'express';
-import { DbConfig, NcConfig } from '~/interface/config';
-import { MetaService } from '~/meta/meta.service';
-import Noco from '~/Noco';
+import type { DbConfig, NcConfig } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
+import type Noco from '~/Noco';
 import NcHelp from '~/utils/NcHelp';
 import ExpressXcTsRoutes from '~/db/sql-mgr/code/routes/xc-ts/ExpressXcTsRoutes';
 import SwaggerXc from '~/db/sql-mgr/code/routers/xc-ts/SwaggerXc';

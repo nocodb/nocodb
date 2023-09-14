@@ -50,7 +50,6 @@ const onChange = (value: string) => {
 
 <style lang="scss">
 .nc-select.ant-select {
-  height: fit-content;
   .ant-select-selector {
     box-shadow: 0px 5px 3px -2px rgba(0, 0, 0, 0.02), 0px 3px 1px -2px rgba(0, 0, 0, 0.06);
     @apply border-1 border-gray-200 !rounded-lg;
@@ -103,8 +102,5 @@ const onChange = (value: string) => {
       @apply bg-gray-400;
     }
   }
-}
-.nc-select .ant-select {
-  height: fit-content;
 }
 </style>

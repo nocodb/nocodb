@@ -37,3 +37,4 @@ packages/nocodb/tsconfig.ee.json
 ee
 /tests/playwright/tests/ee
 components.d.ts
+pnpm-lock.yaml

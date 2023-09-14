@@ -12,7 +12,6 @@ import {
   onMounted,
   ref,
   storeToRefs,
-  useGlobal,
   useNuxtApp,
   useProject,
   watch,

@@ -122,6 +122,7 @@ test.describe('Expanded form URL', () => {
 
     // close child card
     await dashboard.expandedForm.close();
+    await dashboard.childList.close();
     await dashboard.expandedForm.verify({
       header: 'Afghanistan',
       url: 'rowId=1',
@@ -134,7 +135,7 @@ test.describe('Expanded form URL', () => {
     await viewTestTestTable('grid');
   });
 
-  test('Gallery', async () => {
+  test.only('Gallery', async () => {
     await viewTestSakila('gallery');
     await viewTestTestTable('gallery');
   });

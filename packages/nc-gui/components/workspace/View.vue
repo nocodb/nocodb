@@ -10,8 +10,6 @@ const workspaceStore = useWorkspace()
 const { isWorkspaceOwnerOrCreator, isWorkspaceOwner, activeWorkspace, workspaces } = storeToRefs(workspaceStore)
 const { loadCollaborators } = workspaceStore
 
-const { appInfo } = useGlobal()
-
 const tab = computed({
   get() {
     return route.value.query?.tab ?? 'collaborators'
@@ -68,7 +66,7 @@ onMounted(() => {
           <template #tab>
             <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
               <PhUsersBold />
-              Members
+              Collaborators
             </div>
           </template>
           <WorkspaceCollaboratorsList />

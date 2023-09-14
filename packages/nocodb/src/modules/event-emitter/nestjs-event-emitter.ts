@@ -1,4 +1,4 @@
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import type { EventEmitter2 } from '@nestjs/event-emitter';
 import type { IEventEmitter } from './event-emitter.interface';
 
 export class NestjsEventEmitter implements IEventEmitter {

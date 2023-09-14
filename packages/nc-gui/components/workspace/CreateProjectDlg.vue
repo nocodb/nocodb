@@ -17,7 +17,7 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 const projectType = computed(() => props.type ?? NcProjectType.DB)
 
 const projectsStore = useProjects()
-const { loadProjects, createProject: _createProject } = projectsStore
+const { createProject: _createProject } = projectsStore
 
 const { navigateToProject } = useGlobal()
 

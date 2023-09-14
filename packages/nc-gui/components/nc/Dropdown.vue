@@ -25,7 +25,7 @@ const overlayClassName = toRef(props, 'overlayClassName')
 const autoClose = computed(() => props.autoClose)
 
 const overlayClassNameComputed = computed(() => {
-  let className = 'nc-dropdown bg-white rounded-lg border-1 border-gray-100 shadow-lg shadow-gray-200'
+  let className = 'nc-dropdown bg-white rounded-lg border-1 border-gray-100 shadow-xl shadow-gray-200'
   if (overlayClassName.value) {
     className += ` ${overlayClassName.value}`
   }
@@ -63,3 +63,9 @@ onClickOutside(overlayWrapperDomRef, () => {
     </template>
   </a-dropdown>
 </template>
+
+<style scoped>
+.shadow-dropdown {
+  box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1) !important;
+}
+</style>

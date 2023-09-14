@@ -7,12 +7,15 @@ import { NcProjectType, extractSdkResponseErrorMsg, projectTitleValidator, ref, 
 
 const props = defineProps<{
   modelValue: boolean
-  type: NcProjectType
+  type?: NcProjectType
 }>()
 
 const emit = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
+
+
+const projectType = computed(() => props.type ?? NcProjectType.DB)
 
 const projectsStore = useProjects()
 const { loadProjects, createProject: _createProject } = projectsStore
@@ -39,13 +42,13 @@ const createProject = async () => {
   creating.value = true
   try {
     const project = await _createProject({
-      type: props.type,
+      type: projectType.value,
       title: formState.value.title,
     })
 
     navigateToProject({
       projectId: project.id!,
-      type: props.type,
+      type: projectType.value,
       workspaceId: 'nc',
     })
     dialogShow.value = false
@@ -79,7 +82,7 @@ watch(dialogShow, async (n, o) => {
 })
 
 const typeLabel = computed(() => {
-  switch (props.type) {
+  switch (projectType.value) {
     case NcProjectType.DB:
     default:
       return 'Database'
@@ -92,7 +95,7 @@ const typeLabel = computed(() => {
     <template #header>
       <!-- Create A New Table -->
       <div class="flex flex-row items-center">
-        <GeneralProjectIcon :type="props.type" class="mr-2.5 !text-lg !h-4" />
+        <GeneralProjectIcon :type="projectType" class="mr-2.5 !text-lg !h-4" />
         Create {{ typeLabel }}
       </div>
     </template>

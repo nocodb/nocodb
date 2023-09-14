@@ -380,7 +380,7 @@ const setup = async ({
   }
 
   if (response.status !== 200 || !response.data?.token || !response.data?.project) {
-    console.error('Failed to reset test data', response.data, response.status);
+    console.error('Failed to reset test data', response.data, response.status, enableLocalInit, dbType);
     throw new Error('Failed to reset test data');
   }
   const token = response.data.token;

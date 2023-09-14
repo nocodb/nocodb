@@ -1,0 +1,126 @@
+name: "Sync EE to OSS"
+
+on:  
+  pull_request:    
+    types: [labeled]
+
+jobs:
+  sync-ee-to-ce:
+    if: github.event.label.name == 'trigger-oss-sync'
+    runs-on: [self-hosted, aws]
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.15.0
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: nocohub
+          fetch-depth: 0
+      - name: Checkout OSS
+        uses: actions/checkout@v3
+        with:
+          repository: 'nocodb/nocodb'
+          branch: develop
+          path: nocodb
+          token: ${{ secrets.OSS_TOKEN }}
+      - name: Prepare GH Cli
+        id: gh
+        run: |
+          wget https://github.com/cli/cli/releases/download/v2.33.0/gh_2.33.0_linux_amd64.tar.gz
+          tar -xvf gh_2.33.0_linux_amd64.tar.gz
+          GH=gh_2.33.0_linux_amd64/bin/gh
+          echo "GH=${GH}" >> $GITHUB_OUTPUT
+      - name: Sync EE to OSS
+        id: sync
+        env:
+          GH_TOKEN: ${{ secrets.OSS_TOKEN }}
+          PR_NAME: ${{ github.event.pull_request.title }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          cd nocohub
+
+          HUB_BRANCH_NAME="$GITHUB_HEAD_REF"
+          AUTO_SYNC_BRANCH_NAME="nc-$GITHUB_HEAD_REF"
+
+          git checkout -b $HUB_BRANCH_NAME
+
+          git show -s --oneline HEAD~1
+          NC_EMAIL=$(git log -n 1 --skip 1 --pretty=format:"%ae" | cat)
+          NC_USERNAME=$(git log -n 1 --skip 1 --pretty=format:"%an" | cat)
+          echo "NC_EMAIL=${NC_EMAIL}"
+          echo "NC_USERNAME=${NC_USERNAME}"
+
+          # Fetch origin/develop
+          git fetch origin develop
+          echo "$(cat ./scripts/sync/exclude-list.txt | sed 's/^/":(exclude)/;s/$/"/' | tr '\n' ' ' | xargs git diff origin/develop -- :/)" > ../nocodb/git.patch
+
+          cd ../nocodb
+          if [[ -z $(grep '[^[:space:]]' ./git.patch) ]] ; then
+            echo "Nothing to sync"
+            echo "msg=Nothing to sync" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          git checkout -b $AUTO_SYNC_BRANCH_NAME
+          cat git.patch
+
+          echo "Branch:${AUTO_SYNC_BRANCH_NAME}"
+          echo "Commit:${PR_NAME}"
+          echo "Email:${NC_EMAIL}"
+          echo "Username:${NC_USERNAME}"
+
+          set +e
+          git apply git.patch
+          APPLY_EXIT_CODE=$?
+          set -e
+
+          comment_pr() { 
+            local msg="$1"
+
+            echo "Commenting on PR: ${PR_NUMBER} msg: ${msg}"
+            echo "msg=${msg}" >> $GITHUB_OUTPUT
+          }
+
+          # Check the exit status of the git apply command
+          if [ $APPLY_EXIT_CODE -eq 0 ]; then
+              echo "Patch applied successfully."
+          else
+              echo "Error: Failed to apply the patch."
+
+              comment_pr "Failed to apply the patch. Make sure that nocohub develop and nocodb develop is in sync and then remove and add 'trigger-oss-sync' tag."
+              echo "error=true" >> $GITHUB_OUTPUT
+          fi
+
+          rm -rf git.patch
+          set +e
+          git add .
+          git config user.name ${NC_USERNAME}
+          git config user.email "${NC_EMAIL}"
+          git commit -m "${PR_NAME}"
+
+          git push origin $AUTO_SYNC_BRANCH_NAME
+          PUSH_EXIT_CODE=$?
+          set -e
+
+          if [ $PUSH_EXIT_CODE -eq 0 ]; then
+              echo "Pushed successfully."
+
+              comment_pr "Created sync branch \`${AUTO_SYNC_BRANCH_NAME}\`. Please [Create PR with this link](https://github.com/nocodb/nocodb/compare/${AUTO_SYNC_BRANCH_NAME}?expand=1) to nocodb/nocodb."
+          else
+              echo "Error: Failed to push."
+
+              comment_pr "Failed to push. Make sure that \`${AUTO_SYNC_BRANCH_NAME}\` branch is not already present in nocodb/nocodb."
+              echo "error=true" >> $GITHUB_OUTPUT
+          fi
+      - name: Comment on PR
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: ${{ steps.sync.outputs.msg }}
+      - name: Error if failed
+        if: steps.sync.outputs.error
+        run: exit 1
+        
+        

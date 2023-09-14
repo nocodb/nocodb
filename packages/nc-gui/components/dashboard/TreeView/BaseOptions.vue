@@ -62,7 +62,7 @@ function openQuickImportDialog(type: string) {
     <template #title>
       <GeneralIcon icon="download" />
 
-      {{ $t('labels.importData') }}
+      {{ $t('title.quickImportFrom') }}
     </template>
 
     <template #expandIcon></template>

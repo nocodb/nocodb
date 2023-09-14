@@ -221,7 +221,6 @@ declare module '@vue/runtime-core' {
     PhFlowArrowThin: typeof import('~icons/ph/flow-arrow-thin')['default']
     PhMagnifyingGlassBold: typeof import('~icons/ph/magnifying-glass-bold')['default']
     PhPencilCircleThin: typeof import('~icons/ph/pencil-circle-thin')['default']
-    PhTriangleFill: typeof import('~icons/ph/triangle-fill')['default']
     PhUsersBold: typeof import('~icons/ph/users-bold')['default']
     PhXCircleLight: typeof import('~icons/ph/x-circle-light')['default']
     RiExternalLinkLine: typeof import('~icons/ri/external-link-line')['default']

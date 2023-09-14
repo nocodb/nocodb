@@ -49,6 +49,7 @@ test.describe('Attachment column', () => {
     await dashboard.viewSidebar.createFormView({
       title: 'Form 1',
     });
+    await dashboard.rootPage.waitForTimeout(500);
     const sharedFormUrl = await dashboard.form.topbar.getSharedViewUrl();
     await dashboard.viewSidebar.openView({ title: 'Country' });
 
@@ -56,16 +57,23 @@ test.describe('Attachment column', () => {
     const newPage = await context.newPage();
     await newPage.goto(sharedFormUrl);
     const sharedForm = new SharedFormPage(newPage);
+
+    await sharedForm.rootPage.waitForTimeout(500);
     await sharedForm.cell.fillText({
       index: 0,
       columnHeader: 'Country',
       text: 'test',
     });
+
+    await sharedForm.rootPage.waitForTimeout(500);
     await sharedForm.cell.attachment.addFile({
       columnHeader: 'testAttach',
       filePath: [`${process.cwd()}/fixtures/sampleFiles/1.json`],
     });
+
+    await sharedForm.rootPage.waitForTimeout(500);
     await sharedForm.submit();
+
     await sharedForm.verifySuccessMessage();
     await newPage.close();
 

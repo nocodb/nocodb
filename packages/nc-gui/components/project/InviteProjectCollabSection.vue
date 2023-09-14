@@ -155,6 +155,33 @@ onKeyStroke('Backspace', () => {
     emailBadges.value.pop()
   }
 })
+
+// when bulk email is pasted
+const onPaste = (e: ClipboardEvent) => {
+  const pastedText = e.clipboardData?.getData('text')
+  const inputArray = pastedText?.split(',')
+  inputArray?.forEach((el) => {
+    if (el.length < 1) {
+      emailValidation.isError = true
+      emailValidation.message = 'EMAIL SHOULD NOT BE EMPTY'
+      return
+    }
+    if (!validateEmail(el.trim())) {
+      emailValidation.isError = true
+      emailValidation.message = 'INVALID EMAIL'
+      return
+    }
+    // if email is already enterd we just ignore the input
+    // no error is thrown
+    if (emailBadges.value.includes(el)) {
+      return
+    }
+
+    emailBadges.value.push(el)
+    inviteData.email = ''
+  })
+  inviteData.email = ''
+}
 </script>
 
 <template>
@@ -217,7 +244,7 @@ onKeyStroke('Backspace', () => {
               <span
                 v-for="(email, index) in emailBadges"
                 :key="email"
-                class="text-[14px] border-1 text-brand-500 bg-brand-50 rounded-md ml-1 mt-1 p-0.5"
+                class="text-[14px] border-1 text-brand-500 bg-brand-50 rounded-md ml-1 p-0.5"
               >
                 {{ email }}
                 <component
@@ -231,9 +258,10 @@ onKeyStroke('Backspace', () => {
                 ref="focusRef"
                 v-model="inviteData.email"
                 :placeholder="emailBadges.length < 1 ? 'Enter emails to send invitation' : ''"
-                class="min-w-50 !outline-0 !focus:outline-0 ml-2 mr-3 mt-1"
+                class="min-w-50 !outline-0 !focus:outline-0 ml-2 mr-3"
                 data-testid="email-input"
                 @keyup.enter="handleEnter"
+                @paste.prevent="onPaste"
                 @blur="isDivFocused = false"
               />
             </div>

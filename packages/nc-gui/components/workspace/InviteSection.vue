@@ -21,6 +21,7 @@ const validateEmail = (email: string): boolean => {
   const regEx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return regEx.test(email)
 }
+
 const workspaceStore = useWorkspace()
 
 const { inviteCollaborator: _inviteCollaborator } = workspaceStore
@@ -29,27 +30,31 @@ const { workspaceRoles } = useRoles()
 
 // all user input emails are stored here
 const emailBadges = ref<Array<string>>([])
+
 watch(inviteData, (newVal) => {
   if (newVal.email.includes(',')) {
-    if (inviteData.email.length < 1) {
+    if (newVal.email.length < 1) {
       emailValidation.isError = true
-      emailValidation.message = 'email should not be empty'
+      emailValidation.message = 'EMAIL SHOULD NOT BE EMPTY'
       return
     }
-    if (!validateEmail(inviteData.email.trim())) {
+    if (!validateEmail(newVal.email.trim())) {
       emailValidation.isError = true
-      emailValidation.message = 'invalid email'
+      emailValidation.message = 'INVALID EMAIL'
       return
     }
     // if email is already enterd we just ignore the input
     // no error is thrown
-    if (emailBadges.value.includes(newVal.email.split(',')[0])) {
+    if (emailBadges.value.includes(inviteData.email.split(',')[0])) {
       inviteData.email = ''
       return
     }
-    const emailToAdd = newVal.email.split(',')[0].trim()
-    emailBadges.value.push(emailToAdd)
-    inviteData.email = ''
+
+    if (newVal.email.includes(',')) {
+      const emailToAdd = newVal.email.split(',')[0].trim()
+      emailBadges.value.push(emailToAdd)
+      inviteData.email = ''
+    }
   }
   if (newVal.email.length < 1 && emailValidation.isError) {
     emailValidation.isError = false
@@ -59,12 +64,12 @@ watch(inviteData, (newVal) => {
 const handleEnter = () => {
   if (inviteData.email.length < 1) {
     emailValidation.isError = true
-    emailValidation.message = 'email should not be empty'
+    emailValidation.message = 'EMAIL SHOULD NOT BE EMPTY'
     return
   }
   if (!validateEmail(inviteData.email.trim())) {
     emailValidation.isError = true
-    emailValidation.message = 'invalid email'
+    emailValidation.message = 'INVALID EMAIL'
     return
   }
   inviteData.email += ','
@@ -119,13 +124,40 @@ onKeyStroke('Backspace', () => {
     emailBadges.value.pop()
   }
 })
+
+// when bulk email is pasted
+const onPaste = (e: ClipboardEvent) => {
+  const pastedText = e.clipboardData?.getData('text')
+  const inputArray = pastedText?.split(',')
+  inputArray?.forEach((el) => {
+    if (el.length < 1) {
+      emailValidation.isError = true
+      emailValidation.message = 'EMAIL SHOULD NOT BE EMPTY'
+      return
+    }
+    if (!validateEmail(el.trim())) {
+      emailValidation.isError = true
+      emailValidation.message = 'INVALID EMAIL'
+      return
+    }
+    // if email is already enterd we just ignore the input
+    // no error is thrown
+    if (emailBadges.value.includes(el)) {
+      return
+    }
+
+    emailBadges.value.push(el)
+    inviteData.email = ''
+  })
+  inviteData.email = ''
+}
 </script>
 
 <template>
   <div class="my-2 pt-3 ml-2" data-testid="invite">
     <div class="text-xl mb-4">Invite</div>
     <div class="flex gap-2">
-      <div class="flex flex-col">
+      <div class="flex flex-col items-cenyet">
         <div
           ref="divRef"
           class="flex w-130 border-1 gap-1 items-center flex-wrap min-h-8 max-h-30 overflow-y-scroll rounded-lg nc-scrollbar-md"
@@ -140,7 +172,7 @@ onKeyStroke('Backspace', () => {
           <span
             v-for="(email, index) in emailBadges"
             :key="email"
-            class="text-[14px] border-1 text-brand-500 bg-brand-50 rounded-md ml-1 mt-1 p-0.5"
+            class="text-[14px] border-1 text-brand-500 bg-brand-50 rounded-md ml-1 p-0.5"
           >
             {{ email }}
             <component
@@ -154,13 +186,14 @@ onKeyStroke('Backspace', () => {
             ref="focusRef"
             v-model="inviteData.email"
             :placeholder="emailBadges.length < 1 ? 'Enter emails to send invitation' : ''"
-            class="min-w-50 !outline-0 !focus:outline-0 ml-2 mr-3 mt-1"
+            class="min-w-50 !outline-0 !focus:outline-0 ml-2 mr-3"
             data-testid="email-input"
             @keyup.enter="handleEnter"
             @blur="isDivFocused = false"
+            @paste.prevent="onPaste"
           />
         </div>
-        <span v-if="emailValidation.isError" class="ml-2 text-red-500 text-[12px] mt-1">{{ emailValidation.message }}</span>
+        <span v-if="emailValidation.isError" class="ml-2 text-red-500 text-[10px] mt-1.5">{{ emailValidation.message }}</span>
       </div>
       <NcSelect v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
         <template #suffixIcon>

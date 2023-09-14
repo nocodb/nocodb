@@ -75,9 +75,9 @@ jobs:
           if [ $REBASE_EXIT_CODE -eq 0 ]; then
               echo "Rebased successfully."
           else
-              echo "Error: Failed to rebase."
+              echo "Error: Failed to merge."
 
-              comment_pr "Rebase failed. Make sure that your brach is in sync with nocohub develop"
+              comment_pr "Merge failed. Make sure that your brach is in sync with nocohub develop"
               echo "error=true" >> $GITHUB_OUTPUT
               exit 0
           fi

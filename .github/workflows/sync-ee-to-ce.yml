@@ -53,23 +53,27 @@ jobs:
           echo "NC_EMAIL=${NC_EMAIL}"
           echo "NC_USERNAME=${NC_USERNAME}"
 
+          git config --global user.name ${NC_USERNAME}
+          git config --global user.email "${NC_EMAIL}"
+
           # Fetch origin/develop
           git fetch origin develop
 
-          # Rebase on top of origin/develop and check for errors
+          # Merge on top of origin/develop and check for errors
           set +e
-          git rebase origin/develop
-          REBASE_EXIT_CODE=$?
+          git merge origin/develop
+          MERGE_EXIT_CODE=$?
           set -e
 
-          # Check the exit status of the git rebase command
-          if [ $REBASE_EXIT_CODE -eq 0 ]; then
-              echo "Rebased successfully."
+          # Check the exit status of the git merge command
+          if [ $MERGE_EXIT_CODE -eq 0 ]; then
+              echo "Merged successfully."
           else
-              echo "Error: Failed to rebase."
+              echo "Error: Failed to merge."
 
+              comment_pr "Merge failed. Make sure that your brach is in sync with nocohub develop"
               echo "error=true" >> $GITHUB_OUTPUT
-              exit 1
+              exit 0
           fi
 
 
@@ -115,8 +119,6 @@ jobs:
           rm -rf git.patch
           set +e
           git add .
-          git config user.name ${NC_USERNAME}
-          git config user.email "${NC_EMAIL}"
           git commit -m "${PR_NAME}"
 
           git push origin $AUTO_SYNC_BRANCH_NAME

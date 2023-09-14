@@ -105,7 +105,7 @@ onMounted(() => {
           </a>
           <template v-if="!appInfo.ee">
             <NcDivider />
-            <a-popover key="language" class="lang-menu !py-0" placement="rightBottom">
+            <a-popover key="language" class="lang-menu !py-1.5" placement="rightBottom">
               <NcMenuItem>
                 <GeneralIcon icon="translate" class="group-hover:text-black nc-language ml-0.25 menu-icon" />
                 {{ $t('labels.language') }}

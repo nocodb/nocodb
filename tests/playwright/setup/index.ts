@@ -342,7 +342,7 @@ const setup = async ({
   url?: string;
 }): Promise<NcContext> => {
   let dbType = process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE;
-  dbType = dbType || 'sqlite';
+  dbType = dbType || (isEE() ? 'pg' : 'sqlite');
 
   let response;
 
@@ -380,7 +380,7 @@ const setup = async ({
   }
 
   if (response.status !== 200 || !response.data?.token || !response.data?.project) {
-    console.error('Failed to reset test data', response.data, response.status);
+    console.error('Failed to reset test data', response.data, response.status, enableLocalInit, dbType);
     throw new Error('Failed to reset test data');
   }
   const token = response.data.token;

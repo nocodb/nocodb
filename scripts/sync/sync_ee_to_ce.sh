@@ -34,7 +34,7 @@ for commit_info in "${commit_data[@]}"; do
 
   cat ../nocohub/scripts/sync/exclude-list.txt | sed 's/^/":/;s/$/"/' | tr '\n' ' ' | xargs git reset --
 
-  git commit -m "$commit_message" --author="$commit_author <$commit_author_mail>" --signoff
+  git commit -m "$commit_message" --author="$commit_author <$commit_author_mail>"
 
   git reset --hard
 

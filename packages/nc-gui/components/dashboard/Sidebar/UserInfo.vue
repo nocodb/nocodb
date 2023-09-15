@@ -141,15 +141,15 @@ onMounted(() => {
     </NcDropdown>
 
     <div v-if="appInfo.ee" class="text-gray-500 text-xs pl-3">© 2023 NocoDB. Inc</div>
-    <div v-else-if="isMounted" class="flex flex-col gap-y-1 pt-1">
-      <div class="flex items-start flex-row justify-center px-2 gap-2">
+    <div v-else-if="isMounted" class="flex flex-row justify-between flex-wrap pt-1 truncate">
+      <div class="flex items-start flex-row justify-center px-3 gap-2">
         <GithubButton href="https://github.com/nocodb/nocodb" data-icon="octicon-star" data-show-count="true" data-size="large">
           Star
         </GithubButton>
       </div>
 
       <div class="flex items-start flex-row justify-center gap-2">
-        <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+        <GeneralJoinCloud class="color-transition px-3 text-gray-500 cursor-pointer select-none hover:text-accent" />
       </div>
     </div>
   </div>

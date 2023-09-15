@@ -1,4 +1,4 @@
-import type { ColumnType } from 'nocodb-sdk'
+import { UITypes, type ColumnType } from 'nocodb-sdk'
 import type { PropType } from '@vue/runtime-core'
 import {
   ColumnInj,
@@ -81,6 +81,8 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
     return iconMap.percent
   } else if (isInt(column, abstractType) || isFloat(column, abstractType)) {
     return iconMap.number
+  } else if(column.uidt === UITypes.Geometry) {
+    return iconMap.calculator
   } else if (isString(column, abstractType)) {
     return iconMap.text
   } else {

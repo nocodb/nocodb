@@ -40,36 +40,44 @@ const isSharedView = computed(() => {
   return !routeName.startsWith('index-typeOrId-projectId-') && !['index', 'index-typeOrId'].includes(routeName)
 })
 
+async function handleRouteTypeIdChange() {
+  // avoid loading projects for shared views
+  if (isSharedView.value) {
+    return
+  }
+
+  // avoid loading projects for shared base
+  if (route.value.params.typeOrId === 'base') {
+    await populateWorkspace()
+    return
+  }
+
+  if (!signedIn.value) {
+    navigateTo('/signIn')
+    return
+  }
+
+  // Load projects
+  await populateWorkspace()
+
+  if (!route.value.params.projectId && projectsList.value.length > 0) {
+    await autoNavigateToProject()
+  }
+}
+
 watch(
   () => route.value.params.typeOrId,
-  async () => {
-    // avoid loading projects for shared views
-    if (isSharedView.value) {
-      return
-    }
-
-    // avoid loading projects for shared base
-    if (route.value.params.typeOrId === 'base') {
-      await populateWorkspace()
-      return
-    }
-
-    if (!signedIn.value) {
-      navigateTo('/signIn')
-      return
-    }
-
-    // Load projects
-    await populateWorkspace()
-
-    if (!route.value.params.projectId && projectsList.value.length > 0) {
-      await autoNavigateToProject()
-    }
-  },
-  {
-    immediate: true,
+  () => {
+    handleRouteTypeIdChange()
   },
 )
+
+// onMounted is needed instead having this function called through
+// immediate watch, because if route is changed during page transition
+// It will error out nuxt
+onMounted(() => {
+  handleRouteTypeIdChange()
+})
 
 function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: string) {
   dialogOpen.value = value ?? !dialogOpen.value

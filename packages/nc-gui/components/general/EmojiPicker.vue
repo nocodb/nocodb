@@ -78,7 +78,7 @@ const showClearButton = computed(() => {
 </script>
 
 <template>
-  <a-dropdown v-model:visible="isOpen" trigger="click" :disabled="readonly">
+  <a-dropdown v-model:visible="isOpen" :trigger="['click']" :disabled="readonly">
     <div
       class="flex flex-row justify-center items-center select-none rounded-md"
       :class="{

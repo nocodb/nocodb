@@ -10,6 +10,7 @@ export const useProjects = defineStore('projectsStore', () => {
   const { $api } = useNuxtApp()
 
   const { loadRoles } = useRoles()
+  const { appInfo } = useGlobal()
 
   const projects = ref<Map<string, NcProject>>(new Map())
 
@@ -326,6 +327,28 @@ export const useProjects = defineStore('projectsStore', () => {
     return await _navigateToProject({ workspaceId: project.fk_workspace_id, projectId })
   }
 
+  const toggleStarred = async (projectId: string) => {
+    try {
+      const activeWorkspace = workspaceStore.activeWorkspace
+      const project = projects.value.get(projectId)
+      if (!project) return
+
+      project.starred = !project.starred
+
+      await $api.project.userMetaUpdate(
+        projectId,
+        {
+          starred: project.starred,
+        },
+        {
+          baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace?.id}.${appInfo.value.baseHostName}` : undefined,
+        },
+      )
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   onMounted(() => {
     if (!activeProjectId.value) return
     if (isProjectPopulated(activeProjectId.value)) return
@@ -368,6 +391,7 @@ export const useProjects = defineStore('projectsStore', () => {
     removeProjectUser,
     navigateToProject,
     navigateToFirstProjectOrHome,
+    toggleStarred,
   }
 })
 

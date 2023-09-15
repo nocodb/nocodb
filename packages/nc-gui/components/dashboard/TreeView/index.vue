@@ -252,6 +252,7 @@ watch(
 
 <template>
   <div class="nc-treeview-container flex flex-col justify-between select-none">
+    <div class="text-gray-500 font-medium pl-3.5 mb-1">{{ $t('objects.projects') }}</div>
     <div mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
       <template v-if="projectsList?.length">
         <ProjectWrapper v-for="project of projectsList" :key="project.id" :project-role="project.project_role" :project="project">
@@ -265,112 +266,4 @@ watch(
   </div>
 </template>
 
-<style scoped lang="scss">
-.nc-treeview-footer-item {
-  @apply cursor-pointer px-4 py-2 flex items-center hover:bg-gray-200/20 text-xs text-current;
-}
-
-:deep(.nc-filter-input input::placeholder) {
-  @apply !text-xs;
-}
-
-:deep(.ant-dropdown-menu-title-content) {
-  @apply !p-2;
-}
-
-:deep(.ant-input-group-addon:last-child) {
-  @apply top-[-0.5px];
-}
-
-.nc-treeview-container {
-  .ghost,
-  .ghost > * {
-    @apply !pointer-events-none;
-  }
-
-  & .dragging {
-    .nc-icon {
-      @apply !hidden;
-    }
-
-    .nc-view-icon {
-      @apply !block;
-    }
-  }
-
-  .ant-menu-item:not(.sortable-chosen) {
-    @apply color-transition hover:!bg-transparent;
-  }
-
-  .sortable-chosen {
-    @apply !bg-primary bg-opacity-25 text-primary;
-  }
-}
-
-.nc-tree-item:hover {
-  @apply text-primary after:(!opacity-5);
-}
-
-:deep(.nc-filter-input) {
-  .ant-input {
-    @apply pr-6 !border-0;
-  }
-}
-
-:deep(.ant-dropdown-menu-item-group-title) {
-  @apply border-b-1;
-}
-
-:deep(.ant-dropdown-menu-item-group-list) {
-  @apply !mx-0;
-}
-
-:deep(.ant-dropdown-menu-item-group-title) {
-  @apply border-b-1;
-}
-
-:deep(.ant-dropdown-menu-item-group-list) {
-  @apply m-0;
-}
-
-:deep(.ant-dropdown-menu-item) {
-  @apply !py-0 active:(ring ring-accent ring-opacity-100);
-}
-
-:deep(.ant-dropdown-menu-title-content) {
-  @apply !p-0;
-}
-
-:deep(.ant-collapse-content-box) {
-  @apply !p-0;
-}
-
-:deep(.ant-collapse-header) {
-  @apply !border-0;
-}
-
-:deep(.ant-menu-sub.ant-menu-inline .ant-menu-item-group-title) {
-  @apply !py-0;
-}
-
-:deep(.nc-project-sub-menu .ant-menu-submenu-title) {
-  @apply !pr-1 !pl-3;
-}
-
-:deep(.ant-menu-inline .ant-menu-submenu-title) {
-  @apply !h-28px;
-}
-
-:deep(.nc-project-sub-menu.active) {
-}
-
-.nc-create-project-btn {
-  @apply px-2;
-  :deep(.ant-btn) {
-    @apply w-full !text-center justify-center h-auto rounded-lg py-2 px-4 border-gray-100 bg-white;
-    & > div {
-      @apply !justify-center;
-    }
-  }
-}
-</style>
+<style scoped lang="scss"></style>

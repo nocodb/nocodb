@@ -73,7 +73,6 @@ test.describe('Attachment column', () => {
 
     await sharedForm.rootPage.waitForTimeout(500);
     await sharedForm.submit();
-
     await sharedForm.verifySuccessMessage();
     await newPage.close();
 

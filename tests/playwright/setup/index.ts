@@ -342,7 +342,7 @@ const setup = async ({
   url?: string;
 }): Promise<NcContext> => {
   let dbType = process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE;
-  dbType = dbType || isEE() ? 'pg' : 'sqlite';
+  dbType = dbType || (isEE() ? 'pg' : 'sqlite');
 
   let response;
 

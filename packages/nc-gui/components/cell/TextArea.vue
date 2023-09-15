@@ -10,6 +10,7 @@ import {
   iconMap,
   inject,
   useVModel,
+  ReadonlyInj
 } from '#imports'
 
 const props = defineProps<{
@@ -46,6 +47,8 @@ const inputWrapperRef = ref<HTMLElement | null>(null)
 const inputRef = ref<HTMLTextAreaElement | null>(null)
 
 const active = inject(ActiveCellInj, ref(false))
+
+const readOnly = inject(ReadonlyInj)
 
 watch(isVisible, () => {
   if (isVisible.value) {
@@ -138,6 +141,7 @@ onClickOutside(inputWrapperRef, (e) => {
           :auto-size="{ minRows: 20, maxRows: 20 }"
           @keydown.stop
           @keydown.escape="isVisible = false"
+          :disabled="readOnly"
         />
       </div>
     </template>

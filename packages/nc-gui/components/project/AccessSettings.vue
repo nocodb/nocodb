@@ -16,6 +16,7 @@ const currentPage = ref(0)
 
 const isLoading = ref(false)
 const isSearching = ref(false)
+const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
 const loadCollaborators = async () => {
   try {
@@ -60,17 +61,6 @@ const loadListData = async ($state: any) => {
   }
   $state.loaded()
 }
-
-onMounted(async () => {
-  isLoading.value = true
-  try {
-    await loadCollaborators()
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    isLoading.value = false
-  }
-})
 
 const updateCollaborator = async (collab, roles) => {
   try {
@@ -122,10 +112,19 @@ const userProjectRole = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles
   return projectUser?.projectRoles
 })
 
-const accessibleRoles = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>(() => {
-  const currentRoleIndex = OrderedProjectRoles.findIndex((role) => role === userProjectRole.value)
-  if (currentRoleIndex === -1) return []
-  return OrderedProjectRoles.slice(currentRoleIndex + 1)
+onMounted(async () => {
+  isLoading.value = true
+  try {
+    await loadCollaborators()
+    const currentRoleIndex = OrderedProjectRoles.findIndex((role) => role === userProjectRole.value)
+    if (currentRoleIndex !== -1) {
+      accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex + 1)
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoading.value = false
+  }
 })
 </script>
 

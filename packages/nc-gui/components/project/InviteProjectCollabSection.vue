@@ -26,7 +26,7 @@ const validateEmail = (email: string): boolean => {
 // all user input emails are stored here
 const emailBadges = ref<Array<string>>([])
 watch(inviteData, (newVal) => {
-  if (newVal.email.includes(' ' || ',')) {
+  if (newVal.email.includes(' ')) {
     if (inviteData.email.length < 1) {
       emailValidation.isError = true
       emailValidation.message = 'email should not be empty'
@@ -39,11 +39,11 @@ watch(inviteData, (newVal) => {
     }
     // if email is already enterd we just ignore the input
     // no error is thrown
-    if (emailBadges.value.includes(newVal.email.split(' ' || ',')[0])) {
+    if (emailBadges.value.includes(newVal.email.split(' ')[0])) {
       inviteData.email = ''
       return
     }
-    const emailToAdd = newVal.email.split(' ' || ',')[0].trim()
+    const emailToAdd = newVal.email.split(' ')[0].trim()
     emailBadges.value.push(emailToAdd)
     inviteData.email = ''
   }
@@ -63,7 +63,7 @@ const handleEnter = () => {
     emailValidation.message = 'invalid email'
     return
   }
-  inviteData.email += ','
+  inviteData.email += ' '
   emailValidation.isError = false
   emailValidation.message = ''
 }
@@ -90,6 +90,14 @@ const inviteCollaborator = async () => {
   isInvitingCollaborators.value = true
 
   try {
+    emailBadges.value.forEach((el, index) => {
+      // prevent the last email from getting the ","
+      if (index === emailBadges.value.length - 1) {
+        inviteData.email += el
+      } else {
+        inviteData.email += `${el},`
+      }
+    })
     usersData.value = await inviteUser(inviteData)
     usersData.roles = inviteData.roles
     if (usersData.value) {
@@ -159,7 +167,7 @@ onKeyStroke('Backspace', () => {
 // when bulk email is pasted
 const onPaste = (e: ClipboardEvent) => {
   const pastedText = e.clipboardData?.getData('text')
-  const inputArray = pastedText?.split(' ' || ',')
+  const inputArray = pastedText?.split(' ')
   inputArray?.forEach((el) => {
     if (el.length < 1) {
       emailValidation.isError = true

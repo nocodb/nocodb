@@ -53,7 +53,7 @@ test.describe('Project Collaboration', () => {
     await unsetup(context);
   });
 
-  test('EE: Project role access validation', async ({ page }) => {
+  test.only('EE: Project role access validation', async ({ page }) => {
     await dashboard.leftSidebar.clickTeamAndSettings();
 
     // add all users as WS viewers

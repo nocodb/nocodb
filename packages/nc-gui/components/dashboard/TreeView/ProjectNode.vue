@@ -530,7 +530,13 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   <GeneralIcon icon="settings" class="group-hover:text-black" />
                   {{ $t('activity.settings') }}
                 </NcMenuItem>
-
+                <template v-if="project.bases && project.bases[0]">
+                  <NcDivider />
+                  <!-- Import Data -->
+                  <DashboardTreeViewBaseOptions v-model:project="project" :base="project.bases[0]" />
+                  <NcDivider />
+                </template>
+                <!-- Delete -->
                 <NcMenuItem
                   v-if="isUIAllowed('projectDelete', { roles: [stringifyRolesObj(orgRoles), projectRole].join() })"
                   data-testid="nc-sidebar-project-delete"
@@ -712,8 +718,8 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
               {{ $t('general.duplicate') }}
             </div>
           </NcMenuItem>
-
-          <NcMenuItem v-if="isUIAllowed('tableDelete')" @click="isTableDeleteDialogVisible = true">
+          <NcDivider />
+          <NcMenuItem v-if="isUIAllowed('table-delete')" class="!hover:bg-red-50" @click="isTableDeleteDialogVisible = true">
             <div class="nc-project-option-item text-red-600">
               <GeneralIcon icon="delete" />
               {{ $t('general.delete') }}

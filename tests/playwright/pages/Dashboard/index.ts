@@ -118,7 +118,7 @@ export class DashboardPage extends BasePage {
 
   async gotoSettings() {
     await this.projectMenuLink.click();
-    await this.rootPage.locator('.ant-dropdown').locator(`.nc-project-menu-item:has-text("Settings")`).click();
+    await this.rootPage.locator('.ant-dropdown').locator(`.nc-menu-item:has-text("Settings")`).click();
   }
 
   async gotoProjectSubMenu({ title }: { title: string }) {

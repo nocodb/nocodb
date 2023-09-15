@@ -82,8 +82,8 @@ vModel.value.au = !!vModel.value.au */
 
       <a-form-item v-if="!hideLength" :label="$t('labels.lengthValue')">
         <a-input
-          class="!rounded-md"
           v-model:value="vModel.dtxp"
+          class="!rounded-md"
           :disabled="sqlUi.getDefaultLengthIsDisabled(vModel.dt) || !sqlUi.columnEditable(vModel)"
           @input="onAlter"
         />

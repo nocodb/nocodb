@@ -17,5 +17,7 @@ jobs:
             owner: 'nocodb',
             repo: 'nocohub',
             event_type: 'OSS',
-            client_payload: ${{ toJSON(github.event) }}
+            client_payload: {
+              push: ${{ toJSON(github.event) }}
+            }
           })

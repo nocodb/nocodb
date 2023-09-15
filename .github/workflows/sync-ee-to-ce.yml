@@ -23,7 +23,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: 'nocodb/nocodb'
-          branch: develop
           path: nocodb
           token: ${{ secrets.OSS_TOKEN }}
       - name: Prepare GH Cli
@@ -45,9 +44,10 @@ jobs:
           HUB_BRANCH_NAME="$GITHUB_HEAD_REF"
           AUTO_SYNC_BRANCH_NAME="nc-$GITHUB_HEAD_REF"
 
-          git checkout -b $HUB_BRANCH_NAME
+          git fetch origin develop:develop
+          git fetch origin $HUB_BRANCH_NAME:$HUB_BRANCH_NAME
+          git checkout $HUB_BRANCH_NAME
 
-          git show -s --oneline HEAD~1
           NC_EMAIL=$(git log -n 1 --skip 1 --pretty=format:"%ae" | cat)
           NC_USERNAME=$(git log -n 1 --skip 1 --pretty=format:"%an" | cat)
           echo "NC_EMAIL=${NC_EMAIL}"
@@ -56,48 +56,38 @@ jobs:
           git config --global user.name ${NC_USERNAME}
           git config --global user.email "${NC_EMAIL}"
 
-          # Fetch origin/develop
-          git fetch origin develop
-
           # Merge on top of origin/develop and check for errors
           set +e
-          git merge origin/develop
-          MERGE_EXIT_CODE=$?
+          git rebase develop
+          REBASE_EXIT_CODE=$?
           set -e
 
-          # Check the exit status of the git merge command
-          if [ $MERGE_EXIT_CODE -eq 0 ]; then
-              echo "Merged successfully."
-          else
-              echo "Error: Failed to merge."
+          git status
 
-              comment_pr "Merge failed. Make sure that your brach is in sync with nocohub develop"
+          # Check the exit status of the git rebase command
+          if [ $REBASE_EXIT_CODE -eq 0 ]; then
+              echo "Rebased successfully."
+          else
+              echo "Error: Failed to rebase."
+
+              comment_pr "Rebase failed. Make sure that your brach is in sync with nocohub develop"
               echo "error=true" >> $GITHUB_OUTPUT
               exit 0
           fi
 
+          # Run the git diff command and capture the output
+          diff_output=$(cat ./scripts/sync/exclude-list.txt | sed 's/^/":(exclude)/;s/$/"/' | tr '\n' ' ' | xargs git diff origin/develop -- :/)
 
-          echo "$(cat ./scripts/sync/exclude-list.txt | sed 's/^/":(exclude)/;s/$/"/' | tr '\n' ' ' | xargs git diff origin/develop -- :/)" > ../nocodb/git.patch
-
-          cd ../nocodb
-          if [[ -z $(grep '[^[:space:]]' ./git.patch) ]] ; then
-            echo "Nothing to sync"
-            echo "msg=Nothing to sync" >> $GITHUB_OUTPUT
-            exit 0
+          # Check if the output is empty
+          if [ -z "$diff_output" ]; then
+              echo "Nothing to sync"
+              echo "msg=Nothing to sync" >> $GITHUB_OUTPUT
+              exit 0
           fi
 
-          git checkout -b $AUTO_SYNC_BRANCH_NAME
-          cat git.patch
+          bash scripts/sync/sync_ee_to_ce.sh
 
-          echo "Branch:${AUTO_SYNC_BRANCH_NAME}"
-          echo "Commit:${PR_NAME}"
-          echo "Email:${NC_EMAIL}"
-          echo "Username:${NC_USERNAME}"
-
-          set +e
-          git apply git.patch
-          APPLY_EXIT_CODE=$?
-          set -e
+          cd ../nocodb
 
           comment_pr() { 
             local msg="$1"
@@ -106,21 +96,7 @@ jobs:
             echo "msg=${msg}" >> $GITHUB_OUTPUT
           }
 
-          # Check the exit status of the git apply command
-          if [ $APPLY_EXIT_CODE -eq 0 ]; then
-              echo "Patch applied successfully."
-          else
-              echo "Error: Failed to apply the patch."
-
-              comment_pr "Failed to apply the patch. Make sure that nocohub develop and nocodb develop is in sync and then remove and add 'trigger-oss-sync' tag."
-              echo "error=true" >> $GITHUB_OUTPUT
-          fi
-
-          rm -rf git.patch
           set +e
-          git add .
-          git commit -m "${PR_NAME}"
-
           git push origin $AUTO_SYNC_BRANCH_NAME
           PUSH_EXIT_CODE=$?
           set -e

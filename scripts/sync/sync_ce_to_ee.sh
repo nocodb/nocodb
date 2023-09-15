@@ -15,7 +15,11 @@ git fetch ee
 # cd to the root of the nocohub
 cd "$SCRIPT_DIR/../.."
 
-commit_data=$(cd ../nocodb; git log --format="%H|%an|%ae|%s" --no-merges "$START_COMMIT".."$END_COMMIT")
+git remote add oss ../nocodb
+
+git fetch oss
+
+commit_data=$(cd ../nocodb; git log --reverse --format="%H|%an|%ae|%s" --no-merges "$START_COMMIT".."$END_COMMIT")
 
 # Split the commit data into an array
 IFS=$'\n' read -rd '' -a commit_data <<<"$commit_data"

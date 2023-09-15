@@ -39,3 +39,4 @@ pnpm-lock.yaml
 **/ee/**
 **/components.d.ts
 packages/nocodb-sdk/src/lib/Api.ts
+*.sh

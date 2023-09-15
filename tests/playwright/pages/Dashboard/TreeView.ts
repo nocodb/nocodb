@@ -218,7 +218,7 @@ export class TreeViewPage extends BasePage {
     await this.getProjectContextMenu({ projectTitle }).hover();
     await this.getProjectContextMenu({ projectTitle }).click();
     const importMenu = this.dashboard.get().locator('.ant-dropdown-menu');
-    await importMenu.locator(`.nc-sub-menu:has-text("Import Data")`).click();
+    await importMenu.locator(`.nc-sub-menu:has-text("Quick Import From")`).click();
     await this.rootPage.locator(`.ant-dropdown-menu-item:has-text("${title}")`).waitFor();
     await this.rootPage.locator(`.ant-dropdown-menu-item:has-text("${title}")`).click();
   }

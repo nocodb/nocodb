@@ -34,7 +34,9 @@ package-lock.json
 .run
 packages/nocodb/tsconfig.ee.json
 packages/nocodb/docker
-ee
-tests/playwright/tests/ee
 components.d.ts
 pnpm-lock.yaml
+**/ee/**
+**/components.d.ts
+packages/nocodb-sdk/src/lib/Api.ts
+*.sh

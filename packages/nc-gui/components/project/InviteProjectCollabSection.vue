@@ -122,7 +122,7 @@ const copyUrl = async () => {
             :role="inviteData.roles"
             :roles="ProjectRoles"
             :on-role-change="(role: ProjectRoles) => (inviteData.roles = role)"
-            :description="false"
+            :description="true"
           />
 
           <a-button

@@ -17,6 +17,7 @@ import {
 } from '#imports'
 import type { NcProject } from '#imports'
 import { useNuxtApp } from '#app'
+import Erd from '../settings/Erd.vue'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -48,6 +49,10 @@ useTabs()
 const editMode = ref(false)
 
 const tempTitle = ref('')
+
+const activeBaseId = ref('')
+
+const isErdModalOpen = ref<Boolean>(false)
 
 const { t } = useI18n()
 
@@ -267,7 +272,9 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
 }
 
 function openErdView(base: BaseType) {
-  navigateTo(`/nc/${base.project_id}/erd/${base.id}`)
+  if (!base?.id) return
+  activeBaseId.value = base?.id
+  isErdModalOpen.value = !isErdModalOpen.value
 }
 
 async function openProjectErdView(_project: ProjectType) {
@@ -280,8 +287,8 @@ async function openProjectErdView(_project: ProjectType) {
   const project = projects.value.get(_project.id)
 
   const base = project?.bases?.[0]
-  if (!base) return
-  navigateTo(`/nc/${base.project_id}/erd/${base.id}`)
+  if(!base) return
+  openErdView(base)
 }
 
 const reloadTables = async () => {
@@ -724,6 +731,16 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
     :project="selectedProjectToDuplicate"
     :on-ok="DlgProjectDuplicateOnOk"
   />
+  <GeneralModal v-model:visible="isErdModalOpen" size="large">
+    <div
+      class="p-6"
+      :style="{
+        height: '80vh',
+      }"
+    >
+      <Erd :base-id="activeBaseId" />
+    </div>
+  </GeneralModal>
 </template>
 
 <style lang="scss" scoped>

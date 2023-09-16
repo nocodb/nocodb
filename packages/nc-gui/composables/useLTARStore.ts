@@ -72,6 +72,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const isChildrenExcludedListLinked = ref<Array<boolean>>([])
 
+    const newRowState = reactive({
+      state: null,
+    })
+
     const childrenListCount = ref(0)
 
     const { t } = useI18n()
@@ -121,6 +125,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     })
 
     const loadChildrenExcludedList = async (activeState?: any) => {
+      if (activeState) newRowState.state = activeState
       try {
         if (isPublic.value) {
           const router = useRouter()
@@ -145,26 +150,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               } as RequestParams,
             },
           )
-
-          if (childrenExcludedList.value?.list && activeState && activeState[column.value.title]) {
-            childrenExcludedList.value.list = childrenExcludedList.value?.list.filter((c: any) => {
-              // filter out exact same objects in activeState[column.value.title]
-              // compare all keys and values
-              const found = activeState[column.value.title].find((a: any) => {
-                let isSame = true
-
-                for (const key in a) {
-                  if (a[key] !== c[key]) {
-                    isSame = false
-                  }
-                }
-
-                return isSame
-              })
-
-              return !found
-            })
-          }
 
           /** if new row load all records */
         } else if (isNewRow?.value) {
@@ -199,10 +184,32 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             } as any,
           )
         }
+
         childrenExcludedList.value?.list.forEach((row: Record<string, any>, index: number) => {
           isChildrenExcludedListLinked.value[index] = false
           isChildrenExcludedListLoading.value[index] = false
         })
+
+        if (childrenExcludedList.value?.list && activeState && activeState[column.value.title]) {
+          // Mark out exact same objects in activeState[column.value.title] as Linked
+          // compare all keys and values
+          childrenExcludedList.value.list.forEach((row: any, index: number) => {
+            const found = activeState[column.value.title].find((a: any) => {
+              let isSame = true
+
+              for (const key in a) {
+                if (a[key] !== row[key]) {
+                  isSame = false
+                }
+              }
+              return isSame
+            })
+
+            if (found) {
+              isChildrenExcludedListLinked.value[index] = true
+            }
+          })
+        }
       } catch (e: any) {
         message.error(`${t('msg.error.failedToLoadList')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
@@ -424,18 +431,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     // watchers
     watch(childrenExcludedListPagination, async () => {
-      await loadChildrenExcludedList()
+      await loadChildrenExcludedList(newRowState.state)
     })
 
     watch(childrenListPagination, async () => {
       await loadChildrenList()
-    })
-
-    watch(childrenExcludedList, async () => {
-      childrenExcludedList.value?.list.forEach((row: Record<string, any>, index: number) => {
-        isChildrenExcludedListLinked.value[index] = false
-        isChildrenExcludedListLoading.value[index] = false
-      })
     })
 
     watch(childrenList, async () => {

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { ProjectRoles } from 'nocodb-sdk';
 import type { DocsPageType } from 'nocodb-sdk'
 import gh from 'parse-github-url'
 import type { PageSidebarNode } from '#imports'
@@ -51,9 +52,9 @@ export const useDocStore = defineStore('docStore', () => {
     return (
       !isPublic.value &&
       !!(
-        projectRoles.value[ProjectRole.Creator] ||
-        projectRoles.value[ProjectRole.Owner] ||
-        projectRoles.value[ProjectRole.Editor]
+        projectRoles.value[ProjectRoles.CREATOR] ||
+        projectRoles.value[ProjectRoles.OWNER] ||
+        projectRoles.value[ProjectRoles.EDITOR]
       )
     )
   })

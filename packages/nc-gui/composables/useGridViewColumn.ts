@@ -99,7 +99,7 @@ const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
       }
 
       // sync with server if allowed
-      if (!isPublic.value && isUIAllowed('gridColUpdate') && gridViewCols.value[id]?.id) {
+      if (!isPublic.value && isUIAllowed('viewFieldEdit') && gridViewCols.value[id]?.id) {
         await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
           ...props,
         })

@@ -1,104 +1,161 @@
-import { WorkspaceUserRoles } from 'nocodb-sdk'
-import { ProjectRole, Role } from '../../lib/enums'
+/* eslint-disable import/export */
+import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+export * from '../../lib/constants'
+
+const roleScopes = {
+  org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
+  workspace: [
+    WorkspaceUserRoles.VIEWER,
+    WorkspaceUserRoles.COMMENTER,
+    WorkspaceUserRoles.EDITOR,
+    WorkspaceUserRoles.CREATOR,
+    WorkspaceUserRoles.OWNER,
+  ],
+  project: [ProjectRoles.VIEWER, ProjectRoles.COMMENTER, ProjectRoles.EDITOR, ProjectRoles.CREATOR, ProjectRoles.OWNER],
+}
+
+interface Perm {
+  include?: Record<string, boolean>
+}
 
 /**
  * Each permission value means the following
  * `*` - which is wildcard, means all permissions are allowed
  *  `include` - which is an object, means only the permissions listed in the object are allowed
- *  `exclude` - which is an object, means all permissions are allowed except the ones listed in the object
  *  `undefined` or `{}` - which is the default value, means no permissions are allowed
  * */
 const rolePermissions = {
-  // general role permissions
+  // org level role permissions
+  [OrgUserRoles.SUPER_ADMIN]: '*',
+  [OrgUserRoles.CREATOR]: {
+    include: {},
+  },
+  [OrgUserRoles.VIEWER]: {
+    include: {
+      importRequest: true,
+    },
+  },
 
-  [Role.Super]: '*',
-  [Role.Admin]: {} as Record<string, boolean>,
-  [Role.Guest]: {} as Record<string, boolean>,
-  [Role.OrgLevelCreator]: {
+  [WorkspaceUserRoles.OWNER]: {
+    include: {},
+  },
+  [WorkspaceUserRoles.CREATOR]: {
     include: {
       projectCreate: true,
-      projectActions: true,
-      projectSettings: true,
+      projectDelete: true,
+      projectDuplicate: true,
     },
+  },
+  [WorkspaceUserRoles.EDITOR]: {
+    include: {},
+  },
+  [WorkspaceUserRoles.COMMENTER]: {
+    include: {},
+  },
+  [WorkspaceUserRoles.VIEWER]: {
+    include: {},
   },
 
   // Project role permissions
-  [ProjectRole.Creator]: {
-    exclude: {
-      appStore: true,
-      superAdminUserManagement: true,
-      superAdminAppSettings: true,
-      appLicense: true,
-      moveProject: true,
-      projectDelete: true,
-      projectCreate: true,
-    },
+  [ProjectRoles.OWNER]: {
+    include: {},
   },
-  [ProjectRole.Owner]: {
-    exclude: {
-      appStore: true,
-      superAdminUserManagement: true,
-      superAdminAppSettings: true,
-      appLicense: true,
-      projectCreate: true,
-    },
-  },
-  [ProjectRole.Editor]: {
+  [ProjectRoles.CREATOR]: {
     include: {
-      smartSheet: true,
-      xcDatatableEditable: true,
-      column: true,
-      tableAttachment: true,
-      tableRowUpdate: true,
+      baseCreate: true,
+      fieldUpdate: true,
+      hookList: true,
+      tableCreate: true,
+      tableRename: true,
+      tableDelete: true,
+      tableDuplicate: true,
+      tableSort: true,
+      layoutRename: true,
+      layoutDelete: true,
+      airtableImport: true,
+      jsonImport: true,
+      excelImport: true,
+      settingsPage: true,
+      newUser: true,
+      webhook: true,
+      shareView: true,
+      fieldEdit: true,
+      fieldAdd: true,
+      tableIconEdit: true,
+      viewCreateOrEdit: true,
+    },
+  },
+  [ProjectRoles.EDITOR]: {
+    include: {
       dataInsert: true,
-      rowComments: true,
-      gridViewOptions: true,
+      dataEdit: true,
       sortSync: true,
-      fieldsSync: true,
-      gridColUpdate: true,
       filterSync: true,
       filterChildrenRead: true,
+      viewFieldEdit: true,
       csvImport: true,
       apiDocs: true,
-      projectSettings: true,
-      newUser: false,
-      commentEditable: true,
-      commentList: true,
-      commentsCount: true,
     },
   },
-  [ProjectRole.Commenter]: {
+  [ProjectRoles.COMMENTER]: {
     include: {
-      smartSheet: true,
-      column: true,
-      rowComments: true,
-      projectSettings: true,
-      commentEditable: true,
+      commentEdit: true,
       commentList: true,
-      commentsCount: true,
+      commentCount: true,
     },
   },
-  [ProjectRole.Viewer]: {
+  [ProjectRoles.VIEWER]: {
     include: {
-      smartSheet: true,
-      column: true,
       projectSettings: true,
+      expandedForm: true,
     },
   },
-} as const
+  [ProjectRoles.NO_ACCESS]: {
+    include: {},
+  },
+} as Record<OrgUserRoles | WorkspaceUserRoles | ProjectRoles, Perm | '*'>
 
-// todo: fix type error
-rolePermissions[WorkspaceUserRoles.OWNER] = rolePermissions[ProjectRole.Owner]
-rolePermissions[WorkspaceUserRoles.CREATOR] = {
-  exclude: {
-    ...rolePermissions[ProjectRole.Creator].exclude,
-    workspaceDelete: true,
-  },
-}
-rolePermissions[WorkspaceUserRoles.VIEWER] = rolePermissions[ProjectRole.Viewer]
-rolePermissions[WorkspaceUserRoles.EDITOR] = rolePermissions[ProjectRole.Editor]
-rolePermissions[WorkspaceUserRoles.COMMENTER] = rolePermissions[ProjectRole.Commenter]
+// validate no duplicate permissions within same scope
+/*
+  We inherit include permissions from previous roles in the same scope (role order)
+  We inherit exclude permissions from previous roles in the same scope (reverse role order)
+  To determine role order, we use `roleScopes` object
+*/
+Object.values(roleScopes).forEach((roles) => {
+  const scopePermissions: Record<string, boolean> = {}
+  const duplicates: string[] = []
+  roles.forEach((role) => {
+    const perms = (rolePermissions[role] as Perm).include || {}
+    Object.keys(perms).forEach((perm) => {
+      if (scopePermissions[perm]) {
+        duplicates.push(perm)
+      }
+      scopePermissions[perm] = true
+    })
+  })
+  if (duplicates.length) {
+    throw new Error(
+      `Duplicate permissions found in roles ${roles.join(', ')}. Please remove duplicate permissions: ${duplicates.join(', ')}`,
+    )
+  }
+})
+
+// inherit include permissions within scope (role order)
+Object.values(roleScopes).forEach((roles) => {
+  let roleIndex = 0
+  for (const role of roles) {
+    if (roleIndex === 0) {
+      roleIndex++
+      continue
+    }
+
+    if (rolePermissions[role] === '*') continue
+    if ((rolePermissions[role] as Perm).include && (rolePermissions[roles[roleIndex - 1]] as Perm).include) {
+      Object.assign((rolePermissions[role] as Perm).include!, (rolePermissions[roles[roleIndex - 1]] as Perm).include)
+    }
+
+    roleIndex++
+  }
+})
 
 export { rolePermissions }
-
-export * from '../../lib/constants'

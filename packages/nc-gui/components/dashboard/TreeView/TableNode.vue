@@ -71,7 +71,7 @@ const { isSharedBase } = useProject()
 // const isMultiBase = computed(() => project.bases && project.bases.length > 1)
 
 const canUserEditEmote = computed(() => {
-  return isUIAllowed('tableIconCustomisation', false, projectRole?.value)
+  return isUIAllowed('tableIconEdit', false, projectRole?.value)
 })
 </script>
 
@@ -125,7 +125,7 @@ const canUserEditEmote = computed(() => {
                     v-if="table.type === 'table'"
                     class="flex w-5 !text-gray-500 text-sm"
                     :class="{
-                      'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
+                      'group-hover:text-gray-500': isUIAllowed('tableSort', false, projectRole),
                       '!text-black': openedTableId === table.id,
                     }"
                   />
@@ -133,7 +133,7 @@ const canUserEditEmote = computed(() => {
                     v-else
                     class="flex w-5 !text-gray-500 text-sm"
                     :class="{
-                      'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole),
+                      'group-hover:text-gray-500': isUIAllowed('tableSort', false, projectRole),
                       '!text-black': openedTableId === table.id,
                     }"
                   />
@@ -157,7 +157,7 @@ const canUserEditEmote = computed(() => {
 
         <NcDropdown
           v-if="
-            !isSharedBase && (isUIAllowed('table-rename', false, projectRole) || isUIAllowed('table-delete', false, projectRole))
+            !isSharedBase && (isUIAllowed('tableRename', false, projectRole) || isUIAllowed('tableDelete', false, projectRole))
           "
           :trigger="['click']"
           @click.stop
@@ -173,7 +173,7 @@ const canUserEditEmote = computed(() => {
           <template #overlay>
             <NcMenu>
               <NcMenuItem
-                v-if="isUIAllowed('table-rename', false, projectRole)"
+                v-if="isUIAllowed('tableRename', false, projectRole)"
                 :data-testid="`sidebar-table-rename-${table.title}`"
                 @click="openRenameTableDialog(table, project.bases[baseIndex].id)"
               >
@@ -183,7 +183,7 @@ const canUserEditEmote = computed(() => {
 
               <NcMenuItem
                 v-if="
-                  isUIAllowed('table-duplicate') &&
+                  isUIAllowed('tableDuplicate') &&
                   project.bases?.[baseIndex] &&
                   (project.bases[baseIndex].is_meta || project.bases[baseIndex].is_local)
                 "
@@ -195,7 +195,7 @@ const canUserEditEmote = computed(() => {
               </NcMenuItem>
 
               <NcMenuItem
-                v-if="isUIAllowed('table-delete', false, projectRole)"
+                v-if="isUIAllowed('tableDelete', false, projectRole)"
                 :data-testid="`sidebar-table-delete-${table.title}`"
                 class="!text-red-500 !hover:bg-red-50"
                 @click="isTableDeleteDialogVisible = true"

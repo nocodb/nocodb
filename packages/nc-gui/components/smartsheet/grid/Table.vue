@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
 import type { ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, WorkspaceUserRoles, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -30,7 +30,6 @@ import {
   useI18n,
   useMultiSelect,
   useNuxtApp,
-  useRoles,
   useRoute,
   useSmartsheetStoreOrThrow,
   useUIPermission,
@@ -172,10 +171,9 @@ const cellRefs = ref<{ el: HTMLElement }[]>([])
 const gridRect = useElementBounding(gridWrapper)
 
 // #Permissions
-const { hasRole } = useRoles()
 const { isUIAllowed } = useUIPermission()
-const hasEditPermission = computed(() => isUIAllowed('xcDatatableEditable'))
-const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value)
+const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
+const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
 // #Variables
 const addColumnDropdown = ref(false)
@@ -1350,13 +1348,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
                           <span class="flex-1" />
 
                           <div
-                            v-if="
-                              !readOnly ||
-                              hasRole('commenter', true) ||
-                              hasRole('viewer', true) ||
-                              hasRole(WorkspaceUserRoles.COMMENTER, true) ||
-                              hasRole(WorkspaceUserRoles.VIEWER, true)
-                            "
+                            v-if="isUIAllowed('expandedForm')"
                             class="nc-expand"
                             :data-testid="`nc-expand-${rowIndex}`"
                             :class="{ 'nc-comment': row.rowMeta?.commentCount }"

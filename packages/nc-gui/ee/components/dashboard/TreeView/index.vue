@@ -148,7 +148,7 @@ const duplicateTable = async (table: TableType) => {
 
 const isCreateTableAllowed = computed(
   () =>
-    isUIAllowed('table-create') &&
+    isUIAllowed('tableCreate') &&
     route.value.name !== 'index' &&
     route.value.name !== 'index-index' &&
     route.value.name !== 'index-index-create' &&

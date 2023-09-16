@@ -1,6 +1,6 @@
+import type { Roles, RolesObj } from 'nocodb-sdk'
 import { extractRolesObj } from 'nocodb-sdk'
 import { computed, createSharedComposable, useApi, useGlobal } from '#imports'
-import type { ProjectRole, Role, Roles } from '#imports'
 
 /**
  * Provides the roles a user currently has
@@ -8,7 +8,6 @@ import type { ProjectRole, Role, Roles } from '#imports'
  * * `userRoles` - the roles a user has outside of projects
  * * `projectRoles` - the roles a user has in the current project (if one was loaded)
  * * `allRoles` - all roles a user has (userRoles + projectRoles)
- * * `hasRole` - a function to check if a user has a specific role
  * * `loadRoles` - a function to load reload user roles for scope
  */
 export const useRoles = createSharedComposable(() => {
@@ -16,7 +15,7 @@ export const useRoles = createSharedComposable(() => {
 
   const { api } = useApi()
 
-  const allRoles = computed<Roles | null>(() => {
+  const allRoles = computed<RolesObj | null>(() => {
     let orgRoles = user.value?.roles ?? {}
 
     orgRoles = extractRolesObj(orgRoles)
@@ -31,7 +30,7 @@ export const useRoles = createSharedComposable(() => {
     }
   })
 
-  const orgRoles = computed<Roles | null>(() => {
+  const orgRoles = computed<RolesObj | null>(() => {
     let orgRoles = user.value?.roles ?? {}
 
     orgRoles = extractRolesObj(orgRoles)
@@ -39,7 +38,7 @@ export const useRoles = createSharedComposable(() => {
     return orgRoles
   })
 
-  const projectRoles = computed<Roles | null>(() => {
+  const projectRoles = computed<RolesObj | null>(() => {
     let projectRoles = user.value?.project_roles ?? {}
 
     if (Object.keys(projectRoles).length === 0) {
@@ -51,7 +50,7 @@ export const useRoles = createSharedComposable(() => {
     return projectRoles
   })
 
-  const workspaceRoles = computed<Roles | null>(() => {
+  const workspaceRoles = computed<RolesObj | null>(() => {
     return null
   })
 
@@ -104,13 +103,5 @@ export const useRoles = createSharedComposable(() => {
     }
   }
 
-  function hasRole(role: Role | ProjectRole | string, includePreviewRoles = false) {
-    if (previewAs.value && includePreviewRoles) {
-      return previewAs.value === role
-    }
-
-    return allRoles.value[role]
-  }
-
-  return { allRoles, orgRoles, workspaceRoles, projectRoles, loadRoles, hasRole }
+  return { allRoles, orgRoles, workspaceRoles, projectRoles, loadRoles }
 })

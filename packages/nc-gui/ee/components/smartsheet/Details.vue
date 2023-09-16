@@ -25,7 +25,7 @@ const openedSubTab = computed({
 watch(
   openedSubTab,
   () => {
-    if (openedSubTab.value === 'field' && !isUIAllowed('viewColumnUpdate')) {
+    if (openedSubTab.value === 'field' && !isUIAllowed('fieldEdit')) {
       onViewsTabChange('relation')
     }
     // preventing the webhook route in locked view
@@ -46,7 +46,7 @@ watch(
 <template>
   <div class="flex flex-col h-full w-full" data-testid="nc-details-wrapper">
     <NcTabs v-model="openedSubTab">
-      <a-tab-pane v-if="isUIAllowed('viewColumnUpdate') && !isLockedView" key="field">
+      <a-tab-pane v-if="isUIAllowed('fieldEdit') && !isLockedView" key="field">
         <template #tab>
           <div class="tab" data-testid="nc-fields-tab">
             <GeneralIcon icon="list" class="tab-icon" :class="{}" />

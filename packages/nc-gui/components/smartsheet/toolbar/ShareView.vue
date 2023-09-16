@@ -249,7 +249,7 @@ watch(shared, () => {
 <template>
   <div>
     <a-button
-      v-if="isUIAllowed('share-view') && !isSharedBase"
+      v-if="isUIAllowed('shareView') && !isSharedBase"
       v-e="['c:view:share']"
       outlined
       class="nc-btn-share-view nc-toolbar-btn"

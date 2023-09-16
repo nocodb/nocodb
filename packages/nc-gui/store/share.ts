@@ -1,4 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
+import { ProjectRoles } from 'nocodb-sdk'
 import type { Users } from '#imports'
 
 export const useShare = defineStore('share', () => {
@@ -28,7 +29,7 @@ export const useShare = defineStore('share', () => {
 
   const showShareModal = ref(false)
 
-  const invitationUsersData = ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })
+  const invitationUsersData = ref<Users>({ emails: undefined, role: ProjectRoles.VIEWER, invitationToken: undefined })
 
   watch(
     [isProjectPublic],
@@ -41,7 +42,7 @@ export const useShare = defineStore('share', () => {
   const resetData = () => {
     formStatus.value = 'project-collaborate'
     invitationValid.value = false
-    invitationUsersData.value = { emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined }
+    invitationUsersData.value = { emails: undefined, role: ProjectRoles.VIEWER, invitationToken: undefined }
     isInvitationLinkCopied.value = false
   }
 

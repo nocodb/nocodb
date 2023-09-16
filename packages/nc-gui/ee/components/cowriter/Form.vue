@@ -225,7 +225,7 @@ watch(cowriterFormView, async () => {
             :class="[`nc-form-drag-${element.title.replaceAll(' ', '')}`]"
             data-testid="nc-form-fields"
           >
-            <div v-if="isUIAllowed('editFormView')" class="absolute flex top-2 right-2">
+            <div v-if="isUIAllowed('viewFieldEdit')" class="absolute flex top-2 right-2">
               <MdiDeleteOutline class="opacity-0 nc-field-remove-icon" @click.stop="deleteColumn(element)" />
             </div>
 

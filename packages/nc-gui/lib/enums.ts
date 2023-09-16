@@ -1,24 +1,3 @@
-export enum Role {
-  Super = 'super',
-  Admin = 'admin',
-  OrgLevelCreator = 'org-level-creator',
-  OrgLevelViewer = 'org-level-viewer',
-
-  WorkspaceLevelCreator = 'workspace-level-creator',
-  WorkspaceLevelViewer = 'workspace-level-viewer',
-  WorkspaceLevelOwner = 'workspace-level-owner',
-
-  Guest = 'guest',
-}
-
-export enum ProjectRole {
-  Owner = 'owner',
-  Creator = 'creator',
-  Editor = 'editor',
-  Commenter = 'commenter',
-  Viewer = 'viewer',
-}
-
 export enum ClientType {
   MYSQL = 'mysql2',
   MSSQL = 'mssql',

@@ -35,7 +35,7 @@ export function useViewColumns(
   const { addUndo, defineViewScope } = useUndoRedo()
 
   const isLocalMode = computed(
-    () => isPublic.value || !isUIAllowed('hideAllColumns') || !isUIAllowed('showAllColumns') || isSharedBase.value,
+    () => isPublic.value || !isUIAllowed('viewFieldEdit') || !isUIAllowed('viewFieldEdit') || isSharedBase.value,
   )
 
   const localChanges = ref<Field[]>([])
@@ -169,7 +169,7 @@ export function useViewColumns(
       localChanges.value.push(field)
     }
 
-    if (isUIAllowed('fieldsSync')) {
+    if (isUIAllowed('viewFieldEdit')) {
       if (field.id && view?.value?.id) {
         await $api.dbViewColumn.update(view.value.id, field.id, field)
       } else if (view.value?.id) {

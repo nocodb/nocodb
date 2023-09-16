@@ -1,5 +1,5 @@
 import UITypes from './UITypes';
-import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from './enums';
+import { Roles, RolesObj, RolesType } from './globals';
 
 // import {RelationTypes} from "./globals";
 
@@ -22,12 +22,7 @@ const isSystemColumn = (col): boolean =>
     (col.pk && col.meta && col.meta.ag) ||
     col.system);
 
-type Roles = Record<
-  OrgUserRoles | ProjectRoles | WorkspaceUserRoles | string,
-  boolean
->;
-
-const extractRolesObj = (roles: Roles | string[] | string): Roles => {
+const extractRolesObj = (roles: RolesType): RolesObj => {
   if (!roles) return null;
 
   if (typeof roles === 'object' && !Array.isArray(roles)) return roles;

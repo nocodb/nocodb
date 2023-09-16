@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { OrgUserReqType, RequestParams, UserType } from 'nocodb-sdk'
+import type { OrgUserReqType, RequestParams, Roles, UserType } from 'nocodb-sdk'
 import type { User } from '#imports'
-import { Role, extractSdkResponseErrorMsg, iconMap, useApi, useCopy, useDashboard, useNuxtApp } from '#imports'
+import { extractSdkResponseErrorMsg, iconMap, useApi, useCopy, useDashboard, useNuxtApp } from '#imports'
 
 const { api, isLoading } = useApi()
 
@@ -58,7 +58,7 @@ const loadUsers = async (page = currentPage.value, limit = currentLimit.value) =
 
 loadUsers()
 
-const updateRole = async (userId: string, roles: Role) => {
+const updateRole = async (userId: string, roles: Roles) => {
   try {
     await api.orgUsers.update(userId, {
       roles,

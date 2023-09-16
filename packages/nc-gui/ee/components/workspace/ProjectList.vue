@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Empty } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
-import { ProjectStatus, WorkspaceUserRoles } from 'nocodb-sdk'
+import { ProjectRoles, ProjectStatus, WorkspaceUserRoles } from 'nocodb-sdk'
 import { nextTick } from '@vue/runtime-core'
 import { NcProjectType, navigateTo, storeToRefs, timeAgo, useGlobal, useWorkspace } from '#imports'
 import { useNuxtApp } from '#app'
@@ -41,11 +41,11 @@ const roleAlias = {
   [WorkspaceUserRoles.CREATOR]: 'Workspace Creator',
   [WorkspaceUserRoles.EDITOR]: 'Workspace Editor',
   [WorkspaceUserRoles.COMMENTER]: 'Workspace Commenter',
-  [ProjectRole.Creator]: 'Project Creator',
-  [ProjectRole.Editor]: 'Project Editor',
-  [ProjectRole.Viewer]: 'Project Viewer',
-  [ProjectRole.Commenter]: 'Project Commenter',
-  [ProjectRole.Owner]: 'Project Owner',
+  [ProjectRoles.CREATOR]: 'Project Creator',
+  [ProjectRoles.EDITOR]: 'Project Editor',
+  [ProjectRoles.VIEWER]: 'Project Viewer',
+  [ProjectRoles.COMMENTER]: 'Project Commenter',
+  [ProjectRoles.OWNER]: 'Project Owner',
 }
 
 const deleteProject = (project: ProjectType) => {
@@ -352,7 +352,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                 <a-menu-item
                   v-if="
                     record.type === NcProjectType.DB &&
-                    isUIAllowed('duplicateProject', true, [record.workspace_role, record.project_role].join())
+                    isUIAllowed('projectDuplicate', true, [record.workspace_role, record.project_role].join())
                   "
                   @click="duplicateProject(record)"
                 >
@@ -362,7 +362,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                   </div>
                 </a-menu-item>
                 <a-menu-item
-                  v-if="false && isUIAllowed('moveProject', true, [record.workspace_role, record.project_role].join())"
+                  v-if="false && isUIAllowed('projectMove', true, [record.workspace_role, record.project_role].join())"
                   @click="moveProject(record)"
                 >
                   <div class="nc-menu-item-wrapper">

@@ -87,7 +87,7 @@ const { isSharedBase } = useProject()
         <a-dropdown
           v-if="
             !isSharedBase &&
-            (isUIAllowed('layout-rename', false, projectRole) || isUIAllowed('layout-delete', false, projectRole))
+            (isUIAllowed('layoutRename', false, projectRole) || isUIAllowed('layoutDelete', false, projectRole))
           "
           :trigger="['click']"
           @click.stop
@@ -101,14 +101,14 @@ const { isSharedBase } = useProject()
 
           <template #overlay>
             <a-menu class="!py-0 rounded text-sm">
-              <a-menu-item v-if="isUIAllowed('layout-rename', false, projectRole)" @click="openRenameLayoutDialog(layout)">
+              <a-menu-item v-if="isUIAllowed('layoutRename', false, projectRole)" @click="openRenameLayoutDialog(layout)">
                 <div class="nc-project-menu-item" :data-testid="`sidebar-layout-rename-${layout.title}`">
                   {{ $t('general.rename') }}
                 </div>
               </a-menu-item>
 
               <a-menu-item
-                v-if="isUIAllowed('layout-delete', false, projectRole)"
+                v-if="isUIAllowed('layoutDelete', false, projectRole)"
                 :data-testid="`sidebar-layout-delete-${layout.title}`"
                 @click="deleteLayout(project, layout)"
               >

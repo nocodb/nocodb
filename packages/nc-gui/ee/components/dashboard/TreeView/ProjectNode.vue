@@ -585,7 +585,7 @@ onMounted(() => {
                   <NcMenuItem
                     v-if="
                       project.type === NcProjectType.DB &&
-                      isUIAllowed('duplicateProject', true, [project.workspace_role, project.project_role].join())
+                      isUIAllowed('projectDuplicate', true, [project.workspace_role, project.project_role].join())
                     "
                     @click="duplicateProject(project)"
                   >
@@ -624,7 +624,7 @@ onMounted(() => {
 
                 <!-- Team & Settings -->
                 <NcMenuItem
-                  v-if="isUIAllowed('settings')"
+                  v-if="isUIAllowed('settingsPage')"
                   key="teamAndSettings"
                   v-e="['c:navdraw:project-settings']"
                   class="nc-sidebar-project-project-settings"
@@ -834,7 +834,7 @@ onMounted(() => {
         </template>
 
         <template v-else-if="contextMenuTarget.type === 'table'">
-          <NcMenuItem v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
+          <NcMenuItem v-if="isUIAllowed('tableRename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
             <div class="nc-project-option-item">
               <GeneralIcon icon="edit" class="text-gray-700" />
               {{ $t('general.rename') }}
@@ -842,7 +842,7 @@ onMounted(() => {
           </NcMenuItem>
 
           <NcMenuItem
-            v-if="isUIAllowed('table-duplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
+            v-if="isUIAllowed('tableDuplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
             @click="duplicateTable(contextMenuTarget.value)"
           >
             <div class="nc-project-option-item">
@@ -851,7 +851,7 @@ onMounted(() => {
             </div>
           </NcMenuItem>
 
-          <NcMenuItem v-if="isUIAllowed('table-delete')" @click="isTableDeleteDialogVisible = true">
+          <NcMenuItem v-if="isUIAllowed('tableDelete')" @click="isTableDeleteDialogVisible = true">
             <div class="nc-project-option-item text-red-600">
               <GeneralIcon icon="delete" />
               {{ $t('general.delete') }}

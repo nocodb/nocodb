@@ -116,7 +116,7 @@ function openTableCreateMagicDialog(baseId?: string) {
 
 <template>
   <div
-    v-if="isUIAllowed('table-create', false, projectRole)"
+    v-if="isUIAllowed('tableCreate', false, projectRole)"
     class="group flex items-center gap-2 pl-2 pr-4.75 py-1 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
     @click="emit('openTableCreateDialog')"
   >

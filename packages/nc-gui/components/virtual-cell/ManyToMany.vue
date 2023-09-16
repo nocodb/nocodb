@@ -131,7 +131,7 @@ const m2mColumn = computed(
       />
 
       <GeneralIcon
-        v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
+        v-if="!readOnly && isUIAllowed('dataEdit')"
         icon="plus"
         class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
         @click.stop="listItemsDlg = true"

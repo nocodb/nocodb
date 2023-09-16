@@ -40,6 +40,12 @@ const isSharedView = computed(() => {
   return !routeName.startsWith('index-typeOrId-projectId-') && !['index', 'index-typeOrId'].includes(routeName)
 })
 
+const isSharedFormView = computed(() => {
+  const routeName = (route.value.name as string) || ''
+  // check route is shared form view route
+  return routeName.startsWith('index-typeOrId-form-viewId')
+})
+
 async function handleRouteTypeIdChange() {
   // avoid loading projects for shared views
   if (isSharedView.value) {
@@ -91,7 +97,10 @@ provide(ToggleDialogInj, toggleDialog)
 
 <template>
   <div>
-    <NuxtLayout v-if="isSharedView" name="shared-view">
+    <NuxtLayout v-if="isSharedFormView">
+      <NuxtPage />
+    </NuxtLayout>
+    <NuxtLayout v-else-if="isSharedView" name="shared-view">
       <NuxtPage />
     </NuxtLayout>
     <NuxtLayout v-else name="dashboard">

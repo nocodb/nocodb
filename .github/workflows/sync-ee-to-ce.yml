@@ -1,13 +1,12 @@
 name: "Sync EE to OSS"
 
 on:
-  push:
   pull_request:    
-    types: [labeled]
+    types: [labeled, synchronize] 
 
 jobs:
   sync-ee-to-ce:
-    if: ${{ github.event.label.name == 'trigger-oss-sync' || (github.event_name == 'push' && contains(github.event.pull_request.labels.*.name, 'trigger-oss-sync')) }}
+    if: ${{ github.event.label.name == 'trigger-oss-sync' || (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'trigger-oss-sync')) }}
     runs-on: [self-hosted, aws]
     steps:
       - name: Setup Node
@@ -98,7 +97,13 @@ jobs:
           }
 
           set +e
-          git push origin $AUTO_SYNC_BRANCH_NAME
+          if [ "synchronize" == "${{ github.event.action }}" ]; then
+            git push origin $AUTO_SYNC_BRANCH_NAME -f
+            echo "synchronize=true" >> $GITHUB_OUTPUT
+          else
+            git push origin $AUTO_SYNC_BRANCH_NAME
+            echo "synchronize=false" >> $GITHUB_OUTPUT
+          fi
           PUSH_EXIT_CODE=$?
           set -e
 
@@ -113,6 +118,7 @@ jobs:
               echo "error=true" >> $GITHUB_OUTPUT
           fi
       - name: Comment on PR
+        if: ${{ steps.sync.outputs.synchronize != 'true' }}
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: ${{ steps.sync.outputs.msg }}

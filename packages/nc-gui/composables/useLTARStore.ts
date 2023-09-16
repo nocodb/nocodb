@@ -211,13 +211,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const loadChildrenList = async () => {
       try {
         if (colOptions.value.type === 'bt') return
-
+        if (!rowId.value || !column.value) return
         if (isPublic.value) {
           childrenList.value = await $api.public.dataNestedList(
             sharedView.value?.uuid as string,
             encodeURIComponent(rowId.value),
             colOptions.value.type as 'mm' | 'hm',
-            column?.value?.id,
+            column.value.id,
             {
               limit: String(childrenListPagination.size),
               offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),

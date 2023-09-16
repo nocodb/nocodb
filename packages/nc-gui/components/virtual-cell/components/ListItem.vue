@@ -88,7 +88,7 @@ const attachments: Attachment[] = computed(() => {
           />
         </div>
 
-        <div v-if="fields.length > 0 && !isPublic" class="flex flex-row gap-4 w-10/12">
+        <div v-if="fields.length > 0 && !isPublic && !isForm" class="flex flex-row gap-4 w-10/12">
           <div v-for="field in fields" :key="field.id" :class="attachment ? 'w-1/3' : 'w-1/4'">
             <div class="flex flex-col gap-[-1] max-w-72">
               <LazySmartsheetHeaderVirtualCell

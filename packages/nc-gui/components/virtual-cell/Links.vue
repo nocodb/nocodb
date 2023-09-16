@@ -46,7 +46,9 @@ loadRelatedTableMeta()
 
 const textVal = computed(() => {
   if (isForm?.value) {
-    return state.value?.[colTitle.value]?.length ? `${state.value?.[colTitle.value]?.length} records Linked` : 'No records linked'
+    return state.value?.[colTitle.value]?.length
+      ? `${+state.value?.[colTitle.value]?.length} records Linked`
+      : 'No records linked'
   }
 
   const parsedValue = +value?.value || 0

@@ -78,11 +78,12 @@ const rolePermissions = {
       settingsPage: true,
       newUser: true,
       webhook: true,
-      shareView: true,
       fieldEdit: true,
       fieldAdd: true,
       tableIconEdit: true,
       viewCreateOrEdit: true,
+      viewShare: true,
+      projectShare: true,
     },
   },
   [ProjectRoles.EDITOR]: {

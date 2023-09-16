@@ -146,7 +146,7 @@ const exportFile = async (exportType: ExportTypes) => {
             </div>
 
             <div
-              v-if="isUIAllowed('shareView') && !isView && !isPublicView"
+              v-if="isUIAllowed('viewShare') && !isView && !isPublicView"
               v-e="['a:actions:shared-view-list']"
               class="nc-menu-item"
               @click="sharedViewListDlg = true"

@@ -1,4 +1,4 @@
-import type { Roles, RolesObj } from 'nocodb-sdk'
+import type { RolesObj } from 'nocodb-sdk'
 import { extractRolesObj } from 'nocodb-sdk'
 import { computed, createSharedComposable, useApi, useGlobal } from '#imports'
 
@@ -11,7 +11,7 @@ import { computed, createSharedComposable, useApi, useGlobal } from '#imports'
  * * `loadRoles` - a function to load reload user roles for scope
  */
 export const useRoles = createSharedComposable(() => {
-  const { user, previewAs } = useGlobal()
+  const { user } = useGlobal()
 
   const { api } = useApi()
 

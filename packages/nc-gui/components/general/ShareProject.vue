@@ -36,7 +36,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div
-    v-if="isUIAllowed('shareProject') && visibility !== 'hidden' && (activeTable || project)"
+    v-if="isUIAllowed('projectShare') && visibility !== 'hidden' && (activeTable || project)"
     class="flex flex-col justify-center h-full"
     data-testid="share-project-button"
     :data-sharetype="visibility"

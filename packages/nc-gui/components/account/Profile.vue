@@ -53,16 +53,9 @@ watch(
   },
 )
 
-watch(
-  () => form.value.title,
-  async () => {
-    try {
-      isErrored.value = !(await formValidator.value.validate())
-    } catch (e: any) {
-      isErrored.value = true
-    }
-  },
-)
+const onValidate = async (_: any, valid: boolean) => {
+  isErrored.value = !valid
+}
 </script>
 
 <template>
@@ -77,7 +70,15 @@ watch(
             <GeneralUserIcon size="xlarge" />
           </div>
           <div class="flex w-10"></div>
-          <a-form ref="formValidator" layout="vertical" no-style :model="form" class="flex flex-col w-full" @finish="onSubmit">
+          <a-form
+            ref="formValidator"
+            layout="vertical"
+            no-style
+            :model="form"
+            class="flex flex-col w-full"
+            @finish="onSubmit"
+            @validate="onValidate"
+          >
             <div class="text-gray-800 mb-1.5">Name</div>
             <a-form-item name="title" :rules="formRules.title">
               <a-input

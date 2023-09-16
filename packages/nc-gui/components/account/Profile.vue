@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const { currentUser } = storeToRefs(useUsers())
+const { user } = useGlobal()
 
 const isErrored = ref(false)
 const isTitleUpdating = ref(false)
@@ -38,15 +38,15 @@ const onSubmit = async () => {
   }
 }
 
-const email = computed(() => currentUser.value?.email)
+const email = computed(() => user.value?.email)
 
 watch(
-  () => currentUser.value?.display_name,
+  () => user.value?.display_name,
   () => {
-    if (!currentUser.value?.display_name) return
+    if (!user.value?.display_name) return
 
-    form.value.title = currentUser.value.display_name
-    form.value.email = currentUser.value.email
+    form.value.title = user.value.display_name
+    form.value.email = user.value.email
   },
   {
     immediate: true,
@@ -99,7 +99,7 @@ watch(
               <NcButton
                 type="primary"
                 html-type="submit"
-                :disabled="isErrored || (form.title && form.title === currentUser?.display_name)"
+                :disabled="isErrored || (form.title && form.title === user?.display_name)"
                 :loading="isTitleUpdating"
                 data-testid="nc-account-settings-save"
                 @click="onSubmit"

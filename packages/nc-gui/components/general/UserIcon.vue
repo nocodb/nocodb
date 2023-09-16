@@ -3,15 +3,15 @@ const props = defineProps<{
   size?: 'small' | 'medium' | 'large' | 'xlarge'
 }>()
 
-const { currentUser } = storeToRefs(useUsers())
+const { user } = useGlobal()
 
-const backgroundColor = computed(() => (currentUser.value?.id ? stringToColour(currentUser.value?.id) : '#FFFFFF'))
+const backgroundColor = computed(() => (user.value?.id ? stringToColour(user.value?.id) : '#FFFFFF'))
 
 const size = computed(() => props.size || 'medium')
 
-const displayName = computed(() => currentUser.value?.display_name ?? '')
+const displayName = computed(() => user.value?.display_name ?? '')
 
-const email = computed(() => currentUser.value?.email ?? '')
+const email = computed(() => user.value?.email ?? '')
 
 const usernameInitials = computed(() => {
   const displayNameSplit = displayName.value?.split(' ').filter((name) => name) ?? []
@@ -23,7 +23,7 @@ const usernameInitials = computed(() => {
       return displayName.value.slice(0, 2)
     }
   } else {
-    return email.value.slice(0, 2)
+    return email.value?.split('@')[0].slice(0, 2)
   }
 })
 </script>

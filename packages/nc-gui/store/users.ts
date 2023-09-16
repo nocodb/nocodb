@@ -4,13 +4,6 @@ export const useUsers = defineStore('userStore', () => {
   const { api } = useApi()
   const { user } = useGlobal()
 
-  const currentUser = computed({
-    get: () => user.value,
-    set: (value) => {
-      user.value = value
-    },
-  })
-
   const updateUserProfile = async ({
     attrs,
   }: {
@@ -56,7 +49,6 @@ export const useUsers = defineStore('userStore', () => {
   return {
     loadCurrentUser,
     updateUserProfile,
-    currentUser,
   }
 })
 

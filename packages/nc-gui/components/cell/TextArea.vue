@@ -136,7 +136,7 @@ onClickOutside(inputWrapperRef, (e) => {
           ref="inputRef"
           v-model:value="vModel"
           placeholder="Enter text"
-          class="p-1 !pt-1 !pr-3 !border-0 !border-r-0 !focus:outline-transparent nc-scrollbar-md"
+          class="p-1 !pt-1 !pr-3 !border-0 !border-r-0 !focus:outline-transparent nc-scrollbar-md !text-black"
           :bordered="false"
           :auto-size="{ minRows: 20, maxRows: 20 }"
           @keydown.stop

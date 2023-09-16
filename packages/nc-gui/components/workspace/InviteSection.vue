@@ -32,7 +32,8 @@ const { workspaceRoles } = useRoles()
 const emailBadges = ref<Array<string>>([])
 
 watch(inviteData, (newVal) => {
-  if (newVal.email.includes(' ')) {
+  const isNewEmail = newVal.email.includes(' ') || newVal.email.includes(',')
+  if (isNewEmail) {
     if (newVal.email.length < 1) {
       emailValidation.isError = true
       emailValidation.message = 'EMAIL SHOULD NOT BE EMPTY'
@@ -45,17 +46,14 @@ watch(inviteData, (newVal) => {
     }
     // if email is already enterd we just ignore the input
     // no error is thrown
-    if (emailBadges.value.includes(inviteData.email.split(' ')[0])) {
+    const emailToAdd = newVal.email.split(',')[0].trim() || newVal.email.split(' ')[0].trim()
+
+    if (emailBadges.value.includes(emailToAdd)) {
       inviteData.email = ''
       return
     }
-
-    if (newVal.email.includes(' ')) {
-      const emailToAdd = newVal.email.split(' ')[0].trim()
-      console.log(emailToAdd)
-      emailBadges.value.push(emailToAdd)
-      inviteData.email = ''
-    }
+    emailBadges.value.push(emailToAdd)
+    inviteData.email = ''
   }
   if (newVal.email.length < 1 && emailValidation.isError) {
     emailValidation.isError = false
@@ -129,7 +127,7 @@ onKeyStroke('Backspace', () => {
 // when bulk email is pasted
 const onPaste = (e: ClipboardEvent) => {
   const pastedText = e.clipboardData?.getData('text')
-  const inputArray = pastedText?.split(' ')
+  const inputArray = pastedText?.split(',') || pastedText?.split(' ')
   inputArray?.forEach((el) => {
     if (el.length < 1) {
       emailValidation.isError = true

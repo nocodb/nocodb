@@ -26,7 +26,8 @@ const validateEmail = (email: string): boolean => {
 // all user input emails are stored here
 const emailBadges = ref<Array<string>>([])
 watch(inviteData, (newVal) => {
-  if (newVal.email.includes(' ')) {
+  const isNewEmail = newVal.email.includes(' ') || newVal.email.includes(',')
+  if (isNewEmail) {
     if (inviteData.email.length < 1) {
       emailValidation.isError = true
       emailValidation.message = 'email should not be empty'
@@ -39,11 +40,11 @@ watch(inviteData, (newVal) => {
     }
     // if email is already enterd we just ignore the input
     // no error is thrown
-    if (emailBadges.value.includes(newVal.email.split(' ')[0])) {
+    const emailToAdd = newVal.email.split(',')[0].trim() || newVal.email.split(' ')[0].trim()
+    if (emailBadges.value.includes(emailToAdd)) {
       inviteData.email = ''
       return
     }
-    const emailToAdd = newVal.email.split(' ')[0].trim()
     emailBadges.value.push(emailToAdd)
     inviteData.email = ''
   }
@@ -167,7 +168,7 @@ onKeyStroke('Backspace', () => {
 // when bulk email is pasted
 const onPaste = (e: ClipboardEvent) => {
   const pastedText = e.clipboardData?.getData('text')
-  const inputArray = pastedText?.split(' ')
+  const inputArray = pastedText?.split(',') || pastedText?.split(' ')
   inputArray?.forEach((el) => {
     if (el.length < 1) {
       emailValidation.isError = true
@@ -287,7 +288,7 @@ const onPaste = (e: ClipboardEvent) => {
           <a-button
             type="primary"
             class="!rounded-md"
-            :disabled="!inviteData.email?.length || isInvitingCollaborators"
+            :disabled="!emailBadges.length || isInvitingCollaborators || emailValidation.isErro"
             @click="inviteCollaborator"
           >
             <div class="flex flex-row items-center gap-x-2 pr-1">

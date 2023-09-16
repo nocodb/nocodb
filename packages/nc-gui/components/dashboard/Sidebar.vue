@@ -5,8 +5,6 @@ const { isWorkspaceLoading } = storeToRefs(workspaceStore)
 
 const { isSharedBase } = storeToRefs(useProject())
 
-const isCreateProjectOpen = ref(false)
-
 const treeViewDom = ref<HTMLElement>()
 
 const isTreeViewOnScrollTop = ref(false)

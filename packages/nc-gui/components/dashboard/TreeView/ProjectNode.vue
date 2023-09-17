@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
+import { stringifyRolesObj } from 'nocodb-sdk'
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import { useTitle } from '@vueuse/core'
@@ -42,6 +43,8 @@ const { loadProjectTables } = useTablesStore()
 const { activeTable } = storeToRefs(useTablesStore())
 
 const { appInfo, navigateToProject } = useGlobal()
+
+const { orgRoles } = useRoles()
 
 useTabs()
 
@@ -469,7 +472,10 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                     <GeneralIcon icon="copy" class="group-hover:text-black" />
                     {{ $t('activity.account.projInfo') }}
                   </NcMenuItem>
-                  <NcMenuItem v-if="isUIAllowed('projectDuplicate', true, projectRole)" @click="duplicateProject(project)">
+                  <NcMenuItem
+                    v-if="isUIAllowed('projectDuplicate', true, [stringifyRolesObj(orgRoles), projectRole].join())"
+                    @click="duplicateProject(project)"
+                  >
                     <GeneralIcon icon="duplicate" class="text-gray-700" />
                     {{ $t('general.duplicate') }}
                   </NcMenuItem>

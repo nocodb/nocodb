@@ -58,7 +58,9 @@ const rolePermissions = {
 
   // Project role permissions
   [ProjectRoles.OWNER]: {
-    include: {},
+    include: {
+      projectDelete: true,
+    },
   },
   [ProjectRoles.CREATOR]: {
     include: {

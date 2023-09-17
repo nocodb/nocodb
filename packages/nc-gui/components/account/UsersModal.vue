@@ -196,7 +196,7 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                     <a-select v-model:value="usersData.role" class="nc-user-roles" dropdown-class-name="nc-dropdown-user-role">
                       <a-select-option
                         class="nc-role-option"
-                        :value="Role.OrgLevelCreator"
+                        :value="OrgUserRoles.CREATOR"
                         :label="$t(`objects.roleType.orgLevelCreator`)"
                       >
                         <div>{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
@@ -207,7 +207,7 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
                       <a-select-option
                         class="nc-role-option"
-                        :value="Role.OrgLevelViewer"
+                        :value="OrgUserRoles.VIEWER"
                         :label="$t(`objects.roleType.orgLevelViewer`)"
                       >
                         <div>{{ $t(`objects.roleType.orgLevelViewer`) }}</div>

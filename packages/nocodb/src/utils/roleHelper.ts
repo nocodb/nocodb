@@ -5,6 +5,10 @@ import type { ProjectRoles } from 'nocodb-sdk';
 export function getProjectRolePower(user: any) {
   const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
 
+  if (!user.project_roles) {
+    NcError.badRequest('Role not found');
+  }
+
   // get most powerful role of user (TODO moving forward we will confirm that user has only one role)
   let role = null;
   let power = -1;

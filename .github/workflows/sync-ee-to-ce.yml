@@ -39,6 +39,13 @@ jobs:
           PR_NAME: ${{ github.event.pull_request.title }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
+          comment_pr() { 
+            local msg="$1"
+
+            echo "Commenting on PR: ${PR_NUMBER} msg: ${msg}"
+            echo "msg=${msg}" >> $GITHUB_OUTPUT
+          }
+
           cd nocohub
 
           HUB_BRANCH_NAME="$GITHUB_HEAD_REF"
@@ -91,13 +98,6 @@ jobs:
 
           git config user.name "${NC_USERNAME}"
           git config user.email "${NC_EMAIL}"
-
-          comment_pr() { 
-            local msg="$1"
-
-            echo "Commenting on PR: ${PR_NUMBER} msg: ${msg}"
-            echo "msg=${msg}" >> $GITHUB_OUTPUT
-          }
 
           set +e
           if [ "synchronize" == "${{ github.event.action }}" ]; then

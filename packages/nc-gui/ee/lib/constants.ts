@@ -118,12 +118,19 @@ const rolePermissions = {
   },
 } as Record<OrgUserRoles | WorkspaceUserRoles | ProjectRoles, Perm | '*'>
 
-// validate no duplicate permissions within same scope
 /*
   We inherit include permissions from previous roles in the same scope (role order)
-  We inherit exclude permissions from previous roles in the same scope (reverse role order)
   To determine role order, we use `roleScopes` object
+
+  So for example ProjectRoles.COMMENTER has `commentEdit` permission,
+    which means ProjectRoles.EDITOR, ProjectRoles.CREATOR, ProjectRoles.OWNER will also have `commentEdit` permission
+    where as ProjectRoles.VIEWER, ProjectRoles.NO_ACCESS will not have `commentEdit` permission.
+
+  This is why we are validating that there are no duplicate permissions within the same scope
+    even though it is not required for the code to work. It is to keep the code clean and easy to understand.
 */
+
+// validate no duplicate permissions within same scope
 Object.values(roleScopes).forEach((roles) => {
   const scopePermissions: Record<string, boolean> = {}
   const duplicates: string[] = []

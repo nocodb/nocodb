@@ -43,7 +43,7 @@ test.describe('DashboardBasicTests', () => {
   });
 
   test('Workspace Basic CRUD', async () => {
-    const ws2Title = context.workspace.title + '1';
+    const ws2Title = context.workspace.title;
 
     await dashboard.leftSidebar.createWorkspace({ title: ws2Title });
     await dashboard.rootPage.waitForTimeout(1000);

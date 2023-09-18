@@ -8,9 +8,6 @@ import { isEE } from './db';
 import { resetSakilaPg } from './knexHelper';
 import path from 'path';
 
-// Use local reset logic instead of remote
-const enableLocalInit = true;
-
 // MySQL Configuration
 const mysqlConfig = {
   client: 'mysql2',
@@ -217,8 +214,14 @@ async function localInit({
       const ws = await api['workspace'].list();
       for (const w of ws.list) {
         // check if w.title starts with workspaceTitle
-        if (w.title.startsWith(`ws_pgExtREST_p${process.env.TEST_PARALLEL_INDEX}`)) {
+        if (w.title.startsWith(`ws_pgExtREST${process.env.TEST_PARALLEL_INDEX}`)) {
           try {
+            const projects = await api.workspaceProject.list(w.id);
+
+            for (const project of projects.list) {
+              await api.project.delete(project.id);
+            }
+
             await api['workspace'].delete(w.id);
           } catch (e) {
             console.log(`Error deleting workspace: ${w.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
@@ -349,38 +352,25 @@ const setup = async ({
   const workerIndex = process.env.TEST_WORKER_INDEX;
   const parallelIndex = process.env.TEST_PARALLEL_INDEX;
 
-  const workerId = `_p${parallelIndex}_w${workerIndex}_c${(+workerIndex + 1) * 1000 + workerCount[parallelIndex]}`;
-  workerCount[+parallelIndex]++;
+  const workerId = parallelIndex;
 
   // console.log(process.env.TEST_PARALLEL_INDEX, '#Setup', workerId);
 
   try {
     // Localised reset logic
-    if (enableLocalInit) {
-      response = await localInit({
-        workerId,
-        isEmptyProject,
-        projectType,
-        isSuperUser,
-        dbType,
-      });
-    }
-    // Remote reset logic
-    else {
-      response = await axios.post(`http://localhost:8080/api/v1/meta/test/reset`, {
-        parallelId: process.env.TEST_PARALLEL_INDEX,
-        workerId: workerId,
-        dbType,
-        projectType,
-        isEmptyProject,
-      });
-    }
+    response = await localInit({
+      workerId: parallelIndex,
+      isEmptyProject,
+      projectType,
+      isSuperUser,
+      dbType,
+    });
   } catch (e) {
     console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);
   }
 
   if (response.status !== 200 || !response.data?.token || !response.data?.project) {
-    console.error('Failed to reset test data', response.data, response.status, enableLocalInit, dbType);
+    console.error('Failed to reset test data', response.data, response.status, dbType);
     throw new Error('Failed to reset test data');
   }
   const token = response.data.token;
@@ -445,22 +435,7 @@ const setup = async ({
   return { project, token, dbType, workerId, rootUser, workspace } as NcContext;
 };
 
-export const unsetup = async (context: NcContext): Promise<void> => {
-  if (context.token && context.project) {
-    // try to delete the project
-    try {
-      // Init SDK using token
-      const api = new Api({
-        baseURL: `http://localhost:8080/`,
-        headers: {
-          'xc-auth': context.token,
-        },
-      });
-
-      await api.project.delete(context.project.id);
-    } catch (e) {}
-  }
-};
+export const unsetup = async (context: NcContext): Promise<void> => {};
 
 // Reference
 // packages/nocodb/src/lib/services/test/TestResetService/resetPgSakilaProject.ts

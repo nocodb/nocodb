@@ -291,7 +291,7 @@ onMounted(async () => {
             <a-input-password
               v-model:value="syncSource.details.apiKey"
               class="nc-input-api-key"
-              :placeholder="$t('labels.apiKey')"
+              :placeholder="`${$t('labels.apiKey')} / ${$t('labels.personalAccessToken')}`"
               size="large"
             />
           </a-form-item>

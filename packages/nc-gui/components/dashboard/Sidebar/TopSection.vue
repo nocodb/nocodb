@@ -59,7 +59,7 @@ const navigateToSettings = () => {
       >
         <div class="flex items-center gap-2">
           <GeneralIcon icon="settings" class="!h-4" />
-          <div>Team & Settings</div>
+          <div>{{ $t('title.teamAndSettings') }}</div>
         </div>
       </NcButton>
       <WorkspaceCreateProjectBtn

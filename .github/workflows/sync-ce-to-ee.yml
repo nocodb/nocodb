@@ -9,6 +9,9 @@ jobs:
   sync:
     runs-on: [self-hosted, aws]
     steps:
+      - name: Log event
+        run: |
+          echo "${{ toJSON(github.event.client_payload) }}"
       - name: Setup Node
         uses: actions/setup-node@v3
         with:

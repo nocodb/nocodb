@@ -373,6 +373,7 @@
     "customTheme": "Custom Theme",
     "requestDataSource": "Request a data source you need?",
     "apiKey": "API Key",
+    "personalAccessToken": "Personal Access Token",
     "sharedBase": "Shared Base",
     "importData": "Import Data",
     "importSecondaryViews": "Import Secondary Views",

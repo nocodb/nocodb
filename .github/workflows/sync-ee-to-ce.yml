@@ -53,8 +53,8 @@ jobs:
           echo "NC_EMAIL=${NC_EMAIL}"
           echo "NC_USERNAME=${NC_USERNAME}"
 
-          git config --global user.name ${NC_USERNAME}
-          git config --global user.email "${NC_EMAIL}"
+          git config user.name "${NC_USERNAME}"
+          git config user.email "${NC_EMAIL}"
 
           # Merge on top of origin/develop and check for errors
           set +e
@@ -88,6 +88,9 @@ jobs:
           bash scripts/sync/sync_ee_to_ce.sh
 
           cd ../nocodb
+
+          git config user.name "${NC_USERNAME}"
+          git config user.email "${NC_EMAIL}"
 
           comment_pr() { 
             local msg="$1"

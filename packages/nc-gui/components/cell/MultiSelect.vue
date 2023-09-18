@@ -26,8 +26,8 @@ import {
   useEventListener,
   useMetas,
   useProject,
+  useRoles,
   useSelectedCellKeyupListener,
-  useUIPermission,
   watch,
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
@@ -79,7 +79,7 @@ const { $api } = useNuxtApp()
 
 const { getMeta } = useMetas()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { isPg, isMysql } = useProject()
 

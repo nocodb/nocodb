@@ -1,5 +1,5 @@
 import UITypes from './UITypes';
-import { Roles, RolesObj, RolesType } from './globals';
+import { RolesObj, RolesType } from './globals';
 
 // import {RelationTypes} from "./globals";
 
@@ -39,7 +39,7 @@ const extractRolesObj = (roles: RolesType): RolesObj => {
   }, {});
 };
 
-const stringifyRolesObj = (roles?: Roles | null): string => {
+const stringifyRolesObj = (roles?: RolesObj | null): string => {
   if (!roles) return '';
   const rolesArr = Object.keys(roles).filter((r) => roles[r]);
   return rolesArr.join(',');

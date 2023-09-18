@@ -16,8 +16,8 @@ import {
   useI18n,
   useNuxtApp,
   useProject,
+  useRoles,
   useSmartsheetStoreOrThrow,
-  useUIPermission,
   watch,
 } from '#imports'
 import type { SharedView } from '#imports'
@@ -32,7 +32,7 @@ const { $e } = useNuxtApp()
 
 const { dashboardUrl } = useDashboard()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { isSharedBase } = storeToRefs(useProject())
 

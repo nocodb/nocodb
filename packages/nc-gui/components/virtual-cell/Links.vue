@@ -27,7 +27,7 @@ const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { state, isNew } = useSmartsheetRowStoreOrThrow()
 

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { isDrawerOrModalExist, isMac, useNuxtApp, useRoute, useUIPermission } from '#imports'
+import { isDrawerOrModalExist, isMac, useNuxtApp, useRoles, useRoute } from '#imports'
 
 const route = useRoute()
 
 const showUserModal = ref(false)
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { $e } = useNuxtApp()
 

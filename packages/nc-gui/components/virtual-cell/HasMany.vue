@@ -14,9 +14,9 @@ import {
   inject,
   ref,
   useProvideLTARStore,
+  useRoles,
   useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
-  useUIPermission,
 } from '#imports'
 
 const column = inject(ColumnInj)!
@@ -39,7 +39,7 @@ const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 

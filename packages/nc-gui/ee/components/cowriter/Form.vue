@@ -14,7 +14,7 @@ import {
   useI18n,
   useProvideSmartsheetRowStore,
   useProvideSmartsheetStore,
-  useUIPermission,
+  useRoles,
   useViewData,
 } from '#imports'
 
@@ -64,7 +64,7 @@ const isLoadingForm = ref(true)
 // todo: generate hideCols based on default values
 // const hiddenCols = ['created_at', 'updated_at']
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { row } = useProvideSmartsheetRowStore(
   cowriterTable as Ref<TableType>,

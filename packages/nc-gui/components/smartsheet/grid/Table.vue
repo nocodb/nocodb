@@ -30,9 +30,9 @@ import {
   useI18n,
   useMultiSelect,
   useNuxtApp,
+  useRoles,
   useRoute,
   useSmartsheetStoreOrThrow,
-  useUIPermission,
   useUndoRedo,
   useViewsStore,
   watch,
@@ -171,7 +171,7 @@ const cellRefs = ref<{ el: HTMLElement }[]>([])
 const gridRect = useElementBounding(gridWrapper)
 
 // #Permissions
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 

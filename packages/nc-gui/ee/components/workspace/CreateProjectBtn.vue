@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ButtonType } from 'ant-design-vue/lib/button'
-import { NcProjectType, useRouter } from '#imports'
+import { NcProjectType } from '#imports'
 import type { NcButtonSize } from '~/lib'
 
 const props = defineProps<{
@@ -12,13 +12,13 @@ const props = defineProps<{
   // isOpen: boolean
 }>()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const projectStore = useProject()
 const { isSharedBase } = storeToRefs(projectStore)
 
 const workspaceStore = useWorkspace()
-const { activeWorkspace, activeWorkspaceId: _activeWorkspaceId } = storeToRefs(workspaceStore)
+const { activeWorkspaceId: _activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const projectCreateDlg = ref(false)
 const projectType = ref(NcProjectType.DB)
@@ -34,7 +34,7 @@ const centered = computed(() => props.centered ?? true)
 
 <template>
   <NcButton
-    v-if="isUIAllowed('projectCreate', false, activeWorkspace?.roles) && !isSharedBase"
+    v-if="isUIAllowed('projectCreate') && !isSharedBase"
     type="text"
     :size="size"
     :centered="centered"

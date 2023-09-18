@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { ColumnInj, IsExpandedFormOpenInj, IsFormInj, IsKanbanInj, inject, provide, ref, toRef, useUIPermission } from '#imports'
+import { ColumnInj, IsExpandedFormOpenInj, IsFormInj, IsKanbanInj, inject, provide, ref, toRef, useRoles } from '#imports'
 
 interface Props {
   column: ColumnType
@@ -23,7 +23,7 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const column = toRef(props, 'column')
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 provide(ColumnInj, column)
 

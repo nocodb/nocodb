@@ -44,7 +44,7 @@ const { activeTable } = storeToRefs(useTablesStore())
 
 const { appInfo, navigateToProject } = useGlobal()
 
-const { orgRoles } = useRoles()
+const { orgRoles, isUIAllowed } = useRoles()
 
 useTabs()
 
@@ -55,8 +55,6 @@ const tempTitle = ref('')
 const { t } = useI18n()
 
 const input = ref<HTMLInputElement>()
-
-const { isUIAllowed } = useUIPermission()
 
 const projectRole = inject(ProjectRoleInj)
 
@@ -441,7 +439,11 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
           </span>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>
 
-          <NcDropdown v-if="isUIAllowed('tableCreate', false, projectRole)" v-model:visible="isOptionsOpen" :trigger="['click']">
+          <NcDropdown
+            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
+            v-model:visible="isOptionsOpen"
+            :trigger="['click']"
+          >
             <NcButton
               class="nc-sidebar-node-btn"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
@@ -473,7 +475,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                     {{ $t('activity.account.projInfo') }}
                   </NcMenuItem>
                   <NcMenuItem
-                    v-if="isUIAllowed('projectDuplicate', true, [stringifyRolesObj(orgRoles), projectRole].join())"
+                    v-if="isUIAllowed('projectDuplicate', { roles: [stringifyRolesObj(orgRoles), projectRole].join() })"
                     @click="duplicateProject(project)"
                   >
                     <GeneralIcon icon="duplicate" class="text-gray-700" />
@@ -516,7 +518,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                 </template>
 
                 <NcMenuItem
-                  v-if="isUIAllowed('projectDelete', false, projectRole)"
+                  v-if="isUIAllowed('projectDelete', { roles: [stringifyRolesObj(orgRoles), projectRole].join() })"
                   class="!text-red-500 !hover:bg-red-50"
                   @click="isProjectDeleteDialogVisible = true"
                 >
@@ -528,7 +530,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
           </NcDropdown>
 
           <NcButton
-            v-if="isUIAllowed('tableCreate', false, projectRole)"
+            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
             class="nc-sidebar-node-btn"
             size="xxsmall"
             type="text"
@@ -610,7 +612,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                             </a-tooltip>
                           </div>
                           <div
-                            v-if="isUIAllowed('tableCreate', false, projectRole)"
+                            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
                             class="flex flex-row items-center gap-x-0.25 w-12.25"
                           >
                             <NcDropdown
@@ -648,7 +650,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                             </NcDropdown>
 
                             <NcButton
-                              v-if="isUIAllowed('tableCreate', false, projectRole)"
+                              v-if="isUIAllowed('tableCreate', { roles: projectRole })"
                               type="text"
                               size="xxsmall"
                               class="nc-sidebar-node-btn"

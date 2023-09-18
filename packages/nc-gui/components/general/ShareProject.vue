@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isDrawerOrModalExist, isMac, useNuxtApp } from '#imports'
+import { isDrawerOrModalExist, isMac, useNuxtApp, useRoles } from '#imports'
 
 interface Props {
   disabled?: boolean
@@ -15,7 +15,7 @@ const { project } = storeToRefs(useProject())
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey

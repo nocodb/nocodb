@@ -22,7 +22,7 @@ import {
   useGlobal,
   useI18n,
   useNuxtApp,
-  useUIPermission,
+  useRoles,
   useViewColumns,
   useViewData,
   watch,
@@ -42,7 +42,7 @@ const formRef = ref()
 
 const { $api, $e } = useNuxtApp()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const formState = reactive({})
 

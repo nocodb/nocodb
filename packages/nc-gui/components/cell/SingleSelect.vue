@@ -22,8 +22,8 @@ import {
   ref,
   useEventListener,
   useProject,
+  useRoles,
   useSelectedCellKeyupListener,
-  useUIPermission,
   watch,
 } from '#imports'
 
@@ -69,7 +69,7 @@ const searchVal = ref()
 
 const { getMeta } = useMetas()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { isPg, isMysql } = useProject()
 

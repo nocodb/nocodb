@@ -86,7 +86,7 @@ const { t } = useI18n()
 
 const input = ref<HTMLInputElement>()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const projectRole = inject(ProjectRoleInj)
 
@@ -547,7 +547,11 @@ onMounted(() => {
           </span>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>
 
-          <NcDropdown v-if="isUIAllowed('tableCreate', false, projectRole)" v-model:visible="isOptionsOpen" :trigger="['click']">
+          <NcDropdown
+            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
+            v-model:visible="isOptionsOpen"
+            :trigger="['click']"
+          >
             <NcButton
               class="nc-sidebar-node-btn"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
@@ -585,7 +589,7 @@ onMounted(() => {
                   <NcMenuItem
                     v-if="
                       project.type === NcProjectType.DB &&
-                      isUIAllowed('projectDuplicate', true, [project.workspace_role, project.project_role].join())
+                      isUIAllowed('projectDuplicate', { roles: [project.workspace_role, project.project_role].join() })
                     "
                     @click="duplicateProject(project)"
                   >
@@ -635,7 +639,7 @@ onMounted(() => {
                 </NcMenuItem>
 
                 <NcMenuItem
-                  v-if="isUIAllowed('projectDelete', false, [activeWorkspace.roles], true)"
+                  v-if="isUIAllowed('projectDelete', { roles: [project.workspace_role, project.project_role].join() })"
                   class="!text-red-500 !hover:bg-red-50"
                   @click="isProjectDeleteDialogVisible = true"
                 >
@@ -649,7 +653,7 @@ onMounted(() => {
           </NcDropdown>
 
           <NcButton
-            v-if="isUIAllowed('tableCreate', false, projectRole)"
+            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
             class="nc-sidebar-node-btn"
             type="text"
             data-testid="nc-sidebar-add-project-entity"
@@ -737,7 +741,7 @@ onMounted(() => {
                             </a-tooltip>
                           </div>
                           <div
-                            v-if="isUIAllowed('tableCreate', false, projectRole)"
+                            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
                             class="flex flex-row items-center gap-x-0.25 w-12.25"
                           >
                             <NcDropdown
@@ -775,7 +779,7 @@ onMounted(() => {
                             </NcDropdown>
 
                             <NcButton
-                              v-if="isUIAllowed('tableCreate', false, projectRole)"
+                              v-if="isUIAllowed('tableCreate', { roles: projectRole })"
                               type="text"
                               size="xxsmall"
                               class="nc-sidebar-node-btn"

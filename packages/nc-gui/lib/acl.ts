@@ -1,16 +1,7 @@
-/* eslint-disable import/export */
-import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
-export * from '../../lib/constants'
+import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk'
 
 const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
-  workspace: [
-    WorkspaceUserRoles.VIEWER,
-    WorkspaceUserRoles.COMMENTER,
-    WorkspaceUserRoles.EDITOR,
-    WorkspaceUserRoles.CREATOR,
-    WorkspaceUserRoles.OWNER,
-  ],
   project: [ProjectRoles.VIEWER, ProjectRoles.COMMENTER, ProjectRoles.EDITOR, ProjectRoles.CREATOR, ProjectRoles.OWNER],
 }
 
@@ -28,32 +19,18 @@ const rolePermissions = {
   // org level role permissions
   [OrgUserRoles.SUPER_ADMIN]: '*',
   [OrgUserRoles.CREATOR]: {
-    include: {},
+    include: {
+      projectCreate: true,
+      projectMove: true,
+      projectDelete: true,
+      projectDuplicate: true,
+      newUser: true,
+    },
   },
   [OrgUserRoles.VIEWER]: {
     include: {
       importRequest: true,
     },
-  },
-
-  [WorkspaceUserRoles.OWNER]: {
-    include: {},
-  },
-  [WorkspaceUserRoles.CREATOR]: {
-    include: {
-      projectCreate: true,
-      projectDelete: true,
-      projectDuplicate: true,
-    },
-  },
-  [WorkspaceUserRoles.EDITOR]: {
-    include: {},
-  },
-  [WorkspaceUserRoles.COMMENTER]: {
-    include: {},
-  },
-  [WorkspaceUserRoles.VIEWER]: {
-    include: {},
   },
 
   // Project role permissions
@@ -116,7 +93,7 @@ const rolePermissions = {
   [ProjectRoles.NO_ACCESS]: {
     include: {},
   },
-} as Record<OrgUserRoles | WorkspaceUserRoles | ProjectRoles, Perm | '*'>
+} as Record<OrgUserRoles | ProjectRoles, Perm | '*'>
 
 /*
   We inherit include permissions from previous roles in the same scope (role order)

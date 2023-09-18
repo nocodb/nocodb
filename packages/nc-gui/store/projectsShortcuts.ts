@@ -3,7 +3,7 @@ import { isDrawerOrModalExist, useEventListener } from '#imports'
 
 export const useProjectsShortcuts = defineStore('projectsShortcutsStore', () => {
   const { $e } = useNuxtApp()
-  const { isUIAllowed } = useUIPermission()
+  const { isUIAllowed } = useRoles()
 
   const isMounted = ref(false)
 

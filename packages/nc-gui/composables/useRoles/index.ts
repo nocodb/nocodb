@@ -1,6 +1,22 @@
-import type { RolesObj } from 'nocodb-sdk'
+import { isString } from '@vue/shared'
+import type { Roles, RolesObj, WorkspaceUserRoles } from 'nocodb-sdk'
 import { extractRolesObj } from 'nocodb-sdk'
-import { computed, createSharedComposable, useApi, useGlobal } from '#imports'
+import { computed, createSharedComposable, rolePermissions, useApi, useGlobal } from '#imports'
+import type { Permission } from '#imports'
+
+const hasPermission = (role: Exclude<Roles, WorkspaceUserRoles>, hasRole: boolean, permission: Permission | string) => {
+  const rolePermission = rolePermissions[role]
+
+  if (!hasRole || !rolePermission) return false
+
+  if (isString(rolePermission) && rolePermission === '*') return true
+
+  if ('include' in rolePermission && rolePermission.include) {
+    return !!rolePermission.include[permission as keyof typeof rolePermission.include]
+  }
+
+  return rolePermission[permission as keyof typeof rolePermission]
+}
 
 /**
  * Provides the roles a user currently has
@@ -74,7 +90,7 @@ export const useRoles = createSharedComposable(() => {
         ...user.value,
         roles: res.roles,
         project_roles: res.project_roles,
-      }
+      } as typeof User
     } else if (options?.isSharedErd) {
       const res = await api.auth.me(
         {
@@ -91,7 +107,7 @@ export const useRoles = createSharedComposable(() => {
         ...user.value,
         roles: res.roles,
         project_roles: res.project_roles,
-      }
+      } as typeof User
     } else if (projectId) {
       const res = await api.auth.me({ project_id: projectId })
 
@@ -99,9 +115,28 @@ export const useRoles = createSharedComposable(() => {
         ...user.value,
         roles: res.roles,
         project_roles: res.project_roles,
-      }
+      } as typeof User
     }
   }
 
-  return { allRoles, orgRoles, workspaceRoles, projectRoles, loadRoles }
+  const isUIAllowed = (
+    permission: Permission | string,
+    args: { roles?: string | Record<string, boolean> | string[] | null } = {},
+  ) => {
+    const { roles } = args
+
+    let checkRoles: Record<string, boolean> = {}
+
+    if (!roles) {
+      if (allRoles.value) checkRoles = allRoles.value
+    } else {
+      checkRoles = extractRolesObj(roles)
+    }
+
+    return Object.entries(checkRoles).some(([role, hasRole]) =>
+      hasPermission(role as Exclude<Roles, WorkspaceUserRoles>, hasRole, permission),
+    )
+  }
+
+  return { allRoles, orgRoles, workspaceRoles, projectRoles, loadRoles, isUIAllowed }
 })

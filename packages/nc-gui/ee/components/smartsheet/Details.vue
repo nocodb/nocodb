@@ -2,7 +2,7 @@
 const { openedViewsTab } = storeToRefs(useViewsStore())
 const { onViewsTabChange, isLockedView } = useViewsStore()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const route = useRoute()
 

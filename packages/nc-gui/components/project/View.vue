@@ -14,7 +14,7 @@ const route = router.currentRoute
   return openedProject.value?.bases?.[0]
 }) */
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 

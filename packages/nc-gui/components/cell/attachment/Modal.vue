@@ -2,9 +2,9 @@
 import { onKeyDown, useEventListener } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import { iconMap, isImage, ref, useAttachment, useDropZone, useUIPermission, watch } from '#imports'
+import { iconMap, isImage, ref, useAttachment, useDropZone, useRoles, watch } from '#imports'
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const {
   open,
@@ -155,10 +155,7 @@ const handleFileDelete = (i: number) => {
               </div>
             </a-tooltip>
 
-            <a-tooltip
-              v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic && !isLocked)"
-              placement="bottom"
-            >
+            <a-tooltip v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic && !isLocked)" placement="bottom">
               <template #title> Rename File </template>
 
               <div class="nc-attachment-download group-hover:(opacity-100) mr-[35px]">

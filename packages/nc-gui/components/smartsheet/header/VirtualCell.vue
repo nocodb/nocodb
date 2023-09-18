@@ -19,7 +19,7 @@ import {
   toRef,
   useI18n,
   useMetas,
-  useUIPermission,
+  useRoles,
 } from '#imports'
 
 const props = defineProps<{ column: ColumnType; hideMenu?: boolean; required?: boolean | number; hideIcon?: boolean }>()
@@ -38,7 +38,7 @@ provide(ColumnInj, column)
 
 const { metas } = useMetas()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const meta = inject(MetaInj, ref())
 

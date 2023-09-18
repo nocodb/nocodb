@@ -34,7 +34,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     const { $api } = useNuxtApp()
 
-    const { isUIAllowed } = useUIPermission()
+    const { isUIAllowed } = useRoles()
 
     const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
 

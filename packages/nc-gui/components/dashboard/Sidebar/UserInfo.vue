@@ -2,6 +2,8 @@
 import GithubButton from 'vue-github-button'
 
 const { user, signOut, token, appInfo } = useGlobal()
+// So watcher in users store is triggered
+useUsers()
 
 const { clearWorkspaces } = useWorkspace()
 

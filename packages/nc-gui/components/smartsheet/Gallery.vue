@@ -59,6 +59,8 @@ provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))
 provide(IsGridInj, ref(false))
 
+provide(RowHeightInj, ref(1 as const))
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 const fields = inject(FieldsInj, ref([]))
@@ -69,7 +71,11 @@ const router = useRouter()
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== galleryData.value?.fk_cover_image_col_id))
+const fieldsWithoutCover = computed(() =>
+  fields.value.filter((f) => f.id !== galleryData.value?.fk_cover_image_col_id && !isPrimary(f)),
+)
+
+const displayField = computed(() => meta.value?.columns?.find((c) => c.pv) ?? meta.value?.columns[0])
 
 const coverImageColumn: any = computed(() =>
   meta.value?.columnsById
@@ -229,7 +235,7 @@ watch(
     </template>
 
     <div
-      class="flex flex-col w-full nc-gallery nc-scrollbar-md"
+      class="flex flex-col w-full nc-gallery nc-scrollbar-md bg-[#fbfbfb]"
       data-testid="nc-gallery-wrapper"
       style="height: calc(100% - var(--topbar-height) + 0.7rem)"
       :class="{
@@ -241,12 +247,12 @@ watch(
           <a-skeleton-input v-for="index of Array(20)" :key="index" class="!min-w-60.5 !h-96 !rounded-md overflow-hidden" />
         </div>
       </div>
-      <div v-else class="nc-gallery-container grid gap-2 my-4 px-3">
+      <div v-else class="nc-gallery-container grid gap-3 my-4 px-3">
         <div v-for="(record, rowIndex) in data" :key="`record-${record.row.id}`">
           <LazySmartsheetRow :row="record">
             <a-card
-              hoverable
-              class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
+              class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] shadow-sm hover:shadow-md"
+              :body-style="{ padding: '12px' }"
               :data-testid="`nc-gallery-card-${record.row.id}`"
               :style="isPublic ? { cursor: 'default' } : { cursor: 'pointer' }"
               @click="expandFormClick($event, record)"
@@ -263,18 +269,26 @@ watch(
                   </template>
 
                   <template #prevArrow>
-                    <div style="z-index: 1"></div>
+                    <div style="z-index: 1">
+                      <MdiChevronLeft
+                        class="text-gray-700 w-6 h-6 absolute left-1.5 bottom-[-90px] !hidden !group-hover:block !bg-white border-1 border-gray-200 rounded-sm"
+                      />
+                    </div>
                   </template>
 
                   <template #nextArrow>
-                    <div style="z-index: 1"></div>
+                    <div style="z-index: 1">
+                      <MdiChevronRight
+                        class="text-gray-700 w-6 h-6 absolute right-1.5 bottom-[-90px] !hidden !group-hover:block !bg-white border-1 border-gray-200 rounded-sm"
+                      />
+                    </div>
                   </template>
 
                   <template v-for="(attachment, index) in attachments(record)">
                     <LazyCellAttachmentImage
                       v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                       :key="`carousel-${record.row.id}-${index}`"
-                      class="h-52 object-cover"
+                      class="h-52 border-b-1 border-gray-200 object-cover"
                       :srcs="getPossibleAttachmentSrc(attachment)"
                     />
                   </template>
@@ -283,14 +297,32 @@ watch(
                   <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
                 </div>
               </template>
+              <h2 v-if="displayField" class="text-lg font-bold">
+                <LazySmartsheetVirtualCell
+                  v-if="isVirtualCol(displayField)"
+                  v-model="record.row[displayField.title]"
+                  class="!text-gray-600"
+                  :column="displayField"
+                  :row="record"
+                />
+
+                <LazySmartsheetCell
+                  v-else
+                  v-model="record.row[displayField.title]"
+                  class="!text-gray-600"
+                  :column="displayField"
+                  :edit-enabled="false"
+                  :read-only="true"
+                />
+              </h2>
 
               <div v-for="col in fieldsWithoutCover" :key="`record-${record.row.id}-${col.id}`">
                 <div
                   v-if="!isRowEmpty(record, col) || isLTAR(col.uidt, col.colOptions)"
-                  class="flex flex-col space-y-1 px-1 rounded-lg w-full"
+                  class="flex flex-col space-y-1 ml-[-4px] rounded-lg w-full"
                 >
-                  <div class="flex flex-row w-full justify-start">
-                    <div class="w-full text-gray-600">
+                  <div class="flex flex-row w-full justify-start scale-75">
+                    <div class="w-full text-gray-300">
                       <LazySmartsheetHeaderVirtualCell
                         v-if="isVirtualCol(col)"
                         :column="col"
@@ -302,7 +334,7 @@ watch(
                     </div>
                   </div>
 
-                  <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
+                  <div class="flex flex-row w-full pb-3 text-gray-700 pl-1 items-center justify-start">
                     <LazySmartsheetVirtualCell
                       v-if="isVirtualCol(col)"
                       v-model="record.row[col.title]"
@@ -358,7 +390,7 @@ watch(
 <style scoped>
 .nc-gallery-container {
   grid-auto-rows: 1fr;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
 .ant-card-body {
@@ -370,13 +402,13 @@ watch(
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots) {
-  position: relative;
+  position: absolute;
   height: auto;
-  bottom: 0;
+  bottom: 3;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li div > div) {
-  background: #000;
+  background: #d9d9d9;
   border: 0;
   border-radius: 1px;
   color: transparent;
@@ -384,7 +416,7 @@ watch(
   display: block;
   font-size: 0;
   height: 3px;
-  opacity: 0.3;
+  opacity: 1;
   outline: none;
   padding: 0;
   transition: all 0.5s;
@@ -397,15 +429,9 @@ watch(
 
 .ant-carousel.gallery-carousel :deep(.slick-prev) {
   left: 0;
-  height: 100%;
-  top: 12px;
-  width: 50%;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-next) {
   right: 0;
-  height: 100%;
-  top: 12px;
-  width: 50%;
 }
 </style>

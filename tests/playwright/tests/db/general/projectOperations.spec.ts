@@ -13,7 +13,7 @@ test.describe('Project operations', () => {
   let api: Api<any>;
   test.setTimeout(100000);
 
-  async function getProjectList(workspaceId: string) {
+  async function getProjectList(workspaceId?: string) {
     let projectList: ProjectListType;
     if (isEE() && api['workspaceProject']) {
       projectList = await api['workspaceProject'].list(workspaceId);
@@ -25,9 +25,9 @@ test.describe('Project operations', () => {
   }
 
   async function createTestProjectWithData(testProjectName: string) {
-    await dashboard.leftSidebar.createProject({ title: testProjectName });
-    await dashboard.treeView.openProject({ title: testProjectName });
-    await dashboard.treeView.quickImport({ title: 'Airtable', projectTitle: testProjectName });
+    await dashboard.leftSidebar.createProject({ title: testProjectName, context });
+    await dashboard.treeView.openProject({ title: testProjectName, context });
+    await dashboard.treeView.quickImport({ title: 'Airtable', projectTitle: testProjectName, context });
     await dashboard.importAirtable.import({
       key: airtableApiKey,
       baseId: airtableApiBase,
@@ -36,8 +36,8 @@ test.describe('Project operations', () => {
   }
 
   async function cleanupTestData(dupeProjectName: string, testProjectName: string) {
-    await dashboard.treeView.deleteProject({ title: dupeProjectName });
-    await dashboard.treeView.deleteProject({ title: testProjectName });
+    await dashboard.treeView.deleteProject({ title: dupeProjectName, context });
+    await dashboard.treeView.deleteProject({ title: testProjectName, context });
   }
 
   test.beforeEach(async ({ page }) => {
@@ -58,29 +58,33 @@ test.describe('Project operations', () => {
   });
 
   test('rename, delete', async () => {
-    await dashboard.leftSidebar.createProject({ title: 'project-firstName' });
-    await dashboard.treeView.renameProject({ title: 'project-firstName', newTitle: 'project-rename' });
-    await dashboard.treeView.openProject({ title: 'project-rename' });
-    await dashboard.treeView.deleteProject({ title: 'project-rename' });
+    await dashboard.leftSidebar.createProject({ title: 'project-firstName', context });
+    await dashboard.treeView.renameProject({ title: 'project-firstName', newTitle: 'project-rename', context });
+    await dashboard.treeView.openProject({ title: 'project-rename', context });
+    await dashboard.treeView.deleteProject({ title: 'project-rename', context });
   });
 
   test('project_duplicate', async () => {
     // if project already exists, delete it to avoid test failures due to residual data
     const random = Math.floor(Math.random() * 1000000);
     const testProjectName = `Project-To-Import-Export-${random}`;
+    const scopedProjectName = dashboard.treeView.scopedProjectTitle({
+      title: testProjectName,
+      context,
+    });
 
     // // data creation for original test project
     await createTestProjectWithData(testProjectName);
 
     // duplicate duplicate
-    await dashboard.treeView.duplicateProject({ title: testProjectName });
-    await dashboard.treeView.openProject({ title: testProjectName });
+    await dashboard.treeView.duplicateProject({ title: testProjectName, context });
+    await dashboard.treeView.openProject({ title: testProjectName, context });
 
     // compare
-    const projectList = await getProjectList(context.workspace.id);
+    const projectList = await getProjectList(context.workspace?.id);
 
-    const testProjectId = projectList.list.find((p: any) => p.title === testProjectName);
-    const dupeProjectId = projectList.list.find((p: any) => p.title.startsWith(testProjectName + ' copy'));
+    const testProjectId = projectList.list.find((p: any) => p.title === scopedProjectName);
+    const dupeProjectId = projectList.list.find((p: any) => p.title.startsWith(scopedProjectName + ' copy'));
     const projectInfoOp: ProjectInfoApiUtil = new ProjectInfoApiUtil(context.token);
     const original: Promise<ProjectInfo> = projectInfoOp.extractProjectInfo(testProjectId.id);
     const duplicate: Promise<ProjectInfo> = projectInfoOp.extractProjectInfo(dupeProjectId.id);

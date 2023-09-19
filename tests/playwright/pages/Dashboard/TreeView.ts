@@ -354,5 +354,7 @@ export class TreeViewPage extends BasePage {
     await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Duplicate")`).click();
 
     await this.rootPage.locator('div.ant-modal-content').locator(`button.ant-btn:has-text("Confirm")`).click();
+
+    await this.rootPage.waitForTimeout(10000);
   }
 }

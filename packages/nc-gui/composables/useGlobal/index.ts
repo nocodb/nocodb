@@ -71,6 +71,7 @@ export const useGlobal = createGlobalState((): UseGlobalReturn => {
           firstname: nextPayload.firstname,
           lastname: nextPayload.lastname,
           roles: nextPayload.roles,
+          display_name: nextPayload.display_name,
         }
       }
     },

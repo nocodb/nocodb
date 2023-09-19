@@ -2,6 +2,8 @@
 import GithubButton from 'vue-github-button'
 
 const { user, signOut, token, appInfo } = useGlobal()
+// So watcher in users store is triggered
+useUsers()
 
 const { clearWorkspaces } = useWorkspace()
 
@@ -9,7 +11,7 @@ const { leftSidebarState } = storeToRefs(useSidebarStore())
 
 const { copy } = useCopy(true)
 
-const name = computed(() => `${user.value?.firstname ?? ''} ${user.value?.lastname ?? ''}`.trim())
+const name = computed(() => user.value?.display_name?.trim())
 
 const isMenuOpen = ref(false)
 
@@ -133,7 +135,7 @@ onMounted(() => {
             <template v-if="isAuthTokenCopied"> Copied Auth Token </template>
             <template v-else> Copy Auth Token </template>
           </NcMenuItem>
-          <nuxt-link v-e="['c:navbar:user:email']" class="!no-underline" to="/account/tokens">
+          <nuxt-link v-e="['c:navbar:user:email']" class="!no-underline" to="/account/profile">
             <NcMenuItem><GeneralIcon icon="settings" class="menu-icon" /> Account Settings</NcMenuItem>
           </nuxt-link>
         </NcMenu>

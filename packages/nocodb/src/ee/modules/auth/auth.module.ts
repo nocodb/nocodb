@@ -1,8 +1,10 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
+import { GoogleStrategyProvider } from '~/strategies/google.strategy/google.strategy';
 import { GlobalModule } from '~/modules/global/global.module';
 import { UsersService } from '~/services/users/users.service';
-import { UsersController } from '~/controllers/users/users.controller';
+import { AuthController } from '~/controllers/auth/auth.controller';
+import { OpenidStrategyProvider } from '~/strategies/openid.strategy/openid.strategy';
 import { MetasModule } from '~/modules/metas/metas.module';
 import { WorkspacesModule } from '~/modules/workspaces/workspaces.module';
 
@@ -14,9 +16,9 @@ import { WorkspacesModule } from '~/modules/workspaces/workspaces.module';
     WorkspacesModule,
   ],
   controllers: [
-    ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [UsersController] : []),
+    ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [AuthController] : []),
   ],
-  providers: [UsersService],
+  providers: [UsersService, GoogleStrategyProvider, OpenidStrategyProvider],
   exports: [UsersService],
 })
-export class UsersModule {}
+export class AuthModule {}

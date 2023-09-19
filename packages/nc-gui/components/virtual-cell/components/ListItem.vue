@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
-import { isImage, useAttachment } from '#imports'
+import { IsFormInj, isImage, useAttachment } from '#imports'
 import MaximizeIcon from '~icons/nc-icons/maximize'
 
 const { row, fields, relatedTableDisplayValueProp, isLoading, isLinked, attachment } = defineProps<{
@@ -14,6 +14,10 @@ const { row, fields, relatedTableDisplayValueProp, isLoading, isLinked, attachme
 defineEmits(['expand'])
 
 provide(IsExpandedFormOpenInj, ref(true))
+
+const isForm = inject(IsFormInj, ref(false))
+
+const isPublic = inject(IsPublicInj, ref(false))
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
@@ -84,7 +88,7 @@ const attachments: Attachment[] = computed(() => {
           />
         </div>
 
-        <div v-if="fields.length > 0" class="flex flex-row gap-4 w-10/12">
+        <div v-if="fields.length > 0 && !isForm" class="flex flex-row gap-4 w-10/12">
           <div v-for="field in fields" :key="field.id" :class="attachment ? 'w-1/3' : 'w-1/4'">
             <div class="flex flex-col gap-[-1] max-w-72">
               <LazySmartsheetHeaderVirtualCell
@@ -111,6 +115,7 @@ const attachments: Attachment[] = computed(() => {
       </div>
     </div>
     <NcButton
+      v-if="!isForm"
       type="text"
       size="lg"
       class="!px-2 nc-expand-item !group-hover:block !hidden !absolute right-1 bottom-1"

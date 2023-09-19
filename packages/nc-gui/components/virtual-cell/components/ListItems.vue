@@ -2,6 +2,7 @@
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import InboxIcon from '~icons/nc-icons/inbox'
+import ColumnIcon from '~icons/nc-icons/column'
 import {
   ColumnInj,
   IsPublicInj,
@@ -194,8 +195,7 @@ watch(expandedFormDlg, () => {
           }
         "
       >
-        <MdiPlus class="w-4 h-4" />
-        New Record
+        <div class="flex items-center gap-1"><MdiPlus /> New Record</div>
       </NcButton>
     </div>
 
@@ -228,9 +228,15 @@ watch(expandedFormDlg, () => {
         </div>
       </div>
     </template>
-    <div v-else class="py-2 h-[420px] flex flex-col items-center justify-center text-gray-500">
+    <div v-else class="py-2 h-[420px] flex flex-col gap-3 items-center justify-center text-gray-500">
       <InboxIcon class="w-16 h-16 mx-auto" />
-      <p>There are no records in table</p>
+      <p>
+        There are no records in table
+        <span class="border-gray-300 text-gray-600 rounded-md border-1 p-1">
+          <ColumnIcon class="w-4 h-4 mt-[-2px]" />
+          {{ relatedTableMeta?.title }}
+        </span>
+      </p>
     </div>
     <div class="my-2 bg-gray-50 border-gray-50 border-b-2"></div>
 
@@ -252,7 +258,7 @@ watch(expandedFormDlg, () => {
           show-less-items
         />
       </div>
-      <NcButton class="nc-close-btn ml-auto" @click="vModel = false"> Close </NcButton>
+      <NcButton class="nc-close-btn ml-auto" type="ghost" @click="vModel = false"> Close </NcButton>
     </div>
     <Suspense>
       <LazySmartsheetExpandedForm

@@ -91,6 +91,8 @@ export class ViewSidebarPage extends BasePage {
 
   async createKanbanView({ title }: { title: string }) {
     await this.createView({ title, locator: this.createKanbanButton });
+
+    await this.rootPage.waitForTimeout(1500);
   }
 
   async createMapView({ title }: { title: string }) {

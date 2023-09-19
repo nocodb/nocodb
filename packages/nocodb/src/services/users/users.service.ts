@@ -209,7 +209,7 @@ export class UsersService {
       });
       try {
         const template = (
-          await import('~/controllers/users/ui/emailTemplates/forgotPassword')
+          await import('~/controllers/auth/ui/emailTemplates/forgotPassword')
         ).default;
         await NcPluginMgrv2.emailAdapter().then((adapter) =>
           adapter.mailSend({
@@ -451,7 +451,7 @@ export class UsersService {
 
     try {
       const template = (
-        await import('~/controllers/users/ui/emailTemplates/verify')
+        await import('~/controllers/auth/ui/emailTemplates/verify')
       ).default;
       await (
         await NcPluginMgrv2.emailAdapter()

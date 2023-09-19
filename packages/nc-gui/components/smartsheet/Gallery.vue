@@ -274,7 +274,7 @@ watch(
                     <LazyCellAttachmentImage
                       v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                       :key="`carousel-${record.row.id}-${index}`"
-                      class="h-52 object-contain"
+                      class="h-52 object-cover"
                       :srcs="getPossibleAttachmentSrc(attachment)"
                     />
                   </template>
@@ -287,13 +287,18 @@ watch(
               <div v-for="col in fieldsWithoutCover" :key="`record-${record.row.id}-${col.id}`">
                 <div
                   v-if="!isRowEmpty(record, col) || isLTAR(col.uidt, col.colOptions)"
-                  class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full"
+                  class="flex flex-col space-y-1 px-1 rounded-lg w-full"
                 >
-                  <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
+                  <div class="flex flex-row w-full justify-start">
                     <div class="w-full text-gray-600">
-                      <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
+                      <LazySmartsheetHeaderVirtualCell
+                        v-if="isVirtualCol(col)"
+                        :column="col"
+                        :hide-menu="true"
+                        :hide-icon="true"
+                      />
 
-                      <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                      <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" :hide-icon="true" />
                     </div>
                   </div>
 
@@ -354,6 +359,10 @@ watch(
 .nc-gallery-container {
   grid-auto-rows: 1fr;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.ant-card-body {
+  @apply !p-0;
 }
 
 :deep(.slick-dots li button) {

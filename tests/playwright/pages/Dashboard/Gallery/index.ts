@@ -24,7 +24,12 @@ export class GalleryPage extends BasePage {
   }
 
   async openExpandedRow({ index }: { index: number }) {
-    await this.card(index).click();
+    await this.card(index).click({
+      position: {
+        x: 1,
+        y: 1,
+      },
+    });
     await (await this.rootPage.locator('.ant-drawer-body').elementHandle())?.waitForElementState('stable');
   }
 

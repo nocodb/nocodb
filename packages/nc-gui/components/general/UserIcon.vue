@@ -14,15 +14,16 @@ const displayName = computed(() => currentUser.value?.display_name ?? '')
 const email = computed(() => currentUser.value?.email ?? '')
 
 const usernameInitials = computed(() => {
-  if (displayName.value) {
-    const displayNameSplit = displayName.value.split(' ')
+  const displayNameSplit = displayName.value?.split(' ').filter((name) => name) ?? []
+
+  if (displayNameSplit.length > 0) {
     if (displayNameSplit.length > 1) {
       return displayNameSplit[0][0] + displayNameSplit[1][0]
     } else {
-      return displayName.value[0] + displayName.value[1]
+      return displayName.value.slice(0, 2)
     }
   } else {
-    return email.value[0] + email.value[1]
+    return email.value.slice(0, 2)
   }
 })
 </script>

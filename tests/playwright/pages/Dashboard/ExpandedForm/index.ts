@@ -79,7 +79,6 @@ export class ExpandedFormPage extends BasePage {
 
   async fillField({ columnTitle, value, type = 'text' }: { columnTitle: string; value: string; type?: string }) {
     const field = this.get().locator(`[data-testid="nc-expand-col-${columnTitle}"]`);
-    await field.hover();
     switch (type) {
       case 'text':
         await field.locator('input').fill(value);
@@ -93,12 +92,14 @@ export class ExpandedFormPage extends BasePage {
         break;
       }
       case 'belongsTo':
+        await field.locator('.nc-virtual-cell').hover();
         await field.locator('.nc-action-icon').click();
         await this.dashboard.linkRecord.select(value);
         break;
       case 'hasMany':
       case 'manyToMany':
-        await field.locator(`[data-testid="nc-child-list-button-link-to"]`).click();
+        await field.locator('.nc-virtual-cell').hover();
+        await field.locator('.nc-action-icon').click();
         await this.dashboard.linkRecord.select(value);
         break;
       case 'dateTime':

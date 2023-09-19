@@ -102,6 +102,11 @@ export class ToolbarSortPage extends BasePage {
       await this.get().locator(`button:has-text("Add Sort Option")`).click();
     }
 
+    await this.rootPage
+      .locator('.nc-sort-create-modal')
+      .locator('.nc-sort-column-search-item', { hasText: title })
+      .scrollIntoViewIfNeeded();
+
     // select column
     const selectColumn = async () =>
       await this.rootPage

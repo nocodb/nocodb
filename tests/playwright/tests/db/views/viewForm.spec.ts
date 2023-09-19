@@ -363,6 +363,7 @@ test.describe('Form view with LTAR', () => {
 
     await sharedForm.verifyChildList(['Atlanta', 'Pune', 'London', 'Sydney']);
     await sharedForm.selectChildList('Atlanta');
+    await sharedForm.closeLinkToChildList();
 
     await sharedForm.submit();
     await sharedForm.verifySuccessMessage();

@@ -6,6 +6,7 @@ import {
   ColumnInj,
   EditColumnInj,
   EditModeInj,
+  IsExpandedFormOpenInj,
   IsFormInj,
   IsLockedInj,
   IsPublicInj,
@@ -89,6 +90,8 @@ const isLocked = inject(IsLockedInj, ref(false))
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isEditColumnMenu = inject(EditColumnInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
@@ -179,9 +182,6 @@ function initIntersectionObserver() {
   })
 }
 
-const numberInputAlignment = computed(() => {
-  return isEditColumnMenu.value ? 'left' : 'right'
-})
 // observe the cell when it is mounted
 onMounted(() => {
   initIntersectionObserver()
@@ -200,9 +200,12 @@ onUnmounted(() => {
     class="nc-cell w-full h-full relative"
     :class="[
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
-      { 'text-blue-600': isPrimary(column) && !props.virtual && !isForm },
-      { 'nc-grid-numeric-cell': isGrid && !isForm && isNumericField },
-      { 'h-[40px]': !props.editEnabled && isForm && !isSurveyForm && !isAttachment(column) && !props.virtual },
+      {
+        'text-brand-500': isPrimary(column) && !props.virtual && !isForm,
+        'nc-grid-numeric-cell-right': isGrid && isNumericField && !isEditColumnMenu && !isForm && !isExpandedFormOpen,
+        'h-[40px]': !props.editEnabled && isForm && !isSurveyForm && !isAttachment(column) && !props.virtual,
+        'nc-grid-numeric-cell-left': (isForm && isNumericField && isExpandedFormOpen) || isEditColumnMenu,
+      },
     ]"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="navigate(NavigateDir.PREV, $event)"
@@ -258,10 +261,16 @@ onUnmounted(() => {
 </template>
 
 <style scoped lang="scss">
-.nc-grid-numeric-cell {
-  text-align: v-bind(numberInputAlignment);
+.nc-grid-numeric-cell-left {
+  text-align: left;
   :deep(input) {
-    text-align: v-bind(numberInputAlignment);
+    text-align: left;
+  }
+}
+.nc-grid-numeric-cell-right {
+  text-align: right;
+  :deep(input) {
+    text-align: right;
   }
 }
 </style>

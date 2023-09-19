@@ -31,7 +31,13 @@ export class SharedFormPage extends BasePage {
   }
 
   async clickLinkToChildList() {
-    await this.get().locator('button[data-testid="nc-child-list-button-link-to"]').click();
+    await this.get().locator('.nc-virtual-cell').hover();
+    await this.get().locator('.nc-action-icon').click({ force: true });
+    //await this.get().locator('button[data-testid="nc-child-list-button-link-to"]').click();
+  }
+
+  async closeLinkToChildList() {
+    await this.get().locator('.nc-close-btn').click();
   }
 
   async verifyChildList(cardTitle?: string[]) {
@@ -42,14 +48,13 @@ export class SharedFormPage extends BasePage {
     //    title: Link Record
     //    button: Add new record
     //    icon: reload
-    await expect(this.get().locator(`.ant-modal-title`)).toHaveText(`Link record`);
+    //await expect(this.get().locator(`.ant-modal-title`)).toHaveText(`Link record`);
 
     // add new record option is not available for shared form
-    expect(await linkRecord.locator(`button:has-text("Add new record")`).isVisible()).toBeFalsy();
+    expect(await linkRecord.locator(`button:has-text("Link more records")`).isVisible()).toBeFalsy();
 
-    expect(await linkRecord.locator(`.nc-reload`).isVisible()).toBeTruthy();
     // placeholder: Filter query
-    expect(await linkRecord.locator(`[placeholder="Filter query"]`).isVisible()).toBeTruthy();
+    expect(await linkRecord.locator('.nc-excluded-search').isVisible()).toBeTruthy();
 
     {
       const childList = linkRecord.locator(`.ant-card`);

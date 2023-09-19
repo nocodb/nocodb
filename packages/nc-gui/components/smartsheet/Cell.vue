@@ -6,6 +6,7 @@ import {
   ColumnInj,
   EditColumnInj,
   EditModeInj,
+  IsExpandedFormOpenInj,
   IsFormInj,
   IsLockedInj,
   IsPublicInj,
@@ -89,6 +90,8 @@ const isLocked = inject(IsLockedInj, ref(false))
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isEditColumnMenu = inject(EditColumnInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
@@ -200,7 +203,7 @@ onUnmounted(() => {
     class="nc-cell w-full h-full relative"
     :class="[
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
-      { 'text-blue-600': isPrimary(column) && !props.virtual && !isForm },
+      { 'text-brand-500': isPrimary(column) && !props.virtual && !isForm },
       { 'nc-grid-numeric-cell': isGrid && !isForm && isNumericField },
       { 'h-[40px]': !props.editEnabled && isForm && !isSurveyForm && !isAttachment(column) && !props.virtual },
     ]"

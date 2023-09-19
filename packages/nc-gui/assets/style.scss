@@ -418,7 +418,7 @@ a {
 }
 
 .ant-modal {
-  @apply !top-[50px];
+  @apply !top-[50px] !w-[700px];
 }
 .ant-modal-content {
   @apply !p-6;
@@ -537,4 +537,49 @@ a {
 
 input[type='number'] {
   @apply !outline-none !ring-0 !border-0;
+}
+
+.ant-pagination {
+  @apply !flex !flex-row !gap-1;
+}
+
+.ant-pagination .ant-pagination-prev {
+  @apply !border-1 !rounded-md !border-gray-200 transform scale-95;
+}
+
+.ant-pagination .ant-pagination-item {
+  @apply !bg-white !rounded-md !border-1 !scale-110 !border-gray-200 !flex !items-center !justify-center;
+}
+
+.ant-pagination .ant-pagination-item a {
+  @apply !no-underline !text-gray-700;
+}
+.ant-pagination .ant-pagination-item-active a {
+  @apply !text-brand-500;
+}
+
+.ant-pagination .ant-pagination-next {
+  @apply !border-1  !rounded-md !border-gray-200 scale-95;
+}
+
+.ant-pagination .ant-pagination-item-active {
+  @apply !bg-brand-50 !text-brand-500 !border-0 !scale-110;
+}
+.ant-pagination .ant-pagination-item-link {
+  @apply !flex !items-center !justify-center;
+}
+
+.ant-pagination .ant-pagination-jump-next-custom-icon .ant-pagination-item-link {
+  @apply !block;
+}
+.ant-pagination .ant-pagination-jump-prev-custom-icon .ant-pagination-item-link {
+  @apply !block;
+}
+
+.ant-card-body {
+  @apply !p-2;
+}
+
+.ant-pagination .ant-pagination-item-link-icon {
+  @apply !block !py-1.5;
 }

@@ -6,6 +6,7 @@ interface Props {
   column: ColumnType
   required?: boolean | number
   hideMenu?: boolean
+  hideIcon?: boolean
 }
 
 const props = defineProps<Props>()
@@ -53,7 +54,7 @@ const openHeaderMenu = () => {
     @click.right="isDropDownOpen = !isDropDownOpen"
     @click="isDropDownOpen = false"
   >
-    <SmartsheetHeaderCellIcon v-if="column" />
+    <SmartsheetHeaderCellIcon v-if="column && !props.hideIcon" />
     <div
       v-if="column"
       class="name pl-1 !truncate"
@@ -103,7 +104,7 @@ const openHeaderMenu = () => {
 
 <style scoped>
 .name {
-  max-width: calc(100% - 40px);
+  max-width: calc(100% - 10px);
   word-break: break-all;
 }
 </style>

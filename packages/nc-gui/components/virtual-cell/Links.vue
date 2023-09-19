@@ -46,7 +46,7 @@ const textVal = computed(() => {
   const parsedValue = +value?.value || 0
 
   if (!parsedValue) {
-    return 'Empty'
+    return 'No records linked'
   } else if (parsedValue === 1) {
     return `1 ${column.value?.meta?.singular || 'Link'}`
   } else {
@@ -84,30 +84,27 @@ const localCellValue = computed<any[]>(() => {
 </script>
 
 <template>
-  <div class="flex w-full items-center nc-links-wrapper" @dblclick.stop="openChildList">
-    <template v-if="!isForm">
-      <div class="block flex-shrink truncate">
-        <component
-          :is="isLocked || isUnderLookup ? 'span' : 'a'"
-          :title="textVal"
-          class="text-center pl-3 nc-datatype-link underline-transparent"
-          :class="{ '!text-gray-300': !value }"
-          @click.stop.prevent="openChildList"
-        >
-          {{ textVal }}
-        </component>
-      </div>
-      <div class="flex-grow" />
+  <div class="flex w-full group items-center nc-links-wrapper" @dblclick.stop="openChildList">
+    <div class="block flex-shrink truncate">
+      <component
+        :is="isLocked || isUnderLookup ? 'span' : 'a'"
+        :title="textVal"
+        class="text-center pl-3 nc-datatype-link underline-transparent"
+        :class="{ '!text-gray-300': !value }"
+        @click.stop.prevent="openChildList"
+      >
+        {{ textVal }}
+      </component>
+    </div>
+    <div class="flex-grow" />
 
-      <div v-if="!isLocked && !isUnderLookup" class="flex justify-end gap-1 min-h-[30px] items-center">
-        <GeneralIcon
-          v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
-          icon="plus"
-          class="nc-icon-transition select-none !text-xxl nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus hover:text-shadow-md"
-          @click.stop="listItemsDlg = true"
-        />
-      </div>
-    </template>
+    <div v-if="!isLocked && !isUnderLookup" class="flex justify-end hidden group-hover:flex items-center">
+      <MdiPlus
+        v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
+        class="select-none !text-md text-gray-700 nc-action-icon nc-plus"
+        @click.stop="listItemsDlg = true"
+      />
+    </div>
 
     <LazyVirtualCellComponentsListItems v-model="listItemsDlg" :column="relatedTableDisplayColumn" />
 

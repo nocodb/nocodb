@@ -22,7 +22,7 @@ import {
   useUIPermission,
 } from '#imports'
 
-const props = defineProps<{ column: ColumnType; hideMenu?: boolean; required?: boolean | number }>()
+const props = defineProps<{ column: ColumnType; hideMenu?: boolean; required?: boolean | number; hideIcon?: boolean }>()
 
 const { t } = useI18n()
 
@@ -126,7 +126,7 @@ const closeAddColumnDropdown = () => {
     :class="{ 'h-full': column }"
     @click.right="isDropDownOpen = !isDropDownOpen"
   >
-    <LazySmartsheetHeaderVirtualCellIcon v-if="column" />
+    <LazySmartsheetHeaderVirtualCellIcon v-if="column && !props.hideIcon" />
 
     <a-tooltip placement="bottom">
       <template #title>

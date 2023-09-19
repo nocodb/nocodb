@@ -27,7 +27,7 @@ const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { state, isNew } = useSmartsheetRowStoreOrThrow()
 
@@ -108,7 +108,7 @@ const localCellValue = computed<any[]>(() => {
 
     <div v-if="!isLocked && !isUnderLookup" class="flex justify-end hidden group-hover:flex items-center">
       <MdiPlus
-        v-if="(!readOnly && isUIAllowed('xcDatatableEditable')) || isForm"
+        v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
         class="select-none !text-md text-gray-700 nc-action-icon nc-plus"
         @click.stop="listItemsDlg = true"
       />

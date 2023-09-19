@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isDrawerOrModalExist, isMac, useNuxtApp } from '#imports'
+import { isDrawerOrModalExist, isMac, useNuxtApp, useRoles } from '#imports'
 
 interface Props {
   disabled?: boolean
@@ -15,7 +15,7 @@ const { project } = storeToRefs(useProject())
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
@@ -36,7 +36,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div
-    v-if="isUIAllowed('shareProject') && visibility !== 'hidden' && (activeTable || project)"
+    v-if="isUIAllowed('projectShare') && visibility !== 'hidden' && (activeTable || project)"
     class="flex flex-col justify-center h-full"
     data-testid="share-project-button"
     :data-sharetype="visibility"

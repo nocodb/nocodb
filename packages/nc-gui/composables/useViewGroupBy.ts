@@ -34,7 +34,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
 
   const isGroupBy = computed(() => !!groupBy.value.length)
 
-  const { isUIAllowed } = useUIPermission()
+  const { isUIAllowed } = useRoles()
 
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 

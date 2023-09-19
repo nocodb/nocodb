@@ -3,7 +3,7 @@ import type { LayoutType, ProjectType } from 'nocodb-sdk'
 import { toRef } from '@vue/reactivity'
 
 import { useNuxtApp } from '#app'
-import { ProjectRoleInj, TreeViewInj, useUIPermission } from '#imports'
+import { ProjectRoleInj, TreeViewInj, useRoles } from '#imports'
 
 const props = defineProps<{
   project: ProjectType
@@ -15,7 +15,7 @@ const layout = toRef(props, 'layout')
 
 const route = useRoute()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { $e } = useNuxtApp()
 
@@ -86,8 +86,7 @@ const { isSharedBase } = useProject()
 
         <a-dropdown
           v-if="
-            !isSharedBase &&
-            (isUIAllowed('layout-rename', false, projectRole) || isUIAllowed('layout-delete', false, projectRole))
+            !isSharedBase && (isUIAllowed('layoutRename', { roles: projectRole }) || isUIAllowed('layoutDelete', { roles: projectRole }))
           "
           :trigger="['click']"
           @click.stop
@@ -101,14 +100,14 @@ const { isSharedBase } = useProject()
 
           <template #overlay>
             <a-menu class="!py-0 rounded text-sm">
-              <a-menu-item v-if="isUIAllowed('layout-rename', false, projectRole)" @click="openRenameLayoutDialog(layout)">
+              <a-menu-item v-if="isUIAllowed('layoutRename', { roles: projectRole })" @click="openRenameLayoutDialog(layout)">
                 <div class="nc-project-menu-item" :data-testid="`sidebar-layout-rename-${layout.title}`">
                   {{ $t('general.rename') }}
                 </div>
               </a-menu-item>
 
               <a-menu-item
-                v-if="isUIAllowed('layout-delete', false, projectRole)"
+                v-if="isUIAllowed('layoutDelete', { roles: projectRole })"
                 :data-testid="`sidebar-layout-delete-${layout.title}`"
                 @click="deleteLayout(project, layout)"
               >

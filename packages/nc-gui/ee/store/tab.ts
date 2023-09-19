@@ -20,7 +20,7 @@ export const useTabs = defineStore('tabStore', () => {
 
   const { t } = useI18n()
 
-  const { isUIAllowed } = useUIPermission()
+  const { isUIAllowed } = useRoles()
 
   const docStore = useDocStore()
   const { nestedUrl, projectUrl: docsProjectUrl } = docStore

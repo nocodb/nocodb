@@ -130,19 +130,19 @@ const copyUrl = async () => {
                   {{ role }}
                 </div>
               </div> -->
-              <NcBadge v-if="role === ProjectRole.Owner" color="purple">
+              <NcBadge v-if="role === ProjectRoles.OWNER" color="purple">
                 <p class="badge-text">{{ role }}</p>
               </NcBadge>
-              <NcBadge v-if="role === ProjectRole.Creator" color="blue">
+              <NcBadge v-if="role === ProjectRoles.CREATOR" color="blue">
                 <p class="badge-text">{{ role }}</p>
               </NcBadge>
-              <NcBadge v-if="role === ProjectRole.Editor" color="green">
+              <NcBadge v-if="role === ProjectRoles.EDITOR" color="green">
                 <p class="badge-text">{{ role }}</p>
               </NcBadge>
-              <NcBadge v-if="role === ProjectRole.Commenter" color="orange">
+              <NcBadge v-if="role === ProjectRoles.COMMENTER" color="orange">
                 <p class="badge-text">{{ role }}</p>
               </NcBadge>
-              <NcBadge v-if="role === ProjectRole.Viewer" color="yellow">
+              <NcBadge v-if="role === ProjectRoles.VIEWER" color="yellow">
                 <p class="badge-text">{{ role }}</p>
               </NcBadge>
             </a-select-option>

@@ -14,7 +14,7 @@ import {
   useI18n,
   useProvideSmartsheetRowStore,
   useProvideSmartsheetStore,
-  useUIPermission,
+  useRoles,
   useViewData,
 } from '#imports'
 
@@ -64,7 +64,7 @@ const isLoadingForm = ref(true)
 // todo: generate hideCols based on default values
 // const hiddenCols = ['created_at', 'updated_at']
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { row } = useProvideSmartsheetRowStore(
   cowriterTable as Ref<TableType>,
@@ -225,7 +225,7 @@ watch(cowriterFormView, async () => {
             :class="[`nc-form-drag-${element.title.replaceAll(' ', '')}`]"
             data-testid="nc-form-fields"
           >
-            <div v-if="isUIAllowed('editFormView')" class="absolute flex top-2 right-2">
+            <div v-if="isUIAllowed('viewFieldEdit')" class="absolute flex top-2 right-2">
               <MdiDeleteOutline class="opacity-0 nc-field-remove-icon" @click.stop="deleteColumn(element)" />
             </div>
 

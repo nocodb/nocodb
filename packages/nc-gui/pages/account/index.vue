@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { iconMap, navigateTo, useUIPermission } from '#imports'
+import { iconMap, navigateTo, useRoles } from '#imports'
 
 definePageMeta({
   hideHeader: true,
 })
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const $route = useRoute()
 
@@ -86,7 +86,7 @@ const logout = async () => {
               </div>
             </NcMenuItem>
             <NcMenuItem
-              v-if="isUIAllowed('appStore') && !isEeUI"
+              v-if="isUIAllowed('superAdminAppStore') && !isEeUI"
               key="apps"
               class="item"
               :class="{

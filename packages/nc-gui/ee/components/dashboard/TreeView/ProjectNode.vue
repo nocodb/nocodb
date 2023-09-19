@@ -86,7 +86,7 @@ const { t } = useI18n()
 
 const input = ref<HTMLInputElement>()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const projectRole = inject(ProjectRoleInj)
 
@@ -547,7 +547,11 @@ onMounted(() => {
           </span>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>
 
-          <NcDropdown v-if="isUIAllowed('tableCreate', false, projectRole)" v-model:visible="isOptionsOpen" :trigger="['click']">
+          <NcDropdown
+            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
+            v-model:visible="isOptionsOpen"
+            :trigger="['click']"
+          >
             <NcButton
               class="nc-sidebar-node-btn"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
@@ -585,7 +589,7 @@ onMounted(() => {
                   <NcMenuItem
                     v-if="
                       project.type === NcProjectType.DB &&
-                      isUIAllowed('duplicateProject', true, [project.workspace_role, project.project_role].join())
+                      isUIAllowed('projectDuplicate', { roles: [project.workspace_role, project.project_role].join() })
                     "
                     @click="duplicateProject(project)"
                   >
@@ -624,7 +628,7 @@ onMounted(() => {
 
                 <!-- Team & Settings -->
                 <NcMenuItem
-                  v-if="isUIAllowed('settings')"
+                  v-if="isUIAllowed('settingsPage')"
                   key="teamAndSettings"
                   v-e="['c:navdraw:project-settings']"
                   class="nc-sidebar-project-project-settings"
@@ -635,7 +639,7 @@ onMounted(() => {
                 </NcMenuItem>
 
                 <NcMenuItem
-                  v-if="isUIAllowed('projectDelete', false, [activeWorkspace.roles], true)"
+                  v-if="isUIAllowed('projectDelete', { roles: [project.workspace_role, project.project_role].join() })"
                   class="!text-red-500 !hover:bg-red-50"
                   @click="isProjectDeleteDialogVisible = true"
                 >
@@ -649,7 +653,7 @@ onMounted(() => {
           </NcDropdown>
 
           <NcButton
-            v-if="isUIAllowed('tableCreate', false, projectRole)"
+            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
             class="nc-sidebar-node-btn"
             type="text"
             data-testid="nc-sidebar-add-project-entity"
@@ -737,7 +741,7 @@ onMounted(() => {
                             </a-tooltip>
                           </div>
                           <div
-                            v-if="isUIAllowed('tableCreate', false, projectRole)"
+                            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
                             class="flex flex-row items-center gap-x-0.25 w-12.25"
                           >
                             <NcDropdown
@@ -775,7 +779,7 @@ onMounted(() => {
                             </NcDropdown>
 
                             <NcButton
-                              v-if="isUIAllowed('tableCreate', false, projectRole)"
+                              v-if="isUIAllowed('tableCreate', { roles: projectRole })"
                               type="text"
                               size="xxsmall"
                               class="nc-sidebar-node-btn"
@@ -834,7 +838,7 @@ onMounted(() => {
         </template>
 
         <template v-else-if="contextMenuTarget.type === 'table'">
-          <NcMenuItem v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
+          <NcMenuItem v-if="isUIAllowed('tableRename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
             <div class="nc-project-option-item">
               <GeneralIcon icon="edit" class="text-gray-700" />
               {{ $t('general.rename') }}
@@ -842,7 +846,7 @@ onMounted(() => {
           </NcMenuItem>
 
           <NcMenuItem
-            v-if="isUIAllowed('table-duplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
+            v-if="isUIAllowed('tableDuplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
             @click="duplicateTable(contextMenuTarget.value)"
           >
             <div class="nc-project-option-item">
@@ -851,7 +855,7 @@ onMounted(() => {
             </div>
           </NcMenuItem>
 
-          <NcMenuItem v-if="isUIAllowed('table-delete')" @click="isTableDeleteDialogVisible = true">
+          <NcMenuItem v-if="isUIAllowed('tableDelete')" @click="isTableDeleteDialogVisible = true">
             <div class="nc-project-option-item text-red-600">
               <GeneralIcon icon="delete" />
               {{ $t('general.delete') }}

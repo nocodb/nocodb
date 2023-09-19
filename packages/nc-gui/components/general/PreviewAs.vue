@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { ProjectRole, iconMap, onUnmounted, ref, useEventListener, useGlobal, useI18n, useNuxtApp, watch } from '#imports'
+import { ProjectRoles } from 'nocodb-sdk'
+import { iconMap, onUnmounted, ref, useEventListener, useGlobal, useI18n, useNuxtApp, watch } from '#imports'
 import MdiAccountStar from '~icons/mdi/account-star'
 import MdiAccountHardHat from '~icons/mdi/account-hard-hat'
 import PhPencilCircleThin from '~icons/ph/pencil-circle-thin'
@@ -14,9 +15,9 @@ const { t } = useI18n()
 const { previewAs } = useGlobal()
 
 const roleList = [
-  { value: ProjectRole.Editor, label: t('objects.roleType.editor') },
-  { value: ProjectRole.Commenter, label: t('objects.roleType.commenter') },
-  { value: ProjectRole.Viewer, label: t('objects.roleType.viewer') },
+  { value: ProjectRoles.EDITOR, label: t('objects.roleType.editor') },
+  { value: ProjectRoles.COMMENTER, label: t('objects.roleType.commenter') },
+  { value: ProjectRoles.VIEWER, label: t('objects.roleType.viewer') },
 ]
 
 const roleIcon = {

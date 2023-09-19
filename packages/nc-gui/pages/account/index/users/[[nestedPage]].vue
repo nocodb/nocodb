@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useUIPermission } from '#imports'
+import { useRoles } from '#imports'
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 </script>
 
 <template>

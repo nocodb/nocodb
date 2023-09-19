@@ -1,17 +1,15 @@
 <script setup lang="ts">
 import type { Input } from 'ant-design-vue'
+import { ProjectRoles, RoleColors } from 'nocodb-sdk'
 import type { ProjectUserReqType } from 'nocodb-sdk'
 import {
   Form,
-  ProjectRole,
   computed,
   emailValidator,
   extractSdkResponseErrorMsg,
   iconMap,
   message,
   onMounted,
-  projectRoleTagColors,
-  projectRoles,
   ref,
   storeToRefs,
   useActiveKeyupListener,
@@ -44,7 +42,7 @@ const { copy } = useCopy()
 
 const { dashboardUrl } = useDashboard()
 
-const usersData = ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })
+const usersData = ref<Users>({ emails: undefined, role: ProjectRoles.VIEWER, invitationToken: undefined })
 
 const formRef = ref()
 
@@ -68,7 +66,7 @@ onMounted(() => {
 
 const close = () => {
   emit('closed')
-  usersData.value = { role: ProjectRole.Viewer }
+  usersData.value = { role: ProjectRoles.VIEWER }
 }
 
 const saveUser = async () => {
@@ -81,7 +79,7 @@ const saveUser = async () => {
   try {
     if (selectedUser?.id) {
       await $api.auth.projectUserUpdate(project.value.id, selectedUser.id, {
-        roles: usersData.value.role as ProjectRole,
+        roles: usersData.value.role as ProjectRoles,
         email: selectedUser.email,
         project_id: project.value.id,
         projectName: project.value.title,
@@ -127,7 +125,7 @@ const copyUrl = async () => {
 const clickInviteMore = () => {
   $e('c:user:invite-more')
   usersData.value.invitationToken = undefined
-  usersData.value.role = ProjectRole.Viewer
+  usersData.value.role = ProjectRoles.VIEWER
   usersData.value.emails = undefined
 }
 
@@ -244,12 +242,9 @@ watch(
                       class="nc-user-roles !rounded-md"
                       dropdown-class-name="nc-dropdown-user-role"
                     >
-                      <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
+                      <a-select-option v-for="(role, index) in ProjectRoles" :key="index" :value="role" class="nc-role-option">
                         <div class="flex flex-row h-full justify-start items-center">
-                          <div
-                            class="px-3 py-1 flex rounded-full text-xs"
-                            :style="{ backgroundColor: projectRoleTagColors[role] }"
-                          >
+                          <div class="px-3 py-1 flex rounded-full text-xs" :style="{ backgroundColor: RoleColors[role] }">
                             {{ role }}
                           </div>
                         </div>

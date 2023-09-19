@@ -1,6 +1,22 @@
+import { isString } from '@vue/shared'
+import type { Roles, RolesObj } from 'nocodb-sdk'
 import { extractRolesObj } from 'nocodb-sdk'
-import { computed, createSharedComposable, useApi, useGlobal } from '#imports'
-import type { ProjectRole, Role, Roles } from '#imports'
+import { computed, createSharedComposable, rolePermissions, useApi, useGlobal } from '#imports'
+import type { Permission } from '#imports'
+
+const hasPermission = (role: Roles, hasRole: boolean, permission: Permission | string) => {
+  const rolePermission = rolePermissions[role]
+
+  if (!hasRole || !rolePermission) return false
+
+  if (isString(rolePermission) && rolePermission === '*') return true
+
+  if ('include' in rolePermission && rolePermission.include) {
+    return !!rolePermission.include[permission as keyof typeof rolePermission.include]
+  }
+
+  return rolePermission[permission as keyof typeof rolePermission]
+}
 
 /**
  * Provides the roles a user currently has
@@ -8,11 +24,10 @@ import type { ProjectRole, Role, Roles } from '#imports'
  * * `userRoles` - the roles a user has outside of projects
  * * `projectRoles` - the roles a user has in the current project (if one was loaded)
  * * `allRoles` - all roles a user has (userRoles + projectRoles)
- * * `hasRole` - a function to check if a user has a specific role
  * * `loadRoles` - a function to load reload user roles for scope
  */
 export const useRoles = createSharedComposable(() => {
-  const { user, previewAs } = useGlobal()
+  const { user } = useGlobal()
 
   const { api } = useApi()
 
@@ -20,26 +35,27 @@ export const useRoles = createSharedComposable(() => {
 
   const route = router.currentRoute
 
-  const allRoles = computed<Roles | null>(() => {
+  const allRoles = computed<RolesObj | null>(() => {
     let orgRoles = user.value?.roles ?? {}
 
     orgRoles = extractRolesObj(orgRoles)
 
-    let projectRoles = user.value?.project_roles ?? {}
+    let workspaceRoles = user.value?.workspace_roles ?? {}
 
-    if (Object.keys(projectRoles).length === 0) {
-      projectRoles = user.value?.workspace_roles ?? {}
-    }
+    workspaceRoles = extractRolesObj(workspaceRoles)
+
+    let projectRoles = user.value?.project_roles ?? {}
 
     projectRoles = extractRolesObj(projectRoles)
 
     return {
       ...orgRoles,
+      ...workspaceRoles,
       ...projectRoles,
     }
   })
 
-  const orgRoles = computed<Roles | null>(() => {
+  const orgRoles = computed<RolesObj | null>(() => {
     let orgRoles = user.value?.roles ?? {}
 
     orgRoles = extractRolesObj(orgRoles)
@@ -47,19 +63,15 @@ export const useRoles = createSharedComposable(() => {
     return orgRoles
   })
 
-  const projectRoles = computed<Roles | null>(() => {
+  const projectRoles = computed<RolesObj | null>(() => {
     let projectRoles = user.value?.project_roles ?? {}
-
-    if (Object.keys(projectRoles).length === 0) {
-      projectRoles = user.value?.workspace_roles ?? {}
-    }
 
     projectRoles = extractRolesObj(projectRoles)
 
     return projectRoles
   })
 
-  const workspaceRoles = computed<Roles | null>(() => {
+  const workspaceRoles = computed<RolesObj | null>(() => {
     let workspaceRoles = user.value?.workspace_roles ?? {}
 
     workspaceRoles = extractRolesObj(workspaceRoles)
@@ -92,7 +104,7 @@ export const useRoles = createSharedComposable(() => {
         roles: res.roles,
         project_roles: res.project_roles,
         workspace_roles: res.workspace_roles,
-      }
+      } as typeof User
     } else if (options?.isSharedErd) {
       const res = await api.auth.me(
         {
@@ -110,7 +122,7 @@ export const useRoles = createSharedComposable(() => {
         roles: res.roles,
         project_roles: res.project_roles,
         workspace_roles: res.workspace_roles,
-      }
+      } as typeof User
     } else if (projectId) {
       const res = await api.auth.me({ project_id: projectId, ...wsId })
 
@@ -119,19 +131,26 @@ export const useRoles = createSharedComposable(() => {
         roles: res.roles,
         project_roles: res.project_roles,
         workspace_roles: res.workspace_roles,
-      }
+      } as typeof User
     }
   }
 
-  function hasRole(role: Role | ProjectRole | string, includePreviewRoles = false) {
-    if (previewAs.value && includePreviewRoles) {
-      return previewAs.value === role
+  const isUIAllowed = (
+    permission: Permission | string,
+    args: { roles?: string | Record<string, boolean> | string[] | null } = {},
+  ) => {
+    const { roles } = args
+
+    let checkRoles: Record<string, boolean> = {}
+
+    if (!roles) {
+      if (allRoles.value) checkRoles = allRoles.value
+    } else {
+      checkRoles = extractRolesObj(roles)
     }
 
-    console.log(allRoles.value)
-
-    return allRoles.value[role]
+    return Object.entries(checkRoles).some(([role, hasRole]) => hasPermission(role as Roles, hasRole, permission))
   }
 
-  return { allRoles, orgRoles, workspaceRoles, projectRoles, loadRoles, hasRole }
+  return { allRoles, orgRoles, workspaceRoles, projectRoles, loadRoles, isUIAllowed }
 })

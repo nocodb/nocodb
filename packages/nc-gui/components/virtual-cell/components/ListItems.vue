@@ -49,8 +49,6 @@ const isForm = inject(IsFormInj, ref(false))
 
 const saveRow = inject(SaveRowInj, () => {})
 
-const selectedRowIndex = ref(0)
-
 const isFocused = ref(false)
 
 const linkRow = async (row: Record<string, any>, id: number) => {
@@ -83,7 +81,6 @@ watch(vModel, (nextVal, prevVal) => {
       loadChildrenList()
     }
     loadChildrenExcludedList(rowState.value)
-    selectedRowIndex.value = 0
   }
 })
 

@@ -609,7 +609,6 @@ test.describe('Undo Redo - LTAR', () => {
 
     await grid.cell.inCellAdd({ index: 0, columnHeader: 'CityList' });
     await dashboard.linkRecord.select('Mumbai');
-
     await grid.cell.inCellAdd({ index: 0, columnHeader: 'CityList' });
     await dashboard.linkRecord.select('Delhi');
 
@@ -617,8 +616,8 @@ test.describe('Undo Redo - LTAR', () => {
     await grid.cell.unlinkVirtualCell({ index: 0, columnHeader: 'CityList' });
 
     await verifyRecords([]);
-    await undo({ page, values: ['Delhi'] });
-    await undo({ page, values: ['Mumbai', 'Delhi'] });
+    await undo({ page, values: ['Mumbai'] });
+    await undo({ page, values: ['Delhi', 'Mumbai'] });
     await undo({ page, values: ['Mumbai'] });
     await undo({ page, values: [] });
   });

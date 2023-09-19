@@ -841,9 +841,10 @@ class BaseModelSqlv2 {
     }
   }
 
-  async hmListCount({ colId, id }) {
+  async hmListCount({ colId, id }, args) {
     try {
       // const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
+      const { where } = this._getListArgs(args as any);
       const relColumn = (await this.model.getColumns()).find(
         (c) => c.id === colId,
       );
@@ -867,10 +868,13 @@ class BaseModelSqlv2 {
           this.dbDriver(parentTn)
             .select(parentCol.column_name)
             .where(_wherePk(parentTable.primaryKeys, id)),
-        )
-        .first();
-      const { count } = await query;
-      return count;
+        );
+      const aliasColObjMap = await childTable.getAliasColObjMap();
+      const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
+
+      await conditionV2(this, filterObj, query);
+
+      return (await query.first())?.count;
     } catch (e) {
       console.log(e);
       throw e;
@@ -1072,7 +1076,9 @@ class BaseModelSqlv2 {
     return parentIds.map((id) => gs?.[id]?.[0] || []);
   }
 
-  public async mmListCount({ colId, parentId }) {
+  public async mmListCount({ colId, parentId }, args) {
+    const { where } = this._getListArgs(args as any);
+
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId,
     );
@@ -1106,12 +1112,12 @@ class BaseModelSqlv2 {
           .select(cn)
           // .where(parentTable.primaryKey.cn, id)
           .where(_wherePk(parentTable.primaryKeys, parentId)),
-      )
-      .first();
+      );
+    const aliasColObjMap = await childTable.getAliasColObjMap();
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
-    const { count } = await qb;
-
-    return count;
+    await conditionV2(this, filterObj, qb);
+    return (await qb.first())?.count;
   }
 
   // todo: naming & optimizing

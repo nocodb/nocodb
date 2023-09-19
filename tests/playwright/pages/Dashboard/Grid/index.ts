@@ -64,7 +64,7 @@ export class GridPage extends BasePage {
 
   async verifyCollaborativeMode() {
     // add new row button
-    expect(await this.btn_addNewRow.count()).toBe(1);
+    await expect(this.btn_addNewRow).toHaveCount(1);
 
     await this.toolbar.verifyCollaborativeMode();
     await this.footbar.verifyCollaborativeMode();

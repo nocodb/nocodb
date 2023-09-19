@@ -39,7 +39,8 @@ const extractRolesObj = (roles: RolesType): RolesObj => {
   }, {});
 };
 
-const stringifyRolesObj = (roles: Roles): string => {
+const stringifyRolesObj = (roles?: Roles | null): string => {
+  if (!roles) return '';
   const rolesArr = Object.keys(roles).filter((r) => roles[r]);
   return rolesArr.join(',');
 };

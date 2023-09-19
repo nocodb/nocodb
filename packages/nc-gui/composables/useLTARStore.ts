@@ -230,7 +230,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           isChildrenListLinked.value[index] = true
           isChildrenListLoading.value[index] = false
         })
-        childrenListCount.value = childrenList.value?.pageInfo.totalRows ?? 0
+        if (!childrenListPagination.query) {
+          childrenListCount.value = childrenList.value?.pageInfo.totalRows ?? 0
+        }
       } catch (e: any) {
         message.error(`${t('msg.error.failedToLoadChildrenList')}: ${await extractSdkResponseErrorMsg(e)}`)
       }

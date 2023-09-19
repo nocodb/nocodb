@@ -258,7 +258,7 @@ watch(expandedFormDlg, () => {
           show-less-items
         />
       </div>
-      <NcButton class="nc-close-btn ml-auto" type="ghost" @click="vModel = false"> Close </NcButton>
+      <NcButton class="nc-close-btn ml-auto" type="ghost" @click="vModel = false"> Cancel </NcButton>
     </div>
     <Suspense>
       <LazySmartsheetExpandedForm

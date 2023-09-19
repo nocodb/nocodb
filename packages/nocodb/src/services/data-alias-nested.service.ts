@@ -47,10 +47,13 @@ export class DataAliasNestedService {
       },
       param.query as any,
     );
-    const count: any = await baseModel.mmListCount({
-      colId: column.id,
-      parentId: param.rowId,
-    });
+    const count: any = await baseModel.mmListCount(
+      {
+        colId: column.id,
+        parentId: param.rowId,
+      },
+      param.query,
+    );
 
     return new PagedResponseImpl(data, {
       count,

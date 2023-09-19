@@ -407,10 +407,13 @@ export class DatasService {
       )
     )?.[key];
 
-    const count: any = await baseModel.mmListCount({
-      colId: param.colId,
-      parentId: param.rowId,
-    });
+    const count: any = await baseModel.mmListCount(
+      {
+        colId: param.colId,
+        parentId: param.rowId,
+      },
+      param.query,
+    );
 
     return new PagedResponseImpl(data, {
       count,

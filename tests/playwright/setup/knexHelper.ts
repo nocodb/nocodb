@@ -36,7 +36,7 @@ export async function resetSakilaPg(database: string) {
   try {
     await initializeSakilaPg(database);
   } catch (e) {
-    console.error(`Error resetting pg sakila db: Worker ${database}`);
+    console.error(`Error resetting pg sakila db: Worker ${database}`, e);
   }
 }
 

@@ -71,9 +71,9 @@ test.describe('Collaborators', () => {
       await dashboard.rootPage.waitForTimeout(500);
       await dashboard.leftSidebar.openWorkspace({ title: context.workspace.title });
       await dashboard.rootPage.waitForTimeout(500);
-      await dashboard.treeView.openProject({ title: context.project.title });
+      await dashboard.treeView.openProject({ title: context.project.title, context });
       await dashboard.rootPage.waitForTimeout(500);
-      await dashboard.treeView.openProject({ title: context.project.title });
+      await dashboard.treeView.openProject({ title: context.project.title, context });
       // wait for render
       await dashboard.rootPage.waitForTimeout(1000);
 

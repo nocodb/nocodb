@@ -381,7 +381,7 @@ test.describe('Form view with LTAR', () => {
       await dashboard.leftSidebar.openWorkspace({ title: context.workspace.title });
       await dashboard.rootPage.waitForTimeout(500);
     }
-    await dashboard.treeView.openProject({ title: context.project.title });
+    await dashboard.treeView.openProject({ title: context.project.title, context });
     await dashboard.rootPage.waitForTimeout(500);
 
     await dashboard.treeView.openTable({ title: 'Country' });

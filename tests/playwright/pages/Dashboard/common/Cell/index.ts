@@ -366,10 +366,9 @@ export class CellPageObject extends BasePage {
       await cell.locator('.nc-datatype-link').click();
       await this.waitForResponse({
         uiAction: async () =>
-          this.rootPage
-            .locator(`[data-testid="nc-child-list-item"]`)
-            .nth((await this.rootPage.locator(`[data-testid="nc-child-list-item"]`).count()) - 1)
-            .click(),
+          this.rootPage.locator(`[data-testid="nc-child-list-item"]`).last().click({
+            force: true,
+          }),
         requestUrlPathToMatch: '/api/v1/db/data/noco/',
         httpMethodsToMatch: ['GET'],
       });

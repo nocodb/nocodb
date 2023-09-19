@@ -67,7 +67,7 @@ const attachments: Attachment[] = computed(() => {
       </div>
       <div class="flex flex-col gap-1 flex-grow justify-center">
         <div class="flex justify-between">
-          <span class="font-bold text-gray-800 ml-1"> {{ row[relatedTableDisplayValueProp] }} </span>
+          <span class="font-bold text-gray-800 ml-1 nc-display-value"> {{ row[relatedTableDisplayValueProp] }} </span>
           <MdiCheck
             v-if="isLinked"
             :class="{

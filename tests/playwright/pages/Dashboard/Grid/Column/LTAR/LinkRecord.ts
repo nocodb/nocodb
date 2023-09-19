@@ -18,20 +18,18 @@ export class LinkRecord extends BasePage {
     //    title: Link Record
     //    button: Add new record
     //    icon: reload
-    await expect(this.get().locator(`.ant-modal-title`)).toHaveText(`Link record`);
-    expect(await linkRecord.locator(`button:has-text("Add new record")`).isVisible()).toBeTruthy();
-    expect(await linkRecord.locator(`.nc-reload`).isVisible()).toBeTruthy();
+    expect(await linkRecord.locator(`button:has-text("New record")`).isVisible()).toBeTruthy();
     // placeholder: Filter query
-    expect(await linkRecord.locator(`[placeholder="Filter query"]`).isVisible()).toBeTruthy();
+    expect(await linkRecord.locator('.nc-excluded-search').isVisible()).toBeTruthy();
 
     {
-      const childList = linkRecord.locator(`.ant-card`);
+      const childList = linkRecord.getByTestId(`nc-excluded-list-item`);
       const childCards = await childList.count();
       expect(childCards).toEqual(cardTitle.length);
       for (let i = 0; i < cardTitle.length; i++) {
-        await childList.nth(i).locator('.name').scrollIntoViewIfNeeded();
-        await childList.nth(i).locator('.name').waitFor({ state: 'visible' });
-        expect(await childList.nth(i).locator('.name').textContent()).toContain(cardTitle[i]);
+        await childList.nth(i).locator('.nc-display-value').scrollIntoViewIfNeeded();
+        await childList.nth(i).locator('.nc-display-value').waitFor({ state: 'visible' });
+        expect(await childList.nth(i).locator('.nc-display-value').textContent()).toContain(cardTitle[i]);
       }
     }
   }

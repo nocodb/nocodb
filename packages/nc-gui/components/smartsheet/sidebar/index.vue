@@ -203,7 +203,7 @@ function onOpenModal({
           </div>
           <LazySmartsheetSidebarMenuTop v-else :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
         </div>
-        <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="flex flex-col">
+        <div v-if="isUIAllowed('viewCreateOrEdit')" class="flex flex-col">
           <div class="!mb-3 w-full border-b-1 border-gray-200" />
 
           <div v-if="!activeTable" class="flex flex-col pt-2 pb-5 px-6">

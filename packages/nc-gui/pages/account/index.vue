@@ -86,7 +86,7 @@ const logout = async () => {
               </div>
             </NcMenuItem>
             <NcMenuItem
-              v-if="isUIAllowed('appStore') && !isEeUI"
+              v-if="isUIAllowed('superAdminAppStore') && !isEeUI"
               key="apps"
               class="item"
               :class="{

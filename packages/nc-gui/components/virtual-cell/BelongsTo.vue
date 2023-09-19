@@ -103,7 +103,7 @@ const belongsToColumn = computed(
     </div>
 
     <div
-      v-if="!readOnly && !isLocked && (isUIAllowed('xcDatatableEditable') || isForm) && !isUnderLookup"
+      v-if="!readOnly && !isLocked && (isUIAllowed('dataEdit') || isForm) && !isUnderLookup"
       class="flex justify-end gap-1 min-h-[30px] items-center"
     >
       <GeneralIcon

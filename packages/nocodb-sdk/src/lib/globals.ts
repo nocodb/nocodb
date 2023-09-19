@@ -1,3 +1,5 @@
+import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from "./enums";
+
 export enum ViewTypes {
   FORM = 1,
   GALLERY = 2,
@@ -120,3 +122,11 @@ export enum TiptapMarksTypes {
   code = 'code',
   underline = 'underline',
 }
+
+type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
+
+type RolesObj = Partial<Record<Roles, boolean>>;
+
+type RolesType = RolesObj | string[] | string;
+
+export { Roles, RolesObj, RolesType };

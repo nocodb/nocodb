@@ -10,7 +10,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
 
 <template>
   <div
-    v-if="isUIAllowed('settings')"
+    v-if="isUIAllowed('settingsPage')"
     class="flex items-center w-full pl-3 hover:(text-primary bg-primary bg-opacity-5)"
     @click="toggleDialog(true, undefined, undefined, projectId)"
   >

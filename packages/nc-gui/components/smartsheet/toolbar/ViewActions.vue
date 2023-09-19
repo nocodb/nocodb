@@ -161,7 +161,7 @@ useMenuCloseOnEsc(open)
             </a-sub-menu>
 
             <a-sub-menu
-              v-if="isUIAllowed('view-type')"
+              v-if="isUIAllowed('viewCreateOrEdit')"
               key="lock-type"
               class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0"
             >

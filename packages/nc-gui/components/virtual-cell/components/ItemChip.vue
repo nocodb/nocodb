@@ -97,7 +97,7 @@ export default {
 
     <div
       v-show="active || isForm"
-      v-if="showUnlinkButton && !readOnly && !isLocked && isUIAllowed('xcDatatableEditable')"
+      v-if="showUnlinkButton && !readOnly && !isLocked && isUIAllowed('dataEdit')"
       class="flex items-center"
     >
       <component

@@ -76,7 +76,7 @@ provide(IsFormInj, isForm)
 provide(TabMetaInj, activeTab)
 provide(
   ReadonlyInj,
-  computed(() => !isUIAllowed('xcDatatableEditable')),
+  computed(() => !isUIAllowed('dataEdit')),
 )
 
 const grid = ref()

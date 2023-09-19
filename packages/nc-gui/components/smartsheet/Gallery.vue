@@ -85,7 +85,7 @@ const isRowEmpty = (record: any, col: any) => {
 }
 
 const { isUIAllowed } = useUIPermission()
-const hasEditPermission = computed(() => isUIAllowed('xcDatatableEditable'))
+const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 // TODO: extract this code (which is duplicated in grid and gallery) into a separate component
 const _contextMenu = ref(false)
 const contextMenu = computed({

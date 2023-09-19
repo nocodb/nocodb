@@ -149,7 +149,7 @@ const closeAddColumnDropdown = () => {
       <div class="flex-1" />
 
       <LazySmartsheetHeaderMenu
-        v-if="!isForm && isUIAllowed('edit-column') && !isExpandedForm"
+        v-if="!isForm && isUIAllowed('fieldEdit') && !isExpandedForm"
         v-model:is-open="isDropDownOpen"
         :virtual="true"
         @add-column="addField"

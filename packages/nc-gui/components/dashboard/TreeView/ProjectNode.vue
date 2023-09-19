@@ -469,7 +469,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                     <GeneralIcon icon="copy" class="group-hover:text-black" />
                     {{ $t('activity.account.projInfo') }}
                   </NcMenuItem>
-                  <NcMenuItem v-if="isUIAllowed('duplicateProject', true, projectRole)" @click="duplicateProject(project)">
+                  <NcMenuItem v-if="isUIAllowed('projectDuplicate', true, projectRole)" @click="duplicateProject(project)">
                     <GeneralIcon icon="duplicate" class="text-gray-700" />
                     {{ $t('general.duplicate') }}
                   </NcMenuItem>
@@ -493,7 +493,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                 </template>
                 <!-- Team & Settings -->
                 <NcMenuItem
-                  v-if="isUIAllowed('settings')"
+                  v-if="isUIAllowed('settingsPage')"
                   key="teamAndSettings"
                   v-e="['c:navdraw:project-settings']"
                   class="nc-sidebar-project-project-settings"
@@ -676,7 +676,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
         <template v-else-if="contextMenuTarget.type === 'base'"></template>
 
         <template v-else-if="contextMenuTarget.type === 'table'">
-          <NcMenuItem v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
+          <NcMenuItem v-if="isUIAllowed('tableRename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
             <div class="nc-project-option-item">
               <GeneralIcon icon="edit" class="text-gray-700" />
               {{ $t('general.rename') }}
@@ -684,7 +684,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
           </NcMenuItem>
 
           <NcMenuItem
-            v-if="isUIAllowed('table-duplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
+            v-if="isUIAllowed('tableDuplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
             @click="duplicateTable(contextMenuTarget.value)"
           >
             <div class="nc-project-option-item">
@@ -693,7 +693,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
             </div>
           </NcMenuItem>
 
-          <NcMenuItem v-if="isUIAllowed('table-delete')" @click="isTableDeleteDialogVisible = true">
+          <NcMenuItem v-if="isUIAllowed('tableDelete')" @click="isTableDeleteDialogVisible = true">
             <div class="nc-project-option-item text-red-600">
               <GeneralIcon icon="delete" />
               {{ $t('general.delete') }}

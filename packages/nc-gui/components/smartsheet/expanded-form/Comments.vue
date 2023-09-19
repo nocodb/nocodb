@@ -20,7 +20,7 @@ const { user } = useGlobal()
 
 const { isUIAllowed } = useUIPermission()
 
-const hasEditPermission = computed(() => isUIAllowed('commentEditable'))
+const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
 
 // currently, edit option is disable on purpose
 // since the current update wouldn't keep track of the previous values

@@ -38,7 +38,7 @@ export const useProjectsShortcuts = defineStore('projectsShortcutsStore', () => 
           }
           // 'ALT + ,'
           case 188: {
-            if (isUIAllowed('settings') && !isDrawerOrModalExist()) {
+            if (isUIAllowed('settingsPage') && !isDrawerOrModalExist()) {
               $e('c:shortcut', { key: 'ALT + ,' })
               const projectsStore = useProjects()
 

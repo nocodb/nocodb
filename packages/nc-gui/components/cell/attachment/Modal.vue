@@ -96,7 +96,7 @@ const handleFileDelete = (i: number) => {
     <template #title>
       <div class="flex gap-4">
         <div
-          v-if="isSharedForm || (!readOnly && isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
+          v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic && !isLocked)"
           class="nc-attach-file group"
           data-testid="attachment-expand-file-picker-button"
           @click="open"
@@ -141,7 +141,7 @@ const handleFileDelete = (i: number) => {
               <template #title> Remove File </template>
               <component
                 :is="iconMap.closeCircle"
-                v-if="isSharedForm || (isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
+                v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic && !isLocked)"
                 class="nc-attachment-remove"
                 @click.stop="onRemoveFileClick(item.title, i)"
               />
@@ -156,7 +156,7 @@ const handleFileDelete = (i: number) => {
             </a-tooltip>
 
             <a-tooltip
-              v-if="isSharedForm || (!readOnly && isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
+              v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic && !isLocked)"
               placement="bottom"
             >
               <template #title> Rename File </template>

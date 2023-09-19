@@ -48,7 +48,7 @@ const formState = reactive({})
 
 const secondsRemain = ref(0)
 
-const isEditable = isUIAllowed('editFormView' as Permission)
+const isEditable = isUIAllowed('viewFieldEdit' as Permission)
 
 const meta = inject(MetaInj, ref())
 
@@ -592,7 +592,7 @@ watch(view, (nextView) => {
                   @click="activeRow = element.title"
                 >
                   <div
-                    v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)"
+                    v-if="isUIAllowed('viewFieldEdit') && !isRequired(element, element.required)"
                     class="absolute flex top-2 right-2"
                   >
                     <component

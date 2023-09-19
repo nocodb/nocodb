@@ -62,7 +62,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   if (cmdOrCtrl) {
     switch (e.key) {
       case 'Enter': {
-        if (isUIAllowed('tableRowUpdate')) {
+        if (isUIAllowed('dataEdit')) {
           await save()
         }
       }
@@ -129,7 +129,7 @@ const onConfirmDeleteRowClick = async () => {
       class="nc-expand-form-save-btn !w-[60px]"
       type="primary"
       size="small"
-      :disabled="!isUIAllowed('tableRowUpdate')"
+      :disabled="!isUIAllowed('dataEdit')"
       @click="save"
     >
       {{ $t('general.save') }}
@@ -148,7 +148,7 @@ const onConfirmDeleteRowClick = async () => {
               {{ $t('general.reload') }}
             </div>
           </a-menu-item>
-          <a-menu-item v-if="isUIAllowed('xcDatatableEditable') && !isNew" @click="!isNew && emit('duplicateRow')">
+          <a-menu-item v-if="isUIAllowed('dataEdit') && !isNew" @click="!isNew && emit('duplicateRow')">
             <div v-e="['c:row-expand:duplicate']" class="py-2 flex gap-2 a">
               <component
                 :is="iconMap.copy"
@@ -157,7 +157,7 @@ const onConfirmDeleteRowClick = async () => {
               {{ $t('activity.duplicateRow') }}
             </div>
           </a-menu-item>
-          <a-menu-item v-if="isUIAllowed('xcDatatableEditable') && !isNew" @click="!isNew && onDeleteRowClick()">
+          <a-menu-item v-if="isUIAllowed('dataEdit') && !isNew" @click="!isNew && onDeleteRowClick()">
             <div v-e="['c:row-expand:delete']" class="py-2 flex gap-2 items-center">
               <component
                 :is="iconMap.delete"

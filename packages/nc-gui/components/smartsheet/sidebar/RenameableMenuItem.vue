@@ -59,7 +59,7 @@ const onClick = useDebounceFn(() => {
 
 /** Enable editing view name on dbl click */
 function onDblClick() {
-  if (!isUIAllowed('virtualViewsCreateOrEdit')) return
+  if (!isUIAllowed('viewCreateOrEdit')) return
 
   if (!isEditing.value) {
     isEditing.value = true
@@ -222,7 +222,7 @@ watch(rightSidebarState, () => {
 
       <div class="flex-1" />
 
-      <template v-if="!isEditing && !isLocked && isUIAllowed('virtualViewsCreateOrEdit')">
+      <template v-if="!isEditing && !isLocked && isUIAllowed('viewCreateOrEdit')">
         <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
           <div
             class="invisible !group-hover:visible"

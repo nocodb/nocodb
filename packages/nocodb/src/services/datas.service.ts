@@ -653,7 +653,7 @@ export class DatasService {
     const count = await baseModel.hmListCount({
       colId: param.colId,
       id: param.rowId,
-    });
+    }, param.query);
 
     return new PagedResponseImpl(data, {
       totalRows: count,

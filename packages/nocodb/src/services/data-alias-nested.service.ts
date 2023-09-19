@@ -223,7 +223,7 @@ export class DataAliasNestedService {
     const count = await baseModel.hmListCount({
       colId: column.id,
       id: param.rowId,
-    });
+    }, param.query);
 
     return new PagedResponseImpl(data, {
       count,

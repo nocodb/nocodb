@@ -841,9 +841,10 @@ class BaseModelSqlv2 {
     }
   }
 
-  async hmListCount({ colId, id }) {
+  async hmListCount({ colId, id }, args) {
     try {
       // const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
+      const { where } = this._getListArgs(args as any);
       const relColumn = (await this.model.getColumns()).find(
         (c) => c.id === colId,
       );
@@ -867,10 +868,13 @@ class BaseModelSqlv2 {
           this.dbDriver(parentTn)
             .select(parentCol.column_name)
             .where(_wherePk(parentTable.primaryKeys, id)),
-        )
-        .first();
-      const { count } = await query;
-      return count;
+        );
+      const aliasColObjMap = await childTable.getAliasColObjMap();
+      const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
+
+      await conditionV2(this, filterObj, query);
+
+      return (await query.first())?.count;
     } catch (e) {
       console.log(e);
       throw e;

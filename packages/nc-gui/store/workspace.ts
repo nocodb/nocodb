@@ -1,3 +1,4 @@
+import { OrgUserRoles } from 'nocodb-sdk'
 import type { ProjectType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
@@ -66,17 +67,17 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   /** getters */
   const isWorkspaceCreator = computed(() => {
     // todo: type correction
-    return orgRoles.value?.[Role.OrgLevelCreator]
+    return orgRoles.value?.[OrgUserRoles.CREATOR]
   })
 
   const isWorkspaceOwner = computed(() => {
     // todo: type correction
-    return orgRoles.value?.[Role.OrgLevelCreator]
+    return orgRoles.value?.[OrgUserRoles.CREATOR]
   })
 
   const isWorkspaceOwnerOrCreator = computed(() => {
     // todo: type correction
-    return orgRoles.value?.[Role.OrgLevelCreator]
+    return orgRoles.value?.[OrgUserRoles.CREATOR]
   })
 
   /** actions */

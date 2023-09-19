@@ -43,6 +43,7 @@ const rolePermissions = {
       projectMove: true,
       projectDelete: true,
       projectDuplicate: true,
+      newUser: true,
     },
   },
   [OrgUserRoles.VIEWER]: {

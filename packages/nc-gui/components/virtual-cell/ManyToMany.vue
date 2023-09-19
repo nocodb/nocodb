@@ -105,40 +105,38 @@ const m2mColumn = computed(
 
 <template>
   <div class="flex items-center gap-1 w-full chips-wrapper">
-    <template v-if="!isForm">
-      <div class="chips flex items-center img-container flex-1 hm-items flex-nowrap min-w-0 overflow-hidden">
-        <template v-if="cells">
-          <VirtualCellComponentsItemChip
-            v-for="(cell, i) of cells"
-            :key="i"
-            :item="cell.item"
-            :value="cell.value"
-            :column="m2mColumn"
-            :show-unlink-button="true"
-            @unlink="unlinkRef(cell.item)"
-          />
-
-          <span v-if="cells?.length === 10" class="caption pointer ml-1 grey--text" @click.stop="childListDlg = true">
-            more...
-          </span>
-        </template>
-      </div>
-
-      <div v-if="!isLocked && !isUnderLookup" class="flex justify-end gap-1 min-h-[30px] items-center">
-        <GeneralIcon
-          icon="expand"
-          class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
-          @click.stop="childListDlg = true"
+    <div class="chips flex items-center img-container flex-1 hm-items flex-nowrap min-w-0 overflow-hidden">
+      <template v-if="cells">
+        <VirtualCellComponentsItemChip
+          v-for="(cell, i) of cells"
+          :key="i"
+          :item="cell.item"
+          :value="cell.value"
+          :column="m2mColumn"
+          :show-unlink-button="true"
+          @unlink="unlinkRef(cell.item)"
         />
 
-        <GeneralIcon
-          v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
-          icon="plus"
-          class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
-          @click.stop="listItemsDlg = true"
-        />
-      </div>
-    </template>
+        <span v-if="cells?.length === 10" class="caption pointer ml-1 grey--text" @click.stop="childListDlg = true">
+          more...
+        </span>
+      </template>
+    </div>
+
+    <div v-if="!isLocked && !isUnderLookup" class="flex justify-end gap-1 min-h-[30px] items-center">
+      <GeneralIcon
+        icon="expand"
+        class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
+        @click.stop="childListDlg = true"
+      />
+
+      <GeneralIcon
+        v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
+        icon="plus"
+        class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
+        @click.stop="listItemsDlg = true"
+      />
+    </div>
 
     <LazyVirtualCellComponentsListItems v-model="listItemsDlg" :column="m2mColumn" />
 

@@ -219,7 +219,11 @@ async function localInit({
             const projects = await api.workspaceProject.list(w.id);
 
             for (const project of projects.list) {
-              await api.project.delete(project.id);
+              try {
+                await api.project.delete(project.id);
+              } catch (e) {
+                console.log(`Error deleting project: ws delete`, project);
+              }
             }
 
             await api['workspace'].delete(w.id);

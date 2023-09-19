@@ -2,7 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import { IsLockedInj, inject, message, onKeyStroke, useDebounceFn, useNuxtApp, useUIPermission, useVModel } from '#imports'
+import { IsLockedInj, inject, message, onKeyStroke, useDebounceFn, useNuxtApp, useRoles, useVModel } from '#imports'
 
 interface Props {
   view: ViewType
@@ -31,7 +31,7 @@ const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType &
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const activeView = inject(ActiveViewInj, ref())
 

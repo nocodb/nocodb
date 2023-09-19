@@ -12,9 +12,9 @@ import {
   storeToRefs,
   useNuxtApp,
   useProject,
+  useRoles,
   useSharedView,
   useSmartsheetStoreOrThrow,
-  useUIPermission,
 } from '#imports'
 
 export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () => void) {
@@ -24,7 +24,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   const { $api, $e } = useNuxtApp()
 
-  const { isUIAllowed } = useUIPermission()
+  const { isUIAllowed } = useRoles()
 
   const { isSharedBase } = storeToRefs(useProject())
 

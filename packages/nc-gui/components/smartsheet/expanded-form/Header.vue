@@ -7,9 +7,9 @@ import {
   isMac,
   useCopy,
   useExpandedFormStoreOrThrow,
+  useRoles,
   useSmartsheetRowStoreOrThrow,
   useSmartsheetStoreOrThrow,
-  useUIPermission,
 } from '#imports'
 
 const props = defineProps<{ view?: ViewType }>()
@@ -24,7 +24,7 @@ const { commentsDrawer, displayValue, primaryKey, save: _save, loadRow, deleteRo
 
 const { isNew, syncLTARRefs, state } = useSmartsheetRowStoreOrThrow()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 

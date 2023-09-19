@@ -16,11 +16,11 @@ import {
   useI18n,
   useNuxtApp,
   useProject,
+  useRoles,
   useRouter,
   useSharedView,
   useSmartsheetStoreOrThrow,
   useState,
-  useUIPermission,
 } from '#imports'
 import type { Row } from '#imports'
 
@@ -76,7 +76,7 @@ export function useViewData(
 
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
-  const { isUIAllowed } = useUIPermission()
+  const { isUIAllowed } = useRoles()
 
   const routeQuery = computed(() => route.value.query as Record<string, string>)
 

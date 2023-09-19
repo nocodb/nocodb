@@ -84,7 +84,7 @@ const isRowEmpty = (record: any, col: any) => {
   return Array.isArray(val) && val.length === 0
 }
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 // TODO: extract this code (which is duplicated in grid and gallery) into a separate component
 const _contextMenu = ref(false)

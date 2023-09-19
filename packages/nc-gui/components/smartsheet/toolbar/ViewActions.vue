@@ -17,8 +17,8 @@ import {
   useMenuCloseOnEsc,
   useNuxtApp,
   useProject,
+  useRoles,
   useSmartsheetStoreOrThrow,
-  useUIPermission,
 } from '#imports'
 
 const { t } = useI18n()
@@ -56,7 +56,7 @@ const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<bo
   {},
 ) as Record<QuickImportDialogType, Ref<boolean>>
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 useProject()
 

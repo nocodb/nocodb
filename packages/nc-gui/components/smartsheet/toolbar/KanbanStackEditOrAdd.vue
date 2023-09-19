@@ -9,10 +9,10 @@ import {
   ref,
   useKanbanViewStoreOrThrow,
   useMenuCloseOnEsc,
-  useUIPermission,
+  useRoles,
 } from '#imports'
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { groupingFieldColumn } = useKanbanViewStoreOrThrow()
 

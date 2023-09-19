@@ -89,7 +89,7 @@ const {
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { appInfo } = useGlobal()
 

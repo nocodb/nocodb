@@ -10,9 +10,9 @@ import {
   useCommandPalette,
   useDialog,
   useNuxtApp,
+  useRoles,
   useRoute,
   useRouter,
-  useUIPermission,
   useViewsStore,
   watch,
 } from '#imports'
@@ -39,7 +39,7 @@ const setLastOpenedViewId = (viewId?: string) => {
   }
 }
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const router = useRouter()
 

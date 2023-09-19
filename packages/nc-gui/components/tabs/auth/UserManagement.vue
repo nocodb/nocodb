@@ -14,7 +14,7 @@ import {
   useI18n,
   useNuxtApp,
   useProject,
-  useUIPermission,
+  useRoles,
   watchDebounced,
 } from '#imports'
 import type { User } from '#imports'
@@ -29,7 +29,7 @@ const { project } = storeToRefs(useProject())
 
 const { copy } = useCopy()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { dashboardUrl } = useDashboard()
 

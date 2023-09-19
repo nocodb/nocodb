@@ -21,9 +21,9 @@ import {
   useInjectionState,
   useNuxtApp,
   useProject,
+  useRoles,
   useSharedView,
   useSmartsheetStoreOrThrow,
-  useUIPermission,
   useUndoRedo,
 } from '#imports'
 
@@ -51,7 +51,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { sharedView, fetchSharedViewData, fetchSharedViewGroupedData } = useSharedView()
 
-    const { isUIAllowed } = useUIPermission()
+    const { isUIAllowed } = useRoles()
 
     const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
 

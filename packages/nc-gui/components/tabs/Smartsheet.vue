@@ -21,8 +21,8 @@ import {
   useMetas,
   useProvideKanbanViewStore,
   useProvideSmartsheetStore,
+  useRoles,
   useSqlEditor,
-  useUIPermission,
 } from '#imports'
 import type { TabItem } from '#imports'
 
@@ -30,7 +30,7 @@ const props = defineProps<{
   activeTab: TabItem
 }>()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { metas, getMeta } = useMetas()
 

@@ -1,23 +1,12 @@
 import type { ColumnType, GridColumnReqType, GridColumnType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import {
-  IsPublicInj,
-  computed,
-  inject,
-  ref,
-  useMetas,
-  useNuxtApp,
-  useStyleTag,
-  useUIPermission,
-  useUndoRedo,
-  watch,
-} from '#imports'
+import { IsPublicInj, computed, inject, ref, useMetas, useNuxtApp, useRoles, useStyleTag, useUndoRedo, watch } from '#imports'
 
 const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
   (view: Ref<(ViewType & { columns?: GridColumnType[] }) | undefined>, statePublic = false) => {
     const { css, load: loadCss, unload: unloadCss } = useStyleTag('')
 
-    const { isUIAllowed } = useUIPermission()
+    const { isUIAllowed } = useRoles()
 
     const { $api } = useNuxtApp()
 

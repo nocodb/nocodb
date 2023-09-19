@@ -1,7 +1,18 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import type { AuditType } from 'nocodb-sdk'
-import { enumColor, iconMap, ref, timeAgo, useCopy, useExpandedFormStoreOrThrow, useGlobal, useI18n, watch } from '#imports'
+import {
+  enumColor,
+  iconMap,
+  ref,
+  timeAgo,
+  useCopy,
+  useExpandedFormStoreOrThrow,
+  useGlobal,
+  useI18n,
+  useRoles,
+  watch,
+} from '#imports'
 
 const { loadCommentsAndLogs, commentsAndLogs, isCommentsLoading, commentsOnly, saveComment, isYou, comment, updateComment } =
   useExpandedFormStoreOrThrow()
@@ -18,7 +29,7 @@ const { t } = useI18n()
 
 const { user } = useGlobal()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
 

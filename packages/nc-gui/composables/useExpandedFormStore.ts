@@ -57,7 +57,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
-  const { isUIAllowed } = useUIPermission()
+  const { isUIAllowed } = useRoles()
 
   // getters
   const displayValue = computed(() => {

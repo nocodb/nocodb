@@ -8,7 +8,7 @@ const props = defineProps<{
 
 const base = toRef(props, 'base')
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const projectRole = inject(ProjectRoleInj)
 
@@ -68,7 +68,7 @@ function openQuickImportDialog(type: string) {
     <template #expandIcon></template>
 
     <NcMenuItem
-      v-if="isUIAllowed('airtableImport', false, projectRole)"
+      v-if="isUIAllowed('airtableImport', { roles: projectRole })"
       key="quick-import-airtable"
       @click="openAirtableImportDialog(base.id)"
     >
@@ -76,13 +76,17 @@ function openQuickImportDialog(type: string) {
       <div class="ml-0.5">Airtable</div>
     </NcMenuItem>
 
-    <NcMenuItem v-if="isUIAllowed('csvImport', false, projectRole)" key="quick-import-csv" @click="openQuickImportDialog('csv')">
+    <NcMenuItem
+      v-if="isUIAllowed('csvImport', { roles: projectRole })"
+      key="quick-import-csv"
+      @click="openQuickImportDialog('csv')"
+    >
       <GeneralIcon icon="csv" class="w-4 group-hover:text-black" />
       CSV file
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="isUIAllowed('jsonImport', false, projectRole)"
+      v-if="isUIAllowed('jsonImport', { roles: projectRole })"
       key="quick-import-json"
       @click="openQuickImportDialog('json')"
     >
@@ -91,7 +95,7 @@ function openQuickImportDialog(type: string) {
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="isUIAllowed('excelImport', false, projectRole)"
+      v-if="isUIAllowed('excelImport', { roles: projectRole })"
       key="quick-import-excel"
       @click="openQuickImportDialog('excel')"
     >

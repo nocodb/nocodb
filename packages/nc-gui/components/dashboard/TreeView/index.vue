@@ -20,14 +20,14 @@ import {
   useNuxtApp,
   useProject,
   useProjects,
+  useRoles,
   useTablesStore,
   useTabs,
-  useUIPermission,
 } from '#imports'
 
 import { useRouter } from '#app'
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { addTab } = useTabs()
 

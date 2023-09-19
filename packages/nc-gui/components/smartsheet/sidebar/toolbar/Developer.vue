@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { isMobileMode } = useGlobal()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const isPublicView = inject(IsPublicInj, ref(false))
 

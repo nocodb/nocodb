@@ -123,7 +123,7 @@ const m2mColumn = computed(
       </template>
     </div>
 
-    <div v-if="!isLocked && !isUnderLookup" class="flex justify-end gap-1 min-h-[30px] items-center">
+    <div v-if="(!isLocked && !isUnderLookup) || isForm" class="flex justify-end gap-1 min-h-[30px] items-center">
       <GeneralIcon
         icon="expand"
         class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"

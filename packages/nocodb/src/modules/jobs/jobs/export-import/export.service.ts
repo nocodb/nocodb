@@ -722,15 +722,24 @@ export class ExportService {
           dataStream,
         );
 
+        let error = null;
+
         this.streamModelDataAsCsv({
           dataStream,
           linkStream,
           projectId: project.id,
           modelId: model.id,
           handledMmList,
+        }).catch((e) => {
+          this.logger.error(e);
+          dataStream.push(null);
+          linkStream.push(null);
+          error = e;
         });
 
         await Promise.all([uploadPromise, linkPromise]);
+
+        if (error) throw error;
       }
 
       combinedLinkStream.push(null);

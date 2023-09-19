@@ -242,7 +242,11 @@ export class DuplicateProcessor {
 
     let handledLinks = [];
 
+    let error = null;
+
     for (const sourceModel of sourceModels) {
+      if (error) break;
+
       const dataStream = new Readable({
         read() {},
       });
@@ -251,13 +255,20 @@ export class DuplicateProcessor {
         read() {},
       });
 
-      this.exportService.streamModelDataAsCsv({
-        dataStream,
-        linkStream,
-        projectId: sourceProject.id,
-        modelId: sourceModel.id,
-        handledMmList: handledLinks,
-      });
+      this.exportService
+        .streamModelDataAsCsv({
+          dataStream,
+          linkStream,
+          projectId: sourceProject.id,
+          modelId: sourceModel.id,
+          handledMmList: handledLinks,
+        })
+        .catch((e) => {
+          this.logger.error(e);
+          dataStream.push(null);
+          linkStream.push(null);
+          error = e;
+        });
 
       const model = await Model.get(findWithIdentifier(idMap, sourceModel.id));
 
@@ -284,6 +295,8 @@ export class DuplicateProcessor {
       );
     }
 
+    if (error) throw error;
+
     // update external models (has bt to this model)
     if (externalModels) {
       for (const sourceModel of externalModels) {
@@ -299,14 +312,23 @@ export class DuplicateProcessor {
           read() {},
         });
 
-        this.exportService.streamModelDataAsCsv({
-          dataStream,
-          linkStream,
-          projectId: sourceProject.id,
-          modelId: sourceModel.id,
-          handledMmList: handledLinks,
-          _fieldIds: fields,
-        });
+        let error = null;
+
+        this.exportService
+          .streamModelDataAsCsv({
+            dataStream,
+            linkStream,
+            projectId: sourceProject.id,
+            modelId: sourceModel.id,
+            handledMmList: handledLinks,
+            _fieldIds: fields,
+          })
+          .catch((e) => {
+            this.logger.error(e);
+            dataStream.push(null);
+            linkStream.push(null);
+            error = e;
+          });
 
         const headers: string[] = [];
         let chunk = [];
@@ -400,6 +422,8 @@ export class DuplicateProcessor {
             },
           });
         });
+
+        if (error) throw error;
 
         elapsedTime(
           hrTime,

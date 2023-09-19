@@ -10,7 +10,7 @@ import {
   iconMap,
   inject,
   useVModel,
-  ReadonlyInj
+  ReadonlyInj,
 } from '#imports'
 
 const props = defineProps<{
@@ -26,7 +26,7 @@ const editEnabled = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
-const rowHeight = inject(RowHeightInj, ref(undefined))
+const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const { showNull } = useGlobal()
 

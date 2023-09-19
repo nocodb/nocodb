@@ -79,7 +79,7 @@ watch(vModel, (nextVal, prevVal) => {
     /** reset query and limit */
     childrenExcludedListPagination.query = ''
     childrenExcludedListPagination.page = 1
-    if (!isForm) {
+    if (!isForm.value) {
       loadChildrenList()
     }
     loadChildrenExcludedList()

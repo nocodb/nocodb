@@ -17,6 +17,8 @@ provide(IsExpandedFormOpenInj, ref(true))
 
 const isForm = inject(IsFormInj, ref(false))
 
+provide(RowHeightInj, ref(1 as const))
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { getPossibleAttachmentSrc } = useAttachment()
@@ -42,10 +44,11 @@ const attachments: Attachment[] = computed(() => {
 
 <template>
   <a-card
-    class="!border-1 group transition-all !rounded-xl relative !mb-4 !border-gray-200 hover:!bg-gray-50 hover:!border-gray-400"
+    class="!border-1 group transition-all !rounded-xl relative !mb-4 !border-gray-200 hover:bg-gray-50"
     :class="{
       '!bg-white !border-blue-500': isLoading,
-      '!border-brand-500 !bg-brand-50 !border-2': isLinked,
+      '!border-brand-500 !bg-brand-50 !border-2 !hover:bg-brand-50 !hover:border-brand-500': isLinked,
+      '!hover:border-gray-400': !isLinked,
     }"
     :body-style="{ padding: 0 }"
     :hoverable="false"

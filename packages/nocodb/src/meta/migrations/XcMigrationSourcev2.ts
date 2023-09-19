@@ -21,6 +21,7 @@ import * as nc_030_add_description_field from './v2/nc_030_add_description_field
 import * as nc_031_remove_fk_and_add_idx from './v2/nc_031_remove_fk_and_add_idx';
 import * as nc_033_add_group_by from './v2/nc_033_add_group_by';
 import * as nc_034_erd_filter_and_notification from './v2/nc_034_erd_filter_and_notification';
+import * as nc_035_add_username_to_users from './v2/nc_035_add_username_to_users';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -53,6 +54,7 @@ export default class XcMigrationSourcev2 {
       'nc_031_remove_fk_and_add_idx',
       'nc_033_add_group_by',
       'nc_034_erd_filter_and_notification',
+      'nc_035_add_username_to_users',
     ]);
   }
 
@@ -108,6 +110,8 @@ export default class XcMigrationSourcev2 {
         return nc_033_add_group_by;
       case 'nc_034_erd_filter_and_notification':
         return nc_034_erd_filter_and_notification;
+      case 'nc_035_add_username_to_users':
+        return nc_035_add_username_to_users;
     }
   }
 }

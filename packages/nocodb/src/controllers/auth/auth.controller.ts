@@ -24,12 +24,6 @@ import { NcError } from '~/helpers/catchError';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { User } from '~/models';
 
-export class CreateUserDto {
-  readonly username: string;
-  readonly email: string;
-  readonly password: string;
-}
-
 @Controller()
 export class AuthController {
   constructor(

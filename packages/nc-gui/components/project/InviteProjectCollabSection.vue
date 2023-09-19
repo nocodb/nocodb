@@ -182,6 +182,8 @@ onKeyStroke('Backspace', () => {
 const onPaste = (e: ClipboardEvent) => {
   const pastedText = e.clipboardData?.getData('text')
   const inputArray = pastedText?.split(',') || pastedText?.split(' ')
+  // if data is pasted to a already existing text in input
+  // we add existingInput + pasted data
   if (inputArray?.length === 1 && inviteData.email.length > 1) {
     inputArray[0] = inviteData.email += inputArray[0]
   }

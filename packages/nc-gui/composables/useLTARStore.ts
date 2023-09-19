@@ -163,7 +163,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               where:
                 childrenExcludedListPagination.query &&
                 `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
-              fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
+              // fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
             } as any,
           )
         } else {

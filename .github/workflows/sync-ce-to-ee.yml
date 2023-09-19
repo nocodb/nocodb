@@ -51,7 +51,7 @@ jobs:
           git fetch --quiet --unshallow origin
           BRANCH_NAME=oss/$(cd ../nocodb;git rev-list -n 3 HEAD | tail -1 | cut -c1-8)
           git checkout -b $BRANCH_NAME
-          COMMITS_INFORMATION=$(bash scripts/sync/sync_ce_to_ee.sh ${{ github.event.client_payload.before || github.event.inputs.before }} ${{ github.event.client_payload.after || github.event.inputs.after }})
+          COMMITS_INFORMATION=$(bash scripts/sync/sync_ce_to_ee.sh ${{ github.event.client_payload.push.before || github.event.inputs.before }} ${{ github.event.client_payload.push.after || github.event.inputs.after }})
           git push origin $BRANCH_NAME
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'

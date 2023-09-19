@@ -1078,7 +1078,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Workspace"
+                  "type": "object",
+                  "properties": {
+                    "workspace": {
+                      "$ref": "#/components/schemas/Workspace",
+                      "required": true
+                    },
+                    "workspaceUserCount": {
+                      "type": "number",
+                      "required": true
+                    }
+                  }
                 }
               }
             }
@@ -1385,8 +1395,6 @@
         }
       ]
     },
-
-
     "/api/v1/db/meta/filters/{filterId}": {
       "parameters": [
         {

@@ -20,7 +20,7 @@ const route = useRoute()
 
 const { meta, isSqlView } = useSmartsheetStoreOrThrow()
 
-const { commentsDrawer, displayValue, primaryKey, save: _save, loadRow } = useExpandedFormStoreOrThrow()
+const { commentsDrawer, displayValue, primaryKey, save: _save, loadRow, deleteRowById } = useExpandedFormStoreOrThrow()
 
 const { isNew, syncLTARRefs, state } = useSmartsheetRowStoreOrThrow()
 
@@ -72,8 +72,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 const showDeleteRowModal = ref(false)
 
-const { deleteRowById } = useViewData(meta, ref(props.view))
-
 const onDeleteRowClick = () => {
   showDeleteRowModal.value = true
 }
@@ -81,7 +79,7 @@ const onDeleteRowClick = () => {
 const onConfirmDeleteRowClick = async () => {
   showDeleteRowModal.value = false
   await deleteRowById(primaryKey.value)
-  reloadTrigger.trigger()
+  await reloadTrigger.trigger()
   emit('cancel')
   message.success('Row deleted')
 }

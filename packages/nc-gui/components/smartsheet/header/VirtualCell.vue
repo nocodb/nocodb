@@ -22,7 +22,7 @@ import {
   useUIPermission,
 } from '#imports'
 
-const props = defineProps<{ column: ColumnType; hideMenu?: boolean; required?: boolean | number }>()
+const props = defineProps<{ column: ColumnType; hideMenu?: boolean; required?: boolean | number; hideIcon?: boolean }>()
 
 const { t } = useI18n()
 
@@ -43,6 +43,8 @@ const { isUIAllowed } = useUIPermission()
 const meta = inject(MetaInj, ref())
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const colOptions = computed(() => column.value?.colOptions)
 
@@ -126,13 +128,17 @@ const closeAddColumnDropdown = () => {
     :class="{ 'h-full': column }"
     @click.right="isDropDownOpen = !isDropDownOpen"
   >
-    <LazySmartsheetHeaderVirtualCellIcon v-if="column" />
+    <LazySmartsheetHeaderVirtualCellIcon v-if="column && !props.hideIcon" />
 
     <a-tooltip placement="bottom">
       <template #title>
         {{ tooltipMsg }}
       </template>
-      <span class="name pl-1" :class="{ 'truncate': !isForm, 'whitespace-pre-line': isForm }" :title="column.title">
+      <span
+        class="name pl-1"
+        :class="{ 'truncate': !isForm || !isExpandedForm, 'whitespace-pre-line': isForm || isExpandedForm }"
+        :title="column.title"
+      >
         {{ column.title }}
       </span>
     </a-tooltip>
@@ -143,7 +149,7 @@ const closeAddColumnDropdown = () => {
       <div class="flex-1" />
 
       <LazySmartsheetHeaderMenu
-        v-if="!isForm && isUIAllowed('edit-column')"
+        v-if="!isForm && isUIAllowed('edit-column') && !isExpandedForm"
         v-model:is-open="isDropDownOpen"
         :virtual="true"
         @add-column="addField"

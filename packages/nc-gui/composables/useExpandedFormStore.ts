@@ -287,7 +287,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       NOCO,
       // todo: project_id missing on view type
       (project?.value?.id || (sharedView.value?.view as any)?.project_id) as string,
-      meta.value.id,
+      meta.value.id as string,
       encodeURIComponent(rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])),
       {
         getHiddenColumn: true,
@@ -299,6 +299,28 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       oldRow: { ...record },
       rowMeta: {},
     })
+  }
+
+  const deleteRowById = async (rowId?: string) => {
+    try {
+      const res: { message?: string[] } | number = await $api.dbTableRow.delete(
+        NOCO,
+        project.value.id as string,
+        meta.value.id as string,
+        encodeURIComponent(rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])),
+      )
+
+      if (res.message) {
+        message.info(
+          `Row delete failed: ${`Unable to delete row with ID ${rowId} because of the following:
+              \n${res.message.join('\n')}.\n
+              Clear the data first & try again`})}`,
+        )
+        return false
+      }
+    } catch (e: any) {
+      message.error(`${t('msg.error.deleteFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+    }
   }
 
   const updateComment = async (auditId: string, audit: Partial<AuditType>) => {
@@ -317,6 +339,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     isYou,
     commentsDrawer,
     row,
+    deleteRowById,
     displayValue,
     save,
     changedColumns,

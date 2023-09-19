@@ -25,6 +25,9 @@ export default class User implements UserType {
   roles?: string;
   token_version?: string;
 
+  display_name?: string;
+  avatar?: string;
+
   constructor(data: User) {
     Object.assign(this, data);
   }
@@ -80,6 +83,8 @@ export default class User implements UserType {
       'email_verified',
       'roles',
       'token_version',
+      'display_name',
+      'avatar',
     ]);
 
     if (updateObj.email) {

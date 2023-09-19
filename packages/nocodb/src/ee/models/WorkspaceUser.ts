@@ -40,6 +40,10 @@ export default class WorkspaceUser {
       true,
     );
 
+    await NocoCache.del(
+      `${CacheScope.WORKSPACE}:${projectUser.fk_workspace_id}:userCount`,
+    );
+
     return this.get(fk_workspace_id, fk_user_id, ncMeta);
   }
 
@@ -209,7 +213,7 @@ export default class WorkspaceUser {
   }
 
   static async count({ workspaceId }: { workspaceId: any }) {
-    const key = `${CacheScope.WORKSPACE}:${workspaceId}:count`;
+    const key = `${CacheScope.WORKSPACE}:${workspaceId}:userCount`;
     let count = await NocoCache.get(key, CacheGetType.TYPE_STRING);
 
     if (!count) {
@@ -276,6 +280,8 @@ export default class WorkspaceUser {
     await NocoCache.del(
       `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
     );
+    await NocoCache.del(`${CacheScope.WORKSPACE}:${workspaceId}:userCount`);
+
     return await Noco.ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USER, {
       fk_user_id: userId,
       fk_workspace_id: workspaceId,

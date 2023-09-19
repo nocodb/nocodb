@@ -1,6 +1,14 @@
 name: "Sync OSS to CE"
 
 on:
+  workflow_dispatch:
+    inputs:
+      before:
+        description: 'The commit hash before the push'
+        required: true
+      after:
+        description: 'The commit hash after the push'
+        required: true
   # Triggered when pushed to develop branch of nocodb/nocodb (TODO)
   repository_dispatch:
     types: [OSS]
@@ -9,6 +17,9 @@ jobs:
   sync:
     runs-on: [self-hosted, aws]
     steps:
+      - name: Log event
+        run: |
+          echo '${{ toJSON(github.event.client_payload) }}'
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
@@ -40,7 +51,7 @@ jobs:
           git fetch --quiet --unshallow origin
           BRANCH_NAME=oss/$(cd ../nocodb;git rev-list -n 3 HEAD | tail -1 | cut -c1-8)
           git checkout -b $BRANCH_NAME
-          COMMITS_INFORMATION=$(bash scripts/sync/sync_ce_to_ee.sh ${{ github.event.client_payload.push.before }} ${{ github.event.client_payload.push.after }})
+          COMMITS_INFORMATION=$(bash scripts/sync/sync_ce_to_ee.sh ${{ github.event.client_payload.push.before || github.event.inputs.before }} ${{ github.event.client_payload.push.after || github.event.inputs.after }})
           git push origin $BRANCH_NAME
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'

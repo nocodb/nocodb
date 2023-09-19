@@ -31,9 +31,9 @@ export class FootbarPage extends BasePage {
   async verifyRoleAccess(param: { role: string }) {
     const role = param.role.toLowerCase();
     if (role === 'creator' || role === 'editor' || role === 'owner') {
-      expect(await this.btn_addNewRow.count()).toBe(1);
+      await expect(this.btn_addNewRow).toHaveCount(1);
     } else {
-      expect(await this.btn_addNewRow.count()).toBe(0);
+      await expect(this.btn_addNewRow).toHaveCount(0);
     }
   }
 

@@ -2,6 +2,7 @@
 import { type ColumnType, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import type { Row } from '#imports'
 import InboxIcon from '~icons/nc-icons/inbox'
+import ColumnIcon from '~icons/nc-icons/column'
 
 import {
   ColumnInj,
@@ -196,10 +197,23 @@ watch(expandedFormDlg, () => {
         'h-[420px]': !isForm,
         'h-[250px]': isForm,
       }"
-      class="pt-1 flex flex-col items-center justify-center text-gray-500"
+      class="pt-1 flex flex-col gap-3 items-center justify-center text-gray-500"
     >
       <InboxIcon class="w-16 h-16 mx-auto" />
-      <p>There are no records in table</p>
+      <p>
+        No records are linked from table
+        <span class="border-gray-300 text-gray-600 rounded-md border-1 p-1">
+          <ColumnIcon class="w-4 h-4 mt-[-2px]" />
+          {{ relatedTableMeta?.title }}
+        </span>
+      </p>
+      <NcButton
+        v-if="!readonly && childrenListCount < 1"
+        data-testid="nc-child-list-button-link-to"
+        @click="emit('attachRecord')"
+      >
+        <div class="flex items-center gap-1"><MdiPlus /> Link more records</div>
+      </NcButton>
     </div>
 
     <div class="my-2 bg-gray-50 border-gray-50 border-b-2"></div>
@@ -225,10 +239,14 @@ watch(expandedFormDlg, () => {
         />
       </div>
       <div class="flex flex-row gap-1">
-        <NcButton v-if="!readonly" type="ghost" data-testid="nc-child-list-button-link-to" @click="emit('attachRecord')">
-          <MdiPlus /> Link more records
+        <NcButton v-if="!isForm" type="ghost" class="nc-close-btn" @click="vModel = false"> Cancel </NcButton>
+        <NcButton
+          v-if="!readonly && childrenListCount > 0"
+          data-testid="nc-child-list-button-link-to"
+          @click="emit('attachRecord')"
+        >
+          <div class="flex items-center gap-1"><MdiPlus /> Link more records</div>
         </NcButton>
-        <NcButton v-if="!isForm" type="primary" class="nc-close-btn" @click="vModel = false"> Close </NcButton>
       </div>
     </div>
 

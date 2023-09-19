@@ -44,7 +44,7 @@ const attachments: Attachment[] = computed(() => {
 
 <template>
   <a-card
-    class="!border-1 group transition-all !rounded-xl relative !mb-4 !border-gray-200 hover:bg-gray-50"
+    class="!border-1 group transition-all !rounded-xl relative !mb-2 !border-gray-200 hover:bg-gray-50"
     :class="{
       '!bg-white !border-blue-500': isLoading,
       '!border-brand-500 !bg-brand-50 !border-2 !hover:bg-brand-50 !hover:border-brand-500': isLinked,

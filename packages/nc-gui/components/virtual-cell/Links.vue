@@ -21,6 +21,8 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
+const colTitle = computed(() => column.value?.title || '')
+
 const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
@@ -43,6 +45,10 @@ const relatedTableDisplayColumn = computed(
 loadRelatedTableMeta()
 
 const textVal = computed(() => {
+  if (isForm?.value) {
+    return state.value?.[colTitle.value]?.length ? `${state.value?.[colTitle.value]?.length} records Linked` : 'No records linked'
+  }
+
   const parsedValue = +value?.value || 0
 
   if (!parsedValue) {
@@ -90,7 +96,7 @@ const localCellValue = computed<any[]>(() => {
         :is="isLocked || isUnderLookup ? 'span' : 'a'"
         :title="textVal"
         class="text-center pl-3 nc-datatype-link underline-transparent"
-        :class="{ '!text-gray-300': !value }"
+        :class="{ '!text-gray-300': !textVal }"
         @click.stop.prevent="openChildList"
       >
         {{ textVal }}

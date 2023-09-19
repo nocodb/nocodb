@@ -103,6 +103,13 @@ const relation = computed(() => {
   return injectedColumn!.value?.colOptions?.type
 })
 
+watch(
+  () => props.cellValue,
+  () => {
+    if (!isNew.value) loadChildrenList()
+  },
+)
+
 watch(expandedFormDlg, () => {
   loadChildrenList()
 })
@@ -114,20 +121,21 @@ watch(expandedFormDlg, () => {
     :class="{ active: vModel }"
     :footer="null"
     :closable="false"
-    :width="840"
-    :body-style="{ 'padding': 0, 'margin': 0, 'min-height': '500px' }"
+    :width="isForm ? 600 : 800"
+    :body-style="{ 'padding': 0, 'margin': 0, 'min-height': isForm ? '300px' : '500px' }"
     wrap-class-name="nc-modal-child-list"
   >
     <LazyVirtualCellComponentsHeader
+      v-if="!isForm"
       :relation="relation"
       :linked-records="childrenListCount"
       :table-title="meta?.title"
       :related-table-title="relatedTableMeta?.title"
       :display-value="row.row[displayValueProp]"
     />
-    <div class="m-4 bg-gray-50 border-gray-50 border-b-2"></div>
+    <div v-if="!isForm" class="m-4 bg-gray-50 border-gray-50 border-b-2"></div>
 
-    <div class="flex mt-2 mb-2 items-center gap-2">
+    <div v-if="!isForm" class="flex mt-2 mb-2 items-center gap-2">
       <div
         class="flex items-center border-1 p-1 rounded-md w-full border-gray-200"
         :class="{ '!border-primary': childrenListPagination.query.length !== 0 || isFocused }"
@@ -150,7 +158,13 @@ watch(expandedFormDlg, () => {
 
     <template v-if="(isNew && state?.[colTitle]?.length) || childrenList?.pageInfo?.totalRows">
       <div class="mt-2 mb-2">
-        <div class="h-[420px] overflow-scroll nc-scrollbar-md cursor-pointer pr-1">
+        <div
+          :class="{
+            'h-[420px]': !isForm,
+            'h-[250px]': isForm,
+          }"
+          class="overflow-scroll nc-scrollbar-md cursor-pointer pr-1"
+        >
           <LazyVirtualCellComponentsListItem
             v-for="(refRow, id) in childrenList?.list ?? state?.[colTitle] ?? []"
             :key="id"
@@ -159,14 +173,14 @@ watch(expandedFormDlg, () => {
             data-testid="nc-child-list-item"
             :attachment="attachmentCol"
             :related-table-display-value-prop="relatedTableDisplayValueProp"
-            :is-linked="isChildrenListLinked[Number.parseInt(id)]"
+            :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
             :is-loading="isChildrenListLoading[Number.parseInt(id)]"
             @expand="onClick(refRow)"
             @click="
               () => {
-                if (isPublic) return
-
-                isChildrenListLinked[Number.parseInt(id)]
+                isNew
+                  ? unlinkRow(refRow, Number.parseInt(id))
+                  : isChildrenListLinked[Number.parseInt(id)]
                   ? unlinkRow(refRow, Number.parseInt(id))
                   : linkRow(refRow, Number.parseInt(id))
               }
@@ -175,7 +189,14 @@ watch(expandedFormDlg, () => {
         </div>
       </div>
     </template>
-    <div v-else class="pt-1 h-[420px] flex flex-col items-center justify-center text-gray-500">
+    <div
+      v-else
+      :class="{
+        'h-[420px]': !isForm,
+        'h-[250px]': isForm,
+      }"
+      class="pt-1 flex flex-col items-center justify-center text-gray-500"
+    >
       <InboxIcon class="w-16 h-16 mx-auto" />
       <p>There are no records in table</p>
     </div>
@@ -183,8 +204,11 @@ watch(expandedFormDlg, () => {
     <div class="my-2 bg-gray-50 border-gray-50 border-b-2"></div>
 
     <div class="flex flex-row justify-between bg-white relative pt-1">
-      <div class="flex items-center justify-center px-2 rounded-md text-brand-500 bg-brand-50">
+      <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-brand-500 bg-brand-50">
         {{ childrenListCount || 0 }} records {{ childrenListCount !== 0 ? 'are' : '' }} linked
+      </div>
+      <div v-else class="flex items-center justify-center px-2 rounded-md text-brand-500 bg-brand-50">
+        {{ state?.[colTitle]?.length || 0 }} records {{ state?.[colTitle]?.length !== 0 ? 'are' : '' }} linked
       </div>
       <div class="flex absolute items-center py-2 justify-center w-full">
         <a-pagination
@@ -203,7 +227,7 @@ watch(expandedFormDlg, () => {
         <NcButton v-if="!readonly" type="ghost" data-testid="nc-child-list-button-link-to" @click="emit('attachRecord')">
           <MdiPlus /> Link more records
         </NcButton>
-        <NcButton type="primary" class="nc-close-btn" @click="vModel = false"> Close </NcButton>
+        <NcButton v-if="!isForm" type="primary" class="nc-close-btn" @click="vModel = false"> Close </NcButton>
       </div>
     </div>
 

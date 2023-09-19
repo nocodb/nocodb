@@ -47,7 +47,7 @@ const {
   displayValueProp,
 } = useLTARStoreOrThrow()
 
-const { isNew, state, removeLTARRef } = useSmartsheetRowStoreOrThrow()
+const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
 
 watch(
   [vModel, isForm],
@@ -64,6 +64,14 @@ const unlinkRow = async (row: Record<string, any>, id: number) => {
     await removeLTARRef(row, injectedColumn?.value as ColumnType)
   } else {
     await unlink(row, {}, false, id)
+  }
+}
+
+const linkRow = async (row: Record<string, any>, id: number) => {
+  if (isNew.value) {
+    await addLTARRef(row, injectedColumn?.value as ColumnType)
+  } else {
+    await link(row, {}, false, id)
   }
 }
 
@@ -160,7 +168,7 @@ watch(expandedFormDlg, () => {
 
                 isChildrenListLinked[Number.parseInt(id)]
                   ? unlinkRow(refRow, Number.parseInt(id))
-                  : link(refRow, {}, false, Number.parseInt(id))
+                  : linkRow(refRow, Number.parseInt(id))
               }
             "
           />

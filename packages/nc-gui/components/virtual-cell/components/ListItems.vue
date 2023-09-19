@@ -41,7 +41,7 @@ const {
   row,
 } = useLTARStoreOrThrow()
 
-const { addLTARRef, isNew } = useSmartsheetRowStoreOrThrow()
+const { addLTARRef, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -56,9 +56,20 @@ const isFocused = ref(false)
 const linkRow = async (row: Record<string, any>, id: number) => {
   if (isNew.value) {
     addLTARRef(row, injectedColumn?.value as ColumnType)
+    isChildrenExcludedListLinked.value[id] = true
     saveRow!()
   } else {
     await link(row, {}, false, id)
+  }
+}
+
+const unlinkRow = async (row: Record<string, any>, id: number) => {
+  if (isNew.value) {
+    removeLTARRef(row, injectedColumn?.value as ColumnType)
+    isChildrenExcludedListLinked.value[id] = false
+    saveRow!()
+  } else {
+    await unlink(row, {}, false, id)
   }
 }
 
@@ -212,7 +223,7 @@ watch(expandedFormDlg, () => {
             "
             @click="
               () => {
-                if (isChildrenExcludedListLinked[Number.parseInt(id)]) unlink(refRow, {}, false, Number.parseInt(id))
+                if (isChildrenExcludedListLinked[Number.parseInt(id)]) unlinkRow(refRow, Number.parseInt(id))
                 else linkRow(refRow, Number.parseInt(id))
               }
             "
@@ -244,7 +255,7 @@ watch(expandedFormDlg, () => {
           show-less-items
         />
       </div>
-      <NcButton class="nc-close-btn" @click="vModel = false"> Close </NcButton>
+      <NcButton class="nc-close-btn ml-auto" @click="vModel = false"> Close </NcButton>
     </div>
     <Suspense>
       <LazySmartsheetExpandedForm

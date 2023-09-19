@@ -38,8 +38,10 @@ const onSubmit = async () => {
   }
 }
 
+const email = computed(() => currentUser.value?.email)
+
 watch(
-  currentUser,
+  () => currentUser.value?.display_name,
   () => {
     if (!currentUser.value?.display_name) return
 
@@ -71,10 +73,10 @@ watch(
         <div class="flex font-medium text-base">Account details</div>
         <div class="flex text-gray-500">Control your appearance.</div>
         <div class="flex flex-row mt-4 gap-x-8">
-          <div class="flex h-20">
+          <div class="flex h-20 mt-1.5">
             <GeneralUserIcon size="xlarge" />
           </div>
-          <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="onSubmit">
+          <a-form ref="formValidator" layout="vertical" no-style :model="form" class="flex flex-col w-full" @finish="onSubmit">
             <div class="text-gray-800 mb-1.5">Name</div>
             <a-form-item name="title" :rules="formRules.title">
               <a-input
@@ -86,7 +88,7 @@ watch(
             </a-form-item>
             <div class="text-gray-800 mb-1.5">Account Email ID</div>
             <a-input
-              v-model:value="form.email"
+              v-model:value="email"
               class="w-full !rounded-md !py-1.5"
               placeholder="Email"
               :disabled="true"

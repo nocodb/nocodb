@@ -31,7 +31,7 @@ test.describe('Table Operations', () => {
     if (!isEE()) {
       // Audit logs in clickhouse; locally wont be accessible
 
-      await dashboard.treeView.openProject({ title: context.project.title });
+      await dashboard.treeView.openProject({ title: context.project.title, context });
       await dashboard.projectView.tab_dataSources.click();
       await dashboard.projectView.dataSources.openAudit({ rowIndex: 0 });
 

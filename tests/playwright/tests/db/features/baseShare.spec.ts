@@ -35,6 +35,7 @@ test.describe('Shared base', () => {
 
     await dashboard.treeView.validateRoleAccess({
       role: role.toLowerCase(),
+      context,
     });
 
     await dashboard.grid.verifyRoleAccess({

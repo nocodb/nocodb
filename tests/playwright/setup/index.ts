@@ -244,7 +244,7 @@ async function localInit({
         for (const p of projects.list) {
           // check if p.title starts with projectTitle
           if (
-            p.title.startsWith(`pgExtREST_p${process.env.TEST_PARALLEL_INDEX}`) ||
+            p.title.startsWith(`pgExtREST${process.env.TEST_PARALLEL_INDEX}`) ||
             p.title.startsWith(`xcdb_p${process.env.TEST_PARALLEL_INDEX}`)
           ) {
             try {

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
+import { stringifyRolesObj } from 'nocodb-sdk'
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import { useTitle } from '@vueuse/core'
@@ -43,6 +44,8 @@ const { activeTable } = storeToRefs(useTablesStore())
 
 const { appInfo, navigateToProject } = useGlobal()
 
+const { orgRoles, isUIAllowed } = useRoles()
+
 useTabs()
 
 const editMode = ref(false)
@@ -52,8 +55,6 @@ const tempTitle = ref('')
 const { t } = useI18n()
 
 const input = ref<HTMLInputElement>()
-
-const { isUIAllowed } = useUIPermission()
 
 const projectRole = inject(ProjectRoleInj)
 
@@ -438,7 +439,11 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
           </span>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>
 
-          <NcDropdown v-if="isUIAllowed('tableCreate', false, projectRole)" v-model:visible="isOptionsOpen" :trigger="['click']">
+          <NcDropdown
+            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
+            v-model:visible="isOptionsOpen"
+            :trigger="['click']"
+          >
             <NcButton
               class="nc-sidebar-node-btn"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
@@ -469,7 +474,10 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                     <GeneralIcon icon="copy" class="group-hover:text-black" />
                     {{ $t('activity.account.projInfo') }}
                   </NcMenuItem>
-                  <NcMenuItem v-if="isUIAllowed('duplicateProject', true, projectRole)" @click="duplicateProject(project)">
+                  <NcMenuItem
+                    v-if="isUIAllowed('projectDuplicate', { roles: [stringifyRolesObj(orgRoles), projectRole].join() })"
+                    @click="duplicateProject(project)"
+                  >
                     <GeneralIcon icon="duplicate" class="text-gray-700" />
                     {{ $t('general.duplicate') }}
                   </NcMenuItem>
@@ -493,7 +501,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                 </template>
                 <!-- Team & Settings -->
                 <NcMenuItem
-                  v-if="isUIAllowed('settings')"
+                  v-if="isUIAllowed('settingsPage')"
                   key="teamAndSettings"
                   v-e="['c:navdraw:project-settings']"
                   class="nc-sidebar-project-project-settings"
@@ -510,7 +518,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                 </template>
 
                 <NcMenuItem
-                  v-if="isUIAllowed('projectDelete', false, projectRole)"
+                  v-if="isUIAllowed('projectDelete', { roles: [stringifyRolesObj(orgRoles), projectRole].join() })"
                   class="!text-red-500 !hover:bg-red-50"
                   @click="isProjectDeleteDialogVisible = true"
                 >
@@ -522,7 +530,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
           </NcDropdown>
 
           <NcButton
-            v-if="isUIAllowed('tableCreate', false, projectRole)"
+            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
             class="nc-sidebar-node-btn"
             size="xxsmall"
             type="text"
@@ -604,7 +612,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                             </a-tooltip>
                           </div>
                           <div
-                            v-if="isUIAllowed('tableCreate', false, projectRole)"
+                            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
                             class="flex flex-row items-center gap-x-0.25 w-12.25"
                           >
                             <NcDropdown
@@ -642,7 +650,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                             </NcDropdown>
 
                             <NcButton
-                              v-if="isUIAllowed('tableCreate', false, projectRole)"
+                              v-if="isUIAllowed('tableCreate', { roles: projectRole })"
                               type="text"
                               size="xxsmall"
                               class="nc-sidebar-node-btn"
@@ -676,7 +684,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
         <template v-else-if="contextMenuTarget.type === 'base'"></template>
 
         <template v-else-if="contextMenuTarget.type === 'table'">
-          <NcMenuItem v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
+          <NcMenuItem v-if="isUIAllowed('tableRename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
             <div class="nc-project-option-item">
               <GeneralIcon icon="edit" class="text-gray-700" />
               {{ $t('general.rename') }}
@@ -684,7 +692,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
           </NcMenuItem>
 
           <NcMenuItem
-            v-if="isUIAllowed('table-duplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
+            v-if="isUIAllowed('tableDuplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
             @click="duplicateTable(contextMenuTarget.value)"
           >
             <div class="nc-project-option-item">
@@ -693,7 +701,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
             </div>
           </NcMenuItem>
 
-          <NcMenuItem v-if="isUIAllowed('table-delete')" @click="isTableDeleteDialogVisible = true">
+          <NcMenuItem v-if="isUIAllowed('tableDelete')" @click="isTableDeleteDialogVisible = true">
             <div class="nc-project-option-item text-red-600">
               <GeneralIcon icon="delete" />
               {{ $t('general.delete') }}

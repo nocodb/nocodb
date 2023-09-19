@@ -4,7 +4,7 @@ import { storeToRefs } from 'pinia'
 import { toRef } from '@vue/reactivity'
 import { resolveComponent } from '@vue/runtime-core'
 import { ref } from 'vue'
-import { ProjectRoleInj, useDialog, useUIPermission } from '#imports'
+import { ProjectRoleInj, useDialog, useRoles } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -20,7 +20,7 @@ const emit = defineEmits<{
   openTableCreateDialog: () => void
 }>()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const project = toRef(props, 'project')
 
@@ -116,7 +116,7 @@ function openTableCreateMagicDialog(baseId?: string) {
 
 <template>
   <div
-    v-if="isUIAllowed('table-create', false, projectRole)"
+    v-if="isUIAllowed('tableCreate', { roles: projectRole })"
     class="group flex items-center gap-2 pl-2 pr-4.75 py-1 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
     @click="emit('openTableCreateDialog')"
   >
@@ -158,7 +158,7 @@ function openTableCreateMagicDialog(baseId?: string) {
           <!-- Quick Import From -->
           <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
             <a-menu-item
-              v-if="isUIAllowed('airtableImport', false, projectRole)"
+              v-if="isUIAllowed('airtableImport', { roles: projectRole })"
               key="quick-import-airtable"
               @click="openAirtableImportDialog(project.bases[baseIndex].id)"
             >
@@ -169,7 +169,7 @@ function openTableCreateMagicDialog(baseId?: string) {
             </a-menu-item>
 
             <a-menu-item
-              v-if="isUIAllowed('csvImport', false, projectRole)"
+              v-if="isUIAllowed('csvImport', { roles: projectRole })"
               key="quick-import-csv"
               @click="openQuickImportDialog('csv', project.bases[baseIndex].id)"
             >
@@ -180,7 +180,7 @@ function openTableCreateMagicDialog(baseId?: string) {
             </a-menu-item>
 
             <a-menu-item
-              v-if="isUIAllowed('jsonImport', false, projectRole)"
+              v-if="isUIAllowed('jsonImport', { roles: projectRole })"
               key="quick-import-json"
               @click="openQuickImportDialog('json', project.bases[baseIndex].id)"
             >
@@ -191,7 +191,7 @@ function openTableCreateMagicDialog(baseId?: string) {
             </a-menu-item>
 
             <a-menu-item
-              v-if="isUIAllowed('excelImport', false, projectRole)"
+              v-if="isUIAllowed('excelImport', { roles: projectRole })"
               key="quick-import-excel"
               @click="openQuickImportDialog('excel', project.bases[baseIndex].id)"
             >
@@ -243,7 +243,7 @@ function openTableCreateMagicDialog(baseId?: string) {
 
           <a-menu-divider class="my-0" /> -->
 
-          <a-menu-item v-if="isUIAllowed('importRequest', false, projectRole)" key="add-new-table" class="py-1 rounded-b">
+          <a-menu-item v-if="isUIAllowed('importRequest', { roles: projectRole })" key="add-new-table" class="py-1 rounded-b">
             <a
               v-e="['e:datasource:import-request']"
               href="https://github.com/nocodb/nocodb/issues/2052"

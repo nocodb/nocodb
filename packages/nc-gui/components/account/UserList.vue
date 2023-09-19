@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import type { OrgUserReqType, RequestParams, UserType } from 'nocodb-sdk'
+import { OrgUserRoles } from 'nocodb-sdk'
+import type { OrgUserReqType, RequestParams, Roles, UserType } from 'nocodb-sdk'
 import type { User } from '#imports'
-import { Role, extractSdkResponseErrorMsg, iconMap, useApi, useCopy, useDashboard, useNuxtApp } from '#imports'
+import { extractSdkResponseErrorMsg, iconMap, useApi, useCopy, useDashboard, useNuxtApp } from '#imports'
 
 const { api, isLoading } = useApi()
 
@@ -58,7 +59,7 @@ const loadUsers = async (page = currentPage.value, limit = currentLimit.value) =
 
 loadUsers()
 
-const updateRole = async (userId: string, roles: Role) => {
+const updateRole = async (userId: string, roles: Roles) => {
   try {
     await api.orgUsers.update(userId, {
       roles,
@@ -195,7 +196,7 @@ const copyPasswordResetUrl = async (user: User) => {
               >
                 <a-select-option
                   class="nc-users-list-role-option"
-                  :value="Role.OrgLevelCreator"
+                  :value="OrgUserRoles.CREATOR"
                   :label="$t(`objects.roleType.orgLevelCreator`)"
                 >
                   <div>{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
@@ -206,7 +207,7 @@ const copyPasswordResetUrl = async (user: User) => {
 
                 <a-select-option
                   class="nc-users-list-role-option"
-                  :value="Role.OrgLevelViewer"
+                  :value="OrgUserRoles.VIEWER"
                   :label="$t(`objects.roleType.orgLevelViewer`)"
                 >
                   <div>{{ $t(`objects.roleType.orgLevelViewer`) }}</div>

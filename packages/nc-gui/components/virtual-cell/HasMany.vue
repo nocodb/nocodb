@@ -14,9 +14,9 @@ import {
   inject,
   ref,
   useProvideLTARStore,
+  useRoles,
   useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
-  useUIPermission,
 } from '#imports'
 
 const column = inject(ColumnInj)!
@@ -39,7 +39,7 @@ const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
@@ -129,7 +129,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
       />
 
       <GeneralIcon
-        v-if="(!readOnly && isUIAllowed('xcDatatableEditable')) || isForm"
+        v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
         icon="plus"
         class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
         @click.stop="listItemsDlg = true"

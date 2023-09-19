@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import type { OrgUserReqType } from 'nocodb-sdk'
+import { OrgUserRoles } from 'nocodb-sdk'
 import type { User, Users } from '#imports'
 import {
   Form,
-  Role,
   computed,
   emailValidator,
   extractSdkResponseErrorMsg,
@@ -34,7 +34,7 @@ const { copy } = useCopy()
 
 const { dashboardUrl } = useDashboard()
 
-const usersData = ref<Users>({ emails: '', role: Role.OrgLevelViewer, invitationToken: undefined })
+const usersData = ref<Users>({ emails: '', role: OrgUserRoles.VIEWER, invitationToken: undefined })
 
 const formRef = ref()
 
@@ -90,7 +90,7 @@ const copyUrl = async () => {
 const clickInviteMore = () => {
   $e('c:user:invite-more')
   usersData.value.invitationToken = undefined
-  usersData.value.role = Role.OrgLevelViewer
+  usersData.value.role = OrgUserRoles.VIEWER
   usersData.value.emails = ''
 }
 
@@ -196,7 +196,7 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                     <a-select v-model:value="usersData.role" class="nc-user-roles" dropdown-class-name="nc-dropdown-user-role">
                       <a-select-option
                         class="nc-role-option"
-                        :value="Role.OrgLevelCreator"
+                        :value="OrgUserRoles.CREATOR"
                         :label="$t(`objects.roleType.orgLevelCreator`)"
                       >
                         <div>{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
@@ -207,7 +207,7 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
                       <a-select-option
                         class="nc-role-option"
-                        :value="Role.OrgLevelViewer"
+                        :value="OrgUserRoles.VIEWER"
                         :label="$t(`objects.roleType.orgLevelViewer`)"
                       >
                         <div>{{ $t(`objects.roleType.orgLevelViewer`) }}</div>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { ColumnInj, IsExpandedFormOpenInj, IsFormInj, IsKanbanInj, inject, provide, ref, toRef, useUIPermission } from '#imports'
+import { ColumnInj, IsExpandedFormOpenInj, IsFormInj, IsKanbanInj, inject, provide, ref, toRef, useRoles } from '#imports'
 
 interface Props {
   column: ColumnType
@@ -23,7 +23,7 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const column = toRef(props, 'column')
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 provide(ColumnInj, column)
 
@@ -42,13 +42,13 @@ const closeAddColumnDropdown = () => {
 }
 
 const openHeaderMenu = () => {
-  if (!isForm.value && !isExpandedForm.value && isUIAllowed('edit-column')) {
+  if (!isForm.value && !isExpandedForm.value && isUIAllowed('fieldEdit')) {
     editColumnDropdown.value = true
   }
 }
 
 const openDropDown = () => {
-  if (isForm.value || isExpandedForm.value || !isUIAllowed('edit-column')) return
+  if (isForm.value || isExpandedForm.value || !isUIAllowed('fieldEdit')) return
   isDropDownOpen.value = !isDropDownOpen.value
 }
 </script>
@@ -65,7 +65,7 @@ const openDropDown = () => {
     <div
       v-if="column"
       class="name pl-1 !truncate"
-      :class="{ 'cursor-pointer pt-0.25': !isForm && isUIAllowed('edit-column') && !hideMenu }"
+      :class="{ 'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu }"
       style="white-space: pre-line"
       :title="column.title"
     >
@@ -77,7 +77,7 @@ const openDropDown = () => {
     <template v-if="!hideMenu">
       <div class="flex-1" />
       <LazySmartsheetHeaderMenu
-        v-if="!isForm && !isExpandedForm && isUIAllowed('edit-column')"
+        v-if="!isForm && !isExpandedForm && isUIAllowed('fieldEdit')"
         v-model:is-open="isDropDownOpen"
         @add-column="addField"
         @edit="openHeaderMenu"

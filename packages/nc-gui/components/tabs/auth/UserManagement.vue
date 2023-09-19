@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { OrgUserRoles } from 'nocodb-sdk'
+import { OrgUserRoles, RoleColors } from 'nocodb-sdk'
 import type { ProjectUserReqType, RequestParams } from 'nocodb-sdk'
 import {
   extractSdkResponseErrorMsg,
   iconMap,
   message,
   onBeforeMount,
-  projectRoleTagColors,
   ref,
   storeToRefs,
   useApi,
@@ -15,7 +14,7 @@ import {
   useI18n,
   useNuxtApp,
   useProject,
-  useUIPermission,
+  useRoles,
   watchDebounced,
 } from '#imports'
 import type { User } from '#imports'
@@ -30,7 +29,7 @@ const { project } = storeToRefs(useProject())
 
 const { copy } = useCopy()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { dashboardUrl } = useDashboard()
 
@@ -278,15 +277,11 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
           <div
             v-if="isSuperAdmin(user)"
             class="rounded-full px-3 py-1 nc-user-role"
-            :style="{ backgroundColor: projectRoleTagColors[OrgUserRoles.SUPER_ADMIN] }"
+            :style="{ backgroundColor: RoleColors[OrgUserRoles.SUPER_ADMIN] }"
           >
             Super Admin
           </div>
-          <div
-            v-if="user.roles"
-            class="rounded-full px-3 py-1 nc-user-role"
-            :style="{ backgroundColor: projectRoleTagColors[user.roles] }"
-          >
+          <div v-if="user.roles" class="rounded-full px-3 py-1 nc-user-role" :style="{ backgroundColor: RoleColors[user.roles] }">
             {{ $t(`objects.roleType.${user.roles}`) }}
           </div>
         </div>

@@ -20,14 +20,14 @@ import {
   useNuxtApp,
   useProject,
   useProjects,
+  useRoles,
   useTablesStore,
   useTabs,
-  useUIPermission,
 } from '#imports'
 
 import { useRouter } from '#app'
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { addTab } = useTabs()
 
@@ -145,7 +145,7 @@ const duplicateTable = async (table: TableType) => {
 
 const isCreateTableAllowed = computed(
   () =>
-    isUIAllowed('table-create') &&
+    isUIAllowed('tableCreate') &&
     route.value.name !== 'index' &&
     route.value.name !== 'index-index' &&
     route.value.name !== 'index-index-create' &&

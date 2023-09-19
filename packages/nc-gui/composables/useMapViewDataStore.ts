@@ -34,7 +34,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     const { $api } = useNuxtApp()
 
-    const { isUIAllowed } = useUIPermission()
+    const { isUIAllowed } = useRoles()
 
     const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
 
@@ -86,7 +86,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     }
 
     async function updateMapMeta(updateObj: Partial<MapType>) {
-      if (!viewMeta?.value?.id || !isUIAllowed('xcDatatableEditable')) return
+      if (!viewMeta?.value?.id || !isUIAllowed('dataEdit')) return
       await $api.dbView.mapUpdate(viewMeta.value.id, updateObj)
     }
 

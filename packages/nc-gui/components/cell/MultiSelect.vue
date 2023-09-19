@@ -4,7 +4,6 @@ import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
-import { WorkspaceUserRoles } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   CellClickHookInj,
@@ -80,7 +79,7 @@ const { $api } = useNuxtApp()
 
 const { getMeta } = useMetas()
 
-const { hasRole } = useRoles()
+const { isUIAllowed } = useRoles()
 
 const { isPg, isMysql } = useProject()
 
@@ -105,15 +104,7 @@ const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
 })
 
-const hasEditRoles = computed(
-  () =>
-    hasRole('owner', true) ||
-    hasRole('creator', true) ||
-    hasRole('editor', true) ||
-    hasRole(WorkspaceUserRoles.OWNER, true) ||
-    hasRole(WorkspaceUserRoles.CREATOR, true) ||
-    hasRole(WorkspaceUserRoles.EDITOR, true),
-)
+const hasEditRoles = computed(() => isUIAllowed('dataEdit'))
 
 const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 
@@ -423,16 +414,7 @@ const selectedOpts = computed(() => {
       </a-select-option>
 
       <a-select-option
-        v-if="
-          searchVal &&
-          isOptionMissing &&
-          !isPublic &&
-          !disableOptionCreation &&
-          (hasRole('owner', true) ||
-            hasRole('creator', true) ||
-            hasRole(WorkspaceUserRoles.OWNER, true) ||
-            hasRole(WorkspaceUserRoles.CREATOR, true))
-        "
+        v-if="searchVal && isOptionMissing && !isPublic && !disableOptionCreation && isUIAllowed('fieldEdit')"
         :key="searchVal"
         :value="searchVal"
       >

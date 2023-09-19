@@ -9,10 +9,10 @@ import {
   ref,
   useKanbanViewStoreOrThrow,
   useMenuCloseOnEsc,
-  useUIPermission,
+  useRoles,
 } from '#imports'
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { groupingFieldColumn } = useKanbanViewStoreOrThrow()
 
@@ -33,7 +33,7 @@ provide(IsKanbanInj, ref(true))
 
 <template>
   <a-dropdown
-    v-if="!IsPublic && isUIAllowed('edit-column')"
+    v-if="!IsPublic && isUIAllowed('fieldEdit')"
     v-model:visible="open"
     :trigger="['click']"
     overlay-class-name="nc-dropdown-kanban-add-edit-stack-menu"

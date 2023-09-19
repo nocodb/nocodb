@@ -2,9 +2,9 @@
 import { onKeyDown, useEventListener } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import { iconMap, isImage, ref, useAttachment, useDropZone, useUIPermission, watch } from '#imports'
+import { iconMap, isImage, ref, useAttachment, useDropZone, useRoles, watch } from '#imports'
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const {
   open,
@@ -96,7 +96,7 @@ const handleFileDelete = (i: number) => {
     <template #title>
       <div class="flex gap-4">
         <div
-          v-if="isSharedForm || (!readOnly && isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
+          v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic && !isLocked)"
           class="nc-attach-file group"
           data-testid="attachment-expand-file-picker-button"
           @click="open"
@@ -141,7 +141,7 @@ const handleFileDelete = (i: number) => {
               <template #title> Remove File </template>
               <component
                 :is="iconMap.closeCircle"
-                v-if="isSharedForm || (isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
+                v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic && !isLocked)"
                 class="nc-attachment-remove"
                 @click.stop="onRemoveFileClick(item.title, i)"
               />
@@ -155,10 +155,7 @@ const handleFileDelete = (i: number) => {
               </div>
             </a-tooltip>
 
-            <a-tooltip
-              v-if="isSharedForm || (!readOnly && isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
-              placement="bottom"
-            >
+            <a-tooltip v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic && !isLocked)" placement="bottom">
               <template #title> Rename File </template>
 
               <div class="nc-attachment-download group-hover:(opacity-100) mr-[35px]">

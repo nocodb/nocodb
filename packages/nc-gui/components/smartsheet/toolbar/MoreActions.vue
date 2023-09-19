@@ -15,9 +15,9 @@ import {
   useI18n,
   useNuxtApp,
   useProject,
+  useRoles,
   useSharedView,
   useSmartsheetStoreOrThrow,
-  useUIPermission,
 } from '#imports'
 
 const { t } = useI18n()
@@ -48,7 +48,7 @@ const showWebhookDrawer = ref(false)
 
 const quickImportDialog = ref(false)
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const exportFile = async (exportType: ExportTypes) => {
   let offset = 0
@@ -146,7 +146,7 @@ const exportFile = async (exportType: ExportTypes) => {
             </div>
 
             <div
-              v-if="isUIAllowed('sharedViewList') && !isView && !isPublicView"
+              v-if="isUIAllowed('viewShare') && !isView && !isPublicView"
               v-e="['a:actions:shared-view-list']"
               class="nc-menu-item"
               @click="sharedViewListDlg = true"

@@ -39,7 +39,7 @@ const onSubmit = async () => {
 }
 
 watch(
-  () => currentUser.value?.display_name,
+  currentUser,
   () => {
     if (!currentUser.value?.display_name) return
 

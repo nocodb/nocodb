@@ -106,7 +106,7 @@ const relation = computed(() => {
 watch(
   () => props.cellValue,
   () => {
-    if (!isNew.value) loadChildrenList()
+    if (isNew.value) loadChildrenList()
   },
 )
 
@@ -178,6 +178,7 @@ watch(expandedFormDlg, () => {
             @expand="onClick(refRow)"
             @click="
               () => {
+                if (isPublic && !isForm) return
                 isNew
                   ? unlinkRow(refRow, Number.parseInt(id))
                   : isChildrenListLinked[Number.parseInt(id)]

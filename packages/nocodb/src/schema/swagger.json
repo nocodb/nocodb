@@ -64,6 +64,30 @@
     }
   ],
   "paths": {
+    "/api/v1/user/profile": {
+      "patch": {
+        "summary": "Update User Profile",
+        "operationId": "user-profile-update",
+        "responses": {
+          "200": {
+            "$ref": "#/components/schemas/User"
+          }
+        },
+        "tags": [
+          "User profile"
+        ],
+        "description": "Update User Profile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/user/signup": {
       "post": {
         "summary": "Signup",

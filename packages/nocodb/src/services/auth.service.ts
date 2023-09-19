@@ -4,10 +4,15 @@ import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 
 import { v4 as uuidv4 } from 'uuid';
-import type { CreateUserDto } from '~/controllers/auth.controller';
 import Noco from '~/Noco';
 import { genJwt } from '~/services/users/helpers';
 import { UsersService } from '~/services/users/users.service';
+
+export class CreateUserDto {
+  readonly username: string;
+  readonly email: string;
+  readonly password: string;
+}
 
 @Injectable()
 export class AuthService {

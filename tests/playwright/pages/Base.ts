@@ -23,18 +23,21 @@ export default abstract class BasePage {
     requestUrlPathToMatch,
     // A function that takes the response body and returns true if the response is the one we are looking for
     responseJsonMatcher,
+    timeout,
   }: {
     uiAction: () => Promise<any>;
     requestUrlPathToMatch: string;
     httpMethodsToMatch?: string[];
     responseJsonMatcher?: ResponseSelector;
+    timeout?: number;
   }) {
     const [res] = await Promise.all([
       this.rootPage.waitForResponse(
         res =>
           res.url().includes(requestUrlPathToMatch) &&
           res.status() === 200 &&
-          httpMethodsToMatch.includes(res.request().method())
+          httpMethodsToMatch.includes(res.request().method()),
+        timeout ? { timeout } : undefined
       ),
       uiAction(),
     ]);

@@ -24,6 +24,7 @@ interface User {
   workspace_roles: Roles | string
   invite_token?: string
   project_id?: string
+  display_name?: string | null
 }
 
 interface ProjectMetaInfo {

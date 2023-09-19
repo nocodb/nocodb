@@ -120,7 +120,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return (meta.value?.columns?.find((c: Required<ColumnType>) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title
     })
 
-    const loadChildrenExcludedList = async () => {
+    const loadChildrenExcludedList = async (activeState?: any) => {
       try {
         if (isPublic.value) {
           const router = useRouter()
@@ -145,6 +145,26 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               } as RequestParams,
             },
           )
+
+          if (childrenExcludedList.value?.list && activeState && activeState[column.value.title]) {
+            childrenExcludedList.value.list = childrenExcludedList.value?.list.filter((c: any) => {
+              // filter out exact same objects in activeState[column.value.title]
+              // compare all keys and values
+              const found = activeState[column.value.title].find((a: any) => {
+                let isSame = true
+
+                for (const key in a) {
+                  if (a[key] !== c[key]) {
+                    isSame = false
+                  }
+                }
+
+                return isSame
+              })
+
+              return !found
+            })
+          }
 
           /** if new row load all records */
         } else if (isNewRow?.value) {

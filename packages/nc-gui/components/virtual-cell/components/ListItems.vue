@@ -41,7 +41,7 @@ const {
   row,
 } = useLTARStoreOrThrow()
 
-const { addLTARRef, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
+const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -82,7 +82,7 @@ watch(vModel, (nextVal, prevVal) => {
     if (!isForm.value) {
       loadChildrenList()
     }
-    loadChildrenExcludedList()
+    loadChildrenExcludedList(rowState.value)
     selectedRowIndex.value = 0
   }
 })
@@ -140,7 +140,7 @@ const relation = computed(() => {
 })
 
 watch(expandedFormDlg, () => {
-  loadChildrenExcludedList()
+  loadChildrenExcludedList(rowState.value)
 })
 </script>
 

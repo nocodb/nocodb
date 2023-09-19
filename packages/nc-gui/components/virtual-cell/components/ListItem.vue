@@ -115,7 +115,7 @@ const attachments: Attachment[] = computed(() => {
       </div>
     </div>
     <NcButton
-      v-if="!isForm"
+      v-if="!isPublic"
       type="text"
       size="lg"
       class="!px-2 nc-expand-item !group-hover:block !hidden !absolute right-1 bottom-1"

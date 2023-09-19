@@ -6,6 +6,7 @@ import InboxIcon from '~icons/nc-icons/inbox'
 import {
   ColumnInj,
   IsFormInj,
+  IsPublicInj,
   ReadonlyInj,
   computed,
   inject,
@@ -23,6 +24,8 @@ const emit = defineEmits(['update:modelValue', 'attachRecord'])
 const vModel = useVModel(props, 'modelValue', emit)
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isPublic = inject(IsPublicInj, ref(false))
 
 const injectedColumn = inject(ColumnInj, ref())
 
@@ -153,6 +156,8 @@ watch(expandedFormDlg, () => {
             @expand="onClick(refRow)"
             @click="
               () => {
+                if (isPublic) return
+
                 isChildrenListLinked[Number.parseInt(id)]
                   ? unlinkRow(refRow, Number.parseInt(id))
                   : link(refRow, {}, false, Number.parseInt(id))

@@ -75,9 +75,7 @@ const fieldsWithoutCover = computed(() =>
   fields.value.filter((f) => f.id !== galleryData.value?.fk_cover_image_col_id && !isPrimary(f)),
 )
 
-const displayField = computed(() =>
-  meta.value?.columns?.find((c) => c.pv) ?? meta.value?.columns ? meta.value?.columns[0] : null,
-)
+const displayField = computed(() => meta.value?.columns?.find((c) => c.pv) ?? null)
 
 const coverImageColumn: any = computed(() =>
   meta.value?.columnsById
@@ -261,7 +259,7 @@ watch(
               @contextmenu="showContextMenu($event, { row: rowIndex })"
             >
               <template v-if="galleryData?.fk_cover_image_col_id" #cover>
-                <a-carousel v-if="!reloadAttachments && attachments(record).length" autoplay class="gallery-carousel" arrows>
+                <a-carousel v-if="!reloadAttachments && attachments(record).length" class="gallery-carousel" arrows>
                   <template #customPaging>
                     <a>
                       <div class="pt-[12px]">
@@ -273,7 +271,7 @@ watch(
                   <template #prevArrow>
                     <div style="z-index: 1">
                       <MdiChevronLeft
-                        class="text-gray-700 w-6 h-6 absolute left-1.5 bottom-[-90px] !hidden !group-hover:block !bg-white border-1 border-gray-200 rounded-sm"
+                        class="text-gray-700 w-6 h-6 absolute left-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
                       />
                     </div>
                   </template>
@@ -281,7 +279,7 @@ watch(
                   <template #nextArrow>
                     <div style="z-index: 1">
                       <MdiChevronRight
-                        class="text-gray-700 w-6 h-6 absolute right-1.5 bottom-[-90px] !hidden !group-hover:block !bg-white border-1 border-gray-200 rounded-sm"
+                        class="text-gray-700 w-6 h-6 absolute right-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
                       />
                     </div>
                   </template>
@@ -321,10 +319,10 @@ watch(
               <div v-for="col in fieldsWithoutCover" :key="`record-${record.row.id}-${col.id}`">
                 <div
                   v-if="!isRowEmpty(record, col) || isLTAR(col.uidt, col.colOptions)"
-                  class="flex flex-col space-y-1 ml-[-4px] rounded-lg w-full"
+                  class="flex flex-col ml-[-4px] rounded-lg w-full"
                 >
                   <div class="flex flex-row w-full justify-start scale-75">
-                    <div class="w-full text-gray-300">
+                    <div class="w-full pb-1 text-gray-300">
                       <LazySmartsheetHeaderVirtualCell
                         v-if="isVirtualCol(col)"
                         :column="col"
@@ -336,7 +334,7 @@ watch(
                     </div>
                   </div>
 
-                  <div class="flex flex-row w-full pb-3 text-gray-700 pl-1 items-center justify-start">
+                  <div class="flex flex-row w-full pb-2 text-gray-700 pl-1 items-center justify-start">
                     <LazySmartsheetVirtualCell
                       v-if="isVirtualCol(col)"
                       v-model="record.row[col.title]"
@@ -392,7 +390,7 @@ watch(
 <style scoped>
 .nc-gallery-container {
   grid-auto-rows: 1fr;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
 }
 
 .ant-card-body {
@@ -404,31 +402,36 @@ watch(
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots) {
+  @apply !w-auto;
   position: absolute;
   height: auto;
   bottom: 3;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li div > div) {
+  @apply rounded-full;
   background: #d9d9d9;
   border: 0;
-  border-radius: 1px;
   color: transparent;
   cursor: pointer;
   display: block;
   font-size: 0;
-  height: 3px;
+  height: 8px;
   opacity: 1;
   outline: none;
   padding: 0;
   transition: all 0.5s;
-  width: 100%;
+  width: 8px;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li.slick-active div > div) {
+  @apply bg-brand-500;
   opacity: 1;
 }
 
+.ant-carousel.gallery-carousel :deep(.slick-dots li) {
+  @apply !w-auto;
+}
 .ant-carousel.gallery-carousel :deep(.slick-prev) {
   left: 0;
 }

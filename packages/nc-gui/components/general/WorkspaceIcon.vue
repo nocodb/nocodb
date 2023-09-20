@@ -25,7 +25,9 @@ const size = computed(() => props.size || 'medium')
     :style="{ backgroundColor: workspaceColor }"
   >
     <template v-if="!props.hideLabel">
-      {{ props.workspace?.title?.slice(0, 2) }}
+      <div class="font-black">
+        {{ props.workspace?.title?.slice(0, 2) }}
+      </div>
     </template>
   </div>
 </template>

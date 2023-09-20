@@ -29,7 +29,7 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-const { formState, setAdditionalValidations, validateInfos, isPg, isMysql } = useColumnCreateStoreOrThrow()
+const { formState, setAdditionalValidations, validateInfos, isMysql } = useColumnCreateStoreOrThrow()
 
 const { project } = storeToRefs(useProject())
 

@@ -33,9 +33,11 @@ const getAst = async ({
   dependencyFields.fieldsSet = dependencyFields.fieldsSet || new Set();
 
   let coverImageId;
-  const gallery = await GalleryView.get(view.id);
-  if (gallery) {
-    coverImageId = gallery.fk_cover_image_col_id;
+  if (view) {
+    const gallery = await GalleryView.get(view.id);
+    if (gallery) {
+      coverImageId = gallery.fk_cover_image_col_id;
+    }
   }
 
   if (!model.columns?.length) await model.getColumns();

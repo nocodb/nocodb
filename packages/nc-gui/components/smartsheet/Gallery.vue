@@ -71,9 +71,7 @@ const router = useRouter()
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-const fieldsWithoutCover = computed(() =>
-  fields.value.filter((f) => f.id !== galleryData.value?.fk_cover_image_col_id && !isPrimary(f)),
-)
+const fieldsWithoutDisplay = computed(() => fields.value.filter((f) => !isPrimary(f)))
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv) ?? null)
 
@@ -148,7 +146,7 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
 
 const expandFormClick = async (e: MouseEvent, row: RowType) => {
   const target = e.target as HTMLElement
-  if (target.closest('.arrow')) return
+  if (target.closest('.arrow') || target.closest('.slick-dots')) return
   expandForm(row)
 }
 
@@ -293,12 +291,7 @@ watch(
                       :key="`carousel-${record.row.id}-${index}`"
                       class="h-52 object-cover"
                       :srcs="getPossibleAttachmentSrc(attachment)"
-                      @click="
-                        () => {
-                          console.log('hereeeeee')
-                          expandFormClick($event, record)
-                        }
-                      "
+                      @click="expandFormClick($event, record)"
                     />
                   </template>
                 </a-carousel>
@@ -325,8 +318,8 @@ watch(
                 />
               </h2>
 
-              <div v-for="col in fieldsWithoutCover" :key="`record-${record.row.id}-${col.id}`">
-                <div class="flex flex-col ml-2 !pr-3.5 !mb-2 rounded-lg w-full">
+              <div v-for="col in fieldsWithoutDisplay" :key="`record-${record.row.id}-${col.id}`">
+                <div class="flex flex-col ml-2 !pr-3.5 !mb-[0.5rem] rounded-lg w-full">
                   <div class="flex flex-row w-full justify-start scale-75">
                     <div class="w-full pb-1 text-gray-300">
                       <LazySmartsheetHeaderVirtualCell
@@ -340,7 +333,10 @@ watch(
                     </div>
                   </div>
 
-                  <div v-if="!isRowEmpty(record, col)" class="flex flex-row w-full text-gray-700 px-1 items-center justify-start">
+                  <div
+                    v-if="!isRowEmpty(record, col)"
+                    class="flex flex-row w-full text-gray-700 px-1 mt-[-0.25rem] items-center justify-start"
+                  >
                     <LazySmartsheetVirtualCell
                       v-if="isVirtualCol(col)"
                       v-model="record.row[col.title]"

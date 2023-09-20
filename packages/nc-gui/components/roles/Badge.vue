@@ -65,9 +65,11 @@ console.log('dummy')
       </div>
     </NcBadge>
     <div class="flex-1"></div>
+    <!--
     <a-tooltip v-if="inheritRef" placement="bottom">
-      <div class="text-gray-400 text-xs p-1 rounded-md">Current Workspace Role</div>
+      <div class="text-gray-400 text-xs p-1 rounded-md">Workspace Role</div>
     </a-tooltip>
+    -->
   </div>
 </template>
 

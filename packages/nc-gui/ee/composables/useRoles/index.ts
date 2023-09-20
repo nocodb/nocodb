@@ -142,6 +142,8 @@ export const useRoles = createSharedComposable(() => {
         workspace_roles: res.workspace_roles,
       } as typeof User
     }
+
+    console.log('user.value', user.value)
   }
 
   const isUIAllowed = (

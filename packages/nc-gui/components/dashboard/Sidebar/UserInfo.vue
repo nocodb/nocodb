@@ -144,7 +144,7 @@ onMounted(() => {
 
     <div v-if="appInfo.ee" class="text-gray-500 text-xs pl-3">© 2023 NocoDB. Inc</div>
     <div v-else-if="isMounted" class="flex flex-row justify-between flex-wrap pt-1 truncate">
-      <div class="flex items-start flex-row justify-center px-3 gap-2">
+      <div class="flex items-start flex-row justify-center px-3 gap-2 mb-1">
         <GithubButton href="https://github.com/nocodb/nocodb" data-icon="octicon-star" data-show-count="true" data-size="large">
           Star
         </GithubButton>

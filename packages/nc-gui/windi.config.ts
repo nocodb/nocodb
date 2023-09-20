@@ -165,9 +165,6 @@ export default defineConfig({
         dark: colors.dark,
         light: colors.light,
       },
-      fontSize: {
-        dropdown: '0.85rem',
-      },
     },
   },
 })

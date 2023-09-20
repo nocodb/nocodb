@@ -72,7 +72,7 @@ const attachments: Attachment[] = computed(() => {
       <div class="flex flex-col m-[.75rem] gap-1 flex-grow justify-center">
         <div class="flex justify-between">
           <span class="font-semibold text-gray-800 nc-display-value"> {{ row[relatedTableDisplayValueProp] }} </span>
-          <div v-if="isLinked" class="text-brand-500 text-0.875">
+          <div v-if="isLinked && !isLoading" class="text-brand-500 text-0.875">
             <LinkIcon
               :class="{
                 '!group-hover:mr-8': fields.length === 0,

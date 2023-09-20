@@ -50,7 +50,7 @@ watch(inviteData, (newVal) => {
     const emailToAdd = newVal.email.split(',')[0].trim() || newVal.email.split(' ')[0].trim()
     if (!validateEmail(emailToAdd)) {
       emailValidation.isError = true
-      emailValidation.message = 'INVALID EMAIL'
+      emailValidation.message = 'Invalid Email'
       return
     }
     /** 
@@ -73,12 +73,12 @@ watch(inviteData, (newVal) => {
 const handleEnter = () => {
   if (inviteData.email.length < 1) {
     emailValidation.isError = true
-    emailValidation.message = 'EMAIL SHOULD NOT BE EMPTY'
+    emailValidation.message = 'Email Should Not Be Empty'
     return
   }
   if (!validateEmail(inviteData.email.trim())) {
     emailValidation.isError = true
-    emailValidation.message = 'INVALID EMAIL'
+    emailValidation.message = 'Invalid Email'
     return
   }
   inviteData.email += ' '
@@ -146,12 +146,12 @@ const onPaste = (e: ClipboardEvent) => {
   inputArray?.forEach((el) => {
     if (el.length < 1) {
       emailValidation.isError = true
-      emailValidation.message = 'EMAIL SHOULD NOT BE EMPTY'
+      emailValidation.message = 'Email Should Not Be Empty'
       return
     }
     if (!validateEmail(el.trim())) {
       emailValidation.isError = true
-      emailValidation.message = 'INVALID EMAIL'
+      emailValidation.message = 'Invalid Email'
       return
     }
     /** 
@@ -177,7 +177,7 @@ const onPaste = (e: ClipboardEvent) => {
       <div class="flex flex-col items-cenyet">
         <div
           ref="divRef"
-          class="flex w-130 border-1 gap-1 items-center flex-wrap min-h-8 max-h-30 overflow-y-scroll rounded-lg nc-scrollbar-md"
+          class="flex w-130 border-1 gap-1 items-center flex-wrap min-h-8 max-h-30 rounded-lg nc-scrollbar-md"
           tabindex="0"
           :class="{
             'border-primary/100': isDivFocused,
@@ -189,7 +189,7 @@ const onPaste = (e: ClipboardEvent) => {
           <span
             v-for="(email, index) in emailBadges"
             :key="email"
-            class="text-[14px] border-1 text-brand-500 bg-brand-50 rounded-md ml-1 p-0.5"
+            class="leading-4 border-1 text-brand-500 bg-brand-50 rounded-md ml-1 p-0.5"
           >
             {{ email }}
             <component
@@ -213,9 +213,6 @@ const onPaste = (e: ClipboardEvent) => {
         <span v-if="emailValidation.isError" class="ml-2 text-red-500 text-[10px] mt-1.5">{{ emailValidation.message }}</span>
       </div>
       <NcSelect v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
-        <template #suffixIcon>
-          <MdiChevronDown />
-        </template>
         <template v-for="role of allowedRoles" :key="`role-option-${role}`">
           <a-select-option v-if="role" :value="role">
             <NcBadge :color="RoleColors[role]">
@@ -229,13 +226,11 @@ const onPaste = (e: ClipboardEvent) => {
         type="primary"
         :disabled="!emailBadges.length || isInvitingCollaborators || emailValidation.isError"
         size="small"
+        :loading="isInvitingCollaborators"
         @click="inviteCollaborator"
       >
-        <div class="flex flex-row items-center gap-x-2 pr-1">
-          <GeneralLoader v-if="isInvitingCollaborators" class="flex" />
-          <MdiPlus v-else />
-          {{ isInvitingCollaborators ? 'Adding' : 'Add' }} User(s)
-        </div>
+        <MdiPlus />
+        {{ isInvitingCollaborators ? 'Adding' : 'Add' }} Member(s)
       </NcButton>
     </div>
   </div>

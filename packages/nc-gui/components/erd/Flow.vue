@@ -19,6 +19,7 @@ const {
   $destroy,
   fitView,
   viewport,
+  setMaxZoom,
   onNodeDoubleClick,
   zoomIn: internalZoomIn,
   zoomOut: internalZoomOut,
@@ -56,6 +57,14 @@ watch(showSkeleton, async (isSkeleton) => {
       maxZoom: isSkeleton ? viewport.value.zoom : undefined,
     })
   })
+})
+
+watch(elements, (elements) => {
+  if (elements.length > 3) {
+    setMaxZoom(2)
+  } else {
+    setMaxZoom(1.25)
+  }
 })
 
 onScopeDispose($destroy)

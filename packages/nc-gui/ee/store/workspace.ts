@@ -83,26 +83,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   })
 
-  /** getters */
-  const isWorkspaceCreator = computed(() => {
-    // todo: type correction
-    return (
-      activeWorkspace.value?.roles === WorkspaceUserRoles.CREATOR || activeWorkspace.value?.roles === WorkspaceUserRoles.OWNER
-    )
-  })
-
-  const isWorkspaceOwner = computed(() => {
-    // todo: type correction
-    return activeWorkspace.value?.roles === WorkspaceUserRoles.OWNER
-  })
-
-  const isWorkspaceOwnerOrCreator = computed(() => {
-    // todo: type correction
-    return (
-      activeWorkspace.value?.roles === WorkspaceUserRoles.OWNER || activeWorkspace.value?.roles === WorkspaceUserRoles.CREATOR
-    )
-  })
-
   /** actions */
   const loadWorkspaces = async (ignoreError = false) => {
     try {
@@ -428,8 +408,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     removeCollaborator,
     updateCollaborator,
     collaborators,
-    isWorkspaceCreator,
-    isWorkspaceOwner,
     isInvitingCollaborators,
     isCollaboratorsLoading,
     addToFavourite,
@@ -446,7 +424,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     clearWorkspaces,
     upgradeActiveWorkspace,
     navigateToWorkspace,
-    isWorkspaceOwnerOrCreator,
     setLoadingState,
     isSharedBase,
     navigateToWorkspaceSettings,

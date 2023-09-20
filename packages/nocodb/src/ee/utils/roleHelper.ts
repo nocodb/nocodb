@@ -2,6 +2,7 @@ import {
   extractRolesObj,
   OrderedProjectRoles,
   OrderedWorkspaceRoles,
+  WorkspaceRolesToProjectRoles,
 } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
 import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
@@ -31,7 +32,7 @@ export function getProjectRolePower(user: any) {
       }
     }
   } else {
-    NcError.badRequest('Role not found');
+    return -1;
   }
 
   const ind =
@@ -50,7 +51,7 @@ export function getWorkspaceRolePower(user: any) {
   const reverseOrderedWorkspaceRoles = [...OrderedWorkspaceRoles].reverse();
 
   if (!user.workspace_roles) {
-    NcError.badRequest('Role not found');
+    return -1;
   }
 
   // get most powerful role of user (TODO moving forward we will confirm that user has only one role)
@@ -78,11 +79,8 @@ export function mapWorkspaceRolesObjToProjectRolesObj(wsRoles: any) {
   let projectRoles = null;
   if (wsRoles) {
     for (const r of Object.keys(wsRoles)) {
-      const roleIndex = OrderedWorkspaceRoles.indexOf(r as WorkspaceUserRoles);
-      if (roleIndex !== -1) {
-        if (!projectRoles) projectRoles = {};
-        projectRoles[OrderedProjectRoles[roleIndex]] = wsRoles[r];
-      }
+      if (!projectRoles) projectRoles = {};
+      projectRoles[WorkspaceRolesToProjectRoles[r]] = wsRoles[r];
     }
   }
   return projectRoles;

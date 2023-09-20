@@ -3,6 +3,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 export const useUsers = defineStore('userStore', () => {
   const { api } = useApi()
   const { user } = useGlobal()
+  const { loadRoles } = useRoles()
 
   const updateUserProfile = async ({
     attrs,
@@ -21,17 +22,7 @@ export const useUsers = defineStore('userStore', () => {
     }
   }
 
-  const loadCurrentUser = async () => {
-    const res = await api.auth.me()
-
-    user.value = {
-      ...user.value,
-      ...res,
-      roles: res.roles,
-      project_roles: res.project_roles,
-      workspace_roles: res.workspace_roles,
-    }
-  }
+  const loadCurrentUser = loadRoles
 
   watch(
     () => user.value?.id,

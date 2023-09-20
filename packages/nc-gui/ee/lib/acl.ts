@@ -35,13 +35,17 @@ const rolePermissions = {
   },
 
   [WorkspaceUserRoles.OWNER]: {
-    include: {},
+    include: {
+      workspaceBilling: true,
+      workspaceManage: true,
+    },
   },
   [WorkspaceUserRoles.CREATOR]: {
     include: {
       projectCreate: true,
       projectDelete: true,
       projectDuplicate: true,
+      workspaceSettings: true,
     },
   },
   [WorkspaceUserRoles.EDITOR]: {

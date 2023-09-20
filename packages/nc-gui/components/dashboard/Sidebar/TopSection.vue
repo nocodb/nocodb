@@ -2,9 +2,11 @@
 const workspaceStore = useWorkspace()
 const projectStore = useProject()
 
+const { isUIAllowed } = useRoles()
+
 const { appInfo } = useGlobal()
 
-const { isWorkspaceLoading, isWorkspaceOwnerOrCreator, isWorkspaceSettingsPageOpened } = storeToRefs(workspaceStore)
+const { isWorkspaceLoading, isWorkspaceSettingsPageOpened } = storeToRefs(workspaceStore)
 
 const { navigateToWorkspaceSettings } = workspaceStore
 
@@ -45,7 +47,7 @@ const navigateToSettings = () => {
       <DashboardSidebarTopSectionHeader />
 
       <NcButton
-        v-if="isWorkspaceOwnerOrCreator"
+        v-if="isUIAllowed('workspaceSettings')"
         type="text"
         size="small"
         class="nc-sidebar-top-button"

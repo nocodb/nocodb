@@ -36,8 +36,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
           ProjectUser.get(req.ncProjectId, user.id)
             .then(async (projectUser) => {
               user.roles = projectUser?.roles || user.roles;
-              user.roles =
-                user.roles === 'owner' ? 'owner,creator' : user.roles;
               // + (user.roles ? `,${user.roles}` : '');
 
               done(null, sanitiseUserObj(user));

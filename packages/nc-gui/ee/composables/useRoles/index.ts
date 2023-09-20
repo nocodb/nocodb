@@ -84,7 +84,7 @@ export const useRoles = createSharedComposable(() => {
     options: { isSharedBase?: boolean; sharedBaseId?: string; isSharedErd?: boolean; sharedErdId?: string } = {},
   ) {
     const wsId = {
-      fk_workspace_id: route.value.params.typeOrId,
+      workspace_id: route.value.params.typeOrId,
     }
 
     if (options?.isSharedBase) {
@@ -132,7 +132,18 @@ export const useRoles = createSharedComposable(() => {
         project_roles: res.project_roles,
         workspace_roles: res.workspace_roles,
       } as typeof User
+    } else {
+      const res = await api.auth.me({ ...wsId } as any)
+
+      user.value = {
+        ...user.value,
+        roles: res.roles,
+        project_roles: res.project_roles,
+        workspace_roles: res.workspace_roles,
+      } as typeof User
     }
+
+    console.log('user.value', user.value)
   }
 
   const isUIAllowed = (

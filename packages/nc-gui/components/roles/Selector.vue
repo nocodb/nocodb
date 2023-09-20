@@ -23,7 +23,7 @@ const descriptionRef = toRef(props, 'description')
 
 <template>
   <NcDropdown>
-    <RolesBadge class="border-1" :role="roleRef" :inherit="inheritRef === role" clickable />
+    <RolesBadge class="border-1" data-testid="roles" :role="roleRef" :inherit="inheritRef === role" clickable />
     <template #overlay>
       <div class="nc-role-select-dropdown flex flex-col gap-[4px] p-1">
         <div class="flex flex-col gap-[4px]">

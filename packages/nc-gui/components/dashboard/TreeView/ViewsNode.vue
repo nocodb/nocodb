@@ -303,5 +303,5 @@ function onRef(el: HTMLElement) {
         </NcDropdown>
       </template>
     </div>
-  </a-menu-item>
+  </NcMenuItem>
 </template>

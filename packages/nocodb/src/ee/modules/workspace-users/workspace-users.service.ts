@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 
 import validator from 'validator';
 import { v4 as uuidv4 } from 'uuid';
-import { AppEvents, WorkspaceUserRoles } from 'nocodb-sdk';
+import { AppEvents, extractRolesObj, WorkspaceUserRoles } from 'nocodb-sdk';
 import * as ejs from 'ejs';
 import { ConfigService } from '@nestjs/config';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
@@ -156,6 +156,7 @@ export class WorkspaceUsersService {
     body: any;
     invitedBy?: UserType;
     siteUrl: string;
+    req: any;
   }) {
     validateParams(['email', 'roles'], param.body);
 
@@ -163,6 +164,14 @@ export class WorkspaceUsersService {
       workspaceId,
       body: { email, roles },
     } = param;
+
+    if (
+      getWorkspaceRolePower({
+        workspace_roles: extractRolesObj(roles),
+      }) >= getWorkspaceRolePower(param.req.user)
+    ) {
+      NcError.badRequest(`Insufficient privilege to invite with this role`);
+    }
 
     const workspace = await Workspace.get(workspaceId);
 

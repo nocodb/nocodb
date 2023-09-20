@@ -117,36 +117,13 @@ const copyUrl = async () => {
             class="!max-w-130 !rounded"
           />
 
-          <NcSelect v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
-            <template #suffixIcon>
-              <MdiChevronDown />
-            </template>
-            <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
-              <!-- <div
-                class="flex flex-row h-full justify-start items-center"
-                :data-testid="`nc-share-invite-user-role-option-${role}`"
-              >
-                <div class="px-2 py-1 flex rounded-full text-xs capitalize">
-                  {{ role }}
-                </div>
-              </div> -->
-              <NcBadge v-if="role === ProjectRoles.OWNER" color="purple">
-                <p class="badge-text">{{ role }}</p>
-              </NcBadge>
-              <NcBadge v-if="role === ProjectRoles.CREATOR" color="blue">
-                <p class="badge-text">{{ role }}</p>
-              </NcBadge>
-              <NcBadge v-if="role === ProjectRoles.EDITOR" color="green">
-                <p class="badge-text">{{ role }}</p>
-              </NcBadge>
-              <NcBadge v-if="role === ProjectRoles.COMMENTER" color="orange">
-                <p class="badge-text">{{ role }}</p>
-              </NcBadge>
-              <NcBadge v-if="role === ProjectRoles.VIEWER" color="yellow">
-                <p class="badge-text">{{ role }}</p>
-              </NcBadge>
-            </a-select-option>
-          </NcSelect>
+          <RolesSelector
+            class="px-1"
+            :role="inviteData.roles"
+            :roles="ProjectRoles"
+            :on-role-change="(role: ProjectRoles) => (inviteData.roles = role)"
+            :description="false"
+          />
 
           <a-button
             type="primary"

@@ -2,20 +2,27 @@
 import type { RoleLabels } from 'nocodb-sdk'
 import { toRef } from '#imports'
 
-const props = defineProps<{
-  role: keyof typeof RoleLabels
-  roles: (keyof typeof RoleLabels)[]
-  inherit?: string
-  onRoleChange: (role: keyof typeof RoleLabels) => void
-}>()
+const props = withDefaults(
+  defineProps<{
+    role: keyof typeof RoleLabels
+    roles: (keyof typeof RoleLabels)[]
+    description?: boolean
+    inherit?: string
+    onRoleChange: (role: keyof typeof RoleLabels) => void
+  }>(),
+  {
+    description: true,
+  },
+)
 
 const roleRef = toRef(props, 'role')
 const inheritRef = toRef(props, 'inherit')
+const descriptionRef = toRef(props, 'description')
 </script>
 
 <template>
   <NcDropdown>
-    <RolesBadge class="border-1" :role="roleRef" clickable :inherit="inheritRef === role" />
+    <RolesBadge class="border-1" :role="roleRef" clickable :inherit="inheritRef === role" :description="descriptionRef" />
     <template #overlay>
       <div class="nc-role-select-dropdown flex flex-col gap-[4px] p-1">
         <div class="flex flex-col gap-[4px]">
@@ -32,6 +39,7 @@ const inheritRef = toRef(props, 'inherit')
               :class="`nc-role-select-${rl}`"
               :role="rl"
               :inherit="inheritRef === rl"
+              :description="descriptionRef"
             />
           </div>
         </div>

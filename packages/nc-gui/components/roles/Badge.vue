@@ -36,13 +36,17 @@ const roleProperties = computed(() => {
     descriptionText,
   }
 })
+
+console.log('dummy')
 </script>
 
 <template>
   <div
-    class="flex flex-col py-[6px] px-[8px] gap-[4px] w-[350px] rounded-md bg-gray-50"
+    class="flex flex-col py-[3px] px-[8px] gap-[4px] rounded-md bg-gray-50"
     :class="{
       'cursor-pointer hover:bg-gray-100': clickableRef,
+      'w-[350px]': descriptionRef,
+      'w-[140px] items-center': !descriptionRef,
     }"
   >
     <div class="flex items-center">

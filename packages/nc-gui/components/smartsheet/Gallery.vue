@@ -19,7 +19,7 @@ import {
   extractPkFromRow,
   inject,
   isImage,
-  isLTAR,
+  isPrimary,
   nextTick,
   provide,
   ref,
@@ -252,14 +252,19 @@ watch(
           <LazySmartsheetRow :row="record">
             <a-card
               class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] shadow-sm hover:shadow-md"
-              :body-style="{ padding: '12px' }"
+              :body-style="{ padding: '0px' }"
               :data-testid="`nc-gallery-card-${record.row.id}`"
               :style="isPublic ? { cursor: 'default' } : { cursor: 'pointer' }"
               @click="expandFormClick($event, record)"
               @contextmenu="showContextMenu($event, { row: rowIndex })"
             >
               <template v-if="galleryData?.fk_cover_image_col_id" #cover>
-                <a-carousel v-if="!reloadAttachments && attachments(record).length" class="gallery-carousel" arrows>
+                <a-carousel
+                  v-if="!reloadAttachments && attachments(record).length"
+                  class="gallery-carousel !border-b-1 !border-gray-200"
+                  arrows
+                  @click="expandFormClick($event, record)"
+                >
                   <template #customPaging>
                     <a>
                       <div class="pt-[12px]">
@@ -269,7 +274,7 @@ watch(
                   </template>
 
                   <template #prevArrow>
-                    <div style="z-index: 1">
+                    <div class="z-10">
                       <MdiChevronLeft
                         class="text-gray-700 w-6 h-6 absolute left-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
                       />
@@ -277,7 +282,7 @@ watch(
                   </template>
 
                   <template #nextArrow>
-                    <div style="z-index: 1">
+                    <div class="z-10">
                       <MdiChevronRight
                         class="text-gray-700 w-6 h-6 absolute right-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
                       />
@@ -288,16 +293,16 @@ watch(
                     <LazyCellAttachmentImage
                       v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                       :key="`carousel-${record.row.id}-${index}`"
-                      class="h-52 border-b-1 border-gray-200 object-cover"
+                      class="h-52 object-cover"
                       :srcs="getPossibleAttachmentSrc(attachment)"
                     />
                   </template>
                 </a-carousel>
-                <div v-else class="h-52 w-full !flex flex-row items-center justify-center">
+                <div v-else class="h-52 w-full !flex flex-row !border-b-1 !border-gray-200 items-center justify-center">
                   <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
                 </div>
               </template>
-              <h2 v-if="displayField" class="text-lg font-bold">
+              <h2 v-if="displayField" class="text-base mt-6 mx-3 font-bold">
                 <LazySmartsheetVirtualCell
                   v-if="isVirtualCol(displayField)"
                   v-model="record.row[displayField.title]"
@@ -317,10 +322,7 @@ watch(
               </h2>
 
               <div v-for="col in fieldsWithoutCover" :key="`record-${record.row.id}-${col.id}`">
-                <div
-                  v-if="!isRowEmpty(record, col) || isLTAR(col.uidt, col.colOptions)"
-                  class="flex flex-col ml-[-4px] rounded-lg w-full"
-                >
+                <div class="flex flex-col mx-2 !mb-2 rounded-lg w-full">
                   <div class="flex flex-row w-full justify-start scale-75">
                     <div class="w-full pb-1 text-gray-300">
                       <LazySmartsheetHeaderVirtualCell
@@ -334,7 +336,7 @@ watch(
                     </div>
                   </div>
 
-                  <div class="flex flex-row w-full pb-2 text-gray-700 pl-1 items-center justify-start">
+                  <div class="flex flex-row w-full text-gray-700 pl-1 items-center justify-start">
                     <LazySmartsheetVirtualCell
                       v-if="isVirtualCol(col)"
                       v-model="record.row[col.title]"
@@ -389,54 +391,35 @@ watch(
 
 <style scoped>
 .nc-gallery-container {
-  grid-auto-rows: 1fr;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-}
-
-.ant-card-body {
-  @apply !p-0;
+  @apply auto-rows-[1fr] grid-cols-[repeat(auto-fit,minmax(250px,1fr))];
 }
 
 :deep(.slick-dots li button) {
-  background-color: black;
+  @apply !bg-black;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots) {
-  @apply !w-auto;
-  position: absolute;
+  @apply !w-auto absolute h-auto bottom-[-15px] absolute h-auto;
   height: auto;
-  bottom: 3;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li div > div) {
-  @apply rounded-full;
-  background: #d9d9d9;
-  border: 0;
-  color: transparent;
-  cursor: pointer;
-  display: block;
+  @apply rounded-full border-0 cursor-pointer block opacity-100 p-0 outline-none transition-all duration-500 text-transparent h-2 w-2 bg-[#d9d9d9];
   font-size: 0;
-  height: 8px;
-  opacity: 1;
-  outline: none;
-  padding: 0;
-  transition: all 0.5s;
-  width: 8px;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li.slick-active div > div) {
-  @apply bg-brand-500;
-  opacity: 1;
+  @apply bg-brand-500 opacity-100;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li) {
   @apply !w-auto;
 }
 .ant-carousel.gallery-carousel :deep(.slick-prev) {
-  left: 0;
+  @apply left-0;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-next) {
-  right: 0;
+  @apply right-0;
 }
 </style>

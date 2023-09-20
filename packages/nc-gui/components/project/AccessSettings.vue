@@ -75,6 +75,12 @@ const loadListData = async ($state: any) => {
   $state.loaded()
 }
 
+const reloadCollabs = async () => {
+  currentPage.value = 0
+  collaborators.value = []
+  await loadCollaborators()
+}
+
 const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
   try {
     if (
@@ -90,7 +96,7 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
       ) {
         collab.roles = WorkspaceRolesToProjectRoles[collab.workspace_roles as WorkspaceUserRoles]
       } else {
-        collab.roles = null
+        collab.roles = ProjectRoles.NO_ACCESS
       }
     } else if (collab.project_roles) {
       collab.roles = roles
@@ -101,6 +107,8 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    reloadCollabs()
   }
 }
 
@@ -126,12 +134,6 @@ watchDebounced(
     maxWait: 600,
   },
 )
-
-const reloadCollabs = async () => {
-  currentPage.value = 0
-  collaborators.value = []
-  await loadCollaborators()
-}
 
 onMounted(async () => {
   isLoading.value = true

@@ -194,6 +194,48 @@ export const RoleColors = {
   [OrgUserRoles.VIEWER]: 'yellow',
 };
 
+export const RoleDescriptions = {
+  [WorkspaceUserRoles.OWNER]: 'Full access to workspace',
+  [WorkspaceUserRoles.CREATOR]: 'Can create projects, sync tables, views, setup web-hooks and more',
+  [WorkspaceUserRoles.EDITOR]: 'Can edit data in workspace projects',
+  [WorkspaceUserRoles.COMMENTER]: 'Can view and comment data in workspace projects',
+  [WorkspaceUserRoles.VIEWER]: 'Can view data in workspace projects',
+  [ProjectRoles.OWNER]: 'Full access to project',
+  [ProjectRoles.CREATOR]: 'Can create tables, views, setup webhook, invite collaborators and more',
+  [ProjectRoles.EDITOR]: 'Can view, add & modify records, add comments on them',
+  [ProjectRoles.COMMENTER]: 'Can view records and add comment on them',
+  [ProjectRoles.VIEWER]: 'Can only view records',
+  [ProjectRoles.NO_ACCESS]: 'Cannot access this project',
+  [OrgUserRoles.SUPER_ADMIN]: 'Full access to all',
+  [OrgUserRoles.CREATOR]: 'Can create projects, sync tables, views, setup web-hooks and more',
+  [OrgUserRoles.VIEWER]: 'Can only view projects',
+};
+
+export const RoleIcons = {
+  [WorkspaceUserRoles.OWNER]: 'role_owner',
+  [WorkspaceUserRoles.CREATOR]: 'role_creator',
+  [WorkspaceUserRoles.EDITOR]: 'role_editor',
+  [WorkspaceUserRoles.COMMENTER]: 'role_commenter',
+  [WorkspaceUserRoles.VIEWER]: 'role_viewer',
+  [ProjectRoles.OWNER]: 'role_owner',
+  [ProjectRoles.CREATOR]: 'role_creator',
+  [ProjectRoles.EDITOR]: 'role_editor',
+  [ProjectRoles.COMMENTER]: 'role_commenter',
+  [ProjectRoles.VIEWER]: 'role_viewer',
+  [ProjectRoles.NO_ACCESS]: 'role_no_access',
+  [OrgUserRoles.SUPER_ADMIN]: 'role_owner',
+  [OrgUserRoles.CREATOR]: 'role_creator',
+  [OrgUserRoles.VIEWER]: 'role_viewer',
+};
+
+export const WorkspaceRolesToProjectRoles = {
+  [WorkspaceUserRoles.OWNER]: ProjectRoles.OWNER,
+  [WorkspaceUserRoles.CREATOR]: ProjectRoles.CREATOR,
+  [WorkspaceUserRoles.EDITOR]: ProjectRoles.EDITOR,
+  [WorkspaceUserRoles.COMMENTER]: ProjectRoles.COMMENTER,
+  [WorkspaceUserRoles.VIEWER]: ProjectRoles.VIEWER,
+};
+
 export const OrderedWorkspaceRoles = [
   WorkspaceUserRoles.OWNER,
   WorkspaceUserRoles.CREATOR,

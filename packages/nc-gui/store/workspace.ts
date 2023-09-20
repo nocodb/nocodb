@@ -64,22 +64,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   })
 
-  /** getters */
-  const isWorkspaceCreator = computed(() => {
-    // todo: type correction
-    return orgRoles.value?.[OrgUserRoles.CREATOR]
-  })
-
-  const isWorkspaceOwner = computed(() => {
-    // todo: type correction
-    return orgRoles.value?.[OrgUserRoles.CREATOR]
-  })
-
-  const isWorkspaceOwnerOrCreator = computed(() => {
-    // todo: type correction
-    return orgRoles.value?.[OrgUserRoles.CREATOR]
-  })
-
   /** actions */
   const loadWorkspaces = async (_ignoreError = false) => {}
 
@@ -239,8 +223,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     removeCollaborator,
     updateCollaborator,
     collaborators,
-    isWorkspaceCreator,
-    isWorkspaceOwner,
     isInvitingCollaborators,
     isCollaboratorsLoading,
     addToFavourite,
@@ -257,7 +239,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     clearWorkspaces,
     upgradeActiveWorkspace,
     navigateToWorkspace,
-    isWorkspaceOwnerOrCreator,
     setLoadingState,
     navigateToWorkspaceSettings,
     lastPopulatedWorkspaceId,

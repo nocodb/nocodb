@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ProjectRoles } from 'nocodb-sdk'
+import { OrderedProjectRoles, ProjectRoles } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, useDashboard, useManageUsers } from '#imports'
 
 const emit = defineEmits(['invited'])
@@ -14,6 +14,8 @@ const { dashboardUrl } = useDashboard()
 const { inviteUser } = useManageUsers()
 
 const { $e } = useNuxtApp()
+
+const { projectRoles } = useRoles()
 
 const usersData = ref<{
   invite_token?: string
@@ -46,6 +48,22 @@ const inviteCollaborator = async () => {
 const inviteUrl = computed(() =>
   usersData.value?.invite_token ? `${dashboardUrl.value}#/signup/${usersData.value.invite_token}` : null,
 )
+
+// allow only lower roles to be assigned
+const allowedRoles = ref<ProjectRoles[]>([])
+
+onMounted(async () => {
+  try {
+    const currentRoleIndex = OrderedProjectRoles.findIndex(
+      (role) => projectRoles.value && Object.keys(projectRoles.value).includes(role),
+    )
+    if (currentRoleIndex !== -1) {
+      allowedRoles.value = OrderedProjectRoles.slice(currentRoleIndex).filter((r) => r && r !== ProjectRoles.OWNER)
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+})
 
 const { copy } = useCopy(true)
 
@@ -117,36 +135,13 @@ const copyUrl = async () => {
             class="!max-w-130 !rounded"
           />
 
-          <NcSelect v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
-            <template #suffixIcon>
-              <MdiChevronDown />
-            </template>
-            <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
-              <!-- <div
-                class="flex flex-row h-full justify-start items-center"
-                :data-testid="`nc-share-invite-user-role-option-${role}`"
-              >
-                <div class="px-2 py-1 flex rounded-full text-xs capitalize">
-                  {{ role }}
-                </div>
-              </div> -->
-              <NcBadge v-if="role === ProjectRoles.OWNER" color="purple">
-                <p class="badge-text">{{ role }}</p>
-              </NcBadge>
-              <NcBadge v-if="role === ProjectRoles.CREATOR" color="blue">
-                <p class="badge-text">{{ role }}</p>
-              </NcBadge>
-              <NcBadge v-if="role === ProjectRoles.EDITOR" color="green">
-                <p class="badge-text">{{ role }}</p>
-              </NcBadge>
-              <NcBadge v-if="role === ProjectRoles.COMMENTER" color="orange">
-                <p class="badge-text">{{ role }}</p>
-              </NcBadge>
-              <NcBadge v-if="role === ProjectRoles.VIEWER" color="yellow">
-                <p class="badge-text">{{ role }}</p>
-              </NcBadge>
-            </a-select-option>
-          </NcSelect>
+          <RolesSelector
+            class="px-1"
+            :role="inviteData.roles"
+            :roles="allowedRoles"
+            :on-role-change="(role: ProjectRoles) => (inviteData.roles = role)"
+            :description="true"
+          />
 
           <a-button
             type="primary"

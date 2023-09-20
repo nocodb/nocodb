@@ -34,7 +34,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
   const { api } = useApi({ useGlobalInstance: true })
 
-  const { allRoles } = useRoles()
+  const { allRoles, loadRoles } = useRoles()
 
   /** If baseHostname defined block home page access under subdomains, and redirect to workspace page */
   if (
@@ -92,9 +92,9 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
     /** if users are accessing the projects without having enough permissions, redirect to My Projects page */
     if (to.params.projectId && from.params.projectId !== to.params.projectId) {
-      const user = await api.auth.me({ project_id: to.params.projectId as string })
+      await loadRoles()
 
-      if (user?.roles?.guest) {
+      if (state.user.value?.roles?.guest) {
         message.error("You don't have enough permission to access the project.")
 
         return navigateTo('/')

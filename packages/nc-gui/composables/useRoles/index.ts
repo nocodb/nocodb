@@ -116,6 +116,14 @@ export const useRoles = createSharedComposable(() => {
         roles: res.roles,
         project_roles: res.project_roles,
       } as typeof User
+    } else {
+      const res = await api.auth.me({})
+
+      user.value = {
+        ...user.value,
+        roles: res.roles,
+        project_roles: res.project_roles,
+      } as typeof User
     }
   }
 

@@ -57,7 +57,7 @@ onMounted(async () => {
           :role="inviteData.roles"
           :roles="allowedRoles"
           :on-role-change="(role: WorkspaceUserRoles) => (inviteData.roles = role)"
-          :description="false"
+          :description="true"
         />
 
         <a-button

@@ -213,6 +213,7 @@ onMounted(async () => {
                         ? WorkspaceRolesToProjectRoles[collab.workspace_roles]
                         : null
                     "
+                    :description="false"
                     :on-role-change="(role: ProjectRoles) => updateCollaborator(collab, role)"
                   />
                 </template>

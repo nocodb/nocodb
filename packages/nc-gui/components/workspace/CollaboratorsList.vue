@@ -87,6 +87,7 @@ onMounted(async () => {
                 <RolesSelector
                   :role="collab.roles"
                   :roles="accessibleRoles"
+                  :description="false"
                   :on-role-change="(role: WorkspaceUserRoles) => updateCollaborator(collab, role)"
                 />
               </template>

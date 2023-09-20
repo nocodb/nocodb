@@ -1,12 +1,18 @@
 <script lang="ts" setup>
-const props = defineProps<{
-  color: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    color: string
+    border?: boolean
+  }>(),
+  {
+    border: true,
+  },
+)
 </script>
 
 <template>
   <div
-    class="border-1 h-6 rounded-md px-1"
+    class="h-6 rounded-md px-1"
     :class="{
       'border-purple-500 bg-purple-100': props.color === 'purple',
       'border-blue-500 bg-blue-100': props.color === 'blue',
@@ -15,6 +21,7 @@ const props = defineProps<{
       'border-yellow-500 bg-yellow-100': props.color === 'yellow',
       'border-red-500 bg-red-100': props.color === 'red',
       'border-gray-300': !props.color,
+      'border-1': props.border,
     }"
   >
     <slot />

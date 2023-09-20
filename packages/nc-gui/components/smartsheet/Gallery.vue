@@ -322,7 +322,7 @@ watch(
               </h2>
 
               <div v-for="col in fieldsWithoutCover" :key="`record-${record.row.id}-${col.id}`">
-                <div class="flex flex-col mx-2 !mb-2 rounded-lg w-full">
+                <div class="flex flex-col ml-2 !pr-3.5 !mb-2 rounded-lg w-full">
                   <div class="flex flex-row w-full justify-start scale-75">
                     <div class="w-full pb-1 text-gray-300">
                       <LazySmartsheetHeaderVirtualCell
@@ -336,7 +336,7 @@ watch(
                     </div>
                   </div>
 
-                  <div class="flex flex-row w-full text-gray-700 pl-1 items-center justify-start">
+                  <div v-if="!isRowEmpty(record, col)" class="flex flex-row w-full text-gray-700 px-1 items-center justify-start">
                     <LazySmartsheetVirtualCell
                       v-if="isVirtualCol(col)"
                       v-model="record.row[col.title]"
@@ -351,6 +351,9 @@ watch(
                       :edit-enabled="false"
                       :read-only="true"
                     />
+                  </div>
+                  <div v-else class="flex flex-row w-full h-[1.375rem] pl-1 items-center justify-start">
+                    <span class="bg-gray-200 h-2 w-16 rounded-md"></span>
                   </div>
                 </div>
               </div>

@@ -67,10 +67,7 @@ const visible = useVModel(props, 'visible', emits)
       @keydown.esc="visible = false"
     >
       <div
-        class="nc-modal"
-        :style="{
-          maxHeight: height,
-        }"
+        class="nc-modal max-h-[{{ height }}]"
       >
         <slot />
       </div>

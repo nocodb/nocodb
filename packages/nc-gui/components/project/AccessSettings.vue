@@ -135,6 +135,11 @@ watchDebounced(
   },
 )
 
+const userProjectRole = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles]>(() => {
+  const projectUser = collaborators.value?.find((collab) => collab.id === user.value?.id)
+  return projectUser?.projectRoles
+})
+
 onMounted(async () => {
   isLoading.value = true
   try {
@@ -155,8 +160,6 @@ onMounted(async () => {
 
 <template>
   <div class="nc-collaborator-table-container mt-4 nc-access-settings-view">
-    <ProjectInviteProjectCollabSection @invited="reloadCollabs" />
-
     <div v-if="isLoading" class="nc-collaborators-list items-center justify-center">
       <GeneralLoader size="xlarge" />
     </div>

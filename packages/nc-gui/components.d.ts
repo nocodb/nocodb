@@ -158,6 +158,7 @@ declare module '@vue/runtime-core' {
     MdiWhatsapp: typeof import('~icons/mdi/whatsapp')['default']
     MiCircleWarning: typeof import('~icons/mi/circle-warning')['default']
     NcIconsInbox: typeof import('~icons/nc-icons/inbox')['default']
+    PhLink: typeof import('~icons/ph/link')['default']
     PhMagnifyingGlassBold: typeof import('~icons/ph/magnifying-glass-bold')['default']
     PhTriangleFill: typeof import('~icons/ph/triangle-fill')['default']
     RiExternalLinkLine: typeof import('~icons/ri/external-link-line')['default']

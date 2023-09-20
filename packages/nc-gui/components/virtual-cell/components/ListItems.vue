@@ -9,6 +9,7 @@ import {
   SaveRowInj,
   computed,
   inject,
+  onKeyStroke,
   ref,
   useLTARStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
@@ -30,6 +31,7 @@ const {
   isChildrenExcludedListLinked,
   isChildrenExcludedListLoading,
   displayValueProp,
+  isChildrenExcludedLoading,
   childrenListCount,
   loadChildrenExcludedList,
   loadChildrenList,
@@ -138,7 +140,13 @@ const relation = computed(() => {
 })
 
 watch(expandedFormDlg, () => {
-  loadChildrenExcludedList(rowState.value)
+  if (!expandedFormDlg.value) {
+    loadChildrenExcludedList(rowState.value)
+  }
+})
+
+onKeyStroke('Escape', () => {
+  vModel.value = false
 })
 </script>
 
@@ -203,29 +211,34 @@ watch(expandedFormDlg, () => {
     <template v-if="childrenExcludedList?.pageInfo?.totalRows">
       <div class="pb-2 pt-1">
         <div class="h-[420px] overflow-scroll nc-scrollbar-md pr-1 cursor-pointer">
-          <LazyVirtualCellComponentsListItem
-            v-for="(refRow, id) in childrenExcludedList?.list ?? []"
-            :key="id"
-            data-testid="nc-excluded-list-item"
-            :row="refRow"
-            :fields="fields"
-            :attachment="attachmentCol"
-            :related-table-display-value-prop="relatedTableDisplayValueProp"
-            :is-loading="isChildrenExcludedListLoading[Number.parseInt(id)]"
-            :is-linked="isChildrenExcludedListLinked[Number.parseInt(id)]"
-            @expand="
-              () => {
-                expandedFormRow = refRow
-                expandedFormDlg = true
-              }
-            "
-            @click="
-              () => {
-                if (isChildrenExcludedListLinked[Number.parseInt(id)]) unlinkRow(refRow, Number.parseInt(id))
-                else linkRow(refRow, Number.parseInt(id))
-              }
-            "
-          />
+          <template v-if="isChildrenExcludedLoading">
+            <a-skeleton v-for="(x, i) in Array.from({ length: 10 })" :key="i" active> </a-skeleton>
+          </template>
+          <template v-else>
+            <LazyVirtualCellComponentsListItem
+              v-for="(refRow, id) in childrenExcludedList?.list ?? []"
+              :key="id"
+              data-testid="nc-excluded-list-item"
+              :row="refRow"
+              :fields="fields"
+              :attachment="attachmentCol"
+              :related-table-display-value-prop="relatedTableDisplayValueProp"
+              :is-loading="isChildrenExcludedListLoading[Number.parseInt(id)]"
+              :is-linked="isChildrenExcludedListLinked[Number.parseInt(id)]"
+              @expand="
+                () => {
+                  expandedFormRow = refRow
+                  expandedFormDlg = true
+                }
+              "
+              @click="
+                () => {
+                  if (isChildrenExcludedListLinked[Number.parseInt(id)]) unlinkRow(refRow, Number.parseInt(id))
+                  else linkRow(refRow, Number.parseInt(id))
+                }
+              "
+            />
+          </template>
         </div>
       </div>
     </template>
@@ -242,7 +255,7 @@ watch(expandedFormDlg, () => {
     <div class="my-2 bg-gray-50 border-gray-50 border-b-2"></div>
 
     <div class="flex flex-row justify-between bg-white relative pt-1">
-      <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-brand-500 bg-brand-50">
+      <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50">
         {{ relation === 'bt' ? (row.row[relatedTableMeta?.title] ? '1' : 0) : childrenListCount ?? 'No' }} records
         {{ childrenListCount !== 0 ? 'are' : '' }} linked
       </div>

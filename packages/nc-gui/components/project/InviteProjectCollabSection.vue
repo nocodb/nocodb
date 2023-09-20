@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ProjectRoles } from 'nocodb-sdk'
+import { OrderedProjectRoles, ProjectRoles } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, useDashboard, useManageUsers } from '#imports'
 
 const emit = defineEmits(['invited'])
@@ -14,6 +14,8 @@ const { dashboardUrl } = useDashboard()
 const { inviteUser } = useManageUsers()
 
 const { $e } = useNuxtApp()
+
+const { projectRoles } = useRoles()
 
 const usersData = ref<{
   invite_token?: string
@@ -46,6 +48,22 @@ const inviteCollaborator = async () => {
 const inviteUrl = computed(() =>
   usersData.value?.invite_token ? `${dashboardUrl.value}#/signup/${usersData.value.invite_token}` : null,
 )
+
+// allow only lower roles to be assigned
+const allowedRoles = ref<ProjectRoles[]>([])
+
+onMounted(async () => {
+  try {
+    const currentRoleIndex = OrderedProjectRoles.findIndex(
+      (role) => projectRoles.value && Object.keys(projectRoles.value).includes(role),
+    )
+    if (currentRoleIndex !== -1) {
+      allowedRoles.value = OrderedProjectRoles.slice(currentRoleIndex).filter((r) => r && r !== ProjectRoles.OWNER)
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+})
 
 const { copy } = useCopy(true)
 
@@ -120,7 +138,7 @@ const copyUrl = async () => {
           <RolesSelector
             class="px-1"
             :role="inviteData.roles"
-            :roles="ProjectRoles"
+            :roles="allowedRoles"
             :on-role-change="(role: ProjectRoles) => (inviteData.roles = role)"
             :description="true"
           />

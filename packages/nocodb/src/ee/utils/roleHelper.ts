@@ -32,7 +32,7 @@ export function getProjectRolePower(user: any) {
       }
     }
   } else {
-    NcError.badRequest('Role not found');
+    return -1;
   }
 
   const ind =
@@ -51,7 +51,7 @@ export function getWorkspaceRolePower(user: any) {
   const reverseOrderedWorkspaceRoles = [...OrderedWorkspaceRoles].reverse();
 
   if (!user.workspace_roles) {
-    NcError.badRequest('Role not found');
+    return -1;
   }
 
   // get most powerful role of user (TODO moving forward we will confirm that user has only one role)

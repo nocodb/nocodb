@@ -177,7 +177,34 @@ onKeyStroke('Escape', () => {
           class="overflow-scroll nc-scrollbar-md cursor-pointer pr-1"
         >
           <template v-if="isChildrenLoading">
-            <a-skeleton v-for="(x, i) in Array.from({ length: 10 })" :key="i" active> </a-skeleton>
+            <div
+              v-for="(x, i) in Array.from({ length: 10 })"
+              :key="i"
+              class="!border-2 flex flex-row gap-2 mb-2 transition-all !rounded-xl relative !border-gray-200 hover:bg-gray-50"
+            >
+              <a-skeleton-image class="h-24 w-24 !rounded-xl" />
+              <div class="flex flex-col m-[.75rem] gap-1 flex-grow justify-center">
+                <a-skeleton-input style="width: 200px" active size="small" />
+                <div class="flex flex-row gap-4 w-10/12">
+                  <div class="flex flex-col gap-0.5">
+                    <a-skeleton-input style="width: 70px" active size="small" />
+                    <a-skeleton-input style="width: 140px" active size="small" />
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <a-skeleton-input style="width: 70px" active size="small" />
+                    <a-skeleton-input style="width: 140px" active size="small" />
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <a-skeleton-input style="width: 70px" active size="small" />
+                    <a-skeleton-input style="width: 140px" active size="small" />
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <a-skeleton-input style="width: 70px" active size="small" />
+                    <a-skeleton-input style="width: 140px" active size="small" />
+                  </div>
+                </div>
+              </div>
+            </div>
           </template>
           <template v-else>
             <LazyVirtualCellComponentsListItem
@@ -253,8 +280,8 @@ onKeyStroke('Escape', () => {
           show-less-items
         />
       </div>
-      <div class="flex flex-row gap-1">
-        <NcButton v-if="!isForm" type="ghost" class="nc-close-btn" @click="vModel = false"> Cancel </NcButton>
+      <div class="flex flex-row gap-2">
+        <NcButton v-if="!isForm" type="ghost" class="nc-close-btn" @click="vModel = false"> Finish </NcButton>
         <NcButton
           v-if="!readonly && childrenListCount > 0"
           data-testid="nc-child-list-button-link-to"

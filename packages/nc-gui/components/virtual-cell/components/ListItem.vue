@@ -48,7 +48,7 @@ const attachments: Attachment[] = computed(() => {
     class="!border-1 group transition-all !rounded-xl relative !mb-2 !border-gray-200 hover:bg-gray-50"
     :class="{
       '!bg-white': isLoading,
-      ' !border-1': isLinked,
+      '!border-1': isLinked && !isLoading,
       '!hover:border-gray-400': !isLinked,
     }"
     :body-style="{ padding: 0 }"

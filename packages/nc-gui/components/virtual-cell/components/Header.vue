@@ -49,7 +49,7 @@ const relationMeta = computed(() => {
 
 <template>
   <div class="flex justify-between relative pb-2 items-center">
-    <span class="text-md font-semibold flex mt-2 justify-center">
+    <span class="text-base font-bold flex mt-2 justify-center">
       {{ showHeader ? 'Linked Records' : '' }}
     </span>
     <div class="grid grid-cols-[1fr,auto,1fr] justify-center items-center gap-2 absolute inset-0 m-auto">

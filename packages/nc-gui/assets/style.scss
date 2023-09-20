@@ -32,6 +32,10 @@
   height: var(--topbar-height) !important;
 }
 
+.anticon-check-circle {
+  @apply !relative top-[-1px] left-0;  
+}
+
 html,
 body,
 #__nuxt,

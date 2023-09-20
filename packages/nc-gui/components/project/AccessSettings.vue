@@ -155,8 +155,8 @@ onMounted(async () => {
       </div>
       <div v-else class="nc-collaborators-list nc-scrollbar-md">
         <div class="nc-collaborators-list-header">
-          <div class="flex w-1/5">Users</div>
-          <div class="flex w-1/5">Date Joined</div>
+          <div class="flex w-3/5">Users</div>
+          <div class="flex w-2/5">Date Joined</div>
           <div class="flex w-1/5">Access</div>
           <div class="flex w-1/5"></div>
           <div class="flex w-1/5"></div>
@@ -164,17 +164,19 @@ onMounted(async () => {
 
         <div class="flex flex-col nc-scrollbar-md">
           <div v-for="(collab, i) of collaborators" :key="i" class="relative w-full nc-collaborators nc-collaborators-list-row">
-            <div class="!py-0 w-1/5 email">
+            <div class="!py-0 w-3/5 email truncate">
               <div class="flex items-center gap-2">
                 <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
                   collab?.email?.slice(0, 2)
                 }}</span>
                 <!--                <GeneralTruncateText> -->
-                {{ collab.email }}
+                <span class="truncate">
+                  {{ collab.email }}
+                </span>
                 <!--                </GeneralTruncateText> -->
               </div>
             </div>
-            <div class="text-gray-500 text-xs w-1/5 created-at">
+            <div class="text-gray-500 text-xs w-2/5 created-at truncate">
               {{ timeAgo(collab.created_at) }}
             </div>
             <div class="w-1/5 roles">

@@ -41,7 +41,7 @@ const navigateToSettings = () => {
     </div>
   </template>
   <template v-else-if="!isSharedBase">
-    <div class="flex flex-col p-1 gap-y-0.5 mt-0.25 mb-0.5">
+    <div class="flex flex-col p-1 gap-y-0.5 mt-0.25 mb-0.5 truncate">
       <DashboardSidebarTopSectionHeader />
 
       <NcButton

@@ -86,9 +86,14 @@ watch(
 
   <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
 
-  <a v-else-if="validEmail" class="text-sm underline hover:opacity-75" :href="`mailto:${vModel}`" target="_blank">
+  <nuxt-link
+    v-else-if="validEmail"
+    class="text-sm underline hover:opacity-75 inline-block"
+    :href="`mailto:${vModel}`"
+    target="_blank"
+  >
     <LazyCellClampedText :value="vModel" :lines="rowHeight" />
-  </a>
+  </nuxt-link>
 
   <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" />
 </template>

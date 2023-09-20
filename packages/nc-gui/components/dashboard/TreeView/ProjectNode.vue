@@ -52,6 +52,10 @@ const editMode = ref(false)
 
 const tempTitle = ref('')
 
+const activeBaseId = ref('')
+
+const isErdModalOpen = ref<Boolean>(false)
+
 const { t } = useI18n()
 
 const input = ref<HTMLInputElement>()
@@ -268,7 +272,8 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
 }
 
 function openErdView(base: BaseType) {
-  navigateTo(`/nc/${base.project_id}/erd/${base.id}`)
+  activeBaseId.value = base.id
+  isErdModalOpen.value = !isErdModalOpen.value
 }
 
 async function openProjectErdView(_project: ProjectType) {
@@ -282,7 +287,7 @@ async function openProjectErdView(_project: ProjectType) {
 
   const base = project?.bases?.[0]
   if (!base) return
-  navigateTo(`/nc/${base.project_id}/erd/${base.id}`)
+  openErdView(base)
 }
 
 const reloadTables = async () => {
@@ -732,6 +737,11 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
     :project="selectedProjectToDuplicate"
     :on-ok="DlgProjectDuplicateOnOk"
   />
+  <GeneralModal v-model:visible="isErdModalOpen" size="large">
+    <div class="h-[80vh]">
+      <LazyDashboardSettingsErd :base-id="activeBaseId" />
+    </div>
+  </GeneralModal>
 </template>
 
 <style lang="scss" scoped>

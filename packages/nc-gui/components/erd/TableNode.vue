@@ -33,6 +33,7 @@ watch(
   () => viewport.value.zoom,
   () => {
     isZooming.value = true
+    console.log(viewport.value.zoom)
   },
 )
 </script>

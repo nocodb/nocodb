@@ -14,7 +14,7 @@ export default class Twilio implements IWebhookNotificationAdapter {
   }
 
   public async sendMessage(content: string, payload: any): Promise<any> {
-    for (const num of payload?.to?.split(/\s*?,\s*?/)) {
+    for (const num of payload?.to?.split(/\s*?,\s*?/) || []) {
       try {
         await this.client.messages.create({
           body: content,

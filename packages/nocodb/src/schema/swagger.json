@@ -64,6 +64,30 @@
     }
   ],
   "paths": {
+    "/api/v1/user/profile": {
+      "patch": {
+        "summary": "Update User Profile",
+        "operationId": "user-profile-update",
+        "responses": {
+          "200": {
+            "$ref": "#/components/schemas/User"
+          }
+        },
+        "tags": [
+          "User profile"
+        ],
+        "description": "Update User Profile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/user/signup": {
       "post": {
         "summary": "Signup",
@@ -16018,7 +16042,7 @@
             "type": "string"
           },
           "cdf": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/StringOrNullOrBooleanOrNumber",
             "description": "Column Default"
           },
           "clen": {
@@ -19319,7 +19343,7 @@
             "description": "Column Comment"
           },
           "cdf": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/StringOrNullOrBooleanOrNumber",
             "description": "Column Default Value"
           },
           "column_name": {
@@ -20854,6 +20878,27 @@
         "x-stoplight": {
           "id": "p1g7xrgdsn540"
         }
+      },
+      "StringOrNullOrBooleanOrNumber": {
+        "description": "Model for StringOrNullOrBooleanOrNumber",
+        "examples": [
+          "string"
+        ],
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "boolean"
+          }, 
+          {
+            "type": "number"
+          }
+        ],
+        "title": "StringOrNullOrBooleanOrNumber Model"
       },
       "Table": {
         "description": "Model for Table",

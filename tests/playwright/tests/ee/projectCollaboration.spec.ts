@@ -66,7 +66,7 @@ test.describe('Project Collaboration', () => {
 
     await collaborationPage.addUsers(user.email, 'viewer');
 
-    await dashboard.treeView.openProject({ title: context.project.title });
+    await dashboard.treeView.openProject({ title: context.project.title, context });
 
     // tab access validation
     await projectViewPage.verifyAccess('Owner');
@@ -90,9 +90,9 @@ test.describe('Project Collaboration', () => {
     await dashboard.rootPage.waitForTimeout(500);
     await dashboard.leftSidebar.openWorkspace({ title: context.workspace.title });
     await dashboard.rootPage.waitForTimeout(500);
-    await dashboard.treeView.openProject({ title: context.project.title });
+    await dashboard.treeView.openProject({ title: context.project.title, context });
     await dashboard.rootPage.waitForTimeout(500);
-    await dashboard.treeView.openProject({ title: context.project.title });
+    await dashboard.treeView.openProject({ title: context.project.title, context });
     await dashboard.projectView.verifyAccess(user.role);
 
     await dashboard.treeView.openTable({ title: 'Country' });
@@ -100,6 +100,7 @@ test.describe('Project Collaboration', () => {
       role: user.role,
       projectTitle: context.project.title,
       tableTitle: 'Country',
+      context,
     });
     await dashboard.viewSidebar.validateRoleAccess({ role: user.role });
 

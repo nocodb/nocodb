@@ -4,7 +4,9 @@ import { isSystemColumn } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,
+  EditColumnInj,
   EditModeInj,
+  IsExpandedFormOpenInj,
   IsFormInj,
   IsLockedInj,
   IsPublicInj,
@@ -61,7 +63,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editEnabled'])
+const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editEnabled', 'update:value'])
 
 const column = toRef(props, 'column')
 
@@ -87,6 +89,10 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
+const isEditColumnMenu = inject(EditColumnInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
+
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
 const { sqlUis } = storeToRefs(useProject())
@@ -109,7 +115,10 @@ const vModel = computed({
     return props.modelValue
   },
   set: (val) => {
-    if (val !== props.modelValue) {
+    if (isEditColumnMenu.value) {
+      column.value.cdf = val
+      emit('update:value', val)
+    } else if (val !== props.modelValue) {
       currentRow.value.rowMeta.changed = true
       emit('update:modelValue', val)
       if (isAutoSaved(column.value)) {
@@ -191,9 +200,12 @@ onUnmounted(() => {
     class="nc-cell w-full h-full relative"
     :class="[
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
-      { 'text-blue-600': isPrimary(column) && !props.virtual && !isForm },
-      { 'nc-grid-numeric-cell': isGrid && !isForm && isNumericField },
-      { 'h-[40px]': !props.editEnabled && isForm && !isSurveyForm && !isAttachment(column) && !props.virtual },
+      {
+        'text-brand-500': isPrimary(column) && !props.virtual && !isForm,
+        'nc-grid-numeric-cell-right': isGrid && isNumericField && !isEditColumnMenu && !isForm && !isExpandedFormOpen,
+        'h-[40px]': !props.editEnabled && isForm && !isSurveyForm && !isAttachment(column) && !props.virtual,
+        'nc-grid-numeric-cell-left': (isForm && isNumericField && isExpandedFormOpen) || isEditColumnMenu,
+      },
     ]"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="navigate(NavigateDir.PREV, $event)"
@@ -205,8 +217,18 @@ onUnmounted(() => {
         <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
         <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
         <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
-        <LazyCellSingleSelect v-else-if="isSingleSelect(column)" v-model="vModel" :row-index="props.rowIndex" />
-        <LazyCellMultiSelect v-else-if="isMultiSelect(column)" v-model="vModel" :row-index="props.rowIndex" />
+        <LazyCellSingleSelect
+          v-else-if="isSingleSelect(column)"
+          v-model="vModel"
+          :disable-option-creation="!!isEditColumnMenu"
+          :row-index="props.rowIndex"
+        />
+        <LazyCellMultiSelect
+          v-else-if="isMultiSelect(column)"
+          v-model="vModel"
+          :disable-option-creation="!!isEditColumnMenu"
+          :row-index="props.rowIndex"
+        />
         <LazyCellDatePicker v-else-if="isDate(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
         <LazyCellYearPicker v-else-if="isYear(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
         <LazyCellDateTimePicker
@@ -224,13 +246,17 @@ onUnmounted(() => {
         <LazyCellPercent v-else-if="isPercent(column)" v-model="vModel" />
         <LazyCellCurrency v-else-if="isCurrency(column)" v-model="vModel" @save="emit('save')" />
         <LazyCellDecimal v-else-if="isDecimal(column)" v-model="vModel" />
-        <LazyCellInteger v-else-if="isInt(column, abstractType)" v-model="vModel" />
         <LazyCellFloat v-else-if="isFloat(column, abstractType)" v-model="vModel" />
         <LazyCellText v-else-if="isString(column, abstractType)" v-model="vModel" />
+        <LazyCellInteger v-else-if="isInt(column, abstractType)" v-model="vModel" />
         <LazyCellJson v-else-if="isJSON(column)" v-model="vModel" />
         <LazyCellText v-else v-model="vModel" />
         <div
-          v-if="(isLocked || (isPublic && readOnly && !isForm) || isSystemColumn(column)) && !isAttachment(column)"
+          v-if="
+            (isLocked || (isPublic && readOnly && !isForm) || isSystemColumn(column)) &&
+            !isAttachment(column) &&
+            !isTextArea(column)
+          "
           class="nc-locked-overlay"
         />
       </template>
@@ -239,10 +265,16 @@ onUnmounted(() => {
 </template>
 
 <style scoped lang="scss">
-.nc-grid-numeric-cell {
-  @apply text-right;
+.nc-grid-numeric-cell-left {
+  text-align: left;
   :deep(input) {
-    @apply text-right;
+    text-align: left;
+  }
+}
+.nc-grid-numeric-cell-right {
+  text-align: right;
+  :deep(input) {
+    text-align: right;
   }
 }
 </style>

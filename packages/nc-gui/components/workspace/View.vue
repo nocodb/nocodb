@@ -1,16 +1,15 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
 import type { WorkspaceType } from 'nocodb-sdk'
-import { isEeUI } from '#imports'
 
 const router = useRouter()
 const route = router.currentRoute
 
-const workspaceStore = useWorkspace()
-const { isWorkspaceOwnerOrCreator, isWorkspaceOwner, activeWorkspace, workspaces } = storeToRefs(workspaceStore)
-const { loadCollaborators } = workspaceStore
+const { isUIAllowed } = useRoles()
 
-const { appInfo } = useGlobal()
+const workspaceStore = useWorkspace()
+const { activeWorkspace, workspaces } = storeToRefs(workspaceStore)
+const { loadCollaborators } = workspaceStore
 
 const tab = computed({
   get() {
@@ -63,7 +62,7 @@ onMounted(() => {
     </div>
 
     <NcTabs v-model:activeKey="tab">
-      <template v-if="isWorkspaceOwnerOrCreator">
+      <template v-if="isUIAllowed('workspaceSettings')">
         <a-tab-pane key="collaborators" class="w-full">
           <template #tab>
             <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
@@ -75,7 +74,7 @@ onMounted(() => {
         </a-tab-pane>
       </template>
 
-      <template v-if="isWorkspaceOwner && isEeUI">
+      <template v-if="isUIAllowed('workspaceBilling')">
         <a-tab-pane key="billing" class="w-full">
           <template #tab>
             <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
@@ -86,7 +85,7 @@ onMounted(() => {
           <WorkspaceBilling />
         </a-tab-pane>
       </template>
-      <template v-if="isWorkspaceOwner && isEeUI">
+      <template v-if="isUIAllowed('workspaceManage')">
         <a-tab-pane key="settings" class="w-full">
           <template #tab>
             <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5" data-testid="nc-workspace-settings-tab-settings">

@@ -16,7 +16,7 @@ import {
   useMetas,
   useNuxtApp,
   useProject,
-  useUIPermission,
+  useRoles,
   watch,
 } from '#imports'
 import type { Filter, UndoRedoAction } from '#imports'
@@ -42,7 +42,7 @@ export function useViewFilters(
 
   const { $api, $e } = useNuxtApp()
 
-  const { isUIAllowed } = useUIPermission()
+  const { isUIAllowed } = useRoles()
 
   const { metas } = useMetas()
 

@@ -5,7 +5,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
 import MdiHammer from '~icons/mdi/hammer'
-import { useNuxtApp, useProject, useSqlEditor, useUIPermission } from '#imports'
+import { useNuxtApp, useProject, useRoles, useSqlEditor } from '#imports'
 
 const { bases, tables } = storeToRefs(useProject())
 
@@ -15,7 +15,7 @@ const route = useRoute()
 
 const { metas, getMeta } = useMetas()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { $api } = useNuxtApp()
 

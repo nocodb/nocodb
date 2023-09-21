@@ -1,0 +1,132 @@
+name: "Sync EE to OSS"
+
+on:
+  pull_request:    
+    types: [labeled, synchronize] 
+
+jobs:
+  sync-ee-to-ce:
+    if: ${{ github.event.label.name == 'trigger-oss-sync' || (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'trigger-oss-sync')) }}
+    runs-on: [self-hosted, aws]
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.15.0
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: nocohub
+          fetch-depth: 0
+      - name: Checkout OSS
+        uses: actions/checkout@v3
+        with:
+          repository: 'nocodb/nocodb'
+          path: nocodb
+          token: ${{ secrets.OSS_TOKEN }}
+      - name: Prepare GH Cli
+        id: gh
+        run: |
+          wget https://github.com/cli/cli/releases/download/v2.33.0/gh_2.33.0_linux_amd64.tar.gz
+          tar -xvf gh_2.33.0_linux_amd64.tar.gz
+          GH=gh_2.33.0_linux_amd64/bin/gh
+          echo "GH=${GH}" >> $GITHUB_OUTPUT
+      - name: Sync EE to OSS
+        id: sync
+        env:
+          GH_TOKEN: ${{ secrets.OSS_TOKEN }}
+          PR_NAME: ${{ github.event.pull_request.title }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          comment_pr() { 
+            local msg="$1"
+
+            echo "Commenting on PR: ${PR_NUMBER} msg: ${msg}"
+            echo "msg=${msg}" >> $GITHUB_OUTPUT
+          }
+
+          cd nocohub
+
+          HUB_BRANCH_NAME="$GITHUB_HEAD_REF"
+          AUTO_SYNC_BRANCH_NAME="nc-$GITHUB_HEAD_REF"
+
+          git fetch origin develop:develop
+          git fetch origin $HUB_BRANCH_NAME:$HUB_BRANCH_NAME
+          git checkout $HUB_BRANCH_NAME
+
+          NC_EMAIL=$(git log -n 1 --skip 1 --pretty=format:"%ae" | cat)
+          NC_USERNAME=$(git log -n 1 --skip 1 --pretty=format:"%an" | cat)
+          echo "NC_EMAIL=${NC_EMAIL}"
+          echo "NC_USERNAME=${NC_USERNAME}"
+
+          git config user.name "${NC_USERNAME}"
+          git config user.email "${NC_EMAIL}"
+
+          # Merge on top of origin/develop and check for errors
+          set +e
+          git rebase develop
+          REBASE_EXIT_CODE=$?
+          set -e
+
+          git status
+
+          # Check the exit status of the git rebase command
+          if [ $REBASE_EXIT_CODE -eq 0 ]; then
+              echo "Rebased successfully."
+          else
+              echo "Error: Failed to rebase."
+
+              comment_pr "Rebase failed. Make sure that your brach is in sync with nocohub develop"
+              echo "error=true" >> $GITHUB_OUTPUT
+              exit 0
+          fi
+
+          # Run the git diff command and capture the output
+          diff_output=$(cat ./scripts/sync/exclude-list.txt | sed 's/^/":(exclude)/;s/$/"/' | tr '\n' ' ' | xargs git diff origin/develop -- :/)
+
+          # Check if the output is empty
+          if [ -z "$diff_output" ]; then
+              echo "Nothing to sync"
+              echo "msg=Nothing to sync" >> $GITHUB_OUTPUT
+              exit 0
+          fi
+
+          bash scripts/sync/sync_ee_to_ce.sh
+
+          cd ../nocodb
+
+          git config user.name "${NC_USERNAME}"
+          git config user.email "${NC_EMAIL}"
+
+          set +e
+          if [ "synchronize" == "${{ github.event.action }}" ]; then
+            git push origin $AUTO_SYNC_BRANCH_NAME -f
+            echo "synchronize=true" >> $GITHUB_OUTPUT
+          else
+            git push origin $AUTO_SYNC_BRANCH_NAME
+            echo "synchronize=false" >> $GITHUB_OUTPUT
+          fi
+          PUSH_EXIT_CODE=$?
+          set -e
+
+          if [ $PUSH_EXIT_CODE -eq 0 ]; then
+              echo "Pushed successfully."
+
+              comment_pr "Created sync branch \`${AUTO_SYNC_BRANCH_NAME}\`. Please [Create PR with this link](https://github.com/nocodb/nocodb/compare/${AUTO_SYNC_BRANCH_NAME}?expand=1) to nocodb/nocodb."
+          else
+              echo "Error: Failed to push."
+
+              comment_pr "Failed to push. Make sure that \`${AUTO_SYNC_BRANCH_NAME}\` branch is not already present in nocodb/nocodb."
+              echo "error=true" >> $GITHUB_OUTPUT
+          fi
+      - name: Comment on PR
+        if: ${{ steps.sync.outputs.synchronize != 'true' }}
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: ${{ steps.sync.outputs.msg }}
+      - name: Error if failed
+        if: steps.sync.outputs.error
+        run: exit 1
+        
+        

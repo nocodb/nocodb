@@ -363,6 +363,7 @@ test.describe('Form view with LTAR', () => {
 
     await sharedForm.verifyChildList(['Atlanta', 'Pune', 'London', 'Sydney']);
     await sharedForm.selectChildList('Atlanta');
+    await sharedForm.closeLinkToChildList();
 
     await sharedForm.submit();
     await sharedForm.verifySuccessMessage();
@@ -380,7 +381,7 @@ test.describe('Form view with LTAR', () => {
       await dashboard.leftSidebar.openWorkspace({ title: context.workspace.title });
       await dashboard.rootPage.waitForTimeout(500);
     }
-    await dashboard.treeView.openProject({ title: context.project.title });
+    await dashboard.treeView.openProject({ title: context.project.title, context });
     await dashboard.rootPage.waitForTimeout(500);
 
     await dashboard.treeView.openTable({ title: 'Country' });
@@ -486,10 +487,14 @@ test.describe('Form view', () => {
     await sharedForm.cell.selectOption.select({ ...multiSelectParams, option: 'mar' });
 
     await sharedForm.submit();
+
     await dashboard.rootPage.goto(url);
+    // kludge- reload
+    await dashboard.rootPage.reload();
+
     await dashboard.viewSidebar.openView({ title: 'selectBased' });
 
-    await dashboard.rootPage.waitForTimeout(500);
+    await dashboard.rootPage.waitForTimeout(2000);
 
     await dashboard.grid.cell.selectOption.verify({
       columnHeader: 'SingleSelect',

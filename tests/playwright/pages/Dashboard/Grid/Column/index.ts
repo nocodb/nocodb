@@ -336,7 +336,7 @@ export class ColumnPageObject extends BasePage {
     }
 
     await this.waitForResponse({
-      uiAction: () => this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click(),
+      uiAction: async () => await this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click(),
       requestUrlPathToMatch: 'api/v1/db/meta/views',
       httpMethodsToMatch: ['PATCH'],
     });
@@ -346,7 +346,7 @@ export class ColumnPageObject extends BasePage {
 
   async save({ isUpdated }: { isUpdated?: boolean } = {}) {
     await this.waitForResponse({
-      uiAction: () => this.get().locator('button:has-text("Save")').click(),
+      uiAction: async () => await this.get().locator('button:has-text("Save")').click(),
       requestUrlPathToMatch: 'api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
       responseJsonMatcher: json => json['pageInfo'],

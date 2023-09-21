@@ -17,7 +17,6 @@ import {
   computed,
   createEventHook,
   extractPkFromRow,
-  iconMap,
   inject,
   isImage,
   isLTAR,
@@ -39,7 +38,7 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj)
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
-
+const { isSqlView, xWhere } = useSmartsheetStoreOrThrow()
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
@@ -54,7 +53,7 @@ const {
   addEmptyRow,
   deleteRow,
   navigateToSiblingRow,
-} = useViewData(meta, view)
+} = useViewData(meta, view, xWhere)
 
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))
@@ -85,10 +84,8 @@ const isRowEmpty = (record: any, col: any) => {
   return Array.isArray(val) && val.length === 0
 }
 
-const { isSqlView } = useSmartsheetStoreOrThrow()
-
-const { isUIAllowed } = useUIPermission()
-const hasEditPermission = computed(() => isUIAllowed('xcDatatableEditable'))
+const { isUIAllowed } = useRoles()
+const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 // TODO: extract this code (which is duplicated in grid and gallery) into a separate component
 const _contextMenu = ref(false)
 const contextMenu = computed({

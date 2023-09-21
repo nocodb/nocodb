@@ -5,7 +5,7 @@ const route = router.currentRoute
 </script>
 
 <template>
-  <div>
+  <div class="h-full">
     <NuxtPage :transition="false" :page-key="route.params.typeOrId" />
   </div>
 </template>

@@ -86,7 +86,7 @@ const { t } = useI18n()
 
 const input = ref<HTMLInputElement>()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const projectRole = inject(ProjectRoleInj)
 
@@ -576,11 +576,7 @@ onMounted(() => {
                 @click="isOptionsOpen = false"
               >
                 <template v-if="!isSharedBase">
-                  <NcMenuItem
-                    v-if="isUIAllowed('projectRename', false, projectRole)"
-                    data-testid="nc-sidebar-project-rename"
-                    @click="enableEditMode"
-                  >
+                  <NcMenuItem v-if="isUIAllowed('projectRename')" data-testid="nc-sidebar-project-rename" @click="enableEditMode">
                     <GeneralIcon icon="edit" class="group-hover:text-black" />
                     {{ $t('general.rename') }}
                   </NcMenuItem>
@@ -594,7 +590,10 @@ onMounted(() => {
                   </NcMenuItem>
 
                   <NcMenuItem
-                    v-if="project.type === NcProjectType.DB && isUIAllowed('projectDuplicate', true, projectRole)"
+                    v-if="
+                      project.type === NcProjectType.DB &&
+                      isUIAllowed('projectDuplicate', { roles: [project.workspace_role, project.project_role].join() })
+                    "
                     data-testid="nc-sidebar-project-duplicate"
                     @click="duplicateProject(project)"
                   >
@@ -613,7 +612,7 @@ onMounted(() => {
 
                 <!-- Swagger: Rest APIs -->
                 <NcMenuItem
-                  v-if="isUIAllowed('apiDocs', true, projectRoles)"
+                  v-if="isUIAllowed('apiDocs')"
                   key="api"
                   v-e="['e:api-docs']"
                   class="group"
@@ -630,12 +629,10 @@ onMounted(() => {
                   :base="project.bases[0]"
                 />
 
-                <NcDivider
-                  v-if="['settings', 'projectDelete'].some((permission) => isUIAllowed(permission, false, projectRole))"
-                />
+                <NcDivider v-if="['settings', 'projectDelete'].some((permission) => isUIAllowed(permission))" />
 
                 <NcMenuItem
-                  v-if="isUIAllowed('projectMiscSettings', false, projectRole)"
+                  v-if="isUIAllowed('projectMiscSettings')"
                   key="teamAndSettings"
                   v-e="['c:navdraw:project-settings']"
                   data-testid="nc-sidebar-project-settings"
@@ -647,13 +644,13 @@ onMounted(() => {
                 </NcMenuItem>
 
                 <NcMenuItem
-                  v-if="isUIAllowed('projectDelete', false, projectRole)"
+                  v-if="isUIAllowed('projectDelete', { roles: [project.workspace_role, project.project_role].join() })"
                   class="!text-red-500 !hover:bg-red-50"
                   data-testid="nc-sidebar-project-delete"
                   @click="isProjectDeleteDialogVisible = true"
                 >
-                  <GeneralIcon icon="delete" />
-                  <div class="-ml-0.25">
+                  <GeneralIcon icon="delete" class="w-4" />
+                  <div>
                     {{ $t('general.delete') }}
                   </div>
                 </NcMenuItem>
@@ -662,7 +659,7 @@ onMounted(() => {
           </NcDropdown>
 
           <NcButton
-            v-if="isUIAllowed('tableCreate', false, projectRole)"
+            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
             class="nc-sidebar-node-btn"
             type="text"
             data-testid="nc-sidebar-add-project-entity"
@@ -750,12 +747,12 @@ onMounted(() => {
                             </a-tooltip>
                           </div>
                           <div
-                            v-if="isUIAllowed('tableCreate', false, projectRole)"
+                            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
                             class="flex flex-row items-center gap-x-0.25 w-12.25"
                           >
                             <NcDropdown
                               :visible="isBasesOptionsOpen[base!.id!]"
-                              trigger="click"
+                              :trigger="['click']"
                               @update:visible="isBasesOptionsOpen[base!.id!] = $event"
                             >
                               <NcButton
@@ -788,7 +785,7 @@ onMounted(() => {
                             </NcDropdown>
 
                             <NcButton
-                              v-if="isUIAllowed('tableCreate', false, projectRole)"
+                              v-if="isUIAllowed('tableCreate', { roles: projectRole })"
                               type="text"
                               size="xxsmall"
                               class="nc-sidebar-node-btn"
@@ -847,7 +844,7 @@ onMounted(() => {
         </template>
 
         <template v-else-if="contextMenuTarget.type === 'table'">
-          <NcMenuItem v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
+          <NcMenuItem v-if="isUIAllowed('tableRename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
             <div class="nc-project-option-item">
               <GeneralIcon icon="edit" class="text-gray-700" />
               {{ $t('general.rename') }}
@@ -855,7 +852,7 @@ onMounted(() => {
           </NcMenuItem>
 
           <NcMenuItem
-            v-if="isUIAllowed('table-duplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
+            v-if="isUIAllowed('tableDuplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
             @click="duplicateTable(contextMenuTarget.value)"
           >
             <div class="nc-project-option-item">
@@ -864,18 +861,10 @@ onMounted(() => {
             </div>
           </NcMenuItem>
 
-          <NcMenuItem v-if="isUIAllowed('table-delete')" @click="isTableDeleteDialogVisible = true">
+          <NcMenuItem v-if="isUIAllowed('tableDelete')" @click="isTableDeleteDialogVisible = true">
             <div class="nc-project-option-item text-red-600">
               <GeneralIcon icon="delete" />
               {{ $t('general.delete') }}
-            </div>
-          </NcMenuItem>
-        </template>
-
-        <template v-else>
-          <NcMenuItem @click="reloadTables">
-            <div class="nc-project-option-item">
-              {{ $t('general.reload') }}
             </div>
           </NcMenuItem>
         </template>

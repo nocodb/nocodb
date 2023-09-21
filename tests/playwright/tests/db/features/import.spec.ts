@@ -21,7 +21,7 @@ test.describe('Import', () => {
   });
 
   test('Airtable', async () => {
-    await dashboard.treeView.quickImport({ title: 'Airtable', projectTitle: context.project.title });
+    await dashboard.treeView.quickImport({ title: 'Airtable', projectTitle: context.project.title, context });
     await dashboard.importAirtable.import({
       key: airtableApiKey,
       baseId: airtableApiBase,
@@ -31,7 +31,7 @@ test.describe('Import', () => {
   });
 
   test('CSV', async () => {
-    await dashboard.treeView.quickImport({ title: 'CSV file', projectTitle: context.project.title });
+    await dashboard.treeView.quickImport({ title: 'CSV file', projectTitle: context.project.title, context });
   });
 
   test('Excel', async () => {
@@ -46,7 +46,7 @@ test.describe('Import', () => {
       { name: 'Sheet4', columns: col },
     ];
 
-    await dashboard.treeView.quickImport({ title: 'Microsoft Excel', projectTitle: context.project.title });
+    await dashboard.treeView.quickImport({ title: 'Microsoft Excel', projectTitle: context.project.title, context });
     await dashboard.importTemplate.import({
       file: `${process.cwd()}/fixtures/sampleFiles/simple.xlsx`,
       result: expected,
@@ -66,6 +66,6 @@ test.describe('Import', () => {
   });
 
   test('JSON', async () => {
-    await dashboard.treeView.quickImport({ title: 'JSON file', projectTitle: context.project.title });
+    await dashboard.treeView.quickImport({ title: 'JSON file', projectTitle: context.project.title, context });
   });
 });

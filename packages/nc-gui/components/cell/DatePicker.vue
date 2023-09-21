@@ -4,6 +4,7 @@ import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
+  EditColumnInj,
   EditModeInj,
   ReadonlyInj,
   computed,
@@ -31,6 +32,8 @@ const columnMeta = inject(ColumnInj, null)!
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const isLockedMode = inject(IsLockedInj, ref(false))
+
+const isEditColumn = inject(EditColumnInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
 
@@ -79,7 +82,17 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isDateInvalid.value ? 'Invalid date' : ''))
+const placeholder = computed(() => {
+  if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
+    return '(Optional)'
+  } else if (modelValue === null && showNull.value) {
+    return 'NULL'
+  } else if (isDateInvalid.value) {
+    return 'Invalid date'
+  } else {
+    return ''
+  }
+})
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
@@ -201,7 +214,7 @@ const clickHandler = () => {
   <a-date-picker
     v-model:value="localState"
     :bordered="false"
-    class="!w-full !px-0 !border-none"
+    class="!w-full !px-1 !border-none"
     :class="{ 'nc-null': modelValue === null && showNull }"
     :format="dateFormat"
     :placeholder="placeholder"

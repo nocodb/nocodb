@@ -150,7 +150,7 @@ useEventListener(NcButton, 'mousedown', () => {
 }
 
 .nc-button.ant-btn.medium {
-  @apply py-2 px-3 h-10 min-w-10;
+  @apply py-2 px-4 h-10 min-w-10;
 }
 
 .nc-button.ant-btn.xsmall {

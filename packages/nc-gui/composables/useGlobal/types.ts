@@ -1,7 +1,8 @@
 import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
-import type { Language, NcProjectType, ProjectRole, User, useCounter } from '#imports'
+import type { ProjectRoles } from 'nocodb-sdk'
+import type { Language, NcProjectType, User, useCounter } from '#imports'
 
 export interface AppInfo {
   ncSiteUrl: string
@@ -36,7 +37,7 @@ export interface StoredState {
   lang: keyof typeof Language
   darkMode: boolean
   filterAutoSave: boolean
-  previewAs: ProjectRole | null
+  previewAs: ProjectRoles | null
   includeM2M: boolean
   showNull: boolean
   currentVersion: string | null

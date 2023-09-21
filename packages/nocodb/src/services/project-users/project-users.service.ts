@@ -290,7 +290,7 @@ export class ProjectUsersService {
       NcError.badRequest("Admin can't delete themselves!");
     }
 
-    if (!param.req.user?.roles?.owner) {
+    if (!param.req.user?.project_roles?.owner) {
       const user = await User.get(param.userId);
       if (user.roles?.split(',').includes('super'))
         NcError.forbidden(
@@ -298,7 +298,7 @@ export class ProjectUsersService {
         );
 
       const projectUser = await ProjectUser.get(project_id, param.userId);
-      if (projectUser?.roles?.split(',').includes('super'))
+      if (projectUser?.roles?.split(',').includes('owner'))
         NcError.forbidden('Insufficient privilege to delete a owner user.');
     }
 

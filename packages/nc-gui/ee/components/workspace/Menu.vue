@@ -3,10 +3,11 @@ import type { WorkspaceType } from 'nocodb-sdk'
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspace, workspacesList, collaborators } = storeToRefs(workspaceStore)
+const { activeWorkspace, workspacesList, workspaceUserCount } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
-const { leftSidebarState, viewportWidth, leftSidebarWidthPercent } = storeToRefs(useSidebarStore())
+const { leftSidebarState, leftSidebarWidthPercent } = storeToRefs(useSidebarStore())
+const viewportWidth = ref(window.innerWidth)
 
 const { navigateToTable } = useTablesStore()
 
@@ -63,6 +64,18 @@ const sidebarWidthRem = computed(() => {
 
   return (viewportWidth.value * leftSidebarWidthPercent.value) / 100 / pxInRem
 })
+
+function onWindowResize() {
+  viewportWidth.value = window.innerWidth
+}
+
+onMounted(() => {
+  window.addEventListener('resize', onWindowResize)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onWindowResize)
+})
 </script>
 
 <template>
@@ -118,29 +131,25 @@ const sidebarWidthRem = computed(() => {
       </div>
 
       <template #overlay>
-        <NcMenu
-          :style="{
-            width: `${sidebarWidthRem - 3.5}rem`,
-          }"
-          @click="isWorkspaceDropdownOpen = false"
-        >
-          <a-menu-item-group>
-            <div class="flex min-w-0">
-              <div class="flex gap-x-3 w-full px-4 py-3 items-center">
-                <GeneralWorkspaceIcon :workspace="activeWorkspace" size="large" />
-                <div class="flex flex-col gap-y-0" style="width: calc(100% - 3.25rem)">
-                  <div class="mt-0.5 flex capitalize mb-0 nc-workspace-title w-full">
-                    <div class="min-w-10 text-sm text-black font-medium truncate capitalize" style="line-height: 1.5rem">
-                      {{ activeWorkspace?.title }}
-                    </div>
-                  </div>
-                  <div class="flex flex-row items-center gap-x-2">
-                    <div class="nc-workspace-dropdown-active-workspace-info">Free Plan</div>
+        <NcMenu class="nc-workspace-dropdown-inner" style="min-width: calc(110% + 1rem)" @click="isWorkspaceDropdownOpen = false">
+          <a-menu-item-group class="!border-t-0">
+            <div class="flex gap-x-3 min-w-0 px-4 py-3 items-center">
+              <GeneralWorkspaceIcon :workspace="activeWorkspace" size="large" />
+              <div class="flex flex-col gap-y-0">
+                <div
+                  class="mt-0.5 flex capitalize mb-0 nc-workspace-title truncate min-w-10 text-sm text-black font-medium"
+                  style="line-height: 1.5rem"
+                >
+                  {{ activeWorkspace?.title }}
+                </div>
+                <div class="flex flex-row items-center gap-x-2">
+                  <div class="nc-workspace-dropdown-active-workspace-info">Free Plan</div>
+                  <template v-if="workspaceUserCount !== undefined">
                     <div class="nc-workspace-dropdown-active-workspace-info">.</div>
                     <div class="nc-workspace-dropdown-active-workspace-info">
-                      {{ collaborators?.length }} {{ Number(collaborators?.length) > 1 ? 'members' : 'member' }}
+                      {{ workspaceUserCount }} {{ workspaceUserCount > 1 ? 'members' : 'member' }}
                     </div>
-                  </div>
+                  </template>
                 </div>
               </div>
             </div>

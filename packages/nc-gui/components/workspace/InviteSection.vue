@@ -10,7 +10,8 @@ const inviteData = reactive({
 const workspaceStore = useWorkspace()
 
 const { inviteCollaborator: _inviteCollaborator } = workspaceStore
-const { isInvitingCollaborators, workspaceRole } = storeToRefs(workspaceStore)
+const { isInvitingCollaborators } = storeToRefs(workspaceStore)
+const { workspaceRoles } = useRoles()
 
 const inviteCollaborator = async () => {
   try {
@@ -23,9 +24,19 @@ const inviteCollaborator = async () => {
 }
 
 // allow only lower roles to be assigned
-const allowedRoles = computed<WorkspaceUserRoles[]>(() => {
-  const currentRoleIndex = OrderedWorkspaceRoles.findIndex((role) => role === workspaceRole.value)
-  return OrderedWorkspaceRoles.slice(currentRoleIndex + 1)
+const allowedRoles = ref<WorkspaceUserRoles[]>([])
+
+onMounted(async () => {
+  try {
+    const currentRoleIndex = OrderedWorkspaceRoles.findIndex(
+      (role) => workspaceRoles.value && Object.keys(workspaceRoles.value).includes(role),
+    )
+    if (currentRoleIndex !== -1) {
+      allowedRoles.value = OrderedWorkspaceRoles.slice(currentRoleIndex + 1).filter((r) => r)
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 })
 </script>
 
@@ -41,18 +52,13 @@ const allowedRoles = computed<WorkspaceUserRoles[]>(() => {
           class="!max-w-130 !rounded"
         />
 
-        <NcSelect v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
-          <template #suffixIcon>
-            <MdiChevronDown />
-          </template>
-          <template v-for="role of allowedRoles" :key="`role-option-${role}`">
-            <a-select-option v-if="role" :value="role">
-              <NcBadge :color="RoleColors[role]">
-                <p class="badge-text">{{ RoleLabels[role] }}</p>
-              </NcBadge>
-            </a-select-option>
-          </template>
-        </NcSelect>
+        <RolesSelector
+          class="px-1"
+          :role="inviteData.roles"
+          :roles="allowedRoles"
+          :on-role-change="(role: WorkspaceUserRoles) => (inviteData.roles = role)"
+          :description="true"
+        />
 
         <a-button
           type="primary"

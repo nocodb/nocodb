@@ -21,6 +21,7 @@ import {
   useActiveKeyupListener,
   useProvideExpandedFormStore,
   useProvideSmartsheetStore,
+  useRoles,
   useRouter,
   useVModel,
   watch,
@@ -57,7 +58,7 @@ const meta = toRef(props, 'meta')
 
 const router = useRouter()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 // override cell click hook to avoid unexpected behavior at form fields
 provide(CellClickHookInj, undefined)
@@ -113,8 +114,6 @@ if (props.rowId) {
 }
 
 useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
-
-provide(IsFormInj, ref(true))
 
 watch(
   state,

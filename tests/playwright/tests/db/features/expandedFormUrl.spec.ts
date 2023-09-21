@@ -122,6 +122,7 @@ test.describe('Expanded form URL', () => {
 
     // close child card
     await dashboard.expandedForm.close();
+    await dashboard.childList.close();
     await dashboard.expandedForm.verify({
       header: 'Afghanistan',
       url: 'rowId=1',

@@ -9,10 +9,6 @@ useProjectsShortcuts()
 provide(TabMetaInj, activeTab)
 
 useSidebar('nc-left-sidebar')
-
-const router = useRouter()
-
-const route = router.currentRoute
 </script>
 
 <template>

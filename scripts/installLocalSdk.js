@@ -4,7 +4,7 @@ const sdkPath = path.join(__dirname, '..', 'packages', 'nocodb-sdk');
 const guiPath = path.join(__dirname, '..', 'packages', 'nc-gui');
 const nocodbPath = path.join(__dirname, '..', 'packages', 'nocodb');
 
-exec(`cd ${sdkPath} && npm i && npm run build`, (err, stdout, stderr) => {
+exec(`cd ${sdkPath} && pnpm i && npm run build`, (err, stdout, stderr) => {
     if (err) {
       console.error(`Error installing dependencies and building nocodb-sdk: ${err}`);
       return;
@@ -13,7 +13,7 @@ exec(`cd ${sdkPath} && npm i && npm run build`, (err, stdout, stderr) => {
     console.log(`Dependencies installed and nocodb-sdk built: ${stdout}`);
 
     const guiPromise = new Promise((resolve, reject) => {
-      exec(`cd ${guiPath} && npm i ${sdkPath}`, (err, stdout, stderr) => {
+      exec(`cd ${guiPath} && pnpm i ${sdkPath}`, (err, stdout, stderr) => {
         if (err) {
           reject(`Error installing dependencies for nc-gui: ${err}`);
         } else {
@@ -23,7 +23,7 @@ exec(`cd ${sdkPath} && npm i && npm run build`, (err, stdout, stderr) => {
     });
   
     const nocodbPromise = new Promise((resolve, reject) => {
-      exec(`cd ${nocodbPath} && npm i ${sdkPath}`, (err, stdout, stderr) => {
+      exec(`cd ${nocodbPath} && pnpm i ${sdkPath}`, (err, stdout, stderr) => {
         if (err) {
           reject(`Error installing dependencies for nocodb: ${err}`);
         } else {

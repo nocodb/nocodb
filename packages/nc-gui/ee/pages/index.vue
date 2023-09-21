@@ -129,6 +129,7 @@ onMounted(async () => {
 
     await populateWorkspace({
       workspaceId: workspaceStore.workspacesList[0].id!,
+      force: true,
     })
 
     if (!route.value.params.projectId && projectsStore.projectsList.length) {

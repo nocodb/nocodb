@@ -80,6 +80,12 @@ watchDebounced(
     maxWait: 600,
   },
 )
+
+watch(columns, () => {
+  if (columns.value?.length) {
+    search.value.field = columns.value[0].value as string
+  }
+})
 </script>
 
 <template>
@@ -124,7 +130,7 @@ watchDebounced(
       :style="{
         width: '10rem',
       }"
-      :placeholder="$t('general.search')"
+      :placeholder="`${$t('general.search')} in ${columns?.find((column) => column.value === search.field)?.label}`"
       :bordered="false"
       data-testid="search-data-input"
       @press-enter="onPressEnter"

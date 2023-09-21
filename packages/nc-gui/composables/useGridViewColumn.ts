@@ -1,23 +1,12 @@
 import type { ColumnType, GridColumnReqType, GridColumnType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import {
-  IsPublicInj,
-  computed,
-  inject,
-  ref,
-  useMetas,
-  useNuxtApp,
-  useStyleTag,
-  useUIPermission,
-  useUndoRedo,
-  watch,
-} from '#imports'
+import { IsPublicInj, computed, inject, ref, useMetas, useNuxtApp, useRoles, useStyleTag, useUndoRedo, watch } from '#imports'
 
 const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
   (view: Ref<(ViewType & { columns?: GridColumnType[] }) | undefined>, statePublic = false) => {
     const { css, load: loadCss, unload: unloadCss } = useStyleTag('')
 
-    const { isUIAllowed } = useUIPermission()
+    const { isUIAllowed } = useRoles()
 
     const { $api } = useNuxtApp()
 
@@ -99,7 +88,7 @@ const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
       }
 
       // sync with server if allowed
-      if (!isPublic.value && isUIAllowed('gridColUpdate') && gridViewCols.value[id]?.id) {
+      if (!isPublic.value && isUIAllowed('viewFieldEdit') && gridViewCols.value[id]?.id) {
         await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
           ...props,
         })

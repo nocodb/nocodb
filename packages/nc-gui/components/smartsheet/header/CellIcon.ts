@@ -1,4 +1,4 @@
-import type { ColumnType } from 'nocodb-sdk'
+import { type ColumnType } from 'nocodb-sdk'
 import type { PropType } from '@vue/runtime-core'
 import {
   ColumnInj,
@@ -17,6 +17,7 @@ import {
   isEmail,
   isFloat,
   isGeoData,
+  isGeometry,
   isInt,
   isJSON,
   isPercent,
@@ -79,6 +80,8 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
     return iconMap.duration
   } else if (isPercent(column)) {
     return iconMap.percent
+  } else if (isGeometry(column)) {
+    return iconMap.calculator
   } else if (isInt(column, abstractType) || isFloat(column, abstractType)) {
     return iconMap.number
   } else if (isString(column, abstractType)) {

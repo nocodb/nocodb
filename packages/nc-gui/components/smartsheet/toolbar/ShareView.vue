@@ -16,8 +16,8 @@ import {
   useI18n,
   useNuxtApp,
   useProject,
+  useRoles,
   useSmartsheetStoreOrThrow,
-  useUIPermission,
   watch,
 } from '#imports'
 import type { SharedView } from '#imports'
@@ -32,7 +32,7 @@ const { $e } = useNuxtApp()
 
 const { dashboardUrl } = useDashboard()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { isSharedBase } = storeToRefs(useProject())
 
@@ -249,7 +249,7 @@ watch(shared, () => {
 <template>
   <div>
     <a-button
-      v-if="isUIAllowed('share-view') && !isSharedBase"
+      v-if="isUIAllowed('viewShare') && !isSharedBase"
       v-e="['c:view:share']"
       outlined
       class="nc-btn-share-view nc-toolbar-btn"

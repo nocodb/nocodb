@@ -1,9 +1,6 @@
 <script lang="ts" setup>
-import type { UserType } from 'nocodb-sdk'
-
 const props = defineProps<{
-  hideLabel?: boolean
-  size?: 'small' | 'medium'
+  size?: 'small' | 'medium' | 'large' | 'xlarge'
 }>()
 
 const { user } = useGlobal()
@@ -12,19 +9,21 @@ const backgroundColor = computed(() => (user.value?.id ? stringToColour(user.val
 
 const size = computed(() => props.size || 'medium')
 
-const firstName = computed(() => user.value?.firstname ?? '')
-const lastName = computed(() => user.value?.lastname ?? '')
+const displayName = computed(() => user.value?.display_name ?? '')
+
 const email = computed(() => user.value?.email ?? '')
 
 const usernameInitials = computed(() => {
-  if (firstName.value && lastName.value) {
-    return firstName.value[0] + lastName.value[0]
-  } else if (firstName.value) {
-    return firstName.value[0] + (firstName.value.length > 1 ? firstName.value[1] : '')
-  } else if (lastName.value) {
-    return lastName.value[0] + (lastName.value.length > 1 ? lastName.value[1] : '')
+  const displayNameSplit = displayName.value?.split(' ').filter((name) => name) ?? []
+
+  if (displayNameSplit.length > 0) {
+    if (displayNameSplit.length > 1) {
+      return displayNameSplit[0][0] + displayNameSplit[1][0]
+    } else {
+      return displayName.value.slice(0, 2)
+    }
   } else {
-    return email.value[0] + email.value[1]
+    return email.value?.split('@')[0].slice(0, 2)
   }
 })
 </script>
@@ -35,12 +34,12 @@ const usernameInitials = computed(() => {
     :class="{
       'min-w-4 min-h-4': size === 'small',
       'min-w-6 min-h-6': size === 'medium',
+      'min-w-20 min-h-20 !text-3xl': size === 'large',
+      'min-w-26 min-h-26 !text-4xl': size === 'xlarge',
     }"
     :style="{ backgroundColor }"
   >
-    <template v-if="!props.hideLabel">
-      {{ usernameInitials }}
-    </template>
+    {{ usernameInitials }}
   </div>
 </template>
 

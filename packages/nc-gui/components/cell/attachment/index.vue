@@ -6,6 +6,7 @@ import {
   ActiveCellInj,
   CurrentCellInj,
   DropZoneRef,
+  IsExpandedFormOpenInj,
   RowHeightInj,
   iconMap,
   inject,
@@ -41,6 +42,8 @@ const sortableRef = ref<HTMLDivElement>()
 const currentCellRef = inject(CurrentCellInj, dropZoneInjection.value)
 
 const isLockedMode = inject(IsLockedInj, ref(false))
+
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()!
 
@@ -139,7 +142,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
   }
 })
 
-const rowHeight = inject(RowHeightInj, ref(1.8))
+const rowHeight = inject(RowHeightInj, ref())
 </script>
 
 <template>
@@ -150,7 +153,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
       height: isForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
     }"
     class="nc-attachment-cell relative flex color-transition flex items-center"
-    :class="{'justify-center': !active, 'justify-between': active}"
+    :class="{ 'justify-center': !active, 'justify-between': active }"
   >
     <LazyCellAttachmentCarousel />
 
@@ -197,8 +200,8 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
     <template v-if="visibleItems.length">
       <div
         ref="sortableRef"
-        :class="{ dragging }"
-        class="flex cursor-pointer justify-center items-center flex-wrap gap-2 py-1.5 scrollbar-thin-dull overflow-hidden mt-0 items-start"
+        :class="{ dragging, 'justify-center': !isExpandedForm }"
+        class="flex cursor-pointer items-center flex-wrap gap-2 py-1.5 scrollbar-thin-dull overflow-hidden mt-0 items-start"
         :style="{
           maxHeight: isForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
         }"
@@ -209,15 +212,29 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
               <div class="text-center w-full">{{ item.title }}</div>
             </template>
             <div v-if="isImage(item.title, item.mimetype ?? item.type)">
-              <div class="nc-attachment flex items-center justify-center" :class="{'ml-2':active}" @click.stop="selectedImage = item">
+              <div
+                class="nc-attachment flex items-center flex-col flex-wrap justify-center"
+                :class="{ 'ml-2': active }"
+                @click.stop="selectedImage = item"
+              >
                 <LazyCellAttachmentImage
-                  class="max-h-[1.8rem] max-w-[1.8rem]"
                   :alt="item.title || `#${i}`"
+                  :class="{
+                    'h-7.5 w-8.8': rowHeight === 1,
+                    'h-11.5 w-12.8': rowHeight === 2,
+                    'h-16.8 w-20.8': rowHeight === 4,
+                    'h-20.8 !w-30': isExpandedForm || rowHeight === 6,
+                  }"
                   :srcs="getPossibleAttachmentSrc(item)"
                 />
               </div>
             </div>
-            <div v-else class="nc-attachment flex items-center justify-center" :class="{'ml-2':active}" @click="openAttachment(item)">
+            <div
+              v-else
+              class="nc-attachment flex items-center justify-center"
+              :class="{ 'ml-2': active }"
+              @click="openAttachment(item)"
+            >
               <component :is="FileIcon(item.icon)" v-if="item.icon" />
 
               <IcOutlineInsertDriveFile v-else />
@@ -252,7 +269,7 @@ const rowHeight = inject(RowHeightInj, ref(1.8))
 .nc-cell {
   .nc-attachment-cell {
     .nc-attachment {
-      @apply w-[1.8rem] h-[1.8rem] min-h-[1.8rem] min-w-[1.8rem] ring-1 ring-gray-300 rounded;
+      @apply min-h-[1.8rem] min-w-[1.8rem] !ring-1 !ring-gray-300 !rounded;
     }
 
     .ghost,

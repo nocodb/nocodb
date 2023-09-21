@@ -121,6 +121,7 @@ const config = {
         darkTheme: darkCodeTheme,
       },
     }),
+  clientModules: [require.resolve('./src/modules/tele.js')],
 };
 
 module.exports = config;

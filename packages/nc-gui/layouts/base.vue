@@ -15,7 +15,7 @@ const sidebar = ref<HTMLDivElement>()
 
 const logout = async () => {
   await signOut(false)
-  navigateTo('/signin')
+  await navigateTo('/signin')
 }
 
 const { hooks } = useNuxtApp()
@@ -98,7 +98,7 @@ hooks.hook('page:finish', () => {
                 </a-menu-item>
 
                 <a-menu-divider class="!m-0" />
-                <!--                <a-menu-item v-if="isUIAllowed('appStore')" key="0" class="!rounded-t">
+                <!--                <a-menu-item v-if="isUIAllowed('superAdminAppStore')" key="0" class="!rounded-t">
                   <nuxt-link
                     v-e="['c:settings:appstore', { page: true }]"
                     class="nc-project-menu-item group !no-underline"

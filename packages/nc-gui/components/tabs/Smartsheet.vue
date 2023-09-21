@@ -21,8 +21,8 @@ import {
   useMetas,
   useProvideKanbanViewStore,
   useProvideSmartsheetStore,
+  useRoles,
   useSqlEditor,
-  useUIPermission,
 } from '#imports'
 import type { TabItem } from '#imports'
 
@@ -30,7 +30,7 @@ const props = defineProps<{
   activeTab: TabItem
 }>()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { metas, getMeta } = useMetas()
 
@@ -54,9 +54,6 @@ const { isGallery, isGrid, isForm, isKanban, isLocked, isMap } = useProvideSmart
 
 useSqlEditor()
 
-const { openedProject } = storeToRefs(useProjects())
-const { activeTable } = storeToRefs(useTablesStore())
-
 const reloadEventHook = createEventHook<void | boolean>()
 
 const reloadViewMetaEventHook = createEventHook<void | boolean>()
@@ -79,7 +76,7 @@ provide(IsFormInj, isForm)
 provide(TabMetaInj, activeTab)
 provide(
   ReadonlyInj,
-  computed(() => !isUIAllowed('xcDatatableEditable')),
+  computed(() => !isUIAllowed('dataEdit')),
 )
 
 const grid = ref()

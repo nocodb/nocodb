@@ -64,7 +64,7 @@ export class GridPage extends BasePage {
 
   async verifyCollaborativeMode() {
     // add new row button
-    expect(await this.btn_addNewRow.count()).toBe(1);
+    await expect(this.btn_addNewRow).toHaveCount(1);
 
     await this.toolbar.verifyCollaborativeMode();
     await this.footbar.verifyCollaborativeMode();
@@ -94,6 +94,7 @@ export class GridPage extends BasePage {
       index,
       columnHeader,
     });
+    await this.rootPage.waitForTimeout(500);
 
     await cell.locator('input').fill(value);
   }

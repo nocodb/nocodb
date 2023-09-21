@@ -3,13 +3,11 @@ import type ColumnFilter from './ColumnFilter.vue'
 import {
   ActiveViewInj,
   IsLockedInj,
-  IsPublicInj,
   computed,
   inject,
   ref,
   useGlobal,
   useMenuCloseOnEsc,
-  useNuxtApp,
   useSmartsheetStoreOrThrow,
   useViewFilters,
   watch,
@@ -21,13 +19,9 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const activeView = inject(ActiveViewInj, ref())
 
-const isPublic = inject(IsPublicInj, ref(false))
-
 const { filterAutoSave, isMobileMode } = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
-
-const { $e } = useNuxtApp()
 
 const { nestedFilters } = useSmartsheetStoreOrThrow()
 
@@ -69,7 +63,7 @@ useMenuCloseOnEsc(open)
           <!-- Filter -->
           <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.filter') }}</span>
 
-          <span v-if="filtersLength" class="nc-count-badge">{{ filtersLength }}</span>
+          <span v-if="filtersLength" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{ filtersLength }}</span>
         </div>
       </a-button>
     </div>

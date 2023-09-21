@@ -14,7 +14,7 @@ const route = router.currentRoute
   return openedProject.value?.bases?.[0]
 }) */
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
@@ -97,7 +97,7 @@ watch(
         <!-- <a-tab-pane v-if="defaultBase" key="erd" tab="Project ERD" force-render class="pt-4 pb-12">
           <ErdView :base-id="defaultBase!.id" class="!h-full" />
         </a-tab-pane> -->
-        <a-tab-pane v-if="isUIAllowed('shareProject')" key="collaborator">
+        <a-tab-pane v-if="isUIAllowed('newUser')" key="collaborator">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__access-settings">
               <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
@@ -106,7 +106,7 @@ watch(
           </template>
           <ProjectAccessSettings />
         </a-tab-pane>
-        <a-tab-pane v-if="isUIAllowed('createBase')" key="data-source">
+        <a-tab-pane v-if="isUIAllowed('baseCreate')" key="data-source">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__data-sources">
               <GeneralIcon icon="database" />
@@ -114,15 +114,6 @@ watch(
             </div>
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" />
-        </a-tab-pane>
-        <a-tab-pane v-if="false && isUIAllowed('acl')" key="ui-acl">
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__ui-acl">
-              <GeneralIcon icon="acl" />
-              <div>{{ $t('title.uiACL') }}</div>
-            </div>
-          </template>
-          <DashboardSettingsUIAclTabs class="mt-6" />
         </a-tab-pane>
       </a-tabs>
     </div>

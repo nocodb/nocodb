@@ -6,8 +6,6 @@ import { useViewsStore } from '~/store/views'
 const { isViewToolbar } = defineProps<{
   isViewToolbar?: boolean
 }>()
-const router = useRouter()
-const route = router.currentRoute
 
 const { copy } = useCopy()
 const { dashboardUrl } = useDashboard()

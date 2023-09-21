@@ -170,6 +170,7 @@ test.describe('LTAR create & update', () => {
     // Unlink LTAR cells
     for (let i = 0; i < expected2.length; i++) {
       for (let j = 0; j < expected2[i].length; j++) {
+        await dashboard.rootPage.waitForTimeout(500);
         await dashboard.grid.cell.unlinkVirtualCell({
           index: j,
           columnHeader: colHeaders2[i],

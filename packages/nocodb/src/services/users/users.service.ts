@@ -2,7 +2,7 @@ import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
 import { AppEvents, OrgUserRoles, validatePassword } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import { isEmail } from 'validator';
+import isEmail from 'validator/lib/isEmail';
 import { T } from 'nc-help';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
@@ -25,6 +25,7 @@ import { randomTokenString } from '~/helpers/stringHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { ProjectsService } from '~/services/projects.service';
+import { extractProps } from '~/helpers/extractProps';
 
 @Injectable()
 export class UsersService {
@@ -68,6 +69,21 @@ export class UsersService {
       ...param,
       email: param.email?.toLowerCase(),
     });
+  }
+
+  async profileUpdate({
+    id,
+    params,
+  }: {
+    id: number;
+    params: {
+      display_name?: string;
+      avatar?: string;
+    };
+  }) {
+    const updateObj = extractProps(params, ['display_name', 'avatar']);
+
+    return await User.update(id, updateObj);
   }
 
   async registerNewUserIfAllowed({
@@ -209,7 +225,7 @@ export class UsersService {
       });
       try {
         const template = (
-          await import('~/controllers/users/ui/emailTemplates/forgotPassword')
+          await import('~/controllers/auth/ui/emailTemplates/forgotPassword')
         ).default;
         await NcPluginMgrv2.emailAdapter().then((adapter) =>
           adapter.mailSend({
@@ -451,7 +467,7 @@ export class UsersService {
 
     try {
       const template = (
-        await import('~/controllers/users/ui/emailTemplates/verify')
+        await import('~/controllers/auth/ui/emailTemplates/verify')
       ).default;
       await (
         await NcPluginMgrv2.emailAdapter()

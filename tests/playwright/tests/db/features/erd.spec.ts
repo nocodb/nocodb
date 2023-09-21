@@ -279,7 +279,7 @@ test.describe('Erd', () => {
     // Create table and verify ERD
     await dashboard.treeView.createTable({ title: 'Test', projectTitle: context.project.title });
     // Verify in Settings ERD and table ERD
-    await dashboard.treeView.openProject({ title: context.project.title });
+    await dashboard.treeView.openProject({ title: context.project.title, context });
     await openProjectErd();
     await dashboard.details.relations.verifyNode({
       tableName: `Test`,

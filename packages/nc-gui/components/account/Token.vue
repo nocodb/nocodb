@@ -174,6 +174,10 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
               </NcButton>
             </div>
           </div>
+          <div v-if="tokens.length < 1">
+            <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="`${$t('general.no')} ${$t('labels.token')}`" />
+          </div>
+
           <div v-for="el of tokens" :key="el.id" data-testid="nc-token-list" class="flex border-b-1 pl-5 py-3 justify-between">
             <span class="text-gray-500 font-medium text-3.5 text-start w-2/9">
               <GeneralTruncateText placement="top" length="25">
@@ -181,12 +185,12 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
               </GeneralTruncateText>
             </span>
             <span class="text-gray-500 font-medium text-3.5 text-start w-2/9">
-              <GeneralTruncateText placement="top" length="50">
+              <GeneralTruncateText placement="top" length="20">
                 {{ el.created_by }}
               </GeneralTruncateText>
             </span>
             <span class="text-gray-500 font-medium text-3.5 text-start w-3/9">
-              <GeneralTruncateText v-if="el.token === selectedToken.id && selectedToken.isShow" placement="top" length="32">
+              <GeneralTruncateText v-if="el.token === selectedToken.id && selectedToken.isShow" placement="top" length="28">
                 {{ el.token }}
               </GeneralTruncateText>
               <span v-else>**********************************</span>

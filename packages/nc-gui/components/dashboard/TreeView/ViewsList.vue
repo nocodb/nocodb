@@ -4,6 +4,7 @@ import { ViewTypes } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
+import { isDefaultBase as _isDefaultBase } from '~/utils/baseUtils'
 import {
   extractSdkResponseErrorMsg,
   message,
@@ -35,8 +36,9 @@ const { $e } = useNuxtApp()
 
 const isDefaultBase = computed(() => {
   const base = project.value?.bases?.find((b) => b.id === table.value.base_id)
+  if (!base) return false
 
-  return base?.is_meta
+  return _isDefaultBase(base)
 })
 
 const { viewsByTable, activeView } = storeToRefs(useViewsStore())

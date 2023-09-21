@@ -364,14 +364,21 @@ export class CellPageObject extends BasePage {
     // For HM/MM columns
     else {
       await cell.locator('.nc-datatype-link').click();
+      await this.rootPage
+        .locator(`[data-testid="nc-child-list-item"]`)
+        .last()
+        .waitFor({ state: 'visible', timeout: 3000 });
+
       await this.waitForResponse({
         uiAction: async () =>
-          this.rootPage.locator(`[data-testid="nc-child-list-item"]`).last().click({
-            force: true,
-          }),
+          await this.rootPage
+            .locator(`[data-testid="nc-child-list-item"]`)
+            .last()
+            .click({ force: true, timeout: 3000 }),
         requestUrlPathToMatch: '/api/v1/db/data/noco/',
         httpMethodsToMatch: ['GET'],
       });
+
       await this.rootPage.keyboard.press('Escape');
     }
   }

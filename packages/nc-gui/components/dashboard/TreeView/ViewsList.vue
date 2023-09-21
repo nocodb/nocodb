@@ -5,9 +5,7 @@ import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
 import {
-  ActiveViewInj,
   extractSdkResponseErrorMsg,
-  inject,
   message,
   onMounted,
   parseProp,
@@ -23,23 +21,27 @@ import {
   watch,
 } from '#imports'
 
-interface Props {
-  views: ViewType[]
-}
-
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string; groupingFieldColumnId?: string }): void
 
   (event: 'deleted'): void
 }
 
-const { views = [] } = defineProps<Props>()
-
 const emits = defineEmits<Emits>()
+const project = inject(ProjectInj)!
+const table = inject(SidebarTableInj)!
 
 const { $e } = useNuxtApp()
 
-const activeView = inject(ActiveViewInj, ref())
+const isDefaultBase = computed(() => {
+  const base = project.value?.bases?.find((b) => b.id === table.value.base_id)
+
+  return base?.is_meta
+})
+
+const { viewsByTable, activeView } = storeToRefs(useViewsStore())
+
+const views = computed(() => viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? [])
 
 const { api } = useApi()
 
@@ -80,7 +82,7 @@ function validate(view: ViewType) {
     return 'View name is required'
   }
 
-  if (views.some((v) => v.title === view.title && v.id !== view.id)) {
+  if (views.value.some((v) => v.title === view.title && v.id !== view.id)) {
     return 'View name should be unique'
   }
 
@@ -102,7 +104,7 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
     dragging.value = false
   }
 
-  if (views.length < 2) return
+  if (views.value.length < 2) return
 
   const { newIndex = 0, oldIndex = 0 } = evt
 
@@ -139,17 +141,17 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
   const previousEl = children[newIndex - 1]
   const nextEl = children[newIndex + 1]
 
-  const currentItem = views.find((v) => v.id === evt.item.id)
+  const currentItem = views.value.find((v) => v.id === evt.item.id)
 
   if (!currentItem || !currentItem.id) return
 
-  const previousItem = (previousEl ? views.find((v) => v.id === previousEl.id) : {}) as ViewType
-  const nextItem = (nextEl ? views.find((v) => v.id === nextEl.id) : {}) as ViewType
+  const previousItem = (previousEl ? views.value.find((v) => v.id === previousEl.id) : {}) as ViewType
+  const nextItem = (nextEl ? views.value.find((v) => v.id === nextEl.id) : {}) as ViewType
 
   let nextOrder: number
 
   // set new order value based on the new order of the items
-  if (views.length - 1 === newIndex) {
+  if (views.value.length - 1 === newIndex) {
     nextOrder = parseFloat(String(previousItem.order)) + 1
   } else if (newIndex === 0) {
     nextOrder = parseFloat(String(nextItem.order)) / 2
@@ -183,23 +185,30 @@ onMounted(() => menuRef.value && initSortable(menuRef.value.$el))
 
 /** Navigate to view by changing url param */
 function changeView(view: ViewType) {
+  const routeName = 'index-typeOrId-projectId-index-index-viewId-viewTitle'
   if (
     router.currentRoute.value.query &&
     router.currentRoute.value.query.page &&
     router.currentRoute.value.query.page === 'fields'
   ) {
-    router.push({ params: { viewTitle: view.id || '' }, query: router.currentRoute.value.query })
+    router.push({
+      name: routeName,
+      params: { viewTitle: view.id || '', viewId: table.value.id, projectId: project.value.id },
+      query: router.currentRoute.value.query,
+    })
   } else {
-    router.push({ params: { viewTitle: view.id || '' } })
+    router.push({ name: routeName, params: { viewTitle: view.id || '', viewId: table.value.id, projectId: project.value.id } })
   }
 
   if (view.type === ViewTypes.FORM && selected.value[0] === view.id) {
     // reload the page if the same form view is clicked
     // router.go(0)
     // fix me: router.go(0) reloads entire page. need to reload only the form view
-    router.replace({ query: { reload: 'true' } }).then(() => {
-      router.replace({ query: {} })
-    })
+    router
+      .replace({ name: routeName, query: { reload: 'true' }, params: { viewId: table.value.id, projectId: project.value.id } })
+      .then(() => {
+        router.replace({ name: routeName, query: {}, params: { viewId: table.value.id, projectId: project.value.id } })
+      })
   }
 }
 
@@ -266,7 +275,7 @@ function openDeleteDialog(view: ViewType) {
         // return to the default view
         router.replace({
           params: {
-            viewTitle: views[0].id,
+            viewTitle: views.value[0].id,
           },
         })
       }
@@ -297,48 +306,41 @@ const setIcon = async (icon: string, view: ViewType) => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
-
-const scrollViewNode = () => {
-  const activeViewDom = document.querySelector(`.nc-views-menu [data-view-id="${activeView.value?.id}"]`) as HTMLElement
-  if (!activeViewDom) return
-
-  if (isElementInvisible(activeViewDom)) {
-    // Scroll to the view node
-    activeViewDom?.scrollIntoView({ behavior: 'auto', inline: 'start' })
-  }
-}
-
-watch(
-  () => activeView.value?.id,
-  () => {
-    if (!activeView.value?.id) return
-
-    // TODO: Find a better way to scroll to the view node
-    setTimeout(() => {
-      scrollViewNode()
-    }, 800)
-  },
-  {
-    immediate: true,
-  },
-)
 </script>
 
 <template>
+  <DashboardTreeViewCreateViewBtn :overlay-class-name="isDefaultBase ? '!left-18 !min-w-42' : '!left-25 !min-w-42'">
+    <NcButton
+      type="text"
+      size="xsmall"
+      class="!w-full !py-0 !h-7 !text-gray-500 !hover:(bg-transparent font-normal text-brand-500) !font-normal !text-sm"
+      :centered="false"
+    >
+      <GeneralIcon
+        icon="plus"
+        class="mr-2"
+        :class="{
+          'ml-18.75': isDefaultBase,
+          'ml-24.25': !isDefaultBase,
+        }"
+      />
+      <span class="text-sm">New View</span>
+    </NcButton>
+  </DashboardTreeViewCreateViewBtn>
+
   <a-menu
     ref="menuRef"
     :class="{ dragging }"
-    class="nc-views-menu flex flex-col !ml-3 w-full !border-r-0 !bg-inherit"
+    class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
     :selected-keys="selected"
   >
-    <!-- Lazy load breaks menu item active styles, i.e. styles never change even when active item changes -->
-    <SmartsheetSidebarRenameableMenuItem
+    <DashboardTreeViewViewsNode
       v-for="view of views"
       :id="view.id"
       :key="view.id"
       :view="view"
       :on-validate="validate"
-      class="nc-view-item !rounded-md !px-1.25 !py-0.5 w-full transition-all ease-in duration-300"
+      class="nc-view-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
       :class="{
         'bg-gray-200': isMarked === view.id,
         'active': activeView?.id === view.id,
@@ -351,14 +353,11 @@ watch(
       @rename="onRename"
       @select-icon="setIcon($event, view)"
     />
-    <div class="min-h-1 max-h-1 w-full bg-transparent"></div>
   </a-menu>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .nc-views-menu {
-  @apply min-h-20 flex-grow;
-
   .ghost,
   .ghost > * {
     @apply !pointer-events-none;
@@ -378,12 +377,16 @@ watch(
     @apply color-transition;
   }
 
+  .ant-menu-title-content {
+    @apply !w-full;
+  }
+
   .sortable-chosen {
-    @apply !bg-gray-100 bg-opacity-60;
+    @apply !bg-gray-200;
   }
 
   .active {
-    @apply bg-gray-200 bg-opacity-60 font-medium;
+    @apply !bg-primary-selected font-medium;
   }
 }
 </style>

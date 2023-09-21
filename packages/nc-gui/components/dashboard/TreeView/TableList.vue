@@ -26,10 +26,6 @@ const tables = computed(() => projectTables.value.get(project.value.id!) ?? [])
 
 const { $api } = useNuxtApp()
 
-const { openTable } = useTableNew({
-  projectId: project.value.id!,
-})
-
 const tablesById = computed(() =>
   tables.value.reduce<Record<string, TableType>>((acc, table) => {
     acc[table.id!] = table
@@ -153,7 +149,7 @@ const availableTables = computed(() => {
           v-for="table of availableTables"
           :key="table.id"
           v-e="['a:table:open']"
-          class="nc-tree-item text-sm cursor-pointer group"
+          class="nc-tree-item text-sm"
           :data-order="table.order"
           :data-id="table.id"
           :data-testid="`tree-view-table-${table.title}`"
@@ -163,7 +159,6 @@ const availableTables = computed(() => {
           :data-title="table.title"
           :data-base-id="base?.id"
           :data-type="table.type"
-          @click="openTable(table)"
         >
         </TableNode>
       </div>

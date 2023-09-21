@@ -283,7 +283,7 @@ function onRef(el: HTMLElement) {
             <NcMenu class="min-w-27" :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`">
               <NcMenuItem @click.stop="onDblClick">
                 <GeneralIcon icon="edit" />
-                Rename
+                <div class="-ml-0.25">Rename</div>
               </NcMenuItem>
               <NcMenuItem @click.stop="onDuplicate">
                 <GeneralIcon icon="copy" />

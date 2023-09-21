@@ -18,7 +18,7 @@ on:
 
 jobs:
   cloud-docker-build:
-    runs-on: ubuntu-20.04
+    runs-on: [ubuntu-20.04, self-hosted]
     env:
       working-directory: ./packages/nocodb
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

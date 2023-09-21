@@ -1,13 +1,13 @@
 name: "Sync EE to OSS"
 
 on:
-  pull_request:    
-    types: [labeled, synchronize] 
+  pull_request:
+    types: [labeled, synchronize]
 
 jobs:
   sync-ee-to-ce:
     if: ${{ github.event.label.name == 'trigger-oss-sync' || (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'trigger-oss-sync')) }}
-    runs-on: [self-hosted, aws]
+    runs-on: [self-hosted]
     steps:
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -39,7 +39,7 @@ jobs:
           PR_NAME: ${{ github.event.pull_request.title }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          comment_pr() { 
+          comment_pr() {
             local msg="$1"
 
             echo "Commenting on PR: ${PR_NUMBER} msg: ${msg}"
@@ -128,5 +128,4 @@ jobs:
       - name: Error if failed
         if: steps.sync.outputs.error
         run: exit 1
-        
-        
+

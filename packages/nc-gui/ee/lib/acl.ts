@@ -98,7 +98,7 @@ const rolePermissions = {
       filterSync: true,
       filterChildrenRead: true,
       viewFieldEdit: true,
-      csvImport: true,
+      csvTableImport: true,
       apiDocs: true,
     },
   },
@@ -107,12 +107,14 @@ const rolePermissions = {
       commentEdit: true,
       commentList: true,
       commentCount: true,
+      apiDocs: true,
     },
   },
   [ProjectRoles.VIEWER]: {
     include: {
       projectSettings: true,
       expandedForm: true,
+      apiDocs: true,
     },
   },
   [ProjectRoles.NO_ACCESS]: {

@@ -15,6 +15,7 @@ import {
 
 const props = defineProps<{
   modelValue?: string | number
+  isReadOnly?: boolean
   isFocus?: boolean
 }>()
 
@@ -41,6 +42,8 @@ const height = computed(() => {
 
   return rowHeight.value * 60
 })
+
+const isReadOnly = computed(() => props.isReadOnly)
 
 const isVisible = ref(false)
 const inputWrapperRef = ref<HTMLElement | null>(null)
@@ -107,7 +110,7 @@ onClickOutside(inputWrapperRef, (e) => {
 
       <div
         v-if="active"
-        class="!absolute right-0 bottom-0 h-6 w-5 group cursor-pointer flex justify-end gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none p-1 hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+        class="!absolute right-0 bottom-0 h-6 w-5 group cursor-pointer flex justify-end gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none p-1 hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500) z-3"
         :class="{ 'right-2 bottom-2': editEnabled }"
         data-testid="attachment-cell-file-picker-button"
         @click.stop="isVisible = !isVisible"
@@ -135,7 +138,7 @@ onClickOutside(inputWrapperRef, (e) => {
         <a-textarea
           ref="inputRef"
           v-model:value="vModel"
-          placeholder="Enter text"
+          :placeholder="!isReadOnly ? 'Enter text' : undefined"
           class="p-1 !pt-1 !pr-3 !border-0 !border-r-0 !focus:outline-transparent nc-scrollbar-md !text-black"
           :bordered="false"
           :auto-size="{ minRows: 20, maxRows: 20 }"
@@ -143,6 +146,7 @@ onClickOutside(inputWrapperRef, (e) => {
           @keydown.stop
           @keydown.escape="isVisible = false"
         />
+        <div v-if="isReadOnly" class="nc-locked-overlay" />
       </div>
     </template>
   </NcDropdown>

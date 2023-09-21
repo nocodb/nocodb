@@ -101,6 +101,13 @@ const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : 
 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
+const isReadOnly = computed(() =>
+  Boolean(
+    (isLocked.value || (isPublic.value && readOnly.value && !isForm.value) || isSystemColumn(column.value)) &&
+      !isAttachment(column.value),
+  ),
+)
+
 const syncValue = useDebounceFn(
   () => {
     currentRow.value.rowMeta.changed = false
@@ -213,7 +220,7 @@ onUnmounted(() => {
   >
     <template v-if="column">
       <template v-if="intersected">
-        <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" />
+        <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" :is-read-only="isReadOnly" />
         <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
         <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
         <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
@@ -251,14 +258,7 @@ onUnmounted(() => {
         <LazyCellInteger v-else-if="isInt(column, abstractType)" v-model="vModel" />
         <LazyCellJson v-else-if="isJSON(column)" v-model="vModel" />
         <LazyCellText v-else v-model="vModel" />
-        <div
-          v-if="
-            (isLocked || (isPublic && readOnly && !isForm) || isSystemColumn(column)) &&
-            !isAttachment(column) &&
-            !isTextArea(column)
-          "
-          class="nc-locked-overlay"
-        />
+        <div v-if="isReadOnly" class="nc-locked-overlay" />
       </template>
     </template>
   </div>

@@ -4,8 +4,8 @@ import { ViewTypes } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
-import { isDefaultBase as _isDefaultBase } from '~/utils/baseUtils'
 import {
+  isDefaultBase as _isDefaultBase,
   extractSdkResponseErrorMsg,
   message,
   onMounted,

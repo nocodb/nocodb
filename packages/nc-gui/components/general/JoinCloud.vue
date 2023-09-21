@@ -13,7 +13,7 @@ import { iconMap } from '#imports'
     <div
       class="group flex justify-center items-center rounded-r-sm w-full cursor-pointer px-2 py-1 text-primary border-r-1 border-b-1 border-t-1 border-gray-300 m-0"
       target="_blank">
-      <div class="px-1 text-xs font-bold text-gray-700">Join Cloud</div>
+      <div class="px-1 text-xs font-bold text-gray-700">Join NocoDB Cloud</div>
     </div>
   </a>
 </template>

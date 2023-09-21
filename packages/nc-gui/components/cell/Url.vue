@@ -6,6 +6,7 @@ import {
   EditColumnInj,
   EditModeInj,
   IsExpandedFormOpenInj,
+  IsFormInj,
   IsSurveyFormInj,
   computed,
   inject,
@@ -44,6 +45,8 @@ const localState = ref(value)
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
+const isForm = inject(IsFormInj, ref(false))
 
 const vModel = computed({
   get: () => value,
@@ -92,7 +95,9 @@ watch(
       :ref="focus"
       v-model="vModel"
       :placeholder="isEditColumn ? $t('labels.enterDefaultUrlOptional') : ''"
-      class="outline-none text-sm w-full px-2 py-2 bg-transparent h-full"
+      class="outline-none focus:!outline-none focus:ring-0 focus:border-none !border-none !outline-none text-sm w-full px-2 py-2 bg-transparent h-full"
+      :type="isForm ? 'url' : 'text'"
+      :autocomplete="isForm ? 'url' : ''"
       @blur="editEnabled = false"
       @keydown.down.stop
       @keydown.left.stop

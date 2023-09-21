@@ -4,6 +4,7 @@ import {
   EditColumnInj,
   EditModeInj,
   IsExpandedFormOpenInj,
+  IsFormInj,
   IsSurveyFormInj,
   computed,
   inject,
@@ -26,6 +27,8 @@ const { t } = useI18n()
 const { showNull } = useGlobal()
 
 const editEnabled = inject(EditModeInj)!
+
+const isForm = inject(IsFormInj, ref(false))
 
 const column = inject(ColumnInj)!
 
@@ -70,8 +73,10 @@ watch(
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="w-full outline-none text-sm px-1 py-2"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
+    class="w-full focus:!outline-none focus:ring-0 focus:border-none !border-none !outline-none text-sm px-2"
+    :type="isForm ? 'email' : 'text'"
+    :autocomplete="isForm ? 'email' : 'text'"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

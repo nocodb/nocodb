@@ -488,7 +488,6 @@ test.describe('Form view', () => {
     await sharedForm.submit();
 
     await dashboard.rootPage.goto(url);
-    // kludge- reload
     await dashboard.rootPage.reload();
 
     await dashboard.treeView.openTable({ title: 'selectBased' });

@@ -633,3 +633,11 @@ input[type='number'] {
     @apply xs:(visible opacity-100 !text-gray-500)
   }
 }
+
+input[type='url'] {
+  @apply !p-0;
+}
+
+input[type='email'] {
+  @apply !p-0;
+}

@@ -259,7 +259,7 @@ export class GridPage extends BasePage {
     await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
       button: 'right',
     });
-    await this.rootPage.locator('text=Delete Selected Rows').click();
+    await this.rootPage.locator('[data-testid="nc-delete-row"]').click();
     await this.dashboard.waitForLoaderToDisappear();
   }
 

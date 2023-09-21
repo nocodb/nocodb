@@ -38,8 +38,7 @@ const pagination = reactive({
   pageSize: 10,
 })
 
-// hide or show token
-const showToken = (tokenId: string) => {
+const hideOrShowToken = (tokenId: string) => {
   if (selectedToken.isShow && selectedToken.id === tokenId) {
     selectedToken.isShow = false
     selectedToken.id = ''
@@ -174,7 +173,7 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
               </NcButton>
             </div>
           </div>
-          <div v-if="tokens.length < 1">
+          <div v-if="!tokens">
             <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="`${$t('general.no')} ${$t('labels.token')}`" />
           </div>
 
@@ -202,13 +201,13 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                   :is="iconMap.eyeSlash"
                   v-if="el.token === selectedToken.id && selectedToken.isShow"
                   class="hover::cursor-pointer"
-                  @click="showToken(el.token as string)"
+                  @click="hideOrShowToken(el.token as string)"
                 />
                 <component
                   :is="iconMap.eye"
                   v-else
                   class="nc-toggle-token-visibility hover::cursor-pointer"
-                  @click="showToken(el.token as string)"
+                  @click="hideOrShowToken(el.token as string)"
                 />
                 <component :is="iconMap.copy" class="hover::cursor-pointer" @click="copyToken(el.token)" />
                 <component

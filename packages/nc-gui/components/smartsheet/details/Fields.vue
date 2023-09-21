@@ -2,9 +2,10 @@
 import { diff } from 'deep-object-diff'
 import { message } from 'ant-design-vue'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import Draggable from 'vuedraggable'
 import type { ColumnType, SelectOptionsType, TableType } from 'nocodb-sdk'
+import { Icon } from '@iconify/vue'
 import { type Field, getUniqueColumnName, ref, useSmartsheetStoreOrThrow } from '#imports'
-import ListIcon from '~icons/nc-icons/list'
 
 interface TableExplorerColumn extends ColumnType {
   id?: string
@@ -38,27 +39,23 @@ const loading = ref(false)
 
 const columnsHash = ref<string>()
 
-const viewOnly = ref(true)
-
-const fields = computed<TableExplorerColumn[]>(() =>
-  ((meta.value?.columns as ColumnType[]) || [])
-    .filter(
-      (col) =>
-        !col.pk && !isSystemColumn(col) && (!viewOnly.value || viewFields.value?.find((f) => f.fk_column_id === col.id)?.show),
-    )
-    .sort((a, b) => {
-      if (viewFields.value) {
-        return (
-          viewFields.value.findIndex((f) => f.fk_column_id === a.id) - viewFields.value.findIndex((f) => f.fk_column_id === b.id)
-        )
-      }
-      return 0
-    }),
-)
+const fields = computed<TableExplorerColumn[]>({
+  get: () =>
+    ((meta.value?.columns as ColumnType[]) || [])
+      .filter((col) => !col.pk && !isSystemColumn(col))
+      .sort((a, b) => {
+        if (viewFields.value) {
+          return (
+            viewFields.value.findIndex((f) => f.fk_column_id === a.id) -
+            viewFields.value.findIndex((f) => f.fk_column_id === b.id)
+          )
+        }
+        return 0
+      }),
+  set: (val) => {},
+})
 
 const newFields = ref<TableExplorerColumn[]>([])
-
-const moveOps = ref<moveOp[]>([])
 
 const compareCols = (a?: TableExplorerColumn, b?: TableExplorerColumn) => {
   if (a?.id && b?.id) {
@@ -68,35 +65,33 @@ const compareCols = (a?: TableExplorerColumn, b?: TableExplorerColumn) => {
   }
   return false
 }
+const moveOps = ref<moveOp[]>([])
 
-const listFields = computed<TableExplorerColumn[]>(() => {
-  const tempList = fields.value.concat(newFields.value)
+const listFields = computed<TableExplorerColumn[]>({
+  set: () => {
+    const tempList = fields.value.concat(newFields.value)
+    fields.value = tempList
+  },
+  get: () => {
+    const tempList = fields.value.concat(newFields.value)
 
-  // apply move ops
-  for (const op of moveOps.value) {
-    const index = tempList.findIndex((f) => compareCols(f, op.column))
-    if (index !== -1) {
-      const tempField = tempList.splice(index, 1)
-      tempList.splice(op.index, 0, tempField[0])
+    // apply move ops
+    for (const op of moveOps.value) {
+      const index = tempList.findIndex((f) => compareCols(f, op.column))
+      if (index !== -1) {
+        const tempField = tempList.splice(index, 1)
+        tempList.splice(op.index, 0, tempField[0])
+      }
     }
-  }
 
-  return tempList
+    return tempList
+  },
 })
 
 // Current Selected Field
 const activeField = ref()
 
 const searchQuery = ref<string>('')
-
-const filteredListFields = computed<TableExplorerColumn[]>(() => {
-  if (searchQuery.value && searchQuery.value.trim().length > 0) {
-    return listFields.value.filter((col) => {
-      return col.title && col.title.toLowerCase().includes(searchQuery.value.toLowerCase())
-    })
-  }
-  return listFields.value
-})
 
 const viewFieldsMap = computed<Record<string, Field>>(() => {
   const temp: Record<string, Field> = {}
@@ -191,6 +186,14 @@ const changeField = (field?: TableExplorerColumn, event?: MouseEvent) => {
   nextTick(() => {
     activeField.value = field
     changingField.value = false
+  })
+}
+
+const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
+  moveOps.value.push({
+    op: 'move',
+    column: listFields.value[_event.moved.oldIndex],
+    index: _event.moved.newIndex,
   })
 }
 
@@ -381,6 +384,8 @@ const saveChanges = async () => {
 
   loading.value = true
 
+  console.log(moveOps)
+
   for (const mop of moveOps.value) {
     const op = ops.value.find((op) => compareCols(op.column, mop.column))
     if (op && op.op === 'add') {
@@ -434,12 +439,13 @@ const saveChanges = async () => {
 }
 
 const toggleFieldVisibilityWrapper = async (checked: boolean, field: Field) => {
+  console.log(checked)
   if (field.fk_column_id && fieldStatuses.value[field.fk_column_id]) {
     message.warning('You cannot change visibility of a field that is being edited. Please save or discard changes first.')
     field.show = !checked
     return
   }
-  if (viewOnly.value && !checked && activeField.value && compareCols(activeField.value, { id: field.fk_column_id })) {
+  if (!checked && activeField.value && compareCols(activeField.value, { id: field.fk_column_id })) {
     changeField()
   }
   await toggleFieldVisibility(checked, field)
@@ -455,137 +461,134 @@ onMounted(async () => {
   <div class="flex flex-col w-full p-4" style="height: calc(100vh - (var(--topbar-height) * 2))">
     <div class="h-full">
       <div class="flex flex-col h-full">
-        <div class="flex px-2 py-2">
+        <div class="flex px-2 w-full justify-between py-2">
+          <a-input v-model:value="searchQuery" class="!h-8 !px-1 !rounded-lg !w-1/3" placeholder="Search field">
+            <template #prefix>
+              <GeneralIcon icon="search" class="mx-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
+            </template>
+            <template #suffix>
+              <GeneralIcon
+                v-if="searchQuery.length > 0"
+                icon="close"
+                class="mx-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black"
+              />
+            </template>
+          </a-input>
           <div class="flex gap-2">
-            <NcButton type="primary" size="small">
-              <div class="flex items-center pr-2" @click="addField()">
-                <GeneralIcon icon="plus" class="mx-1 h-3.5 w-3.5" />
+            <NcButton type="secondary" size="small" :disabled="loading" @click="addField()">
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="plus" class="h-3.5 mb-1 w-3.5" />
                 Add field
               </div>
             </NcButton>
-            <!--
-            <NcButton type="ghost" size="small">
-              <div class="flex items-center pr-2">
-                <GeneralIcon icon="magic" class="mx-1 h-3.5 w-3.5 text-gray-500 text-orange-400" />
-                Add using AI
-              </div>
+            <NcButton
+              type="secondary"
+              size="small"
+              :disabled="!loading && ops.length < 1 && moveOps.length < 1"
+              @click="saveChanges()"
+            >
+              Save Changes
             </NcButton>
-            <NcButton type="ghost" size="small">
-              <div class="flex items-center pr-2">
-                <GeneralIcon icon="magic" class="mx-1 h-3.5 w-3.5 text-gray-500 text-orange-400" />
-                Suggest formula
-              </div>
-            </NcButton>
-            -->
-          </div>
-          <div class="flex-1"></div>
-          <div class="flex gap-2">
-            <template v-if="ops.length > 0">
-              <NcButton type="ghost" size="small">
-                <div class="flex items-center px-1" :disabled="loading" @click="clearChanges()">Clear Changes</div>
-              </NcButton>
-              <NcButton type="primary" size="small">
-                <div class="flex items-center px-1" :disabled="loading" @click="saveChanges()">Save Changes</div>
-              </NcButton>
-            </template>
           </div>
         </div>
         <div class="flex px-2 pt-2">
-          <div class="w-1/3">
-            <a-input v-model:value="searchQuery" class="!h-8 !px-1 !rounded-lg" placeholder="Search field">
-              <template #prefix>
-                <GeneralIcon icon="search" class="mx-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
-              </template>
-              <template #suffix>
-                <GeneralIcon
-                  v-if="searchQuery.length > 0"
-                  icon="close"
-                  class="mx-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black"
-                  @click="searchQuery = ''"
-                />
-              </template>
-            </a-input>
-          </div>
-          <div class="flex-1"></div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-gray-500">Show fields from current view only</span>
-            <a-switch v-model:checked="viewOnly" />
-          </div>
+          <div class="w-1/3"></div>
         </div>
         <div class="flex mt-2 h-full">
           <div class="flex flex-col flex-1 p-2">
-            <TransitionGroup name="slide-fade" tag="div" class="overflow-y-auto pb-4 nc-scrollbar-x-md">
-              <template v-for="field of filteredListFields" :key="`field-${field.id || field.temp_id}`">
+            <Draggable v-model="listFields" item-key="id" @change="onMove($event)">
+              <template #item="{ element: field }">
                 <div
-                  class="flex px-2 mb-2 mr-2 border-1 rounded-lg pl-5 group"
-                  :class="`${fieldStatus(field)} ${compareCols(field, activeField) ? 'selected' : ''} ${
-                    skipTransition(field) ? 'skip-animation' : ''
+                  v-if="field.title && field.title.toLowerCase().includes(searchQuery.toLowerCase())"
+                  class="flex px-2 mr-2 border-x-1 !bg-white border-t-1 hover:bg-gray-100 first:rounded-t-lg last:border-b-1 last:rounded-b-lg pl-5 group"
+                  :class="` ${skipTransition(field) ? 'skip-animation' : ''} ${
+                    compareCols(field, activeField) ? 'selected' : ''
                   }`"
                   @click="changeField(field, $event)"
                 >
-                  <div class="flex items-center py-2.5 gap-2 w-2/6">
-                    <NcSwitch
+                  <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
+                    <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
+
+                    <NcCheckbox
                       v-if="field.id && viewFieldsMap[field.id]"
-                      v-model:checked="viewFieldsMap[field.id].show"
-                      class="no-action"
                       :disabled="field.pv"
-                      @change="toggleFieldVisibilityWrapper($event, viewFieldsMap[field.id])"
+                      :checked="viewFieldsMap[field.id].show"
+                      @change="
+                        (event) => {
+                          viewFieldsMap[field.id].show = !viewFieldsMap[field.id].show
+                          toggleFieldVisibilityWrapper(event.target.checked, viewFieldsMap[field.id])
+                        }
+                      "
                     />
-                    <NcSwitch v-else :checked="true" class="no-action" :disabled="true" />
-                    {{ fieldState(field)?.title || field.title }}
+                    <NcCheckbox v-else :disabled="true" class="opacity-0" :checked="true" />
+                    <SmartsheetHeaderCellIcon
+                      v-if="field"
+                      :column-meta="fieldState(field) || field"
+                      :class="{
+                        'text-brand-500': compareCols(field, activeField),
+                      }"
+                    />
+                    <span
+                      :class="{
+                        'text-brand-500': compareCols(field, activeField),
+                      }"
+                    >
+                      {{ fieldState(field)?.title || field.title }}
+                    </span>
                   </div>
-                  <div class="flex items-center w-2/6">
-                    <SmartsheetHeaderCellIcon v-if="field" :column-meta="fieldState(field) || field" />
-                    {{ fieldState(field)?.uidt || field.uidt }}
-                  </div>
-                  <div class="flex flex-1 items-center">
-                    <template v-if="fieldStatus(field) === 'delete'">
-                      <a-tag class="!rounded" color="red">Deleted field</a-tag>
-                    </template>
-                    <template v-else-if="fieldStatus(field) === 'add'">
-                      <a-tag class="!rounded" color="green">New field</a-tag>
-                    </template>
-                    <template v-else-if="fieldStatus(field) === 'update'">
-                      <a-tag class="!rounded" color="orange">Updated Field</a-tag>
-                    </template>
-                  </div>
-                  <div class="flex items-center justify-end">
-                    <div v-if="fieldStatus(field) === 'delete' || fieldStatus(field) === 'update'">
-                      <NcButton type="ghost" size="small" class="!bg-white no-action">
-                        <div class="flex items-center text-xs gap-1" :disabled="loading" @click="recoverField(field)">
-                          <GeneralIcon icon="reload" class="group-hover:text-primary" />
-                          Undo Change
-                        </div>
-                      </NcButton>
+                  <div class="flex items-center justify-end gap-1">
+                    <div class="flex items-center">
+                      <NcBadge v-if="fieldStatus(field) === 'delete'" color="red" :border="false" class="bg-red-50 text-red-700">
+                        Deleted field
+                      </NcBadge>
+
+                      <NcBadge
+                        v-else-if="fieldStatus(field) === 'update'"
+                        color="orange"
+                        :border="false"
+                        class="bg-orange-50 text-orange-700"
+                      >
+                        Updated field
+                      </NcBadge>
                     </div>
+                    <NcButton
+                      v-if="fieldStatus(field) === 'delete' || fieldStatus(field) === 'update'"
+                      type="secondary"
+                      size="small"
+                      class="no-action mr-2"
+                      :disabled="loading"
+                      @click="recoverField(field)"
+                    >
+                      <div class="flex items-center text-xs gap-1">
+                        <GeneralIcon icon="reload" />
+                        Restore
+                      </div>
+                    </NcButton>
                     <a-dropdown v-else :trigger="['click']" overlay-class-name="nc-dropdown-table-explorer" @click.stop>
                       <GeneralIcon icon="threeDotVertical" class="no-action opacity-0 group-hover:(opacity-100) text-gray-500" />
 
                       <template #overlay>
                         <a-menu>
                           <a-menu-item key="table-explorer-duplicate" @click="duplicateField(field)">
-                            <div class="color-transition nc-project-menu-item group">
-                              <GeneralIcon icon="duplicate" class="group-hover:text-accent" />
-                              Duplicate
+                            <div class="nc-project-menu-item">
+                              <Icon class="iconify text-gray-800" icon="lucide:copy" /><span>Duplicate</span>
                             </div>
                           </a-menu-item>
                           <a-menu-item v-if="!field.pv" key="table-explorer-insert-above" @click="addField(field, true)">
-                            <div class="color-transition nc-project-menu-item group">
-                              <GeneralIcon icon="arrowUp" class="group-hover:text-accent" />
-                              Insert Above
+                            <div class="nc-project-menu-item">
+                              <Icon class="iconify text-gray-800" icon="lucide:arrow-up" /><span>Insert above</span>
                             </div>
                           </a-menu-item>
                           <a-menu-item key="table-explorer-insert-below" @click="addField(field)">
-                            <div class="color-transition nc-project-menu-item group">
-                              <GeneralIcon icon="arrowDown" class="group-hover:text-accent" />
-                              Insert Below
+                            <div class="nc-project-menu-item">
+                              <Icon class="iconify text-gray-800" icon="lucide:arrow-down" /><span>Insert below</span>
                             </div>
                           </a-menu-item>
 
                           <a-menu-divider class="my-0" />
 
                           <a-menu-item key="table-explorer-delete" @click="onFieldDelete(field)">
-                            <div class="color-transition nc-project-menu-item group text-red-500">
+                            <div class="nc-project-menu-item group text-red-500">
                               <GeneralIcon icon="delete" class="group-hover:text-accent" />
                               Delete
                             </div>
@@ -593,13 +596,19 @@ onMounted(async () => {
                         </a-menu>
                       </template>
                     </a-dropdown>
+                    <MdiChevronRight
+                      class="text-brand-500 opacity-0"
+                      :class="{
+                        'opacity-100': compareCols(field, activeField),
+                      }"
+                    />
                   </div>
                 </div>
               </template>
-            </TransitionGroup>
+            </Draggable>
           </div>
           <Transition name="slide-fade">
-            <div v-if="!changingField" class="flex p-2 mt-2 w-1/3 h-full border-1 rounded-lg" :class="fieldStatus(activeField)">
+            <div v-if="!changingField" class="flex p-2 mt-2 w-1/3 h-full border-gray-200 border-1 rounded-xl">
               <SmartsheetColumnEditOrAddProvider
                 v-if="activeField"
                 class="w-full"
@@ -614,10 +623,12 @@ onMounted(async () => {
               <div v-else-if="loading" class="flex flex-col p-2 mt-2 w-full items-center">
                 <GeneralIcon icon="reload" class="animate-infinite animate-spin text-gray-500 w-[48px] h-[48px]" />
               </div>
-              <div v-else class="flex flex-col p-2 mt-2 w-full items-center">
-                <ListIcon class="w-[48px] h-[48px]" />
-                <div class="text-xl text-center py-[24px]">Select a field</div>
-                <div class="text-center">Make changes to field properties by selecting a field from the list</div>
+              <div v-else class="flex flex-col p-2 mt-2 gap-6 w-full items-center">
+                <img src="~assets/img/fieldPlaceholder.svg" class="!w-[18rem]" />
+                <div class="text-2xl text-gray-600 font-bold text-center">Select a field</div>
+                <div class="text-center text-sm px-2 text-gray-500">
+                  Make changes to field properties by selecting a field from the list
+                </div>
               </div>
             </div>
           </Transition>
@@ -641,8 +652,7 @@ onMounted(async () => {
   border-color: #ffa39e;
 }
 .selected {
-  border: 1px solid #1890ff !important;
-  background: var(--background-brand, #ebf0ff);
+  @apply bg-brand-50;
 }
 .slide-fade-enter-active {
   transition: all 0.3s ease-out;

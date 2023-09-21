@@ -73,6 +73,7 @@ loadTokens()
 const isModalOpen = ref(false)
 const tokenDesc = ref('')
 const tokenToCopy = ref('')
+const isTextEmpty = ref(false)
 
 const deleteToken = async (token: string): Promise<void> => {
   try {
@@ -89,6 +90,12 @@ const deleteToken = async (token: string): Promise<void> => {
 }
 
 const generateToken = async () => {
+  if (!selectedTokenData.value.description?.length) {
+    isTextEmpty.value = true
+  } else {
+    isTextEmpty.value = false
+  }
+  if (isTextEmpty.value) return
   try {
     await api.orgTokens.create(selectedTokenData.value)
     showNewTokenModal.value = false
@@ -158,22 +165,37 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
             v-if="showNewTokenModal"
             class="flex gap-5 px-3 py-3.5 text-gray-500 font-medium text-3.5 w-full nc-token-generate"
           >
-            <a-input
-              :ref="descriptionInput"
-              v-model:value="selectedTokenData.description"
-              type="text"
-              class="!rounded-lg !py-2"
-              placeholder="Token Name"
-              data-testid="nc-token-input"
-            />
+            <div class="flex flex-col w-full">
+              <a-input
+                :ref="descriptionInput"
+                v-model:value="selectedTokenData.description"
+                type="text"
+                class="!rounded-lg !py-2"
+                placeholder="Token Name"
+                data-testid="nc-token-input"
+              />
+              <span v-if="isTextEmpty" class="text-red-500 text-xs font-light mt-1.5 ml-1">token name should not be empty</span>
+            </div>
             <div class="flex gap-2 justify-start">
-              <NcButton v-if="!isLoading" type="secondary" size="small" @click="showNewTokenModal = false"> Cancel </NcButton>
+              <NcButton
+                v-if="!isLoading"
+                type="secondary"
+                size="small"
+                @click="
+                  () => {
+                    showNewTokenModal = false
+                    isTextEmpty = false
+                  }
+                "
+              >
+                Cancel
+              </NcButton>
               <NcButton type="primary" size="sm" :is-loading="isLoading" data-testid="nc-token-save-btn" @click="generateToken">
                 Save
               </NcButton>
             </div>
           </div>
-          <div v-if="!tokens">
+          <div v-if="!tokens.length">
             <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="`${$t('general.no')} ${$t('labels.token')}`" />
           </div>
 

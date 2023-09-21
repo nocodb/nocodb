@@ -18,8 +18,6 @@ const props = withDefaults(
 
 const roleRef = toRef(props, 'role')
 const clickableRef = toRef(props, 'clickable')
-const inheritRef = toRef(props, 'inherit')
-const borderRef = toRef(props, 'border')
 
 const roleProperties = computed(() => {
   const role = roleRef.value
@@ -38,15 +36,14 @@ const roleProperties = computed(() => {
 
 <template>
   <div
-    class="flex items-center !border-0"
+    class="flex items-center"
     :class="{
       'cursor-pointer': clickableRef,
     }"
-    style="width: fit-content"
   >
-    <NcBadge class="!h-auto !px-[8px]" :color="roleProperties.color" :border="borderRef">
+    <NcBadge class="!px-2" :color="roleProperties.color" :border="borderRef">
       <div
-        class="badge-text flex items-center gap-[4px]"
+        class="badge-text flex items-center gap-2 !h-7"
         :class="{
           'text-purple-500': roleProperties.color === 'purple',
           'text-blue-500': roleProperties.color === 'blue',

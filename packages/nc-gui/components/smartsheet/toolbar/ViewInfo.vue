@@ -28,11 +28,7 @@ const { activeTable } = storeToRefs(useTablesStore())
       </template>
     </LazyGeneralEmojiPicker>
     <span
-      class="text-ellipsis overflow-hidden pl-1 max-w-1/2"
-      :class="{
-        'text-gray-500': !selectedView?.is_default,
-        'text-gray-700': selectedView?.is_default,
-      }"
+      class="text-ellipsis overflow-hidden pl-1 max-w-1/2 text-gray-500"
       :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
     >
       {{ activeTable?.title }}
@@ -46,7 +42,7 @@ const { activeTable } = storeToRefs(useTablesStore())
     </LazyGeneralEmojiPicker>
 
     <span class="truncate pl-1.25 text-gray-700 max-w-28/100">
-      {{ selectedView?.title }}
+      {{ selectedView?.is_default ? $t('title.defaultView') : selectedView?.title }}
     </span>
 
     <LazySmartsheetToolbarReload v-if="openedViewsTab === 'view'" />

@@ -72,13 +72,14 @@ const attachments: Attachment[] = computed(() => {
       <div class="flex flex-col m-[.75rem] gap-1 flex-grow justify-center">
         <div class="flex justify-between">
           <span class="font-semibold text-gray-800 nc-display-value"> {{ row[relatedTableDisplayValueProp] }} </span>
-          <div v-if="isLinked && !isLoading" class="text-brand-500 text-0.875">
-            <LinkIcon
-              :class="{
-                '!group-hover:mr-8': fields.length === 0,
-              }"
-              class="w-4 h-4"
-            />
+          <div
+            v-if="isLinked && !isLoading"
+            class="text-brand-500 text-0.875"
+            :class="{
+              '!group-hover:mr-12': fields.length === 0,
+            }"
+          >
+            <LinkIcon class="w-4 h-4" />
             Linked
           </div>
           <MdiLoading
@@ -121,6 +122,9 @@ const attachments: Attachment[] = computed(() => {
       type="text"
       size="lg"
       class="!px-2 nc-expand-item !group-hover:block !hidden !border-1 !shadow-sm !border-gray-200 !bg-white !absolute right-3 bottom-3"
+      :class="{
+        '!group-hover:right-1.8 !group-hover:bottom-1.7': fields.length === 0,
+      }"
       @click.stop="$emit('expand', row)"
     >
       <MaximizeIcon class="w-4 h-4" />

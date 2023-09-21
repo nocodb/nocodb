@@ -286,7 +286,7 @@ function onRef(el: HTMLElement) {
                 <div class="-ml-0.25">Rename</div>
               </NcMenuItem>
               <NcMenuItem @click.stop="onDuplicate">
-                <GeneralIcon icon="copy" />
+                <GeneralIcon icon="duplicate" />
                 Duplicate
               </NcMenuItem>
 

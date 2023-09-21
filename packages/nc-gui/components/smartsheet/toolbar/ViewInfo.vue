@@ -28,7 +28,7 @@ const { activeTable } = storeToRefs(useTablesStore())
       {{ activeTable?.title }}
     </span>
 
-    <div class="px-2 text-gray-500">/</div>
+    <div class="px-2 text-gray-300">/</div>
     <LazyGeneralEmojiPicker :emoji="selectedView?.meta?.icon" readonly size="xsmall">
       <template #default>
         <GeneralViewIcon :meta="{ type: selectedView?.type }" class="min-w-4.5 text-lg flex" />

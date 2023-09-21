@@ -33,27 +33,13 @@ const { getMeta } = useMetas()
 
 const { meta, view } = useSmartsheetStoreOrThrow()
 
+const moveOps = ref<moveOp[]>([])
+
 const { fields: viewFields, toggleFieldVisibility } = useViewColumns(view, meta as Ref<TableType | undefined>)
 
 const loading = ref(false)
 
 const columnsHash = ref<string>()
-
-const fields = computed<TableExplorerColumn[]>({
-  get: () =>
-    ((meta.value?.columns as ColumnType[]) || [])
-      .filter((col) => !col.pk && !isSystemColumn(col))
-      .sort((a, b) => {
-        if (viewFields.value) {
-          return (
-            viewFields.value.findIndex((f) => f.fk_column_id === a.id) -
-            viewFields.value.findIndex((f) => f.fk_column_id === b.id)
-          )
-        }
-        return 0
-      }),
-  set: (val) => {},
-})
 
 const newFields = ref<TableExplorerColumn[]>([])
 
@@ -65,26 +51,32 @@ const compareCols = (a?: TableExplorerColumn, b?: TableExplorerColumn) => {
   }
   return false
 }
-const moveOps = ref<moveOp[]>([])
 
-const listFields = computed<TableExplorerColumn[]>({
-  set: () => {
-    const tempList = fields.value.concat(newFields.value)
-    fields.value = tempList
-  },
+const fields = computed<TableExplorerColumn[]>({
   get: () => {
-    const tempList = fields.value.concat(newFields.value)
-
-    // apply move ops
+    const x = ((meta.value?.columns as ColumnType[]) || [])
+      .filter((col) => !col.pk && !isSystemColumn(col))
+      .sort((a, b) => {
+        if (viewFields.value) {
+          return (
+            viewFields.value.findIndex((f) => f.fk_column_id === a.id) -
+            viewFields.value.findIndex((f) => f.fk_column_id === b.id)
+          )
+        }
+        return 0
+      })
+      .concat(newFields.value)
     for (const op of moveOps.value) {
-      const index = tempList.findIndex((f) => compareCols(f, op.column))
+      const index = x.findIndex((f) => compareCols(f, op.column))
       if (index !== -1) {
-        const tempField = tempList.splice(index, 1)
-        tempList.splice(op.index, 0, tempField[0])
+        const tempField = x.splice(index, 1)
+        x.splice(op.index, 0, tempField[0])
       }
     }
-
-    return tempList
+    return x
+  },
+  set: (val) => {
+    meta.value!.columns = val
   },
 })
 
@@ -105,7 +97,7 @@ const viewFieldsMap = computed<Record<string, Field>>(() => {
 
 const orderList = computed(() => {
   const temp = []
-  for (const field of listFields.value) {
+  for (const field of fields.value) {
     if (field.id) {
       const viewField = viewFieldsMap.value[field.id]
       if (viewField) {
@@ -124,7 +116,7 @@ const calculateOrder = (column: TableExplorerColumn) => {
   if (column.pv) return viewFieldsMap.value[column.id as string].order
 
   // this can't be 0 as pv is 0
-  const currentColumnIndex = listFields.value.findIndex((f) => compareCols(f, column))
+  const currentColumnIndex = fields.value.findIndex((f) => compareCols(f, column))
 
   let before = -1
   let after = -1
@@ -139,8 +131,8 @@ const calculateOrder = (column: TableExplorerColumn) => {
   tempIndex = currentColumnIndex
   let counterAfter = 0
   while (after === -1) {
-    if (tempIndex === listFields.value.length) {
-      after = listFields.value.length
+    if (tempIndex === fields.value.length) {
+      after = fields.value.length
       counterAfter++
       break
     }
@@ -167,7 +159,7 @@ const addFieldMoveHook = ref<number>()
 const duplicateFieldHook = ref<TableExplorerColumn>()
 
 const setFieldMoveHook = (field: TableExplorerColumn, before = false) => {
-  const index = listFields.value.findIndex((f) => compareCols(f, field))
+  const index = fields.value.findIndex((f) => compareCols(f, field))
   if (index !== -1) {
     addFieldMoveHook.value = before ? index : index + 1
   }
@@ -192,7 +184,7 @@ const changeField = (field?: TableExplorerColumn, event?: MouseEvent) => {
 const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
   moveOps.value.push({
     op: 'move',
-    column: listFields.value[_event.moved.oldIndex],
+    column: fields.value[_event.moved.oldIndex],
     index: _event.moved.newIndex,
   })
 }
@@ -258,7 +250,7 @@ const duplicateField = async (field: TableExplorerColumn) => {
 
 // This method is called whenever there is a change in field properties
 const onFieldUpdate = (state: TableExplorerColumn) => {
-  const col = listFields.value.find((col) => compareCols(col, state))
+  const col = fields.value.find((col) => compareCols(col, state))
   if (!col) return
 
   const diffs = diff(col, state)
@@ -339,7 +331,7 @@ const recoverField = (state: TableExplorerColumn) => {
 }
 
 const fieldState = (field: TableExplorerColumn) => {
-  const col = listFields.value.find((col) => compareCols(col, field))
+  const col = fields.value.find((col) => compareCols(col, field))
   if (col) {
     const op = ops.value.find((op) => compareCols(op.column, col))
     if (op) {
@@ -496,11 +488,11 @@ onMounted(async () => {
         </div>
         <div class="flex mt-2 h-full">
           <div class="flex flex-col flex-1 p-2">
-            <Draggable v-model="listFields" item-key="id" @change="onMove($event)">
+            <Draggable v-model="fields" item-key="id" @change="onMove($event)">
               <template #item="{ element: field }">
                 <div
                   v-if="field.title && field.title.toLowerCase().includes(searchQuery.toLowerCase())"
-                  class="flex px-2 mr-2 border-x-1 !bg-white border-t-1 hover:bg-gray-100 first:rounded-t-lg last:border-b-1 last:rounded-b-lg pl-5 group"
+                  class="flex px-2 mr-2 border-x-1 bg-white border-t-1 hover:bg-gray-100 first:rounded-t-lg last:border-b-1 last:rounded-b-lg pl-5 group"
                   :class="` ${skipTransition(field) ? 'skip-animation' : ''} ${
                     compareCols(field, activeField) ? 'selected' : ''
                   }`"
@@ -614,7 +606,7 @@ onMounted(async () => {
                 class="w-full"
                 :column="activeField"
                 :preload="fieldState(activeField)"
-                :table-explorer-columns="listFields"
+                :table-explorer-columns="fields"
                 embed-mode
                 from-table-explorer
                 @update="onFieldUpdate"

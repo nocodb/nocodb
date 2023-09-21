@@ -8,6 +8,7 @@ const props = defineProps<{
   filterOption?: (input: string, option: any) => boolean
   dropdownMatchSelectWidth?: boolean
   allowClear?: boolean
+  loading?: boolean
 }>()
 
 const emits = defineEmits(['update:value', 'change'])
@@ -21,6 +22,8 @@ const showSearch = computed(() => props.showSearch)
 const filterOption = computed(() => props.filterOption)
 
 const dropdownMatchSelectWidth = computed(() => props.dropdownMatchSelectWidth)
+
+const loading = computed(() => props.loading)
 
 const vModel = useVModel(props, 'value', emits)
 
@@ -39,10 +42,13 @@ const onChange = (value: string) => {
     :filter-option="filterOption"
     :dropdown-match-select-width="dropdownMatchSelectWidth"
     :allow-clear="allowClear"
+    :loading="true"
+    :disabled="true"
     @change="onChange"
   >
     <template #suffixIcon>
-      <GeneralIcon icon="arrowDown" class="text-gray-800 nc-select-expand-btn" />
+      <GeneralLoader v-if="loading" />
+      <GeneralIcon v-else icon="arrowDown" class="text-gray-800 nc-select-expand-btn" />
     </template>
     <slot />
   </a-select>

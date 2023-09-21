@@ -76,7 +76,13 @@ const fields = computed<TableExplorerColumn[]>({
     return x
   },
   set: (val) => {
-    meta.value!.columns = val
+    meta.value!.columns = meta.value?.columns?.map((col) => {
+      const field = val.find((f) => compareCols(f, col))
+      if (field) {
+        return field
+      }
+      return col
+    })
   },
 })
 
@@ -151,8 +157,6 @@ const ops = ref<op[]>([])
 const temporaryAddCount = ref(0)
 
 const changingField = ref(false)
-
-const skipTransitionList = ref<string[]>([])
 
 const addFieldMoveHook = ref<number>()
 
@@ -360,13 +364,9 @@ const fieldStatus = (field?: TableExplorerColumn) => {
   return id ? fieldStatuses.value[id] : ''
 }
 
-const skipTransition = (field?: TableExplorerColumn) => {
-  const id = field?.id || field?.temp_id
-  return id ? skipTransitionList.value.includes(id) : false
-}
-
 const clearChanges = () => {
   ops.value = []
+  moveOps.value = []
   newFields.value = []
   changeField()
 }
@@ -375,8 +375,6 @@ const saveChanges = async () => {
   if (!meta.value?.id) return
 
   loading.value = true
-
-  console.log(moveOps)
 
   for (const mop of moveOps.value) {
     const op = ops.value.find((op) => compareCols(op.column, mop.column))
@@ -390,7 +388,6 @@ const saveChanges = async () => {
 
   for (const op of ops.value) {
     if (op.op === 'add') {
-      skipTransitionList.value.push(op.column.temp_id as string)
       if (activeField.value && compareCols(activeField.value, op.column)) {
         changeField()
       }
@@ -421,8 +418,6 @@ const saveChanges = async () => {
     })
     moveOps.value = []
   }
-
-  skipTransitionList.value = []
 
   await getMeta(meta.value.id, true)
   columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
@@ -493,9 +488,7 @@ onMounted(async () => {
                 <div
                   v-if="field.title && field.title.toLowerCase().includes(searchQuery.toLowerCase())"
                   class="flex px-2 mr-2 border-x-1 bg-white border-t-1 hover:bg-gray-100 first:rounded-t-lg last:border-b-1 last:rounded-b-lg pl-5 group"
-                  :class="` ${skipTransition(field) ? 'skip-animation' : ''} ${
-                    compareCols(field, activeField) ? 'selected' : ''
-                  }`"
+                  :class="` ${compareCols(field, activeField) ? 'selected' : ''}`"
                   @click="changeField(field, $event)"
                 >
                   <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">

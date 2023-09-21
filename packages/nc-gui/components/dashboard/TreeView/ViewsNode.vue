@@ -190,7 +190,7 @@ function onRef(el: HTMLElement) {
   if (activeViewTitleOrId.value === vModel.value.id) {
     nextTick(() => {
       setTimeout(() => {
-        el?.scrollIntoView({ block: 'center', inline: 'center' })
+        el?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
       }, 1000)
     })
   }

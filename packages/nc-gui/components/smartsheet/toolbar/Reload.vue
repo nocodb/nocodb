@@ -35,7 +35,7 @@ watch(isReloading, () => {
     >
       <component
         :is="iconMap.reload"
-        class="group-hover:(text-primary) h-4 nc-icon-reload"
+        class="group-hover:(text-primary) h-4 nc-icon-reload text-gray-400"
         :class="isReloading ? 'animate-spin' : ''"
         @click="onClick"
       />

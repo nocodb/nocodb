@@ -244,10 +244,7 @@ onKeyStroke('Escape', () => {
       <InboxIcon class="w-16 h-16 mx-auto" />
       <p>
         No records are linked from table
-        <span class="border-gray-300 text-gray-600 rounded-md border-1 p-1">
-          <ColumnIcon class="w-4 h-4 mt-[-2px]" />
-          {{ relatedTableMeta?.title }}
-        </span>
+        {{ relatedTableMeta?.title }}
       </p>
       <NcButton
         v-if="!readonly && childrenListCount < 1"

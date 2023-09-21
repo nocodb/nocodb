@@ -273,10 +273,7 @@ onKeyStroke('Escape', () => {
       <InboxIcon class="w-16 h-16 mx-auto" />
       <p>
         There are no records in table
-        <span class="border-gray-300 text-gray-600 rounded-md border-1 p-1">
-          <ColumnIcon class="w-4 h-4 mt-[-2px]" />
-          {{ relatedTableMeta?.title }}
-        </span>
+        {{ relatedTableMeta?.title }}
       </p>
     </div>
     <div class="my-2 bg-gray-50 border-gray-50 border-b-2"></div>

@@ -47,7 +47,7 @@ export class CollaborationPage extends BasePage {
 
     // allow button to be enabled
     await this.rootPage.waitForTimeout(500);
-
+    await this.rootPage.keyboard.press('Enter');
     await this.button_addUser.click();
     await this.verifyToast({ message: 'Invitation sent successfully' });
     await this.rootPage.waitForTimeout(500);

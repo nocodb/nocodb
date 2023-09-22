@@ -23,6 +23,13 @@ const inviteCollaborator = async () => {
   }
 }
 
+watch(inviteData, (newVal) => {
+  console.log(newVal.email)
+  if (newVal.email[-1] === ',') {
+    console.log(newVal.email)
+  }
+})
+
 // allow only lower roles to be assigned
 const allowedRoles = ref<WorkspaceUserRoles[]>([])
 

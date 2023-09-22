@@ -70,7 +70,6 @@ function onOpenModal({
     <slot />
     <template #overlay>
       <NcMenu class="max-w-48">
-        <div class="py-2 px-4 text-gray-500 text-sm">New View</div>
         <NcMenuItem @click="onOpenModal({ type: ViewTypes.GRID })">
           <div class="item">
             <div class="item-inner">

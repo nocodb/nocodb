@@ -7,6 +7,23 @@ import {
   ProjectRoles,
   UITypes,
 } from 'nocodb-sdk';
+import { T } from 'nc-help';
+import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
+import { NcError } from '../helpers/catchError';
+import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
+import getColumnUiType from '../helpers/getColumnUiType';
+import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
+import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
+import {
+  Audit,
+  Column,
+  Model,
+  ModelRoleVisibility,
+  Project
+} from '../models';
+import Noco from '../Noco';
+import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
+import { validatePayload } from '../helpers';
 import { AppEvents } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';

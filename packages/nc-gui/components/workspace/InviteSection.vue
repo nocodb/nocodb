@@ -41,6 +41,12 @@ watch(inviteData, (newVal) => {
       emailValidation.message = 'invalid email'
       return
     }
+    // if email is already enterd we just ignore the input
+    // no error is thrown
+    if (emailBadges.value.includes(newVal.email.split(',')[0])) {
+      inviteData.email = ''
+      return
+    }
     emailBadges.value.push(newVal.email.split(',')[0])
     inviteData.email = ''
   }

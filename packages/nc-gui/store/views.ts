@@ -1,4 +1,4 @@
-import type { ViewType } from 'nocodb-sdk'
+import { type ViewType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { ViewPageType } from '~/lib'
 
@@ -136,6 +136,40 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const isLockedView = computed(() => activeView.value?.lock_type === 'locked')
 
+  const navigateToView = async ({
+    view,
+    projectId,
+    tableId,
+    hardReload,
+  }: {
+    view: ViewType
+    projectId: string
+    tableId: string
+    hardReload?: boolean
+  }) => {
+    const routeName = 'index-typeOrId-projectId-index-index-viewId-viewTitle'
+
+    if (
+      router.currentRoute.value.query &&
+      router.currentRoute.value.query.page &&
+      router.currentRoute.value.query.page === 'fields'
+    ) {
+      await router.push({
+        name: routeName,
+        params: { viewTitle: view.id || '', viewId: tableId, projectId },
+        query: router.currentRoute.value.query,
+      })
+    } else {
+      await router.push({ name: routeName, params: { viewTitle: view.id || '', viewId: tableId, projectId } })
+    }
+
+    if (hardReload) {
+      await router.replace({ name: routeName, query: { reload: 'true' }, params: { viewId: tableId, projectId } }).then(() => {
+        router.replace({ name: routeName, query: {}, params: { viewId: tableId, projectId } })
+      })
+    }
+  }
+
   return {
     isLockedView,
     isViewsLoading,
@@ -149,6 +183,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     sharedView,
     viewsByTable,
     activeViewTitleOrId,
+    navigateToView,
   }
 })
 

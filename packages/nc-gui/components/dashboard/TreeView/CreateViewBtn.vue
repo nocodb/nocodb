@@ -9,9 +9,10 @@ const router = useRouter()
 const { refreshCommandPalette } = useCommandPalette()
 const viewsStore = useViewsStore()
 const { views } = storeToRefs(viewsStore)
-const { loadViews } = viewsStore
+const { loadViews, navigateToView } = viewsStore
 
 const table = inject(SidebarTableInj)!
+const project = inject(ProjectInj)!
 
 const isOpen = ref(false)
 
@@ -46,7 +47,11 @@ function onOpenModal({
 
       await loadViews()
 
-      router.push({ params: { viewTitle: view.id || '' } })
+      navigateToView({
+        view,
+        tableId: table.value.id!,
+        projectId: project.value.id!,
+      })
 
       $e('a:view:create', { view: view.type })
     },

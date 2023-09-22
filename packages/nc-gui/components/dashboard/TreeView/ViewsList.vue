@@ -53,6 +53,8 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineModelScope } = useUndoRedo()
 
+const { navigateToView } = useViewsStore()
+
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
 
@@ -187,31 +189,12 @@ onMounted(() => menuRef.value && initSortable(menuRef.value.$el))
 
 /** Navigate to view by changing url param */
 function changeView(view: ViewType) {
-  const routeName = 'index-typeOrId-projectId-index-index-viewId-viewTitle'
-  if (
-    router.currentRoute.value.query &&
-    router.currentRoute.value.query.page &&
-    router.currentRoute.value.query.page === 'fields'
-  ) {
-    router.push({
-      name: routeName,
-      params: { viewTitle: view.id || '', viewId: table.value.id, projectId: project.value.id },
-      query: router.currentRoute.value.query,
-    })
-  } else {
-    router.push({ name: routeName, params: { viewTitle: view.id || '', viewId: table.value.id, projectId: project.value.id } })
-  }
-
-  if (view.type === ViewTypes.FORM && selected.value[0] === view.id) {
-    // reload the page if the same form view is clicked
-    // router.go(0)
-    // fix me: router.go(0) reloads entire page. need to reload only the form view
-    router
-      .replace({ name: routeName, query: { reload: 'true' }, params: { viewId: table.value.id, projectId: project.value.id } })
-      .then(() => {
-        router.replace({ name: routeName, query: {}, params: { viewId: table.value.id, projectId: project.value.id } })
-      })
-  }
+  navigateToView({
+    view,
+    tableId: table.value.id!,
+    projectId: project.value.id!,
+    hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
+  })
 }
 
 /** Rename a view */

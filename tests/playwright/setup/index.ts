@@ -79,17 +79,16 @@ const extPgProject = (workspaceId, title, parallelId, projectType) => ({
   type: projectType,
   bases: [
     {
-      type: 'pg',
+      type: 'mysql2',
       config: {
-        client: 'pg',
+        client: 'mysql2',
         connection: {
           host: 'localhost',
-          port: '5432',
-          user: 'postgres',
+          port: '3306',
+          user: 'root',
           password: 'password',
-          database: `sakila${parallelId}`,
+          database: `test_sakila_${parallelId}`,
         },
-        searchPath: ['public'],
       },
       inflection_column: 'camelize',
       inflection_table: 'camelize',
@@ -350,7 +349,7 @@ const setup = async ({
   isSuperUser?: boolean;
   url?: string;
 }): Promise<NcContext> => {
-  let dbType = process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE;
+  let dbType = 'mysql'; // process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE;
   dbType = dbType || (isEE() ? 'pg' : 'sqlite');
 
   let response;

@@ -157,20 +157,19 @@ const canUserEditEmote = computed(() => {
 
         <NcDropdown
           v-if="
-            !isSharedBase && (isUIAllowed('tableRename', { roles: projectRole }) || isUIAllowed('tableDelete', { roles: projectRole }))
+            !isSharedBase &&
+            (isUIAllowed('tableRename', { roles: projectRole }) || isUIAllowed('tableDelete', { roles: projectRole }))
           "
           :trigger="['click']"
           @click.stop
         >
-          <NcButton
-            class="nc-sidebar-node-btn nc-tbl-context-menu"
-            data-testid="nc-sidebar-table-context-menu"
-            type="text"
-            size="xxsmall"
-            @click.stop
-          >
-            <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
-          </NcButton>
+          <MdiDotsHorizontal
+            class="min-w-5.75 min-h-5.75 mt-0.2 mr-0.25 px-0.5 transition-opacity opacity-0 group-hover:opacity-100 nc-tbl-context-menu outline-0 rounded-md hover:(bg-gray-500 bg-opacity-15 !text-black)"
+            :class="{
+              '!text-gray-600': openedTableId !== table.id,
+              '!text-black': openedTableId === table.id,
+            }"
+          />
 
           <template #overlay>
             <NcMenu :data-testid="`nc-sidebar-table-${table.title}-options`">

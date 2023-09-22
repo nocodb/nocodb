@@ -482,7 +482,7 @@ onMounted(() => {
 <template>
   <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
     <div
-      class="ml-1 nc-project-sub-menu rounded-md"
+      class="ml-1 mr-0.5 nc-project-sub-menu rounded-md"
       :class="{ active: isExpanded }"
       :data-testid="`nc-sidebar-project-${project.title}`"
       :data-project-id="project.id"
@@ -553,7 +553,11 @@ onMounted(() => {
           </span>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>
 
-          <NcDropdown v-model:visible="isOptionsOpen" trigger="click">
+          <NcDropdown
+            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
+            v-model:visible="isOptionsOpen"
+            :trigger="['click']"
+          >
             <NcButton
               class="nc-sidebar-node-btn"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"

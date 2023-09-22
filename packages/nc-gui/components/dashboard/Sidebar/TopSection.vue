@@ -12,8 +12,6 @@ const { navigateToWorkspaceSettings } = workspaceStore
 
 const { isSharedBase } = storeToRefs(projectStore)
 
-const { isUIAllowedAcl } = useUIPermission()
-
 const isCreateProjectOpen = ref(false)
 
 const navigateToSettings = () => {

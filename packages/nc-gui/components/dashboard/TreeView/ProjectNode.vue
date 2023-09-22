@@ -450,7 +450,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
           </span>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>
 
-          <NcDropdown v-model:visible="isOptionsOpen" trigger="click">
+          <NcDropdown v-model:visible="isOptionsOpen" :trigger="['click']">
             <NcButton
               class="nc-sidebar-node-btn"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
@@ -481,11 +481,6 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                     {{ $t('general.rename') }}
                   </NcMenuItem>
 
-                  <!-- Copy Project Info -->
-                  <NcMenuItem v-if="!isEeUI" key="copy" v-e="['c:navbar:user:copy-proj-info']" @click.stop="copyProjectInfo">
-                    <GeneralIcon icon="copy" class="group-hover:text-black" />
-                    {{ $t('activity.account.projInfo') }}
-                  </NcMenuItem>
                   <NcMenuItem
                     v-if="isUIAllowed('projectDuplicate', { roles: [stringifyRolesObj(orgRoles), projectRole].join() })"
                     data-testid="nc-sidebar-project-duplicate"

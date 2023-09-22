@@ -74,7 +74,6 @@ const rolePermissions = {
       filterChildrenRead: true,
       viewFieldEdit: true,
       csvTableImport: true,
-      apiDocs: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -82,7 +81,6 @@ const rolePermissions = {
       commentEdit: true,
       commentList: true,
       commentCount: true,
-      apiDocs: true,
     },
   },
   [ProjectRoles.VIEWER]: {

@@ -44,6 +44,20 @@ const insertOrUpdateString = (str: string) => {
   emailBadges.value.push(str)
 }
 
+const emailInputValidation = (input: string): boolean => {
+  if (input.length < 1) {
+    emailValidation.isError = true
+    emailValidation.message = 'Email Should Not Be Empty'
+    return false
+  }
+  if (!validateEmail(input.trim())) {
+    emailValidation.isError = true
+    emailValidation.message = 'Invalid Email'
+    return false
+  }
+  return true
+}
+
 watch(inviteData, (newVal) => {
   const isNewEmail = newVal.email.charAt(newVal.email.length - 1) === ',' || newVal.email.charAt(newVal.email.length - 1) === ' '
   if (isNewEmail && newVal.email.trim().length > 1) {
@@ -71,16 +85,9 @@ watch(inviteData, (newVal) => {
 })
 
 const handleEnter = () => {
-  if (inviteData.email.length < 1) {
-    emailValidation.isError = true
-    emailValidation.message = 'Email Should Not Be Empty'
-    return
-  }
-  if (!validateEmail(inviteData.email.trim())) {
-    emailValidation.isError = true
-    emailValidation.message = 'Invalid Email'
-    return
-  }
+  const isEmailIsValid = emailInputValidation(inviteData.email)
+  if (!isEmailIsValid) return
+
   inviteData.email += ' '
   emailValidation.isError = false
   emailValidation.message = ''
@@ -144,16 +151,10 @@ const onPaste = (e: ClipboardEvent) => {
     inputArray[0] = inviteData.email += inputArray[0]
   }
   inputArray?.forEach((el) => {
-    if (el.length < 1) {
-      emailValidation.isError = true
-      emailValidation.message = 'Email Should Not Be Empty'
-      return
-    }
-    if (!validateEmail(el.trim())) {
-      emailValidation.isError = true
-      emailValidation.message = 'Invalid Email'
-      return
-    }
+    const isEmailIsValid = emailInputValidation(el)
+
+    if (!isEmailIsValid) return
+
     /** 
      if email is already enterd we delete the already
      existing email and add new one
@@ -172,7 +173,6 @@ const onPaste = (e: ClipboardEvent) => {
 
 <template>
   <div class="my-2 pt-3 ml-2" data-testid="invite">
-    <div class="text-xl mb-4">Invite</div>
     <div class="flex gap-2">
       <div class="flex flex-col items-cenyet">
         <div

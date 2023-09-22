@@ -73,7 +73,7 @@ loadTokens()
 const isModalOpen = ref(false)
 const tokenDesc = ref('')
 const tokenToCopy = ref('')
-const isTokenNameEmpty = ref(false)
+const isInvalidInput = ref(false)
 
 const deleteToken = async (token: string): Promise<void> => {
   try {
@@ -90,9 +90,9 @@ const deleteToken = async (token: string): Promise<void> => {
 }
 
 const generateToken = async () => {
-  isTokenNameEmpty.value = !selectedTokenData.value.description?.length || selectedTokenData.value.description?.length > 255
+  isInvalidInput.value = !selectedTokenData.value.description?.length || selectedTokenData.value.description?.length > 255
 
-  if (isTokenNameEmpty.value) return
+  if (isInvalidInput.value) return
   try {
     await api.orgTokens.create(selectedTokenData.value)
     showNewTokenModal.value = false
@@ -100,6 +100,8 @@ const generateToken = async () => {
     // message.success(t('msg.success.tokenGenerated'))
     selectedTokenData.value = {}
     await loadTokens()
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     $e('a:api-token:generate')
   }
@@ -128,16 +130,17 @@ const triggerDeleteModal = (tokenToDelete: string, tokenDescription: string) => 
 const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
 const errorMessage = computed(() => {
-  if (!selectedTokenData.value.description?.length) {
+  const tokenLength = selectedTokenData.value.description?.length
+  if (!tokenLength) {
     return 'Token name should not be empty'
-  } else if (selectedTokenData.value.description?.length > 255) {
+  } else if (tokenLength > 255) {
     return 'Token name should not be more than 255 characters'
   }
 })
 
 const handleCancel = () => {
   showNewTokenModal.value = false
-  isTokenNameEmpty.value = false
+  isInvalidInput.value = false
 }
 </script>
 
@@ -182,7 +185,7 @@ const handleCancel = () => {
                     placeholder="Token Name"
                     data-testid="nc-token-input"
                   />
-                  <span v-if="isTokenNameEmpty" class="text-red-500 text-xs font-light mt-1.5 ml-1">{{ errorMessage }} </span>
+                  <span v-if="isInvalidInput" class="text-red-500 text-xs font-light mt-1.5 ml-1">{{ errorMessage }} </span>
                 </div>
                 <div class="flex gap-2 justify-start">
                   <NcButton v-if="!isLoading" type="secondary" size="small" @click="handleCancel">

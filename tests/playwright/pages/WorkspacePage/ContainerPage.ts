@@ -55,7 +55,7 @@ export class ContainerPage extends BasePage {
 
     // tabs
     this.projects = this.get().locator('.ant-tabs-tab:has-text("Projects")');
-    this.collaborators = this.get().locator('.ant-tabs-tab:has-text("Collaborators")');
+    this.collaborators = this.get().locator('.ant-tabs-tab:has-text("Members")');
     this.billing = this.get().locator('.ant-tabs-tab:has-text("Billing")');
     this.settings = this.get().locator('.ant-tabs-tab:has-text("Settings")');
 

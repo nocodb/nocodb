@@ -885,7 +885,7 @@ export async function singleQueryList(ctx: {
   }:queries`;
 
   await ctx.model.getColumns();
-  let queryExecTime;
+  let dbQueryTime;
 
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
@@ -895,7 +895,7 @@ export async function singleQueryList(ctx: {
         +listArgs.limit,
         +listArgs.offset,
       ]);
-      queryExecTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+      dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
 
       const res = rawRes[0];
 
@@ -914,8 +914,7 @@ export async function singleQueryList(ctx: {
         },
         {
           stats: {
-            handler: null,
-            query: queryExecTime,
+            dbQueryTime,
           },
         },
       );
@@ -1028,7 +1027,7 @@ export async function singleQueryList(ctx: {
   if (skipCache) {
     const startTime = process.hrtime();
     res = await finalQb;
-    queryExecTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+    dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   } else {
     const { sql, bindings } = finalQb.toSQL();
 
@@ -1053,7 +1052,7 @@ export async function singleQueryList(ctx: {
     const startTime = process.hrtime();
     // run the query with actual limit and offset
     res = (await knex.raw(query, [+listArgs.limit, +listArgs.offset]))[0];
-    queryExecTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+    dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   }
 
   // update attachment fields
@@ -1071,8 +1070,7 @@ export async function singleQueryList(ctx: {
     },
     {
       stats: {
-        handler: null,
-        query: queryExecTime,
+        dbQueryTime,
       },
     },
   );

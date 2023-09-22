@@ -30,6 +30,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import getAst from '~/helpers/getAst';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
+import { parseHrtimeToMilliSeconds } from '~/helpers';
 
 export function generateNestedRowSelectQuery({
   knex,
@@ -845,7 +846,7 @@ export async function singleQueryList(ctx: {
     throw new Error('Base is not postgres');
   }
 
-  let queryExecTime;
+  let dbQueryTime;
   let skipCache = process.env.NC_DISABLE_CACHE === 'true';
 
   // skip using cached query if sortArr or filterArr is present since it will be different query
@@ -882,7 +883,7 @@ export async function singleQueryList(ctx: {
         +listArgs.limit,
         +listArgs.offset,
       ]);
-      queryExecTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+      dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
 
       const res = rawRes?.rows;
 
@@ -901,7 +902,7 @@ export async function singleQueryList(ctx: {
         },
         {
           stats: {
-            query: queryExecTime,
+            dbQueryTime,
           },
         },
       );
@@ -1015,7 +1016,7 @@ export async function singleQueryList(ctx: {
   if (skipCache) {
     const startTime = process.hrtime();
     res = await finalQb;
-    queryExecTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+    dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   } else {
     const { sql, bindings } = finalQb.toSQL();
 
@@ -1040,7 +1041,7 @@ export async function singleQueryList(ctx: {
     const startTime = process.hrtime();
     // run the query with actual limit and offset
     res = (await knex.raw(query, [+listArgs.limit, +listArgs.offset])).rows;
-    queryExecTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+    dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   }
 
   // update attachment fields
@@ -1055,6 +1056,11 @@ export async function singleQueryList(ctx: {
       count: +res[0]?.__nc_count || 0,
       limit: +listArgs.limit,
       offset: +listArgs.offset,
+    },
+    {
+      stats: {
+        dbQueryTime: dbQueryTime,
+      },
     },
   );
 }

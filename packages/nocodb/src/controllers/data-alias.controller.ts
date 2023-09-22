@@ -44,12 +44,14 @@ export class DataAliasController {
       viewName: viewName,
       disableOptimization: opt === 'false',
     });
-    const elapsedMilliSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+    const elapsedMilliSeconds = parseHrtimeToMilliSeconds(
+      process.hrtime(startTime),
+    );
     res.setHeader('xc-db-response', elapsedMilliSeconds);
-    if(responseData.stats){
-      responseData.stats.handler = elapsedMilliSeconds
+    if (responseData['stats']) {
+      responseData['stats'].apiHandlingTime = elapsedMilliSeconds;
     }
-    
+
     res.json(responseData);
   }
 

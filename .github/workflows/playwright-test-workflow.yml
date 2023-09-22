@@ -55,8 +55,6 @@ jobs:
           kill -9 $(lsof -t -i:3000) || echo "no process running on 3000"
       - name: Set CI env
         run: export CI=true
-      - name: Set NC Edition
-        run: export EE=true
       - name: install dependencies
         run: pnpm bootstrap
       - name: Setup mysql

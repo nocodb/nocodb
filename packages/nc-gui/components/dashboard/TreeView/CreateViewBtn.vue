@@ -66,7 +66,7 @@ function onOpenModal({
 </script>
 
 <template>
-  <NcDropdown v-model:isOpen="isOpen" @click.stop="isOpen = !isOpen">
+  <NcDropdown v-model:isOpen="isOpen" destroy-popup-on-hide @click.stop="isOpen = !isOpen">
     <slot />
     <template #overlay>
       <NcMenu class="max-w-48">

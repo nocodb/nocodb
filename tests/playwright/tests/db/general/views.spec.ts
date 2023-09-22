@@ -109,7 +109,7 @@ test.describe('Views CRUD Operations', () => {
     await dashboard.rootPage.waitForTimeout(1000);
     await toolbar.searchData.verify('City-CityGrid');
 
-    await dashboard.viewSidebar.openView({ title: 'City' });
+    await dashboard.treeView.openTable({ title: 'City' });
     await dashboard.rootPage.waitForTimeout(1000);
     await toolbar.searchData.verify('City-City');
 
@@ -121,7 +121,7 @@ test.describe('Views CRUD Operations', () => {
     await toolbar.searchData.get().fill('Actor-ActorGrid');
     await toolbar.searchData.verify('Actor-ActorGrid');
 
-    await dashboard.viewSidebar.openView({ title: 'Actor' });
+    await dashboard.treeView.openTable({ title: 'Actor' });
     await dashboard.rootPage.waitForTimeout(1000);
     await toolbar.searchData.verify('');
 

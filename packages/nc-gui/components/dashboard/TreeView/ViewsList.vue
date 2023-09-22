@@ -32,6 +32,8 @@ const emits = defineEmits<Emits>()
 const project = inject(ProjectInj)!
 const table = inject(SidebarTableInj)!
 
+const { isUIAllowed } = useRoles()
+
 const { $e } = useNuxtApp()
 
 const isDefaultBase = computed(() => {

@@ -143,7 +143,6 @@ const isTableOpened = computed(() => {
       <template #title>{{ table.table_name }}</template>
       <div
         class="table-context flex items-center gap-1 h-full"
-        :data-testid="`tree-view-table-${table.title}`"
         @contextmenu="setMenuContext('table', table)"
         @click="openTable(table)"
       >

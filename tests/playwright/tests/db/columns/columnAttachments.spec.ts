@@ -14,7 +14,7 @@ test.describe('Attachment column', () => {
     await unsetup(context);
   });
 
-  test.only('Create and verify attachment column, verify it in shared form,', async ({ context }) => {
+  test('Create and verify attachment column, verify it in shared form,', async ({ context }) => {
     // run tests slowly
     test.slow();
 

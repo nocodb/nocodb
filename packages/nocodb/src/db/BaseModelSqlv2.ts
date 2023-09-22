@@ -134,7 +134,7 @@ class BaseModelSqlv2 {
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
 
-    const { ast, dependencyFields } = await getAst({
+    const { ast, dependencyFields, parsedQuery } = await getAst({
       query,
       model: this.model,
       view: ignoreView ? null : this.viewId && (await View.get(this.viewId)),
@@ -165,7 +165,7 @@ class BaseModelSqlv2 {
       data.__proto__ = proto;
     }
 
-    return data ? await nocoExecute(ast, data, {}, dependencyFields) : null;
+    return data ? await nocoExecute(ast, data, {}, parsedQuery) : null;
   }
 
   public async exist(id?: any): Promise<any> {
@@ -1629,7 +1629,31 @@ class BaseModelSqlv2 {
               const cCol = await Column.get({
                 colId: colOptions.fk_child_column_id,
               });
-              const readLoader = new DataLoader(async (ids: string[]) => {
+              const readLoader = new DataLoader(async (_ids: string[]) => {
+                // handle binary(16) foreign keys
+                const ids = _ids.map((id) => {
+                  if (pCol.ct !== 'binary(16)') return id;
+
+                  //Cast the id to string.
+                  const idAsString = id + '';
+                  // Check if the id is a UUID and the column is binary(16)
+                  const isUUIDBinary16 =
+                    idAsString.length === 36 || idAsString.length === 32;
+                  // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
+                  const idAsUUID = isUUIDBinary16
+                    ? idAsString.length === 32
+                      ? idAsString.replace(
+                          /(.{8})(.{4})(.{4})(.{4})(.{12})/,
+                          '$1-$2-$3-$4-$5',
+                        )
+                      : idAsString
+                    : null;
+
+                  return idAsUUID
+                    ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
+                    : id;
+                });
+
                 const data = await (
                   await Model.getBaseModelSQL({
                     id: pCol.fk_model_id,
@@ -1637,14 +1661,22 @@ class BaseModelSqlv2 {
                   })
                 ).list(
                   {
-                    // limit: ids.length,
-                    where: `(${pCol.column_name},in,${ids.join(',')})`,
                     fieldsSet: (readLoader as any).args?.fieldsSet,
+                    filterArr: [
+                      new Filter({
+                        id: null,
+                        fk_column_id: pCol.id,
+                        fk_model_id: pCol.fk_model_id,
+                        value: ids as any[],
+                        comparison_op: 'in',
+                      }),
+                    ],
                   },
                   true,
                 );
+
                 const gs = groupBy(data, pCol.title);
-                return ids.map(async (id: string) => gs?.[id]?.[0]);
+                return _ids.map(async (id: string) => gs?.[id]?.[0]);
               });
 
               // defining HasMany count method within GQL Type class

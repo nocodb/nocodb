@@ -75,7 +75,7 @@ test.describe('Project Collaboration', () => {
 
     await dashboard.rootPage.goBack();
 
-    await dashboard.treeView.openProject({ title: context.project.title });
+    await dashboard.treeView.openProject({ title: context.project.title, context });
 
     // tab access validation
     await projectViewPage.verifyAccess('Owner');
@@ -104,6 +104,7 @@ test.describe('Project Collaboration', () => {
       role: user.role,
       projectTitle: context.project.title,
       tableTitle: 'Country',
+      context,
     });
     await dashboard.viewSidebar.validateRoleAccess({ role: user.role });
 

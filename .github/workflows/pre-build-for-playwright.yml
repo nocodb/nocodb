@@ -1,0 +1,80 @@
+name: pre-build-for-playwright
+
+on:
+  workflow_call:
+    inputs:
+      FORCE_RUN_PRERQUISITE_STEPS:
+        description: 'FORCE_RUN_PRERQUISITE_STEPS'
+        required: false
+        type: string  
+        default: 'false'
+
+jobs:
+  playwright:
+    runs-on: [self-hosted, aws]
+    timeout-minutes: 100
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: pre-requisite checks
+        shell: bash
+        run: |
+          node_version=$(node --version || echo "error")
+          pnpm_version=$(pnpm -v || echo "error")          
+          echo "node version: $node_version"
+          echo "pnpm version: $pnpm_version"
+          if [[ $node_version != v18* ]] || [[ $pnp_version != 8* ]]; then
+            echo "version mismatch: expected node v18 and pnpm v8"
+            RUN_PRERQUISITE_STEPS="true"  
+          elif [[ ${FORCE_RUN_PRERQUISITE_STEPS} == "true" ]];
+              # || [[ ! -f ${PRE_REQ_CHECK_FILE_PATH} ]];
+          then
+            echo "FORCE_RUN_PRERQUISITE_STEPS is true"
+            RUN_PRERQUISITE_STEPS="true"
+          else
+            RUN_PRERQUISITE_STEPS="false"  
+          fi
+          echo "RUN_PRERQUISITE_STEPS=${RUN_PRERQUISITE_STEPS}" >> $GITHUB_ENV
+      - name: Setup Node
+        if: env.RUN_PRERQUISITE_STEPS == 'true'
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.14.0
+      - name: Setup pnpm
+        if: env.RUN_PRERQUISITE_STEPS == 'true'
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - uses: actions/cache@v3
+        if: env.RUN_PRERQUISITE_STEPS == 'true'
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - name: install dependencies
+        run: pnpm bootstrap
+      - name: run frontend
+        working-directory: ./packages/nc-gui
+        run: |
+          pnpm run build
+        timeout-minutes: 20
+      - name: Copy Artifacts to Local Artifacts Dir
+        if: always()
+        working-directory: ./
+        run: |
+          # expects the variables to be available in runner context.
+          path="gh-artifacts/runs/${GITHUB_RUN_ID}/ui-build/"
+          target_dir="/mnt/${path}"
+          mkdir -p ${target_dir}
+
+          # start : add any artifacts to be copied here
+          cp -r ./packages/nc-gui/.output ${target_dir}/  || echo "playwright reports directory does not exists" >>  ${target_dir}/playwright-report/index.html
+
+          SUMMARY='[UI BUILD](http://65.21.27.147/'${path}')'
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY

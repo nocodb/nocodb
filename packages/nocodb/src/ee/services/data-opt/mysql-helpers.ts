@@ -30,6 +30,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import getAst from '~/helpers/getAst';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
+import { parseHrtimeToMilliSeconds } from '~/helpers';
 
 export function generateNestedRowSelectQuery({
   knex,
@@ -884,20 +885,17 @@ export async function singleQueryList(ctx: {
   }:queries`;
 
   await ctx.model.getColumns();
-
-  const baseModel = await Model.getBaseModelSQL({
-    model: ctx.model,
-    viewId: ctx.view?.id,
-    dbDriver: knex,
-  });
+  let queryExecTime;
 
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {
+      const startTime = process.hrtime();
       const rawRes = await knex.raw(cachedQuery, [
         +listArgs.limit,
         +listArgs.offset,
       ]);
+      queryExecTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
 
       const res = rawRes[0];
 
@@ -914,9 +912,21 @@ export async function singleQueryList(ctx: {
           limit: +listArgs.limit,
           offset: +listArgs.offset,
         },
+        {
+          stats: {
+            handler: null,
+            query: queryExecTime,
+          },
+        },
       );
     }
   }
+
+  const baseModel = await Model.getBaseModelSQL({
+    model: ctx.model,
+    viewId: ctx.view?.id,
+    dbDriver: knex,
+  });
   // load columns list
   const columns = await ctx.model.getColumns();
 
@@ -1016,7 +1026,9 @@ export async function singleQueryList(ctx: {
 
   let res: any;
   if (skipCache) {
+    const startTime = process.hrtime();
     res = await finalQb;
+    queryExecTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   } else {
     const { sql, bindings } = finalQb.toSQL();
 
@@ -1038,8 +1050,10 @@ export async function singleQueryList(ctx: {
     // cache query for later use
     await NocoCache.set(cacheKey, query);
 
+    const startTime = process.hrtime();
     // run the query with actual limit and offset
     res = (await knex.raw(query, [+listArgs.limit, +listArgs.offset]))[0];
+    queryExecTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   }
 
   // update attachment fields
@@ -1054,6 +1068,12 @@ export async function singleQueryList(ctx: {
       count: +res[0]?.__nc_count || 0,
       limit: +listArgs.limit,
       offset: +listArgs.offset,
+    },
+    {
+      stats: {
+        handler: null,
+        query: queryExecTime,
+      },
     },
   );
 }

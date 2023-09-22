@@ -845,6 +845,7 @@ export async function singleQueryList(ctx: {
     throw new Error('Base is not postgres');
   }
 
+  let queryExecTime;
   let skipCache = process.env.NC_DISABLE_CACHE === 'true';
 
   // skip using cached query if sortArr or filterArr is present since it will be different query
@@ -876,10 +877,12 @@ export async function singleQueryList(ctx: {
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {
+      const startTime = process.hrtime();
       const rawRes = await knex.raw(cachedQuery, [
         +listArgs.limit,
         +listArgs.offset,
       ]);
+      queryExecTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
 
       const res = rawRes?.rows;
 
@@ -895,6 +898,11 @@ export async function singleQueryList(ctx: {
           count: +res[0]?.__nc_count || 0,
           limit: +listArgs.limit,
           offset: +listArgs.offset,
+        },
+        {
+          stats: {
+            query: queryExecTime,
+          },
         },
       );
     }
@@ -1005,7 +1013,9 @@ export async function singleQueryList(ctx: {
 
   let res: any;
   if (skipCache) {
+    const startTime = process.hrtime();
     res = await finalQb;
+    queryExecTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   } else {
     const { sql, bindings } = finalQb.toSQL();
 
@@ -1027,8 +1037,10 @@ export async function singleQueryList(ctx: {
     // cache query for later use
     await NocoCache.set(cacheKey, query);
 
+    const startTime = process.hrtime();
     // run the query with actual limit and offset
     res = (await knex.raw(query, [+listArgs.limit, +listArgs.offset])).rows;
+    queryExecTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   }
 
   // update attachment fields

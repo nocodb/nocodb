@@ -30,7 +30,7 @@ for commit_info in "${commit_data[@]}"; do
   commit_author_mail=$(echo "$commit_info" | cut -d'|' -f3)
   commit_message=$(echo "$commit_info" | cut -d'|' -f4)
 
-  git cherry-pick "$commit_sha" --no-commit
+  git cherry-pick -X theirs "$commit_sha" --no-commit
 
   cat ../nocohub/scripts/sync/exclude-list.txt | sed 's/^/":/;s/$/"/' | tr '\n' ' ' | xargs git reset --
 

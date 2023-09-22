@@ -8,7 +8,18 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const router = useRouter()
   const route = router.currentRoute
 
-  const views = ref<ViewType[]>([])
+  const tablesStore = useTablesStore()
+
+  const viewsByTable = ref<Map<string, ViewType[]>>(new Map())
+  const views = computed({
+    get: () => (tablesStore.activeTableId ? viewsByTable.value.get(tablesStore.activeTableId) : []) ?? [],
+    set: (value) => {
+      if (!tablesStore.activeTableId) return
+      if (!value) return viewsByTable.value.delete(tablesStore.activeTableId)
+
+      viewsByTable.value.set(tablesStore.activeTableId, value)
+    },
+  })
   const isViewsLoading = ref(true)
   const isViewDataLoading = ref(true)
   const isPublic = computed(() => route.value.meta?.public)
@@ -70,16 +81,20 @@ export const useViewsStore = defineStore('viewsStore', () => {
   // Used for Grid View Pagination
   const isPaginationLoading = ref(false)
 
-  const tablesStore = useTablesStore()
+  const loadViews = async ({ tableId, ignoreLoading }: { tableId?: string; ignoreLoading?: boolean } = {}) => {
+    tableId = tableId ?? tablesStore.activeTableId
+    if (tableId) {
+      if (!ignoreLoading) isViewsLoading.value = true
 
-  const loadViews = async () => {
-    if (tablesStore.activeTableId) {
-      isViewsLoading.value = true
-      const response = (await $api.dbView.list(tablesStore.activeTableId)).list as ViewType[]
+      const response = (await $api.dbView.list(tableId)).list as ViewType[]
       if (response) {
-        views.value = response.sort((a, b) => a.order! - b.order!)
+        viewsByTable.value.set(
+          tableId,
+          response.sort((a, b) => a.order! - b.order!),
+        )
       }
-      isViewsLoading.value = false
+
+      if (!ignoreLoading) isViewsLoading.value = false
     }
   }
 
@@ -132,6 +147,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     openedViewsTab,
     onViewsTabChange,
     sharedView,
+    viewsByTable,
+    activeViewTitleOrId,
   }
 })
 

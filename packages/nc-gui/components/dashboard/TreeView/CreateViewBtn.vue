@@ -71,7 +71,7 @@ function onOpenModal({
     <template #overlay>
       <NcMenu class="max-w-48">
         <NcMenuItem @click="onOpenModal({ type: ViewTypes.GRID })">
-          <div class="item">
+          <div class="item" data-testid="sidebar-view-create-grid">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.GRID }" />
               <div>Grid</div>
@@ -82,7 +82,7 @@ function onOpenModal({
         </NcMenuItem>
 
         <NcMenuItem @click="onOpenModal({ type: ViewTypes.FORM })">
-          <div class="item">
+          <div class="item" data-testid="sidebar-view-create-form">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.FORM }" />
               <div>Form</div>
@@ -92,7 +92,7 @@ function onOpenModal({
           </div>
         </NcMenuItem>
         <NcMenuItem @click="onOpenModal({ type: ViewTypes.GALLERY })">
-          <div class="item">
+          <div class="item" data-testid="sidebar-view-create-gallery">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.GALLERY }" />
               <div>Gallery</div>
@@ -101,7 +101,7 @@ function onOpenModal({
             <GeneralIcon class="plus" icon="plus" />
           </div>
         </NcMenuItem>
-        <NcMenuItem @click="onOpenModal({ type: ViewTypes.KANBAN })">
+        <NcMenuItem data-testid="sidebar-view-create-kanban" @click="onOpenModal({ type: ViewTypes.KANBAN })">
           <div class="item">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.KANBAN }" />

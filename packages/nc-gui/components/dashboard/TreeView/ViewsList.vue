@@ -346,7 +346,10 @@ function onOpenModal({
 </script>
 
 <template>
-  <DashboardTreeViewCreateViewBtn :overlay-class-name="isDefaultBase ? '!left-18 !min-w-42' : '!left-25 !min-w-42'">
+  <DashboardTreeViewCreateViewBtn
+    v-if="isUIAllowed('viewCreateOrEdit')"
+    :overlay-class-name="isDefaultBase ? '!left-18 !min-w-42' : '!left-25 !min-w-42'"
+  >
     <NcButton
       type="text"
       size="xsmall"

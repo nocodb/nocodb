@@ -152,7 +152,6 @@ const availableTables = computed(() => {
           class="nc-tree-item text-sm"
           :data-order="table.order"
           :data-id="table.id"
-          :data-testid="`tree-view-table-${table.title}`"
           :table="table"
           :project="project"
           :base-index="baseIndex"

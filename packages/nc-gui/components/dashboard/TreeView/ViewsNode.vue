@@ -270,7 +270,7 @@ function onRef(el: HTMLElement) {
           <NcButton
             type="text"
             size="xxsmall"
-            class="nc-sidebar-node-btn invisible !group-hover:visible"
+            class="nc-sidebar-node-btn invisible !group-hover:visible nc-sidebar-view-node-context-btn"
             :class="{
               '!visible': isDropdownOpen,
             }"
@@ -286,15 +286,15 @@ function onRef(el: HTMLElement) {
                 <div class="-ml-0.25">Rename</div>
               </NcMenuItem>
               <NcMenuItem @click.stop="onDuplicate">
-                <GeneralIcon icon="duplicate" />
+                <GeneralIcon icon="duplicate" class="nc-view-copy-icon" />
                 Duplicate
               </NcMenuItem>
 
               <NcDivider />
 
               <template v-if="!vModel.is_default">
-                <NcMenuItem class="!text-red-500" @click.stop="onDelete">
-                  <GeneralIcon icon="delete" class="text-sm" />
+                <NcMenuItem class="!text-red-500" l @click.stop="onDelete">
+                  <GeneralIcon icon="delete" class="text-sm nc-view-delete-icon" />
                   <div class="-ml-0.25">Delete</div>
                 </NcMenuItem>
               </template>

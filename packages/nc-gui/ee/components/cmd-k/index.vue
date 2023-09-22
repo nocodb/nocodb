@@ -150,6 +150,15 @@ const actionListGroupedBySection = computed(() => {
 
 const keys = useMagicKeys()
 
+
+const { ctrl_k } = useMagicKeys({
+  passive: false,
+  onEventFired(e) {
+    if (e.ctrlKey && e.key === 'k' && e.type === 'keydown')
+      e.preventDefault()
+  },
+})
+
 const setAction = (action: string) => {
   selected.value = action
   nextTick(() => {
@@ -221,6 +230,9 @@ const fireAction = (action: CmdAction, preview = false) => {
 whenever(keys[props.hotkey || 'Meta+K'], () => {
   show()
 })
+
+
+whenever(ctrl_k, () => show())
 
 whenever(keys.Escape, () => {
   if (vOpen.value) hide()

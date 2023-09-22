@@ -631,10 +631,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                               </div>
                             </a-tooltip>
                           </div>
-                          <div
-                            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
-                            class="flex flex-row items-center gap-x-0.25 w-12.25"
-                          >
+                          <div class="flex flex-row items-center gap-x-0.25 w-12.25">
                             <NcDropdown
                               :visible="isBasesOptionsOpen[base!.id!]"
                               :trigger="['click']"

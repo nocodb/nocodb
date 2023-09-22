@@ -64,11 +64,15 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       size: 10,
     })
 
+    const isChildrenLoading = ref(false)
+
     const isChildrenListLoading = ref<Array<boolean>>([])
 
     const isChildrenListLinked = ref<Array<boolean>>([])
 
     const isChildrenExcludedListLoading = ref<Array<boolean>>([])
+
+    const isChildrenExcludedLoading = ref(false)
 
     const isChildrenExcludedListLinked = ref<Array<boolean>>([])
 
@@ -127,6 +131,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const loadChildrenExcludedList = async (activeState?: any) => {
       if (activeState) newRowState.state = activeState
       try {
+        isChildrenExcludedLoading.value = true
         if (isPublic.value) {
           const router = useRouter()
 
@@ -212,11 +217,16 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
       } catch (e: any) {
         message.error(`${t('msg.error.failedToLoadList')}: ${await extractSdkResponseErrorMsg(e)}`)
+      } finally {
+        setTimeout(() => {
+          isChildrenExcludedLoading.value = false
+        }, 600)
       }
     }
 
     const loadChildrenList = async () => {
       try {
+        isChildrenLoading.value = true
         if (colOptions.value.type === 'bt') return
         if (!rowId.value || !column.value) return
         if (isPublic.value) {
@@ -262,6 +272,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
       } catch (e: any) {
         message.error(`${t('msg.error.failedToLoadChildrenList')}: ${await extractSdkResponseErrorMsg(e)}`)
+      } finally {
+        setTimeout(() => {
+          isChildrenLoading.value = false
+        }, 600)
       }
     }
 
@@ -357,8 +371,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       } catch (e: any) {
         message.error(`${t('msg.error.unlinkFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {
-        isChildrenExcludedListLoading.value[index] = false
-        isChildrenListLoading.value[index] = false
+        setTimeout(() => {
+          isChildrenExcludedListLoading.value[index] = false
+          isChildrenListLoading.value[index] = false
+        }, 600)
       }
 
       reloadData?.(false)
@@ -422,8 +438,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       } catch (e: any) {
         message.error(`Linking failed: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {
-        isChildrenExcludedListLoading.value[index] = false
-        isChildrenListLoading.value[index] = false
+        setTimeout(() => {
+          isChildrenExcludedListLoading.value[index] = false
+          isChildrenListLoading.value[index] = false
+        }, 600)
       }
 
       reloadData?.(false)
@@ -466,6 +484,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       isChildrenListLoading,
       isChildrenExcludedListLoading,
       row,
+      isChildrenLoading,
+      isChildrenExcludedLoading,
       deleteRelatedRow,
       getRelatedTableRowId,
     }

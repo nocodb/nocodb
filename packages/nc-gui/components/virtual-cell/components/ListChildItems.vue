@@ -12,6 +12,7 @@ import {
   computed,
   inject,
   isPrimary,
+  onKeyStroke,
   ref,
   useLTARStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
@@ -41,6 +42,7 @@ const {
   unlink,
   isChildrenListLoading,
   isChildrenListLinked,
+  isChildrenLoading,
   relatedTableMeta,
   row,
   link,
@@ -112,7 +114,13 @@ watch(
 )
 
 watch(expandedFormDlg, () => {
-  loadChildrenList()
+  if (!expandedFormDlg.value) {
+    loadChildrenList()
+  }
+})
+
+onKeyStroke('Escape', () => {
+  vModel.value = false
 })
 </script>
 
@@ -131,6 +139,7 @@ watch(expandedFormDlg, () => {
       :relation="relation"
       :linked-records="childrenListCount"
       :table-title="meta?.title"
+      :show-header="true"
       :related-table-title="relatedTableMeta?.title"
       :display-value="row.row[displayValueProp]"
     />
@@ -167,28 +176,33 @@ watch(expandedFormDlg, () => {
           }"
           class="overflow-scroll nc-scrollbar-md cursor-pointer pr-1"
         >
-          <LazyVirtualCellComponentsListItem
-            v-for="(refRow, id) in childrenList?.list ?? state?.[colTitle] ?? []"
-            :key="id"
-            :row="refRow"
-            :fields="fields"
-            data-testid="nc-child-list-item"
-            :attachment="attachmentCol"
-            :related-table-display-value-prop="relatedTableDisplayValueProp"
-            :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
-            :is-loading="isChildrenListLoading[Number.parseInt(id)]"
-            @expand="onClick(refRow)"
-            @click="
-              () => {
-                if (isPublic && !isForm) return
-                isNew
-                  ? unlinkRow(refRow, Number.parseInt(id))
-                  : isChildrenListLinked[Number.parseInt(id)]
-                  ? unlinkRow(refRow, Number.parseInt(id))
-                  : linkRow(refRow, Number.parseInt(id))
-              }
-            "
-          />
+          <template v-if="isChildrenLoading">
+            <a-skeleton v-for="(x, i) in Array.from({ length: 10 })" :key="i" active> </a-skeleton>
+          </template>
+          <template v-else>
+            <LazyVirtualCellComponentsListItem
+              v-for="(refRow, id) in childrenList?.list ?? state?.[colTitle] ?? []"
+              :key="id"
+              :row="refRow"
+              :fields="fields"
+              data-testid="nc-child-list-item"
+              :attachment="attachmentCol"
+              :related-table-display-value-prop="relatedTableDisplayValueProp"
+              :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
+              :is-loading="isChildrenListLoading[Number.parseInt(id)]"
+              @expand="onClick(refRow)"
+              @click="
+                () => {
+                  if (isPublic && !isForm) return
+                  isNew
+                    ? unlinkRow(refRow, Number.parseInt(id))
+                    : isChildrenListLinked[Number.parseInt(id)]
+                    ? unlinkRow(refRow, Number.parseInt(id))
+                    : linkRow(refRow, Number.parseInt(id))
+                }
+              "
+            />
+          </template>
         </div>
       </div>
     </template>
@@ -220,10 +234,10 @@ watch(expandedFormDlg, () => {
     <div class="my-2 bg-gray-50 border-gray-50 border-b-2"></div>
 
     <div class="flex flex-row justify-between bg-white relative pt-1">
-      <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-brand-500 bg-brand-50">
+      <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50">
         {{ childrenListCount || 0 }} records {{ childrenListCount !== 0 ? 'are' : '' }} linked
       </div>
-      <div v-else class="flex items-center justify-center px-2 rounded-md text-brand-500 bg-brand-50">
+      <div v-else class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50">
         {{ state?.[colTitle]?.length || 0 }} records {{ state?.[colTitle]?.length !== 0 ? 'are' : '' }} linked
       </div>
       <div class="flex absolute items-center py-2 justify-center w-full">

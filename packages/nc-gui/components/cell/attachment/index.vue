@@ -7,6 +7,7 @@ import {
   CurrentCellInj,
   DropZoneRef,
   IsExpandedFormOpenInj,
+  IsGalleryInj,
   RowHeightInj,
   iconMap,
   inject,
@@ -42,6 +43,8 @@ const sortableRef = ref<HTMLDivElement>()
 const currentCellRef = inject(CurrentCellInj, dropZoneInjection.value)
 
 const isLockedMode = inject(IsLockedInj, ref(false))
+
+const isGallery = inject(IsGalleryInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
@@ -200,8 +203,8 @@ const rowHeight = inject(RowHeightInj, ref())
     <template v-if="visibleItems.length">
       <div
         ref="sortableRef"
-        :class="{ dragging, 'justify-center': !isExpandedForm }"
-        class="flex cursor-pointer items-center flex-wrap gap-2 py-1.5 scrollbar-thin-dull overflow-hidden mt-0 items-start"
+        :class="{ 'justify-center': !isExpandedForm && !isGallery }"
+        class="flex cursor-pointer w-full items-center flex-wrap gap-2 py-1.5 scrollbar-thin-dull overflow-hidden mt-0 items-start"
         :style="{
           maxHeight: isForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
         }"
@@ -215,7 +218,12 @@ const rowHeight = inject(RowHeightInj, ref())
               <div
                 class="nc-attachment flex items-center flex-col flex-wrap justify-center"
                 :class="{ 'ml-2': active }"
-                @click.stop="selectedImage = item"
+                @click="
+                  () => {
+                    if (isGallery) return
+                    selectedImage = item
+                  }
+                "
               >
                 <LazyCellAttachmentImage
                   :alt="item.title || `#${i}`"

@@ -75,7 +75,9 @@ const fieldsWithoutCover = computed(() =>
   fields.value.filter((f) => f.id !== galleryData.value?.fk_cover_image_col_id && !isPrimary(f)),
 )
 
-const displayField = computed(() => meta.value?.columns?.find((c) => c.pv) ?? meta.value?.columns[0])
+const displayField = computed(() =>
+  meta.value?.columns?.find((c) => c.pv) ?? meta.value?.columns ? meta.value?.columns[0] : null,
+)
 
 const coverImageColumn: any = computed(() =>
   meta.value?.columnsById

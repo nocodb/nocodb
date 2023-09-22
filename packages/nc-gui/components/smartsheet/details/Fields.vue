@@ -207,6 +207,11 @@ const addField = (field?: TableExplorerColumn, before = false) => {
   changeField({})
 }
 
+const displayColumn = computed(() => {
+  if (!meta.value?.columns) return []
+  return meta.value?.columns.find((col) => col.pv)
+})
+
 const duplicateField = async (field: TableExplorerColumn) => {
   if (!meta.value?.columns) return
 
@@ -363,6 +368,9 @@ const fieldStatuses = computed<Record<string, string>>(() => {
       if (op.column.id) statuses[op.column.id] = 'delete'
     }
   }
+  for (const op of visibilityOps.value) {
+    if (op.column.id) statuses[op.column.id] = 'update'
+  }
   return statuses
 })
 
@@ -409,6 +417,7 @@ const saveChanges = async () => {
   const res = await $api.dbTableColumn.bulk(meta.value?.id, {
     hash: columnsHash.value,
     ops: ops.value,
+    moveOps: [],
     viewId: view.value?.id,
   })
 
@@ -492,6 +501,7 @@ onMounted(async () => {
             <NcButton
               type="secondary"
               size="small"
+              :loading="loading"
               :disabled="!loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1"
               @click="saveChanges()"
             >
@@ -513,7 +523,7 @@ onMounted(async () => {
             <Draggable v-model="fields" item-key="id" @change="onMove($event)">
               <template #item="{ element: field }">
                 <div
-                  v-if="field.title && field.title.toLowerCase().includes(searchQuery.toLowerCase())"
+                  v-if="field.title && field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"
                   class="flex px-2 mr-2 border-x-1 bg-white border-t-1 hover:bg-gray-100 first:rounded-t-lg last:border-b-1 last:rounded-b-lg pl-5 group"
                   :class="` ${compareCols(field, activeField) ? 'selected' : ''}`"
                   @click="changeField(field, $event)"
@@ -522,7 +532,6 @@ onMounted(async () => {
                     <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
                     <NcCheckbox
                       v-if="field.id && viewFieldsMap[field.id]"
-                      :disabled="field.pv"
                       :checked="
                         visibilityOps.find((op) => op.column.fk_column_id === field.id)?.visible ?? viewFieldsMap[field.id].show
                       "
@@ -617,10 +626,108 @@ onMounted(async () => {
                   </div>
                 </div>
               </template>
+              <template v-if="displayColumn" #header>
+                <div
+                  class="flex px-2 mr-2 border-x-1 bg-white border-t-1 hover:bg-gray-100 first:rounded-t-lg last:border-b-1 last:rounded-b-lg pl-5 group"
+                  :class="` ${compareCols(displayColumn, activeField) ? 'selected' : ''}`"
+                  @click="changeField(displayColumn, $event)"
+                >
+                  <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
+                    <component :is="iconMap.drag" v-if="!displayColumn" class="cursor-move !h-3.75 text-gray-600 mr-1" />
+                    <NcCheckbox :disabled="true" class="opacity-0" :checked="true" />
+                    <SmartsheetHeaderCellIcon
+                      v-if="displayColumn"
+                      :column-meta="fieldState(displayColumn) || displayColumn"
+                      :class="{
+                        'text-brand-500': compareCols(displayColumn, activeField),
+                      }"
+                    />
+                    <span
+                      :class="{
+                        'text-brand-500': compareCols(displayColumn, activeField),
+                      }"
+                    >
+                      {{ fieldState(displayColumn)?.title || displayColumn.title }}
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-end gap-1">
+                    <div class="flex items-center">
+                      <NcBadge
+                        v-if="fieldStatus(displayColumn) === 'delete'"
+                        color="red"
+                        :border="false"
+                        class="bg-red-50 text-red-700"
+                      >
+                        Deleted field
+                      </NcBadge>
+
+                      <NcBadge
+                        v-else-if="fieldStatus(displayColumn) === 'update'"
+                        color="orange"
+                        :border="false"
+                        class="bg-orange-50 text-orange-700"
+                      >
+                        Updated field
+                      </NcBadge>
+                    </div>
+                    <NcButton
+                      v-if="fieldStatus(displayColumn) === 'delete' || fieldStatus(displayColumn) === 'update'"
+                      type="secondary"
+                      size="small"
+                      class="no-action mr-2"
+                      :disabled="loading"
+                      @click="recoverField(displayColumn)"
+                    >
+                      <div class="flex items-center text-xs gap-1">
+                        <GeneralIcon icon="reload" />
+                        Restore
+                      </div>
+                    </NcButton>
+                    <a-dropdown v-else :trigger="['click']" overlay-class-name="nc-dropdown-table-explorer" @click.stop>
+                      <GeneralIcon icon="threeDotVertical" class="no-action opacity-0 group-hover:(opacity-100) text-gray-500" />
+
+                      <template #overlay>
+                        <a-menu>
+                          <a-menu-item key="table-explorer-duplicate" @click="duplicateField(displayColumn)">
+                            <div class="nc-project-menu-item">
+                              <Icon class="iconify text-gray-800" icon="lucide:copy" /><span>Duplicate</span>
+                            </div>
+                          </a-menu-item>
+                          <a-menu-item v-if="!field.pv" key="table-explorer-insert-above" @click="addField(displayColumn, true)">
+                            <div class="nc-project-menu-item">
+                              <Icon class="iconify text-gray-800" icon="lucide:arrow-up" /><span>Insert above</span>
+                            </div>
+                          </a-menu-item>
+                          <a-menu-item key="table-explorer-insert-below" @click="addField(displayColumn)">
+                            <div class="nc-project-menu-item">
+                              <Icon class="iconify text-gray-800" icon="lucide:arrow-down" /><span>Insert below</span>
+                            </div>
+                          </a-menu-item>
+
+                          <a-menu-divider class="my-0" />
+
+                          <a-menu-item key="table-explorer-delete" @click="onFieldDelete(displayColumn)">
+                            <div class="nc-project-menu-item group text-red-500">
+                              <GeneralIcon icon="delete" class="group-hover:text-accent" />
+                              Delete
+                            </div>
+                          </a-menu-item>
+                        </a-menu>
+                      </template>
+                    </a-dropdown>
+                    <MdiChevronRight
+                      class="text-brand-500 opacity-0"
+                      :class="{
+                        'opacity-100': compareCols(displayColumn, activeField),
+                      }"
+                    />
+                  </div>
+                </div>
+              </template>
             </Draggable>
           </div>
           <Transition name="slide-fade">
-            <div v-if="!changingField" class="flex p-2 mt-2 w-1/3 h-full border-gray-200 border-1 rounded-xl">
+            <div class="flex p-2 mt-2 w-1/3 border-gray-200 border-1 rounded-xl">
               <SmartsheetColumnEditOrAddProvider
                 v-if="activeField"
                 class="w-full"
@@ -632,9 +739,6 @@ onMounted(async () => {
                 @update="onFieldUpdate"
                 @add="onFieldAdd"
               />
-              <div v-else-if="loading" class="flex flex-col p-2 mt-2 w-full items-center">
-                <GeneralIcon icon="reload" class="animate-infinite animate-spin text-gray-500 w-[48px] h-[48px]" />
-              </div>
               <div v-else class="flex flex-col p-2 mt-2 gap-6 w-full items-center">
                 <img src="~assets/img/fieldPlaceholder.svg" class="!w-[18rem]" />
                 <div class="text-2xl text-gray-600 font-bold text-center">Select a field</div>

@@ -42,7 +42,9 @@ const moveOps = ref<moveOp[]>([])
 
 const visibilityOps = ref<fieldsVisibilityOps[]>([])
 
-const { fields: viewFields, toggleFieldVisibility } = useViewColumns(view, meta as Ref<TableType | undefined>)
+const selectedView = inject(ActiveViewInj)
+
+const { fields: viewFields, toggleFieldVisibility, saveOrUpdate } = useViewColumns(view, meta as Ref<TableType | undefined>)
 
 const loading = ref(false)
 
@@ -368,9 +370,6 @@ const fieldStatuses = computed<Record<string, string>>(() => {
       if (op.column.id) statuses[op.column.id] = 'delete'
     }
   }
-  for (const op of visibilityOps.value) {
-    if (op.column.id) statuses[op.column.id] = 'update'
-  }
   return statuses
 })
 
@@ -417,7 +416,6 @@ const saveChanges = async () => {
   const res = await $api.dbTableColumn.bulk(meta.value?.id, {
     hash: columnsHash.value,
     ops: ops.value,
-    moveOps: [],
     viewId: view.value?.id,
   })
 
@@ -473,22 +471,24 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full p-4" style="height: calc(100vh - (var(--topbar-height) * 2))">
-    <div class="h-full">
+  <div class="flex flex-col items-center w-full p-4" style="height: calc(100vh - (var(--topbar-height) * 2))">
+    <div class="h-full max-w-250 w-full">
       <div class="flex flex-col h-full">
-        <div class="flex px-2 w-full justify-between py-2">
-          <a-input v-model:value="searchQuery" class="!h-8 !px-1 !rounded-lg !w-1/3" placeholder="Search field">
-            <template #prefix>
-              <GeneralIcon icon="search" class="mx-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
-            </template>
-            <template #suffix>
-              <GeneralIcon
-                v-if="searchQuery.length > 0"
-                icon="close"
-                class="mx-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black"
-              />
-            </template>
-          </a-input>
+        <div class="flex w-full justify-between py-2">
+          <div class="flex flex-1 items-center gap-2">
+            <h1 class="font-bold text-base">Fields</h1>
+            <div class="flex bg-gray-100 items-center mb-1.5 rounded-lg px-2">
+              <LazyGeneralEmojiPicker :emoji="selectedView?.meta?.icon" readonly size="xsmall">
+                <template #default>
+                  <GeneralViewIcon :meta="{ type: selectedView?.type }" class="min-w-4.5 text-lg flex" />
+                </template>
+              </LazyGeneralEmojiPicker>
+
+              <span class="text-sm pl-1.25 text-gray-700 max-w-28/100">
+                {{ selectedView?.title }}
+              </span>
+            </div>
+          </div>
           <div class="flex gap-2">
             <NcButton
               type="secondary"
@@ -496,10 +496,10 @@ onMounted(async () => {
               :disabled="!loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1"
               @click="clearChanges()"
             >
-              Reset changes
+              Reset
             </NcButton>
             <NcButton
-              type="secondary"
+              type="primary"
               size="small"
               :loading="loading"
               :disabled="!loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1"
@@ -509,22 +509,35 @@ onMounted(async () => {
             </NcButton>
           </div>
         </div>
-        <div class="flex px-2 w-full justify-between py-2">
-          <NcButton type="secondary" size="small" :disabled="loading" @click="addField()">
-            <div class="flex items-center gap-2">
-              <GeneralIcon icon="plus" class="h-3.5 mb-1 w-3.5" />
-              New field
-            </div>
-          </NcButton>
-        </div>
 
-        <div class="flex h-full">
-          <div class="flex flex-col flex-1 p-2">
+        <div class="flex gap-x-4 overflow-y-auto">
+          <div class="flex flex-col flex-1 nc-scrollbar-md">
+            <div class="flex w-full justify-between pb-2 pr-1">
+              <a-input v-model:value="searchQuery" class="!h-8 !px-1 !rounded-lg !w-3/6" placeholder="Search field">
+                <template #prefix>
+                  <GeneralIcon icon="search" class="mx-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
+                </template>
+                <template #suffix>
+                  <GeneralIcon
+                    v-if="searchQuery.length > 0"
+                    icon="close"
+                    class="mx-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black"
+                    @click="searchQuery = ''"
+                  />
+                </template>
+              </a-input>
+              <NcButton type="secondary" size="small" :disabled="loading" @click="addField()">
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="plus" class="h-3.5 mb-1 w-3.5" />
+                  New field
+                </div>
+              </NcButton>
+            </div>
             <Draggable v-model="fields" item-key="id" @change="onMove($event)">
               <template #item="{ element: field }">
                 <div
                   v-if="field.title && field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"
-                  class="flex px-2 mr-2 border-x-1 bg-white border-t-1 hover:bg-gray-100 first:rounded-t-lg last:border-b-1 last:rounded-b-lg pl-5 group"
+                  class="flex px-2 mr-1 border-x-1 bg-white border-t-1 hover:bg-gray-100 first:rounded-t-lg last:border-b-1 last:rounded-b-lg pl-5 group"
                   :class="` ${compareCols(field, activeField) ? 'selected' : ''}`"
                   @click="changeField(field, $event)"
                 >
@@ -553,6 +566,7 @@ onMounted(async () => {
                       :class="{
                         'text-brand-500': compareCols(field, activeField),
                       }"
+                      class="truncate max-w-64"
                     >
                       {{ fieldState(field)?.title || field.title }}
                     </span>
@@ -561,6 +575,14 @@ onMounted(async () => {
                     <div class="flex items-center">
                       <NcBadge v-if="fieldStatus(field) === 'delete'" color="red" :border="false" class="bg-red-50 text-red-700">
                         Deleted field
+                      </NcBadge>
+                      <NcBadge
+                        v-else-if="fieldStatus(field) === 'add'"
+                        color="orange"
+                        :border="false"
+                        class="bg-green-50 text-green-700"
+                      >
+                        New field
                       </NcBadge>
 
                       <NcBadge
@@ -626,15 +648,15 @@ onMounted(async () => {
                   </div>
                 </div>
               </template>
-              <template v-if="displayColumn" #header>
+              <template v-if="displayColumn && displayColumn.title.toLowerCase().includes(searchQuery.toLowerCase())" #header>
                 <div
-                  class="flex px-2 mr-2 border-x-1 bg-white border-t-1 hover:bg-gray-100 first:rounded-t-lg last:border-b-1 last:rounded-b-lg pl-5 group"
+                  class="flex px-2 mr-1 border-x-1 bg-white border-t-1 hover:bg-gray-100 first:rounded-t-lg last:border-b-1 last:rounded-b-lg pl-5 group"
                   :class="` ${compareCols(displayColumn, activeField) ? 'selected' : ''}`"
                   @click="changeField(displayColumn, $event)"
                 >
                   <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
-                    <component :is="iconMap.drag" v-if="!displayColumn" class="cursor-move !h-3.75 text-gray-600 mr-1" />
-                    <NcCheckbox :disabled="true" class="opacity-0" :checked="true" />
+                    <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-200 mr-1" />
+                    <NcCheckbox :disabled="true" :checked="true" />
                     <SmartsheetHeaderCellIcon
                       v-if="displayColumn"
                       :column-meta="fieldState(displayColumn) || displayColumn"
@@ -726,8 +748,8 @@ onMounted(async () => {
               </template>
             </Draggable>
           </div>
-          <Transition name="slide-fade">
-            <div class="flex p-2 mt-2 w-1/3 border-gray-200 border-1 rounded-xl">
+          <Transition v-if="!changingField" name="slide-fade">
+            <div class="flex p-4 h-fit w-1/3 border-gray-200 border-1 rounded-xl">
               <SmartsheetColumnEditOrAddProvider
                 v-if="activeField"
                 class="w-full"
@@ -739,7 +761,7 @@ onMounted(async () => {
                 @update="onFieldUpdate"
                 @add="onFieldAdd"
               />
-              <div v-else class="flex flex-col p-2 mt-2 gap-6 w-full items-center">
+              <div v-else class="flex flex-col gap-6 w-full items-center">
                 <img src="~assets/img/fieldPlaceholder.svg" class="!w-[18rem]" />
                 <div class="text-2xl text-gray-600 font-bold text-center">Select a field</div>
                 <div class="text-center text-sm px-2 text-gray-500">

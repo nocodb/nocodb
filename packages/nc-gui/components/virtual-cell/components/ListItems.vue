@@ -218,24 +218,24 @@ onKeyStroke('Escape', () => {
               class="!border-2 flex flex-row gap-2 mb-2 transition-all !rounded-xl relative !border-gray-200 hover:bg-gray-50"
             >
               <a-skeleton-image class="h-24 w-24 !rounded-xl" />
-              <div class="flex flex-col m-[.75rem] gap-1 flex-grow justify-center">
-                <a-skeleton-input style="width: 200px" active size="small" />
-                <div class="flex flex-row gap-4 w-10/12">
+              <div class="flex flex-col m-[.5rem] gap-2 flex-grow justify-center">
+                <a-skeleton-input class="!w-48 !rounded-xl" active size="small" />
+                <div class="flex flex-row gap-6 w-10/12">
                   <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input style="width: 70px" active size="small" />
-                    <a-skeleton-input style="width: 140px" active size="small" />
+                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
                   </div>
                   <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input style="width: 70px" active size="small" />
-                    <a-skeleton-input style="width: 140px" active size="small" />
+                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
                   </div>
                   <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input style="width: 70px" active size="small" />
-                    <a-skeleton-input style="width: 140px" active size="small" />
+                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
                   </div>
                   <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input style="width: 70px" active size="small" />
-                    <a-skeleton-input style="width: 140px" active size="small" />
+                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
                   </div>
                 </div>
               </div>

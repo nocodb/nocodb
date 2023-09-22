@@ -101,7 +101,7 @@ watch(
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__access-settings">
               <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
-              <div>Collaborator</div>
+              <div>Members</div>
             </div>
           </template>
           <ProjectAccessSettings />

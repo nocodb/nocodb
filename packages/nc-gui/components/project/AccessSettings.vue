@@ -176,7 +176,7 @@ onMounted(async () => {
         v-else-if="!collaborators?.length"
         class="nc-collaborators-list w-full h-full flex flex-col items-center justify-center mt-36"
       >
-        <a-empty description="No collaborators found" />
+        <Empty description="No Members found" />
       </div>
       <div v-else class="nc-collaborators-list nc-scrollbar-md">
         <div class="nc-collaborators-list-header">

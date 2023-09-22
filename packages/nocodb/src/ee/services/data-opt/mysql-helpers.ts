@@ -611,13 +611,10 @@ export async function extractColumn({
         // our existing logic is based on UTC, during the query, we need to take the UTC value
         // hence, we use CONVERT_TZ to convert back to UTC value
         qb.select(
-          knex.raw(
-            `DATE_FORMAT(CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00'), '%Y-%m-%d %H:%i:%s+00:00') as ??`,
-            [
-              `${sanitize(rootAlias)}.${column.column_name}`,
-              sanitize(column.title),
-            ],
-          ),
+          knex.raw(`CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00') as ??`, [
+            `${sanitize(rootAlias)}.${column.column_name}`,
+            sanitize(column.title),
+          ]),
         );
       }
       break;
@@ -886,7 +883,6 @@ export async function singleQueryList(ctx: {
 
   await ctx.model.getColumns();
   let dbQueryTime;
-
 
   const baseModel = await Model.getBaseModelSQL({
     model: ctx.model,

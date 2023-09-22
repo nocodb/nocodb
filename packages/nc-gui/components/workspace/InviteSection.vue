@@ -174,7 +174,7 @@ const onPaste = (e: ClipboardEvent) => {
 <template>
   <div class="my-2 pt-3 ml-2" data-testid="invite">
     <div class="flex gap-2">
-      <div class="flex flex-col items-cenyet">
+      <div class="flex flex-col">
         <div
           ref="divRef"
           class="flex w-130 border-1 gap-1 items-center flex-wrap min-h-8 max-h-30 rounded-lg nc-scrollbar-md"

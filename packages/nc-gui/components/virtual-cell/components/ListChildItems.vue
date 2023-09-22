@@ -2,7 +2,6 @@
 import { type ColumnType, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import type { Row } from '#imports'
 import InboxIcon from '~icons/nc-icons/inbox'
-import ColumnIcon from '~icons/nc-icons/column'
 
 import {
   ColumnInj,
@@ -12,6 +11,7 @@ import {
   computed,
   inject,
   isPrimary,
+  onKeyStroke,
   ref,
   useLTARStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
@@ -41,6 +41,7 @@ const {
   unlink,
   isChildrenListLoading,
   isChildrenListLinked,
+  isChildrenLoading,
   relatedTableMeta,
   row,
   link,
@@ -112,7 +113,13 @@ watch(
 )
 
 watch(expandedFormDlg, () => {
-  loadChildrenList()
+  if (!expandedFormDlg.value) {
+    loadChildrenList()
+  }
+})
+
+onKeyStroke('Escape', () => {
+  vModel.value = false
 })
 </script>
 
@@ -131,6 +138,7 @@ watch(expandedFormDlg, () => {
       :relation="relation"
       :linked-records="childrenListCount"
       :table-title="meta?.title"
+      :show-header="true"
       :related-table-title="relatedTableMeta?.title"
       :display-value="row.row[displayValueProp]"
     />
@@ -152,6 +160,7 @@ watch(expandedFormDlg, () => {
           @focus="isFocused = true"
           @blur="isFocused = false"
           @keydown.capture.stop
+          @change="childrenListPagination.page = 1"
         >
         </a-input>
       </div>
@@ -166,28 +175,60 @@ watch(expandedFormDlg, () => {
           }"
           class="overflow-scroll nc-scrollbar-md cursor-pointer pr-1"
         >
-          <LazyVirtualCellComponentsListItem
-            v-for="(refRow, id) in childrenList?.list ?? state?.[colTitle] ?? []"
-            :key="id"
-            :row="refRow"
-            :fields="fields"
-            data-testid="nc-child-list-item"
-            :attachment="attachmentCol"
-            :related-table-display-value-prop="relatedTableDisplayValueProp"
-            :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
-            :is-loading="isChildrenListLoading[Number.parseInt(id)]"
-            @expand="onClick(refRow)"
-            @click="
-              () => {
-                if (isPublic && !isForm) return
-                isNew
-                  ? unlinkRow(refRow, Number.parseInt(id))
-                  : isChildrenListLinked[Number.parseInt(id)]
-                  ? unlinkRow(refRow, Number.parseInt(id))
-                  : linkRow(refRow, Number.parseInt(id))
-              }
-            "
-          />
+          <template v-if="isChildrenLoading">
+            <div
+              v-for="(x, i) in Array.from({ length: 10 })"
+              :key="i"
+              class="!border-2 flex flex-row gap-2 mb-2 transition-all !rounded-xl relative !border-gray-200 hover:bg-gray-50"
+            >
+              <a-skeleton-image class="h-24 w-24 !rounded-xl" />
+              <div class="flex flex-col m-[.5rem] gap-2 flex-grow justify-center">
+                <a-skeleton-input class="!w-48 !rounded-xl" active size="small" />
+                <div class="flex flex-row gap-6 w-10/12">
+                  <div class="flex flex-col gap-0.5">
+                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <LazyVirtualCellComponentsListItem
+              v-for="(refRow, id) in childrenList?.list ?? state?.[colTitle] ?? []"
+              :key="id"
+              :row="refRow"
+              :fields="fields"
+              data-testid="nc-child-list-item"
+              :attachment="attachmentCol"
+              :related-table-display-value-prop="relatedTableDisplayValueProp"
+              :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
+              :is-loading="isChildrenListLoading[Number.parseInt(id)]"
+              @expand="onClick(refRow)"
+              @click="
+                () => {
+                  if (isPublic && !isForm) return
+                  isNew
+                    ? unlinkRow(refRow, Number.parseInt(id))
+                    : isChildrenListLinked[Number.parseInt(id)]
+                    ? unlinkRow(refRow, Number.parseInt(id))
+                    : linkRow(refRow, Number.parseInt(id))
+                }
+              "
+            />
+          </template>
         </div>
       </div>
     </template>
@@ -202,10 +243,7 @@ watch(expandedFormDlg, () => {
       <InboxIcon class="w-16 h-16 mx-auto" />
       <p>
         No records are linked from table
-        <span class="border-gray-300 text-gray-600 rounded-md border-1 p-1">
-          <ColumnIcon class="w-4 h-4 mt-[-2px]" />
-          {{ relatedTableMeta?.title }}
-        </span>
+        {{ relatedTableMeta?.title }}
       </p>
       <NcButton
         v-if="!readonly && childrenListCount < 1"
@@ -219,10 +257,10 @@ watch(expandedFormDlg, () => {
     <div class="my-2 bg-gray-50 border-gray-50 border-b-2"></div>
 
     <div class="flex flex-row justify-between bg-white relative pt-1">
-      <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-brand-500 bg-brand-50">
+      <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50">
         {{ childrenListCount || 0 }} records {{ childrenListCount !== 0 ? 'are' : '' }} linked
       </div>
-      <div v-else class="flex items-center justify-center px-2 rounded-md text-brand-500 bg-brand-50">
+      <div v-else class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50">
         {{ state?.[colTitle]?.length || 0 }} records {{ state?.[colTitle]?.length !== 0 ? 'are' : '' }} linked
       </div>
       <div class="flex absolute items-center py-2 justify-center w-full">
@@ -238,8 +276,8 @@ watch(expandedFormDlg, () => {
           show-less-items
         />
       </div>
-      <div class="flex flex-row gap-1">
-        <NcButton v-if="!isForm" type="ghost" class="nc-close-btn" @click="vModel = false"> Cancel </NcButton>
+      <div class="flex flex-row gap-2">
+        <NcButton v-if="!isForm" type="ghost" class="nc-close-btn" @click="vModel = false"> Finish </NcButton>
         <NcButton
           v-if="!readonly && childrenListCount > 0"
           data-testid="nc-child-list-button-link-to"

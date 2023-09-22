@@ -148,7 +148,7 @@ useSelectedCellKeyupListener(active, (e) => {
           <CilFullscreen v-else class="h-2.5" />
         </a-button>
 
-        <div v-if="!isForm || isExpanded" class="flex flex-row">
+        <div v-if="!isForm || isExpanded" class="flex flex-row my-1">
           <a-button type="text" size="small" :onclick="clear"><div class="text-xs">Cancel</div></a-button>
 
           <a-button type="primary" size="small" :disabled="!!error || localValue === vModel" @click="onSave">

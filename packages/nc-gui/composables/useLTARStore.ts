@@ -218,10 +218,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       } catch (e: any) {
         message.error(`${t('msg.error.failedToLoadList')}: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {
-        // To Keep the Loading State for Minimum 600ms
-        setTimeout(() => {
-          isChildrenExcludedLoading.value = false
-        }, 600)
+        isChildrenExcludedLoading.value = false
       }
     }
 
@@ -274,10 +271,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       } catch (e: any) {
         message.error(`${t('msg.error.failedToLoadChildrenList')}: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {
-        // To Keep the Loading State for Minimum 600ms
-        setTimeout(() => {
-          isChildrenLoading.value = false
-        }, 600)
+        isChildrenLoading.value = false
       }
     }
 

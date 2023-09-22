@@ -710,13 +710,13 @@ export async function singleQueryRead(ctx: {
         ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
       );
 
-      const res = rawRes?.[0]?.[0];
+      let res = rawRes?.[0]?.[0];
 
       // update attachment fields
       // res = baseModel.convertAttachmentType(res, ctx.model);
       //
       // update date time fields
-      // res = baseModel.convertDateFormat(res, ctx.model);
+      res = baseModel.convertDateFormat(res, ctx.model);
 
       return res;
     }
@@ -835,13 +835,13 @@ export async function singleQueryRead(ctx: {
     ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
   );
 
-  const res = rawRes?.[0]?.[0];
+  let res = rawRes?.[0]?.[0];
 
   // update attachment fields
   // res = baseModel.convertAttachmentType(res, ctx.model);
 
   // update date time fields
-  // res = baseModel.convertDateFormat(res, ctx.model);
+  res = baseModel.convertDateFormat(res, ctx.model);
 
   return res;
 }
@@ -887,6 +887,12 @@ export async function singleQueryList(ctx: {
   await ctx.model.getColumns();
   let dbQueryTime;
 
+
+  const baseModel = await Model.getBaseModelSQL({
+    model: ctx.model,
+    viewId: ctx.view?.id,
+    dbDriver: knex,
+  });
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {
@@ -897,13 +903,13 @@ export async function singleQueryList(ctx: {
       ]);
       dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
 
-      const res = rawRes[0];
+      let res = rawRes[0];
 
       // update attachment fields
       // res = baseModel.convertAttachmentType(res, ctx.model);
 
       // update date time fields
-      // res = baseModel.convertDateFormat(res, ctx.model);
+      res = baseModel.convertDateFormat(res, ctx.model);
 
       return new PagedResponseImpl(
         res.map(({ __nc_count, ...rest }) => rest),
@@ -921,11 +927,6 @@ export async function singleQueryList(ctx: {
     }
   }
 
-  const baseModel = await Model.getBaseModelSQL({
-    model: ctx.model,
-    viewId: ctx.view?.id,
-    dbDriver: knex,
-  });
   // load columns list
   const columns = await ctx.model.getColumns();
 
@@ -1059,7 +1060,7 @@ export async function singleQueryList(ctx: {
   // res = baseModel.convertAttachmentType(res, ctx.model);
 
   // update date time fields
-  // res = baseModel.convertDateFormat(res, ctx.model);
+  res = baseModel.convertDateFormat(res, ctx.model);
 
   return new PagedResponseImpl(
     res.map(({ __nc_count, ...rest }) => rest),

@@ -1079,7 +1079,11 @@ export default class Column<T = any> implements ColumnType {
         await Column.delete(barcodeCol.fk_column_id, ncMeta);
       }
     }
-    if (column.column_order.order && column.column_order.view_id) {
+    if (
+      column.column_order &&
+      column.column_order.order &&
+      column.column_order.view_id
+    ) {
       const viewColumn = (
         await View.getColumns(column.column_order.view_id)
       ).find((col) => col.fk_column_id === column.id);

@@ -43,6 +43,8 @@ const isDefaultBase = computed(() => {
 
 const { viewsByTable, activeView } = storeToRefs(useViewsStore())
 
+const { navigateToTable } = useTablesStore()
+
 const views = computed(() => viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? [])
 
 const { api } = useApi()
@@ -53,7 +55,7 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineModelScope } = useUndoRedo()
 
-const { navigateToView } = useViewsStore()
+const { navigateToView, loadViews } = useViewsStore()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -205,10 +207,11 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
       order: view.order,
     })
 
-    await router.replace({
-      params: {
-        viewTitle: view.id,
-      },
+    navigateToView({
+      view,
+      tableId: table.value.id!,
+      projectId: project.value.id!,
+      hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
     })
 
     refreshCommandPalette()
@@ -250,20 +253,22 @@ function openDeleteDialog(view: ViewType) {
     'modelValue': isOpen,
     'view': view,
     'onUpdate:modelValue': closeDialog,
-    'onDeleted': () => {
+    'onDeleted': async () => {
       closeDialog()
 
       emits('deleted')
 
       refreshCommandPalette()
-      if (activeView.value === view) {
-        // return to the default view
-        router.replace({
-          params: {
-            viewTitle: views.value[0].id,
-          },
+      if (activeView.value?.id === view.id) {
+        navigateToTable({
+          tableId: table.value.id!,
+          projectId: project.value.id!,
         })
       }
+
+      await loadViews({
+        tableId: table.value.id!,
+      })
     },
   })
 
@@ -289,6 +294,53 @@ const setIcon = async (icon: string, view: ViewType) => {
     $e('a:view:icon:sidebar', { icon })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+function onOpenModal({
+  title = '',
+  type,
+  copyViewId,
+  groupingFieldColumnId,
+}: {
+  title?: string
+  type: ViewTypes
+  copyViewId?: string
+  groupingFieldColumnId?: string
+}) {
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgViewCreate'), {
+    'modelValue': isOpen,
+    title,
+    type,
+    'tableId': table.value.id,
+    'selectedViewId': copyViewId,
+    groupingFieldColumnId,
+    'views': views,
+    'onUpdate:modelValue': closeDialog,
+    'onCreated': async (view: ViewType) => {
+      closeDialog()
+
+      refreshCommandPalette()
+
+      await loadViews()
+
+      navigateToView({
+        view,
+        tableId: table.value.id!,
+        projectId: project.value.id!,
+        hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
+      })
+
+      $e('a:view:create', { view: view.type })
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
   }
 }
 </script>
@@ -333,7 +385,7 @@ const setIcon = async (icon: string, view: ViewType) => {
       }"
       :data-view-id="view.id"
       @change-view="changeView"
-      @open-modal="$emit('openModal', $event)"
+      @open-modal="onOpenModal"
       @delete="openDeleteDialog"
       @rename="onRename"
       @select-icon="setIcon($event, view)"

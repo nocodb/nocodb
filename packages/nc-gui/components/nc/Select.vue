@@ -103,4 +103,7 @@ const onChange = (value: string) => {
     }
   }
 }
+.nc-select .ant-select {
+  height: fit-content;
+}
 </style>

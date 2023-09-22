@@ -38,7 +38,7 @@ watch(inviteData, (newVal) => {
     }
     if (!validateEmail(inviteData.email)) {
       emailValidation.isError = true
-      emailValidation.message = 'invalid emamil'
+      emailValidation.message = 'invalid email'
       return
     }
     emailBadges.value.push(newVal.email.split(',')[0])
@@ -57,7 +57,7 @@ const handleEnter = () => {
   }
   if (!validateEmail(inviteData.email)) {
     emailValidation.isError = true
-    emailValidation.message = 'invalid emamil'
+    emailValidation.message = 'invalid email'
     return
   }
   inviteData.email += ','

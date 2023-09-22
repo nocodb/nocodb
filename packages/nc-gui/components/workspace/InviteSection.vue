@@ -7,6 +7,10 @@ const inviteData = reactive({
   roles: WorkspaceUserRoles.VIEWER,
 })
 
+const focusRef = ref<HTMLInputElement>()
+
+const divRef = ref<HTMLDivElement>()
+
 const workspaceStore = useWorkspace()
 
 const { inviteCollaborator: _inviteCollaborator } = workspaceStore
@@ -22,6 +26,18 @@ watch(inviteData, (newVal) => {
   }
 })
 
+const scrollToEnd = () => {
+  if (divRef.value) {
+    const maxScrollLeft = divRef.value.scrollWidth - divRef.value.clientWidth
+    divRef.value.scrollLeft = maxScrollLeft
+  }
+}
+
+const handleEnter = () => {
+  inviteData.email += ','
+  scrollToEnd()
+}
+
 const inviteCollaborator = async () => {
   try {
     let inviteEmails = ''
@@ -31,11 +47,10 @@ const inviteCollaborator = async () => {
 
     await _inviteCollaborator(inviteEmails, inviteData.roles)
     message.success('Invitation sent successfully')
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
     inviteData.email = ''
     emailBadges.value = []
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 // allow only lower roles to be assigned
@@ -58,50 +73,55 @@ onMounted(async () => {
 <template>
   <div class="my-2 pt-3 ml-2" data-testid="invite">
     <div class="text-xl mb-4">Invite</div>
-    <a-form>
-      <div class="flex gap-2">
-        <a-input
-          id="email"
-          v-model:value="inviteData.email"
-          placeholder="Enter emails to send invitation"
-          class="!max-w-130 !rounded"
-          @press-enter="inviteData.email += ','"
-        />
+    <div class="flex gap-2">
+      <div
+        ref="divRef"
+        class="flex w-130 gap-1 overflow-x-scroll border-1 border-blue items-center rounded-lg nc-scrollbar-x-md overflow-hidden"
+        @click="focusRef?.focus"
+      >
         <span
           v-for="(email, index) in emailBadges"
           :key="email"
-          class="p-1 border-1 border-grey rounded-2xl flex items-center justify-between"
+          class="text-[14px] p-0.2 border-1 color-[#4A5268] bg-[#E7E7E9] rounded-md flex items-center justify-between ml-1"
         >
           {{ email }}
           <component :is="iconMap.close" class="ml-1.5 hover:cursor-pointer" @click="emailBadges.splice(index, 1)" />
         </span>
-        <NcSelect v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
-          <template #suffixIcon>
-            <MdiChevronDown />
-          </template>
-          <template v-for="role of allowedRoles" :key="`role-option-${role}`">
-            <a-select-option v-if="role" :value="role">
-              <NcBadge :color="RoleColors[role]">
-                <p class="badge-text">{{ RoleLabels[role] }}</p>
-              </NcBadge>
-            </a-select-option>
-          </template>
-        </NcSelect>
-
-        <NcButton
-          type="primary"
-          :disabled="!emailBadges.length || isInvitingCollaborators"
-          size="small"
-          @click="inviteCollaborator"
-        >
-          <div class="flex flex-row items-center gap-x-2 pr-1">
-            <GeneralLoader v-if="isInvitingCollaborators" class="flex" />
-            <MdiPlus v-else />
-            {{ isInvitingCollaborators ? 'Adding' : 'Add' }} User(s)
-          </div>
-        </NcButton>
+        <input
+          id="email"
+          ref="focusRef"
+          v-model="inviteData.email"
+          :placeholder="emailBadges.length < 1 ? 'Enter emails to send invitation' : ''"
+          class="!border-none !focus:border-none !outline-0 !focus:outline-0 !bg-[white] ml-2 mr-3 w-full"
+          @keyup.enter="handleEnter"
+        />
       </div>
-    </a-form>
+      <NcSelect v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
+        <template #suffixIcon>
+          <MdiChevronDown />
+        </template>
+        <template v-for="role of allowedRoles" :key="`role-option-${role}`">
+          <a-select-option v-if="role" :value="role">
+            <NcBadge :color="RoleColors[role]">
+              <p class="badge-text">{{ RoleLabels[role] }}</p>
+            </NcBadge>
+          </a-select-option>
+        </template>
+      </NcSelect>
+
+      <NcButton
+        type="primary"
+        :disabled="!emailBadges.length || isInvitingCollaborators"
+        size="small"
+        @click="inviteCollaborator"
+      >
+        <div class="flex flex-row items-center gap-x-2 pr-1">
+          <GeneralLoader v-if="isInvitingCollaborators" class="flex" />
+          <MdiPlus v-else />
+          {{ isInvitingCollaborators ? 'Adding' : 'Add' }} User(s)
+        </div>
+      </NcButton>
+    </div>
   </div>
 </template>
 

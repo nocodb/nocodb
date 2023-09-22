@@ -47,7 +47,7 @@ onMounted(async () => {
     <WorkspaceInviteSection v-if="workspaceRoles !== WorkspaceUserRoles.VIEWER" />
     <div class="w-full h-1 border-t-1 border-gray-100 opacity-50 mt-6"></div>
     <div class="w-full flex flex-row justify-between items-baseline mt-6.5 mb-2 pr-0.25 ml-2">
-      <div class="text-xl">Collaborators</div>
+      <div class="text-xl">Members</div>
       <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md mr-4" placeholder="Search collaborators">
         <template #prefix>
           <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
@@ -55,7 +55,7 @@ onMounted(async () => {
       </a-input>
     </div>
     <div v-if="!filterCollaborators?.length" class="w-full h-full flex flex-col items-center justify-center mt-36">
-      <a-empty description="No collaborators found" />
+      <Empty description="No Members found" />
     </div>
     <table v-else class="nc-collaborators-list-table !nc-scrollbar-md">
       <thead>

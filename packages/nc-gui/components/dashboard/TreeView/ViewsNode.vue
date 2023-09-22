@@ -2,6 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
+import { isDefaultBase as _isDefaultBase } from '~/utils/baseUtils'
 import { IsLockedInj, inject, message, onKeyStroke, useDebounceFn, useNuxtApp, useRoles, useVModel } from '#imports'
 
 interface Props {
@@ -45,8 +46,9 @@ const { rightSidebarState } = storeToRefs(useSidebarStore())
 
 const isDefaultBase = computed(() => {
   const base = project.value?.bases?.find((b) => b.id === vModel.value.base_id)
+  if (!base) return false
 
-  return base?.is_meta
+  return _isDefaultBase(base)
 })
 
 const isDropdownOpen = ref(false)

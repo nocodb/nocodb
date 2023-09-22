@@ -42,8 +42,8 @@ const onChange = (value: string) => {
     :filter-option="filterOption"
     :dropdown-match-select-width="dropdownMatchSelectWidth"
     :allow-clear="allowClear"
-    :loading="true"
-    :disabled="true"
+    :loading="loading"
+    :disabled="loading"
     @change="onChange"
   >
     <template #suffixIcon>

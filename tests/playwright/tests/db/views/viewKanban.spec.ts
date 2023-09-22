@@ -61,7 +61,7 @@ test.describe('View', () => {
     });
     await dashboard.viewSidebar.verifyView({
       title: 'Film Kanban',
-      index: 1,
+      index: 0,
     });
 
     // configure stack-by field
@@ -202,7 +202,7 @@ test.describe('View', () => {
     });
     await dashboard.viewSidebar.verifyView({
       title: 'Film Kanban',
-      index: 1,
+      index: 0,
     });
 
     await toolbar.sort.add({
@@ -227,7 +227,7 @@ test.describe('View', () => {
     await dashboard.viewSidebar.copyView({ title: 'Film Kanban' });
     await dashboard.viewSidebar.verifyView({
       title: 'Untitled Kanban',
-      index: 2,
+      index: 1,
     });
     const kanban = dashboard.kanban;
     await kanban.verifyStackCount({ count: 6 });
@@ -328,7 +328,7 @@ test.describe('View', () => {
     });
     await dashboard.viewSidebar.verifyView({
       title: 'Film Kanban',
-      index: 1,
+      index: 0,
     });
 
     // Share view

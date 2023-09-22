@@ -1,5 +1,5 @@
 import { expect, Locator } from '@playwright/test';
-import { ProjectTypes } from 'nocodb-sdk';
+import { ProjectTypes, ViewTypes } from 'nocodb-sdk';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { DocsSidebarPage } from './DocsSidebar';
@@ -58,5 +58,49 @@ export class SidebarPage extends BasePage {
       requestUrlPathToMatch: `api/v1/db/meta/projects/`,
     });
     await this.dashboard.docs.pagesList.waitForOpen({ title });
+  }
+
+  async createView({ title, type }: { title: string; type: ViewTypes }) {
+    const createViewButtonOfActiveProject = this.dashboard
+      .get()
+      .locator('.nc-table-node-wrapper[data-active="true"] .nc-create-view-btn');
+    await createViewButtonOfActiveProject.waitFor({ state: 'visible' });
+    await createViewButtonOfActiveProject.scrollIntoViewIfNeeded();
+    await createViewButtonOfActiveProject.click();
+
+    if (type === ViewTypes.GRID) {
+      await this.rootPage.getByTestId('sidebar-view-create-grid').last().click({ force: true });
+    } else if (type === ViewTypes.FORM) {
+      await this.rootPage.getByTestId('sidebar-view-create-form').last().click({ force: true });
+    } else if (type === ViewTypes.KANBAN) {
+      await this.rootPage.getByTestId('sidebar-view-create-kanban').last().click({ force: true });
+    } else if (type === ViewTypes.GALLERY) {
+      await this.rootPage.getByTestId('sidebar-view-create-gallery').last().click({ force: true });
+    }
+
+    await this.rootPage.locator('input[id="form_item_title"]:visible').waitFor({ state: 'visible' });
+    await this.rootPage.locator('input[id="form_item_title"]:visible').fill(title);
+    const submitAction = () =>
+      this.rootPage.locator('.ant-modal-content').locator('button.ant-btn.ant-btn-primary').click();
+    await this.waitForResponse({
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: '/api/v1/db/meta/tables/',
+      uiAction: submitAction,
+      responseJsonMatcher: json => json.title === title,
+    });
+    // Todo: Wait for view to be rendered
+    await this.rootPage.waitForTimeout(1000);
+  }
+
+  async verifyCreateViewButtonVisibility({ isVisible }: { isVisible: boolean }) {
+    const createViewButtonOfActiveProject = this.dashboard
+      .get()
+      .locator('.nc-table-node-wrapper[data-active="true"] .nc-create-view-btn');
+
+    if (isVisible) {
+      await expect(createViewButtonOfActiveProject).toBeVisible();
+    } else {
+      await expect(createViewButtonOfActiveProject).toHaveCount(0);
+    }
   }
 }

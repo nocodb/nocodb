@@ -31,7 +31,7 @@ test.describe('Form view', () => {
     await dashboard.treeView.openTable({ title: 'Country' });
 
     await dashboard.viewSidebar.createFormView({ title: 'CountryForm' });
-    await dashboard.viewSidebar.verifyView({ title: 'CountryForm', index: 1 });
+    await dashboard.viewSidebar.verifyView({ title: 'CountryForm', index: 0 });
 
     // verify form-view fields order
     await form.verifyFormViewFieldsOrder({
@@ -92,7 +92,7 @@ test.describe('Form view', () => {
     await dashboard.treeView.openTable({ title: 'Country' });
 
     await dashboard.viewSidebar.createFormView({ title: 'CountryForm' });
-    await dashboard.viewSidebar.verifyView({ title: 'CountryForm', index: 1 });
+    await dashboard.viewSidebar.verifyView({ title: 'CountryForm', index: 0 });
 
     await form.configureHeader({
       title: 'Country',

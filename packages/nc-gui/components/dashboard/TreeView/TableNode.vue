@@ -123,12 +123,12 @@ const isTableOpened = computed(() => {
 
 <template>
   <div
-    class="nc-tree-item text-sm select-none w-full"
+    class="nc-tree-item nc-table-node-wrapper text-sm select-none w-full"
     :data-order="table.order"
     :data-id="table.id"
-    :data-testid="`tree-view-table-${table.title}`"
     :data-table-id="table.id"
     :class="[`nc-project-tree-tbl nc-project-tree-tbl-${table.title}`]"
+    :data-active="openedTableId === table.id"
   >
     <GeneralTooltip
       class="nc-tree-item-inner pl-11 pr-0.75 mb-0.25 rounded-md h-7.1 w-full group cursor-pointer hover:bg-gray-200"
@@ -143,6 +143,7 @@ const isTableOpened = computed(() => {
       <template #title>{{ table.table_name }}</template>
       <div
         class="table-context flex items-center gap-1 h-full"
+        :data-testid="`tree-view-table-${table.title}`"
         @contextmenu="setMenuContext('table', table)"
         @click="openTable(table)"
       >
@@ -260,8 +261,8 @@ const isTableOpened = computed(() => {
               </NcMenu>
             </template>
           </NcDropdown>
-          <DashboardTreeViewCreateViewBtn>
-            <NcButton type="text" size="xxsmall" class="nc-sidebar-node-btn">
+          <DashboardTreeViewCreateViewBtn v-if="isUIAllowed('viewCreateOrEdit')">
+            <NcButton type="text" size="xxsmall" class="nc-create-view-btn nc-sidebar-node-btn">
               <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
             </NcButton>
           </DashboardTreeViewCreateViewBtn>

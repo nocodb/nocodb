@@ -544,7 +544,11 @@ onMounted(() => {
           </span>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>
 
-          <NcDropdown v-model:visible="isOptionsOpen" :trigger="['click']">
+          <NcDropdown
+            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
+            v-model:visible="isOptionsOpen"
+            :trigger="['click']"
+          >
             <NcButton
               class="nc-sidebar-node-btn"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"

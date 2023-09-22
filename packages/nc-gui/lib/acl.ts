@@ -25,6 +25,8 @@ const rolePermissions = {
       projectDelete: true,
       projectDuplicate: true,
       newUser: true,
+      tableRename: true,
+      tableDelete: true,
     },
   },
   [OrgUserRoles.VIEWER]: {

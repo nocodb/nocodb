@@ -64,19 +64,34 @@ export class SidebarPage extends BasePage {
     const createViewButtonOfActiveProject = this.dashboard
       .get()
       .locator('.nc-table-node-wrapper[data-active="true"] .nc-create-view-btn');
-    await createViewButtonOfActiveProject.waitFor({ state: 'visible' });
     await createViewButtonOfActiveProject.scrollIntoViewIfNeeded();
     await createViewButtonOfActiveProject.click();
 
+    // TODO: Find a better way to do it
+    let createViewTypeButton: Locator;
+
     if (type === ViewTypes.GRID) {
-      await this.rootPage.getByTestId('sidebar-view-create-grid').last().click({ force: true });
+      createViewTypeButton = this.rootPage.getByTestId('sidebar-view-create-grid');
     } else if (type === ViewTypes.FORM) {
-      await this.rootPage.getByTestId('sidebar-view-create-form').last().click({ force: true });
+      createViewTypeButton = this.rootPage.getByTestId('sidebar-view-create-form');
     } else if (type === ViewTypes.KANBAN) {
-      await this.rootPage.getByTestId('sidebar-view-create-kanban').last().click({ force: true });
+      createViewTypeButton = this.rootPage.getByTestId('sidebar-view-create-kanban');
     } else if (type === ViewTypes.GALLERY) {
-      await this.rootPage.getByTestId('sidebar-view-create-gallery').last().click({ force: true });
+      createViewTypeButton = this.rootPage.getByTestId('sidebar-view-create-gallery');
     }
+
+    await this.rootPage.waitForTimeout(750);
+    const allButtons = await createViewTypeButton.all();
+    for (const btn of allButtons) {
+      if (await btn.isVisible()) {
+        createViewTypeButton = btn;
+        break;
+      }
+    }
+
+    await createViewTypeButton.click({
+      force: true,
+    });
 
     await this.rootPage.locator('input[id="form_item_title"]:visible').waitFor({ state: 'visible' });
     await this.rootPage.locator('input[id="form_item_title"]:visible').fill(title);

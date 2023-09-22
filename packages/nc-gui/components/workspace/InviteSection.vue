@@ -2,6 +2,7 @@
 import { onKeyStroke } from '@vueuse/core'
 import { OrderedWorkspaceRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, useWorkspace } from '#imports'
+import { validateEmail } from '~/utils/validation'
 
 const inviteData = reactive({
   email: '',
@@ -16,11 +17,6 @@ const emailValidation = reactive({
   isError: false,
   message: '',
 })
-
-const validateEmail = (email: string): boolean => {
-  const regEx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return regEx.test(email)
-}
 
 const workspaceStore = useWorkspace()
 
@@ -45,7 +41,7 @@ const insertOrUpdateString = (str: string) => {
 }
 
 const emailInputValidation = (input: string): boolean => {
-  if (input.length < 1) {
+  if (!input.length) {
     emailValidation.isError = true
     emailValidation.message = 'Email Should Not Be Empty'
     return false
@@ -60,7 +56,7 @@ const emailInputValidation = (input: string): boolean => {
 
 watch(inviteData, (newVal) => {
   const isNewEmail = newVal.email.charAt(newVal.email.length - 1) === ',' || newVal.email.charAt(newVal.email.length - 1) === ' '
-  if (isNewEmail && newVal.email.trim().length > 1) {
+  if (isNewEmail && !newVal.email.trim().length) {
     const emailToAdd = newVal.email.split(',')[0].trim() || newVal.email.split(' ')[0].trim()
     if (!validateEmail(emailToAdd)) {
       emailValidation.isError = true
@@ -79,7 +75,7 @@ watch(inviteData, (newVal) => {
     emailBadges.value.push(emailToAdd)
     inviteData.email = ''
   }
-  if (newVal.email.length < 1 && emailValidation.isError) {
+  if (!newVal.email.length && emailValidation.isError) {
     emailValidation.isError = false
   }
 })

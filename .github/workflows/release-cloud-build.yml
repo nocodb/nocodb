@@ -39,6 +39,7 @@ jobs:
           fetch-depth: 0
       - name: Get pnpm store directory
         shell: bash
+        timeout-minutes: 1
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
       - uses: actions/cache@v3

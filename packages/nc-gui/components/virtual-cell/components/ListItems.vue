@@ -176,6 +176,7 @@ watch(expandedFormDlg, () => {
           @focus="isFocused = true"
           @blur="isFocused = false"
           @keydown.capture.stop
+          @change="childrenExcludedListPagination.page = 1"
         >
         </a-input>
       </div>

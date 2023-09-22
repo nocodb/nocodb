@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onKeyStroke } from '@vueuse/core'
-import { OrderedWorkspaceRoles, RoleColors, RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
+import { OrderedWorkspaceRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, useWorkspace } from '#imports'
 
 const inviteData = reactive({
@@ -213,6 +213,7 @@ const onPaste = (e: ClipboardEvent) => {
         <span v-if="emailValidation.isError" class="ml-2 text-red-500 text-[10px] mt-1.5">{{ emailValidation.message }}</span>
       </div>
       <RolesSelector
+        size="md"
         class="px-1"
         :role="inviteData.roles"
         :roles="allowedRoles"
@@ -222,9 +223,8 @@ const onPaste = (e: ClipboardEvent) => {
 
       <NcButton
         type="primary"
-        :disabled="!emailBadges.length || isInvitingCollaborators || emailValidation.isError"
         size="small"
-        class="mt-0.5"
+        :disabled="!emailBadges.length || isInvitingCollaborators || emailValidation.isError"
         :loading="isInvitingCollaborators"
         @click="inviteCollaborator"
       >

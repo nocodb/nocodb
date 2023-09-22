@@ -76,7 +76,7 @@ watch(
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     class="w-full focus:!outline-none focus:ring-0 focus:border-none !border-none !outline-none text-sm px-2"
     :type="isForm ? 'email' : 'text'"
-    :autocomplete="isForm ? 'email' : 'text'"
+    :autocomplete="isForm ? 'email' : 'off'"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

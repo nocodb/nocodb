@@ -634,10 +634,6 @@ input[type='number'] {
   }
 }
 
-input[type='url'] {
-  @apply !p-0;
-}
-
-input[type='email'] {
+input[type='url'], input[type='email'] {
   @apply !p-0;
 }

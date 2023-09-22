@@ -56,7 +56,7 @@ const getAst = async ({
 
     await extractDependencies(model.displayValue, dependencyFields);
 
-    return { ast, dependencyFields };
+    return { ast, dependencyFields, parsedQuery: dependencyFields };
   }
 
   let fields = query?.fields || query?.f;
@@ -154,7 +154,7 @@ const getAst = async ({
     };
   }, Promise.resolve({}));
 
-  return { ast, dependencyFields };
+  return { ast, dependencyFields, parsedQuery: dependencyFields };
 };
 
 const extractDependencies = async (

@@ -121,8 +121,7 @@ export class GroupPageObject extends BasePage {
     });
 
     // Click text=Delete Row
-    await this.rootPage.locator('text=Delete Row').click();
-
+    await this.rootPage.locator('.ant-dropdown-menu-item:has-text("Delete row")').click();
     // todo: improve selector
     await this.rootPage
       .locator('span.ant-dropdown-menu-title-content > nc-project-menu-item')

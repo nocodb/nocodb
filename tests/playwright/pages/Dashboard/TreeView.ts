@@ -72,7 +72,7 @@ export class TreeViewPage extends BasePage {
 
   async getTable({ index, tableTitle }: { index: number; tableTitle?: string }) {
     if (tableTitle) {
-      return this.get().getByTestId(`nc-tbl-title-${tableTitle}`);
+      return this.get().getByTestId(`nc-tbl-side-node-${tableTitle}`);
     }
 
     return this.get().locator('.nc-tree-item').nth(index);

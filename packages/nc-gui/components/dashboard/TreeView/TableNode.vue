@@ -20,6 +20,10 @@ const project = toRef(props, 'project')
 const table = toRef(props, 'table')
 const baseIndex = toRef(props, 'baseIndex')
 
+const { openTable } = useTableNew({
+  projectId: project.value.id!,
+})
+
 const route = useRoute()
 
 const { isUIAllowed } = useRoles()
@@ -34,8 +38,12 @@ useTableNew({
 })
 
 const projectRole = inject(ProjectRoleInj)
+provide(SidebarTableInj, table)
 
 const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeViewInj)!
+
+const { loadViews: _loadViews } = useViewsStore()
+const { activeView } = storeToRefs(useViewsStore())
 
 // todo: temp
 const { projectTables } = storeToRefs(useTablesStore())
@@ -73,80 +81,128 @@ const { isSharedBase } = useProject()
 const canUserEditEmote = computed(() => {
   return isUIAllowed('tableIconEdit', { roles: projectRole?.value })
 })
+
+const isExpanded = ref(false)
+const isLoading = ref(false)
+
+const onExpand = async () => {
+  if (isExpanded.value) {
+    isExpanded.value = false
+    return
+  }
+
+  isLoading.value = true
+  try {
+    await _loadViews({ tableId: table.value.id, ignoreLoading: true })
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoading.value = false
+    isExpanded.value = true
+  }
+}
+
+watch(
+  () => activeView.value?.id,
+  () => {
+    if (!activeView.value) return
+
+    if (activeView.value?.fk_model_id === table.value?.id) {
+      isExpanded.value = true
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
+const isTableOpened = computed(() => {
+  return openedTableId.value === table.value?.id && activeView.value?.is_default
+})
 </script>
 
 <template>
   <div
-    class="nc-tree-item text-sm cursor-pointer group select-none"
+    class="nc-tree-item nc-table-node-wrapper text-sm select-none w-full"
     :data-order="table.order"
     :data-id="table.id"
-    :data-testid="`tree-view-table-${table.title}`"
     :data-table-id="table.id"
-    :class="[
-      // todo: table filter
-      // { hidden: !filteredTables?.includes(table), active: openedTableId === table.id },
-      `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
-      { active: openedTableId === table.id },
-    ]"
+    :class="[`nc-project-tree-tbl nc-project-tree-tbl-${table.title}`]"
+    :data-active="openedTableId === table.id"
   >
     <GeneralTooltip
-      class="pl-11 pr-0.75 mb-0.25 rounded-md h-7.1"
+      class="nc-tree-item-inner pl-11 pr-0.75 mb-0.25 rounded-md h-7.1 w-full group cursor-pointer hover:bg-gray-200"
       :class="{
         'hover:bg-gray-200': openedTableId !== table.id,
-        'pl-17.75': baseIndex !== 0,
-        'pl-12.25': baseIndex === 0,
+        'pl-12': baseIndex !== 0,
+        'pl-6.5': baseIndex === 0,
+        '!bg-primary-selected': isTableOpened,
       }"
       modifier-key="Alt"
     >
       <template #title>{{ table.table_name }}</template>
-      <div class="table-context flex items-center gap-1 h-full" @contextmenu="setMenuContext('table', table)">
-        <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
-          <div
-            class="flex items-center nc-table-icon"
-            :class="{
-              'pointer-events-none': !canUserEditEmote,
-            }"
-            @click.stop
-          >
-            <LazyGeneralEmojiPicker
-              :key="table.meta?.icon"
-              :emoji="table.meta?.icon"
-              size="small"
-              :readonly="!canUserEditEmote"
-              @emoji-selected="setIcon($event, table)"
+      <div
+        class="table-context flex items-center gap-1 h-full"
+        :data-testid="`nc-tbl-side-node-${table.title}`"
+        @contextmenu="setMenuContext('table', table)"
+        @click="openTable(table)"
+      >
+        <div class="flex flex-row h-full items-center">
+          <NcButton type="text" size="xxsmall" class="nc-sidebar-node-btn" @click.stop="onExpand">
+            <GeneralIcon
+              icon="triangleFill"
+              class="nc-sidebar-base-node-btns group-hover:visible invisible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.5 !text-gray-600 rotate-90 hover:bg-"
+              :class="{ '!rotate-180': isExpanded }"
+            />
+          </NcButton>
+          <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
+            <div
+              class="flex items-center nc-table-icon"
+              :class="{
+                'pointer-events-none': !canUserEditEmote,
+              }"
+              @click.stop
             >
-              <template #default>
-                <NcTooltip class="flex" placement="topLeft" hide-on-click :disabled="!canUserEditEmote">
-                  <template #title>
-                    {{ 'Change icon' }}
-                  </template>
+              <LazyGeneralEmojiPicker
+                :key="table.meta?.icon"
+                :emoji="table.meta?.icon"
+                size="small"
+                :readonly="!canUserEditEmote"
+                @emoji-selected="setIcon($event, table)"
+              >
+                <template #default>
+                  <NcTooltip class="flex" placement="topLeft" hide-on-click :disabled="!canUserEditEmote">
+                    <template #title>
+                      {{ 'Change icon' }}
+                    </template>
 
-                  <MdiTable
-                    v-if="table.type === 'table'"
-                    class="flex w-5 !text-gray-500 text-sm"
-                    :class="{
-                      'group-hover:text-gray-500': isUIAllowed('tableSort', { roles: projectRole }),
-                      '!text-black': openedTableId === table.id,
-                    }"
-                  />
-                  <MdiEye
-                    v-else
-                    class="flex w-5 !text-gray-500 text-sm"
-                    :class="{
-                      'group-hover:text-gray-500': isUIAllowed('tableSort', { roles: projectRole }),
-                      '!text-black': openedTableId === table.id,
-                    }"
-                  />
-                </NcTooltip>
-              </template>
-            </LazyGeneralEmojiPicker>
+                    <MdiTable
+                      v-if="table.type === 'table'"
+                      class="flex w-5 !text-gray-500 text-sm"
+                      :class="{
+                        'group-hover:text-gray-500': isUIAllowed('tableSort', { roles: projectRole }),
+                        '!text-black': openedTableId === table.id,
+                      }"
+                    />
+                    <MdiEye
+                      v-else
+                      class="flex w-5 !text-gray-500 text-sm"
+                      :class="{
+                        'group-hover:text-gray-500': isUIAllowed('tableSort', { roles: projectRole }),
+                        '!text-black': openedTableId === table.id,
+                      }"
+                    />
+                  </NcTooltip>
+                </template>
+              </LazyGeneralEmojiPicker>
+            </div>
           </div>
         </div>
 
         <span
           class="nc-tbl-title capitalize text-ellipsis overflow-hidden select-none"
           :class="{
-            'text-black !font-semibold': openedTableId === table.id,
+            'text-black !font-medium': isTableOpened,
           }"
           :data-testid="`nc-tbl-title-${table.title}`"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
@@ -155,57 +211,62 @@ const canUserEditEmote = computed(() => {
         </span>
         <div class="flex flex-grow h-full"></div>
 
-        <NcDropdown
-          v-if="
-            !isSharedBase && (isUIAllowed('tableRename', { roles: projectRole }) || isUIAllowed('tableDelete', { roles: projectRole }))
-          "
-          :trigger="['click']"
-          @click.stop
-        >
-          <MdiDotsHorizontal
-            class="min-w-5.75 min-h-5.75 mt-0.2 mr-0.25 px-0.5 transition-opacity opacity-0 group-hover:opacity-100 nc-tbl-context-menu outline-0 rounded-md hover:(bg-gray-500 bg-opacity-15 !text-black)"
-            :class="{
-              '!text-gray-600': openedTableId !== table.id,
-              '!text-black': openedTableId === table.id,
-            }"
-          />
+        <div class="flex flex-row items-center">
+          <NcDropdown
+            v-if="
+              !isSharedBase &&
+              (isUIAllowed('tableRename', { roles: projectRole }) || isUIAllowed('tableDelete', { roles: projectRole }))
+            "
+            :trigger="['click']"
+            class="nc-sidebar-node-btn"
+            @click.stop
+          >
+            <MdiDotsHorizontal
+              class="min-w-5.75 min-h-5.75 mt-0.2 mr-0.25 px-0.5 !text-gray-600 transition-opacity opacity-0 group-hover:opacity-100 nc-tbl-context-menu outline-0 rounded-md hover:(bg-gray-500 bg-opacity-15 !text-black)"
+            />
 
-          <template #overlay>
-            <NcMenu>
-              <NcMenuItem
-                v-if="isUIAllowed('tableRename', { roles: projectRole })"
-                :data-testid="`sidebar-table-rename-${table.title}`"
-                @click="openRenameTableDialog(table, project.bases[baseIndex].id)"
-              >
-                <GeneralIcon icon="edit" class="text-gray-700" />
-                {{ $t('general.rename') }}
-              </NcMenuItem>
+            <template #overlay>
+              <NcMenu>
+                <NcMenuItem
+                  v-if="isUIAllowed('tableRename', { roles: projectRole })"
+                  :data-testid="`sidebar-table-rename-${table.title}`"
+                  @click="openRenameTableDialog(table, project.bases[baseIndex].id)"
+                >
+                  <GeneralIcon icon="edit" class="text-gray-700" />
+                  {{ $t('general.rename') }}
+                </NcMenuItem>
 
-              <NcMenuItem
-                v-if="
-                  isUIAllowed('tableDuplicate') &&
-                  project.bases?.[baseIndex] &&
-                  (project.bases[baseIndex].is_meta || project.bases[baseIndex].is_local)
-                "
-                :data-testid="`sidebar-table-duplicate-${table.title}`"
-                @click="duplicateTable(table)"
-              >
-                <GeneralIcon icon="duplicate" class="text-gray-700" />
-                {{ $t('general.duplicate') }}
-              </NcMenuItem>
+                <NcMenuItem
+                  v-if="
+                    isUIAllowed('tableDuplicate') &&
+                    project.bases?.[baseIndex] &&
+                    (project.bases[baseIndex].is_meta || project.bases[baseIndex].is_local)
+                  "
+                  :data-testid="`sidebar-table-duplicate-${table.title}`"
+                  @click="duplicateTable(table)"
+                >
+                  <GeneralIcon icon="duplicate" class="text-gray-700" />
+                  {{ $t('general.duplicate') }}
+                </NcMenuItem>
 
-              <NcMenuItem
-                v-if="isUIAllowed('tableDelete', { roles: projectRole })"
-                :data-testid="`sidebar-table-delete-${table.title}`"
-                class="!text-red-500 !hover:bg-red-50"
-                @click="isTableDeleteDialogVisible = true"
-              >
-                <GeneralIcon icon="delete" />
-                {{ $t('general.delete') }}
-              </NcMenuItem>
-            </NcMenu>
-          </template>
-        </NcDropdown>
+                <NcMenuItem
+                  v-if="isUIAllowed('tableDelete', { roles: projectRole })"
+                  :data-testid="`sidebar-table-delete-${table.title}`"
+                  class="!text-red-500 !hover:bg-red-50"
+                  @click="isTableDeleteDialogVisible = true"
+                >
+                  <GeneralIcon icon="delete" />
+                  {{ $t('general.delete') }}
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
+          <DashboardTreeViewCreateViewBtn v-if="isUIAllowed('viewCreateOrEdit')">
+            <NcButton type="text" size="xxsmall" class="nc-create-view-btn nc-sidebar-node-btn">
+              <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
+            </NcButton>
+          </DashboardTreeViewCreateViewBtn>
+        </div>
       </div>
       <DlgTableDelete
         v-if="table.id && project?.id"
@@ -214,24 +275,16 @@ const canUserEditEmote = computed(() => {
         :project-id="project.id"
       />
     </GeneralTooltip>
+    <DashboardTreeViewViewsList v-if="isExpanded" :table-id="table.id" :project-id="project.id" />
   </div>
 </template>
 
 <style scoped lang="scss">
 .nc-tree-item {
-  @apply relative cursor-pointer after:(pointer-events-none content-[''] rounded absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
+  @apply relative after:(pointer-events-none content-[''] rounded absolute top-0 left-0  w-full h-full right-0 !bg-current transition duration-100 opacity-0);
 }
 
 .nc-tree-item svg {
   @apply text-primary text-opacity-60;
-}
-
-.nc-tree-item.active {
-  @apply !bg-primary-selected rounded-md;
-  //@apply border-r-3 border-primary;
-
-  svg {
-    @apply !text-opacity-100;
-  }
 }
 </style>

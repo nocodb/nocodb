@@ -21,29 +21,29 @@ test.describe('Views CRUD Operations', () => {
   test('Create views, reorder and delete', async () => {
     await dashboard.treeView.openTable({ title: 'City' });
     await dashboard.viewSidebar.createGridView({ title: 'CityGrid' });
-    await dashboard.viewSidebar.verifyView({ title: 'CityGrid', index: 1 });
+    await dashboard.viewSidebar.verifyView({ title: 'CityGrid', index: 0 });
     await dashboard.viewSidebar.renameView({
       title: 'CityGrid',
       newTitle: 'CityGrid2',
     });
     await dashboard.viewSidebar.verifyView({
       title: 'CityGrid2',
-      index: 1,
+      index: 0,
     });
 
     await dashboard.viewSidebar.createFormView({ title: 'CityForm' });
-    await dashboard.viewSidebar.verifyView({ title: 'CityForm', index: 2 });
+    await dashboard.viewSidebar.verifyView({ title: 'CityForm', index: 1 });
     await dashboard.viewSidebar.renameView({
       title: 'CityForm',
       newTitle: 'CityForm2',
     });
     await dashboard.viewSidebar.verifyView({
       title: 'CityForm2',
-      index: 2,
+      index: 1,
     });
 
     await dashboard.viewSidebar.createGalleryView({ title: 'CityGallery' });
-    await dashboard.viewSidebar.verifyView({ title: 'CityGallery', index: 3 });
+    await dashboard.viewSidebar.verifyView({ title: 'CityGallery', index: 2 });
     await dashboard.viewSidebar.renameView({
       title: 'CityGallery',
       newTitle: 'CityGallery2',
@@ -51,7 +51,7 @@ test.describe('Views CRUD Operations', () => {
 
     await dashboard.viewSidebar.verifyView({
       title: 'CityGallery2',
-      index: 3,
+      index: 2,
     });
 
     await dashboard.viewSidebar.changeViewIcon({
@@ -77,14 +77,14 @@ test.describe('Views CRUD Operations', () => {
     await dashboard.viewSidebar.deleteView({ title: 'CityForm2' });
     await dashboard.viewSidebar.verifyViewNotPresent({
       title: 'CityForm2',
-      index: 2,
+      index: 1,
     });
 
     // fix index after enabling reorder test
     await dashboard.viewSidebar.deleteView({ title: 'CityGallery2' });
     await dashboard.viewSidebar.verifyViewNotPresent({
       title: 'CityGallery2',
-      index: 1,
+      index: 0,
     });
   });
 
@@ -109,7 +109,7 @@ test.describe('Views CRUD Operations', () => {
     await dashboard.rootPage.waitForTimeout(1000);
     await toolbar.searchData.verify('City-CityGrid');
 
-    await dashboard.viewSidebar.openView({ title: 'City' });
+    await dashboard.treeView.openTable({ title: 'City' });
     await dashboard.rootPage.waitForTimeout(1000);
     await toolbar.searchData.verify('City-City');
 
@@ -121,7 +121,7 @@ test.describe('Views CRUD Operations', () => {
     await toolbar.searchData.get().fill('Actor-ActorGrid');
     await toolbar.searchData.verify('Actor-ActorGrid');
 
-    await dashboard.viewSidebar.openView({ title: 'Actor' });
+    await dashboard.treeView.openTable({ title: 'Actor' });
     await dashboard.rootPage.waitForTimeout(1000);
     await toolbar.searchData.verify('');
 

@@ -21,6 +21,11 @@ interface op {
   column: TableExplorerColumn
 }
 
+interface fieldsVisibilityOps {
+  visible: boolean
+  column: TableExplorerColumn
+}
+
 interface moveOp {
   op: 'move'
   column: TableExplorerColumn
@@ -34,6 +39,8 @@ const { getMeta } = useMetas()
 const { meta, view } = useSmartsheetStoreOrThrow()
 
 const moveOps = ref<moveOp[]>([])
+
+const visibilityOps = ref<fieldsVisibilityOps[]>([])
 
 const { fields: viewFields, toggleFieldVisibility } = useViewColumns(view, meta as Ref<TableType | undefined>)
 
@@ -368,6 +375,7 @@ const clearChanges = () => {
   ops.value = []
   moveOps.value = []
   newFields.value = []
+  visibilityOps.value = []
   changeField()
 }
 
@@ -401,7 +409,15 @@ const saveChanges = async () => {
   const res = await $api.dbTableColumn.bulk(meta.value?.id, {
     hash: columnsHash.value,
     ops: ops.value,
+    viewId: view.value?.id,
   })
+
+  for (const op of visibilityOps.value) {
+    await toggleFieldVisibility(op.visible, {
+      ...op.column,
+      show: op.visible,
+    })
+  }
 
   if (res) {
     ops.value = (res.failedOps as op[]) || []
@@ -423,19 +439,22 @@ const saveChanges = async () => {
   columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 
   loading.value = false
+  visibilityOps.value = []
 }
 
-const toggleFieldVisibilityWrapper = async (checked: boolean, field: Field) => {
-  console.log(checked)
+const toggleVisibility = async (checked: boolean, field: Field) => {
   if (field.fk_column_id && fieldStatuses.value[field.fk_column_id]) {
     message.warning('You cannot change visibility of a field that is being edited. Please save or discard changes first.')
-    field.show = !checked
     return
   }
-  if (!checked && activeField.value && compareCols(activeField.value, { id: field.fk_column_id })) {
-    changeField()
+  if (visibilityOps.value.find((op) => op.column.fk_column_id === field.fk_column_id)) {
+    visibilityOps.value = visibilityOps.value.filter((op) => op.column.fk_column_id !== field.fk_column_id)
+    return
   }
-  await toggleFieldVisibility(checked, field)
+  visibilityOps.value.push({
+    visible: checked,
+    column: field,
+  })
 }
 
 onMounted(async () => {
@@ -462,26 +481,34 @@ onMounted(async () => {
             </template>
           </a-input>
           <div class="flex gap-2">
-            <NcButton type="secondary" size="small" :disabled="loading" @click="addField()">
-              <div class="flex items-center gap-2">
-                <GeneralIcon icon="plus" class="h-3.5 mb-1 w-3.5" />
-                Add field
-              </div>
+            <NcButton
+              type="secondary"
+              size="small"
+              :disabled="!loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1"
+              @click="clearChanges()"
+            >
+              Reset changes
             </NcButton>
             <NcButton
               type="secondary"
               size="small"
-              :disabled="!loading && ops.length < 1 && moveOps.length < 1"
+              :disabled="!loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1"
               @click="saveChanges()"
             >
-              Save Changes
+              Save changes
             </NcButton>
           </div>
         </div>
-        <div class="flex px-2 pt-2">
-          <div class="w-1/3"></div>
+        <div class="flex px-2 w-full justify-between py-2">
+          <NcButton type="secondary" size="small" :disabled="loading" @click="addField()">
+            <div class="flex items-center gap-2">
+              <GeneralIcon icon="plus" class="h-3.5 mb-1 w-3.5" />
+              New field
+            </div>
+          </NcButton>
         </div>
-        <div class="flex mt-2 h-full">
+
+        <div class="flex h-full">
           <div class="flex flex-col flex-1 p-2">
             <Draggable v-model="fields" item-key="id" @change="onMove($event)">
               <template #item="{ element: field }">
@@ -493,15 +520,15 @@ onMounted(async () => {
                 >
                   <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
                     <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
-
                     <NcCheckbox
                       v-if="field.id && viewFieldsMap[field.id]"
                       :disabled="field.pv"
-                      :checked="viewFieldsMap[field.id].show"
+                      :checked="
+                        visibilityOps.find((op) => op.column.fk_column_id === field.id)?.visible ?? viewFieldsMap[field.id].show
+                      "
                       @change="
                         (event) => {
-                          viewFieldsMap[field.id].show = !viewFieldsMap[field.id].show
-                          toggleFieldVisibilityWrapper(event.target.checked, viewFieldsMap[field.id])
+                          toggleVisibility(event.target.checked, viewFieldsMap[field.id])
                         }
                       "
                     />

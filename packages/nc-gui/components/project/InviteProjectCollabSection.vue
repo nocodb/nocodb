@@ -25,23 +25,35 @@ const validateEmail = (email: string): boolean => {
 
 // all user input emails are stored here
 const emailBadges = ref<Array<string>>([])
+
+const insertOrUpdateString = (str: string) => {
+  // Check if the string already exists in the array
+  const index = emailBadges.value.indexOf(str)
+
+  if (index !== -1) {
+    // If the string exists, remove it
+    emailBadges.value.splice(index, 1)
+  }
+
+  // Add the new string to the array
+  emailBadges.value.push(str)
+}
+
 watch(inviteData, (newVal) => {
-  const isNewEmail = newVal.email.includes(' ') || newVal.email.includes(',')
-  if (isNewEmail) {
-    if (inviteData.email.length < 1) {
-      emailValidation.isError = true
-      emailValidation.message = 'email should not be empty'
-      return
-    }
-    if (!validateEmail(inviteData.email.trim())) {
-      emailValidation.isError = true
-      emailValidation.message = 'invalid email'
-      return
-    }
-    // if email is already enterd we just ignore the input
-    // no error is thrown
+  const isNewEmail = newVal.email.charAt(newVal.email.length - 1) === ',' || newVal.email.charAt(newVal.email.length - 1) === ' '
+  if (isNewEmail && newVal.email.trim().length > 1) {
     const emailToAdd = newVal.email.split(',')[0].trim() || newVal.email.split(' ')[0].trim()
+    if (!validateEmail(emailToAdd)) {
+      emailValidation.isError = true
+      emailValidation.message = 'INVALID EMAIL'
+      return
+    }
+    /** 
+     if email is already enterd we delete the already
+     existing email and add new one
+     **/
     if (emailBadges.value.includes(emailToAdd)) {
+      insertOrUpdateString(emailToAdd)
       inviteData.email = ''
       return
     }
@@ -56,12 +68,12 @@ watch(inviteData, (newVal) => {
 const handleEnter = () => {
   if (inviteData.email.length < 1) {
     emailValidation.isError = true
-    emailValidation.message = 'email should not be empty'
+    emailValidation.message = 'EMAIL SHOULD NOT BE EMPTY'
     return
   }
   if (!validateEmail(inviteData.email.trim())) {
     emailValidation.isError = true
-    emailValidation.message = 'invalid email'
+    emailValidation.message = 'INVALID EMAIL'
     return
   }
   inviteData.email += ' '
@@ -109,9 +121,10 @@ const inviteCollaborator = async () => {
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    inviteData.email = ''
+    isInvitingCollaborators.value = false
   }
-
-  isInvitingCollaborators.value = false
 }
 
 const inviteUrl = computed(() =>
@@ -180,9 +193,12 @@ const onPaste = (e: ClipboardEvent) => {
       emailValidation.message = 'INVALID EMAIL'
       return
     }
-    // if email is already enterd we just ignore the input
-    // no error is thrown
+    /** 
+     if email is already enterd we delete the already
+     existing email and add new one
+     **/
     if (emailBadges.value.includes(el)) {
+      insertOrUpdateString(el)
       return
     }
 
@@ -288,7 +304,7 @@ const onPaste = (e: ClipboardEvent) => {
           <a-button
             type="primary"
             class="!rounded-md"
-            :disabled="!emailBadges.length || isInvitingCollaborators || emailValidation.isErro"
+            :disabled="!emailBadges.length || isInvitingCollaborators || emailValidation.isError"
             @click="inviteCollaborator"
           >
             <div class="flex flex-row items-center gap-x-2 pr-1">

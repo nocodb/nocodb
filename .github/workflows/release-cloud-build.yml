@@ -37,7 +37,7 @@ jobs:
         shell: bash
         timeout-minutes: 1
         run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+          echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
       - name: Checkout
         uses: actions/checkout@v3
         with:

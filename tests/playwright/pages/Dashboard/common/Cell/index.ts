@@ -341,7 +341,7 @@ export class CellPageObject extends BasePage {
         await this.rootPage.waitForSelector('.nc-modal-child-list:visible');
 
         // verify child list count & contents
-        expect.poll(() => this.rootPage.locator('.ant-card:visible').count()).toBe(count);
+        await expect.poll(() => this.rootPage.locator('.ant-card:visible').count()).toBe(count);
 
         // close child list
         await this.rootPage.locator('.nc-modal-child-list').locator('.nc-close-btn').last().click();
@@ -369,11 +369,8 @@ export class CellPageObject extends BasePage {
         .waitFor({ state: 'visible', timeout: 3000 });
 
       await this.waitForResponse({
-        uiAction: async () =>
-          await this.rootPage
-            .locator(`[data-testid="nc-child-list-item"]`)
-            .last()
-            .click({ force: true, timeout: 3000 }),
+        uiAction: () =>
+          this.rootPage.locator(`[data-testid="nc-child-list-item"]`).last().click({ force: true, timeout: 3000 }),
         requestUrlPathToMatch: '/api/v1/db/data/noco/',
         httpMethodsToMatch: ['GET'],
       });

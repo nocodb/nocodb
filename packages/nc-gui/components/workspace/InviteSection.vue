@@ -56,7 +56,7 @@ const emailInputValidation = (input: string): boolean => {
 
 watch(inviteData, (newVal) => {
   const isNewEmail = newVal.email.charAt(newVal.email.length - 1) === ',' || newVal.email.charAt(newVal.email.length - 1) === ' '
-  if (isNewEmail && !newVal.email.trim().length) {
+  if (isNewEmail && newVal.email.trim().length) {
     const emailToAdd = newVal.email.split(',')[0].trim() || newVal.email.split(' ')[0].trim()
     if (!validateEmail(emailToAdd)) {
       emailValidation.isError = true
@@ -91,17 +91,9 @@ const handleEnter = () => {
 
 const inviteCollaborator = async () => {
   try {
-    let inviteEmails = ''
-    emailBadges.value.forEach((el, index) => {
-      // prevent the last email from getting the ","
-      if (index === emailBadges.value.length - 1) {
-        inviteEmails += el
-      } else {
-        inviteEmails += `${el},`
-      }
-    })
+    const payloadData = emailBadges.value.join(',')
 
-    await _inviteCollaborator(inviteEmails, inviteData.roles)
+    await _inviteCollaborator(payloadData, inviteData.roles)
     message.success('Invitation sent successfully')
     inviteData.email = ''
     emailBadges.value = []
@@ -199,7 +191,7 @@ const onPaste = (e: ClipboardEvent) => {
             ref="focusRef"
             v-model="inviteData.email"
             :placeholder="emailBadges.length < 1 ? 'Enter emails to send invitation' : ''"
-            class="min-w-50 !outline-0 !focus:outline-0 ml-2 mr-3"
+            class="min-w-50 outline-0 ml-2 mr-3"
             data-testid="email-input"
             @keyup.enter="handleEnter"
             @blur="isDivFocused = false"

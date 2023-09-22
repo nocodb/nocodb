@@ -90,9 +90,7 @@ const projectViewOpen = computed(() => {
 })
 
 const showBaseOption = computed(() => {
-  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
-    isUIAllowed(permission),
-  )
+  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission))
 })
 
 const enableEditMode = () => {
@@ -472,11 +470,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                 @click="isOptionsOpen = false"
               >
                 <template v-if="!isSharedBase">
-                  <NcMenuItem
-                    v-if="isUIAllowed('projectRename')"
-                    data-testid="nc-sidebar-project-rename"
-                    @click="enableEditMode"
-                  >
+                  <NcMenuItem v-if="isUIAllowed('projectRename')" data-testid="nc-sidebar-project-rename" @click="enableEditMode">
                     <GeneralIcon icon="edit" class="group-hover:text-black" />
                     {{ $t('general.rename') }}
                   </NcMenuItem>
@@ -490,9 +484,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                     {{ $t('general.duplicate') }}
                   </NcMenuItem>
 
-                  <NcDivider
-                    v-if="['projectDuplicate', 'projectRename'].some((permission) => isUIAllowed(permission))"
-                  />
+                  <NcDivider v-if="['projectDuplicate', 'projectRename'].some((permission) => isUIAllowed(permission))" />
 
                   <!-- Copy Project Info -->
                   <NcMenuItem
@@ -530,14 +522,10 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   <DashboardTreeViewBaseOptions v-model:project="project" :base="project.bases[0]" />
                 </template>
 
-                <NcDivider
-                  v-if="
-                    ['projectMiscSettings', 'projectDelete'].some((permission) => isUIAllowed(permission))
-                  "
-                />
+                <NcDivider v-if="['projectMiscSettings', 'projectDelete'].some((permission) => isUIAllowed(permission))" />
 
                 <NcMenuItem
-                  v-if="isUIAllowed('projectMiscSettings'"
+                  v-if="isUIAllowed('projectMiscSettings')"
                   key="teamAndSettings"
                   v-e="['c:navdraw:project-settings']"
                   data-testid="nc-sidebar-project-settings"
@@ -549,8 +537,8 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                 </NcMenuItem>
 
                 <NcMenuItem
-                  data-testid="nc-sidebar-project-delete"
                   v-if="isUIAllowed('projectDelete', { roles: [stringifyRolesObj(orgRoles), projectRole].join() })"
+                  data-testid="nc-sidebar-project-delete"
                   class="!text-red-500 !hover:bg-red-50"
                   @click="isProjectDeleteDialogVisible = true"
                 >

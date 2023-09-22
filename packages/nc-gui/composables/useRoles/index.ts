@@ -22,15 +22,12 @@ const hasPermission = (role: Exclude<Roles, WorkspaceUserRoles>, hasRole: boolea
  * Provides the roles a user currently has
  *
  * * `userRoles` - the roles a user has outside of projects
- * * `workspaceRoles` - the roles a user has in the current workspace (if one was loaded)
  * * `projectRoles` - the roles a user has in the current project (if one was loaded)
  * * `allRoles` - all roles a user has (userRoles + projectRoles)
  * * `loadRoles` - a function to load reload user roles for scope
  */
 export const useRoles = createSharedComposable(() => {
   const { user } = useGlobal()
-
-  const { activeWorkspace } = storeToRefs(useWorkspace())
 
   const { api } = useApi()
 
@@ -46,7 +43,6 @@ export const useRoles = createSharedComposable(() => {
     return {
       ...orgRoles,
       ...projectRoles,
-      ...workspaceRoles.value,
     }
   })
 

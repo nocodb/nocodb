@@ -30,6 +30,7 @@ interface moveOp {
   op: 'move'
   column: TableExplorerColumn
   index: number
+  order: number
 }
 
 const { $api } = useNuxtApp()
@@ -44,7 +45,7 @@ const visibilityOps = ref<fieldsVisibilityOps[]>([])
 
 const selectedView = inject(ActiveViewInj)
 
-const { fields: viewFields, toggleFieldVisibility } = useViewColumns(view, meta as Ref<TableType | undefined>)
+const { fields: viewFields, toggleFieldVisibility, loadViewColumns } = useViewColumns(view, meta as Ref<TableType | undefined>)
 
 const loading = ref(false)
 
@@ -61,27 +62,38 @@ const compareCols = (a?: TableExplorerColumn, b?: TableExplorerColumn) => {
   return false
 }
 
+const viewFieldsMap = computed<Record<string, Field>>(() => {
+  const temp: Record<string, Field> = {}
+  if (viewFields.value) {
+    for (const field of viewFields.value) {
+      if (field.fk_column_id) temp[field.fk_column_id] = field
+    }
+  }
+  return temp
+})
+
+const getFieldOrder = (field?: TableExplorerColumn) => {
+  if (!field) return -1
+  const mop = moveOps.value.find((op) => compareCols(op.column, field))
+  if (mop) {
+    return mop.order
+  } else if (field.id) {
+    const viewField = viewFieldsMap.value[field.id]
+    if (viewField) {
+      return viewField.order
+    }
+  }
+  return -1
+}
+
 const fields = computed<TableExplorerColumn[]>({
   get: () => {
     const x = (meta.value?.columns as ColumnType[])
       .filter((field) => !field.fk_column_id && !isSystemColumn(field))
-      .sort((a, b) => {
-        if (viewFields.value) {
-          return (
-            viewFields.value.findIndex((f) => f.fk_column_id === a.id) -
-            viewFields.value.findIndex((f) => f.fk_column_id === b.id)
-          )
-        }
-        return 0
-      })
       .concat(newFields.value)
-    for (const op of moveOps.value) {
-      const index = x.findIndex((f) => compareCols(f, op.column))
-      if (index !== -1) {
-        const tempField = x.splice(index, 1)
-        x.splice(op.index, 0, tempField[0])
-      }
-    }
+      .sort((a, b) => {
+        return getFieldOrder(a) - getFieldOrder(b)
+      })
     return x
   },
   set: (val) => {
@@ -100,62 +112,42 @@ const activeField = ref()
 
 const searchQuery = ref<string>('')
 
-const viewFieldsMap = computed<Record<string, Field>>(() => {
-  const temp: Record<string, Field> = {}
-  if (viewFields.value) {
-    for (const field of viewFields.value) {
-      if (field.fk_column_id) temp[field.fk_column_id] = field
-    }
-  }
-  return temp
-})
-
-const orderList = computed(() => {
-  const temp = []
-  for (const field of fields.value) {
-    if (field.id) {
-      const viewField = viewFieldsMap.value[field.id]
-      if (viewField) {
-        temp.push(viewField.order)
-        continue
-      }
-    }
-    temp.push(-1)
-  }
-  return temp
-})
-
-const calculateOrder = (column: TableExplorerColumn) => {
+const calculateOrderForIndex = (index: number, fromAbove = false) => {
   if (!viewFields.value) return -1
 
-  if (column.pv) return viewFieldsMap.value[column.id as string].order
-
-  // this can't be 0 as pv is 0
-  const currentColumnIndex = fields.value.findIndex((f) => compareCols(f, column))
-
-  let before = -1
-  let after = -1
-  let tempIndex = currentColumnIndex
-  let counterBefore = 0
-  while (before === -1) {
-    before = orderList.value[--tempIndex]
-    counterBefore++
-  }
-  tempIndex = currentColumnIndex
-  let counterAfter = 0
-  while (after === -1) {
-    if (tempIndex === fields.value.length) {
-      after = fields.value.length
-      counterAfter++
-      break
+  if (index <= 0) {
+    const pv = fields.value.find((f) => f.pv)
+    if (pv) {
+      return pv.order || 0
     }
-    after = orderList.value[++tempIndex]
-    counterAfter++
+    return -1
   }
 
-  const step = (after - before) / (counterBefore + counterAfter)
+  if (index >= fields.value.length - 1) {
+    const fieldOrders = fields.value.map((f) => getFieldOrder(f))
+    return Math.max(...fieldOrders) + 1
+  }
 
-  return before + step * counterBefore
+  let orderBefore = -1
+  let orderAfter = -1
+
+  const fieldBefore = fields.value[index + (fromAbove ? -1 : 0)]
+  const fieldAfter = fields.value[index + (fromAbove ? 0 : 1)]
+
+  if (fieldBefore) {
+    orderBefore = getFieldOrder(fieldBefore)
+  }
+
+  if (fieldAfter) {
+    orderAfter = getFieldOrder(fieldAfter)
+    if (orderAfter === -1) {
+      orderAfter = orderBefore + 1
+    }
+  }
+
+  const order = (orderBefore + orderAfter) / 2
+
+  return order
 }
 
 // Update, Delete and New Column operations are tracked here
@@ -192,24 +184,6 @@ const changeField = (field?: TableExplorerColumn, event?: MouseEvent) => {
   })
 }
 
-const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
-  moveOps.value.push({
-    op: 'move',
-    column: fields.value[_event.moved.oldIndex],
-    index: _event.moved.newIndex,
-  })
-  ops.value.push({
-    op: 'update',
-    column: {
-      ...fields.value[_event.moved.newIndex],
-      column_order: {
-        order: calculateOrder(fields.value[_event.moved.newIndex]),
-        view_id: view.value?.id as string,
-      },
-    },
-  })
-}
-
 const addField = (field?: TableExplorerColumn, before = false) => {
   if (field) {
     setFieldMoveHook(field, before)
@@ -218,7 +192,7 @@ const addField = (field?: TableExplorerColumn, before = false) => {
 }
 
 const displayColumn = computed(() => {
-  if (!meta.value?.columns) return []
+  if (!meta.value?.columns) return
   return meta.value?.columns.find((col) => col.pv)
 })
 
@@ -336,11 +310,36 @@ const onFieldAdd = (state: TableExplorerColumn) => {
       op: 'move',
       column: state,
       index: addFieldMoveHook.value,
+      order: calculateOrderForIndex(addFieldMoveHook.value),
     })
     addFieldMoveHook.value = undefined
+  } else {
+    moveOps.value.push({
+      op: 'move',
+      column: state,
+      index: fields.value.length,
+      order: calculateOrderForIndex(fields.value.length),
+    })
   }
 
   changeField(state)
+}
+
+const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
+  const order = calculateOrderForIndex(_event.moved.newIndex, _event.moved.newIndex < _event.moved.oldIndex)
+
+  const mop = moveOps.value.find((op) => compareCols(op.column, fields.value[_event.moved.oldIndex]))
+  if (mop) {
+    mop.index = _event.moved.newIndex
+    mop.order = order
+  } else {
+    moveOps.value.push({
+      op: 'move',
+      column: fields.value[_event.moved.oldIndex],
+      index: _event.moved.newIndex,
+      order,
+    })
+  }
 }
 
 const recoverField = (state: TableExplorerColumn) => {
@@ -396,15 +395,15 @@ const clearChanges = () => {
 
 const saveChanges = async () => {
   try {
-    loading.value = true
-
     if (!meta.value?.id) return
+
+    loading.value = true
 
     for (const mop of moveOps.value) {
       const op = ops.value.find((op) => compareCols(op.column, mop.column))
-      if (op && op.op === 'add') {
+      if (op && (op.op === 'add' || op.op === 'update')) {
         op.column.column_order = {
-          order: calculateOrder(op.column),
+          order: mop.order,
           view_id: view.value?.id as string,
         }
       }
@@ -425,7 +424,6 @@ const saveChanges = async () => {
     const res = await $api.dbTableColumn.bulk(meta.value?.id, {
       hash: columnsHash.value,
       ops: ops.value,
-      viewId: view.value?.id,
     })
 
     for (const op of visibilityOps.value) {
@@ -452,6 +450,7 @@ const saveChanges = async () => {
     }
 
     await getMeta(meta.value.id, true)
+    await loadViewColumns()
     columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 
     visibilityOps.value = []

@@ -385,7 +385,6 @@ test.describe('Form view with LTAR', () => {
     await dashboard.rootPage.waitForTimeout(500);
 
     await dashboard.treeView.openTable({ title: 'Country' });
-    await dashboard.viewSidebar.openView({ title: 'Country' });
 
     await dashboard.grid.cell.verify({
       index: 3,
@@ -492,7 +491,7 @@ test.describe('Form view', () => {
     // kludge- reload
     await dashboard.rootPage.reload();
 
-    await dashboard.viewSidebar.openView({ title: 'selectBased' });
+    await dashboard.treeView.openTable({ title: 'selectBased' });
 
     await dashboard.rootPage.waitForTimeout(2000);
 

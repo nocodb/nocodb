@@ -245,7 +245,7 @@ watch(rightSidebarState, () => {
                 <GeneralIcon icon="edit" />
                 Rename
               </NcMenuItem>
-              <NcMenuItem size="small" :centered="false" @click.stop="onDuplicate">
+              <NcMenuItem size="small" :centered="false" class="nc-view-copy-icon" @click.stop="onDuplicate">
                 <GeneralIcon icon="copy" class="text-base" />
                 Duplicate
               </NcMenuItem>

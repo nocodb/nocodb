@@ -44,7 +44,7 @@ const visibilityOps = ref<fieldsVisibilityOps[]>([])
 
 const selectedView = inject(ActiveViewInj)
 
-const { fields: viewFields, toggleFieldVisibility, saveOrUpdate } = useViewColumns(view, meta as Ref<TableType | undefined>)
+const { fields: viewFields, toggleFieldVisibility } = useViewColumns(view, meta as Ref<TableType | undefined>)
 
 const loading = ref(false)
 
@@ -63,8 +63,8 @@ const compareCols = (a?: TableExplorerColumn, b?: TableExplorerColumn) => {
 
 const fields = computed<TableExplorerColumn[]>({
   get: () => {
-    const x = ((meta.value?.columns as ColumnType[]) || [])
-      .filter((col) => !col.pk && !isSystemColumn(col))
+    const x = (meta.value?.columns as ColumnType[])
+      .filter((field) => !field.fk_column_id && !isSystemColumn(field))
       .sort((a, b) => {
         if (viewFields.value) {
           return (
@@ -135,14 +135,12 @@ const calculateOrder = (column: TableExplorerColumn) => {
 
   let before = -1
   let after = -1
-
   let tempIndex = currentColumnIndex
   let counterBefore = 0
   while (before === -1) {
     before = orderList.value[--tempIndex]
     counterBefore++
   }
-
   tempIndex = currentColumnIndex
   let counterAfter = 0
   while (after === -1) {
@@ -199,6 +197,16 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
     op: 'move',
     column: fields.value[_event.moved.oldIndex],
     index: _event.moved.newIndex,
+  })
+  ops.value.push({
+    op: 'update',
+    column: {
+      ...fields.value[_event.moved.newIndex],
+      column_order: {
+        order: calculateOrder(fields.value[_event.moved.newIndex]),
+        view_id: view.value?.id as string,
+      },
+    },
   })
 }
 
@@ -387,66 +395,71 @@ const clearChanges = () => {
 }
 
 const saveChanges = async () => {
-  if (!meta.value?.id) return
+  try {
+    loading.value = true
 
-  loading.value = true
+    if (!meta.value?.id) return
 
-  for (const mop of moveOps.value) {
-    const op = ops.value.find((op) => compareCols(op.column, mop.column))
-    if (op && op.op === 'add') {
-      op.column.column_order = {
-        order: calculateOrder(op.column),
-        view_id: view.value?.id as string,
-      }
-    }
-  }
-
-  for (const op of ops.value) {
-    if (op.op === 'add') {
-      if (activeField.value && compareCols(activeField.value, op.column)) {
-        changeField()
-      }
-    } else if (op.op === 'delete') {
-      if (activeField.value && compareCols(activeField.value, op.column)) {
-        changeField()
-      }
-    }
-  }
-
-  const res = await $api.dbTableColumn.bulk(meta.value?.id, {
-    hash: columnsHash.value,
-    ops: ops.value,
-    viewId: view.value?.id,
-  })
-
-  for (const op of visibilityOps.value) {
-    await toggleFieldVisibility(op.visible, {
-      ...op.column,
-      show: op.visible,
-    })
-  }
-
-  if (res) {
-    ops.value = (res.failedOps as op[]) || []
-    newFields.value = newFields.value.filter((col) => {
-      if (res.failedOps) {
-        const op = res.failedOps.find((fop) => {
-          return (fop.column as TableExplorerColumn).temp_id === col.temp_id
-        })
-        if (op) {
-          return true
+    for (const mop of moveOps.value) {
+      const op = ops.value.find((op) => compareCols(op.column, mop.column))
+      if (op && op.op === 'add') {
+        op.column.column_order = {
+          order: calculateOrder(op.column),
+          view_id: view.value?.id as string,
         }
       }
-      return false
+    }
+
+    for (const op of ops.value) {
+      if (op.op === 'add') {
+        if (activeField.value && compareCols(activeField.value, op.column)) {
+          changeField()
+        }
+      } else if (op.op === 'delete') {
+        if (activeField.value && compareCols(activeField.value, op.column)) {
+          changeField()
+        }
+      }
+    }
+
+    const res = await $api.dbTableColumn.bulk(meta.value?.id, {
+      hash: columnsHash.value,
+      ops: ops.value,
+      viewId: view.value?.id,
     })
-    moveOps.value = []
+
+    for (const op of visibilityOps.value) {
+      await toggleFieldVisibility(op.visible, {
+        ...op.column,
+        show: op.visible,
+      })
+    }
+
+    if (res) {
+      ops.value = (res.failedOps as op[]) || []
+      newFields.value = newFields.value.filter((col) => {
+        if (res.failedOps) {
+          const op = res.failedOps.find((fop) => {
+            return (fop.column as TableExplorerColumn).temp_id === col.temp_id
+          })
+          if (op) {
+            return true
+          }
+        }
+        return false
+      })
+      moveOps.value = []
+    }
+
+    await getMeta(meta.value.id, true)
+    columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
+
+    visibilityOps.value = []
+  } catch (e) {
+    message.error('Something went wrong')
+  } finally {
+    loading.value = false
   }
-
-  await getMeta(meta.value.id, true)
-  columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
-
-  loading.value = false
-  visibilityOps.value = []
 }
 
 const toggleVisibility = async (checked: boolean, field: Field) => {

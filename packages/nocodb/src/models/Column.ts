@@ -1083,14 +1083,9 @@ export default class Column<T = any> implements ColumnType {
       const viewColumn = (
         await View.getColumns(column.column_order.view_id)
       ).find((col) => col.fk_column_id === column.id);
-      const res = await View.updateColumn(
-        column.column_order.view_id,
-        viewColumn.id,
-        {
-          order: column.column_order.order,
-        },
-      );
-      console.log(res);
+      await View.updateColumn(column.column_order.view_id, viewColumn.id, {
+        order: column.column_order.order,
+      });
     }
 
     // get existing cache

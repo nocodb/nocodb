@@ -212,20 +212,19 @@ const onPaste = (e: ClipboardEvent) => {
         </div>
         <span v-if="emailValidation.isError" class="ml-2 text-red-500 text-[10px] mt-1.5">{{ emailValidation.message }}</span>
       </div>
-      <NcSelect v-model:value="inviteData.roles" class="min-w-30 !rounded px-1" data-testid="roles">
-        <template v-for="role of allowedRoles" :key="`role-option-${role}`">
-          <a-select-option v-if="role" :value="role">
-            <NcBadge :color="RoleColors[role]">
-              <p class="badge-text">{{ RoleLabels[role] }}</p>
-            </NcBadge>
-          </a-select-option>
-        </template>
-      </NcSelect>
+      <RolesSelector
+        class="px-1"
+        :role="inviteData.roles"
+        :roles="allowedRoles"
+        :on-role-change="(role: WorkspaceUserRoles) => (inviteData.roles = role)"
+        :description="true"
+      />
 
       <NcButton
         type="primary"
         :disabled="!emailBadges.length || isInvitingCollaborators || emailValidation.isError"
         size="small"
+        class="mt-0.5"
         :loading="isInvitingCollaborators"
         @click="inviteCollaborator"
       >

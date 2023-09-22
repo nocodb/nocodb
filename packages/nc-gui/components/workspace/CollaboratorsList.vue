@@ -98,21 +98,19 @@ onMounted(async () => {
           </td>
           <td class="w-1/5">
             <div class="-left-2.5 top-5">
-              <a-dropdown v-if="collab.roles !== WorkspaceUserRoles.OWNER" :trigger="['click']">
+              <NcDropdown v-if="collab.roles !== WorkspaceUserRoles.OWNER" :trigger="['click']">
                 <MdiDotsVertical
-                  class="h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
+                  class="border-1 !text-gray-600 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
                 />
                 <template #overlay>
-                  <a-menu>
-                    <a-menu-item @click="removeCollaborator(collab.id)">
-                      <div class="flex flex-row items-center py-2 text-s gap-1.5 text-red-500 cursor-pointer">
-                        <MaterialSymbolsDeleteOutlineRounded />
-                        Remove user
-                      </div>
-                    </a-menu-item>
-                  </a-menu>
+                  <NcMenu>
+                    <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="removeCollaborator(collab.id)">
+                      <MaterialSymbolsDeleteOutlineRounded />
+                      Remove user
+                    </NcMenuItem>
+                  </NcMenu>
                 </template>
-              </a-dropdown>
+              </NcDropdown>
             </div>
           </td>
           <td class="w-1/5 padding"></td>

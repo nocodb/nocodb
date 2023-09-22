@@ -12,7 +12,7 @@ const props = withDefaults(
 
 <template>
   <div
-    class="h-6 rounded-md px-1"
+    class="rounded-md px-1"
     :class="{
       'border-purple-500 bg-purple-100': props.color === 'purple',
       'border-blue-500 bg-blue-100': props.color === 'blue',

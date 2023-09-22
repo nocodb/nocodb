@@ -281,7 +281,8 @@
     "resetPasswordMenu": "Reset Password",
     "tokens": "Tokens",
     "userManagement": "User Management",
-    "licence": "Licence"
+    "licence": "Licence",
+    "defaultView": "Default View"
   },
   "labels": {
     "searchProjects": "Search Projects",

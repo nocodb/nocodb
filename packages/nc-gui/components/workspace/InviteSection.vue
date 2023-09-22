@@ -8,7 +8,7 @@ const inviteData = reactive({
 })
 
 const focusRef = ref<HTMLInputElement>()
-
+const isDivFocused = ref(false)
 const divRef = ref<HTMLDivElement>()
 
 const workspaceStore = useWorkspace()
@@ -77,12 +77,22 @@ onMounted(async () => {
       <div
         ref="divRef"
         class="flex w-130 gap-1 overflow-x-scroll border-1 border-blue items-center rounded-lg nc-scrollbar-x-md overflow-hidden"
-        @click="focusRef?.focus"
+        tabindex="0"
+        :class="{
+          'border-[#3366FF]': isDivFocused,
+        }"
+        @click="
+          () => {
+            focusRef?.focus
+            isDivFocused = true
+          }
+        "
+        @blur="isDivFocused = false"
       >
         <span
           v-for="(email, index) in emailBadges"
           :key="email"
-          class="text-[14px] p-0.2 border-1 color-[#4A5268] bg-[#E7E7E9] rounded-md flex items-center justify-between ml-1"
+          class="text-[14px] p-0.2 border-1 color-[#4A5268] bg-[#E7E7E9] rounded-md flex items-center justify-between ml-1 mt-1"
         >
           {{ email }}
           <component :is="iconMap.close" class="ml-1.5 hover:cursor-pointer" @click="emailBadges.splice(index, 1)" />
@@ -92,7 +102,7 @@ onMounted(async () => {
           ref="focusRef"
           v-model="inviteData.email"
           :placeholder="emailBadges.length < 1 ? 'Enter emails to send invitation' : ''"
-          class="!border-none !focus:border-none !outline-0 !focus:outline-0 !bg-[white] ml-2 mr-3 w-full"
+          class="!border-none !focus:border-none !outline-0 !focus:outline-0 !bg-[white] ml-2 mr-3 w-full mt-1"
           @keyup.enter="handleEnter"
         />
       </div>

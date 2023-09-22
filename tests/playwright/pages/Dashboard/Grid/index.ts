@@ -217,7 +217,7 @@ export class GridPage extends BasePage {
     await cell.click({ button: 'right' });
 
     // Click text=Insert New Row
-    await this.rootPage.locator('text=Insert New Row').click();
+    await this.rootPage.locator('.insert-row').click();
     await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
   }
 

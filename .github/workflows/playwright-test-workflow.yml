@@ -87,7 +87,7 @@ jobs:
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./packages/nocodb
         run: |
-          pnpm run watch:run:playwright:mysql &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+          pnpm run watch:run:playwright:mysql:ee &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Run backend:pg
         if: ${{ inputs.db == 'pg' }}
         working-directory: ./packages/nocodb

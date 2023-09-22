@@ -73,7 +73,7 @@ loadTokens()
 const isModalOpen = ref(false)
 const tokenDesc = ref('')
 const tokenToCopy = ref('')
-const isTextEmpty = ref(false)
+const isTokenNameIsEmpty = ref(false)
 
 const deleteToken = async (token: string): Promise<void> => {
   try {
@@ -91,11 +91,11 @@ const deleteToken = async (token: string): Promise<void> => {
 
 const generateToken = async () => {
   if (!selectedTokenData.value.description?.length) {
-    isTextEmpty.value = true
+    isTokenNameIsEmpty.value = true
   } else {
-    isTextEmpty.value = false
+    isTokenNameIsEmpty.value = false
   }
-  if (isTextEmpty.value) return
+  if (isTokenNameIsEmpty.value) return
   try {
     await api.orgTokens.create(selectedTokenData.value)
     showNewTokenModal.value = false
@@ -130,6 +130,11 @@ const triggerDeleteModal = (tokenToDelete: string, tokenDescription: string) => 
 }
 
 const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+
+const handleCancel = () => {
+  showNewTokenModal.value = false
+  isTokenNameIsEmpty.value = false
+}
 </script>
 
 <template>
@@ -174,24 +179,16 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                 placeholder="Token Name"
                 data-testid="nc-token-input"
               />
-              <span v-if="isTextEmpty" class="text-red-500 text-xs font-light mt-1.5 ml-1">token name should not be empty</span>
+              <span v-if="isTokenNameIsEmpty" class="text-red-500 text-xs font-light mt-1.5 ml-1"
+                >token name should not be empty</span
+              >
             </div>
             <div class="flex gap-2 justify-start">
-              <NcButton
-                v-if="!isLoading"
-                type="secondary"
-                size="small"
-                @click="
-                  () => {
-                    showNewTokenModal = false
-                    isTextEmpty = false
-                  }
-                "
-              >
-                Cancel
+              <NcButton v-if="!isLoading" type="secondary" size="small" @click="handleCancel">
+                {{ $t('general.cancel') }}
               </NcButton>
               <NcButton type="primary" size="sm" :is-loading="isLoading" data-testid="nc-token-save-btn" @click="generateToken">
-                Save
+                {{ $t('general.save') }}
               </NcButton>
             </div>
           </div>

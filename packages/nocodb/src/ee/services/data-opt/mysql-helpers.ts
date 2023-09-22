@@ -591,7 +591,7 @@ export async function extractColumn({
     case UITypes.Attachment:
       {
         qb.select(
-          knex.raw(`??.??::json as ??`, [
+          knex.raw(`CAST(??.?? as JSON) as ??`, [
             rootAlias,
             column.column_name,
             column.title,
@@ -610,10 +610,13 @@ export async function extractColumn({
         // our existing logic is based on UTC, during the query, we need to take the UTC value
         // hence, we use CONVERT_TZ to convert back to UTC value
         qb.select(
-          knex.raw(`CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00') as ??`, [
-            `${sanitize(rootAlias)}.${column.column_name}`,
-            sanitize(column.title),
-          ]),
+          knex.raw(
+            `DATE_FORMAT(CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00'), '%Y-%m-%d %H:%i:%s+00:00') as ??`,
+            [
+              `${sanitize(rootAlias)}.${column.column_name}`,
+              sanitize(column.title),
+            ],
+          ),
         );
       }
       break;
@@ -896,13 +899,13 @@ export async function singleQueryList(ctx: {
         +listArgs.offset,
       ]);
 
-      let res = rawRes[0];
+      const res = rawRes[0];
 
       // update attachment fields
-      res = baseModel.convertAttachmentType(res, ctx.model);
+      // res = baseModel.convertAttachmentType(res, ctx.model);
 
       // update date time fields
-      res = baseModel.convertDateFormat(res, ctx.model);
+      // res = baseModel.convertDateFormat(res, ctx.model);
 
       return new PagedResponseImpl(
         res.map(({ __nc_count, ...rest }) => rest),
@@ -1040,10 +1043,10 @@ export async function singleQueryList(ctx: {
   }
 
   // update attachment fields
-  res = baseModel.convertAttachmentType(res, ctx.model);
+  // res = baseModel.convertAttachmentType(res, ctx.model);
 
   // update date time fields
-  res = baseModel.convertDateFormat(res, ctx.model);
+  // res = baseModel.convertDateFormat(res, ctx.model);
 
   return new PagedResponseImpl(
     res.map(({ __nc_count, ...rest }) => rest),

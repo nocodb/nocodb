@@ -319,7 +319,7 @@ watch(
               </h2>
 
               <div v-for="col in fieldsWithoutDisplay" :key="`record-${record.row.id}-${col.id}`">
-                <div class="flex flex-col ml-2 !pr-3.5 !mb-[0.5rem] rounded-lg w-full">
+                <div class="flex flex-col ml-2 !pr-3.5 !mb-[0.75rem] rounded-lg w-full">
                   <div class="flex flex-row w-full justify-start scale-75">
                     <div class="w-full pb-1 text-gray-300">
                       <LazySmartsheetHeaderVirtualCell

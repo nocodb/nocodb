@@ -88,6 +88,10 @@ const rolePermissions = {
       viewCreateOrEdit: true,
       viewShare: true,
       projectShare: true,
+      projectMiscSettings: true,
+      csvImport: true,
+      projectRename: true,
+      projectDuplicate: true,
     },
   },
   [ProjectRoles.EDITOR]: {

@@ -33,7 +33,7 @@
 }
 
 .anticon-check-circle {
-  @apply !relative top-[-1px] left-0;  
+  @apply !relative top-[-1px] left-0;
 }
 
 html,
@@ -578,10 +578,6 @@ input[type='number'] {
 }
 .ant-pagination .ant-pagination-jump-prev-custom-icon .ant-pagination-item-link {
   @apply !block;
-}
-
-.ant-card-body {
-  @apply !p-2;
 }
 
 .ant-pagination .ant-pagination-item-link-icon {

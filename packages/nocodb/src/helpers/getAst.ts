@@ -5,7 +5,7 @@ import type {
   LookupColumn,
   Model,
 } from '~/models';
-import { View } from '~/models';
+import { GalleryView, View } from '~/models';
 
 const getAst = async ({
   query,
@@ -31,6 +31,14 @@ const getAst = async ({
   // set default values of dependencyFields and nested
   dependencyFields.nested = dependencyFields.nested || {};
   dependencyFields.fieldsSet = dependencyFields.fieldsSet || new Set();
+
+  let coverImageId;
+  if (view) {
+    const gallery = await GalleryView.get(view.id);
+    if (gallery) {
+      coverImageId = gallery.fk_cover_image_col_id;
+    }
+  }
 
   if (!model.columns?.length) await model.getColumns();
 
@@ -59,7 +67,7 @@ const getAst = async ({
   }
 
   let allowedCols = null;
-  if (view)
+  if (view) {
     allowedCols = (await View.getColumns(view.id)).reduce(
       (o, c) => ({
         ...o,
@@ -67,6 +75,10 @@ const getAst = async ({
       }),
       {},
     );
+    if (coverImageId) {
+      allowedCols[coverImageId] = 1;
+    }
+  }
 
   const ast = await model.columns.reduce(async (obj, col: Column) => {
     let value: number | boolean | { [key: string]: any } = 1;

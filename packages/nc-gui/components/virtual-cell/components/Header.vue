@@ -49,9 +49,9 @@ const relationMeta = computed(() => {
 
 <template>
   <div class="flex justify-between relative pb-2 items-center">
-    <h2 class="text-md font-semibold">
+    <span class="text-base font-bold flex mt-2 justify-center">
       {{ showHeader ? 'Linked Records' : '' }}
-    </h2>
+    </span>
     <div class="grid grid-cols-[1fr,auto,1fr] justify-center items-center gap-2 absolute inset-0 m-auto">
       <div class="flex justify-end">
         <div class="flex flex-shrink-0 rounded-md gap-1 text-brand-500 items-center bg-gray-100 px-2 py-1">
@@ -108,7 +108,7 @@ const relationMeta = computed(() => {
           </div>
         </div>
       </template>
-      <InfoIcon class="w-4 h-4" />
+      <InfoIcon class="w-4 h-4 mt-2" />
     </NcTooltip>
   </div>
 </template>

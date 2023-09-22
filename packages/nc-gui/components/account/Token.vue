@@ -29,8 +29,10 @@ const showNewTokenModal = ref(false)
 
 const currentLimit = ref(10)
 
+const defaultTokenName = 'untitled token'
+
 const selectedTokenData = ref<ApiTokenType>({
-  description: 'untitled token',
+  description: defaultTokenName,
 })
 
 const searchText = ref<string>('')
@@ -75,7 +77,7 @@ loadTokens()
 const isModalOpen = ref(false)
 const tokenDesc = ref('')
 const tokenToCopy = ref('')
-const isInvalidInput = ref(false)
+const isValidTokenName = ref(false)
 
 const deleteToken = async (token: string): Promise<void> => {
   try {
@@ -92,9 +94,9 @@ const deleteToken = async (token: string): Promise<void> => {
 }
 
 const generateToken = async () => {
-  isInvalidInput.value = !selectedTokenData.value.description?.length || selectedTokenData.value.description?.length > 255
+  isValidTokenName.value = !selectedTokenData.value.description?.length || selectedTokenData.value.description?.length > 255
 
-  if (isInvalidInput.value) return
+  if (isValidTokenName.value) return
   try {
     await api.orgTokens.create(selectedTokenData.value)
     showNewTokenModal.value = false
@@ -105,7 +107,7 @@ const generateToken = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    selectedTokenData.value.description = 'untitled token'
+    selectedTokenData.value.description = defaultTokenName
     $e('a:api-token:generate')
   }
 }
@@ -143,7 +145,7 @@ const errorMessage = computed(() => {
 
 const handleCancel = () => {
   showNewTokenModal.value = false
-  isInvalidInput.value = false
+  isValidTokenName.value = false
 }
 </script>
 
@@ -189,7 +191,7 @@ const handleCancel = () => {
                     placeholder="Token Name"
                     data-testid="nc-token-input"
                   />
-                  <span v-if="isInvalidInput" class="text-red-500 text-xs font-light mt-1.5 ml-1">{{ errorMessage }} </span>
+                  <span v-if="isValidTokenName" class="text-red-500 text-xs font-light mt-1.5 ml-1">{{ errorMessage }} </span>
                 </div>
                 <div class="flex gap-2 justify-start">
                   <NcButton v-if="!isLoading" type="secondary" size="small" @click="handleCancel">

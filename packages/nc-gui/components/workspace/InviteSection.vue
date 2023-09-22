@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { OrderedWorkspaceRoles, RoleColors, RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
+import { OrderedWorkspaceRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, useWorkspace } from '#imports'
 
 const inviteData = reactive({

@@ -18,7 +18,7 @@ const props = withDefaults(
 
 const roleRef = toRef(props, 'role')
 const clickableRef = toRef(props, 'clickable')
-const inheritRef = toRef(props, 'inherit')
+// const inheritRef = toRef(props, 'inherit')
 const borderRef = toRef(props, 'border')
 
 const roleProperties = computed(() => {

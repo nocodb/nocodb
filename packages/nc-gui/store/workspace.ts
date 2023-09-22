@@ -1,4 +1,3 @@
-import { OrgUserRoles } from 'nocodb-sdk'
 import type { ProjectType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
@@ -26,8 +25,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const { $e } = useNuxtApp()
 
   const { appInfo, ncNavigateTo } = useGlobal()
-
-  const { orgRoles } = useRoles()
 
   const workspaces = ref<Map<string, any>>(new Map())
   const workspacesList = computed<any[]>(() => Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at))

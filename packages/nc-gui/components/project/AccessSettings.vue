@@ -135,11 +135,6 @@ watchDebounced(
   },
 )
 
-const userProjectRole = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles]>(() => {
-  const projectUser = collaborators.value?.find((collab) => collab.id === user.value?.id)
-  return projectUser?.projectRoles
-})
-
 onMounted(async () => {
   isLoading.value = true
   try {

@@ -218,7 +218,12 @@ const rowHeight = inject(RowHeightInj, ref())
               <div
                 class="nc-attachment flex items-center flex-col flex-wrap justify-center"
                 :class="{ 'ml-2': active }"
-                @click.stop="selectedImage = item"
+                @click="
+                  () => {
+                    if (isGallery) return
+                    selectedImage = item
+                  }
+                "
               >
                 <LazyCellAttachmentImage
                   :alt="item.title || `#${i}`"

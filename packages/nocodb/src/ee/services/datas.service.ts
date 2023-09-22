@@ -20,7 +20,10 @@ export class DatasService extends DatasServiceCE {
 
     let responseData;
     const base = await Base.get(model.base_id);
-    if (base.type === 'pg' && !param.disableOptimization) {
+    if (
+      ['pg', 'mysql', 'mysql2'].includes(base.type) &&
+      !param.disableOptimization
+    ) {
       responseData = await this.dataOptService.list({
         model,
         view,

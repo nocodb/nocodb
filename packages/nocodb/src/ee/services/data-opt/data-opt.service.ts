@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import type { Base, Model, View } from '~/models';
-import type { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { singleQueryList, singleQueryRead } from '~/services/data-opt/helpers';
+import {Injectable} from '@nestjs/common';
+import type {Base, Model, View} from '~/models';
+import type {PagedResponseImpl} from '~/helpers/PagedResponse';
+import {singleQueryList, singleQueryRead} from '~/services/data-opt/helpers';
+import {singleQueryList as mysqlSingleQueryList} from '~/services/data-opt/mysql-helpers';
 
 @Injectable()
 export class DataOptService {
@@ -11,22 +12,26 @@ export class DataOptService {
     base: Base;
     params;
   }): Promise<PagedResponseImpl<Record<string, any>>> {
-    const params = { ...(ctx.params || {}) };
+    const params = {...(ctx.params || {})};
 
     // parse json filter/sort params if found
     if (params) {
       if (params.filterArrJson)
         try {
           params.filterArr = JSON.parse(params.filterArrJson);
-        } catch (e) {}
+        } catch (e) {
+        }
 
       if (params.sortArrJson)
         try {
           params.sortArr = JSON.parse(params.sortArrJson);
-        } catch (e) {}
+        } catch (e) {
+        }
     }
-
-    return singleQueryList({ ...ctx, params });
+    if (['mysql', 'mysql2'].includes(ctx.base.type)) {
+      return mysqlSingleQueryList({...ctx, params})
+    }
+    return singleQueryList({...ctx, params});
   }
 
   async read(ctx: {

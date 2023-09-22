@@ -54,8 +54,8 @@ export function generateNestedRowSelectQuery({
 
   return knex.raw(
     isBt
-      ? `json_build_object(${paramsString}) as ??`
-      : `coalesce(json_agg(jsonb_build_object(${paramsString})),'[]'::json) as ??`,
+      ? `json_object(${paramsString}) as ??`
+      : `json_arrayagg(json_object(${paramsString})) as ??`,
     pramsValueArr,
   );
 }
@@ -289,22 +289,30 @@ export async function extractColumn({
                 ast,
               });
 
+              btAggQb
+                .select('*')
+                .where(
+                  parentColumn.column_name,
+                  knex.raw('??.??', [rootAlias, childColumn.column_name]),
+                );
               qb.joinRaw(
-                `LEFT OUTER JOIN LATERAL (${knex
-                  .from(btAggQb.as(alias2))
-                  .select(
-                    generateNestedRowSelectQuery({
-                      knex,
-                      alias: alias2,
-                      columns: fields,
-                      title: column.title,
-                      isBt: true,
-                    }),
-                  )
-                  .toQuery()}) as ?? ON true`,
+                `LEFT OUTER JOIN LATERAL
+                     (${knex
+                       .from(btQb.as(alias2))
+                       .select(
+                         knex.raw(`json_object(?,??.??, ?, ??.??) as ??`, [
+                           pvColumn.title,
+                           alias2,
+                           pvColumn.column_name,
+                           pkColumn.title,
+                           alias2,
+                           pkColumn.column_name,
+                           column.title,
+                         ]),
+                       )
+                       .toQuery()}) as ?? ON true`,
                 [alias1],
               );
-
               qb.select(knex.raw('??.??', [alias1, column.title]));
             }
             break;
@@ -489,10 +497,7 @@ export async function extractColumn({
             `LEFT OUTER JOIN LATERAL (${knex
               .from(relQb.as(alias2))
               .select(
-                knex.raw(`coalesce(json_agg(??),'[]'::json) as ??`, [
-                  alias,
-                  column.title,
-                ]),
+                knex.raw(`json_arrayagg(??) as ??`, [alias, column.title]),
               )
               .toQuery()},json_array_elements(??.??) as ?? ) as ?? ON true`,
             [alias2, lookupColumn.title, alias, lookupTableAlias],
@@ -502,7 +507,7 @@ export async function extractColumn({
             `LEFT OUTER JOIN LATERAL (${knex
               .from(relQb.as(alias2))
               .select(
-                knex.raw(`coalesce(json_agg(??.??),'[]'::json) as ??`, [
+                knex.raw(`json_arrayagg(??.??) as ??`, [
                   alias2,
                   lookupColumn.title,
                   column.title,
@@ -594,24 +599,25 @@ export async function extractColumn({
         );
       }
       break;
-    case UITypes.DateTime: {
-      // if there is no timezone info,
-      // convert to database timezone,
-      // then convert to UTC
-      if (
-        column.dt !== 'timestamp with time zone' &&
-        column.dt !== 'timestamptz'
-      ) {
+    case UITypes.DateTime:
+      {
+        // MySQL stores timestamp in UTC but display in timezone
+        // To verify the timezone, run `SELECT @@global.time_zone, @@session.time_zone;`
+        // If it's SYSTEM, then the timezone is read from the configuration file
+        // if a timezone is set in a DB, the retrieved value would be converted to the corresponding timezone
+        // for example, let's say the global timezone is +08:00 in DB
+        // the value 2023-01-01 10:00:00 (UTC) would display as 2023-01-01 18:00:00 (UTC+8)
+        // our existing logic is based on UTC, during the query, we need to take the UTC value
+        // hence, we use CONVERT_TZ to convert back to UTC value
         qb.select(
-          knex.raw(
-            `??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC' as ??`,
-            [rootAlias, column.column_name, column.title],
-          ),
+          knex.raw(`CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00') as ??`, [
+            `${sanitize(rootAlias)}.${column.column_name}`,
+            sanitize(column.title),
+          ]),
         );
-        break;
       }
-    }
-    // eslint-disable-next-line no-fallthrough
+      break;
+
     default:
       {
         if (column.dt === 'bytea') {
@@ -841,8 +847,8 @@ export async function singleQueryList(ctx: {
   base: Base;
   params;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
-  if (ctx.base.type !== 'pg') {
-    throw new Error('Base is not postgres');
+  if (!['mysql', 'mysql2'].includes(ctx.base.type)) {
+    throw new Error('Base is not mysql');
   }
 
   let skipCache = process.env.NC_DISABLE_CACHE === 'true';
@@ -881,7 +887,7 @@ export async function singleQueryList(ctx: {
         +listArgs.offset,
       ]);
 
-      const res = rawRes?.rows;
+      const res = rawRes[0];
 
       // update attachment fields
       // res = baseModel.convertAttachmentType(res, ctx.model);
@@ -1001,7 +1007,9 @@ export async function singleQueryList(ctx: {
     qb.orderBy(`${ROOT_ALIAS}.created_at`);
   }
 
-  const finalQb = qb.select(countQb.as('__nc_count'));
+  qb.select(countQb.as('__nc_count'));
+
+  const finalQb = await this.dbDriver.from(qb.as(ROOT_ALIAS + '_wrapper'));
 
   let res: any;
   if (skipCache) {
@@ -1028,7 +1036,7 @@ export async function singleQueryList(ctx: {
     await NocoCache.set(cacheKey, query);
 
     // run the query with actual limit and offset
-    res = (await knex.raw(query, [+listArgs.limit, +listArgs.offset])).rows;
+    res = (await knex.raw(query, [+listArgs.limit, +listArgs.offset]));
   }
 
   // update attachment fields

@@ -148,9 +148,8 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
 
 const expandFormClick = async (e: MouseEvent, row: RowType) => {
   const target = e.target as HTMLElement
-  if (target && !target.closest('.gallery-carousel')) {
-    expandForm(row)
-  }
+  if (target.closest('.arrow')) return
+  expandForm(row)
 }
 
 openNewRecordFormHook?.on(async () => {
@@ -263,7 +262,6 @@ watch(
                   v-if="!reloadAttachments && attachments(record).length"
                   class="gallery-carousel !border-b-1 !border-gray-200"
                   arrows
-                  @click="expandFormClick($event, record)"
                 >
                   <template #customPaging>
                     <a>
@@ -274,7 +272,7 @@ watch(
                   </template>
 
                   <template #prevArrow>
-                    <div class="z-10">
+                    <div class="z-10 arrow">
                       <MdiChevronLeft
                         class="text-gray-700 w-6 h-6 absolute left-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
                       />
@@ -282,7 +280,7 @@ watch(
                   </template>
 
                   <template #nextArrow>
-                    <div class="z-10">
+                    <div class="z-10 arrow">
                       <MdiChevronRight
                         class="text-gray-700 w-6 h-6 absolute right-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
                       />
@@ -295,6 +293,12 @@ watch(
                       :key="`carousel-${record.row.id}-${index}`"
                       class="h-52 object-cover"
                       :srcs="getPossibleAttachmentSrc(attachment)"
+                      @click="
+                        () => {
+                          console.log('hereeeeee')
+                          expandFormClick($event, record)
+                        }
+                      "
                     />
                   </template>
                 </a-carousel>

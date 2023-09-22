@@ -43,7 +43,7 @@ export class DataOptService {
     id: string;
   }): Promise<PagedResponseImpl<Record<string, any>>> {
     if (['mysql', 'mysql2'].includes(ctx.base.type)) {
-      return singleQueryRead(ctx);
+      return mysqlSingleQueryRead(ctx);
     }
     return singleQueryRead(ctx);
   }

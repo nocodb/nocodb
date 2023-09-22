@@ -670,8 +670,8 @@ export async function singleQueryRead(ctx: {
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   await ctx.model.getColumns();
 
-  if (ctx.base.type !== 'pg') {
-    throw new Error('Single query only supported in postgres');
+  if (!['mysql', 'mysql2'].includes(ctx.base.type)) {
+    throw new Error('Base is not mysql');
   }
 
   let skipCache = process.env.NC_DISABLE_CACHE === 'true';
@@ -709,13 +709,13 @@ export async function singleQueryRead(ctx: {
         ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
       );
 
-      let res = rawRes?.rows?.[0];
+      const res = rawRes?.[0]?.[0];
 
       // update attachment fields
-      res = baseModel.convertAttachmentType(res, ctx.model);
+      // res = baseModel.convertAttachmentType(res, ctx.model);
       //
       // update date time fields
-      res = baseModel.convertDateFormat(res, ctx.model);
+      // res = baseModel.convertDateFormat(res, ctx.model);
 
       return res;
     }
@@ -805,7 +805,7 @@ export async function singleQueryRead(ctx: {
   const { sql, bindings } = finalQb.toSQL();
 
   // get unique placeholder which is not present in the query
-  const idPlaceholder = getUniquePlaceholders(finalQb.toQuery());
+  const idPlaceholder = getUniquePlaceholders(sql);
 
   // // take care of composite primary key
   // const idPlaceholders = ctx.model.primaryKeys.map(() => idPlaceholder);
@@ -834,7 +834,7 @@ export async function singleQueryRead(ctx: {
     ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
   );
 
-  const res = rawRes?.rows?.[0];
+  const res = rawRes?.[0]?.[0];
 
   // update attachment fields
   // res = baseModel.convertAttachmentType(res, ctx.model);

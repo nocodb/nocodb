@@ -691,6 +691,13 @@ export async function singleQueryRead(ctx: {
   const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
     ctx.view?.id ?? 'default'
   }:read`;
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: ctx.model.id,
+    viewId: ctx.view?.id,
+    dbDriver: knex,
+  });
+
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {
@@ -699,23 +706,17 @@ export async function singleQueryRead(ctx: {
         ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
       );
 
-      const res = rawRes?.rows?.[0];
+      let res = rawRes?.rows?.[0];
 
       // update attachment fields
-      // res = baseModel.convertAttachmentType(res, ctx.model);
-
+      res = baseModel.convertAttachmentType(res, ctx.model);
+      //
       // update date time fields
-      // res = baseModel.convertDateFormat(res, ctx.model);
+      res = baseModel.convertDateFormat(res, ctx.model);
 
       return res;
     }
   }
-
-  const baseModel = await Model.getBaseModelSQL({
-    id: ctx.model.id,
-    viewId: ctx.view?.id,
-    dbDriver: knex,
-  });
 
   const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
 
@@ -879,6 +880,14 @@ export async function singleQueryList(ctx: {
     ctx.view?.id ?? 'default'
   }:queries`;
 
+  await ctx.model.getColumns();
+
+  const baseModel = await Model.getBaseModelSQL({
+    model: ctx.model,
+    viewId: ctx.view?.id,
+    dbDriver: knex,
+  });
+
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {
@@ -887,13 +896,13 @@ export async function singleQueryList(ctx: {
         +listArgs.offset,
       ]);
 
-      const res = rawRes[0];
+      let res = rawRes[0];
 
       // update attachment fields
-      // res = baseModel.convertAttachmentType(res, ctx.model);
+      res = baseModel.convertAttachmentType(res, ctx.model);
 
       // update date time fields
-      // res = baseModel.convertDateFormat(res, ctx.model);
+      res = baseModel.convertDateFormat(res, ctx.model);
 
       return new PagedResponseImpl(
         res.map(({ __nc_count, ...rest }) => rest),
@@ -905,13 +914,6 @@ export async function singleQueryList(ctx: {
       );
     }
   }
-
-  const baseModel = await Model.getBaseModelSQL({
-    id: ctx.model.id,
-    viewId: ctx.view?.id,
-    dbDriver: knex,
-  });
-
   // load columns list
   const columns = await ctx.model.getColumns();
 
@@ -1007,9 +1009,7 @@ export async function singleQueryList(ctx: {
     qb.orderBy(`${ROOT_ALIAS}.created_at`);
   }
 
-  qb.select(countQb.as('__nc_count'));
-
-  const finalQb = await this.dbDriver.from(qb.as(ROOT_ALIAS + '_wrapper'));
+  const finalQb = qb.select(countQb.as('__nc_count'));
 
   let res: any;
   if (skipCache) {
@@ -1036,14 +1036,14 @@ export async function singleQueryList(ctx: {
     await NocoCache.set(cacheKey, query);
 
     // run the query with actual limit and offset
-    res = (await knex.raw(query, [+listArgs.limit, +listArgs.offset]));
+    res = (await knex.raw(query, [+listArgs.limit, +listArgs.offset]))[0];
   }
 
   // update attachment fields
-  // res = baseModel.convertAttachmentType(res, ctx.model);
+  res = baseModel.convertAttachmentType(res, ctx.model);
 
   // update date time fields
-  // res = baseModel.convertDateFormat(res, ctx.model);
+  res = baseModel.convertDateFormat(res, ctx.model);
 
   return new PagedResponseImpl(
     res.map(({ __nc_count, ...rest }) => rest),

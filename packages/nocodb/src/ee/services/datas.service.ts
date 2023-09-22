@@ -55,7 +55,10 @@ export class DatasService extends DatasServiceCE {
 
     let row;
 
-    if (base.type === 'pg' && !param.disableOptimization) {
+    if (
+      ['pg', 'mysql', 'mysql2'].includes(base.type) &&
+      !param.disableOptimization
+    ) {
       row = await this.dataOptService.read({
         model,
         view,

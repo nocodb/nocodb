@@ -43,6 +43,7 @@ export const ProjectStarredModeInj: InjectionKey<Ref<boolean>> = Symbol('project
 export const ProjectInj: InjectionKey<Ref<NcProject>> = Symbol('project-injection')
 export const ProjectIdInj: InjectionKey<Ref<string>> = Symbol('project-id-injection')
 export const EditColumnInj: InjectionKey<Ref<boolean>> = Symbol('edit-column-injection')
+export const SidebarTableInj: InjectionKey<Ref<TableType>> = Symbol('sidebar-table-injection')
 export const TreeViewInj: InjectionKey<{
   setMenuContext: (type: 'project' | 'base' | 'table' | 'main' | 'layout', value?: any) => void
   duplicateTable: (table: TableType) => void

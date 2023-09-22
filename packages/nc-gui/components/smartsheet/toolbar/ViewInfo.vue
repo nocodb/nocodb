@@ -18,11 +18,21 @@ const { activeTable } = storeToRefs(useTablesStore())
   >
     <LazyGeneralEmojiPicker :emoji="activeTable?.meta?.icon" readonly size="xsmall">
       <template #default>
-        <MdiTable class="min-w-5 !text-gray-500" :class="{}" />
+        <MdiTable
+          class="min-w-5 !text-gray-500"
+          :class="{
+            '!text-gray-500': !selectedView?.is_default,
+            '!text-gray-800 mr-0.25': selectedView?.is_default,
+          }"
+        />
       </template>
     </LazyGeneralEmojiPicker>
     <span
-      class="text-ellipsis overflow-hidden pl-1 text-gray-500 max-w-1/2"
+      class="text-ellipsis overflow-hidden pl-1 max-w-1/2"
+      :class="{
+        'text-gray-500': !selectedView?.is_default,
+        'text-gray-700': selectedView?.is_default,
+      }"
       :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
     >
       {{ activeTable?.title }}
@@ -38,6 +48,7 @@ const { activeTable } = storeToRefs(useTablesStore())
     <span class="truncate pl-1.25 text-gray-700 max-w-28/100">
       {{ selectedView?.title }}
     </span>
+
     <LazySmartsheetToolbarReload v-if="openedViewsTab === 'view'" />
   </div>
 </template>

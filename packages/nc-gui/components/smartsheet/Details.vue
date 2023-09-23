@@ -28,7 +28,16 @@ watch(
 
 <template>
   <div class="flex flex-col h-full w-full" data-testid="nc-details-wrapper">
-    <NcTabs v-model="openedSubTab">
+    <NcTabs v-model="openedSubTab" centered>
+      <a-tab-pane v-if="isUIAllowed('fieldAdd')" key="field">
+        <template #tab>
+          <div class="tab" data-testid="nc-fields-tab">
+            <GeneralIcon icon="list" class="tab-icon" :class="{}" />
+            <div>Fields</div>
+          </div>
+        </template>
+        <SmartsheetDetailsFields />
+      </a-tab-pane>
       <a-tab-pane key="relation">
         <template #tab>
           <div class="tab" data-testid="nc-relations-tab">
@@ -65,6 +74,14 @@ watch(
 <style lang="scss" scoped>
 .tab {
   @apply flex flex-row items-center gap-x-1.5 pr-0.5;
+}
+
+:deep(.nc-tabs.centered) {
+  > .ant-tabs-nav {
+    .ant-tabs-nav-wrap {
+      @apply absolute mx-auto -left-1/8 right-0;
+    }
+  }
 }
 
 :deep(.ant-tabs-nav) {

@@ -27,6 +27,7 @@ const rolePermissions = {
       newUser: true,
       tableRename: true,
       tableDelete: true,
+      viewCreateOrEdit: true,
     },
   },
   [OrgUserRoles.VIEWER]: {

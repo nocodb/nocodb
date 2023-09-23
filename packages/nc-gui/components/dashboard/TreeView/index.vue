@@ -212,10 +212,8 @@ const scrollTableNode = () => {
   const activeTableDom = document.querySelector(`.nc-treeview [data-table-id="${_activeTable.value?.id}"]`)
   if (!activeTableDom) return
 
-  if (isElementInvisible(activeTableDom)) {
-    // Scroll to the table node
-    activeTableDom?.scrollIntoView({ behavior: 'smooth' })
-  }
+  // Scroll to the table node
+  activeTableDom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
 }
 
 watch(

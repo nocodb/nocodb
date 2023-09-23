@@ -10,26 +10,29 @@ const props = withDefaults(
     description?: boolean
     inherit?: string
     onRoleChange: (role: keyof typeof RoleLabels) => void
+    size: 'sm' | 'md'
   }>(),
   {
     description: true,
+    size: 'sm',
   },
 )
 
 const roleRef = toRef(props, 'role')
 const inheritRef = toRef(props, 'inherit')
 const descriptionRef = toRef(props, 'description')
+const sizeRef = toRef(props, 'size')
 </script>
 
 <template>
-  <NcDropdown>
-    <RolesBadge class="border-1" data-testid="roles" :role="roleRef" :inherit="inheritRef === role" clickable />
+  <NcDropdown size="lg" class="nc-roles-selector">
+    <RolesBadge data-testid="roles" :role="roleRef" :inherit="inheritRef === role" clickable :size="sizeRef" />
     <template #overlay>
-      <div class="nc-role-select-dropdown flex flex-col gap-[4px] p-1">
-        <div class="flex flex-col gap-[4px]">
+      <div class="nc-role-select-dropdown flex flex-col gap-1 p-2">
+        <div class="flex flex-col gap-1">
           <div v-for="rl in props.roles" :key="rl" :value="rl" :selected="rl === roleRef" @click="props.onRoleChange(rl)">
             <div
-              class="flex flex-col py-[3px] px-[8px] gap-[4px] bg-transparent cursor-pointer"
+              class="flex flex-col py-1.5 rounded-lg px-2 gap-1 bg-transparent cursor-pointer hover:bg-gray-100"
               :class="{
                 'w-[350px]': descriptionRef,
                 'w-[200px]': !descriptionRef,

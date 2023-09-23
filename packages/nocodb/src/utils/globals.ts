@@ -43,6 +43,7 @@ export enum MetaTable {
   MAP_VIEW_COLUMNS = 'nc_map_view_columns_v2',
   STORE = 'nc_store',
   NOTIFICATION = 'notification',
+  TEMPORARY_URLS = 'nc_temporary_urls',
 }
 
 export const orderedMetaTables = [
@@ -150,6 +151,7 @@ export enum CacheScope {
   USER_PROJECT = 'userProject',
   DASHBOARD_PROJECT_DB_PROJECT_LINKING = 'dashboardProjectDBProjectLinking',
   SINGLE_QUERY = 'singleQuery',
+  TEMPORARY_URL = 'temporaryUrl',
 }
 
 export enum CacheGetType {

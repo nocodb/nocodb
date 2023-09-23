@@ -54,6 +54,7 @@ export enum MetaTable {
   FOLLOWER = 'nc_follower',
   COWRITER = 'cowriter',
   NOTIFICATION = 'notification',
+  TEMPORARY_URLS = 'nc_temporary_urls',
 }
 
 export const orderedMetaTables = [
@@ -151,4 +152,5 @@ export enum CacheScope {
   WORKSPACE = 'workspace',
   WORKSPACE_USER = 'workspaceUser',
   SINGLE_QUERY = 'singleQuery',
+  TEMPORARY_URL = 'temporaryUrl',
 }

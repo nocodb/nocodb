@@ -17,6 +17,7 @@ import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { UploadAllowedInterceptor } from '~/interceptors/is-upload-allowed/is-upload-allowed.interceptor';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { AttachmentsService } from '~/services/attachments.service';
+import { TemporaryUrl } from '~/models';
 
 @Controller()
 export class AttachmentsController {
@@ -88,6 +89,22 @@ export class AttachmentsController {
           'uploads',
           ...filename.split('/'),
         ),
+      });
+
+      res.writeHead(200, { 'Content-Type': type });
+      res.end(img, 'binary');
+    } catch (e) {
+      res.status(404).send('Not found');
+    }
+  }
+
+  @Get('/dltemp/:param(*)')
+  async fileReadv3(@Param('param') param: string, @Response() res) {
+    try {
+      const fpath = await TemporaryUrl.getPath(`dltemp/${param}`);
+
+      const { img, type } = await this.attachmentsService.fileRead({
+        path: path.join('nc', 'uploads', fpath),
       });
 
       res.writeHead(200, { 'Content-Type': type });

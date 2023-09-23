@@ -42,7 +42,16 @@ import { customValidators } from '~/db/util/customValidators';
 import { extractLimitAndOffset } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
-import { Audit, Base, Column, Filter, Model, Sort, View } from '~/models';
+import {
+  Audit,
+  Base,
+  Column,
+  Filter,
+  Model,
+  Sort,
+  TemporaryUrl,
+  View,
+} from '~/models';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
@@ -3805,7 +3814,7 @@ class BaseModelSqlv2 {
         : await this.dbDriver.raw(query);
 
     // update attachment fields
-    data = this.convertAttachmentType(data, childTable);
+    data = await this.convertAttachmentType(data, childTable);
 
     // update date time fields
     data = this.convertDateFormat(data, childTable);
@@ -3813,23 +3822,40 @@ class BaseModelSqlv2 {
     return data;
   }
 
-  protected _convertAttachmentType(
+  protected async _convertAttachmentType(
     attachmentColumns: Record<string, any>[],
     d: Record<string, any>,
   ) {
     try {
       if (d) {
-        attachmentColumns.forEach((col) => {
+        const promises = [];
+        for (const col of attachmentColumns) {
           if (d[col.title] && typeof d[col.title] === 'string') {
             d[col.title] = JSON.parse(d[col.title]);
           }
-        });
+
+          if (d[col.title]?.length) {
+            for (const attachment of d[col.title]) {
+              if (attachment?.path) {
+                promises.push(
+                  TemporaryUrl.getTemporaryUrl({
+                    path: attachment.path.replace(/^download\//, ''),
+                  }).then((r) => (attachment.path = r)),
+                );
+              }
+            }
+          }
+        }
+        await Promise.all(promises);
       }
     } catch {}
     return d;
   }
 
-  public convertAttachmentType(data: Record<string, any>, childTable?: Model) {
+  public async convertAttachmentType(
+    data: Record<string, any>,
+    childTable?: Model,
+  ) {
     // attachment is stored in text and parse in UI
     // convertAttachmentType is used to convert the response in string to array of object in API response
     if (data) {
@@ -3838,11 +3864,11 @@ class BaseModelSqlv2 {
       ).filter((c) => c.uidt === UITypes.Attachment);
       if (attachmentColumns.length) {
         if (Array.isArray(data)) {
-          data = data.map((d) =>
-            this._convertAttachmentType(attachmentColumns, d),
+          data = await Promise.all(
+            data.map((d) => this._convertAttachmentType(attachmentColumns, d)),
           );
         } else {
-          data = this._convertAttachmentType(attachmentColumns, data);
+          data = await this._convertAttachmentType(attachmentColumns, data);
         }
       }
     }

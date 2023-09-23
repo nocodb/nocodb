@@ -63,13 +63,9 @@ export const useTablesStore = defineStore('tablesStore', () => {
   )
 
   const loadProjectTables = async (projectId: string, force = false) => {
-    const projects = projectsStore.projects
     if (!force && projectTables.value.get(projectId)) {
       return
     }
-
-    const workspaceProject = projects.get(projectId)
-    if (!workspaceProject) throw new Error('Project not found')
 
     const existingTables = projectTables.value.get(projectId)
     if (existingTables && !force) {

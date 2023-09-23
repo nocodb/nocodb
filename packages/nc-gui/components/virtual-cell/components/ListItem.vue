@@ -4,7 +4,7 @@ import { IsFormInj, isImage, useAttachment } from '#imports'
 import MaximizeIcon from '~icons/nc-icons/maximize'
 import LinkIcon from '~icons/nc-icons/link'
 
-const { row, fields, relatedTableDisplayValueProp, isLoading, isLinked, attachment } = defineProps<{
+const props = defineProps<{
   row: any
   fields: any[]
   attachment: any
@@ -20,6 +20,8 @@ const isForm = inject(IsFormInj, ref(false))
 
 provide(RowHeightInj, ref(1 as const))
 
+const row = useVModel(props, 'row')
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { getPossibleAttachmentSrc } = useAttachment()
@@ -31,10 +33,12 @@ interface Attachment {
   mimetype: string
 }
 
-const attachments: Attachment[] = computed(() => {
+const attachments: ComputedRef<Attachment[]> = computed(() => {
   try {
-    if (attachment && row[attachment.title]) {
-      return typeof row[attachment.title] === 'string' ? JSON.parse(row[attachment.title]) : row[attachment.title]
+    if (props.attachment && props.attachment[props.attachment.title]) {
+      return typeof row.value[props.attachment.title] === 'string'
+        ? JSON.parse(row.value[props.attachment.title])
+        : row.value[props.attachment.title]
     }
     return []
   } catch (e) {

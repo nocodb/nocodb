@@ -106,7 +106,7 @@ onMounted(() => {
           </a>
           <a href="https://twitter.com/nocodb" target="_blank" class="!underline-transparent">
             <NcMenuItem class="social-icon-wrapper group">
-              <GeneralIcon class="text-gray-500 group-hover:text-gray-800" icon="twitter" />
+              <GeneralIcon class="text-gray-500 group-hover:text-gray-800 my-0.5" icon="twitter" />
               <span class="menu-btn"> Twitter </span>
             </NcMenuItem>
           </a>

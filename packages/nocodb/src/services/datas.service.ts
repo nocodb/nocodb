@@ -159,8 +159,9 @@ export class DatasService {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
 
+    const countPromise = await baseModel.count(listArgs);
+
     let data = [];
-    let count = 0;
     try {
       data = await nocoExecute(
         ast,
@@ -168,7 +169,6 @@ export class DatasService {
         {},
         listArgs,
       );
-      count = await baseModel.count(listArgs);
     } catch (e) {
       console.log(e);
       NcError.internalServerError('Please check server log for more details');
@@ -176,7 +176,7 @@ export class DatasService {
 
     return new PagedResponseImpl(data, {
       ...query,
-      count,
+      count: await countPromise,
     });
   }
 

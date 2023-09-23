@@ -137,7 +137,7 @@ const triggerDeleteModal = (tokenToDelete: string, tokenDescription: string) => 
   isModalOpen.value = true
 }
 
-const descriptionInput: VNodeRef = (el) =>
+const selectInputOnMount: VNodeRef = (el) =>
   selectedTokenData.value.description === defaultTokenName && (el as HTMLInputElement)?.select()
 
 const errorMessage = computed(() => {
@@ -190,9 +190,9 @@ const handleCancel = () => {
               <div class="flex gap-5 px-3 py-3.5 text-gray-500 font-medium text-3.5 w-full nc-token-generate">
                 <div class="flex flex-col w-full">
                   <a-input
-                    :ref="descriptionInput"
+                    :ref="selectInputOnMount"
                     v-model:value="selectedTokenData.description"
-                    default-value="Untitled token"
+                    :default-value="defaultTokenName"
                     type="text"
                     class="!rounded-lg !py-1"
                     placeholder="Token Name"

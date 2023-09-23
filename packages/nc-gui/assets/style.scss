@@ -2,6 +2,10 @@
 @import '@vue-flow/core/dist/style.css';
 @import '@vue-flow/core/dist/theme-default.css';
 
+body {
+  line-height: 1.3125rem;
+}
+
 :root {
   --topbar-height: 3.1rem;
   --sidebar-bottom-height: 8.5rem;

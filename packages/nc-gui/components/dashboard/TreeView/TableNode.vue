@@ -222,6 +222,7 @@ const isTableOpened = computed(() => {
             @click.stop
           >
             <MdiDotsHorizontal
+              data-testid="nc-sidebar-table-context-menu"
               class="min-w-5.75 min-h-5.75 mt-0.2 mr-0.25 px-0.5 !text-gray-600 transition-opacity opacity-0 group-hover:opacity-100 nc-tbl-context-menu outline-0 rounded-md hover:(bg-gray-500 bg-opacity-15 !text-black)"
             />
 

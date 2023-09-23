@@ -12,7 +12,7 @@ export class SidebarTableNodeObject extends BasePage {
   }
 
   get({ tableTitle }: { tableTitle: string }) {
-    return this.sidebar.get().getByTestId(`tree-view-table-${tableTitle}`);
+    return this.sidebar.get().getByTestId(`nc-tbl-side-node-${tableTitle}`);
   }
 
   async click({ tableTitle }: { tableTitle: string }) {
@@ -22,6 +22,10 @@ export class SidebarTableNodeObject extends BasePage {
   }
 
   async clickOptions({ tableTitle }: { tableTitle: string }) {
+    await this.get({
+      tableTitle,
+    }).hover();
+
     await this.get({
       tableTitle,
     })

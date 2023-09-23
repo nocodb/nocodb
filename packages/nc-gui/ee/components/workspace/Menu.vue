@@ -11,7 +11,7 @@ const viewportWidth = ref(window.innerWidth)
 
 const { navigateToTable } = useTablesStore()
 
-const { navigateToProject } = useGlobal()
+const { navigateToProject, isMobileMode } = useGlobal()
 
 const isWorkspaceDropdownOpen = ref(false)
 
@@ -94,7 +94,7 @@ onBeforeUnmount(() => {
     </div>
   </div>
   <div
-    v-else
+    v-else-if="!isMobileMode"
     class="flex flex-row flex-grow w-full max-w-85/100 hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md"
     :style="{
       maxWidth: `calc(100% - 2.5rem)`,

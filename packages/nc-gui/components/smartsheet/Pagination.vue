@@ -23,6 +23,8 @@ const { locale } = useI18n()
 
 const vPaginationData = useVModel(props, 'paginationData', emits)
 
+const { isMobileMode } = useGlobal()
+
 const { alignCountOnRight, customLabel, changePage } = props
 
 const fixedSize = toRef(props, 'fixedSize')
@@ -94,7 +96,7 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
         </a-input>
       </div>
     </template>
-    <div class="flex-1 flex justify-end items-center">
+    <div v-if="!isMobileMode" class="flex-1 flex justify-end items-center">
       <GeneralApiTiming v-if="isEeUI && props.showApiTiming" class="m-1" />
       <div class="text-right">
         <span

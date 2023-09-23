@@ -1,12 +1,15 @@
 import { defineStore } from 'pinia'
 
 export const useSidebarStore = defineStore('sidebarStore', () => {
-  const isLeftSidebarOpen = ref(true)
+  const { isViewPortMobile } = useConfigStore()
+
+  const isLeftSidebarOpen = ref(!isViewPortMobile())
   const isRightSidebarOpen = ref(true)
-  const leftSidebarWidthPercent = ref(20)
+
+  const leftSidebarWidthPercent = ref(isViewPortMobile() ? 0 : 20)
 
   const leftSideBarSize = ref({
-    old: leftSidebarWidthPercent.value,
+    old: 20,
     current: leftSidebarWidthPercent.value,
   })
 

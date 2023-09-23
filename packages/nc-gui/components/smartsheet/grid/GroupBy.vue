@@ -30,6 +30,8 @@ const emits = defineEmits(['update:paginationData'])
 
 const vGroup = useVModel(props, 'group', emits)
 
+const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
+
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const _depth = props.depth ?? 0
@@ -85,13 +87,19 @@ reloadViewDataHook?.on(reloadViewDataHandler)
 
 watch(
   [() => vGroup.value.key],
-  (n, o) => {
+  async (n, o) => {
     if (n !== o) {
+      isViewDataLoading.value = true
+      isPaginationLoading.value = true
+
       if (vGroup.value.nested) {
-        props.loadGroups({}, vGroup.value)
+        await props.loadGroups({}, vGroup.value)
       } else {
-        props.loadGroupData(vGroup.value, true)
+        await props.loadGroupData(vGroup.value, true)
       }
+
+      isViewDataLoading.value = false
+      isPaginationLoading.value = false
     }
   },
   { immediate: true },

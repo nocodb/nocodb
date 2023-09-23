@@ -54,12 +54,13 @@ export class TopbarPage extends BasePage {
     return await this.getClipboardText();
   }
 
-  async getSharedBaseUrl({ role }: { role: string }) {
+  async getSharedBaseUrl({ role, enableSharedBase }: { role: string; enableSharedBase: boolean }) {
     await this.clickShare();
-    if (!(await this.share.isSharedBasePublicAccessEnabled())) await this.share.clickShareBasePublicAccess();
-    if (role === 'editor' && !(await this.share.isSharedBaseEditorAccessEnabled())) {
+    if (enableSharedBase) await this.share.clickShareBasePublicAccess();
+
+    if (role === 'editor' && enableSharedBase) {
       await this.share.clickShareBaseEditorAccess();
-    } else if (role === 'viewer' && (await this.share.isSharedBaseEditorAccessEnabled())) {
+    } else if (role === 'viewer' && !enableSharedBase) {
       await this.share.clickShareBaseEditorAccess();
     }
     await this.share.clickCopyLink();

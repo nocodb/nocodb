@@ -24,7 +24,7 @@ export class LinkRecord extends BasePage {
 
     {
       const childList = linkRecord.getByTestId(`nc-excluded-list-item`);
-      expect.poll(() => linkRecord.getByTestId(`nc-excluded-list-item`).count()).toBe(cardTitle.length);
+      await expect.poll(() => linkRecord.getByTestId(`nc-excluded-list-item`).count()).toBe(cardTitle.length);
       for (let i = 0; i < cardTitle.length; i++) {
         await childList.nth(i).locator('.nc-display-value').scrollIntoViewIfNeeded();
         await childList.nth(i).locator('.nc-display-value').waitFor({ state: 'visible' });

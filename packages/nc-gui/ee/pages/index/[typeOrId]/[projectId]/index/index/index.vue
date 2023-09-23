@@ -146,7 +146,7 @@ function onDropZoneClick(e: MouseEvent) {
 */
 
 watch(
-  () => project.value.id,
+  () => project.value?.id,
   () => {
     if (project.value?.id && project.value.type === 'database') {
       const { addTab } = useTabs()

@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { Menu } from 'ant-design-vue'
 import { onUnmounted } from '@vue/runtime-core'
+import { useMagicKeys, whenever } from '@vueuse/core'
+
 
 definePageMeta({
   hideHeader: true,
@@ -18,6 +20,8 @@ const openDialogKey = ref<string>('')
 const dataSourcesState = ref<string>('')
 
 const dialogProjectId = ref<string>('')
+
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: string) {
   dialogOpen.value = value ?? !dialogOpen.value
@@ -49,6 +53,8 @@ const { populateWorkspace } = workspaceStore
 const { collaborators, lastPopulatedWorkspaceId } = storeToRefs(workspaceStore)
 
 const projectsStore = useProjects()
+
+const keys = useMagicKeys()
 
 const autoNavigateToProject = async () => {
   const routeName = route.value.name as string
@@ -136,6 +142,10 @@ onMounted(async () => {
       await autoNavigateToProject()
     }
   }
+
+  whenever(keys['Ctrl+/' || 'Meta+/'], () => {
+    isLeftSidebarOpen.value = !isLeftSidebarOpen.value
+  })
 })
 </script>
 

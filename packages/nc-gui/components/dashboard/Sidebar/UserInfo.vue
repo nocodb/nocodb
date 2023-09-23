@@ -67,8 +67,10 @@ onMounted(() => {
 <template>
   <div class="flex w-full flex-col p-1 border-t-1 border-gray-200 gap-y-2">
     <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-64">
-      <div class="flex flex-row py-2 px-3 gap-x-2 items-center hover:bg-gray-200 rounded-lg cursor-pointer h-10"
-        data-testid="nc-sidebar-userinfo">
+      <div
+        class="flex flex-row py-2 px-3 gap-x-2 items-center hover:bg-gray-200 rounded-lg cursor-pointer h-10"
+        data-testid="nc-sidebar-userinfo"
+      >
         <GeneralUserIcon />
         <div class="flex truncate">
           {{ name ? name : user?.email }}
@@ -76,7 +78,7 @@ onMounted(() => {
         <GeneralIcon icon="arrowUp" class="!min-w-5" />
       </div>
       <template #overlay>
-        <NcMenu>
+        <NcMenu data-testid="nc-sidebar-userinfo">
           <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
             <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
             <GeneralIcon v-else icon="signout" class="menu-icon" />
@@ -96,9 +98,7 @@ onMounted(() => {
             </NcMenuItem>
           </a>
           <a href="https://www.reddit.com/r/NocoDB" target="_blank" class="!underline-transparent">
-            <NcMenuItem class="social-icon-wrapper">
-              <GeneralIcon class="social-icon" icon="reddit" />/r/NocoDB
-            </NcMenuItem>
+            <NcMenuItem class="social-icon-wrapper"> <GeneralIcon class="social-icon" icon="reddit" />/r/NocoDB </NcMenuItem>
           </a>
           <a href="https://twitter.com/nocodb" target="_blank" class="!underline-transparent">
             <NcMenuItem class="social-icon-wrapper group">
@@ -114,8 +114,7 @@ onMounted(() => {
                 <div class="flex items-center text-gray-400 text-xs">(Community Translated)</div>
                 <div class="flex-1" />
 
-                <MaterialSymbolsChevronRightRounded
-                  class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400" />
+                <MaterialSymbolsChevronRightRounded class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400" />
               </NcMenuItem>
 
               <template #content>
@@ -134,9 +133,7 @@ onMounted(() => {
             <template v-else> Copy Auth Token </template>
           </NcMenuItem>
           <nuxt-link v-e="['c:navbar:user:email']" class="!no-underline" to="/account/profile">
-            <NcMenuItem>
-              <GeneralIcon icon="settings" class="menu-icon" /> Account Settings
-            </NcMenuItem>
+            <NcMenuItem> <GeneralIcon icon="settings" class="menu-icon" /> Account Settings </NcMenuItem>
           </nuxt-link>
         </NcMenu>
       </template>
@@ -145,8 +142,13 @@ onMounted(() => {
     <div v-if="appInfo.ee" class="text-gray-500 text-xs pl-3">© 2023 NocoDB. Inc</div>
     <div v-else-if="isMounted" class="flex flex-row justify-between pt-1 truncate">
       <div class="flex flex-wrap mb-1">
-        <GithubButton class="px-2 mb-1" href="https://github.com/nocodb/nocodb" data-icon="octicon-star"
-          data-show-count="true" data-size="large">
+        <GithubButton
+          class="px-2 mb-1"
+          href="https://github.com/nocodb/nocodb"
+          data-icon="octicon-star"
+          data-show-count="true"
+          data-size="large"
+        >
           Star
         </GithubButton>
         <div>

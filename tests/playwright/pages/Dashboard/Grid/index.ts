@@ -123,7 +123,7 @@ export class GridPage extends BasePage {
 
     // add delay for UI to render (can wait for count to stabilize by reading it multiple times)
     await this.rootPage.waitForTimeout(100);
-    expect(await this.get().locator('.nc-grid-row').count()).toBe(rowCount + 1);
+    await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 

@@ -121,6 +121,12 @@ const projectViewOpen = computed(() => {
   return routeNameAfterProjectView.split('-').length === 2 || routeNameAfterProjectView.split('-').length === 1
 })
 
+const showBaseOption = computed(() => {
+  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
+    isUIAllowed(permission, false, projectRole!.value),
+  )
+})
+
 const enableEditMode = () => {
   editMode.value = true
   tempTitle.value = project.value.title!
@@ -544,11 +550,7 @@ onMounted(() => {
           </span>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>
 
-          <NcDropdown
-            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
-            v-model:visible="isOptionsOpen"
-            :trigger="['click']"
-          >
+          <NcDropdown v-model:visible="isOptionsOpen" :trigger="['click']">
             <NcButton
               class="nc-sidebar-node-btn"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
@@ -567,15 +569,16 @@ onMounted(() => {
                   maxHeight: '70vh',
                   overflow: 'overlay',
                 }"
+                :data-testid="`nc-sidebar-project-${project.title}-options`"
                 @click="isOptionsOpen = false"
               >
                 <template v-if="!isSharedBase">
-                  <NcMenuItem @click="enableEditMode">
+                  <NcMenuItem v-if="isUIAllowed('projectRename')" data-testid="nc-sidebar-project-rename" @click="enableEditMode">
                     <GeneralIcon icon="edit" class="group-hover:text-black" />
                     {{ $t('general.rename') }}
                   </NcMenuItem>
 
-                  <NcMenuItem @click="() => toggleStarred(project.id)">
+                  <NcMenuItem data-testid="nc-sidebar-project-starred" @click="() => toggleStarred(project.id)">
                     <GeneralIcon v-if="project.starred" icon="unStar" class="group-hover:text-black" />
                     <GeneralIcon v-else icon="star" class="group-hover:text-black" />
                     <div class="ml-0.25">
@@ -588,6 +591,7 @@ onMounted(() => {
                       project.type === NcProjectType.DB &&
                       isUIAllowed('projectDuplicate', { roles: [project.workspace_role, project.project_role].join() })
                     "
+                    data-testid="nc-sidebar-project-duplicate"
                     @click="duplicateProject(project)"
                   >
                     <GeneralIcon icon="duplicate" class="text-gray-700" />
@@ -597,7 +601,7 @@ onMounted(() => {
                   <NcDivider />
 
                   <!-- ERD View -->
-                  <NcMenuItem key="erd" @click="openProjectErdView(project)">
+                  <NcMenuItem key="erd" data-testid="nc-sidebar-project-relations" @click="openProjectErdView(project)">
                     <GeneralIcon icon="erd" />
                     Relations
                   </NcMenuItem>
@@ -609,25 +613,26 @@ onMounted(() => {
                   key="api"
                   v-e="['e:api-docs']"
                   class="group"
+                  data-testid="nc-sidebar-project-rest-apis"
                   @click.stop="openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)"
                 >
-                  <GeneralIcon icon="snippet" class="group-hover:text-black" />
+                  <GeneralIcon icon="snippet" class="group-hover:text-black !max-w-3.9" />
                   {{ $t('labels.restApis') }}
                 </NcMenuItem>
 
                 <DashboardTreeViewBaseOptions
-                  v-if="project.bases && project.bases[0]"
+                  v-if="project.bases && project.bases[0] && showBaseOption"
                   v-model:project="project"
                   :base="project.bases[0]"
                 />
 
-                <NcDivider />
+                <NcDivider v-if="['settings', 'projectDelete'].some((permission) => isUIAllowed(permission))" />
 
-                <!-- Team & Settings -->
                 <NcMenuItem
-                  v-if="isUIAllowed('settingsPage')"
+                  v-if="isUIAllowed('projectMiscSettings')"
                   key="teamAndSettings"
                   v-e="['c:navdraw:project-settings']"
+                  data-testid="nc-sidebar-project-settings"
                   class="nc-sidebar-project-project-settings"
                   @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
                 >
@@ -638,6 +643,7 @@ onMounted(() => {
                 <NcMenuItem
                   v-if="isUIAllowed('projectDelete', { roles: [project.workspace_role, project.project_role].join() })"
                   class="!text-red-500 !hover:bg-red-50"
+                  data-testid="nc-sidebar-project-delete"
                   @click="isProjectDeleteDialogVisible = true"
                 >
                   <GeneralIcon icon="delete" class="w-4" />
@@ -767,7 +773,7 @@ onMounted(() => {
                                     Relations
                                   </NcMenuItem>
 
-                                  <DashboardTreeViewBaseOptions v-model:project="project" :base="base" />
+                                  <DashboardTreeViewBaseOptions v-if="showBaseOption" v-model:project="project" :base="base" />
                                 </NcMenu>
                               </template>
                             </NcDropdown>

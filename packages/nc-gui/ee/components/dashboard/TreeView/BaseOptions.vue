@@ -131,7 +131,15 @@ function openQuickImportDialog(type: string) {
   </a-sub-menu>
 
   <!-- Quick Import From -->
-  <NcSubMenu class="py-0">
+  <NcSubMenu
+    v-if="
+      ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
+        isUIAllowed(permission, false, projectRole),
+      )
+    "
+    class="py-0"
+    data-testid="nc-sidebar-project-import"
+  >
     <template #title>
       <GeneralIcon icon="download" />
 

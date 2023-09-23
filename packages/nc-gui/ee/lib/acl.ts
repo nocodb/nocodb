@@ -38,14 +38,17 @@ const rolePermissions = {
     include: {
       workspaceBilling: true,
       workspaceManage: true,
+      projectDelete: true,
     },
   },
   [WorkspaceUserRoles.CREATOR]: {
     include: {
       projectCreate: true,
-      projectDelete: true,
       projectDuplicate: true,
       workspaceSettings: true,
+      tableCreate: true,
+      tableRename: true,
+      tableDelete: true,
       viewCreateOrEdit: true,
     },
   },
@@ -89,6 +92,10 @@ const rolePermissions = {
       viewCreateOrEdit: true,
       viewShare: true,
       projectShare: true,
+      projectMiscSettings: true,
+      csvImport: true,
+      projectRename: true,
+      projectDuplicate: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -99,8 +106,7 @@ const rolePermissions = {
       filterSync: true,
       filterChildrenRead: true,
       viewFieldEdit: true,
-      csvImport: true,
-      apiDocs: true,
+      csvTableImport: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -114,6 +120,7 @@ const rolePermissions = {
     include: {
       projectSettings: true,
       expandedForm: true,
+      apiDocs: true,
     },
   },
   [ProjectRoles.NO_ACCESS]: {

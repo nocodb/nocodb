@@ -9,7 +9,7 @@ import {
 } from 'src/db/BaseModelSqlv2';
 import type { Column, Model } from '~/models';
 import { Base, View } from '~/models';
-import { singleQueryRead } from '~/services/data-opt/helpers';
+import { getSingleQueryReadFn } from '~/services/data-opt/helpers';
 import { canUseOptimisedQuery } from '~/utils';
 
 /**
@@ -101,7 +101,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           base,
           disableOptimization,
         })
-          ? singleQueryRead({
+          ? getSingleQueryReadFn(base)({
               model: this.model,
               view,
               id: data[ag.title],
@@ -159,7 +159,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           base,
           disableOptimization,
         })
-          ? await singleQueryRead({
+          ? await getSingleQueryReadFn(base)({
               model: this.model,
               view,
               id,
@@ -199,7 +199,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const view = await View.get(this.viewId);
       const base = await Base.get(this.model.base_id);
       const prevData = canUseOptimisedQuery({ base, disableOptimization })
-        ? await singleQueryRead({
+        ? await getSingleQueryReadFn(base)({
             model: this.model,
             view,
             id,
@@ -225,7 +225,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // const prevData = await this.readByPk(id);
 
       const newData = canUseOptimisedQuery({ base, disableOptimization })
-        ? await singleQueryRead({
+        ? await getSingleQueryReadFn(base)({
             model: this.model,
             view,
             id,

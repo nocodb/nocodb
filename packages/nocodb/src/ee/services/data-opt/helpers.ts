@@ -31,6 +31,7 @@ import getAst from '~/helpers/getAst';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
+import {singleQueryRead as mysqlSingleQueryRead} from "~/services/data-opt/mysql-helpers";
 
 export function generateNestedRowSelectQuery({
   knex,
@@ -1063,4 +1064,12 @@ export async function singleQueryList(ctx: {
       },
     },
   );
+}
+
+
+export function getSingleQueryReadFn(base:Base) {
+  if (['mysql', 'mysql2'].includes(base.type)) {
+    return mysqlSingleQueryRead;
+  }
+  return singleQueryRead;
 }

@@ -36,8 +36,6 @@ const { metas, getMeta } = useMetas()
 
 useSidebar('nc-right-sidebar')
 
-const isPublic = inject(IsPublicInj, ref(false))
-
 const activeTab = toRef(props, 'activeTab')
 
 const fields = ref<ColumnType[]>([])

@@ -11,7 +11,6 @@ import {
   ProjectRoleInj,
   ToggleDialogInj,
   extractSdkResponseErrorMsg,
-  isElementInvisible,
   openLink,
   storeToRefs,
   useProjects,

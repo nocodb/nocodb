@@ -161,7 +161,7 @@ const handleCancel = () => {
       <div class="py-2 flex gap-4 items-center justify-between">
         <h6 class="text-2xl my-4 text-left font-bold">API Tokens</h6>
         <NcButton
-          v-if="!showNewTokenModal"
+          :disabled="showNewTokenModal"
           class="!rounded-md"
           data-testid="nc-token-create"
           size="middle"
@@ -177,7 +177,7 @@ const handleCancel = () => {
         </NcButton>
       </div>
       <span>Create personal API tokens to use in automation or external apps.</span>
-      <div class="w-[780px] mt-5 border-1 rounded-md h-[520px]">
+      <div class="w-[780px] mt-5 border-1 rounded-md h-[540px] overflow-y-scroll">
         <div>
           <div class="flex w-full pl-5 bg-gray-50 border-b-1">
             <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9">Token name</span>
@@ -197,6 +197,7 @@ const handleCancel = () => {
                     class="!rounded-lg !py-1"
                     placeholder="Token Name"
                     data-testid="nc-token-input"
+                    @press-enter="generateToken"
                   />
                   <span v-if="!isValidTokenName" class="text-red-500 text-xs font-light mt-1.5 ml-1">{{ errorMessage }} </span>
                 </div>

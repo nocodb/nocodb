@@ -14,7 +14,7 @@ const { activeTable } = storeToRefs(useTablesStore())
     :class="{
       'min-w-2/5 max-w-2/5': !isMobileMode && activeView?.type !== ViewTypes.KANBAN,
       'min-w-1/4 max-w-1/4': !isMobileMode && activeView?.type === ViewTypes.KANBAN,
-      'min-w-1/2 max-w-1/2': isMobileMode,
+      'min-w-1/2 max-w-1/2 text-base': isMobileMode,
     }"
   >
     <template v-if="!(isMobileMode && !activeView?.is_default)">

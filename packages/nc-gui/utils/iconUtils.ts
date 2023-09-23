@@ -398,6 +398,7 @@ export const iconMap = {
   drag: MaterialSymbolsDragIndicator,
   comment: h('span', { class: 'material-symbols' }, 'comment'),
   doc: h('span', { class: 'material-symbols' }, 'menu_book'),
+  menu: h('span', { class: 'material-symbols' }, 'menu'),
   move: MsMove,
   creditCard: NcCreditCard,
   heightShort: NcIconsRowHeightShort,

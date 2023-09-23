@@ -328,6 +328,16 @@ const onFieldAdd = (state: TableExplorerColumn) => {
 const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
   const order = calculateOrderForIndex(_event.moved.newIndex, _event.moved.newIndex < _event.moved.oldIndex)
 
+  const field = fields.value[_event.moved.oldIndex]
+
+  onFieldUpdate({
+    ...field,
+    column_order: {
+      order,
+      view_id: view.value?.id as string,
+    },
+  })
+
   const mop = moveOps.value.find((op) => compareCols(op.column, fields.value[_event.moved.oldIndex]))
   if (mop) {
     mop.index = _event.moved.newIndex
@@ -401,12 +411,29 @@ const saveChanges = async () => {
 
     for (const mop of moveOps.value) {
       const op = ops.value.find((op) => compareCols(op.column, mop.column))
-      if (op && (op.op === 'add' || op.op === 'update')) {
+      if (op && op.op === 'add') {
         op.column.column_order = {
           order: mop.order,
           view_id: view.value?.id as string,
         }
+      } else {
+        const col = fields.value.find((col) => compareCols(col, mop.column))
+        if (col) {
+          onFieldUpdate({
+            ...col,
+            column_order: {
+              order: mop.order,
+              view_id: view.value?.id as string,
+            },
+          })
+        }
       }
+    }
+
+    console.log(ops.value)
+
+    for (const f of fields.value) {
+      console.log(f.title, getFieldOrder(f))
     }
 
     for (const op of ops.value) {

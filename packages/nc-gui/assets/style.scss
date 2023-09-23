@@ -33,7 +33,7 @@
 }
 
 .anticon-check-circle {
-  @apply !relative top-[-1px] left-0;  
+  @apply !relative top-[-1px] left-0;
 }
 
 html,
@@ -79,6 +79,11 @@ main {
     width: 4px;
     height: 4px;
   }
+
+  &::-webkit-scrollbar-track {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+  }
   &::-webkit-scrollbar-track-piece {
     width: 0px;
   }
@@ -86,11 +91,14 @@ main {
     @apply bg-transparent;
   }
   &::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+
     width: 4px;
-    @apply bg-gray-200;
+    @apply bg-gray-300;
   }
   &::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-300;
+    @apply bg-gray-400;
   }
 }
 
@@ -580,10 +588,10 @@ input[type='number'] {
   @apply !block;
 }
 
-.ant-card-body {
-  @apply !p-2;
-}
-
 .ant-pagination .ant-pagination-item-link-icon {
   @apply !block !py-1.5;
+}
+
+.nc-button.ant-btn.nc-sidebar-node-btn {
+  @apply opacity-0 group-hover:(opacity-100) text-gray-600 hover:(bg-gray-400 bg-opacity-20 text-gray-900) duration-100;
 }

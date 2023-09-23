@@ -40,7 +40,7 @@ onKeyStroke('Enter', () => {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="visible" size="small">
+  <GeneralModal v-model:visible="visible" size="small" centered>
     <div class="flex flex-col p-6">
       <div class="flex flex-row pb-2 mb-4 font-medium text-lg border-b-1 border-gray-50 text-gray-800">
         {{ $t('general.delete') }} {{ props.entityName }}

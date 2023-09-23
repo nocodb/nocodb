@@ -457,10 +457,10 @@ test.describe('Undo Redo - Table & view rename operations', () => {
           break;
       }
       await dashboard.viewSidebar.renameView({ title: viewTypes[i], newTitle: 'newNameForTest' });
-      await dashboard.viewSidebar.verifyView({ title: 'newNameForTest', index: 1 });
+      await dashboard.viewSidebar.verifyView({ title: 'newNameForTest', index: 0 });
       await new Promise(resolve => setTimeout(resolve, 100));
       await undo({ page, dashboard });
-      await dashboard.viewSidebar.verifyView({ title: viewTypes[i], index: 1 });
+      await dashboard.viewSidebar.verifyView({ title: viewTypes[i], index: 0 });
       await dashboard.viewSidebar.deleteView({ title: viewTypes[i] });
     }
   });

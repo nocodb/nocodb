@@ -230,11 +230,8 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
       const newTableDom = document.querySelector(`[data-table-id="${table.id}"]`)
       if (!newTableDom) return
 
-      // Verify that table node is not in the viewport
-      if (isElementInvisible(newTableDom)) {
-        // Scroll to the table node
-        newTableDom?.scrollIntoView({ behavior: 'smooth' })
-      }
+      // Scroll to the table node
+      newTableDom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }, 1000)
 
     close(1000)
@@ -740,10 +737,7 @@ onMounted(() => {
                               </div>
                             </a-tooltip>
                           </div>
-                          <div
-                            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
-                            class="flex flex-row items-center gap-x-0.25 w-12.25"
-                          >
+                          <div class="flex flex-row items-center gap-x-0.25 w-12.25">
                             <NcDropdown
                               :visible="isBasesOptionsOpen[base!.id!]"
                               :trigger="['click']"
@@ -885,11 +879,6 @@ onMounted(() => {
 .nc-project-option-item {
   @apply flex flex-row gap-x-2 items-center;
 }
-
-:deep(.nc-button.ant-btn.nc-sidebar-node-btn) {
-  @apply opacity-0 group-hover:(opacity-100) text-gray-600 hover:(bg-gray-400 bg-opacity-20 text-gray-900) duration-100;
-}
-
 .nc-sidebar-icon {
   @apply ml-0.5 mr-1;
 }

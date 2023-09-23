@@ -58,8 +58,7 @@ export class SharedFormPage extends BasePage {
 
     {
       const childList = linkRecord.locator(`.ant-card`);
-      const childCards = await childList.count();
-      expect(childCards).toEqual(cardTitle.length);
+      await expect.poll(() => linkRecord.locator(`.ant-card`).count()).toBe(cardTitle.length);
       for (let i = 0; i < cardTitle.length; i++) {
         expect(await childList.nth(i).textContent()).toContain(cardTitle[i]);
       }

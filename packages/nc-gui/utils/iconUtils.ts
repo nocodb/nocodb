@@ -233,6 +233,7 @@ import MaterialSymbolsBlock from '~icons/material-symbols/block'
 export const iconMap = {
   workspaceDefault: MsGroup,
   search: NcSearch,
+  error: h('span', { class: 'material-symbols' }, 'error'),
   info: h(MsInfo, {}, () => 'info'),
   inbox: h('span', { class: 'material-symbols' }, 'inbox'),
   addOutlineBox: MsAddBoxOutline,

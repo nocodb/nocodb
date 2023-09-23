@@ -46,6 +46,7 @@ const rolePermissions = {
       projectDelete: true,
       projectDuplicate: true,
       workspaceSettings: true,
+      viewCreateOrEdit: true,
     },
   },
   [WorkspaceUserRoles.EDITOR]: {

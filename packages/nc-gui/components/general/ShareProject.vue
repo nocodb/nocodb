@@ -8,6 +8,8 @@ interface Props {
 
 const { disabled, isViewToolbar } = defineProps<Props>()
 
+const { isMobileMode } = useGlobal()
+
 const { visibility, showShareModal } = storeToRefs(useShare())
 
 const { activeTable } = storeToRefs(useTablesStore())
@@ -41,12 +43,23 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     data-testid="share-project-button"
     :data-sharetype="visibility"
   >
-    <NcButton size="small" class="z-10 !rounded-lg !px-2" type="primary" :disabled="disabled" @click="showShareModal = true">
-      <div class="flex flex-row items-center w-full gap-x-1">
+    <NcButton
+      :size="isMobileMode ? 'medium' : 'small'"
+      class="z-10 !rounded-lg"
+      :class="{
+        '!px-2': !isMobileMode,
+        '!px-0 !max-w-8.5 !min-w-8.5': isMobileMode,
+      }"
+      type="primary"
+      :disabled="disabled"
+      @click="showShareModal = true"
+    >
+      <div v-if="!isMobileMode" class="flex flex-row items-center w-full gap-x-1">
         <MaterialSymbolsPublic v-if="visibility === 'public'" class="h-3.5" />
         <MaterialSymbolsLockOutline v-else-if="visibility === 'private'" class="h-3.5" />
         <div class="flex">{{ $t('activity.share') }}</div>
       </div>
+      <GeneralIcon v-else icon="mobileShare" />
     </NcButton>
   </div>
 

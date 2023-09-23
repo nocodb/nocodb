@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {
-  Modal as AModal,
   ActiveCellInj,
   EditModeInj,
   IsFormInj,
@@ -12,6 +11,8 @@ import {
   useVModel,
   watch,
 } from '#imports'
+
+import NcModal from '../nc/Modal.vue';
 
 interface Props {
   modelValue: string | Record<string, any> | undefined
@@ -139,7 +140,7 @@ useSelectedCellKeyupListener(active, (e) => {
 </script>
 
 <template>
-  <component :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" :closable="false" centered :footer="null">
+  <component :is="isExpanded ? NcModal : 'div'" v-model:visible="isExpanded" :closable="false" centered :footer="null">
     <div v-if="editEnabled && !readonly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
       <div class="flex flex-row justify-between pt-1 pb-2" @mousedown.stop>
         <a-button type="text" size="small" @click="isExpanded = !isExpanded">

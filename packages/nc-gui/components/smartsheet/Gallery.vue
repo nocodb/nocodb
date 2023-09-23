@@ -124,10 +124,6 @@ const attachments = (record: any): Attachment[] => {
 }
 
 const expandForm = (row: RowType, state?: Record<string, any>) => {
-  if (isPublic.value) {
-    return
-  }
-
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
   if (rowId) {

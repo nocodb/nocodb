@@ -119,6 +119,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     return $state.user?.value?.email === email
   }
 
+  const loadKanbanData = async () => {
+    if (activeView.value?.type === ViewTypes.KANBAN) {
+      const { loadKanbanData: _loadKanbanData } = useKanbanViewStoreOrThrow()
+      await _loadKanbanData()
+    }
+  }
+
   const saveComment = async () => {
     try {
       if (!row.value || !comment.value) return
@@ -178,10 +185,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
             redo: {
               fn: async (rowData: any) => {
                 await $api.dbTableRow.create('noco', project.value.id as string, meta.value.id, { ...pkData, ...rowData })
-                if (activeView.value?.type === ViewTypes.KANBAN) {
-                  const { loadKanbanData } = useKanbanViewStoreOrThrow()
-                  await loadKanbanData()
-                }
+                await loadKanbanData()
                 reloadTrigger?.trigger()
               },
               args: [clone(insertObj)],
@@ -198,11 +202,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
                 if (res.message) {
                   throw new Error(res.message)
                 }
-                if (activeView.value?.type === ViewTypes.KANBAN) {
-                  const { loadKanbanData } = useKanbanViewStoreOrThrow()
 
-                  await loadKanbanData()
-                }
+                await loadKanbanData()
                 reloadTrigger?.trigger()
               },
               args: [id],
@@ -234,10 +235,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               redo: {
                 fn: async (id: string, data: Record<string, any>) => {
                   await $api.dbTableRow.update(NOCO, project.value.id as string, meta.value.id, encodeURIComponent(id), data)
-                  if (activeView.value?.type === ViewTypes.KANBAN) {
-                    const { loadKanbanData } = useKanbanViewStoreOrThrow()
-                    await loadKanbanData()
-                  }
+                  await loadKanbanData()
+
                   reloadTrigger?.trigger()
                 },
                 args: [id, clone(updateOrInsertObj)],
@@ -245,10 +244,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               undo: {
                 fn: async (id: string, data: Record<string, any>) => {
                   await $api.dbTableRow.update(NOCO, project.value.id as string, meta.value.id, encodeURIComponent(id), data)
-                  if (activeView.value?.type === ViewTypes.KANBAN) {
-                    const { loadKanbanData } = useKanbanViewStoreOrThrow()
-                    await loadKanbanData()
-                  }
+                  loadKanbanData()
                   reloadTrigger?.trigger()
                 },
                 args: [id, clone(undoObject)],

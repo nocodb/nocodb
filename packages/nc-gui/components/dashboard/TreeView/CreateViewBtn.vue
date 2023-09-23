@@ -4,8 +4,6 @@ import { ViewTypes } from 'nocodb-sdk'
 
 const { $e } = useNuxtApp()
 
-const router = useRouter()
-
 const { refreshCommandPalette } = useCommandPalette()
 const viewsStore = useViewsStore()
 const { views } = storeToRefs(viewsStore)

@@ -1773,213 +1773,220 @@ class BaseModelSqlv2 {
       viewOrTableColumns =
         _columns || viewColumns || (await this.model.getColumns());
     }
-    for (const viewOrTableColumn of viewOrTableColumns) {
-      const column =
-        viewOrTableColumn instanceof Column
-          ? viewOrTableColumn
-          : await Column.get({
-              colId: (viewOrTableColumn as GridViewColumn).fk_column_id,
-            });
-      // hide if column marked as hidden in view
-      // of if column is system field and system field is hidden
-      if (
-        shouldSkipField(
-          fieldsSet,
-          viewOrTableColumn,
-          view,
-          column,
-          extractPkAndPv,
-        )
-      ) {
-        continue;
-      }
-
-      if (!checkColumnRequired(column, fields, extractPkAndPv)) continue;
-
-      switch (column.uidt) {
-        case UITypes.DateTime:
-          if (this.isMySQL) {
-            // MySQL stores timestamp in UTC but display in timezone
-            // To verify the timezone, run `SELECT @@global.time_zone, @@session.time_zone;`
-            // If it's SYSTEM, then the timezone is read from the configuration file
-            // if a timezone is set in a DB, the retrieved value would be converted to the corresponding timezone
-            // for example, let's say the global timezone is +08:00 in DB
-            // the value 2023-01-01 10:00:00 (UTC) would display as 2023-01-01 18:00:00 (UTC+8)
-            // our existing logic is based on UTC, during the query, we need to take the UTC value
-            // hence, we use CONVERT_TZ to convert back to UTC value
-            res[sanitize(column.title || column.column_name)] =
-              this.dbDriver.raw(
-                `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
-                [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
-              );
-            break;
-          } else if (this.isPg) {
-            // if there is no timezone info,
-            // convert to database timezone,
-            // then convert to UTC
-            if (
-              column.dt !== 'timestamp with time zone' &&
-              column.dt !== 'timestamptz'
-            ) {
-              res[sanitize(column.title || column.column_name)] = this.dbDriver
-                .raw(
-                  `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
-                  [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
-                )
-                .wrap('(', ')');
-              break;
-            }
-          } else if (this.isMssql) {
-            // if there is no timezone info,
-            // convert to database timezone,
-            // then convert to UTC
-            if (column.dt !== 'datetimeoffset') {
-              res[sanitize(column.title || column.column_name)] =
-                this.dbDriver.raw(
-                  `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
-                  [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
-                );
-              break;
-            }
-          }
-          res[sanitize(column.title || column.column_name)] = sanitize(
-            `${alias || this.tnPath}.${column.column_name}`,
-          );
-          break;
-        case UITypes.LinkToAnotherRecord:
-        case UITypes.Lookup:
-          break;
-        case UITypes.QrCode: {
-          const qrCodeColumn = await column.getColOptions<QrCodeColumn>();
-          const qrValueColumn = await Column.get({
-            colId: qrCodeColumn.fk_qr_value_column_id,
-          });
-
-          // If the referenced value cannot be found: cancel current iteration
-          if (qrValueColumn == null) {
-            break;
-          }
-
-          switch (qrValueColumn.uidt) {
-            case UITypes.Formula:
-              try {
-                const selectQb = await this.getSelectQueryBuilderForFormula(
-                  qrValueColumn,
-                  alias,
-                  validateFormula,
-                  aliasToColumnBuilder,
-                );
-                qb.select({
-                  [column.column_name]: selectQb.builder,
-                });
-              } catch {
-                continue;
-              }
-              break;
-            default: {
-              qb.select({ [column.column_name]: qrValueColumn.column_name });
-              break;
-            }
-          }
-
-          break;
-        }
-        case UITypes.Barcode: {
-          const barcodeColumn = await column.getColOptions<BarcodeColumn>();
-          const barcodeValueColumn = await Column.get({
-            colId: barcodeColumn.fk_barcode_value_column_id,
-          });
-
-          // If the referenced value cannot be found: cancel current iteration
-          if (barcodeValueColumn == null) {
-            break;
-          }
-
-          switch (barcodeValueColumn.uidt) {
-            case UITypes.Formula:
-              try {
-                const selectQb = await this.getSelectQueryBuilderForFormula(
-                  barcodeValueColumn,
-                  alias,
-                  validateFormula,
-                  aliasToColumnBuilder,
-                );
-                qb.select({
-                  [column.column_name]: selectQb.builder,
-                });
-              } catch {
-                continue;
-              }
-              break;
-            default: {
-              qb.select({
-                [column.column_name]: barcodeValueColumn.column_name,
+    await Promise.all(
+      viewOrTableColumns.map(async (viewOrTableColumn) => {
+        const column =
+          viewOrTableColumn instanceof Column
+            ? viewOrTableColumn
+            : await Column.get({
+                colId: (viewOrTableColumn as GridViewColumn).fk_column_id,
               });
-              break;
-            }
-          }
-
-          break;
+        // hide if column marked as hidden in view
+        // of if column is system field and system field is hidden
+        if (
+          shouldSkipField(
+            fieldsSet,
+            viewOrTableColumn,
+            view,
+            column,
+            extractPkAndPv,
+          )
+        ) {
+          return;
         }
-        case UITypes.Formula:
-          {
-            try {
-              const selectQb = await this.getSelectQueryBuilderForFormula(
-                column,
-                alias,
-                validateFormula,
-                aliasToColumnBuilder,
-              );
-              qb.select(
-                this.dbDriver.raw(`?? as ??`, [
-                  selectQb.builder,
-                  sanitize(column.title),
-                ]),
-              );
-            } catch (e) {
-              console.log(e);
-              // return dummy select
-              qb.select(
-                this.dbDriver.raw(`'ERR' as ??`, [sanitize(column.title)]),
-              );
-            }
-          }
-          break;
-        case UITypes.Rollup:
-        case UITypes.Links:
-          qb.select(
-            (
-              await genRollupSelectv2({
-                baseModelSqlv2: this,
-                // tn: this.title,
-                knex: this.dbDriver,
-                // column,
-                alias,
-                columnOptions: (await column.getColOptions()) as RollupColumn,
-              })
-            ).builder.as(sanitize(column.title)),
-          );
-          break;
-        default:
-          if (this.isPg) {
-            if (column.dt === 'bytea') {
+
+        if (!checkColumnRequired(column, fields, extractPkAndPv)) return;
+
+        switch (column.uidt) {
+          case UITypes.DateTime:
+            if (this.isMySQL) {
+              // MySQL stores timestamp in UTC but display in timezone
+              // To verify the timezone, run `SELECT @@global.time_zone, @@session.time_zone;`
+              // If it's SYSTEM, then the timezone is read from the configuration file
+              // if a timezone is set in a DB, the retrieved value would be converted to the corresponding timezone
+              // for example, let's say the global timezone is +08:00 in DB
+              // the value 2023-01-01 10:00:00 (UTC) would display as 2023-01-01 18:00:00 (UTC+8)
+              // our existing logic is based on UTC, during the query, we need to take the UTC value
+              // hence, we use CONVERT_TZ to convert back to UTC value
               res[sanitize(column.title || column.column_name)] =
                 this.dbDriver.raw(
-                  `encode(??.??, '${
-                    column.meta?.format === 'hex' ? 'hex' : 'escape'
-                  }')`,
-                  [alias || this.model.table_name, column.column_name],
+                  `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
+                  [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
                 );
               break;
+            } else if (this.isPg) {
+              // if there is no timezone info,
+              // convert to database timezone,
+              // then convert to UTC
+              if (
+                column.dt !== 'timestamp with time zone' &&
+                column.dt !== 'timestamptz'
+              ) {
+                res[sanitize(column.title || column.column_name)] =
+                  this.dbDriver
+                    .raw(
+                      `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
+                      [
+                        `${sanitize(alias || this.tnPath)}.${
+                          column.column_name
+                        }`,
+                      ],
+                    )
+                    .wrap('(', ')');
+                break;
+              }
+            } else if (this.isMssql) {
+              // if there is no timezone info,
+              // convert to database timezone,
+              // then convert to UTC
+              if (column.dt !== 'datetimeoffset') {
+                res[sanitize(column.title || column.column_name)] =
+                  this.dbDriver.raw(
+                    `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
+                    [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
+                  );
+                break;
+              }
             }
-          }
+            res[sanitize(column.title || column.column_name)] = sanitize(
+              `${alias || this.tnPath}.${column.column_name}`,
+            );
+            break;
+          case UITypes.LinkToAnotherRecord:
+          case UITypes.Lookup:
+            break;
+          case UITypes.QrCode: {
+            const qrCodeColumn = await column.getColOptions<QrCodeColumn>();
+            const qrValueColumn = await Column.get({
+              colId: qrCodeColumn.fk_qr_value_column_id,
+            });
 
-          res[sanitize(column.title || column.column_name)] = sanitize(
-            `${alias || this.tnPath}.${column.column_name}`,
-          );
-          break;
-      }
-    }
+            // If the referenced value cannot be found: cancel current iteration
+            if (qrValueColumn == null) {
+              break;
+            }
+
+            switch (qrValueColumn.uidt) {
+              case UITypes.Formula:
+                try {
+                  const selectQb = await this.getSelectQueryBuilderForFormula(
+                    qrValueColumn,
+                    alias,
+                    validateFormula,
+                    aliasToColumnBuilder,
+                  );
+                  qb.select({
+                    [column.column_name]: selectQb.builder,
+                  });
+                } catch {
+                  return;
+                }
+                break;
+              default: {
+                qb.select({ [column.column_name]: qrValueColumn.column_name });
+                break;
+              }
+            }
+
+            break;
+          }
+          case UITypes.Barcode: {
+            const barcodeColumn = await column.getColOptions<BarcodeColumn>();
+            const barcodeValueColumn = await Column.get({
+              colId: barcodeColumn.fk_barcode_value_column_id,
+            });
+
+            // If the referenced value cannot be found: cancel current iteration
+            if (barcodeValueColumn == null) {
+              break;
+            }
+
+            switch (barcodeValueColumn.uidt) {
+              case UITypes.Formula:
+                try {
+                  const selectQb = await this.getSelectQueryBuilderForFormula(
+                    barcodeValueColumn,
+                    alias,
+                    validateFormula,
+                    aliasToColumnBuilder,
+                  );
+                  qb.select({
+                    [column.column_name]: selectQb.builder,
+                  });
+                } catch {
+                  return;
+                }
+                break;
+              default: {
+                qb.select({
+                  [column.column_name]: barcodeValueColumn.column_name,
+                });
+                break;
+              }
+            }
+
+            break;
+          }
+          case UITypes.Formula:
+            {
+              try {
+                const selectQb = await this.getSelectQueryBuilderForFormula(
+                  column,
+                  alias,
+                  validateFormula,
+                  aliasToColumnBuilder,
+                );
+                qb.select(
+                  this.dbDriver.raw(`?? as ??`, [
+                    selectQb.builder,
+                    sanitize(column.title),
+                  ]),
+                );
+              } catch (e) {
+                console.log(e);
+                // return dummy select
+                qb.select(
+                  this.dbDriver.raw(`'ERR' as ??`, [sanitize(column.title)]),
+                );
+              }
+            }
+            break;
+          case UITypes.Rollup:
+          case UITypes.Links:
+            qb.select(
+              (
+                await genRollupSelectv2({
+                  baseModelSqlv2: this,
+                  // tn: this.title,
+                  knex: this.dbDriver,
+                  // column,
+                  alias,
+                  columnOptions: (await column.getColOptions()) as RollupColumn,
+                })
+              ).builder.as(sanitize(column.title)),
+            );
+            break;
+          default:
+            if (this.isPg) {
+              if (column.dt === 'bytea') {
+                res[sanitize(column.title || column.column_name)] =
+                  this.dbDriver.raw(
+                    `encode(??.??, '${
+                      column.meta?.format === 'hex' ? 'hex' : 'escape'
+                    }')`,
+                    [alias || this.model.table_name, column.column_name],
+                  );
+                break;
+              }
+            }
+
+            res[sanitize(column.title || column.column_name)] = sanitize(
+              `${alias || this.tnPath}.${column.column_name}`,
+            );
+            break;
+        }
+      }),
+    );
     qb.select(res);
   }
 

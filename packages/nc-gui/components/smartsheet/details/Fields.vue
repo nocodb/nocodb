@@ -330,13 +330,25 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
 
   const field = fields.value[_event.moved.oldIndex]
 
-  onFieldUpdate({
-    ...field,
-    column_order: {
-      order,
-      view_id: view.value?.id as string,
-    },
-  })
+  const op = ops.value.find((op) => compareCols(op.column, field))
+
+  if (op) {
+    onFieldUpdate({
+      ...op.column,
+      column_order: {
+        order,
+        view_id: view.value?.id as string,
+      },
+    })
+  } else {
+    onFieldUpdate({
+      ...field,
+      column_order: {
+        order,
+        view_id: view.value?.id as string,
+      },
+    })
+  }
 
   const mop = moveOps.value.find((op) => compareCols(op.column, fields.value[_event.moved.oldIndex]))
   if (mop) {
@@ -416,17 +428,6 @@ const saveChanges = async () => {
           order: mop.order,
           view_id: view.value?.id as string,
         }
-      } else {
-        const col = fields.value.find((col) => compareCols(col, mop.column))
-        if (col) {
-          onFieldUpdate({
-            ...col,
-            column_order: {
-              order: mop.order,
-              view_id: view.value?.id as string,
-            },
-          })
-        }
       }
     }
 
@@ -459,6 +460,7 @@ const saveChanges = async () => {
         show: op.visible,
       })
     }
+    await loadViewColumns()
 
     if (res) {
       ops.value = (res.failedOps as op[]) || []
@@ -477,7 +479,6 @@ const saveChanges = async () => {
     }
 
     await getMeta(meta.value.id, true)
-    await loadViewColumns()
     columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 
     visibilityOps.value = []

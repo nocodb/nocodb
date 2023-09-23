@@ -58,8 +58,8 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
 
 <template>
   <div
-    class="flex items-center bg-white border-gray-200 h-10 nc-pagination-wrapper"
-    :class="{ 'border-t-1': !isGroupBy }"
+    class="flex items-center bg-white border-gray-200 nc-pagination-wrapper"
+    :class="{ 'border-t-1': !isGroupBy, 'h-13': isMobileMode, 'h-10': !isMobileMode }"
     :style="`${fixedSize ? `width: ${fixedSize}px;` : ''}${
       isGroupBy ? 'margin-top:1px; border-radius: 0 0 12px 12px !important;' : ''
     }${extraStyle}`"

@@ -159,7 +159,7 @@ export class DatasService {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
 
-    const [count, data] = Promise.all([
+    const [count, data] = await Promise.all([
       baseModel.count(listArgs),
       (async () => {
         let data = [];

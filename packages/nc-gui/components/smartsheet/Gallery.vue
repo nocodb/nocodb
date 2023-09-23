@@ -218,12 +218,12 @@ watch(
           </div>
         </a-menu-item>
 
-        <a-menu-item v-if="contextMenuTarget" @click="openNewRecordFormHook.trigger()">
-          <div v-e="['a:row:insert']" class="nc-project-menu-item">
-            <!-- Insert New Row -->
-            {{ $t('activity.insertRow') }}
-          </div>
-        </a-menu-item>
+        <!--        <a-menu-item v-if="contextMenuTarget" @click="openNewRecordFormHook.trigger()"> -->
+        <!--          <div v-e="['a:row:insert']" class="nc-project-menu-item"> -->
+        <!--            &lt;!&ndash; Insert New Row &ndash;&gt; -->
+        <!--            {{ $t('activity.insertRow') }} -->
+        <!--          </div> -->
+        <!--        </a-menu-item> -->
       </a-menu>
     </template>
 

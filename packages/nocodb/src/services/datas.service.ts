@@ -159,24 +159,29 @@ export class DatasService {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
 
-    const countPromise = await baseModel.count(listArgs);
-
-    let data = [];
-    try {
-      data = await nocoExecute(
-        ast,
-        await baseModel.list(listArgs),
-        {},
-        listArgs,
-      );
-    } catch (e) {
-      console.log(e);
-      NcError.internalServerError('Please check server log for more details');
-    }
-
+    const [count, data] = Promise.all([
+      baseModel.count(listArgs),
+      (async () => {
+        let data = [];
+        try {
+          data = await nocoExecute(
+            ast,
+            await baseModel.list(listArgs),
+            {},
+            listArgs,
+          );
+        } catch (e) {
+          console.log(e);
+          NcError.internalServerError(
+            'Please check server log for more details',
+          );
+        }
+        return data;
+      })(),
+    ]);
     return new PagedResponseImpl(data, {
       ...query,
-      count: await countPromise,
+      count,
     });
   }
 

@@ -126,7 +126,7 @@ const attachments = (record: any): Attachment[] => {
 const expandForm = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
-  if (rowId) {
+  if (rowId && !isPublic.value) {
     router.push({
       query: {
         ...route.query,
@@ -244,10 +244,9 @@ watch(
         <div v-for="(record, rowIndex) in data" :key="`record-${record.row.id}`">
           <LazySmartsheetRow :row="record">
             <a-card
-              class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] shadow-sm hover:shadow-md"
+              class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] shadow-sm hover:shadow-md cursor-pointer"
               :body-style="{ padding: '0px' }"
               :data-testid="`nc-gallery-card-${record.row.id}`"
-              :style="isPublic ? { cursor: 'default' } : { cursor: 'pointer' }"
               @click="expandFormClick($event, record)"
               @contextmenu="showContextMenu($event, { row: rowIndex })"
             >
@@ -315,7 +314,7 @@ watch(
               </h2>
 
               <div v-for="col in fieldsWithoutDisplay" :key="`record-${record.row.id}-${col.id}`">
-                <div class="flex flex-col ml-2 !pr-3.5 !mb-[0.75rem] rounded-lg w-full">
+                <div class="flex flex-col first:mt-3 ml-2 !pr-3.5 !mb-[0.75rem] rounded-lg w-full">
                   <div class="flex flex-row w-full justify-start scale-75">
                     <div class="w-full pb-1 text-gray-300">
                       <LazySmartsheetHeaderVirtualCell

@@ -244,7 +244,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               undo: {
                 fn: async (id: string, data: Record<string, any>) => {
                   await $api.dbTableRow.update(NOCO, project.value.id as string, meta.value.id, encodeURIComponent(id), data)
-                  loadKanbanData()
+                  await loadKanbanData()
                   reloadTrigger?.trigger()
                 },
                 args: [id, clone(undoObject)],

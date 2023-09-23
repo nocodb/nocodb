@@ -31,6 +31,7 @@
     "build:copy": "pnpm run generate; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/",
     "build:copy:publish": "pnpm run generate; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/; pnpm publish ../nc-lib-gui",
     "ci:run": "export NODE_OPTIONS=\"--max_old_space_size=16384\"; pnpm install; pnpm run build; NUXT_PAGE_TRANSITION_DISABLE=true NUXT_PUBLIC_NC_BACKEND_URL=http://localhost:8080 pnpm run start &",
+    "ci:start": "export NODE_OPTIONS=\"--max_old_space_size=16384\"; NUXT_PAGE_TRANSITION_DISABLE=true NUXT_PUBLIC_NC_BACKEND_URL=http://localhost:8080 pnpm run start &",
     "preinstall": "npx only-allow pnpm",
     "postinstall": "nuxt prepare"
   },

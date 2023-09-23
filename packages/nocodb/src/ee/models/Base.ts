@@ -10,6 +10,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 // todo: hide credentials
 export default class Base extends BaseCE implements BaseType {
   is_local?: BoolType;
+  meta?: any;
 
   protected static castType(base: Base): Base {
     return base && new Base(base);

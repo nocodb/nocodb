@@ -1,10 +1,10 @@
 // eslint-disable-file no-fallthrough
 import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type {
   BarcodeColumn,
-  Base,
   FormulaColumn,
   LinkToAnotherRecordColumn,
   LookupColumn,
@@ -12,6 +12,7 @@ import type {
   View,
 } from '~/models';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import { Base } from '~/models';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Column, Filter, Model, Sort } from '~/models';
 import { getAliasGenerator, ROOT_ALIAS } from '~/utils';
@@ -31,6 +32,8 @@ import getAst from '~/helpers/getAst';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
+
+const logger = new Logger('mysql-helpers');
 
 export function generateNestedRowSelectQuery({
   knex,
@@ -892,8 +895,7 @@ export async function singleQueryList(ctx: {
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {
-
-      console.log(cachedQuery)
+      console.log(cachedQuery);
 
       const startTime = process.hrtime();
       const rawRes = await knex.raw(cachedQuery, [
@@ -1074,4 +1076,45 @@ export async function singleQueryList(ctx: {
       },
     },
   );
+}
+
+// allow if MySQL version is >= 8.0.0 and not MariaDB
+// const version = await base.getDbVersion();
+export async function isMysqlVersionSupported(base: Base) {
+  // if version is not present in meta then get it from db
+  // and store it in base meta for later use
+  let meta;
+  if (!base.meta || !('dbVersion' in base.meta)) {
+    try {
+      const knex = await NcConnectionMgrv2.get(base);
+      meta = base.meta || {};
+      meta.dbVersion = await knex
+        .raw('select version() as version')
+        .then((res) => res[0][0].version);
+
+      Base.updateBase(base.id, {
+        projectId: base.project_id,
+        skipReorder: true,
+        meta,
+      })
+        .then(() => {
+          // do nothing, it's just to update the base meta and not wait for it
+        })
+        .catch((err) => {
+          logger.error(err);
+        });
+    } catch {
+      // disable if the version extraction fails
+      return false;
+    }
+  } else {
+    meta = base.meta;
+  }
+
+  if (!meta || !meta.dbVersion || /Maria/i.test(meta.dbVersion)) {
+    return false;
+  }
+
+  // check if version is >= 8.0.0
+  return +meta.dbVersion.split('.')[0] >= 8;
 }

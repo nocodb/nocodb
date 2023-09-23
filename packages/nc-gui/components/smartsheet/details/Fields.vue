@@ -431,8 +431,6 @@ const saveChanges = async () => {
       }
     }
 
-    console.log(ops.value)
-
     for (const f of fields.value) {
       console.log(f.title, getFieldOrder(f))
     }
@@ -524,7 +522,7 @@ onMounted(async () => {
                 </template>
               </LazyGeneralEmojiPicker>
 
-              <span class="text-sm pl-1.25 text-gray-700 max-w-28/100">
+              <span class="text-sm pl-1.25 text-gray-700">
                 {{ selectedView?.title }}
               </span>
             </div>

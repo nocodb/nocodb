@@ -16,6 +16,11 @@
 }
 
 .nc-menu-item > .ant-dropdown-menu-title-content {
+  // Not Icon
+  :not(.nc-icon):not(.material-symbols) {
+    line-height: 0.95;
+  }
+
   @apply flex flex-row items-center;
 }
 

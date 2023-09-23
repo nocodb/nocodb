@@ -73,7 +73,7 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 const fieldsWithoutDisplay = computed(() => fields.value.filter((f) => !isPrimary(f)))
 
-const displayField = computed(() => meta.value?.columns?.find((c) => c.pv) ?? null)
+const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
 
 const coverImageColumn: any = computed(() =>
   meta.value?.columnsById
@@ -299,7 +299,7 @@ watch(
                   <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
                 </div>
               </template>
-              <h2 v-if="displayField" class="text-base mt-6 mx-3 font-bold">
+              <h2 v-if="displayField" class="text-base mt-3 mx-3 font-bold">
                 <LazySmartsheetVirtualCell
                   v-if="isVirtualCol(displayField)"
                   v-model="record.row[displayField.title]"

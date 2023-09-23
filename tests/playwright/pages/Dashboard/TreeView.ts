@@ -72,7 +72,7 @@ export class TreeViewPage extends BasePage {
 
   async getTable({ index, tableTitle }: { index: number; tableTitle?: string }) {
     if (tableTitle) {
-      return this.get().getByTestId(`tree-view-table-${tableTitle}`);
+      return this.get().getByTestId(`nc-tbl-side-node-${tableTitle}`);
     }
 
     return this.get().locator('.nc-tree-item').nth(index);
@@ -95,18 +95,26 @@ export class TreeViewPage extends BasePage {
       await this.rootPage.locator('.h-full > div > .nc-sidebar-left-toggle-icon').click();
     }
 
-    await this.get().getByTestId(`tree-view-table-${title}`).waitFor({ state: 'visible' });
+    await this.get().getByTestId(`nc-tbl-title-${title}`).waitFor({ state: 'visible' });
 
     if (networkResponse === true) {
       await this.waitForResponse({
-        uiAction: () => this.get().getByTestId(`tree-view-table-${title}`).click(),
+        uiAction: () =>
+          this.get()
+            .getByTestId(`nc-tbl-title-${title}`)
+            .click({
+              position: {
+                x: 10,
+                y: 10,
+              },
+            }),
         httpMethodsToMatch: ['GET'],
         requestUrlPathToMatch: `/api/v1/db/data/noco/`,
         responseJsonMatcher: json => json.pageInfo,
       });
       await this.dashboard.waitForTabRender({ title, mode });
     } else {
-      await this.get().getByTestId(`tree-view-table-${title}`).click();
+      await this.get().getByTestId(`nc-tbl-title-${title}`).click();
       await this.rootPage.waitForTimeout(1000);
     }
   }
@@ -148,13 +156,13 @@ export class TreeViewPage extends BasePage {
 
   async verifyTable({ title, index, exists = true }: { title: string; index?: number; exists?: boolean }) {
     if (exists) {
-      await expect(this.get().getByTestId(`tree-view-table-${title}`)).toHaveCount(1);
+      await expect(this.get().getByTestId(`nc-tbl-title-${title}`)).toHaveCount(1);
 
       if (index) {
         await expect(this.get().locator('.nc-tbl-title').nth(index)).toHaveText(title);
       }
     } else {
-      await expect(this.get().getByTestId(`tree-view-table-${title}`)).toHaveCount(0);
+      await expect(this.get().getByTestId(`nc-tbl-title-${title}`)).toHaveCount(0);
     }
   }
 
@@ -206,7 +214,7 @@ export class TreeViewPage extends BasePage {
     await this.dashboard
       .get()
       .locator(`[data-testid="tree-view-table-draggable-handle-${sourceTable}"]`)
-      .dragTo(this.get().locator(`[data-testid="tree-view-table-${destinationTable}"]`));
+      .dragTo(this.get().locator(`[data-testid="nc-tbl-title-${destinationTable}"]`));
   }
 
   async projectSettings({ title }: { title?: string }) {
@@ -261,7 +269,7 @@ export class TreeViewPage extends BasePage {
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: `/api/v1/db/meta/duplicate/`,
     });
-    await this.get().locator(`[data-testid="tree-view-table-${title} copy"]`).waitFor();
+    await this.get().locator(`[data-testid="nc-tbl-title-${title} copy"]`).waitFor();
   }
 
   async verifyTabIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {

@@ -67,7 +67,7 @@ onMounted(() => {
           <template #tab>
             <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
               <PhUsersBold />
-              Collaborators
+              Members
             </div>
           </template>
           <WorkspaceCollaboratorsList />

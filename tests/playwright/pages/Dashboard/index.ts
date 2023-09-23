@@ -191,6 +191,10 @@ export class DashboardPage extends BasePage {
     await this.sidebar.userMenu.click();
     await this.rootPage.getByTestId('nc-sidebar-user-logout').waitFor({ state: 'visible' });
     await this.sidebar.userMenu.clickLogout();
+
+    // TODO: Remove this
+    await this.rootPage.reload();
+
     await this.rootPage.locator('[data-testid="nc-form-signin"]:visible').waitFor();
     await new Promise(resolve => setTimeout(resolve, 150));
   }

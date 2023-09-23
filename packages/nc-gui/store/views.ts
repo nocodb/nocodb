@@ -1,4 +1,4 @@
-import type { ViewType } from 'nocodb-sdk'
+import { type ViewType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { ViewPageType } from '~/lib'
 
@@ -8,7 +8,18 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const router = useRouter()
   const route = router.currentRoute
 
-  const views = ref<ViewType[]>([])
+  const tablesStore = useTablesStore()
+
+  const viewsByTable = ref<Map<string, ViewType[]>>(new Map())
+  const views = computed({
+    get: () => (tablesStore.activeTableId ? viewsByTable.value.get(tablesStore.activeTableId) : []) ?? [],
+    set: (value) => {
+      if (!tablesStore.activeTableId) return
+      if (!value) return viewsByTable.value.delete(tablesStore.activeTableId)
+
+      viewsByTable.value.set(tablesStore.activeTableId, value)
+    },
+  })
   const isViewsLoading = ref(true)
   const isViewDataLoading = ref(true)
   const isPublic = computed(() => route.value.meta?.public)
@@ -70,16 +81,20 @@ export const useViewsStore = defineStore('viewsStore', () => {
   // Used for Grid View Pagination
   const isPaginationLoading = ref(false)
 
-  const tablesStore = useTablesStore()
+  const loadViews = async ({ tableId, ignoreLoading }: { tableId?: string; ignoreLoading?: boolean } = {}) => {
+    tableId = tableId ?? tablesStore.activeTableId
+    if (tableId) {
+      if (!ignoreLoading) isViewsLoading.value = true
 
-  const loadViews = async () => {
-    if (tablesStore.activeTableId) {
-      isViewsLoading.value = true
-      const response = (await $api.dbView.list(tablesStore.activeTableId)).list as ViewType[]
+      const response = (await $api.dbView.list(tableId)).list as ViewType[]
       if (response) {
-        views.value = response.sort((a, b) => a.order! - b.order!)
+        viewsByTable.value.set(
+          tableId,
+          response.sort((a, b) => a.order! - b.order!),
+        )
       }
-      isViewsLoading.value = false
+
+      if (!ignoreLoading) isViewsLoading.value = false
     }
   }
 
@@ -121,6 +136,40 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const isLockedView = computed(() => activeView.value?.lock_type === 'locked')
 
+  const navigateToView = async ({
+    view,
+    projectId,
+    tableId,
+    hardReload,
+  }: {
+    view: ViewType
+    projectId: string
+    tableId: string
+    hardReload?: boolean
+  }) => {
+    const routeName = 'index-typeOrId-projectId-index-index-viewId-viewTitle'
+
+    if (
+      router.currentRoute.value.query &&
+      router.currentRoute.value.query.page &&
+      router.currentRoute.value.query.page === 'fields'
+    ) {
+      await router.push({
+        name: routeName,
+        params: { viewTitle: view.id || '', viewId: tableId, projectId },
+        query: router.currentRoute.value.query,
+      })
+    } else {
+      await router.push({ name: routeName, params: { viewTitle: view.id || '', viewId: tableId, projectId } })
+    }
+
+    if (hardReload) {
+      await router.replace({ name: routeName, query: { reload: 'true' }, params: { viewId: tableId, projectId } }).then(() => {
+        router.replace({ name: routeName, query: {}, params: { viewId: tableId, projectId } })
+      })
+    }
+  }
+
   return {
     isLockedView,
     isViewsLoading,
@@ -132,6 +181,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
     openedViewsTab,
     onViewsTabChange,
     sharedView,
+    viewsByTable,
+    activeViewTitleOrId,
+    navigateToView,
   }
 })
 

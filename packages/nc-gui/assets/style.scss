@@ -79,6 +79,11 @@ main {
     width: 4px;
     height: 4px;
   }
+
+  &::-webkit-scrollbar-track {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+  }
   &::-webkit-scrollbar-track-piece {
     width: 0px;
   }
@@ -86,11 +91,14 @@ main {
     @apply bg-transparent;
   }
   &::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+
     width: 4px;
-    @apply bg-gray-200;
+    @apply bg-gray-300;
   }
   &::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-300;
+    @apply bg-gray-400;
   }
 }
 

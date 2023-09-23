@@ -236,11 +236,8 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
       const newTableDom = document.querySelector(`[data-table-id="${table.id}"]`)
       if (!newTableDom) return
 
-      // Verify that table node is not in the viewport
-      if (isElementInvisible(newTableDom)) {
-        // Scroll to the table node
-        newTableDom?.scrollIntoView({ behavior: 'smooth' })
-      }
+      // Scroll to the table node
+      newTableDom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }, 1000)
 
     close(1000)
@@ -888,7 +885,6 @@ onMounted(() => {
 .nc-project-option-item {
   @apply flex flex-row gap-x-2 items-center;
 }
-
 .nc-sidebar-icon {
   @apply ml-0.5 mr-1;
 }

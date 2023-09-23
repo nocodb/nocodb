@@ -1,3 +1,4 @@
+import NcPluginMgrv2 from 'src/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
@@ -50,13 +51,16 @@ export default class TemporaryUrl {
     param: {
       path: string;
       expireSeconds?: number;
+      s3?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const { path, expireSeconds = 2 * 60 * 60 } = param;
+    const { path, expireSeconds = 2 * 60 * 60, s3 = false } = param;
     const expireAt = roundExpiry(
       new Date(new Date().getTime() + expireSeconds * 1000),
     ); // at least expireSeconds from now
+
+    let tempUrl;
 
     // check if the url is already present in the db
     const url = await ncMeta.metaGet2(null, null, MetaTable.TEMPORARY_URLS, {
@@ -76,19 +80,45 @@ export default class TemporaryUrl {
       }
     }
 
-    // if not present, create a new url
-    const tempUrl = `dltemp/${expireAt.getTime()}/${path}`;
-    await ncMeta.metaInsert2(
-      null,
-      null,
-      MetaTable.TEMPORARY_URLS,
-      {
-        key: path,
-        url: tempUrl,
-        expires_at: expireAt,
-      },
-      true,
-    );
+    if (s3) {
+      // if not present, create a new url
+      const storageAdapter = await NcPluginMgrv2.storageAdapter();
+
+      const expiresInSeconds = roundExpiry(
+        new Date(new Date().getTime() + expireSeconds * 1000),
+      ); // at least expireSeconds from now
+
+      tempUrl = await (storageAdapter as any).getSignedUrl(
+        path,
+        expiresInSeconds,
+      );
+
+      await ncMeta.metaInsert2(
+        null,
+        null,
+        MetaTable.TEMPORARY_URLS,
+        {
+          key: path,
+          url: tempUrl,
+          expires_at: expireAt,
+        },
+        true,
+      );
+    } else {
+      // if not present, create a new url
+      tempUrl = `dltemp/${expireAt.getTime()}/${path}`;
+      await ncMeta.metaInsert2(
+        null,
+        null,
+        MetaTable.TEMPORARY_URLS,
+        {
+          key: path,
+          url: tempUrl,
+          expires_at: expireAt,
+        },
+        true,
+      );
+    }
 
     // return the url
     return tempUrl;

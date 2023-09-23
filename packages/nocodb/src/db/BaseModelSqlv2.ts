@@ -3842,6 +3842,17 @@ class BaseModelSqlv2 {
                     path: attachment.path.replace(/^download\//, ''),
                   }).then((r) => (attachment.path = r)),
                 );
+              } else if (attachment?.url) {
+                if (attachment.url.includes('.amazonaws.com/')) {
+                  const relativePath =
+                    attachment.url.split('.amazonaws.com/')[1];
+                  promises.push(
+                    TemporaryUrl.getTemporaryUrl({
+                      path: relativePath,
+                      s3: true,
+                    }).then((r) => (attachment.url = r)),
+                  );
+                }
               }
             }
           }

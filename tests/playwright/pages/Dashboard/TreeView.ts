@@ -99,7 +99,15 @@ export class TreeViewPage extends BasePage {
 
     if (networkResponse === true) {
       await this.waitForResponse({
-        uiAction: () => this.get().getByTestId(`nc-tbl-title-${title}`).click(),
+        uiAction: () =>
+          this.get()
+            .getByTestId(`nc-tbl-title-${title}`)
+            .click({
+              position: {
+                x: 0,
+                y: 10,
+              },
+            }),
         httpMethodsToMatch: ['GET'],
         requestUrlPathToMatch: `/api/v1/db/data/noco/`,
         responseJsonMatcher: json => json.pageInfo,

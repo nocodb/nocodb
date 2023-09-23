@@ -8,18 +8,21 @@ const props = withDefaults(
     clickable?: boolean
     inherit?: boolean
     border?: boolean
+    size?: 'sm' | 'md'
   }>(),
   {
     clickable: false,
     inherit: false,
     border: true,
+    size: 'sm',
   },
 )
 
 const roleRef = toRef(props, 'role')
 const clickableRef = toRef(props, 'clickable')
-const inheritRef = toRef(props, 'inherit')
 const borderRef = toRef(props, 'border')
+
+const sizeSelect = computed(() => props.size)
 
 const roleProperties = computed(() => {
   const role = roleRef.value
@@ -38,15 +41,14 @@ const roleProperties = computed(() => {
 
 <template>
   <div
-    class="flex items-center !border-0"
+    class="flex items-start"
     :class="{
       'cursor-pointer': clickableRef,
     }"
-    style="width: fit-content"
   >
-    <NcBadge class="!h-auto !px-[8px]" :color="roleProperties.color" :border="borderRef">
+    <NcBadge class="!px-2" :color="roleProperties.color" :border="borderRef" :size="sizeSelect">
       <div
-        class="badge-text flex items-center gap-[4px]"
+        class="badge-text flex items-center gap-2"
         :class="{
           'text-purple-500': roleProperties.color === 'purple',
           'text-blue-500': roleProperties.color === 'blue',
@@ -55,6 +57,7 @@ const roleProperties = computed(() => {
           'text-yellow-500': roleProperties.color === 'yellow',
           'text-red-500': roleProperties.color === 'red',
           'text-gray-300': !roleProperties.color,
+          sizeSelect,
         }"
       >
         <GeneralIcon :icon="roleProperties.icon" />

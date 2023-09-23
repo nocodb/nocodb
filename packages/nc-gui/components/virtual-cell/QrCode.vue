@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 import type QRCode from 'qrcode'
-import { RowHeightInj, computed, inject, ref } from '#imports'
+import { IsGalleryInj, RowHeightInj, computed, inject, ref } from '#imports'
 
 const maxNumberOfAllowedCharsForQrValue = 2000
 
 const cellValue = inject(CellValueInj)
+
+const isGallery = inject(IsGalleryInj, ref(false))
 
 const qrValue = computed(() => String(cellValue?.value))
 
@@ -36,6 +38,7 @@ const qrCodeLarge = useQRCode(qrValue, {
 const modalVisible = ref(false)
 
 const showQrModal = (ev: MouseEvent) => {
+  if (isGallery.value) return
   ev.stopPropagation()
   modalVisible.value = true
 }
@@ -65,7 +68,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
   </div>
   <img
     v-if="showQrCode && rowHeight"
-    class="mx-auto"
+    :class="{ 'mx-auto': !isGallery }"
     :style="{ height: rowHeight ? `${rowHeight * 1.4}rem` : `1.4rem` }"
     :src="qrCode"
     alt="QR Code"

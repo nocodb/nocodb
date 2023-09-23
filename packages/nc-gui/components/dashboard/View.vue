@@ -154,13 +154,13 @@ watch(route, () => {
   .splitpanes__splitter:hover:before {
     @apply bg-scrollbar;
     width: 3px !important;
-    left: -3px;
+    left: 0px;
   }
 
   .splitpanes--dragging .splitpanes__splitter:before {
     @apply bg-scrollbar;
     width: 3px !important;
-    left: -3px;
+    left: 0px;
   }
 
   .splitpanes--dragging .splitpanes__splitter {

@@ -44,18 +44,18 @@ onMounted(async () => {
 
 <template>
   <div class="nc-collaborator-table-container mt-4 mx-6">
-    <WorkspaceInviteSection v-if="workspaceRoles !== WorkspaceUserRoles.VIEWER" />
-    <div class="w-full h-1 border-t-1 border-gray-100 opacity-50 mt-6"></div>
-    <div class="w-full flex flex-row justify-between items-baseline mt-6.5 mb-2 pr-0.25 ml-2">
-      <div class="text-xl">Collaborators</div>
-      <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md mr-4" placeholder="Search collaborators">
+    <!-- <div class="w-full h-1 border-t-1 border-gray-100 opacity-50 mt-6"></div> -->
+    <div class="w-full flex justify-between items-baseline mt-6.5 mb-2 pr-0.25 ml-2">
+      <div class="text-xl">Invite Members By Email</div>
+      <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md mr-4" placeholder="Search members">
         <template #prefix>
           <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
         </template>
       </a-input>
     </div>
+    <WorkspaceInviteSection v-if="workspaceRole !== WorkspaceUserRoles.VIEWER" />
     <div v-if="!filterCollaborators?.length" class="w-full h-full flex flex-col items-center justify-center mt-36">
-      <a-empty description="No collaborators found" />
+      <Empty description="No members found" />
     </div>
     <table v-else class="nc-collaborators-list-table !nc-scrollbar-md">
       <thead>
@@ -98,21 +98,19 @@ onMounted(async () => {
           </td>
           <td class="w-1/5">
             <div class="-left-2.5 top-5">
-              <a-dropdown v-if="collab.roles !== WorkspaceUserRoles.OWNER" :trigger="['click']">
+              <NcDropdown v-if="collab.roles !== WorkspaceUserRoles.OWNER" :trigger="['click']">
                 <MdiDotsVertical
-                  class="h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
+                  class="border-1 !text-gray-600 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
                 />
                 <template #overlay>
-                  <a-menu>
-                    <a-menu-item @click="removeCollaborator(collab.id)">
-                      <div class="flex flex-row items-center py-2 text-s gap-1.5 text-red-500 cursor-pointer">
-                        <MaterialSymbolsDeleteOutlineRounded />
-                        Remove user
-                      </div>
-                    </a-menu-item>
-                  </a-menu>
+                  <NcMenu>
+                    <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="removeCollaborator(collab.id)">
+                      <MaterialSymbolsDeleteOutlineRounded />
+                      Remove user
+                    </NcMenuItem>
+                  </NcMenu>
                 </template>
-              </a-dropdown>
+              </NcDropdown>
             </div>
           </td>
           <td class="w-1/5 padding"></td>

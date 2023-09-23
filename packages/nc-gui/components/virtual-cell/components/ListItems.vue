@@ -2,13 +2,13 @@
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import InboxIcon from '~icons/nc-icons/inbox'
-import ColumnIcon from '~icons/nc-icons/column'
 import {
   ColumnInj,
   IsPublicInj,
   SaveRowInj,
   computed,
   inject,
+  onKeyStroke,
   ref,
   useLTARStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
@@ -30,6 +30,7 @@ const {
   isChildrenExcludedListLinked,
   isChildrenExcludedListLoading,
   displayValueProp,
+  isChildrenExcludedLoading,
   childrenListCount,
   loadChildrenExcludedList,
   loadChildrenList,
@@ -138,7 +139,13 @@ const relation = computed(() => {
 })
 
 watch(expandedFormDlg, () => {
-  loadChildrenExcludedList(rowState.value)
+  if (!expandedFormDlg.value) {
+    loadChildrenExcludedList(rowState.value)
+  }
+})
+
+onKeyStroke('Escape', () => {
+  vModel.value = false
 })
 </script>
 
@@ -176,6 +183,7 @@ watch(expandedFormDlg, () => {
           @focus="isFocused = true"
           @blur="isFocused = false"
           @keydown.capture.stop
+          @change="childrenExcludedListPagination.page = 1"
         >
         </a-input>
       </div>
@@ -202,29 +210,61 @@ watch(expandedFormDlg, () => {
     <template v-if="childrenExcludedList?.pageInfo?.totalRows">
       <div class="pb-2 pt-1">
         <div class="h-[420px] overflow-scroll nc-scrollbar-md pr-1 cursor-pointer">
-          <LazyVirtualCellComponentsListItem
-            v-for="(refRow, id) in childrenExcludedList?.list ?? []"
-            :key="id"
-            data-testid="nc-excluded-list-item"
-            :row="refRow"
-            :fields="fields"
-            :attachment="attachmentCol"
-            :related-table-display-value-prop="relatedTableDisplayValueProp"
-            :is-loading="isChildrenExcludedListLoading[Number.parseInt(id)]"
-            :is-linked="isChildrenExcludedListLinked[Number.parseInt(id)]"
-            @expand="
-              () => {
-                expandedFormRow = refRow
-                expandedFormDlg = true
-              }
-            "
-            @click="
-              () => {
-                if (isChildrenExcludedListLinked[Number.parseInt(id)]) unlinkRow(refRow, Number.parseInt(id))
-                else linkRow(refRow, Number.parseInt(id))
-              }
-            "
-          />
+          <template v-if="isChildrenExcludedLoading">
+            <div
+              v-for="(x, i) in Array.from({ length: 10 })"
+              :key="i"
+              class="!border-2 flex flex-row gap-2 mb-2 transition-all !rounded-xl relative !border-gray-200 hover:bg-gray-50"
+            >
+              <a-skeleton-image class="h-24 w-24 !rounded-xl" />
+              <div class="flex flex-col m-[.5rem] gap-2 flex-grow justify-center">
+                <a-skeleton-input class="!w-48 !rounded-xl" active size="small" />
+                <div class="flex flex-row gap-6 w-10/12">
+                  <div class="flex flex-col gap-0.5">
+                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <LazyVirtualCellComponentsListItem
+              v-for="(refRow, id) in childrenExcludedList?.list ?? []"
+              :key="id"
+              data-testid="nc-excluded-list-item"
+              :row="refRow"
+              :fields="fields"
+              :attachment="attachmentCol"
+              :related-table-display-value-prop="relatedTableDisplayValueProp"
+              :is-loading="isChildrenExcludedListLoading[Number.parseInt(id)]"
+              :is-linked="isChildrenExcludedListLinked[Number.parseInt(id)]"
+              @expand="
+                () => {
+                  expandedFormRow = refRow
+                  expandedFormDlg = true
+                }
+              "
+              @click="
+                () => {
+                  if (isChildrenExcludedListLinked[Number.parseInt(id)]) unlinkRow(refRow, Number.parseInt(id))
+                  else linkRow(refRow, Number.parseInt(id))
+                }
+              "
+            />
+          </template>
         </div>
       </div>
     </template>
@@ -232,16 +272,13 @@ watch(expandedFormDlg, () => {
       <InboxIcon class="w-16 h-16 mx-auto" />
       <p>
         There are no records in table
-        <span class="border-gray-300 text-gray-600 rounded-md border-1 p-1">
-          <ColumnIcon class="w-4 h-4 mt-[-2px]" />
-          {{ relatedTableMeta?.title }}
-        </span>
+        {{ relatedTableMeta?.title }}
       </p>
     </div>
     <div class="my-2 bg-gray-50 border-gray-50 border-b-2"></div>
 
     <div class="flex flex-row justify-between bg-white relative pt-1">
-      <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-brand-500 bg-brand-50">
+      <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50">
         {{ relation === 'bt' ? (row.row[relatedTableMeta?.title] ? '1' : 0) : childrenListCount ?? 'No' }} records
         {{ childrenListCount !== 0 ? 'are' : '' }} linked
       </div>
@@ -258,7 +295,7 @@ watch(expandedFormDlg, () => {
           show-less-items
         />
       </div>
-      <NcButton class="nc-close-btn ml-auto" type="ghost" @click="vModel = false"> Cancel </NcButton>
+      <NcButton class="nc-close-btn ml-auto" type="ghost" @click="vModel = false"> Finish </NcButton>
     </div>
     <Suspense>
       <LazySmartsheetExpandedForm

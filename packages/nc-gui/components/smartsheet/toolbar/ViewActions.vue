@@ -116,7 +116,7 @@ useMenuCloseOnEsc(open)
       <template #overlay>
         <a-menu class="!py-0 !rounded !text-gray-800 text-sm" data-testid="toolbar-actions" @click="open = false">
           <a-menu-item-group>
-            <template v-if="isUIAllowed('csvImport') && !isView && !isPublicView && !isSqlView">
+            <template v-if="isUIAllowed('csvTableImport') && !isView && !isPublicView && !isSqlView">
               <a-sub-menu key="upload">
                 <template #title>
                   <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
@@ -130,7 +130,7 @@ useMenuCloseOnEsc(open)
 
                 <template #expandIcon></template>
                 <template v-for="(dialog, type) in quickImportDialogs">
-                  <a-menu-item v-if="isUIAllowed(`${type}Import`) && !isView && !isPublicView" :key="type">
+                  <a-menu-item v-if="isUIAllowed(`${type}TableImport`) && !isView && !isPublicView" :key="type">
                     <div
                       v-e="[`a:actions:upload-${type}`]"
                       class="nc-project-menu-item"

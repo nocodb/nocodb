@@ -6,7 +6,7 @@ const workspaceStore = useWorkspace()
 const { activeWorkspace, workspacesList, workspaceUserCount } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
-const { leftSidebarState, leftSidebarWidthPercent } = storeToRefs(useSidebarStore())
+const { leftSidebarState } = storeToRefs(useSidebarStore())
 const viewportWidth = ref(window.innerWidth)
 
 const { navigateToTable } = useTablesStore()
@@ -54,15 +54,6 @@ watch(leftSidebarState, () => {
   if (leftSidebarState.value === 'peekCloseEnd') {
     isWorkspaceDropdownOpen.value = false
   }
-})
-
-// TODO: Improve this
-// As ant-dropdown only sets min width, so to have dropdown content same as dropdown trigger button
-// We need to manually calculate width of dropdown content, as otherwise ant-dropdown will be width of content
-const sidebarWidthRem = computed(() => {
-  const pxInRem = parseFloat(getComputedStyle(document.documentElement).fontSize)
-
-  return (viewportWidth.value * leftSidebarWidthPercent.value) / 100 / pxInRem
 })
 
 function onWindowResize() {
@@ -125,9 +116,8 @@ onBeforeUnmount(() => {
           <div class="font-semibold text-base text-md truncate capitalize">
             {{ activeWorkspace.title }}
           </div>
+          <GeneralIcon icon="arrowDown" class="ml-1 min-w-6 text-lg !text-gray-700" />
         </div>
-
-        <GeneralIcon icon="arrowDown" class="min-w-6 text-lg !text-gray-700" />
       </div>
 
       <template #overlay>

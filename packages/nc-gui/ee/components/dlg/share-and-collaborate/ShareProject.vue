@@ -16,7 +16,7 @@ onMounted(async () => {
         <template #tab>
           <div class="flex flex-row items-center text-xs px-2">
             <MdiAccountPlusOutline class="mr-1" />
-            <div>Add Collaborators</div>
+            <div>Add Members</div>
           </div>
         </template>
         <Collaborate />

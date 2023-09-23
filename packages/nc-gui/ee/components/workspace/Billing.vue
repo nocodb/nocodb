@@ -53,9 +53,14 @@ onMounted(async () => {
       <template v-if="activeWorkspace.plan === WorkspacePlan.FREE">
         <div class="flex text-xl font-medium">Upgrade your workspace</div>
 
-        <a-button type="primary" size="large" class="!rounded-md" :loading="isUpgrading" @click="upgradeWorkspace"
+        <NcButton
+          type="primary"
+          size="large"
+          class="!rounded-md !w-[98px] !h-[40px]"
+          :loading="isUpgrading"
+          @click="upgradeWorkspace"
           >Upgrade
-        </a-button>
+        </NcButton>
       </template>
       <div
         v-else-if="activeWorkspace && activeWorkspace.status !== WorkspaceStatus.CREATED"

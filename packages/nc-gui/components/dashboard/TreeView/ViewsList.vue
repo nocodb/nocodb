@@ -5,9 +5,8 @@ import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
 import {
-  ActiveViewInj,
+  isDefaultBase as _isDefaultBase,
   extractSdkResponseErrorMsg,
-  inject,
   message,
   onMounted,
   parseProp,
@@ -23,23 +22,32 @@ import {
   watch,
 } from '#imports'
 
-interface Props {
-  views: ViewType[]
-}
-
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string; groupingFieldColumnId?: string }): void
 
   (event: 'deleted'): void
 }
 
-const { views = [] } = defineProps<Props>()
-
 const emits = defineEmits<Emits>()
+const project = inject(ProjectInj)!
+const table = inject(SidebarTableInj)!
+
+const { isUIAllowed } = useRoles()
 
 const { $e } = useNuxtApp()
 
-const activeView = inject(ActiveViewInj, ref())
+const isDefaultBase = computed(() => {
+  const base = project.value?.bases?.find((b) => b.id === table.value.base_id)
+  if (!base) return false
+
+  return _isDefaultBase(base)
+})
+
+const { viewsByTable, activeView } = storeToRefs(useViewsStore())
+
+const { navigateToTable } = useTablesStore()
+
+const views = computed(() => viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? [])
 
 const { api } = useApi()
 
@@ -48,6 +56,8 @@ const router = useRouter()
 const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineModelScope } = useUndoRedo()
+
+const { navigateToView, loadViews } = useViewsStore()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -80,7 +90,7 @@ function validate(view: ViewType) {
     return 'View name is required'
   }
 
-  if (views.some((v) => v.title === view.title && v.id !== view.id)) {
+  if (views.value.some((v) => v.title === view.title && v.id !== view.id)) {
     return 'View name should be unique'
   }
 
@@ -102,7 +112,7 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
     dragging.value = false
   }
 
-  if (views.length < 2) return
+  if (views.value.length < 2) return
 
   const { newIndex = 0, oldIndex = 0 } = evt
 
@@ -139,17 +149,17 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
   const previousEl = children[newIndex - 1]
   const nextEl = children[newIndex + 1]
 
-  const currentItem = views.find((v) => v.id === evt.item.id)
+  const currentItem = views.value.find((v) => v.id === evt.item.id)
 
   if (!currentItem || !currentItem.id) return
 
-  const previousItem = (previousEl ? views.find((v) => v.id === previousEl.id) : {}) as ViewType
-  const nextItem = (nextEl ? views.find((v) => v.id === nextEl.id) : {}) as ViewType
+  const previousItem = (previousEl ? views.value.find((v) => v.id === previousEl.id) : {}) as ViewType
+  const nextItem = (nextEl ? views.value.find((v) => v.id === nextEl.id) : {}) as ViewType
 
   let nextOrder: number
 
   // set new order value based on the new order of the items
-  if (views.length - 1 === newIndex) {
+  if (views.value.length - 1 === newIndex) {
     nextOrder = parseFloat(String(previousItem.order)) + 1
   } else if (newIndex === 0) {
     nextOrder = parseFloat(String(nextItem.order)) / 2
@@ -183,24 +193,12 @@ onMounted(() => menuRef.value && initSortable(menuRef.value.$el))
 
 /** Navigate to view by changing url param */
 function changeView(view: ViewType) {
-  if (
-    router.currentRoute.value.query &&
-    router.currentRoute.value.query.page &&
-    router.currentRoute.value.query.page === 'fields'
-  ) {
-    router.push({ params: { viewTitle: view.id || '' }, query: router.currentRoute.value.query })
-  } else {
-    router.push({ params: { viewTitle: view.id || '' } })
-  }
-
-  if (view.type === ViewTypes.FORM && selected.value[0] === view.id) {
-    // reload the page if the same form view is clicked
-    // router.go(0)
-    // fix me: router.go(0) reloads entire page. need to reload only the form view
-    router.replace({ query: { reload: 'true' } }).then(() => {
-      router.replace({ query: {} })
-    })
-  }
+  navigateToView({
+    view,
+    tableId: table.value.id!,
+    projectId: project.value.id!,
+    hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
+  })
 }
 
 /** Rename a view */
@@ -211,10 +209,11 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
       order: view.order,
     })
 
-    await router.replace({
-      params: {
-        viewTitle: view.id,
-      },
+    navigateToView({
+      view,
+      tableId: table.value.id!,
+      projectId: project.value.id!,
+      hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
     })
 
     refreshCommandPalette()
@@ -256,20 +255,22 @@ function openDeleteDialog(view: ViewType) {
     'modelValue': isOpen,
     'view': view,
     'onUpdate:modelValue': closeDialog,
-    'onDeleted': () => {
+    'onDeleted': async () => {
       closeDialog()
 
       emits('deleted')
 
       refreshCommandPalette()
-      if (activeView.value === view) {
-        // return to the default view
-        router.replace({
-          params: {
-            viewTitle: views[0].id,
-          },
+      if (activeView.value?.id === view.id) {
+        navigateToTable({
+          tableId: table.value.id!,
+          projectId: project.value.id!,
         })
       }
+
+      await loadViews({
+        tableId: table.value.id!,
+      })
     },
   })
 
@@ -298,47 +299,90 @@ const setIcon = async (icon: string, view: ViewType) => {
   }
 }
 
-const scrollViewNode = () => {
-  const activeViewDom = document.querySelector(`.nc-views-menu [data-view-id="${activeView.value?.id}"]`) as HTMLElement
-  if (!activeViewDom) return
+function onOpenModal({
+  title = '',
+  type,
+  copyViewId,
+  groupingFieldColumnId,
+}: {
+  title?: string
+  type: ViewTypes
+  copyViewId?: string
+  groupingFieldColumnId?: string
+}) {
+  const isOpen = ref(true)
 
-  if (isElementInvisible(activeViewDom)) {
-    // Scroll to the view node
-    activeViewDom?.scrollIntoView({ behavior: 'auto', inline: 'start' })
+  const { close } = useDialog(resolveComponent('DlgViewCreate'), {
+    'modelValue': isOpen,
+    title,
+    type,
+    'tableId': table.value.id,
+    'selectedViewId': copyViewId,
+    groupingFieldColumnId,
+    'views': views,
+    'onUpdate:modelValue': closeDialog,
+    'onCreated': async (view: ViewType) => {
+      closeDialog()
+
+      refreshCommandPalette()
+
+      await loadViews()
+
+      navigateToView({
+        view,
+        tableId: table.value.id!,
+        projectId: project.value.id!,
+        hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
+      })
+
+      $e('a:view:create', { view: view.type })
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
   }
 }
-
-watch(
-  () => activeView.value?.id,
-  () => {
-    if (!activeView.value?.id) return
-
-    // TODO: Find a better way to scroll to the view node
-    setTimeout(() => {
-      scrollViewNode()
-    }, 800)
-  },
-  {
-    immediate: true,
-  },
-)
 </script>
 
 <template>
+  <DashboardTreeViewCreateViewBtn
+    v-if="isUIAllowed('viewCreateOrEdit')"
+    :overlay-class-name="isDefaultBase ? '!left-18 !min-w-42' : '!left-25 !min-w-42'"
+  >
+    <NcButton
+      type="text"
+      size="xsmall"
+      class="!w-full !py-0 !h-7 !text-gray-500 !hover:(bg-transparent font-normal text-brand-500) !font-normal !text-sm"
+      :centered="false"
+    >
+      <GeneralIcon
+        icon="plus"
+        class="mr-2"
+        :class="{
+          'ml-18.75': isDefaultBase,
+          'ml-24.25': !isDefaultBase,
+        }"
+      />
+      <span class="text-sm">New View</span>
+    </NcButton>
+  </DashboardTreeViewCreateViewBtn>
+
   <a-menu
     ref="menuRef"
     :class="{ dragging }"
-    class="nc-views-menu flex flex-col !ml-3 w-full !border-r-0 !bg-inherit"
+    class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
     :selected-keys="selected"
   >
-    <!-- Lazy load breaks menu item active styles, i.e. styles never change even when active item changes -->
-    <SmartsheetSidebarRenameableMenuItem
+    <DashboardTreeViewViewsNode
       v-for="view of views"
       :id="view.id"
       :key="view.id"
       :view="view"
       :on-validate="validate"
-      class="nc-view-item !rounded-md !px-1.25 !py-0.5 w-full transition-all ease-in duration-300"
+      class="nc-view-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
       :class="{
         'bg-gray-200': isMarked === view.id,
         'active': activeView?.id === view.id,
@@ -346,19 +390,16 @@ watch(
       }"
       :data-view-id="view.id"
       @change-view="changeView"
-      @open-modal="$emit('openModal', $event)"
+      @open-modal="onOpenModal"
       @delete="openDeleteDialog"
       @rename="onRename"
       @select-icon="setIcon($event, view)"
     />
-    <div class="min-h-1 max-h-1 w-full bg-transparent"></div>
   </a-menu>
 </template>
 
 <style lang="scss">
 .nc-views-menu {
-  @apply min-h-20 flex-grow;
-
   .ghost,
   .ghost > * {
     @apply !pointer-events-none;
@@ -378,12 +419,16 @@ watch(
     @apply color-transition;
   }
 
+  .ant-menu-title-content {
+    @apply !w-full;
+  }
+
   .sortable-chosen {
-    @apply !bg-gray-100 bg-opacity-60;
+    @apply !bg-gray-200;
   }
 
   .active {
-    @apply bg-gray-200 bg-opacity-60 font-medium;
+    @apply !bg-primary-selected font-medium;
   }
 }
 </style>

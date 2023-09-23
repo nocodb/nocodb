@@ -153,6 +153,8 @@ export interface NcContext {
   workerId?: string;
   rootUser: UserType & { password: string };
   workspace: WorkspaceType;
+  defaultProjectTitle: string;
+  defaultTableTitle: string;
 }
 
 selectors.setTestIdAttribute('data-testid');
@@ -384,7 +386,12 @@ const setup = async ({
       email: `user@nocodb.com`,
       password: getDefaultPwd(),
     });
-    if (!isEE()) await axios.post(`http://localhost:8080/api/v1/license`, { key: '' }, { headers: { 'xc-auth': admin.data.token } });
+    if (!isEE())
+      await axios.post(
+        `http://localhost:8080/api/v1/license`,
+        { key: '' },
+        { headers: { 'xc-auth': admin.data.token } }
+      );
   } catch (e) {
     // ignore error: some roles will not have permission for license reset
     // console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);
@@ -436,7 +443,16 @@ const setup = async ({
   }
 
   await page.goto(projectUrl, { waitUntil: 'networkidle' });
-  return { project, token, dbType, workerId, rootUser, workspace } as NcContext;
+  return {
+    project,
+    token,
+    dbType,
+    workerId,
+    rootUser,
+    workspace,
+    defaultProjectTitle: 'Getting Started',
+    defaultTableTitle: 'Features',
+  } as NcContext;
 };
 
 export const unsetup = async (context: NcContext): Promise<void> => {};

@@ -157,7 +157,8 @@ const canUserEditEmote = computed(() => {
 
         <NcDropdown
           v-if="
-            !isSharedBase && (isUIAllowed('tableRename', { roles: projectRole }) || isUIAllowed('tableDelete', { roles: projectRole }))
+            !isSharedBase &&
+            (isUIAllowed('tableRename', { roles: projectRole }) || isUIAllowed('tableDelete', { roles: projectRole }))
           "
           :trigger="['click']"
           @click.stop

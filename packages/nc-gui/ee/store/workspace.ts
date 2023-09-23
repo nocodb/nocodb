@@ -1,5 +1,5 @@
-import type { ProjectType, WorkspaceType, WorkspaceUserType } from 'nocodb-sdk'
-import { WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
+import type { ProjectType, WorkspaceType, WorkspaceUserRoles, WorkspaceUserType } from 'nocodb-sdk'
+import { WorkspaceStatus } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'

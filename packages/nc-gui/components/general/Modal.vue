@@ -66,7 +66,7 @@ const visible = useVModel(props, 'visible', emits)
     :destroy-on-close="destroyOnClose"
     @keydown.esc="visible = false"
   >
-    <div class="nc-modal max-h-[{{ height }}]">
+    <div :class="`nc-modal max-h-[${height}]`">
       <slot />
     </div>
   </a-modal>

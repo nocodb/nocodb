@@ -43,7 +43,7 @@ export enum MetaTable {
   MAP_VIEW_COLUMNS = 'nc_map_view_columns_v2',
   STORE = 'nc_store',
   NOTIFICATION = 'notification',
-  TEMPORARY_URLS = 'nc_temporary_urls',
+  // TEMPORARY_URLS = 'nc_temporary_urls',
 }
 
 export const orderedMetaTables = [

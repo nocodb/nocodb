@@ -1,15 +1,17 @@
 import NcPluginMgrv2 from 'src/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { CacheGetType, CacheScope } from '~/utils/globals';
 
 function roundExpiry(date) {
   const msInHour = 10 * 60 * 1000;
   return new Date(Math.ceil(date.getTime() / msInHour) * msInHour);
 }
 
+const DEFAULT_EXPIRE_SECONDS = 2 * 60 * 60;
+
 export default class TemporaryUrl {
-  key: string;
+  path: string;
   url: string;
   expires_at: string;
 
@@ -17,18 +19,53 @@ export default class TemporaryUrl {
     Object.assign(this, data);
   }
 
-  public static async getPath(url: string, ncMeta = Noco.ncMeta) {
-    let urlData =
+  private static async add(param: {
+    path: string;
+    url: string;
+    expires_at: Date;
+    expiresInSeconds?: number;
+  }) {
+    const {
+      path,
+      url,
+      expires_at,
+      expiresInSeconds = DEFAULT_EXPIRE_SECONDS,
+    } = param;
+    await NocoCache.setExpiring(
+      `${CacheScope.TEMPORARY_URL}:path:${path}`,
+      {
+        path,
+        url,
+        expires_at,
+      },
+      expiresInSeconds,
+    );
+    await NocoCache.setExpiring(
+      `${CacheScope.TEMPORARY_URL}:url:${url}`,
+      {
+        path,
+        url,
+        expires_at,
+      },
+      expiresInSeconds,
+    );
+  }
+
+  private static async delete(param: { path: string; url: string }) {
+    const { path, url } = param;
+    await NocoCache.del(`${CacheScope.TEMPORARY_URL}:path:${path}`);
+    await NocoCache.del(`${CacheScope.TEMPORARY_URL}:url:${url}`);
+  }
+
+  public static async getPath(url: string, _ncMeta = Noco.ncMeta) {
+    const urlData =
       url &&
       (await NocoCache.get(
-        `${CacheScope.TEMPORARY_URL}:${url}`,
+        `${CacheScope.TEMPORARY_URL}:url:${url}`,
         CacheGetType.TYPE_OBJECT,
       ));
     if (!urlData) {
-      urlData = await ncMeta.metaGet2(null, null, MetaTable.TEMPORARY_URLS, {
-        url,
-      });
-      await NocoCache.set(`${CacheScope.TEMPORARY_URL}:${url}`, urlData);
+      return null;
     }
 
     // if present, check if the expiry date is greater than now
@@ -37,14 +74,11 @@ export default class TemporaryUrl {
       new Date(urlData.expires_at).getTime() < new Date().getTime()
     ) {
       // if not, delete the url
-      await ncMeta.metaDelete(null, null, MetaTable.TEMPORARY_URLS, {
-        url,
-      });
-      await NocoCache.del(`${CacheScope.TEMPORARY_URL}:${url}`);
+      await this.delete({ path: urlData.path, url: urlData.url });
       return null;
     }
 
-    return urlData?.key;
+    return urlData?.path;
   }
 
   public static async getTemporaryUrl(
@@ -53,19 +87,19 @@ export default class TemporaryUrl {
       expireSeconds?: number;
       s3?: boolean;
     },
-    ncMeta = Noco.ncMeta,
+    _ncMeta = Noco.ncMeta,
   ) {
-    const { path, expireSeconds = 2 * 60 * 60, s3 = false } = param;
+    const { path, expireSeconds = DEFAULT_EXPIRE_SECONDS, s3 = false } = param;
     const expireAt = roundExpiry(
       new Date(new Date().getTime() + expireSeconds * 1000),
     ); // at least expireSeconds from now
 
     let tempUrl;
 
-    // check if the url is already present in the db
-    const url = await ncMeta.metaGet2(null, null, MetaTable.TEMPORARY_URLS, {
-      key: path,
-    });
+    const url = await NocoCache.get(
+      `${CacheScope.TEMPORARY_URL}:path:${path}`,
+      CacheGetType.TYPE_OBJECT,
+    );
 
     if (url) {
       // if present, check if the expiry date is greater than now
@@ -74,9 +108,7 @@ export default class TemporaryUrl {
         return url.url;
       } else {
         // if not, delete the url
-        await ncMeta.metaDelete(null, null, MetaTable.TEMPORARY_URLS, {
-          key: path,
-        });
+        await this.delete({ path: url.path, url: url.url });
       }
     }
 
@@ -84,40 +116,27 @@ export default class TemporaryUrl {
       // if not present, create a new url
       const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
-      const expiresInSeconds = roundExpiry(
-        new Date(new Date().getTime() + expireSeconds * 1000),
-      ); // at least expireSeconds from now
+      const expiresInSeconds = Math.ceil(
+        (expireAt.getTime() - new Date().getTime()) / 1000,
+      );
 
       tempUrl = await (storageAdapter as any).getSignedUrl(
         path,
         expiresInSeconds,
       );
-
-      await ncMeta.metaInsert2(
-        null,
-        null,
-        MetaTable.TEMPORARY_URLS,
-        {
-          key: path,
-          url: tempUrl,
-          expires_at: expireAt,
-        },
-        true,
-      );
+      await this.add({
+        path: path,
+        url: tempUrl,
+        expires_at: expireAt,
+      });
     } else {
       // if not present, create a new url
       tempUrl = `dltemp/${expireAt.getTime()}/${path}`;
-      await ncMeta.metaInsert2(
-        null,
-        null,
-        MetaTable.TEMPORARY_URLS,
-        {
-          key: path,
-          url: tempUrl,
-          expires_at: expireAt,
-        },
-        true,
-      );
+      await this.add({
+        path: path,
+        url: tempUrl,
+        expires_at: expireAt,
+      });
     }
 
     // return the url

@@ -56,7 +56,7 @@ jobs:
       - name: Set CI env
         run: export CI=true
       - name: Set NC Edition
-        run: export EE=true
+        run: export EE=false
       - name: install dependencies
         run: pnpm bootstrap
       - name: Setup mysql

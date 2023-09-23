@@ -291,7 +291,7 @@ export class TreeViewPage extends BasePage {
 
     // add new table button & context menu is visible only for owner & creator
     await expect(pjtNode.locator('[data-testid="nc-sidebar-add-project-entity"]')).toHaveCount(count);
-    await expect(pjtNode.locator('[data-testid="nc-sidebar-context-menu"]')).toHaveCount(count);
+    await expect(pjtNode.locator('[data-testid="nc-sidebar-context-menu"]')).toHaveCount(1);
 
     // table context menu
     const tblNode = await this.getTable({ index: 0, tableTitle: param.tableTitle });

@@ -4,21 +4,25 @@ import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { DocsSidebarPage } from './DocsSidebar';
 import { SidebarUserMenuObject } from './UserMenu';
+import { SidebarProjectNodeObject } from './ProjectNode';
+import { SidebarTableNodeObject } from './TableNode';
 
 export class SidebarPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly docsSidebar: DocsSidebarPage;
-  readonly quickImportButton: Locator;
   readonly createProjectBtn: Locator;
   readonly userMenu: SidebarUserMenuObject;
+  readonly projectNode: SidebarProjectNodeObject;
+  readonly tableNode: SidebarTableNodeObject;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.docsSidebar = new DocsSidebarPage(this);
     this.userMenu = new SidebarUserMenuObject(this);
-    this.quickImportButton = dashboard.get().locator('.nc-import-menu');
-    this.createProjectBtn = dashboard.get().locator('.nc-create-project-btn');
+    this.createProjectBtn = dashboard.get().getByTestId('nc-sidebar-create-project-btn');
+    this.projectNode = new SidebarProjectNodeObject(this);
+    this.tableNode = new SidebarTableNodeObject(this);
   }
 
   get() {
@@ -35,6 +39,21 @@ export class SidebarPage extends BasePage {
     } else {
       await expect(this.get()).not.toBeVisible();
     }
+  }
+
+  async verifyQuickActions({ isVisible }: { isVisible: boolean }) {
+    if (isVisible) await expect(this.get().getByTestId('nc-sidebar-search-btn')).toBeVisible();
+    else await expect(this.get().getByTestId('nc-sidebar-search-btn')).toHaveCount(0);
+  }
+
+  async verifyTeamAndSettings({ isVisible }: { isVisible: boolean }) {
+    if (isVisible) await expect(this.get().getByTestId('nc-sidebar-team-settings-btn')).toBeVisible();
+    else await expect(this.get().getByTestId('nc-sidebar-team-settings-btn')).toHaveCount(0);
+  }
+
+  async verifyCreateProjectBtn({ isVisible }: { isVisible: boolean }) {
+    if (isVisible) await expect(this.createProjectBtn).toBeVisible();
+    else await expect(this.createProjectBtn).toHaveCount(0);
   }
 
   async openProject({ title }: { title: string }) {
@@ -57,7 +76,10 @@ export class SidebarPage extends BasePage {
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: `api/v1/db/meta/projects/`,
     });
-    await this.dashboard.docs.pagesList.waitForOpen({ title });
+
+    if (type === ProjectTypes.DOCUMENTATION) {
+      await this.dashboard.docs.pagesList.waitForOpen({ title });
+    }
   }
 
   async createView({ title, type }: { title: string; type: ViewTypes }) {

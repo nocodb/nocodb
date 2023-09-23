@@ -78,7 +78,7 @@ onMounted(() => {
         <GeneralIcon icon="arrowUp" class="!min-w-5" />
       </div>
       <template #overlay>
-        <NcMenu>
+        <NcMenu data-testid="nc-sidebar-userinfo">
           <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
             <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
             <GeneralIcon v-else icon="signout" class="menu-icon" />

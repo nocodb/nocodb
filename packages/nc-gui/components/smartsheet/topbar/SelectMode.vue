@@ -53,6 +53,7 @@ const { onViewsTabChange } = useViewsStore()
   word-break: 'keep-all';
   white-space: 'nowrap';
   display: 'inline';
+  line-height: 0.95;
 }
 
 .active {

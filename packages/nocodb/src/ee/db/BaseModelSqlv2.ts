@@ -192,22 +192,21 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       const view = await View.get(this.viewId);
       const base = await Base.get(this.model.base_id);
-      const prevData =
-        base.type === 'pg' && !disableOptimization
-          ? await singleQueryRead({
-              model: this.model,
-              view,
-              id,
-              params: {},
-              base,
-              getHiddenColumn: true,
-            })
-          : await this.readByPk(
-              id,
-              false,
-              {},
-              { ignoreView: true, getHiddenColumn: true },
-            );
+      const prevData = this.canUseOptimisedQuery({ base, disableOptimization })
+        ? await singleQueryRead({
+            model: this.model,
+            view,
+            id,
+            params: {},
+            base,
+            getHiddenColumn: true,
+          })
+        : await this.readByPk(
+            id,
+            false,
+            {},
+            { ignoreView: true, getHiddenColumn: true },
+          );
 
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
@@ -219,22 +218,21 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       // const prevData = await this.readByPk(id);
 
-      const newData =
-        base.type === 'pg' && !disableOptimization
-          ? await singleQueryRead({
-              model: this.model,
-              view,
-              id,
-              params: {},
-              base,
-              getHiddenColumn: true,
-            })
-          : await this.readByPk(
-              id,
-              false,
-              {},
-              { ignoreView: true, getHiddenColumn: true },
-            );
+      const newData = this.canUseOptimisedQuery({ base, disableOptimization })
+        ? await singleQueryRead({
+            model: this.model,
+            view,
+            id,
+            params: {},
+            base,
+            getHiddenColumn: true,
+          })
+        : await this.readByPk(
+            id,
+            false,
+            {},
+            { ignoreView: true, getHiddenColumn: true },
+          );
       await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
       return newData;
     } catch (e) {
@@ -242,6 +240,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       await this.errorUpdate(e, data, trx, cookie);
       throw e;
     }
+  }
+
+  private canUseOptimisedQuery({
+    base,
+    disableOptimization,
+  }: {
+    base: Base;
+    disableOptimization: boolean;
+  }) {
+    return (
+      ['pg', 'mysql', 'mysql2'].includes(base.type) && !disableOptimization
+    );
   }
 }
 

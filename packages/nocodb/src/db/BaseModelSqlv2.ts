@@ -1509,194 +1509,196 @@ class BaseModelSqlv2 {
 
     const proto: any = { __columnAliases: {} };
     const columns = await this.model.getColumns();
-    for (const column of columns) {
-      switch (column.uidt) {
-        case UITypes.Lookup:
-          {
-            // @ts-ignore
-            const colOptions: LookupColumn = await column.getColOptions();
-            const relCol = await Column.get({
-              colId: colOptions.fk_relation_column_id,
-            });
-            const relColTitle =
-              relCol.uidt === UITypes.Links
-                ? `_nc_lk_${relCol.title}`
-                : relCol.title;
-            proto.__columnAliases[column.title] = {
-              path: [
-                relColTitle,
-                (await Column.get({ colId: colOptions.fk_lookup_column_id }))
-                  ?.title,
-              ],
-            };
-          }
-          break;
-        case UITypes.Links:
-        case UITypes.LinkToAnotherRecord:
-          {
-            this._columns[column.title] = column;
-            const colOptions =
-              (await column.getColOptions()) as LinkToAnotherRecordColumn;
-            // const parentColumn = await colOptions.getParentColumn();
-
-            if (colOptions?.type === 'hm') {
-              const listLoader = new DataLoader(async (ids: string[]) => {
-                if (ids.length > 1) {
-                  const data = await this.multipleHmList(
-                    {
-                      colId: column.id,
-                      ids,
-                    },
-                    (listLoader as any).args,
-                  );
-                  return ids.map((id: string) => (data[id] ? data[id] : []));
-                } else {
-                  return [
-                    await this.hmList(
-                      {
-                        colId: column.id,
-                        id: ids[0],
-                      },
-                      (listLoader as any).args,
-                    ),
-                  ];
-                }
-              });
-              const self: BaseModelSqlv2 = this;
-
-              proto[
-                column.uidt === UITypes.Links
-                  ? `_nc_lk_${column.title}`
-                  : column.title
-              ] = async function (args): Promise<any> {
-                (listLoader as any).args = args;
-                return listLoader.load(
-                  getCompositePk(self.model.primaryKeys, this),
-                );
-              };
-
-              // defining HasMany count method within GQL Type class
-              // Object.defineProperty(type.prototype, column.alias, {
-              //   async value(): Promise<any> {
-              //     return listLoader.load(this[model.pk.alias]);
-              //   },
-              //   configurable: true
-              // });
-            } else if (colOptions.type === 'mm') {
-              const listLoader = new DataLoader(async (ids: string[]) => {
-                if (ids?.length > 1) {
-                  const data = await this.multipleMmList(
-                    {
-                      parentIds: ids,
-                      colId: column.id,
-                    },
-                    (listLoader as any).args,
-                  );
-
-                  return data;
-                } else {
-                  return [
-                    await this.mmList(
-                      {
-                        parentId: ids[0],
-                        colId: column.id,
-                      },
-                      (listLoader as any).args,
-                    ),
-                  ];
-                }
-              });
-
-              const self: BaseModelSqlv2 = this;
-              // const childColumn = await colOptions.getChildColumn();
-              proto[
-                column.uidt === UITypes.Links
-                  ? `_nc_lk_${column.title}`
-                  : column.title
-              ] = async function (args): Promise<any> {
-                (listLoader as any).args = args;
-                return await listLoader.load(
-                  getCompositePk(self.model.primaryKeys, this),
-                );
-              };
-            } else if (colOptions.type === 'bt') {
+    await Promise.all(
+      columns.map(async (column) => {
+        switch (column.uidt) {
+          case UITypes.Lookup:
+            {
               // @ts-ignore
+              const colOptions: LookupColumn = await column.getColOptions();
+              const relCol = await Column.get({
+                colId: colOptions.fk_relation_column_id,
+              });
+              const relColTitle =
+                relCol.uidt === UITypes.Links
+                  ? `_nc_lk_${relCol.title}`
+                  : relCol.title;
+              proto.__columnAliases[column.title] = {
+                path: [
+                  relColTitle,
+                  (await Column.get({ colId: colOptions.fk_lookup_column_id }))
+                    ?.title,
+                ],
+              };
+            }
+            break;
+          case UITypes.Links:
+          case UITypes.LinkToAnotherRecord:
+            {
+              this._columns[column.title] = column;
               const colOptions =
                 (await column.getColOptions()) as LinkToAnotherRecordColumn;
-              const pCol = await Column.get({
-                colId: colOptions.fk_parent_column_id,
-              });
-              const cCol = await Column.get({
-                colId: colOptions.fk_child_column_id,
-              });
-              const readLoader = new DataLoader(async (_ids: string[]) => {
-                // handle binary(16) foreign keys
-                const ids = _ids.map((id) => {
-                  if (pCol.ct !== 'binary(16)') return id;
+              // const parentColumn = await colOptions.getParentColumn();
 
-                  //Cast the id to string.
-                  const idAsString = id + '';
-                  // Check if the id is a UUID and the column is binary(16)
-                  const isUUIDBinary16 =
-                    idAsString.length === 36 || idAsString.length === 32;
-                  // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
-                  const idAsUUID = isUUIDBinary16
-                    ? idAsString.length === 32
-                      ? idAsString.replace(
-                          /(.{8})(.{4})(.{4})(.{4})(.{12})/,
-                          '$1-$2-$3-$4-$5',
-                        )
-                      : idAsString
-                    : null;
+              if (colOptions?.type === 'hm') {
+                const listLoader = new DataLoader(async (ids: string[]) => {
+                  if (ids.length > 1) {
+                    const data = await this.multipleHmList(
+                      {
+                        colId: column.id,
+                        ids,
+                      },
+                      (listLoader as any).args,
+                    );
+                    return ids.map((id: string) => (data[id] ? data[id] : []));
+                  } else {
+                    return [
+                      await this.hmList(
+                        {
+                          colId: column.id,
+                          id: ids[0],
+                        },
+                        (listLoader as any).args,
+                      ),
+                    ];
+                  }
+                });
+                const self: BaseModelSqlv2 = this;
 
-                  return idAsUUID
-                    ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
-                    : id;
+                proto[
+                  column.uidt === UITypes.Links
+                    ? `_nc_lk_${column.title}`
+                    : column.title
+                ] = async function (args): Promise<any> {
+                  (listLoader as any).args = args;
+                  return listLoader.load(
+                    getCompositePk(self.model.primaryKeys, this),
+                  );
+                };
+
+                // defining HasMany count method within GQL Type class
+                // Object.defineProperty(type.prototype, column.alias, {
+                //   async value(): Promise<any> {
+                //     return listLoader.load(this[model.pk.alias]);
+                //   },
+                //   configurable: true
+                // });
+              } else if (colOptions.type === 'mm') {
+                const listLoader = new DataLoader(async (ids: string[]) => {
+                  if (ids?.length > 1) {
+                    const data = await this.multipleMmList(
+                      {
+                        parentIds: ids,
+                        colId: column.id,
+                      },
+                      (listLoader as any).args,
+                    );
+
+                    return data;
+                  } else {
+                    return [
+                      await this.mmList(
+                        {
+                          parentId: ids[0],
+                          colId: column.id,
+                        },
+                        (listLoader as any).args,
+                      ),
+                    ];
+                  }
                 });
 
-                const data = await (
-                  await Model.getBaseModelSQL({
-                    id: pCol.fk_model_id,
-                    dbDriver: this.dbDriver,
-                  })
-                ).list(
-                  {
-                    fieldsSet: (readLoader as any).args?.fieldsSet,
-                    filterArr: [
-                      new Filter({
-                        id: null,
-                        fk_column_id: pCol.id,
-                        fk_model_id: pCol.fk_model_id,
-                        value: ids as any[],
-                        comparison_op: 'in',
-                      }),
-                    ],
-                  },
-                  true,
-                );
+                const self: BaseModelSqlv2 = this;
+                // const childColumn = await colOptions.getChildColumn();
+                proto[
+                  column.uidt === UITypes.Links
+                    ? `_nc_lk_${column.title}`
+                    : column.title
+                ] = async function (args): Promise<any> {
+                  (listLoader as any).args = args;
+                  return await listLoader.load(
+                    getCompositePk(self.model.primaryKeys, this),
+                  );
+                };
+              } else if (colOptions.type === 'bt') {
+                // @ts-ignore
+                const colOptions =
+                  (await column.getColOptions()) as LinkToAnotherRecordColumn;
+                const pCol = await Column.get({
+                  colId: colOptions.fk_parent_column_id,
+                });
+                const cCol = await Column.get({
+                  colId: colOptions.fk_child_column_id,
+                });
+                const readLoader = new DataLoader(async (_ids: string[]) => {
+                  // handle binary(16) foreign keys
+                  const ids = _ids.map((id) => {
+                    if (pCol.ct !== 'binary(16)') return id;
 
-                const gs = groupBy(data, pCol.title);
-                return _ids.map(async (id: string) => gs?.[id]?.[0]);
-              });
+                    //Cast the id to string.
+                    const idAsString = id + '';
+                    // Check if the id is a UUID and the column is binary(16)
+                    const isUUIDBinary16 =
+                      idAsString.length === 36 || idAsString.length === 32;
+                    // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
+                    const idAsUUID = isUUIDBinary16
+                      ? idAsString.length === 32
+                        ? idAsString.replace(
+                            /(.{8})(.{4})(.{4})(.{4})(.{12})/,
+                            '$1-$2-$3-$4-$5',
+                          )
+                        : idAsString
+                      : null;
 
-              // defining HasMany count method within GQL Type class
-              proto[column.title] = async function (args?: any) {
-                if (
-                  this?.[cCol?.title] === null ||
-                  this?.[cCol?.title] === undefined
-                )
-                  return null;
+                    return idAsUUID
+                      ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
+                      : id;
+                  });
 
-                (readLoader as any).args = args;
+                  const data = await (
+                    await Model.getBaseModelSQL({
+                      id: pCol.fk_model_id,
+                      dbDriver: this.dbDriver,
+                    })
+                  ).list(
+                    {
+                      fieldsSet: (readLoader as any).args?.fieldsSet,
+                      filterArr: [
+                        new Filter({
+                          id: null,
+                          fk_column_id: pCol.id,
+                          fk_model_id: pCol.fk_model_id,
+                          value: ids as any[],
+                          comparison_op: 'in',
+                        }),
+                      ],
+                    },
+                    true,
+                  );
 
-                return await readLoader.load(this?.[cCol?.title]);
-              };
-              // todo : handle mm
+                  const gs = groupBy(data, pCol.title);
+                  return _ids.map(async (id: string) => gs?.[id]?.[0]);
+                });
+
+                // defining HasMany count method within GQL Type class
+                proto[column.title] = async function (args?: any) {
+                  if (
+                    this?.[cCol?.title] === null ||
+                    this?.[cCol?.title] === undefined
+                  )
+                    return null;
+
+                  (readLoader as any).args = args;
+
+                  return await readLoader.load(this?.[cCol?.title]);
+                };
+                // todo : handle mm
+              }
             }
-          }
-          break;
-      }
-    }
+            break;
+        }
+      }),
+    );
     this._proto = proto;
     return proto;
   }

@@ -1211,7 +1211,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
                     <a-dropdown
                       v-model:visible="addColumnDropdown"
                       :trigger="['click']"
-                      overlay-class-name="nc-dropdown-grid-add-column"
+                      overlay-class-name="nc-dropdown-grid-add-column !z-1000"
                       @visible-change="persistMenu = altModifier"
                     >
                       <div class="h-full w-[60px] flex items-center justify-center">

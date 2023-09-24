@@ -383,7 +383,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
             'hover:bg-gray-200': !(activeProjectId === project.id && projectViewOpen),
           }"
           :data-testid="`nc-sidebar-project-title-${project.title}`"
-          class="project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full pr-1"
+          class="nc-sidebar-node project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full pr-1"
         >
           <NcButton
             type="text"

@@ -48,9 +48,6 @@ main {
   @apply m-0 h-full w-full bg-white;
 }
 
-.nc-app.mobile *:hover {
-  background-color:unset!important;
-}
 
 .nc-input-md {
   @apply !rounded-lg !py-2 !px-3 mb-1;
@@ -598,6 +595,10 @@ input[type='number'] {
 
 .ant-pagination .ant-pagination-item-link-icon {
   @apply !block !py-1.5;
+}
+
+.nc-sidebar-node {
+  @apply !sm:h-8.9;
 }
 
 .nc-button.ant-btn.nc-sidebar-node-btn {

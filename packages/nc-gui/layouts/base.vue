@@ -20,8 +20,6 @@ const logout = async () => {
 
 const { hooks } = useNuxtApp()
 
-const { isMobileMode } = useGlobal()
-
 const isDashboard = computed(() => !!route.params.typeOrId)
 
 /** when page suspensions have finished, check if a sidebar element was teleported into the layout */
@@ -33,15 +31,7 @@ hooks.hook('page:finish', () => {
 </script>
 
 <template>
-  <a-layout
-    id="nc-app"
-    class="nc-app"
-    :class="{
-      mobile: isMobileMode,
-      desktop: !isMobileMode,
-    }"
-    has-sider
-  >
+  <a-layout id="nc-app" class="nc-app" has-sider>
     <Transition name="slide">
       <div v-show="hasSider" id="nc-sidebar-left" ref="sidebar" />
     </Transition>

@@ -441,14 +441,14 @@ export default {
               </LazySmartsheetDivDataCell>
             </div>
           </div>
-          <div v-if="hiddenFields.length > 0" class="flex items-center py-3">
+          <div v-if="hiddenFields.length > 0" class="flex w-full px-12 items-center py-3">
             <div class="flex-grow h-px mr-1 bg-gray-100"></div>
             <NcButton type="secondary" size="small" class="flex-shrink-1 !text-sm" @click="toggleHiddenFields">
               {{ showHiddenFields ? `Hide ${hiddenFields.length} hidden` : `Show ${hiddenFields.length} hidden` }}
               {{ hiddenFields.length > 1 ? `fields` : `field` }}
               <MdiChevronDown class="ml-1" :class="showHiddenFields ? 'transform rotate-180' : ''" />
             </NcButton>
-            <div class="flex-grow h-px mr-1 bg-gray-100"></div>
+            <div class="flex-grow h-px ml-1 bg-gray-100"></div>
           </div>
           <div v-if="hiddenFields.length > 0 && showHiddenFields" class="mb-3">
             <div

@@ -6,14 +6,20 @@ const workspaceStore = useWorkspace()
 const { activeWorkspace, workspacesList, workspaceUserCount } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
-const { leftSidebarState } = storeToRefs(useSidebarStore())
+const { leftSidebarState, isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 const viewportWidth = ref(window.innerWidth)
 
 const { navigateToTable } = useTablesStore()
 
 const { navigateToProject, isMobileMode } = useGlobal()
 
-const isWorkspaceDropdownOpen = ref(false)
+const _isWorkspaceDropdownOpen = ref(false)
+const isWorkspaceDropdownOpen = computed({
+  get: () => (isLeftSidebarOpen.value ? _isWorkspaceDropdownOpen.value : false),
+  set: (val: boolean) => {
+    _isWorkspaceDropdownOpen.value = val
+  },
+})
 
 const createDlg = ref(false)
 
@@ -94,7 +100,6 @@ onBeforeUnmount(() => {
     </div>
   </div>
   <div
-    v-else-if="!isMobileMode"
     class="flex flex-row flex-grow w-full max-w-85/100 hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md"
     :style="{
       maxWidth: `calc(100% - 2.5rem)`,

@@ -20,6 +20,8 @@ const logout = async () => {
 
 const { hooks } = useNuxtApp()
 
+const { isMobileMode } = useGlobal()
+
 const isDashboard = computed(() => !!route.params.typeOrId)
 
 /** when page suspensions have finished, check if a sidebar element was teleported into the layout */
@@ -31,12 +33,20 @@ hooks.hook('page:finish', () => {
 </script>
 
 <template>
-  <a-layout id="nc-app" has-sider>
+  <a-layout
+    id="nc-app"
+    class="nc-app"
+    :class="{
+      mobile: isMobileMode,
+      desktop: !isMobileMode,
+    }"
+    has-sider
+  >
     <Transition name="slide">
       <div v-show="hasSider" id="nc-sidebar-left" ref="sidebar" />
     </Transition>
 
-    <a-layout class="!flex-col">
+    <a-layout class="!flex-col h-screen">
       <a-layout-header v-if="!route.meta.public && signedIn && !route.meta.hideHeader" class="nc-navbar">
         <div
           v-if="!route.params.projectType"
@@ -134,7 +144,7 @@ hooks.hook('page:finish', () => {
         <LazyGeneralLanguage v-if="!signedIn && !route.params.projectId && !route.params.erdUuid" class="nc-lang-btn" />
       </a-tooltip>
 
-      <div class="w-full h-full overflow-hidden">
+      <div class="w-full h-full overflow-hidden nc-layout-base-inner">
         <slot />
       </div>
     </a-layout>
@@ -162,5 +172,9 @@ hooks.hook('page:finish', () => {
 
 .nc-navbar {
   @apply flex !bg-white items-center !pl-2 !pr-5;
+}
+
+.nc-layout-base-inner > div {
+  @apply h-full;
 }
 </style>

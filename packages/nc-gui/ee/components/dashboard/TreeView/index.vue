@@ -32,6 +32,8 @@ const { $e, $jobs } = useNuxtApp()
 
 const router = useRouter()
 
+const { isMobileMode } = useGlobal()
+
 const route = router.currentRoute
 
 const { isWorkspaceLoading } = storeToRefs(useWorkspace())
@@ -284,6 +286,7 @@ watch(
       <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
         <div class="text-gray-500 font-medium">{{ $t('objects.projects') }}</div>
         <WorkspaceCreateProjectBtn
+          v-if="!isMobileMode"
           modal
           type="text"
           size="xxsmall"

@@ -42,7 +42,12 @@ export default class Base implements BaseType {
   }
 
   public static async createBase(
-    base: BaseType & { projectId: string; created_at?; updated_at?; meta?: any },
+    base: BaseType & {
+      projectId: string;
+      created_at?;
+      updated_at?;
+      meta?: any;
+    },
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(base, [

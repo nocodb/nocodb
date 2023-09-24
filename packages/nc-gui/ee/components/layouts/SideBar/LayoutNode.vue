@@ -86,7 +86,8 @@ const { isSharedBase } = useProject()
 
         <a-dropdown
           v-if="
-            !isSharedBase && (isUIAllowed('layoutRename', { roles: projectRole }) || isUIAllowed('layoutDelete', { roles: projectRole }))
+            !isSharedBase &&
+            (isUIAllowed('layoutRename', { roles: projectRole }) || isUIAllowed('layoutDelete', { roles: projectRole }))
           "
           :trigger="['click']"
           @click.stop

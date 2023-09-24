@@ -12,7 +12,7 @@ import type {
   View,
 } from '~/models';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import { Base } from '~/models';
+import type { Base } from '~/models';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Column, Filter, Model, Sort } from '~/models';
 import { getAliasGenerator, ROOT_ALIAS } from '~/utils';

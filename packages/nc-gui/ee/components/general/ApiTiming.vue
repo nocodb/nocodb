@@ -76,7 +76,7 @@ const tranformTime = (time: number) => {
         </div>
       </template>
     </NcTooltip>
-<!--    <div class="item">
+    <!--    <div class="item">
       <NcTooltip placement="bottom" class="flex items-center justify-center">
         <template #title>
           <div class="tooltip-content-wrapper">
@@ -90,7 +90,7 @@ const tranformTime = (time: number) => {
 
         <component :is="iconMap.help" />
       </NcTooltip>
-    </div>-->
+    </div> -->
   </div>
   <span v-else></span>
 </template>

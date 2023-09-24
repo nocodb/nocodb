@@ -1780,8 +1780,8 @@ class BaseModelSqlv2 {
         viewOrTableColumn instanceof Column
           ? viewOrTableColumn
           : await Column.get({
-            colId: (viewOrTableColumn as GridViewColumn).fk_column_id,
-          });
+              colId: (viewOrTableColumn as GridViewColumn).fk_column_id,
+            });
       // hide if column marked as hidden in view
       // of if column is system field and system field is hidden
       if (
@@ -1924,28 +1924,28 @@ class BaseModelSqlv2 {
           break;
         }
         case UITypes.Formula:
-        {
-          try {
-            const selectQb = await this.getSelectQueryBuilderForFormula(
-              column,
-              alias,
-              validateFormula,
-              aliasToColumnBuilder,
-            );
-            qb.select(
-              this.dbDriver.raw(`?? as ??`, [
-                selectQb.builder,
-                sanitize(column.title),
-              ]),
-            );
-          } catch (e) {
-            console.log(e);
-            // return dummy select
-            qb.select(
-              this.dbDriver.raw(`'ERR' as ??`, [sanitize(column.title)]),
-            );
+          {
+            try {
+              const selectQb = await this.getSelectQueryBuilderForFormula(
+                column,
+                alias,
+                validateFormula,
+                aliasToColumnBuilder,
+              );
+              qb.select(
+                this.dbDriver.raw(`?? as ??`, [
+                  selectQb.builder,
+                  sanitize(column.title),
+                ]),
+              );
+            } catch (e) {
+              console.log(e);
+              // return dummy select
+              qb.select(
+                this.dbDriver.raw(`'ERR' as ??`, [sanitize(column.title)]),
+              );
+            }
           }
-        }
           break;
         case UITypes.Rollup:
         case UITypes.Links:

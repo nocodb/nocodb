@@ -1,8 +1,8 @@
 import type { AxiosError, AxiosResponse } from 'axios'
 import { Api } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import type { CreateApiOptions, UseApiProps, UseApiReturn } from '~/composables/useApi/types'
 import { addAxiosInterceptors } from './interceptors'
+import type { CreateApiOptions, UseApiProps, UseApiReturn } from '~/composables/useApi/types'
 import { BASE_FALLBACK_URL, createEventHook, extractSdkResponseErrorMsg, ref, unref, useCounter, useNuxtApp } from '#imports'
 
 export function createApiInstance<SecurityDataType = any>({

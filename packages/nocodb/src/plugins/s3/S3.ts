@@ -15,16 +15,16 @@ export default class S3 implements IStorageAdapterV2 {
     this.input = input;
   }
 
-  get defaultUploadParams() {
+  get defaultParams() {
     return {
-      ACL: 'public-read',
+      ACL: 'private',
       Bucket: this.input.bucket,
     };
   }
 
   async fileCreate(key: string, file: XcFile): Promise<any> {
     const uploadParams: any = {
-      ...this.defaultUploadParams,
+      ...this.defaultParams,
       // ContentType: file.mimetype,
     };
     return new Promise((resolve, reject) => {
@@ -52,7 +52,7 @@ export default class S3 implements IStorageAdapterV2 {
 
   async fileCreateByUrl(key: string, url: string): Promise<any> {
     const uploadParams: any = {
-      ...this.defaultUploadParams,
+      ...this.defaultParams,
     };
     return new Promise((resolve, reject) => {
       axios
@@ -156,7 +156,7 @@ export default class S3 implements IStorageAdapterV2 {
     return new Promise((resolve, reject) => {
       // call S3 to retrieve upload file to specified bucket
       this.s3Client
-        .putObject({ ...this.defaultUploadParams, ...uploadParams })
+        .putObject({ ...this.defaultParams, ...uploadParams })
         .then((data) => {
           if (data) {
             resolve(

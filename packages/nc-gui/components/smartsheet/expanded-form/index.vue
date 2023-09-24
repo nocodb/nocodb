@@ -3,6 +3,8 @@ import type { TableType, ViewType } from 'nocodb-sdk'
 import { isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import MdiChevronDown from '~icons/mdi/chevron-down'
+import TableIcon from '~icons/nc-icons/table'
+
 import {
   CellClickHookInj,
   FieldsInj,
@@ -62,6 +64,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { isUIAllowed } = useRoles()
 
+const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
+
 // override cell click hook to avoid unexpected behavior at form fields
 provide(CellClickHookInj, undefined)
 
@@ -89,12 +93,15 @@ provide(MetaInj, meta)
 const {
   commentsDrawer,
   changedColumns,
+  deleteRowById,
+  displayValue,
   state: rowState,
   isNew,
   loadRow: _loadRow,
+  primaryKey,
   saveRowAndStay,
   syncLTARRefs,
-  save,
+  save: _save,
 } = useProvideExpandedFormStore(meta, row)
 
 const duplicatingRowInProgress = ref(false)
@@ -220,6 +227,17 @@ const addNewRow = () => {
   }, 500)
 }
 
+const save = async () => {
+  if (isNew.value) {
+    const data = await _save(rowState.value)
+    await syncLTARRefs(data)
+    reloadTrigger?.trigger()
+  } else {
+    await _save()
+    reloadTrigger?.trigger()
+  }
+}
+
 // attach keyboard listeners to switch between rows
 // using alt + left/right arrow keys
 useActiveKeyupListener(
@@ -241,7 +259,7 @@ useActiveKeyupListener(
       e.stopPropagation()
 
       if (isNew.value) {
-        const data = await save(rowState.value)
+        const data = await _save(rowState.value)
         await syncLTARRefs(data)
         reloadHook?.trigger(null)
       } else {
@@ -276,7 +294,7 @@ useActiveKeyupListener(
           okText: 'Save',
           cancelText: 'Discard',
           onOk: async () => {
-            const data = await save(rowState.value)
+            const data = await _save(rowState.value)
             await syncLTARRefs(data)
             reloadHook?.trigger(null)
             addNewRow()
@@ -292,6 +310,19 @@ useActiveKeyupListener(
   },
   { immediate: true },
 )
+
+const showDeleteRowModal = ref(false)
+
+const onDeleteRowClick = () => {
+  showDeleteRowModal.value = true
+}
+
+const onConfirmDeleteRowClick = async () => {
+  showDeleteRowModal.value = false
+  await deleteRowById(primaryKey.value)
+  await reloadTrigger.trigger()
+  message.success('Row deleted')
+}
 </script>
 
 <script lang="ts">
@@ -301,59 +332,98 @@ export default {
 </script>
 
 <template>
-  <a-drawer
+  <a-modal
+    :key="key"
     v-model:visible="isExpanded"
     :footer="null"
-    :width="commentsDrawer && isUIAllowed('commentList') ? 'min(90vw,900px)' : 'min(90vw,700px)'"
-    :body-style="{ 'padding': 0, 'display': 'flex', 'flex-direction': 'column' }"
+    :width="commentsDrawer && isUIAllowed('commentList') ? 'min(90vw,1000px)' : 'min(90vw,800px)'"
+    :body-style="{ padding: 0 }"
     :closable="false"
     class="nc-drawer-expanded-form"
     :class="{ active: isExpanded }"
   >
-    <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" @duplicate-row="onDuplicateRow" />
-
-    <div :key="key" class="!bg-gray-50 rounded flex-1">
-      <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
-        <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container relative">
-          <template v-if="props.showNextPrevIcons">
-            <a-tooltip v-if="!props.firstRow" placement="bottom">
-              <template #title>
-                {{ $t('labels.prevRow') }}
-
-                <GeneralShortcutLabel class="justify-center" :keys="['Alt', '←']" />
-              </template>
-              <GeneralIcon icon="chevronLeft" class="cursor-pointer nc-prev-arrow" @click="$emit('prev')" />
-            </a-tooltip>
-
-            <a-tooltip v-if="!props.lastRow" placement="bottom">
-              <template #title>
-                {{ $t('labels.nextRow') }}
-                <GeneralShortcutLabel class="justify-center" :keys="['Alt', '→']" />
-              </template>
-              <GeneralIcon icon="chevronRight" class="cursor-pointer nc-next-arrow" @click="onNext" />
-            </a-tooltip>
+    <div class="flex w-full items-center relative pb-2 justify-between">
+      <div class="flex gap-3">
+        <NcButton v-if="props.showNextPrevIcons" type="secondary" size="small" class="nc-prev-arrow" @click="$emit('prev')">
+          <MdiChevronUp class="text-md text-gray-700" />
+        </NcButton>
+        <NcButton v-if="!props.lastRow" type="secondary" size="small" class="nc-next-arrow" @click="onNext">
+          <MdiChevronDown class="text-md text-gray-700" />
+        </NcButton>
+        <div v-if="displayValue" class="flex items-center font-bold text-gray-800 text-xl">
+          {{ displayValue }}
+        </div>
+        <div class="bg-gray-100 px-2 gap-1 flex items-center rounded-md text-gray-800">
+          <TableIcon class="w-6 h-6 text-sm" />
+          All {{ meta.title }}
+        </div>
+      </div>
+      <div class="flex gap-1">
+        <NcDropdown v-if="!isNew">
+          <NcButton type="secondary" size="small" class="nc-expand-form-more-actions">
+            <MdiMoreVert class="text-md text-gray-700" />
+          </NcButton>
+          <template #overlay>
+            <NcMenu>
+              <NcMenuItem v-if="!isNew" class="text-gray-700" @click="_loadRow()">
+                <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center">
+                  <component :is="iconMap.reload" class="cursor-pointer" />
+                  {{ $t('general.reload') }}
+                </div>
+              </NcMenuItem>
+              <NcMenuItem v-if="isUIAllowed('dataEdit') && !isNew" class="text-gray-700" @click="!isNew && onDuplicateRow">
+                <div v-e="['c:row-expand:duplicate']" class="flex gap-2 items-center">
+                  <component :is="iconMap.copy" class="cursor-pointer nc-duplicate-row" />
+                  Duplicate record
+                </div>
+              </NcMenuItem>
+              <a-menu-divider class="my-1" />
+              <NcMenuItem
+                v-if="isUIAllowed('dataEdit') && !isNew"
+                v-e="['c:row-expand:delete']"
+                class="!text-red-500"
+                @click="!isNew && onDeleteRowClick()"
+              >
+                <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
+                Delete record
+              </NcMenuItem>
+            </NcMenu>
           </template>
-          <div class="w-[500px] mx-auto">
-            <div v-if="duplicatingRowInProgress" class="flex items-center justify-center h-[100px]">
-              <a-spin size="large" />
-            </div>
-            <div
-              v-for="(col, i) of fields"
-              v-else
-              v-show="isFormula(col) || !isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
-              :key="col.title"
-              class="mt-2 py-2"
-              :class="`nc-expand-col-${col.title}`"
-              :data-testid="`nc-expand-col-${col.title}`"
-            >
-              <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+        </NcDropdown>
+        <NcButton type="secondary" size="small" @click="onClose">
+          <MdiClose class="text-md text-gray-700" />
+        </NcButton>
+      </div>
+    </div>
+    <div class="flex flex-row w-full gap-4">
+      <div
+        class="fle relative w-full flex-col"
+        :class="{
+          '!w-4/6': !isNew,
+        }"
+      >
+        <div
+          class="flex flex-col h-[calc(100vh-200px)] !pb-12 nc-scrollbar-md overflow-y-scroll items-center w-full bg-white border-1 border-gray-200 rounded-xl p-4"
+        >
+          <div
+            v-for="(col, i) of fields"
+            v-show="isFormula(col) || !isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
+            :key="col.title"
+            class="mt-2 py-2"
+            :class="`nc-expand-col-${col.title}`"
+            :data-testid="`nc-expand-col-${col.title}`"
+          >
+            <div class="flex flex-row">
+              <div class="w-[12rem] scale-110">
+                <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
 
-              <LazySmartsheetHeaderCell v-else :column="col" />
+                <LazySmartsheetHeaderCell v-else :column="col" />
+              </div>
 
               <LazySmartsheetDivDataCell
                 v-if="col.title"
                 :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2 relative"
+                class="!bg-white rounded-lg !w-[20rem] border-1 border-gray-200 px-1 min-h-[35px] flex items-center relative"
               >
                 <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
 
@@ -368,34 +438,36 @@ export default {
                 />
               </LazySmartsheetDivDataCell>
             </div>
-            <div v-if="hiddenFields.length > 0" class="my-4">
-              <div class="flex items-center py-4">
-                <div class="flex-grow h-px mr-1 bg-gray-100"></div>
-                <a-button
-                  class="!rounded-md flex items-center flex-shrink-1 focus:!border-[#d9d9d9] focus:!text-gray-500 hover:text-blue"
-                  @click="toggleHiddenFields"
-                >
-                  {{ showHiddenFields ? `Hide ${hiddenFields.length} hidden` : `Show ${hiddenFields.length} hidden` }}
-                  {{ hiddenFields.length > 1 ? `fields` : `field` }}
-                  <MdiChevronDown class="ml-1" :class="showHiddenFields ? 'transform rotate-180' : ''" />
-                </a-button>
-                <div class="flex-grow ml-1 h-px bg-gray-100"></div>
-              </div>
-              <div
-                v-for="(col, i) of hiddenFields"
-                v-show="(isFormula(col) || !isVirtualCol(col) || !isNew || isLinksOrLTAR(col)) && showHiddenFields"
-                :key="col.title"
-                class="mt-2 py-2"
-                :class="`nc-expand-col-${col.title}`"
-                :data-testid="`nc-expand-col-${col.title}`"
-              >
-                <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+          </div>
+          <div v-if="hiddenFields.length > 0" class="flex items-center py-3">
+            <div class="flex-grow h-px mr-1 bg-gray-100"></div>
+            <NcButton type="secondary" size="small" class="flex-shrink-1 !text-sm" @click="toggleHiddenFields">
+              {{ showHiddenFields ? `Hide ${hiddenFields.length} hidden` : `Show ${hiddenFields.length} hidden` }}
+              {{ hiddenFields.length > 1 ? `fields` : `field` }}
+              <MdiChevronDown class="ml-1" :class="showHiddenFields ? 'transform rotate-180' : ''" />
+            </NcButton>
+            <div class="flex-grow h-px mr-1 bg-gray-100"></div>
+          </div>
+          <div v-if="hiddenFields.length > 0 && showHiddenFields" class="mb-3">
+            <div
+              v-for="(col, i) of hiddenFields"
+              v-show="isFormula(col) || !isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
+              :key="col.title"
+              class="mt-2 py-2"
+              :class="`nc-expand-col-${col.title}`"
+              :data-testid="`nc-expand-col-${col.title}`"
+            >
+              <div class="flex flex-row">
+                <div class="w-[12rem] scale-110">
+                  <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
 
-                <LazySmartsheetHeaderCell v-else :column="col" />
+                  <LazySmartsheetHeaderCell v-else :column="col" />
+                </div>
 
                 <LazySmartsheetDivDataCell
-                  :ref="i ? null : (el) => (cellWrapperEl = el)"
-                  class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2 relative"
+                  v-if="col.title"
+                  :ref="i ? null : (el: any) => (cellWrapperEl = el)"
+                  class="!bg-white rounded-lg !w-[20rem] border-1 border-gray-200 px-1 min-h-[35px] flex items-center relative"
                 >
                   <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
 
@@ -413,54 +485,33 @@ export default {
             </div>
           </div>
         </div>
-
         <div
-          v-if="!isNew"
-          class="nc-comments-drawer min-w-0 min-h-full max-h-full"
-          :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
+          v-if="isUIAllowed('dataEdit')"
+          class="w-full absolute bottom-0 bg-white flex justify-end border-1 border-gray-200 p-2 rounded-b-lg"
         >
-          <div class="h-full">
-            <LazySmartsheetExpandedFormComments v-if="commentsDrawer && isUIAllowed('commentList')" />
-          </div>
+          <NcButton type="primary" size="medium" @click="save"> Save </NcButton>
         </div>
       </div>
+      <div
+        v-if="!isNew"
+        class="nc-comments-drawer border-1 border-gray-200 w-2/6 rounded-lg min-w-0"
+        :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
+      >
+        <LazySmartsheetExpandedFormComments v-if="commentsDrawer && isUIAllowed('commentList')" />
+      </div>
     </div>
-  </a-drawer>
+  </a-modal>
+
+  <GeneralModal v-model:visible="showDeleteRowModal" class="!w-[25rem]">
+    <div class="p-4">
+      <div class="prose-xl font-bold self-center">Delete row ?</div>
+
+      <div class="mt-4">Are you sure you want to delete this row?</div>
+    </div>
+    <div class="flex flex-row gap-x-2 mt-1 pt-1.5 justify-end p-4">
+      <NcButton @click="onConfirmDeleteRowClick">{{ $t('general.confirm') }} </NcButton>
+    </div>
+  </GeneralModal>
 </template>
 
-<style scoped lang="scss">
-:deep(input, select, textarea) {
-  @apply !bg-white;
-}
-
-:deep(.ant-modal-body) {
-  @apply !bg-gray-50;
-}
-
-.nc-comments-drawer {
-  @apply w-0 transition-width ease-in-out duration-200;
-  overflow: hidden;
-
-  &.active {
-    @apply w-[250px] border-left-1;
-  }
-}
-
-.nc-form-wrapper {
-  max-height: max(calc(100vh - 65px), 600px);
-  height: max-content !important;
-}
-
-.nc-prev-arrow,
-.nc-next-arrow {
-  @apply w-7 h-7 flex items-center justify-center absolute opacity-70 rounded-full transition-transform transition-background transition-opacity transform bg-white hover:(bg-gray-200) active:(scale-125 opacity-100) !text-xl;
-}
-
-.nc-prev-arrow {
-  @apply left-4 top-4;
-}
-
-.nc-next-arrow {
-  @apply right-4 top-4;
-}
-</style>
+<style scoped lang="scss"></style>

@@ -94,6 +94,11 @@ export default class TemporaryUrl {
       new Date(new Date().getTime() + expireSeconds * 1000),
     ); // at least expireSeconds from now
 
+    // calculate the expiry time in seconds considering rounding
+    const expiresInSeconds = Math.ceil(
+      (expireAt.getTime() - new Date().getTime()) / 1000,
+    );
+
     let tempUrl;
 
     const url = await NocoCache.get(
@@ -116,10 +121,6 @@ export default class TemporaryUrl {
       // if not present, create a new url
       const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
-      const expiresInSeconds = Math.ceil(
-        (expireAt.getTime() - new Date().getTime()) / 1000,
-      );
-
       tempUrl = await (storageAdapter as any).getSignedUrl(
         path,
         expiresInSeconds,
@@ -128,6 +129,7 @@ export default class TemporaryUrl {
         path: path,
         url: tempUrl,
         expires_at: expireAt,
+        expiresInSeconds,
       });
     } else {
       // if not present, create a new url
@@ -136,6 +138,7 @@ export default class TemporaryUrl {
         path: path,
         url: tempUrl,
         expires_at: expireAt,
+        expiresInSeconds,
       });
     }
 

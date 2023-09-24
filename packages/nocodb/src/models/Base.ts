@@ -32,6 +32,7 @@ export default class Base implements BaseType {
   order?: number;
   erd_uuid?: string;
   enabled?: BoolType;
+  meta?: any;
 
   constructor(base: Partial<Base>) {
     Object.assign(this, base);

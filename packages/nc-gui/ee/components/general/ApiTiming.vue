@@ -8,16 +8,16 @@ const { timing } = useApiTiming()
 
 const timingThresholds = {
   network: {
-    level1: 500,
-    level2: 1500,
+    level1: 200,
+    level2: 500,
   },
   cpu: {
     level1: 500,
-    level2: 1500,
+    level2: 1000,
   },
   db: {
     level1: 500,
-    level2: 1500,
+    level2: 1000,
   },
 }
 

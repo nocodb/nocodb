@@ -6,6 +6,7 @@ import { CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { stringifyMetaProp } from '~/utils/modelUtils';
 
 // todo: hide credentials
 export default class Base extends BaseCE implements BaseType {
@@ -36,6 +37,10 @@ export default class Base extends BaseCE implements BaseType {
       JSON.stringify(base.config),
       Noco.getConfig()?.auth?.jwt?.secret,
     ).toString();
+
+    if ('meta' in insertObj) {
+      insertObj.meta = stringifyMetaProp(insertObj);
+    }
 
     const { id } = await ncMeta.metaInsert2(
       base.projectId,

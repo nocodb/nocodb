@@ -895,8 +895,6 @@ export async function singleQueryList(ctx: {
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {
-      console.log(cachedQuery);
-
       const startTime = process.hrtime();
       const rawRes = await knex.raw(cachedQuery, [
         +listArgs.limit,

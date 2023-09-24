@@ -415,8 +415,8 @@ export default {
             :class="`nc-expand-col-${col.title}`"
             :data-testid="`nc-expand-col-${col.title}`"
           >
-            <div class="flex flex-row">
-              <div class="w-[12rem] scale-110">
+            <div class="flex items-start flex-row">
+              <div class="w-[12rem] mt-2.5 scale-110">
                 <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
 
                 <LazySmartsheetHeaderCell v-else :column="col" />
@@ -459,8 +459,8 @@ export default {
               :class="`nc-expand-col-${col.title}`"
               :data-testid="`nc-expand-col-${col.title}`"
             >
-              <div class="flex flex-row">
-                <div class="w-[12rem] scale-110">
+              <div class="flex flex-row items-start">
+                <div class="w-[12rem] scale-110 mt-2.5">
                   <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
 
                   <LazySmartsheetHeaderCell v-else :column="col" />

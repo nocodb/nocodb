@@ -31,7 +31,7 @@ import getAst from '~/helpers/getAst';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
-import {singleQueryRead as mysqlSingleQueryRead} from "~/services/data-opt/mysql-helpers";
+import { singleQueryRead as mysqlSingleQueryRead } from '~/services/data-opt/mysql-helpers';
 
 export function generateNestedRowSelectQuery({
   knex,
@@ -973,6 +973,8 @@ export async function singleQueryList(ctx: {
     rootQb.orderBy(ctx.model.primaryKey.column_name);
   } else if (ctx.model.columns.find((c) => c.column_name === 'created_at')) {
     rootQb.orderBy('created_at');
+  } else if (ctx.model.primaryKey) {
+    rootQb.orderBy(ctx.model.primaryKey.column_name);
   }
 
   const qb = knex.from(rootQb.as(ROOT_ALIAS));
@@ -1066,8 +1068,7 @@ export async function singleQueryList(ctx: {
   );
 }
 
-
-export function getSingleQueryReadFn(base:Base) {
+export function getSingleQueryReadFn(base: Base) {
   if (['mysql', 'mysql2'].includes(base.type)) {
     return mysqlSingleQueryRead;
   }

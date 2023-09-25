@@ -733,14 +733,6 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
             </div>
           </NcMenuItem>
         </template>
-
-        <template v-else>
-          <NcMenuItem @click="reloadTables">
-            <div class="nc-project-option-item">
-              {{ $t('general.reload') }}
-            </div>
-          </NcMenuItem>
-        </template>
       </NcMenu>
     </template>
   </NcDropdown>

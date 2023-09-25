@@ -8,11 +8,11 @@
 
 <style lang="scss">
 .ant-dropdown-menu-item.nc-menu-item {
-  @apply py-2 px-2 mx-1.5 font-normal text-sm rounded-md overflow-hidden hover:bg-gray-100;
+  @apply py-2 px-2 mx-1.5 font-normal text-dropdown rounded-md overflow-hidden hover:bg-gray-100;
 }
 
 .nc-menu-item-inner {
-  @apply flex flex-row items-center gap-x-2;
+  @apply flex flex-row items-center gap-x-2 text-sm;
 }
 
 .nc-menu-item > .ant-dropdown-menu-title-content {

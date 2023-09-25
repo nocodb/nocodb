@@ -4,8 +4,7 @@ import type { AuditType } from 'nocodb-sdk'
 import { Icon } from '@iconify/vue'
 import { ref, timeAgo, useExpandedFormStoreOrThrow, useGlobal, useRoles, watch } from '#imports'
 
-const { loadCommentsAndLogs, commentsAndLogs, isCommentsLoading, saveComment, comment, updateComment } =
-  useExpandedFormStoreOrThrow()
+const { loadCommentsAndLogs, commentsAndLogs, isYou, saveComment, comment, updateComment } = useExpandedFormStoreOrThrow()
 
 const commentsWrapperEl = ref<HTMLDivElement>()
 
@@ -60,6 +59,7 @@ function onCancel() {
 }
 
 function onStopEdit() {
+  loadCommentsAndLogs()
   isEditing.value = false
   editLog.value = undefined
 }
@@ -71,6 +71,7 @@ onKeyStroke('Enter', (event) => {
 })
 
 const comments = computed(() => commentsAndLogs.value.filter((log) => log.op_type === 'COMMENT'))
+const audits = computed(() => commentsAndLogs.value.filter((log) => log.op_type !== 'COMMENT'))
 
 function editComment(log: AuditType) {
   editLog.value = log
@@ -128,16 +129,12 @@ watch(
         ref="commentsWrapperEl"
         class="flex flex-col m-1 p-1 !h-[calc(100vh-300px)] overflow-y-scroll nc-scrollbar-md space-y-2"
       >
-        <a-skeleton v-if="isCommentsLoading" type="list-item-avatar-two-line@8" />
-        <template v-else-if="commentsAndLogs.length === 0">
+        <template v-if="commentsAndLogs.length === 0">
           <div class="flex flex-col text-center justify-center h-full">
             <div class="text-center text-3xl text-gray-300">
               <MdiChatProcessingOutline />
             </div>
             <div class="font-bold text-center my-1 text-gray-400">Start a conversation</div>
-            <div class="text-gray-400">
-              NocoDB allows you to inquire, monitor progress updates, and collaborate with your team members.
-            </div>
           </div>
         </template>
         <template v-else>
@@ -146,7 +143,8 @@ watch(
               <div class="flex flex-col p-4 gap-3">
                 <div class="flex justify-between">
                   <div class="flex font-bold items-center gap-2">
-                    <MdiAccountCircleOutline class="row-span-2 h-8 w-8" />
+                    <GeneralUserIcon v-if="isYou(log.user)" />
+                    <MdiAccountCircleOutline v-else class="h-6 w-6" />
                     <span class="truncate max-w-42">
                       {{ log.user ?? 'Shared base' }}
                     </span>
@@ -181,76 +179,32 @@ watch(
                 </div>
               </div>
             </div>
-            <!--  <a-dropdown :trigger="['contextmenu']" :overlay-class-name="`nc-dropdown-comment-context-menu-${idx}`">
-            <div class="flex gap-1 text-xs">
-              <component
-              :is="iconMap.accountCircle"
-              class="row-span-2"
-              :class="isYou(log.user) ? 'text-pink-600' : 'text-blue-600 '"
-              />
-              
-              <div class="flex-1">
-                <p class="mb-1 caption edited-text text-[10px] text-gray-500">
-                  {{ log.op_type === 'COMMENT' ? 'commented' : log.op_sub_type === 'INSERT' ? 'created' : 'edited' }}
-                </p>
-                
-                <div v-if="log.op_type === 'COMMENT'">
-                  <a-input
-                  v-if="log.id === editLog?.id"
-                  :ref="focusInput"
-                  v-model:value="editLog.description"
-                  @blur="onCancel"
-                  @keydown.stop="onKeyDown($event)"
-                  />
-                  <p
-                  v-else
-                  class="block caption my-2 nc-chip w-full min-h-20px p-2 rounded"
-                  :style="{ backgroundColor: enumColor.light[2] }"
-                  >
-                  
-                  retrieve the comment part from the audit description
-                  `The following comment has been created: foo` -> `foo`
-                  
-                  {{ log.description.substring(log.description.indexOf(':') + 1) }}
-                </p>
-              </div>
-              
-              <p v-else-if="log.details" v-dompurify-html="log.details" class="caption my-3" style="word-break: break-all" />
-              
-                <p v-else>{{ log.description }}</p>
-                
-                <p class="time text-right text-[10px] mb-0 mt-1 text-gray-500">
-                  {{ timeAgo(log.created_at) }}
-                </p>
-              </div>
-            </div>
-
-            <template #overlay>
-              <a-menu v-if="log.op_type === 'COMMENT'" @click="contextMenu = false">
-                <a-menu-item key="copy-comment" @click="copyComment(log.description)">
-                  <div v-e="['a:comment:copy']" class="nc-project-menu-item">
-                    {{ t('general.copy') }}
-                  </div>
-                </a-menu-item>
-                <a-menu-item v-if="log.user === user.email " key="edit-comment"  ">
-                  <div v-e="['a:comment:edit']" class="nc-project-menu-item">
-                    {{ t('general.edit') }}
-                  </div>
-                </a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown> -->
           </div>
         </template>
       </div>
-
-      <!-- <div class="flex justify-center">
-        <a-checkbox v-model:checked="commentsOnly" v-e="['c:row-expand:comment-only']" @change="loadCommentsAndLogs">
-          {{ $t('labels.commentsOnly') }}
-          <span class="text-[11px] text-gray-500" />
-        </a-checkbox>
-      </div> -->
-
+      <div v-else class="flex flex-col m-1 p-1 !h-[calc(100vh-239px)] overflow-y-scroll nc-scrollbar-md space-y-2">
+        <div v-for="(log, idx) of audits" :key="log.id">
+          <div class="bg-white rounded-xl border-1 gap-3 border-gray-200">
+            <div class="flex flex-col p-4 gap-3">
+              <div class="flex justify-between">
+                <div class="flex font-bold items-end gap-2">
+                  <GeneralUserIcon v-if="isYou(log.user)" />
+                  <MdiAccountCircleOutline v-else class="row-span-2 h-6 w-6" />
+                  <span class="truncate max-w-50">
+                    {{ log.user ?? 'Shared base' }}
+                  </span>
+                </div>
+              </div>
+              <div class="text-sm text-gray-700">
+                {{ log.description }}
+              </div>
+              <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
+                {{ timeAgo(log.created_at) }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div v-if="hasEditPermission && tab === 'comments'" class="shrink mt-2 p-2 rounded-b-xl border-t-1 bg-white gap-1 flex">
         <a-input
           v-model:value="comment"

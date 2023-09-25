@@ -345,12 +345,14 @@ export default {
   >
     <div class="flex w-full items-center relative pb-2 justify-between">
       <div class="flex gap-3">
-        <NcButton v-if="props.showNextPrevIcons" type="secondary" size="small" class="nc-prev-arrow" @click="$emit('prev')">
-          <MdiChevronUp class="text-md text-gray-700" />
-        </NcButton>
-        <NcButton v-if="!props.lastRow" type="secondary" size="small" class="nc-next-arrow" @click="onNext">
-          <MdiChevronDown class="text-md text-gray-700" />
-        </NcButton>
+        <div class="flex gap-1">
+          <NcButton v-if="props.showNextPrevIcons" type="secondary" size="small" class="nc-prev-arrow" @click="$emit('prev')">
+            <MdiChevronUp class="text-md text-gray-700" />
+          </NcButton>
+          <NcButton v-if="!props.lastRow" type="secondary" size="small" class="nc-next-arrow" @click="onNext">
+            <MdiChevronDown class="text-md text-gray-700" />
+          </NcButton>
+        </div>
         <div v-if="displayValue" class="flex items-center font-bold text-gray-800 text-xl">
           {{ displayValue }}
         </div>

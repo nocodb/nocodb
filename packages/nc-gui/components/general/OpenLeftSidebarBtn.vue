@@ -17,7 +17,7 @@ const onClick = () => {
     class="transition-all duration-150"
     :class="{
       'opacity-0 w-0': !isMobileMode && isLeftSidebarOpen,
-      'opacity-100 w-8': isMobileMode || !isLeftSidebarOpen,
+      'opacity-100 max-w-10': isMobileMode || !isLeftSidebarOpen,
     }"
   >
     <template #title>
@@ -30,7 +30,7 @@ const onClick = () => {
     <NcButton
       :type="isMobileMode ? 'secondary' : 'text'"
       :size="isMobileMode ? 'medium' : 'small'"
-      class="nc-sidebar-left-toggle-icon !text-gray-600 !hover:text-gray-800"
+      class="nc-sidebar-left-toggle-icon !text-gray-600 !hover:text-gray-800 w-8"
       @click="onClick"
     >
       <div class="flex items-center text-inherit">

@@ -1600,7 +1600,6 @@ class BaseModelSqlv2 {
                 });
 
                 const self: BaseModelSqlv2 = this;
-                // const childColumn = await colOptions.getChildColumn();
                 proto[
                   column.uidt === UITypes.Links
                     ? `_nc_lk_${column.title}`

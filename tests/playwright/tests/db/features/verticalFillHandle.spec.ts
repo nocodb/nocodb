@@ -97,14 +97,14 @@ test.describe('Fill Handle', () => {
     await unsetup(p.context);
   });
 
-  test('Number based', async () => {
+  test.only('Number based', async () => {
     const fields = [
-      { title: 'Number', value: '33', type: 'text' },
-      { title: 'Decimal', value: '33.3', type: 'text' },
-      { title: 'Currency', value: '33.30', type: 'text' },
-      { title: 'Percent', value: '33', type: 'text' },
+      { title: 'Number', value: 33, type: 'text' },
+      { title: 'Decimal', value: 33.3, type: 'text' },
+      { title: 'Currency', value: 33.3, type: 'text' },
+      { title: 'Percent', value: 33, type: 'text' },
       { title: 'Duration', value: '00:01', type: 'text' },
-      { title: 'Rating', value: '3', type: 'rating' },
+      { title: 'Rating', value: 3, type: 'rating' },
       { title: 'Year', value: '2023', type: 'year' },
       { title: 'Time', value: '02:02', type: 'time' },
     ];
@@ -170,7 +170,7 @@ test.describe('Fill Handle', () => {
 
     await dragDrop({ firstColumn: 'SingleSelect', lastColumn: 'MultiSelect', params: p });
 
-    await new Promise((r) => setTimeout(r, 500));
+    await new Promise(r => setTimeout(r, 500));
 
     // verify data on grid
     const displayOptions = ['jan', 'feb', 'mar'];

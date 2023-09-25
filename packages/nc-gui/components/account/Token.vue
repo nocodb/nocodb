@@ -73,7 +73,7 @@ loadTokens()
 const isModalOpen = ref(false)
 const tokenDesc = ref('')
 const tokenToCopy = ref('')
-const isTokenNameIsEmpty = ref(false)
+const isTokenNameEmpty = ref(false)
 
 const deleteToken = async (token: string): Promise<void> => {
   try {
@@ -90,12 +90,9 @@ const deleteToken = async (token: string): Promise<void> => {
 }
 
 const generateToken = async () => {
-  if (!selectedTokenData.value.description?.length) {
-    isTokenNameIsEmpty.value = true
-  } else {
-    isTokenNameIsEmpty.value = false
-  }
-  if (isTokenNameIsEmpty.value) return
+  isTokenNameEmpty.value = !selectedTokenData.value.description?.length
+
+  if (isTokenNameEmpty.value) return
   try {
     await api.orgTokens.create(selectedTokenData.value)
     showNewTokenModal.value = false
@@ -133,7 +130,7 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
 const handleCancel = () => {
   showNewTokenModal.value = false
-  isTokenNameIsEmpty.value = false
+  isTokenNameEmpty.value = false
 }
 </script>
 
@@ -179,7 +176,7 @@ const handleCancel = () => {
                 placeholder="Token Name"
                 data-testid="nc-token-input"
               />
-              <span v-if="isTokenNameIsEmpty" class="text-red-500 text-xs font-light mt-1.5 ml-1"
+              <span v-if="isTokenNameEmpty" class="text-red-500 text-xs font-light mt-1.5 ml-1"
                 >token name should not be empty</span
               >
             </div>

@@ -85,7 +85,7 @@ watch(columns, () => {
 
 <template>
   <div
-    class="flex flex-row border-1 rounded-lg h-8 ml-1 border-gray-200 overflow-hidden"
+    class="flex flex-row border-1 rounded-lg h-8 xs:(h-10 ml-0) ml-1 border-gray-200 overflow-hidden"
     :class="{ 'border-primary': search.query.length !== 0 || isFocused }"
   >
     <div
@@ -134,10 +134,7 @@ watch(columns, () => {
     <a-input
       v-model:value="search.query"
       size="small"
-      class="text-xs"
-      :style="{
-        width: '10rem',
-      }"
+      class="text-xs w-40"
       :placeholder="`${$t('general.search')} in ${columns?.find((column) => column.value === search.field)?.label}`"
       :bordered="false"
       data-testid="search-data-input"

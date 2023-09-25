@@ -101,11 +101,11 @@ watch(
 </script>
 
 <template>
-  <div class="flex flex-col w-full bg-gray-50 rounded-lg">
+  <div class="flex flex-col w-full h-[500px] bg-gray-50 rounded-lg">
     <div class="bg-white rounded-t-lg border-gray-200 border-b-1">
-      <div class="flex flex-row m-2 p-1 bg-gray-100 rounded-lg">
+      <div class="flex flex-row gap-2 m-2 p-1 bg-gray-100 rounded-lg">
         <div
-          class="tab flex-1 transition-all text-gray-600 cursor-pointer rounded-lg"
+          class="tab flex-1 px-4 py-2 transition-all text-gray-600 cursor-pointer rounded-lg"
           :class="{
             'bg-white shadow !text-brand-500 !hover:text-brand-500': tab === 'comments',
           }"
@@ -117,7 +117,7 @@ watch(
           </div>
         </div>
         <div
-          class="tab flex-1 transition-all text-gray-600 cursor-pointer rounded-lg"
+          class="tab flex-1 px-4 py-2 transition-all text-gray-600 cursor-pointer rounded-lg"
           :class="{
             'bg-white shadow !text-brand-500 !hover:text-brand-500': tab === 'audits',
           }"
@@ -134,7 +134,7 @@ watch(
       <div
         v-if="tab === 'comments'"
         ref="commentsWrapperEl"
-        class="flex flex-col m-1 p-1 !h-[calc(100vh-300px)] overflow-y-scroll nc-scrollbar-md space-y-2"
+        class="flex flex-col m-1 p-1 !h-[399px] overflow-y-scroll nc-scrollbar-md space-y-2"
       >
         <template v-if="comments.length === 0">
           <div class="flex flex-col text-center justify-center h-full">
@@ -145,21 +145,20 @@ watch(
           </div>
         </template>
         <template v-else>
-          <div v-for="(log, idx) of comments" :key="log.id">
-            <div class="bg-white rounded-xl border-1 gap-3 border-gray-200">
+          <div v-for="log of comments" :key="log.id">
+            <div class="bg-white rounded-xl group border-1 gap-3 border-gray-200">
               <div class="flex flex-col p-4 gap-3">
                 <div class="flex justify-between">
                   <div class="flex font-bold items-center gap-2">
-                    <GeneralUserIcon v-if="isYou(log.user)" />
-                    <MdiAccountCircleOutline v-else class="h-6 w-6" />
+                    <GeneralUserIcon :name="log.display_name ?? log.user" />
                     <span class="truncate max-w-42">
-                      {{ log.user ?? 'Shared base' }}
+                      {{ log.display_name ?? log.user ?? 'Shared base' }}
                     </span>
                   </div>
                   <NcButton
                     v-if="log.user === user.email && !editLog"
                     type="secondary"
-                    class="!px-2"
+                    class="!px-2 opacity-0 group-hover:opacity-100 transition-all"
                     size="sm"
                     @click="editComment(log)"
                   >
@@ -181,7 +180,7 @@ watch(
                   <NcButton type="secondary" size="sm" @click="onCancel"> Cancel </NcButton>
                   <NcButton size="sm" @click="onEditComment"> Save </NcButton>
                 </div>
-                <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
+                <div v-if="log.id !== editLog?.id" class="text-sm text-gray-500">
                   {{ log.created_at !== log.updated_at ? `Edited ${timeAgo(log.updated_at)}` : timeAgo(log.created_at) }}
                 </div>
               </div>
@@ -189,7 +188,7 @@ watch(
           </div>
         </template>
       </div>
-      <div v-else class="flex flex-col m-1 p-1 !h-[calc(100vh-239px)] overflow-y-scroll nc-scrollbar-md space-y-2">
+      <div v-else ref="commentsWrapperEl" class="flex flex-col m-1 p-1 !h-[459px] overflow-y-scroll nc-scrollbar-md space-y-2">
         <template v-if="audits.length === 0">
           <div class="flex flex-col mb-14 text-center justify-center h-full">
             <div class="text-center text-3xl text-gray-600">
@@ -198,20 +197,20 @@ watch(
             <div class="font-bold text-center my-1 text-gray-600">See changes to this record</div>
           </div>
         </template>
-        <div v-for="(log, idx) of audits" :key="log.id">
+        <div v-for="log of audits" :key="log.id">
           <div class="bg-white rounded-xl border-1 gap-3 border-gray-200">
             <div class="flex flex-col p-4 gap-3">
               <div class="flex justify-between">
                 <div class="flex font-bold items-center gap-2">
-                  <GeneralUserIcon v-if="isYou(log.user)" />
-                  <MdiAccountCircleOutline v-else class="row-span-2 h-6 w-6" />
+                  <GeneralUserIcon :name="log.display_name ?? log.user" />
+
                   <span class="truncate max-w-50">
                     {{ log.user ?? 'Shared base' }}
                   </span>
                 </div>
               </div>
               <div class="text-sm text-gray-700">
-                {{ log.description }}
+                {{ log.description.split('.')[1] }}
               </div>
               <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
                 {{ timeAgo(log.created_at) }}

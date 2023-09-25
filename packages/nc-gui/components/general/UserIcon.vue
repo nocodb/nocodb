@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 const props = defineProps<{
   size?: 'small' | 'medium' | 'large' | 'xlarge'
+  name?: string
 }>()
 
 const { user } = useGlobal()
@@ -9,9 +10,9 @@ const backgroundColor = computed(() => (user.value?.id ? stringToColour(user.val
 
 const size = computed(() => props.size || 'medium')
 
-const displayName = computed(() => user.value?.display_name ?? '')
+const displayName = computed(() => props.name ?? user.value?.display_name ?? '')
 
-const email = computed(() => user.value?.email ?? '')
+const email = computed(() => props.name ?? user.value?.email ?? '')
 
 const usernameInitials = computed(() => {
   const displayNameSplit = displayName.value?.split(' ').filter((name) => name) ?? []

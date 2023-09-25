@@ -12673,6 +12673,7 @@
                         {
                           "id": "adt_3sii7erfwrlegb",
                           "user": "w@nocodb.com",
+                          "display_name": "NocoDB",
                           "ip": null,
                           "base_id": null,
                           "project_id": "p_63b4q0qengen1x",
@@ -12689,6 +12690,7 @@
                         {
                           "id": "adt_fezs668qbxj8gc",
                           "user": "w@nocodb.com",
+                          "display_name": "NocoDB",
                           "ip": null,
                           "base_id": null,
                           "project_id": "p_63b4q0qengen1x",
@@ -15554,6 +15556,7 @@
           {
             "id": "adt_l5we7pkx70vaao",
             "user": "w@nocodb.com",
+            "display_name": "NocoDB",
             "ip": "::ffff:127.0.0.1",
             "base_id": "ds_3l9qx8xqksenrl",
             "project_id": "p_9sx43moxhqtjm3",
@@ -15577,6 +15580,11 @@
             "type": "string",
             "description": "The user name performing the action",
             "example": "w@nocodb.com"
+          },
+          "display_name": {
+            "type": "string",
+            "description": "The display name of user performing the action",
+            "example": "NocoDB"
           },
           "ip": {
             "type": "string",

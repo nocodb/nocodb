@@ -99,6 +99,11 @@ export interface AuditType {
    */
   user?: string;
   /**
+   * The display name of user performing the action
+   * @example NocoDB
+   */
+  display_name?: string;
+  /**
    * IP address from the user
    * @example ::ffff:127.0.0.1
    */
@@ -2903,6 +2908,25 @@ export class HttpClient<SecurityDataType = unknown> {
 export class Api<
   SecurityDataType extends unknown
 > extends HttpClient<SecurityDataType> {
+  userProfile = {
+    /**
+     * @description Update User Profile
+     *
+     * @tags User profile
+     * @name Update
+     * @summary Update User Profile
+     * @request PATCH:/api/v1/user/profile
+     * @response `200` `UserType`
+     */
+    update: (data: UserType, params: RequestParams = {}) =>
+      this.request<UserType, any>({
+        path: `/api/v1/user/profile`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
   auth = {
     /**
  * @description Create a new user with provided email and password and first user is marked as super admin. 

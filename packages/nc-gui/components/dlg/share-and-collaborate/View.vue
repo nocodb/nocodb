@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { ViewType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import ManageUsers from './ManageUsers.vue'
 import { useViewsStore } from '~/store/views'
@@ -14,7 +15,7 @@ const { project } = storeToRefs(projectStore)
 const { navigateToProjectPage } = projectStore
 const { activeView } = storeToRefs(useViewsStore())
 
-let view
+let view: Ref<ViewType | undefined>
 if (isViewToolbar) {
   try {
     const store = useSmartsheetStoreOrThrow()
@@ -95,7 +96,7 @@ watch(showShareModal, (val) => {
     :width="formStatus === 'manageCollaborators' ? '60rem' : '40rem'"
   >
     <div v-if="formStatus === 'project-collaborateSaving'" class="flex flex-row w-full px-5 justify-between items-center py-1">
-      <div class="flex text-base" :style="{ fontWeight: 500 }">Adding Members</div>
+      <div class="flex text-base font-bold">Adding Members</div>
       <a-spin :indicator="indicator" />
     </div>
     <template v-else-if="formStatus === 'project-collaborateSaved'">

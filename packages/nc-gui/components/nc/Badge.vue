@@ -24,9 +24,9 @@ const props = withDefaults(
       'border-red-500 bg-red-100': props.color === 'red',
       'border-gray-300': !props.color,
       'border-1': props.border,
-      '!h-6': props.size === 'sm',
-      '!h-8': props.size === 'md',
-      '!h-10': props.size === 'lg',
+      'h-6': props.size === 'sm',
+      'h-8': props.size === 'md',
+      'h-10': props.size === 'lg',
     }"
   >
     <slot />

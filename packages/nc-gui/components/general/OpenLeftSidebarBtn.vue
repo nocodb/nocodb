@@ -48,7 +48,7 @@ const onClick = () => {
       @click="onClick"
     >
       <div class="flex items-center text-inherit">
-        <GeneralIcon v-if="isMobileMode" icon="menu" class="text-xl -mt-0.25" />
+        <GeneralIcon v-if="isMobileMode" icon="menu" class="text-lg -mt-0.25" />
         <GeneralIcon v-else icon="doubleRightArrow" class="duration-150 transition-all !text-lg -mt-0.25" />
       </div>
     </NcButton>

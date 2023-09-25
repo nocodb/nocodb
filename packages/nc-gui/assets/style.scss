@@ -598,10 +598,10 @@ input[type='number'] {
 }
 
 .nc-sidebar-node {
-  @apply !sm:(min-h-8.9 max-h-8.9);
+  @apply !xs:(min-h-8.9 max-h-8.9);
 
   .nc-sidebar-node-btn:not(.nc-sidebar-expand) {
-    @apply !sm:(hidden)
+    @apply !xs:(hidden)
   }
 }
 
@@ -611,9 +611,9 @@ input[type='number'] {
 
 
 .nc-button.ant-btn.nc-sidebar-node-btn.nc-sidebar-expand {
-  @apply sm:(opacity-100);
+  @apply xs:(opacity-100);
 
   .nc-icon {
-    @apply sm:(visible opacity-100 !text-gray-500)
+    @apply xs:(visible opacity-100 !text-gray-500)
   }
 }

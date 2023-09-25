@@ -109,7 +109,7 @@ watch(open, () => {
   <NcDropdown
     v-model:visible="open"
     :trigger="['click']"
-    class="!sm:hidden"
+    class="!xs:hidden"
     overlay-class-name="nc-dropdown-sort-menu nc-toolbar-dropdown"
   >
     <div :class="{ 'nc-active-btn': sorts?.length }">

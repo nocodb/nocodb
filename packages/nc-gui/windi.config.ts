@@ -56,6 +56,9 @@ export default defineConfig({
     },
     extend: {
       screens: {
+        xs: {
+          max: '480px',
+        },
         sm: {
           max: '820px',
         },

@@ -14,9 +14,10 @@ const isDivFocused = ref(false)
 const divRef = ref<HTMLDivElement>()
 
 const emailValidation = reactive({
-  isError: false,
+  isError: true,
   message: '',
 })
+const singleEmailValue = ref('')
 
 const workspaceStore = useWorkspace()
 
@@ -54,7 +55,28 @@ const emailInputValidation = (input: string): boolean => {
   return true
 }
 
+const isInvitButtonDiabled = computed(() => {
+  if (!emailBadges.value.length && !singleEmailValue.value.length) {
+    return true
+  }
+  if (emailBadges.value.length && inviteData.email) {
+    return true
+  }
+})
+
 watch(inviteData, (newVal) => {
+  // when user only want to enter a single email
+  // we dont convert that as badge
+
+  const isSingleEmailValid = validateEmail(newVal.email)
+  if (isSingleEmailValid && !emailBadges.value.length) {
+    singleEmailValue.value = newVal.email
+    emailValidation.isError = false
+    return
+  }
+  singleEmailValue.value = ''
+
+  // when user enters multiple emails comma sepearted or space sepearted
   const isNewEmail = newVal.email.charAt(newVal.email.length - 1) === ',' || newVal.email.charAt(newVal.email.length - 1) === ' '
   if (isNewEmail && newVal.email.trim().length) {
     const emailToAdd = newVal.email.split(',')[0].trim() || newVal.email.split(' ')[0].trim()
@@ -63,7 +85,7 @@ watch(inviteData, (newVal) => {
       emailValidation.message = 'Invalid Email'
       return
     }
-    /** 
+    /**
      if email is already enterd we delete the already
      existing email and add new one
      **/
@@ -74,6 +96,7 @@ watch(inviteData, (newVal) => {
     }
     emailBadges.value.push(emailToAdd)
     inviteData.email = ''
+    singleEmailValue.value = ''
   }
   if (!newVal.email.length && emailValidation.isError) {
     emailValidation.isError = false
@@ -91,7 +114,14 @@ const handleEnter = () => {
 
 const inviteCollaborator = async () => {
   try {
-    const payloadData = emailBadges.value.join(',')
+    const payloadData = singleEmailValue.value || emailBadges.value.join(',')
+    if (!payloadData.includes(',')) {
+      const validationStatus = validateEmail(payloadData)
+      if (!validationStatus) {
+        emailValidation.isError = true
+        emailValidation.message = 'invalid email'
+      }
+    }
 
     await _inviteCollaborator(payloadData, inviteData.roles)
     message.success('Invitation sent successfully')
@@ -99,6 +129,8 @@ const inviteCollaborator = async () => {
     emailBadges.value = []
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    singleEmailValue.value = ''
   }
 }
 // allow only lower roles to be assigned
@@ -146,7 +178,7 @@ const onPaste = (e: ClipboardEvent) => {
 
     if (!isEmailIsValid) return
 
-    /** 
+    /**
      if email is already enterd we delete the already
      existing email and add new one
      **/
@@ -194,7 +226,7 @@ const onPaste = (e: ClipboardEvent) => {
             ref="focusRef"
             v-model="inviteData.email"
             :placeholder="emailBadges.length < 1 ? 'Enter emails to send invitation' : ''"
-            class="min-w-50 outline-0 ml-2 mr-3"
+            class="min-w-60 outline-0 ml-2 mr-3 flex-grow-1"
             data-testid="email-input"
             @keyup.enter="handleEnter"
             @blur="isDivFocused = false"
@@ -215,7 +247,7 @@ const onPaste = (e: ClipboardEvent) => {
       <NcButton
         type="primary"
         size="small"
-        :disabled="!emailBadges.length || isInvitingCollaborators || emailValidation.isError"
+        :disabled="isInvitButtonDiabled || isInvitingCollaborators || emailValidation.isError"
         :loading="isInvitingCollaborators"
         @click="inviteCollaborator"
       >

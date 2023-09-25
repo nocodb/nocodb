@@ -51,8 +51,6 @@ const views = computed(() => viewsByTable.value.get(table.value.id!)?.filter((v)
 
 const { api } = useApi()
 
-const router = useRouter()
-
 const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineModelScope } = useUndoRedo()

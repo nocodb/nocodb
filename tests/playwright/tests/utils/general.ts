@@ -38,7 +38,7 @@ function isSubset(obj, potentialSubset) {
           return false;
         }
         // eslint-disable-next-line no-prototype-builtins
-      } else if (!obj.hasOwnProperty(prop) || objValue !== potentialValue) {
+      } else if (!obj.hasOwnProperty(prop) || objValue != potentialValue) {
         return false;
       }
     }

@@ -1507,13 +1507,13 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
               </div>
             </a-menu-item>
 
-            <a-menu-item v-if="contextMenuTarget && selectedRange.isSingleCell()" @click="addEmptyRow(contextMenuTarget.row + 1)">
-              <div v-e="['a:row:insert']" class="nc-project-menu-item">
-                <GeneralIcon icon="plus" />
-                <!-- Insert New Row -->
-                {{ $t('activity.insertRow') }}
-              </div>
-            </a-menu-item>
+            <!--            <a-menu-item v-if="contextMenuTarget && selectedRange.isSingleCell()" @click="addEmptyRow(contextMenuTarget.row + 1)"> -->
+            <!--              <div v-e="['a:row:insert']" class="nc-project-menu-item"> -->
+            <!--                <GeneralIcon icon="plus" /> -->
+            <!--                &lt;!&ndash; Insert New Row &ndash;&gt; -->
+            <!--                {{ $t('activity.insertRow') }} -->
+            <!--              </div> -->
+            <!--            </a-menu-item> -->
 
             <a-menu-item v-if="contextMenuTarget" data-testid="context-menu-item-copy" @click="copyValue(contextMenuTarget)">
               <div v-e="['a:row:copy']" class="nc-project-menu-item">
@@ -1575,6 +1575,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
     <LazySmartsheetPagination
       v-else-if="headerOnly !== true"
       v-model:pagination-data="paginationDataRef"
+      show-api-timing
       align-count-on-right
       :change-page="changePage"
       :hide-sidebars="paginationStyleRef?.hideSidebars === true"

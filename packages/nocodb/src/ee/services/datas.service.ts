@@ -6,6 +6,7 @@ import { getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Base, Model } from '~/models';
 import { DataOptService } from '~/services/data-opt/data-opt.service';
+import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
 
 @Injectable()
 export class DatasService extends DatasServiceCE {
@@ -20,7 +21,13 @@ export class DatasService extends DatasServiceCE {
 
     let responseData;
     const base = await Base.get(model.base_id);
-    if (base.type === 'pg' && !param.disableOptimization) {
+
+    if (
+      ((['mysql', 'mysql2'].includes(base.type) &&
+        (await isMysqlVersionSupported(base))) ||
+        ['pg'].includes(base.type)) &&
+      !param.disableOptimization
+    ) {
       responseData = await this.dataOptService.list({
         model,
         view,
@@ -52,7 +59,10 @@ export class DatasService extends DatasServiceCE {
 
     let row;
 
-    if (base.type === 'pg' && !param.disableOptimization) {
+    if (
+      ['pg', 'mysql', 'mysql2'].includes(base.type) &&
+      !param.disableOptimization
+    ) {
       row = await this.dataOptService.read({
         model,
         view,

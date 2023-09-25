@@ -2,6 +2,10 @@ import { Injectable } from '@nestjs/common';
 import type { Base, Model, View } from '~/models';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { singleQueryList, singleQueryRead } from '~/services/data-opt/helpers';
+import {
+  singleQueryList as mysqlSingleQueryList,
+  singleQueryRead as mysqlSingleQueryRead,
+} from '~/services/data-opt/mysql-helpers';
 
 @Injectable()
 export class DataOptService {
@@ -25,7 +29,9 @@ export class DataOptService {
           params.sortArr = JSON.parse(params.sortArrJson);
         } catch (e) {}
     }
-
+    if (['mysql', 'mysql2'].includes(ctx.base.type)) {
+      return mysqlSingleQueryList({ ...ctx, params });
+    }
     return singleQueryList({ ...ctx, params });
   }
 
@@ -36,6 +42,9 @@ export class DataOptService {
     params;
     id: string;
   }): Promise<PagedResponseImpl<Record<string, any>>> {
+    if (['mysql', 'mysql2'].includes(ctx.base.type)) {
+      return mysqlSingleQueryRead(ctx);
+    }
     return singleQueryRead(ctx);
   }
 }

@@ -24,7 +24,7 @@ const { onViewsTabChange } = useViewsStore()
       :class="{
         active: openedViewsTab !== 'view',
       }"
-      @click="onViewsTabChange(isEeUI ? 'field' : 'relation')"
+      @click="onViewsTabChange('field')"
     >
       <GeneralIcon
         icon="erd"
@@ -53,6 +53,7 @@ const { onViewsTabChange } = useViewsStore()
   word-break: 'keep-all';
   white-space: 'nowrap';
   display: 'inline';
+  line-height: 0.95;
 }
 
 .active {

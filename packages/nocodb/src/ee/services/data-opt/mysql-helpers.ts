@@ -1,10 +1,10 @@
 // eslint-disable-file no-fallthrough
 import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type {
   BarcodeColumn,
-  Base,
   FormulaColumn,
   LinkToAnotherRecordColumn,
   LookupColumn,
@@ -12,6 +12,7 @@ import type {
   View,
 } from '~/models';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import { Base } from '~/models';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Column, Filter, Model, Sort } from '~/models';
 import { getAliasGenerator, ROOT_ALIAS } from '~/utils';
@@ -31,7 +32,8 @@ import getAst from '~/helpers/getAst';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
-import { singleQueryRead as mysqlSingleQueryRead } from '~/services/data-opt/mysql-helpers';
+
+const logger = new Logger('mysql-helpers');
 
 export function generateNestedRowSelectQuery({
   knex,
@@ -56,8 +58,8 @@ export function generateNestedRowSelectQuery({
 
   return knex.raw(
     isBt
-      ? `json_build_object(${paramsString}) as ??`
-      : `coalesce(json_agg(jsonb_build_object(${paramsString})),'[]'::json) as ??`,
+      ? `json_object(${paramsString}) as ??`
+      : `json_arrayagg(json_object(${paramsString})) as ??`,
     pramsValueArr,
   );
 }
@@ -291,22 +293,30 @@ export async function extractColumn({
                 ast,
               });
 
+              btAggQb
+                .select('*')
+                .where(
+                  parentColumn.column_name,
+                  knex.raw('??.??', [rootAlias, childColumn.column_name]),
+                );
               qb.joinRaw(
-                `LEFT OUTER JOIN LATERAL (${knex
-                  .from(btAggQb.as(alias2))
-                  .select(
-                    generateNestedRowSelectQuery({
-                      knex,
-                      alias: alias2,
-                      columns: fields,
-                      title: column.title,
-                      isBt: true,
-                    }),
-                  )
-                  .toQuery()}) as ?? ON true`,
+                `LEFT OUTER JOIN LATERAL
+                     (${knex
+                       .from(btQb.as(alias2))
+                       .select(
+                         knex.raw(`json_object(?,??.??, ?, ??.??) as ??`, [
+                           pvColumn.title,
+                           alias2,
+                           pvColumn.column_name,
+                           pkColumn.title,
+                           alias2,
+                           pkColumn.column_name,
+                           column.title,
+                         ]),
+                       )
+                       .toQuery()}) as ?? ON true`,
                 [alias1],
               );
-
               qb.select(knex.raw('??.??', [alias1, column.title]));
             }
             break;
@@ -491,10 +501,7 @@ export async function extractColumn({
             `LEFT OUTER JOIN LATERAL (${knex
               .from(relQb.as(alias2))
               .select(
-                knex.raw(`coalesce(json_agg(??),'[]'::json) as ??`, [
-                  alias,
-                  column.title,
-                ]),
+                knex.raw(`json_arrayagg(??) as ??`, [alias, column.title]),
               )
               .toQuery()},json_array_elements(??.??) as ?? ) as ?? ON true`,
             [alias2, lookupColumn.title, alias, lookupTableAlias],
@@ -504,7 +511,7 @@ export async function extractColumn({
             `LEFT OUTER JOIN LATERAL (${knex
               .from(relQb.as(alias2))
               .select(
-                knex.raw(`coalesce(json_agg(??.??),'[]'::json) as ??`, [
+                knex.raw(`json_arrayagg(??.??) as ??`, [
                   alias2,
                   lookupColumn.title,
                   column.title,
@@ -588,7 +595,7 @@ export async function extractColumn({
     case UITypes.Attachment:
       {
         qb.select(
-          knex.raw(`??.??::json as ??`, [
+          knex.raw(`CAST(??.?? as JSON) as ??`, [
             rootAlias,
             column.column_name,
             column.title,
@@ -596,24 +603,25 @@ export async function extractColumn({
         );
       }
       break;
-    case UITypes.DateTime: {
-      // if there is no timezone info,
-      // convert to database timezone,
-      // then convert to UTC
-      if (
-        column.dt !== 'timestamp with time zone' &&
-        column.dt !== 'timestamptz'
-      ) {
+    case UITypes.DateTime:
+      {
+        // MySQL stores timestamp in UTC but display in timezone
+        // To verify the timezone, run `SELECT @@global.time_zone, @@session.time_zone;`
+        // If it's SYSTEM, then the timezone is read from the configuration file
+        // if a timezone is set in a DB, the retrieved value would be converted to the corresponding timezone
+        // for example, let's say the global timezone is +08:00 in DB
+        // the value 2023-01-01 10:00:00 (UTC) would display as 2023-01-01 18:00:00 (UTC+8)
+        // our existing logic is based on UTC, during the query, we need to take the UTC value
+        // hence, we use CONVERT_TZ to convert back to UTC value
         qb.select(
-          knex.raw(
-            `??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC' as ??`,
-            [rootAlias, column.column_name, column.title],
-          ),
+          knex.raw(`CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00') as ??`, [
+            `${sanitize(rootAlias)}.${column.column_name}`,
+            sanitize(column.title),
+          ]),
         );
-        break;
       }
-    }
-    // eslint-disable-next-line no-fallthrough
+      break;
+
     default:
       {
         if (column.dt === 'bytea') {
@@ -663,8 +671,8 @@ export async function singleQueryRead(ctx: {
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   await ctx.model.getColumns();
 
-  if (ctx.base.type !== 'pg') {
-    throw new Error('Single query only supported in postgres');
+  if (!['mysql', 'mysql2'].includes(ctx.base.type)) {
+    throw new Error('Base is not mysql');
   }
 
   let skipCache = process.env.NC_DISABLE_CACHE === 'true';
@@ -687,6 +695,13 @@ export async function singleQueryRead(ctx: {
   const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
     ctx.view?.id ?? 'default'
   }:read`;
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: ctx.model.id,
+    viewId: ctx.view?.id,
+    dbDriver: knex,
+  });
+
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {
@@ -695,23 +710,17 @@ export async function singleQueryRead(ctx: {
         ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
       );
 
-      const res = rawRes?.rows?.[0];
+      let res = rawRes?.[0]?.[0];
 
       // update attachment fields
       // res = baseModel.convertAttachmentType(res, ctx.model);
-
+      //
       // update date time fields
-      // res = baseModel.convertDateFormat(res, ctx.model);
+      res = baseModel.convertDateFormat(res, ctx.model);
 
       return res;
     }
   }
-
-  const baseModel = await Model.getBaseModelSQL({
-    id: ctx.model.id,
-    viewId: ctx.view?.id,
-    dbDriver: knex,
-  });
 
   const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
 
@@ -797,7 +806,7 @@ export async function singleQueryRead(ctx: {
   const { sql, bindings } = finalQb.toSQL();
 
   // get unique placeholder which is not present in the query
-  const idPlaceholder = getUniquePlaceholders(finalQb.toQuery());
+  const idPlaceholder = getUniquePlaceholders(sql);
 
   // // take care of composite primary key
   // const idPlaceholders = ctx.model.primaryKeys.map(() => idPlaceholder);
@@ -826,13 +835,13 @@ export async function singleQueryRead(ctx: {
     ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
   );
 
-  const res = rawRes?.rows?.[0];
+  let res = rawRes?.[0]?.[0];
 
   // update attachment fields
   // res = baseModel.convertAttachmentType(res, ctx.model);
 
   // update date time fields
-  // res = baseModel.convertDateFormat(res, ctx.model);
+  res = baseModel.convertDateFormat(res, ctx.model);
 
   return res;
 }
@@ -843,11 +852,10 @@ export async function singleQueryList(ctx: {
   base: Base;
   params;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
-  if (ctx.base.type !== 'pg') {
-    throw new Error('Base is not postgres');
+  if (!['mysql', 'mysql2'].includes(ctx.base.type)) {
+    throw new Error('Base is not mysql');
   }
 
-  let dbQueryTime;
   let skipCache = process.env.NC_DISABLE_CACHE === 'true';
 
   // skip using cached query if sortArr or filterArr is present since it will be different query
@@ -876,6 +884,14 @@ export async function singleQueryList(ctx: {
     ctx.view?.id ?? 'default'
   }:queries`;
 
+  await ctx.model.getColumns();
+  let dbQueryTime;
+
+  const baseModel = await Model.getBaseModelSQL({
+    model: ctx.model,
+    viewId: ctx.view?.id,
+    dbDriver: knex,
+  });
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {
@@ -886,13 +902,13 @@ export async function singleQueryList(ctx: {
       ]);
       dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
 
-      const res = rawRes?.rows;
+      let res = rawRes[0];
 
       // update attachment fields
       // res = baseModel.convertAttachmentType(res, ctx.model);
 
       // update date time fields
-      // res = baseModel.convertDateFormat(res, ctx.model);
+      res = baseModel.convertDateFormat(res, ctx.model);
 
       return new PagedResponseImpl(
         res.map(({ __nc_count, ...rest }) => rest),
@@ -909,12 +925,6 @@ export async function singleQueryList(ctx: {
       );
     }
   }
-
-  const baseModel = await Model.getBaseModelSQL({
-    id: ctx.model.id,
-    viewId: ctx.view?.id,
-    dbDriver: knex,
-  });
 
   // load columns list
   const columns = await ctx.model.getColumns();
@@ -973,8 +983,6 @@ export async function singleQueryList(ctx: {
     rootQb.orderBy(ctx.model.primaryKey.column_name);
   } else if (ctx.model.columns.find((c) => c.column_name === 'created_at')) {
     rootQb.orderBy('created_at');
-  } else if (ctx.model.primaryKey) {
-    rootQb.orderBy(ctx.model.primaryKey.column_name);
   }
 
   const qb = knex.from(rootQb.as(ROOT_ALIAS));
@@ -1043,7 +1051,7 @@ export async function singleQueryList(ctx: {
 
     const startTime = process.hrtime();
     // run the query with actual limit and offset
-    res = (await knex.raw(query, [+listArgs.limit, +listArgs.offset])).rows;
+    res = (await knex.raw(query, [+listArgs.limit, +listArgs.offset]))[0];
     dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   }
 
@@ -1051,7 +1059,7 @@ export async function singleQueryList(ctx: {
   // res = baseModel.convertAttachmentType(res, ctx.model);
 
   // update date time fields
-  // res = baseModel.convertDateFormat(res, ctx.model);
+  res = baseModel.convertDateFormat(res, ctx.model);
 
   return new PagedResponseImpl(
     res.map(({ __nc_count, ...rest }) => rest),
@@ -1062,15 +1070,49 @@ export async function singleQueryList(ctx: {
     },
     {
       stats: {
-        dbQueryTime: dbQueryTime,
+        dbQueryTime,
       },
     },
   );
 }
 
-export function getSingleQueryReadFn(base: Base) {
-  if (['mysql', 'mysql2'].includes(base.type)) {
-    return mysqlSingleQueryRead;
+// allow if MySQL version is >= 8.0.0 and not MariaDB
+// const version = await base.getDbVersion();
+export async function isMysqlVersionSupported(base: Base) {
+  // if version is not present in meta then get it from db
+  // and store it in base meta for later use
+  let meta;
+  if (!base.meta || !('dbVersion' in base.meta)) {
+    try {
+      const knex = await NcConnectionMgrv2.get(base);
+      meta = base.meta || {};
+      meta.dbVersion = await knex
+        .raw('select version() as version')
+        .then((res) => res[0][0].version);
+
+      Base.updateBase(base.id, {
+        projectId: base.project_id,
+        skipReorder: true,
+        meta,
+      })
+        .then(() => {
+          // do nothing, it's just to update the base meta and not wait for it
+        })
+        .catch((err) => {
+          logger.error(err);
+        });
+    } catch {
+      // disable if the version extraction fails
+      return false;
+    }
+  } else {
+    meta = base.meta;
   }
-  return singleQueryRead;
+
+  if (!meta || !meta.dbVersion || /Maria/i.test(meta.dbVersion)) {
+    return false;
+  }
+
+  // check if version is >= 8.0.0
+  return +meta.dbVersion.split('.')[0] >= 8;
 }

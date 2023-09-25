@@ -601,7 +601,7 @@ a {
 }
 
 .nc-sidebar-node {
-  @apply !xs:(min-h-8.9 max-h-8.9);
+  @apply !xs:(min-h-8.9 max-h-8.9 hover:bg-gray-50);
 
   .nc-sidebar-node-btn:not(.nc-sidebar-expand) {
     @apply !xs:(hidden)
@@ -613,7 +613,7 @@ a {
 }
 
 .nc-button.ant-btn.nc-sidebar-node-btn.nc-sidebar-expand {
-  @apply text-xs:(opacity-100);
+  @apply xs:(opacity-100 hover:bg-gray-50);
 
   .nc-icon {
     @apply xs:(visible opacity-100 !text-gray-500)

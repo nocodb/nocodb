@@ -285,17 +285,6 @@ watch(
       </template>
       <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
         <div class="text-gray-500 font-medium">{{ $t('objects.projects') }}</div>
-        <WorkspaceCreateProjectBtn
-          v-if="!isMobileMode"
-          modal
-          type="text"
-          size="xxsmall"
-          class="!hover:bg-gray-200"
-          :centered="true"
-          data-testid="nc-sidebar-create-project-btn-small"
-        >
-          <GeneralIcon icon="plus" class="text-lg leading-6 !text-inherit" style="-webkit-text-stroke: 0.2px" />
-        </WorkspaceCreateProjectBtn>
       </div>
       <template v-if="projectsList?.length">
         <ProjectWrapper

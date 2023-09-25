@@ -268,6 +268,7 @@ function openDeleteDialog(view: ViewType) {
 
       await loadViews({
         tableId: table.value.id!,
+        force: true,
       })
     },
   })

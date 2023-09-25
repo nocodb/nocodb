@@ -264,7 +264,8 @@ onMounted(async () => {
             v-model:value="form.fk_grp_col_id"
             class="w-full nc-kanban-grouping-field-select"
             :disabled="groupingFieldColumnId || isMetaLoading"
-            :loading="true"
+            :loading="isMetaLoading"
+            :options="viewSelectFieldOptions"
             placeholder="Select a Grouping Field"
             not-found-content="No Single Select Field can be found. Please create one first."
           />

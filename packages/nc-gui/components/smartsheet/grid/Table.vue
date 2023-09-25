@@ -121,6 +121,8 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
+const { isMobileMode } = useGlobal()
+
 const scrollParent = inject(ScrollParentInj, ref<undefined>())
 
 const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
@@ -1593,7 +1595,11 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
     >
       <template #add-record>
         <div v-if="isAddingEmptyRowAllowed" class="flex ml-1">
+          <NcButton v-if="isMobileMode" class="nc-grid-add-new-row" type="secondary" @click="onNewRecordToFormClick()">
+            {{ $t('activity.newRecord') }}
+          </NcButton>
           <a-dropdown-button
+            v-else
             class="nc-grid-add-new-row"
             placement="top"
             @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"

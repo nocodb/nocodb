@@ -41,16 +41,10 @@ export class AccountTokenPage extends BasePage {
     await row.locator('.nc-toggle-token-visibility').click();
   }
 
-  async openRowActionMenu({ description }: { description: string }) {
-    const userRow = this.get().locator(`tr:has-text("${description}")`);
-    return userRow.locator(`.nc-token-menu`).click();
-  }
-
   async deleteToken({ description }: { description: string }) {
-    await this.openRowActionMenu({ description });
-    await this.rootPage.locator('[data-testid="nc-token-row-action-icon"] .nc-delete-token').click();
+    await this.rootPage.locator('[data-testid="nc-token-row-action-icon"]').click();
     await this.rootPage.locator('.ant-modal.active button:has-text("Delete Token")').click();
 
-    expect(await this.get().locator(`tr:has-text("${description}:visible")`).count()).toBe(0);
+    expect(await this.get().locator(`span:has-text("${description}:visible")`).count()).toBe(0);
   }
 }

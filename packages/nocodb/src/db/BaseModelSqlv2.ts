@@ -3870,6 +3870,12 @@ class BaseModelSqlv2 {
     // attachment is stored in text and parse in UI
     // convertAttachmentType is used to convert the response in string to array of object in API response
     if (data) {
+      if (childTable && !childTable?.columns) {
+        await childTable.getColumns();
+      } else if (!this.model?.columns) {
+        await this.model.getColumns();
+      }
+
       const attachmentColumns = (
         childTable ? childTable.columns : this.model.columns
       ).filter((c) => c.uidt === UITypes.Attachment);

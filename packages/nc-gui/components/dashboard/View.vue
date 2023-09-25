@@ -16,11 +16,9 @@ const {
 
 const wrapperRef = ref<HTMLDivElement>()
 
-const contentSize = computed(() => 100 - sideBarSize.value.current)
 const animationDuration = 250
 const viewportWidth = ref(window.innerWidth)
 
-const sidebarWidth = computed(() => (sideBarSize.value.old * viewportWidth.value) / 100)
 const currentSidebarSize = computed({
   get: () => sideBarSize.value.current,
   set: (val) => {
@@ -28,6 +26,28 @@ const currentSidebarSize = computed({
     sideBarSize.value.old = val
   },
 })
+
+const contentSize = computed(() => 100 - sideBarSize.value.current)
+
+const mobileNormalizedSidebarSize = computed(() => {
+  if (isMobileMode.value) {
+    return isLeftSidebarOpen.value ? 100 : 0
+  }
+
+  return currentSidebarSize.value
+})
+
+const mobileNormalizedContentSize = computed(() => {
+  if (isMobileMode.value) {
+    return isLeftSidebarOpen.value ? 0 : 100
+  }
+
+  return contentSize.value
+})
+
+const sidebarWidth = computed(() =>
+  isMobileMode.value ? viewportWidth.value : (sideBarSize.value.old * viewportWidth.value) / 100,
+)
 
 watch(currentSidebarSize, () => {
   leftSidebarWidthPercent.value = currentSidebarSize.value
@@ -54,6 +74,7 @@ watch(isLeftSidebarOpen, () => {
 })
 
 function handleMouseMove(e: MouseEvent) {
+  if (isMobileMode.value) return
   if (!wrapperRef.value) return
   if (sidebarState.value === 'openEnd') return
 
@@ -105,7 +126,12 @@ watch(isMobileMode, () => {
     }"
     @resize="currentSidebarSize = $event[0].size"
   >
-    <Pane min-size="15%" :size="currentSidebarSize" max-size="40%" class="nc-sidebar-splitpane relative !overflow-visible">
+    <Pane
+      min-size="15%"
+      :size="mobileNormalizedSidebarSize"
+      max-size="40%"
+      class="nc-sidebar-splitpane relative !overflow-visible"
+    >
       <div
         ref="wrapperRef"
         class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !min-w-32 absolute overflow-visible"
@@ -121,7 +147,7 @@ watch(isMobileMode, () => {
         <slot name="sidebar" />
       </div>
     </Pane>
-    <Pane :size="contentSize">
+    <Pane :size="mobileNormalizedContentSize">
       <slot name="content" />
     </Pane>
   </Splitpanes>

@@ -41,6 +41,8 @@ const type = computed(() => props.type)
 
 const loading = useVModel(props, 'loading', emits)
 
+const { isMobileMode } = useGlobal()
+
 const isFocused = ref(false)
 const isClicked = ref(false)
 
@@ -84,6 +86,7 @@ useEventListener(NcButton, 'mousedown', () => {
       xsmall: size === 'xsmall',
       xxsmall: size === 'xxsmall',
       focused: isFocused,
+      mobile: isMobileMode,
     }"
     @focus="onFocus"
     @blur="onBlur"
@@ -141,8 +144,19 @@ useEventListener(NcButton, 'mousedown', () => {
   outline: none;
 }
 
-.nc-button.ant-btn.focused {
-  box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+.nc-button.mobile {
+  box-shadow: none;
+  outline: none;
+}
+
+.desktop {
+  .nc-button.ant-btn.focused {
+    box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+  }
+
+  .nc-button.ant-btn-text.focused {
+    @apply text-brand-500;
+  }
 }
 
 .nc-button.ant-btn {
@@ -153,8 +167,16 @@ useEventListener(NcButton, 'mousedown', () => {
   @apply py-1 px-1.75 h-8 min-w-8;
 }
 
-.nc-button.ant-btn.medium {
-  @apply py-2 px-4 h-10 min-w-10;
+.desktop {
+  .nc-button.ant-btn.medium {
+    @apply py-2 px-4 h-10 min-w-10;
+  }
+}
+
+.mobile {
+  .nc-button.ant-btn.medium {
+    @apply h-10.5 max-h-10.5 min-w-10.5 !px-3;
+  }
 }
 
 .nc-button.ant-btn.xsmall {
@@ -210,9 +232,5 @@ useEventListener(NcButton, 'mousedown', () => {
   &:focus {
     box-shadow: none;
   }
-}
-
-.nc-button.ant-btn-text.focused {
-  @apply text-brand-500;
 }
 </style>

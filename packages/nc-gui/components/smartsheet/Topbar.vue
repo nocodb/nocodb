@@ -17,11 +17,7 @@ const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
 <template>
   <div
-    class="nc-table-topbar h-20 py-1 flex gap-2 items-center pr-2 pl-2.5 border-b border-gray-200 overflow-hidden relative"
-    :class="{
-      'nc-table-toolbar-mobile': isMobileMode,
-      'max-h-[var(--topbar-height)] min-h-[var(--topbar-height)]': !isMobileMode,
-    }"
+    class="nc-table-topbar h-20 py-1 flex gap-2 items-center pr-2 pl-2.5 border-b border-gray-200 overflow-hidden relative max-h-[var(--topbar-height)] min-h-[var(--topbar-height)]"
     style="z-index: 7"
   >
     <template v-if="isViewsLoading">
@@ -39,7 +35,10 @@ const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
       <GeneralApiLoader v-if="!isMobileMode" />
 
-      <LazyGeneralShareProject v-if="(isForm || isGrid || isKanban || isGallery || isMap) && !isPublic" is-view-toolbar />
+      <LazyGeneralShareProject
+        v-if="(isForm || isGrid || isKanban || isGallery || isMap) && !isPublic && !isMobileMode"
+        is-view-toolbar
+      />
 
       <LazyGeneralLanguage
         v-if="isSharedBase"

@@ -10,7 +10,11 @@ const { isMobileMode } = useGlobal()
 
 <template>
   <div
-    class="flex items-center px-2 nc-sidebar-header py-1.2 w-full border-b-1 border-gray-200 group"
+    class="flex items-center nc-sidebar-header w-full border-b-1 border-gray-200 group"
+    :class="{
+      'px-2 py-1.2': isMobileMode,
+      'px-1 py-1': isMobileMode,
+    }"
     :data-workspace-title="activeWorkspace?.title"
     style="height: var(--topbar-height)"
   >
@@ -20,7 +24,7 @@ const { isMobileMode } = useGlobal()
       <div class="flex flex-grow min-w-1"></div>
 
       <NcTooltip
-        class="flex opacity-0 group-hover:opacity-100 transition-opacity duration-50"
+        class="flex"
         :class="{
           '!opacity-100': !isLeftSidebarOpen,
         }"
@@ -35,13 +39,18 @@ const { isMobileMode } = useGlobal()
           }}
         </template>
         <NcButton
-          type="text"
-          size="small"
+          :type="isMobileMode ? 'secondary' : 'text'"
+          :size="isMobileMode ? 'medium' : 'small'"
           class="nc-sidebar-left-toggle-icon !text-gray-700 !hover:text-gray-800 !hover:bg-gray-200"
+          :class="{
+            '!h-10.5 !max-h-10.5 !max-w-10.5': isMobileMode,
+          }"
           @click="isLeftSidebarOpen = !isLeftSidebarOpen"
         >
           <div class="flex items-center text-inherit">
+            <GeneralIcon v-if="isMobileMode" icon="close" />
             <GeneralIcon
+              v-else
               icon="doubleLeftArrow"
               class="duration-150 transition-all !text-lg -mt-0.5"
               :class="{

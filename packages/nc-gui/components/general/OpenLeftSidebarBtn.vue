@@ -27,8 +27,8 @@ const onClick = () => {
     hide-on-click
     class="transition-all duration-100"
     :class="{
-      '!w-0 !opacity-0': isLeftSidebarOpen,
-      '!w-8 !opacity-100': !isLeftSidebarOpen,
+      '!opacity-0': !isMobileMode && isLeftSidebarOpen,
+      '!opacity-100': isMobileMode || !isLeftSidebarOpen,
     }"
   >
     <template #title>
@@ -40,10 +40,10 @@ const onClick = () => {
     </template>
     <NcButton
       :type="isMobileMode ? 'secondary' : 'text'"
-      size="small"
+      :size="isMobileMode ? 'medium' : 'small'"
       class="nc-sidebar-left-toggle-icon !text-gray-600 !hover:text-gray-800"
       :class="{
-        'invisible !w-0': isLeftSidebarOpen,
+        'invisible !w-0': !isMobileMode && isLeftSidebarOpen,
       }"
       @click="onClick"
     >

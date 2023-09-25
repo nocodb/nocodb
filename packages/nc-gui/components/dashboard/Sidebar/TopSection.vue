@@ -4,7 +4,7 @@ const projectStore = useProject()
 
 const { isUIAllowed } = useRoles()
 
-const { appInfo } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 
 const { isWorkspaceLoading, isWorkspaceSettingsPageOpened } = storeToRefs(workspaceStore)
 
@@ -47,7 +47,7 @@ const navigateToSettings = () => {
       <DashboardSidebarTopSectionHeader />
 
       <NcButton
-        v-if="isUIAllowed('workspaceSettings')"
+        v-if="isUIAllowed('workspaceSettings') && !isMobileMode"
         type="text"
         size="small"
         class="nc-sidebar-top-button"
@@ -65,6 +65,7 @@ const navigateToSettings = () => {
         </div>
       </NcButton>
       <WorkspaceCreateProjectBtn
+        v-if="!isMobileMode"
         v-model:is-open="isCreateProjectOpen"
         modal
         type="text"

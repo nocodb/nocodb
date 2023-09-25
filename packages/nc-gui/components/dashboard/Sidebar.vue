@@ -52,7 +52,7 @@ onUnmounted(() => {
     >
       <LazyDashboardTreeView v-if="!isWorkspaceLoading" />
     </div>
-    <div v-if="!isSharedBase" style="height: var(--sidebar-bottom-height)">
+    <div v-if="!isSharedBase">
       <DashboardSidebarUserInfo />
     </div>
   </div>

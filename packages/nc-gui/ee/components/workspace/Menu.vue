@@ -149,7 +149,7 @@ onBeforeUnmount(() => {
               </div>
             </div>
 
-            <NcDivider class="!mb-0" />
+            <NcDivider v-if="!isMobileMode" class="!mb-0" />
 
             <div class="max-h-300px nc-scrollbar-md !overflow-y-auto py-1">
               <NcMenuItem v-for="workspace of otherWorkspaces" :key="workspace.id!" @click="switchWorkspace(workspace.id!)">
@@ -161,8 +161,8 @@ onBeforeUnmount(() => {
                 </div>
               </NcMenuItem>
             </div>
-            <NcDivider v-if="otherWorkspaces.length" class="!mt-0" />
-            <NcMenuItem @click="createDlg = true">
+            <NcDivider v-if="otherWorkspaces.length && !isMobileMode" class="!mt-0" />
+            <NcMenuItem v-if="!isMobileMode" @click="createDlg = true">
               <div class="nc-workspace-menu-item group">
                 <GeneralIcon icon="plusSquare" class="!text-inherit" />
 

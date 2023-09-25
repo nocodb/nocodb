@@ -35,6 +35,8 @@ const project = inject(ProjectInj)!
 
 const projectsStore = useProjects()
 
+const { isMobileMode } = useGlobal()
+
 const { loadProject, loadProjects, createProject: _createProject, updateProject, getProjectMetaInfo } = projectsStore
 const { projects } = storeToRefs(projectsStore)
 
@@ -234,6 +236,9 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
     return
   }
 
+  ignoreNavigation = isMobileMode.value || ignoreNavigation
+  toggleIsExpanded = isMobileMode.value || toggleIsExpanded
+
   if (toggleIsExpanded) {
     project.isExpanded = !project.isExpanded
   } else {
@@ -379,7 +384,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
         <div
           ref="projectNodeRefs"
           :class="{
-            'bg-primary-selected active': activeProjectId === project.id && projectViewOpen,
+            'bg-primary-selected active': activeProjectId === project.id && projectViewOpen && !isMobileMode,
             'hover:bg-gray-200': !(activeProjectId === project.id && projectViewOpen),
           }"
           :data-testid="`nc-sidebar-project-title-${project.title}`"
@@ -388,12 +393,12 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
           <NcButton
             type="text"
             size="xxsmall"
-            class="nc-sidebar-node-btn nc-sidebar-expand ml-0.75"
+            class="nc-sidebar-node-btn nc-sidebar-expand ml-0.75 !sm:visible"
             @click="onProjectClick(project, true, true)"
           >
             <GeneralIcon
               icon="triangleFill"
-              class="absolute top-2.25 left-2 group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90"
+              class="group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90 !sm:visible"
               :class="{ '!rotate-180': project.isExpanded, '!visible': isOptionsOpen }"
             />
           </NcButton>
@@ -426,7 +431,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
             ref="input"
             v-model="tempTitle"
             class="flex-grow leading-1 outline-0 ring-none capitalize !text-inherit !bg-transparent w-4/5"
-            :class="{ 'text-black font-semibold': activeProjectId === project.id && projectViewOpen }"
+            :class="{ 'text-black font-semibold': activeProjectId === project.id && projectViewOpen && !isMobileMode }"
             @click.stop
             @keyup.enter="updateProjectTitle"
             @keyup.esc="updateProjectTitle"

@@ -33,6 +33,8 @@ const route = router.currentRoute
 
 const { setMenuContext, openRenameTableDialog, duplicateTable, contextMenuTarget } = inject(TreeViewInj)!
 
+const { isMobileMode } = useGlobal()
+
 const project = inject(ProjectInj)!
 
 // For starred project we will have seperate isExpanded state
@@ -289,6 +291,9 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
     return
   }
 
+  ignoreNavigation = isMobileMode.value || ignoreNavigation
+  toggleIsExpanded = isMobileMode.value || toggleIsExpanded
+
   if (toggleIsExpanded) {
     isExpanded.value = !isExpanded.value
   } else {
@@ -487,7 +492,7 @@ onMounted(() => {
       <div class="flex items-center gap-0.75 py-0.25 cursor-pointer" @contextmenu="setMenuContext('project', project)">
         <div
           :class="{
-            'bg-primary-selected active': activeProjectId === project.id && projectViewOpen,
+            'bg-primary-selected active': activeProjectId === project.id && projectViewOpen && !isMobileMode,
             'hover:bg-gray-200': !(activeProjectId === project.id && projectViewOpen),
           }"
           :data-testid="`nc-sidebar-project-title-${project.title}`"
@@ -496,12 +501,12 @@ onMounted(() => {
           <NcButton
             type="text"
             size="xxsmall"
-            class="nc-sidebar-node-btn nc-sidebar-expand ml-0.75"
+            class="nc-sidebar-node-btn nc-sidebar-expand ml-0.75 !sm:visible"
             @click="onProjectClick(project, true, true)"
           >
             <GeneralIcon
               icon="triangleFill"
-              class="absolute top-2.25 left-2 group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90"
+              class="group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90 !sm:visible"
               :class="{ '!rotate-180': project.isExpanded, '!visible': isOptionsOpen }"
             />
           </NcButton>
@@ -543,7 +548,7 @@ onMounted(() => {
             v-else
             class="capitalize text-ellipsis overflow-hidden select-none"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-            :class="{ 'text-black font-semibold': activeProjectId === project.id && projectViewOpen }"
+            :class="{ 'text-black font-semibold': activeProjectId === project.id && projectViewOpen && !isMobileMode }"
             @click="onProjectClick(project)"
           >
             {{ project.title }}

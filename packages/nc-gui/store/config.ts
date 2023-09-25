@@ -1,10 +1,14 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
+import { isViewPortMobile } from '~/utils'
 
 export const useConfigStore = defineStore('configStore', () => {
   const { isMobileMode: globalIsMobile } = useGlobal()
-  const isMobileMode = ref(window.innerWidth < 820)
 
-  const isViewPortMobile = () => window.innerWidth < 820
+  const sidebarStore = useSidebarStore()
+  const viewsStore = useViewsStore()
+  const tablesStore = useTablesStore()
+
+  const isMobileMode = ref(window.innerWidth < 820)
 
   const onViewPortResize = () => {
     isMobileMode.value = isViewPortMobile()
@@ -35,8 +39,29 @@ export const useConfigStore = defineStore('configStore', () => {
     },
   )
 
+  const handleSidebarOpenOnMobileForNonViews = () => {
+    if (!isViewPortMobile()) return
+
+    if (!viewsStore.activeViewTitleOrId && !tablesStore.activeTableId) {
+      nextTick(() => {
+        sidebarStore.isLeftSidebarOpen = true
+      })
+    } else {
+      sidebarStore.isLeftSidebarOpen = false
+    }
+  }
+
+  watch([viewsStore.activeViewTitleOrId, tablesStore.activeTableId], () => {
+    handleSidebarOpenOnMobileForNonViews()
+  })
+
   return {
     isMobileMode,
     isViewPortMobile,
+    handleSidebarOpenOnMobileForNonViews,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useConfigStore as any, import.meta.hot))
+}

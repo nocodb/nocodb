@@ -598,9 +598,22 @@ input[type='number'] {
 }
 
 .nc-sidebar-node {
-  @apply !sm:h-8.9;
+  @apply !sm:(min-h-8.9 max-h-8.9);
+
+  .nc-sidebar-node-btn:not(.nc-sidebar-expand) {
+    @apply !sm:(hidden)
+  }
 }
 
 .nc-button.ant-btn.nc-sidebar-node-btn {
   @apply opacity-0 group-hover:(opacity-100) text-gray-600 hover:(bg-gray-400 bg-opacity-20 text-gray-900) duration-100;
+}
+
+
+.nc-button.ant-btn.nc-sidebar-node-btn.nc-sidebar-expand {
+  @apply sm:(opacity-100);
+
+  .nc-icon {
+    @apply sm:(visible opacity-100 !text-gray-500)
+  }
 }

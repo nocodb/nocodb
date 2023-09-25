@@ -1,8 +1,7 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
+import { isViewPortMobile } from '~/utils'
 
 export const useSidebarStore = defineStore('sidebarStore', () => {
-  const { isViewPortMobile } = useConfigStore()
-
   const isLeftSidebarOpen = ref(!isViewPortMobile())
   const isRightSidebarOpen = ref(true)
 
@@ -36,3 +35,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     rightSidebarState,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useSidebarStore as any, import.meta.hot))
+}

@@ -27,6 +27,8 @@ const currentSidebarSize = computed({
   },
 })
 
+const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
+
 const contentSize = computed(() => 100 - sideBarSize.value.current)
 
 const mobileNormalizedSidebarSize = computed(() => {
@@ -115,6 +117,10 @@ watch(route, () => {
 
 watch(isMobileMode, () => {
   isLeftSidebarOpen.value = !isMobileMode.value
+})
+
+onMounted(() => {
+  handleSidebarOpenOnMobileForNonViews()
 })
 </script>
 

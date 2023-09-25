@@ -37,6 +37,7 @@ import NcLayers from '~icons/nc-icons/layers'
 import NcUsers from '~icons/nc-icons/users'
 import NcCheck from '~icons/nc-icons/check'
 import PlusSquare from '~icons/nc-icons/plus-square'
+import MobileShare from '~icons/nc-icons/share'
 import PhLayout from '~icons/ph/layout'
 import Delete from '~icons/material-symbols/delete-outline-rounded'
 import CiFilter from '~icons/mdi/filter-outline'
@@ -366,6 +367,7 @@ export const iconMap = {
   sync: MsSync,
   warning: MaterialSymbolsWarningOutlineRounded,
   share: h('span', { class: 'material-symbols' }, 'share'),
+  mobileShare: MobileShare,
   reload: MdiRefresh,
   xml: h('span', { class: 'material-symbols' }, 'code'),
   airtable: LogosAirtable,
@@ -396,6 +398,7 @@ export const iconMap = {
   drag: MaterialSymbolsDragIndicator,
   comment: h('span', { class: 'material-symbols' }, 'comment'),
   doc: h('span', { class: 'material-symbols' }, 'menu_book'),
+  menu: h('span', { class: 'material-symbols' }, 'menu'),
   move: MsMove,
   creditCard: NcCreditCard,
   heightShort: NcIconsRowHeightShort,

@@ -54,6 +54,8 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
   const tables = computed(() => projectTables.value.get(param.projectId) || [])
   const project = computed(() => projects.value.get(param.projectId))
 
+  const { loadViews } = useViewsStore()
+
   const openTable = async (table: TableType) => {
     if (!table.project_id) return
 
@@ -77,6 +79,10 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
     if (['base'].includes(route.value.params.typeOrId as string)) {
       projectIdOrBaseId = route.value.params.projectId as string
     }
+
+    await loadViews({
+      tableId: table.id,
+    })
 
     await navigateTo({
       path: `/${workspaceIdOrType}/${projectIdOrBaseId}/${table?.id}`,

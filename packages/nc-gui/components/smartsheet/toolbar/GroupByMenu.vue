@@ -151,6 +151,7 @@ watch(open, () => {
     v-model:visible="open"
     offset-y
     :trigger="['click']"
+    class="!xs:hidden"
     overlay-class-name="nc-dropdown-group-by-menu nc-toolbar-dropdown"
   >
     <div :class="{ 'nc-active-btn': groupedByColumnIds?.length }">

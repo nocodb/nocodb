@@ -19,6 +19,8 @@ const isAuthTokenCopied = ref(false)
 
 const isLoggingOut = ref(false)
 
+const { isMobileMode } = useGlobal()
+
 const logout = async () => {
   isLoggingOut.value = true
   try {
@@ -84,13 +86,15 @@ onMounted(() => {
             <GeneralIcon v-else icon="signout" class="menu-icon" />
             <span class="menu-btn"> Log Out </span>
           </NcMenuItem>
-          <NcDivider />
-          <a href="https://docs.nocodb.com" target="_blank" class="!underline-transparent">
-            <NcMenuItem>
-              <GeneralIcon icon="help" class="menu-icon mt-0.5" />
-              <span class="menu-btn"> Help Center </span>
-            </NcMenuItem>
-          </a>
+          <template v-if="!isMobileMode">
+            <NcDivider />
+            <a href="https://docs.nocodb.com" target="_blank" class="!underline-transparent">
+              <NcMenuItem>
+                <GeneralIcon icon="help" class="menu-icon mt-0.5" />
+                <span class="menu-btn"> Help Center </span>
+              </NcMenuItem>
+            </a>
+          </template>
           <NcDivider />
           <a href="https://discord.gg/5RgZmkW" target="_blank" class="!underline-transparent">
             <NcMenuItem class="social-icon-wrapper">
@@ -130,21 +134,24 @@ onMounted(() => {
             </a-popover>
           </template>
 
-          <NcDivider />
-          <NcMenuItem @click="onCopy">
-            <GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black menu-icon" />
-            <GeneralIcon v-else icon="copy" class="menu-icon" />
-            <template v-if="isAuthTokenCopied"> Copied Auth Token </template>
-            <template v-else> Copy Auth Token </template>
-          </NcMenuItem>
-          <nuxt-link v-e="['c:navbar:user:email']" class="!no-underline" to="/account/profile">
-            <NcMenuItem> <GeneralIcon icon="settings" class="menu-icon" /> Account Settings </NcMenuItem>
-          </nuxt-link>
+          <template v-if="!isMobileMode">
+            <NcDivider />
+            <NcMenuItem @click="onCopy">
+              <GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black menu-icon" />
+              <GeneralIcon v-else icon="copy" class="menu-icon" />
+              <template v-if="isAuthTokenCopied"> Copied Auth Token </template>
+              <template v-else> Copy Auth Token </template>
+            </NcMenuItem>
+            <nuxt-link v-e="['c:navbar:user:email']" class="!no-underline" to="/account/profile">
+              <NcMenuItem> <GeneralIcon icon="settings" class="menu-icon" /> Account Settings </NcMenuItem>
+            </nuxt-link>
+          </template>
         </NcMenu>
       </template>
     </NcDropdown>
 
-    <div v-if="appInfo.ee" class="text-gray-500 text-xs pl-3">© 2023 NocoDB. Inc</div>
+    <template v-if="isMobileMode"></template>
+    <div v-else-if="appInfo.ee" class="text-gray-500 text-xs pl-3">© 2023 NocoDB. Inc</div>
     <div v-else-if="isMounted" class="flex flex-row justify-between pt-1 truncate">
       <div class="flex flex-wrap mb-1">
         <GithubButton

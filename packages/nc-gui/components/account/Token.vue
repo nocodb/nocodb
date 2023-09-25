@@ -18,6 +18,11 @@ interface IApiTokenInfo extends ApiTokenType {
 
 const tokens = ref<IApiTokenInfo[]>([])
 
+const selectedToken = reactive({
+  isShow: false,
+  id: '',
+})
+
 const currentPage = ref(1)
 
 const showNewTokenModal = ref(false)
@@ -32,6 +37,18 @@ const pagination = reactive({
   total: 0,
   pageSize: 10,
 })
+
+// hide or show token
+const showToken = (tokenId: string) => {
+  if (selectedToken.isShow && selectedToken.id === tokenId) {
+    selectedToken.isShow = false
+    selectedToken.id = ''
+  } else {
+    selectedToken.isShow = true
+    selectedToken.id = tokenId
+  }
+}
+
 const loadTokens = async (page = currentPage.value, limit = currentLimit.value) => {
   currentPage.value = page
   try {
@@ -164,14 +181,21 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
               </GeneralTruncateText>
             </span>
             <span class="text-gray-500 font-medium text-3.5 text-start w-1/4 ml-10">
-              <GeneralTruncateText placement="top" length="22">
+              <GeneralTruncateText v-if="el.token === selectedToken.id && selectedToken.isShow" placement="top" length="22">
                 {{ el.token }}
               </GeneralTruncateText>
+              <span v-else>****************************</span>
             </span>
             <!-- ACTIONS -->
             <span class="text-gray-500 font-medium text-3.5 text-start w-1/4">
               <div class="flex justify-center gap-3 ml-4">
-                <component :is="iconMap.eyeSlash" class="hover::cursor-pointer" />
+                <component
+                  :is="iconMap.eyeSlash"
+                  v-if="el.token === selectedToken.id && selectedToken.isShow"
+                  class="hover::cursor-pointer"
+                  @click="showToken(el.token as string)"
+                />
+                <component :is="iconMap.eye" v-else class="hover::cursor-pointer" @click="showToken(el.token as string)" />
                 <component :is="iconMap.copy" class="hover::cursor-pointer" @click="copyToken(el.token)" />
                 <component
                   :is="iconMap.delete"

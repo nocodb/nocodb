@@ -29,7 +29,9 @@ const showNewTokenModal = ref(false)
 
 const currentLimit = ref(10)
 
-const selectedTokenData = ref<ApiTokenType>({})
+const selectedTokenData = ref<ApiTokenType>({
+  description: 'untitled token',
+})
 
 const searchText = ref<string>('')
 
@@ -103,6 +105,7 @@ const generateToken = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
+    selectedTokenData.value.description = 'untitled token'
     $e('a:api-token:generate')
   }
 }
@@ -180,6 +183,7 @@ const handleCancel = () => {
                   <a-input
                     :ref="descriptionInput"
                     v-model:value="selectedTokenData.description"
+                    default-value="untitled token"
                     type="text"
                     class="!rounded-lg !py-1"
                     placeholder="Token Name"
@@ -204,7 +208,7 @@ const handleCancel = () => {
               </div>
               <NcDivider />
             </div>
-            <div v-if="!tokens.length">
+            <div v-if="!tokens.length" class="h-118 justify-center flex items-center">
               <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="`${$t('general.no')} ${$t('labels.token')}`" />
             </div>
 
@@ -227,26 +231,28 @@ const handleCancel = () => {
               </span>
               <!-- ACTIONS -->
               <span class="text-gray-500 font-medium text-3.5 w-2/9">
-                <div class="flex justify-end gap-3 pr-5">
-                  <component
-                    :is="iconMap.eyeSlash"
-                    v-if="el.token === selectedToken.id && selectedToken.isShow"
-                    class="hover::cursor-pointer"
-                    @click="hideOrShowToken(el.token as string)"
-                  />
-                  <component
-                    :is="iconMap.eye"
-                    v-else
-                    class="nc-toggle-token-visibility hover::cursor-pointer"
-                    @click="hideOrShowToken(el.token as string)"
-                  />
-                  <component :is="iconMap.copy" class="hover::cursor-pointer" @click="copyToken(el.token)" />
-                  <component
-                    :is="iconMap.delete"
-                    data-testid="nc-token-row-action-icon"
-                    class="nc-delete-icon hover::cursor-pointer"
-                    @click="triggerDeleteModal(el.token as string, el.description as string)"
-                  />
+                <div class="flex justify-end items-center gap-3 pr-5">
+                  <NcTooltip placement="top">
+                    <template #title>show or hide</template>
+                    <component
+                      :is="iconMap.eye"
+                      class="nc-toggle-token-visibility hover::cursor-pointer"
+                      @click="hideOrShowToken(el.token as string)"
+                    />
+                  </NcTooltip>
+                  <NcTooltip placement="top" class="h-4">
+                    <template #title>copy</template>
+                    <component :is="iconMap.copy" class="hover::cursor-pointer" @click="copyToken(el.token)" />
+                  </NcTooltip>
+                  <NcTooltip placement="top" class="mb-0.5">
+                    <template #title>delete</template>
+                    <component
+                      :is="iconMap.delete"
+                      data-testid="nc-token-row-action-icon"
+                      class="nc-delete-icon hover::cursor-pointer"
+                      @click="triggerDeleteModal(el.token as string, el.description as string)"
+                    />
+                  </NcTooltip>
                 </div>
               </span>
             </div>

@@ -52,11 +52,7 @@ const items = computed(() =>
 )
 
 const tranformTime = (time: number) => {
-  if (time < 1000) {
-    return `${time}ms`
-  } else {
-    return `${(time / 1000).toFixed(1).replace('.0', '')}s`
-  }
+  return `${(time / 1000).toFixed(1).replace('.0', '')}s`
 }
 </script>
 

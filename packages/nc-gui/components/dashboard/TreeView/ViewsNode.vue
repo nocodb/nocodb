@@ -210,7 +210,7 @@ function onRef(el: HTMLElement) {
 
 <template>
   <a-menu-item
-    class="!min-h-7 !max-h-7 !mb-0.25 select-none group text-gray-700 !flex !items-center !mt-0 hover:(!bg-gray-200 !text-gray-900) cursor-pointer"
+    class="nc-sidebar-node !min-h-7 !max-h-7 !mb-0.25 select-none group text-gray-700 !flex !items-center !mt-0 hover:(!bg-gray-200 !text-gray-900) cursor-pointer"
     :class="{
       '!pl-18': isDefaultBase,
       '!pl-23.5': !isDefaultBase,

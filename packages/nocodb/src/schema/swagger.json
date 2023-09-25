@@ -15788,6 +15788,170 @@
             "$ref": "#/components/responses/BadRequest"
           }
         }
+      },
+      "post": {
+        "summary": "Create Table Rows",
+        "operationId": "db-data-table-row-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Data Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "Id": 1,
+                    "Title": "foo",
+                    "CreatedAt": "2023-03-11T09:10:53.567Z",
+                    "UpdatedAt": "2023-03-11T09:10:53.567Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Create a new row in a given table and project.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update Table Rows",
+        "operationId": "db-data-table-row-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Data Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "Id": 1,
+                    "Title": "foo",
+                    "CreatedAt": "2023-03-11T09:10:53.567Z",
+                    "UpdatedAt": "2023-03-11T09:10:53.567Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Create a new row in a given table and project.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete Table Rows",
+        "operationId": "db-data-table-row-delete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Data Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "Id": 1
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "Create a new row in a given table and project.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
       }
     },
     "/api/v1/tables/{tableId}/rows/count": {

@@ -2,6 +2,8 @@ import { Locator } from '@playwright/test';
 import { DashboardPage } from '../../index';
 import BasePage from '../../../Base';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
+import { isEE } from '../../../../setup/db';
+import { NcContext } from '../../../../setup';
 
 export class LeftSidebarPage extends BasePage {
   readonly project: any;
@@ -30,7 +32,8 @@ export class LeftSidebarPage extends BasePage {
     return this.dashboard.get().locator('.nc-sidebar');
   }
 
-  async createProject({ title }: { title: string }) {
+  async createProject({ title, context }: { title: string; context: NcContext }) {
+    title = isEE() ? title : `nc-${context.workerId}-${title}`;
     await this.btn_newProject.click();
     await this.rootPage.locator('.ant-modal-content:has-text(" Create Database")').waitFor();
     await this.rootPage.locator('.ant-modal-content:has-text(" Create Database")').locator('input').fill(title);
@@ -88,7 +91,7 @@ export class LeftSidebarPage extends BasePage {
     for (let i = 0; i < (await nodes.count()); i++) {
       const text = await getTextExcludeIconText(nodes.nth(i));
       if (text.toLowerCase() === param.title.toLowerCase()) {
-        await nodes.nth(i).click();
+        await nodes.nth(i).click({ force: true });
         break;
       }
     }

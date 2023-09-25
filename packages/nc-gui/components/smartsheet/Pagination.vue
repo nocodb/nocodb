@@ -12,6 +12,7 @@ interface Props {
   customLabel?: string
   fixedSize?: number
   extraStyle?: string
+  showApiTiming?: boolean
 }
 
 const props = defineProps<Props>()
@@ -61,8 +62,8 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
       isGroupBy ? 'margin-top:1px; border-radius: 0 0 12px 12px !important;' : ''
     }${extraStyle}`"
   >
-    <slot name="add-record" />
-    <div class="flex-1">
+    <div class="flex-1 flex items-center">
+      <slot name="add-record" />
       <span
         v-if="!alignCountOnRight && count !== null && count !== Infinity"
         class="caption ml-2.5 text-gray-500 text-xs"
@@ -93,15 +94,17 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
         </a-input>
       </div>
     </template>
-
-    <div class="flex-1 text-right">
-      <span
-        v-if="alignCountOnRight && count !== null && count !== Infinity"
-        class="caption nc-grid-row-count mr-2.5 text-gray-500 text-xs"
-        data-testid="grid-pagination"
-      >
-        {{ count }} {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
-      </span>
+    <div class="flex-1 flex justify-end items-center">
+      <GeneralApiTiming v-if="isEeUI && props.showApiTiming" class="m-1" />
+      <div class="text-right">
+        <span
+          v-if="alignCountOnRight && count !== Infinity"
+          class="caption nc-grid-row-count mr-2.5 text-gray-500 text-xs"
+          data-testid="grid-pagination"
+        >
+          {{ count }} {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
+        </span>
+      </div>
     </div>
   </div>
 </template>

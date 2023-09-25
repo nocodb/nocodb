@@ -35,6 +35,7 @@ test.describe('Shared base', () => {
 
     await dashboard.treeView.validateRoleAccess({
       role: role.toLowerCase(),
+      context,
     });
 
     await dashboard.grid.verifyRoleAccess({
@@ -65,7 +66,7 @@ test.describe('Shared base', () => {
     let url = '';
     // share button visible only if a table is opened
     await dashboard.treeView.openTable({ title: 'Country' });
-    url = await dashboard.grid.topbar.getSharedBaseUrl({ role: 'editor' });
+    url = await dashboard.grid.topbar.getSharedBaseUrl({ role: 'editor', enableSharedBase: true });
 
     await dashboard.rootPage.waitForTimeout(2000);
     // access shared base link
@@ -84,7 +85,7 @@ test.describe('Shared base', () => {
 
     // await dashboard.treeView.openProject({ title: context.project.title });
     await dashboard.treeView.openTable({ title: 'Country' });
-    url = await dashboard.grid.topbar.getSharedBaseUrl({ role: 'viewer' });
+    url = await dashboard.grid.topbar.getSharedBaseUrl({ role: 'viewer', enableSharedBase: false });
 
     await dashboard.rootPage.waitForTimeout(2000);
     // access shared base link

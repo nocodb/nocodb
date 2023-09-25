@@ -2,14 +2,15 @@
 import { message } from 'ant-design-vue'
 import type { ViewType } from 'nocodb-sdk'
 import {
+  IsPublicInj,
   ReloadRowDataHookInj,
   iconMap,
   isMac,
   useCopy,
   useExpandedFormStoreOrThrow,
+  useRoles,
   useSmartsheetRowStoreOrThrow,
   useSmartsheetStoreOrThrow,
-  useUIPermission,
 } from '#imports'
 
 const props = defineProps<{ view?: ViewType }>()
@@ -20,11 +21,13 @@ const route = useRoute()
 
 const { meta, isSqlView } = useSmartsheetStoreOrThrow()
 
-const { commentsDrawer, displayValue, primaryKey, save: _save, loadRow } = useExpandedFormStoreOrThrow()
+const isPublic = inject(IsPublicInj, ref(false))
+
+const { commentsDrawer, displayValue, primaryKey, save: _save, loadRow, deleteRowById } = useExpandedFormStoreOrThrow()
 
 const { isNew, syncLTARRefs, state } = useSmartsheetRowStoreOrThrow()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
@@ -62,7 +65,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   if (cmdOrCtrl) {
     switch (e.key) {
       case 'Enter': {
-        if (isUIAllowed('tableRowUpdate')) {
+        if (isUIAllowed('dataEdit')) {
           await save()
         }
       }
@@ -72,8 +75,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 const showDeleteRowModal = ref(false)
 
-const { deleteRowById } = useViewData(meta, ref(props.view))
-
 const onDeleteRowClick = () => {
   showDeleteRowModal.value = true
 }
@@ -81,7 +82,7 @@ const onDeleteRowClick = () => {
 const onConfirmDeleteRowClick = async () => {
   showDeleteRowModal.value = false
   await deleteRowById(primaryKey.value)
-  reloadTrigger.trigger()
+  await reloadTrigger.trigger()
   emit('cancel')
   message.success('Row deleted')
 }
@@ -100,7 +101,7 @@ const onConfirmDeleteRowClick = async () => {
     </h5>
 
     <div class="flex-1" />
-    <a-tooltip placement="bottom">
+    <a-tooltip v-if="!isPublic" placement="bottom">
       <template #title>
         <!-- todo: i18n -->
         <div class="text-center w-full">Copy record URL</div>
@@ -131,7 +132,7 @@ const onConfirmDeleteRowClick = async () => {
       class="nc-expand-form-save-btn !w-[60px]"
       type="primary"
       size="small"
-      :disabled="!isUIAllowed('tableRowUpdate')"
+      :disabled="!isUIAllowed('dataEdit')"
       @click="save"
     >
       {{ $t('general.save') }}
@@ -150,7 +151,7 @@ const onConfirmDeleteRowClick = async () => {
               {{ $t('general.reload') }}
             </div>
           </a-menu-item>
-          <a-menu-item v-if="isUIAllowed('xcDatatableEditable') && !isNew" @click="!isNew && emit('duplicateRow')">
+          <a-menu-item v-if="isUIAllowed('dataEdit') && !isNew" @click="!isNew && emit('duplicateRow')">
             <div v-e="['c:row-expand:duplicate']" class="py-2 flex gap-2 a">
               <component
                 :is="iconMap.copy"
@@ -159,7 +160,7 @@ const onConfirmDeleteRowClick = async () => {
               {{ $t('activity.duplicateRow') }}
             </div>
           </a-menu-item>
-          <a-menu-item v-if="isUIAllowed('xcDatatableEditable') && !isNew" @click="!isNew && onDeleteRowClick()">
+          <a-menu-item v-if="isUIAllowed('dataEdit') && !isNew" @click="!isNew && onDeleteRowClick()">
             <div v-e="['c:row-expand:delete']" class="py-2 flex gap-2 items-center">
               <component
                 :is="iconMap.delete"

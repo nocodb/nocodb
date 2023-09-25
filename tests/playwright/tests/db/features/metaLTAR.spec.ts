@@ -58,7 +58,7 @@ test.describe.serial('Test table', () => {
     // create a new xcdb project
     const xcdb = await createXcdb(context);
     await dashboard.rootPage.reload();
-    await dashboard.treeView.openProject({ title: 'Xcdb', projectCount: 2 });
+    await dashboard.treeView.openProject({ title: 'xcdb', context });
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -216,7 +216,7 @@ test.describe.serial('Test table', () => {
   });
 
   test('Delete record - single, over UI', async () => {
-    await dashboard.treeView.openProject({ title: 'Xcdb', projectCount: 2 });
+    await dashboard.treeView.openProject({ title: 'xcdb', context });
     await dashboard.treeView.openTable({ title: 'Table0' });
     await grid.deleteRow(0);
 

@@ -29,7 +29,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
       <span>ERR!</span>
     </a-tooltip>
 
-    <div v-else class="p-2" @dblclick="activateShowEditNonEditableFieldWarning">
+    <div v-else class="py-2" @dblclick="activateShowEditNonEditableFieldWarning">
       <div v-if="urls" v-html="urls" />
 
       <div v-else>{{ result }}</div>

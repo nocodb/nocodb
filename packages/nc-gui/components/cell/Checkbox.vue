@@ -36,6 +36,8 @@ const isForm = inject(IsFormInj)
 
 const isEditColumnMenu = inject(EditColumnInj, ref(false))
 
+const isGallery = inject(IsGalleryInj, ref(false))
+
 const readOnly = inject(ReadonlyInj)
 
 const checkboxMeta = computed(() => {
@@ -78,21 +80,17 @@ useSelectedCellKeyupListener(active, (e) => {
 
 <template>
   <div
-    class="flex cursor-pointer w-full h-full py-1"
+    class="flex cursor-pointer w-full h-full"
     :class="{
-      'justify-center': !isForm,
-      'w-full': isForm,
+      'justify-center': !isForm || !isGallery,
+      'w-full flex-start': isForm || isGallery,
       'nc-cell-hover-show': !vModel && !readOnly,
       'opacity-0': readOnly && !vModel,
     }"
     @click="onClick(false, $event)"
   >
-    <div
-      class="items-center"
-      :class="{ '!ml-[-8px]': readOnly, 'w-full justify-start': isEditColumnMenu }"
-      @click="onClick(true)"
-    >
-      <div class="p-1" :class="{ 'bg-gray-100 rounded-full ': !vModel }">
+    <div class="items-center" :class="{ 'w-full justify-start': isEditColumnMenu || isGallery }" @click="onClick(true)">
+      <div :class="{ 'bg-gray-100 rounded-full ': !vModel }">
         <Transition name="layout" mode="out-in" :duration="100">
           <component
             :is="getMdiIcon(vModel ? checkboxMeta.icon.checked : checkboxMeta.icon.unchecked)"

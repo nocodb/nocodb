@@ -4,6 +4,7 @@ import {
   ActiveCellInj,
   CellValueInj,
   ColumnInj,
+  IsExpandedFormOpenInj,
   IsFormInj,
   IsGridInj,
   NavigateDir,
@@ -48,6 +49,8 @@ const isGrid = inject(IsGridInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+
 function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
   emit('navigate', dir)
 
@@ -91,7 +94,7 @@ onUnmounted(() => {
   <div
     ref="elementToObserve"
     class="nc-virtual-cell w-full flex items-center"
-    :class="{ 'text-right justify-end': isGrid && !isForm && isRollup(column) }"
+    :class="{ 'text-right justify-end': isGrid && !isForm && isRollup(column) && !isExpandedForm }"
     @keydown.enter.exact="onNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
   >

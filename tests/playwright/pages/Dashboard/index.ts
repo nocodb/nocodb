@@ -63,7 +63,7 @@ export class DashboardPage extends BasePage {
     this.workspaceMenuLink = rootPage.getByTestId('nc-project-menu');
     this.projectMenuLink = rootPage
       .locator(`.project-title-node:has-text("${project.title}")`)
-      .locator('.nc-icon.ant-dropdown-trigger')
+      .locator('[data-testid="nc-sidebar-context-menu"]')
       .first();
     this.tabBar = rootPage.locator('.nc-tab-bar');
     this.treeView = new TreeViewPage(this, project);
@@ -118,7 +118,7 @@ export class DashboardPage extends BasePage {
 
   async gotoSettings() {
     await this.projectMenuLink.click();
-    await this.rootPage.locator('div.nc-project-menu-item:has-text("Settings")').click();
+    await this.rootPage.locator('.ant-dropdown').locator(`.nc-menu-item:has-text("Settings")`).click();
   }
 
   async gotoProjectSubMenu({ title }: { title: string }) {
@@ -191,6 +191,10 @@ export class DashboardPage extends BasePage {
     await this.sidebar.userMenu.click();
     await this.rootPage.getByTestId('nc-sidebar-user-logout').waitFor({ state: 'visible' });
     await this.sidebar.userMenu.clickLogout();
+
+    // TODO: Remove this
+    await this.rootPage.reload();
+
     await this.rootPage.locator('[data-testid="nc-form-signin"]:visible').waitFor();
     await new Promise(resolve => setTimeout(resolve, 150));
   }

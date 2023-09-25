@@ -134,7 +134,7 @@ class BaseModelSqlv2 {
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
 
-    const { ast, dependencyFields } = await getAst({
+    const { ast, dependencyFields, parsedQuery } = await getAst({
       query,
       model: this.model,
       view: ignoreView ? null : this.viewId && (await View.get(this.viewId)),
@@ -165,7 +165,7 @@ class BaseModelSqlv2 {
       data.__proto__ = proto;
     }
 
-    return data ? await nocoExecute(ast, data, {}, query) : null;
+    return data ? await nocoExecute(ast, data, {}, parsedQuery) : null;
   }
 
   public async exist(id?: any): Promise<any> {
@@ -841,9 +841,10 @@ class BaseModelSqlv2 {
     }
   }
 
-  async hmListCount({ colId, id }) {
+  async hmListCount({ colId, id }, args) {
     try {
       // const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
+      const { where } = this._getListArgs(args as any);
       const relColumn = (await this.model.getColumns()).find(
         (c) => c.id === colId,
       );
@@ -867,10 +868,13 @@ class BaseModelSqlv2 {
           this.dbDriver(parentTn)
             .select(parentCol.column_name)
             .where(_wherePk(parentTable.primaryKeys, id)),
-        )
-        .first();
-      const { count } = await query;
-      return count;
+        );
+      const aliasColObjMap = await childTable.getAliasColObjMap();
+      const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
+
+      await conditionV2(this, filterObj, query);
+
+      return (await query.first())?.count;
     } catch (e) {
       console.log(e);
       throw e;
@@ -1072,7 +1076,9 @@ class BaseModelSqlv2 {
     return parentIds.map((id) => gs?.[id]?.[0] || []);
   }
 
-  public async mmListCount({ colId, parentId }) {
+  public async mmListCount({ colId, parentId }, args) {
+    const { where } = this._getListArgs(args as any);
+
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId,
     );
@@ -1106,12 +1112,12 @@ class BaseModelSqlv2 {
           .select(cn)
           // .where(parentTable.primaryKey.cn, id)
           .where(_wherePk(parentTable.primaryKeys, parentId)),
-      )
-      .first();
+      );
+    const aliasColObjMap = await childTable.getAliasColObjMap();
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
-    const { count } = await qb;
-
-    return count;
+    await conditionV2(this, filterObj, qb);
+    return (await qb.first())?.count;
   }
 
   // todo: naming & optimizing
@@ -1503,162 +1509,191 @@ class BaseModelSqlv2 {
 
     const proto: any = { __columnAliases: {} };
     const columns = await this.model.getColumns();
-    for (const column of columns) {
-      switch (column.uidt) {
-        case UITypes.Lookup:
-          {
-            // @ts-ignore
-            const colOptions: LookupColumn = await column.getColOptions();
-            const relCol = await Column.get({
-              colId: colOptions.fk_relation_column_id,
-            });
-            const relColTitle =
-              relCol.uidt === UITypes.Links
-                ? `_nc_lk_${relCol.title}`
-                : relCol.title;
-            proto.__columnAliases[column.title] = {
-              path: [
-                relColTitle,
-                (await Column.get({ colId: colOptions.fk_lookup_column_id }))
-                  ?.title,
-              ],
-            };
-          }
-          break;
-        case UITypes.Links:
-        case UITypes.LinkToAnotherRecord:
-          {
-            this._columns[column.title] = column;
-            const colOptions =
-              (await column.getColOptions()) as LinkToAnotherRecordColumn;
-            // const parentColumn = await colOptions.getParentColumn();
-
-            if (colOptions?.type === 'hm') {
-              const listLoader = new DataLoader(async (ids: string[]) => {
-                if (ids.length > 1) {
-                  const data = await this.multipleHmList(
-                    {
-                      colId: column.id,
-                      ids,
-                    },
-                    (listLoader as any).args,
-                  );
-                  return ids.map((id: string) => (data[id] ? data[id] : []));
-                } else {
-                  return [
-                    await this.hmList(
-                      {
-                        colId: column.id,
-                        id: ids[0],
-                      },
-                      (listLoader as any).args,
-                    ),
-                  ];
-                }
-              });
-              const self: BaseModelSqlv2 = this;
-
-              proto[
-                column.uidt === UITypes.Links
-                  ? `_nc_lk_${column.title}`
-                  : column.title
-              ] = async function (args): Promise<any> {
-                (listLoader as any).args = args;
-                return listLoader.load(
-                  getCompositePk(self.model.primaryKeys, this),
-                );
-              };
-
-              // defining HasMany count method within GQL Type class
-              // Object.defineProperty(type.prototype, column.alias, {
-              //   async value(): Promise<any> {
-              //     return listLoader.load(this[model.pk.alias]);
-              //   },
-              //   configurable: true
-              // });
-            } else if (colOptions.type === 'mm') {
-              const listLoader = new DataLoader(async (ids: string[]) => {
-                if (ids?.length > 1) {
-                  const data = await this.multipleMmList(
-                    {
-                      parentIds: ids,
-                      colId: column.id,
-                    },
-                    (listLoader as any).args,
-                  );
-
-                  return data;
-                } else {
-                  return [
-                    await this.mmList(
-                      {
-                        parentId: ids[0],
-                        colId: column.id,
-                      },
-                      (listLoader as any).args,
-                    ),
-                  ];
-                }
-              });
-
-              const self: BaseModelSqlv2 = this;
-              // const childColumn = await colOptions.getChildColumn();
-              proto[
-                column.uidt === UITypes.Links
-                  ? `_nc_lk_${column.title}`
-                  : column.title
-              ] = async function (args): Promise<any> {
-                (listLoader as any).args = args;
-                return await listLoader.load(
-                  getCompositePk(self.model.primaryKeys, this),
-                );
-              };
-            } else if (colOptions.type === 'bt') {
+    await Promise.all(
+      columns.map(async (column) => {
+        switch (column.uidt) {
+          case UITypes.Lookup:
+            {
               // @ts-ignore
+              const colOptions: LookupColumn = await column.getColOptions();
+              const relCol = await Column.get({
+                colId: colOptions.fk_relation_column_id,
+              });
+              const relColTitle =
+                relCol.uidt === UITypes.Links
+                  ? `_nc_lk_${relCol.title}`
+                  : relCol.title;
+              proto.__columnAliases[column.title] = {
+                path: [
+                  relColTitle,
+                  (await Column.get({ colId: colOptions.fk_lookup_column_id }))
+                    ?.title,
+                ],
+              };
+            }
+            break;
+          case UITypes.Links:
+          case UITypes.LinkToAnotherRecord:
+            {
+              this._columns[column.title] = column;
               const colOptions =
                 (await column.getColOptions()) as LinkToAnotherRecordColumn;
-              const pCol = await Column.get({
-                colId: colOptions.fk_parent_column_id,
-              });
-              const cCol = await Column.get({
-                colId: colOptions.fk_child_column_id,
-              });
-              const readLoader = new DataLoader(async (ids: string[]) => {
-                const data = await (
-                  await Model.getBaseModelSQL({
-                    id: pCol.fk_model_id,
-                    dbDriver: this.dbDriver,
-                  })
-                ).list(
-                  {
-                    // limit: ids.length,
-                    where: `(${pCol.column_name},in,${ids.join(',')})`,
-                    fieldsSet: (readLoader as any).args?.fieldsSet,
-                  },
-                  true,
-                );
-                const gs = groupBy(data, pCol.title);
-                return ids.map(async (id: string) => gs?.[id]?.[0]);
-              });
 
-              // defining HasMany count method within GQL Type class
-              proto[column.title] = async function (args?: any) {
-                if (
-                  this?.[cCol?.title] === null ||
-                  this?.[cCol?.title] === undefined
-                )
-                  return null;
+              if (colOptions?.type === 'hm') {
+                const listLoader = new DataLoader(async (ids: string[]) => {
+                  if (ids.length > 1) {
+                    const data = await this.multipleHmList(
+                      {
+                        colId: column.id,
+                        ids,
+                      },
+                      (listLoader as any).args,
+                    );
+                    return ids.map((id: string) => (data[id] ? data[id] : []));
+                  } else {
+                    return [
+                      await this.hmList(
+                        {
+                          colId: column.id,
+                          id: ids[0],
+                        },
+                        (listLoader as any).args,
+                      ),
+                    ];
+                  }
+                });
+                const self: BaseModelSqlv2 = this;
 
-                (readLoader as any).args = args;
+                proto[
+                  column.uidt === UITypes.Links
+                    ? `_nc_lk_${column.title}`
+                    : column.title
+                ] = async function (args): Promise<any> {
+                  (listLoader as any).args = args;
+                  return listLoader.load(
+                    getCompositePk(self.model.primaryKeys, this),
+                  );
+                };
+              } else if (colOptions.type === 'mm') {
+                const listLoader = new DataLoader(async (ids: string[]) => {
+                  if (ids?.length > 1) {
+                    const data = await this.multipleMmList(
+                      {
+                        parentIds: ids,
+                        colId: column.id,
+                      },
+                      (listLoader as any).args,
+                    );
 
-                return await readLoader.load(this?.[cCol?.title]);
-              };
-              // todo : handle mm
+                    return data;
+                  } else {
+                    return [
+                      await this.mmList(
+                        {
+                          parentId: ids[0],
+                          colId: column.id,
+                        },
+                        (listLoader as any).args,
+                      ),
+                    ];
+                  }
+                });
+
+                const self: BaseModelSqlv2 = this;
+                proto[
+                  column.uidt === UITypes.Links
+                    ? `_nc_lk_${column.title}`
+                    : column.title
+                ] = async function (args): Promise<any> {
+                  (listLoader as any).args = args;
+                  return await listLoader.load(
+                    getCompositePk(self.model.primaryKeys, this),
+                  );
+                };
+              } else if (colOptions.type === 'bt') {
+                // @ts-ignore
+                const colOptions =
+                  (await column.getColOptions()) as LinkToAnotherRecordColumn;
+                const pCol = await Column.get({
+                  colId: colOptions.fk_parent_column_id,
+                });
+                const cCol = await Column.get({
+                  colId: colOptions.fk_child_column_id,
+                });
+
+                // use dataloader to get batches of parent data together rather than getting them individually
+                // it takes individual keys and callback is invoked with an array of values and we can get the
+                // result for all those together and return the value in the same order as in the array
+                // this way all parents data extracted together
+                const readLoader = new DataLoader(async (_ids: string[]) => {
+                  // handle binary(16) foreign keys
+                  const ids = _ids.map((id) => {
+                    if (pCol.ct !== 'binary(16)') return id;
+
+                    // Cast the id to string.
+                    const idAsString = id + '';
+                    // Check if the id is a UUID and the column is binary(16)
+                    const isUUIDBinary16 =
+                      idAsString.length === 36 || idAsString.length === 32;
+                    // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
+                    const idAsUUID = isUUIDBinary16
+                      ? idAsString.length === 32
+                        ? idAsString.replace(
+                            /(.{8})(.{4})(.{4})(.{4})(.{12})/,
+                            '$1-$2-$3-$4-$5',
+                          )
+                        : idAsString
+                      : null;
+
+                    return idAsUUID
+                      ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
+                      : id;
+                  });
+
+                  const data = await (
+                    await Model.getBaseModelSQL({
+                      id: pCol.fk_model_id,
+                      dbDriver: this.dbDriver,
+                    })
+                  ).list(
+                    {
+                      fieldsSet: (readLoader as any).args?.fieldsSet,
+                      filterArr: [
+                        new Filter({
+                          id: null,
+                          fk_column_id: pCol.id,
+                          fk_model_id: pCol.fk_model_id,
+                          value: ids as any[],
+                          comparison_op: 'in',
+                        }),
+                      ],
+                    },
+                    true,
+                  );
+
+                  const groupedList = groupBy(data, pCol.title);
+                  return _ids.map(async (id: string) => groupedList?.[id]?.[0]);
+                });
+
+                // defining BelongsTo read resolver method
+                proto[column.title] = async function (args?: any) {
+                  if (
+                    this?.[cCol?.title] === null ||
+                    this?.[cCol?.title] === undefined
+                  )
+                    return null;
+
+                  (readLoader as any).args = args;
+
+                  return await readLoader.load(this?.[cCol?.title]);
+                };
+                // todo : handle mm
+              }
             }
-          }
-          break;
-      }
-    }
+            break;
+        }
+      }),
+    );
     this._proto = proto;
     return proto;
   }
@@ -4601,7 +4636,7 @@ export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
       continue;
     }
 
-    //Cast the id to string.
+    // Cast the id to string.
     const idAsString = ids[i] + '';
     // Check if the id is a UUID and the column is binary(16)
     const isUUIDBinary16 =

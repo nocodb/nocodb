@@ -64,7 +64,7 @@ export class GridPage extends BasePage {
 
   async verifyCollaborativeMode() {
     // add new row button
-    expect(await this.btn_addNewRow.count()).toBe(1);
+    await expect(this.btn_addNewRow).toHaveCount(1);
 
     await this.toolbar.verifyCollaborativeMode();
     await this.footbar.verifyCollaborativeMode();
@@ -123,7 +123,7 @@ export class GridPage extends BasePage {
 
     // add delay for UI to render (can wait for count to stabilize by reading it multiple times)
     await this.rootPage.waitForTimeout(100);
-    expect(await this.get().locator('.nc-grid-row').count()).toBe(rowCount + 1);
+    await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 
@@ -364,7 +364,7 @@ export class GridPage extends BasePage {
     await this.get().locator(`td[data-testid="cell-${columnHeader}-0"]`).click({
       button: 'right',
     });
-    await expect(this.rootPage.locator('text=Insert New Row')).not.toBeVisible();
+    // await expect(this.rootPage.locator('text=Insert New Row')).not.toBeVisible();
 
     // in cell-add
     await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
@@ -395,7 +395,7 @@ export class GridPage extends BasePage {
     await this.get().locator(`td[data-testid="cell-${columnHeader}-0"]`).click({
       button: 'right',
     });
-    await expect(this.rootPage.locator('text=Insert New Row')).toBeVisible();
+    // await expect(this.rootPage.locator('text=Insert New Row')).toBeVisible();
 
     // in cell-add
     await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();

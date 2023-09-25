@@ -2,9 +2,11 @@
 const workspaceStore = useWorkspace()
 const projectStore = useProject()
 
+const { isUIAllowed } = useRoles()
+
 const { appInfo } = useGlobal()
 
-const { isWorkspaceLoading, isWorkspaceOwnerOrCreator, isWorkspaceSettingsPageOpened } = storeToRefs(workspaceStore)
+const { isWorkspaceLoading, isWorkspaceSettingsPageOpened } = storeToRefs(workspaceStore)
 
 const { navigateToWorkspaceSettings } = workspaceStore
 
@@ -41,11 +43,11 @@ const navigateToSettings = () => {
     </div>
   </template>
   <template v-else-if="!isSharedBase">
-    <div class="flex flex-col p-1 gap-y-0.5 mt-0.25">
+    <div class="flex flex-col p-1 gap-y-0.5 mt-0.25 mb-0.5 truncate">
       <DashboardSidebarTopSectionHeader />
 
       <NcButton
-        v-if="isWorkspaceOwnerOrCreator"
+        v-if="isUIAllowed('workspaceSettings')"
         type="text"
         size="small"
         class="nc-sidebar-top-button"
@@ -59,7 +61,7 @@ const navigateToSettings = () => {
       >
         <div class="flex items-center gap-2">
           <GeneralIcon icon="settings" class="!h-4" />
-          <div>Team & Settings</div>
+          <div>{{ $t('title.teamAndSettings') }}</div>
         </div>
       </NcButton>
       <WorkspaceCreateProjectBtn

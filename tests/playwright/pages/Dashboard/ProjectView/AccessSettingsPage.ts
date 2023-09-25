@@ -22,11 +22,11 @@ export class AccessSettingsPage extends BasePage {
       if (userEmail === email) {
         const roleDropdown = user.locator('.nc-collaborator-role-select');
 
-        const selectedRole = await user.locator('.nc-collaborator-role-select').innerText();
+        const selectedRole = await user.locator('.nc-collaborator-role-select .badge-text').innerText();
 
         await roleDropdown.click();
-        const menu = this.rootPage.locator('.ant-select-dropdown:visible');
-        const clickClbk = () => menu.locator(`.ant-select-item:has-text("${role}"):visible`).last().click();
+        const menu = this.rootPage.locator('.nc-role-select-dropdown:visible');
+        const clickClbk = () => menu.locator(`.nc-role-select-${role.toLowerCase()}:visible`).last().click();
 
         if (networkValidation && !selectedRole.includes(role)) {
           await this.waitForResponse({

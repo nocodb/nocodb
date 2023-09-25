@@ -4,7 +4,6 @@ import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
-import { WorkspaceUserRoles } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   CellClickHookInj,
@@ -70,7 +69,7 @@ const searchVal = ref()
 
 const { getMeta } = useMetas()
 
-const { hasRole } = useRoles()
+const { isUIAllowed } = useRoles()
 
 const { isPg, isMysql } = useProject()
 
@@ -78,15 +77,7 @@ const { isPg, isMysql } = useProject()
 // temporary until it's add the option to column meta
 const tempSelectedOptState = ref<string>()
 
-const isNewOptionCreateEnabled = computed(
-  () =>
-    !isPublic.value &&
-    !disableOptionCreation &&
-    (hasRole('owner', true) ||
-      hasRole('creator', true) ||
-      hasRole(WorkspaceUserRoles.OWNER, true) ||
-      hasRole(WorkspaceUserRoles.CREATOR, true)),
-)
+const isNewOptionCreateEnabled = computed(() => !isPublic.value && !disableOptionCreation && isUIAllowed('fieldEdit'))
 
 const options = computed<(SelectOptionType & { value: string })[]>(() => {
   if (column?.value.colOptions) {
@@ -106,15 +97,7 @@ const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
 })
 
-const hasEditRoles = computed(
-  () =>
-    hasRole('owner', true) ||
-    hasRole('creator', true) ||
-    hasRole('editor', true) ||
-    hasRole(WorkspaceUserRoles.OWNER, true) ||
-    hasRole(WorkspaceUserRoles.CREATOR, true) ||
-    hasRole(WorkspaceUserRoles.EDITOR, true),
-)
+const hasEditRoles = computed(() => isUIAllowed('dataEdit'))
 
 const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 

@@ -287,10 +287,13 @@ export class DataTableService {
         },
         listArgs as any,
       );
-      count = (await baseModel.mmListCount({
-        colId: column.id,
-        parentId: param.rowId,
-      })) as number;
+      count = (await baseModel.mmListCount(
+        {
+          colId: column.id,
+          parentId: param.rowId,
+        },
+        param.query,
+      )) as number;
     } else if (colOptions.type === RelationTypes.HAS_MANY) {
       data = await baseModel.hmList(
         {
@@ -299,10 +302,13 @@ export class DataTableService {
         },
         listArgs as any,
       );
-      count = (await baseModel.hmListCount({
-        colId: column.id,
-        id: param.rowId,
-      })) as number;
+      count = (await baseModel.hmListCount(
+        {
+          colId: column.id,
+          id: param.rowId,
+        },
+        param.query,
+      )) as number;
     } else {
       data = await baseModel.btRead(
         {

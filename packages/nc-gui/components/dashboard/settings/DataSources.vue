@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import type { BaseType } from 'nocodb-sdk'
-import CreateBase from './data-sources/CreateBase.vue'
-import EditBase from './data-sources/EditBase.vue'
-import Metadata from './Metadata.vue'
-import UIAcl from './UIAcl.vue'
-import Erd from './Erd.vue'
-import BaseAudit from './BaseAudit.vue'
 import { ClientType, DataSourcesSubTab, storeToRefs, useCommandPalette, useNuxtApp, useProject } from '#imports'
 
 interface Props {
@@ -511,37 +505,40 @@ const isEditBaseModalOpen = computed({
       </div>
       <GeneralModal v-model:visible="isNewBaseModalOpen" size="medium">
         <div class="py-6 px-8">
-          <CreateBase :connection-type="clientType" @base-created="loadBases(true)" @close="isNewBaseModalOpen = false" />
+          <LazyDashboardSettingsDataSourcesCreateBase
+            :connection-type="clientType"
+            @base-created="loadBases(true)"
+            @close="isNewBaseModalOpen = false"
+          />
         </div>
       </GeneralModal>
       <GeneralModal v-model:visible="isErdModalOpen" size="large">
-        <div
-          class="p-6"
-          :style="{
-            height: '80vh',
-          }"
-        >
-          <Erd :base-id="activeBaseId" />
+        <div class="h-[80vh]">
+          <LazyDashboardSettingsErd :base-id="activeBaseId" />
         </div>
       </GeneralModal>
       <GeneralModal v-model:visible="isMetaDataModal" size="medium">
         <div class="p-6">
-          <Metadata :base-id="activeBaseId" @base-synced="loadBases(true)" />
+          <LazyDashboardSettingsMetadata :base-id="activeBaseId" @base-synced="loadBases(true)" />
         </div>
       </GeneralModal>
       <GeneralModal v-model:visible="isUIAclModalOpen" class="!w-[60rem]">
         <div class="p-6">
-          <UIAcl :base-id="activeBaseId" />
+          <LazyDashboardSettingsUIAcl :base-id="activeBaseId" />
         </div>
       </GeneralModal>
       <GeneralModal v-model:visible="isEditBaseModalOpen" size="medium">
         <div class="p-6">
-          <EditBase :base-id="activeBaseId" @base-updated="loadBases(true)" @close="isEditBaseModalOpen = false" />
+          <LazyDashboardSettingsDataSourcesEditBase
+            :base-id="activeBaseId"
+            @base-updated="loadBases(true)"
+            @close="isEditBaseModalOpen = false"
+          />
         </div>
       </GeneralModal>
       <GeneralModal v-model:visible="isBaseAuditModalOpen" class="!w-[70rem]">
         <div class="p-6">
-          <BaseAudit :base-id="activeBaseId" @close="isBaseAuditModalOpen = false" />
+          <LazyDashboardSettingsBaseAudit :base-id="activeBaseId" @close="isBaseAuditModalOpen = false" />
         </div>
       </GeneralModal>
       <GeneralDeleteModal v-model:visible="isDeleteBaseModalOpen" entity-name="base" :on-delete="deleteBase">

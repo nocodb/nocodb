@@ -10,7 +10,7 @@ const props = defineProps<{
   centered?: boolean
 }>()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { orgRoles, workspaceRoles } = useRoles()
 
@@ -28,7 +28,7 @@ const centered = computed(() => props.centered ?? true)
 
 <template>
   <NcButton
-    v-if="isUIAllowed('projectCreate', false, workspaceRoles ?? orgRoles) && !isSharedBase"
+    v-if="isUIAllowed('projectCreate', { roles: workspaceRoles ?? orgRoles }) && !isSharedBase"
     type="text"
     :size="size"
     :centered="centered"

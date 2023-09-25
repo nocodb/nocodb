@@ -8,6 +8,7 @@ const props = defineProps<{
   filterOption?: (input: string, option: any) => boolean
   dropdownMatchSelectWidth?: boolean
   allowClear?: boolean
+  loading?: boolean
 }>()
 
 const emits = defineEmits(['update:value', 'change'])
@@ -21,6 +22,8 @@ const showSearch = computed(() => props.showSearch)
 const filterOption = computed(() => props.filterOption)
 
 const dropdownMatchSelectWidth = computed(() => props.dropdownMatchSelectWidth)
+
+const loading = computed(() => props.loading)
 
 const vModel = useVModel(props, 'value', emits)
 
@@ -39,10 +42,13 @@ const onChange = (value: string) => {
     :filter-option="filterOption"
     :dropdown-match-select-width="dropdownMatchSelectWidth"
     :allow-clear="allowClear"
+    :loading="loading"
+    :disabled="loading"
     @change="onChange"
   >
     <template #suffixIcon>
-      <GeneralIcon icon="arrowDown" class="text-gray-800 nc-select-expand-btn" />
+      <GeneralLoader v-if="loading" />
+      <GeneralIcon v-else icon="arrowDown" class="text-gray-800 nc-select-expand-btn" />
     </template>
     <slot />
   </a-select>
@@ -50,6 +56,7 @@ const onChange = (value: string) => {
 
 <style lang="scss">
 .nc-select.ant-select {
+  height: fit-content;
   .ant-select-selector {
     box-shadow: 0px 5px 3px -2px rgba(0, 0, 0, 0.02), 0px 3px 1px -2px rgba(0, 0, 0, 0.06);
     @apply border-1 border-gray-200 !rounded-lg;

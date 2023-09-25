@@ -40,36 +40,50 @@ const isSharedView = computed(() => {
   return !routeName.startsWith('index-typeOrId-projectId-') && !['index', 'index-typeOrId'].includes(routeName)
 })
 
+const isSharedFormView = computed(() => {
+  const routeName = (route.value.name as string) || ''
+  // check route is shared form view route
+  return routeName.startsWith('index-typeOrId-form-viewId')
+})
+
+async function handleRouteTypeIdChange() {
+  // avoid loading projects for shared views
+  if (isSharedView.value) {
+    return
+  }
+
+  // avoid loading projects for shared base
+  if (route.value.params.typeOrId === 'base') {
+    await populateWorkspace()
+    return
+  }
+
+  if (!signedIn.value) {
+    navigateTo('/signIn')
+    return
+  }
+
+  // Load projects
+  await populateWorkspace()
+
+  if (!route.value.params.projectId && projectsList.value.length > 0) {
+    await autoNavigateToProject()
+  }
+}
+
 watch(
   () => route.value.params.typeOrId,
-  async () => {
-    // avoid loading projects for shared views
-    if (isSharedView.value) {
-      return
-    }
-
-    // avoid loading projects for shared base
-    if (route.value.params.typeOrId === 'base') {
-      await populateWorkspace()
-      return
-    }
-
-    if (!signedIn.value) {
-      navigateTo('/signIn')
-      return
-    }
-
-    // Load projects
-    await populateWorkspace()
-
-    if (!route.value.params.projectId && projectsList.value.length > 0) {
-      await autoNavigateToProject()
-    }
-  },
-  {
-    immediate: true,
+  () => {
+    handleRouteTypeIdChange()
   },
 )
+
+// onMounted is needed instead having this function called through
+// immediate watch, because if route is changed during page transition
+// It will error out nuxt
+onMounted(() => {
+  handleRouteTypeIdChange()
+})
 
 function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: string) {
   dialogOpen.value = value ?? !dialogOpen.value
@@ -83,7 +97,10 @@ provide(ToggleDialogInj, toggleDialog)
 
 <template>
   <div>
-    <NuxtLayout v-if="isSharedView" name="shared-view">
+    <NuxtLayout v-if="isSharedFormView">
+      <NuxtPage />
+    </NuxtLayout>
+    <NuxtLayout v-else-if="isSharedView" name="shared-view">
       <NuxtPage />
     </NuxtLayout>
     <NuxtLayout v-else name="dashboard">

@@ -89,7 +89,7 @@ const {
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { appInfo } = useGlobal()
 
@@ -103,7 +103,7 @@ provide(IsGridInj, ref(false))
 
 provide(IsKanbanInj, ref(true))
 
-const hasEditPermission = computed(() => isUIAllowed('xcDatatableEditable'))
+const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 
 const fields = inject(FieldsInj, ref([]))
 

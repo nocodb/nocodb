@@ -28,7 +28,7 @@ const emit = defineEmits(['unlink'])
 
 const { relatedTableMeta } = useLTARStoreOrThrow()!
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -97,7 +97,7 @@ export default {
 
     <div
       v-show="active || isForm"
-      v-if="showUnlinkButton && !readOnly && !isLocked && isUIAllowed('xcDatatableEditable')"
+      v-if="showUnlinkButton && !readOnly && !isLocked && isUIAllowed('dataEdit')"
       class="flex items-center"
     >
       <component

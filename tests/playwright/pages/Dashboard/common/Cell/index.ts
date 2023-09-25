@@ -341,11 +341,10 @@ export class CellPageObject extends BasePage {
         await this.rootPage.waitForSelector('.nc-modal-child-list:visible');
 
         // verify child list count & contents
-        const childList = this.rootPage.locator('.ant-card:visible');
-        expect(await childList.count()).toBe(count);
+        await expect.poll(() => this.rootPage.locator('.ant-card:visible').count()).toBe(count);
 
         // close child list
-        await this.rootPage.locator('.nc-modal-child-list').locator('button.ant-modal-close:visible').click();
+        await this.rootPage.locator('.nc-modal-child-list').locator('.nc-close-btn').last().click();
       }
     }
   }
@@ -358,16 +357,24 @@ export class CellPageObject extends BasePage {
     if (!isLink) {
       await cell.click();
       await cell.locator('.nc-icon.unlink-icon').click();
+      // await cell.click();
     }
 
     // For HM/MM columns
     else {
       await cell.locator('.nc-datatype-link').click();
+      await this.rootPage
+        .locator(`[data-testid="nc-child-list-item"]`)
+        .last()
+        .waitFor({ state: 'visible', timeout: 3000 });
+
       await this.waitForResponse({
-        uiAction: () => this.rootPage.locator(`[data-testid="nc-child-list-icon-unlink"]`).first().click(),
+        uiAction: () =>
+          this.rootPage.locator(`[data-testid="nc-child-list-item"]`).last().click({ force: true, timeout: 3000 }),
         requestUrlPathToMatch: '/api/v1/db/data/noco/',
         httpMethodsToMatch: ['GET'],
       });
+
       await this.rootPage.keyboard.press('Escape');
     }
   }

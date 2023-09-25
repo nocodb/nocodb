@@ -14,9 +14,9 @@ import {
   inject,
   ref,
   useProvideLTARStore,
+  useRoles,
   useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
-  useUIPermission,
 } from '#imports'
 
 const column = inject(ColumnInj)!
@@ -39,7 +39,7 @@ const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
@@ -103,40 +103,38 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
 
 <template>
   <div class="flex items-center gap-1 w-full chips-wrapper">
-    <template v-if="!isForm">
-      <div class="chips flex items-center img-container flex-1 hm-items flex-nowrap min-w-0 overflow-hidden">
-        <template v-if="cells">
-          <VirtualCellComponentsItemChip
-            v-for="(cell, i) of cells"
-            :key="i"
-            :item="cell.item"
-            :value="cell.value"
-            :column="hasManyColumn"
-            :show-unlink-button="true"
-            @unlink="unlinkRef(cell.item)"
-          />
-
-          <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">
-            more...
-          </span>
-        </template>
-      </div>
-
-      <div v-if="!isLocked && !isUnderLookup" class="flex justify-end gap-1 min-h-[30px] items-center">
-        <GeneralIcon
-          icon="expand"
-          class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
-          @click.stop="childListDlg = true"
+    <div class="chips flex items-center img-container flex-1 hm-items flex-nowrap min-w-0 overflow-hidden">
+      <template v-if="cells">
+        <VirtualCellComponentsItemChip
+          v-for="(cell, i) of cells"
+          :key="i"
+          :item="cell.item"
+          :value="cell.value"
+          :column="hasManyColumn"
+          :show-unlink-button="true"
+          @unlink="unlinkRef(cell.item)"
         />
 
-        <GeneralIcon
-          v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
-          icon="plus"
-          class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
-          @click.stop="listItemsDlg = true"
-        />
-      </div>
-    </template>
+        <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">
+          more...
+        </span>
+      </template>
+    </div>
+
+    <div v-if="!isLocked && !isUnderLookup" class="flex justify-end gap-1 min-h-[30px] items-center">
+      <GeneralIcon
+        icon="expand"
+        class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
+        @click.stop="childListDlg = true"
+      />
+
+      <GeneralIcon
+        v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
+        icon="plus"
+        class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
+        @click.stop="listItemsDlg = true"
+      />
+    </div>
 
     <LazyVirtualCellComponentsListItems v-model="listItemsDlg" :column="hasManyColumn" />
 

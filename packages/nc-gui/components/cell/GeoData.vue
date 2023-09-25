@@ -83,7 +83,7 @@ const openInOSM = () => {
 </script>
 
 <template>
-  <a-dropdown :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" trigger="click">
+  <a-dropdown :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" :trigger="['click']">
     <div
       v-if="!isLocationSet"
       class="group cursor-pointer flex gap-1 items-center mx-auto max-w-64 justify-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"

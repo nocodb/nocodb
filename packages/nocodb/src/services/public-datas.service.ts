@@ -27,7 +27,8 @@ export class PublicDatasService {
     password?: string;
     query: any;
   }) {
-    const view = await View.getByUUID(param.sharedViewUuid);
+    const { sharedViewUuid, password, query = {} } = param;
+    const view = await View.getByUUID(sharedViewUuid);
 
     if (!view) NcError.notFound('Not found');
     if (
@@ -39,7 +40,7 @@ export class PublicDatasService {
       NcError.notFound('Not found');
     }
 
-    if (view.password && view.password !== param.password) {
+    if (view.password && view.password !== password) {
       return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
     }
 
@@ -55,24 +56,23 @@ export class PublicDatasService {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
-    const listArgs: any = { ...param.query };
+    const { ast, dependencyFields } = await getAst({
+      model,
+      query: {},
+      view,
+    });
+
+    const listArgs: any = { ...query, ...dependencyFields };
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
     try {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
-
     let data = [];
     let count = 0;
 
     try {
-      const { ast } = await getAst({
-        query: param.query,
-        model,
-        view,
-      });
-
       data = await nocoExecute(
         ast,
         await baseModel.list(listArgs),
@@ -473,10 +473,13 @@ export class PublicDatasService {
       )
     )?.[key];
 
-    const count: any = await baseModel.mmListCount({
-      colId: param.columnId,
-      parentId: param.rowId,
-    });
+    const count: any = await baseModel.mmListCount(
+      {
+        colId: param.columnId,
+        parentId: param.rowId,
+      },
+      param.query,
+    );
 
     return new PagedResponseImpl(data, { ...param.query, count });
   }
@@ -543,10 +546,13 @@ export class PublicDatasService {
       )
     )?.[key];
 
-    const count = await baseModel.hmListCount({
-      colId: param.columnId,
-      id: param.rowId,
-    });
+    const count = await baseModel.hmListCount(
+      {
+        colId: param.columnId,
+        id: param.rowId,
+      },
+      param.query,
+    );
 
     return new PagedResponseImpl(data, { ...param.query, count });
   }

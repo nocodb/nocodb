@@ -7,8 +7,8 @@ import {
   CellClickHookInj,
   FieldsInj,
   IsExpandedFormOpenInj,
-  IsFormInj,
   IsKanbanInj,
+  IsPublicInj,
   MetaInj,
   ReloadRowDataHookInj,
   computedInject,
@@ -21,6 +21,7 @@ import {
   useActiveKeyupListener,
   useProvideExpandedFormStore,
   useProvideSmartsheetStore,
+  useRoles,
   useRouter,
   useVModel,
   watch,
@@ -57,7 +58,9 @@ const meta = toRef(props, 'meta')
 
 const router = useRouter()
 
-const { isUIAllowed } = useUIPermission()
+const isPublic = inject(IsPublicInj, ref(false))
+
+const { isUIAllowed } = useRoles()
 
 // override cell click hook to avoid unexpected behavior at form fields
 provide(CellClickHookInj, undefined)
@@ -113,8 +116,6 @@ if (props.rowId) {
 }
 
 useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
-
-provide(IsFormInj, ref(true))
 
 watch(
   state,
@@ -362,6 +363,7 @@ export default {
                   :column="col"
                   :edit-enabled="true"
                   :active="true"
+                  :read-only="isPublic"
                   @update:model-value="changedColumns.add(col.title)"
                 />
               </LazySmartsheetDivDataCell>
@@ -403,6 +405,7 @@ export default {
                     :column="col"
                     :edit-enabled="true"
                     :active="true"
+                    :read-only="isPublic"
                     @update:model-value="changedColumns.add(col.title)"
                   />
                 </LazySmartsheetDivDataCell>

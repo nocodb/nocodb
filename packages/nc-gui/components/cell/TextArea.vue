@@ -6,6 +6,7 @@ import {
   EditColumnInj,
   EditModeInj,
   IsExpandedFormOpenInj,
+  ReadonlyInj,
   RowHeightInj,
   iconMap,
   inject,
@@ -25,7 +26,7 @@ const editEnabled = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
-const rowHeight = inject(RowHeightInj, ref(undefined))
+const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const { showNull } = useGlobal()
 
@@ -46,6 +47,8 @@ const inputWrapperRef = ref<HTMLElement | null>(null)
 const inputRef = ref<HTMLTextAreaElement | null>(null)
 
 const active = inject(ActiveCellInj, ref(false))
+
+const readOnly = inject(ReadonlyInj)
 
 watch(isVisible, () => {
   if (isVisible.value) {
@@ -133,9 +136,10 @@ onClickOutside(inputWrapperRef, (e) => {
           ref="inputRef"
           v-model:value="vModel"
           placeholder="Enter text"
-          class="p-1 !pt-1 !pr-3 !border-0 !border-r-0 !focus:outline-transparent nc-scrollbar-md"
+          class="p-1 !pt-1 !pr-3 !border-0 !border-r-0 !focus:outline-transparent nc-scrollbar-md !text-black"
           :bordered="false"
           :auto-size="{ minRows: 20, maxRows: 20 }"
+          :disabled="readOnly"
           @keydown.stop
           @keydown.escape="isVisible = false"
         />

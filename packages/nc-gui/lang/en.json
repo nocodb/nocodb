@@ -281,7 +281,8 @@
     "resetPasswordMenu": "Reset Password",
     "tokens": "Tokens",
     "userManagement": "User Management",
-    "licence": "Licence"
+    "licence": "Licence",
+    "defaultView": "Default View"
   },
   "labels": {
     "searchProjects": "Search Projects",
@@ -289,6 +290,7 @@
     "createdOn": "Created On",
     "notifyVia": "Notify Via",
     "projName": "Project name",
+    "profile": "Profile",
     "tableName": "Table name",
     "dashboardName": "Dashboard name",
     "viewName": "View name",
@@ -373,6 +375,7 @@
     "customTheme": "Custom Theme",
     "requestDataSource": "Request a data source you need?",
     "apiKey": "API Key",
+    "personalAccessToken": "Personal Access Token",
     "sharedBase": "Shared Base",
     "importData": "Import Data",
     "importSecondaryViews": "Import Secondary Views",
@@ -404,7 +407,8 @@
     "prevRow": "Previous Row",
     "addRowGrid": "Manually add data in grid view",
     "addRowForm": "Enter record data through a form",
-    "noAccess": "No access"
+    "noAccess": "No access",
+    "restApis": "Rest APIs"
   },
   "activity": {
     "moveProject": "Move Project",

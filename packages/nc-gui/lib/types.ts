@@ -1,17 +1,8 @@
-import type {
-  ColumnType,
-  FilterType,
-  MetaType,
-  OrgUserRoles,
-  PaginatedType,
-  ProjectType,
-  ViewTypes,
-  WorkspaceUserRoles,
-} from 'nocodb-sdk'
+import type { ColumnType, FilterType, MetaType, PaginatedType, ProjectType, Roles, RolesObj, ViewTypes } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
-import type { ImportSource, ImportType, ProjectRole, Role, TabType } from './enums'
+import type { ImportSource, ImportType, TabType } from './enums'
 import type { rolePermissions } from './constants'
 
 interface User {
@@ -19,11 +10,12 @@ interface User {
   email: string
   firstname: string | null
   lastname: string | null
-  roles: Roles | string
-  project_roles: Roles | string
-  workspace_roles: Roles | string
+  roles: RolesObj
+  project_roles: RolesObj
+  workspace_roles: RolesObj
   invite_token?: string
   project_id?: string
+  display_name?: string | null
 }
 
 interface ProjectMetaInfo {
@@ -45,8 +37,6 @@ interface Field {
   system?: boolean
   isViewEssentialField?: boolean
 }
-
-type Roles<T extends Role | ProjectRole = Role | ProjectRole> = Record<T | string, boolean>
 
 type Filter = FilterType & {
   field?: string
@@ -170,15 +160,9 @@ interface GroupNestedIn {
   column_uidt: string
 }
 
-type AllRoles =
-  | (typeof ProjectRole)[keyof typeof ProjectRole]
-  | (typeof Role)[keyof typeof Role]
-  | (typeof WorkspaceUserRoles)[keyof typeof WorkspaceUserRoles]
-  | (typeof OrgUserRoles)[keyof typeof OrgUserRoles]
-
 interface Users {
   emails?: string
-  role: AllRoles
+  role: Roles
   invitationToken?: string
 }
 
@@ -190,7 +174,6 @@ export {
   User,
   ProjectMetaInfo,
   Field,
-  Roles,
   Filter,
   NocoI18n,
   ThemeConfig,
@@ -208,7 +191,6 @@ export {
   ImportWorkerPayload,
   Group,
   GroupNestedIn,
-  AllRoles,
   Users,
   ViewPageType,
   NcButtonSize,

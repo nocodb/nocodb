@@ -47,10 +47,13 @@ export class DataAliasNestedService {
       },
       param.query as any,
     );
-    const count: any = await baseModel.mmListCount({
-      colId: column.id,
-      parentId: param.rowId,
-    });
+    const count: any = await baseModel.mmListCount(
+      {
+        colId: column.id,
+        parentId: param.rowId,
+      },
+      param.query,
+    );
 
     return new PagedResponseImpl(data, {
       count,
@@ -217,10 +220,13 @@ export class DataAliasNestedService {
       param.query,
     );
 
-    const count = await baseModel.hmListCount({
-      colId: column.id,
-      id: param.rowId,
-    });
+    const count = await baseModel.hmListCount(
+      {
+        colId: column.id,
+        id: param.rowId,
+      },
+      param.query,
+    );
 
     return new PagedResponseImpl(data, {
       count,

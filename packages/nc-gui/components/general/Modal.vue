@@ -60,19 +60,13 @@ const visible = useVModel(props, 'visible', emits)
     v-model:visible="visible"
     :class="{ active: visible }"
     :width="width"
-    :centered="true"
     :closable="false"
     wrap-class-name="nc-modal-wrapper"
     :footer="null"
     :destroy-on-close="destroyOnClose"
     @keydown.esc="visible = false"
   >
-    <div
-      class="nc-modal"
-      :style="{
-        maxHeight: height,
-      }"
-    >
+    <div :class="`nc-modal max-h-[${height}]`">
       <slot />
     </div>
   </a-modal>

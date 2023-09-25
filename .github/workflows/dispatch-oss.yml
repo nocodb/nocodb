@@ -16,5 +16,8 @@ jobs:
           const result = await github.rest.repos.createDispatchEvent({
             owner: 'nocodb',
             repo: 'nocohub',
-            event_type: 'OSS'
+            event_type: 'OSS',
+            client_payload: {
+              push: ${{ toJSON(github.event) }}
+            }
           })

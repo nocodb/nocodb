@@ -32,7 +32,7 @@ export class AccountPage extends BasePage {
 
   async signOut() {
     await this.openAppMenu();
-    await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();
+    await this.rootPage.locator('div.nc-account-dropdown-item:has-text("Sign Out"):visible').click();
     await this.rootPage.locator('[data-testid="nc-form-signin"]:visible').waitFor();
   }
 }

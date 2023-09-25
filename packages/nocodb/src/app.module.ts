@@ -24,11 +24,13 @@ import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.midd
 import { HookHandlerService } from '~/services/hook-handler.service';
 import { BasicStrategy } from '~/strategies/basic.strategy/basic.strategy';
 import { UsersModule } from '~/modules/users/users.module';
+import { AuthModule } from '~/modules/auth/auth.module';
 
 export const ceModuleConfig = {
   imports: [
     GlobalModule,
     UsersModule,
+    AuthModule,
     ...(process.env['PLAYWRIGHT_TEST'] === 'true' ? [TestModule] : []),
     MetasModule,
     DatasModule,

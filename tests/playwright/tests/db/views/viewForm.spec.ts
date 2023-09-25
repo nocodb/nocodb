@@ -31,7 +31,7 @@ test.describe('Form view', () => {
     await dashboard.treeView.openTable({ title: 'Country' });
 
     await dashboard.viewSidebar.createFormView({ title: 'CountryForm' });
-    await dashboard.viewSidebar.verifyView({ title: 'CountryForm', index: 1 });
+    await dashboard.viewSidebar.verifyView({ title: 'CountryForm', index: 0 });
 
     // verify form-view fields order
     await form.verifyFormViewFieldsOrder({
@@ -92,7 +92,7 @@ test.describe('Form view', () => {
     await dashboard.treeView.openTable({ title: 'Country' });
 
     await dashboard.viewSidebar.createFormView({ title: 'CountryForm' });
-    await dashboard.viewSidebar.verifyView({ title: 'CountryForm', index: 1 });
+    await dashboard.viewSidebar.verifyView({ title: 'CountryForm', index: 0 });
 
     await form.configureHeader({
       title: 'Country',
@@ -363,6 +363,7 @@ test.describe('Form view with LTAR', () => {
 
     await sharedForm.verifyChildList(['Atlanta', 'Pune', 'London', 'Sydney']);
     await sharedForm.selectChildList('Atlanta');
+    await sharedForm.closeLinkToChildList();
 
     await sharedForm.submit();
     await sharedForm.verifySuccessMessage();
@@ -380,11 +381,10 @@ test.describe('Form view with LTAR', () => {
       await dashboard.leftSidebar.openWorkspace({ title: context.workspace.title });
       await dashboard.rootPage.waitForTimeout(500);
     }
-    await dashboard.treeView.openProject({ title: context.project.title });
+    await dashboard.treeView.openProject({ title: context.project.title, context });
     await dashboard.rootPage.waitForTimeout(500);
 
     await dashboard.treeView.openTable({ title: 'Country' });
-    await dashboard.viewSidebar.openView({ title: 'Country' });
 
     await dashboard.grid.cell.verify({
       index: 3,
@@ -491,7 +491,7 @@ test.describe('Form view', () => {
     // kludge- reload
     await dashboard.rootPage.reload();
 
-    await dashboard.viewSidebar.openView({ title: 'selectBased' });
+    await dashboard.treeView.openTable({ title: 'selectBased' });
 
     await dashboard.rootPage.waitForTimeout(2000);
 

@@ -26,8 +26,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { appInfo, ncNavigateTo } = useGlobal()
 
-  const { orgRoles } = useRoles()
-
   const workspaces = ref<Map<string, any>>(new Map())
   const workspacesList = computed<any[]>(() => Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at))
 
@@ -36,6 +34,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const isWorkspaceLoading = ref(true)
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
+  const workspaceUserCount = ref<number | undefined>(undefined)
 
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
     () => (route.value.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'recent',
@@ -60,22 +59,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     } catch (e) {
       return defaultMeta
     }
-  })
-
-  /** getters */
-  const isWorkspaceCreator = computed(() => {
-    // todo: type correction
-    return orgRoles.value?.[Role.OrgLevelCreator]
-  })
-
-  const isWorkspaceOwner = computed(() => {
-    // todo: type correction
-    return orgRoles.value?.[Role.OrgLevelCreator]
-  })
-
-  const isWorkspaceOwnerOrCreator = computed(() => {
-    // todo: type correction
-    return orgRoles.value?.[Role.OrgLevelCreator]
   })
 
   /** actions */
@@ -237,8 +220,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     removeCollaborator,
     updateCollaborator,
     collaborators,
-    isWorkspaceCreator,
-    isWorkspaceOwner,
     isInvitingCollaborators,
     isCollaboratorsLoading,
     addToFavourite,
@@ -255,11 +236,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     clearWorkspaces,
     upgradeActiveWorkspace,
     navigateToWorkspace,
-    isWorkspaceOwnerOrCreator,
     setLoadingState,
     navigateToWorkspaceSettings,
     lastPopulatedWorkspaceId,
     isWorkspaceSettingsPageOpened,
+    workspaceUserCount,
   }
 })
 

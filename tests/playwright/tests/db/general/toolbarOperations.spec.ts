@@ -512,8 +512,9 @@ test.describe('Toolbar operations (GRID)', () => {
     await toolbar.clickGroupBy();
 
     await dashboard.viewSidebar.createGridView({ title: 'Test' });
-    await dashboard.viewSidebar.openView({ title: 'Test' });
-    await dashboard.viewSidebar.openView({ title: 'Film' });
+    await dashboard.rootPage.waitForTimeout(500);
+
+    await dashboard.treeView.openTable({ title: 'Film' });
 
     await dashboard.grid.groupPage.verifyGroupHeader({
       indexMap: [0],
@@ -529,13 +530,14 @@ test.describe('Toolbar operations (GRID)', () => {
 
   test('Duplicate View and Verify GroupBy', async () => {
     await dashboard.treeView.openTable({ title: 'Film' });
+    await dashboard.viewSidebar.createGridView({ title: 'Film Grid' });
 
     // Open GroupBy Menu
     await toolbar.clickGroupBy();
     await toolbar.groupBy.add({ title: 'Length', ascending: false, locallySaved: false });
     await toolbar.clickGroupBy();
 
-    await dashboard.viewSidebar.copyView({ title: 'Film' });
+    await dashboard.viewSidebar.copyView({ title: 'Film Grid' });
 
     await dashboard.grid.groupPage.verifyGroupHeader({
       indexMap: [0],

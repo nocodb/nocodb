@@ -1,21 +1,32 @@
 <script lang="ts" setup>
-import type { WorkspaceUserType } from 'nocodb-sdk'
-import { OrderedProjectRoles, ProjectRoles, RoleColors, RoleLabels } from 'nocodb-sdk'
+import type { OrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import { OrderedProjectRoles, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
-import { isEeUI, storeToRefs, stringToColour, timeAgo, useGlobal } from '#imports'
+import { isEeUI, storeToRefs, stringToColour, timeAgo } from '#imports'
 
-const { user } = useGlobal()
 const projectsStore = useProjects()
 const { getProjectUsers, createProjectUser, updateProjectUser, removeProjectUser } = projectsStore
 const { activeProjectId } = storeToRefs(projectsStore)
 
-const collaborators = ref<WorkspaceUserType[]>([])
+const { projectRoles } = useRoles()
+
+const collaborators = ref<
+  {
+    id: string
+    email: string
+    main_roles: OrgUserRoles
+    roles: ProjectRoles
+    workspace_roles: WorkspaceUserRoles
+    created_at: string
+  }[]
+>([])
 const totalCollaborators = ref(0)
 const userSearchText = ref('')
 const currentPage = ref(0)
 
 const isLoading = ref(false)
 const isSearching = ref(false)
+const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
 const loadCollaborators = async () => {
   try {
@@ -33,9 +44,12 @@ const loadCollaborators = async () => {
       ...collaborators.value,
       ...users.map((user: any) => ({
         ...user,
-        projectRoles: user.roles,
-        // TODO: Remove this hack and make the values consistent with the backend
-        roles: user.roles ?? (RoleLabels[user.workspace_roles as string] as string)?.toLowerCase() ?? ProjectRoles.NO_ACCESS,
+        project_roles: user.roles,
+        roles:
+          user.roles ??
+          (user.workspace_roles
+            ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
+            : ProjectRoles.NO_ACCESS),
       })),
     ]
   } catch (e: any) {
@@ -61,30 +75,40 @@ const loadListData = async ($state: any) => {
   $state.loaded()
 }
 
-onMounted(async () => {
-  isLoading.value = true
-  try {
-    await loadCollaborators()
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    isLoading.value = false
-  }
-})
+const reloadCollabs = async () => {
+  currentPage.value = 0
+  collaborators.value = []
+  await loadCollaborators()
+}
 
-const updateCollaborator = async (collab, roles) => {
+const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
   try {
-    if (!roles || roles === 'inherit' || (roles === ProjectRoles.NO_ACCESS && !isEeUI)) {
+    if (
+      !roles ||
+      (roles === ProjectRoles.NO_ACCESS && !isEeUI) ||
+      (collab.workspace_roles && WorkspaceRolesToProjectRoles[collab.workspace_roles as WorkspaceUserRoles] === roles && isEeUI)
+    ) {
       await removeProjectUser(activeProjectId.value!, collab)
-      collab.projectRoles = null
-    } else if (collab.projectRoles) {
+      if (
+        collab.workspace_roles &&
+        WorkspaceRolesToProjectRoles[collab.workspace_roles as WorkspaceUserRoles] === roles &&
+        isEeUI
+      ) {
+        collab.roles = WorkspaceRolesToProjectRoles[collab.workspace_roles as WorkspaceUserRoles]
+      } else {
+        collab.roles = ProjectRoles.NO_ACCESS
+      }
+    } else if (collab.project_roles) {
+      collab.roles = roles
       await updateProjectUser(activeProjectId.value!, collab)
     } else {
+      collab.roles = roles
       await createProjectUser(activeProjectId.value!, collab)
-      collab.projectRoles = roles
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    reloadCollabs()
   }
 }
 
@@ -111,34 +135,32 @@ watchDebounced(
   },
 )
 
-const reloadCollabs = async () => {
-  currentPage.value = 0
-  collaborators.value = []
-  await loadCollaborators()
-}
-
-const userProjectRole = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles]>(() => {
-  const projectUser = collaborators.value?.find((collab) => collab.id === user.value?.id)
-  return projectUser?.projectRoles
-})
-
-const accessibleRoles = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>(() => {
-  const currentRoleIndex = OrderedProjectRoles.findIndex((role) => role === userProjectRole.value)
-  if (currentRoleIndex === -1) return []
-  return OrderedProjectRoles.slice(currentRoleIndex + 1)
+onMounted(async () => {
+  isLoading.value = true
+  try {
+    await loadCollaborators()
+    const currentRoleIndex = OrderedProjectRoles.findIndex(
+      (role) => projectRoles.value && Object.keys(projectRoles.value).includes(role),
+    )
+    if (currentRoleIndex !== -1) {
+      accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex + 1)
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoading.value = false
+  }
 })
 </script>
 
 <template>
   <div class="nc-collaborator-table-container mt-4 nc-access-settings-view">
-    <ProjectInviteProjectCollabSection @invited="reloadCollabs" />
-
     <div v-if="isLoading" class="nc-collaborators-list items-center justify-center">
       <GeneralLoader size="xlarge" />
     </div>
     <template v-else>
       <div class="w-full flex flex-row justify-between items-baseline mt-6.5 mb-2 pr-0.25 ml-2">
-        <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md" placeholder="Search collaborators">
+        <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md" placeholder="Search members">
           <template #prefix>
             <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
           </template>
@@ -152,12 +174,12 @@ const accessibleRoles = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles
         v-else-if="!collaborators?.length"
         class="nc-collaborators-list w-full h-full flex flex-col items-center justify-center mt-36"
       >
-        <a-empty description="No collaborators found" />
+        <Empty description="No members found" />
       </div>
       <div v-else class="nc-collaborators-list nc-scrollbar-md">
         <div class="nc-collaborators-list-header">
-          <div class="flex w-1/5">Users</div>
-          <div class="flex w-1/5">Date Joined</div>
+          <div class="flex w-3/5">Users</div>
+          <div class="flex w-2/5">Date Joined</div>
           <div class="flex w-1/5">Access</div>
           <div class="flex w-1/5"></div>
           <div class="flex w-1/5"></div>
@@ -165,55 +187,39 @@ const accessibleRoles = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles
 
         <div class="flex flex-col nc-scrollbar-md">
           <div v-for="(collab, i) of collaborators" :key="i" class="relative w-full nc-collaborators nc-collaborators-list-row">
-            <div class="!py-0 w-1/5 email">
+            <div class="!py-0 w-3/5 email truncate">
               <div class="flex items-center gap-2">
                 <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
                   collab?.email?.slice(0, 2)
                 }}</span>
                 <!--                <GeneralTruncateText> -->
-                {{ collab.email }}
+                <span class="truncate">
+                  {{ collab.email }}
+                </span>
                 <!--                </GeneralTruncateText> -->
               </div>
             </div>
-            <div class="text-gray-500 text-xs w-1/5 created-at">
+            <div class="text-gray-500 text-xs w-2/5 created-at truncate">
               {{ timeAgo(collab.created_at) }}
             </div>
             <div class="w-1/5 roles">
-              <div class="nc-collaborator-role-select">
-                <NcSelect
-                  v-model:value="collab.roles"
-                  class="w-35 !rounded px-1"
-                  :virtual="true"
-                  :placeholder="$t('labels.noAccess')"
-                  :disabled="collab.id === user?.id || (collab.roles && !accessibleRoles.includes(collab.roles))"
-                  @change="(value) => updateCollaborator(collab, value)"
-                >
-                  <template #suffixIcon>
-                    <MdiChevronDown />
-                  </template>
-                  <a-select-option v-if="collab.id === user?.id" :value="userProjectRole">
-                    <NcBadge :color="RoleColors[userProjectRole]">
-                      <p class="badge-text">{{ RoleLabels[userProjectRole] }}</p>
-                    </NcBadge>
-                  </a-select-option>
-                  <a-select-option v-if="collab.roles && !accessibleRoles.includes(collab.roles)" :value="collab.roles">
-                    <NcBadge :color="RoleColors[collab.roles]">
-                      <p class="badge-text">{{ RoleLabels[collab.roles] }}</p>
-                    </NcBadge>
-                  </a-select-option>
-                  <template v-for="role of accessibleRoles" :key="`role-option-${role}`">
-                    <a-select-option :value="role">
-                      <NcBadge :color="RoleColors[role]">
-                        <p class="badge-text">{{ RoleLabels[role] }}</p>
-                      </NcBadge>
-                    </a-select-option>
-                  </template>
-                  <a-select-option v-if="isEeUI" value="inherit">
-                    <NcBadge color="white">
-                      <p class="badge-text">Inherit</p>
-                    </NcBadge>
-                  </a-select-option>
-                </NcSelect>
+              <div class="nc-collaborator-role-select p-2">
+                <template v-if="accessibleRoles.includes(collab.roles)">
+                  <RolesSelector
+                    :role="collab.roles"
+                    :roles="accessibleRoles"
+                    :inherit="
+                      isEeUI && collab.workspace_roles && WorkspaceRolesToProjectRoles[collab.workspace_roles]
+                        ? WorkspaceRolesToProjectRoles[collab.workspace_roles]
+                        : null
+                    "
+                    :description="false"
+                    :on-role-change="(role: ProjectRoles) => updateCollaborator(collab, role)"
+                  />
+                </template>
+                <template v-else>
+                  <RolesBadge class="!bg-white" :role="collab.roles" />
+                </template>
               </div>
             </div>
             <div class="w-1/5"></div>
@@ -237,7 +243,7 @@ const accessibleRoles = computed<(typeof ProjectRoles)[keyof typeof ProjectRoles
 
 <style scoped lang="scss">
 .badge-text {
-  @apply text-[14px] pt-1 text-center;
+  @apply text-[14px] flex items-center justify-center gap-1 pt-0.5;
 }
 
 .nc-collaborators-list {

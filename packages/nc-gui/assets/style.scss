@@ -2,6 +2,10 @@
 @import '@vue-flow/core/dist/style.css';
 @import '@vue-flow/core/dist/theme-default.css';
 
+body {
+  line-height: 1.3125rem;
+}
+
 :root {
   --topbar-height: 3.1rem;
   --sidebar-bottom-height: 8.5rem;
@@ -30,6 +34,10 @@
 
 .ant-layout-header {
   height: var(--topbar-height) !important;
+}
+
+.anticon-check-circle {
+  @apply !relative top-[-1px] left-0;
 }
 
 html,
@@ -75,6 +83,11 @@ main {
     width: 4px;
     height: 4px;
   }
+
+  &::-webkit-scrollbar-track {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+  }
   &::-webkit-scrollbar-track-piece {
     width: 0px;
   }
@@ -82,11 +95,14 @@ main {
     @apply bg-transparent;
   }
   &::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+
     width: 4px;
-    @apply bg-gray-200;
+    @apply bg-gray-300;
   }
   &::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-300;
+    @apply bg-gray-400;
   }
 }
 
@@ -537,4 +553,49 @@ a {
 
 input[type='number'] {
   @apply !outline-none !ring-0 !border-0;
+}
+
+.ant-pagination {
+  @apply !flex !flex-row !gap-1;
+}
+
+.ant-pagination .ant-pagination-prev {
+  @apply !border-1 !rounded-md !border-gray-200 transform scale-95;
+}
+
+.ant-pagination .ant-pagination-item {
+  @apply !bg-white !rounded-md !border-1 !scale-110 !border-gray-200 !flex !items-center !justify-center;
+}
+
+.ant-pagination .ant-pagination-item a {
+  @apply !no-underline !text-gray-700;
+}
+.ant-pagination .ant-pagination-item-active a {
+  @apply !text-brand-500;
+}
+
+.ant-pagination .ant-pagination-next {
+  @apply !border-1  !rounded-md !border-gray-200 scale-95;
+}
+
+.ant-pagination .ant-pagination-item-active {
+  @apply !bg-brand-50 !text-brand-500 !border-0 !scale-110;
+}
+.ant-pagination .ant-pagination-item-link {
+  @apply !flex !items-center !justify-center;
+}
+
+.ant-pagination .ant-pagination-jump-next-custom-icon .ant-pagination-item-link {
+  @apply !block;
+}
+.ant-pagination .ant-pagination-jump-prev-custom-icon .ant-pagination-item-link {
+  @apply !block;
+}
+
+.ant-pagination .ant-pagination-item-link-icon {
+  @apply !block !py-1.5;
+}
+
+.nc-button.ant-btn.nc-sidebar-node-btn {
+  @apply opacity-0 group-hover:(opacity-100) text-gray-600 hover:(bg-gray-400 bg-opacity-20 text-gray-900) duration-100;
 }

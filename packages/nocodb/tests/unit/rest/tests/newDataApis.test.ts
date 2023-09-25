@@ -302,7 +302,6 @@ function generalDb() {
 
   it('Nested List - Link to another record', async function () {
     const expectedRecords = [1, 3, 1, 2];
-    const expectedRecordsPg = ['1', '3', '1', '2'];
 
     // read first 4 records
     const records = await ncAxiosGet({
@@ -315,8 +314,7 @@ function generalDb() {
 
     // extract LTAR column "City List"
     const cityList = records.body.list.map((r) => r['Cities']);
-    if (isPg(context)) expect(cityList).to.deep.equal(expectedRecordsPg);
-    else expect(cityList).to.deep.equal(expectedRecords);
+    expect(cityList).to.deep.equal(expectedRecords);
   });
 
   it('Nested List - Lookup', async function () {
@@ -360,7 +358,6 @@ function generalDb() {
     });
 
     const expectedRecords = [1, 3, 1, 2];
-    const expectedRecordsPg = ['1', '3', '1', '2'];
 
     // read first 4 records
     const records = await ncAxiosGet({
@@ -373,11 +370,8 @@ function generalDb() {
 
     // extract Lookup column
     const rollupData = records.body.list.map((record) => record.Rollup);
-    if (isPg(context)) {
-      expect(rollupData).to.deep.equal(expectedRecordsPg);
-    } else {
-      expect(rollupData).to.deep.equal(expectedRecords);
-    }
+
+    expect(rollupData).to.deep.equal(expectedRecords);
   });
 
   it('Nested Read - Link to another record', async function () {

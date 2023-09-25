@@ -301,11 +301,7 @@ function tableStaticTest() {
       .expect(200);
 
     const record = response.body;
-    if (isPg(context)) {
-      expect(record['Films']).to.equal('19');
-    } else {
-      expect(record['Films']).to.equal(19);
-    }
+    expect(record['Films']).to.equal(19);
   });
   it('Exist should be true table row when it exists', async function () {
     const row = await getOneRow(context, {

@@ -85,6 +85,8 @@ export function useViewData(
 
   const routeQuery = computed(() => route.value.query as Record<string, string>)
 
+  const { isPaginationLoading } = storeToRefs(useViewsStore())
+
   const paginationData = computed({
     get: () => (isPublic.value ? sharedPaginationData.value : _paginationData.value),
     set: (value) => {
@@ -178,6 +180,7 @@ export function useViewData(
 
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
+    isPaginationLoading.value = false
 
     // to cater the case like when querying with a non-zero offset
     // the result page may point to the target page where the actual returned data don't display on

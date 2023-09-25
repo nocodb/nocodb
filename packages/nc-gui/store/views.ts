@@ -79,7 +79,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
   })
 
   // Used for Grid View Pagination
-  const isPaginationLoading = ref(false)
+  const isPaginationLoading = ref(true)
 
   const loadViews = async ({
     tableId,
@@ -182,6 +182,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
         })
     }
   }
+
+  watch(activeViewTitleOrId, () => {
+    isPaginationLoading.value = true
+  })
 
   return {
     isLockedView,

@@ -10,7 +10,7 @@ export default {
 </script>
 
 <template>
-  <NuxtLayout class="h-screen">
+  <NuxtLayout>
     <slot v-if="!route.meta.hasSidebar" name="content" />
 
     <LazyDashboardView v-else>

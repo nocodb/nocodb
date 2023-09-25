@@ -25,5 +25,6 @@ export const useConfigStore = defineStore('configStore', () => {
 
   return {
     isMobileMode,
+    isViewPortMobile,
   }
 })

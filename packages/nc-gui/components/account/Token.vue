@@ -84,6 +84,10 @@ const deleteToken = async (token: string): Promise<void> => {
     await api.orgTokens.delete(token)
     // message.success(t('msg.success.tokenDeleted'))
     await loadTokens()
+    if (!tokens.value.length && currentPage.value !== 1) {
+      currentPage.value--
+      loadTokens(currentPage.value)
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

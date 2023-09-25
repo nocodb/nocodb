@@ -86,13 +86,15 @@ onMounted(() => {
             <GeneralIcon v-else icon="signout" class="menu-icon" />
             <span class="menu-btn"> Log Out </span>
           </NcMenuItem>
-          <NcDivider />
-          <a v-if="!isMobileMode" href="https://docs.nocodb.com" target="_blank" class="!underline-transparent">
-            <NcMenuItem>
-              <GeneralIcon icon="help" class="menu-icon mt-0.5" />
-              <span class="menu-btn"> Help Center </span>
-            </NcMenuItem>
-          </a>
+          <template v-if="!isMobileMode">
+            <NcDivider />
+            <a href="https://docs.nocodb.com" target="_blank" class="!underline-transparent">
+              <NcMenuItem>
+                <GeneralIcon icon="help" class="menu-icon mt-0.5" />
+                <span class="menu-btn"> Help Center </span>
+              </NcMenuItem>
+            </a>
+          </template>
           <NcDivider />
           <a href="https://discord.gg/5RgZmkW" target="_blank" class="!underline-transparent">
             <NcMenuItem class="social-icon-wrapper">

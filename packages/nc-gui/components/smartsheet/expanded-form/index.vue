@@ -349,7 +349,7 @@ export default {
     class="nc-drawer-expanded-form"
     :class="{ active: isExpanded }"
   >
-    <div class="flex w-full items-center relative pb-2 justify-between">
+    <div class="flex w-full items-center nc-expanded-form-header relative pb-2 justify-between">
       <div class="flex gap-3">
         <div class="flex gap-1">
           <NcButton v-if="props.showNextPrevIcons" type="secondary" size="small" class="nc-prev-arrow" @click="$emit('prev')">
@@ -380,7 +380,11 @@ export default {
                   {{ $t('general.reload') }}
                 </div>
               </NcMenuItem>
-              <NcMenuItem v-if="isUIAllowed('dataEdit') && !isNew" class="text-gray-700" @click="!isNew && onDuplicateRow">
+              <NcMenuItem
+                v-if="isUIAllowed('dataEdit') && !isNew"
+                class="text-gray-700"
+                @click="!isNew ? onDuplicateRow() : () => {}"
+              >
                 <div v-e="['c:row-expand:duplicate']" class="flex gap-2 items-center">
                   <component :is="iconMap.copy" class="cursor-pointer nc-duplicate-row" />
                   Duplicate record
@@ -399,7 +403,7 @@ export default {
             </NcMenu>
           </template>
         </NcDropdown>
-        <NcButton type="secondary" size="small" @click="onClose">
+        <NcButton type="secondary" size="small" class="nc-expand-form-close-btn" @click="onClose">
           <MdiClose class="text-md text-gray-700" />
         </NcButton>
       </div>
@@ -498,15 +502,15 @@ export default {
           v-if="isUIAllowed('dataEdit')"
           class="w-full absolute bottom-0 z-10 bg-white flex justify-end border-1 border-gray-200 p-2 rounded-b-lg"
         >
-          <NcButton type="primary" size="medium" @click="save"> Save </NcButton>
+          <NcButton type="primary" size="medium" class="nc-expand-form-save-btn" @click="save"> Save </NcButton>
         </div>
       </div>
       <div
-        v-if="!isNew"
+        v-if="!isNew && commentsDrawer && isUIAllowed('commentList')"
         class="nc-comments-drawer border-1 border-gray-200 w-2/6 rounded-lg min-w-0"
         :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
       >
-        <LazySmartsheetExpandedFormComments v-if="commentsDrawer && isUIAllowed('commentList')" />
+        <LazySmartsheetExpandedFormComments />
       </div>
     </div>
   </a-modal>

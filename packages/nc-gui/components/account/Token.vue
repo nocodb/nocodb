@@ -148,58 +148,69 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
       </div>
       <span>Create personal API tokens to use in automation or external apps.</span>
       <div class="w-[780px] mt-5 border-1 rounded-md">
-        <div class="flex w-full pl-4 bg-gray-50 border-b-1">
-          <span class="px-3 py-3.5 text-gray-500 font-medium text-3.5 w-1/6">Token name</span>
-          <span class="px-3 py-3.5 text-gray-500 font-medium text-3.5 w-1/4 text-center">Creator</span>
-          <span class="px-3 py-3.5 text-gray-500 font-medium text-3.5 w-1/6 ml-12 text-center">Token</span>
-          <span class="py-3.5 text-gray-500 font-medium text-3.5 w-1/4 ml-15 text-center">Actions</span>
+        <div class="flex w-full pl-5 bg-gray-50 border-b-1">
+          <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9">Token name</span>
+          <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9 text-start">Creator</span>
+          <span class="py-3.5 text-gray-500 font-medium text-3.5 w-3/9 text-start">Token</span>
+          <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9 text-center">Actions</span>
         </div>
         <main>
-          <div v-if="showNewTokenModal" class="flex gap-5 px-3 py-3.5 text-gray-500 font-medium text-3.5 w-full">
+          <div
+            v-if="showNewTokenModal"
+            class="flex gap-5 px-3 py-3.5 text-gray-500 font-medium text-3.5 w-full nc-token-generate"
+          >
             <a-input
               :ref="descriptionInput"
               v-model:value="selectedTokenData.description"
               type="text"
               class="!rounded-lg !py-2"
               placeholder="Token Name"
-              data-testid="nc-token-modal-description"
+              data-testid="nc-token-input"
             />
-            <div class="flex gap-2 justify-start mr-10">
+            <div class="flex gap-2 justify-start">
               <NcButton v-if="!isLoading" type="secondary" size="small" @click="showNewTokenModal = false"> Cancel </NcButton>
-              <NcButton type="primary" size="sm" :is-loading="isLoading" @click="generateToken"> Save </NcButton>
+              <NcButton type="primary" size="sm" :is-loading="isLoading" data-testid="nc-token-save-btn" @click="generateToken">
+                Save
+              </NcButton>
             </div>
           </div>
-          <div v-for="el of tokens" :key="el.id" class="flex border-b-1 px-7 py-3 justify-between">
-            <span class="text-gray-500 font-medium text-3.5 text-start w-1/8 ml-3">
-              <GeneralTruncateText placement="top" length="15">
+          <div v-for="el of tokens" :key="el.id" data-testid="nc-token-list" class="flex border-b-1 pl-5 py-3 justify-between">
+            <span class="text-gray-500 font-medium text-3.5 text-start w-2/9">
+              <GeneralTruncateText placement="top" length="25">
                 {{ el.description }}
               </GeneralTruncateText>
             </span>
-            <span class="text-gray-500 font-medium text-3.5 text-start w-1/4">
+            <span class="text-gray-500 font-medium text-3.5 text-start w-2/9">
               <GeneralTruncateText placement="top" length="50">
                 {{ el.created_by }}
               </GeneralTruncateText>
             </span>
-            <span class="text-gray-500 font-medium text-3.5 text-start w-1/4 ml-10">
-              <GeneralTruncateText v-if="el.token === selectedToken.id && selectedToken.isShow" placement="top" length="22">
+            <span class="text-gray-500 font-medium text-3.5 text-start w-3/9">
+              <GeneralTruncateText v-if="el.token === selectedToken.id && selectedToken.isShow" placement="top" length="32">
                 {{ el.token }}
               </GeneralTruncateText>
-              <span v-else>****************************</span>
+              <span v-else>**********************************</span>
             </span>
             <!-- ACTIONS -->
-            <span class="text-gray-500 font-medium text-3.5 text-start w-1/4">
-              <div class="flex justify-center gap-3 ml-4">
+            <span class="text-gray-500 font-medium text-3.5 text-start w-2/9">
+              <div class="flex justify-center gap-3">
                 <component
                   :is="iconMap.eyeSlash"
                   v-if="el.token === selectedToken.id && selectedToken.isShow"
                   class="hover::cursor-pointer"
                   @click="showToken(el.token as string)"
                 />
-                <component :is="iconMap.eye" v-else class="hover::cursor-pointer" @click="showToken(el.token as string)" />
+                <component
+                  :is="iconMap.eye"
+                  v-else
+                  class="nc-toggle-token-visibility hover::cursor-pointer"
+                  @click="showToken(el.token as string)"
+                />
                 <component :is="iconMap.copy" class="hover::cursor-pointer" @click="copyToken(el.token)" />
                 <component
                   :is="iconMap.delete"
-                  class="hover::cursor-pointer"
+                  data-testid="nc-token-row-action-icon"
+                  class="nc-delete-icon hover::cursor-pointer"
                   @click="triggerDeleteModal(el.token as string, el.description as string)"
                 />
               </div>
@@ -207,7 +218,7 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
           </div>
         </main>
       </div>
-      <div class="flex items-center justify-center mt-4">
+      <div v-if="pagination.total > 10" class="flex items-center justify-center mt-4">
         <a-pagination
           v-model:current="currentPage"
           :total="pagination.total"

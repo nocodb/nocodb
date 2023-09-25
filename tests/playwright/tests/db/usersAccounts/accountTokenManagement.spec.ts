@@ -19,7 +19,7 @@ test.describe('User roles', () => {
     await unsetup(context);
   });
 
-  test('Create and Delete token', async () => {
+  test.only('Create and Delete token', async () => {
     test.slow();
     const parallelId = process.env.TEST_PARALLEL_INDEX ?? '0';
     await accountTokenPage.goto();

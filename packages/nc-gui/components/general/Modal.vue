@@ -57,20 +57,18 @@ const visible = useVModel(props, 'visible', emits)
 
 <template>
   <a-modal
-      v-model:visible="visible"
-      :class="{ active: visible }"
-      :width="width"
-      :closable="false"
-      wrap-class-name="nc-modal-wrapper"
-      :footer="null"
-      :destroy-on-close="destroyOnClose"
-      @keydown.esc="visible = false"
-    >
-      <div
-        class="nc-modal max-h-[{{ height }}]"
-      >
-        <slot />
-      </div>
+    v-model:visible="visible"
+    :class="{ active: visible }"
+    :width="width"
+    :closable="false"
+    wrap-class-name="nc-modal-wrapper"
+    :footer="null"
+    :destroy-on-close="destroyOnClose"
+    @keydown.esc="visible = false"
+  >
+    <div :class="`nc-modal max-h-[${height}]`">
+      <slot />
+    </div>
   </a-modal>
 </template>
 

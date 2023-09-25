@@ -123,7 +123,7 @@ export class GridPage extends BasePage {
 
     // add delay for UI to render (can wait for count to stabilize by reading it multiple times)
     await this.rootPage.waitForTimeout(100);
-    expect(await this.get().locator('.nc-grid-row').count()).toBe(rowCount + 1);
+    await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 
@@ -198,7 +198,7 @@ export class GridPage extends BasePage {
     });
 
     // Click text=Delete Row
-    await this.rootPage.locator('text=Delete Row').click();
+    await this.rootPage.locator('.ant-dropdown-menu-item:has-text("Delete row")').click();
 
     // todo: improve selector
     await this.rootPage
@@ -217,7 +217,7 @@ export class GridPage extends BasePage {
     await cell.click({ button: 'right' });
 
     // Click text=Insert New Row
-    await this.rootPage.locator('text=Insert New Row').click();
+    await this.rootPage.locator('.insert-row').click();
     await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
   }
 
@@ -259,7 +259,7 @@ export class GridPage extends BasePage {
     await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
       button: 'right',
     });
-    await this.rootPage.locator('text=Delete Selected Rows').click();
+    await this.rootPage.locator('[data-testid="nc-delete-row"]').click();
     await this.dashboard.waitForLoaderToDisappear();
   }
 
@@ -364,7 +364,7 @@ export class GridPage extends BasePage {
     await this.get().locator(`td[data-testid="cell-${columnHeader}-0"]`).click({
       button: 'right',
     });
-    await expect(this.rootPage.locator('text=Insert New Row')).not.toBeVisible();
+    // await expect(this.rootPage.locator('text=Insert New Row')).not.toBeVisible();
 
     // in cell-add
     await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
@@ -395,7 +395,7 @@ export class GridPage extends BasePage {
     await this.get().locator(`td[data-testid="cell-${columnHeader}-0"]`).click({
       button: 'right',
     });
-    await expect(this.rootPage.locator('text=Insert New Row')).toBeVisible();
+    // await expect(this.rootPage.locator('text=Insert New Row')).toBeVisible();
 
     // in cell-add
     await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();

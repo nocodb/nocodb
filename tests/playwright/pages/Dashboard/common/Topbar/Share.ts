@@ -51,7 +51,16 @@ export class TopbarSharePage extends BasePage {
   }
 
   async clickShareBasePublicAccess() {
-    await this.get().locator(`[data-testid="nc-share-base-sub-modal"]`).locator('.ant-switch').nth(0).click();
+    await this.get()
+      .locator(`[data-testid="nc-share-base-sub-modal"]`)
+      .locator('.ant-switch')
+      .nth(0)
+      .click({
+        position: {
+          x: 4,
+          y: 4,
+        },
+      });
   }
 
   async isSharedBasePublicAccessEnabled() {
@@ -63,14 +72,25 @@ export class TopbarSharePage extends BasePage {
   }
 
   async clickShareBaseEditorAccess() {
-    await this.get().locator(`[data-testid="nc-share-base-sub-modal"]`).locator('.ant-switch').nth(1).click();
+    await this.rootPage.waitForTimeout(1000);
+
+    const shareBaseSwitch = this.get().locator(`[data-testid="nc-share-base-sub-modal"]`).locator('.ant-switch');
+    const count = await shareBaseSwitch.count();
+
+    await this.get()
+      .locator(`[data-testid="nc-share-base-sub-modal"]`)
+      .locator('.ant-switch')
+      .nth(count - 1)
+      .click({
+        position: { x: 4, y: 4 },
+      });
   }
 
   async isSharedBaseEditorAccessEnabled() {
     return await this.get()
       .locator(`[data-testid="nc-share-base-sub-modal"]`)
       .locator('.ant-switch')
-      .nth(1)
+      .nth(0)
       .isChecked();
   }
 

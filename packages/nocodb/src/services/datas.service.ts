@@ -159,21 +159,26 @@ export class DatasService {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
 
-    let data = [];
-    let count = 0;
-    try {
-      data = await nocoExecute(
-        ast,
-        await baseModel.list(listArgs),
-        {},
-        listArgs,
-      );
-      count = await baseModel.count(listArgs);
-    } catch (e) {
-      console.log(e);
-      NcError.internalServerError('Please check server log for more details');
-    }
-
+    const [count, data] = await Promise.all([
+      baseModel.count(listArgs),
+      (async () => {
+        let data = [];
+        try {
+          data = await nocoExecute(
+            ast,
+            await baseModel.list(listArgs),
+            {},
+            listArgs,
+          );
+        } catch (e) {
+          console.log(e);
+          NcError.internalServerError(
+            'Please check server log for more details',
+          );
+        }
+        return data;
+      })(),
+    ]);
     return new PagedResponseImpl(data, {
       ...query,
       count,
@@ -650,10 +655,13 @@ export class DatasService {
       )
     )?.[key];
 
-    const count = await baseModel.hmListCount({
-      colId: param.colId,
-      id: param.rowId,
-    }, param.query);
+    const count = await baseModel.hmListCount(
+      {
+        colId: param.colId,
+        id: param.rowId,
+      },
+      param.query,
+    );
 
     return new PagedResponseImpl(data, {
       totalRows: count,

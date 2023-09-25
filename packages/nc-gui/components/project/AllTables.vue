@@ -57,11 +57,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
       const newTableDom = document.querySelector(`[data-table-id="${table.id}"]`)
       if (!newTableDom) return
 
-      // Verify that table node is not in the viewport
-      if (isElementInvisible(newTableDom)) {
-        // Scroll to the table node
-        newTableDom?.scrollIntoView({ behavior: 'smooth' })
-      }
+      newTableDom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }, 1000)
 
     close(1000)

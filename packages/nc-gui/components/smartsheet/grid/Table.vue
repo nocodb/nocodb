@@ -1136,7 +1136,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
 <template>
   <div class="flex flex-col" :class="`${headerOnly !== true ? 'h-full w-full' : ''}`">
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative" :class="gridWrapperClass">
-      <a-dropdown
+      <NcDropdown
         v-model:visible="contextMenu"
         :trigger="isSqlView ? [] : ['contextmenu']"
         overlay-class-name="nc-dropdown-grid-context-menu"
@@ -1220,7 +1220,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
                       </div>
 
                       <template v-if="isEeUI && persistMenu" #overlay>
-                        <a-menu>
+                        <NcMenu>
                           <a-sub-menu v-if="predictedNextColumn?.length" key="predict-column">
                             <template #title>
                               <div class="flex flex-row items-center py-3">
@@ -1230,33 +1230,33 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
                               </div>
                             </template>
                             <template #expandIcon></template>
-                            <a-menu>
+                            <NcMenu>
                               <template v-for="col in predictedNextColumn" :key="`predict-${col.title}-${col.type}`">
-                                <a-menu-item>
+                                <NcMenuItem>
                                   <div class="flex flex-row items-center py-3" @click="loadColumn(col.title, col.type)">
                                     <div class="text-xs pl-2">{{ col.title }}</div>
                                   </div>
-                                </a-menu-item>
+                                </NcMenuItem>
                               </template>
 
-                              <a-menu-item>
+                              <NcMenuItem>
                                 <div class="flex flex-row items-center py-3" @click="predictNextColumn">
                                   <div class="text-red-500 text-xs pl-2">
                                     <MdiReload />
                                     Generate Again
                                   </div>
                                 </div>
-                              </a-menu-item>
-                            </a-menu>
+                              </NcMenuItem>
+                            </NcMenu>
                           </a-sub-menu>
-                          <a-menu-item v-else>
+                          <NcMenuItem v-else>
                             <!-- Predict Columns -->
                             <div class="flex flex-row items-center py-3" @click="predictNextColumn">
                               <MdiReload v-if="predictingNextColumn" class="animate-infinite animate-spin" />
                               <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-gray-500" />
                               <div class="text-xs pl-2">Predict Columns</div>
                             </div>
-                          </a-menu-item>
+                          </NcMenuItem>
                           <a-sub-menu v-if="predictedNextFormulas" key="predict-formula">
                             <template #title>
                               <div class="flex flex-row items-center py-3">
@@ -1266,28 +1266,28 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
                               </div>
                             </template>
                             <template #expandIcon></template>
-                            <a-menu>
+                            <NcMenu>
                               <template v-for="col in predictedNextFormulas" :key="`predict-${col.title}-formula`">
-                                <a-menu-item>
+                                <NcMenuItem>
                                   <div
                                     class="flex flex-row items-center py-3"
                                     @click="loadColumn(col.title, 'Formula', { formula_raw: col.formula })"
                                   >
                                     <div class="text-xs pl-2">{{ col.title }}</div>
                                   </div>
-                                </a-menu-item>
+                                </NcMenuItem>
                               </template>
-                            </a-menu>
+                            </NcMenu>
                           </a-sub-menu>
-                          <a-menu-item v-else>
+                          <NcMenuItem v-else>
                             <!-- Predict Formulas -->
                             <div class="flex flex-row items-center py-3" @click="predictNextFormulas">
                               <MdiReload v-if="predictingNextFormulas" class="animate-infinite animate-spin" />
                               <MdiCalculatorVariant v-else class="flex h-[1rem] text-gray-500" />
                               <div class="text-xs pl-2">Predict Formulas</div>
                             </div>
-                          </a-menu-item>
-                        </a-menu>
+                          </NcMenuItem>
+                        </NcMenu>
                       </template>
                       <template v-else #overlay>
                         <SmartsheetColumnEditOrAddProvider
@@ -1484,89 +1484,98 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
         </div>
 
         <template v-if="!isLocked && hasEditPermission" #overlay>
-          <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
-            <a-menu-item
+          <NcMenu class="!rounded !py-0" @click="contextMenu = false">
+            <NcMenuItem
               v-if="isEeUI && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
+              v-e="['a:row:update-bulk']"
               @click="emits('bulkUpdateDlg')"
             >
-              <div v-e="['a:row:update-bulk']" class="nc-project-menu-item">
-                <component :is="iconMap.edit" />
-                <!-- TODO i18n -->
-                Update Selected Rows
-              </div>
-            </a-menu-item>
+              <component :is="iconMap.edit" />
+              <!-- TODO i18n -->
+              Update Selected Rows
+            </NcMenuItem>
 
-            <a-menu-item
+            <NcMenuItem
               v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
+              v-e="['a:row:delete-bulk']"
+              class="nc-project-menu-item !text-red-600 !hover:bg-red-50"
+              data-testid="nc-delete-row"
               @click="deleteSelectedRows"
             >
-              <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item">
-                <component :is="iconMap.delete" />
-                <!-- Delete Selected Rows -->
-                {{ $t('activity.deleteSelectedRow') }}
-              </div>
-            </a-menu-item>
+              <component :is="iconMap.delete" />
+              <!-- Delete Selected Rows -->
+              {{ $t('activity.deleteSelectedRow') }}
+            </NcMenuItem>
 
-            <a-menu-item v-if="contextMenuTarget && selectedRange.isSingleCell()" @click="addEmptyRow(contextMenuTarget.row + 1)">
-              <div v-e="['a:row:insert']" class="nc-project-menu-item">
-                <GeneralIcon icon="plus" />
-                <!-- Insert New Row -->
-                {{ $t('activity.insertRow') }}
-              </div>
-            </a-menu-item>
+            <!-- <NcMenuItem -->
+            <!-- v-if="contextMenuTarget && selectedRange.isSingleCell()" -->
+            <!-- v-e="['a:row:insert']" -->
+            <!-- class="nc-project-menu-item" -->
+            <!-- @click="addEmptyRow(contextMenuTarget.row + 1)" -->
+            <!-- > -->
+            <!-- <GeneralIcon icon="plus" /> -->
+            <!-- Insert New Row -->
+            <!-- {{ $t('activity.insertRow') }} -->
+            <!-- </NcMenuItem> -->
 
-            <a-menu-item v-if="contextMenuTarget" data-testid="context-menu-item-copy" @click="copyValue(contextMenuTarget)">
-              <div v-e="['a:row:copy']" class="nc-project-menu-item">
-                <GeneralIcon icon="copy" />
-                <!-- Copy -->
-                {{ $t('general.copy') }}
-              </div>
-            </a-menu-item>
+            <NcMenuItem
+              v-if="contextMenuTarget"
+              v-e="['a:row:copy']"
+              class="nc-project-menu-item"
+              data-testid="context-menu-item-copy"
+              @click="copyValue(contextMenuTarget)"
+            >
+              <GeneralIcon icon="copy" />
+              <!-- Copy -->
+              {{ $t('general.copy') }}
+            </NcMenuItem>
 
             <!--            Clear cell -->
-            <a-menu-item
+            <NcMenuItem
               v-if="
                 contextMenuTarget &&
                 selectedRange.isSingleCell() &&
                 (isLinksOrLTAR(fields[contextMenuTarget.col]) || !isVirtualCol(fields[contextMenuTarget.col]))
               "
+              v-e="['a:row:clear']"
+              class="nc-project-menu-item"
               @click="clearCell(contextMenuTarget)"
             >
-              <div v-e="['a:row:clear']" class="nc-project-menu-item">
-                <GeneralIcon icon="close" />
-                {{ $t('general.clear') }}
-              </div>
-            </a-menu-item>
+              <GeneralIcon icon="close" />
+              {{ $t('general.clear') }}
+            </NcMenuItem>
 
             <!--            Clear cell -->
-            <a-menu-item v-else-if="contextMenuTarget" @click="clearSelectedRangeOfCells()">
-              <div v-e="['a:row:clear-range']" class="nc-project-menu-item">
-                <GeneralIcon icon="closeBox" class="text-gray-500" />
-                Clear
-              </div>
-            </a-menu-item>
-
-            <a-menu-item
+            <NcMenuItem
+              v-else-if="contextMenuTarget"
+              v-e="['a:row:clear-range']"
+              class="nc-project-menu-item"
+              @click="clearSelectedRangeOfCells()"
+            >
+              <GeneralIcon icon="closeBox" class="text-gray-500" />
+              Clear
+            </NcMenuItem>
+            <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected))" />
+            <NcMenuItem
               v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
+              v-e="['a:row:delete']"
+              class="nc-project-menu-item !text-red-600 !hover:bg-red-50"
               @click="confirmDeleteRow(contextMenuTarget.row)"
             >
-              <div v-e="['a:row:delete']" class="nc-project-menu-item text-red-600">
-                <GeneralIcon icon="delete" />
-                <!-- Delete Row -->
-                {{ $t('activity.deleteRow') }}
-              </div>
-            </a-menu-item>
-
-            <a-menu-item v-else-if="contextMenuTarget && deleteRangeOfRows" @click="deleteSelectedRangeOfRows">
-              <div v-e="['a:row:delete']" class="nc-project-menu-item text-red-600">
+              <GeneralIcon icon="delete" />
+              <!-- Delete Row -->
+              {{ $t('activity.deleteRow') }}
+            </NcMenuItem>
+            <div v-else-if="contextMenuTarget && deleteRangeOfRows">
+              <NcMenuItem v-e="['a:row:delete']" class="nc-project-menu-item text-red-600" @click="deleteSelectedRangeOfRows">
                 <GeneralIcon icon="delete" class="text-gray-500 text-error" />
                 <!-- Delete Rows -->
                 Delete rows
-              </div>
-            </a-menu-item>
-          </a-menu>
+              </NcMenuItem>
+            </div>
+          </NcMenu>
         </template>
-      </a-dropdown>
+      </NcDropdown>
     </div>
 
     <div v-if="showSkeleton && headerOnly !== true" class="flex flex-row justify-center item-center min-h-10">
@@ -1575,6 +1584,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
     <LazySmartsheetPagination
       v-else-if="headerOnly !== true"
       v-model:pagination-data="paginationDataRef"
+      show-api-timing
       align-count-on-right
       :change-page="changePage"
       :hide-sidebars="paginationStyleRef?.hideSidebars === true"

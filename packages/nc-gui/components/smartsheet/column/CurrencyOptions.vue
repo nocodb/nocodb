@@ -49,11 +49,7 @@ setAdditionalValidations({
 
 const currencyList = currencyCodes || []
 
-const currencyLocaleList = []
-
-currencyLocales().then((locales) => {
-  currencyLocaleList.push(...locales)
-})
+const currencyLocaleList = ref<{ text: string; value: string }[]>([])
 
 const isMoney = computed(() => vModel.value.dt === 'money')
 
@@ -72,6 +68,10 @@ vModel.value.meta = {
   currency_code: 'USD',
   ...vModel.value.meta,
 }
+
+currencyLocales().then((locales) => {
+  currencyLocaleList.value.push(...locales)
+})
 </script>
 
 <template>

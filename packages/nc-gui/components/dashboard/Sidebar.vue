@@ -43,7 +43,7 @@ onUnmounted(() => {
     </div>
     <div
       ref="treeViewDom"
-      class="flex flex-col nc-scrollbar-sm-dark flex-grow"
+      class="flex flex-col nc-scrollbar-dark-md flex-grow"
       :class="{
         'border-t-1': !isSharedBase,
         'border-transparent': !isTreeViewOnScrollTop,

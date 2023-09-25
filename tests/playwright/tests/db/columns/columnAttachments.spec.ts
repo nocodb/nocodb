@@ -46,12 +46,15 @@ test.describe('Attachment column', () => {
       columnHeader: 'testAttach',
     });
 
+    // Kludge: tooltip somehow persists. fix me!
+    await dashboard.rootPage.reload();
+
     await dashboard.viewSidebar.createFormView({
       title: 'Form 1',
     });
     await dashboard.rootPage.waitForTimeout(500);
     const sharedFormUrl = await dashboard.form.topbar.getSharedViewUrl();
-    await dashboard.viewSidebar.openView({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country' });
 
     // Verify attachment in shared form
     const newPage = await context.newPage();

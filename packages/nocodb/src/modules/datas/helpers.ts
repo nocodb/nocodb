@@ -36,13 +36,15 @@ export async function getViewAndModelByAliasOrId(param: {
     project_id: project.id,
     aliasOrId: param.tableName,
   });
+
+  if (!model) NcError.notFound('Table not found');
+
   const view =
     param.viewName &&
     (await View.getByTitleOrId({
       titleOrId: param.viewName,
       fk_model_id: model.id,
     }));
-  if (!model) NcError.notFound('Table not found');
   if (param.viewName && !view) NcError.notFound('View not found');
   return { model, view };
 }
@@ -260,7 +262,7 @@ export async function getDbRows(param: {
       ast,
       await baseModel.list({ ...listArgs, ...dependencyFields, offset, limit }),
       {},
-      query,
+      dependencyFields,
     );
 
     if (!rows?.length) {

@@ -262,7 +262,7 @@ export async function getDbRows(param: {
       ast,
       await baseModel.list({ ...listArgs, ...dependencyFields, offset, limit }),
       {},
-      query,
+      dependencyFields,
     );
 
     if (!rows?.length) {

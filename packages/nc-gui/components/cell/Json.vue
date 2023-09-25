@@ -5,6 +5,7 @@ import {
   EditModeInj,
   IsFormInj,
   ReadonlyInj,
+  JsonExpandInj,
   computed,
   inject,
   ref,
@@ -41,7 +42,7 @@ const localValueState = ref<string | undefined>()
 
 const error = ref<string | undefined>()
 
-const isExpanded = ref(false)
+const isExpanded = inject(JsonExpandInj,ref(false))
 
 const localValue = computed<string | Record<string, any> | undefined>({
   get: () => localValueState.value,
@@ -142,7 +143,6 @@ useSelectedCellKeyupListener(active, (e) => {
   <component
     :is="isExpanded ? NcModal : 'div'"
     v-model:visible="isExpanded"
-    class="z-1100"
     :closable="false"
     centered
     :footer="null"

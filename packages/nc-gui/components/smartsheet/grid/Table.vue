@@ -11,6 +11,7 @@ import {
   MetaInj,
   NavigateDir,
   ReadonlyInj,
+  JsonExpandInj,
   computed,
   enumColor,
   extractPkFromRow,
@@ -220,6 +221,9 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
     contextMenuTarget.value = target
   }
 }
+
+const isJsonExpand = ref(false)
+provide(JsonExpandInj,isJsonExpand)
 
 // #Cell - 1
 
@@ -1211,7 +1215,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
                     <a-dropdown
                       v-model:visible="addColumnDropdown"
                       :trigger="['click']"
-                      overlay-class-name="nc-dropdown-grid-add-column !z-1000"
+                      overlay-class-name="nc-dropdown-grid-add-column"
                       @visible-change="persistMenu = altModifier"
                     >
                       <div class="h-full w-[60px] flex items-center justify-center">
@@ -1296,6 +1300,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
                           :column-position="columnOrder"
                           @submit="closeAddColumnDropdown(true)"
                           @cancel="closeAddColumnDropdown()"
+                          :class="{ hidden: isJsonExpand }"
                           @click.stop
                           @keydown.stop
                           @mounted="preloadColumn = undefined"

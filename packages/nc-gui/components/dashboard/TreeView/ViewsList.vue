@@ -348,6 +348,7 @@ function onOpenModal({
 <template>
   <DashboardTreeViewCreateViewBtn
     v-if="isUIAllowed('viewCreateOrEdit')"
+    class="!sm:hidden"
     :overlay-class-name="isDefaultBase ? '!left-18 !min-w-42' : '!left-25 !min-w-42'"
   >
     <NcButton
@@ -367,6 +368,17 @@ function onOpenModal({
       <span class="text-sm">New View</span>
     </NcButton>
   </DashboardTreeViewCreateViewBtn>
+
+  <div
+    v-if="!views.length"
+    class="text-gray-500 my-1.5 md:hidden"
+    :class="{
+      'ml-19.25': isDefaultBase,
+      'ml-24.75': !isDefaultBase,
+    }"
+  >
+    No Views
+  </div>
 
   <a-menu
     ref="menuRef"

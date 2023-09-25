@@ -5,12 +5,18 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { activeWorkspace, isWorkspaceLoading } = storeToRefs(workspaceStore)
 
+const { activeViewTitleOrId } = storeToRefs(useViewsStore())
+
+const { activeTableId } = storeToRefs(useTablesStore())
+
 const { isMobileMode } = useGlobal()
+
+const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOrId.value && !activeTableId.value))
 </script>
 
 <template>
   <div
-    class="flex items-center nc-sidebar-header w-full border-b-1 border-gray-200 group sm:(px-2 py-1.2) md:(px-1 py-1)"
+    class="flex items-center nc-sidebar-header w-full border-b-1 border-gray-200 group md:(px-2 py-1.2) sm:(px-1 py-1)"
     :data-workspace-title="activeWorkspace?.title"
     style="height: var(--topbar-height)"
   >
@@ -35,6 +41,7 @@ const { isMobileMode } = useGlobal()
           }}
         </template>
         <NcButton
+          v-if="showSidebarBtn"
           :type="isMobileMode ? 'secondary' : 'text'"
           :size="isMobileMode ? 'medium' : 'small'"
           class="nc-sidebar-left-toggle-icon !text-gray-700 !hover:text-gray-800 !sm:(h-10.5 max-h-10.5 max-w-10.5) !md:(hover:bg-gray-200)"

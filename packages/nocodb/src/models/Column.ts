@@ -925,7 +925,7 @@ export default class Column<T = any> implements ColumnType {
 
   static async update(
     colId: string,
-    column: Partial<Column>,
+    column: Partial<Column> & Partial<Pick<ColumnReqType, 'column_order'>>,
     ncMeta = Noco.ncMeta,
   ) {
     const oldCol = await Column.get({ colId }, ncMeta);
@@ -1078,6 +1078,18 @@ export default class Column<T = any> implements ColumnType {
       for (const barcodeCol of barcodeCols) {
         await Column.delete(barcodeCol.fk_column_id, ncMeta);
       }
+    }
+    if (
+      column.column_order &&
+      column.column_order.order &&
+      column.column_order.view_id
+    ) {
+      const viewColumn = (
+        await View.getColumns(column.column_order.view_id)
+      ).find((col) => col.fk_column_id === column.id);
+      await View.updateColumn(column.column_order.view_id, viewColumn.id, {
+        order: column.column_order.order,
+      });
     }
 
     // get existing cache

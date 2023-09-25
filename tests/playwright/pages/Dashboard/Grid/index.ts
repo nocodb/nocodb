@@ -224,7 +224,6 @@ export class GridPage extends BasePage {
   async openExpandedRow({ index }: { index: number }) {
     await this.row(index).locator(`td[data-testid="cell-Id-${index}"]`).hover();
     await this.row(index).locator(`div[data-testid="nc-expand-${index}"]`).click();
-    await (await this.rootPage.locator('.ant-drawer-body').elementHandle())?.waitForElementState('stable');
   }
 
   async selectRow(index: number) {

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
-import type { ApiTokenType, RequestParams, UserType } from 'nocodb-sdk'
+import type { ApiTokenType, RequestParams } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, ref, useApi, useCopy, useNuxtApp } from '#imports'
 
 const { api, isLoading } = useApi()
@@ -100,12 +100,18 @@ const copyToken = async (token: string | undefined) => {
   }
 }
 
+const triggerDeleteModal = (tokenToDelete: string, tokenDescription: string) => {
+  tokenToCopy.value = tokenToDelete
+  tokenDesc.value = tokenDescription
+  isModalOpen.value = true
+}
+
 const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
   <div class="h-full overflow-y-scroll scrollbar-thin-dull pt-2">
-    <div class="max-w-[900px] mx-auto p-4" data-testid="nc-token-list">
+    <div class="max-w-[810px] mx-auto p-4" data-testid="nc-token-list">
       <div class="py-2 flex gap-4 items-center justify-between">
         <h6 class="text-2xl my-4 text-left font-bold">API Tokens</h6>
         <NcButton
@@ -115,16 +121,21 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
           type="primary"
           @click="showNewTokenModal = true"
         >
-          {{ $t('title.addNewToken') }}
+          <span class="hidden md:block">
+            {{ $t('title.addNewToken') }}
+          </span>
+          <span class="flex items-center justify-center md:hidden">
+            <component :is="iconMap.plus" />
+          </span>
         </NcButton>
       </div>
       <span>Create personal API tokens to use in automation or external apps.</span>
-      <div class="w-full mt-5 border-1 rounded-md">
-        <div class="flex w-full px-4 bg-gray-50 border-b-1">
+      <div class="w-[780px] mt-5 border-1 rounded-md">
+        <div class="flex w-full pl-4 bg-gray-50 border-b-1">
           <span class="px-3 py-3.5 text-gray-500 font-medium text-3.5 w-1/6">Token name</span>
           <span class="px-3 py-3.5 text-gray-500 font-medium text-3.5 w-1/4 text-center">Creator</span>
           <span class="px-3 py-3.5 text-gray-500 font-medium text-3.5 w-1/6 ml-12 text-center">Token</span>
-          <span class="px-3 py-3.5 text-gray-500 font-medium text-3.5 w-1/4 ml-20 text-center">Actions</span>
+          <span class="py-3.5 text-gray-500 font-medium text-3.5 w-1/4 ml-15 text-center">Actions</span>
         </div>
         <main>
           <div v-if="showNewTokenModal" class="flex gap-5 px-3 py-3.5 text-gray-500 font-medium text-3.5 w-full">
@@ -142,22 +153,43 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
             </div>
           </div>
           <div v-for="el of tokens" :key="el.id" class="flex border-b-1 px-7 py-3 justify-between">
-            <span class="text-gray-500 font-medium text-3.5 text-start w-1/8 ml-3">{{ el.description }}</span>
-            <span class="text-gray-500 font-medium text-3.5 text-start w-1/4">{{ el.created_by }}</span>
+            <span class="text-gray-500 font-medium text-3.5 text-start w-1/8 ml-3">
+              <GeneralTruncateText placement="top" length="15">
+                {{ el.description }}
+              </GeneralTruncateText>
+            </span>
             <span class="text-gray-500 font-medium text-3.5 text-start w-1/4">
+              <GeneralTruncateText placement="top" length="50">
+                {{ el.created_by }}
+              </GeneralTruncateText>
+            </span>
+            <span class="text-gray-500 font-medium text-3.5 text-start w-1/4 ml-10">
               <GeneralTruncateText placement="top" length="22">
                 {{ el.token }}
               </GeneralTruncateText>
             </span>
-            <span class="text-gray-500 font-medium text-3.5 text-start w-1/4 text-center">
-              <div class="flex justify-center gap-3">
+            <!-- ACTIONS -->
+            <span class="text-gray-500 font-medium text-3.5 text-start w-1/4">
+              <div class="flex justify-center gap-3 ml-4">
                 <component :is="iconMap.eyeSlash" class="hover::cursor-pointer" />
-                <component :is="iconMap.copy" class="hover::cursor-pointer" />
-                <component :is="iconMap.delete" class="hover::cursor-pointer" />
+                <component :is="iconMap.copy" class="hover::cursor-pointer" @click="copyToken(el.token)" />
+                <component
+                  :is="iconMap.delete"
+                  class="hover::cursor-pointer"
+                  @click="triggerDeleteModal(el.token as string, el.description as string)"
+                />
               </div>
             </span>
           </div>
         </main>
+      </div>
+      <div class="flex items-center justify-center mt-4">
+        <a-pagination
+          v-model:current="currentPage"
+          :total="pagination.total"
+          show-less-items
+          @change="loadTokens(currentPage, currentLimit)"
+        />
       </div>
     </div>
 
@@ -178,19 +210,3 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
     </GeneralDeleteModal>
   </div>
 </template>
-
-<style scoped>
-:deep(
-    .ant-table-thead
-      > tr
-      > th:not(:last-child):not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell):not([colspan]):before
-  ) {
-  @apply h-0 h-0;
-}
-:deep(.ant-table-thead > tr > th) {
-  @apply bg-gray-50 text-gray-500;
-}
-:deep(.ant-table-container) {
-  @apply rounded-md;
-}
-</style>

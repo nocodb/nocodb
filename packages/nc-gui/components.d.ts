@@ -52,6 +52,7 @@ declare module '@vue/runtime-core' {
     APagination: typeof import('ant-design-vue/es')['Pagination']
     APopover: typeof import('ant-design-vue/es')['Popover']
     ARadio: typeof import('ant-design-vue/es')['Radio']
+    ARadioButton: typeof import('ant-design-vue/es')['RadioButton']
     ARadioGroup: typeof import('ant-design-vue/es')['RadioGroup']
     ARate: typeof import('ant-design-vue/es')['Rate']
     ARow: typeof import('ant-design-vue/es')['Row']

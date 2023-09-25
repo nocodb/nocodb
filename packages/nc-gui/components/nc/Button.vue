@@ -127,6 +127,10 @@ useEventListener(NcButton, 'mousedown', () => {
 }
 
 .nc-button {
+  // Not Icon
+  :not(.nc-icon):not(.material-symbols) {
+    line-height: 0.95;
+  }
   > .ant-btn-loading-icon {
     display: none !important;
   }

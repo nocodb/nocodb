@@ -78,31 +78,36 @@ onMounted(() => {
         <GeneralIcon icon="arrowUp" class="!min-w-5" />
       </div>
       <template #overlay>
-        <NcMenu>
+        <NcMenu data-testid="nc-sidebar-userinfo">
           <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
             <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
             <GeneralIcon v-else icon="signout" class="menu-icon" />
-            Log Out
+            <span class="menu-btn"> Log Out </span>
           </NcMenuItem>
           <NcDivider />
           <a href="https://docs.nocodb.com" target="_blank" class="!underline-transparent">
             <NcMenuItem>
-              <GeneralIcon icon="help" class="menu-icon" />
-              Help Center
+              <GeneralIcon icon="help" class="menu-icon mt-0.5" />
+              <span class="menu-btn"> Help Center </span>
             </NcMenuItem>
           </a>
           <NcDivider />
           <a href="https://discord.gg/5RgZmkW" target="_blank" class="!underline-transparent">
             <NcMenuItem class="social-icon-wrapper">
-              <GeneralIcon class="social-icon" icon="discord" />Join our Discord
+              <GeneralIcon class="social-icon" icon="discord" />
+              <span class="menu-btn"> Join our Discord </span>
             </NcMenuItem>
           </a>
           <a href="https://www.reddit.com/r/NocoDB" target="_blank" class="!underline-transparent">
-            <NcMenuItem class="social-icon-wrapper"> <GeneralIcon class="social-icon" icon="reddit" />/r/NocoDB </NcMenuItem>
+            <NcMenuItem class="social-icon-wrapper">
+              <GeneralIcon class="social-icon" icon="reddit" />
+              <span class="menu-btn"> /r/NocoDB </span>
+            </NcMenuItem>
           </a>
           <a href="https://twitter.com/nocodb" target="_blank" class="!underline-transparent">
             <NcMenuItem class="social-icon-wrapper group">
-              <GeneralIcon class="text-gray-500 group-hover:text-gray-800" icon="twitter" />Twitter
+              <GeneralIcon class="text-gray-500 group-hover:text-gray-800 my-0.5" icon="twitter" />
+              <span class="menu-btn"> Twitter </span>
             </NcMenuItem>
           </a>
           <template v-if="!appInfo.ee">
@@ -160,6 +165,9 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
+.menu-btn {
+  line-height: 1.5;
+}
 .menu-icon {
   @apply !min-h-4.5;
   line-height: 1rem;
@@ -171,6 +179,7 @@ onMounted(() => {
 }
 
 .social-icon {
+  @apply my-0.5;
   // Make icon black and white
   filter: grayscale(100%);
 

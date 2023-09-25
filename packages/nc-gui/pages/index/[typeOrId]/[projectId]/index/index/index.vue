@@ -112,7 +112,7 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
 }
 
 watch(
-  () => project.value.id,
+  () => project.value?.id,
   () => {
     if (project.value?.id && project.value.type === 'database') {
       const { addTab } = useTabs()

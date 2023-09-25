@@ -18,11 +18,32 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: pre-requisite checks
+        shell: bash
+        run: |
+          node_version=$(node --version || echo "error")
+          pnpm_version=$(pnpm -v || echo "error")            
+          echo "node version: $node_version"
+          echo "pnpm version: $pnpm_version"
+          if [[ $node_version != v18* ]] || [[ $pnp_version != 8* ]]; then
+            echo "version mismatch: expected node v18 and pnpm v8"
+            RUN_PRERQUISITE_STEPS="true"  
+          elif [[ ${FORCE_RUN_PRERQUISITE_STEPS} == "true" ]];
+              # || [[ ! -f ${PRE_REQ_CHECK_FILE_PATH} ]];
+          then
+            echo "FORCE_RUN_PRERQUISITE_STEPS is true"
+            RUN_PRERQUISITE_STEPS="true"
+          else
+            RUN_PRERQUISITE_STEPS="false"  
+          fi
+          echo "RUN_PRERQUISITE_STEPS=${RUN_PRERQUISITE_STEPS}" >> $GITHUB_ENV        
       - name: Setup Node
+        if: env.RUN_PRERQUISITE_STEPS == 'true'
         uses: actions/setup-node@v3
         with:
           node-version: 18.14.0
       - name: Setup pnpm
+        if: env.RUN_PRERQUISITE_STEPS == 'true'
         uses: pnpm/action-setup@v2
         with:
           version: 8
@@ -31,6 +52,7 @@ jobs:
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
       - uses: actions/cache@v3
+        if: env.RUN_PRERQUISITE_STEPS == 'true'
         name: Setup pnpm cache
         with:
           path: ${{ env.STORE_PATH }}
@@ -46,8 +68,6 @@ jobs:
           sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'password';" 
           sudo -u postgres psql -c "ALTER USER postgres WITH SUPERUSER;" 
           service postgresql restart
-      - name: Set CI env
-        run: export CI=true
       - name: Kill stale servers
         run: |
           # export NODE_OPTIONS=\"--max_old_space_size=16384\";
@@ -56,7 +76,7 @@ jobs:
       - name: Set CI env
         run: export CI=true
       - name: Set NC Edition
-        run: export EE=true
+        run: export EE=false
       - name: install dependencies
         run: pnpm bootstrap
       - name: Setup mysql
@@ -78,10 +98,6 @@ jobs:
         working-directory: ./packages/nocodb/tests/pg-cy-quick/
         run: |
           sudo -u postgres psql -U postgres -f 01-cy-quick.sql
-      - name: run frontend
-        working-directory: ./packages/nc-gui
-        run: pnpm run ci:run
-        timeout-minutes: 20
       - name: Run backend
         if: ${{ inputs.db == 'sqlite' }}
         working-directory: ./packages/nocodb
@@ -97,15 +113,38 @@ jobs:
         working-directory: ./packages/nocodb
         run: |
           pnpm run watch:run:playwright:pg &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+      - name: copy built output and start frontend
+        if: always()
+        working-directory: ./
+        run: |
+          # expects the variables to be available in runner context.
+          path="gh-artifacts/runs/${GITHUB_RUN_ID}/ui-build/.output"
+          target_dir="/mnt/${path}"
+          mkdir -p ${target_dir}
+          if [[ -d ${target_dir} ]]; then
+            echo "Directory ${target_dir} exists."
+            cp -r ${target_dir} ./packages/nc-gui/ || echo "playwright reports directory does not exists" >>  ${target_dir}/playwright-report/index.html
+          else
+            echo "Error: Directory ${target_dir} does not exists."
+            exit 1
+          fi
+          cd ./packages/nc-gui/
+          pnpm run ci:start
       - name: Install Playwright Browsers
         working-directory: ./tests/playwright
         run: pnpm exec playwright install --with-deps chromium
-      - name: Wait for backend
+      - name: Wait for frontend and backend
         run: |
-          while ! curl --output /dev/null --silent --head --fail http://localhost:8080; do
+          while ! curl --output /dev/null --silent --head --fail http://localhost:3000; do
             printf '.'
             sleep 2
           done
+          echo "Frontend is up"
+          while ! curl --output /dev/null --silent --head --fail http://localhost:8080; do
+            printf '.'
+            sleep 2
+          done          
+          echo "Backend is up"
         timeout-minutes: 2
       - name: Run Playwright Tests
         working-directory: ./tests/playwright

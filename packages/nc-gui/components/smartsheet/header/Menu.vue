@@ -360,7 +360,7 @@ const onInsertAfter = () => {
         </a-menu-item>
         <a-divider class="!my-0" />
 
-        <a-menu-item v-if="!column?.pv" @click="handleDelete">
+        <a-menu-item v-if="!column?.pv" @click="handleDelete" class="!hover:bg-red-50">
           <div class="nc-column-delete nc-header-menu-item my-0.75 text-red-600">
             <component :is="iconMap.delete" class="ml-0.75 mr-1" />
             <!-- Delete -->
@@ -375,7 +375,7 @@ const onInsertAfter = () => {
 
 <style scoped>
 .nc-header-menu-item {
-  @apply text-xs flex items-center px-1 py-2 gap-1;
+  @apply text-dropdown flex items-center px-1 py-2 gap-1;
 }
 
 .nc-column-options {

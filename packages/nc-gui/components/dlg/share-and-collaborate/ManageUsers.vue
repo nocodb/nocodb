@@ -72,8 +72,8 @@ const rolesTypes = [
 
 <template>
   <div class="flex flex-col mx-4 h-112">
-    <div class="flex mt-2.5 mb-2.5 border-b-1 border-gray-50 pb-1.5" :style="{ fontWeight: 500 }">Manage Collaborators</div>
-    <div class="flex mt-2.5 mb-2.5 text-xs" :style="{ fontWeight: 500 }">Project Owner</div>
+    <div class="flex mt-2.5 mb-2.5 border-b-1 border-gray-50 pb-1.5" :style="{ fontWeight: 500 }">Manage Members</div>
+    <div class="flex mt-2.5 mb-2.5 text-xs font-bold">Project Owner</div>
     <div v-if="owner" class="flex flex-row px-2 py-2 items-center gap-x-2 border-1 border-gray-100 rounded-md">
       <a-avatar></a-avatar>
       <div class="flex flex-col justify-center">

@@ -2,6 +2,10 @@
 @import '@vue-flow/core/dist/style.css';
 @import '@vue-flow/core/dist/theme-default.css';
 
+body {
+  line-height: 1.3125rem;
+}
+
 :root {
   --topbar-height: 3.1rem;
   --sidebar-bottom-height: 8.5rem;
@@ -79,6 +83,11 @@ main {
     width: 4px;
     height: 4px;
   }
+
+  &::-webkit-scrollbar-track {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+  }
   &::-webkit-scrollbar-track-piece {
     width: 0px;
   }
@@ -86,11 +95,14 @@ main {
     @apply bg-transparent;
   }
   &::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+
     width: 4px;
-    @apply bg-gray-200;
+    @apply bg-gray-300;
   }
   &::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-300;
+    @apply bg-gray-400;
   }
 }
 
@@ -165,7 +177,7 @@ a {
 
 // menu item styling
 .nc-menu-item {
-  @apply cursor-pointer text-xs flex items-center gap-2 px-4 py-3 relative after:(content-[''] absolute top-0 left-0 bottom-0 w-full h-full right-0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
+  @apply cursor-pointer text-sm flex items-center gap-2 px-4 py-3 relative after:(content-[''] absolute top-0 left-0 bottom-0 w-full h-full right-0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
 
   &.disabled {
     @apply text-black text-opacity-25 bg-[#f5f5f5] cursor-not-allowed text-shadow-none box-shadow-none border-[#d9d9d9];
@@ -582,4 +594,8 @@ input[type='number'] {
 
 .ant-pagination .ant-pagination-item-link-icon {
   @apply !block !py-1.5;
+}
+
+.nc-button.ant-btn.nc-sidebar-node-btn {
+  @apply opacity-0 group-hover:(opacity-100) text-gray-600 hover:(bg-gray-400 bg-opacity-20 text-gray-900) duration-100;
 }

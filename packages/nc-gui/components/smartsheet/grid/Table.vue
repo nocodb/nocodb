@@ -1575,6 +1575,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
     <LazySmartsheetPagination
       v-else-if="headerOnly !== true"
       v-model:pagination-data="paginationDataRef"
+      show-api-timing
       align-count-on-right
       :change-page="changePage"
       :hide-sidebars="paginationStyleRef?.hideSidebars === true"

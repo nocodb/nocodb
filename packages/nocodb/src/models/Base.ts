@@ -17,6 +17,7 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 // todo: hide credentials
 export default class Base implements BaseType {
@@ -31,6 +32,7 @@ export default class Base implements BaseType {
   order?: number;
   erd_uuid?: string;
   enabled?: BoolType;
+  meta?: any;
 
   constructor(base: Partial<Base>) {
     Object.assign(this, base);
@@ -41,7 +43,12 @@ export default class Base implements BaseType {
   }
 
   public static async createBase(
-    base: BaseType & { projectId: string; created_at?; updated_at? },
+    base: BaseType & {
+      projectId: string;
+      created_at?;
+      updated_at?;
+      meta?: any;
+    },
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(base, [
@@ -54,11 +61,17 @@ export default class Base implements BaseType {
       'inflection_table',
       'order',
       'enabled',
+      'meta',
     ]);
+
     insertObj.config = CryptoJS.AES.encrypt(
       JSON.stringify(base.config),
       Noco.getConfig()?.auth?.jwt?.secret,
     ).toString();
+
+    if ('meta' in insertObj) {
+      insertObj.meta = stringifyMetaProp(insertObj);
+    }
 
     const { id } = await ncMeta.metaInsert2(
       base.projectId,
@@ -84,9 +97,9 @@ export default class Base implements BaseType {
   public static async updateBase(
     baseId: string,
     base: BaseType & {
-      id: string;
       projectId: string;
       skipReorder?: boolean;
+      meta?: any;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -109,6 +122,7 @@ export default class Base implements BaseType {
       'inflection_table',
       'order',
       'enabled',
+      'meta',
     ]);
 
     if (updateObj.config) {
@@ -116,6 +130,10 @@ export default class Base implements BaseType {
         JSON.stringify(base.config),
         Noco.getConfig()?.auth?.jwt?.secret,
       ).toString();
+    }
+
+    if ('meta' in updateObj) {
+      updateObj.meta = stringifyMetaProp(updateObj);
     }
 
     // type property is undefined even if not provided
@@ -166,6 +184,12 @@ export default class Base implements BaseType {
           },
         },
       );
+
+      // parse JSON metadata
+      for (const base of baseDataList) {
+        base.meta = parseMetaProp(base, 'meta');
+      }
+
       await NocoCache.setList(CacheScope.BASE, [args.projectId], baseDataList);
     }
 
@@ -185,6 +209,11 @@ export default class Base implements BaseType {
       ));
     if (!baseData) {
       baseData = await ncMeta.metaGet2(null, null, MetaTable.BASES, id);
+
+      if (baseData) {
+        baseData.meta = parseMetaProp(baseData, 'meta');
+      }
+
       await NocoCache.set(`${CacheScope.BASE}:${id}`, baseData);
     }
     return this.castType(baseData);

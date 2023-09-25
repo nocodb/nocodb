@@ -856,14 +856,14 @@ test.describe('Filter Tests: AddOn', () => {
         op: 'is checked',
         value: null,
         rowCount: records.list.filter(r => {
-          return r[dataType] === (context.dbType === 'pg' ? true : 1);
+          return r[dataType];
         }).length,
       },
       {
         op: 'is not checked',
         value: null,
         rowCount: records.list.filter(r => {
-          return r[dataType] !== (context.dbType === 'pg' ? true : 1);
+          return r[dataType];
         }).length,
       },
     ];

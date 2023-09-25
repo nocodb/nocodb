@@ -154,7 +154,7 @@ const keys = useMagicKeys()
 const { ctrl_k } = useMagicKeys({
   passive: false,
   onEventFired(e) {
-    if (e.ctrlKey && e.key === 'k' && e.type === 'keydown')
+    if (e.ctrlKey && e.key.toLowerCase() === 'k' && e.type === 'keydown')
       e.preventDefault()
   },
 })

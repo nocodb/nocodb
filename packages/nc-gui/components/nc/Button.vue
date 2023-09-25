@@ -137,7 +137,7 @@ useEventListener(NcButton, 'mousedown', () => {
 }
 
 .nc-button {
-  @apply !sm:(outline-none)
+  @apply !xs:(outline-none)
 
   box-shadow: 0px 5px 3px -2px rgba(0, 0, 0, 0.02), 0px 3px 1px -2px rgba(0, 0, 0, 0.06);
   outline: none;
@@ -162,7 +162,7 @@ useEventListener(NcButton, 'mousedown', () => {
 }
 
 .nc-button.ant-btn.medium {
-  @apply py-2 px-4 h-10 min-w-10 sm:(h-10.5 max-h-10.5 min-w-10.5 !px-3);
+  @apply py-2 px-4 h-10 min-w-10 xs:(h-10.5 max-h-10.5 min-w-10.5 !px-3);
 }
 
 .nc-button.ant-btn.xsmall {
@@ -187,7 +187,7 @@ useEventListener(NcButton, 'mousedown', () => {
 }
 
 .nc-button.ant-btn-primary {
-  @apply bg-brand-500 border-0 text-white sm:(hover:border-0) md:(hover:bg-brand-600);
+  @apply bg-brand-500 border-0 text-white xs:(hover:border-0) md:(hover:bg-brand-600);
 }
 
 .nc-button.ant-btn-secondary {

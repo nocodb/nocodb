@@ -58,7 +58,7 @@ useMenuCloseOnEsc(open)
     v-model:visible="open"
     :trigger="['click']"
     overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown"
-    class="!sm:hidden"
+    class="!xs:hidden"
   >
     <div :class="{ 'nc-active-btn': filtersLength }">
       <a-button v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">

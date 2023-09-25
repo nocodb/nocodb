@@ -348,7 +348,7 @@ function onOpenModal({
 <template>
   <div
     v-if="!views.length"
-    class="text-gray-500 my-1.5"
+    class="text-gray-500 my-1.75"
     :class="{
       'ml-19.25': isDefaultBase,
       'ml-24.75': !isDefaultBase,

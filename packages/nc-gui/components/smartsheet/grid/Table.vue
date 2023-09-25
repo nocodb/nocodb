@@ -1209,7 +1209,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
                 <th
                   v-if="isAddingColumnAllowed"
                   v-e="['c:column:add']"
-                  class="cursor-pointer !border-0 relative !sm:hidden"
+                  class="cursor-pointer !border-0 relative !xs:hidden"
                   :style="{
                     borderWidth: '0px !important',
                   }"
@@ -1328,7 +1328,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
                 <LazySmartsheetRow v-for="(row, rowIndex) of dataRef" ref="rowRefs" :key="rowIndex" :row="row">
                   <template #default="{ state }">
                     <tr
-                      class="nc-grid-row !sm:h-14"
+                      class="nc-grid-row !xs:h-14"
                       :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
                       :data-testid="`grid-row-${rowIndex}`"
                     >
@@ -1460,7 +1460,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
               <tr
                 v-if="isAddingEmptyRowAllowed && !isGroupBy"
                 v-e="['c:row:add:grid-bottom']"
-                class="text-left nc-grid-add-new-cell cursor-pointer group relative z-3 sm:hidden"
+                class="text-left nc-grid-add-new-cell cursor-pointer group relative z-3 xs:hidden"
                 :class="{
                   '!border-r-2 !border-r-gray-100': visibleColLength === 1,
                 }"

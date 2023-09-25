@@ -393,12 +393,12 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
           <NcButton
             type="text"
             size="xxsmall"
-            class="nc-sidebar-node-btn nc-sidebar-expand ml-0.75 !sm:visible"
+            class="nc-sidebar-node-btn nc-sidebar-expand ml-0.75 !xs:visible"
             @click="onProjectClick(project, true, true)"
           >
             <GeneralIcon
               icon="triangleFill"
-              class="group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90 !sm:visible"
+              class="group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90 !xs:visible"
               :class="{ '!rotate-180': project.isExpanded, '!visible': isOptionsOpen }"
             />
           </NcButton>

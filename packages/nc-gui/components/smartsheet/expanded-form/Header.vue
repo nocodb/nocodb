@@ -2,6 +2,7 @@
 import { message } from 'ant-design-vue'
 import type { ViewType } from 'nocodb-sdk'
 import {
+  IsPublicInj,
   ReloadRowDataHookInj,
   iconMap,
   isMac,
@@ -19,6 +20,8 @@ const emit = defineEmits(['cancel', 'duplicateRow'])
 const route = useRoute()
 
 const { meta, isSqlView } = useSmartsheetStoreOrThrow()
+
+const isPublic = inject(IsPublicInj, ref(false))
 
 const { commentsDrawer, displayValue, primaryKey, save: _save, loadRow, deleteRowById } = useExpandedFormStoreOrThrow()
 
@@ -98,7 +101,7 @@ const onConfirmDeleteRowClick = async () => {
     </h5>
 
     <div class="flex-1" />
-    <a-tooltip placement="bottom">
+    <a-tooltip v-if="!isPublic" placement="bottom">
       <template #title>
         <!-- todo: i18n -->
         <div class="text-center w-full">Copy record URL</div>

@@ -9,6 +9,7 @@ import {
   IsExpandedFormOpenInj,
   IsFormInj,
   IsKanbanInj,
+  IsPublicInj,
   MetaInj,
   ReloadRowDataHookInj,
   computedInject,
@@ -57,6 +58,8 @@ const state = toRef(props, 'state')
 const meta = toRef(props, 'meta')
 
 const router = useRouter()
+
+const isPublic = inject(IsPublicInj, ref(false))
 
 const { isUIAllowed } = useRoles()
 
@@ -361,6 +364,7 @@ export default {
                   :column="col"
                   :edit-enabled="true"
                   :active="true"
+                  :read-only="isPublic"
                   @update:model-value="changedColumns.add(col.title)"
                 />
               </LazySmartsheetDivDataCell>
@@ -402,6 +406,7 @@ export default {
                     :column="col"
                     :edit-enabled="true"
                     :active="true"
+                    :read-only="isPublic"
                     @update:model-value="changedColumns.add(col.title)"
                   />
                 </LazySmartsheetDivDataCell>

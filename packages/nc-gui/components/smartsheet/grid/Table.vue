@@ -1525,7 +1525,8 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
             <NcMenuItem
               v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
               v-e="['a:row:delete-bulk']"
-              class="nc-project-menu-item"
+              class="nc-project-menu-item !text-red-600 !hover:bg-red-50"
+              data-testid="nc-delete-row"
               @click="deleteSelectedRows"
             >
               <component :is="iconMap.delete" />
@@ -1581,7 +1582,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
               <GeneralIcon icon="closeBox" class="text-gray-500" />
               Clear
             </NcMenuItem>
-            <NcDivider />
+            <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected))" />
             <NcMenuItem
               v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
               v-e="['a:row:delete']"

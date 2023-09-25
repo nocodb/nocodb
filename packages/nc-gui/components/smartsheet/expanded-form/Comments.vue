@@ -3,6 +3,7 @@ import type { VNodeRef } from '@vue/runtime-core'
 import type { AuditType } from 'nocodb-sdk'
 import { Icon } from '@iconify/vue'
 import { ref, timeAgo, useExpandedFormStoreOrThrow, useGlobal, useRoles, watch } from '#imports'
+import FileIcon from '~icons/nc-icons/file'
 
 const { loadCommentsAndLogs, commentsAndLogs, isYou, saveComment, comment, updateComment } = useExpandedFormStoreOrThrow()
 
@@ -104,22 +105,28 @@ watch(
     <div class="bg-white rounded-t-lg border-gray-200 border-b-1">
       <div class="flex flex-row m-2 p-1 bg-gray-100 rounded-lg">
         <div
-          class="tab flex-1 transition-all cursor-pointer rounded-lg"
+          class="tab flex-1 transition-all text-gray-600 cursor-pointer rounded-lg"
           :class="{
-            'bg-white shadow text-brand-500 hover:text-brand-500': tab === 'comments',
+            'bg-white shadow !text-brand-500 !hover:text-brand-500': tab === 'comments',
           }"
           @click="tab = 'comments'"
         >
-          <div class="tab-title nc-tab">Comments</div>
+          <div class="tab-title gap-1 nc-tab">
+            <MdiMessageOutline class="h-5 w-5" />
+            Comments
+          </div>
         </div>
         <div
-          class="tab flex-1 transition-all cursor-pointer rounded-lg"
+          class="tab flex-1 transition-all text-gray-600 cursor-pointer rounded-lg"
           :class="{
-            'bg-white shadow text-brand-500 hover:text-brand-500': tab === 'audits',
+            'bg-white shadow !text-brand-500 !hover:text-brand-500': tab === 'audits',
           }"
           @click="tab = 'audits'"
         >
-          <div class="tab-title nc-tab">Audits</div>
+          <div class="tab-title nc-tab">
+            <MdiFileDocumentOutline class="h-5 w-5" />
+            Audits
+          </div>
         </div>
       </div>
     </div>
@@ -129,12 +136,12 @@ watch(
         ref="commentsWrapperEl"
         class="flex flex-col m-1 p-1 !h-[calc(100vh-300px)] overflow-y-scroll nc-scrollbar-md space-y-2"
       >
-        <template v-if="commentsAndLogs.length === 0">
+        <template v-if="comments.length === 0">
           <div class="flex flex-col text-center justify-center h-full">
-            <div class="text-center text-3xl text-gray-300">
+            <div class="text-center text-3xl text-gray-700">
               <MdiChatProcessingOutline />
             </div>
-            <div class="font-bold text-center my-1 text-gray-400">Start a conversation</div>
+            <div class="font-bold text-center my-1 text-gray-700">Start a conversation</div>
           </div>
         </template>
         <template v-else>
@@ -183,11 +190,19 @@ watch(
         </template>
       </div>
       <div v-else class="flex flex-col m-1 p-1 !h-[calc(100vh-239px)] overflow-y-scroll nc-scrollbar-md space-y-2">
+        <template v-if="audits.length === 0">
+          <div class="flex flex-col mb-14 text-center justify-center h-full">
+            <div class="text-center text-3xl text-gray-600">
+              <MdiHistory />
+            </div>
+            <div class="font-bold text-center my-1 text-gray-600">See changes to this record</div>
+          </div>
+        </template>
         <div v-for="(log, idx) of audits" :key="log.id">
           <div class="bg-white rounded-xl border-1 gap-3 border-gray-200">
             <div class="flex flex-col p-4 gap-3">
               <div class="flex justify-between">
-                <div class="flex font-bold items-end gap-2">
+                <div class="flex font-bold items-center gap-2">
                   <GeneralUserIcon v-if="isYou(log.user)" />
                   <MdiAccountCircleOutline v-else class="row-span-2 h-6 w-6" />
                   <span class="truncate max-w-50">
@@ -223,7 +238,7 @@ watch(
 
 <style scoped>
 .tab .tab-title {
-  @apply min-w-0 flex justify-center items-center py-1;
+  @apply min-w-0 flex justify-center gap-1 font-semibold items-center py-1;
   word-break: 'keep-all';
   white-space: 'nowrap';
   display: 'inline';

@@ -1574,14 +1574,6 @@ class BaseModelSqlv2 {
                     getCompositePk(self.model.primaryKeys, this),
                   );
                 };
-
-                // defining HasMany count method within GQL Type class
-                // Object.defineProperty(type.prototype, column.alias, {
-                //   async value(): Promise<any> {
-                //     return listLoader.load(this[model.pk.alias]);
-                //   },
-                //   configurable: true
-                // });
               } else if (colOptions.type === 'mm') {
                 const listLoader = new DataLoader(async (ids: string[]) => {
                   if (ids?.length > 1) {
@@ -1629,12 +1621,17 @@ class BaseModelSqlv2 {
                 const cCol = await Column.get({
                   colId: colOptions.fk_child_column_id,
                 });
+
+                // use dataloader to get batches of parent data together rather than getting them individually
+                // it takes individual keys and callback is invoked with an array of values and we can get the
+                // result for all those together and return the value in the same order as in the array
+                // this way all parents data extracted together
                 const readLoader = new DataLoader(async (_ids: string[]) => {
                   // handle binary(16) foreign keys
                   const ids = _ids.map((id) => {
                     if (pCol.ct !== 'binary(16)') return id;
 
-                    //Cast the id to string.
+                    // Cast the id to string.
                     const idAsString = id + '';
                     // Check if the id is a UUID and the column is binary(16)
                     const isUUIDBinary16 =
@@ -1679,7 +1676,7 @@ class BaseModelSqlv2 {
                   return _ids.map(async (id: string) => groupedList?.[id]?.[0]);
                 });
 
-                // defining HasMany count method within GQL Type class
+                // defining BelongsTo read resolver method
                 proto[column.title] = async function (args?: any) {
                   if (
                     this?.[cCol?.title] === null ||
@@ -4640,7 +4637,7 @@ export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
       continue;
     }
 
-    //Cast the id to string.
+    // Cast the id to string.
     const idAsString = ids[i] + '';
     // Check if the id is a UUID and the column is binary(16)
     const isUUIDBinary16 =

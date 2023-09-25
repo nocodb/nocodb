@@ -15,7 +15,7 @@ const { project } = storeToRefs(projectStore)
 const { navigateToProjectPage } = projectStore
 const { activeView } = storeToRefs(useViewsStore())
 
-let view: globalThis.Ref<ViewType | undefined>
+let view: Ref<ViewType | undefined>
 if (isViewToolbar) {
   try {
     const store = useSmartsheetStoreOrThrow()

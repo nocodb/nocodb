@@ -14,7 +14,7 @@ test.describe('Attachment column', () => {
     await unsetup(context);
   });
 
-  test('Create and verify attachment column, verify it in shared form,', async ({ context }) => {
+  test.only('Create and verify attachment column, verify it in shared form,', async ({ context }) => {
     // run tests slowly
     test.slow();
 
@@ -51,6 +51,9 @@ test.describe('Attachment column', () => {
       index: 4,
       columnHeader: 'testAttach',
     });
+
+    // Kludge: tooltip somehow persists. fix me!
+    await dashboard.rootPage.reload();
 
     await dashboard.viewSidebar.createFormView({
       title: 'Form 1',

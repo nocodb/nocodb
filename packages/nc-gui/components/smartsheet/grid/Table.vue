@@ -1572,7 +1572,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                 Clear
               </div>
             </a-menu-item>
-
+            <NcDivider class="!m-0" />
             <a-menu-item
               v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
               @click="confirmDeleteRow(contextMenuTarget.row)"
@@ -1583,14 +1583,16 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                 {{ $t('activity.deleteRow') }}
               </div>
             </a-menu-item>
-
-            <a-menu-item v-else-if="contextMenuTarget && deleteRangeOfRows" @click="deleteSelectedRangeOfRows">
-              <div v-e="['a:row:delete']" class="nc-project-menu-item text-red-600">
-                <GeneralIcon icon="delete" class="text-gray-500 text-error" />
-                <!-- Delete Rows -->
-                Delete rows
-              </div>
-            </a-menu-item>
+            <div v-else-if="contextMenuTarget && deleteRangeOfRows">
+              <NcDivider class="!m-0" />
+              <a-menu-item @click="deleteSelectedRangeOfRows">
+                <div v-e="['a:row:delete']" class="nc-project-menu-item text-red-600">
+                  <GeneralIcon icon="delete" class="text-gray-500 text-error" />
+                  <!-- Delete Rows -->
+                  Delete rows
+                </div>
+              </a-menu-item>
+            </div>
           </a-menu>
         </template>
       </a-dropdown>

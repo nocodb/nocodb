@@ -66,13 +66,19 @@ export default class NcConnectionMgrv2 {
       connection: {
         ...defaultConnectionConfig,
         ...connectionConfig.connection,
-        typeCast(_field, next) {
+        typeCast(field, next) {
           const res = next();
           if (res instanceof Buffer) {
             return [...res]
               .map((v) => ('00' + v.toString(16)).slice(-2))
               .join('');
           }
+
+          // mysql `decimal` datatype returns value as string, convert it to float number
+          if (field.type == 'NEWDECIMAL') {
+            return res && parseFloat(res);
+          }
+
           return res;
         },
       },

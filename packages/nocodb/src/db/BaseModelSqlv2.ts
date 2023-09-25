@@ -1538,7 +1538,6 @@ class BaseModelSqlv2 {
               this._columns[column.title] = column;
               const colOptions =
                 (await column.getColOptions()) as LinkToAnotherRecordColumn;
-              // const parentColumn = await colOptions.getParentColumn();
 
               if (colOptions?.type === 'hm') {
                 const listLoader = new DataLoader(async (ids: string[]) => {
@@ -1676,8 +1675,8 @@ class BaseModelSqlv2 {
                     true,
                   );
 
-                  const gs = groupBy(data, pCol.title);
-                  return _ids.map(async (id: string) => gs?.[id]?.[0]);
+                  const groupedList = groupBy(data, pCol.title);
+                  return _ids.map(async (id: string) => groupedList?.[id]?.[0]);
                 });
 
                 // defining HasMany count method within GQL Type class

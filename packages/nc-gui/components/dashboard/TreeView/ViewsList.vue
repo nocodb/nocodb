@@ -326,7 +326,9 @@ function onOpenModal({
 
       refreshCommandPalette()
 
-      await loadViews()
+      await loadViews({
+        force: true,
+      })
 
       navigateToView({
         view,

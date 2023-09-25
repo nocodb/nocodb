@@ -34,19 +34,19 @@ const isViewSidebarAvailable = computed(
       <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
     </template>
     <template v-else>
+      <LazySmartsheetToolbarMappedBy v-if="isMap" />
+
+      <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
+
+      <LazySmartsheetToolbarStackedBy v-if="isKanban" />
+
+      <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
+
+      <LazySmartsheetToolbarGroupByMenu v-if="isGrid" />
+
+      <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
+
       <template v-if="!isMobileMode">
-        <LazySmartsheetToolbarMappedBy v-if="isMap" />
-
-        <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
-
-        <LazySmartsheetToolbarStackedBy v-if="isKanban" />
-
-        <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
-
-        <LazySmartsheetToolbarGroupByMenu v-if="isGrid" />
-
-        <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
-
         <LazySmartsheetToolbarRowHeight v-if="isGrid" />
 
         <!-- <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" /> -->

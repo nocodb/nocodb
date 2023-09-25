@@ -121,6 +121,8 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
+useViewColumns(view, meta, () => reloadViewDataHook.trigger())
+
 const { isMobileMode } = useGlobal()
 
 const scrollParent = inject(ScrollParentInj, ref<undefined>())
@@ -1196,14 +1198,18 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
                   @xcresized="resizingCol = null"
                 >
                   <div class="w-full h-full flex items-center">
-                    <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="readOnly" />
-                    <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly" />
+                    <LazySmartsheetHeaderVirtualCell
+                      v-if="isVirtualCol(col)"
+                      :column="col"
+                      :hide-menu="readOnly || isMobileMode"
+                    />
+                    <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly || isMobileMode" />
                   </div>
                 </th>
                 <th
                   v-if="isAddingColumnAllowed"
                   v-e="['c:column:add']"
-                  class="cursor-pointer !border-0 relative"
+                  class="cursor-pointer !border-0 relative !sm:hidden"
                   :style="{
                     borderWidth: '0px !important',
                   }"
@@ -1322,7 +1328,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
                 <LazySmartsheetRow v-for="(row, rowIndex) of dataRef" ref="rowRefs" :key="rowIndex" :row="row">
                   <template #default="{ state }">
                     <tr
-                      class="nc-grid-row"
+                      class="nc-grid-row !sm:h-14"
                       :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
                       :data-testid="`grid-row-${rowIndex}`"
                     >
@@ -1454,7 +1460,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
               <tr
                 v-if="isAddingEmptyRowAllowed && !isGroupBy"
                 v-e="['c:row:add:grid-bottom']"
-                class="text-left nc-grid-add-new-cell cursor-pointer group relative z-3"
+                class="text-left nc-grid-add-new-cell cursor-pointer group relative z-3 sm:hidden"
                 :class="{
                   '!border-r-2 !border-r-gray-100': visibleColLength === 1,
                 }"

@@ -346,32 +346,9 @@ function onOpenModal({
 </script>
 
 <template>
-  <DashboardTreeViewCreateViewBtn
-    v-if="isUIAllowed('viewCreateOrEdit')"
-    class="!sm:hidden"
-    :overlay-class-name="isDefaultBase ? '!left-18 !min-w-42' : '!left-25 !min-w-42'"
-  >
-    <NcButton
-      type="text"
-      size="xsmall"
-      class="!w-full !py-0 !h-7 !text-gray-500 !hover:(bg-transparent font-normal text-brand-500) !font-normal !text-sm"
-      :centered="false"
-    >
-      <GeneralIcon
-        icon="plus"
-        class="mr-2"
-        :class="{
-          'ml-18.75': isDefaultBase,
-          'ml-24.25': !isDefaultBase,
-        }"
-      />
-      <span class="text-sm">New View</span>
-    </NcButton>
-  </DashboardTreeViewCreateViewBtn>
-
   <div
     v-if="!views.length"
-    class="text-gray-500 my-1.5 md:hidden"
+    class="text-gray-500 my-1.5"
     :class="{
       'ml-19.25': isDefaultBase,
       'ml-24.75': !isDefaultBase,

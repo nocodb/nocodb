@@ -8,7 +8,11 @@ function roundExpiry(date) {
   return new Date(Math.ceil(date.getTime() / msInHour) * msInHour);
 }
 
-const DEFAULT_EXPIRE_SECONDS = 2 * 60 * 60;
+const DEFAULT_EXPIRE_SECONDS = isNaN(
+  parseInt(process.env.NC_ATTACHMENT_EXPIRE_SECONDS),
+)
+  ? 2 * 60 * 60
+  : parseInt(process.env.NC_ATTACHMENT_EXPIRE_SECONDS);
 
 export default class TemporaryUrl {
   path: string;

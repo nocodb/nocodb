@@ -135,7 +135,7 @@ const onPaste = (e: ClipboardEvent) => {
   const inputArray = pastedText?.split(',') || pastedText?.split(' ') || pastedText?.split('')
   // if data is pasted to a already existing text in input
   // we add existingInput + pasted data
-  if (inputArray?.length === 1 && inviteData.email.length > 1) {
+  if (inputArray?.length === 1 && inviteData.email.length) {
     inputArray[0] = inviteData.email += inputArray[0]
   }
   inputArray?.forEach((el) => {

@@ -258,12 +258,24 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
     ops.value = ops.value.filter((op) => op.op === 'add' || !compareCols(op.column, state))
   } else {
     const field = ops.value.find((op) => compareCols(op.column, state))
-    if (field) {
+    const movField = moveOps.value.find((op) => compareCols(op.column, state))
+    if (field && !movField) {
       field.column = state
-    } else {
+    } else if (!field && movField) {
       ops.value.push({
         op: 'update',
         column: state,
+      })
+    } else {
+      ops.value.push({
+        op: 'update',
+        column: {
+          ...state,
+          column_order: {
+            order: movField?.order || getFieldOrder(state),
+            view_id: view.value?.id as string,
+          },
+        },
       })
     }
   }
@@ -371,6 +383,7 @@ const recoverField = (state: TableExplorerColumn) => {
       ops.value = ops.value.filter((op) => !compareCols(op.column, state))
     } else if (field.op === 'update') {
       ops.value = ops.value.filter((op) => !compareCols(op.column, state))
+      moveOps.value = moveOps.value.filter((op) => !compareCols(op.column, state))
     }
     activeField.value = null
     changeField(fields.value.filter((fiel) => fiel.id === state.id)[0])

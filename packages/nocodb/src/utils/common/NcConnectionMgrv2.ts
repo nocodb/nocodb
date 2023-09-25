@@ -68,10 +68,13 @@ export default class NcConnectionMgrv2 {
         ...connectionConfig.connection,
         typeCast(field, next) {
           const res = next();
-          if (res instanceof Buffer) {
-            return [...res]
-              .map((v) => ('00' + v.toString(16)).slice(-2))
-              .join('');
+
+          // mysql `bit` datatype returns value as Buffer, convert it to integer number
+          if (field.type == 'BIT' && res && res instanceof Buffer) {
+            return parseInt(
+              [...res].map((v) => ('00' + v.toString(16)).slice(-2)).join(''),
+              16,
+            );
           }
 
           // mysql `decimal` datatype returns value as string, convert it to float number

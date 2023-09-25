@@ -1,42 +1,22 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import type { AuditType } from 'nocodb-sdk'
-import {
-  enumColor,
-  iconMap,
-  ref,
-  timeAgo,
-  useCopy,
-  useExpandedFormStoreOrThrow,
-  useGlobal,
-  useI18n,
-  useRoles,
-  watch,
-} from '#imports'
+import { Icon } from '@iconify/vue'
+import { ref, timeAgo, useExpandedFormStoreOrThrow, useGlobal, useRoles, watch } from '#imports'
 
-const { loadCommentsAndLogs, commentsAndLogs, isCommentsLoading, commentsOnly, saveComment, isYou, comment, updateComment } =
-  useExpandedFormStoreOrThrow()
+const { loadCommentsAndLogs, commentsAndLogs, saveComment, comment, updateComment } = useExpandedFormStoreOrThrow()
 
 const commentsWrapperEl = ref<HTMLDivElement>()
 
 await loadCommentsAndLogs()
 
-const showBorder = ref(false)
-
-const { copy } = useCopy()
-
-const { t } = useI18n()
-
 const { user } = useGlobal()
+
+const tab = ref<'comments' | 'audits'>('comments')
 
 const { isUIAllowed } = useRoles()
 
 const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
-
-// currently, edit option is disable on purpose
-// since the current update wouldn't keep track of the previous values
-// need history of edit feature in order to enable it back
-const disableEditOption = ref(true)
 
 const editLog = ref<AuditType>()
 
@@ -79,6 +59,7 @@ function onCancel() {
 }
 
 function onStopEdit() {
+  loadCommentsAndLogs()
   isEditing.value = false
   editLog.value = undefined
 }
@@ -89,36 +70,27 @@ onKeyStroke('Enter', (event) => {
   }
 })
 
-const _contextMenu = ref(false)
-
-const contextMenu = computed({
-  get: () => _contextMenu.value,
-  set: (val) => {
-    if (hasEditPermission.value) {
-      _contextMenu.value = val
-    }
-  },
-})
-
-async function copyComment(val: string) {
-  if (!val) return
-  try {
-    await copy(val)
-    message.success(t('msg.success.commentCopied'))
-  } catch (e: any) {
-    message.error(e.message)
-  }
-}
+const comments = computed(() => commentsAndLogs.value.filter((log) => log.op_type === 'COMMENT'))
+const audits = computed(() => commentsAndLogs.value.filter((log) => log.op_type !== 'COMMENT'))
 
 function editComment(log: AuditType) {
   editLog.value = log
   isEditing.value = true
 }
 
+const value = computed({
+  get() {
+    return editLog.value.description.substring(editLog.value.description.indexOf(':') + 1) ?? ''
+  },
+  set(val) {
+    if (!editLog.value) return
+    editLog.value.description = val
+  },
+})
+
 watch(
   commentsAndLogs,
   () => {
-    // todo: replace setTimeout
     setTimeout(() => {
       if (commentsWrapperEl.value) commentsWrapperEl.value.scrollTop = commentsWrapperEl.value?.scrollHeight
     }, 200)
@@ -128,128 +100,150 @@ watch(
 </script>
 
 <template>
-  <div class="h-full flex flex-col w-full bg-gray-100 p-2">
-    <div ref="commentsWrapperEl" class="flex-1 min-h-[100px] overflow-y-auto scrollbar-thin-dull p-2 space-y-2">
-      <a-skeleton v-if="isCommentsLoading" type="list-item-avatar-two-line@8" />
-      <template v-else-if="commentsAndLogs.length === 0">
-        <div class="flex flex-col text-center justify-center h-full">
-          <div class="text-center text-3xl text-gray-300">
+  <div class="flex flex-col h-full w-full bg-gray-50 rounded-lg">
+    <div class="bg-white rounded-t-lg border-gray-200 border-b-1">
+      <div class="flex flex-row gap-2 m-2 p-1 bg-gray-100 rounded-lg">
+        <div
+          class="tab flex-1 px-4 py-2 transition-all text-gray-600 cursor-pointer rounded-lg"
+          :class="{
+            'bg-white shadow !text-brand-500 !hover:text-brand-500': tab === 'comments',
+          }"
+          @click="tab = 'comments'"
+        >
+          <div class="tab-title nc-tab">
+            <MdiMessageOutline class="h-4 w-4" />
+            Comments
+          </div>
+        </div>
+        <div
+          class="tab flex-1 px-4 py-2 transition-all text-gray-600 cursor-pointer rounded-lg"
+          :class="{
+            'bg-white shadow !text-brand-500 !hover:text-brand-500': tab === 'audits',
+          }"
+          @click="tab = 'audits'"
+        >
+          <div class="tab-title nc-tab">
+            <MdiFileDocumentOutline class="h-4 w-4" />
+            Audits
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div v-if="tab === 'comments'" ref="commentsWrapperEl" class="flex flex-col h-[74vh] max-h-[680px]">
+        <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full">
+          <div class="text-center text-3xl text-gray-700">
             <MdiChatProcessingOutline />
           </div>
-          <div class="font-bold text-center my-1 text-gray-400">Start a conversation</div>
-          <div class="text-gray-400">
-            NocoDB allows you to inquire, monitor progress updates, and collaborate with your team members.
-          </div>
+          <div class="font-bold text-center my-1 text-gray-700">Start a conversation</div>
         </div>
-      </template>
-      <template v-else>
-        <div v-for="(log, idx) of commentsAndLogs" :key="log.id">
-          <a-dropdown :trigger="['contextmenu']" :overlay-class-name="`nc-dropdown-comment-context-menu-${idx}`">
-            <div class="flex gap-1 text-xs">
-              <component
-                :is="iconMap.accountCircle"
-                class="row-span-2"
-                :class="isYou(log.user) ? 'text-pink-600' : 'text-blue-600 '"
-              />
-
-              <div class="flex-1">
-                <p class="mb-1 caption edited-text text-[10px] text-gray-500">
-                  {{ isYou(log.user) ? 'You' : log.user == null ? 'Shared base' : log.user }}
-                  {{ log.op_type === 'COMMENT' ? 'commented' : log.op_sub_type === 'INSERT' ? 'created' : 'edited' }}
-                </p>
-
-                <div v-if="log.op_type === 'COMMENT'">
-                  <a-input
-                    v-if="log.id === editLog?.id"
-                    :ref="focusInput"
-                    v-model:value="editLog.description"
-                    @blur="onCancel"
-                    @keydown.stop="onKeyDown($event)"
-                  />
-                  <p
-                    v-else
-                    class="block caption my-2 nc-chip w-full min-h-20px p-2 rounded"
-                    :style="{ backgroundColor: enumColor.light[2] }"
+        <div v-else class="flex-grow-1 my-2 px-2 space-y-2 overflow-y-scroll nc-scrollbar-md">
+          <div v-for="log of comments" :key="log.id" class="!last:mb-11">
+            <div class="bg-white rounded-xl group border-1 gap-2 border-gray-200">
+              <div class="flex flex-col p-4 gap-3">
+                <div class="flex justify-between">
+                  <div class="flex items-center gap-2">
+                    <GeneralUserIcon size="base" :name="log.display_name ?? log.user" />
+                    <div class="flex flex-col">
+                      <span class="truncate font-bold max-w-42">
+                        {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared base' }}
+                      </span>
+                      <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
+                        {{ log.created_at !== log.updated_at ? `Edited ${timeAgo(log.updated_at)}` : timeAgo(log.created_at) }}
+                      </div>
+                    </div>
+                  </div>
+                  <NcButton
+                    v-if="log.user === user.email && !editLog"
+                    type="secondary"
+                    class="!px-2 opacity-0 group-hover:opacity-100 transition-all"
+                    size="sm"
+                    @click="editComment(log)"
                   >
-                    <!--
-                      retrieve the comment part from the audit description
-                      `The following comment has been created: foo` -> `foo`
-                    -->
-                    {{ log.description.substring(log.description.indexOf(':') + 1) }}
-                  </p>
+                    <Icon class="iconify text-gray-800" icon="lucide:pen" />
+                  </NcButton>
                 </div>
-
-                <p v-else-if="log.details" v-dompurify-html="log.details" class="caption my-3" style="word-break: break-all" />
-
-                <p v-else>{{ log.description }}</p>
-
-                <p class="time text-right text-[10px] mb-0 mt-1 text-gray-500">
-                  {{ timeAgo(log.created_at) }}
-                </p>
+                <textarea
+                  v-if="log.id === editLog?.id"
+                  :ref="focusInput"
+                  v-model="value"
+                  rows="6"
+                  class="px-2 py-1 rounded-lg border-none nc-scrollbar-md bg-white outline-gray-200"
+                  @keydown.stop="onKeyDown($event)"
+                />
+                <div v-else class="text-sm text-gray-700">
+                  {{ log.description.substring(log.description.indexOf(':') + 1) }}
+                </div>
+                <div v-if="log.id === editLog?.id" class="flex justify-end gap-1">
+                  <NcButton type="secondary" size="sm" @click="onCancel"> Cancel </NcButton>
+                  <NcButton size="sm" @click="onEditComment"> Save </NcButton>
+                </div>
               </div>
             </div>
-
-            <template #overlay>
-              <a-menu v-if="log.op_type === 'COMMENT'" @click="contextMenu = false">
-                <a-menu-item key="copy-comment" @click="copyComment(log.description)">
-                  <div v-e="['a:comment:copy']" class="nc-project-menu-item">
-                    {{ t('general.copy') }}
-                  </div>
-                </a-menu-item>
-                <a-menu-item v-if="log.user === user.email && !disableEditOption" key="edit-comment" @click="editComment(log)">
-                  <div v-e="['a:comment:edit']" class="nc-project-menu-item">
-                    {{ t('general.edit') }}
-                  </div>
-                </a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
+          </div>
         </div>
-      </template>
-    </div>
-
-    <div class="border-1 my-2 w-full" />
-
-    <div class="p-0">
-      <div class="flex justify-center">
-        <!-- Comments only -->
-        <a-checkbox v-model:checked="commentsOnly" v-e="['c:row-expand:comment-only']" @change="loadCommentsAndLogs">
-          {{ $t('labels.commentsOnly') }}
-          <span class="text-[11px] text-gray-500" />
-        </a-checkbox>
-      </div>
-
-      <div v-if="hasEditPermission" class="shrink mt-2 flex">
-        <a-input
-          v-model:value="comment"
-          class="!text-xs nc-comment-box"
-          ghost
-          :class="{ focus: showBorder }"
-          @focusin="showBorder = true"
-          @focusout="showBorder = false"
-          @keyup.enter.prevent="saveComment"
+        <div
+          v-if="hasEditPermission"
+          class="mt-1 absolute bottom-0 left-0 right-0 w-[285px] p-2 rounded-b-xl border-t-1 bg-white gap-2 flex"
         >
-          <template #addonBefore>
-            <div class="flex items-center">
-              <component :is="iconMap.accountCircle" class="text-lg text-pink-700" small @click="saveComment" />
+          <a-input
+            v-model:value="comment"
+            class="!rounded-lg border-1 bg-white !px-4 !py-2 !border-gray-200 nc-comment-box"
+            placeholder="Start typing..."
+            @keyup.enter.prevent="saveComment"
+          >
+          </a-input>
+          <NcButton type="secondary" size="medium" @click="saveComment">
+            <Icon class="iconify text-gray-800" icon="lucide:send" />
+          </NcButton>
+        </div>
+      </div>
+      <div
+        v-else
+        ref="commentsWrapperEl"
+        class="flex flex-col m-1 p-1 h-[74vh] max-h-[680px] overflow-y-scroll nc-scrollbar-md space-y-2"
+      >
+        <template v-if="audits.length === 0">
+          <div class="flex flex-col text-center justify-center h-full">
+            <div class="text-center text-3xl text-gray-600">
+              <MdiHistory />
             </div>
-          </template>
+            <div class="font-bold text-center my-1 text-gray-600">See changes to this record</div>
+          </div>
+        </template>
+        <div v-for="log of audits" :key="log.id">
+          <div class="bg-white rounded-xl border-1 gap-3 border-gray-200">
+            <div class="flex flex-col p-4 gap-3">
+              <div class="flex justify-between">
+                <div class="flex font-bold items-center gap-2">
+                  <GeneralUserIcon size="base" :name="log.display_name ?? log.user" />
 
-          <template #suffix>
-            <component :is="iconMap.returnKey" v-if="comment" class="text-sm" small @click="saveComment" />
-          </template>
-        </a-input>
+                  <div class="flex flex-col">
+                    <span class="truncate max-w-50">
+                      {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared base' }}
+                    </span>
+                    <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
+                      {{ timeAgo(log.created_at) }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="text-sm font-medium text-gray-700">
+                {{ log.description.split('.')[1] }}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-:deep(.red.lighten-4) {
-  @apply bg-red-100;
-}
-
-:deep(.green.lighten-4) {
-  @apply bg-green-100;
+.tab .tab-title {
+  @apply min-w-0 flex justify-center gap-2 font-semibold items-center;
+  word-break: 'keep-all';
+  white-space: 'nowrap';
+  display: 'inline';
 }
 </style>

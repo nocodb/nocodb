@@ -97,7 +97,7 @@ test.describe('Fill Handle', () => {
     await unsetup(p.context);
   });
 
-  test.only('Number based', async () => {
+  test('Number based', async () => {
     const fields = [
       { title: 'Number', value: 33, type: 'text' },
       { title: 'Decimal', value: 33.3, type: 'text' },

@@ -4,6 +4,8 @@ const workspaceStore = useWorkspace()
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { activeWorkspace, isWorkspaceLoading } = storeToRefs(workspaceStore)
+
+const { isMobileMode } = useGlobal()
 </script>
 
 <template>

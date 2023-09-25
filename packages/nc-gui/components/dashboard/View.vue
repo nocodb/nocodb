@@ -5,6 +5,8 @@ import 'splitpanes/dist/splitpanes.css'
 const router = useRouter()
 const route = router.currentRoute
 
+const { isMobileMode } = storeToRefs(useConfigStore())
+
 const {
   isLeftSidebarOpen,
   leftSidebarWidthPercent,
@@ -89,6 +91,10 @@ watch(route, () => {
     isLeftSidebarOpen.value = true
   }
 })
+
+watch(isMobileMode, () => {
+  isLeftSidebarOpen.value = !isMobileMode.value
+})
 </script>
 
 <template>
@@ -104,6 +110,7 @@ watch(route, () => {
         ref="wrapperRef"
         class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !min-w-32 absolute overflow-visible"
         :class="{
+          'mobile': isMobileMode,
           'minimized-height': !isLeftSidebarOpen,
           'hide-sidebar': ['hiddenStart', 'hiddenEnd', 'peekCloseEnd'].includes(sidebarState),
         }"
@@ -124,6 +131,10 @@ watch(route, () => {
 .nc-sidebar-wrapper.minimized-height > * {
   @apply h-4/5 pb-2 !(rounded-r-lg border-1 border-gray-200 shadow-lg);
   width: calc(100% + 4px);
+}
+
+.mobile.nc-sidebar-wrapper.minimized-height > * {
+  @apply !h-full;
 }
 
 .nc-sidebar-wrapper > * {

@@ -29,7 +29,7 @@ const showNewTokenModal = ref(false)
 
 const currentLimit = ref(10)
 
-const defaultTokenName = 'untitled token'
+const defaultTokenName = 'Untitled token'
 
 const selectedTokenData = ref<ApiTokenType>({
   description: defaultTokenName,
@@ -95,7 +95,6 @@ const deleteToken = async (token: string): Promise<void> => {
 
 const validateTokenName = (tokenName: string | undefined) => {
   if (!tokenName) return false
-
   return tokenName.length < 255
 }
 
@@ -138,7 +137,8 @@ const triggerDeleteModal = (tokenToDelete: string, tokenDescription: string) => 
   isModalOpen.value = true
 }
 
-const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+const descriptionInput: VNodeRef = (el) =>
+  selectedTokenData.value.description === defaultTokenName && (el as HTMLInputElement)?.select()
 
 const errorMessage = computed(() => {
   const tokenLength = selectedTokenData.value.description?.length
@@ -161,6 +161,7 @@ const handleCancel = () => {
       <div class="py-2 flex gap-4 items-center justify-between">
         <h6 class="text-2xl my-4 text-left font-bold">API Tokens</h6>
         <NcButton
+          v-if="!showNewTokenModal"
           class="!rounded-md"
           data-testid="nc-token-create"
           size="middle"
@@ -176,7 +177,7 @@ const handleCancel = () => {
         </NcButton>
       </div>
       <span>Create personal API tokens to use in automation or external apps.</span>
-      <div class="w-[780px] mt-5 border-1 rounded-md min-h-[520px]">
+      <div class="w-[780px] mt-5 border-1 rounded-md h-[520px]">
         <div>
           <div class="flex w-full pl-5 bg-gray-50 border-b-1">
             <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9">Token name</span>
@@ -191,7 +192,7 @@ const handleCancel = () => {
                   <a-input
                     :ref="descriptionInput"
                     v-model:value="selectedTokenData.description"
-                    default-value="untitled token"
+                    default-value="Untitled token"
                     type="text"
                     class="!rounded-lg !py-1"
                     placeholder="Token Name"
@@ -216,12 +217,12 @@ const handleCancel = () => {
               </div>
               <NcDivider />
             </div>
-            <div v-if="!tokens.length" class="h-118 justify-center flex items-center">
+            <div v-if="!tokens.length" class="h-118 justify-center border-b-1 flex items-center">
               <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="`${$t('general.no')} ${$t('labels.token')}`" />
             </div>
 
             <div v-for="el of tokens" :key="el.id" data-testid="nc-token-list" class="flex border-b-1 pl-5 py-3 justify-between">
-              <span class="text-gray-500 font-medium text-3.5 text-start w-2/9">
+              <span class="text-black font-bold text-3.5 text-start w-2/9">
                 <GeneralTruncateText placement="top" length="20">
                   {{ el.description }}
                 </GeneralTruncateText>

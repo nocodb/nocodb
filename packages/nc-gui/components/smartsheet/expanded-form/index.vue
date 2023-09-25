@@ -344,13 +344,12 @@ export default {
     v-model:visible="isExpanded"
     :footer="null"
     :width="commentsDrawer && isUIAllowed('commentList') ? 'min(90vw,1280px)' : 'min(90vw,1280px)'"
-    height="min(90vh,856px)"
     :body-style="{ padding: 0 }"
     :closable="false"
-    class="nc-drawer-expanded-form"
+    class="nc-drawer-expanded-form max-h-[856px]"
     :class="{ active: isExpanded }"
   >
-    <div class="flex w-full items-center nc-expanded-form-header relative pb-2 justify-between">
+    <div class="flex flex-shrink-0 w-full items-center nc-expanded-form-header relative pb-2 justify-between">
       <div class="flex gap-3">
         <div class="flex gap-1">
           <NcButton v-if="props.showNextPrevIcons" type="secondary" size="small" class="nc-prev-arrow" @click="$emit('prev')">
@@ -410,9 +409,9 @@ export default {
       </div>
     </div>
     <div class="flex flex-row w-full gap-4">
-      <div class="fle relative w-full flex-col">
+      <div class="flex w-full flex-col h-[85vh] max-h-[770px] border-1 rounded-xl border-gray-200">
         <div
-          class="flex flex-col !pb-12 nc-scrollbar-md h-[540px] overflow-y-scroll items-center w-full bg-white border-1 border-gray-200 rounded-xl p-4"
+          class="flex flex-grow-1 h-full flex-col !pb-12 nc-scrollbar-md overflow-y-scroll items-center w-full rounded-xl bg-white p-4"
         >
           <div
             v-for="(col, i) of fields"
@@ -496,14 +495,14 @@ export default {
         </div>
         <div
           v-if="isUIAllowed('dataEdit')"
-          class="w-full absolute bottom-0 z-10 bg-white flex justify-end border-1 border-gray-200 p-2 rounded-b-lg"
+          class="w-full flex-shrink-1 rounded-xl border-t-1 border-gray-200 bottom-0 z-10 bg-white flex justify-end p-2"
         >
           <NcButton type="primary" size="medium" class="nc-expand-form-save-btn" @click="save"> Save </NcButton>
         </div>
       </div>
       <div
         v-if="!isNew && commentsDrawer && isUIAllowed('commentList')"
-        class="nc-comments-drawer border-1 border-gray-200 w-[380px] rounded-lg min-w-0"
+        class="nc-comments-drawer border-1 relative border-gray-200 w-[380px] bg-gray-50 rounded-lg min-w-0"
         :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
       >
         <LazySmartsheetExpandedFormComments />

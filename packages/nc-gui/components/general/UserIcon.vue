@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 const props = defineProps<{
-  size?: 'small' | 'medium' | 'large' | 'xlarge'
+  size?: 'small' | 'medium' | 'base' | 'large' | 'xlarge'
   name?: string
 }>()
 
@@ -35,6 +35,7 @@ const usernameInitials = computed(() => {
     :class="{
       'min-w-4 min-h-4': size === 'small',
       'min-w-6 min-h-6': size === 'medium',
+      'w-8 h-8 !text-md': size === 'base',
       'min-w-20 min-h-20 !text-3xl': size === 'large',
       'min-w-26 min-h-26 !text-4xl': size === 'xlarge',
     }"

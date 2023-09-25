@@ -100,7 +100,7 @@ watch(
 </script>
 
 <template>
-  <div class="flex flex-col w-full h-[540px] bg-gray-50 rounded-lg">
+  <div class="flex flex-col h-full w-full bg-gray-50 rounded-lg">
     <div class="bg-white rounded-t-lg border-gray-200 border-b-1">
       <div class="flex flex-row gap-2 m-2 p-1 bg-gray-100 rounded-lg">
         <div
@@ -110,7 +110,7 @@ watch(
           }"
           @click="tab = 'comments'"
         >
-          <div class="tab-title gap-2 nc-tab">
+          <div class="tab-title nc-tab">
             <MdiMessageOutline class="h-4 w-4" />
             Comments
           </div>
@@ -122,7 +122,7 @@ watch(
           }"
           @click="tab = 'audits'"
         >
-          <div class="tab-title gap-2 nc-tab">
+          <div class="tab-title nc-tab">
             <MdiFileDocumentOutline class="h-4 w-4" />
             Audits
           </div>
@@ -130,29 +130,28 @@ watch(
       </div>
     </div>
     <div>
-      <div
-        v-if="tab === 'comments'"
-        ref="commentsWrapperEl"
-        class="flex flex-col m-1 p-1 !h-[407px] overflow-y-scroll nc-scrollbar-md space-y-2"
-      >
-        <template v-if="comments.length === 0">
-          <div class="flex flex-col text-center justify-center h-full">
-            <div class="text-center text-3xl text-gray-700">
-              <MdiChatProcessingOutline />
-            </div>
-            <div class="font-bold text-center my-1 text-gray-700">Start a conversation</div>
+      <div v-if="tab === 'comments'" ref="commentsWrapperEl" class="flex flex-col h-[74vh] max-h-[680px]">
+        <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full">
+          <div class="text-center text-3xl text-gray-700">
+            <MdiChatProcessingOutline />
           </div>
-        </template>
-        <template v-else>
-          <div v-for="log of comments" :key="log.id">
-            <div class="bg-white rounded-xl group border-1 gap-3 border-gray-200">
+          <div class="font-bold text-center my-1 text-gray-700">Start a conversation</div>
+        </div>
+        <div v-else class="flex-grow-1 my-2 px-2 space-y-2 overflow-y-scroll nc-scrollbar-md">
+          <div v-for="log of comments" :key="log.id" class="!last:mb-11">
+            <div class="bg-white rounded-xl group border-1 gap-2 border-gray-200">
               <div class="flex flex-col p-4 gap-3">
                 <div class="flex justify-between">
-                  <div class="flex font-bold items-center gap-2">
-                    <GeneralUserIcon :name="log.display_name ?? log.user" />
-                    <span class="truncate max-w-42">
-                      {{ log.display_name ?? log.user ?? 'Shared base' }}
-                    </span>
+                  <div class="flex items-center gap-2">
+                    <GeneralUserIcon size="base" :name="log.display_name ?? log.user" />
+                    <div class="flex flex-col">
+                      <span class="truncate font-bold max-w-42">
+                        {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared base' }}
+                      </span>
+                      <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
+                        {{ log.created_at !== log.updated_at ? `Edited ${timeAgo(log.updated_at)}` : timeAgo(log.created_at) }}
+                      </div>
+                    </div>
                   </div>
                   <NcButton
                     v-if="log.user === user.email && !editLog"
@@ -179,15 +178,31 @@ watch(
                   <NcButton type="secondary" size="sm" @click="onCancel"> Cancel </NcButton>
                   <NcButton size="sm" @click="onEditComment"> Save </NcButton>
                 </div>
-                <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
-                  {{ log.created_at !== log.updated_at ? `Edited ${timeAgo(log.updated_at)}` : timeAgo(log.created_at) }}
-                </div>
               </div>
             </div>
           </div>
-        </template>
+        </div>
+        <div
+          v-if="hasEditPermission"
+          class="mt-1 absolute bottom-0 left-0 right-0 w-[285px] p-2 rounded-b-xl border-t-1 bg-white gap-2 flex"
+        >
+          <a-input
+            v-model:value="comment"
+            class="!rounded-lg border-1 bg-white !px-4 !py-2 !border-gray-200 nc-comment-box"
+            placeholder="Start typing..."
+            @keyup.enter.prevent="saveComment"
+          >
+          </a-input>
+          <NcButton type="secondary" size="medium" @click="saveComment">
+            <Icon class="iconify text-gray-800" icon="lucide:send" />
+          </NcButton>
+        </div>
       </div>
-      <div v-else ref="commentsWrapperEl" class="flex flex-col m-1 p-1 !h-[465px] overflow-y-scroll nc-scrollbar-md space-y-2">
+      <div
+        v-else
+        ref="commentsWrapperEl"
+        class="flex flex-col m-1 p-1 h-[74vh] max-h-[680px] overflow-y-scroll nc-scrollbar-md space-y-2"
+      >
         <template v-if="audits.length === 0">
           <div class="flex flex-col text-center justify-center h-full">
             <div class="text-center text-3xl text-gray-600">
@@ -201,34 +216,24 @@ watch(
             <div class="flex flex-col p-4 gap-3">
               <div class="flex justify-between">
                 <div class="flex font-bold items-center gap-2">
-                  <GeneralUserIcon :name="log.display_name ?? log.user" />
+                  <GeneralUserIcon size="base" :name="log.display_name ?? log.user" />
 
-                  <span class="truncate max-w-50">
-                    {{ log.user ?? 'Shared base' }}
-                  </span>
+                  <div class="flex flex-col">
+                    <span class="truncate max-w-50">
+                      {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared base' }}
+                    </span>
+                    <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
+                      {{ timeAgo(log.created_at) }}
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="text-sm font-medium text-gray-700">
                 {{ log.description.split('.')[1] }}
               </div>
-              <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
-                {{ timeAgo(log.created_at) }}
-              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div v-if="hasEditPermission && tab === 'comments'" class="shrink mt-2 p-2 rounded-b-xl border-t-1 bg-white gap-1 flex">
-        <a-input
-          v-model:value="comment"
-          class="!rounded-lg border-1 bg-white !px-4 !py-2 !border-gray-200 nc-comment-box"
-          placeholder="Start typing..."
-          @keyup.enter.prevent="saveComment"
-        >
-        </a-input>
-        <NcButton type="secondary" size="medium" @click="saveComment">
-          <Icon class="iconify text-gray-800" icon="lucide:send" />
-        </NcButton>
       </div>
     </div>
   </div>
@@ -236,7 +241,7 @@ watch(
 
 <style scoped>
 .tab .tab-title {
-  @apply min-w-0 flex justify-center gap-1 font-semibold items-center;
+  @apply min-w-0 flex justify-center gap-2 font-semibold items-center;
   word-break: 'keep-all';
   white-space: 'nowrap';
   display: 'inline';

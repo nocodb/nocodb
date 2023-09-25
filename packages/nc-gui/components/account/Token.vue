@@ -177,7 +177,7 @@ const handleCancel = () => {
         </NcButton>
       </div>
       <span>Create personal API tokens to use in automation or external apps.</span>
-      <div class="w-[780px] mt-5 border-1 rounded-md h-[540px] overflow-y-scroll">
+      <div class="w-[780px] mt-5 border-1 rounded-md h-[530px] overflow-y-scroll">
         <div>
           <div class="flex w-full pl-5 bg-gray-50 border-b-1">
             <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9">Token name</span>
@@ -218,7 +218,7 @@ const handleCancel = () => {
               </div>
               <NcDivider />
             </div>
-            <div v-if="!tokens.length" class="h-118 justify-center border-b-1 flex items-center">
+            <div v-if="!tokens.length" class="h-118 justify-center flex items-center">
               <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="`${$t('general.no')} ${$t('labels.token')}`" />
             </div>
 

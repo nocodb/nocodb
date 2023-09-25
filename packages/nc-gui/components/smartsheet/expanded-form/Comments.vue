@@ -3,9 +3,8 @@ import type { VNodeRef } from '@vue/runtime-core'
 import type { AuditType } from 'nocodb-sdk'
 import { Icon } from '@iconify/vue'
 import { ref, timeAgo, useExpandedFormStoreOrThrow, useGlobal, useRoles, watch } from '#imports'
-import FileIcon from '~icons/nc-icons/file'
 
-const { loadCommentsAndLogs, commentsAndLogs, isYou, saveComment, comment, updateComment } = useExpandedFormStoreOrThrow()
+const { loadCommentsAndLogs, commentsAndLogs, saveComment, comment, updateComment } = useExpandedFormStoreOrThrow()
 
 const commentsWrapperEl = ref<HTMLDivElement>()
 
@@ -101,7 +100,7 @@ watch(
 </script>
 
 <template>
-  <div class="flex flex-col w-full h-[500px] bg-gray-50 rounded-lg">
+  <div class="flex flex-col w-full h-[540px] bg-gray-50 rounded-lg">
     <div class="bg-white rounded-t-lg border-gray-200 border-b-1">
       <div class="flex flex-row gap-2 m-2 p-1 bg-gray-100 rounded-lg">
         <div
@@ -111,8 +110,8 @@ watch(
           }"
           @click="tab = 'comments'"
         >
-          <div class="tab-title gap-1 nc-tab">
-            <MdiMessageOutline class="h-5 w-5" />
+          <div class="tab-title gap-2 nc-tab">
+            <MdiMessageOutline class="h-4 w-4" />
             Comments
           </div>
         </div>
@@ -123,8 +122,8 @@ watch(
           }"
           @click="tab = 'audits'"
         >
-          <div class="tab-title nc-tab">
-            <MdiFileDocumentOutline class="h-5 w-5" />
+          <div class="tab-title gap-2 nc-tab">
+            <MdiFileDocumentOutline class="h-4 w-4" />
             Audits
           </div>
         </div>
@@ -134,7 +133,7 @@ watch(
       <div
         v-if="tab === 'comments'"
         ref="commentsWrapperEl"
-        class="flex flex-col m-1 p-1 !h-[399px] overflow-y-scroll nc-scrollbar-md space-y-2"
+        class="flex flex-col m-1 p-1 !h-[407px] overflow-y-scroll nc-scrollbar-md space-y-2"
       >
         <template v-if="comments.length === 0">
           <div class="flex flex-col text-center justify-center h-full">
@@ -180,7 +179,7 @@ watch(
                   <NcButton type="secondary" size="sm" @click="onCancel"> Cancel </NcButton>
                   <NcButton size="sm" @click="onEditComment"> Save </NcButton>
                 </div>
-                <div v-if="log.id !== editLog?.id" class="text-sm text-gray-500">
+                <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
                   {{ log.created_at !== log.updated_at ? `Edited ${timeAgo(log.updated_at)}` : timeAgo(log.created_at) }}
                 </div>
               </div>
@@ -188,9 +187,9 @@ watch(
           </div>
         </template>
       </div>
-      <div v-else ref="commentsWrapperEl" class="flex flex-col m-1 p-1 !h-[459px] overflow-y-scroll nc-scrollbar-md space-y-2">
+      <div v-else ref="commentsWrapperEl" class="flex flex-col m-1 p-1 !h-[465px] overflow-y-scroll nc-scrollbar-md space-y-2">
         <template v-if="audits.length === 0">
-          <div class="flex flex-col mb-14 text-center justify-center h-full">
+          <div class="flex flex-col text-center justify-center h-full">
             <div class="text-center text-3xl text-gray-600">
               <MdiHistory />
             </div>
@@ -209,7 +208,7 @@ watch(
                   </span>
                 </div>
               </div>
-              <div class="text-sm text-gray-700">
+              <div class="text-sm font-medium text-gray-700">
                 {{ log.description.split('.')[1] }}
               </div>
               <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
@@ -237,7 +236,7 @@ watch(
 
 <style scoped>
 .tab .tab-title {
-  @apply min-w-0 flex justify-center gap-1 font-semibold items-center py-1;
+  @apply min-w-0 flex justify-center gap-1 font-semibold items-center;
   word-break: 'keep-all';
   white-space: 'nowrap';
   display: 'inline';

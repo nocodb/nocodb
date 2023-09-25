@@ -342,7 +342,8 @@ export default {
     :key="key"
     v-model:visible="isExpanded"
     :footer="null"
-    :width="commentsDrawer && isUIAllowed('commentList') ? 'min(90vw,1000px)' : 'min(90vw,800px)'"
+    :width="commentsDrawer && isUIAllowed('commentList') ? 'min(90vw,1280px)' : 'min(90vw,1280px)'"
+    height="min(90vh,856px)"
     :body-style="{ padding: 0 }"
     :closable="false"
     class="nc-drawer-expanded-form"
@@ -408,12 +409,7 @@ export default {
       </div>
     </div>
     <div class="flex flex-row w-full gap-4">
-      <div
-        class="fle relative w-full flex-col"
-        :class="{
-          '!w-4/6': !isNew,
-        }"
-      >
+      <div class="fle relative w-full flex-col">
         <div
           class="flex flex-col !pb-12 nc-scrollbar-md h-[540px] overflow-y-scroll items-center w-full bg-white border-1 border-gray-200 rounded-xl p-4"
         >
@@ -506,7 +502,7 @@ export default {
       </div>
       <div
         v-if="!isNew && commentsDrawer && isUIAllowed('commentList')"
-        class="nc-comments-drawer border-1 border-gray-200 w-2/6 rounded-lg min-w-0"
+        class="nc-comments-drawer border-1 border-gray-200 w-[380px] rounded-lg min-w-0"
         :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
       >
         <LazySmartsheetExpandedFormComments />

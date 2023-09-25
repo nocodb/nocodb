@@ -25,10 +25,10 @@ const onClick = () => {
   <NcTooltip
     placement="topLeft"
     hide-on-click
-    class="transition-all duration-100"
+    class="transition-all duration-150"
     :class="{
-      'opacity-0 max-w-0': !isMobileMode && isLeftSidebarOpen,
-      'opacity-100': isMobileMode || !isLeftSidebarOpen,
+      'opacity-0 w-0': !isMobileMode && isLeftSidebarOpen,
+      'opacity-100 w-8': isMobileMode || !isLeftSidebarOpen,
     }"
   >
     <template #title>
@@ -42,9 +42,6 @@ const onClick = () => {
       :type="isMobileMode ? 'secondary' : 'text'"
       :size="isMobileMode ? 'medium' : 'small'"
       class="nc-sidebar-left-toggle-icon !text-gray-600 !hover:text-gray-800"
-      :class="{
-        'invisible !w-0': !isMobileMode && isLeftSidebarOpen,
-      }"
       @click="onClick"
     >
       <div class="flex items-center text-inherit">

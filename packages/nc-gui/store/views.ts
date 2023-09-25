@@ -164,9 +164,15 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
 
     if (hardReload) {
-      await router.replace({ name: routeName, query: { reload: 'true' }, params: { viewId: tableId, projectId } }).then(() => {
-        router.replace({ name: routeName, query: {}, params: { viewId: tableId, projectId } })
-      })
+      await router
+        .replace({
+          name: routeName,
+          query: { reload: 'true' },
+          params: { viewId: tableId, projectId, viewTitle: view.id || '' },
+        })
+        .then(() => {
+          router.replace({ name: routeName, query: {}, params: { viewId: tableId, viewTitle: view.id || '', projectId } })
+        })
     }
   }
 

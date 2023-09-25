@@ -359,7 +359,7 @@ export default {
             <MdiChevronDown class="text-md text-gray-700" />
           </NcButton>
         </div>
-        <div v-if="displayValue" class="flex items-center font-bold text-gray-800 text-xl">
+        <div v-if="displayValue" class="flex items-center truncate max-w-32 font-bold text-gray-800 text-xl">
           {{ displayValue }}
         </div>
         <div class="bg-gray-100 px-2 gap-1 flex items-center rounded-md text-gray-800">
@@ -412,7 +412,7 @@ export default {
         }"
       >
         <div
-          class="flex flex-col h-[calc(100vh-200px)] !pb-12 nc-scrollbar-md overflow-y-scroll items-center w-full bg-white border-1 border-gray-200 rounded-xl p-4"
+          class="flex flex-col !pb-12 nc-scrollbar-md h-[540px] overflow-y-scroll items-center w-full bg-white border-1 border-gray-200 rounded-xl p-4"
         >
           <div
             v-for="(col, i) of fields"
@@ -496,7 +496,7 @@ export default {
         </div>
         <div
           v-if="isUIAllowed('dataEdit')"
-          class="w-full absolute bottom-0 bg-white flex justify-end border-1 border-gray-200 p-2 rounded-b-lg"
+          class="w-full absolute bottom-0 z-10 bg-white flex justify-end border-1 border-gray-200 p-2 rounded-b-lg"
         >
           <NcButton type="primary" size="medium" @click="save"> Save </NcButton>
         </div>

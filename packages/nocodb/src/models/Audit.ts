@@ -140,6 +140,12 @@ export default class Audit implements AuditType {
   public static async commentsList(args) {
     const query = Noco.ncMeta
       .knex(MetaTable.AUDIT)
+      .join(
+        MetaTable.USERS,
+        `${MetaTable.USERS}.email`,
+        `${MetaTable.AUDIT}.user`,
+      )
+      .select(`${MetaTable.AUDIT}.*`, `${MetaTable.USERS}.display_name`)
       .where('row_id', args.row_id)
       .where('fk_model_id', args.fk_model_id)
       .orderBy('created_at', 'desc');

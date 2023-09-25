@@ -286,7 +286,7 @@ const addNewProjectChildEntity = async () => {
 // todo: temp
 const isSharedBase = ref(false)
 
-const onTouchStart = async (project: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
+const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
   if (!project) {
     return
   }
@@ -355,12 +355,6 @@ const onTouchStart = async (project: NcProject, ignoreNavigation?: boolean, togg
     const updatedProject = projects.value.get(project.id!)!
     updatedProject.isLoading = false
   }
-}
-
-const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
-  if (isMobileMode.value) return
-
-  onTouchStart(project, ignoreNavigation, toggleIsExpanded)
 }
 
 // TODO - implement
@@ -509,7 +503,6 @@ onMounted(() => {
             size="xxsmall"
             class="nc-sidebar-node-btn nc-sidebar-expand ml-0.75 !xs:visible"
             @click.stop="onProjectClick(project, true, true)"
-            @touchstart.stop="onTouchStart(project, true, true)"
           >
             <GeneralIcon
               icon="triangleFill"
@@ -517,7 +510,7 @@ onMounted(() => {
               :class="{ '!rotate-180': project.isExpanded, '!visible': isOptionsOpen }"
             />
           </NcButton>
-          <div class="flex items-center mr-1" @click="onProjectClick(project)" @touchstart="onTouchStart(project)">
+          <div class="flex items-center mr-1" @click="onProjectClick(project)">
             <div class="flex items-center select-none w-6 h-full">
               <a-spin
                 v-if="project.isLoading"
@@ -553,19 +546,14 @@ onMounted(() => {
           />
           <span
             v-else
-            class="capitalize text-ellipsis overflow-hidden select-none"
+            class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             :class="{ 'text-black font-semibold': activeProjectId === project.id && projectViewOpen && !isMobileMode }"
             @click="onProjectClick(project)"
-            @touchstart="onTouchStart(project)"
           >
             {{ project.title }}
           </span>
-          <div
-            :class="{ 'flex flex-grow h-full': !editMode }"
-            @click="onProjectClick(project)"
-            @touchstart="onTouchStart(project)"
-          ></div>
+          <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>
 
           <NcDropdown v-model:visible="isOptionsOpen" :trigger="['click']">
             <NcButton

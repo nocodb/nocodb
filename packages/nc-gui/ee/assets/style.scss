@@ -601,7 +601,18 @@ a {
 }
 
 .nc-sidebar-node {
-  @apply !xs:(min-h-8.9 max-h-8.9 hover:bg-gray-50);
+  @apply !xs:(min-h-12 max-h-12 hover:bg-gray-50 ml-1.5);
+
+  .nc-emoji {
+    @apply xs:(text-lg);
+  }
+  .material-symbols, .nc-icon {
+    @apply !xs:(text-xl -mt-0.25);
+  }
+
+  .nc-sidebar-node-title {
+    @apply xs:(text-base);
+  }
 
   .nc-sidebar-node-btn:not(.nc-sidebar-expand) {
     @apply !xs:(hidden)

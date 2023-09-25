@@ -78,10 +78,6 @@ const onClick = useDebounceFn(() => {
   emits('changeView', vModel.value)
 }, 250)
 
-const onTouchClick = () => {
-  emits('changeView', vModel.value)
-}
-
 /** Enable editing view name on dbl click */
 function onDblClick() {
   if (!isUIAllowed('viewCreateOrEdit')) return
@@ -222,7 +218,6 @@ function onRef(el: HTMLElement) {
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @dblclick.stop="onDblClick"
     @click="onClick"
-    @touchstart="onTouchClick"
   >
     <div
       :ref="onRef"
@@ -258,7 +253,7 @@ function onRef(el: HTMLElement) {
 
       <div
         v-else
-        class="capitalize text-ellipsis overflow-hidden select-none w-full"
+        class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none w-full"
         data-testid="sidebar-view-title"
         :class="{
           'font-medium': activeView?.id === vModel.id,

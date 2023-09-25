@@ -21,6 +21,10 @@ const groupingUidt = [
   UITypes.Date,
   UITypes.SingleLineText,
   UITypes.Number,
+  UITypes.Rollup,
+  UITypes.Lookup,
+  UITypes.Links,
+  UITypes.Formula,
 ]
 
 const meta = inject(MetaInj, ref())

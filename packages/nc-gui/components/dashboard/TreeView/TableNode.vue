@@ -87,7 +87,7 @@ const canUserEditEmote = computed(() => {
 const isExpanded = ref(false)
 const isLoading = ref(false)
 
-const onTouchExpand = async () => {
+const onExpand = async () => {
   if (isExpanded.value) {
     isExpanded.value = false
     return
@@ -104,13 +104,7 @@ const onTouchExpand = async () => {
   }
 }
 
-const onExpand = async () => {
-  if (isMobileMode.value) return
-
-  onTouchExpand()
-}
-
-const onTouchOpenTable = async () => {
+const onOpenTable = async () => {
   isLoading.value = true
   try {
     await _openTable(table.value)
@@ -120,12 +114,6 @@ const onTouchOpenTable = async () => {
     isLoading.value = false
     isExpanded.value = true
   }
-}
-
-const onOpenTable = async () => {
-  if (isMobileMode.value) return
-
-  onTouchOpenTable()
 }
 
 watch(
@@ -172,16 +160,9 @@ const isTableOpened = computed(() => {
         :data-testid="`nc-tbl-side-node-${table.title}`"
         @contextmenu="setMenuContext('table', table)"
         @click="onOpenTable"
-        @touchstart="onTouchOpenTable"
       >
         <div class="flex flex-row h-full items-center">
-          <NcButton
-            type="text"
-            size="xxsmall"
-            class="nc-sidebar-node-btn nc-sidebar-expand"
-            @click.stop="onExpand"
-            @touchstart.stop="onTouchExpand"
-          >
+          <NcButton type="text" size="xxsmall" class="nc-sidebar-node-btn nc-sidebar-expand" @click.stop="onExpand">
             <GeneralIcon
               icon="triangleFill"
               class="nc-sidebar-base-node-btns group-hover:visible invisible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.5 !text-gray-600 rotate-90"
@@ -233,7 +214,7 @@ const isTableOpened = computed(() => {
         </div>
 
         <span
-          class="nc-tbl-title capitalize text-ellipsis overflow-hidden select-none"
+          class="nc-tbl-title nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none"
           :class="{
             'text-black !font-medium': isTableOpened,
           }"

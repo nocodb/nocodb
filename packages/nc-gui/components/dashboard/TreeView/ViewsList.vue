@@ -32,7 +32,7 @@ const emits = defineEmits<Emits>()
 const project = inject(ProjectInj)!
 const table = inject(SidebarTableInj)!
 
-const { isUIAllowed } = useRoles()
+const { isMobileMode } = useGlobal()
 
 const { $e } = useNuxtApp()
 
@@ -178,6 +178,7 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
 
 const initSortable = (el: HTMLElement) => {
   if (sortable) sortable.destroy()
+  if (isMobileMode.value) return
 
   sortable = new Sortable(el, {
     // handle: '.nc-drag-icon',

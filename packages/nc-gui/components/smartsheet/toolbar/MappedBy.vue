@@ -76,7 +76,7 @@ const handleChange = () => {
 </script>
 
 <template>
-  <a-dropdown v-if="!IsPublic" v-model:visible="mappedByDropdown" :trigger="['click']">
+  <a-dropdown v-if="!IsPublic" v-model:visible="mappedByDropdown" :trigger="['click']" class="!xs:hidden">
     <div class="nc-map-btn">
       <a-button v-e="['c:map:change-grouping-field']" class="nc-map-stacked-by-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">

@@ -137,12 +137,20 @@ useEventListener(NcButton, 'mousedown', () => {
 }
 
 .nc-button {
+  @apply !xs:(outline-none)
+
   box-shadow: 0px 5px 3px -2px rgba(0, 0, 0, 0.02), 0px 3px 1px -2px rgba(0, 0, 0, 0.06);
   outline: none;
 }
 
-.nc-button.ant-btn.focused {
-  box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+.desktop {
+  .nc-button.ant-btn.focused {
+    box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+  }
+
+  .nc-button.ant-btn-text.focused {
+    @apply text-brand-500;
+  }
 }
 
 .nc-button.ant-btn {
@@ -154,7 +162,7 @@ useEventListener(NcButton, 'mousedown', () => {
 }
 
 .nc-button.ant-btn.medium {
-  @apply py-2 px-4 h-10 min-w-10;
+  @apply py-2 px-4 h-10 min-w-10 xs:(h-10.5 max-h-10.5 min-w-10.5 !px-3);
 }
 
 .nc-button.ant-btn.xsmall {
@@ -167,7 +175,7 @@ useEventListener(NcButton, 'mousedown', () => {
 
 .nc-button.ant-btn[disabled] {
   box-shadow: none !important;
-  @apply bg-gray-50 hover:bg-gray-50 border-0 text-gray-300 cursor-not-allowed;
+  @apply bg-gray-50 border-0 text-gray-300 cursor-not-allowed md:(hover:bg-gray-50);
 }
 
 .nc-button.ant-btn-text.ant-btn[disabled] {
@@ -179,27 +187,15 @@ useEventListener(NcButton, 'mousedown', () => {
 }
 
 .nc-button.ant-btn-primary {
-  @apply bg-brand-500 border-0 text-white;
-
-  &:hover {
-    @apply bg-brand-600 border-0;
-  }
+  @apply bg-brand-500 border-0 text-white xs:(hover:border-0) md:(hover:bg-brand-600);
 }
 
 .nc-button.ant-btn-secondary {
-  @apply bg-white border-1 border-gray-200 text-gray-700;
-
-  &:hover {
-    @apply bg-gray-100;
-  }
+  @apply bg-white border-1 border-gray-200 text-gray-700 md:(hover:bg-gray-100);
 }
 
 .nc-button.ant-btn-danger {
-  @apply bg-red-500 border-0;
-
-  &:hover {
-    @apply bg-red-600 border-0;
-  }
+  @apply bg-red-500 border-0 hover:border-0 md:(hover:bg-red-600);
 }
 
 .nc-button.ant-btn-text {
@@ -210,9 +206,5 @@ useEventListener(NcButton, 'mousedown', () => {
   &:focus {
     box-shadow: none;
   }
-}
-
-.nc-button.ant-btn-text.focused {
-  @apply text-brand-500;
 }
 </style>

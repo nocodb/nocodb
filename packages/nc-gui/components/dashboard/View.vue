@@ -5,6 +5,8 @@ import 'splitpanes/dist/splitpanes.css'
 const router = useRouter()
 const route = router.currentRoute
 
+const { isMobileMode } = storeToRefs(useConfigStore())
+
 const {
   isLeftSidebarOpen,
   leftSidebarWidthPercent,
@@ -14,11 +16,9 @@ const {
 
 const wrapperRef = ref<HTMLDivElement>()
 
-const contentSize = computed(() => 100 - sideBarSize.value.current)
 const animationDuration = 250
 const viewportWidth = ref(window.innerWidth)
 
-const sidebarWidth = computed(() => (sideBarSize.value.old * viewportWidth.value) / 100)
 const currentSidebarSize = computed({
   get: () => sideBarSize.value.current,
   set: (val) => {
@@ -26,6 +26,30 @@ const currentSidebarSize = computed({
     sideBarSize.value.old = val
   },
 })
+
+const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
+
+const contentSize = computed(() => 100 - sideBarSize.value.current)
+
+const mobileNormalizedSidebarSize = computed(() => {
+  if (isMobileMode.value) {
+    return isLeftSidebarOpen.value ? 100 : 0
+  }
+
+  return currentSidebarSize.value
+})
+
+const mobileNormalizedContentSize = computed(() => {
+  if (isMobileMode.value) {
+    return isLeftSidebarOpen.value ? 0 : 100
+  }
+
+  return contentSize.value
+})
+
+const sidebarWidth = computed(() =>
+  isMobileMode.value ? viewportWidth.value : (sideBarSize.value.old * viewportWidth.value) / 100,
+)
 
 watch(currentSidebarSize, () => {
   leftSidebarWidthPercent.value = currentSidebarSize.value
@@ -52,6 +76,7 @@ watch(isLeftSidebarOpen, () => {
 })
 
 function handleMouseMove(e: MouseEvent) {
+  if (isMobileMode.value) return
   if (!wrapperRef.value) return
   if (sidebarState.value === 'openEnd') return
 
@@ -89,6 +114,14 @@ watch(route, () => {
     isLeftSidebarOpen.value = true
   }
 })
+
+watch(isMobileMode, () => {
+  isLeftSidebarOpen.value = !isMobileMode.value
+})
+
+onMounted(() => {
+  handleSidebarOpenOnMobileForNonViews()
+})
 </script>
 
 <template>
@@ -99,11 +132,17 @@ watch(route, () => {
     }"
     @resize="currentSidebarSize = $event[0].size"
   >
-    <Pane min-size="15%" :size="currentSidebarSize" max-size="40%" class="nc-sidebar-splitpane relative !overflow-visible">
+    <Pane
+      min-size="15%"
+      :size="mobileNormalizedSidebarSize"
+      max-size="40%"
+      class="nc-sidebar-splitpane relative !overflow-visible"
+    >
       <div
         ref="wrapperRef"
         class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !min-w-32 absolute overflow-visible"
         :class="{
+          'mobile': isMobileMode,
           'minimized-height': !isLeftSidebarOpen,
           'hide-sidebar': ['hiddenStart', 'hiddenEnd', 'peekCloseEnd'].includes(sidebarState),
         }"
@@ -114,7 +153,7 @@ watch(route, () => {
         <slot name="sidebar" />
       </div>
     </Pane>
-    <Pane :size="contentSize">
+    <Pane :size="mobileNormalizedContentSize">
       <slot name="content" />
     </Pane>
   </Splitpanes>
@@ -124,6 +163,10 @@ watch(route, () => {
 .nc-sidebar-wrapper.minimized-height > * {
   @apply h-4/5 pb-2 !(rounded-r-lg border-1 border-gray-200 shadow-lg);
   width: calc(100% + 4px);
+}
+
+.mobile.nc-sidebar-wrapper.minimized-height > * {
+  @apply !h-full;
 }
 
 .nc-sidebar-wrapper > * {

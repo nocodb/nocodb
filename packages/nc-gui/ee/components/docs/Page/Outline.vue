@@ -114,7 +114,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="absolute top-10 right-2 pt-20 flex flex-col w-full mr-12 overflow-hidden sm:w-0 md:w-0 lg:w-24 xl:w-36 2xl:w-54"
+    class="absolute top-10 right-2 pt-20 flex flex-col w-full mr-12 overflow-hidden xs:w-0 md:w-0 lg:w-24 xl:w-36 2xl:w-54"
     data-testid="docs-page-outline-content"
     :style="{
       transition: 'opacity 0.2s ease-in-out',

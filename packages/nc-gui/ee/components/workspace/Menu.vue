@@ -6,14 +6,20 @@ const workspaceStore = useWorkspace()
 const { activeWorkspace, workspacesList, workspaceUserCount } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
-const { leftSidebarState } = storeToRefs(useSidebarStore())
+const { leftSidebarState, isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 const viewportWidth = ref(window.innerWidth)
 
 const { navigateToTable } = useTablesStore()
 
-const { navigateToProject } = useGlobal()
+const { navigateToProject, isMobileMode } = useGlobal()
 
-const isWorkspaceDropdownOpen = ref(false)
+const _isWorkspaceDropdownOpen = ref(false)
+const isWorkspaceDropdownOpen = computed({
+  get: () => (isLeftSidebarOpen.value ? _isWorkspaceDropdownOpen.value : false),
+  set: (val: boolean) => {
+    _isWorkspaceDropdownOpen.value = val
+  },
+})
 
 const createDlg = ref(false)
 
@@ -94,7 +100,6 @@ onBeforeUnmount(() => {
     </div>
   </div>
   <div
-    v-else
     class="flex flex-row flex-grow w-full max-w-85/100 hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md"
     :style="{
       maxWidth: `calc(100% - 2.5rem)`,
@@ -144,7 +149,7 @@ onBeforeUnmount(() => {
               </div>
             </div>
 
-            <NcDivider class="!mb-0" />
+            <NcDivider v-if="!isMobileMode" class="!mb-0" />
 
             <div class="max-h-300px nc-scrollbar-md !overflow-y-auto py-1">
               <NcMenuItem v-for="workspace of otherWorkspaces" :key="workspace.id!" @click="switchWorkspace(workspace.id!)">
@@ -156,8 +161,8 @@ onBeforeUnmount(() => {
                 </div>
               </NcMenuItem>
             </div>
-            <NcDivider v-if="otherWorkspaces.length" class="!mt-0" />
-            <NcMenuItem @click="createDlg = true">
+            <NcDivider v-if="otherWorkspaces.length && !isMobileMode" class="!mt-0" />
+            <NcMenuItem v-if="!isMobileMode" @click="createDlg = true">
               <div class="nc-workspace-menu-item group">
                 <GeneralIcon icon="plusSquare" class="!text-inherit" />
 

@@ -20,13 +20,15 @@ const project = toRef(props, 'project')
 const table = toRef(props, 'table')
 const baseIndex = toRef(props, 'baseIndex')
 
-const { openTable } = useTableNew({
+const { openTable: _openTable } = useTableNew({
   projectId: project.value.id!,
 })
 
 const route = useRoute()
 
 const { isUIAllowed } = useRoles()
+
+const { isMobileMode } = useGlobal()
 
 const tabStore = useTabs()
 const { updateTab } = tabStore
@@ -85,7 +87,7 @@ const canUserEditEmote = computed(() => {
 const isExpanded = ref(false)
 const isLoading = ref(false)
 
-const onExpand = async () => {
+const onTouchExpand = async () => {
   if (isExpanded.value) {
     isExpanded.value = false
     return
@@ -100,6 +102,30 @@ const onExpand = async () => {
     isLoading.value = false
     isExpanded.value = true
   }
+}
+
+const onExpand = async () => {
+  if (isMobileMode.value) return
+
+  onTouchExpand()
+}
+
+const onTouchOpenTable = async () => {
+  isLoading.value = true
+  try {
+    await _openTable(table.value)
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoading.value = false
+    isExpanded.value = true
+  }
+}
+
+const onOpenTable = async () => {
+  if (isMobileMode.value) return
+
+  onTouchOpenTable()
 }
 
 watch(
@@ -145,10 +171,17 @@ const isTableOpened = computed(() => {
         class="table-context flex items-center gap-1 h-full"
         :data-testid="`nc-tbl-side-node-${table.title}`"
         @contextmenu="setMenuContext('table', table)"
-        @click="openTable(table)"
+        @click="onOpenTable"
+        @touchstart="onTouchOpenTable"
       >
         <div class="flex flex-row h-full items-center">
-          <NcButton type="text" size="xxsmall" class="nc-sidebar-node-btn nc-sidebar-expand" @click.stop="onExpand">
+          <NcButton
+            type="text"
+            size="xxsmall"
+            class="nc-sidebar-node-btn nc-sidebar-expand"
+            @click.stop="onExpand"
+            @touchstart.stop="onTouchExpand"
+          >
             <GeneralIcon
               icon="triangleFill"
               class="nc-sidebar-base-node-btns group-hover:visible invisible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.5 !text-gray-600 rotate-90"

@@ -231,7 +231,7 @@ const addNewProjectChildEntity = async () => {
 // todo: temp
 const isSharedBase = ref(false)
 
-const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
+const onTouchStart = async (project: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
   if (!project) {
     return
   }
@@ -273,6 +273,12 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
     const updatedProject = projects.value.get(project.id!)!
     updatedProject.isLoading = false
   }
+}
+
+const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
+  if (isMobileMode.value) return
+
+  onTouchStart(project, ignoreNavigation, toggleIsExpanded)
 }
 
 function openErdView(base: BaseType) {
@@ -395,6 +401,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
             size="xxsmall"
             class="nc-sidebar-node-btn nc-sidebar-expand ml-0.75 !xs:visible"
             @click="onProjectClick(project, true, true)"
+            @touchstart="onTouchStart(project, true, true)"
           >
             <GeneralIcon
               icon="triangleFill"
@@ -403,7 +410,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
             />
           </NcButton>
 
-          <div class="flex items-center mr-1" @click="onProjectClick(project)">
+          <div class="flex items-center mr-1" @click="onProjectClick(project)" @touchstart="onTouchStart(project)">
             <div class="flex items-center select-none w-6 h-full">
               <a-spin
                 v-if="project.isLoading"
@@ -443,10 +450,15 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             :class="{ 'text-black font-semibold': activeProjectId === project.id && projectViewOpen }"
             @click="onProjectClick(project)"
+            @touchstart="onTouchStart(project)"
           >
             {{ project.title }}
           </span>
-          <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>
+          <div
+            :class="{ 'flex flex-grow h-full': !editMode }"
+            @click="onProjectClick(project)"
+            @touchstart="onTouchStart(project)"
+          ></div>
 
           <NcDropdown v-model:visible="isOptionsOpen" :trigger="['click']">
             <NcButton

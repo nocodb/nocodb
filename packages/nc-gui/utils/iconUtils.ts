@@ -328,7 +328,7 @@ export const iconMap = {
   edit: MaterialSymbolsEdit,
   lookup: h('span', { class: 'material-symbols' }, 'search'),
   text: h('span', { class: 'material-symbols' }, 'text_fields'),
-  longText: h('span', { class: 'material-symbols' }, 'text_format'),
+  longText: h('span', { class: 'material-symbols' }, 'view_headline'),
   clock: h('span', { class: 'material-symbols' }, 'access_time'),
   web: h('span', { class: 'material-symbols' }, 'web'),
   webhook: h('span', { class: 'material-symbols' }, 'webhook'),

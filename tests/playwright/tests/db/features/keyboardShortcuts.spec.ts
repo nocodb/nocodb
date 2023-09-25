@@ -69,6 +69,7 @@ test.describe('Verify shortcuts', () => {
     await grid.verifyRowCount({ count: 1 });
 
     // create new column
+
     await page.keyboard.press('Alt+c');
     await grid.column.fillTitle({ title: 'New Column' });
     await grid.column.save();
@@ -133,8 +134,10 @@ test.describe('Verify shortcuts', () => {
       header: 'Algeria',
     });
     await dashboard.expandedForm.fillField({ columnTitle: 'Country', value: 'NewAlgeria' });
+    await dashboard.expandedForm.save();
+    await dashboard.expandedForm.escape();
     await page.keyboard.press((await grid.isMacOs()) ? 'Meta+Enter' : 'Control+Enter');
-    await page.waitForTimeout(2000);
+    await page.reload();
     await grid.cell.verify({ index: 1, columnHeader: 'Country', value: 'NewAlgeria' });
   });
 });

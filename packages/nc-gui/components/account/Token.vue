@@ -12,7 +12,11 @@ const { copy } = useCopy()
 
 const { t } = useI18n()
 
-const tokens = ref<ApiTokenType[]>([])
+interface IApiTokenInfo extends ApiTokenType {
+  created_by: string
+}
+
+const tokens = ref<IApiTokenInfo[]>([])
 
 const currentPage = ref(1)
 
@@ -42,7 +46,7 @@ const loadTokens = async (page = currentPage.value, limit = currentLimit.value) 
     pagination.total = response.pageInfo.totalRows ?? 0
     pagination.pageSize = 10
 
-    tokens.value = response.list as ApiTokenType[]
+    tokens.value = response.list as IApiTokenInfo[]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -115,44 +119,46 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
         </NcButton>
       </div>
       <span>Create personal API tokens to use in automation or external apps.</span>
-      <table class="w-full mt-5 border-1 rounded-md">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="px-3 py-3.5 text-gray-500 font-medium text-3.5">Token name</th>
-            <th class="px-3 py-3.5 text-gray-500 font-medium text-3.5">Creator</th>
-            <th class="px-3 py-3.5 text-gray-500 font-medium text-3.5">Token</th>
-            <th class="px-3 py-3.5 text-gray-500 font-medium text-3.5">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="showNewTokenModal">
-            <td class="px-3 py-3.5 text-gray-500 font-medium text-3.5 text-center" colspan="3">
-              <div class="p-5 ml-4">
-                <a-input
-                  :ref="descriptionInput"
-                  v-model:value="selectedTokenData.description"
-                  type="text"
-                  class="!rounded-lg !py-2"
-                  placeholder="Token Name"
-                  data-testid="nc-token-modal-description"
-                />
+      <div class="w-full mt-5 border-1 rounded-md">
+        <div class="flex w-full px-4 bg-gray-50 border-b-1">
+          <span class="px-3 py-3.5 text-gray-500 font-medium text-3.5 w-1/6">Token name</span>
+          <span class="px-3 py-3.5 text-gray-500 font-medium text-3.5 w-1/4 text-center">Creator</span>
+          <span class="px-3 py-3.5 text-gray-500 font-medium text-3.5 w-1/6 ml-12 text-center">Token</span>
+          <span class="px-3 py-3.5 text-gray-500 font-medium text-3.5 w-1/4 ml-20 text-center">Actions</span>
+        </div>
+        <main>
+          <div v-if="showNewTokenModal" class="flex gap-5 px-3 py-3.5 text-gray-500 font-medium text-3.5 w-full">
+            <a-input
+              :ref="descriptionInput"
+              v-model:value="selectedTokenData.description"
+              type="text"
+              class="!rounded-lg !py-2"
+              placeholder="Token Name"
+              data-testid="nc-token-modal-description"
+            />
+            <div class="flex gap-2 justify-start mr-10">
+              <NcButton v-if="!isLoading" type="secondary" size="small" @click="showNewTokenModal = false"> Cancel </NcButton>
+              <NcButton type="primary" size="sm" :is-loading="isLoading" @click="generateToken"> Save </NcButton>
+            </div>
+          </div>
+          <div v-for="el of tokens" :key="el.id" class="flex border-b-1 px-7 py-3 justify-between">
+            <span class="text-gray-500 font-medium text-3.5 text-start w-1/8 ml-3">{{ el.description }}</span>
+            <span class="text-gray-500 font-medium text-3.5 text-start w-1/4">{{ el.created_by }}</span>
+            <span class="text-gray-500 font-medium text-3.5 text-start w-1/4">
+              <GeneralTruncateText placement="top" length="22">
+                {{ el.token }}
+              </GeneralTruncateText>
+            </span>
+            <span class="text-gray-500 font-medium text-3.5 text-start w-1/4 text-center">
+              <div class="flex justify-center gap-3">
+                <component :is="iconMap.eyeSlash" class="hover::cursor-pointer" />
+                <component :is="iconMap.copy" class="hover::cursor-pointer" />
+                <component :is="iconMap.delete" class="hover::cursor-pointer" />
               </div>
-            </td>
-            <td class="text-gray-500 font-medium text-3.5 text-center">
-              <div class="flex gap-2 justify-center">
-                <NcButton v-if="!isLoading" type="secondary" size="sm" @click="showNewTokenModal = false"> Cancel </NcButton>
-                <NcButton type="primary" size="sm" :is-loading="isLoading" @click="generateToken"> Save </NcButton>
-              </div>
-            </td>
-          </tr>
-          <tr v-for="el of tokens" :key="el.id">
-            <td class="px-3 py-3.5 text-gray-500 font-medium text-3.5 text-center">{{ el.description }}</td>
-            <td class="px-3 py-3.5 text-gray-500 font-medium text-3.5 text-center">{{ el.fk_user_id }}</td>
-            <td class="px-3 py-3.5 text-gray-500 font-medium text-3.5 text-center">{{ el.token }}</td>
-            <td class="px-3 py-3.5 text-gray-500 font-medium text-3.5 text-center">Tljghdfjghdfj</td>
-          </tr>
-        </tbody>
-      </table>
+            </span>
+          </div>
+        </main>
+      </div>
     </div>
 
     <GeneralDeleteModal v-model:visible="isModalOpen" entity-name="Token" :on-delete="() => deleteToken(tokenToCopy)">

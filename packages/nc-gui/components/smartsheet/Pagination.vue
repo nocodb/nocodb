@@ -12,6 +12,7 @@ interface Props {
   customLabel?: string
   fixedSize?: number
   extraStyle?: string
+  showApiTiming?: boolean
 }
 
 const props = defineProps<Props>()
@@ -94,7 +95,7 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
       </div>
     </template>
     <div class="flex-1 flex justify-end items-center">
-      <GeneralApiTiming v-if="isEeUI" class="m-1" />
+      <GeneralApiTiming v-if="isEeUI && props.showApiTiming" class="m-1" />
       <div class="text-right">
         <span
           v-if="alignCountOnRight && count !== null && count !== Infinity"

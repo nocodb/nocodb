@@ -76,21 +76,6 @@ const tranformTime = (time: number) => {
         </div>
       </template>
     </NcTooltip>
-    <!--    <div class="item">
-      <NcTooltip placement="bottom" class="flex items-center justify-center">
-        <template #title>
-          <div class="tooltip-content-wrapper">
-            <div>Data timing</div>
-            <div v-for="item of items" :key="item.key" class="item">
-              <component :is="item.icon" class="text-white" />
-              {{ item.tootltip }}
-            </div>
-          </div>
-        </template>
-
-        <component :is="iconMap.help" />
-      </NcTooltip>
-    </div> -->
   </div>
   <span v-else></span>
 </template>

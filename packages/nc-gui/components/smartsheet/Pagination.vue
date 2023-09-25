@@ -98,7 +98,7 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
       <GeneralApiTiming v-if="isEeUI && props.showApiTiming" class="m-1" />
       <div class="text-right">
         <span
-          v-if="alignCountOnRight && count !== null && count !== Infinity"
+          v-if="alignCountOnRight && count !== Infinity"
           class="caption nc-grid-row-count mr-2.5 text-gray-500 text-xs"
           data-testid="grid-pagination"
         >

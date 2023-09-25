@@ -27,5 +27,3 @@ export * from './workerUtils'
 export * from './parsersUtils'
 
 export const isEeUI = false
-
-export const isViewPortMobile = () => window.innerWidth < 820

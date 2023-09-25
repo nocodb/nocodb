@@ -1,7 +1,10 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { isViewPortMobile } from '~/utils'
+import { MAX_WIDTH_FOR_MOBILE_MODE } from '~/lib'
 
 export const useSidebarStore = defineStore('sidebarStore', () => {
+  const { width } = useWindowSize()
+  const isViewPortMobile = () => width.value < MAX_WIDTH_FOR_MOBILE_MODE
+
   const isLeftSidebarOpen = ref(!isViewPortMobile())
   const isRightSidebarOpen = ref(true)
 

@@ -1,14 +1,17 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { isViewPortMobile } from '~/utils'
+import { MAX_WIDTH_FOR_MOBILE_MODE } from '~/lib'
 
 export const useConfigStore = defineStore('configStore', () => {
   const { isMobileMode: globalIsMobile } = useGlobal()
+  const { width } = useWindowSize()
 
   const sidebarStore = useSidebarStore()
   const viewsStore = useViewsStore()
   const tablesStore = useTablesStore()
 
-  const isMobileMode = ref(window.innerWidth < 820)
+  const isViewPortMobile = () => width.value < MAX_WIDTH_FOR_MOBILE_MODE
+
+  const isMobileMode = ref(isViewPortMobile())
 
   const onViewPortResize = () => {
     isMobileMode.value = isViewPortMobile()

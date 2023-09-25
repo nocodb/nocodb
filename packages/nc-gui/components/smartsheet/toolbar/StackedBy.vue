@@ -110,6 +110,7 @@ const handleChange = () => {
     v-model:visible="open"
     :trigger="['click']"
     overlay-class-name="nc-dropdown-kanban-stacked-by-menu"
+    class="!sm:hidden"
   >
     <div class="nc-kanban-btn">
       <a-button

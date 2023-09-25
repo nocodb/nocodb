@@ -684,6 +684,12 @@ export async function singleQueryRead(ctx: {
   // get knex connection
   const knex = await NcConnectionMgrv2.get(ctx.base);
 
+  const baseModel = await Model.getBaseModelSQL({
+    id: ctx.model.id,
+    viewId: ctx.view?.id,
+    dbDriver: knex,
+  });
+
   const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
     ctx.view?.id ?? 'default'
   }:read`;
@@ -695,10 +701,10 @@ export async function singleQueryRead(ctx: {
         ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
       );
 
-      const res = rawRes?.rows?.[0];
+      let res = rawRes?.rows?.[0];
 
       // update attachment fields
-      // res = baseModel.convertAttachmentType(res, ctx.model);
+      res = await baseModel.convertAttachmentType(res, ctx.model);
 
       // update date time fields
       // res = baseModel.convertDateFormat(res, ctx.model);
@@ -706,12 +712,6 @@ export async function singleQueryRead(ctx: {
       return res;
     }
   }
-
-  const baseModel = await Model.getBaseModelSQL({
-    id: ctx.model.id,
-    viewId: ctx.view?.id,
-    dbDriver: knex,
-  });
 
   const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
 
@@ -826,10 +826,10 @@ export async function singleQueryRead(ctx: {
     ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
   );
 
-  const res = rawRes?.rows?.[0];
+  let res = rawRes?.rows?.[0];
 
   // update attachment fields
-  // res = baseModel.convertAttachmentType(res, ctx.model);
+  res = await baseModel.convertAttachmentType(res, ctx.model);
 
   // update date time fields
   // res = baseModel.convertDateFormat(res, ctx.model);
@@ -872,6 +872,12 @@ export async function singleQueryList(ctx: {
   // get knex connection
   const knex = await NcConnectionMgrv2.get(ctx.base);
 
+  const baseModel = await Model.getBaseModelSQL({
+    id: ctx.model.id,
+    viewId: ctx.view?.id,
+    dbDriver: knex,
+  });
+
   const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
     ctx.view?.id ?? 'default'
   }:queries`;
@@ -886,10 +892,10 @@ export async function singleQueryList(ctx: {
       ]);
       dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
 
-      const res = rawRes?.rows;
+      let res = rawRes?.rows;
 
       // update attachment fields
-      // res = baseModel.convertAttachmentType(res, ctx.model);
+      res = await baseModel.convertAttachmentType(res, ctx.model);
 
       // update date time fields
       // res = baseModel.convertDateFormat(res, ctx.model);
@@ -909,12 +915,6 @@ export async function singleQueryList(ctx: {
       );
     }
   }
-
-  const baseModel = await Model.getBaseModelSQL({
-    id: ctx.model.id,
-    viewId: ctx.view?.id,
-    dbDriver: knex,
-  });
 
   // load columns list
   const columns = await ctx.model.getColumns();
@@ -1048,7 +1048,7 @@ export async function singleQueryList(ctx: {
   }
 
   // update attachment fields
-  // res = baseModel.convertAttachmentType(res, ctx.model);
+  res = await baseModel.convertAttachmentType(res, ctx.model);
 
   // update date time fields
   // res = baseModel.convertDateFormat(res, ctx.model);

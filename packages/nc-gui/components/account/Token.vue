@@ -77,7 +77,7 @@ loadTokens()
 const isModalOpen = ref(false)
 const tokenDesc = ref('')
 const tokenToCopy = ref('')
-const isValidTokenName = ref(false)
+const isNotValidTokenName = ref(false)
 
 const deleteToken = async (token: string): Promise<void> => {
   try {
@@ -94,9 +94,9 @@ const deleteToken = async (token: string): Promise<void> => {
 }
 
 const generateToken = async () => {
-  isValidTokenName.value = !selectedTokenData.value.description?.length || selectedTokenData.value.description?.length > 255
+  isNotValidTokenName.value = !selectedTokenData.value.description?.length || selectedTokenData.value.description?.length > 255
 
-  if (isValidTokenName.value) return
+  if (isNotValidTokenName.value) return
   try {
     await api.orgTokens.create(selectedTokenData.value)
     showNewTokenModal.value = false
@@ -145,7 +145,7 @@ const errorMessage = computed(() => {
 
 const handleCancel = () => {
   showNewTokenModal.value = false
-  isValidTokenName.value = false
+  isNotValidTokenName.value = false
 }
 </script>
 
@@ -191,7 +191,7 @@ const handleCancel = () => {
                     placeholder="Token Name"
                     data-testid="nc-token-input"
                   />
-                  <span v-if="isValidTokenName" class="text-red-500 text-xs font-light mt-1.5 ml-1">{{ errorMessage }} </span>
+                  <span v-if="isNotValidTokenName" class="text-red-500 text-xs font-light mt-1.5 ml-1">{{ errorMessage }} </span>
                 </div>
                 <div class="flex gap-2 justify-start">
                   <NcButton v-if="!isLoading" type="secondary" size="small" @click="handleCancel">

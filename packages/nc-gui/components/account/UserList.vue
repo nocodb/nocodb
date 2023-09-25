@@ -76,7 +76,13 @@ const deleteUser = async (userId: string) => {
   try {
     await api.orgUsers.delete(userId)
     message.success(t('msg.success.userDeleted'))
+
     await loadUsers()
+
+    if (!users.value.length && currentPage.value !== 1) {
+      currentPage.value--
+      loadUsers(currentPage.value)
+    }
     $e('a:org-user:user-deleted')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -292,10 +298,39 @@ const copyPasswordResetUrl = async (user: User) => {
                 </template>
               </a-dropdown>
             </div>
+<<<<<<< HEAD
             <span v-else></span>
           </template>
         </a-table-column>
       </a-table>
+=======
+          </span>
+        </div>
+      </div>
+      <div v-if="pagination.total > 10" class="flex items-center justify-center mt-7">
+        <a-pagination
+          v-model:current="currentPage"
+          :total="pagination.total"
+          show-less-items
+          @change="loadUsers(currentPage, currentLimit)"
+        />
+      </div>
+      <GeneralDeleteModal v-model:visible="isOpen" entity-name="User" :on-delete="() => deleteUser()">
+        <template #entity-preview>
+          <span>
+            <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
+              <GeneralIcon icon="account" class="nc-view-icon"></GeneralIcon>
+              <div
+                class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+                :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+              >
+                {{ deleteModalInfo?.email }}
+              </div>
+            </div>
+          </span>
+        </template>
+      </GeneralDeleteModal>
+>>>>>>> 85fee1233 (feat: pagination)
 
       <LazyAccountUsersModal :key="userMadalKey" :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
     </div>

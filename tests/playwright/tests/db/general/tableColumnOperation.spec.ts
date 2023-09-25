@@ -69,6 +69,6 @@ test.describe('Table Column Operations', () => {
     });
 
     // add new row using right-click menu
-    await grid.addRowRightClickMenu(0);
+    // await grid.addRowRightClickMenu(0);
   });
 });

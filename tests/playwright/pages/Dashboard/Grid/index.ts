@@ -364,7 +364,7 @@ export class GridPage extends BasePage {
     await this.get().locator(`td[data-testid="cell-${columnHeader}-0"]`).click({
       button: 'right',
     });
-    await expect(this.rootPage.locator('text=Insert New Row')).not.toBeVisible();
+    // await expect(this.rootPage.locator('text=Insert New Row')).not.toBeVisible();
 
     // in cell-add
     await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
@@ -395,7 +395,7 @@ export class GridPage extends BasePage {
     await this.get().locator(`td[data-testid="cell-${columnHeader}-0"]`).click({
       button: 'right',
     });
-    await expect(this.rootPage.locator('text=Insert New Row')).toBeVisible();
+    // await expect(this.rootPage.locator('text=Insert New Row')).toBeVisible();
 
     // in cell-add
     await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();

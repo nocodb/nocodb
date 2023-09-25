@@ -63,13 +63,6 @@ const displayColumnLabel = computed(() => {
   return columns.value?.find((column) => column.primaryValue)?.label
 })
 
-watch(
-  () => search.value.field,
-  () => {
-    onPressEnter()
-  },
-)
-
 watchDebounced(
   () => search.value.query,
   () => {
@@ -113,6 +106,7 @@ watch(columns, () => {
         :dropdown-match-select-width="false"
         dropdown-class-name="!rounded-lg nc-dropdown-toolbar-search-field-option w-48"
         class="py-1 !absolute top-0 left-0 w-full h-full z-10 text-xs opacity-0"
+        @change="onPressEnter"
       >
         <a-select-option v-for="op of columns" :key="op.value" :value="op.value">
           <div class="text-[0.75rem] flex items-center -ml-1 gap-2">

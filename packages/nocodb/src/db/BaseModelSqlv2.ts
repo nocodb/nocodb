@@ -18,6 +18,7 @@ import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
+import type LookupColumn from '~/models/LookupColumn';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type {
@@ -500,9 +501,9 @@ class BaseModelSqlv2 {
     const cols = await this.model.getColumns();
 
     const selectors = [];
-    const groupBySelector = [];
+    const groupBySelectors = [];
 
-    const groupByColumns = await Promise.all(
+    await Promise.all(
       args.column_name.split(',').map(async (col) => {
         const column = cols.find(
           (c) => c.column_name === col || c.title === col,
@@ -525,65 +526,69 @@ class BaseModelSqlv2 {
                 })
               ).builder.as(sanitize(column.title)),
             );
-            groupBySelector.push(
-              // (
-              //   await genRollupSelectv2({
-              //     baseModelSqlv2: this,
-              //     // tn: this.title,
-              //     knex: this.dbDriver,
-              //     // column,
-              //     // alias,
-              //     columnOptions: (await column.getColOptions()) as RollupColumn,
-              //   })
-              // ).builder,
-              sanitize(column.title),
-            );
+            groupBySelectors.push(sanitize(column.title));
             break;
           case UITypes.Formula:
-            let selectQb;
-            try {
-              const _selectQb = await this.getSelectQueryBuilderForFormula(
-                column,
-              );
+            {
+              let selectQb;
+              try {
+                const _selectQb = await this.getSelectQueryBuilderForFormula(
+                  column,
+                );
 
-              selectQb = this.dbDriver.raw(`?? as ??`, [
-                _selectQb.builder,
-                sanitize(column.title),
-              ]);
-            } catch (e) {
-              console.log(e);
-              // return dummy select
-              selectQb = this.dbDriver.raw(`'ERR' as ??`, [
-                sanitize(column.title),
-              ]);
+                selectQb = this.dbDriver.raw(`?? as ??`, [
+                  _selectQb.builder,
+                  sanitize(column.title),
+                ]);
+              } catch (e) {
+                console.log(e);
+                // return dummy select
+                selectQb = this.dbDriver.raw(`'ERR' as ??`, [
+                  sanitize(column.title),
+                ]);
+              }
+
+              selectors.push(selectQb);
+              groupBySelectors.push(column.title);
             }
+            break;
+          case UITypes.Lookup:
+            {
+              let selectQb;
+              try {
+                const _selectQb = await generateBTLookupSelectQuery({
+                  baseModelSqlv2: this,
+                  column,
+                  alias: null,
+                  model: this.model,
+                });
 
-            selectors.push(selectQb);
-            groupBySelector.push(
-              // (
-              //   await genRollupSelectv2({
-              //     baseModelSqlv2: this,
-              //     // tn: this.title,
-              //     knex: this.dbDriver,
-              //     // column,
-              //     // alias,
-              //     columnOptions: (await column.getColOptions()) as RollupColumn,
-              //   })
-              // ).builder,
-              column.title,
-            );
+                selectQb = this.dbDriver.raw(`?? as ??`, [
+                  this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
+                  sanitize(column.title),
+                ]);
+              } catch (e) {
+                console.log(e);
+                // return dummy select
+                selectQb = this.dbDriver.raw(`'ERR' as ??`, [
+                  sanitize(column.title),
+                ]);
+              }
+
+              selectors.push(selectQb);
+              groupBySelectors.push(column.title);
+            }
+            break;
+          default:
+            selectors.push(column.column_name);
+            groupBySelectors.push(sanitize(column.title));
             break;
         }
-
-        return column.column_name;
       }),
     );
 
     const qb = this.dbDriver(this.tnPath);
     qb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
-
-    // groupby-replace
-    // qb.select(...groupByColumns);
 
     qb.select(...selectors);
 
@@ -622,8 +627,7 @@ class BaseModelSqlv2 {
       qb,
     );
 
-    // qb.groupBy(...groupByColumns);
-    qb.groupBy(...groupByColumns);
+    qb.groupBy(...groupBySelectors);
 
     if (!sorts)
       sorts = args.sortArr?.length
@@ -645,12 +649,12 @@ class BaseModelSqlv2 {
     // sort?: string | string[];
     // sortArr?: Sort[];
   }) {
-    const { where, ..._rest } = this._getListArgs(args as any);
+    const { where } = this._getListArgs(args as any);
 
     args.column_name = args.column_name || '';
 
     const selectors = [];
-    const groupBySelector = [];
+    const groupBySelectors = [];
 
     await this.model.getColumns().then((cols) =>
       Promise.all(
@@ -677,7 +681,7 @@ class BaseModelSqlv2 {
                   })
                 ).builder.as(sanitize(column.title)),
               );
-              groupBySelector.push(sanitize(column.title));
+              groupBySelectors.push(sanitize(column.title));
               break;
             case UITypes.Formula:
               let selectQb;
@@ -699,23 +703,31 @@ class BaseModelSqlv2 {
               }
 
               selectors.push(selectQb);
-              groupBySelector.push(
-                // (
-                //   await genRollupSelectv2({
-                //     baseModelSqlv2: this,
-                //     // tn: this.title,
-                //     knex: this.dbDriver,
-                //     // column,
-                //     // alias,
-                //     columnOptions: (await column.getColOptions()) as RollupColumn,
-                //   })
-                // ).builder,
-                column.title,
-              );
+              groupBySelectors.push(column.title);
+              break;
+            case UITypes.Lookup:
+              {
+                const _selectQb = await generateBTLookupSelectQuery({
+                  baseModelSqlv2: this,
+                  column,
+                  alias: null,
+                  model: this.model,
+                });
+
+                const selectQb = this.dbDriver.raw(`?? as ??`, [
+                  this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
+                  sanitize(column.title),
+                ]);
+
+                selectors.push(selectQb);
+                groupBySelectors.push(sanitize(column.title));
+              }
+              break;
+            default:
+              selectors.push(column.column_name);
+              groupBySelectors.push(sanitize(column.title));
               break;
           }
-
-          return column.column_name;
         }),
       ),
     );
@@ -753,11 +765,16 @@ class BaseModelSqlv2 {
       qb,
     );
 
-    qb.groupBy(...groupBySelector);
+    qb.groupBy(...groupBySelectors);
 
     const qbP = this.dbDriver
       .count('*', { as: 'count' })
       .from(qb.as('groupby'));
+
+    console.log('------------------------------------------');
+    console.log(qb.toQuery());
+    console.log('------------------------------------------');
+
     return (await qbP.first())?.count;
   }
 
@@ -4859,3 +4876,150 @@ export function getListArgs(
 }
 
 export { BaseModelSqlv2 };
+
+async function generateBTLookupSelectQuery({
+  column,
+  baseModelSqlv2,
+  alias,
+  model,
+}: {
+  column: Column;
+  baseModelSqlv2: BaseModelSqlv2;
+  alias: string;
+  model: Model;
+}): Promise<any> {
+  const knex = baseModelSqlv2.dbDriver;
+
+  const rootAlias = alias;
+  {
+    let aliasCount = 0,
+      selectQb;
+    const alias = `__nc_lookup${aliasCount++}`;
+    const lookup = await column.getColOptions<LookupColumn>();
+    {
+      const relationCol = await lookup.getRelationColumn();
+      const relation =
+        await relationCol.getColOptions<LinkToAnotherRecordColumn>();
+
+      if (relation.type !== RelationTypes.BELONGS_TO)
+        NcError.badRequest('HasMany/ManyToMany lookup is not supported');
+
+      const childColumn = await relation.getChildColumn();
+      const parentColumn = await relation.getParentColumn();
+      const childModel = await childColumn.getModel();
+      await childModel.getColumns();
+      const parentModel = await parentColumn.getModel();
+      await parentModel.getColumns();
+
+      selectQb = knex(
+        `${baseModelSqlv2.getTnPath(parentModel.table_name)} as ${alias}`,
+      ).where(
+        `${alias}.${parentColumn.column_name}`,
+        knex.raw(`??`, [
+          `${rootAlias || baseModelSqlv2.getTnPath(childModel.table_name)}.${
+            childColumn.column_name
+          }`,
+        ]),
+      );
+    }
+    let lookupColumn = await lookup.getLookupColumn();
+    let prevAlias = alias;
+    while (lookupColumn.uidt === UITypes.Lookup) {
+      const nestedAlias = `__nc_sort${aliasCount++}`;
+      const nestedLookup = await lookupColumn.getColOptions<LookupColumn>();
+      const relationCol = await nestedLookup.getRelationColumn();
+      const relation =
+        await relationCol.getColOptions<LinkToAnotherRecordColumn>();
+      // if any of the relation in nested lookup is
+      // not belongs to then throw error as we don't support
+      if (relation.type !== RelationTypes.BELONGS_TO)
+        NcError.badRequest('HasMany/ManyToMany lookup is not supported');
+
+      const childColumn = await relation.getChildColumn();
+      const parentColumn = await relation.getParentColumn();
+      const childModel = await childColumn.getModel();
+      await childModel.getColumns();
+      const parentModel = await parentColumn.getModel();
+      await parentModel.getColumns();
+
+      selectQb.join(
+        `${baseModelSqlv2.getTnPath(parentModel.table_name)} as ${nestedAlias}`,
+        `${nestedAlias}.${parentColumn.column_name}`,
+        `${prevAlias}.${childColumn.column_name}`,
+      );
+
+      lookupColumn = await nestedLookup.getLookupColumn();
+      prevAlias = nestedAlias;
+    }
+
+    switch (lookupColumn.uidt) {
+      case UITypes.Links:
+      case UITypes.Rollup:
+        {
+          const builder = (
+            await genRollupSelectv2({
+              baseModelSqlv2,
+              knex,
+              columnOptions:
+                (await lookupColumn.getColOptions()) as RollupColumn,
+              alias: prevAlias,
+            })
+          ).builder;
+          selectQb.select(builder);
+        }
+        break;
+      case UITypes.LinkToAnotherRecord:
+        {
+          const nestedAlias = `__nc_sort${aliasCount++}`;
+          const relation =
+            await lookupColumn.getColOptions<LinkToAnotherRecordColumn>();
+          if (relation.type !== 'bt') return;
+
+          const colOptions =
+            (await column.getColOptions()) as LinkToAnotherRecordColumn;
+          const childColumn = await colOptions.getChildColumn();
+          const parentColumn = await colOptions.getParentColumn();
+          const childModel = await childColumn.getModel();
+          await childModel.getColumns();
+          const parentModel = await parentColumn.getModel();
+          await parentModel.getColumns();
+
+          selectQb
+            .join(
+              `${baseModelSqlv2.getTnPath(
+                parentModel.table_name,
+              )} as ${nestedAlias}`,
+              `${nestedAlias}.${parentColumn.column_name}`,
+              `${prevAlias}.${childColumn.column_name}`,
+            )
+            .select(parentModel?.displayValue?.column_name);
+        }
+        break;
+      case UITypes.Formula:
+        {
+          const builder = (
+            await formulaQueryBuilderv2(
+              baseModelSqlv2,
+              (
+                await column.getColOptions<FormulaColumn>()
+              ).formula,
+              null,
+              model,
+              column,
+            )
+          ).builder;
+
+          selectQb.select(builder);
+        }
+        break;
+      default:
+        {
+          selectQb.select(`${prevAlias}.${lookupColumn.column_name}`);
+        }
+
+        break;
+    }
+
+    return { builder: selectQb };
+  }
+}

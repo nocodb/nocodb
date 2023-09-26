@@ -272,7 +272,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
-.nc-pagination-wrapper .ant-dropdown-button {
+.nc-grid-pagination-wrapper .ant-dropdown-button {
   > .ant-btn {
     @apply !p-0 !rounded-l-lg hover:border-gray-300;
   }

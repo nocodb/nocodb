@@ -370,7 +370,7 @@ export default {
     class="nc-drawer-expanded-form"
     :class="{ active: isExpanded }"
   >
-    <div class="h-[80vh] xs:(h-[95vh] max-h-full) max-h-215 flex flex-col">
+    <div class="h-[75vh] xs:(h-[95vh] max-h-full) max-h-215 flex flex-col p-6">
       <div class="flex h-8 flex-shrink-0 w-full items-center nc-expanded-form-header relative mb-4 justify-between">
         <template v-if="!isMobileMode">
           <div class="flex gap-3">
@@ -445,10 +445,10 @@ export default {
           </div>
         </template>
       </div>
-      <div ref="wrapper" class="flex flex-row h-[calc(100%-6rem)] w-full h-full gap-4">
-        <div class="flex w-full h-full flex-col border-1 rounded-xl overflow-hidden border-gray-200 xs:(border-0 rounded-none)">
+      <div ref="wrapper" class="flex flex-grow flex-row h-[calc(100%-3rem)] w-full gap-4">
+        <div class="flex w-full flex-col border-1 rounded-xl overflow-hidden border-gray-200 xs:(border-0 rounded-none)">
           <div
-            class="flex flex-grow-1 mt-2 h-[calc(100%-3.5rem)] nc-scrollbar-md flex-col !pb-12 items-center w-full bg-white p-4 xs:p-0"
+            class="flex flex-col flex-grow mt-2 h-full max-h-full nc-scrollbar-md !pb-2 items-center w-full bg-white p-4 xs:p-0"
           >
             <div
               v-for="(col, i) of fields"
@@ -621,5 +621,9 @@ export default {
 }
 .nc-expanded-cell-header > :first-child {
   @apply !text-xl;
+}
+
+.nc-drawer-expanded-form .nc-modal {
+  @apply !p-0;
 }
 </style>

@@ -497,7 +497,7 @@ const {
   activeCell,
   handleMouseDown,
   handleMouseOver,
-  handleCellClick,
+  handleCellClick: _handleCellClick,
   clearSelectedRange,
   copyValue,
   isCellActive,
@@ -1135,6 +1135,16 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
   activeCell.col = null
   selectedRange.clear()
 }
+
+const handleCellClick = (event: MouseEvent, row: number, col: number) => {
+  const rowData = dataRef.value[row]
+
+  if (isMobileMode.value) {
+    return expandAndLooseFocus(rowData, fields.value[col])
+  }
+
+  _handleCellClick(event, row, col)
+}
 </script>
 
 <template>
@@ -1149,6 +1159,10 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
           <table
             ref="smartTable"
             class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
+            :class="{
+              mobile: isMobileMode,
+              desktop: !isMobileMode,
+            }"
             @contextmenu="showContextMenu"
           >
             <thead v-show="hideHeader !== true" ref="tableHeadEl">
@@ -1577,11 +1591,8 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
       </a-dropdown>
     </div>
 
-    <div v-if="showSkeleton && headerOnly !== true" class="flex flex-row justify-center item-center min-h-10">
-      <a-skeleton :active="true" :title="true" :paragraph="false" class="-mt-1 max-w-60" />
-    </div>
     <LazySmartsheetPagination
-      v-else-if="headerOnly !== true"
+      v-if="headerOnly !== true"
       :key="isMobileMode"
       v-model:pagination-data="paginationDataRef"
       show-api-timing
@@ -1602,7 +1613,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
             placement="top"
             @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
           >
-            <div class="flex items-center px-2 text-gray-600 hover:text-black">
+            <div data-testid="nc-pagination-add-record" class="flex items-center px-2 text-gray-600 hover:text-black">
               <span>
                 <template v-if="isAddNewRecordGridMode"> {{ $t('activity.newRecord') }} </template>
                 <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }} </template>
@@ -1667,7 +1678,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
 </template>
 
 <style lang="scss">
-.nc-pagination-wrapper .ant-dropdown-button {
+.nc-grid-pagination-wrapper .ant-dropdown-button {
   > .ant-btn {
     @apply !p-0 !rounded-l-lg hover:border-gray-400;
   }
@@ -1784,19 +1795,21 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
     background: white;
   }
 
-  thead th:nth-child(2) {
-    position: sticky !important;
-    left: 85px;
-    z-index: 5;
-    @apply border-r-1 border-r-gray-200;
-  }
+  .desktop {
+    thead th:nth-child(2) {
+      position: sticky !important;
+      z-index: 5;
+      left: 85px;
+      @apply border-r-1 border-r-gray-200;
+    }
 
-  tbody td:nth-child(2) {
-    position: sticky !important;
-    left: 85px;
-    z-index: 4;
-    background: white;
-    @apply border-r-1 border-r-gray-100;
+    tbody td:nth-child(2) {
+      position: sticky !important;
+      z-index: 4;
+      left: 85px;
+      background: white;
+      @apply border-r-1 border-r-gray-100;
+    }
   }
 
   .nc-grid-skelton-loader {

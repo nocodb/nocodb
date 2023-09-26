@@ -18,7 +18,13 @@ const emits = defineEmits(['update:visible'])
 
 const { width: propWidth, destroyOnClose, maskClosable } = props
 
+const { isMobileMode } = useGlobal()
+
 const width = computed(() => {
+  if (isMobileMode.value) {
+    return '95vw'
+  }
+
   if (propWidth) {
     return propWidth
   }
@@ -39,6 +45,10 @@ const width = computed(() => {
 })
 
 const height = computed(() => {
+  if (isMobileMode.value) {
+    return '95vh'
+  }
+
   if (props.size === 'small') {
     return 'auto'
   }

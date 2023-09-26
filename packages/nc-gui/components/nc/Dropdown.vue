@@ -25,7 +25,7 @@ const overlayClassName = toRef(props, 'overlayClassName')
 const autoClose = computed(() => props.autoClose)
 
 const overlayClassNameComputed = computed(() => {
-  let className = 'nc-dropdown bg-white rounded-lg border-1 border-gray-100 shadow-lg shadow-gray-200'
+  let className = 'nc-dropdown bg-white rounded-lg border-1 border-gray-100 shadow-lg'
   if (overlayClassName.value) {
     className += ` ${overlayClassName.value}`
   }

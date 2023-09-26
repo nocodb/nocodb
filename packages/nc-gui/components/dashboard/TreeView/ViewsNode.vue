@@ -41,6 +41,8 @@ const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType &
 
 const { $e } = useNuxtApp()
 
+const { isMobileMode } = useGlobal()
+
 const { isUIAllowed } = useRoles()
 
 const { activeViewTitleOrId } = storeToRefs(useViewsStore())
@@ -212,8 +214,8 @@ function onRef(el: HTMLElement) {
   <a-menu-item
     class="nc-sidebar-node !min-h-7 !max-h-7 !mb-0.25 select-none group text-gray-700 !flex !items-center !mt-0 hover:(!bg-gray-200 !text-gray-900) cursor-pointer"
     :class="{
-      '!pl-18': isDefaultBase,
-      '!pl-23.5': !isDefaultBase,
+      '!pl-18 !xs:(pl-19.75)': isDefaultBase,
+      '!pl-23.5 !xs:(pl-27)': !isDefaultBase,
     }"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @dblclick.stop="onDblClick"
@@ -231,6 +233,7 @@ function onRef(el: HTMLElement) {
           :emoji="props.view?.meta?.icon"
           size="small"
           :clearable="true"
+          :readonly="isMobileMode"
           @emoji-selected="emits('selectIcon', $event)"
         >
           <template #default>

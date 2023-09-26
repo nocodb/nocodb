@@ -48,6 +48,14 @@ main {
   @apply !rounded-lg !py-2 !px-3 mb-1;
 }
 
+.mobile {
+  .nc-scrollbar-md, nc-scrollbar-dark-md, nc-scrollbar-dark-md, nc-scrollbar-sm-dark, nc-scrollbar-x-md {
+    &::-webkit-scrollbar {
+      width: 0px;
+    }
+  }
+}
+
 .nc-scrollbar-md {
   overflow-y: scroll;
   overflow-x: hidden;
@@ -429,9 +437,6 @@ a {
   @apply !shadow-none rounded ring-1 ring-red-600;
 }
 
-.ant-modal {
-  @apply !top-[50px];
-}
 .ant-modal-content {
   @apply !p-6;
   border-radius: 1rem;
@@ -616,6 +621,10 @@ a {
 
   .nc-sidebar-node-btn:not(.nc-sidebar-expand) {
     @apply !xs:(hidden)
+  }
+
+  .nc-sidebar-node-btn.nc-sidebar-expand {
+    @apply !xs:(border-1 border-gray-200 w-6.5 h-6.5 mr-1)
   }
 }
 

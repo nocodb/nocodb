@@ -299,40 +299,23 @@ export class GridPage extends BasePage {
     expect(parseInt(recordCnt)).toEqual(count);
   }
 
-  async verifyPaginationCount({ count }: { count: number }) {
-    let i = 0;
-    await this.get().locator(`.nc-pagination`).first().waitFor();
-    let records = await this.get().locator(`[data-testid="grid-pagination"]`).allInnerTexts();
-    let recordCnt = records[0].split(' ')[0];
-
-    while (parseInt(recordCnt) !== count && i < 5) {
-      await this.get().locator(`.nc-pagination`).first().waitFor();
-      records = await this.get().locator(`[data-testid="grid-pagination"]`).allInnerTexts();
-      recordCnt = records[0].split(' ')[0];
-
-      // to ensure page loading is complete
-      i++;
-      await this.rootPage.waitForTimeout(300 * i);
-    }
-    expect(parseInt(recordCnt)).toEqual(count);
+  async verifyPaginationCount({ count }: { count: string }) {
+    await expect(this.get().locator(`.nc-pagination .total`)).toHaveText(count);
   }
 
-  private async pagination({ page }: { page: string }) {
-    await this.get().locator(`.nc-pagination`).waitFor();
-
-    if (page === '<') return this.get().locator('.nc-pagination > .ant-pagination-prev');
-    if (page === '>') return this.get().locator('.nc-pagination > .ant-pagination-next');
-
-    return this.get().locator(`.nc-pagination > .ant-pagination-item.ant-pagination-item-${page}`);
-  }
-
-  async clickPagination({ page, skipWait = false }: { page: string; skipWait?: boolean }) {
+  async clickPagination({
+    type,
+    skipWait = false,
+  }: {
+    type: 'first-page' | 'last-page' | 'next-page' | 'prev-page';
+    skipWait?: boolean;
+  }) {
     if (!skipWait) {
-      await (await this.pagination({ page })).click();
+      await this.get().locator(`.nc-pagination .${type}`).click();
       await this.waitLoading();
     } else {
       await this.waitForResponse({
-        uiAction: async () => (await this.pagination({ page })).click(),
+        uiAction: async () => (await this.get().locator(`.nc-pagination .${type}`)).click(),
         httpMethodsToMatch: ['GET'],
         requestUrlPathToMatch: '/views/',
         responseJsonMatcher: resJson => resJson?.pageInfo,
@@ -342,8 +325,8 @@ export class GridPage extends BasePage {
     }
   }
 
-  async verifyActivePage({ page }: { page: string }) {
-    await expect(await this.pagination({ page })).toHaveClass(/ant-pagination-item-active/);
+  async verifyActivePage({ pageNumber }: { pageNumber: string }) {
+    await expect(this.get().locator(`.nc-pagination .active`)).toHaveText(pageNumber);
   }
 
   async waitLoading() {

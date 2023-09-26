@@ -63,6 +63,7 @@ const projectCreateDlg = ref(false)
 const dashboardProjectCreateDlg = ref(false)
 
 const starredProjectList = computed(() => projectsList.value.filter((project) => project.starred))
+const nonStarredProjectList = computed(() => projectsList.value.filter((project) => !project.starred))
 
 const contextMenuTarget = reactive<{ type?: 'project' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 
@@ -278,7 +279,6 @@ watch(
           :key="project.id"
           :project-role="project.project_role || project.workspace_role"
           :project="project"
-          starred-mode
         >
           <DashboardTreeViewProjectNode />
         </ProjectWrapper>
@@ -286,9 +286,9 @@ watch(
       <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
         <div class="text-gray-500 font-medium">{{ $t('objects.projects') }}</div>
       </div>
-      <template v-if="projectsList?.length">
+      <template v-if="nonStarredProjectList?.length">
         <ProjectWrapper
-          v-for="project of projectsList"
+          v-for="project of nonStarredProjectList"
           :key="project.id"
           :project-role="project.project_role || stringifyRolesObj(workspaceRoles)"
           :project="project"
@@ -297,7 +297,7 @@ watch(
         </ProjectWrapper>
       </template>
 
-      <WorkspaceEmptyPlaceholder v-else-if="!starredProjectList.length && !isWorkspaceLoading" />
+      <WorkspaceEmptyPlaceholder v-else-if="!projectsList.length && !isWorkspaceLoading" />
     </div>
 
     <WorkspaceCreateProjectDlg v-model="projectCreateDlg" :type="projectType" />

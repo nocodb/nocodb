@@ -4633,7 +4633,6 @@ export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
           [primaryKeys[i].column_name, ids[i]],
         );
       };
-      continue;
     }
 
     // Cast the id to string.

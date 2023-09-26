@@ -1,23 +1,12 @@
 <script lang="ts" setup>
-const { isLeftSidebarOpen: _isLeftSidebarOpen } = storeToRefs(useSidebarStore())
-const isLeftSidebarOpen = ref(_isLeftSidebarOpen.value)
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isMobileMode } = useGlobal()
 
-watch(_isLeftSidebarOpen, (val) => {
-  if (val) {
-    isLeftSidebarOpen.value = true
-  } else {
-    setTimeout(() => {
-      isLeftSidebarOpen.value = false
-    }, 300)
-  }
-})
-
 const onClick = () => {
-  if (_isLeftSidebarOpen.value) return
+  if (isLeftSidebarOpen.value) return
 
-  _isLeftSidebarOpen.value = !_isLeftSidebarOpen.value
+  isLeftSidebarOpen.value = !isLeftSidebarOpen.value
 }
 </script>
 

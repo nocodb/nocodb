@@ -1149,6 +1149,10 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
           <table
             ref="smartTable"
             class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
+            :class="{
+              mobile: isMobileMode,
+              desktop: !isMobileMode,
+            }"
             @contextmenu="showContextMenu"
           >
             <thead v-show="hideHeader !== true" ref="tableHeadEl">
@@ -1793,19 +1797,21 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
     background: white;
   }
 
-  thead th:nth-child(2) {
-    position: sticky !important;
-    left: 85px;
-    z-index: 5;
-    @apply border-r-1 border-r-gray-200;
-  }
+  .desktop {
+    thead th:nth-child(2) {
+      position: sticky !important;
+      z-index: 5;
+      left: 85px;
+      @apply border-r-1 border-r-gray-200;
+    }
 
-  tbody td:nth-child(2) {
-    position: sticky !important;
-    left: 85px;
-    z-index: 4;
-    background: white;
-    @apply border-r-1 border-r-gray-100;
+    tbody td:nth-child(2) {
+      position: sticky !important;
+      z-index: 4;
+      left: 85px;
+      background: white;
+      @apply border-r-1 border-r-gray-100;
+    }
   }
 
   .nc-grid-skelton-loader {

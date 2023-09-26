@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v3   # You MUST checkout your repository first!
 
       - name: Run DocSearch Scraper
-        uses: ./packages/noco-docs
+        uses: celsiusnarhwal/typesense-scraper@v2
         with:
           # The secret containing your Typesense API key. Required.
           api-key: ${{ secrets.TYPESENSE_API_KEY }}      
@@ -23,4 +23,4 @@ jobs:
           # The protocol to use when connecting to your Typesense server. Optional. Default: http.
           protocol: https      
           # The path to your DocSearch config file. Optional. Default: docsearch.config.json.
-          config: typesense-scrape-config.json
+          config: ./packages/noco-docs/typesense-scrape-config.json

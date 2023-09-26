@@ -181,7 +181,7 @@ const isTableOpened = computed(() => {
                 :key="table.meta?.icon"
                 :emoji="table.meta?.icon"
                 size="small"
-                :readonly="!canUserEditEmote"
+                :readonly="!canUserEditEmote || isMobileMode"
                 @emoji-selected="setIcon($event, table)"
               >
                 <template #default>

@@ -41,6 +41,8 @@ const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType &
 
 const { $e } = useNuxtApp()
 
+const { isMobileMode } = useGlobal()
+
 const { isUIAllowed } = useRoles()
 
 const { activeViewTitleOrId } = storeToRefs(useViewsStore())
@@ -231,6 +233,7 @@ function onRef(el: HTMLElement) {
           :emoji="props.view?.meta?.icon"
           size="small"
           :clearable="true"
+          :readonly="isMobileMode"
           @emoji-selected="emits('selectIcon', $event)"
         >
           <template #default>

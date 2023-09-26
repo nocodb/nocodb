@@ -317,7 +317,6 @@ useActiveKeyupListener(
 )
 
 const showDeleteRowModal = ref(false)
-const isDeleteHappening = ref(false)
 
 const onDeleteRowClick = () => {
   showDeleteRowModal.value = true
@@ -338,7 +337,6 @@ const onConfirmDeleteRowClick = async () => {
     onClose()
   } finally {
     showDeleteRowModal.value = false
-    isDeleteHappening.value = false
   }
 }
 

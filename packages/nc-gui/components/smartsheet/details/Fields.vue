@@ -586,7 +586,6 @@ onMounted(async () => {
             <NcButton
               type="primary"
               size="small"
-              class="!text-red-500"
               :loading="loading"
               :disabled="!loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1"
               @click="saveChanges()"

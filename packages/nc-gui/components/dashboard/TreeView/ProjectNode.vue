@@ -592,23 +592,25 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                     ghost
                   >
                     <template #expandIcon="{ isActive }">
-                      <div class="flex flex-row items-center -mt-2">
+                      <div
+                        class="nc-sidebar-expand nc-sidebar-node-btn flex flex-row items-center -mt-2 xs:(mt-3 border-1 border-gray-200 px-2.25 py-0.5 rounded-md !mr-0.25)"
+                      >
                         <GeneralIcon
                           icon="triangleFill"
-                          class="nc-sidebar-base-node-btns -mt-0.75 invisible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.5 text-gray-500 rotate-90"
+                          class="nc-sidebar-base-node-btns -mt-0.75 invisible xs:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.5 text-gray-500 rotate-90"
                           :class="{ '!rotate-180': isActive }"
                         />
                       </div>
                     </template>
                     <a-collapse-panel :key="`collapse-${base.id}`">
                       <template #header>
-                        <div class="min-w-20 w-full flex flex-row group">
+                        <div class="nc-sidebar-node min-w-20 w-full flex flex-row group py-0.25">
                           <div
                             v-if="baseIndex === 0"
-                            class="base-context flex items-center gap-2 text-gray-800"
+                            class="base-context flex items-center gap-2 text-gray-800 nc-sidebar-node-title"
                             @contextmenu="setMenuContext('base', base)"
                           >
-                            <GeneralBaseLogo :base-type="base.type" />
+                            <GeneralBaseLogo :base-type="base.type" class="min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
                             Default
                           </div>
                           <div
@@ -616,15 +618,15 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                             class="base-context flex flex-grow items-center gap-1.75 text-gray-800 min-w-1/20 max-w-full"
                             @contextmenu="setMenuContext('base', base)"
                           >
-                            <GeneralBaseLogo :base-type="base.type" class="min-w-4" />
+                            <GeneralBaseLogo :base-type="base.type" class="min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
                             <div
                               :data-testid="`nc-sidebar-project-${base.alias}`"
-                              class="flex capitalize text-ellipsis overflow-hidden select-none"
+                              class="nc-sidebar-node-title flex capitalize text-ellipsis overflow-hidden select-none"
                               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
                             >
                               {{ base.alias || '' }}
                             </div>
-                            <a-tooltip>
+                            <a-tooltip class="xs:(hidden)">
                               <template #title>External DB</template>
                               <div>
                                 <GeneralIcon icon="info" class="text-gray-400 -mt-0.5 hover:text-gray-700 mr-1" />
@@ -758,7 +760,11 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
 <style lang="scss" scoped>
 :deep(.ant-collapse-header) {
-  @apply !mx-0 !pl-8.75 !pr-0.5 !py-0.75 hover:bg-gray-200 !rounded-md;
+  @apply !mx-0 !pl-8.75 !xs:(pl-8) !pr-0.5 !py-0.5 hover:bg-gray-200 xs:(hover:bg-gray-50 ) !rounded-md;
+}
+
+:deep(.ant-collapse-item) {
+  @apply h-full;
 }
 
 :deep(.ant-collapse-content-box) {

@@ -617,6 +617,10 @@ a {
   .nc-sidebar-node-btn:not(.nc-sidebar-expand) {
     @apply !xs:(hidden)
   }
+
+  .nc-sidebar-node-btn.nc-sidebar-expand {
+    @apply !xs:(border-1 border-gray-200 w-6.5 h-6.5 mr-1)
+  }
 }
 
 .nc-button.ant-btn.nc-sidebar-node-btn {

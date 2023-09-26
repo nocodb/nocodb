@@ -497,7 +497,7 @@ const {
   activeCell,
   handleMouseDown,
   handleMouseOver,
-  handleCellClick,
+  handleCellClick: _handleCellClick,
   clearSelectedRange,
   copyValue,
   isCellActive,
@@ -1134,6 +1134,16 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
   activeCell.row = null
   activeCell.col = null
   selectedRange.clear()
+}
+
+const handleCellClick = (event: MouseEvent, row: number, col: number) => {
+  const rowData = dataRef.value[row]
+
+  if (isMobileMode.value) {
+    return expandAndLooseFocus(rowData, fields.value[col])
+  }
+
+  _handleCellClick(event, row, col)
 }
 </script>
 

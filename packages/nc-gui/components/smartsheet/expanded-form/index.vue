@@ -642,18 +642,21 @@ export default {
     </div>
   </NcModal>
 
-  <NcModal v-model:visible="showDeleteRowModal" class="!w-[25rem] !xs-">
-    <div class="">
-      <div class="prose-xl font-bold self-center">Delete row ?</div>
-
-      <div class="mt-4">Are you sure you want to delete this row?</div>
-    </div>
-    <div class="flex flex-row gap-x-2 mt-4 pt-1.5 justify-end pt-4 gap-x-3">
-      <NcButton v-if="isMobileMode" type="secondary" @click="showDeleteRowModal = false">{{ $t('general.cancel') }} </NcButton>
-
-      <NcButton v-e="['a:row-expand:delete']" @click="onConfirmDeleteRowClick">{{ $t('general.confirm') }} </NcButton>
-    </div>
-  </NcModal>
+  <GeneralDeleteModal v-model:visible="showDeleteRowModal" entity-name="Record" :on-delete="() => onConfirmDeleteRowClick()">
+    <template #entity-preview>
+      <span>
+        <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
+          <component :is="iconMap.table" class="nc-view-icon" />
+          <div
+            class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+          >
+            {{ displayValue }}
+          </div>
+        </div>
+      </span>
+    </template>
+  </GeneralDeleteModal>
 </template>
 
 <style lang="scss">

@@ -16,6 +16,8 @@ const tab = ref<'comments' | 'audits'>('comments')
 
 const { isUIAllowed } = useRoles()
 
+const { appInfo } = useGlobal()
+
 const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
 
 const editLog = ref<AuditType>()
@@ -80,7 +82,7 @@ function editComment(log: AuditType) {
 
 const value = computed({
   get() {
-    return editLog.value.description.substring(editLog.value.description.indexOf(':') + 1) ?? ''
+    return editLog.value?.description?.substring(editLog.value?.description?.indexOf(':') + 1) ?? ''
   },
   set(val) {
     if (!editLog.value) return
@@ -167,15 +169,15 @@ const processedAudit = (log: string) => {
                       </div>
                     </div>
                   </div>
-                  <!-- <NcButton
-                    v-if="log.user === user.email && !editLog"
+                  <NcButton
+                    v-if="log.user === user!.email && !editLog && !appInfo.ee"
                     type="secondary"
                     class="!px-2 opacity-0 group-hover:opacity-100 transition-all"
                     size="sm"
                     @click="editComment(log)"
                   >
                     <Icon class="iconify text-gray-800" icon="lucide:pen" />
-                  </NcButton> -->
+                  </NcButton>
                 </div>
                 <textarea
                   v-if="log.id === editLog?.id"

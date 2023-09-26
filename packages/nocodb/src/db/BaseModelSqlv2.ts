@@ -35,6 +35,7 @@ import type {
   SelectOption,
 } from '~/models';
 import type { SortType } from 'nocodb-sdk';
+import generateBTLookupSelectQuery from '~/db/generateBTLookupSelectQuery';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import conditionV2 from '~/db/conditionV2';
@@ -527,10 +528,7 @@ ${qb.toQuery()}
               (
                 await genRollupSelectv2({
                   baseModelSqlv2: this,
-                  // tn: this.title,
                   knex: this.dbDriver,
-                  // column,
-                  // alias,
                   columnOptions: (await column.getColOptions()) as RollupColumn,
                 })
               ).builder.as(sanitize(column.title)),
@@ -590,8 +588,11 @@ ${qb.toQuery()}
     );
 
     const qb = this.dbDriver(this.tnPath);
+
+    // get aggregated count of each group
     qb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
 
+    // get each group
     qb.select(...selectors);
 
     if (+rest?.shuffle) {
@@ -629,6 +630,7 @@ ${qb.toQuery()}
       qb,
     );
 
+    // group by using the column aliases
     qb.groupBy(...groupBySelectors);
 
     if (!sorts)
@@ -636,6 +638,9 @@ ${qb.toQuery()}
         ? args.sortArr
         : await Sort.list({ viewId: this.viewId });
 
+    // if sort is provided filter out the group by columns
+    // and apply it directly using group by column alias
+    // since using the query directly in group by query is not supported in all databases
     sorts = sorts.filter((sort) => {
       if (!groupByColumns[sort.fk_column_id]) {
         return true;
@@ -660,9 +665,6 @@ ${qb.toQuery()}
     limit?;
     offset?;
     filterArr?: Filter[];
-    // skip sort for count
-    // sort?: string | string[];
-    // sortArr?: Sort[];
   }) {
     const { where } = this._getListArgs(args as any);
 
@@ -791,10 +793,6 @@ ${qb.toQuery()}
     const qbP = this.dbDriver
       .count('*', { as: 'count' })
       .from(qb.as('groupby'));
-
-    console.log('------------------------------------------');
-    console.log(qb.toQuery());
-    console.log('------------------------------------------');
 
     return (await qbP.first())?.count;
   }
@@ -4897,150 +4895,3 @@ export function getListArgs(
 }
 
 export { BaseModelSqlv2 };
-
-async function generateBTLookupSelectQuery({
-  column,
-  baseModelSqlv2,
-  alias,
-  model,
-}: {
-  column: Column;
-  baseModelSqlv2: BaseModelSqlv2;
-  alias: string;
-  model: Model;
-}): Promise<any> {
-  const knex = baseModelSqlv2.dbDriver;
-
-  const rootAlias = alias;
-  {
-    let aliasCount = 0,
-      selectQb;
-    const alias = `__nc_lk_${aliasCount++}`;
-    const lookup = await column.getColOptions<LookupColumn>();
-    {
-      const relationCol = await lookup.getRelationColumn();
-      const relation =
-        await relationCol.getColOptions<LinkToAnotherRecordColumn>();
-
-      if (relation.type !== RelationTypes.BELONGS_TO)
-        NcError.badRequest('HasMany/ManyToMany lookup is not supported');
-
-      const childColumn = await relation.getChildColumn();
-      const parentColumn = await relation.getParentColumn();
-      const childModel = await childColumn.getModel();
-      await childModel.getColumns();
-      const parentModel = await parentColumn.getModel();
-      await parentModel.getColumns();
-
-      selectQb = knex(
-        `${baseModelSqlv2.getTnPath(parentModel.table_name)} as ${alias}`,
-      ).where(
-        `${alias}.${parentColumn.column_name}`,
-        knex.raw(`??`, [
-          `${rootAlias || baseModelSqlv2.getTnPath(childModel.table_name)}.${
-            childColumn.column_name
-          }`,
-        ]),
-      );
-    }
-    let lookupColumn = await lookup.getLookupColumn();
-    let prevAlias = alias;
-    while (lookupColumn.uidt === UITypes.Lookup) {
-      const nestedAlias = `__nc_lk_nested_${aliasCount++}`;
-      const nestedLookup = await lookupColumn.getColOptions<LookupColumn>();
-      const relationCol = await nestedLookup.getRelationColumn();
-      const relation =
-        await relationCol.getColOptions<LinkToAnotherRecordColumn>();
-      // if any of the relation in nested lookup is
-      // not belongs to then throw error as we don't support
-      if (relation.type !== RelationTypes.BELONGS_TO)
-        NcError.badRequest('HasMany/ManyToMany lookup is not supported');
-
-      const childColumn = await relation.getChildColumn();
-      const parentColumn = await relation.getParentColumn();
-      const childModel = await childColumn.getModel();
-      await childModel.getColumns();
-      const parentModel = await parentColumn.getModel();
-      await parentModel.getColumns();
-
-      selectQb.join(
-        `${baseModelSqlv2.getTnPath(parentModel.table_name)} as ${nestedAlias}`,
-        `${nestedAlias}.${parentColumn.column_name}`,
-        `${prevAlias}.${childColumn.column_name}`,
-      );
-
-      lookupColumn = await nestedLookup.getLookupColumn();
-      prevAlias = nestedAlias;
-    }
-
-    switch (lookupColumn.uidt) {
-      case UITypes.Links:
-      case UITypes.Rollup:
-        {
-          const builder = (
-            await genRollupSelectv2({
-              baseModelSqlv2,
-              knex,
-              columnOptions:
-                (await lookupColumn.getColOptions()) as RollupColumn,
-              alias: prevAlias,
-            })
-          ).builder;
-          selectQb.select(builder);
-        }
-        break;
-      case UITypes.LinkToAnotherRecord:
-        {
-          const nestedAlias = `__nc_sort${aliasCount++}`;
-          const relation =
-            await lookupColumn.getColOptions<LinkToAnotherRecordColumn>();
-          if (relation.type !== 'bt') return;
-
-          const colOptions =
-            (await column.getColOptions()) as LinkToAnotherRecordColumn;
-          const childColumn = await colOptions.getChildColumn();
-          const parentColumn = await colOptions.getParentColumn();
-          const childModel = await childColumn.getModel();
-          await childModel.getColumns();
-          const parentModel = await parentColumn.getModel();
-          await parentModel.getColumns();
-
-          selectQb
-            .join(
-              `${baseModelSqlv2.getTnPath(
-                parentModel.table_name,
-              )} as ${nestedAlias}`,
-              `${nestedAlias}.${parentColumn.column_name}`,
-              `${prevAlias}.${childColumn.column_name}`,
-            )
-            .select(parentModel?.displayValue?.column_name);
-        }
-        break;
-      case UITypes.Formula:
-        {
-          const builder = (
-            await formulaQueryBuilderv2(
-              baseModelSqlv2,
-              (
-                await column.getColOptions<FormulaColumn>()
-              ).formula,
-              null,
-              model,
-              column,
-            )
-          ).builder;
-
-          selectQb.select(builder);
-        }
-        break;
-      default:
-        {
-          selectQb.select(`${prevAlias}.${lookupColumn.column_name}`);
-        }
-
-        break;
-    }
-
-    return { builder: selectQb };
-  }
-}

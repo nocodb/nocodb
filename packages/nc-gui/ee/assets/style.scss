@@ -429,9 +429,6 @@ a {
   @apply !shadow-none rounded ring-1 ring-red-600;
 }
 
-.ant-modal {
-  @apply !top-[50px];
-}
 .ant-modal-content {
   @apply !p-6;
   border-radius: 1rem;

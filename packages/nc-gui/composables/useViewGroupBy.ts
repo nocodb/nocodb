@@ -164,7 +164,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     const groupby = groupBy.value[group.nestedIn.length]
 
     const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
-    if (!groupby || !(groupby.column.column_name || groupby.column.title)) return
+    if (!groupby || !(groupby.column.title)) return
 
     if (isPublic.value && !sharedView.value?.uuid) {
       return
@@ -179,7 +179,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
           where: `${nestedWhere}`,
           sort: `${groupby.sort === 'desc' ? '-' : ''}${groupby.column.title}`,
-          column_name: groupby.column.column_name || groupby.column.title,
+          column_name: groupby.column.title,
         } as any)
       : await api.public.dataGroupBy(sharedView.value!.uuid!, {
           offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByLimit),
@@ -187,7 +187,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
           ...params,
           where: nestedWhere,
           sort: `${groupby.sort === 'desc' ? '-' : ''}${groupby.column.title}`,
-          column_name: groupby.column.column_name || groupby.column.title,
+          column_name: groupby.column.title,
           sortsArr: sorts.value,
           filtersArr: nestedFilters.value,
         })
@@ -203,16 +203,16 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
       }
       if (groupby.column.title && groupby.column.uidt) {
         acc.push({
-          key: valueToTitle(curr[(groupby.column.column_name || groupby.column.title)!], groupby.column),
+          key: valueToTitle(curr[(groupby.column.title)!], groupby.column),
           column: groupby.column,
           count: +curr.count,
-          color: findKeyColor(curr[(groupby.column.column_name || groupby.column.title)!], groupby.column),
+          color: findKeyColor(curr[(groupby.column.title)!], groupby.column),
           nestedIn: [
             ...group!.nestedIn,
             {
               title: groupby.column.title,
-              column_name: (groupby.column.column_name || groupby.column.title)!,
-              key: valueToTitle(curr[(groupby.column.column_name || groupby.column.title)!], groupby.column),
+              column_name: (groupby.column.title)!,
+              key: valueToTitle(curr[(groupby.column.title)!], groupby.column),
               column_uidt: groupby.column.uidt,
             },
           ],

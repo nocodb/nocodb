@@ -8,8 +8,8 @@ const { timing } = useApiTiming()
 
 const timingThresholds = {
   network: {
-    level1: 200,
-    level2: 500,
+    level1: 500,
+    level2: 1000,
   },
   cpu: {
     level1: 500,
@@ -34,17 +34,17 @@ const getLevel = (type: keyof typeof timingThresholds) => {
 const items = computed(() =>
   [
     {
-      tootltip: 'Browser to server time(geography)',
+      tootltip: 'Browser to server time : ',
       icon: NcServer,
       key: 'network',
     },
     {
-      tootltip: 'Compute time to server(CPU)',
+      tootltip: 'Compute time within server : ',
       icon: NcCpu,
       key: 'cpu',
     },
     {
-      tootltip: 'Query time on Database',
+      tootltip: 'Query time within database : ',
       icon: NcDatabase,
       key: 'db',
     },
@@ -52,26 +52,21 @@ const items = computed(() =>
 )
 
 const tranformTime = (time: number) => {
-  if (time < 1000) {
-    return `${time}ms`
-  } else {
-    return `${(time / 1000).toFixed(1).replace('.0', '')}s`
-  }
+  return `${(time / 1000).toFixed(1).replace('.0', '')}s`
 }
 </script>
 
 <template>
   <div v-if="timing && items.length" class="wrapper">
-    <NcTooltip v-for="item of items" :key="item.key" class="nc-tooltip">
+    <NcTooltip v-for="item of items" :key="item.key" class="nc-tooltip" placement="topRight">
       <div class="item" :class="getLevel(item.key)">
         <component :is="item.icon" />
-        {{ tranformTime(timing[item.key]) }}
       </div>
       <template #title>
         <div class="tooltip-content-wrapper">
           <div class="item">
             <component :is="item.icon" class="text-white" />
-            {{ item.tootltip }}
+            {{ item.tootltip }}{{ tranformTime(timing[item.key]) }}
           </div>
         </div>
       </template>

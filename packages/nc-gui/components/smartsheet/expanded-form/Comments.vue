@@ -75,6 +75,8 @@ onKeyStroke('Enter', (event) => {
 const comments = computed(() => commentsAndLogs.value.filter((log) => log.op_type === 'COMMENT'))
 const audits = computed(() => commentsAndLogs.value.filter((log) => log.op_type !== 'COMMENT'))
 
+const isSearchBoxFocused = ref(false)
+
 function editComment(log: AuditType) {
   editLog.value = log
   isEditing.value = true
@@ -151,7 +153,7 @@ const processedAudit = (log: string) => {
           <div class="text-center text-3xl text-gray-700">
             <GeneralIcon icon="commentHere" />
           </div>
-          <div class="font-bold text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
+          <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
         </div>
         <div v-else class="flex flex-col h-full p-2 space-y-2 nc-scrollbar-md">
           <div v-for="log of comments" :key="log.id">
@@ -198,17 +200,23 @@ const processedAudit = (log: string) => {
             </div>
           </div>
         </div>
-        <div v-if="hasEditPermission" class="h-14 p-2 rounded-b-xl border-t-1 bg-white gap-2 flex">
-          <a-input
-            v-model:value="comment"
-            class="!rounded-lg border-1 bg-white !px-4 !py-2 !border-gray-200 nc-comment-box"
-            placeholder="Start typing..."
-            @keyup.enter.prevent="saveComment"
-          >
-          </a-input>
-          <NcButton type="secondary" size="medium" class="!w-8" :disabled="!comment.length" @click="saveComment">
-            <GeneralIcon icon="send" />
-          </NcButton>
+        <div v-if="hasEditPermission" class="h-16.5 p-2 rounded-b-xl bg-gray-50 gap-2 flex">
+          <div class="flex flex-row items-end">
+            <GeneralUserIcon size="base" />
+          </div>
+          <div class="flex flex-row bg-white py-2.75 px-1.5 items-center rounded-lg border-1 border-gray-200">
+            <a-input
+              v-model:value="comment"
+              class="!rounded-lg border-1 bg-white !px-2 !py-2 !border-gray-200 nc-comment-box !outline-none"
+              placeholder="Start typing..."
+              :bordered="false"
+              @keyup.enter.prevent="saveComment"
+            >
+            </a-input>
+            <NcButton size="medium" class="!w-8" :disabled="!comment.length" @click="saveComment">
+              <GeneralIcon icon="send" />
+            </NcButton>
+          </div>
         </div>
       </div>
       <div v-else ref="commentsWrapperEl" class="flex flex-col h-full pl-1.5 pr-1 pt-1 nc-scrollbar-md space-y-2">

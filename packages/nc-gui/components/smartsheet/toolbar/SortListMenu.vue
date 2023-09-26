@@ -106,7 +106,12 @@ watch(open, () => {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-sort-menu nc-toolbar-dropdown">
+  <NcDropdown
+    v-model:visible="open"
+    :trigger="['click']"
+    class="!xs:hidden"
+    overlay-class-name="nc-dropdown-sort-menu nc-toolbar-dropdown"
+  >
     <div :class="{ 'nc-active-btn': sorts?.length }">
       <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-2">

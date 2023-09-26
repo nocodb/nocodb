@@ -50,6 +50,8 @@ const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
 
 const key = ref(0)
 
+const wrapper = ref()
+
 const { isMobileMode } = useGlobal()
 
 const { t } = useI18n()
@@ -331,6 +333,23 @@ const onConfirmDeleteRowClick = async () => {
     onClose()
   }
 }
+
+watch(
+  state,
+  () => {
+    if (!state.value?.id) return
+
+    setTimeout(() => {
+      const rowDom = wrapper.value?.querySelector(`.nc-expanded-form-row[col-id="${state.value?.id}"]`)
+      if (rowDom) {
+        rowDom.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }, 650)
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <script lang="ts">
@@ -426,7 +445,7 @@ export default {
           </div>
         </template>
       </div>
-      <div class="flex flex-row h-[calc(100%-6rem)] w-full h-full gap-4">
+      <div ref="wrapper" class="flex flex-row h-[calc(100%-6rem)] w-full h-full gap-4">
         <div class="flex w-full h-full flex-col border-1 rounded-xl overflow-hidden border-gray-200 xs:(border-0 rounded-none)">
           <div
             class="flex flex-grow-1 mt-2 h-[calc(100%-3.5rem)] nc-scrollbar-md flex-col !pb-12 items-center w-full bg-white p-4 xs:p-0"
@@ -435,8 +454,9 @@ export default {
               v-for="(col, i) of fields"
               v-show="isFormula(col) || !isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
               :key="col.title"
-              class="mt-2 py-2 xs:w-full"
+              class="nc-expanded-form-row mt-2 py-2 xs:w-full"
               :class="`nc-expand-col-${col.title}`"
+              :col-id="col.id"
               :data-testid="`nc-expand-col-${col.title}`"
             >
               <div class="flex items-start flex-row xs:(flex-col w-full) nc-expanded-cell">

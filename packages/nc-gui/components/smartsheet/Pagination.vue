@@ -33,7 +33,9 @@ const extraStyle = toRef(props, 'extraStyle')
 
 const isGroupBy = inject(IsGroupByInj, ref(false))
 
-const { isPaginationLoading } = storeToRefs(useViewsStore())
+const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
+
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const count = computed(() => vPaginationData.value?.totalRows ?? Infinity)
 
@@ -42,13 +44,13 @@ const size = computed(() => vPaginationData.value?.pageSize ?? 25)
 const page = computed({
   get: () => vPaginationData?.value?.page ?? 1,
   set: async (p) => {
-    isPaginationLoading.value = true
+    isViewDataLoading.value = true
     try {
       await changePage?.(p)
     } catch (e) {
       console.error(e)
     } finally {
-      isPaginationLoading.value = false
+      isViewDataLoading.value = false
     }
   },
 })
@@ -75,17 +77,23 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
       </span>
     </div>
 
-    <template v-if="!hidePagination">
-      <a-pagination
-        v-if="count !== Infinity"
+    <div
+      v-if="!hidePagination"
+      class="transition-all duration-350"
+      :class="{
+        '-ml-17': isLeftSidebarOpen,
+      }"
+    >
+      <div v-if="isPaginationLoading" class="flex flex-row justify-center item-center min-h-10 min-w-42">
+        <a-skeleton :active="true" :title="true" :paragraph="false" class="-mt-1 max-w-60" />
+      </div>
+      <NcPagination
+        v-else-if="count !== Infinity"
         v-model:current="page"
         v-model:page-size="size"
-        size="small"
-        class="!text-xs !m-1 nc-pagination"
+        class="xs:(mr-2)"
         :class="{ 'rtl-pagination': isRTLLanguage }"
         :total="+count"
-        show-less-items
-        :show-size-changer="false"
       />
       <div v-else class="mx-auto flex items-center mt-n1" style="max-width: 250px">
         <span class="text-xs" style="white-space: nowrap"> Change page:</span>
@@ -95,7 +103,7 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
           </template>
         </a-input>
       </div>
-    </template>
+    </div>
     <div v-if="!isMobileMode" class="flex-1 flex justify-end items-center">
       <GeneralApiTiming v-if="isEeUI && props.showApiTiming" class="m-1" />
       <div class="text-right">

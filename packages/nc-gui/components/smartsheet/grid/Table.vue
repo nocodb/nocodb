@@ -1590,11 +1590,8 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
       </NcDropdown>
     </div>
 
-    <div v-if="showSkeleton && headerOnly !== true" class="flex flex-row justify-center item-center min-h-10">
-      <a-skeleton :active="true" :title="true" :paragraph="false" class="-mt-1 max-w-60" />
-    </div>
     <LazySmartsheetPagination
-      v-else-if="headerOnly !== true"
+      v-if="headerOnly !== true"
       :key="isMobileMode"
       v-model:pagination-data="paginationDataRef"
       show-api-timing

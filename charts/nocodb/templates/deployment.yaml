@@ -33,9 +33,11 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.storage.enabled }}
           volumeMounts:
             - name: {{ include "nocodb.fullname" . }}
               mountPath: /usr/app/data
+          {{- end }}
           envFrom:
             - configMapRef:
                 name: {{ include "nocodb.fullname" . }}
@@ -67,7 +69,9 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.storage.enabled }}
       volumes:
         - name: {{ include "nocodb.fullname" . }}
           persistentVolumeClaim:
             claimName: {{ include "nocodb.fullname" . }}
+      {{- end }}

@@ -38,22 +38,12 @@ const { isMobileMode } = useGlobal()
 const project = inject(ProjectInj)!
 
 // For starred project we will have seperate isExpanded state
-const isStarredMode = inject(ProjectStarredModeInj)
-const _isExpanded = ref<boolean>(false)
 const isExpanded = computed<boolean>({
   get: () => {
-    if (isStarredMode.value) {
-      return _isExpanded.value
-    } else {
-      return !!project.value.isExpanded
-    }
+    return !!project.value.isExpanded
   },
   set: (val: boolean) => {
-    if (isStarredMode.value) {
-      _isExpanded.value = val
-    } else {
-      project.value.isExpanded = val
-    }
+    project.value.isExpanded = val
   },
 })
 
@@ -473,12 +463,6 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
   $e('a:project:duplicate')
 }
-
-onMounted(() => {
-  if (activeProjectId.value === project.value.id) {
-    _isExpanded.value = true
-  }
-})
 </script>
 
 <template>

@@ -4987,7 +4987,7 @@ async function generateBTLookupSelectQuery({
   {
     let aliasCount = 0,
       selectQb;
-    const alias = `__nc_lookup${aliasCount++}`;
+    const alias = `__nc_lk_${aliasCount++}`;
     const lookup = await column.getColOptions<LookupColumn>();
     {
       const relationCol = await lookup.getRelationColumn();
@@ -5018,7 +5018,7 @@ async function generateBTLookupSelectQuery({
     let lookupColumn = await lookup.getLookupColumn();
     let prevAlias = alias;
     while (lookupColumn.uidt === UITypes.Lookup) {
-      const nestedAlias = `__nc_sort${aliasCount++}`;
+      const nestedAlias = `__nc_lk_nested_${aliasCount++}`;
       const nestedLookup = await lookupColumn.getColOptions<LookupColumn>();
       const relationCol = await nestedLookup.getRelationColumn();
       const relation =

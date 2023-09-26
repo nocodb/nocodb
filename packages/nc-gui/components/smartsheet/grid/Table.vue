@@ -1613,7 +1613,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
             placement="top"
             @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
           >
-            <div class="flex items-center px-2 text-gray-600 hover:text-black">
+            <div data-testid="nc-pagination-add-record" class="flex items-center px-2 text-gray-600 hover:text-black">
               <span>
                 <template v-if="isAddNewRecordGridMode"> {{ $t('activity.newRecord') }} </template>
                 <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }} </template>
@@ -1678,7 +1678,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
 </template>
 
 <style lang="scss">
-.nc-pagination-wrapper .ant-dropdown-button {
+.nc-grid-pagination-wrapper .ant-dropdown-button {
   > .ant-btn {
     @apply !p-0 !rounded-l-lg hover:border-gray-400;
   }

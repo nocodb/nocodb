@@ -60,7 +60,7 @@ export default defineConfig({
           max: '480px',
         },
         sm: {
-          max: '820px',
+          min: '480px',
         },
         md: {
           min: '820px',

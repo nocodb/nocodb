@@ -102,6 +102,8 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) 
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
   if (rowId) {
+    expandedFormRowState.value = state
+
     router.push({
       query: {
         ...routeQuery.value,
@@ -242,6 +244,7 @@ onMounted(() => {
         v-model="expandedFormOnRowIdDlg"
         :row="{ row: {}, oldRow: {}, rowMeta: {} }"
         :meta="meta"
+        :state="expandedFormRowState"
         :row-id="routeQuery.rowId"
         :view="view"
         show-next-prev-icons
@@ -269,7 +272,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
-.nc-pagination-wrapper .ant-dropdown-button {
+.nc-grid-pagination-wrapper .ant-dropdown-button {
   > .ant-btn {
     @apply !p-0 !rounded-l-lg hover:border-gray-300;
   }

@@ -16,6 +16,8 @@ const tab = ref<'comments' | 'audits'>('comments')
 
 const { isUIAllowed } = useRoles()
 
+const { appInfo } = useGlobal()
+
 const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
 
 const editLog = ref<AuditType>()
@@ -73,6 +75,8 @@ onKeyStroke('Enter', (event) => {
 const comments = computed(() => commentsAndLogs.value.filter((log) => log.op_type === 'COMMENT'))
 const audits = computed(() => commentsAndLogs.value.filter((log) => log.op_type !== 'COMMENT'))
 
+const isSearchBoxFocused = ref(false)
+
 function editComment(log: AuditType) {
   editLog.value = log
   isEditing.value = true
@@ -80,7 +84,7 @@ function editComment(log: AuditType) {
 
 const value = computed({
   get() {
-    return editLog.value.description.substring(editLog.value.description.indexOf(':') + 1) ?? ''
+    return editLog.value?.description?.substring(editLog.value?.description?.indexOf(':') + 1) ?? ''
   },
   set(val) {
     if (!editLog.value) return
@@ -97,11 +101,20 @@ watch(
   },
   { immediate: true },
 )
+
+// Ignore first line if its the only one
+const processedAudit = (log: string) => {
+  const dotSplit = log.split('.')
+
+  if (dotSplit.length === 1) return log
+
+  return log.substring(log.indexOf('.') + 1)
+}
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full bg-gray-50 rounded-lg">
-    <div class="bg-white rounded-t-lg border-gray-200 border-b-1">
+  <div class="flex flex-col h-full w-full">
+    <div class="h-16 bg-white rounded-t-lg border-gray-200 border-b-1">
       <div class="flex flex-row gap-2 m-2 p-1 bg-gray-100 rounded-lg">
         <div
           class="tab flex-1 px-4 py-2 transition-all text-gray-600 cursor-pointer rounded-lg"
@@ -129,16 +142,21 @@ watch(
         </div>
       </div>
     </div>
-    <div>
-      <div v-if="tab === 'comments'" ref="commentsWrapperEl" class="flex flex-col h-[74vh] max-h-[680px]">
+    <div
+      class="h-[calc(100%-4rem)]"
+      :class="{
+        'pb-2': tab !== 'comments',
+      }"
+    >
+      <div v-if="tab === 'comments'" ref="commentsWrapperEl" class="flex flex-col h-full">
         <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full">
           <div class="text-center text-3xl text-gray-700">
-            <MdiChatProcessingOutline />
+            <GeneralIcon icon="commentHere" />
           </div>
-          <div class="font-bold text-center my-1 text-gray-700">Start a conversation</div>
+          <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
         </div>
-        <div v-else class="flex-grow-1 my-2 px-2 space-y-2 overflow-y-scroll nc-scrollbar-md">
-          <div v-for="log of comments" :key="log.id" class="!last:mb-11">
+        <div v-else class="flex flex-col h-full p-2 space-y-2 nc-scrollbar-md">
+          <div v-for="log of comments" :key="log.id">
             <div class="bg-white rounded-xl group border-1 gap-2 border-gray-200">
               <div class="flex flex-col p-4 gap-3">
                 <div class="flex justify-between">
@@ -154,7 +172,7 @@ watch(
                     </div>
                   </div>
                   <NcButton
-                    v-if="log.user === user.email && !editLog"
+                    v-if="log.user === user!.email && !editLog && !appInfo.ee"
                     type="secondary"
                     class="!px-2 opacity-0 group-hover:opacity-100 transition-all"
                     size="sm"
@@ -182,27 +200,26 @@ watch(
             </div>
           </div>
         </div>
-        <div
-          v-if="hasEditPermission"
-          class="mt-1 absolute bottom-0 left-0 right-0 w-[285px] p-2 rounded-b-xl border-t-1 bg-white gap-2 flex"
-        >
-          <a-input
-            v-model:value="comment"
-            class="!rounded-lg border-1 bg-white !px-4 !py-2 !border-gray-200 nc-comment-box"
-            placeholder="Start typing..."
-            @keyup.enter.prevent="saveComment"
-          >
-          </a-input>
-          <NcButton type="secondary" size="medium" @click="saveComment">
-            <Icon class="iconify text-gray-800" icon="lucide:send" />
-          </NcButton>
+        <div v-if="hasEditPermission" class="h-16.5 p-2 rounded-b-xl bg-gray-50 gap-2 flex">
+          <div class="flex flex-row items-end">
+            <GeneralUserIcon size="base" />
+          </div>
+          <div class="flex flex-row bg-white py-2.75 px-1.5 items-center rounded-lg border-1 border-gray-200">
+            <a-input
+              v-model:value="comment"
+              class="!rounded-lg border-1 bg-white !px-2 !py-2 !border-gray-200 nc-comment-box !outline-none"
+              placeholder="Start typing..."
+              :bordered="false"
+              @keyup.enter.prevent="saveComment"
+            >
+            </a-input>
+            <NcButton size="medium" class="!w-8" :disabled="!comment.length" @click="saveComment">
+              <GeneralIcon icon="send" />
+            </NcButton>
+          </div>
         </div>
       </div>
-      <div
-        v-else
-        ref="commentsWrapperEl"
-        class="flex flex-col m-1 p-1 h-[74vh] max-h-[680px] overflow-y-scroll nc-scrollbar-md space-y-2"
-      >
+      <div v-else ref="commentsWrapperEl" class="flex flex-col h-full pl-1.5 pr-1 pt-1 nc-scrollbar-md space-y-2">
         <template v-if="audits.length === 0">
           <div class="flex flex-col text-center justify-center h-full">
             <div class="text-center text-3xl text-gray-600">
@@ -229,7 +246,7 @@ watch(
                 </div>
               </div>
               <div class="text-sm font-medium text-gray-700">
-                {{ log.description.split('.')[1] }}
+                {{ processedAudit(log.description) }}
               </div>
             </div>
           </div>

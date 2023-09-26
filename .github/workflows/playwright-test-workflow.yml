@@ -13,37 +13,16 @@ on:
 
 jobs:
   playwright:
-    runs-on: [self-hosted, v2]
+    runs-on: [self-hosted, v3]
     timeout-minutes: 100
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      - name: pre-requisite checks
-        shell: bash
-        run: |
-          node_version=$(node --version || echo "error")
-          pnpm_version=$(pnpm -v || echo "error")            
-          echo "node version: $node_version"
-          echo "pnpm version: $pnpm_version"
-          if [[ $node_version != v18* ]] || [[ $pnp_version != 8* ]]; then
-            echo "version mismatch: expected node v18 and pnpm v8"
-            RUN_PRERQUISITE_STEPS="true"  
-          elif [[ ${FORCE_RUN_PRERQUISITE_STEPS} == "true" ]];
-              # || [[ ! -f ${PRE_REQ_CHECK_FILE_PATH} ]];
-          then
-            echo "FORCE_RUN_PRERQUISITE_STEPS is true"
-            RUN_PRERQUISITE_STEPS="true"
-          else
-            RUN_PRERQUISITE_STEPS="false"  
-          fi
-          echo "RUN_PRERQUISITE_STEPS=${RUN_PRERQUISITE_STEPS}" >> $GITHUB_ENV        
+        uses: actions/checkout@v3       
       - name: Setup Node
-        if: env.RUN_PRERQUISITE_STEPS == 'true'
         uses: actions/setup-node@v3
         with:
           node-version: 18.14.0
       - name: Setup pnpm
-        if: env.RUN_PRERQUISITE_STEPS == 'true'
         uses: pnpm/action-setup@v2
         with:
           version: 8
@@ -51,8 +30,21 @@ jobs:
         shell: bash
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - name: check if npm cache is needed
+        shell: bash
+        run: |        
+          IS_NPM_CACHE_DOWNLOAD_REQUIRED="/cache-marker-v1.txt"          
+          # update the above file name to force the cache ex: /cache-marker-v2.txt.
+          if [[ ! -f ${PRE_REQ_CHECK_FILE_PATH} ]];
+          then
+            echo "IS_NPM_CACHE_DOWNLOAD_REQUIRED is true"
+            IS_NPM_CACHE_DOWNLOAD_REQUIRED="true"
+          else
+            IS_NPM_CACHE_DOWNLOAD_REQUIRED="false"  
+          fi
+          echo "IS_NPM_CACHE_DOWNLOAD_REQUIRED=${IS_NPM_CACHE_DOWNLOAD_REQUIRED}" >> $GITHUB_ENV           
       - uses: actions/cache@v3
-        if: env.RUN_PRERQUISITE_STEPS == 'true'
+        if: env.IS_NPM_CACHE_DOWNLOAD_REQUIRED == 'true'
         name: Setup pnpm cache
         with:
           path: ${{ env.STORE_PATH }}
@@ -113,22 +105,28 @@ jobs:
         working-directory: ./packages/nocodb
         run: |
           pnpm run watch:run:playwright:pg &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
-      - name: copy built output and start frontend
-        if: always()
-        working-directory: ./
+      - name: download ui build from artf server
+        working-directory: ./packages/nc-gui/
         run: |
           # expects the variables to be available in runner context.
-          path="gh-artifacts/runs/${GITHUB_RUN_ID}/ui-build/.output"
-          target_dir="/mnt/${path}"
-          mkdir -p ${target_dir}
-          if [[ -d ${target_dir} ]]; then
-            echo "Directory ${target_dir} exists."
-            cp -r ${target_dir} ./packages/nc-gui/ || echo "playwright reports directory does not exists" >>  ${target_dir}/playwright-report/index.html
-          else
-            echo "Error: Directory ${target_dir} does not exists."
-            exit 1
-          fi
-          cd ./packages/nc-gui/
+          rm -rf .output.zip .output
+          FILE="$(echo ${GITHUB_REPOSITORY} | sed "s,/,-,g")-${GITHUB_RUN_ID}.zip"
+          BUILD_FILE_URL=http://65.21.27.147/gh-artifacts/ui-builds/${FILE}
+          time curl -o output.zip ${BUILD_FILE_URL} -n
+          unzip -oq output.zip 
+
+          # path="gh-artifacts/runs/${GITHUB_RUN_ID}/ui-build/.output"
+          # target_dir="/mnt/${path}"
+          # if [[ -d ${target_dir} ]]; then
+          #   echo "Directory ${target_dir} exists."
+          #   cp -r ${target_dir} . || echo "playwright reports directory does not exists" >>  ${target_dir}/playwright-report/index.html
+          # else
+          #   echo "Error: Directory ${target_dir} does not exists."
+          #   exit 1
+          # fi
+      - name: start frontend
+        working-directory: ./packages/nc-gui/ 
+        run: |
           pnpm run ci:start
       - name: Install Playwright Browsers
         working-directory: ./tests/playwright
@@ -183,7 +181,8 @@ jobs:
 #      - name: Run quick tests
 #        if: ${{ inputs.db == 'sqlite' }}
 #        working-directory: ./tests/playwright
-#        run: PLAYWRIGHT_HTML_REPORT=playwright-report-quick npm run test:quick
+#        run: PLAYWRIGHT_HTML_REPORT=playwright-report-quick npm run test:quick        
+
       - uses: actions/upload-artifact@v3
         if: ${{ inputs.db == 'sqlite' }}
         with:
@@ -234,6 +233,6 @@ jobs:
           cp -r ./tests/playwright/playwright-report ${target_dir}/  || echo "playwright reports directory does not exists" >>  ${target_dir}/playwright-report/index.html
           cp ./packages/nocodb/*_test_backend.log ${target_dir}/ || echo "backend logs file does not exists" >> ${target_dir}/index.html
           # end: artifacts copy
-          SUMMARY='[Artifacts](http://135.181.48.96/'${path}')
-          [playwright-report](http://135.181.48.96/'${path}'/playwright-report)'
+          SUMMARY='[Artifacts]('${REPORTS_HOST}/${path}')
+          [playwright-report]('${REPORTS_HOST}/${path}'/playwright-report)'
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY            

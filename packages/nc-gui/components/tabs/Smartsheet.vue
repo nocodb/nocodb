@@ -47,7 +47,10 @@ const meta = computed<TableType | undefined>(() => {
   return viewId && metas.value[viewId]
 })
 
-const { activeView, openedViewsTab } = storeToRefs(useViewsStore())
+const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
+const { activeTableId } = storeToRefs(useTablesStore())
+
+const { activeView, openedViewsTab, activeViewTitleOrId } = storeToRefs(useViewsStore())
 const { isGallery, isGrid, isForm, isKanban, isLocked, isMap } = useProvideSmartsheetStore(activeView, meta)
 
 useSqlEditor()
@@ -153,6 +156,10 @@ const onDrop = async (event: DragEvent) => {
     console.log('error', e)
   }
 }
+
+watch([activeViewTitleOrId, activeTableId], () => {
+  handleSidebarOpenOnMobileForNonViews()
+})
 </script>
 
 <template>

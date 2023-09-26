@@ -10,9 +10,7 @@ export class ExpandedFormPage extends BasePage {
   readonly duplicateRowButton: Locator;
   readonly deleteRowButton: Locator;
 
-  readonly btn_copyUrl: Locator;
   readonly btn_save: Locator;
-  readonly btn_toggleComments: Locator;
   readonly btn_moreActions: Locator;
 
   constructor(dashboard: DashboardPage) {
@@ -22,10 +20,8 @@ export class ExpandedFormPage extends BasePage {
     this.duplicateRowButton = this.dashboard.get().locator('.nc-duplicate-row:visible');
     this.deleteRowButton = this.dashboard.get().locator('.nc-delete-row:visible');
 
-    this.btn_copyUrl = this.dashboard.get().locator('.nc-copy-row-url:visible');
-    this.btn_toggleComments = this.dashboard.get().locator('.nc-toggle-comments:visible');
     this.btn_save = this.dashboard.get().locator('button.nc-expand-form-save-btn');
-    this.btn_moreActions = this.dashboard.get().locator('.nc-expand-form-more-actions');
+    this.btn_moreActions = this.get().locator('.nc-expand-form-more-actions');
   }
 
   get() {
@@ -33,7 +29,7 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async click3DotsMenu(menuItem: string) {
-    await this.get().locator('.nc-icon-transition.ant-dropdown-trigger').last().click();
+    await this.get().locator('.nc-expand-form-more-actions').last().click();
 
     // add delay; wait for the menu to appear
     await this.rootPage.waitForTimeout(500);
@@ -43,14 +39,14 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async clickDuplicateRow() {
-    await this.click3DotsMenu('Duplicate Row');
+    await this.click3DotsMenu('Duplicate Record');
     // wait for loader to disappear
     // await this.dashboard.waitForLoaderToDisappear();
     await this.rootPage.waitForTimeout(2000);
   }
 
   async clickDeleteRow() {
-    await this.click3DotsMenu('Delete Row');
+    await this.click3DotsMenu('Delete Record');
     await this.rootPage.locator('.ant-btn-primary:has-text("Confirm")').click();
   }
 
@@ -62,12 +58,6 @@ export class ExpandedFormPage extends BasePage {
   async isDisabledDeleteRow() {
     const isDisabled = this.deleteRowButton;
     return await isDisabled.count();
-  }
-
-  async getShareRowUrl() {
-    await this.btn_copyUrl.click();
-    await this.verifyToast({ message: 'Copied to clipboard' });
-    return await this.getClipboardText();
   }
 
   async gotoUsingUrlAndRowId({ rowId }: { rowId: string }) {
@@ -150,11 +140,11 @@ export class ExpandedFormPage extends BasePage {
 
   async escape() {
     await this.rootPage.keyboard.press('Escape');
-    await this.get().waitFor({ state: 'hidden' });
+    await this.get().locator('.nc-drawer-expanded-form').waitFor({ state: 'hidden' });
   }
 
   async close() {
-    await this.click3DotsMenu('Close');
+    await this.get().locator('.nc-expand-form-close-btn').last().click();
   }
 
   async openChildCard(param: { column: string; title: string }) {
@@ -167,22 +157,20 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async verifyCount({ count }: { count: number }) {
-    return await expect(this.rootPage.locator(`.nc-drawer-expanded-form .ant-drawer-content`)).toHaveCount(count);
+    return await expect(this.rootPage.locator(`.nc-drawer-expanded-form`)).toHaveCount(count);
   }
 
   async verifyRoleAccess(param: { role: string }) {
     const role = param.role.toLowerCase();
 
-    expect(await this.btn_copyUrl.count()).toBe(1);
-
-    expect(await this.btn_moreActions.count()).toBe(1);
+    // expect(await this.btn_moreActions.count()).toBe(1);
     await this.btn_moreActions.click();
     const menu = this.rootPage.locator('.ant-dropdown:visible');
     await menu.waitFor({ state: 'visible' });
     const menuItems = menu.locator('.ant-dropdown-menu-item');
     for (let i = 0; i < (await menuItems.count()); i++) {
       if (role === 'owner' || role === 'editor' || role === 'creator') {
-        const menuText = ['Reload', 'Duplicate row', 'Delete row', 'Close'];
+        const menuText = ['Reload', 'Duplicate record', 'Delete record'];
         expect(await getTextExcludeIconText(menuItems.nth(i))).toBe(menuText[i]);
       } else {
         const menuText = ['Reload', 'Close'];
@@ -191,15 +179,15 @@ export class ExpandedFormPage extends BasePage {
     }
 
     if (role === 'owner' || role === 'editor' || role === 'creator') {
-      expect(await this.btn_save.isEnabled()).toBeTruthy();
+      expect(await this.btn_save.count()).toBe(1);
     } else {
-      expect(await this.btn_save.isEnabled()).toBeFalsy();
+      expect(await this.btn_save.count()).toBe(0);
     }
 
     if (role === 'viewer') {
-      expect(await this.btn_toggleComments.count()).toBe(0);
+      expect(await this.get().locator('.nc-comments-drawer').count()).toBe(0);
     } else {
-      expect(await this.btn_toggleComments.count()).toBe(1);
+      expect(await this.get().locator('.nc-comments-drawer').count()).toBe(1);
     }
 
     // press escape to close the expanded form

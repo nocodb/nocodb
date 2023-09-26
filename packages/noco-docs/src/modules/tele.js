@@ -1,6 +1,11 @@
-import { init, push } from 'nc-analytics';
+import ExecutionEnvironment from '@docusaurus/ExecutionEnvironment';
 
-init();
+let push;
+if (ExecutionEnvironment.canUseDOM) {
+  const { init, push: _push } = require('nc-analytics');
+  push = _push;
+  init();
+}
 
 export function onRouteDidUpdate({ location, previousLocation }) {
   // Don't execute if we are still on the same page; the lifecycle may be fired
@@ -13,4 +18,3 @@ export function onRouteDidUpdate({ location, previousLocation }) {
     });
   }
 }
-

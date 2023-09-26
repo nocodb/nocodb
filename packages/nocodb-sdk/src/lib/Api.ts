@@ -99,6 +99,11 @@ export interface AuditType {
    */
   user?: string;
   /**
+   * The display name of user performing the action
+   * @example NocoDB
+   */
+  display_name?: string;
+  /**
    * IP address from the user
    * @example ::ffff:127.0.0.1
    */

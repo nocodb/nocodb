@@ -41,13 +41,15 @@ test.describe('Expanded form URL', () => {
     }
 
     // expand row & verify URL
+    // New Expanded Modal don't have functionality to copy URL. Hence gettting URL from root page
+    
     await viewObj.openExpandedRow({ index: 0 });
-    const url = await dashboard.expandedForm.getShareRowUrl();
+    const url = await dashboard.rootPage.url();
     await dashboard.expandedForm.escape();
     await dashboard.rootPage.goto(url);
 
     await dashboard.expandedForm.verify({
-      header: 'Test Table: Row 0',
+      header: 'Row 0 All Test Table',
       url,
     });
   }
@@ -180,6 +182,8 @@ test.describe('Expanded record duplicate & delete options', () => {
     // expand row & delete
     await dashboard.grid.openExpandedRow({ index: 3 });
     await dashboard.expandedForm.clickDeleteRow();
+    await dashboard.expandedForm.escape();
+    await dashboard.rootPage.reload();
     await dashboard.grid.verifyRowCount({ count: 3 });
 
     // expand row, duplicate & verify menu

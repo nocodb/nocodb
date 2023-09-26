@@ -81,9 +81,16 @@ export const useViewsStore = defineStore('viewsStore', () => {
   // Used for Grid View Pagination
   const isPaginationLoading = ref(false)
 
-  const loadViews = async ({ tableId, ignoreLoading }: { tableId?: string; ignoreLoading?: boolean } = {}) => {
+  const loadViews = async ({
+    tableId,
+    ignoreLoading,
+    force,
+  }: { tableId?: string; ignoreLoading?: boolean; force?: boolean } = {}) => {
     tableId = tableId ?? tablesStore.activeTableId
+
     if (tableId) {
+      if (!force && viewsByTable.value.get(tableId)) return
+
       if (!ignoreLoading) isViewsLoading.value = true
 
       const response = (await $api.dbView.list(tableId)).list as ViewType[]

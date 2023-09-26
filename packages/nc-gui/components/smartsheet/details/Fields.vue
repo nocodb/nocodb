@@ -252,30 +252,35 @@ const duplicateField = async (field: TableExplorerColumn) => {
 const onFieldUpdate = (state: TableExplorerColumn) => {
   const col = fields.value.find((col) => compareCols(col, state))
   if (!col) return
-
   const diffs = diff(col, state)
   if (Object.keys(diffs).length === 0 || (Object.keys(diffs).length === 1 && 'altered' in diffs)) {
     ops.value = ops.value.filter((op) => op.op === 'add' || !compareCols(op.column, state))
   } else {
     const field = ops.value.find((op) => compareCols(op.column, state))
     const movField = moveOps.value.find((op) => compareCols(op.column, state))
+    const isNewField = newFields.value.find((op) => compareCols(op, state))
+
+    if (isNewField) {
+      newFields.value = newFields.value.map((op) => {
+        if (compareCols(op, state)) {
+          ops.value = ops.value.filter((op) => op.op === 'add' && !compareCols(op.column, state))
+          ops.value.push({
+            op: 'add',
+            column: state,
+          })
+          return state
+        }
+        return op
+      })
+      return
+    }
+
     if (field && !movField) {
       field.column = state
-    } else if (!field && movField) {
-      ops.value.push({
-        op: 'update',
-        column: state,
-      })
     } else {
       ops.value.push({
         op: 'update',
-        column: {
-          ...state,
-          column_order: {
-            order: movField?.order || getFieldOrder(state),
-            view_id: view.value?.id as string,
-          },
-        },
+        column: state,
       })
     }
   }
@@ -374,6 +379,35 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
       order,
     })
   }
+}
+
+const isColumnValid = (column: TableExplorerColumn) => {
+  const isNewField = newFields.value.find((op) => compareCols(op, column))
+  if (!isNewField) return true
+  if (!column.title) {
+    return false
+  }
+  if (column.uidt === UITypes.Links || column.uidt === UITypes.LinkToAnotherRecord) {
+    if (!column.childColumn || !column.childTable || !column.childId) {
+      return false
+    }
+  }
+  if (column.uidt === UITypes.Lookup) {
+    if (!column.fk_relation_column_id || !column.fk_lookup_column_id) {
+      return false
+    }
+  }
+  if (column.uidt === UITypes.Rollup) {
+    if (!column.fk_relation_column_id || !column.fk_rollup_column_id || !column.rollup_function) {
+      return false
+    }
+  }
+  if (column.uidt === UITypes.Formula) {
+    if (!column.formula_raw) {
+      return false
+    }
+  }
+  return true
 }
 
 const recoverField = (state: TableExplorerColumn) => {
@@ -524,7 +558,7 @@ onMounted(async () => {
 <template>
   <div class="flex flex-col items-center w-full p-4" style="height: calc(100vh - (var(--topbar-height) * 2))">
     <div class="h-full max-w-250 w-full">
-      <div class="flex flex-col h-full">
+      <div class="flex flex-col">
         <div class="flex w-full justify-between py-2">
           <div class="flex flex-1 items-center gap-2">
             <h1 class="font-bold text-base">Fields</h1>
@@ -552,6 +586,7 @@ onMounted(async () => {
             <NcButton
               type="primary"
               size="small"
+              class="!text-red-500"
               :loading="loading"
               :disabled="!loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1"
               @click="saveChanges()"
@@ -560,35 +595,35 @@ onMounted(async () => {
             </NcButton>
           </div>
         </div>
-
-        <div class="flex gap-x-4 overflow-y-auto">
-          <div class="flex flex-col flex-1 nc-scrollbar-md">
-            <div class="flex w-full justify-between pb-2 pr-1">
-              <a-input v-model:value="searchQuery" class="!h-8 !px-1 !rounded-lg !w-3/6" placeholder="Search field">
-                <template #prefix>
-                  <GeneralIcon icon="search" class="mx-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
-                </template>
-                <template #suffix>
-                  <GeneralIcon
-                    v-if="searchQuery.length > 0"
-                    icon="close"
-                    class="mx-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black"
-                    @click="searchQuery = ''"
-                  />
-                </template>
-              </a-input>
-              <NcButton type="secondary" size="small" :disabled="loading" @click="addField()">
-                <div class="flex items-center gap-2">
-                  <GeneralIcon icon="plus" class="h-3.5 mb-1 w-3.5" />
-                  New field
-                </div>
-              </NcButton>
+        <div class="flex justify-between max-w-[651px] pb-2 pr-1">
+          <a-input v-model:value="searchQuery" class="!h-8 !px-1 !rounded-lg !w-3/6" placeholder="Search field">
+            <template #prefix>
+              <GeneralIcon icon="search" class="mx-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
+            </template>
+            <template #suffix>
+              <GeneralIcon
+                v-if="searchQuery.length > 0"
+                icon="close"
+                class="mx-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black"
+                @click="searchQuery = ''"
+              />
+            </template>
+          </a-input>
+          <NcButton type="secondary" size="small" class="mr-1" :disabled="loading" @click="addField()">
+            <div class="flex items-center gap-2">
+              <GeneralIcon icon="plus" class="h-3.5 mb-1 w-3.5" />
+              New field
             </div>
-            <Draggable v-model="fields" item-key="id" @change="onMove($event)">
+          </NcButton>
+        </div>
+        <div class="flex-grow-1"></div>
+        <div class="flex gap-x-4">
+          <div class="flex flex-col flex-1">
+            <Draggable v-model="fields" item-key="id" class="nc-scrollbar-md overflow-y-scroll" @change="onMove($event)">
               <template #item="{ element: field }">
                 <div
                   v-if="field.title && field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"
-                  class="flex px-2 mr-1 border-x-1 bg-white border-t-1 hover:bg-gray-100 first:rounded-t-lg last:border-b-1 last:rounded-b-lg pl-5 group"
+                  class="flex px-2 mr-1 border-x-1 bg-white border-t-1 hover:bg-gray-100 first:rounded-t-lg last:border-b-1 last:rounded-b-lg last:mb-2 pl-5 group"
                   :class="` ${compareCols(field, activeField) ? 'selected' : ''}`"
                   @click="changeField(field, $event)"
                 >
@@ -644,6 +679,14 @@ onMounted(async () => {
                       >
                         Updated field
                       </NcBadge>
+                      <NcBadge
+                        v-if="!isColumnValid(field)"
+                        color="yellow"
+                        :border="false"
+                        class="ml-1 bg-yellow-50 text-yellow-700"
+                      >
+                        Incomplete configuration
+                      </NcBadge>
                     </div>
                     <NcButton
                       v-if="fieldStatus(field) === 'delete' || fieldStatus(field) === 'update'"
@@ -658,38 +701,32 @@ onMounted(async () => {
                         Restore
                       </div>
                     </NcButton>
-                    <a-dropdown v-else :trigger="['click']" overlay-class-name="nc-dropdown-table-explorer" @click.stop>
+                    <NcDropdown v-else :trigger="['click']" overlay-class-name="nc-dropdown-table-explorer" @click.stop>
                       <GeneralIcon icon="threeDotVertical" class="no-action opacity-0 group-hover:(opacity-100) text-gray-500" />
 
                       <template #overlay>
-                        <a-menu>
-                          <a-menu-item key="table-explorer-duplicate" @click="duplicateField(field)">
-                            <div class="nc-project-menu-item">
-                              <Icon class="iconify text-gray-800" icon="lucide:copy" /><span>Duplicate</span>
-                            </div>
-                          </a-menu-item>
-                          <a-menu-item v-if="!field.pv" key="table-explorer-insert-above" @click="addField(field, true)">
-                            <div class="nc-project-menu-item">
-                              <Icon class="iconify text-gray-800" icon="lucide:arrow-up" /><span>Insert above</span>
-                            </div>
-                          </a-menu-item>
-                          <a-menu-item key="table-explorer-insert-below" @click="addField(field)">
-                            <div class="nc-project-menu-item">
-                              <Icon class="iconify text-gray-800" icon="lucide:arrow-down" /><span>Insert below</span>
-                            </div>
-                          </a-menu-item>
+                        <NcMenu>
+                          <NcMenuItem key="table-explorer-duplicate" @click="duplicateField(field)">
+                            <Icon class="iconify text-gray-800" icon="lucide:copy" /><span>Duplicate</span>
+                          </NcMenuItem>
+                          <NcMenuItem v-if="!field.pv" key="table-explorer-insert-above" @click="addField(field, true)">
+                            <Icon class="iconify text-gray-800" icon="lucide:arrow-up" /><span>Insert above</span>
+                          </NcMenuItem>
+                          <NcMenuItem key="table-explorer-insert-below" @click="addField(field)">
+                            <Icon class="iconify text-gray-800" icon="lucide:arrow-down" /><span>Insert below</span>
+                          </NcMenuItem>
 
-                          <a-menu-divider class="my-0" />
+                          <a-menu-divider class="my-1" />
 
-                          <a-menu-item key="table-explorer-delete" @click="onFieldDelete(field)">
-                            <div class="nc-project-menu-item group text-red-500">
+                          <NcMenuItem key="table-explorer-delete" @click="onFieldDelete(field)">
+                            <div class="text-red-500">
                               <GeneralIcon icon="delete" class="group-hover:text-accent" />
                               Delete
                             </div>
-                          </a-menu-item>
-                        </a-menu>
+                          </NcMenuItem>
+                        </NcMenu>
                       </template>
-                    </a-dropdown>
+                    </NcDropdown>
                     <MdiChevronRight
                       class="text-brand-500 opacity-0"
                       :class="{
@@ -756,38 +793,6 @@ onMounted(async () => {
                         Restore
                       </div>
                     </NcButton>
-                    <a-dropdown v-else :trigger="['click']" overlay-class-name="nc-dropdown-table-explorer" @click.stop>
-                      <GeneralIcon icon="threeDotVertical" class="no-action opacity-0 group-hover:(opacity-100) text-gray-500" />
-
-                      <template #overlay>
-                        <a-menu>
-                          <a-menu-item key="table-explorer-duplicate" @click="duplicateField(displayColumn)">
-                            <div class="nc-project-menu-item">
-                              <Icon class="iconify text-gray-800" icon="lucide:copy" /><span>Duplicate</span>
-                            </div>
-                          </a-menu-item>
-                          <a-menu-item v-if="!field.pv" key="table-explorer-insert-above" @click="addField(displayColumn, true)">
-                            <div class="nc-project-menu-item">
-                              <Icon class="iconify text-gray-800" icon="lucide:arrow-up" /><span>Insert above</span>
-                            </div>
-                          </a-menu-item>
-                          <a-menu-item key="table-explorer-insert-below" @click="addField(displayColumn)">
-                            <div class="nc-project-menu-item">
-                              <Icon class="iconify text-gray-800" icon="lucide:arrow-down" /><span>Insert below</span>
-                            </div>
-                          </a-menu-item>
-
-                          <a-menu-divider class="my-0" />
-
-                          <a-menu-item key="table-explorer-delete" @click="onFieldDelete(displayColumn)">
-                            <div class="nc-project-menu-item group text-red-500">
-                              <GeneralIcon icon="delete" class="group-hover:text-accent" />
-                              Delete
-                            </div>
-                          </a-menu-item>
-                        </a-menu>
-                      </template>
-                    </a-dropdown>
                     <MdiChevronRight
                       class="text-brand-500 opacity-0"
                       :class="{
@@ -800,10 +805,10 @@ onMounted(async () => {
             </Draggable>
           </div>
           <Transition v-if="!changingField" name="slide-fade">
-            <div class="flex p-4 h-fit w-1/3 border-gray-200 border-1 rounded-xl">
+            <div class="w-1/3">
               <SmartsheetColumnEditOrAddProvider
                 v-if="activeField"
-                class="w-full"
+                class="w-full border-gray-200 rounded-xl border-1 p-4"
                 :column="activeField"
                 :preload="fieldState(activeField)"
                 :table-explorer-columns="fields"
@@ -812,10 +817,10 @@ onMounted(async () => {
                 @update="onFieldUpdate"
                 @add="onFieldAdd"
               />
-              <div v-else class="flex flex-col gap-6 w-full items-center">
+              <div v-else class="w-full border-1 border-gray-200 p-4 rounded-xl justify-start items-center">
                 <img src="~assets/img/fieldPlaceholder.svg" class="!w-[18rem]" />
-                <div class="text-2xl text-gray-600 font-bold text-center">Select a field</div>
-                <div class="text-center text-sm px-2 text-gray-500">
+                <div class="text-2xl text-gray-600 font-bold text-center pt-6">Select a field</div>
+                <div class="text-center text-sm px-2 text-gray-500 pt-6">
                   Make changes to field properties by selecting a field from the list
                 </div>
               </div>

@@ -228,7 +228,7 @@ if (props.fromTableExplorer) {
       <div class="flex flex-col gap-2">
         <a-form-item v-if="isFieldsTab" v-bind="validateInfos.title" class="flex flex-grow">
           <div
-            class="flex flex-grow px-2 py-1 items-center rounded-lg bg-white hover:bg-gray-100 focus:bg-gray-100 outline-none"
+            class="flex flex-grow px-2 py-1 items-center rounded-lg bg-gray-100 focus:bg-gray-100 outline-none"
             style="outline-style: solid; outline-width: thin"
           >
             <input

@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import type { RuleObject } from 'ant-design-vue/es/form'
 import { validatePassword } from 'nocodb-sdk'
-import { definePageMeta, iconMap, reactive, ref, useApi, useI18n } from '#imports'
+import { definePageMeta, iconMap, reactive, ref, useApi } from '#imports'
 
 definePageMeta({
   requiresAuth: false,
@@ -9,7 +8,6 @@ definePageMeta({
 
 const { api, isLoading, error } = useApi()
 
-const { t } = useI18n()
 const route = useRoute()
 const navigator = useRouter()
 
@@ -20,28 +18,18 @@ const form = reactive({
 
 const formValidator = ref()
 
-const formRules = {
-  password: [
-    { required: true, message: t('msg.error.signUpRules.passwdRequired') },
-    {
-      validator: (_: unknown, v: string) => {
-        return new Promise<boolean>((resolve, reject) => {
-          const { valid, hint } = validatePassword(v)
-          if (valid) return resolve(true)
-          reject(new Error(hint))
-        })
-      },
-      message: t('msg.error.signUpRules.passwdRequired'),
-    },
-  ] as RuleObject[],
-}
-
 async function resetPassword() {
-  if (!formValidator.value.validate()) return
   if (form.newPassword !== form.password) {
     error.value = 'password does not match'
     return
   }
+  const { error: mesg, valid } = validatePassword(form.password)
+
+  if (!valid) {
+    error.value = mesg.includes('8') ? 'password should be atleast 8 characters' : mesg
+    return
+  }
+
   resetError()
 
   try {
@@ -89,7 +77,11 @@ function resetError() {
             </div>
           </Transition>
 
-          <a-form-item :label="$t('placeholder.password.new')" name="password" :rules="formRules.password">
+          <a-form-item
+            :label="$t('placeholder.password.new')"
+            name="password"
+            :rules="[{ required: true, message: 'password is required' }]"
+          >
             <a-input-password
               v-model:value="form.password"
               :placeholder="$t('placeholder.password.new')"
@@ -98,7 +90,11 @@ function resetError() {
             />
           </a-form-item>
 
-          <a-form-item :label="$t('placeholder.password.confirm')" name="newPassword" :rules="formRules.password">
+          <a-form-item
+            :label="$t('placeholder.password.confirm')"
+            name="newPassword"
+            :rules="[{ required: true, message: 'password is required' }]"
+          >
             <a-input-password
               v-model:value="form.newPassword"
               type="password"

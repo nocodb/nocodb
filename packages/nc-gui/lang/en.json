@@ -566,7 +566,8 @@
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
     },
-    "toggleMobileMode": "Toggle Mobile Mode"
+    "toggleMobileMode": "Toggle Mobile Mode",
+    "startCommenting": "Start commenting!"
   },
   "tooltip": {
     "saveChanges": "Save changes",

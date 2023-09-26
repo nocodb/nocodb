@@ -148,7 +148,7 @@ const isTableOpened = computed(() => {
       class="nc-tree-item-inner nc-sidebar-node pl-11 pr-0.75 mb-0.25 rounded-md h-7.1 w-full group cursor-pointer hover:bg-gray-200"
       :class="{
         'hover:bg-gray-200': openedTableId !== table.id,
-        'pl-12': baseIndex !== 0,
+        'pl-12 xs:(pl-14)': baseIndex !== 0,
         'pl-6.5': baseIndex === 0,
         '!bg-primary-selected': isTableOpened,
       }"

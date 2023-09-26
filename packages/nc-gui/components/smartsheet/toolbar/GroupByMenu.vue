@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { type ColumnType, UITypes } from 'nocodb-sdk'
-import GroupIcon from '~icons/nc-icons/group'
+import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
+import { RelationTypes, UITypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   IsLockedInj,
@@ -8,11 +8,14 @@ import {
   computed,
   getSortDirectionOptions,
   inject,
+  onMounted,
   ref,
   useMenuCloseOnEsc,
+  useMetas,
   useNuxtApp,
   useSmartsheetStoreOrThrow,
 } from '#imports'
+import GroupIcon from '~icons/nc-icons/group'
 
 const groupingUidt = [
   UITypes.SingleSelect,
@@ -37,6 +40,8 @@ const { $e } = useNuxtApp()
 
 const _groupBy = ref<{ fk_column_id?: string; sort: string; order: number }[]>([])
 
+const { getMeta } = useMetas()
+
 const groupBy = computed<{ fk_column_id?: string; sort: string; order: number }[]>(() => {
   const tempGroupBy: { fk_column_id?: string; sort: string; order: number }[] = []
   Object.values(gridViewCols.value).forEach((col) => {
@@ -57,12 +62,19 @@ const groupedByColumnIds = computed(() => groupBy.value.map((g) => g.fk_column_i
 const { eventBus } = useSmartsheetStoreOrThrow()
 
 const { isMobileMode } = useGlobal()
+const btLookups = ref([])
 
 const fieldsToGroupBy = computed(() => {
   const fields = meta.value?.columns || []
 
   return fields.filter((field) => {
-    return groupingUidt.includes(field.uidt as UITypes)
+    if (!groupingUidt.includes(field.uidt as UITypes)) return false
+
+    if (field.uidt === UITypes.Lookup) {
+      return btLookups.value.includes(field.id)
+    }
+
+    return true
   })
 })
 
@@ -147,6 +159,51 @@ watch(open, () => {
       addFieldToGroupBy()
     }
   }
+})
+
+const loadBtLookups = async () => {
+  const filteredLookupCols = []
+  try {
+    for (const col of meta.value?.columns || []) {
+      if (col.uidt !== UITypes.Lookup) continue
+
+      let depth = 0
+
+      let nextCol = col
+      let btLookup = true
+
+      // check all the relation of nested lookup columns is bt or not
+      // include the column only if all only if all relations are bt
+      while (btLookup && nextCol && nextCol.uidt === UITypes.Lookup) {
+        const lookupRelation = (await getMeta(nextCol.fk_model_id))?.columns?.find(
+          (c) => c.id === (nextCol.colOptions as LookupType).fk_relation_column_id,
+        )
+        if ((lookupRelation.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO) {
+          btLookup = false
+          continue
+        }
+
+        const relatedTableMeta = await getMeta((lookupRelation.colOptions as LinkToAnotherRecordType).fk_related_model_id)
+
+        nextCol = relatedTableMeta?.columns?.find(
+          (c) => c.id === (nextCol.colOptions as LinkToAnotherRecordType).fk_lookup_column_id,
+        )
+
+        // limit maximum allowed depth to 10, if higher then exclude the column
+        if (depth++ > 10) btLookup = false
+      }
+
+      if (btLookup) filteredLookupCols.push(col.id)
+    }
+
+    btLookups.value = filteredLookupCols
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+onMounted(async () => {
+  await loadBtLookups()
 })
 </script>
 

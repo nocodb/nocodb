@@ -215,14 +215,10 @@ watch(vModel.value, (next) => {
                 overlay-class-name="nc-dropdown-select-color-options"
               >
                 <template #overlay>
-                  <LazyGeneralColorPicker
-                    v-model="element.color"
-                    :pick-button="true"
-                    @update:model-value="colorMenus[index] = false"
-                  />
+                  <LazyGeneralColorPicker v-model="element.color" :pick-button="true" @close-modal="colorMenus[index] = false" />
                 </template>
                 <MdiArrowDownDropCircle
-                  class="mr-2 text-[1.5em] outline-0 hover:!text-[1.75em]"
+                  class="mr-2 text-[1.5em] outline-0 hover:!text-[1.75em] hover:cursor-pointer"
                   :class="{ 'text-[1.75em]': colorMenus[index] }"
                   :style="{ color: element.color }"
                 />

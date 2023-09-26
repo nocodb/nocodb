@@ -61,9 +61,32 @@ const config = {
     ],
   ],
 
+  themes: ['docusaurus-theme-search-typesense'],
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      typesense: {
+        // Replace this with the name of your index/collection.
+        // It should match the "index_name" entry in the scraper's "config.json" file.
+        typesenseCollectionName: 'nocodb-oss-docs-index',
+  
+        typesenseServerConfig: {
+          nodes: [
+            {
+              host: 'rqf5uvajyeczwt3xp-1.a1.typesense.net',
+              port: 443,
+              protocol: 'https',
+            }
+          ],
+          apiKey: 'lNKDTZdJrE76Sg8WEyeN9mXT29l1xq7Q',
+        },
+  
+        // Optional: Typesense search parameters: https://typesense.org/docs/0.24.0/api/search.html#search-parameters
+        typesenseSearchParameters: {},
+  
+        // Optional
+        contextualSearch: true,
+      },
       // Replace with your project's social card
       image: 'img/docusaurus-social-card.jpg',
       navbar: {

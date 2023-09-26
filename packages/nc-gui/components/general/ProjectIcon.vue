@@ -7,7 +7,7 @@ const { hoverable } = defineProps<{
 
 <template>
   <GeneralIcon
-    icon="ncDatabase"
+    icon="project"
     class="text-[#2824FB] nc-project-icon"
     :class="{
       'nc-project-icon-hoverable': hoverable,

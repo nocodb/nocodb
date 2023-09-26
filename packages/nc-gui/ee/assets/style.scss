@@ -48,6 +48,14 @@ main {
   @apply !rounded-lg !py-2 !px-3 mb-1;
 }
 
+.mobile {
+  .nc-scrollbar-md, nc-scrollbar-dark-md, nc-scrollbar-dark-md, nc-scrollbar-sm-dark, nc-scrollbar-x-md {
+    &::-webkit-scrollbar {
+      width: 0px;
+    }
+  }
+}
+
 .nc-scrollbar-md {
   overflow-y: scroll;
   overflow-x: hidden;

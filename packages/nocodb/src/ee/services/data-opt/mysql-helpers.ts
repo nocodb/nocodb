@@ -702,19 +702,22 @@ export async function singleQueryRead(ctx: {
     dbDriver: knex,
   });
 
+  // get the key value pair condition
+  const pkCondition = _wherePk(ctx.model.primaryKeys, ctx.id);
+
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {
       const rawRes = await knex.raw(
         cachedQuery,
-        ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
+        ctx.model.primaryKeys.map((pkCol) => pkCondition[pkCol.column_name]),
       );
 
       let res = rawRes?.[0]?.[0];
 
       // update attachment fields
       // res = baseModel.convertAttachmentType(res, ctx.model);
-      //
+
       // update date time fields
       res = baseModel.convertDateFormat(res, ctx.model);
 
@@ -832,7 +835,7 @@ export async function singleQueryRead(ctx: {
 
   const rawRes = await knex.raw(
     query,
-    ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
+    ctx.model.primaryKeys.map((pkCol) => pkCondition[pkCol.column_name]),
   );
 
   let res = rawRes?.[0]?.[0];

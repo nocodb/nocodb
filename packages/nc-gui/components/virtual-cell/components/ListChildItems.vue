@@ -124,11 +124,8 @@ onKeyStroke('Escape', () => {
   vModel.value = false
 })
 
-const isDataExist = computed(() => {
-  if (childrenList.value?.pageInfo?.totalRows || (isNew.value && state.value?.[colTitle.value]?.length)) {
-    return true
-  }
-  return false
+const isDataExist = computed<boolean>(() => {
+  return childrenList.value?.pageInfo?.totalRows || (isNew.value && state.value?.[colTitle.value]?.length)
 })
 </script>
 
@@ -151,8 +148,6 @@ const isDataExist = computed(() => {
       :related-table-title="relatedTableMeta?.title"
       :display-value="row.row[displayValueProp]"
     />
-    <div v-if="!isForm" class="m-4 bg-gray-50 border-gray-50 border-b-2">></div>
-
     <div v-if="!isForm" class="flex mt-2 mb-2 items-center gap-2">
       <div
         class="flex items-center border-1 p-1 rounded-md w-full border-gray-200"
@@ -175,74 +170,72 @@ const isDataExist = computed(() => {
       </div>
     </div>
 
-    <template v-if="isDataExist">
-      <div class="mt-2 mb-2">
-        <div
-          :class="{
-            'h-[420px]': !isForm,
-            'h-[250px]': isForm,
-          }"
-          class="overflow-scroll nc-scrollbar-md cursor-pointer pr-1"
-        >
-          <template v-if="isChildrenLoading">
-            <div
-              v-for="(x, i) in Array.from({ length: 10 })"
-              :key="i"
-              class="!border-2 flex flex-row gap-2 mb-2 transition-all !rounded-xl relative !border-gray-200 hover:bg-gray-50"
-            >
-              <a-skeleton-image class="h-24 w-24 !rounded-xl" />
-              <div class="flex flex-col m-[.5rem] gap-2 flex-grow justify-center">
-                <a-skeleton-input class="!w-48 !rounded-xl" active size="small" />
-                <div class="flex flex-row gap-6 w-10/12">
-                  <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
-                  </div>
+    <div v-if="isDataExist || isChildrenLoading" class="mt-2 mb-2">
+      <div
+        :class="{
+          'h-[420px]': !isForm,
+          'h-[250px]': isForm,
+        }"
+        class="overflow-scroll nc-scrollbar-md cursor-pointer pr-1"
+      >
+        <template v-if="isChildrenLoading">
+          <div
+            v-for="(x, i) in Array.from({ length: 10 })"
+            :key="i"
+            class="!border-2 flex flex-row gap-2 mb-2 transition-all !rounded-xl relative !border-gray-200 hover:bg-gray-50"
+          >
+            <a-skeleton-image class="h-24 w-24 !rounded-xl" />
+            <div class="flex flex-col m-[.5rem] gap-2 flex-grow justify-center">
+              <a-skeleton-input class="!w-48 !rounded-xl" active size="small" />
+              <div class="flex flex-row gap-6 w-10/12">
+                <div class="flex flex-col gap-0.5">
+                  <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                  <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                  <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                  <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                  <a-skeleton-input class="!h-4 !w-24" active size="small" />
                 </div>
               </div>
             </div>
-          </template>
-          <template v-else>
-            <LazyVirtualCellComponentsListItem
-              v-for="(refRow, id) in childrenList?.list ?? state?.[colTitle] ?? []"
-              :key="id"
-              :row="refRow"
-              :fields="fields"
-              data-testid="nc-child-list-item"
-              :attachment="attachmentCol"
-              :related-table-display-value-prop="relatedTableDisplayValueProp"
-              :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
-              :is-loading="isChildrenListLoading[Number.parseInt(id)]"
-              @expand="onClick(refRow)"
-              @click="
-                () => {
-                  if (isPublic && !isForm) return
-                  isNew
-                    ? unlinkRow(refRow, Number.parseInt(id))
-                    : isChildrenListLinked[Number.parseInt(id)]
-                    ? unlinkRow(refRow, Number.parseInt(id))
-                    : linkRow(refRow, Number.parseInt(id))
-                }
-              "
-            />
-          </template>
-        </div>
+          </div>
+        </template>
+        <template v-else>
+          <LazyVirtualCellComponentsListItem
+            v-for="(refRow, id) in childrenList?.list ?? state?.[colTitle] ?? []"
+            :key="id"
+            :row="refRow"
+            :fields="fields"
+            data-testid="nc-child-list-item"
+            :attachment="attachmentCol"
+            :related-table-display-value-prop="relatedTableDisplayValueProp"
+            :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
+            :is-loading="isChildrenListLoading[Number.parseInt(id)]"
+            @expand="onClick(refRow)"
+            @click="
+              () => {
+                if (isPublic && !isForm) return
+                isNew
+                  ? unlinkRow(refRow, Number.parseInt(id))
+                  : isChildrenListLinked[Number.parseInt(id)]
+                  ? unlinkRow(refRow, Number.parseInt(id))
+                  : linkRow(refRow, Number.parseInt(id))
+              }
+            "
+          />
+        </template>
       </div>
-    </template>
+    </div>
     <div
-      v-if="!isDataExist && !isChildrenLoading"
+      v-else
       :class="{
         'h-[420px]': !isForm,
         'h-[250px]': isForm,

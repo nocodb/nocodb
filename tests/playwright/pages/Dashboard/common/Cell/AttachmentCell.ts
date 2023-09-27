@@ -27,7 +27,10 @@ export class AttachmentCellPageObject extends BasePage {
     const attachFileAction = this.get({ index, columnHeader })
       .locator('[data-testid="attachment-cell-file-picker-button"]')
       .click();
-    return await this.attachFile({ filePickUIAction: attachFileAction, filePath });
+    await this.attachFile({ filePickUIAction: attachFileAction, filePath });
+
+    // wait for file to be uploaded
+    await this.rootPage.waitForTimeout(750);
   }
 
   async expandModalAddFile({ filePath }: { filePath: string[] }) {
@@ -52,7 +55,7 @@ export class AttachmentCellPageObject extends BasePage {
   async verifyFileCount({ index, columnHeader, count }: { index: number; columnHeader: string; count: number }) {
     // retry below logic for 5 times, with 1 second delay
     const attachments = this.get({ index, columnHeader }).locator('.nc-attachment');
-    await expect(await attachments).toHaveCount(count);
+    await expect(attachments).toHaveCount(count);
   }
 
   async expandModalClose() {

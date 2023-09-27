@@ -260,7 +260,7 @@ export class OrgUsersService {
 
     return {
       reset_password_token: token,
-      reset_password_url: param.siteUrl + `/#/reset/${token}`,
+      reset_password_url: param.siteUrl + `/dashboard/#/reset/${token}`,
     };
   }
 

@@ -53,8 +53,6 @@ const activeView = inject(ActiveViewInj, ref())
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const { rightSidebarState } = storeToRefs(useSidebarStore())
-
 const isDefaultBase = computed(() => {
   const base = project.value?.bases?.find((b) => b.id === vModel.value.base_id)
   if (!base) return false
@@ -192,12 +190,6 @@ function onStopEdit() {
     isStopped.value = false
   }, 250)
 }
-
-watch(rightSidebarState, () => {
-  if (rightSidebarState.value === 'peekCloseEnd') {
-    isDropdownOpen.value = false
-  }
-})
 
 function onRef(el: HTMLElement) {
   if (activeViewTitleOrId.value === vModel.value.id) {

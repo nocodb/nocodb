@@ -115,15 +115,16 @@ export class GridPage extends BasePage {
     if (index !== 0) await this.get().locator('.nc-grid-row').nth(0).waitFor({ state: 'attached' });
 
     await (await this.get().locator('.nc-grid-add-new-cell').elementHandle())?.waitForElementState('stable');
-    await this.rootPage.waitForTimeout(100);
 
-    const rowCount = await this.get().locator('.nc-grid-row').count();
+    await this.rootPage.waitForTimeout(200);
+    await this.rootPage.waitForLoadState('networkidle');
+    await this.rootPage.waitForTimeout(200);
+    await this.rootPage.waitForLoadState('domcontentloaded');
 
     await this.get().locator('.nc-grid-add-new-cell').click();
 
-    // add delay for UI to render (can wait for count to stabilize by reading it multiple times)
-    await this.rootPage.waitForTimeout(100);
-    await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
+    const rowCount = index + 1;
+    await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount);
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 

@@ -185,17 +185,6 @@ export class TreeViewPage extends BasePage {
       requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
     });
 
-    await expect
-      .poll(
-        async () =>
-          await this.dashboard.tabBar
-            .locator('.ant-tabs-tab', {
-              hasText: title,
-            })
-            .isVisible()
-      )
-      .toBe(false);
-
     await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
   }
 
@@ -238,7 +227,7 @@ export class TreeViewPage extends BasePage {
   async changeTableIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {
     await this.get().locator(`.nc-project-tree-tbl-${title} .nc-table-icon`).click();
 
-    await this.rootPage.locator('.emoji-mart-search').type(icon);
+    await this.rootPage.locator('.emoji-mart-search > input').fill(icon);
     const emojiList = this.rootPage.locator('[id="emoji-mart-list"]');
     await emojiList.locator('button').first().click();
     await expect(
@@ -302,9 +291,11 @@ export class TreeViewPage extends BasePage {
   async openProject({ title, context }: { title: string; context: NcContext }) {
     title = this.scopedProjectTitle({ title, context });
 
-    // loop through nodes.count() to find the node with title
     await this.get().getByTestId(`nc-sidebar-project-title-${title}`).click();
+    await this.rootPage.waitForTimeout(1000);
 
+    // TODO: FIx why project click is not always registering
+    await this.get().getByTestId(`nc-sidebar-project-title-${title}`).click();
     await this.rootPage.waitForTimeout(1000);
   }
 

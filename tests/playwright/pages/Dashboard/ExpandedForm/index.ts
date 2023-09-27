@@ -141,6 +141,10 @@ export class ExpandedFormPage extends BasePage {
   async escape() {
     await this.rootPage.keyboard.press('Escape');
     await this.get().locator('.nc-drawer-expanded-form').waitFor({ state: 'hidden' });
+
+    await this.rootPage.waitForLoadState('networkidle');
+    await this.rootPage.waitForLoadState('domcontentloaded');
+    await this.rootPage.waitForTimeout(500);
   }
 
   async close() {
@@ -165,29 +169,27 @@ export class ExpandedFormPage extends BasePage {
 
     // expect(await this.btn_moreActions.count()).toBe(1);
     await this.btn_moreActions.click();
-    const menu = this.rootPage.locator('.ant-dropdown:visible');
-    await menu.waitFor({ state: 'visible' });
-    const menuItems = menu.locator('.ant-dropdown-menu-item');
-    for (let i = 0; i < (await menuItems.count()); i++) {
-      if (role === 'owner' || role === 'editor' || role === 'creator') {
-        const menuText = ['Reload', 'Duplicate record', 'Delete record'];
-        expect(await getTextExcludeIconText(menuItems.nth(i))).toBe(menuText[i]);
-      } else {
-        const menuText = ['Reload', 'Close'];
-        expect(await menuItems.nth(i).innerText()).toBe(menuText[i]);
-      }
+
+    if (role === 'owner' || role === 'editor' || role === 'creator') {
+      await expect(this.rootPage.getByTestId('nc-expanded-form-reload')).toBeVisible();
+      await expect(this.rootPage.getByTestId('nc-expanded-form-duplicate')).toBeVisible();
+      await expect(this.rootPage.getByTestId('nc-expanded-form-delete')).toBeVisible();
+    } else {
+      await expect(this.rootPage.getByTestId('nc-expanded-form-reload')).toBeVisible();
+      await expect(this.rootPage.getByTestId('nc-expanded-form-duplicate')).toHaveCount(0);
+      await expect(this.rootPage.getByTestId('nc-expanded-form-delete')).toHaveCount(0);
     }
 
     if (role === 'owner' || role === 'editor' || role === 'creator') {
-      expect(await this.btn_save.count()).toBe(1);
+      await expect(this.rootPage.getByTestId('nc-expanded-form-save')).toHaveCount(1);
     } else {
-      expect(await this.btn_save.count()).toBe(0);
+      await expect(this.rootPage.getByTestId('nc-expanded-form-save')).toHaveCount(0);
     }
 
     if (role === 'viewer') {
-      expect(await this.get().locator('.nc-comments-drawer').count()).toBe(0);
+      await expect(this.get().locator('.nc-comments-drawer')).toHaveCount(0);
     } else {
-      expect(await this.get().locator('.nc-comments-drawer').count()).toBe(1);
+      await expect(this.get().locator('.nc-comments-drawer')).toHaveCount(1);
     }
 
     // press escape to close the expanded form

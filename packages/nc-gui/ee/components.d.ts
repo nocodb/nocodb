@@ -199,6 +199,7 @@ declare module '@vue/runtime-core' {
     MdiMessageOutline: typeof import('~icons/mdi/message-outline')['default']
     MdiMicrosoftTeams: typeof import('~icons/mdi/microsoft-teams')['default']
     MdiMoonFull: typeof import('~icons/mdi/moon-full')['default']
+    MdiMoreVert: typeof import('~icons/mdi/more-vert')['default']
     MdiNuxt: typeof import('~icons/mdi/nuxt')['default']
     MdiPlay: typeof import('~icons/mdi/play')['default']
     MdiPlus: typeof import('~icons/mdi/plus')['default']

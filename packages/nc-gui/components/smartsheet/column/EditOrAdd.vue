@@ -85,7 +85,9 @@ const showDeprecated = ref(false)
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
     ...uiTypes
-      .filter((t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual) && (!t.deprecated || showDeprecated.value))
+      .filter(
+        (type) => geoDataToggleCondition(type) && (!isEdit.value || !type.virtual) && (!type.deprecated || showDeprecated.value),
+      )
       .map((type) => ({
         ...type,
         name: t(`datatype.${type.name}`),

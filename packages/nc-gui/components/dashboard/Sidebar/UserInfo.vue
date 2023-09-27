@@ -86,13 +86,15 @@ onMounted(() => {
             <GeneralIcon v-else icon="signout" class="menu-icon" />
             <span class="menu-btn"> {{ $t('labels.logOut') }} </span>
           </NcMenuItem>
-          <NcDivider />
-          <a href="https://docs.nocodb.com" target="_blank" class="!underline-transparent">
-            <NcMenuItem>
-              <GeneralIcon icon="help" class="menu-icon mt-0.5" />
-              <span class="menu-btn"> {{ $t('title.helpCenter') }} </span>
-            </NcMenuItem>
-          </a>
+          <template v-if="!isMobileMode">
+            <NcDivider />
+            <a href="https://docs.nocodb.com" target="_blank" class="!underline-transparent">
+              <NcMenuItem>
+                <GeneralIcon icon="help" class="menu-icon mt-0.5" />
+                <span class="menu-btn"> {{ $t('title.helpCenter') }} </span>
+              </NcMenuItem>
+            </a>
+          </template>
           <NcDivider />
           <a href="https://discord.gg/5RgZmkW" target="_blank" class="!underline-transparent">
             <NcMenuItem class="social-icon-wrapper">
@@ -132,16 +134,18 @@ onMounted(() => {
             </a-popover>
           </template>
 
-          <NcDivider />
-          <NcMenuItem @click="onCopy">
-            <GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black menu-icon" />
-            <GeneralIcon v-else icon="copy" class="menu-icon" />
-            <template v-if="isAuthTokenCopied"> {{ $t('activity.account.authTokenCopied') }}</template>
-            <template v-else>{{ $t('activity.account.authToken') }} </template>
-          </NcMenuItem>
-          <nuxt-link v-e="['c:navbar:user:email']" class="!no-underline" to="/account/profile">
-            <NcMenuItem> <GeneralIcon icon="settings" class="menu-icon" />{{ $t('title.accountSettings') }} </NcMenuItem>
-          </nuxt-link>
+          <template v-if="!isMobileMode">
+            <NcDivider />
+            <NcMenuItem @click="onCopy">
+              <GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black menu-icon" />
+              <GeneralIcon v-else icon="copy" class="menu-icon" />
+              <template v-if="isAuthTokenCopied"> {{ $t('activity.account.authTokenCopied') }} </template>
+              <template v-else> {{ $t('activity.account.authToken') }} </template>
+            </NcMenuItem>
+            <nuxt-link v-e="['c:navbar:user:email']" class="!no-underline" to="/account/profile">
+              <NcMenuItem> <GeneralIcon icon="settings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
+            </nuxt-link>
+          </template>
         </NcMenu>
       </template>
     </NcDropdown>

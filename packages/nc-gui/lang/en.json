@@ -227,7 +227,7 @@
     "isEqual": "is equal",
     "isNotEqual": "is not equal",
     "isLike": "is like",
-    "isNot like": "is not like",
+    "isNotlike": "is not like",
     "isEmpty": "is empty",
     "isNotEmpty": "is not empty",
     "isNull": "is null",

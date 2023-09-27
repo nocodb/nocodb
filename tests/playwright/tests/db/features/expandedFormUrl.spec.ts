@@ -42,7 +42,7 @@ test.describe('Expanded form URL', () => {
 
     // expand row & verify URL
     // New Expanded Modal don't have functionality to copy URL. Hence gettting URL from root page
-    
+
     await viewObj.openExpandedRow({ index: 0 });
     const url = await dashboard.rootPage.url();
     await dashboard.expandedForm.escape();

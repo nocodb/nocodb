@@ -231,7 +231,9 @@
     "isEmpty": "is empty",
     "isNotEmpty": "is not empty",
     "isNull": "is null",
-    "isNotNull": "is not null"
+    "isNotNull": "is not null",
+    "isBlank": "is blank",
+    "isNotBlank": "is not blank"
   },
   "title": {
     "erdView": "ERD View",
@@ -282,6 +284,8 @@
     "tokens": "Tokens",
     "userManagement": "User Management",
     "licence": "Licence",
+    "allTables": "All tables",
+    "dataSources": "Data sources",
     "defaultView": "Default View"
   },
   "labels": {
@@ -408,7 +412,11 @@
     "addRowGrid": "Manually add data in grid view",
     "addRowForm": "Enter record data through a form",
     "noAccess": "No access",
-    "restApis": "Rest APIs"
+    "restApis": "Rest APIs",
+    "logOut": "Log Out",
+    "joinOurDiscord": "Join our Discord",
+    "twitter": "Twitter",
+    "enterValue": "Enter a value"
   },
   "activity": {
     "moveProject": "Move Project",

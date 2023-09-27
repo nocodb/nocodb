@@ -213,7 +213,7 @@ provide(IsFormInj, ref(true))
       :is="filterType ? componentMap[filterType] : Text"
       v-model="filterInput"
       :disabled="filter.readOnly"
-      placeholder="Enter a value"
+      :placeholder="$t('labels.enterValue')"
       :column="column"
       class="flex"
       v-bind="componentProps"

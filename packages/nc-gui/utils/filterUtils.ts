@@ -1,4 +1,7 @@
 import { UITypes, isNumericCol, numericUITypes } from 'nocodb-sdk'
+import { getI18n } from '../plugins/a.i18n'
+
+const getTranslation = (value: string) => getI18n().global.t(value)
 
 const getEqText = (fieldUiType: UITypes) => {
   if (isNumericCol(fieldUiType) || fieldUiType === UITypes.Time) {
@@ -10,7 +13,7 @@ const getEqText = (fieldUiType: UITypes) => {
   ) {
     return 'is'
   }
-  return 'is equal'
+  return getTranslation('filterOperation.isEqual')
 }
 
 const getNeqText = (fieldUiType: UITypes) => {
@@ -23,21 +26,21 @@ const getNeqText = (fieldUiType: UITypes) => {
   ) {
     return 'is not'
   }
-  return 'is not equal'
+  return getTranslation('filterOperation.isNotEqual')
 }
 
 const getLikeText = (fieldUiType: UITypes) => {
   if (fieldUiType === UITypes.Attachment) {
     return 'filenames contain'
   }
-  return 'is like'
+  return getTranslation('filterOperation.isLike')
 }
 
 const getNotLikeText = (fieldUiType: UITypes) => {
   if (fieldUiType === UITypes.Attachment) {
     return "filenames doesn't contain"
   }
-  return 'is not like'
+  return getTranslation('filterOperation.isNot like')
 }
 
 const getGtText = (fieldUiType: UITypes) => {
@@ -132,7 +135,7 @@ export const comparisonOpList = (
     ],
   },
   {
-    text: 'is empty',
+    text: getTranslation('filterOperation.isEmpty'),
     value: 'empty',
     ignoreVal: true,
     excludedTypes: [
@@ -258,13 +261,13 @@ export const comparisonOpList = (
     includedTypes: [UITypes.Date, UITypes.DateTime],
   },
   {
-    text: 'is blank',
+    text: getTranslation('filterOperation.isBlank'),
     value: 'blank',
     ignoreVal: true,
     excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
   },
   {
-    text: 'is not blank',
+    text: getTranslation('filterOperation.isNotBlank'),
     value: 'notblank',
     ignoreVal: true,
     excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],

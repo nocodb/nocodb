@@ -80,6 +80,7 @@ const onClick = useDebounceFn(() => {
 
 /** Enable editing view name on dbl click */
 function onDblClick() {
+  if (isMobileMode.value) return
   if (!isUIAllowed('viewCreateOrEdit')) return
 
   if (!isEditing.value) {

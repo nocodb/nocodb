@@ -10,11 +10,11 @@ import {
   computed,
   iconMap,
   inject,
+  onMounted,
   ref,
   useNuxtApp,
   useViewFilters,
   watch,
-  onMounted
 } from '#imports'
 import type { Filter } from '#imports'
 
@@ -89,7 +89,7 @@ const addFiltersRowDomRef = ref<HTMLElement>()
 const columns = computed(() => meta.value?.columns)
 
 const getColumn = (filter: Filter) => {
-    // extract looked up column if available
+  // extract looked up column if available
   return btLookupTypesMap.value[filter.fk_column_id] || columns.value?.find((col: ColumnType) => col.id === filter.fk_column_id)
 }
 
@@ -295,7 +295,7 @@ onMounted(() => {
 })
 
 onMounted(async () => {
-    await loadBtLookupTypes()
+  await loadBtLookupTypes()
 })
 </script>
 

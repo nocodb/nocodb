@@ -203,4 +203,8 @@ export default defineNuxtConfig({
   imports: {
     dirs: ['./context', './utils/**', './lib/**', './composables/**', './store/**'],
   },
+  modules: ['@nuxtjs/sentry'],
+  sentry: {
+    dsn: 'https://0da0f8ab4bc2afc11ee510490f452b22@o4505953073889280.ingest.sentry.io/4505953708867584',
+  },
 })

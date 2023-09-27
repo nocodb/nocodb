@@ -237,23 +237,21 @@ onMounted(() => {
       />
     </Suspense>
 
-    <Suspense>
-      <LazySmartsheetExpandedForm
-        v-if="expandedFormOnRowIdDlg"
-        :key="routeQuery.rowId"
-        v-model="expandedFormOnRowIdDlg"
-        :row="{ row: {}, oldRow: {}, rowMeta: {} }"
-        :meta="meta"
-        :state="expandedFormRowState"
-        :row-id="routeQuery.rowId"
-        :view="view"
-        show-next-prev-icons
-        :first-row="getExpandedRowIndex() === 0"
-        :last-row="getExpandedRowIndex() === data.length - 1"
-        @next="navigateToSiblingRow(NavigateDir.NEXT)"
-        @prev="navigateToSiblingRow(NavigateDir.PREV)"
-      />
-    </Suspense>
+    <SmartsheetExpandedForm
+      v-if="expandedFormOnRowIdDlg"
+      :key="routeQuery.rowId"
+      v-model="expandedFormOnRowIdDlg"
+      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+      :meta="meta"
+      :state="expandedFormRowState"
+      :row-id="routeQuery.rowId"
+      :view="view"
+      show-next-prev-icons
+      :first-row="getExpandedRowIndex() === 0"
+      :last-row="getExpandedRowIndex() === data.length - 1"
+      @next="navigateToSiblingRow(NavigateDir.NEXT)"
+      @prev="navigateToSiblingRow(NavigateDir.PREV)"
+    />
 
     <Suspense>
       <LazyDlgBulkUpdate

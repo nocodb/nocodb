@@ -443,7 +443,7 @@ export default {
                   <NcMenuItem
                     v-if="isUIAllowed('dataEdit') && !isNew"
                     v-e="['c:row-expand:delete']"
-                    class="!text-red-500"
+                    class="!text-red-500 !hover:bg-red-50"
                     @click="!isNew && onDeleteRowClick()"
                   >
                     <component :is="iconMap.delete" data-testid="nc-expanded-form-delete" class="cursor-pointer nc-delete-row" />
@@ -600,7 +600,7 @@ export default {
                   <NcMenuItem
                     v-if="isUIAllowed('dataEdit') && !isNew"
                     v-e="['c:row-expand:delete']"
-                    class="!text-red-500"
+                    class="!text-red-500 !hover:bg-red-50"
                     @click="!isNew && onDeleteRowClick()"
                   >
                     <div data-testid="nc-expanded-form-delete">
@@ -656,7 +656,7 @@ export default {
             class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
           >
-            {{ displayValue }}
+            {{ meta.title }}
           </div>
         </div>
       </span>

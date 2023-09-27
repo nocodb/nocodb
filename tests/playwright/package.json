@@ -48,7 +48,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@playwright/test": "1.36.1",
+    "@playwright/test": "1.38.0",
     "@typescript-eslint/eslint-plugin": "^6.1.0",
     "@typescript-eslint/parser": "^6.1.0",
     "axios": "^0.24.0",

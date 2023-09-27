@@ -134,7 +134,7 @@ export class ViewSidebarPage extends BasePage {
         force: true,
       });
 
-    await this.rootPage.locator('button:has-text("Delete View"):visible').click();
+    await this.rootPage.locator('button:has-text("Delete"):visible').click();
   }
 
   async renameView({ title, newTitle }: { title: string; newTitle: string }) {

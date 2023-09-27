@@ -34,6 +34,7 @@
     "ci:test:shard:2": "pnpm exec playwright test --workers=2 --shard=2/4",
     "ci:test:shard:3": "pnpm exec playwright test --workers=2 --shard=3/4",
     "ci:test:shard:4": "pnpm exec playwright test --workers=2 --shard=4/4",
+    "ci:test:flaky:repeat": "pnpm exec playwright test --workers=4 --grep @flaky --repeat-each=3",
     "ci:test:mysql": "E2E_DB_TYPE=mysql pnpm exec playwright test --workers=2",
     "ci:test:pg": "E2E_DB_TYPE=pg pnpm exec playwright test --workers=2",
     "preinstall": "npx only-allow pnpm"

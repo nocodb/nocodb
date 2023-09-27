@@ -9,6 +9,8 @@ const cmdK = ref(false)
 
 const cmdL = ref(false)
 
+const cmdJ = ref(false)
+
 const disableBaseLayout = computed(() => route.value.path.startsWith('/nc/view') || route.value.path.startsWith('/nc/form'))
 
 useTheme()
@@ -30,6 +32,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         e.preventDefault()
         break
       case 'l':
+        e.preventDefault()
+        break
+      case 'j':
         e.preventDefault()
         break
     }
@@ -84,4 +89,5 @@ function onScope(scope: string) {
     @scope="onScope"
   />
   <CmdL v-model:open="cmdL" />
+  <CmdJ v-model:open="cmdJ" />
 </template>

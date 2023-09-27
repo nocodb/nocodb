@@ -27,7 +27,7 @@ export const useCommandPalette = createSharedComposable(() => {
 
   const cmdLoading = ref(false)
 
-  const cmdPlaceholder = ref('Quick Actions')
+  const cmdPlaceholder = ref('Search workspace, projects, tables, views & more...')
 
   const commands = ref({
     homeCommands,

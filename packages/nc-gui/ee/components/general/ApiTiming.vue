@@ -34,17 +34,17 @@ const getLevel = (type: keyof typeof timingThresholds) => {
 const items = computed(() =>
   [
     {
-      tootltip: 'Browser to server time : ',
+      tootltip: 'Total time taken by API: ',
       icon: NcServer,
       key: 'network',
     },
     {
-      tootltip: 'Compute time within server : ',
+      tootltip: 'Time taken to pre-and-post process query: ',
       icon: NcCpu,
       key: 'cpu',
     },
     {
-      tootltip: 'Query time within database : ',
+      tootltip: 'Time taken by query in DB: ',
       icon: NcDatabase,
       key: 'db',
     },

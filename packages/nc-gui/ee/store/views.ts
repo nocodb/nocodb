@@ -1,13 +1,24 @@
-import type { ViewType } from 'nocodb-sdk'
+import type { ViewType, ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { ViewPageType } from '~/lib'
 
 export const useViewsStore = defineStore('viewsStore', () => {
   const { $api } = useNuxtApp()
 
+  interface RecentView {
+    viewName: string
+    viewId: string | undefined
+    viewType: ViewTypes
+    tableID: string
+    projectName: string
+    projectId: string
+  }
+
   const router = useRouter()
-  const recentViews = ref<any>([])
+  const recentViews = ref<RecentView[]>([])
   const route = router.currentRoute
+
+  const projects = useProjects()
 
   const tablesStore = useTablesStore()
 
@@ -120,9 +131,14 @@ export const useViewsStore = defineStore('viewsStore', () => {
     })
   }
 
-  const changeView = async (..._args: any) => {}
+  const changeView = async ({ viewId, tableId, projectId }: { viewId: string | null; tableId: string; projectId: string }) => {
+    const routeName = 'index-typeOrId-projectId-index-index-viewId-viewTitle'
+    await router.push({ name: routeName, params: { viewTitle: viewId || '', viewId: tableId, projectId } })
+  }
 
-  const removeFromRecentViews = (..._args: any) => {}
+  const removeFromRecentViews = ({ viewId, tableId }: { viewId?: string | undefined; tableId: string }) => {
+    recentViews.value = recentViews.value.filter((f) => f.viewId !== viewId || f.tableID !== tableId)
+  }
 
   watch(
     () => tablesStore.activeTableId,
@@ -162,12 +178,6 @@ export const useViewsStore = defineStore('viewsStore', () => {
   }) => {
     const routeName = 'index-typeOrId-projectId-index-index-viewId-viewTitle'
 
-    let projectIdOrBaseId = projectId
-
-    if (['base'].includes(route.value.params.typeOrId as string)) {
-      projectIdOrBaseId = route.value.params.projectId as string
-    }
-
     if (
       router.currentRoute.value.query &&
       router.currentRoute.value.query.page &&
@@ -175,11 +185,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
     ) {
       await router.push({
         name: routeName,
-        params: { viewTitle: view.id || '', viewId: tableId, projectId: projectIdOrBaseId },
+        params: { viewTitle: view.id || '', viewId: tableId, projectId },
         query: router.currentRoute.value.query,
       })
     } else {
-      await router.push({ name: routeName, params: { viewTitle: view.id || '', viewId: tableId, projectId: projectIdOrBaseId } })
+      await router.push({ name: routeName, params: { viewTitle: view.id || '', viewId: tableId, projectId } })
     }
 
     if (hardReload) {
@@ -187,20 +197,34 @@ export const useViewsStore = defineStore('viewsStore', () => {
         .replace({
           name: routeName,
           query: { reload: 'true' },
-          params: { viewId: tableId, projectId: projectIdOrBaseId, viewTitle: view.id || '' },
+          params: { viewId: tableId, projectId, viewTitle: view.id || '' },
         })
         .then(() => {
-          router.replace({
-            name: routeName,
-            query: {},
-            params: { viewId: tableId, viewTitle: view.id || '', projectId: projectIdOrBaseId },
-          })
+          router.replace({ name: routeName, query: {}, params: { viewId: tableId, viewTitle: view.id || '', projectId } })
         })
     }
   }
 
   watch(activeViewTitleOrId, () => {
     isPaginationLoading.value = true
+  })
+
+  watch(activeView, (view) => {
+    if (!view) return
+    if (!view.project_id) return
+
+    const projectName = projects.projectsList.find((p) => p.id === view.project_id)?.title
+    recentViews.value = [
+      {
+        viewId: view.id,
+        projectId: view.project_id as string,
+        tableID: view.fk_model_id,
+        viewName: view.title as string,
+        viewType: view.type,
+        projectName: projectName as string,
+      },
+      ...recentViews.value.filter((f) => f.viewId !== view.id || f.tableID !== view.fk_model_id),
+    ].splice(0, 10)
   })
 
   return {

@@ -45,7 +45,7 @@ const isDefaultBase = computed(() => {
   return _isDefaultBase(base)
 })
 
-const { viewsByTable, activeView } = storeToRefs(useViewsStore())
+const { viewsByTable, activeView, recentViews } = storeToRefs(useViewsStore())
 
 const { navigateToTable } = useTablesStore()
 
@@ -57,7 +57,7 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineModelScope } = useUndoRedo()
 
-const { navigateToView, loadViews } = useViewsStore()
+const { navigateToView, loadViews, removeFromRecentViews } = useViewsStore()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -244,6 +244,12 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
         scope: defineModelScope({ view: activeView.value }),
       })
     }
+    recentViews.value = recentViews.value.map((rv) => {
+      if (rv.viewId === view.id && rv.tableID === view.fk_model_id) {
+        rv.viewName = view.title
+      }
+      return rv
+    })
 
     // View renamed successfully
     // message.success(t('msg.success.viewRenamed'))
@@ -265,6 +271,7 @@ function openDeleteDialog(view: ViewType) {
 
       emits('deleted')
 
+      removeFromRecentViews({ viewId: view.id, tableId: view.fk_model_id })
       refreshCommandPalette()
       if (activeView.value?.id === view.id) {
         navigateToTable({

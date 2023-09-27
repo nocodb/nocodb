@@ -7,6 +7,8 @@ const route = router.currentRoute
 
 const cmdK = ref(false)
 
+const cmdL = ref(false)
+
 const disableBaseLayout = computed(() => route.value.path.startsWith('/nc/view') || route.value.path.startsWith('/nc/form'))
 
 useTheme()
@@ -23,6 +25,13 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         if (!['input', 'textarea'].includes((e.target as any).nodeName.toLowerCase())) {
           e.preventDefault()
         }
+        break
+      case 'k':
+        e.preventDefault()
+        break
+      case 'l':
+        e.preventDefault()
+        break
     }
   }
 })
@@ -74,4 +83,5 @@ function onScope(scope: string) {
     :load-temporary-scope="loadTemporaryScope"
     @scope="onScope"
   />
+  <CmdL v-model:open="cmdL" />
 </template>

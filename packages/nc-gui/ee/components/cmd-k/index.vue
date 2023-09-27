@@ -227,7 +227,7 @@ const fireAction = (action: CmdAction, preview = false) => {
   }
 }
 
-whenever(keys[props.hotkey || 'Meta+K'], () => {
+whenever(keys[(props.hotkey || 'Meta+K', 'ctrl_k')], () => {
   show()
 })
 
@@ -235,6 +235,14 @@ whenever(keys[props.hotkey || 'Meta+K'], () => {
 whenever(ctrl_k, () => show())
 
 whenever(keys.Escape, () => {
+  if (vOpen.value) hide()
+})
+
+whenever(keys.ctrl_l, () => {
+  if (vOpen.value) hide()
+})
+
+whenever(keys['Meta+L'], () => {
   if (vOpen.value) hide()
 })
 
@@ -351,43 +359,22 @@ defineExpose({
         </div>
       </div>
       <div class="cmdk-footer">
-        <div class="cmdk-footer-left">
-          <div class="cmdk-key-helper">
-            <svg class="cmdk-key" width="20" height="20" viewBox="0 0 16 16" aria-label="Enter key" role="img">
-              <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2">
-                <path d="M12 3.53088v3c0 1-1 2-2 2H4M7 11.53088l-3-3 3-3"></path>
-              </g>
-            </svg>
-            <span class="cmdk-key-helper-text">to select</span>
+        <div class="flex justify-center w-full py-2">
+          <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
+            <MdiFileOutline class="h-4 w-4" />
+            Document
+            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ isMac() ? '⌘' : 'Ctrl' }} J </span>
           </div>
-
-          <div class="cmdk-key-helper">
-            <svg class="cmdk-key" width="20" height="20" viewBox="0 0 16 16" aria-label="Arrow down" role="img">
-              <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2">
-                <path d="M7.5 3.5v8M10.5 8.5l-3 3-3-3"></path>
-              </g>
-            </svg>
-            <svg class="cmdk-key" width="20" height="20" viewBox="0 0 16 16" aria-label="Arrow up" role="img">
-              <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2">
-                <path d="M7.5 11.5v-8M10.5 6.5l-3-3-3 3"></path>
-              </g>
-            </svg>
-            <span class="cmdk-key-helper-text">to navigate</span>
+          <div class="flex flex-grow-1 text-brand-500 w-full text-sm items-center gap-2 justify-center">
+            <MdiMapMarkerOutline class="h-4 w-4" />
+            Quick Navigation
+            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ isMac() ? '⌘' : 'Ctrl' }} K </span>
           </div>
-
-          <div class="cmdk-key-helper">
-            <svg class="cmdk-key" width="20" height="20" viewBox="0 0 20 20" aria-label="Backspace" role="img">
-              <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2">
-                <path
-                  d="M6.707 4.879A3 3 0 018.828 4H15a3 3 0 013 3v6a3 3 0 01-3 3H8.828a3 3 0 01-2.12-.879l-4.415-4.414a1 1 0 010-1.414l4.414-4.414zm4 2.414a1 1 0 00-1.414 1.414L10.586 10l-1.293 1.293a1 1 0 101.414 1.414L12 11.414l1.293 1.293a1 1 0 001.414-1.414L13.414 10l1.293-1.293a1 1 0 00-1.414-1.414L12 8.586l-1.293-1.293z"
-                />
-              </g>
-            </svg>
-            <span class="cmdk-key-helper-text">move to parent</span>
+          <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
+            <MdiClockOutline class="h-4 w-4" />
+            Recent
+            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ isMac() ? '⌘' : 'Ctrl' }} L </span>
           </div>
-        </div>
-        <div class="cmdk-footer-right">
-          Powered by <img width="25" class="nc-brand-icon" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
         </div>
       </div>
     </div>

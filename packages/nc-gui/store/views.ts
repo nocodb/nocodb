@@ -156,6 +156,12 @@ export const useViewsStore = defineStore('viewsStore', () => {
   }) => {
     const routeName = 'index-typeOrId-projectId-index-index-viewId-viewTitle'
 
+    let projectIdOrBaseId = projectId
+
+    if (['base'].includes(route.value.params.typeOrId as string)) {
+      projectIdOrBaseId = route.value.params.projectId as string
+    }
+
     if (
       router.currentRoute.value.query &&
       router.currentRoute.value.query.page &&
@@ -163,11 +169,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
     ) {
       await router.push({
         name: routeName,
-        params: { viewTitle: view.id || '', viewId: tableId, projectId },
+        params: { viewTitle: view.id || '', viewId: tableId, projectId: projectIdOrBaseId },
         query: router.currentRoute.value.query,
       })
     } else {
-      await router.push({ name: routeName, params: { viewTitle: view.id || '', viewId: tableId, projectId } })
+      await router.push({ name: routeName, params: { viewTitle: view.id || '', viewId: tableId, projectId: projectIdOrBaseId } })
     }
 
     if (hardReload) {
@@ -175,10 +181,14 @@ export const useViewsStore = defineStore('viewsStore', () => {
         .replace({
           name: routeName,
           query: { reload: 'true' },
-          params: { viewId: tableId, projectId, viewTitle: view.id || '' },
+          params: { viewId: tableId, projectId: projectIdOrBaseId, viewTitle: view.id || '' },
         })
         .then(() => {
-          router.replace({ name: routeName, query: {}, params: { viewId: tableId, viewTitle: view.id || '', projectId } })
+          router.replace({
+            name: routeName,
+            query: {},
+            params: { viewId: tableId, viewTitle: view.id || '', projectId: projectIdOrBaseId },
+          })
         })
     }
   }

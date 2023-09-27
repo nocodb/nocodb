@@ -51,20 +51,8 @@ export class AttachmentCellPageObject extends BasePage {
 
   async verifyFileCount({ index, columnHeader, count }: { index: number; columnHeader: string; count: number }) {
     // retry below logic for 5 times, with 1 second delay
-    let retryCount = 0;
-    while (retryCount < 5) {
-      const attachments = this.get({ index, columnHeader }).locator('.nc-attachment');
-      // console.log(await attachments.count());
-      if ((await attachments.count()) === count) {
-        break;
-      }
-      retryCount++;
-      await this.rootPage.waitForTimeout(1000);
-
-      if (retryCount === 5) {
-        expect(await attachments.count()).toBe(count);
-      }
-    }
+    const attachments = this.get({ index, columnHeader }).locator('.nc-attachment');
+    await expect(await attachments).toHaveCount(count);
   }
 
   async expandModalClose() {

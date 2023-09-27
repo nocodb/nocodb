@@ -1489,7 +1489,7 @@ function tableTest() {
     });
 
     const visibleColumns = [firstNameColumn];
-    const sortInfo = `-FirstName, +${rollupColumn.title}`;
+    const sortInfo = `-FirstName`;
 
     const response = await request(context.app)
       .get(
@@ -1613,7 +1613,7 @@ function tableTest() {
     });
 
     const visibleColumns = [firstNameColumn];
-    const sortInfo = `-FirstName, +${rollupColumn.title}`;
+    const sortInfo = `-FirstName`;
 
     const response = await request(context.app)
       .get(
@@ -1649,7 +1649,7 @@ function tableTest() {
     });
 
     const visibleColumns = [firstNameColumn];
-    const sortInfo = `-FirstName, +${rollupColumn.title}`;
+    const sortInfo = `-FirstName`;
 
     const response = await request(context.app)
       .get(

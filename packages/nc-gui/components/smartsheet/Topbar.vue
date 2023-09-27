@@ -10,6 +10,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { isViewsLoading } = storeToRefs(useViewsStore())
 
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
 const { isMobileMode } = storeToRefs(useConfigStore())
 
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
@@ -29,7 +31,14 @@ const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
       <div class="flex-1" />
 
-      <div v-if="!isSharedBase && !isMobileMode" class="absolute mx-auto -left-1/8 right-0 w-47.5">
+      <div
+        v-if="!isSharedBase && !isMobileMode"
+        class="absolute mx-auto transition-all duration-150 right-0 w-47.5"
+        :class="{
+          '-left-1/10': isLeftSidebarOpen,
+          '-left-0': !isLeftSidebarOpen,
+        }"
+      >
         <SmartsheetTopbarSelectMode />
       </div>
 

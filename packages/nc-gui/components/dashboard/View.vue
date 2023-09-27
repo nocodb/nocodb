@@ -64,12 +64,11 @@ watch(isLeftSidebarOpen, () => {
     setTimeout(() => (sidebarState.value = 'openEnd'), animationDuration)
   } else {
     sideBarSize.value.old = sideBarSize.value.current
+    sideBarSize.value.current = 0
 
     sidebarState.value = 'hiddenStart'
 
     setTimeout(() => {
-      sideBarSize.value.current = 0
-
       sidebarState.value = 'hiddenEnd'
     }, animationDuration)
   }

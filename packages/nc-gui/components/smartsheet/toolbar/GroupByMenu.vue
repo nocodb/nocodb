@@ -167,8 +167,6 @@ const loadBtLookups = async () => {
     for (const col of meta.value?.columns || []) {
       if (col.uidt !== UITypes.Lookup) continue
 
-      let depth = 0
-
       let nextCol = col
       let btLookup = true
 
@@ -189,8 +187,12 @@ const loadBtLookups = async () => {
           (c) => c.id === (nextCol.colOptions as LinkToAnotherRecordType).fk_lookup_column_id,
         )
 
-        // limit maximum allowed depth to 10, if higher then exclude the column
-        if (depth++ > 10) btLookup = false
+        // if next column is same as root lookup column then break the loop
+        // since it's going to be a circular loop, and ignore the column
+        if (nextCol.id === col.id) {
+          btLookup = false
+          break
+        }
       }
 
       if (btLookup) filteredLookupCols.push(col.id)

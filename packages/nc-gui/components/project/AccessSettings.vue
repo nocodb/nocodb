@@ -170,24 +170,25 @@ onMounted(async () => {
       <div v-if="isSearching" class="nc-collaborators-list items-center justify-center">
         <GeneralLoader size="xlarge" />
       </div>
+
       <div
         v-else-if="!collaborators?.length"
         class="nc-collaborators-list w-full h-full flex flex-col items-center justify-center mt-36"
       >
-        <!-- <Empty :description="$t('title.noMembersFound')" /> -->
+        <Empty description="$t('title.noMembersFound')" />
       </div>
-      <div v-else class="nc-collaborators-list nc-scrollbar-md">
-        <div class="nc-collaborators-list-header">
-          <div class="flex w-3/5">{{ $t('objects.users') }}</div>
-          <div class="flex w-2/5">{{ $t('title.dateJoined') }}</div>
-          <div class="flex w-1/5">{{ $t('general.access') }}</div>
-          <div class="flex w-1/5"></div>
-          <div class="flex w-1/5"></div>
+      <div v-else class="nc-collaborators-list !mt-10 nc-scrollbar-md rounded-md">
+        <div class="nc-collaborators-list-header bg-gray-50 rounded-t-md">
+          <div class="flex w-2/5 text-gray-600">{{ $t('objects.users') }}</div>
+          <div class="flex w-2/5 text-gray-600">{{ $t('title.dateJoined') }}</div>
+          <div class="flex w-2/5 text-gray-600">{{ $t('general.access') }}</div>
+          <div class="flex w-2/5 text-gray-600">Added By</div>
+          <div class="flex w-1/5 text-gray-600">Action</div>
         </div>
 
         <div class="flex flex-col nc-scrollbar-md">
           <div v-for="(collab, i) of collaborators" :key="i" class="relative w-full nc-collaborators nc-collaborators-list-row">
-            <div class="!py-0 w-3/5 email truncate">
+            <div class="!py-0 w-2/5 email truncate">
               <div class="flex items-center gap-2">
                 <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
                   collab?.email?.slice(0, 2)
@@ -202,7 +203,7 @@ onMounted(async () => {
             <div class="text-gray-500 text-xs w-2/5 created-at truncate">
               {{ timeAgo(collab.created_at) }}
             </div>
-            <div class="w-1/5 roles">
+            <div class="w-2/5 roles">
               <div class="nc-collaborator-role-select p-2">
                 <template v-if="accessibleRoles.includes(collab.roles)">
                   <RolesSelector
@@ -222,8 +223,22 @@ onMounted(async () => {
                 </template>
               </div>
             </div>
-            <div class="w-1/5"></div>
-            <div class="w-1/5"></div>
+            <div class="w-2/5"></div>
+            <div class="w-1/5 pl-5">
+              <NcDropdown v-if="collab.roles !== ProjectRoles.OWNER" :trigger="['click']">
+                <MdiDotsVertical
+                  class="border-1 !text-gray-600 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
+                />
+                <template #overlay>
+                  <NcMenu>
+                    <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="removeProjectUser(activeProjectId!, collab)">
+                      <MaterialSymbolsDeleteOutlineRounded />
+                      Remove user
+                    </NcMenuItem>
+                  </NcMenu>
+                </template>
+              </NcDropdown>
+            </div>
           </div>
           <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
             <template #spinner>
@@ -247,17 +262,17 @@ onMounted(async () => {
 }
 
 .nc-collaborators-list {
-  @apply border-gray-100 mt-1 flex flex-col w-full;
+  @apply border-2 shadow-sm border-gray-100 mt-1 flex flex-col w-full;
   // todo: replace/remove 120px with proper value while updating invite ui
   height: calc(100vh - calc(var(--topbar-height) + 9rem + 120px));
 }
 
 .nc-collaborators-list-header {
-  @apply flex flex-row justify-between items-center min-h-13 border-b-1 border-gray-100 pl-4 text-gray-500;
+  @apply flex flex-row justify-between items-center min-h-10 border-b-2 shadow-sm border-gray-100 pl-4;
 }
 
 .nc-collaborators-list-row {
-  @apply flex flex-row justify-between items-center min-h-16 border-b-1 border-gray-100 pl-4;
+  @apply flex flex-row justify-between items-center min-h-16 border-b-2 shadow-sm border-gray-100 pl-4;
 }
 
 .color-band {

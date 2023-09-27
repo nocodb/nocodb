@@ -56,73 +56,91 @@ onMounted(async () => {
     <div v-if="!filterCollaborators?.length" class="w-full h-full flex flex-col items-center justify-center mt-36">
       <Empty description="No members found" />
     </div>
-    <table v-else class="nc-collaborators-list-table !nc-scrollbar-md">
-      <thead>
-        <tr>
-          <th class="w-1/5">Users</th>
-          <th class="w-1/5">Date Joined</th>
-          <th class="w-1/5">Access</th>
-          <th class="w-1/5"></th>
-          <th class="w-1/5"></th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(collab, i) of filterCollaborators" :key="i" class="relative w-full nc-collaborators">
-          <td class="!py-0 w-1/5 email">
+    <div v-else class="nc-collaborators-list !mt-10 nc-scrollbar-md rounded-md">
+      <div class="nc-collaborators-list-header bg-gray-50 rounded-t-md">
+        <div class="flex w-2/5 text-gray-600">Users</div>
+        <div class="flex w-2/5 text-gray-600">Date Joined</div>
+        <div class="flex w-2/5 text-gray-600">Access</div>
+        <div class="flex w-2/5 text-gray-600">Added By</div>
+        <div class="flex w-1/5 text-gray-600">Action</div>
+      </div>
+      <div class="flex flex-col nc-scrollbar-md">
+        <div v-for="(collab, i) of filterCollaborators" :key="i"
+          class="relative w-full nc-collaborators nc-collaborators-list-row">
+          <div class="!py-0 w-2/5 email truncate">
             <div class="flex items-center gap-2">
               <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
                 collab.email.slice(0, 2)
               }}</span>
-              {{ collab.email }}
+              <span class="truncate">
+                {{ collab.email }}
+              </span>
             </div>
-          </td>
-          <td class="text-gray-500 text-xs w-1/5 created-at">
+          </div>
+          <div class="text-gray-500 text-xs w-2/5 created-at truncate">
             {{ timeAgo(collab.created_at) }}
-          </td>
-          <td class="w-1/5 roles">
+          </div>
+          <div class="w-2/5 roles">
             <div class="nc-collaborator-role-select">
               <template v-if="accessibleRoles.includes(collab.roles)">
-                <RolesSelector
-                  :role="collab.roles"
-                  :roles="accessibleRoles"
-                  :description="false"
-                  :on-role-change="(role: WorkspaceUserRoles) => updateCollaborator(collab, role)"
-                />
+                <RolesSelector :role="collab.roles" :roles="accessibleRoles" :description="false"
+                  :on-role-change="(role: WorkspaceUserRoles) => updateCollaborator(collab, role)" />
               </template>
               <template v-else>
                 <RolesBadge class="!bg-white" :role="collab.roles" />
               </template>
             </div>
-          </td>
-          <td class="w-1/5">
-            <div class="-left-2.5 top-5">
-              <NcDropdown v-if="collab.roles !== WorkspaceUserRoles.OWNER" :trigger="['click']">
-                <MdiDotsVertical
-                  class="border-1 !text-gray-600 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
-                />
-                <template #overlay>
-                  <NcMenu>
-                    <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="removeCollaborator(collab.id)">
-                      <MaterialSymbolsDeleteOutlineRounded />
-                      Remove user
-                    </NcMenuItem>
-                  </NcMenu>
-                </template>
-              </NcDropdown>
-            </div>
-          </td>
-          <td class="w-1/5 padding"></td>
-          <td class="w-1/5 padding"></td>
-        </tr>
-      </tbody>
-    </table>
+          </div>
+          <div class="w-2/5"></div>
+          <div class="w-1/5 pl-5">
+            <NcDropdown v-if="collab.roles !== WorkspaceUserRoles.OWNER" :trigger="['click']">
+              <MdiDotsVertical
+                class="border-1 !text-gray-600 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)" />
+              <template #overlay>
+                <NcMenu>
+                  <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="removeCollaborator(collab.id)">
+                    <MaterialSymbolsDeleteOutlineRounded />
+                    Remove user
+                  </NcMenuItem>
+                </NcMenu>
+              </template>
+            </NcDropdown>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .badge-text {
   @apply text-[14px] pt-1 text-center;
+}
+
+.nc-collaborators-list {
+  @apply border-2 shadow-sm border-gray-100 mt-1 flex flex-col w-full;
+  // todo: replace/remove 120px with proper value while updating invite ui
+  height: calc(100vh - calc(var(--topbar-height) + 9rem + 120px));
+}
+
+.nc-collaborators-list-header {
+  @apply flex flex-row justify-between items-center min-h-10 border-b-2 shadow-sm border-gray-100 pl-4;
+}
+
+.nc-collaborators-list-row {
+  @apply flex flex-row justify-between items-center min-h-16 border-b-2 shadow-sm border-gray-100 pl-4;
+}
+
+.color-band {
+  @apply w-6 h-6 left-0 top-[10px] rounded-full flex justify-center uppercase text-white font-weight-bold text-xs items-center;
+}
+
+:deep(.nc-collaborator-role-select .ant-select-selector) {
+  @apply !rounded;
+}
+
+:deep(.ant-select-selection-item) {
+  @apply mt-0.75;
 }
 
 .nc-collaborators-list-table {
@@ -154,26 +172,21 @@ onMounted(async () => {
   }
 }
 
-.color-band {
-  @apply w-6 h-6 left-0 top-[10px] rounded-full flex justify-center uppercase text-white font-weight-bold text-xs items-center;
-}
-
-:deep(.nc-collaborator-role-select .ant-select-selector) {
-  @apply !rounded;
-}
-
 table {
   display: block;
   width: 100%;
 }
+
 thead {
   display: block;
   width: 100%;
 }
+
 tr {
   display: block;
   width: 100%;
 }
+
 tbody {
   display: block;
   width: 100%;
@@ -183,32 +196,35 @@ tbody {
   &::-webkit-scrollbar {
     width: 4px;
   }
+
   &::-webkit-scrollbar-track {
     background: #f6f6f600 !important;
   }
+
   &::-webkit-scrollbar-thumb {
     background: #f6f6f600;
   }
+
   &::-webkit-scrollbar-thumb:hover {
     background: #f6f6f600;
   }
 }
+
 tbody {
   &::-webkit-scrollbar {
     width: 4px;
   }
+
   &::-webkit-scrollbar-track {
     background: #f6f6f600 !important;
   }
+
   &::-webkit-scrollbar-thumb {
     background: rgb(215, 215, 215);
   }
+
   &::-webkit-scrollbar-thumb:hover {
     background: rgb(203, 203, 203);
   }
-}
-
-:deep(.ant-select-selection-item) {
-  @apply mt-0.75;
 }
 </style>

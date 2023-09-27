@@ -33,23 +33,34 @@ jobs:
     timeout-minutes: 80
     if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Check node,pnpm Installation and set Path
+        shell: bash
+        working-directory: scripts/self-hosted-gh-runner
+        timeout-minutes: 1
+        run: |
+          ./node-pnpm-check.sh
+          echo "make sure below mentioned versions are expected versions"
+          echo "If you are expecting the node and pnpm versions to be updated. Please update the node-pnpm-check.sh script"
+          env
       - name: Setup Node
+        if: ${{ env.SETUP_NODE != 'false' }}
         uses: actions/setup-node@v3
         with:
-          node-version: 18.14.0
+          node-version: ${{ env.NC_REQ_NODE_V }}
       - name: Setup pnpm
+        if: ${{ env.SETUP_PNPM != 'false' }}
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: ${{ env.NC_REQ_PNPM_V }}
       - name: Get pnpm store directory
         shell: bash
         timeout-minutes: 1
         run: |
           echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - uses: actions/cache@v3
         name: Setup pnpm cache
         with:

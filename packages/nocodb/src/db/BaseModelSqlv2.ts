@@ -3840,7 +3840,7 @@ class BaseModelSqlv2 {
                 promises.push(
                   TemporaryUrl.getTemporaryUrl({
                     path: attachment.path.replace(/^download\//, ''),
-                  }).then((r) => (attachment.path = r)),
+                  }).then((r) => (attachment.signedPath = r)),
                 );
               } else if (attachment?.url) {
                 if (attachment.url.includes('.amazonaws.com/')) {
@@ -3850,7 +3850,7 @@ class BaseModelSqlv2 {
                     TemporaryUrl.getTemporaryUrl({
                       path: relativePath,
                       s3: true,
-                    }).then((r) => (attachment.url = r)),
+                    }).then((r) => (attachment.signedUrl = r)),
                   );
                 }
               }

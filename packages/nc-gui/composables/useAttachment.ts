@@ -6,7 +6,9 @@ const useAttachment = () => {
   const getPossibleAttachmentSrc = (item: Record<string, any>) => {
     const res: string[] = []
     if (item?.data) res.push(item.data)
+    if (item?.signedPath) res.push(`${appInfo.value.ncSiteUrl}/${item.signedPath}`)
     if (item?.path) res.push(`${appInfo.value.ncSiteUrl}/${item.path}`)
+    if (item?.signedUrl) res.push(item.signedUrl)
     if (item?.url) res.push(item.url)
     return res
   }

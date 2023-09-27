@@ -453,6 +453,12 @@ export function useViewFilters(
           }
           const relatedTableMeta = await getMeta((lookupRelation.colOptions as LinkToAnotherRecordType).fk_related_model_id)
           nextCol = relatedTableMeta?.columns?.find((c) => c.id === (nextCol.colOptions as LookupType).fk_lookup_column_id)
+
+          // if next column is same as root lookup column then break the loop
+          // since it's going to be a circular loop
+          if (nextCol.id === col.id) {
+            break
+          }
         }
         btLookupTypes[col.id] = nextCol
       }

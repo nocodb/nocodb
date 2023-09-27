@@ -45,7 +45,7 @@ export default class TemporaryUrl {
       expiresInSeconds,
     );
     await NocoCache.setExpiring(
-      `${CacheScope.TEMPORARY_URL}:url:${url}`,
+      `${CacheScope.TEMPORARY_URL}:url:${decodeURIComponent(url)}`,
       {
         path,
         url,
@@ -147,6 +147,6 @@ export default class TemporaryUrl {
     }
 
     // return the url
-    return tempUrl;
+    return `dltemp/${expireAt.getTime()}/${path}`;
   }
 }

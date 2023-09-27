@@ -149,7 +149,10 @@ export class AttachmentsService {
       mimetypes[path.extname(param.path).split('/').pop().slice(1)] ||
       'text/plain';
 
-    const img = await storageAdapter.fileRead(slash(param.path));
+    const img = await storageAdapter.validateAndNormalisePath(
+      slash(param.path),
+      true,
+    );
     return { img, type };
   }
 

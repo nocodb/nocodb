@@ -20,7 +20,7 @@ import { AttachmentsService } from '~/services/attachments.service';
 import { TemporaryUrl } from '~/models';
 
 @Controller()
-export class AttachmentsController {
+export class AttachmentsSecureController {
   constructor(private readonly attachmentsService: AttachmentsService) {}
 
   @UseGuards(GlobalGuard)
@@ -51,51 +51,6 @@ export class AttachmentsController {
     });
 
     return attachments;
-  }
-
-  // @Get(/^\/download\/(.+)$/)
-  // , getCacheMiddleware(), catchError(fileRead));
-  @Get('/download/:filename(*)')
-  // This route will match any URL that starts with
-  async fileRead(@Param('filename') filename: string, @Response() res) {
-    try {
-      const { img, type } = await this.attachmentsService.fileRead({
-        path: path.join('nc', 'uploads', filename),
-      });
-
-      res.writeHead(200, { 'Content-Type': type });
-      res.end(img, 'binary');
-    } catch (e) {
-      console.log(e);
-      res.status(404).send('Not found');
-    }
-  }
-
-  // @Get(/^\/dl\/([^/]+)\/([^/]+)\/(.+)$/)
-  @Get('/dl/:param1([a-zA-Z0-9_-]+)/:param2([a-zA-Z0-9_-]+)/:filename(*)')
-  // getCacheMiddleware(),
-  async fileReadv2(
-    @Param('param1') param1: string,
-    @Param('param2') param2: string,
-    @Param('filename') filename: string,
-    @Response() res,
-  ) {
-    try {
-      const { img, type } = await this.attachmentsService.fileRead({
-        path: path.join(
-          'nc',
-          param1,
-          param2,
-          'uploads',
-          ...filename.split('/'),
-        ),
-      });
-
-      res.writeHead(200, { 'Content-Type': type });
-      res.end(img, 'binary');
-    } catch (e) {
-      res.status(404).send('Not found');
-    }
   }
 
   @Get('/dltemp/:param(*)')

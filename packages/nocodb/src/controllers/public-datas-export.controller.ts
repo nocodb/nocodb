@@ -1,9 +1,8 @@
 import { Controller, Get, Param, Request, Response } from '@nestjs/common';
-import { ErrorMessages, isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
+import { ErrorMessages, isSystemColumn, ViewTypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import { nocoExecute } from 'nc-help';
 import papaparse from 'papaparse';
-import type { LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { serializeCellValue } from '~/modules/datas/helpers';
@@ -203,72 +202,5 @@ export class PublicDatasExportController {
       }
     }
     return { offset, dbRows, elapsed };
-  }
-
-  async serializeCellValue({
-    value,
-    column,
-    ncSiteUrl,
-  }: {
-    column?: Column;
-    value: any;
-    ncSiteUrl?: string;
-  }) {
-    if (!column) {
-      return value;
-    }
-
-    if (!value) return value;
-
-    switch (column?.uidt) {
-      case UITypes.Attachment: {
-        let data = value;
-        try {
-          if (typeof value === 'string') {
-            data = JSON.parse(value);
-          }
-        } catch {}
-
-        return (data || []).map(
-          (attachment) =>
-            `${encodeURI(attachment.title)}(${encodeURI(attachment.url)})`,
-        );
-      }
-      case UITypes.Lookup:
-        {
-          const colOptions = await column.getColOptions<LookupColumn>();
-          const lookupColumn = await colOptions.getLookupColumn();
-          return (
-            await Promise.all(
-              [...(Array.isArray(value) ? value : [value])].map(async (v) =>
-                serializeCellValue({
-                  value: v,
-                  column: lookupColumn,
-                  siteUrl: ncSiteUrl,
-                }),
-              ),
-            )
-          ).join(', ');
-        }
-        break;
-      case UITypes.LinkToAnotherRecord:
-        {
-          const colOptions =
-            await column.getColOptions<LinkToAnotherRecordColumn>();
-          const relatedModel = await colOptions.getRelatedTable();
-          await relatedModel.getColumns();
-          return [...(Array.isArray(value) ? value : [value])]
-            .map((v) => {
-              return v[relatedModel.displayValue?.title];
-            })
-            .join(', ');
-        }
-        break;
-      default:
-        if (value && typeof value === 'object') {
-          return JSON.stringify(value);
-        }
-        return value;
-    }
   }
 }

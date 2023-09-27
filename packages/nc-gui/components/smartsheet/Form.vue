@@ -898,7 +898,6 @@ watch(view, (nextView) => {
 .nc-form-help-text,
 .nc-input-required-error {
   max-width: 100%;
-  word-break: break-all;
   white-space: pre-line;
 }
 

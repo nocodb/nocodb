@@ -251,7 +251,6 @@ onMounted(() => {
         <h2
           v-if="sharedFormView.subheading && sharedFormView.subheading !== ''"
           class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4 leading-6"
-          style="word-break: break-all"
           data-testid="nc-survey-form__sub-heading"
         >
           {{ sharedFormView?.subheading }}
@@ -306,10 +305,7 @@ onMounted(() => {
                 @update:edit-enabled="editEnabled[index] = $event"
               />
 
-              <div
-                class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1"
-                style="word-break: break-all"
-              >
+              <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
                 <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
                   {{ error.$message }}
                 </div>

@@ -72,14 +72,17 @@ const onDecode = async (scannedCodeValue: string) => {
 <template>
   <div class="h-full flex flex-col items-center">
     <div
-      class="color-transition relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(bg-white dark:bg-slate-700 rounded-lg border-1 border-gray-200 shadow-xl)"
+      class="color-transition flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(bg-white dark:bg-slate-700 rounded-lg border-1 border-gray-200 shadow-xl)"
     >
       <template v-if="sharedFormView">
-        <h1 class="prose-2xl font-bold self-center my-4" style="word-break: break-all">
+        <h1 class="prose-2xl font-bold self-center my-4 break-words">
           {{ sharedFormView.heading }}
         </h1>
 
-        <h2 v-if="sharedFormView.subheading" class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4 leading-6">
+        <h2
+          v-if="sharedFormView.subheading"
+          class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4 leading-6 break-words"
+        >
           {{ sharedFormView.subheading }}
         </h2>
 
@@ -197,14 +200,9 @@ const onDecode = async (scannedCodeValue: string) => {
               </div>
 
               <div class="text-center mt-4">
-                <button
-                  type="submit"
-                  class="uppercase scaling-btn prose-sm"
-                  data-testid="shared-form-submit-button"
-                  @click="submitForm"
-                >
+                <NcButton type="primary" html-type="submit" data-testid="shared-form-submit-button" @click="submitForm">
                   {{ $t('general.submit') }}
-                </button>
+                </NcButton>
               </div>
             </div>
           </div>

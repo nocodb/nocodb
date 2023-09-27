@@ -237,14 +237,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="el" class="survey pt-8 md:p-0 w-full h-full flex flex-col">
+  <div ref="el" class="survey pt-8 md:p-0 w-full h-full flex flex-col bg-[red]">
     <div
       v-if="sharedFormView"
       style="height: max(40vh, 225px); min-height: 225px"
       class="max-w-[max(33%,600px)] mx-auto flex flex-col justify-end"
     >
       <div class="px-4 md:px-0 flex flex-col justify-end">
-        <h1 class="prose-2xl font-bold self-center my-4" data-testid="nc-survey-form__heading" style="word-break: break-all">
+        <h1 class="prose-2xl font-bold self-center my-4" data-testid="nc-survey-form__heading">
           {{ sharedFormView.heading }}
         </h1>
 

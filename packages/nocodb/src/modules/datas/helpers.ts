@@ -163,7 +163,9 @@ export async function serializeCellValue({
       return (data || []).map(
         (attachment) =>
           `${encodeURI(attachment.title)}(${encodeURI(
-            attachment.path ? `${siteUrl}/${attachment.path}` : attachment.url,
+            attachment.path
+              ? `${siteUrl}/${attachment.signedPath}`
+              : attachment.signedUrl,
           )})`,
       );
     }

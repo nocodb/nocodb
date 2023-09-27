@@ -25,7 +25,7 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-prog  ress: true
+  cancel-in-progress: true
 
 jobs:
     unit-tests:

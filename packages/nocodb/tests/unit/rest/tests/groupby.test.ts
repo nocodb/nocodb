@@ -292,9 +292,6 @@ function groupByTests() {
         sort: `-LanguageName`,
       })
       .expect(200);
-
-    console.log(JSON.stringify(response.body.list, null, 2));
-
     assert.match(response.body.list[0]['LanguageName'], /^English/);
     expect(+response.body.list[0]['count']).to.gt(0);
     expect(response.body.list.length).to.equal(1);

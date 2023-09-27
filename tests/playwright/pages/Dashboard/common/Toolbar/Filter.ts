@@ -356,6 +356,9 @@ export class ToolbarFilterPage extends BasePage {
     } else {
       await this.get().locator('.nc-filter-item-remove-btn').click();
     }
+    // TODO: Filter reset await not working all the time
+
+    await this.rootPage.waitForTimeout(650);
     await this.toolbar.clickFilter();
   }
 

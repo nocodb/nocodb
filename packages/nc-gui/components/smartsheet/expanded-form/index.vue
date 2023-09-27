@@ -325,13 +325,14 @@ const onConfirmDeleteRowClick = async () => {
   showDeleteRowModal.value = false
   await deleteRowById(primaryKey.value)
   message.success('Row deleted')
-  if (!props.lastRow) {
-    await onNext()
-  } else if (!props.firstRow) {
-    emits('prev')
-  } else {
-    onClose()
-  }
+  // if (!props.lastRow) {
+  //   await onNext()
+  // } else if (!props.firstRow) {
+  //   emits('prev')
+  // } else {
+  // }
+  reloadTrigger.trigger()
+  onClose()
 }
 
 watch(
@@ -398,7 +399,7 @@ export default {
               <template #overlay>
                 <NcMenu>
                   <NcMenuItem v-if="!isNew" class="text-gray-700" @click="_loadRow()">
-                    <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center">
+                    <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
                       <component :is="iconMap.reload" class="cursor-pointer" />
                       {{ $t('general.reload') }}
                     </div>
@@ -408,25 +409,34 @@ export default {
                     class="text-gray-700"
                     @click="!isNew ? onDuplicateRow() : () => {}"
                   >
-                    <div v-e="['c:row-expand:duplicate']" class="flex gap-2 items-center">
+                    <div
+                      v-e="['c:row-expand:duplicate']"
+                      data-testid="nc-expanded-form-duplicate"
+                      class="flex gap-2 items-center"
+                    >
                       <component :is="iconMap.copy" class="cursor-pointer nc-duplicate-row" />
                       Duplicate record
                     </div>
                   </NcMenuItem>
-                  <NcDivider />
+                  <NcDivider v-if="isUIAllowed('dataEdit') && !isNew" />
                   <NcMenuItem
                     v-if="isUIAllowed('dataEdit') && !isNew"
                     v-e="['c:row-expand:delete']"
                     class="!text-red-500"
                     @click="!isNew && onDeleteRowClick()"
                   >
-                    <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
+                    <component :is="iconMap.delete" data-testid="nc-expanded-form-delete" class="cursor-pointer nc-delete-row" />
                     Delete record
                   </NcMenuItem>
                 </NcMenu>
               </template>
             </NcDropdown>
-            <NcButton type="secondary" class="nc-expand-form-close-btn w-10" @click="onClose">
+            <NcButton
+              type="secondary"
+              class="nc-expand-form-close-btn w-10"
+              data-testid="nc-expanded-form-close"
+              @click="onClose"
+            >
               <GeneralIcon icon="close" class="text-md text-gray-700" />
             </NcButton>
           </div>
@@ -542,7 +552,7 @@ export default {
               <template #overlay>
                 <NcMenu>
                   <NcMenuItem v-if="!isNew" class="text-gray-700" @click="_loadRow()">
-                    <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center">
+                    <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
                       <component :is="iconMap.reload" class="cursor-pointer" />
                       {{ $t('general.reload') }}
                     </div>
@@ -554,8 +564,10 @@ export default {
                     class="!text-red-500"
                     @click="!isNew && onDeleteRowClick()"
                   >
-                    <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
-                    Delete record
+                    <div data-testid="nc-expanded-form-delete">
+                      <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
+                      Delete record
+                    </div>
                   </NcMenuItem>
                 </NcMenu>
               </template>
@@ -566,12 +578,19 @@ export default {
                 v-if="isMobileMode"
                 type="secondary"
                 size="medium"
+                data-testid="nc-expanded-form-save"
                 class="nc-expand-form-save-btn !xs:(text-base)"
                 @click="onClose"
               >
                 <div class="px-1">Close</div>
               </NcButton>
-              <NcButton type="primary" size="medium" class="nc-expand-form-save-btn !xs:(text-base)" @click="save">
+              <NcButton
+                data-testid="nc-expanded-form-save"
+                type="primary"
+                size="medium"
+                class="nc-expand-form-save-btn !xs:(text-base)"
+                @click="save"
+              >
                 <div class="xs:px-1">Save</div>
               </NcButton>
             </div>

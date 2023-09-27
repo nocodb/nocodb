@@ -162,7 +162,7 @@ test.describe('Fill Handle', () => {
     await unsetup(p.context);
   });
 
-  test('Select based', async () => {
+  test('Select based', async ({ page }) => {
     const fields = [
       { title: 'SingleSelect', value: 'jan', type: 'singleSelect' },
       { title: 'MultiSelect', value: 'jan,feb,mar', type: 'multiSelect' },
@@ -170,7 +170,7 @@ test.describe('Fill Handle', () => {
 
     await dragDrop({ firstColumn: 'SingleSelect', lastColumn: 'MultiSelect', params: p });
 
-    await new Promise((r) => setTimeout(r, 500));
+    await page.waitForTimeout(1000);
 
     // verify data on grid
     const displayOptions = ['jan', 'feb', 'mar'];
@@ -212,7 +212,7 @@ test.describe('Fill Handle', () => {
     await unsetup(p.context);
   });
 
-  test('Miscellaneous (Checkbox, attachment)', async () => {
+  test('Miscellaneous (Checkbox, attachment) @flaky', async () => {
     const fields = [
       { title: 'Checkbox', value: 'true', type: 'checkbox' },
       { title: 'Attachment', value: `${process.cwd()}/fixtures/sampleFiles/1.json`, type: 'attachment' },

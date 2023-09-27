@@ -138,6 +138,7 @@ onBeforeUnmount(() => {
                 <div
                   class="mt-0.5 flex capitalize mb-0 nc-workspace-title truncate min-w-10 text-sm text-black font-medium"
                   style="line-height: 1.5rem"
+                  data-testid="nc-workspace-list"
                 >
                   {{ activeWorkspace?.title }}
                 </div>

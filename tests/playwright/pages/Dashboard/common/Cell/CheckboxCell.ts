@@ -15,7 +15,8 @@ export class CheckboxCellPageObject extends BasePage {
   }
 
   async click({ index, columnHeader }: { index?: number; columnHeader: string }) {
-    return await this.get({ index, columnHeader }).locator('.nc-cell').click();
+    await this.get({ index, columnHeader }).locator('.nc-cell').click();
+    await this.rootPage.waitForTimeout(500);
   }
 
   // async isChecked({ index, columnHeader }: { index?: number; columnHeader: string }) {

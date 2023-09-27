@@ -102,7 +102,7 @@ onMounted(async () => {
           {{ `Click on confirm to reset ${pluginApp && pluginApp.title}` }}
         </div>
         <div class="flex mt-6 justify-center space-x-2">
-          <NcButton type="ghost" @click="showPluginUninstallModal = false"> {{ $t('general.cancel') }} </NcButton>
+          <NcButton type="secondary" @click="showPluginUninstallModal = false"> {{ $t('general.cancel') }} </NcButton>
           <NcButton type="danger" @click="resetPlugin"> {{ $t('general.confirm') }} </NcButton>
         </div>
       </div>

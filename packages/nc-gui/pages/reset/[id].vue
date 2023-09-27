@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import { validatePassword } from 'nocodb-sdk'
-import { definePageMeta, iconMap, reactive, ref, useApi } from '#imports'
+import {
+  definePageMeta,
+  extractSdkResponseErrorMsg,
+  iconMap,
+  message,
+  reactive,
+  ref,
+  useApi,
+  useI18n,
+  useRoute,
+  useRouter,
+} from '#imports'
 
 definePageMeta({
   requiresAuth: false,
@@ -15,6 +26,8 @@ const form = reactive({
   password: '',
   newPassword: '',
 })
+
+const { t } = useI18n()
 
 const formValidator = ref()
 
@@ -38,7 +51,7 @@ async function resetPassword() {
     })
     navigator.push(`/#/sigin`)
   } catch (e: any) {
-    await extractSdkResponseErrorMsg(e)
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 

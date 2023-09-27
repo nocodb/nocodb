@@ -61,6 +61,7 @@ interface Row {
     commentCount?: number
     changed?: boolean
     saving?: boolean
+    attachments?: string[]
     // use in datetime picker component
     isUpdatedFromCopyNPaste?: Record<string, boolean>
   }

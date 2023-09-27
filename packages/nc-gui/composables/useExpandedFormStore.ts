@@ -213,7 +213,16 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         }
       } else {
         const updateOrInsertObj = [...changedColumns.value].reduce((obj, col) => {
-          obj[col] = row.value.row[col]
+          let attachmentOverride = null
+
+          if (row.value.rowMeta?.attachments?.includes(col)) {
+            attachmentOverride = row.value.row[col].map((el: any) => {
+              const { signedUrl: _signedUrl, signedPath: _signedPath, ...rest } = el
+              return rest
+            })
+          }
+
+          obj[col] = attachmentOverride ?? row.value.row[col]
           return obj
         }, {} as Record<string, any>)
         if (Object.keys(updateOrInsertObj).length) {

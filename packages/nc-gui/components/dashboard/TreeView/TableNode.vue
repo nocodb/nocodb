@@ -224,7 +224,6 @@ const isTableOpened = computed(() => {
           {{ table.title }}
         </span>
         <div class="flex flex-grow h-full"></div>
-
         <div class="flex flex-row items-center">
           <NcDropdown
             v-if="

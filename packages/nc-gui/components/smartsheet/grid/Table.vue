@@ -11,6 +11,7 @@ import {
   MetaInj,
   NavigateDir,
   ReadonlyInj,
+  JsonExpandInj,
   computed,
   enumColor,
   extractPkFromRow,
@@ -224,6 +225,9 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
     contextMenuTarget.value = target
   }
 }
+
+const isJsonExpand = ref(false)
+provide(JsonExpandInj,isJsonExpand)
 
 // #Cell - 1
 
@@ -1318,6 +1322,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                           :column-position="columnOrder"
                           @submit="closeAddColumnDropdown(true)"
                           @cancel="closeAddColumnDropdown()"
+                          :class="{ hidden: isJsonExpand }"
                           @click.stop
                           @keydown.stop
                           @mounted="preloadColumn = undefined"

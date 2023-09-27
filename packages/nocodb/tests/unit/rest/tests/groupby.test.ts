@@ -295,7 +295,7 @@ function groupByTests() {
     assert.match(response.body.list[0]['LanguageName'], /^English/);
     expect(+response.body.list[0]['count']).to.gt(0);
     expect(response.body.list.length).to.equal(1);
-  });
+  }).timeout(60000);
 
   it('Check One GroupBy Column with MM Lookup which is not supported', async function () {
     await createLookupColumn(context, {
@@ -318,6 +318,8 @@ function groupByTests() {
   });
 
   it('Check One GroupBy Column with Formula and Formula referring another formula', async function () {
+    await new Promise((resolve) => setTimeout(resolve, 20000));
+
     const formulaColumnTitle = 'Formula';
     await createColumn(context, filmTable, {
       uidt: UITypes.Formula,

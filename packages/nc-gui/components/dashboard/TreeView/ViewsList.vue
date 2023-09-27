@@ -352,13 +352,13 @@ function onOpenModal({
 <template>
   <div
     v-if="!views.length"
-    class="text-gray-500 my-1.75"
+    class="text-gray-500 my-1.75 xs:(my-2.5 text-base)"
     :class="{
-      'ml-19.25': isDefaultBase,
-      'ml-24.75': !isDefaultBase,
+      'ml-19.25 xs:ml-22.25': isDefaultBase,
+      'ml-24.75 xs:ml-30': !isDefaultBase,
     }"
   >
-    No Views
+    {{ $t('labels.noViews') }}
   </div>
 
   <a-menu

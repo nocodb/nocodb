@@ -114,7 +114,7 @@ onBeforeUnmount(() => {
     >
       <div
         data-testid="nc-workspace-menu"
-        class="group cursor-pointer flex flex-grow w-full gap-x-2 items-center nc-workspace-menu overflow-hidden py-1.25 pr-0.25"
+        class="group cursor-pointer flex flex-grow w-full gap-x-2 items-center nc-workspace-menu overflow-hidden py-1.25 xs:py-1.75 pr-0.25"
       >
         <GeneralWorkspaceIcon :workspace="activeWorkspace" />
         <div v-if="activeWorkspace" class="flex min-w-10 w-full">

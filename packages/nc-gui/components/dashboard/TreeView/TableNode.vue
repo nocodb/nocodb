@@ -187,7 +187,7 @@ const isTableOpened = computed(() => {
                 <template #default>
                   <NcTooltip class="flex" placement="topLeft" hide-on-click :disabled="!canUserEditEmote">
                     <template #title>
-                      {{ 'Change icon' }}
+                      {{ $t('general.changeIcon') }}
                     </template>
 
                     <MdiTable

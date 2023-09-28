@@ -53,6 +53,8 @@
     "edit": "Edit",
     "remove": "Remove",
     "logout": "Log Out",
+    "empty": "Empty",
+    "changeIcon": "Change Icon",
     "save": "Save",
     "abort": "Abort",
     "saving": "Saving",

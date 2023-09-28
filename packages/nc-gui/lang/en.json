@@ -263,6 +263,8 @@
     "displayValue": "Display Value",
     "hideAll":"Hide all",
     "hideSystemFields": "hideSystemFields",
+    "removeFile": "Remove File",
+    "downloadFile": "Download File",
     "renameTable": "Rename Table",
     "renamingTable": "Renaming Table",
     "copyAuthToken": "Copy Auth Token",
@@ -330,7 +332,8 @@
     "allowAllMimeTypes": "Allow All Mime Types",
     "defaultView": "Default View",
     "relations": "Relations",
-    "switchLanguage": "Switch Language"
+    "switchLanguage": "Switch Language",
+    "renameFile": "Rename File"
   },
   "labels": {
     "optional": "Optional",
@@ -347,6 +350,9 @@
     "dataSources": "Data Sources",
     "searchProjects": "Search Projects",
     "createdBy": "Created By",
+    "viewingAttachmentsOf": "Viewing Attachments of",
+    "readOnly": "Readonly",
+    "dropHere": "Drop here",
     "createdOn": "Created On",
     "notifyVia": "Notify Via",
     "projName": "Project name",
@@ -501,6 +507,11 @@
     "zoomInToViewColumns": "Zoom in to view columns"
   },
   "activity": {
+    "bulkDownload": "Bulk Download",
+    "attachFile": "Attach File",
+    "viewAttachment": "View Attachments",
+    "attachmentDrop": "Click or drop a file into cell",
+    "addFiles": "Add File(s)",
     "hideInUI": "Hide in UI",
     "addBase": "Add Base",
     "editBase": "Edit Base",

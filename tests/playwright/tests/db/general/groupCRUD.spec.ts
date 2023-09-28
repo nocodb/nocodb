@@ -30,7 +30,7 @@ test.describe('GroupBy CRUD Operations', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
     topbar = dashboard.grid.topbar;
@@ -246,6 +246,23 @@ test.describe('GroupBy CRUD Operations', () => {
       rowIndex: 0,
       columnHeader: 'Item',
       value: 'Zzzzzzzzzzzzzzzzzzz',
+    });
+  });
+
+  test('Single GroupBy CRUD Operations - Links', async ({ page }) => {
+    await dashboard.treeView.openTable({ title: 'Film' });
+
+    await toolbar.clickGroupBy();
+
+    await toolbar.groupBy.add({ title: 'Actors', ascending: false, locallySaved: false });
+
+    await dashboard.grid.groupPage.openGroup({ indexMap: [2] });
+
+    await dashboard.grid.groupPage.validateFirstRow({
+      indexMap: [2],
+      rowIndex: 0,
+      columnHeader: 'Title',
+      value: 'ARABIA DOGMA',
     });
   });
 });

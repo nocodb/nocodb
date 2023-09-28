@@ -70,16 +70,16 @@ const isEaster = ref(false)
         {{ $t('general.duplicate') }} {{ $t('objects.table') }}
       </div>
 
-      <div class="mt-4">Are you sure you want to duplicate the `{{ table.title }}` table?</div>
+      <div class="mt-4">{{ $t('msg.warning.duplicateProject') }}</div>
 
       <div class="prose-md self-center text-gray-500 mt-4">{{ $t('title.advancedSettings') }}</div>
 
       <a-divider class="!m-0 !p-0 !my-2" />
 
       <div class="text-xs p-2">
-        <a-checkbox v-model:checked="options.includeData">Include data</a-checkbox>
-        <a-checkbox v-model:checked="options.includeViews">Include views</a-checkbox>
-        <a-checkbox v-show="isEaster" v-model:checked="options.includeHooks">Include webhooks</a-checkbox>
+        <a-checkbox v-model:checked="options.includeData">{{ $t('labels.includeData') }}a</a-checkbox>
+        <a-checkbox v-model:checked="options.includeViews">{{ $t('labels.includeView') }}</a-checkbox>
+        <a-checkbox v-show="isEaster" v-model:checked="options.includeHooks">{{ $t('labels.includeWebhook') }}</a-checkbox>
       </div>
     </div>
     <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">

@@ -273,6 +273,9 @@ function groupByTests() {
         sort: `-LanguageName`,
       })
       .expect(200);
+
+    console.log(JSON.stringify(response.body.list, null, 2));
+
     assert.match(response.body.list[0]['LanguageName'], /^English/);
     expect(+response.body.list[0]['count']).to.equal(1000);
     expect(response.body.list.length).to.equal(1);
@@ -338,6 +341,8 @@ function groupByTests() {
         sort: `-${nestedFormulaColumnTitle}`,
       })
       .expect(200);
+
+    console.log(JSON.stringify(res.body.list, null, 2));
 
     expect(res.body.list.length).to.equal(5);
     expect(res.body.list[0][nestedFormulaColumnTitle]).to.be.gte(

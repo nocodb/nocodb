@@ -193,7 +193,9 @@ export default class Base implements BaseType {
       await NocoCache.setList(CacheScope.BASE, [args.projectId], baseDataList);
     }
 
-    baseDataList.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
+    baseDataList.sort(
+      (a, b) => (a?.order ?? Infinity) - (b?.order ?? Infinity),
+    );
 
     return baseDataList?.map((baseData) => {
       return this.castType(baseData);

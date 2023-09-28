@@ -22,7 +22,7 @@ const visit = (url: string) => {
 whenever(keys.ArrowDown, () => {
   if (!vOpen.value) return
   selected.value = Math.min(selected.value + 1, document.querySelectorAll('.cmdj-action').length - 1)
-  document.querySelector('.cmdj-action.selected').scrollIntoView({
+  document.querySelector('.cmdj-action.selected')?.scrollIntoView({
     behavior: 'smooth',
     block: 'nearest',
     inline: 'start',
@@ -36,7 +36,7 @@ whenever(keys.ArrowUp, () => {
   } else {
     selected.value = document.querySelectorAll('.cmdj-action').length - 1
   }
-  document.querySelector('.cmdj-action.selected').scrollIntoView({
+  document.querySelector('.cmdj-action.selected')?.scrollIntoView({
     behavior: 'smooth',
     block: 'nearest',
     inline: 'start',
@@ -80,11 +80,13 @@ onClickOutside(modalEl, () => {
   hide()
 })
 
+const focus: VNodeRef = (el: HTMLInputElement) => el?.focus()
+
 const searchClient = nuxtApp.$typesenseInstantsearchAdapter.searchClient
 </script>
 
 <template>
-  <div v-show="vOpen" class="cmdj-modal" :class="{ 'cmdj-modal-active': vOpen }">
+  <div v-if="vOpen" class="cmdj-modal" :class="{ 'cmdj-modal-active': vOpen }">
     <div ref="modalEl" class="cmdj-modal-content">
       <ais-instant-search :search-client="searchClient" index-name="nocodb-oss-docs-index">
         <div class="cmdj-header">
@@ -94,6 +96,7 @@ const searchClient = nuxtApp.$typesenseInstantsearchAdapter.searchClient
                 <MdiMagnify class="h-6 w-6" />
               </span>
               <input
+                :ref="focus"
                 class="cmdj-input"
                 placeholder="Search Docs"
                 type="search"
@@ -161,7 +164,7 @@ const searchClient = nuxtApp.$typesenseInstantsearchAdapter.searchClient
   --cmdj-modal-background: #fff;
 }
 .cmdj-modal {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
@@ -230,7 +233,7 @@ const searchClient = nuxtApp.$typesenseInstantsearchAdapter.searchClient
     padding: 0.5em 0px;
     list-style: none;
     scroll-behavior: smooth;
-    overflow: auto;
+    overflow: hidden;
     position: relative;
 
     --scrollbar-track: initial;

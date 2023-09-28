@@ -334,6 +334,7 @@
     "clickToMake": "Click to make",
     "visibleForRole": "visible for role:",
     "inUI": "in UI Dashboard",
+    "projectSettings": "Project Settings",
     "clickToHide": "Click to hide",
     "forRole": "for role",
     "searchUsers": "Search Users",
@@ -914,6 +915,7 @@
       "userDoesntHaveSufficientPermission": "User does not exist or have sufficient permission to create schema.",
       "dbConnectionStatus": "Invalid database parameters",
       "dbConnectionFailed": "Connection Failure:",
+      "nullFilterExists": "Null filter exists. Please remove them",
       "signUpRules": {
         "emailReqd": "Email is required",
         "emailInvalid": "Email must be valid",

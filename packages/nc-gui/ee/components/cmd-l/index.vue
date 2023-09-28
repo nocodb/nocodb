@@ -47,6 +47,10 @@ onKeyUp('Control', async () => {
   }
 })
 
+const renderCmdOrCtrlKey = () => {
+  return isMac() ? '⌘' : 'CTRL'
+}
+
 whenever(keys['Ctrl+Shift+L'], async () => {
   vOpen.value = true
   const index = recentViews.value.findIndex((v) => v.tableID + v.viewName === selected.value)

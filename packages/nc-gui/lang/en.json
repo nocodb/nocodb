@@ -311,6 +311,14 @@
     "profile": "Profile",
     "tableName": "Table name",
     "dashboardName": "Dashboard name",
+    "noViews": "No views",
+    "createView": "Create a View",
+    "creatingView": "Creating View",
+    "duplicateView": "Duplicate view",
+    "duplicateGridView": "Duplicate Grid View",
+    "duplicateGalleryView": "Duplicate Gallery View",
+    "duplicateFormView": "Duplicate Form View",
+    "duplicateKanbanView": "Duplicate Kanban View",
     "viewName": "View name",
     "viewLink": "View Link",
     "columnName": "Column Name",
@@ -631,6 +639,10 @@
   },
   "placeholder": {
     "projName": "Enter Project Name",
+    "selectGroupField": "Select a Grouping Field",
+    "selectGroupFieldNotFound" : "No Single Select Field can be found. Please create one first.",
+    "selectGeoField": "Select a GeoData Field",
+    "selectGeoFieldNotFound": "No GeoData Field can be found. Please create one first.",
     "password": {
       "enter": "Enter the password",
       "current": "Current password",
@@ -810,6 +822,8 @@
       "noMoreRecords": "No more records"
     },
     "error": {
+      "viewNameRequired": "View name is required",
+      "viewNameUnique": "View name should be unique",
       "searchProject": "Your search for {search} found no results",
       "invalidChar": "Invalid character in folder path.",
       "invalidDbCredentials": "Invalid database credentials.",

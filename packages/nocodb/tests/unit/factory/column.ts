@@ -233,12 +233,14 @@ const createLookupColumn = async (
     table,
     relatedTableName,
     relatedTableColumnTitle,
+    relationColumnId,
   }: {
     project: Project;
     title: string;
     table: Model;
     relatedTableName: string;
     relatedTableColumnTitle: string;
+    relationColumnId?: string;
   },
 ) => {
   const childBases = await project.getBases();
@@ -258,12 +260,20 @@ const createLookupColumn = async (
     );
   }
 
-  const ltarColumn = (await table.getColumns()).find(
-    (column) =>
-      (column.uidt === UITypes.Links ||
-        column.uidt === UITypes.LinkToAnotherRecord) &&
-      column.colOptions?.fk_related_model_id === childTable.id,
-  );
+  let ltarColumn;
+  if (relationColumnId)
+    ltarColumn = (await table.getColumns()).find(
+      (column) => column.id === relationColumnId,
+    );
+  else {
+    ltarColumn = (await table.getColumns()).find(
+      (column) =>
+        (column.uidt === UITypes.Links ||
+          column.uidt === UITypes.LinkToAnotherRecord) &&
+        column.colOptions?.fk_related_model_id === childTable.id,
+    );
+  }
+
   const lookupColumn = await createColumn(context, table, {
     title: title,
     uidt: UITypes.Lookup,

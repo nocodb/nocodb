@@ -58,7 +58,7 @@ const openDropDown = () => {
 <template>
   <div
     class="flex items-center w-full text-xs text-gray-500 font-weight-medium"
-    :class="{ 'h-full': column, '!text-gray-400': isKanban }"
+    :class="{ 'h-full': column, '!text-gray-400': isKanban, 'bg-gray-400 bg-opacity-10': editColumnDropdown }"
     @dblclick="openHeaderMenu"
     @click.right="openDropDown"
     @click="isDropDownOpen = false"

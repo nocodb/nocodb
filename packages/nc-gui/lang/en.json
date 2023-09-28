@@ -926,7 +926,9 @@
         "atLeastOneUppercase": "One Uppercase letter",
         "atLeastOneNumber": "One Number",
         "atLeastOneSpecialChar": "One special character",
-        "allowedSpecialCharList": "Allowed special character list"
+        "allowedSpecialCharList": "Allowed special character list",
+        "invalidEmails": "Invalid emails",
+        "invalidEmail": "Invalid Email"
       },
       "invalidURL": "Invalid URL",
       "invalidEmail": "Invalid Email",

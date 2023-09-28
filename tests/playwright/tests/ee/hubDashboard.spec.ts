@@ -47,15 +47,20 @@ test.describe('DashboardBasicTests', () => {
 
     await dashboard.leftSidebar.createWorkspace({ title: ws2Title });
     await dashboard.rootPage.waitForTimeout(1000);
-    expect(await dashboard.leftSidebar.getWorkspaceName()).toBe(ws2Title);
+    await dashboard.leftSidebar.verifyWorkspaceName({
+      title: ws2Title,
+    });
 
     await dashboard.workspaceSettings.open();
     await dashboard.workspaceSettings.renameWorkspace({ newTitle: ws2Title + '2' });
     await dashboard.rootPage.waitForTimeout(1000);
-    expect(await dashboard.leftSidebar.getWorkspaceName()).toBe(ws2Title + '2');
+    await dashboard.leftSidebar.verifyWorkspaceName({
+      title: ws2Title + 2,
+    });
 
-    const wsList = await dashboard.leftSidebar.getWorkspaceList();
-    expect(wsList.length).toBe(3);
+    await dashboard.leftSidebar.verifyWorkspaceCount({
+      count: 3,
+    });
 
     // tbd
     // await dashboard.leftSidebar.clickTeamAndSettings();

@@ -118,7 +118,7 @@ onBeforeUnmount(() => {
       >
         <GeneralWorkspaceIcon :workspace="activeWorkspace" />
         <div v-if="activeWorkspace" class="flex min-w-10 w-full">
-          <div class="font-semibold text-base text-md truncate capitalize">
+          <div class="nc-workspace-title font-semibold text-base text-md truncate capitalize">
             {{ activeWorkspace.title }}
           </div>
           <GeneralIcon icon="arrowDown" class="ml-1 min-w-6 text-lg !text-gray-700" />

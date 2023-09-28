@@ -506,21 +506,95 @@ class BaseModelSqlv2 {
 
     args.column_name = args.column_name || '';
 
-    const groupByColumns = await this.model.getColumns().then((cols) =>
-      args.column_name.split(',').map((col) => {
+    const cols = await this.model.getColumns();
+
+    const selectors = [];
+    const groupBySelector = [];
+
+    const groupByColumns = await Promise.all(
+      args.column_name.split(',').map(async (col) => {
         const column = cols.find(
           (c) => c.column_name === col || c.title === col,
         );
         if (!column) {
           throw NcError.notFound('Column not found');
         }
+
+        switch (column.uidt) {
+          case UITypes.Rollup:
+            selectors.push(
+              (
+                await genRollupSelectv2({
+                  baseModelSqlv2: this,
+                  // tn: this.title,
+                  knex: this.dbDriver,
+                  // column,
+                  // alias,
+                  columnOptions: (await column.getColOptions()) as RollupColumn,
+                })
+              ).builder.as(sanitize(column.title)),
+            );
+            groupBySelector.push(
+              // (
+              //   await genRollupSelectv2({
+              //     baseModelSqlv2: this,
+              //     // tn: this.title,
+              //     knex: this.dbDriver,
+              //     // column,
+              //     // alias,
+              //     columnOptions: (await column.getColOptions()) as RollupColumn,
+              //   })
+              // ).builder,
+              sanitize(column.title),
+            );
+            break;
+          case UITypes.Formula:
+            let selectQb;
+            try {
+              const _selectQb = await this.getSelectQueryBuilderForFormula(
+                column,
+              );
+
+              selectQb = this.dbDriver.raw(`?? as ??`, [
+                _selectQb.builder,
+                sanitize(column.title),
+              ]);
+            } catch (e) {
+              console.log(e);
+              // return dummy select
+              selectQb = this.dbDriver.raw(`'ERR' as ??`, [
+                sanitize(column.title),
+              ]);
+            }
+
+            selectors.push(selectQb);
+            groupBySelector.push(
+              // (
+              //   await genRollupSelectv2({
+              //     baseModelSqlv2: this,
+              //     // tn: this.title,
+              //     knex: this.dbDriver,
+              //     // column,
+              //     // alias,
+              //     columnOptions: (await column.getColOptions()) as RollupColumn,
+              //   })
+              // ).builder,
+              column.title,
+            );
+            break;
+        }
+
         return column.column_name;
       }),
     );
 
     const qb = this.dbDriver(this.tnPath);
     qb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
-    qb.select(...groupByColumns);
+
+    // groupby-replace
+    // qb.select(...groupByColumns);
+
+    qb.select(...selectors);
 
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
@@ -557,6 +631,7 @@ class BaseModelSqlv2 {
       qb,
     );
 
+    // qb.groupBy(...groupByColumns);
     qb.groupBy(...groupByColumns);
 
     if (!sorts)
@@ -583,21 +658,80 @@ class BaseModelSqlv2 {
 
     args.column_name = args.column_name || '';
 
-    const groupByColumns = await this.model.getColumns().then((cols) =>
-      args.column_name.split(',').map((col) => {
-        const column = cols.find(
-          (c) => c.column_name === col || c.title === col,
-        );
-        if (!column) {
-          throw NcError.notFound('Column not found');
-        }
-        return column.column_name;
-      }),
+    const selectors = [];
+    const groupBySelector = [];
+
+    await this.model.getColumns().then((cols) =>
+      Promise.all(
+        args.column_name.split(',').map(async (col) => {
+          const column = cols.find(
+            (c) => c.column_name === col || c.title === col,
+          );
+          if (!column) {
+            throw NcError.notFound('Column not found');
+          }
+
+          switch (column.uidt) {
+            case UITypes.Rollup:
+              selectors.push(
+                (
+                  await genRollupSelectv2({
+                    baseModelSqlv2: this,
+                    // tn: this.title,
+                    knex: this.dbDriver,
+                    // column,
+                    // alias,
+                    columnOptions:
+                      (await column.getColOptions()) as RollupColumn,
+                  })
+                ).builder.as(sanitize(column.title)),
+              );
+              groupBySelector.push(sanitize(column.title));
+              break;
+            case UITypes.Formula:
+              let selectQb;
+              try {
+                const _selectQb = await this.getSelectQueryBuilderForFormula(
+                  column,
+                );
+
+                selectQb = this.dbDriver.raw(`?? as ??`, [
+                  _selectQb.builder,
+                  sanitize(column.title),
+                ]);
+              } catch (e) {
+                console.log(e);
+                // return dummy select
+                selectQb = this.dbDriver.raw(`'ERR' as ??`, [
+                  sanitize(column.title),
+                ]);
+              }
+
+              selectors.push(selectQb);
+              groupBySelector.push(
+                // (
+                //   await genRollupSelectv2({
+                //     baseModelSqlv2: this,
+                //     // tn: this.title,
+                //     knex: this.dbDriver,
+                //     // column,
+                //     // alias,
+                //     columnOptions: (await column.getColOptions()) as RollupColumn,
+                //   })
+                // ).builder,
+                column.title,
+              );
+              break;
+          }
+
+          return column.column_name;
+        }),
+      ),
     );
 
     const qb = this.dbDriver(this.tnPath);
     qb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
-    qb.select(...groupByColumns);
+    qb.select(...selectors);
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
 
@@ -628,7 +762,7 @@ class BaseModelSqlv2 {
       qb,
     );
 
-    qb.groupBy(...groupByColumns);
+    qb.groupBy(...groupBySelector);
 
     const qbP = this.dbDriver
       .count('*', { as: 'count' })

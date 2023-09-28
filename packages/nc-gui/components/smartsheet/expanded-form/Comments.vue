@@ -75,8 +75,6 @@ onKeyStroke('Enter', (event) => {
 const comments = computed(() => commentsAndLogs.value.filter((log) => log.op_type === 'COMMENT'))
 const audits = computed(() => commentsAndLogs.value.filter((log) => log.op_type !== 'COMMENT'))
 
-const isSearchBoxFocused = ref(false)
-
 function editComment(log: AuditType) {
   editLog.value = log
   isEditing.value = true

@@ -57,7 +57,14 @@ onKeyStroke('Enter', () => {
           {{ $t('general.cancel') }}
         </NcButton>
 
-        <NcButton key="submit" type="danger" html-type="submit" :loading="isLoading" @click="onDelete">
+        <NcButton
+          key="submit"
+          type="danger"
+          html-type="submit"
+          :loading="isLoading"
+          data-testid="nc-delete-modal-delete-btn"
+          @click="onDelete"
+        >
           {{ `${$t('general.delete')} ${props.entityName}` }}
           <template #loading>
             {{ $t('general.deleting') }}

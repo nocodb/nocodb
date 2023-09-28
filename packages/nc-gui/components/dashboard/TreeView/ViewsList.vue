@@ -16,7 +16,6 @@ import {
   useCommandPalette,
   useDialog,
   useNuxtApp,
-  useRouter,
   useUndoRedo,
   viewTypeAlias,
   watch,

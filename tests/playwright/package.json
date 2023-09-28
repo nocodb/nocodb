@@ -34,6 +34,7 @@
     "ci:test:shard:2": "pnpm exec playwright test --workers=2 --shard=2/4",
     "ci:test:shard:3": "pnpm exec playwright test --workers=2 --shard=3/4",
     "ci:test:shard:4": "pnpm exec playwright test --workers=2 --shard=4/4",
+    "ci:test:flaky:repeat": "pnpm exec playwright test --workers=4 --grep @flaky --repeat-each=3",
     "ci:test:mysql": "E2E_DB_TYPE=mysql pnpm exec playwright test --workers=2",
     "ci:test:pg": "E2E_DB_TYPE=pg pnpm exec playwright test --workers=2",
     "preinstall": "npx only-allow pnpm"
@@ -48,7 +49,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@playwright/test": "1.36.1",
+    "@playwright/test": "1.38.0",
     "@typescript-eslint/eslint-plugin": "^6.1.0",
     "@typescript-eslint/parser": "^6.1.0",
     "axios": "^0.24.0",

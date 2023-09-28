@@ -218,11 +218,12 @@ watch(vModel.value, (next) => {
                   <LazyGeneralColorPicker
                     v-model="element.color"
                     :pick-button="true"
-                    @update:model-value="colorMenus[index] = false"
+                    @close-modal="colorMenus[index] = false"
+                    @input="(el:string) => (element.color = el)"
                   />
                 </template>
                 <MdiArrowDownDropCircle
-                  class="mr-2 text-[1.5em] outline-0 hover:!text-[1.75em]"
+                  class="mr-2 text-[1.5em] outline-0 hover:!text-[1.75em] cursor-pointer"
                   :class="{ 'text-[1.75em]': colorMenus[index] }"
                   :style="{ color: element.color }"
                 />

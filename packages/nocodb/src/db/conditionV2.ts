@@ -460,7 +460,11 @@ const parseConditionV2 = async (
                 ].includes(column.uidt)
               ) {
                 qb = qb.where(field, val);
-              } else if (column.ct === 'timestamp') {
+              } else if (
+                column.ct === 'timestamp' ||
+                column.ct === 'date' ||
+                column.ct === 'datetime'
+              ) {
                 qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
               } else {
                 // mysql is case-insensitive for strings, turn to case-sensitive

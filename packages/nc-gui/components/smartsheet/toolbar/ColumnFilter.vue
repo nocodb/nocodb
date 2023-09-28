@@ -10,6 +10,7 @@ import {
   computed,
   iconMap,
   inject,
+  onMounted,
   ref,
   useNuxtApp,
   useViewFilters,
@@ -68,6 +69,8 @@ const {
   saveOrUpdateDebounced,
   isComparisonOpAllowed,
   isComparisonSubOpAllowed,
+  loadBtLookupTypes,
+  btLookupTypesMap,
 } = useViewFilters(
   activeView,
   parentId?.value,
@@ -86,7 +89,8 @@ const addFiltersRowDomRef = ref<HTMLElement>()
 const columns = computed(() => meta.value?.columns)
 
 const getColumn = (filter: Filter) => {
-  return columns.value?.find((col: ColumnType) => col.id === filter.fk_column_id)
+  // extract looked up column if available
+  return btLookupTypesMap.value[filter.fk_column_id] || columns.value?.find((col: ColumnType) => col.id === filter.fk_column_id)
 }
 
 const filterPrevComparisonOp = ref<Record<string, string>>({})
@@ -288,6 +292,10 @@ const showFilterInput = (filter: Filter) => {
 
 onMounted(() => {
   loadFilters(hookId?.value)
+})
+
+onMounted(async () => {
+  await loadBtLookupTypes()
 })
 </script>
 

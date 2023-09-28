@@ -10432,4 +10432,431 @@ export class Api<
         ...params,
       }),
   };
+  dbDataTableRow = {
+    /**
+ * @description List all table rows in a given table
+ * 
+ * @tags DB Data Table Row
+ * @name List
+ * @summary List Table Rows
+ * @request GET:/api/v1/tables/{tableId}/rows
+ * @response `200` `{
+  \** List of data objects *\
+  list: (object)[],
+  \** Paginated Info *\
+  pageInfo: PaginatedType,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    list: (
+      tableId: string,
+      query: {
+        /** View ID */
+        viewId: string;
+        /** Which fields to be shown */
+        fields?: any[];
+        /** The result will be sorted based on `sort` query */
+        sort?: string[] | string;
+        /** Extra filtering */
+        where?: string;
+        /**
+         * Offset in rows
+         * @min 0
+         */
+        offset?: number;
+        /**
+         * Limit in rows
+         * @min 1
+         */
+        limit?: number;
+        /** Used for multiple sort queries */
+        sortArrJson?: string;
+        /** Used for multiple filter queries */
+        filterArrJson?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          /** List of data objects */
+          list: object[];
+          /** Paginated Info */
+          pageInfo: PaginatedType;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/tables/${tableId}/rows`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Create a new row in a given table and project.
+ * 
+ * @tags DB Data Table Row
+ * @name Create
+ * @summary Create Table Rows
+ * @request POST:/api/v1/tables/{tableId}/rows
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    create: (
+      tableId: string,
+      query: {
+        /** View ID */
+        viewId: string;
+      },
+      data: object | object[],
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/tables/${tableId}/rows`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Create a new row in a given table and project.
+ * 
+ * @tags DB Data Table Row
+ * @name Update
+ * @summary Update Table Rows
+ * @request PUT:/api/v1/tables/{tableId}/rows
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    update: (
+      tableId: string,
+      query: {
+        /** View ID */
+        viewId: string;
+      },
+      data: object | object[],
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/tables/${tableId}/rows`,
+        method: 'PUT',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Create a new row in a given table and project.
+ * 
+ * @tags DB Data Table Row
+ * @name Delete
+ * @summary Delete Table Rows
+ * @request DELETE:/api/v1/tables/{tableId}/rows
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    delete: (
+      tableId: string,
+      query: {
+        /** View ID */
+        viewId: string;
+      },
+      data: object | object[],
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/tables/${tableId}/rows`,
+        method: 'DELETE',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Get table row in a given table
+ * 
+ * @tags DB Data Table Row
+ * @name Read
+ * @summary Read Table Row
+ * @request GET:/api/v1/tables/{tableId}/rows/{rowId}
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    read: (
+      tableId: string,
+      rowId: string,
+      query: {
+        /** View ID */
+        viewId: string;
+        /** Which fields to be shown */
+        fields?: any[];
+        /**
+         * Offset in rows
+         * @min 0
+         */
+        offset?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/tables/${tableId}/rows/${rowId}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Count of rows in a given table
+ * 
+ * @tags DB Data Table Row
+ * @name Count
+ * @summary Table Rows Count
+ * @request GET:/api/v1/tables/{tableId}/rows/count
+ * @response `200` `{
+  count?: number,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    count: (
+      tableId: string,
+      query: {
+        /** View ID */
+        viewId: string;
+        /** Which fields to be shown */
+        fields?: any[];
+        /** Extra filtering */
+        where?: string;
+        /** Used for multiple filter queries */
+        filterArrJson?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          count?: number;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/tables/${tableId}/rows/count`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Linked rows in a given Links/LinkToAnotherRecord column
+ * 
+ * @tags DB Data Table Row
+ * @name NestedList
+ * @summary Get Nested Relations Rows
+ * @request GET:/api/v1/tables/{tableId}/links/{columnId}/rows/{rowId}
+ * @response `200` `{
+  \** List of data objects *\
+  list: (object)[],
+  \** Paginated Info *\
+  pageInfo: PaginatedType,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    nestedList: (
+      tableId: string,
+      columnId: string,
+      rowId: string,
+      query: {
+        /** View ID */
+        viewId: string;
+        /** Which fields to be shown */
+        fields?: any[];
+        /** The result will be sorted based on `sort` query */
+        sort?: string[] | string;
+        /** Extra filtering */
+        where?: string;
+        /**
+         * Offset in rows
+         * @min 0
+         */
+        offset?: number;
+        /**
+         * Limit in rows
+         * @min 1
+         */
+        limit?: number;
+        /** Used for multiple sort queries */
+        sortArrJson?: string;
+        /** Used for multiple filter queries */
+        filterArrJson?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          /** List of data objects */
+          list: object[];
+          /** Paginated Info */
+          pageInfo: PaginatedType;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/tables/${tableId}/links/${columnId}/rows/${rowId}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Create a link with the row.
+ * 
+ * @tags DB Data Table Row
+ * @name NestedLink
+ * @summary Create Nested Relations Rows
+ * @request POST:/api/v1/tables/{tableId}/links/{columnId}/rows/{rowId}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    nestedLink: (
+      tableId: string,
+      columnId: string,
+      rowId: string,
+      query: {
+        /** View ID */
+        viewId: string;
+      },
+      data: object | object[],
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/tables/${tableId}/links/${columnId}/rows/${rowId}`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Create a new row in a given table and project.
+ * 
+ * @tags DB Data Table Row
+ * @name NestedUnlink
+ * @summary Delete Nested Relations Rows
+ * @request DELETE:/api/v1/tables/{tableId}/links/{columnId}/rows/{rowId}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    nestedUnlink: (
+      tableId: string,
+      columnId: string,
+      rowId: string,
+      query: {
+        /** View ID */
+        viewId: string;
+      },
+      data: object | object[],
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/tables/${tableId}/links/${columnId}/rows/${rowId}`,
+        method: 'DELETE',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
 }

@@ -12,7 +12,7 @@
 }
 
 .nc-menu-item-inner {
-  @apply flex flex-row items-center gap-x-2;
+  @apply flex flex-row items-center gap-x-2 text-sm;
 }
 
 .nc-menu-item > .ant-dropdown-menu-title-content {

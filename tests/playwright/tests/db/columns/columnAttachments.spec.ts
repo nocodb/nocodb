@@ -52,6 +52,9 @@ test.describe('Attachment column', () => {
       columnHeader: 'testAttach',
     });
 
+    // Kludge: tooltip somehow persists. fix me!
+    await dashboard.rootPage.reload();
+
     await dashboard.viewSidebar.createFormView({
       title: 'Form 1',
     });

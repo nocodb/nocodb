@@ -2,17 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import {
-  IsLockedInj,
-  isDefaultBase as _isDefaultBase,
-  inject,
-  message,
-  onKeyStroke,
-  useDebounceFn,
-  useNuxtApp,
-  useRoles,
-  useVModel,
-} from '#imports'
+import { IsLockedInj, inject, message, onKeyStroke, useDebounceFn, useNuxtApp, useRoles, useVModel } from '#imports'
 
 interface Props {
   view: ViewType
@@ -41,24 +31,13 @@ const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType &
 
 const { $e } = useNuxtApp()
 
-const { isMobileMode } = useGlobal()
-
 const { isUIAllowed } = useRoles()
-
-const { activeViewTitleOrId } = storeToRefs(useViewsStore())
-
-const project = inject(ProjectInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const isDefaultBase = computed(() => {
-  const base = project.value?.bases?.find((b) => b.id === vModel.value.base_id)
-  if (!base) return false
-
-  return _isDefaultBase(base)
-})
+const { rightSidebarState } = storeToRefs(useSidebarStore())
 
 const isDropdownOpen = ref(false)
 
@@ -80,7 +59,6 @@ const onClick = useDebounceFn(() => {
 
 /** Enable editing view name on dbl click */
 function onDblClick() {
-  if (isMobileMode.value) return
   if (!isUIAllowed('viewCreateOrEdit')) return
 
   if (!isEditing.value) {
@@ -192,45 +170,31 @@ function onStopEdit() {
   }, 250)
 }
 
-function onRef(el: HTMLElement) {
-  if (activeViewTitleOrId.value === vModel.value.id) {
-    nextTick(() => {
-      setTimeout(() => {
-        el?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-      }, 1000)
-    })
+watch(rightSidebarState, () => {
+  if (rightSidebarState.value === 'peekCloseEnd') {
+    isDropdownOpen.value = false
   }
-}
+})
 </script>
 
 <template>
-  <a-menu-item
-    class="nc-sidebar-node !min-h-7 !max-h-7 !mb-0.25 select-none group text-gray-700 !flex !items-center !mt-0 hover:(!bg-gray-200 !text-gray-900) cursor-pointer"
-    :class="{
-      '!pl-18 !xs:(pl-19.75)': isDefaultBase,
-      '!pl-23.5 !xs:(pl-27)': !isDefaultBase,
-    }"
+  <NcMenuItem
+    class="!min-h-8 !max-h-8 !mb-0.25 select-none group text-gray-700 !flex !items-center !mt-0 hover:(!bg-gray-100 !text-gray-900)"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @dblclick.stop="onDblClick"
     @click="onClick"
   >
-    <div
-      :ref="onRef"
-      v-e="['a:view:open', { view: vModel.type }]"
-      class="text-sm flex items-center w-full gap-1"
-      data-testid="view-item"
-    >
+    <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-1" data-testid="view-item">
       <div class="flex min-w-6" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
         <LazyGeneralEmojiPicker
           class="nc-table-icon"
           :emoji="props.view?.meta?.icon"
           size="small"
           :clearable="true"
-          :readonly="isMobileMode"
           @emoji-selected="emits('selectIcon', $event)"
         >
           <template #default>
-            <GeneralViewIcon :meta="props.view" class="nc-view-icon"></GeneralViewIcon>
+            <GeneralViewIcon :meta="props.view" class="nc-view-icon" />
           </template>
         </LazyGeneralEmojiPicker>
       </div>
@@ -239,7 +203,7 @@ function onRef(el: HTMLElement) {
         v-if="isEditing"
         :ref="focusInput"
         v-model:value="_title"
-        class="!bg-transparent !border-0 !ring-0 !outline-transparent !border-transparent"
+        class="!bg-transparent !text-xs !border-0 !ring-0 !outline-transparent !border-transparent"
         :class="{
           'font-medium': activeView?.id === vModel.id,
         }"
@@ -249,11 +213,8 @@ function onRef(el: HTMLElement) {
 
       <div
         v-else
-        class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none w-full"
+        class="capitalize text-ellipsis overflow-hidden select-none w-full"
         data-testid="sidebar-view-title"
-        :class="{
-          'font-medium': activeView?.id === vModel.id,
-        }"
         :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
       >
         {{ vModel.alias || vModel.title }}
@@ -263,35 +224,37 @@ function onRef(el: HTMLElement) {
 
       <template v-if="!isEditing && !isLocked && isUIAllowed('viewCreateOrEdit')">
         <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
-          <NcButton
-            type="text"
-            size="xxsmall"
-            class="nc-sidebar-node-btn invisible !group-hover:visible nc-sidebar-view-node-context-btn"
+          <div
+            class="invisible !group-hover:visible"
             :class="{
               '!visible': isDropdownOpen,
             }"
-            @click.stop="isDropdownOpen = !isDropdownOpen"
           >
-            <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
-          </NcButton>
-
+            <NcButton
+              size="xxsmall"
+              type="text"
+              class="nc-view-sidebar-node-context-btn !px-1 !border-none !bg-inherit !tr !hover:text-gray-900"
+              @click.stop="isDropdownOpen = !isDropdownOpen"
+            >
+              <GeneralIcon icon="threeDotVertical" class="-mt-0.5" />
+            </NcButton>
+          </div>
           <template #overlay>
-            <NcMenu class="min-w-27" :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`">
-              <NcMenuItem @click.stop="onDblClick">
+            <NcMenu :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`">
+              <NcMenuItem size="small" :centered="false" @click.stop="onDblClick">
                 <GeneralIcon icon="edit" />
-                <div class="-ml-0.25">Rename</div>
+                Rename
               </NcMenuItem>
-              <NcMenuItem @click.stop="onDuplicate">
-                <GeneralIcon icon="duplicate" class="nc-view-copy-icon" />
+              <NcMenuItem size="small" :centered="false" class="nc-view-copy-icon" @click.stop="onDuplicate">
+                <GeneralIcon icon="copy" class="text-base" />
                 Duplicate
               </NcMenuItem>
 
-              <NcDivider />
-
               <template v-if="!vModel.is_default">
-                <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click.stop="onDelete">
-                  <GeneralIcon icon="delete" class="text-sm nc-view-delete-icon" />
-                  <div class="-ml-0.25">Delete</div>
+                <NcDivider />
+                <NcMenuItem size="small" class="nc-view-delete-icon !text-red-600 !hover:bg-red-50" @click.stop="onDelete">
+                  <GeneralIcon icon="delete" />
+                  Delete
                 </NcMenuItem>
               </template>
             </NcMenu>
@@ -299,5 +262,5 @@ function onRef(el: HTMLElement) {
         </NcDropdown>
       </template>
     </div>
-  </a-menu-item>
+  </NcMenuItem>
 </template>

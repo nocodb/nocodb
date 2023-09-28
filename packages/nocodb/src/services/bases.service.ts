@@ -6,6 +6,7 @@ import { populateMeta, validatePayload } from '~/helpers';
 import { populateRollupColumnAndHideLTAR } from '~/helpers/populateMeta';
 import { syncBaseMigration } from '~/helpers/syncMigration';
 import { Base, Project } from '~/models';
+import { NcError } from '~/helpers/catchError';
 
 @Injectable()
 export class BasesService {
@@ -51,11 +52,25 @@ export class BasesService {
   }
 
   async baseDelete(param: { baseId: string }) {
-    const base = await Base.get(param.baseId);
-    await base.delete();
-    this.appHooksService.emit(AppEvents.BASE_DELETE, {
-      base,
-    });
+    try {
+      const base = await Base.get(param.baseId, true);
+      await base.delete();
+      this.appHooksService.emit(AppEvents.BASE_DELETE, {
+        base,
+      });
+    } catch (e) {
+      NcError.badRequest(e);
+    }
+    return true;
+  }
+
+  async baseSoftDelete(param: { baseId: string }) {
+    try {
+      const base = await Base.get(param.baseId);
+      await base.softDelete();
+    } catch (e) {
+      NcError.badRequest(e);
+    }
     return true;
   }
 

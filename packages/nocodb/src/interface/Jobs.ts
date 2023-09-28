@@ -6,6 +6,7 @@ export enum JobTypes {
   AtImport = 'at-import',
   MetaSync = 'meta-sync',
   BaseCreate = 'base-create',
+  BaseDelete = 'base-delete',
 }
 
 export enum JobStatus {

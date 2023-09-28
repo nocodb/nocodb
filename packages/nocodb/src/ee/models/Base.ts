@@ -56,7 +56,7 @@ export default class Base extends BaseCE implements BaseType {
     );
 
     // call before reorder to update cache
-    const returnBase = await this.get(id, ncMeta);
+    const returnBase = await this.get(id, false, ncMeta);
 
     await this.reorderBases(base.projectId);
 

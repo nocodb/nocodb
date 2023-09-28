@@ -1266,7 +1266,7 @@ export class ColumnsService {
       ),
     );
     const base = await reuseOrSave('base', reuse, async () =>
-      Base.get(table.base_id, ncMeta),
+      Base.get(table.base_id, false, ncMeta),
     );
 
     const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>

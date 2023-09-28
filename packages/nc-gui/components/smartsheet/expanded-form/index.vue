@@ -323,21 +323,11 @@ const onDeleteRowClick = () => {
 }
 
 const onConfirmDeleteRowClick = async () => {
-  try {
-    showDeleteRowModal.value = false
-    message.success('Row deleted')
-    await deleteRowById(primaryKey.value)
-    // if (!props.lastRow) {
-    //   await onNext()
-    // } else if (!props.firstRow) {
-    //   emits('prev')
-    // } else {
-    // }
-    reloadTrigger.trigger()
-    onClose()
-  } finally {
-    showDeleteRowModal.value = false
-  }
+  showDeleteRowModal.value = false
+  await deleteRowById(primaryKey.value)
+  reloadTrigger.trigger()
+  onClose()
+  showDeleteRowModal.value = false
 }
 
 watch(

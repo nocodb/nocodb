@@ -268,7 +268,7 @@ const isPublicShareDisabled = computed(() => {
   <div class="flex flex-col py-2 px-3 mb-1">
     <div class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-gray-200 border-1 rounded-md gap-y-2">
       <div class="flex flex-row w-full justify-between py-0.5">
-        <div class="flex" :style="{ fontWeight: 500 }">Enable public viewing</div>
+        <div class="flex" :style="{ fontWeight: 500 }">{{ $t('activity.enabledPublicViewing') }}</div>
         <a-switch
           data-testid="share-view-toggle"
           :checked="isPublicShared"
@@ -284,7 +284,7 @@ const isPublicShareDisabled = computed(() => {
         </div>
         <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
           <div class="flex flex-row justify-between">
-            <div class="flex text-black">Restrict access with password</div>
+            <div class="flex text-black">{{ $t('activity.restrictAccessWithPassword') }}</div>
             <a-switch
               data-testid="share-password-toggle"
               :checked="passwordProtected"
@@ -317,7 +317,7 @@ const isPublicShareDisabled = computed(() => {
             "
             class="flex flex-row justify-between"
           >
-            <div class="flex text-black">Allow Download</div>
+            <div class="flex text-black">{{ $t('activity.allowDownload') }}</div>
             <a-switch
               v-model:checked="allowCSVDownload"
               data-testid="share-download-toggle"
@@ -328,14 +328,14 @@ const isPublicShareDisabled = computed(() => {
 
           <div v-if="activeView?.type === ViewTypes.FORM" class="flex flex-row justify-between">
             <!-- use RTL orientation in form - todo: i18n -->
-            <div class="text-black">Survey Mode</div>
+            <div class="text-black">{{ $t('activity.surveyMode') }}</div>
             <a-switch v-model:checked="surveyMode" data-testid="nc-modal-share-view__surveyMode">
               <!-- todo i18n -->
             </a-switch>
           </div>
           <div v-if="activeView?.type === ViewTypes.FORM" class="flex flex-row justify-between">
             <!-- use RTL orientation in form - todo: i18n -->
-            <div class="text-black">RTL Orientation</div>
+            <div class="text-black">{{ $t('activity.rtlOrientation') }}</div>
             <a-switch v-model:checked="withRTL" data-testid="nc-modal-share-view__RTL">
               <!-- todo i18n -->
             </a-switch>
@@ -343,7 +343,7 @@ const isPublicShareDisabled = computed(() => {
           <div v-if="activeView?.type === ViewTypes.FORM" class="flex flex-col justify-between gap-y-1 bg-gray-50 rounded-md">
             <!-- todo: i18n -->
             <div class="flex flex-row justify-between">
-              <div class="text-black">Use Theme</div>
+              <div class="text-black">{{ $t('activity.useTheme') }}</div>
               <a-switch
                 data-testid="share-theme-toggle"
                 :checked="viewTheme"

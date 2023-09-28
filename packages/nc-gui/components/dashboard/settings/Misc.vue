@@ -12,6 +12,8 @@ const { project } = storeToRefs(projectStore)
 const _projectId = inject(ProjectIdInj, undefined)
 const projectId = computed(() => _projectId?.value ?? project.value?.id)
 
+const { t } = useI18n()
+
 watch(includeM2M, async () => await loadTables())
 
 const showNullAndEmptyInFilter = ref()
@@ -31,7 +33,7 @@ async function showNullAndEmptyInFilterOnChange(evt: CheckboxChangeEvent) {
   if (!evt.target.checked) {
     if (await hasEmptyOrNullFilters()) {
       showNullAndEmptyInFilter.value = true
-      message.warning('Null / Empty filters exist. Please remove them first.')
+      message.warning(t('msg.error.nullFilterExists'))
     }
   }
   const newProjectMeta = {

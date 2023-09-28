@@ -107,8 +107,7 @@ onScopeDispose($destroy)
         class="color-transition z-5 cursor-pointer rounded shadow-sm text-slate-400 font-semibold px-4 py-2 bg-slate-100/50 hover:(text-slate-900 ring ring-accent ring-opacity-100 bg-slate-100/90)"
         @click="zoomIn"
       >
-        <!-- todo: i18n -->
-        Zoom in to view columns
+        {{ $t('labels.zoomInToViewColumns') }}
       </Panel>
     </Transition>
 

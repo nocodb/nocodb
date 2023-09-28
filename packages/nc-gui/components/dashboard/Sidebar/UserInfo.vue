@@ -84,14 +84,14 @@ onMounted(() => {
           <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
             <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
             <GeneralIcon v-else icon="signout" class="menu-icon" />
-            <span class="menu-btn"> Log Out </span>
+            <span class="menu-btn"> {{ $t('general.logout') }}</span>
           </NcMenuItem>
           <template v-if="!isMobileMode">
             <NcDivider />
             <a href="https://docs.nocodb.com" target="_blank" class="!underline-transparent">
               <NcMenuItem>
                 <GeneralIcon icon="help" class="menu-icon mt-0.5" />
-                <span class="menu-btn"> Help Center </span>
+                <span class="menu-btn"> {{ $t('title.helpCenter') }} </span>
               </NcMenuItem>
             </a>
           </template>
@@ -99,19 +99,19 @@ onMounted(() => {
           <a href="https://discord.gg/5RgZmkW" target="_blank" class="!underline-transparent">
             <NcMenuItem class="social-icon-wrapper">
               <GeneralIcon class="social-icon" icon="discord" />
-              <span class="menu-btn"> Join our Discord </span>
+              <span class="menu-btn"> {{ $t('labels.community.joinDiscord') }} </span>
             </NcMenuItem>
           </a>
           <a href="https://www.reddit.com/r/NocoDB" target="_blank" class="!underline-transparent">
             <NcMenuItem class="social-icon-wrapper">
               <GeneralIcon class="social-icon" icon="reddit" />
-              <span class="menu-btn"> /r/NocoDB </span>
+              <span class="menu-btn"> {{ $t('labels.community.joinReddit') }} </span>
             </NcMenuItem>
           </a>
           <a href="https://twitter.com/nocodb" target="_blank" class="!underline-transparent">
             <NcMenuItem class="social-icon-wrapper group">
               <GeneralIcon class="text-gray-500 group-hover:text-gray-800 my-0.5" icon="twitter" />
-              <span class="menu-btn"> Twitter </span>
+              <span class="menu-btn"> {{ $t('labels.twitter') }} </span>
             </NcMenuItem>
           </a>
           <template v-if="!appInfo.ee">
@@ -120,7 +120,7 @@ onMounted(() => {
               <NcMenuItem>
                 <GeneralIcon icon="translate" class="group-hover:text-black nc-language ml-0.25 menu-icon" />
                 {{ $t('labels.language') }}
-                <div class="flex items-center text-gray-400 text-xs">(Community Translated)</div>
+                <div class="flex items-center text-gray-400 text-xs">{{ $t('labels.community.communityTranslated') }}</div>
                 <div class="flex-1" />
 
                 <MaterialSymbolsChevronRightRounded class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400" />
@@ -139,11 +139,11 @@ onMounted(() => {
             <NcMenuItem @click="onCopy">
               <GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black menu-icon" />
               <GeneralIcon v-else icon="copy" class="menu-icon" />
-              <template v-if="isAuthTokenCopied"> Copied Auth Token </template>
-              <template v-else> Copy Auth Token </template>
+              <template v-if="isAuthTokenCopied"> {{ $t('title.copiedAuthToken') }} </template>
+              <template v-else> {{ $t('title.copyAuthToken') }} </template>
             </NcMenuItem>
             <nuxt-link v-e="['c:navbar:user:email']" class="!no-underline" to="/account/profile">
-              <NcMenuItem> <GeneralIcon icon="settings" class="menu-icon" /> Account Settings </NcMenuItem>
+              <NcMenuItem> <GeneralIcon icon="settings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
             </nuxt-link>
           </template>
         </NcMenu>

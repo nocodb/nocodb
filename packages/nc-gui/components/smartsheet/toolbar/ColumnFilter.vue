@@ -488,7 +488,7 @@ onMounted(async () => {
         'ml-0.5': !nested,
       }"
     >
-      No filters added
+      {{ $t('title.noFiltersAdded') }}
     </div>
 
     <slot />

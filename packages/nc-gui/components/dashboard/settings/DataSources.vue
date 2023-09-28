@@ -18,6 +18,8 @@ const vReload = useVModel(props, 'reload', emits)
 
 const { $api, $e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const { loadProject } = useProjects()
 
 const projectStore = useProject()
@@ -135,7 +137,7 @@ const moveBase = async (e: any) => {
           id: base.id,
           project_id: base.project_id,
         })
-        message.info('Bases are migrated. Please try again.')
+        message.info(t('info.basesMigrated'))
       } else {
         await $api.base.update(base.project_id as string, base.id as string, {
           id: base.id,
@@ -302,7 +304,7 @@ const isEditBaseModalOpen = computed({
         >
           <div class="flex flex-row items-center w-full gap-x-1">
             <component :is="iconMap.plus" />
-            <div class="flex">New Source</div>
+            <div class="flex">{{ $t('activity.newSource') }}</div>
           </div>
         </NcButton>
       </div>
@@ -314,10 +316,10 @@ const isEditBaseModalOpen = computed({
       >
         <div class="ds-table-head">
           <div class="ds-table-row">
-            <div class="ds-table-col ds-table-enabled cursor-pointer" @dblclick="forceAwaken">Visibility</div>
-            <div class="ds-table-col ds-table-name">Name</div>
-            <div class="ds-table-col ds-table-type">Type</div>
-            <div class="ds-table-col ds-table-actions pl-2">Actions</div>
+            <div class="ds-table-col ds-table-enabled cursor-pointer" @dblclick="forceAwaken">{{ $t('general.visibility') }}</div>
+            <div class="ds-table-col ds-table-name">{{ $t('general.name') }}</div>
+            <div class="ds-table-col ds-table-type">{{ $t('general.type') }}</div>
+            <div class="ds-table-col ds-table-actions pl-2">{{ $t('labels.actions') }}</div>
             <div class="ds-table-col ds-table-crud"></div>
           </div>
         </div>
@@ -329,8 +331,8 @@ const isEditBaseModalOpen = computed({
                   <div class="flex items-center gap-1 cursor-pointer">
                     <a-tooltip>
                       <template #title>
-                        <template v-if="sources[0].enabled">Hide in UI</template>
-                        <template v-else>Show in UI</template>
+                        <template v-if="sources[0].enabled">{{ $t('activity.hideInUI') }}</template>
+                        <template v-else>{{ $t('activity.showInUI') }}</template>
                       </template>
                       <a-switch
                         :checked="sources[0].enabled ? true : false"
@@ -343,7 +345,7 @@ const isEditBaseModalOpen = computed({
                 <div class="ds-table-col ds-table-name font-medium">
                   <div class="flex items-center gap-1">
                     <!-- <GeneralBaseLogo :base-type="sources[0].type" /> -->
-                    Default
+                    {{ $t('general.default') }}
                   </div>
                 </div>
 
@@ -361,11 +363,11 @@ const isEditBaseModalOpen = computed({
                     >
                       <div class="flex items-center gap-2 text-gray-600">
                         <a-tooltip v-if="metadiffbases.includes(sources[0].id)">
-                          <template #title>Out of sync</template>
+                          <template #title>{{ $t('activity.outOfSync') }}</template>
                           <GeneralIcon icon="warning" class="group-hover:text-accent text-primary" />
                         </a-tooltip>
                         <GeneralIcon v-else icon="sync" class="group-hover:text-accent" />
-                        Sync Metadata
+                        {{ $t('activity.metaSync') }}
                       </div>
                     </a-button>
                     <a-button
@@ -375,7 +377,7 @@ const isEditBaseModalOpen = computed({
                     >
                       <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="erd" class="group-hover:text-accent" />
-                        Relations
+                        {{ $t('title.relations') }}
                       </div>
                     </a-button>
                     <a-button
@@ -385,7 +387,7 @@ const isEditBaseModalOpen = computed({
                     >
                       <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="acl" class="group-hover:text-accent" />
-                        UI ACL
+                        {{ $t('labels.uiAcl') }}
                       </div>
                     </a-button>
                     <a-button
@@ -395,7 +397,7 @@ const isEditBaseModalOpen = computed({
                     >
                       <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="book" class="group-hover:text-accent" />
-                        Audit
+                        {{ $t('title.audit') }}
                       </div>
                     </a-button>
                   </div>
@@ -418,8 +420,8 @@ const isEditBaseModalOpen = computed({
                   <div class="flex items-center gap-1 cursor-pointer">
                     <a-tooltip>
                       <template #title>
-                        <template v-if="base.enabled">Hide in UI</template>
-                        <template v-else>Show in UI</template>
+                        <template v-if="base.enabled">{{ $t('activity.hideInUI') }}</template>
+                        <template v-else>{{ $t('activity.showInUI') }}</template>
                       </template>
                       <a-switch :checked="base.enabled ? true : false" @change="toggleBase(base, $event)" />
                     </a-tooltip>
@@ -429,7 +431,7 @@ const isEditBaseModalOpen = computed({
                   <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
                   <div v-if="base.is_meta || base.is_local">-</div>
                   <div v-else class="flex items-center gap-1">
-                    {{ base.is_meta || base.is_local ? 'BASE' : base.alias }}
+                    {{ base.is_meta || base.is_local ? $t('general.base') : base.alias }}
                   </div>
                 </div>
 
@@ -450,7 +452,7 @@ const isEditBaseModalOpen = computed({
                     >
                       <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="erd" class="group-hover:text-accent" />
-                        Relations
+                        {{ $t('title.relations') }}
                       </div>
                     </a-button>
                     <a-button
@@ -460,7 +462,7 @@ const isEditBaseModalOpen = computed({
                     >
                       <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="acl" class="group-hover:text-accent" />
-                        UI ACL
+                        {{ $t('labels.uiAcl') }}
                       </div>
                     </a-button>
                     <a-button
@@ -471,11 +473,11 @@ const isEditBaseModalOpen = computed({
                     >
                       <div class="flex items-center gap-2 text-gray-600">
                         <a-tooltip v-if="metadiffbases.includes(base.id)">
-                          <template #title>Out of sync</template>
+                          <template #title>{{ $t('activity.outOfSync') }}</template>
                           <GeneralIcon icon="warning" class="group-hover:text-accent text-primary" />
                         </a-tooltip>
                         <GeneralIcon v-else icon="sync" class="group-hover:text-accent" />
-                        Sync Metadata
+                        {{ $t('tooltip.metaSync') }}
                       </div>
                     </a-button>
                   </div>
@@ -541,7 +543,7 @@ const isEditBaseModalOpen = computed({
           <LazyDashboardSettingsBaseAudit :base-id="activeBaseId" @close="isBaseAuditModalOpen = false" />
         </div>
       </GeneralModal>
-      <GeneralDeleteModal v-model:visible="isDeleteBaseModalOpen" entity-name="base" :on-delete="deleteBase">
+      <GeneralDeleteModal v-model:visible="isDeleteBaseModalOpen" :entity-name="$t('general.base')" :on-delete="deleteBase">
         <template #entity-preview>
           <div v-if="toBeDeletedBase" class="flex flex-row items-center py-2 px-3.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
             <GeneralBaseLogo :base-type="toBeDeletedBase.type" />

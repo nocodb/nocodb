@@ -95,25 +95,25 @@ const tableHeaderRenderer = (label: string) => () => h('div', { class: 'text-gra
 
 const columns = [
   {
-    title: tableHeaderRenderer('Table name'),
+    title: tableHeaderRenderer(t('labels.tableName')),
     name: 'table_name',
   },
   {
-    title: tableHeaderRenderer('View name'),
+    title: tableHeaderRenderer(t('labels.viewName')),
     name: 'view_name',
   },
   {
-    title: tableHeaderRenderer('Editor'),
+    title: tableHeaderRenderer(t('objects.roleType.editor')),
     name: 'editor',
     width: 120,
   },
   {
-    title: tableHeaderRenderer('Commenter'),
+    title: tableHeaderRenderer(t('objects.roleType.commenter')),
     name: 'commenter',
     width: 120,
   },
   {
-    title: tableHeaderRenderer('Viewer'),
+    title: tableHeaderRenderer(t('objects.roleType.viewer')),
     name: 'viewer',
     width: 120,
   },
@@ -125,7 +125,7 @@ const columns = [
     <div class="flex flex-col w-[900px]">
       <span class="mb-4 first-letter:capital font-bold"> UI ACL : {{ project.title }} </span>
       <div class="flex flex-row items-center w-full mb-4 gap-2 justify-between">
-        <a-input v-model:value="searchInput" placeholder="Search models" class="nc-acl-search !w-[400px]">
+        <a-input v-model:value="searchInput" :placeholder="$t('placeholder.searchModels')" class="nc-acl-search !w-[400px]">
           <template #prefix>
             <component :is="iconMap.search" />
           </template>
@@ -134,14 +134,14 @@ const columns = [
           <a-button type="text" ghost class="self-start !rounded-md nc-acl-reload" @click="loadTableList">
             <div class="flex items-center gap-2 text-gray-600 font-light">
               <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
-              Reload
+              {{ $t('general.reload') }}
             </div>
           </a-button>
 
           <NcButton size="large" class="z-10 !rounded-lg !px-2 mr-2.5" type="primary" @click="saveUIAcl">
             <div class="flex flex-row items-center w-full gap-x-1">
               <component :is="iconMap.save" />
-              <div class="flex">Save</div>
+              <div class="flex">{{ $t('general.save') }}</div>
             </div>
           </NcButton>
         </div>
@@ -196,9 +196,13 @@ const columns = [
                 <a-tooltip>
                   <template #title>
                     <span v-if="record.disabled[role]">
-                      Click to make '{{ record.title }}' visible for role:{{ role }} in UI dashboard</span
+                      {{ $t('labels.clickToMake') }} '{{ record.title }}' {{ $t('labels.visibleForRole') }} {{ role }}
+                      {{ $t('labels.inUI') }} dashboard</span
                     >
-                    <span v-else>Click to hide '{{ record.title }}' for role:{{ role }} in UI dashboard</span>
+                    <span v-else
+                      >{{ $t('labels.clickToHide') }}'{{ record.title }}' {{ $t('labels.forRole') }}:{{ role }}
+                      {{ $t('labels.inUI') }}</span
+                    >
                   </template>
 
                   <a-checkbox

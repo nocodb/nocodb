@@ -50,7 +50,7 @@ const logout = async () => {
             >
               <div class="flex flex-row gap-x-2 items-center h-8.5">
                 <GeneralIcon icon="arrowLeft" class="-mt-0.1" />
-                <div class="flex text-xs text-gray-800">Back to Workspace</div>
+                <div class="flex text-xs text-gray-800">{{ $t('labels.backToWorkspace') }}</div>
               </div>
             </div>
 
@@ -151,7 +151,7 @@ const logout = async () => {
             <LazyGeneralReleaseInfo />
 
             <a-tooltip v-if="!appInfo.ee" placement="bottom" :mouse-enter-delay="1">
-              <template #title> Switch language</template>
+              <template #title>{{ $t('title.switchLanguage') }}</template>
 
               <div class="flex pr-4 items-center">
                 <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-gray-800" />

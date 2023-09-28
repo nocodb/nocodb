@@ -13,9 +13,11 @@ export default defineNuxtPlugin((nuxtApp) => {
     environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',
     integrations: [
       new Sentry.BrowserTracing({
+        tracingOrigins: ['*'],
         routingInstrumentation: Sentry.vueRouterInstrumentation(nuxtApp.$router),
       }),
     ],
+    autoSessionTracking: false,
     // Set tracesSampleRate to 1.0 to capture 100%
     // of transactions for performance monitoring.
     // We recommend adjusting this value in production
@@ -23,13 +25,13 @@ export default defineNuxtPlugin((nuxtApp) => {
     tracesSampleRate: 1.0,
   })
 
-  return {
-    provide: {
-      sentrySetContext: Sentry.setContext,
-      sentrySetUser: Sentry.setUser,
-      sentrySetTag: Sentry.setTag,
-      sentryAddBreadcrumb: Sentry.addBreadcrumb,
-      sentryCaptureException: Sentry.captureException,
-    },
-  }
+  // return {
+  //   provide: {
+  //     sentrySetContext: Sentry.setContext,
+  //     sentrySetUser: Sentry.setUser,
+  //     sentrySetTag: Sentry.setTag,
+  //     sentryAddBreadcrumb: Sentry.addBreadcrumb,
+  //     sentryCaptureException: Sentry.captureException,
+  //   },
+  // }
 })

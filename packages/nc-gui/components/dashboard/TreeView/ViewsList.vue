@@ -31,6 +31,8 @@ const emits = defineEmits<Emits>()
 const project = inject(ProjectInj)!
 const table = inject(SidebarTableInj)!
 
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
 const { isMobileMode } = useGlobal()
 
 const { $e } = useNuxtApp()
@@ -190,13 +192,17 @@ const initSortable = (el: HTMLElement) => {
 onMounted(() => menuRef.value && initSortable(menuRef.value.$el))
 
 /** Navigate to view by changing url param */
-function changeView(view: ViewType) {
-  navigateToView({
+async function changeView(view: ViewType) {
+  await navigateToView({
     view,
     tableId: table.value.id!,
     projectId: project.value.id!,
     hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
   })
+
+  if (isMobileMode.value) {
+    isLeftSidebarOpen.value = false
+  }
 }
 
 /** Rename a view */

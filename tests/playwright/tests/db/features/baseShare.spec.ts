@@ -91,6 +91,7 @@ test.describe('Shared base', () => {
 
     await dashboard.treeView.openProject({ title: context.project.title, context });
     await dashboard.treeView.openTable({ title: 'Country' });
+
     url = await dashboard.grid.topbar.getSharedBaseUrl({ role: 'viewer', enableSharedBase: false });
 
     await dashboard.rootPage.waitForTimeout(2000);

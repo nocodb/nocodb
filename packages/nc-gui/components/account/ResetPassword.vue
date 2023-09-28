@@ -16,19 +16,13 @@ const form = reactive({
 })
 
 const formRules = {
-  currentPassword: [
-    // Current password is required
-    { required: true, message: t('msg.error.signUpRules.passwdRequired') },
-  ],
+  currentPassword: [{ required: true, message: t('msg.error.signUpRules.passwdRequired') }],
   password: [
-    // Password is required
     { required: true, message: t('msg.error.signUpRules.passwdRequired') },
     { min: 8, message: t('msg.error.signUpRules.passwdLength') },
   ],
   passwordRepeat: [
-    // PasswordRepeat is required
     { required: true, message: t('msg.error.signUpRules.passwdRequired') },
-    // Passwords match
     {
       validator: (_: unknown, _v: string) => {
         return new Promise((resolve, reject) => {

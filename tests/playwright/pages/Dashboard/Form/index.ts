@@ -244,15 +244,6 @@ export class FormPage extends BasePage {
 
   async verifyStatePostSubmit(param: { message?: string; submitAnotherForm?: boolean; showBlankForm?: boolean }) {
     if (undefined !== param.message) {
-      let retryCounter = 0;
-      while (retryCounter <= 5) {
-        const msg = await this.getFormAfterSubmit().innerText();
-        if (msg.includes('Form submitted successfully')) {
-          break;
-        }
-        await this.rootPage.waitForTimeout(100 * retryCounter);
-        retryCounter++;
-      }
       await expect(this.getFormAfterSubmit()).toContainText(param.message);
     }
     if (true === param.submitAnotherForm) {

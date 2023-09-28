@@ -11,6 +11,8 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { isMobileMode } = useGlobal()
+
 const hideMenu = toRef(props, 'hideMenu')
 
 const isForm = inject(IsFormInj, ref(false))
@@ -42,13 +44,13 @@ const closeAddColumnDropdown = () => {
 }
 
 const openHeaderMenu = () => {
-  if (!isForm.value && !isExpandedForm.value && isUIAllowed('fieldEdit')) {
+  if (!isForm.value && !isExpandedForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value) {
     editColumnDropdown.value = true
   }
 }
 
 const openDropDown = () => {
-  if (isForm.value || isExpandedForm.value || !isUIAllowed('fieldEdit')) return
+  if (isForm.value || isExpandedForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value)) return
   isDropDownOpen.value = !isDropDownOpen.value
 }
 </script>

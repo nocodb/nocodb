@@ -153,7 +153,7 @@ const processedAudit = (log: string) => {
           </div>
           <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
         </div>
-        <div v-else class="flex flex-col h-full p-2 space-y-2 nc-scrollbar-md">
+        <div v-else class="flex flex-col h-full py-2 pl-2 pr-1 space-y-2 nc-scrollbar-md">
           <div v-for="log of comments" :key="log.id">
             <div class="bg-white rounded-xl group border-1 gap-2 border-gray-200">
               <div class="flex flex-col p-4 gap-3">
@@ -198,14 +198,12 @@ const processedAudit = (log: string) => {
             </div>
           </div>
         </div>
-        <div v-if="hasEditPermission" class="h-16.5 p-2 rounded-b-xl bg-gray-50 gap-2 flex">
-          <div class="flex flex-row items-end">
-            <GeneralUserIcon size="base" />
-          </div>
-          <div class="flex flex-row bg-white py-2.75 px-1.5 items-center rounded-lg border-1 border-gray-200">
+        <div v-if="hasEditPermission" class="p-2 bg-gray-50 gap-2 flex">
+          <div class="h-14 flex flex-row w-full bg-white py-2.75 px-1.5 items-center rounded-xl border-1 border-gray-200">
+            <GeneralUserIcon size="base" class="!w-10" />
             <a-input
               v-model:value="comment"
-              class="!rounded-lg border-1 bg-white !px-2 !py-2 !border-gray-200 nc-comment-box !outline-none"
+              class="!rounded-lg border-1 bg-white !px-2.5 !py-2 !border-gray-200 nc-comment-box !outline-none"
               placeholder="Start typing..."
               :bordered="false"
               @keyup.enter.prevent="saveComment"
@@ -217,7 +215,7 @@ const processedAudit = (log: string) => {
           </div>
         </div>
       </div>
-      <div v-else ref="commentsWrapperEl" class="flex flex-col h-full pl-1.5 pr-1 pt-1 nc-scrollbar-md space-y-2">
+      <div v-else ref="commentsWrapperEl" class="flex flex-col h-full pl-2 pr-1 pt-2 nc-scrollbar-md space-y-2">
         <template v-if="audits.length === 0">
           <div class="flex flex-col text-center justify-center h-full">
             <div class="text-center text-3xl text-gray-600">

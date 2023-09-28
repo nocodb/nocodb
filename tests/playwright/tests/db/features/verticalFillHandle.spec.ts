@@ -212,7 +212,7 @@ test.describe('Fill Handle', () => {
     await unsetup(p.context);
   });
 
-  test('Miscellaneous (Checkbox, attachment) @flaky', async () => {
+  test('Miscellaneous (Checkbox, attachment)', async () => {
     const fields = [
       { title: 'Checkbox', value: 'true', type: 'checkbox' },
       { title: 'Attachment', value: `${process.cwd()}/fixtures/sampleFiles/1.json`, type: 'attachment' },

@@ -12,6 +12,7 @@ const {
   leftSidebarWidthPercent,
   leftSideBarSize: sideBarSize,
   leftSidebarState: sidebarState,
+  mobileNormalizedSidebarSize,
 } = storeToRefs(useSidebarStore())
 
 const wrapperRef = ref<HTMLDivElement>()
@@ -30,14 +31,6 @@ const currentSidebarSize = computed({
 const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
 
 const contentSize = computed(() => 100 - sideBarSize.value.current)
-
-const mobileNormalizedSidebarSize = computed(() => {
-  if (isMobileMode.value) {
-    return isLeftSidebarOpen.value ? 100 : 0
-  }
-
-  return currentSidebarSize.value
-})
 
 const mobileNormalizedContentSize = computed(() => {
   if (isMobileMode.value) {

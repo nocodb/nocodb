@@ -31,6 +31,8 @@ const emits = defineEmits<Emits>()
 const project = inject(ProjectInj)!
 const table = inject(SidebarTableInj)!
 
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
 const { isMobileMode } = useGlobal()
 
 const { $e } = useNuxtApp()
@@ -190,13 +192,17 @@ const initSortable = (el: HTMLElement) => {
 onMounted(() => menuRef.value && initSortable(menuRef.value.$el))
 
 /** Navigate to view by changing url param */
-function changeView(view: ViewType) {
-  navigateToView({
+async function changeView(view: ViewType) {
+  await navigateToView({
     view,
     tableId: table.value.id!,
     projectId: project.value.id!,
     hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
   })
+
+  if (isMobileMode.value) {
+    isLeftSidebarOpen.value = false
+  }
 }
 
 /** Rename a view */
@@ -351,13 +357,13 @@ function onOpenModal({
 <template>
   <div
     v-if="!views.length"
-    class="text-gray-500 my-1.75"
+    class="text-gray-500 my-1.75 xs:(my-2.5 text-base)"
     :class="{
-      'ml-19.25': isDefaultBase,
-      'ml-24.75': !isDefaultBase,
+      'ml-19.25 xs:ml-22.25': isDefaultBase,
+      'ml-24.75 xs:ml-30': !isDefaultBase,
     }"
   >
-    No Views
+    {{ $t('labels.noViews') }}
   </div>
 
   <a-menu

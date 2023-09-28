@@ -408,7 +408,8 @@
     "addRowGrid": "Manually add data in grid view",
     "addRowForm": "Enter record data through a form",
     "noAccess": "No access",
-    "restApis": "Rest APIs"
+    "restApis": "Rest APIs",
+    "noViews": "No Views"
   },
   "activity": {
     "moveProject": "Move Project",

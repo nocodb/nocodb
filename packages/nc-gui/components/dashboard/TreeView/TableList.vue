@@ -140,7 +140,7 @@ const availableTables = computed(() => {
           'ml-19.25': baseIndex !== 0,
         }"
       >
-        Empty
+        {{ $t('general.empty') }}
       </div>
       <div
         v-if="project.bases?.[baseIndex] && project!.bases[baseIndex].enabled"

@@ -78,6 +78,8 @@
     "reset": "Reset",
     "install": "Install",
     "show": "Show",
+    "access": "Access",
+    "visibility": "Visibility",
     "hide": "Hide",
     "showAll": "Show all",
     "hideAll": "Hide all",
@@ -100,6 +102,7 @@
     "upload": "Upload",
     "download": "Download",
     "default": "Default",
+    "base": "Base",
     "more": "More",
     "less": "Less",
     "event": "Event",
@@ -248,6 +251,9 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "searchMembers": "Search Members",
+    "noMembersFound": "No members found",
+    "dateJoined": "Date Joined",
     "tokenName": "Token name",
     "creator": "Creator",
     "updateSelectedRows": "Update Selected Rows",
@@ -265,6 +271,7 @@
     "hideSidebar": "Hide Sidebar",
     "creatingTable": "Creating Table",
     "erdView": "ERD View",
+    "newBase": "New Base",
     "newProj": "New Project",
     "myProject": "My Projects",
     "formTitle": "Form Title",
@@ -325,6 +332,11 @@
     "switchLanguage": "Switch Language"
   },
   "labels": {
+    "clickToMake": "Click to make",
+    "visibleForRole": "visible for role:",
+    "inUI": "in UI Dashboard",
+    "clickToHide": "Click to hide",
+    "forRole": "for role",
     "searchUsers": "Search Users",
     "superAdmin": "Super Admin",
     "allTables": "All Tables",
@@ -390,7 +402,7 @@
     "microsoftExcel": "Microsoft Excel",
     "email": "E-mail",
     "storage": "Storage",
-    "uiAcl": "UI-ACL",
+    "uiAcl": "UI ACL",
     "models": "Models",
     "syncState": "Sync state",
     "created": "Created",
@@ -486,6 +498,13 @@
     "zoomInToViewColumns": "Zoom in to view columns"
   },
   "activity": {
+    "hideInUI": "Hide in UI",
+    "addBase": "Add Base",
+    "editBase": "Edit Base",
+    "okEditBase": "Ok & Edit Base",
+    "showInUI": "Show in UI",
+    "outOfSync": "Out of sync",
+    "newSource": "New Source",
     "newWebhook": "New Webhook",
     "enablePublicAccess": "Enable Public Access",
     "editingAccess": "Editing access",
@@ -679,7 +698,7 @@
     "generateNewApiToken": "Generate new API token",
     "addRole": "Add new role",
     "reloadList": "Reload list",
-    "metaSync": "Sync metadata",
+    "metaSync": "Sync Metadata",
     "sqlMigration": "Reload migrations",
     "updateRestart": "Update & Restart",
     "cancelReturn": "Cancel and Return",
@@ -723,6 +742,7 @@
     "areYouSureUWantTo": "Are you sure you want to delete the following",
     "idColumnRequired": "ID column is required, you can rename this later if required.",
     "warning": {
+      "dbValid": "Please make sure database you are trying to connect is valid! This operation can cause schema loss!!",
       "barcode": {
         "renderError": "Barcode error - please check compatibility between input and barcode type"
       },
@@ -734,6 +754,7 @@
       "duplicateTable": "Are you sure you want to duplicate the table?"
     },
     "info": {
+      "basesMigrated": "Bases are migrated. Please try again.",
       "pasteNotSupported": "Paste operation is not supported on the active cell",
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",

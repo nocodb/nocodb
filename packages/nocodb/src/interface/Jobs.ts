@@ -5,6 +5,7 @@ export enum JobTypes {
   DuplicateModel = 'duplicate-model',
   AtImport = 'at-import',
   MetaSync = 'meta-sync',
+  BaseCreate = 'base-create',
 }
 
 export enum JobStatus {

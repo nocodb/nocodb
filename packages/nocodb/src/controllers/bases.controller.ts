@@ -3,10 +3,8 @@ import {
   Controller,
   Delete,
   Get,
-  HttpCode,
   Param,
   Patch,
-  Post,
   UseGuards,
 } from '@nestjs/common';
 import { BaseReqType } from 'nocodb-sdk';
@@ -76,24 +74,5 @@ export class BasesController {
       baseId,
     });
     return result;
-  }
-
-  @Post('/api/v1/db/meta/projects/:projectId/bases')
-  @HttpCode(200)
-  @Acl('baseCreate')
-  async baseCreate(
-    @Param('projectId') projectId: string,
-    @Body() body: BaseReqType,
-  ) {
-    const base = await this.basesService.baseCreate({
-      projectId,
-      base: body,
-    });
-
-    if (base.isMeta()) {
-      delete base.config;
-    }
-
-    return base;
   }
 }

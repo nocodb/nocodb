@@ -48,8 +48,28 @@ const hide = () => {
   vOpen.value = false
 }
 
-whenever(keys['Ctrl+J'], () => {
+whenever(keys.ctrl_j, () => {
   vOpen.value = true
+})
+
+whenever(keys.meta_j, () => {
+  vOpen.value = true
+})
+
+whenever(keys.ctrl_k, () => {
+  if (vOpen.value) hide()
+})
+
+whenever(keys.meta_k, () => {
+  if (vOpen.value) hide()
+})
+
+whenever(keys.ctrl_l, () => {
+  if (vOpen.value) hide()
+})
+
+whenever(keys.meta_l, () => {
+  if (vOpen.value) hide()
 })
 
 whenever(keys.Escape, () => {

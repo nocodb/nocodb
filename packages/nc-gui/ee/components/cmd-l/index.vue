@@ -119,7 +119,15 @@ whenever(keys.ctrl_k, () => {
   if (vOpen.value) hide()
 })
 
-whenever(keys['Meta+K'], () => {
+whenever(keys.meta_k, () => {
+  if (vOpen.value) hide()
+})
+
+whenever(keys.ctrl_j, () => {
+  if (vOpen.value) hide()
+})
+
+whenever(keys.meta_j, () => {
   if (vOpen.value) hide()
 })
 

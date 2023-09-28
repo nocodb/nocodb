@@ -21,11 +21,7 @@ const onClick = () => {
     }"
   >
     <template #title>
-      {{
-        isLeftSidebarOpen
-          ? `${$t('general.hide')} ${$t('objects.sidebar').toLowerCase()}`
-          : `${$t('general.show')} ${$t('objects.sidebar').toLowerCase()}`
-      }}
+      {{ isLeftSidebarOpen ? `${$t('title.hideSidebar')}` : `${$t('title.showSidebar')}` }}
     </template>
     <NcButton
       :type="isMobileMode ? 'secondary' : 'text'"

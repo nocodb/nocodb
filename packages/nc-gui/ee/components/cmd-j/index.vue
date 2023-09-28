@@ -29,7 +29,9 @@ const renderCmdOrCtrlKey = () => {
 
 whenever(keys.ArrowDown, () => {
   if (!vOpen.value) return
-  selected.value = Math.min(selected.value + 1, document.querySelectorAll('.cmdj-action').length - 1)
+  if (selected.value === document.querySelectorAll('.cmdj-action').length - 1) {
+    selected.value = 0
+  } else selected.value = Math.min(selected.value + 1, document.querySelectorAll('.cmdj-action').length - 1)
   document.querySelector('.cmdj-action.selected')?.scrollIntoView({
     behavior: 'smooth',
     block: 'nearest',
@@ -39,11 +41,9 @@ whenever(keys.ArrowDown, () => {
 
 whenever(keys.ArrowUp, () => {
   if (!vOpen.value) return
-  if (selected.value !== 0) {
-    selected.value = Math.max(selected.value - 1, 0)
-  } else {
+  if (selected.value === 0) {
     selected.value = document.querySelectorAll('.cmdj-action').length - 1
-  }
+  } else selected.value = Math.max(selected.value - 1, 0)
   document.querySelector('.cmdj-action.selected')?.scrollIntoView({
     behavior: 'smooth',
     block: 'nearest',

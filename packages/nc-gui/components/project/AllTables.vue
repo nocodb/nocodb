@@ -119,7 +119,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
 <style lang="scss" scoped>
 .nc-project-view-all-table-btn {
-  @apply flex flex-col gap-y-6 p-4 bg-gray-100 rounded-xl w-56 cursor-pointer text-gray-600 hover:(bg-gray-100 !text-black);
+  @apply flex flex-col gap-y-6 p-4 bg-gray-100 rounded-xl w-56 cursor-pointer text-gray-600 hover:(bg-gray-200 !text-black);
 
   .nc-icon {
     @apply h-10 w-10;

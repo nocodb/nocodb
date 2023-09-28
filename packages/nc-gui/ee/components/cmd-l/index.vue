@@ -262,7 +262,7 @@ onMounted(() => {
       overflow: hidden;
       text-overflow: ellipsis;
       padding: 0.75em 1em;
-      width: 100%;
+      width: 650px;
     }
 
     .cmdk-action-icon {

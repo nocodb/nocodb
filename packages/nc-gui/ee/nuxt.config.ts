@@ -50,7 +50,10 @@ export default defineNuxtConfig({
           type: 'image/x-icon',
           href: './favicon.ico',
         },
-
+        {
+          rel: 'stylesheet',
+          href: 'https://cdn.jsdelivr.net/npm/typesense-docsearch-css@0.3.0',
+        },
         ...(process.env.NC_CDN_URL
           ? [
               {
@@ -75,6 +78,11 @@ export default defineNuxtConfig({
           name: 'description',
           content: process.env.npm_package_description || '',
         },
+      ],
+      script: [
+        {
+          src: 'https://cdn.jsdelivr.net/npm/typesense-docsearch.js@3.4'
+        }
       ],
     },
   },

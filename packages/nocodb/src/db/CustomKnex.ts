@@ -16,9 +16,6 @@ const pgTypes = {
   NUMERIC: 1700,
 };
 
-// For the code, check out
-// https://raw.githubusercontent.com/brianc/node-pg-types/master/lib/builtins.js
-
 // override parsing date column to Date()
 types.setTypeParser(pgTypes.DATE, (val) => val);
 // override timestamp
@@ -30,8 +27,8 @@ types.setTypeParser(pgTypes.TIMESTAMPTZ, (val) => {
   return dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
 });
 
-const parseFloatVal = (value: string) => {
-  return parseFloat(value);
+const parseFloatVal = (val: string) => {
+  return parseFloat(val);
 };
 
 // parse integer values

@@ -103,7 +103,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         title: [
           {
             required: true,
-            message: 'Column name is required',
+            message: t('msg.error.columnNameRequired'),
           },
           // validation for unique column name
           {
@@ -118,7 +118,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
                         (value || '').toLowerCase() === (c.title || '').toLowerCase()),
                   )
                 ) {
-                  return reject(new Error('Duplicate column name'))
+                  return reject(new Error(t('msg.error.duplicateColumnName')))
                 }
                 resolve()
               })
@@ -129,7 +129,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         uidt: [
           {
             required: true,
-            message: 'UI Datatype is required',
+            message: t('msg.error.uiDataTypeRequired'),
           },
         ],
         ...(additionalValidations?.value || {}),

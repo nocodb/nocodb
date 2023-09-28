@@ -277,7 +277,7 @@ if (props.fromTableExplorer) {
                 <div class="flex gap-1 items-center">
                   <component :is="opt.icon" class="text-gray-700 mx-1" />
                   {{ opt.name }}
-                  <span v-if="opt.deprecated" class="!text-xs !text-gray-300">(Deprecated)</span>
+                  <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
                 </div>
               </a-select-option>
             </a-select>
@@ -316,7 +316,7 @@ if (props.fromTableExplorer) {
         class="ml-1 mb-1"
       >
         <span class="text-[10px] text-gray-600">
-          {{ `Accept only valid ${formState.uidt}` }}
+          {{ `${$t('msg.acceptOnlyValid')} ${formState.uidt}` }}
         </span>
       </a-checkbox>
       <div class="!my-3">

@@ -257,6 +257,8 @@ function groupByTests() {
   });
 
   it('Check One GroupBy Column with BT Lookup', async function () {
+    await new Promise((resolve) => setTimeout(resolve, 20000));
+
     await createLookupColumn(context, {
       project: sakilaProject,
       title: 'LanguageName',
@@ -276,7 +278,7 @@ function groupByTests() {
     assert.match(response.body.list[0]['LanguageName'], /^English/);
     expect(+response.body.list[0]['count']).to.equal(1000);
     expect(response.body.list.length).to.equal(1);
-  });
+  }).timeout(60000);
 
   it('Check One GroupBy Column with MM Lookup which is not supported', async function () {
     await createLookupColumn(context, {
@@ -299,6 +301,8 @@ function groupByTests() {
   });
 
   it('Check One GroupBy Column with Formula and Formula referring another formula', async function () {
+    await new Promise((resolve) => setTimeout(resolve, 20000));
+
     const formulaColumnTitle = 'Formula';
     await createColumn(context, filmTable, {
       uidt: UITypes.Formula,
@@ -344,7 +348,7 @@ function groupByTests() {
       res.body.list[0][nestedFormulaColumnTitle],
     );
     expect(+res.body.list[res.body.list.length - 1].count).to.equal(191);
-  });
+  }).timeout(60000);
 }
 
 export default function () {

@@ -2,15 +2,15 @@
 import { ref } from 'vue'
 import type { TreeProps } from 'ant-design-vue'
 import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
-import type { ProjectType } from 'nocodb-sdk'
+import type { BaseType } from 'nocodb-sdk'
 import { toRef } from '@vue/runtime-core'
 import type { PageSidebarNode } from '#imports'
 
 const props = defineProps<{
-  project: ProjectType
+  base: BaseType
 }>()
 
-const project = toRef(props, 'project')
+const base = toRef(props, 'base')
 
 const docStore = useDocStore()
 const {
@@ -25,7 +25,7 @@ const {
 } = docStore
 const { openedPageInSidebar, nestedPagesOfProjects, isEditAllowed, openedPage } = storeToRefs(docStore)
 
-const nestedPages = computed(() => nestedPagesOfProjects.value[project.value.id!])
+const nestedPages = computed(() => nestedPagesOfProjects.value[base.value.id!])
 
 const openedTabs = ref<string[]>([])
 
@@ -64,7 +64,7 @@ const onDrop = async (info: AntTreeNodeDropEvent) => {
 
   if (info.dragNode.dataRef!.parent_page_id === info.node.dataRef!.parent_page_id) {
     const parentId: string | undefined = info.dragNode.dataRef!.parent_page_id
-    const siblings: any[] = getChildrenOfPage({ pageId: parentId, projectId: project.value.id! })
+    const siblings: any[] = getChildrenOfPage({ pageId: parentId, baseId: base.value.id! })
     const targetNodeIndex = siblings.findIndex((node) => node.id === info.node.dataRef!.id)
     const dragNodeIndex = siblings.findIndex((node) => node.id === info.dragNode.dataRef!.id)
 
@@ -77,7 +77,7 @@ const onDrop = async (info: AntTreeNodeDropEvent) => {
     sourceNodeId: info.dragNode.dataRef!.id!,
     targetNodeId: info.dropToGap ? info.node.dataRef!.parent_page_id : info.node.dataRef!.id,
     index: info.dropToGap ? info.dropPosition : 0,
-    projectId: project.value.id!,
+    baseId: base.value.id!,
   })
 }
 
@@ -86,7 +86,7 @@ const onTabSelect = (page: PageSidebarNode) => {
 
   openPage({
     page,
-    projectId: project.value.id!,
+    baseId: base.value.id!,
   })
 
   onExpandClick(page.id!, true)
@@ -94,7 +94,7 @@ const onTabSelect = (page: PageSidebarNode) => {
 
 const setIcon = async (id: string, icon: string) => {
   try {
-    await updatePage({ pageId: id, page: { icon }, projectId: project.value.id! })
+    await updatePage({ pageId: id, page: { icon }, baseId: base.value.id! })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -109,7 +109,7 @@ watch(
 
     const pageWithParents = getPageWithParents({
       page: openedPageInSidebar.value,
-      projectId: project.value.id!,
+      baseId: base.value.id!,
     }).reverse()
 
     for (const page of pageWithParents) {
@@ -135,7 +135,7 @@ function onExpandClick(id: string, expanded: boolean) {
       openedTabs.value.push(id)
     }
   } else {
-    const children = getAllChildrenOfPage({ pageId: id, projectId: project.value.id! })
+    const children = getAllChildrenOfPage({ pageId: id, baseId: base.value.id! })
     const pageIdWithChildrenId = [id, ...children.map((child) => child.id)]
 
     setTimeout(() => {
@@ -177,7 +177,7 @@ function onExpandClick(id: string, expanded: boolean) {
         <template #title="page">
           <div
             class="flex flex-row items-center justify-between group"
-            :data-testid="`docs-sidebar-page-${project.title}-${page.title}`"
+            :data-testid="`docs-sidebar-page-${base.title}-${page.title}`"
             :data-level="page.level"
           >
             <div
@@ -233,7 +233,7 @@ function onExpandClick(id: string, expanded: boolean) {
               :level="page.level"
               @open-delete-modal="isDeleteModalOpen = true"
               @update-selected-page-id="selectedPageId = page.id"
-              @add-new-page="() => addNewPage({ parentPageId: page.id, projectId: project.id! })"
+              @add-new-page="() => addNewPage({ parentPageId: page.id, baseId: base.id! })"
             />
           </div>
         </template>

@@ -12,7 +12,7 @@ test.describe.skip('Mobile Mode', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     form = dashboard.form;
     toolbar = dashboard.grid.toolbar;
   });
@@ -27,7 +27,7 @@ test.describe.skip('Mobile Mode', () => {
     // in non-mobile mode, all menu items are visible
     await dashboard.verifyTeamAndSettingsLinkIsVisible();
 
-    await dashboard.treeView.createTable({ title: 'test-table-for-mobile-mode', projectTitle: context.project.title });
+    await dashboard.treeView.createTable({ title: 'test-table-for-mobile-mode', baseTitle: context.base.title });
 
     // and all toolbar items have icons AND text
     await toolbar.verifyFieldsButtonIsVisibleWithTextAndIcon();

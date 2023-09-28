@@ -26,33 +26,33 @@ export class DocsPagesController {
     private readonly pageHistoryService: DocsPageHistoryService,
   ) {}
 
-  @Get('/api/v1/docs/:projectId/pages/:id')
+  @Get('/api/v1/docs/:baseId/pages/:id')
   @Acl('pageGet')
-  async get(@Param('id') id: string, @Param('projectId') projectId: string) {
+  async get(@Param('id') id: string, @Param('baseId') baseId: string) {
     return await this.pagesService.get({
       id,
-      projectId,
+      baseId,
     });
   }
 
-  @Get('/api/v1/docs/:projectId/pages')
+  @Get('/api/v1/docs/:baseId/pages')
   @Acl('pageList')
-  async list(@Param('projectId') projectId: string) {
+  async list(@Param('baseId') baseId: string) {
     return await this.pagesService.list({
-      projectId,
+      baseId,
     });
   }
 
-  @Post('/api/v1/docs/:projectId/pages')
+  @Post('/api/v1/docs/:baseId/pages')
   @Acl('pageCreate')
   async create(
-    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
     @Body() body: { attributes: any },
     @Request() req,
   ) {
     const page = await this.pagesService.create({
       attributes: body.attributes,
-      projectId,
+      baseId,
       user: req.user,
     });
 
@@ -69,37 +69,37 @@ export class DocsPagesController {
     return page;
   }
 
-  @Put('/api/v1/docs/:projectId/pages/:id')
+  @Put('/api/v1/docs/:baseId/pages/:id')
   @Acl('pageUpdate')
   async update(
     @Param('id') id: string,
-    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
     @Body() body: { attributes: any },
     @Request() req,
   ) {
     return await this.pagesService.update({
       pageId: id,
       attributes: body.attributes,
-      projectId,
+      baseId,
       user: req.user,
       workspaceId: req.ncWorkspaceId,
     });
   }
 
-  @Delete('/api/v1/docs/:projectId/pages/:id')
+  @Delete('/api/v1/docs/:baseId/pages/:id')
   @Acl('pageDelete')
-  async delete(@Param('id') id: string, @Param('projectId') projectId: string) {
+  async delete(@Param('id') id: string, @Param('baseId') baseId: string) {
     return await this.pagesService.delete({
       id,
-      projectId,
+      baseId,
     });
   }
 
-  @Post('/api/v1/docs/:projectId/pages/:id/gpt')
+  @Post('/api/v1/docs/:baseId/pages/:id/gpt')
   @Acl('pageGpt')
   async gpt(
     @Param('id') id: string,
-    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
     @Response() response,
     @Request() req,
   ) {
@@ -129,29 +129,29 @@ export class DocsPagesController {
       promptText: body.promptText,
       selectedPageText: body.selectedPageText,
       pageId: id,
-      projectId,
+      baseId,
       response,
     });
   }
 
-  @Post('/api/v1/docs/:projectId/gpt')
+  @Post('/api/v1/docs/:baseId/gpt')
   @Acl('docsMagicCreatePages')
   async gptCreatePages(
-    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
     @Body() body: { text: string },
     @Request() req,
   ) {
     return await this.pagesService.magicCreatePages({
-      projectId,
+      baseId,
       title: body.text,
       user: req.user,
     });
   }
 
-  @Post('/api/v1/docs/:projectId/import')
+  @Post('/api/v1/docs/:baseId/import')
   @Acl('pageImport')
   async import(
-    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
     @Body()
     body: {
       user: string;
@@ -164,7 +164,7 @@ export class DocsPagesController {
     @Request() req,
   ) {
     return await this.pagesService.directoryImport({
-      projectId,
+      baseId,
       body,
       user: req.user,
     });

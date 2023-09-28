@@ -44,7 +44,7 @@ export const useDocHistoryStore = defineStore('docHistoryStore', () => {
       await $api.nocoDocs.restorePageHistory(openedProjectId.value, openedPage.value?.id as string, snapshot.id!)
 
       openedPage.value = (await fetchPage({
-        projectId: openedProjectId.value,
+        baseId: openedProjectId.value,
         doNotSetProject: true,
       })) as any
 

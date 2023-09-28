@@ -7,7 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { UtilsService as UtilsServiceCE } from 'src/services/utils.service';
 import type { AppConfig } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
-import { Base } from '~/models';
+import { Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 const configuration = new Configuration({
@@ -31,8 +31,8 @@ interface ViewCount {
 }
 
 export interface AllMeta {
-  projectCount: number;
-  projects: (
+  baseCount: number;
+  bases: (
     | {
         external?: boolean | null;
         tableCount: {
@@ -297,16 +297,16 @@ export class UtilsService extends UtilsServiceCE {
     return { data: response.data.choices[0].text };
   }
 
-  async generateSQL(param: { prompt: string; base: any }) {
+  async generateSQL(param: { prompt: string; source: any }) {
     let schemaPrompt = '';
-    for (const table of param.base.tables) {
+    for (const table of param.source.tables) {
       const colPrompt = table.columns.map((col) => `'${col.title}'`).join(', ');
       schemaPrompt += `Table '${table.title}', columns = [${colPrompt}]\n`;
     }
 
     const response = await openai.createCompletion({
       model: 'text-davinci-003',
-      prompt: `${schemaPrompt}\n\nGenerate SQL (${param.base.type}) SELECT query for '${param.prompt}' return in form of Object<{ data: Array<{ description: string; query: string }> }> with escaped new lines as parsable JSON:`,
+      prompt: `${schemaPrompt}\n\nGenerate SQL (${param.source.type}) SELECT query for '${param.prompt}' return in form of Object<{ data: Array<{ description: string; query: string }> }> with escaped new lines as parsable JSON:`,
       temperature: 0.7,
       max_tokens: 1500,
       top_p: 1,
@@ -325,16 +325,16 @@ export class UtilsService extends UtilsServiceCE {
     };
   }
 
-  async repairSQL(param: { sql: string; base: any }) {
+  async repairSQL(param: { sql: string; source: any }) {
     let schemaPrompt = '';
-    for (const table of param.base.tables) {
+    for (const table of param.source.tables) {
       const colPrompt = table.columns.map((col) => `'${col.title}'`).join(', ');
       schemaPrompt += `Table '${table.title}', columns = [${colPrompt}]\n`;
     }
 
     const response = await openai.createCompletion({
       model: 'text-davinci-003',
-      prompt: `${schemaPrompt}\n\nFix following query using SQL (${param.base.type})\n\`${param.sql}\`\nreturn fixed query in form of Object<{ data: { query: string } }> with escaped new lines as parsable JSON:\n`,
+      prompt: `${schemaPrompt}\n\nFix following query using SQL (${param.source.type})\n\`${param.sql}\`\nreturn fixed query in form of Object<{ data: { query: string } }> with escaped new lines as parsable JSON:\n`,
       temperature: 0.7,
       max_tokens: 1500,
       top_p: 1,
@@ -353,9 +353,13 @@ export class UtilsService extends UtilsServiceCE {
     };
   }
 
-  async generateQueryPrompt(param: { prompt: string; max: number; base: any }) {
+  async generateQueryPrompt(param: {
+    prompt: string;
+    max: number;
+    source: any;
+  }) {
     let schemaPrompt = '';
-    for (const table of param.base.tables) {
+    for (const table of param.source.tables) {
       const colPrompt = table.columns.map((col) => `'${col.title}'`).join(', ');
       schemaPrompt += `Table '${table.title}', columns = [${colPrompt}]\n`;
     }
@@ -365,7 +369,7 @@ export class UtilsService extends UtilsServiceCE {
       prompt: `${schemaPrompt}\n\nPossible ${
         param.prompt
       } queries using JOIN, GROUP BY and HAVING using SQL (${
-        param.base.type
+        param.source.type
       }) (maximum ${
         param.max || 5
       }) in form of Object<{ data: Array<{ description: string; query: string }> }> with escaped new lines as parsable JSON:\n`,
@@ -431,12 +435,12 @@ export class UtilsService extends UtilsServiceCE {
     }
   }
 
-  async runSelectQuery(param: { baseId: string; query: string }) {
-    // req.body.baseId
+  async runSelectQuery(param: { sourceId: string; query: string }) {
+    // req.body.sourceId
     // req.body.query
 
-    const base = await Base.get(param.baseId);
-    if (!base) return NcError.internalServerError('Base not found');
+    const source = await Source.get(param.sourceId);
+    if (!source) return NcError.internalServerError('Source not found');
 
     try {
       const statements = identify(param.query);
@@ -450,10 +454,10 @@ export class UtilsService extends UtilsServiceCE {
       return NcError.internalServerError(e);
     }
 
-    const baseDriver = (await NcConnectionMgrv2.getSqlClient(base))?.knex;
+    const baseDriver = (await NcConnectionMgrv2.getSqlClient(source))?.knex;
 
     if (!baseDriver)
-      return NcError.internalServerError('Unable to connect to base');
+      return NcError.internalServerError('Unable to connect to source');
 
     try {
       const sqlClientType = baseDriver.clientType();

@@ -13,12 +13,12 @@ import {
   useI18n,
   useMetas,
   useNuxtApp,
-  useProject,
+  useBase,
   useTabs,
   watch,
 } from '#imports'
 
-export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?: string) {
+export function useTable(onTableCreate?: (tableMeta: TableType) => void, sourceId?: string) {
   const table = reactive<{ title: string; table_name: string; columns: string[] }>({
     title: '',
     table_name: '',
@@ -33,19 +33,19 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
 
   const { closeTab } = useTabs()
 
-  const projectStore = useProject()
-  const { loadTables, isXcdbBase } = projectStore
-  const { sqlUis, project, tables } = storeToRefs(projectStore)
+  const baseStore = useBase()
+  const { loadTables, isXcdbBase } = baseStore
+  const { sqlUis, base, tables } = storeToRefs(baseStore)
 
   const { refreshCommandPalette } = useCommandPalette()
 
   const { createTableMagic: _createTableMagic, createSchemaMagic: _createSchemaMagic } = useNocoEe()
 
-  const sqlUi = computed(() => (baseId && sqlUis.value[baseId] ? sqlUis.value[baseId] : Object.values(sqlUis.value)[0]))
+  const sqlUi = computed(() => (sourceId && sqlUis.value[sourceId] ? sqlUis.value[sourceId] : Object.values(sqlUis.value)[0]))
 
-  const createTable = async (projectId?: string) => {
-    if (!baseId) {
-      baseId = project.value.bases?.[0].id
+  const createTable = async (baseId?: string) => {
+    if (!sourceId) {
+      sourceId = base.value.sources?.[0].id
     }
 
     if (!sqlUi?.value) return
@@ -60,9 +60,9 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
     })
 
     try {
-      const tableMeta = await $api.base.tableCreate(
-        projectId ?? (project?.value?.id as string),
-        (baseId || project?.value?.bases?.[0].id)!,
+      const tableMeta = await $api.source.tableCreate(
+        baseId ?? (base?.value?.id as string),
+        (sourceId || base?.value?.sources?.[0].id)!,
         {
           ...table,
           columns,
@@ -77,15 +77,15 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
   }
 
   const createTableMagic = async () => {
-    if (!sqlUi?.value || !baseId) return
+    if (!sqlUi?.value || !sourceId) return
 
-    await _createTableMagic(project, baseId, table, onTableCreate)
+    await _createTableMagic(base, sourceId, table, onTableCreate)
   }
 
   const createSchemaMagic = async () => {
-    if (!sqlUi?.value || !baseId) return
+    if (!sqlUi?.value || !sourceId) return
 
-    return await _createSchemaMagic(project, baseId, table, onTableCreate)
+    return await _createSchemaMagic(base, sourceId, table, onTableCreate)
   }
 
   const createSqlView = async (sql: string) => {
@@ -93,7 +93,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
     if (!sql || sql.trim() === '') return
 
     try {
-      const tableMeta = await $api.base.createSqlView(project?.value?.id as string, baseId as string, {
+      const tableMeta = await $api.source.createSqlView(base?.value?.id as string, sourceId as string, {
         view_name: table.table_name,
         view_definition: sql,
       })
@@ -132,8 +132,8 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
           const relationColumns = meta?.columns?.filter((c) => isLinksOrLTAR(c) && !isSystemColumn(c))
 
           // Check if table has any relation columns and show notification
-          // skip for xcdb base
-          if (relationColumns?.length && !isXcdbBase(table.base_id)) {
+          // skip for xcdb source
+          if (relationColumns?.length && !isXcdbBase(table.source_id)) {
             const refColMsgs = await Promise.all(
               relationColumns.map(async (c, i) => {
                 const refMeta = (await getMeta(
@@ -182,7 +182,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
     createSqlView,
     generateUniqueTitle,
     tables,
-    project,
+    base,
     deleteTable,
   }
 }

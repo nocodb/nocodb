@@ -34,12 +34,12 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
   await loadWorkspaces()
 
   // TODO: Add to swagger
-  const project = (workspace as any).projects?.[0]
-  const table = project?.tables?.[0]
+  const base = (workspace as any).bases?.[0]
+  const table = base?.tables?.[0]
 
-  if (project && table) {
+  if (base && table) {
     return await navigateToTable({
-      projectId: project.id,
+      baseId: base.id,
       tableId: table.id,
       workspaceId: workspace.id,
     })
@@ -48,9 +48,9 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
   navigateTo(`/${workspace.id}`)
 }
 
-const projectStore = useProject()
+const baseStore = useBase()
 
-const { isSharedBase } = storeToRefs(projectStore)
+const { isSharedBase } = storeToRefs(baseStore)
 
 const switchWorkspace = async (workspaceId: string) => {
   $e('a:workspace:switch')

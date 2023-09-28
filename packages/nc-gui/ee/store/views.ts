@@ -10,15 +10,15 @@ export const useViewsStore = defineStore('viewsStore', () => {
     viewId: string | undefined
     viewType: ViewTypes
     tableID: string
-    projectName: string
-    projectId: string
+    baseName: string
+    baseId: string
   }
 
   const router = useRouter()
   const recentViews = ref<RecentView[]>([])
   const route = router.currentRoute
 
-  const projects = useProjects()
+  const bases = useBases()
 
   const tablesStore = useTablesStore()
 
@@ -120,10 +120,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const onViewsTabChange = (page: ViewPageType) => {
     router.push({
-      name: 'index-typeOrId-projectId-index-index-viewId-viewTitle-slugs',
+      name: 'index-typeOrId-baseId-index-index-viewId-viewTitle-slugs',
       params: {
         typeOrId: route.value.params.typeOrId,
-        projectId: route.value.params.projectId,
+        baseId: route.value.params.baseId,
         viewId: route.value.params.viewId,
         viewTitle: activeViewTitleOrId.value,
         slugs: [page],
@@ -131,24 +131,24 @@ export const useViewsStore = defineStore('viewsStore', () => {
     })
   }
 
-  const changeView = async ({ viewId, tableId, projectId }: { viewId: string | null; tableId: string; projectId: string }) => {
-    const routeName = 'index-typeOrId-projectId-index-index-viewId-viewTitle'
-    await router.push({ name: routeName, params: { viewTitle: viewId || '', viewId: tableId, projectId } })
+  const changeView = async ({ viewId, tableId, baseId }: { viewId: string | null; tableId: string; baseId: string }) => {
+    const routeName = 'index-typeOrId-baseId-index-index-viewId-viewTitle'
+    await router.push({ name: routeName, params: { viewTitle: viewId || '', viewId: tableId, baseId } })
   }
 
   const removeFromRecentViews = ({
     viewId,
     tableId,
-    projectId,
+    baseId,
   }: {
     viewId?: string | undefined
     tableId: string
-    projectId?: string
+    baseId?: string
   }) => {
-    if (projectId && !viewId && !tableId) {
-      recentViews.value = recentViews.value.filter((f) => f.projectId !== projectId)
-    } else if (projectId && tableId && !viewId) {
-      recentViews.value = recentViews.value.filter((f) => f.projectId !== projectId || f.tableID !== tableId)
+    if (baseId && !viewId && !tableId) {
+      recentViews.value = recentViews.value.filter((f) => f.baseId !== baseId)
+    } else if (baseId && tableId && !viewId) {
+      recentViews.value = recentViews.value.filter((f) => f.baseId !== baseId || f.tableID !== tableId)
     } else if (tableId && viewId) {
       recentViews.value = recentViews.value.filter((f) => f.viewId !== viewId || f.tableID !== tableId)
     }
@@ -181,16 +181,16 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const navigateToView = async ({
     view,
-    projectId,
+    baseId,
     tableId,
     hardReload,
   }: {
     view: ViewType
-    projectId: string
+    baseId: string
     tableId: string
     hardReload?: boolean
   }) => {
-    const routeName = 'index-typeOrId-projectId-index-index-viewId-viewTitle'
+    const routeName = 'index-typeOrId-baseId-index-index-viewId-viewTitle'
 
     let projectIdOrBaseId = projectId
 
@@ -205,11 +205,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
     ) {
       await router.push({
         name: routeName,
-        params: { viewTitle: view.id || '', viewId: tableId, projectId: projectIdOrBaseId },
+        params: { viewTitle: view.id || '', viewId: tableId, baseId: projectIdOrBaseId },
         query: router.currentRoute.value.query,
       })
     } else {
-      await router.push({ name: routeName, params: { viewTitle: view.id || '', viewId: tableId, projectId: projectIdOrBaseId } })
+      await router.push({ name: routeName, params: { viewTitle: view.id || '', viewId: tableId, baseId: projectIdOrBaseId } })
     }
 
     if (hardReload) {
@@ -217,13 +217,13 @@ export const useViewsStore = defineStore('viewsStore', () => {
         .replace({
           name: routeName,
           query: { reload: 'true' },
-          params: { viewId: tableId, projectId: projectIdOrBaseId, viewTitle: view.id || '' },
+          params: { viewId: tableId, baseId: projectIdOrBaseId, viewTitle: view.id || '' },
         })
         .then(() => {
           router.replace({
             name: routeName,
             query: {},
-            params: { viewId: tableId, viewTitle: view.id || '', projectId: projectIdOrBaseId },
+            params: { viewId: tableId, viewTitle: view.id || '', baseId: projectIdOrBaseId },
           })
         })
     }
@@ -235,17 +235,17 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   watch(activeView, (view) => {
     if (!view) return
-    if (!view.project_id) return
+    if (!view.base_id) return
 
-    const projectName = projects.projectsList.find((p) => p.id === view.project_id)?.title
+    const baseName = bases.basesList.find((p) => p.id === view.base_id)?.title
     recentViews.value = [
       {
         viewId: view.id,
-        projectId: view.project_id as string,
+        baseId: view.base_id as string,
         tableID: view.fk_model_id,
         viewName: view.title as string,
         viewType: view.type,
-        projectName: projectName as string,
+        baseName: baseName as string,
       },
       ...recentViews.value.filter((f) => f.viewId !== view.id || f.tableID !== view.fk_model_id),
     ].splice(0, 10)

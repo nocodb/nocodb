@@ -13,17 +13,17 @@ export class MetaSyncProcessor {
   @Process(JobTypes.MetaSync)
   async job(job: Job) {
     const info: {
-      projectId: string;
       baseId: string;
+      sourceId: string;
       user: any;
     } = job.data;
 
-    if (info.baseId === 'all') {
-      await this.metaDiffsService.metaDiffSync({ projectId: info.projectId });
+    if (info.sourceId === 'all') {
+      await this.metaDiffsService.metaDiffSync({ baseId: info.baseId });
     } else {
       await this.metaDiffsService.baseMetaDiffSync({
-        projectId: info.projectId,
         baseId: info.baseId,
+        sourceId: info.sourceId,
       });
     }
   }

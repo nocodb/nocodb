@@ -9,10 +9,10 @@ test.describe('Table Column Operations', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     grid = dashboard.grid;
 
-    await dashboard.treeView.createTable({ title: 'sheet1', projectTitle: context.project.title });
+    await dashboard.treeView.createTable({ title: 'sheet1', baseTitle: context.base.title });
   });
 
   test('Create column', async () => {

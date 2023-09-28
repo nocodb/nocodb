@@ -1,4 +1,4 @@
-import type { ProjectType, WorkspaceType, WorkspaceUserRoles, WorkspaceUserType } from 'nocodb-sdk'
+import type { BaseType, WorkspaceType, WorkspaceUserRoles, WorkspaceUserType } from 'nocodb-sdk'
 import { WorkspaceStatus } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
@@ -14,8 +14,8 @@ interface NcWorkspace extends WorkspaceType {
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   // todo: update type in swagger
-  const projectsStore = useProjects()
-  const { clearProjects } = projectsStore
+  const basesStore = useBases()
+  const { clearBases } = basesStore
 
   const { loadRoles } = useRoles()
 
@@ -106,12 +106,12 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           .filter((t) => t.trim())
           .map((title) => {
             // pick a random color from array and assign to workspace
-            const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
+            const color = baseThemeColors[Math.floor(Math.random() * 1000) % baseThemeColors.length]
             return { ...workspace, title, meta: { color } }
           })
       } else {
         // pick a random color from array and assign to workspace
-        const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
+        const color = baseThemeColors[Math.floor(Math.random() * 1000) % baseThemeColors.length]
         reqPayload = { ...workspace, meta: { color } }
       }
 
@@ -262,22 +262,22 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
 
     if (activeWorkspace.value?.status === WorkspaceStatus.CREATED) {
-      await projectsStore.loadProjects()
+      await basesStore.loadProjects()
     }
     isWorkspaceLoading.value = false
   }
 
-  const addToFavourite = async (projectId: string) => {
+  const addToFavourite = async (baseId: string) => {
     try {
-      const projects = projectsStore.projects
-      const project = projects.get(projectId)
-      if (!project) return
+      const bases = basesStore.bases
+      const base = bases.get(baseId)
+      if (!base) return
 
       // todo: update the type
-      project.starred = true
+      base.starred = true
 
-      await $api.project.userMetaUpdate(
-        projectId,
+      await $api.base.userMetaUpdate(
+        baseId,
         {
           starred: true,
         },
@@ -290,15 +290,15 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const removeFromFavourite = async (projectId: string) => {
+  const removeFromFavourite = async (baseId: string) => {
     try {
-      const project = projectsStore.projects.get(projectId)
-      if (!project) return
+      const base = basesStore.bases.get(baseId)
+      if (!base) return
 
-      project.starred = false
+      base.starred = false
 
-      await $api.project.userMetaUpdate(
-        projectId,
+      await $api.base.userMetaUpdate(
+        baseId,
         {
           starred: false,
         },
@@ -311,31 +311,31 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const updateProjectTitle = async (project: ProjectType & { edit: boolean; temp_title: string }) => {
+  const updateProjectTitle = async (base: BaseType & { edit: boolean; temp_title: string }) => {
     try {
-      await $api.project.update(
-        project.id!,
-        { title: project.temp_title },
+      await $api.base.update(
+        base.id!,
+        { title: base.temp_title },
         {
           baseURL: appInfo.value.baseHostName
-            ? `https://${activeWorkspace.value?.id || project.fk_workspace_id}.${appInfo.value.baseHostName}`
+            ? `https://${activeWorkspace.value?.id || base.fk_workspace_id}.${appInfo.value.baseHostName}`
             : undefined,
         },
       )
-      project.title = project.temp_title
-      project.edit = false
+      base.title = base.temp_title
+      base.edit = false
       refreshCommandPalette()
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 
-  const moveWorkspace = async (workspaceId: string, projectId: string) => {
+  const moveWorkspace = async (workspaceId: string, baseId: string) => {
     try {
-      await $api.workspaceProject.move(workspaceId, projectId, {
+      await $api.workspaceBase.move(workspaceId, baseId, {
         baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace.value?.id}.${appInfo.value.baseHostName}` : undefined,
       })
-      message.success('Project moved successfully')
+      message.success('Base moved successfully')
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -361,7 +361,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const clearWorkspaces = async () => {
-    await clearProjects()
+    await clearBases()
     workspaces.value.clear()
   }
   const upgradeActiveWorkspace = async () => {

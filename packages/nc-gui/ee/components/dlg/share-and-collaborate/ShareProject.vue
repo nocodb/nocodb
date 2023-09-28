@@ -5,14 +5,14 @@ import ShareBase from './ShareBase.vue'
 const { formStatus } = storeToRefs(useShare())
 
 onMounted(async () => {
-  formStatus.value = 'project-collaborate'
+  formStatus.value = 'base-collaborate'
 })
 </script>
 
 <template>
   <div class="flex flex-col mx-4 mb-4 mt-2">
     <a-tabs v-model:activeKey="formStatus">
-      <a-tab-pane key="project-collaborate">
+      <a-tab-pane key="base-collaborate">
         <template #tab>
           <div class="flex flex-row items-center text-xs px-2">
             <MdiAccountPlusOutline class="mr-1" />
@@ -21,11 +21,11 @@ onMounted(async () => {
         </template>
         <Collaborate />
       </a-tab-pane>
-      <!-- <a-tab-pane key="project-public">
+      <!-- <a-tab-pane key="base-public">
         <template #tab>
           <div class="flex flex-row items-center text-xs px-2">
             <MdiEarth class="mr-1" />
-            <div data-testid="docs-share-dlg-share-project-public">Share Public Viewing</div>
+            <div data-testid="docs-share-dlg-share-base-public">Share Public Viewing</div>
           </div>
         </template>
         <PublicProject />
@@ -34,7 +34,7 @@ onMounted(async () => {
         <template #tab>
           <div class="flex flex-row items-center text-xs px-2">
             <MdiEarth class="mr-1" />
-            <div data-testid="db-share-base">Share Base</div>
+            <div data-testid="db-share-base">Share Source</div>
           </div>
         </template>
         <ShareBase />

@@ -2,7 +2,7 @@ import { promisify } from 'util';
 import fs from 'fs';
 import { default as NcConnectionMgrv2CE } from 'src/utils/common/NcConnectionMgrv2';
 import type { Knex } from 'knex';
-import type Base from '~/models/Base';
+import type Source from '~/models/Source';
 import {
   defaultConnectionConfig,
   defaultConnectionOptions,
@@ -16,8 +16,8 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
   protected static dataKnex?: XKnex;
   protected static dataConfig?: Knex.Config;
 
-  public static async get(base: Base): Promise<XKnex> {
-    if (base.isMeta()) {
+  public static async get(source: Source): Promise<XKnex> {
+    if (source.isMeta()) {
       // if data db is set, use it for generating knex connection
       if (!this.dataKnex) {
         await this.getDataConfig();
@@ -26,15 +26,15 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
       return this.dataKnex;
     }
 
-    if (this.connectionRefs?.[base.project_id]?.[base.id]) {
-      return this.connectionRefs?.[base.project_id]?.[base.id];
+    if (this.connectionRefs?.[source.base_id]?.[source.id]) {
+      return this.connectionRefs?.[source.base_id]?.[source.id];
     }
-    this.connectionRefs[base.project_id] =
-      this.connectionRefs?.[base.project_id] || {};
+    this.connectionRefs[source.base_id] =
+      this.connectionRefs?.[source.base_id] || {};
 
-    const connectionConfig = await base.getConnectionConfig();
+    const connectionConfig = await source.getConnectionConfig();
 
-    this.connectionRefs[base.project_id][base.id] = XKnex({
+    this.connectionRefs[source.base_id][source.id] = XKnex({
       ...defaultConnectionOptions,
       ...connectionConfig,
       connection: {
@@ -51,7 +51,7 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
         },
       },
     } as any);
-    return this.connectionRefs[base.project_id][base.id];
+    return this.connectionRefs[source.base_id][source.id];
   }
 
   public static async getDataConfig?() {

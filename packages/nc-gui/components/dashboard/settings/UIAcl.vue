@@ -13,21 +13,21 @@ import {
   useGlobal,
   useI18n,
   useNuxtApp,
-  useProject,
+  useBase,
 } from '#imports'
 
 const props = defineProps<{
-  baseId: string
+  sourceId: string
 }>()
 
 const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
 const _projectId = inject(ProjectIdInj, ref())
-const projectId = computed(() => _projectId.value ?? project.value?.id)
+const baseId = computed(() => _projectId.value ?? base.value?.id)
 
 const { includeM2M } = useGlobal()
 
@@ -42,7 +42,7 @@ const searchInput = ref('')
 const filteredTables = computed(() =>
   tables.value.filter(
     (el) =>
-      el?.base_id === props.baseId &&
+      el?.source_id === props.sourceId &&
       ((typeof el?._ptn === 'string' && el._ptn.toLowerCase().includes(searchInput.value.toLowerCase())) ||
         (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.value.toLowerCase()))),
   ),
@@ -50,11 +50,11 @@ const filteredTables = computed(() =>
 
 async function loadTableList() {
   try {
-    if (!projectId.value) return
+    if (!baseId.value) return
 
     isLoading.value = true
 
-    tables.value = await $api.project.modelVisibilityList(projectId.value, {
+    tables.value = await $api.base.modelVisibilityList(baseId.value, {
       includeM2M: includeM2M.value,
     })
   } catch (e) {
@@ -66,10 +66,10 @@ async function loadTableList() {
 
 async function saveUIAcl() {
   try {
-    if (!projectId.value) return
+    if (!baseId.value) return
 
-    await $api.project.modelVisibilitySet(
-      projectId.value,
+    await $api.base.modelVisibilitySet(
+      baseId.value,
       tables.value.filter((t) => t.edited),
     )
     // Updated UI ACL for tables successfully
@@ -123,7 +123,7 @@ const columns = [
 <template>
   <div class="flex flex-row w-full items-center justify-center">
     <div class="flex flex-col w-[900px]">
-      <span class="mb-4 first-letter:capital font-bold"> UI ACL : {{ project.title }} </span>
+      <span class="mb-4 first-letter:capital font-bold"> UI ACL : {{ base.title }} </span>
       <div class="flex flex-row items-center w-full mb-4 gap-2 justify-between">
         <a-input v-model:value="searchInput" :placeholder="$t('placeholder.searchModels')" class="nc-acl-search !w-[400px]">
           <template #prefix>

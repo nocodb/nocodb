@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { BaseType, OracleUi, ProjectType, ProjectUserReqType, RequestParams } from 'nocodb-sdk'
+import type { SourceType, OracleUi, ProjectType, ProjectUserReqType, RequestParams } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { useWorkspace } from '#imports'
@@ -28,13 +28,13 @@ export const useProjects = defineStore('projectsStore', () => {
 
   const openedProject = computed(() => (activeProjectId.value ? projects.value.get(activeProjectId.value) : undefined))
   const openedProjectBasesMap = computed(() => {
-    const basesMap = new Map<string, BaseType>()
+    const basesMap = new Map<string, SourceType>()
 
     if (!openedProject.value) return basesMap
-    if (!openedProject.value.bases) return basesMap
+    if (!openedProject.value.sources) return basesMap
 
-    for (const base of openedProject.value.bases) {
-      basesMap.set(base.id!, base)
+    for (const source of openedProject.value.sources) {
+      basesMap.set(source.id!, source)
     }
 
     return basesMap
@@ -104,7 +104,7 @@ export const useProjects = defineStore('projectsStore', () => {
       projects.value.set(project.id!, {
         ...(projects.value.get(project.id!) || {}),
         ...project,
-        bases: [...(project.bases ?? projects.value.get(project.id!)?.bases ?? [])],
+        sources: [...(project.sources ?? projects.value.get(project.id!)?.sources ?? [])],
         isExpanded: true,
         isLoading: false,
       })
@@ -161,7 +161,7 @@ export const useProjects = defineStore('projectsStore', () => {
     const project = projects.value.get(projectId)
     if (!project) return false
 
-    return !!(project.bases?.length && tableStore.projectTables.get(projectId))
+    return !!(project.sources?.length && tableStore.projectTables.get(projectId))
   }
 
   // actions
@@ -190,15 +190,15 @@ export const useProjects = defineStore('projectsStore', () => {
     projects.value.set(projectId, project)
   }
 
-  const getSqlUi = async (projectId: string, baseId: string) => {
+  const getSqlUi = async (projectId: string, sourceId: string) => {
     if (!projects.value.get(projectId)) await loadProject(projectId)
 
     let sqlUi = null
     const project = projects.value.get(projectId)!
 
-    for (const base of project.bases ?? []) {
-      if (base.id === baseId) {
-        sqlUi = SqlUiFactory.create({ client: base.type }) as any
+    for (const source of project.sources ?? []) {
+      if (source.id === sourceId) {
+        sqlUi = SqlUiFactory.create({ client: source.type }) as any
         break
       }
     }

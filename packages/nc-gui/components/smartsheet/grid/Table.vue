@@ -1592,7 +1592,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
             <NcMenuItem
               v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
               v-e="['a:row:delete']"
-              class="nc-project-menu-item !text-red-600 !hover:bg-red-50"
+              class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
               @click="confirmDeleteRow(contextMenuTarget.row)"
             >
               <GeneralIcon icon="delete" />
@@ -1602,7 +1602,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
             <div v-else-if="contextMenuTarget && deleteRangeOfRows">
               <NcMenuItem
                 v-e="['a:row:delete']"
-                class="nc-project-menu-item !text-red-600 !hover:bg-red-50"
+                class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
                 @click="deleteSelectedRangeOfRows"
               >
                 <GeneralIcon icon="delete" class="text-gray-500 text-red-600" />

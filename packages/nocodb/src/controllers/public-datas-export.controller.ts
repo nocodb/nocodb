@@ -9,7 +9,7 @@ import getAst from '~/helpers/getAst';
 import { serializeCellValue } from '~/modules/datas/helpers';
 import { PublicDatasExportService } from '~/services/public-datas-export.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { Base, Column, Model, View } from '~/models';
+import { Column, Model, Source, View } from '~/models';
 
 @Controller()
 export class PublicDatasExportController {
@@ -17,7 +17,10 @@ export class PublicDatasExportController {
     private readonly publicDatasExportService: PublicDatasExportService,
   ) {}
 
-  @Get('/api/v1/db/public/shared-view/:publicDataUuid/rows/export/excel')
+  @Get([
+    '/api/v1/db/public/shared-view/:publicDataUuid/rows/export/excel',
+    '/api/v1/public/shared-view/:publicDataUuid/rows/export/excel',
+  ])
   async exportExcel(
     @Request() req,
     @Response() res,
@@ -69,7 +72,10 @@ export class PublicDatasExportController {
     res.end(buf);
   }
 
-  @Get('/api/v1/db/public/shared-view/:publicDataUuid/rows/export/csv')
+  @Get([
+    '/api/v1/db/public/shared-view/:publicDataUuid/rows/export/csv',
+    '/api/v1/public/shared-view/:publicDataUuid/rows/export/csv',
+  ])
   async exportCsv(@Request() req, @Response() res) {
     const view = await View.getByUUID(req.params.publicDataUuid);
     const fields = req.query.fields;
@@ -148,11 +154,11 @@ export class PublicDatasExportController {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const { ast } = await getAst({

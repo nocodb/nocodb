@@ -7,7 +7,7 @@ import type {
   WorkspaceInviteEvent,
 } from '~/services/app-hooks/interfaces';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import type { Project } from '~/models';
+import type { Base } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Injectable()
@@ -29,17 +29,17 @@ export class NotificationsService
     switch (event) {
       case AppEvents.PROJECT_INVITE:
         {
-          const { project, user, invitedBy } = data as ProjectInviteEvent;
+          const { base, user, invitedBy } = data as ProjectInviteEvent;
 
           await this.insertNotification({
             fk_user_id: user.id,
             type: AppEvents.PROJECT_INVITE,
             body: {
-              id: project.id,
-              title: project.title,
-              type: project.type,
+              id: base.id,
+              title: base.title,
+              type: base.type,
               invited_by: invitedBy.email,
-              workspace_id: (project as Project).fk_workspace_id,
+              workspace_id: (base as Base).fk_workspace_id,
             },
           });
         }

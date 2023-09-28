@@ -34,8 +34,8 @@ onMounted(async () => {
       isLoading.value = true
       try {
         const page = await fetchPage({
-          page: { id: pageId, project_id: openedProjectId.value } as any,
-          projectId: openedProjectId.value,
+          page: { id: pageId, base_id: openedProjectId.value } as any,
+          baseId: openedProjectId.value,
           doNotSetProject: true,
         })
         if (!page) {
@@ -135,7 +135,7 @@ watch(
         :style="{
           textDecoration: 'none !important',
         }"
-        :href="`#${nestedUrl({ id: page.id!, projectId: openedProjectId })}`"
+        :href="`#${nestedUrl({ id: page.id!, baseId: openedProjectId })}`"
       >
         <div class="flex w-full flex-row py-1.5 px-2.5 hover:bg-gray-50 items-center gap-x-2.5 cursor-pointer group">
           <div class="relative">

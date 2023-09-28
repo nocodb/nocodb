@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { ProjectType } from 'nocodb-sdk'
+import type { BaseType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { ref, storeToRefs, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
-  project: ProjectType
+  base: BaseType
 }>()
 
 const emit = defineEmits(['update:modelValue', 'success'])
@@ -19,7 +19,7 @@ const { workspacesList } = storeToRefs(workspaceStore)
 const workspaceId = ref()
 
 const _moveWorkspace = async () => {
-  await moveWorkspace(workspaceId.value, props.project.id!)
+  await moveWorkspace(workspaceId.value, props.base.id!)
   emit('success', workspaceId.value)
 }
 

@@ -13,7 +13,7 @@ import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import validateParams from '~/helpers/validateParams';
 import { NcError } from '~/helpers/catchError';
-import { Project, ProjectUser, User } from '~/models';
+import { Base, BaseUser, User } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import Workspace from '~/models/Workspace';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -99,7 +99,7 @@ export class WorkspaceUsersService {
 
     if (!targetUser) {
       NcError.badRequest(
-        `User with id '${param.userId}' doesn't exist in this project`,
+        `User with id '${param.userId}' doesn't exist in this base`,
       );
     }
 
@@ -138,14 +138,14 @@ export class WorkspaceUsersService {
     if (user.roles === WorkspaceUserRoles.OWNER)
       NcError.badRequest('Owner cannot be deleted');
 
-    // get all projects user is part of and delete them
-    const workspaceProjects = await Project.listByWorkspaceAndUser(
+    // get all bases user is part of and delete them
+    const workspaceBases = await Base.listByWorkspaceAndUser(
       workspaceId,
       userId,
     );
 
-    for (const project of workspaceProjects) {
-      await ProjectUser.delete(project.id, userId);
+    for (const base of workspaceBases) {
+      await BaseUser.delete(base.id, userId);
     }
 
     return await WorkspaceUser.delete(workspaceId, userId);
@@ -212,7 +212,7 @@ export class WorkspaceUsersService {
     const error = [];
 
     for (const email of emails) {
-      // add user to project if user already exist
+      // add user to base if user already exist
       let user = await User.getByEmail(email);
       if (!user) {
         const salt = await promisify(bcrypt.genSalt)(10);
@@ -227,11 +227,11 @@ export class WorkspaceUsersService {
         });
       }
 
-      // check if this user has been added to this project
+      // check if this user has been added to this base
       const workspaceUser = await WorkspaceUser.get(workspaceId, user.id);
       if (workspaceUser) {
         NcError.badRequest(
-          `${user.email} with role ${workspaceUser.roles} already exists in this project`,
+          `${user.email} with role ${workspaceUser.roles} already exists in this base`,
         );
       }
 

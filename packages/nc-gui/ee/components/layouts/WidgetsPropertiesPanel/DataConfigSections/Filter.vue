@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { BaseType, DataSourceInternal, FilterType } from 'nocodb-sdk'
+import type { SourceType, DataSourceInternal, FilterType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import useWidgetFilters from './useWidgetFilters'
 import type { Filter } from '#imports'
@@ -65,7 +65,7 @@ const types = computed(() => {
 
 const { $api, $e } = useNuxtApp()
 
-const baseType = ref<BaseType>()
+const baseType = ref<SourceType>()
 
 watch(
   () => (focusedWidget.value?.data_source as DataSourceInternal)?.tableId,
@@ -73,8 +73,8 @@ watch(
     if (!widget) return
     const tableIdOfWidget = (focusedWidget.value?.data_source as DataSourceInternal).tableId
     const table = await $api.dbTable.read(tableIdOfWidget!)
-    const base = await $api.base.read(table.project_id!, table.base_id!)
-    baseType.value = base.type! as BaseType
+    const source = await $api.source.read(table.base_id!, table.source_id!)
+    baseType.value = source.type! as SourceType
   },
   { immediate: true },
 )
@@ -315,7 +315,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
               v-else
               class="nc-filter-value-select min-w-[120px]"
               :column="getColumn(filter)"
-              :base-type="baseType!"
+              :source-type="baseType!"
               :filter="filter"
               @click.stop
               @update-filter-value="(value) => updateFilterValue(value, filter, i)"

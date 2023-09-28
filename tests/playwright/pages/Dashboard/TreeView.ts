@@ -6,13 +6,13 @@ import { isEE } from '../../setup/db';
 
 export class TreeViewPage extends BasePage {
   readonly dashboard: DashboardPage;
-  readonly project: any;
+  readonly base: any;
   readonly quickImportButton: Locator;
 
-  constructor(dashboard: DashboardPage, project: any) {
+  constructor(dashboard: DashboardPage, base: any) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
-    this.project = project;
+    this.base = base;
     this.quickImportButton = dashboard.get().locator('.nc-import-menu');
   }
 
@@ -20,17 +20,17 @@ export class TreeViewPage extends BasePage {
     return this.dashboard.get().locator('.nc-treeview-container');
   }
 
-  getAddNewTableBtn({ projectTitle }: { projectTitle: string }) {
+  getAddNewTableBtn({ baseTitle }: { baseTitle: string }) {
     return this.dashboard
       .get()
-      .getByTestId(`nc-sidebar-project-title-${projectTitle}`)
-      .locator('[data-testid="nc-sidebar-add-project-entity"]');
+      .getByTestId(`nc-sidebar-base-title-${baseTitle}`)
+      .locator('[data-testid="nc-sidebar-add-base-entity"]');
   }
 
-  private getProjectContextMenu({ projectTitle }: { projectTitle: string }) {
+  private getProjectContextMenu({ baseTitle }: { baseTitle: string }) {
     return this.dashboard
       .get()
-      .getByTestId(`nc-sidebar-project-title-${projectTitle}`)
+      .getByTestId(`nc-sidebar-base-title-${baseTitle}`)
       .locator('[data-testid="nc-sidebar-context-menu"]');
   }
 
@@ -61,11 +61,11 @@ export class TreeViewPage extends BasePage {
   }
 
   async focusTable({ title }: { title: string }) {
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).focus();
+    await this.get().locator(`.nc-base-tree-tbl-${title}`).focus();
   }
 
   async openBase({ title }: { title: string }) {
-    const nodes = this.get().locator(`[data-testid="nc-sidebar-project-${title.toLowerCase()}"]`);
+    const nodes = this.get().locator(`[data-testid="nc-sidebar-base-${title.toLowerCase()}"]`);
     await nodes.click();
     return;
   }
@@ -109,7 +109,7 @@ export class TreeViewPage extends BasePage {
               },
             }),
         httpMethodsToMatch: ['GET'],
-        requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+        requestUrlPathToMatch: `/api/v1/data/noco/`,
         responseJsonMatcher: json => json.pageInfo,
       });
       await this.dashboard.waitForTabRender({ title, mode });
@@ -123,20 +123,17 @@ export class TreeViewPage extends BasePage {
     title,
     skipOpeningModal,
     mode,
-    projectTitle,
+    baseTitle,
   }: {
     title: string;
     skipOpeningModal?: boolean;
     mode?: string;
-    projectTitle: string;
+    baseTitle: string;
   }) {
     if (!skipOpeningModal) {
-      await this.get().getByTestId(`nc-sidebar-project-title-${projectTitle}`).hover();
+      await this.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`).hover();
 
-      await this.get()
-        .getByTestId(`nc-sidebar-project-${projectTitle}`)
-        .getByTestId('nc-sidebar-add-project-entity')
-        .click();
+      await this.get().getByTestId(`nc-sidebar-base-${baseTitle}`).getByTestId('nc-sidebar-add-base-entity').click();
     }
 
     await this.dashboard.get().locator('.ant-modal.active').locator('.ant-modal-body').waitFor();
@@ -146,7 +143,7 @@ export class TreeViewPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.dashboard.get().locator('button:has-text("Create Table")').click(),
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
+      requestUrlPathToMatch: `/api/v1/meta/bases/`,
       responseJsonMatcher: json => json.title === title && json.type === 'table',
     });
 
@@ -167,10 +164,10 @@ export class TreeViewPage extends BasePage {
   }
 
   async deleteTable({ title }: { title: string }) {
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).waitFor({ state: 'visible' });
+    await this.get().locator(`.nc-base-tree-tbl-${title}`).waitFor({ state: 'visible' });
 
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).scrollIntoViewIfNeeded();
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-tbl-context-menu').click();
+    await this.get().locator(`.nc-base-tree-tbl-${title}`).scrollIntoViewIfNeeded();
+    await this.get().locator(`.nc-base-tree-tbl-${title}`).locator('.nc-tbl-context-menu').click();
     await this.rootPage.locator('.ant-dropdown').locator('.nc-menu-item:has-text("Delete")').click();
 
     await this.waitForResponse({
@@ -182,16 +179,16 @@ export class TreeViewPage extends BasePage {
         return await this.dashboard.get().locator('button:has-text("Delete Table")').click();
       },
       httpMethodsToMatch: ['DELETE'],
-      requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
+      requestUrlPathToMatch: `/api/v1/meta/tables/`,
     });
 
     await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
   }
 
   async renameTable({ title, newTitle }: { title: string; newTitle: string }) {
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).waitFor({ state: 'visible' });
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).scrollIntoViewIfNeeded();
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-tbl-context-menu').click();
+    await this.get().locator(`.nc-base-tree-tbl-${title}`).waitFor({ state: 'visible' });
+    await this.get().locator(`.nc-base-tree-tbl-${title}`).scrollIntoViewIfNeeded();
+    await this.get().locator(`.nc-base-tree-tbl-${title}`).locator('.nc-tbl-context-menu').click();
     await this.rootPage.locator('.ant-dropdown').locator('.nc-menu-item:has-text("Rename")').click();
 
     await this.dashboard.get().locator('[placeholder="Enter table name"]').fill(newTitle);
@@ -206,18 +203,18 @@ export class TreeViewPage extends BasePage {
       .dragTo(this.get().locator(`[data-testid="nc-tbl-title-${destinationTable}"]`));
   }
 
-  async projectSettings({ title }: { title?: string }) {
-    await this.getProjectContextMenu({ projectTitle: title }).hover();
-    await this.getProjectContextMenu({ projectTitle: title }).click();
+  async baseSettings({ title }: { title?: string }) {
+    await this.getProjectContextMenu({ baseTitle: title }).hover();
+    await this.getProjectContextMenu({ baseTitle: title }).click();
     const settingsMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
-    await settingsMenu.locator(`.nc-sidebar-project-project-settings`).click();
+    await settingsMenu.locator(`.nc-sidebar-base-base-settings`).click();
   }
 
-  async quickImport({ title, projectTitle, context }: { title: string; projectTitle: string; context: NcContext }) {
-    projectTitle = this.scopedProjectTitle({ title: projectTitle, context });
+  async quickImport({ title, baseTitle, context }: { title: string; baseTitle: string; context: NcContext }) {
+    baseTitle = this.scopedProjectTitle({ title: baseTitle, context });
 
-    await this.getProjectContextMenu({ projectTitle }).hover();
-    await this.getProjectContextMenu({ projectTitle }).click();
+    await this.getProjectContextMenu({ baseTitle }).hover();
+    await this.getProjectContextMenu({ baseTitle }).click();
     const importMenu = this.dashboard.get().locator('.ant-dropdown-menu');
     await importMenu.locator(`.nc-sub-menu:has-text("Import Data")`).click();
     await this.rootPage.locator(`.ant-dropdown-menu-item:has-text("${title}")`).waitFor();
@@ -225,19 +222,19 @@ export class TreeViewPage extends BasePage {
   }
 
   async changeTableIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {
-    await this.get().locator(`.nc-project-tree-tbl-${title} .nc-table-icon`).click();
+    await this.get().locator(`.nc-base-tree-tbl-${title} .nc-table-icon`).click();
 
     await this.rootPage.locator('.emoji-mart-search > input').fill(icon);
     const emojiList = this.rootPage.locator('[id="emoji-mart-list"]');
     await emojiList.locator('button').first().click();
     await expect(
-      this.get().locator(`.nc-project-tree-tbl-${title}`).locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+      this.get().locator(`.nc-base-tree-tbl-${title}`).locator(`.nc-table-icon:has-text("${iconDisplay}")`)
     ).toHaveCount(1);
   }
 
   async duplicateTable(title: string, includeData = true, includeViews = true) {
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-icon.ant-dropdown-trigger').click();
-    await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Duplicate")').click();
+    await this.get().locator(`.nc-base-tree-tbl-${title}`).locator('.nc-icon.ant-dropdown-trigger').click();
+    await this.dashboard.get().locator('div.nc-base-menu-item:has-text("Duplicate")').click();
 
     // Find the checkbox element with the label "Include data"
     const includeDataCheckbox = this.dashboard.get().getByText('Include data', { exact: true });
@@ -256,7 +253,7 @@ export class TreeViewPage extends BasePage {
     await this.waitForResponse({
       uiAction: async () => await this.rootPage.getByRole('button', { name: 'Confirm' }).click(),
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `/api/v1/db/meta/duplicate/`,
+      requestUrlPathToMatch: `/api/v1/meta/duplicate/`,
     });
     await this.get().locator(`[data-testid="nc-tbl-title-${title} copy"]`).waitFor();
   }
@@ -264,22 +261,22 @@ export class TreeViewPage extends BasePage {
   async verifyTabIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    await this.rootPage.locator(`.nc-project-tree-tbl-${title}`).waitFor({ state: 'visible' });
+    await this.rootPage.locator(`.nc-base-tree-tbl-${title}`).waitFor({ state: 'visible' });
     await expect(
-      this.get().locator(`.nc-project-tree-tbl-${title}`).locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+      this.get().locator(`.nc-base-tree-tbl-${title}`).locator(`.nc-table-icon:has-text("${iconDisplay}")`)
     ).toHaveCount(1);
   }
 
-  async validateRoleAccess(param: { role: string; projectTitle?: string; tableTitle?: string; context: NcContext }) {
+  async validateRoleAccess(param: { role: string; baseTitle?: string; tableTitle?: string; context: NcContext }) {
     const context = param.context;
-    param.projectTitle = param.projectTitle ?? context.project.title;
+    param.baseTitle = param.baseTitle ?? context.base.title;
 
     const count = param.role.toLowerCase() === 'creator' || param.role.toLowerCase() === 'owner' ? 1 : 0;
-    const pjtNode = await this.getProject({ title: param.projectTitle });
+    const pjtNode = await this.getProject({ title: param.baseTitle });
     await pjtNode.hover();
 
     // add new table button & context menu is visible only for owner & creator
-    await expect(pjtNode.locator('[data-testid="nc-sidebar-add-project-entity"]')).toHaveCount(count);
+    await expect(pjtNode.locator('[data-testid="nc-sidebar-add-base-entity"]')).toHaveCount(count);
     await expect(pjtNode.locator('[data-testid="nc-sidebar-context-menu"]')).toHaveCount(1);
 
     // table context menu
@@ -291,11 +288,11 @@ export class TreeViewPage extends BasePage {
   async openProject({ title, context }: { title: string; context: NcContext }) {
     title = this.scopedProjectTitle({ title, context });
 
-    await this.get().getByTestId(`nc-sidebar-project-title-${title}`).click();
+    await this.get().getByTestId(`nc-sidebar-base-title-${title}`).click();
     await this.rootPage.waitForTimeout(1000);
 
-    // TODO: FIx why project click is not always registering
-    await this.get().getByTestId(`nc-sidebar-project-title-${title}`).click();
+    // TODO: FIx why base click is not always registering
+    await this.get().getByTestId(`nc-sidebar-base-title-${title}`).click();
     await this.rootPage.waitForTimeout(1000);
   }
 
@@ -304,34 +301,34 @@ export class TreeViewPage extends BasePage {
 
     if (title.toLowerCase().startsWith('xcdb')) return `${title}`;
 
-    return title === context.project.title ? context.project.title : `nc-${context.workerId}-${title}`;
+    return title === context.base.title ? context.base.title : `nc-${context.workerId}-${title}`;
   }
 
   private async getProject(param: { title?: string }) {
-    return this.get().getByTestId(`nc-sidebar-project-title-${param.title}`);
+    return this.get().getByTestId(`nc-sidebar-base-title-${param.title}`);
   }
 
   async renameProject(param: { newTitle: string; title: string; context: NcContext }) {
     param.title = this.scopedProjectTitle({ title: param.title, context: param.context });
     param.newTitle = this.scopedProjectTitle({ title: param.newTitle, context: param.context });
 
-    await this.getProjectContextMenu({ projectTitle: param.title }).hover();
-    await this.getProjectContextMenu({ projectTitle: param.title }).click();
+    await this.getProjectContextMenu({ baseTitle: param.title }).hover();
+    await this.getProjectContextMenu({ baseTitle: param.title }).click();
     const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible').last();
     await contextMenu.waitFor();
     await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Rename")`).click();
 
-    const projectNodeInput = (await this.getProject({ title: param.title })).locator('input');
-    await projectNodeInput.clear();
-    await projectNodeInput.fill(param.newTitle);
-    await projectNodeInput.press('Enter');
+    const baseNodeInput = (await this.getProject({ title: param.title })).locator('input');
+    await baseNodeInput.clear();
+    await baseNodeInput.fill(param.newTitle);
+    await baseNodeInput.press('Enter');
   }
 
   async deleteProject(param: { title: string; context: NcContext }) {
     param.title = this.scopedProjectTitle({ title: param.title, context: param.context });
 
-    await this.getProjectContextMenu({ projectTitle: param.title }).hover();
-    await this.getProjectContextMenu({ projectTitle: param.title }).click();
+    await this.getProjectContextMenu({ baseTitle: param.title }).hover();
+    await this.getProjectContextMenu({ baseTitle: param.title }).click();
     const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible').last();
     await contextMenu.waitFor();
     await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Delete")`).click();
@@ -342,8 +339,8 @@ export class TreeViewPage extends BasePage {
   async duplicateProject(param: { title: string; context: NcContext }) {
     param.title = this.scopedProjectTitle({ title: param.title, context: param.context });
 
-    await this.getProjectContextMenu({ projectTitle: param.title }).hover();
-    await this.getProjectContextMenu({ projectTitle: param.title }).click();
+    await this.getProjectContextMenu({ baseTitle: param.title }).hover();
+    await this.getProjectContextMenu({ baseTitle: param.title }).click();
     const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible');
     await contextMenu.waitFor();
     await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Duplicate")`).click();

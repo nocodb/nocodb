@@ -7,7 +7,7 @@ import type { VerifyCallback } from 'passport-google-oauth20';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 import Noco from '~/Noco';
 import { UsersService } from '~/services/users/users.service';
-import { Plugin, ProjectUser, User } from '~/models';
+import { BaseUser, Plugin, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 
 @Injectable()
@@ -31,11 +31,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     try {
       const user = await User.getByEmail(email);
       if (user) {
-        // if project id defined extract project level roles
+        // if base id defined extract base level roles
         if (req.ncProjectId) {
-          ProjectUser.get(req.ncProjectId, user.id)
-            .then(async (projectUser) => {
-              user.roles = projectUser?.roles || user.roles;
+          BaseUser.get(req.ncProjectId, user.id)
+            .then(async (baseUser) => {
+              user.roles = baseUser?.roles || user.roles;
               // + (user.roles ? `,${user.roles}` : '');
 
               done(null, sanitiseUserObj(user));

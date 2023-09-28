@@ -13,6 +13,7 @@ import * as nc_012_pg_minimal_dbs from './v3/nc_012_pg_minimal_dbs';
 import * as nc_013_remove_fk_and_add_idx from './v3/nc_013_remove_fk_and_add_idx';
 import * as nc_014_notification from './v3/nc_014_notification';
 import * as nc_015_filter_value from './v3/nc_015_filter_value';
+import * as nc_016_rename_project_and_base from './v3/nc_016_rename_project_and_base';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
@@ -37,6 +38,7 @@ export default class XcMigrationSourcev3 {
       'nc_013_remove_fk_and_add_idx',
       'nc_014_notification',
       'nc_015_filter_value',
+      'nc_016_rename_project_and_base',
     ]);
   }
 
@@ -76,6 +78,8 @@ export default class XcMigrationSourcev3 {
         return nc_014_notification;
       case 'nc_015_filter_value':
         return nc_015_filter_value;
+      case 'nc_016_rename_project_and_base':
+        return nc_016_rename_project_and_base;
     }
   }
 }

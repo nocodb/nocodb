@@ -16,7 +16,7 @@ import {
   useInjectionState,
   useMetas,
   useNuxtApp,
-  useProject,
+  useBase,
   useRouter,
   useSharedView,
   watch,
@@ -39,7 +39,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // state
     const { metas, getMeta } = useMetas()
 
-    const { project } = storeToRefs(useProject())
+    const { base } = storeToRefs(useBase())
 
     const { $api, $e } = useNuxtApp()
 
@@ -90,7 +90,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { sharedView } = useSharedView()
 
-    const projectId = project.value?.id || (sharedView.value?.view as any)?.project_id
+    const baseId = base.value?.id || (sharedView.value?.view as any)?.base_id
 
     // getters
     const meta = computed(() => metas?.value?.[column?.value?.fk_model_id as string])
@@ -160,7 +160,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         } else if (isNewRow?.value) {
           childrenExcludedList.value = await $api.dbTableRow.list(
             NOCO,
-            projectId,
+            baseId,
             relatedTableMeta?.value?.id as string,
             {
               limit: childrenExcludedListPagination.size,
@@ -174,7 +174,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         } else {
           childrenExcludedList.value = await $api.dbTableRow.nestedChildrenExcludedList(
             NOCO,
-            projectId,
+            baseId,
             meta.value.id,
             encodeURIComponent(rowId.value),
             colOptions.value.type as 'mm' | 'hm',
@@ -248,7 +248,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         } else {
           childrenList.value = await $api.dbTableRow.nestedList(
             NOCO,
-            (project?.value?.id || (sharedView.value?.view as any)?.project_id) as string,
+            (base?.value?.id || (sharedView.value?.view as any)?.base_id) as string,
             meta.value.id,
             encodeURIComponent(rowId.value),
             colOptions.value.type as 'mm' | 'hm',
@@ -284,7 +284,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           try {
             const res: { message?: string[] } | number = await $api.dbTableRow.delete(
               NOCO,
-              projectId,
+              baseId,
               relatedTableMeta.value.id as string,
               encodeURIComponent(id as string),
             )
@@ -339,7 +339,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenListLoading.value[index] = true
         await $api.dbTableRow.nestedRemove(
           NOCO,
-          project.value.id as string,
+          base.value.id as string,
           metaValue.id!,
           encodeURIComponent(rowId.value),
           colOptions.value.type as 'mm' | 'hm',
@@ -405,7 +405,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
         await $api.dbTableRow.nestedAdd(
           NOCO,
-          project.value.id as string,
+          base.value.id as string,
           metaValue.id as string,
           encodeURIComponent(rowId.value),
           colOptions.value.type as 'mm' | 'hm',

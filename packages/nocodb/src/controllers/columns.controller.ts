@@ -21,7 +21,10 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 export class ColumnsController {
   constructor(private readonly columnsService: ColumnsService) {}
 
-  @Post('/api/v1/db/meta/tables/:tableId/columns/')
+  @Post([
+    '/api/v1/db/meta/tables/:tableId/columns/',
+    '/api/v1/meta/tables/:tableId/columns/',
+  ])
   @HttpCode(200)
   @Acl('columnAdd')
   async columnAdd(
@@ -37,7 +40,10 @@ export class ColumnsController {
     });
   }
 
-  @Patch('/api/v1/db/meta/columns/:columnId')
+  @Patch([
+    '/api/v1/db/meta/columns/:columnId',
+    '/api/v1/meta/columns/:columnId',
+  ])
   @Acl('columnUpdate')
   async columnUpdate(
     @Param('columnId') columnId: string,
@@ -52,7 +58,10 @@ export class ColumnsController {
     });
   }
 
-  @Delete('/api/v1/db/meta/columns/:columnId')
+  @Delete([
+    '/api/v1/db/meta/columns/:columnId',
+    '/api/v1/meta/columns/:columnId',
+  ])
   @Acl('columnDelete')
   async columnDelete(@Param('columnId') columnId: string, @Request() req: any) {
     return await this.columnsService.columnDelete({
@@ -62,26 +71,35 @@ export class ColumnsController {
     });
   }
 
-  @Get('/api/v1/db/meta/columns/:columnId')
+  @Get(['/api/v1/db/meta/columns/:columnId', '/api/v1/meta/columns/:columnId'])
   @Acl('columnGet')
   async columnGet(@Param('columnId') columnId: string) {
     return await this.columnsService.columnGet({ columnId });
   }
 
-  @Post('/api/v1/db/meta/columns/:columnId/primary')
+  @Post([
+    '/api/v1/db/meta/columns/:columnId/primary',
+    '/api/v1/meta/columns/:columnId/primary',
+  ])
   @HttpCode(200)
   @Acl('columnSetAsPrimary')
   async columnSetAsPrimary(@Param('columnId') columnId: string) {
     return await this.columnsService.columnSetAsPrimary({ columnId });
   }
 
-  @Get('/api/v1/db/meta/tables/:tableId/columns/hash')
+  @Get([
+    '/api/v1/db/meta/tables/:tableId/columns/hash',
+    '/api/v1/meta/tables/:tableId/columns/hash',
+  ])
   @Acl('columnsHash')
   async columnsHash(@Param('tableId') tableId: string) {
     return await this.columnsService.columnsHash(tableId);
   }
 
-  @Post('/api/v1/db/meta/tables/:tableId/columns/bulk')
+  @Post([
+    '/api/v1/db/meta/tables/:tableId/columns/bulk',
+    '/api/v1/meta/tables/:tableId/columns/bulk',
+  ])
   @HttpCode(200)
   @Acl('columnBulk')
   async columnBulk(

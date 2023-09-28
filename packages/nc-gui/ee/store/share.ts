@@ -4,26 +4,26 @@ import type { Users } from '#imports'
 
 export const useShare = defineStore('share', () => {
   const visibility = ref<'public' | 'private' | 'none' | 'hidden'>('none')
-  const { project } = toRefs(useProject())
+  const { base } = toRefs(useBase())
   const { openedPage, isEditAllowed } = toRefs(useDocStore())
   const viewsStore = useViewsStore()
 
   const isProjectPublic = computed(() => {
-    if (typeof project.value?.meta === 'string') {
-      const meta = JSON.parse(project.value?.meta)
+    if (typeof base.value?.meta === 'string') {
+      const meta = JSON.parse(base.value?.meta)
       return meta.isPublic
     }
 
-    return (project.value?.meta as any)?.isPublic
+    return (base.value?.meta as any)?.isPublic
   })
 
   const formStatus = ref<
     | 'collaborate'
-    | 'project-collaborateSaving'
-    | 'project-collaborateSaved'
+    | 'base-collaborateSaving'
+    | 'base-collaborateSaved'
     | 'manageCollaborators'
-    | 'project-collaborate'
-    | 'project-public'
+    | 'base-collaborate'
+    | 'base-public'
     | 'none'
   >('none')
   const invitationValid = ref(false)
@@ -36,7 +36,7 @@ export const useShare = defineStore('share', () => {
   watch(
     () => viewsStore.activeView?.uuid,
     (uuid) => {
-      if (project.value?.type !== 'database') return
+      if (base.value?.type !== 'database') return
 
       visibility.value = uuid ? 'public' : 'private'
     },
@@ -48,7 +48,7 @@ export const useShare = defineStore('share', () => {
   watch(
     [openedPage, isEditAllowed, isProjectPublic],
     () => {
-      if (project.value?.type !== 'documentation') return
+      if (base.value?.type !== 'documentation') return
       if (!isEditAllowed.value) {
         visibility.value = 'hidden'
         return
@@ -60,7 +60,7 @@ export const useShare = defineStore('share', () => {
   )
 
   const resetData = () => {
-    formStatus.value = 'project-collaborate'
+    formStatus.value = 'base-collaborate'
     invitationValid.value = false
     invitationUsersData.value = { emails: undefined, role: ProjectRoles.VIEWER, invitationToken: undefined }
     isInvitationLinkCopied.value = false

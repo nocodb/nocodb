@@ -19,33 +19,39 @@ export class TablesController extends TablesControllerCE {
     super(tablesServiceEE);
   }
 
-  @Post('/api/v1/db/meta/projects/:projectId/:baseId/tables/magic')
+  @Post([
+    '/api/v1/db/meta/bases/:baseId/:sourceId/tables/magic',
+    '/api/v1/meta/bases/:baseId/:sourceId/tables/magic',
+  ])
   @Acl('tableCreateMagic')
   async tableCreateMagic(
-    @Param('projectId') projectId: string,
     @Param('baseId') baseId: string,
+    @Param('sourceId') sourceId: string,
     @Body() body: TableReqType,
     @Request() req,
   ) {
     return await this.tablesServiceEE.tableCreateMagic({
-      projectId,
       baseId,
+      sourceId,
       title: body.title,
       tableName: body.table_name,
       user: req.user,
     });
   }
 
-  @Post('/api/v1/db/meta/projects/:projectId/:baseId/schema/magic')
+  @Post([
+    '/api/v1/db/meta/bases/:baseId/:sourceId/schema/magic',
+    '/api/v1/meta/bases/:baseId/:sourceId/schema/magic',
+  ])
   @Acl('schemaMagic')
   async schemaMagic(
-    @Param('projectId') projectId: string,
     @Param('baseId') baseId: string,
+    @Param('sourceId') sourceId: string,
     @Body() body: any,
   ) {
     return await this.tablesServiceEE.schemaMagic({
-      projectId: projectId,
       baseId: baseId,
+      sourceId: sourceId,
       title: body.title,
       schemaName: body.schema_name,
     });

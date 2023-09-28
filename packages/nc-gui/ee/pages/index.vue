@@ -42,13 +42,13 @@ provide(ToggleDialogInj, toggleDialog)
 // const isSharedBase = ref(false)
 // const currentVersion = ref('')
 
-const projectId = computed(() => route.value.params.projectId)
+const baseId = computed(() => route.value.params.baseId)
 
 const workspaceStore = useWorkspace()
 const { populateWorkspace } = workspaceStore
 const { collaborators, lastPopulatedWorkspaceId } = storeToRefs(workspaceStore)
 
-const projectsStore = useProjects()
+const basesStore = useBases()
 
 const autoNavigateToProject = async () => {
   const routeName = route.value.name as string
@@ -57,11 +57,11 @@ const autoNavigateToProject = async () => {
     return
   }
 
-  // open first project if project list is not empty
-  if (projectsStore.projectsList?.length)
-    await projectsStore.navigateToProject({
-      workspaceId: projectsStore.projectsList[0].fk_workspace_id!,
-      projectId: projectsStore.projectsList[0].id!,
+  // open first base if base list is not empty
+  if (basesStore.basesList?.length)
+    await basesStore.navigateToProject({
+      workspaceId: basesStore.basesList[0].fk_workspace_id!,
+      baseId: basesStore.basesList[0].id!,
     })
 }
 
@@ -76,12 +76,12 @@ watch(
 
     if (newId === 'base') {
       workspaceStore.setLoadingState(false)
-      projectsStore.loadProjects()
+      basesStore.loadProjects()
       return
     }
 
     if (newId && oldId !== newId && lastPopulatedWorkspaceId.value !== newId) {
-      projectsStore.clearProjects()
+      basesStore.clearBases()
       collaborators.value = []
       // return
     }
@@ -89,7 +89,7 @@ watch(
     if (lastPopulatedWorkspaceId.value !== newId && (newId || workspaceStore.workspacesList.length)) {
       await populateWorkspace()
 
-      if (!route.value.params.projectId && projectsStore.projectsList.length) {
+      if (!route.value.params.baseId && basesStore.basesList.length) {
         await autoNavigateToProject()
       }
     }
@@ -115,7 +115,7 @@ onMounted(async () => {
   toggle(true)
   toggleHasSidebar(true)
 
-  // skip loading workspace and command palette for shared base
+  // skip loading workspace and command palette for shared source
   if (!['base'].includes(route.value.params.typeOrId as string)) {
     await loadWorkspaces()
   }
@@ -132,7 +132,7 @@ onMounted(async () => {
       force: true,
     })
 
-    if (!route.value.params.projectId && projectsStore.projectsList.length) {
+    if (!route.value.params.baseId && basesStore.basesList.length) {
       await autoNavigateToProject()
     }
   }
@@ -153,7 +153,7 @@ onMounted(async () => {
       v-model:model-value="dialogOpen"
       v-model:open-key="openDialogKey"
       v-model:data-sources-state="dataSourcesState"
-      :project-id="dialogProjectId"
+      :base-id="dialogProjectId"
     />
   </div>
 </template>

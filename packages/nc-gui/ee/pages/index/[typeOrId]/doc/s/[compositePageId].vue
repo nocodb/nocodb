@@ -7,9 +7,9 @@ definePageMeta({
   requiresAuth: false,
 })
 
-const projectStore = useProject()
+const baseStore = useBase()
 
-const { project } = storeToRefs(projectStore)
+const { base } = storeToRefs(baseStore)
 
 const route = useRoute()
 
@@ -29,19 +29,19 @@ onMounted(async () => {
   isFetching.value = true
 
   await fetchNestedPages({
-    projectId: openedProjectId.value as string,
+    baseId: openedProjectId.value as string,
   })
 
   isFetching.value = false
 })
 
 watch(
-  [project, isNestedPublicPage],
+  [base, isNestedPublicPage],
   () => {
     let meta = {}
     try {
-      if (typeof project.value?.meta === 'string') {
-        meta = JSON.parse(project.value?.meta ?? '{}')
+      if (typeof base.value?.meta === 'string') {
+        meta = JSON.parse(base.value?.meta ?? '{}')
       }
     } catch (e) {
       console.error(e)
@@ -78,9 +78,9 @@ watch(
 </script>
 
 <template>
-  <NuxtLayout id="content" :key="route.params.projectId as string" name="dashboard">
+  <NuxtLayout id="content" :key="route.params.baseId as string" name="dashboard">
     <template #sidebar>
-      <DocsSideBar v-if="isSidebarOpen && !isFetching" :project="project" />
+      <DocsSideBar v-if="isSidebarOpen && !isFetching" :base="base" />
     </template>
     <template #content>
       <div class="flex flex-row">

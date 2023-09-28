@@ -78,7 +78,7 @@ export class AppController {
         const {
           workspace_id,
           user_id,
-          project_id,
+          base_id,
           url,
           method,
           status,
@@ -100,7 +100,7 @@ export class AppController {
           `(generateUUIDv4(),${Math.round(created_at / 1000) ?? 'NOW()'}, ${[
             workspace_id,
             user_id,
-            project_id,
+            base_id,
             url,
             method,
             exec_time,
@@ -114,7 +114,7 @@ export class AppController {
       // Generate the ClickHouse insert query
       const insertQuery = `INSERT INTO ${
         ClickhouseTables.API_CALLS
-      } (id,created_at, workspace_id, user_id, project_id, url, method, exec_time, status, req_ipv4, req_ipv6)
+      } (id,created_at, workspace_id, user_id, base_id, url, method, exec_time, status, req_ipv4, req_ipv6)
                          VALUES ${rows.join(',')}`;
 
       await this.clickhouseService.execute(insertQuery);
@@ -136,8 +136,8 @@ export class AppController {
           user: email,
           user_id,
           ip,
+          source_id,
           base_id,
-          project_id,
           workspace_id,
           fk_model_id,
           row_id,
@@ -161,8 +161,8 @@ export class AppController {
           `(generateUUIDv4(),${Math.round(created_at / 1000) ?? 'NOW()'}, ${[
             email,
             user_id,
+            source_id,
             base_id,
-            project_id,
             workspace_id,
             fk_model_id,
             row_id,
@@ -180,7 +180,7 @@ export class AppController {
       // Generate the ClickHouse insert query
       const insertQuery = `INSERT INTO ${
         ClickhouseTables.AUDIT
-      } (id,created_at,email,user_id,base_id,project_id,workspace_id,fk_model_id,row_id,op_type,op_sub_type,status,description,details,req_ipv4,req_ipv6)
+      } (id,created_at,email,user_id,source_id,base_id,workspace_id,fk_model_id,row_id,op_type,op_sub_type,status,description,details,req_ipv4,req_ipv6)
                          VALUES ${rows.join(',')}`;
 
       await this.clickhouseService.execute(insertQuery);
@@ -204,7 +204,7 @@ export class AppController {
           path,
           ip,
           client_id,
-          project_id,
+          base_id,
           workspace_id,
           user_id,
           ...properties
@@ -225,7 +225,7 @@ export class AppController {
             package_id,
             path,
             client_id,
-            project_id,
+            base_id,
             workspace_id,
             user_id,
           ]
@@ -246,7 +246,7 @@ export class AppController {
       // Generate the ClickHouse insert query
       const insertQuery = `INSERT INTO ${
         ClickhouseTables.TELEMETRY
-      } (id,created_at,event,package_id,url,client_id,project_id,workspace_id,user_id,req_ipv4,req_ipv6,properties) 
+      } (id,created_at,event,package_id,url,client_id,base_id,workspace_id,user_id,req_ipv4,req_ipv6,properties) 
                          VALUES ${rows.join(',')}`;
 
       await this.clickhouseService.execute(insertQuery);

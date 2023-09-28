@@ -13,7 +13,7 @@ const { isMobileMode } = useGlobal()
 const { visibility, showShareModal } = storeToRefs(useShare())
 
 const { activeTable } = storeToRefs(useTablesStore())
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
 const { $e } = useNuxtApp()
 
@@ -38,9 +38,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div
-    v-if="isUIAllowed('projectShare') && visibility !== 'hidden' && (activeTable || project)"
+    v-if="isUIAllowed('baseShare') && visibility !== 'hidden' && (activeTable || base)"
     class="flex flex-col justify-center h-full"
-    data-testid="share-project-button"
+    data-testid="share-base-button"
     :data-sharetype="visibility"
   >
     <NcButton

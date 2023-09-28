@@ -28,7 +28,7 @@ interface Emits {
 }
 
 const emits = defineEmits<Emits>()
-const project = inject(ProjectInj)!
+const base = inject(ProjectInj)!
 const table = inject(SidebarTableInj)!
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
@@ -39,10 +39,10 @@ const { $e } = useNuxtApp()
 const { t } = useI18n()
 
 const isDefaultBase = computed(() => {
-  const base = project.value?.bases?.find((b) => b.id === table.value.base_id)
-  if (!base) return false
+  const source = base.value?.sources?.find((b) => b.id === table.value.source_id)
+  if (!source) return false
 
-  return _isDefaultBase(base)
+  return _isDefaultBase(source)
 })
 
 const { viewsByTable, activeView, recentViews } = storeToRefs(useViewsStore())
@@ -197,7 +197,7 @@ async function changeView(view: ViewType) {
   await navigateToView({
     view,
     tableId: table.value.id!,
-    projectId: project.value.id!,
+    baseId: base.value.id!,
     hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
   })
 
@@ -217,7 +217,7 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
     navigateToView({
       view,
       tableId: table.value.id!,
-      projectId: project.value.id!,
+      baseId: base.value.id!,
       hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
     })
 
@@ -272,12 +272,12 @@ function openDeleteDialog(view: ViewType) {
 
       emits('deleted')
 
-      removeFromRecentViews({ viewId: view.id, tableId: view.fk_model_id, projectId: project.value.id })
+      removeFromRecentViews({ viewId: view.id, tableId: view.fk_model_id, baseId: base.value.id })
       refreshCommandPalette()
       if (activeView.value?.id === view.id) {
         navigateToTable({
           tableId: table.value.id!,
-          projectId: project.value.id!,
+          baseId: base.value.id!,
         })
       }
 
@@ -355,7 +355,7 @@ function onOpenModal({
       navigateToView({
         view,
         tableId: table.value.id!,
-        projectId: project.value.id!,
+        baseId: base.value.id!,
         hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
       })
 

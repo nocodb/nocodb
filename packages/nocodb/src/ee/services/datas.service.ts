@@ -4,7 +4,7 @@ import type { PathParams } from '~/modules/datas/helpers';
 import { NcError } from '~/helpers/catchError';
 import { getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { Base, Model } from '~/models';
+import { Model, Source } from '~/models';
 import { DataOptService } from '~/services/data-opt/data-opt.service';
 import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
 
@@ -20,19 +20,19 @@ export class DatasService extends DatasServiceCE {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
     let responseData;
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     if (
-      ((['mysql', 'mysql2'].includes(base.type) &&
-        (await isMysqlVersionSupported(base))) ||
-        ['pg'].includes(base.type)) &&
+      ((['mysql', 'mysql2'].includes(source.type) &&
+        (await isMysqlVersionSupported(source))) ||
+        ['pg'].includes(source.type)) &&
       !param.disableOptimization
     ) {
       responseData = await this.dataOptService.list({
         model,
         view,
         params: param.query,
-        base,
+        source,
       });
     } else {
       responseData = await this.getDataList({
@@ -55,26 +55,26 @@ export class DatasService extends DatasServiceCE {
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     let row;
 
     if (
-      ['pg', 'mysql', 'mysql2'].includes(base.type) &&
+      ['pg', 'mysql', 'mysql2'].includes(source.type) &&
       !param.disableOptimization
     ) {
       row = await this.dataOptService.read({
         model,
         view,
         params: param.query,
-        base,
+        source,
         id: param.rowId,
       });
     } else {
       const baseModel = await Model.getBaseModelSQL({
         id: model.id,
         viewId: view?.id,
-        dbDriver: await NcConnectionMgrv2.get(base),
+        dbDriver: await NcConnectionMgrv2.get(source),
       });
       row = await baseModel.readByPk(param.rowId, false, param.query, {
         getHiddenColumn: param.getHiddenColumn,

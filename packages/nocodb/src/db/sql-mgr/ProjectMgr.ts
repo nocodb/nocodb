@@ -17,10 +17,10 @@ export default class ProjectMgr {
     this.sqlMgrMap = {};
   }
 
-  getSqlMgr(project): SqlMgr {
-    if (!this.sqlMgrMap[project.id]) {
-      this.sqlMgrMap[project.id] = new SqlMgr(project);
+  getSqlMgr(base): SqlMgr {
+    if (!this.sqlMgrMap[base.id]) {
+      this.sqlMgrMap[base.id] = new SqlMgr(base);
     }
-    return this.sqlMgrMap[project.id];
+    return this.sqlMgrMap[base.id];
   }
 }

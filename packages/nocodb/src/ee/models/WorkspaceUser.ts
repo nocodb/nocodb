@@ -17,31 +17,29 @@ export default class WorkspaceUser {
   }
 
   public static async insert(
-    projectUser: Partial<
-      WorkspaceUser & { created_at?: any; updated_at?: any }
-    >,
+    baseUser: Partial<WorkspaceUser & { created_at?: any; updated_at?: any }>,
     ncMeta = Noco.ncMeta,
   ) {
     const order = await ncMeta.metaGetNextOrder(MetaTable.WORKSPACE_USER, {
-      fk_user_id: projectUser.fk_user_id,
+      fk_user_id: baseUser.fk_user_id,
     });
     const { fk_workspace_id, fk_user_id } = await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.WORKSPACE_USER,
       {
-        fk_user_id: projectUser.fk_user_id,
-        fk_workspace_id: projectUser.fk_workspace_id,
-        roles: projectUser.roles,
-        created_at: projectUser.created_at,
-        updated_at: projectUser.updated_at,
-        order: projectUser.order ?? order,
+        fk_user_id: baseUser.fk_user_id,
+        fk_workspace_id: baseUser.fk_workspace_id,
+        roles: baseUser.roles,
+        created_at: baseUser.created_at,
+        updated_at: baseUser.updated_at,
+        order: baseUser.order ?? order,
       },
       true,
     );
 
     await NocoCache.del(
-      `${CacheScope.WORKSPACE}:${projectUser.fk_workspace_id}:userCount`,
+      `${CacheScope.WORKSPACE}:${baseUser.fk_workspace_id}:userCount`,
     );
 
     return this.get(fk_workspace_id, fk_user_id, ncMeta);
@@ -134,7 +132,7 @@ export default class WorkspaceUser {
           .select('fk_workspace_id')
           .innerJoin(MetaTable.PROJECT_USERS, function () {
             this.on(
-              `${MetaTable.PROJECT_USERS}.project_id`,
+              `${MetaTable.PROJECT_USERS}.base_id`,
               '=',
               `${MetaTable.PROJECT}.id`,
             ).andOn(

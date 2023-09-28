@@ -14,7 +14,7 @@ import {
   storeToRefs,
   useI18n,
   useNuxtApp,
-  useProject,
+  useBase,
   useSmartsheetStoreOrThrow,
 } from '#imports'
 
@@ -24,8 +24,8 @@ const isPublicView = inject(IsPublicInj, ref(false))
 
 const fields = inject(FieldsInj, ref([]))
 
-const projectStore = useProject()
-const { project } = storeToRefs(projectStore)
+const baseStore = useBase()
+const { base } = storeToRefs(baseStore)
 
 const { $api } = useNuxtApp()
 
@@ -55,7 +55,7 @@ const exportFile = async (exportType: ExportTypes) => {
       } else {
         res = await $api.dbViewRow.export(
           'noco',
-          project.value?.id as string,
+          base.value?.id as string,
           meta.value?.id as string,
           selectedView?.value.id as string,
           exportType,

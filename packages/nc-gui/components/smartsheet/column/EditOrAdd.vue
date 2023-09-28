@@ -19,7 +19,7 @@ import {
   useI18n,
   useMetas,
   useNuxtApp,
-  useProject,
+  useBase,
   watchEffect,
 } from '#imports'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
@@ -66,7 +66,7 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
-const { isMysql, isMssql } = useProject()
+const { isMysql, isMssql } = useBase()
 
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
@@ -321,14 +321,14 @@ if (props.fromTableExplorer) {
       </a-checkbox>
       <div class="!my-3">
         <!--
-        Default Value for JSON & LongText is not supported in MySQL 
+        Default Value for JSON & LongText is not supported in MySQL
          Default Value is Disabled for MSSQL -->
         <LazySmartsheetColumnDefaultValue
           v-if="
           !isVirtualCol(formState) &&
           !isAttachment(formState) &&
-          !isMssql(meta!.base_id) &&
-          !(isMysql(meta!.base_id) && (isJSON(formState) || isTextArea(formState)))
+          !isMssql(meta!.source_id) &&
+          !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState)))
           "
           v-model:value="formState"
         />

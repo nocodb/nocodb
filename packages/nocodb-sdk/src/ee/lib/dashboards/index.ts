@@ -19,7 +19,7 @@ export enum DataSourceType {
 
 export interface DataSourceInternal {
   dataSourceType: DataSourceType.INTERNAL;
-  projectId?: string;
+  baseId?: string;
   tableId?: string;
   viewId?: string;
 }

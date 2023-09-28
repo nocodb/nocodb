@@ -51,7 +51,7 @@ test.describe('Shared base', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
     loginPage = new LoginPage(page);
   });
@@ -92,7 +92,7 @@ test.describe('Shared base', () => {
       });
     }
 
-    await dashboard.treeView.openProject({ title: context.project.title, context });
+    await dashboard.treeView.openProject({ title: context.base.title, context });
     await dashboard.treeView.openTable({ title: 'Country' });
 
     url = await dashboard.grid.topbar.getSharedBaseUrl({ role: 'viewer', enableSharedBase: false });

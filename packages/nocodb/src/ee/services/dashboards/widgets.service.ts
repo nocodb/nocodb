@@ -5,7 +5,7 @@ import type { WidgetReqType, WidgetUpdateReqType } from 'nocodb-sdk';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import Layout from '~/models/Layout';
-import Project from '~/models/Project';
+import Base from '~/models/Base';
 import Widget from '~/models/Widget';
 
 Injectable();
@@ -15,20 +15,20 @@ export class WidgetsService {
     layoutIdOfWidget: string,
   ) {
     const layoutOfWidget = await Layout.get(layoutIdOfWidget);
-    const dashboardProject = await Project.get(layoutOfWidget.project_id);
+    const dashboardProject = await Base.get(layoutOfWidget.base_id);
     const linkedDbProjectIds = (
-      await (dashboardProject as Project).getLinkedDbProjects()
+      await (dashboardProject as Base).getLinkedDbProjects()
     ).map((linkedDbProject) => linkedDbProject.id);
     const parsedDataSource =
       typeof dataSource === 'object' ? dataSource : JSON.parse(dataSource);
     if (parsedDataSource?.dataSourceType === DataSourceType.INTERNAL) {
       // TODO: ensure there are tests for this edge case
       if (
-        parsedDataSource.projectId &&
-        !linkedDbProjectIds.includes(parsedDataSource.projectId)
+        parsedDataSource.baseId &&
+        !linkedDbProjectIds.includes(parsedDataSource.baseId)
       )
         NcError.forbidden(
-          `DB Project with id '${parsedDataSource.projectId}' is not linked to this Dashboard Project`,
+          `DB Base with id '${parsedDataSource.baseId}' is not linked to this Dashboard Base`,
         );
       // TODO: here we will also have to add respective entries into the table `nc_ds_widget_db_dependencies_v2`
     }

@@ -3,31 +3,31 @@ import { AppEvents } from 'nocodb-sdk';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { Project, SyncSource } from '~/models';
+import { Base, SyncSource } from '~/models';
 
 @Injectable()
 export class SyncService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
-  async syncSourceList(param: { projectId: string; baseId?: string }) {
+  async syncSourceList(param: { baseId: string; sourceId?: string }) {
     return new PagedResponseImpl(
-      await SyncSource.list(param.projectId, param.baseId),
+      await SyncSource.list(param.baseId, param.sourceId),
     );
   }
 
   async syncCreate(param: {
-    projectId: string;
-    baseId?: string;
+    baseId: string;
+    sourceId?: string;
     userId: string;
     syncPayload: Partial<SyncSource>;
   }) {
-    const project = await Project.getWithInfo(param.projectId);
+    const base = await Base.getWithInfo(param.baseId);
 
     const sync = await SyncSource.insert({
       ...param.syncPayload,
       fk_user_id: param.userId,
-      base_id: param.baseId ? param.baseId : project.bases[0].id,
-      project_id: param.projectId,
+      source_id: param.sourceId ? param.sourceId : base.sources[0].id,
+      base_id: param.baseId,
     });
 
     this.appHooksService.emit(AppEvents.SYNC_SOURCE_CREATE, {

@@ -6,7 +6,7 @@ import { isEE } from '../../../../setup/db';
 import { NcContext } from '../../../../setup';
 
 export class LeftSidebarPage extends BasePage {
-  readonly project: any;
+  readonly base: any;
   readonly dashboard: DashboardPage;
 
   readonly btn_workspace: Locator;
@@ -21,7 +21,7 @@ export class LeftSidebarPage extends BasePage {
     this.dashboard = dashboard;
 
     this.btn_workspace = this.get().locator('.nc-workspace-menu');
-    this.btn_newProject = this.get().locator('[data-testid="nc-sidebar-create-project-btn"]');
+    this.btn_newProject = this.get().locator('[data-testid="nc-sidebar-create-base-btn"]');
     this.btn_cmdK = this.get().locator('[data-testid="nc-sidebar-search-btn"]');
     this.btn_teamAndSettings = this.get().locator('[data-testid="nc-sidebar-team-settings-btn"]');
 

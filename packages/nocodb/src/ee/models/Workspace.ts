@@ -202,7 +202,7 @@ export default class Workspace implements WorkspaceType {
 
     await NocoCache.delAll(CacheScope.WORKSPACE_USER, `${id}:*`);
 
-    // todo: reset project workspace mapping
+    // todo: reset base workspace mapping
     // and mark it as deleted
     await ncMeta.metaUpdate(
       null,

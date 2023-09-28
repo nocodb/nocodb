@@ -23,41 +23,45 @@ export class TablesController {
   constructor(private readonly tablesService: TablesService) {}
 
   @Get([
-    '/api/v1/db/meta/projects/:projectId/tables',
-    '/api/v1/db/meta/projects/:projectId/:baseId/tables',
+    '/api/v1/db/meta/projects/:baseId/tables',
+    '/api/v1/db/meta/projects/:baseId/:sourceId/tables',
+    '/api/v1/meta/bases/:baseId/tables',
+    '/api/v1/meta/bases/:baseId/:sourceId/tables',
   ])
   @Acl('tableList')
   async tableList(
-    @Param('projectId') projectId: string,
     @Param('baseId') baseId: string,
+    @Param('sourceId') sourceId: string,
     @Query('includeM2M') includeM2M: string,
     @Request() req,
   ) {
     return new PagedResponseImpl(
       await this.tablesService.getAccessibleTables({
-        projectId,
         baseId,
+        sourceId,
         includeM2M: includeM2M === 'true',
-        roles: extractRolesObj(req.user.project_roles),
+        roles: extractRolesObj(req.user.base_roles),
       }),
     );
   }
 
   @Post([
-    '/api/v1/db/meta/projects/:projectId/tables',
-    '/api/v1/db/meta/projects/:projectId/:baseId/tables',
+    '/api/v1/db/meta/projects/:baseId/tables',
+    '/api/v1/db/meta/projects/:baseId/:sourceId/tables',
+    '/api/v1/meta/bases/:baseId/tables',
+    '/api/v1/meta/bases/:baseId/:sourceId/tables',
   ])
   @HttpCode(200)
   @Acl('tableCreate')
   async tableCreate(
-    @Param('projectId') projectId: string,
     @Param('baseId') baseId: string,
+    @Param('sourceId') sourceId: string,
     @Body() body: TableReqType,
     @Request() req,
   ) {
     const result = await this.tablesService.tableCreate({
-      projectId: projectId,
       baseId: baseId,
+      sourceId: sourceId,
       table: body,
       user: req.user,
     });
@@ -65,7 +69,7 @@ export class TablesController {
     return result;
   }
 
-  @Get('/api/v1/db/meta/tables/:tableId')
+  @Get(['/api/v1/db/meta/tables/:tableId', '/api/v1/meta/tables/:tableId'])
   @Acl('tableGet')
   async tableGet(@Param('tableId') tableId: string, @Request() req) {
     const table = await this.tablesService.getTableWithAccessibleViews({
@@ -76,7 +80,7 @@ export class TablesController {
     return table;
   }
 
-  @Patch('/api/v1/db/meta/tables/:tableId')
+  @Patch(['/api/v1/db/meta/tables/:tableId', '/api/v1/meta/tables/:tableId'])
   @Acl('tableUpdate')
   async tableUpdate(
     @Param('tableId') tableId: string,
@@ -86,13 +90,13 @@ export class TablesController {
     await this.tablesService.tableUpdate({
       tableId: tableId,
       table: body,
-      projectId: req.ncProjectId,
+      baseId: req.ncProjectId,
       user: req.ncProjectId,
     });
     return { msg: 'The table has been updated successfully' };
   }
 
-  @Delete('/api/v1/db/meta/tables/:tableId')
+  @Delete(['/api/v1/db/meta/tables/:tableId', '/api/v1/meta/tables/:tableId'])
   @Acl('tableDelete')
   async tableDelete(@Param('tableId') tableId: string, @Request() req) {
     const result = await this.tablesService.tableDelete({
@@ -104,7 +108,10 @@ export class TablesController {
     return result;
   }
 
-  @Post('/api/v1/db/meta/tables/:tableId/reorder')
+  @Post([
+    '/api/v1/db/meta/tables/:tableId/reorder',
+    '/api/v1/meta/tables/:tableId/reorder',
+  ])
   @Acl('tableReorder')
   @HttpCode(200)
   async tableReorder(

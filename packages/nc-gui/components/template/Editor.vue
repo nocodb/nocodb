@@ -32,11 +32,11 @@ import {
   storeToRefs,
   useI18n,
   useNuxtApp,
-  useProject,
+  useBase,
   useTabs,
 } from '#imports'
 
-const { quickImportType, projectTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId, importWorker } =
+const { quickImportType, baseTemplate, importData, importColumns, importDataOnly, maxRowsToParse, sourceId, importWorker } =
   defineProps<Props>()
 
 const emit = defineEmits(['import'])
@@ -47,12 +47,12 @@ const { t } = useI18n()
 
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'
-  projectTemplate: Record<string, any>
+  baseTemplate: Record<string, any>
   importData: Record<string, any>
   importColumns: any[]
   importDataOnly: boolean
   maxRowsToParse: number
-  baseId: string
+  sourceId: string
   importWorker: Worker
 }
 
@@ -73,13 +73,13 @@ const { $api } = useNuxtApp()
 
 const { addTab } = useTabs()
 
-const projectStrore = useProject()
-const { loadTables } = projectStrore
-const { sqlUis, project } = storeToRefs(projectStrore)
+const baseStrore = useBase()
+const { loadTables } = baseStrore
+const { sqlUis, base } = storeToRefs(baseStrore)
 const { openTable } = useTablesStore()
-const { projectTables } = storeToRefs(useTablesStore())
+const { baseTables } = storeToRefs(useTablesStore())
 
-const sqlUi = ref(sqlUis.value[baseId] || Object.values(sqlUis.value)[0])
+const sqlUi = ref(sqlUis.value[sourceId] || Object.values(sqlUis.value)[0])
 
 const hasSelectColumn = ref<boolean[]>([])
 
@@ -118,7 +118,7 @@ const data = reactive<{
   tables: (TableType & { ref_table_name: string; columns: (ColumnType & { key: number; _disableSelect?: boolean })[] })[]
 }>({
   title: null,
-  name: 'Project Name',
+  name: 'Base Name',
   tables: [],
 })
 
@@ -130,7 +130,7 @@ const validators = computed(() =>
     table.columns?.forEach((column, columnIdx) => {
       acc[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = [
         fieldRequiredValidator(),
-        fieldLengthValidator(project.value?.bases?.[0].type || ClientType.MYSQL),
+        fieldLengthValidator(base.value?.sources?.[0].type || ClientType.MYSQL),
       ]
       acc[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = [fieldRequiredValidator()]
       if (isSelect(column)) {
@@ -199,8 +199,8 @@ function filterOption(input: string, option: Option) {
 }
 
 function parseAndLoadTemplate() {
-  if (projectTemplate) {
-    parseTemplate(projectTemplate)
+  if (baseTemplate) {
+    parseTemplate(baseTemplate)
 
     expansionPanel.value = Array.from({ length: data.tables.length || 0 }, (_, i) => i)
 
@@ -208,7 +208,7 @@ function parseAndLoadTemplate() {
   }
 }
 
-function parseTemplate({ tables = [], ...rest }: Props['projectTemplate']) {
+function parseTemplate({ tables = [], ...rest }: Props['baseTemplate']) {
   const parsedTemplate = {
     ...rest,
     tables: tables.map(({ v = [], columns = [], ...rest }) => ({
@@ -396,10 +396,10 @@ function fieldsValidation(record: Record<string, any>, tn: string) {
   return true
 }
 
-function updateImportTips(projectName: string, tableName: string, progress: number, total: number) {
+function updateImportTips(baseName: string, tableName: string, progress: number, total: number) {
   importingTips.value[
-    `${projectName}-${tableName}`
-  ] = `Importing data to ${projectName} - ${tableName}: ${progress}/${total} records`
+    `${baseName}-${tableName}`
+  ] = `Importing data to ${baseName} - ${tableName}: ${progress}/${total} records`
 }
 
 async function importTemplate() {
@@ -416,7 +416,7 @@ async function importTemplate() {
       isImporting.value = true
 
       const tableId = meta.value?.id
-      const projectId = project.value.id!
+      const baseId = base.value.id!
       const table_names = data.tables.map((t: Record<string, any>) => t.table_name)
 
       await Promise.all(
@@ -460,8 +460,8 @@ async function importTemplate() {
                   return res
                 }, {}),
               )
-              await $api.dbTableRow.bulkCreate('noco', projectId, tableId!, batchData)
-              updateImportTips(projectId, tableId!, progress, total)
+              await $api.dbTableRow.bulkCreate('noco', baseId, tableId!, batchData)
+              updateImportTips(baseId, tableId!, progress, total)
               progress += batchData.length
             }
           })(key),
@@ -493,7 +493,7 @@ async function importTemplate() {
       const tab = {
         id: '',
         title: '',
-        projectId: '',
+        baseId: '',
       }
 
       // create tables
@@ -526,7 +526,7 @@ async function importTemplate() {
             }
           }
         }
-        const createdTable = await $api.base.tableCreate(project.value?.id as string, (baseId || project.value?.bases?.[0].id)!, {
+        const createdTable = await $api.source.tableCreate(base.value?.id as string, (sourceId || base.value?.sources?.[0].id)!, {
           table_name: table.table_name,
           // leave title empty to get a generated one based on table_name
           title: '',
@@ -536,10 +536,10 @@ async function importTemplate() {
         table.title = createdTable.title
 
         // open the first table after import
-        if (tab.id === '' && tab.title === '' && tab.projectId === '') {
+        if (tab.id === '' && tab.title === '' && tab.baseId === '') {
           tab.id = createdTable.id as string
           tab.title = createdTable.title as string
-          tab.projectId = project.value.id as string
+          tab.baseId = base.value.id as string
         }
 
         // set display value
@@ -550,7 +550,7 @@ async function importTemplate() {
       // bulk insert data
       if (importData) {
         const offset = maxRowsToParse
-        const projectName = project.value.title as string
+        const baseName = base.value.title as string
         await Promise.all(
           data.tables.map((table: Record<string, any>) =>
             (async (tableMeta) => {
@@ -562,12 +562,12 @@ async function importTemplate() {
               if (data) {
                 total += data.length
                 for (let i = 0; i < data.length; i += offset) {
-                  updateImportTips(projectName, tableMeta.title, progress, total)
+                  updateImportTips(baseName, tableMeta.title, progress, total)
                   const batchData = remapColNames(data.slice(i, i + offset), tableMeta.columns)
-                  await $api.dbTableRow.bulkCreate('noco', project.value.id, tableMeta.id, batchData)
+                  await $api.dbTableRow.bulkCreate('noco', base.value.id, tableMeta.id, batchData)
                   progress += batchData.length
                 }
-                updateImportTips(projectName, tableMeta.title, total, total)
+                updateImportTips(baseName, tableMeta.title, total, total)
               }
             })(table),
           ),
@@ -589,7 +589,7 @@ async function importTemplate() {
 
   if (!data.tables?.length) return
 
-  const tables = projectTables.value.get(project.value!.id!)
+  const tables = baseTables.value.get(base.value!.id!)
   const toBeNavigatedTable = tables?.find((t) => t.id === data.tables[0].id)
   if (!toBeNavigatedTable) return
 

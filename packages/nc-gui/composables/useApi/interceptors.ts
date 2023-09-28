@@ -22,7 +22,7 @@ export function addAxiosInterceptors(api: Api<any>) {
 
     if (!config.url?.endsWith('/user/me') && !config.url?.endsWith('/admin/roles')) {
       if (route.value && route.value.params && route.value.params.typeOrId === 'base') {
-        config.headers['xc-shared-base-id'] = route.value.params.projectId
+        config.headers['xc-shared-base-id'] = route.value.params.baseId
       } else if (route.value && route.value.params && route.value.params.typeOrId === 'ERD') {
         config.headers['xc-shared-erd-id'] = route.value.params.erdUuid
       }
@@ -42,7 +42,7 @@ export function addAxiosInterceptors(api: Api<any>) {
     },
     // Handle Error
     (error) => {
-      if (error.response && error.response.data && error.response.data.msg === DbNotFoundMsg) return router.replace('/project/0')
+      if (error.response && error.response.data && error.response.data.msg === DbNotFoundMsg) return router.replace('/base/0')
 
       // Return any error which is not due to authentication back to the calling service
       if (!error.response || error.response.status !== 401) {

@@ -2,7 +2,7 @@ import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
 
 const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
-  project: [
+  base: [
     ProjectRoles.VIEWER,
     ProjectRoles.COMMENTER,
     ProjectRoles.EDITOR,
@@ -18,9 +18,9 @@ const permissionScopes = {
     'apiTokenCreate',
     'apiTokenDelete',
 
-    // Project
-    'projectList',
-    'projectCreate',
+    // Base
+    'baseList',
+    'baseCreate',
 
     // User
     'passwordChange',
@@ -41,13 +41,13 @@ const permissionScopes = {
     'cacheGet',
     'cacheDelete',
 
-    // TODO: add ACL with project scope
+    // TODO: add ACL with base scope
     'upload',
     'uploadViaURL',
   ],
-  project: [
+  base: [
     'formViewGet',
-    'projectGet',
+    'baseGet',
     'tableGet',
     'dataList',
     'dataRead',
@@ -58,8 +58,8 @@ const permissionScopes = {
     'exportExcel',
     'sortList',
     'filterList',
-    'projectInfoGet',
-    'projectUserMetaUpdate',
+    'baseInfoGet',
+    'baseUserMetaUpdate',
     'galleryViewGet',
     'kanbanViewGet',
     'gridViewUpdate',
@@ -67,7 +67,7 @@ const permissionScopes = {
     'mmList',
     'hmList',
     'commentRow',
-    'projectCost',
+    'baseCost',
     'tableList',
     'viewList',
     'functionList',
@@ -110,10 +110,10 @@ const permissionScopes = {
     'relationDataRemove',
     'relationDataAdd',
 
-    // Project API Tokens
-    'projectApiTokenList',
-    'projectApiTokenCreate',
-    'projectApiTokenDelete',
+    // Base API Tokens
+    'baseApiTokenList',
+    'baseApiTokenCreate',
+    'baseApiTokenDelete',
   ],
 };
 
@@ -129,8 +129,8 @@ const rolePermissions:
   [ProjectRoles.VIEWER]: {
     include: {
       formViewGet: true,
-      // project
-      projectGet: true,
+      // base
+      baseGet: true,
       //table
       tableGet: true,
       // data
@@ -146,8 +146,8 @@ const rolePermissions:
       // sort & filter
       sortList: true,
       filterList: true,
-      projectInfoGet: true,
-      projectUserMetaUpdate: true,
+      baseInfoGet: true,
+      baseUserMetaUpdate: true,
 
       galleryViewGet: true,
       kanbanViewGet: true,
@@ -156,7 +156,7 @@ const rolePermissions:
       mmList: true,
       hmList: true,
 
-      projectCost: true,
+      baseCost: true,
 
       tableList: true,
       viewList: true,
@@ -209,14 +209,14 @@ const rolePermissions:
       bulkDataDeleteAll: true,
       relationDataRemove: true,
       relationDataAdd: true,
-      // TODO add ACL with project scope
+      // TODO add ACL with base scope
       // upload: true,
       // uploadViaURL: true,
     },
   },
   [ProjectRoles.CREATOR]: {
     exclude: {
-      projectDelete: true,
+      baseDelete: true,
     },
   },
   [ProjectRoles.OWNER]: {
@@ -235,7 +235,7 @@ const rolePermissions:
       apiTokenCreate: true,
       apiTokenDelete: true,
       passwordChange: true,
-      projectList: true,
+      baseList: true,
       testConnection: true,
     },
   },
@@ -244,7 +244,7 @@ const rolePermissions:
       upload: true,
       uploadViaURL: true,
       isPluginActive: true,
-      projectCreate: true,
+      baseCreate: true,
     },
   },
 };

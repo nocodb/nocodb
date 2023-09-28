@@ -1,26 +1,24 @@
 import { TestResetService as TestResetServiceCE } from 'src/controllers/test/TestResetService';
 
-import type Project from '~/models/Project';
+import type Base from '~/models/Base';
 import User from '~/models/User';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
-import ProjectUser from '~/models/ProjectUser';
+import BaseUser from '~/models/BaseUser';
 
 export class TestResetService extends TestResetServiceCE {
-  removeProjectUsersFromCache = async (project: Project) => {
-    const projectUsers = await ProjectUser.getUsersList({
-      project_id: project.id,
+  removeProjectUsersFromCache = async (base: Base) => {
+    const baseUsers = await BaseUser.getUsersList({
+      base_id: base.id,
       limit: 1000,
-      workspace_id: project.fk_workspace_id,
+      workspace_id: base.fk_workspace_id,
       offset: 0,
     });
 
-    for (const projectUser of projectUsers) {
+    for (const baseUser of baseUsers) {
       try {
-        const user: User = (await User.get(projectUser.fk_user_id)) as any;
-        await NocoCache.del(
-          `${CacheScope.PROJECT_USER}:${project.id}:${user.id}`,
-        );
+        const user: User = (await User.get(baseUser.fk_user_id)) as any;
+        await NocoCache.del(`${CacheScope.PROJECT_USER}:${base.id}:${user.id}`);
       } catch (e) {
         console.error('removeProjectUsersFromCache', e);
       }

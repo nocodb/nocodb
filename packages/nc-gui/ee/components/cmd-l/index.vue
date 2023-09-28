@@ -26,14 +26,14 @@ const newView: Ref<
   | {
       viewId: string | null
       tableId: string
-      projectId: string
+      baseId: string
     }
   | undefined
 > = ref()
 
 const changeView = useDebounceFn(
-  async ({ viewId, tableId, projectId }: { viewId: string | null; tableId: string; projectId: string }) => {
-    await viewStore.changeView({ viewId, tableId, projectId })
+  async ({ viewId, tableId, baseId }: { viewId: string | null; tableId: string; baseId: string }) => {
+    await viewStore.changeView({ viewId, tableId, baseId })
     vOpen.value = false
   },
   200,
@@ -45,7 +45,7 @@ const { current } = keys
 
 onKeyUp('Enter', async () => {
   if (vOpen.value && newView.value) {
-    await changeView({ viewId: newView.value.viewId, tableId: newView.value.tableId, projectId: newView.value.projectId })
+    await changeView({ viewId: newView.value.viewId, tableId: newView.value.tableId, baseId: newView.value.baseId })
   }
 })
 
@@ -75,7 +75,7 @@ const moveUp = () => {
     newView.value = {
       viewId: cmdOption.viewId ?? null,
       tableId: cmdOption.tableID,
-      projectId: cmdOption.projectId,
+      baseId: cmdOption.baseId,
     }
     document.querySelector('.actions')?.scrollTo({ top: 99999, behavior: 'smooth' })
   } else {
@@ -86,7 +86,7 @@ const moveUp = () => {
     newView.value = {
       viewId: cmdOption.viewId ?? null,
       tableId: cmdOption.tableID,
-      projectId: cmdOption.projectId,
+      baseId: cmdOption.baseId,
     }
   }
 }
@@ -100,7 +100,7 @@ const moveDown = () => {
     newView.value = {
       viewId: cmdOption.viewId ?? null,
       tableId: cmdOption.tableID,
-      projectId: cmdOption.projectId,
+      baseId: cmdOption.baseId,
     }
     document.querySelector('.actions')?.scrollTo({ top: 0, behavior: 'smooth' })
   } else {
@@ -112,7 +112,7 @@ const moveDown = () => {
     newView.value = {
       viewId: cmdOption.viewId ?? null,
       tableId: cmdOption.tableID,
-      projectId: cmdOption.projectId,
+      baseId: cmdOption.baseId,
     }
   }
 }
@@ -211,7 +211,7 @@ onMounted(() => {
                 selected: selected === cmdOption.tableID + cmdOption.viewName,
               }"
               class="cmdk-action"
-              @click="changeView({ viewId: cmdOption.viewId, tableId: cmdOption.tableID, projectId: cmdOption.projectId })"
+              @click="changeView({ viewId: cmdOption.viewId, tableId: cmdOption.tableID, baseId: cmdOption.baseId })"
             >
               <div class="cmdk-action-content !flex w-full">
                 <div class="flex gap-2 w-full flex-grow-1 items-center">
@@ -220,7 +220,7 @@ onMounted(() => {
                 </div>
                 <div class="flex gap-2 bg-gray-100 px-2 py-1 rounded-md text-gray-600 items-center">
                   <ProjectIcon class="w-4 h-4" />
-                  {{ cmdOption.projectName }}
+                  {{ cmdOption.baseName }}
                 </div>
               </div>
             </div>

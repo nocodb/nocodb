@@ -212,14 +212,14 @@ watch(
     <template #overlay>
       <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
         <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)">
-          <div v-e="['a:row:delete']" class="nc-project-menu-item">
+          <div v-e="['a:row:delete']" class="nc-base-menu-item">
             <!-- Delete Row -->
             {{ $t('activity.deleteRow') }}
           </div>
         </a-menu-item>
 
         <!--        <a-menu-item v-if="contextMenuTarget" @click="openNewRecordFormHook.trigger()"> -->
-        <!--          <div v-e="['a:row:insert']" class="nc-project-menu-item"> -->
+        <!--          <div v-e="['a:row:insert']" class="nc-base-menu-item"> -->
         <!--            &lt;!&ndash; Insert New Row &ndash;&gt; -->
         <!--            {{ $t('activity.insertRow') }} -->
         <!--          </div> -->

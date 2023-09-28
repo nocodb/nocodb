@@ -4,7 +4,7 @@ import request from 'supertest';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import init from '../../init';
-import { createProject, createSakilaProject } from '../../factory/project';
+import { createProject, createSakilaProject } from '../../factory/base';
 import { createTable, getTable } from '../../factory/table';
 import { createView } from '../../factory/view';
 import {
@@ -23,7 +23,7 @@ import {
 import type { ColumnType } from 'nocodb-sdk';
 import type View from '../../../../src/models/View';
 import type Model from '../../../../src/models/Model';
-import type Project from '../../../../src/models/Project';
+import type Base from '~/models/Base';
 
 // Test case list
 
@@ -37,9 +37,9 @@ const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
 };
 
 let context;
-// projects
-let project: Project;
-let sakilaProject: Project;
+// bases
+let base: Base;
+let sakilaProject: Base;
 // models
 let customerTable: Model;
 let filmTable: Model;
@@ -56,7 +56,7 @@ let filmKanbanView: View;
 const testGetViewRowList = async (view: View) => {
   const response = await request(context.app)
     .get(
-      `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
+      `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
     )
     .set('xc-auth', context.token)
     .expect(200);
@@ -72,7 +72,7 @@ const testGetViewRowListKanban = async (view: View) => {
 
   const response = await request(context.app)
     .get(
-      `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`,
+      `/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`,
     )
     .set('xc-auth', context.token)
     .expect(200);
@@ -100,9 +100,9 @@ function viewRowStaticTests() {
     console.time('#### viewRowTests');
     context = await init();
     sakilaProject = await createSakilaProject(context);
-    project = await createProject(context);
+    base = await createProject(context);
     customerTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'customer',
     });
     customerColumns = await customerTable.getColumns();
@@ -123,7 +123,7 @@ function viewRowStaticTests() {
     });
 
     filmTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'film',
     });
     filmColumns = await filmTable.getColumns();
@@ -155,7 +155,7 @@ function viewRowStaticTests() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
+        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -198,7 +198,7 @@ function viewRowStaticTests() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`,
+        `/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -230,7 +230,7 @@ function viewRowStaticTests() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
+        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -258,7 +258,7 @@ function viewRowStaticTests() {
       Math.trunc(pageInfo.totalRows / pageInfo.pageSize) * pageInfo.pageSize;
     const lastPageResponse = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
+        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -298,7 +298,7 @@ function viewRowStaticTests() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`,
+        `/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -329,7 +329,7 @@ function viewRowStaticTests() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
+        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -357,7 +357,7 @@ function viewRowStaticTests() {
       Math.trunc(pageInfo.totalRows / pageInfo.pageSize) * pageInfo.pageSize;
     const lastPageResponse = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
+        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -397,7 +397,7 @@ function viewRowStaticTests() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`,
+        `/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -425,9 +425,9 @@ function viewRowTests() {
     console.time('#### viewRowTests');
     context = await init();
     sakilaProject = await createSakilaProject(context);
-    project = await createProject(context);
+    base = await createProject(context);
     customerTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'customer',
     });
     customerColumns = await customerTable.getColumns();
@@ -448,7 +448,7 @@ function viewRowTests() {
     });
 
     filmTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'film',
     });
     filmColumns = await filmTable.getColumns();
@@ -464,7 +464,7 @@ function viewRowTests() {
     viewType: ViewTypes,
   ) => {
     const rentalTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'rental',
     });
     const view = await createView(context, {
@@ -474,7 +474,7 @@ function viewRowTests() {
     });
 
     const lookupColumn = await createLookupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'Lookup',
       table: rentalTable,
       relatedTableName: customerTable.table_name,
@@ -498,7 +498,7 @@ function viewRowTests() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}/views/${view.id}`,
+        `/api/v1/data/noco/${sakilaProject.id}/${rentalTable.id}/views/${view.id}`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -509,7 +509,7 @@ function viewRowTests() {
 
     const ascResponse = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}/views/${view.id}`,
+        `/api/v1/data/noco/${sakilaProject.id}/${rentalTable.id}/views/${view.id}`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -528,7 +528,7 @@ function viewRowTests() {
 
     const descResponse = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}/views/${view.id}`,
+        `/api/v1/data/noco/${sakilaProject.id}/${rentalTable.id}/views/${view.id}`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -564,7 +564,7 @@ function viewRowTests() {
     });
 
     const rollupColumn = await createRollupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'Number of rentals',
       rollupFunction: 'count',
       table: customerTable,
@@ -620,7 +620,7 @@ function viewRowTests() {
 
     const ascResponse = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
+        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -656,7 +656,7 @@ function viewRowTests() {
   // })
 
   const testCreateRowView = async (viewType: ViewTypes) => {
-    const table = await createTable(context, project);
+    const table = await createTable(context, base);
     const view = await createView(context, {
       title: 'View',
       table: table,
@@ -664,7 +664,7 @@ function viewRowTests() {
     });
 
     const response = await request(context.app)
-      .post(`/api/v1/db/data/noco/${project.id}/${table.id}/views/${view.id}`)
+      .post(`/api/v1/data/noco/${base.id}/${table.id}/views/${view.id}`)
       .set('xc-auth', context.token)
       .send({
         title: 'Test',
@@ -692,7 +692,7 @@ function viewRowTests() {
   });
 
   const testCreateRowViewWithWrongView = async (viewType: ViewTypes) => {
-    const table = await createTable(context, project);
+    const table = await createTable(context, base);
     const nonRelatedView = await createView(context, {
       title: 'View',
       table: customerTable,
@@ -701,7 +701,7 @@ function viewRowTests() {
 
     await request(context.app)
       .post(
-        `/api/v1/db/data/noco/${project.id}/${table.id}/views/${nonRelatedView.id}`,
+        `/api/v1/data/noco/${base.id}/${table.id}/views/${nonRelatedView.id}`,
       )
       .set('xc-auth', context.token)
       .send({
@@ -743,7 +743,7 @@ function viewRowTests() {
 
     let response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/find-one`,
+        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/find-one`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -764,7 +764,7 @@ function viewRowTests() {
 
     response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/find-one`,
+        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/find-one`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -800,7 +800,7 @@ function viewRowTests() {
     viewType: ViewTypes,
   ) => {
     const rollupColumn = await createRollupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'Number of rentals',
       rollupFunction: 'count',
       table: customerTable,
@@ -867,7 +867,7 @@ function viewRowTests() {
 
     const ascResponse = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/find-one`,
+        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/find-one`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -916,7 +916,7 @@ function viewRowTests() {
     );
 
     const rollupColumn = await createRollupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'Rollup',
       rollupFunction: 'count',
       table: customerTable,
@@ -929,7 +929,7 @@ function viewRowTests() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/groupby`,
+        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/groupby`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -967,7 +967,7 @@ function viewRowTests() {
     );
 
     const rollupColumn = await createRollupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'Rollup',
       rollupFunction: 'count',
       table: customerTable,
@@ -980,7 +980,7 @@ function viewRowTests() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/groupby`,
+        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/groupby`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -1016,7 +1016,7 @@ function viewRowTests() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/count`,
+        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/count`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -1040,7 +1040,7 @@ function viewRowTests() {
 
     const listResponse = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
+        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -1049,7 +1049,7 @@ function viewRowTests() {
 
     const readResponse = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/${row['CustomerId']}`,
+        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/${row['CustomerId']}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -1068,8 +1068,8 @@ function viewRowTests() {
   });
 
   const testUpdateViewRow = async (viewType: ViewTypes) => {
-    const table = await createTable(context, project);
-    const row = await createRow(context, { project, table });
+    const table = await createTable(context, base);
+    const row = await createRow(context, { base, table });
     const view = await createView(context, {
       title: 'View',
       table: table,
@@ -1078,7 +1078,7 @@ function viewRowTests() {
 
     const updateResponse = await request(context.app)
       .patch(
-        `/api/v1/db/data/noco/${project.id}/${table.id}/views/${view.id}/${row['Id']}`,
+        `/api/v1/data/noco/${base.id}/${table.id}/views/${view.id}/${row['Id']}`,
       )
       .set('xc-auth', context.token)
       .send({
@@ -1103,7 +1103,7 @@ function viewRowTests() {
   const testUpdateViewRowWithValidationAndInvalidData = async (
     viewType: ViewTypes,
   ) => {
-    const table = await createTable(context, project);
+    const table = await createTable(context, base);
     const emailColumn = await createColumn(context, table, {
       title: 'Email',
       column_name: 'email',
@@ -1118,11 +1118,11 @@ function viewRowTests() {
       type: viewType,
     });
 
-    const row = await createRow(context, { project, table });
+    const row = await createRow(context, { base, table });
 
     await request(context.app)
       .patch(
-        `/api/v1/db/data/noco/${project.id}/${table.id}/views/${view.id}/${row['Id']}`,
+        `/api/v1/data/noco/${base.id}/${table.id}/views/${view.id}/${row['Id']}`,
       )
       .set('xc-auth', context.token)
       .send({
@@ -1146,7 +1146,7 @@ function viewRowTests() {
   const testUpdateViewRowWithValidationAndValidData = async (
     viewType: ViewTypes,
   ) => {
-    const table = await createTable(context, project);
+    const table = await createTable(context, base);
     const emailColumn = await createColumn(context, table, {
       title: 'Email',
       column_name: 'email',
@@ -1160,11 +1160,11 @@ function viewRowTests() {
       table: table,
       type: viewType,
     });
-    const row = await createRow(context, { project, table });
+    const row = await createRow(context, { base, table });
 
     const response = await request(context.app)
       .patch(
-        `/api/v1/db/data/noco/${project.id}/${table.id}/views/${view.id}/${row['Id']}`,
+        `/api/v1/data/noco/${base.id}/${table.id}/views/${view.id}/${row['Id']}`,
       )
       .set('xc-auth', context.token)
       .send({
@@ -1173,7 +1173,7 @@ function viewRowTests() {
       .expect(200);
 
     const updatedRow = await getRow(context, {
-      project,
+      base,
       table,
       id: response.body['Id'],
     });
@@ -1192,8 +1192,8 @@ function viewRowTests() {
   });
 
   const testDeleteViewRow = async (viewType: ViewTypes) => {
-    const table = await createTable(context, project);
-    const row = await createRow(context, { project, table });
+    const table = await createTable(context, base);
+    const row = await createRow(context, { base, table });
     const view = await createView(context, {
       title: 'View',
       table: table,
@@ -1202,12 +1202,12 @@ function viewRowTests() {
 
     await request(context.app)
       .delete(
-        `/api/v1/db/data/noco/${project.id}/${table.id}/views/${view.id}/${row['Id']}`,
+        `/api/v1/data/noco/${base.id}/${table.id}/views/${view.id}/${row['Id']}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
 
-    const deleteRow = await getRow(context, { project, table, id: row['Id'] });
+    const deleteRow = await getRow(context, { base, table, id: row['Id'] });
     if (deleteRow && Object.keys(deleteRow).length > 0) {
       console.log(deleteRow);
       throw new Error('Wrong delete');
@@ -1226,8 +1226,8 @@ function viewRowTests() {
   const testDeleteViewRowWithForeignKeyConstraint = async (
     viewType: ViewTypes,
   ) => {
-    const table = await createTable(context, project);
-    const relatedTable = await createTable(context, project, {
+    const table = await createTable(context, base);
+    const relatedTable = await createTable(context, base, {
       table_name: 'Table2',
       title: 'Table2_Title',
     });
@@ -1243,10 +1243,10 @@ function viewRowTests() {
       type: viewType,
     });
 
-    const row = await createRow(context, { project, table });
+    const row = await createRow(context, { base, table });
 
     await createChildRow(context, {
-      project,
+      base,
       table,
       childTable: relatedTable,
       column: ltarColumn,
@@ -1256,12 +1256,12 @@ function viewRowTests() {
 
     await request(context.app)
       .delete(
-        `/api/v1/db/data/noco/${project.id}/${table.id}/views/${view.id}/${row['Id']}`,
+        `/api/v1/data/noco/${base.id}/${table.id}/views/${view.id}/${row['Id']}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
 
-    const deleteRow = await getRow(context, { project, table, id: row['Id'] });
+    const deleteRow = await getRow(context, { base, table, id: row['Id'] });
     if (deleteRow !== undefined) {
       throw new Error('Record should have been deleted!');
     }
@@ -1278,7 +1278,7 @@ function viewRowTests() {
 
   const testViewRowExists = async (viewType: ViewTypes) => {
     const row = await getOneRow(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       table: customerTable,
     });
     const view = await createView(context, {
@@ -1289,7 +1289,7 @@ function viewRowTests() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/${row['CustomerId']}/exist`,
+        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/${row['CustomerId']}/exist`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -1312,7 +1312,7 @@ function viewRowTests() {
     });
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/999999/exist`,
+        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/999999/exist`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -1335,7 +1335,7 @@ function viewRowTests() {
     });
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/views/${view.id}/export/csv`,
+        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.title}/views/${view.id}/export/csv`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -1359,7 +1359,7 @@ function viewRowTests() {
     });
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/views/${view.id}/export/excel`,
+        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.title}/views/${view.id}/export/excel`,
       )
       .set('xc-auth', context.token)
       .expect(200);

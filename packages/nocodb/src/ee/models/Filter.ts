@@ -36,8 +36,8 @@ export default class Filter extends FilterCE implements FilterType {
       'fk_parent_id',
       'is_group',
       'logical_op',
-      'project_id',
       'base_id',
+      'source_id',
       'order',
     ]);
 
@@ -50,8 +50,8 @@ export default class Filter extends FilterCE implements FilterType {
       [referencedModelColName]: filter[referencedModelColName],
     });
 
-    if (!filter.fk_widget_id && !(filter.project_id && filter.base_id)) {
-      let model: { project_id?: string; base_id?: string };
+    if (!filter.fk_widget_id && !(filter.base_id && filter.source_id)) {
+      let model: { base_id?: string; source_id?: string };
       if (filter.fk_view_id) {
         model = await View.get(filter.fk_view_id, ncMeta);
       } else if (filter.fk_hook_id) {
@@ -62,11 +62,11 @@ export default class Filter extends FilterCE implements FilterType {
         NcError.badRequest('Invalid filter');
       }
       // TODO: consider to imporve this logic
-      // currently this null check is done because filters for Dashboard Widgets do not have a project_id and base_id atm
+      // currently this null check is done because filters for Dashboard Widgets do not have a base_id and source_id atm
       // but just a widget_id (which is potentially not the best approach)
       if (model != null) {
-        insertObj.project_id = model.project_id;
         insertObj.base_id = model.base_id;
+        insertObj.source_id = model.source_id;
       }
     }
 

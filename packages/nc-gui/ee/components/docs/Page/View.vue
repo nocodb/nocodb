@@ -8,7 +8,7 @@ import AlignRightIcon from '~icons/tabler/align-right'
 import { emptySectionContent, removeUploadingPlaceHolderAndEmptyLinkNode } from '@/helpers/tiptapExtensions/helper'
 import '~/assets/docsPage.scss'
 
-const { project } = useProject()
+const { base } = useBase()
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
@@ -70,7 +70,7 @@ const breadCrumbs = computed(() => {
   const pagesBreadcrumbs = openedPageWithParents.value
     .map((page) => ({
       title: page.title,
-      href: nestedUrl({ id: page.id!, projectId: project.id! }),
+      href: nestedUrl({ id: page.id!, baseId: base.id! }),
       icon: page.icon,
       id: page.id,
     }))
@@ -173,7 +173,7 @@ watchDebounced(
         pageId: openedPage.value?.id,
         page: { content: openedPage.value!.content, content_html: openedPage.value!.content_html },
         disableLocalSync: true,
-        projectId: project.id!,
+        baseId: base.id!,
       })
     }
   },
@@ -453,7 +453,7 @@ watch(
                 :class="{
                   'gap-x-1.2': page.icon,
                 }"
-                @click="openPage({ page, projectId: project.id! })"
+                @click="openPage({ page, baseId: base.id! })"
               >
                 <LazyGeneralEmojiPicker v-if="page.icon" :key="page.icon" :emoji="page.icon" :readonly="true" size="small">
                 </LazyGeneralEmojiPicker>

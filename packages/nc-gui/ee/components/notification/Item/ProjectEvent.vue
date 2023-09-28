@@ -24,14 +24,14 @@ const action = computed(() => {
 
 const onClick = () => {
   if (item.value.type === AppEvents.PROJECT_DELETE) return
-  navigateToProject({ workspaceId: item.value.body.workspace_id, projectId: item.value.body.id })
+  navigateToProject({ workspaceId: item.value.body.workspace_id, baseId: item.value.body.id })
 }
 </script>
 
 <template>
   <NotificationItemWrapper :item="item" @click="onClick">
     <div class="text-xs gap-2">
-      Project
+      Base
       <GeneralProjectIcon style="vertical-align: middle" :type="item.body.type" /> <strong>{{ item.body.title }}</strong>
       {{ action }} successfully
     </div>

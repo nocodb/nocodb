@@ -22,7 +22,7 @@ interface IdAndTitle {
 interface TableWithProject {
   id: string
   title: string
-  project: {
+  base: {
     id: string
     title: string
   }

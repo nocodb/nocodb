@@ -17,7 +17,7 @@ import {
   useKanbanViewStoreOrThrow,
   useMetas,
   useNuxtApp,
-  useProject,
+  useBase,
   useProvideSmartsheetRowStore,
   useSharedView,
   useUndoRedo,
@@ -43,7 +43,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const changedColumns = ref(new Set<string>())
 
-  const { project } = storeToRefs(useProject())
+  const { base } = storeToRefs(useBase())
 
   const rowStore = useProvideSmartsheetRowStore(meta, row)
 
@@ -168,7 +168,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
         if (missingRequiredColumns.size) return
 
-        data = await $api.dbTableRow.create('noco', project.value.id as string, meta.value.id, insertObj)
+        data = await $api.dbTableRow.create('noco', base.value.id as string, meta.value.id, insertObj)
 
         Object.assign(row.value, {
           row: data,
@@ -184,7 +184,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           addUndo({
             redo: {
               fn: async (rowData: any) => {
-                await $api.dbTableRow.create('noco', project.value.id as string, meta.value.id, { ...pkData, ...rowData })
+                await $api.dbTableRow.create('noco', base.value.id as string, meta.value.id, { ...pkData, ...rowData })
                 await loadKanbanData()
                 reloadTrigger?.trigger()
               },
@@ -194,7 +194,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               fn: async (id: string) => {
                 const res: any = await $api.dbViewRow.delete(
                   'noco',
-                  project.value.id as string,
+                  base.value.id as string,
                   meta.value?.id as string,
                   activeView.value?.id as string,
                   encodeURIComponent(id),
@@ -223,7 +223,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
             return message.info("Update not allowed for table which doesn't have primary Key")
           }
 
-          await $api.dbTableRow.update(NOCO, project.value.id as string, meta.value.id, encodeURIComponent(id), updateOrInsertObj)
+          await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id, encodeURIComponent(id), updateOrInsertObj)
 
           if (!undo) {
             const undoObject = [...changedColumns.value].reduce((obj, col) => {
@@ -234,7 +234,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
             addUndo({
               redo: {
                 fn: async (id: string, data: Record<string, any>) => {
-                  await $api.dbTableRow.update(NOCO, project.value.id as string, meta.value.id, encodeURIComponent(id), data)
+                  await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id, encodeURIComponent(id), data)
                   await loadKanbanData()
 
                   reloadTrigger?.trigger()
@@ -243,7 +243,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               },
               undo: {
                 fn: async (id: string, data: Record<string, any>) => {
-                  await $api.dbTableRow.update(NOCO, project.value.id as string, meta.value.id, encodeURIComponent(id), data)
+                  await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id, encodeURIComponent(id), data)
                   await loadKanbanData()
                   reloadTrigger?.trigger()
                 },
@@ -285,8 +285,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const loadRow = async (rowId?: string) => {
     const record = await $api.dbTableRow.read(
       NOCO,
-      // todo: project_id missing on view type
-      (project?.value?.id || (sharedView.value?.view as any)?.project_id) as string,
+      // todo: base_id missing on view type
+      (base?.value?.id || (sharedView.value?.view as any)?.base_id) as string,
       meta.value.id as string,
       encodeURIComponent(rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])),
       {
@@ -305,7 +305,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     try {
       const res: { message?: string[] } | number = await $api.dbTableRow.delete(
         NOCO,
-        project.value.id as string,
+        base.value.id as string,
         meta.value.id as string,
         encodeURIComponent(rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])),
       )

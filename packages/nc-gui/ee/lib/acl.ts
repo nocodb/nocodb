@@ -9,7 +9,7 @@ const roleScopes = {
     WorkspaceUserRoles.CREATOR,
     WorkspaceUserRoles.OWNER,
   ],
-  project: [ProjectRoles.VIEWER, ProjectRoles.COMMENTER, ProjectRoles.EDITOR, ProjectRoles.CREATOR, ProjectRoles.OWNER],
+  base: [ProjectRoles.VIEWER, ProjectRoles.COMMENTER, ProjectRoles.EDITOR, ProjectRoles.CREATOR, ProjectRoles.OWNER],
 }
 
 interface Perm {
@@ -38,13 +38,13 @@ const rolePermissions = {
     include: {
       workspaceBilling: true,
       workspaceManage: true,
-      projectDelete: true,
+      baseDelete: true,
     },
   },
   [WorkspaceUserRoles.CREATOR]: {
     include: {
-      projectCreate: true,
-      projectDuplicate: true,
+      baseCreate: true,
+      baseDuplicate: true,
       workspaceSettings: true,
       tableCreate: true,
       tableRename: true,
@@ -62,10 +62,10 @@ const rolePermissions = {
     include: {},
   },
 
-  // Project role permissions
+  // Base role permissions
   [ProjectRoles.OWNER]: {
     include: {
-      projectDelete: true,
+      baseDelete: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -91,11 +91,11 @@ const rolePermissions = {
       tableIconEdit: true,
       viewCreateOrEdit: true,
       viewShare: true,
-      projectShare: true,
-      projectMiscSettings: true,
+      baseShare: true,
+      baseMiscSettings: true,
       csvImport: true,
-      projectRename: true,
-      projectDuplicate: true,
+      baseRename: true,
+      baseDuplicate: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -118,7 +118,7 @@ const rolePermissions = {
   },
   [ProjectRoles.VIEWER]: {
     include: {
-      projectSettings: true,
+      baseSettings: true,
       expandedForm: true,
       apiDocs: true,
     },

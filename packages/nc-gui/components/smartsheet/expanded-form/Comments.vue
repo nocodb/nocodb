@@ -167,7 +167,7 @@ const processedAudit = (log: string) => {
 
                     <div class="flex flex-col">
                       <span class="truncate font-bold max-w-42">
-                        {{ log.display_name ?? log.user.split('@')[0] ?? 'Shared base' }}
+                        {{ log.display_name ?? log.user.split('@')[0] ?? 'Shared source' }}
                       </span>
                       <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
                         {{ log.created_at !== log.updated_at ? `Edited ${timeAgo(log.updated_at)}` : timeAgo(log.created_at) }}
@@ -245,7 +245,7 @@ const processedAudit = (log: string) => {
 
                   <div class="flex flex-col">
                     <span class="truncate max-w-50">
-                      {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared base' }}
+                      {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared source' }}
                     </span>
                     <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
                       {{ timeAgo(log.created_at) }}

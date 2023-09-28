@@ -1,12 +1,12 @@
-import type { ProjectType } from 'nocodb-sdk'
+import type { BaseType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
-import { computed, navigateTo, ref, useCommandPalette, useNuxtApp, useProjects, useRouter, useTheme } from '#imports'
+import { computed, navigateTo, ref, useCommandPalette, useNuxtApp, useBases, useRouter, useTheme } from '#imports'
 import type { ThemeConfig } from '#imports'
 
 export const useWorkspace = defineStore('workspaceStore', () => {
-  const projectsStore = useProjects()
+  const basesStore = useBases()
 
   const collaborators = ref<any[] | null>()
 
@@ -84,7 +84,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isWorkspaceLoading.value = true
 
     try {
-      await projectsStore.loadProjects()
+      await basesStore.loadProjects()
     } catch (e: any) {
       console.error(e)
     } finally {
@@ -96,20 +96,20 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (page === 'workspace') {
       return
     }
-    await projectsStore.loadProjects(page)
+    await basesStore.loadProjects(page)
   })
 
-  const addToFavourite = async (projectId: string) => {
+  const addToFavourite = async (baseId: string) => {
     try {
-      const projects = projectsStore.projects
-      const project = projects.get(projectId)
-      if (!project) return
+      const bases = basesStore.bases
+      const base = bases.get(baseId)
+      if (!base) return
 
       // todo: update the type
-      project.starred = true
+      base.starred = true
 
-      await $api.project.userMetaUpdate(
-        projectId,
+      await $api.base.userMetaUpdate(
+        baseId,
         {
           starred: true,
         },
@@ -122,15 +122,15 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const removeFromFavourite = async (projectId: string) => {
+  const removeFromFavourite = async (baseId: string) => {
     try {
-      const project = projectsStore.projects.get(projectId)
-      if (!project) return
+      const base = basesStore.bases.get(baseId)
+      if (!base) return
 
-      project.starred = false
+      base.starred = false
 
-      await $api.project.userMetaUpdate(
-        projectId,
+      await $api.base.userMetaUpdate(
+        baseId,
         {
           starred: false,
         },
@@ -143,17 +143,17 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const updateProjectTitle = async (project: ProjectType & { edit: boolean; temp_title: string }) => {
+  const updateProjectTitle = async (base: BaseType & { edit: boolean; temp_title: string }) => {
     try {
-      await $api.project.update(
-        project.id!,
-        { title: project.temp_title },
+      await $api.base.update(
+        base.id!,
+        { title: base.temp_title },
         {
           baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace.value.id}.${appInfo.value.baseHostName}` : undefined,
         },
       )
-      project.title = project.temp_title
-      project.edit = false
+      base.title = base.temp_title
+      base.edit = false
       refreshCommandPalette()
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -182,7 +182,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function clearWorkspaces() {
-    await projectsStore.clearProjects()
+    await basesStore.clearBases()
     workspaces.value.clear()
   }
 

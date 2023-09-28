@@ -5,5 +5,5 @@ const route = router.currentRoute
 </script>
 
 <template>
-  <NuxtPage :transition="false" :page-key="route.params.projectTypeOrWorkspaceId" />
+  <NuxtPage :transition="false" :page-key="route.params.baseTypeOrWorkspaceId" />
 </template>

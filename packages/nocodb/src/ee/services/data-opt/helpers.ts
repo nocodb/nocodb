@@ -4,11 +4,11 @@ import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type {
   BarcodeColumn,
-  Base,
   FormulaColumn,
   LinkToAnotherRecordColumn,
   LookupColumn,
   QrCodeColumn,
+  Source,
   View,
 } from '~/models';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
@@ -656,14 +656,14 @@ function getUniquePlaceholders(
 export async function singleQueryRead(ctx: {
   model: Model;
   view: View;
-  base: Base;
+  source: Source;
   params;
   id: string;
   getHiddenColumn?: boolean;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   await ctx.model.getColumns();
 
-  if (ctx.base.type !== 'pg') {
+  if (ctx.source.type !== 'pg') {
     throw new Error('Single query only supported in postgres');
   }
 
@@ -682,7 +682,7 @@ export async function singleQueryRead(ctx: {
   }
 
   // get knex connection
-  const knex = await NcConnectionMgrv2.get(ctx.base);
+  const knex = await NcConnectionMgrv2.get(ctx.source);
 
   const baseModel = await Model.getBaseModelSQL({
     id: ctx.model.id,
@@ -840,11 +840,11 @@ export async function singleQueryRead(ctx: {
 export async function singleQueryList(ctx: {
   model: Model;
   view: View;
-  base: Base;
+  source: Source;
   params;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
-  if (ctx.base.type !== 'pg') {
-    throw new Error('Base is not postgres');
+  if (ctx.source.type !== 'pg') {
+    throw new Error('Source is not postgres');
   }
 
   let dbQueryTime;
@@ -870,7 +870,7 @@ export async function singleQueryList(ctx: {
   const getAlias = getAliasGenerator();
 
   // get knex connection
-  const knex = await NcConnectionMgrv2.get(ctx.base);
+  const knex = await NcConnectionMgrv2.get(ctx.source);
 
   const baseModel = await Model.getBaseModelSQL({
     id: ctx.model.id,
@@ -1068,8 +1068,8 @@ export async function singleQueryList(ctx: {
   );
 }
 
-export function getSingleQueryReadFn(base: Base) {
-  if (['mysql', 'mysql2'].includes(base.type)) {
+export function getSingleQueryReadFn(source: Source) {
+  if (['mysql', 'mysql2'].includes(source.type)) {
     return mysqlSingleQueryRead;
   }
   return singleQueryRead;

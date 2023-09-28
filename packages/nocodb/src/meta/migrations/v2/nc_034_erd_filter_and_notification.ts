@@ -1,9 +1,9 @@
 import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, MetaTableOldV2 } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
-  if (!(await knex.schema.hasColumn(MetaTable.BASES, 'erd_uuid'))) {
-    await knex.schema.alterTable(MetaTable.BASES, (table) => {
+  if (!(await knex.schema.hasColumn(MetaTableOldV2.BASES, 'erd_uuid'))) {
+    await knex.schema.alterTable(MetaTableOldV2.BASES, (table) => {
       table.string('erd_uuid');
     });
   }
@@ -27,7 +27,7 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex) => {
-  await knex.schema.alterTable(MetaTable.BASES, (table) => {
+  await knex.schema.alterTable(MetaTableOldV2.BASES, (table) => {
     table.dropColumn('erd_uuid');
   });
 

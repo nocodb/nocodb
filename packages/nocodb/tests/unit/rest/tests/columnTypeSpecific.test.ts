@@ -4,11 +4,11 @@ import request from 'supertest';
 import { UITypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import init from '../../init';
-import { createProject, createSakilaProject } from '../../factory/project';
+import { createProject, createSakilaProject } from '../../factory/base';
 import { createColumn, createQrCodeColumn } from '../../factory/column';
 import { getTable } from '../../factory/table';
 import type Model from '../../../../src/models/Model';
-import type Project from '../../../../src/models/Project';
+import type Base from '~/models/Base';
 import type Column from '../../../../src/models/Column';
 
 // Test case list
@@ -19,8 +19,8 @@ import type Column from '../../../../src/models/Column';
 
 function columnTypeSpecificTests() {
   let context;
-  let project: Project;
-  let sakilaProject: Project;
+  let base: Base;
+  let sakilaProject: Base;
   let customerTable: Model;
   let qrValueReferenceColumn: Column;
 
@@ -32,10 +32,10 @@ function columnTypeSpecificTests() {
     context = await init(true);
 
     sakilaProject = await createSakilaProject(context);
-    project = await createProject(context);
+    base = await createProject(context);
 
     customerTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'customer',
     });
 
@@ -57,7 +57,7 @@ function columnTypeSpecificTests() {
   describe('Qr Code Column', () => {
     it('delivers the same cell values as the referenced column', async () => {
       const resp = await request(context.app)
-        .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
+        .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
         .set('xc-auth', context.token)
         .expect(200);
       expect(resp.body.list[0][qrValueReferenceColumnTitle]).to.eql(
@@ -80,7 +80,7 @@ function columnTypeSpecificTests() {
       ).to.eq(true);
 
       const response = await request(context.app)
-        .delete(`/api/v1/db/meta/columns/${qrValueReferenceColumn.id}`)
+        .delete(`/api/v1/meta/columns/${qrValueReferenceColumn.id}`)
         .set('xc-auth', context.token)
         .send({});
 

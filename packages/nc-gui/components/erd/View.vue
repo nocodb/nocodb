@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { BaseType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import type { SourceType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { isLinksOrLTAR } from 'nocodb-sdk'
 import type { ERDConfig } from './utils'
-import { reactive, ref, storeToRefs, useMetas, useProject, watch } from '#imports'
+import { reactive, ref, storeToRefs, useMetas, useBase, watch } from '#imports'
 
 const props = defineProps({
-  baseId: {
+  sourceId: {
     type: String,
     default: '',
   },
@@ -19,7 +19,7 @@ const props = defineProps({
   },
 })
 
-const { bases, tables: projectTables } = storeToRefs(useProject())
+const { sources, tables: baseTables } = storeToRefs(useBase())
 
 const { metas, getMeta } = useMetas()
 
@@ -51,7 +51,7 @@ const populateTables = async () => {
   let localTables: TableType[] = []
   if (props.table) {
     // if table is provided only get the table and its related tables
-    localTables = projectTables.value.filter(
+    localTables = baseTables.value.filter(
       (t) =>
         t.id === props.table?.id ||
         metas.value[props.table!.id!].columns?.find((column) => {
@@ -59,7 +59,7 @@ const populateTables = async () => {
         }),
     )
   } else {
-    localTables = projectTables.value
+    localTables = baseTables.value
   }
 
   await loadMetaOfTablesNotInMetas(localTables)
@@ -81,7 +81,7 @@ const toggleFullScreen = () => {
   config.isFullScreen = !config.isFullScreen
 }
 
-watch([metas, projectTables], populateTables, {
+watch([metas, baseTables], populateTables, {
   flush: 'post',
   immediate: true,
 })
@@ -93,7 +93,7 @@ watch(config, populateTables, {
 
 const filteredTables = computed(() =>
   tables.value.filter((t) =>
-    props?.baseId ? t.base_id === props.baseId : t.base_id === bases.value?.filter((base: BaseType) => base.enabled)[0].id,
+    props?.sourceId ? t.source_id === props.sourceId : t.source_id === sources.value?.filter((source: SourceType) => source.enabled)[0].id,
   ),
 )
 

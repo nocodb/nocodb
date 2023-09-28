@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { type UserType, ViewTypes } from 'nocodb-sdk';
 import WorkspaceUser from '~/models/WorkspaceUser';
-import { Project } from '~/models';
+import { Base } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { TablesService } from '~/services/tables.service';
 
@@ -47,23 +47,23 @@ export class CommandPaletteService {
             },
           });
 
-          /* const projects = await Project.listByWorkspaceAndUser(
+          /* const bases = await Base.listByWorkspaceAndUser(
             workspace.id,
             param.user?.id,
           );
 
-          allProjects.push(...projects); */
+          allProjects.push(...bases); */
         }
 
-        /* for (const project of allProjects) {
+        /* for (const base of allProjects) {
           cmdData.push({
-            id: `p-${project.id}`,
-            title: project.title,
-            parent: 'projects',
+            id: `p-${base.id}`,
+            title: base.title,
+            parent: 'bases',
             icon: 'database',
             handler: {
               type: 'navigate',
-              payload: `/${project.fk_workspace_id}/${project.id}`,
+              payload: `/${base.fk_workspace_id}/${base.id}`,
             },
           });
         } */
@@ -78,18 +78,18 @@ export class CommandPaletteService {
           NcError.notFound('Workspace not found!');
         }
 
-        const projects = await Project.listByWorkspaceAndUser(
+        const bases = await Base.listByWorkspaceAndUser(
           data.workspace_id,
           param.user?.id,
         );
 
         const viewList = [];
 
-        for (const project of projects) {
+        for (const base of bases) {
           viewList.push(
             ...(
               (await this.tablesService.xcVisibilityMetaGet(
-                project.id,
+                base.id,
                 null,
                 false,
               )) as any[]
@@ -111,11 +111,11 @@ export class CommandPaletteService {
               title: v._ptn,
               parent: `ws-${workspace.id}-tables`,
               icon: 'table',
-              projectName: projects.find((el) => el.id === v.project_id)?.title,
-              section: projects.find((el) => el.id === v.project_id)?.title,
+              projectName: bases.find((el) => el.id === v.base_id)?.title,
+              section: bases.find((el) => el.id === v.base_id)?.title,
               handler: {
                 type: 'navigate',
-                payload: `/${data.workspace_id}/${v.project_id}/${v.fk_model_id}`,
+                payload: `/${data.workspace_id}/${v.base_id}/${v.fk_model_id}`,
               },
             });
           }
@@ -124,13 +124,13 @@ export class CommandPaletteService {
             title: `${v.title}`,
             parent: `ws-${workspace.id}-views`,
             icon: viewTypeAlias[v.type] || 'table',
-            projectName: projects.find((el) => el.id === v.project_id)?.title,
-            section: `${
-              projects.find((el) => el.id === v.project_id)?.title
-            } / ${v._ptn}`,
+            projectName: bases.find((el) => el.id === v.base_id)?.title,
+            section: `${bases.find((el) => el.id === v.base_id)?.title} / ${
+              v._ptn
+            }`,
             handler: {
               type: 'navigate',
-              payload: `/${data.workspace_id}/${v.project_id}/${
+              payload: `/${data.workspace_id}/${v.base_id}/${
                 v.fk_model_id
               }/${encodeURIComponent(v.id)}`,
             },

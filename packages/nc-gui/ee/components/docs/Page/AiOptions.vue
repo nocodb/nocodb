@@ -26,7 +26,7 @@ const indicator = h(LoadingOutlined, {
 
 const state = useGlobal()
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 const { openedPage } = storeToRefs(useDocStore())
 
 const inputRef = ref<HTMLInputElement>()
@@ -101,7 +101,7 @@ async function updatePageContentWidth() {
 
 async function streamExpand(selectionMd: string | undefined) {
   const response = await fetch(
-    `${state.appInfo.value.ncSiteUrl}/api/v1/docs/project/${project.value!.id!}/page/${openedPage.value!.id}/magic-expand`,
+    `${state.appInfo.value.ncSiteUrl}/api/v1/docs/base/${base.value!.id!}/page/${openedPage.value!.id}/magic-expand`,
     {
       method: 'POST',
       headers: {

@@ -109,10 +109,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const onViewsTabChange = (page: ViewPageType) => {
     router.push({
-      name: 'index-typeOrId-projectId-index-index-viewId-viewTitle-slugs',
+      name: 'index-typeOrId-baseId-index-index-viewId-viewTitle-slugs',
       params: {
         typeOrId: route.value.params.typeOrId,
-        projectId: route.value.params.projectId,
+        baseId: route.value.params.baseId,
         viewId: route.value.params.viewId,
         viewTitle: activeViewTitleOrId.value,
         slugs: [page],
@@ -151,21 +151,21 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const navigateToView = async ({
     view,
-    projectId,
+    baseId,
     tableId,
     hardReload,
   }: {
     view: ViewType
-    projectId: string
+    baseId: string
     tableId: string
     hardReload?: boolean
   }) => {
-    const routeName = 'index-typeOrId-projectId-index-index-viewId-viewTitle'
+    const routeName = 'index-typeOrId-baseId-index-index-viewId-viewTitle'
 
-    let projectIdOrBaseId = projectId
+    let baseIdOrBaseId = baseId
 
     if (['base'].includes(route.value.params.typeOrId as string)) {
-      projectIdOrBaseId = route.value.params.projectId as string
+      baseIdOrBaseId = route.value.params.baseId as string
     }
 
     if (
@@ -175,11 +175,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
     ) {
       await router.push({
         name: routeName,
-        params: { viewTitle: view.id || '', viewId: tableId, projectId: projectIdOrBaseId },
+        params: { viewTitle: view.id || '', viewId: tableId, baseId: baseIdOrBaseId },
         query: router.currentRoute.value.query,
       })
     } else {
-      await router.push({ name: routeName, params: { viewTitle: view.id || '', viewId: tableId, projectId: projectIdOrBaseId } })
+      await router.push({ name: routeName, params: { viewTitle: view.id || '', viewId: tableId, baseId: baseIdOrBaseId } })
     }
 
     if (hardReload) {
@@ -187,13 +187,13 @@ export const useViewsStore = defineStore('viewsStore', () => {
         .replace({
           name: routeName,
           query: { reload: 'true' },
-          params: { viewId: tableId, projectId: projectIdOrBaseId, viewTitle: view.id || '' },
+          params: { viewId: tableId, baseId: baseIdOrBaseId, viewTitle: view.id || '' },
         })
         .then(() => {
           router.replace({
             name: routeName,
             query: {},
-            params: { viewId: tableId, viewTitle: view.id || '', projectId: projectIdOrBaseId },
+            params: { viewId: tableId, viewTitle: view.id || '', baseId: baseIdOrBaseId },
           })
         })
     }

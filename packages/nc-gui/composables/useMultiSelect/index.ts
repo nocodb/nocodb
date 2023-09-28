@@ -27,7 +27,7 @@ import {
   useGlobal,
   useI18n,
   useMetas,
-  useProject,
+  useBase,
 } from '#imports'
 
 const MAIN_MOUSE_PRESSED = 0
@@ -61,7 +61,7 @@ export function useMultiSelect(
 
   const { appInfo } = useGlobal()
 
-  const { isMysql, isPg } = useProject()
+  const { isMysql, isPg } = useBase()
 
   const editEnabled = ref(_editEnabled)
 
@@ -131,7 +131,7 @@ export function useMultiSelect(
       // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
       textToCopy = textToCopy.replace(/["']/g, '')
 
-      const isMySQL = isMysql(columnObj.base_id)
+      const isMySQL = isMysql(columnObj.source_id)
 
       let d = dayjs(textToCopy)
 
@@ -158,8 +158,8 @@ export function useMultiSelect(
       // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
       textToCopy = textToCopy.replace(/["']/g, '')
 
-      const isMySQL = isMysql(columnObj.base_id)
-      const isPostgres = isPg(columnObj.base_id)
+      const isMySQL = isMysql(columnObj.source_id)
+      const isPostgres = isPg(columnObj.source_id)
 
       let d = dayjs(textToCopy)
 
@@ -432,7 +432,7 @@ export function useMultiSelect(
                 column: colObj,
                 appInfo: unref(appInfo),
               },
-              isMysql(meta.value?.base_id),
+              isMysql(meta.value?.source_id),
               true,
             )
 
@@ -770,7 +770,7 @@ export function useMultiSelect(
                 column: pasteCol,
                 appInfo: unref(appInfo),
               },
-              isMysql(meta.value?.base_id),
+              isMysql(meta.value?.source_id),
               true,
             )
 
@@ -805,7 +805,7 @@ export function useMultiSelect(
                 column: columnObj,
                 appInfo: unref(appInfo),
               },
-              isMysql(meta.value?.base_id),
+              isMysql(meta.value?.source_id),
             )
 
             const foreignKeyColumn = meta.value?.columns?.find(
@@ -832,7 +832,7 @@ export function useMultiSelect(
               column: columnObj,
               appInfo: unref(appInfo),
             },
-            isMysql(meta.value?.base_id),
+            isMysql(meta.value?.source_id),
           )
 
           if (pasteValue !== undefined) {
@@ -873,7 +873,7 @@ export function useMultiSelect(
                   column: col,
                   appInfo: unref(appInfo),
                 },
-                isMysql(meta.value?.base_id),
+                isMysql(meta.value?.source_id),
                 true,
               )
 

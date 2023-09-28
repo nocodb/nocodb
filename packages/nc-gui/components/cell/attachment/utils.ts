@@ -20,7 +20,7 @@ import {
   useFileDialog,
   useI18n,
   useInjectionState,
-  useProject,
+  useBase,
   watch,
 } from '#imports'
 import MdiPdfBox from '~icons/mdi/pdf-box'
@@ -55,7 +55,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     /** for image carousel */
     const selectedImage = ref()
 
-    const { project } = storeToRefs(useProject())
+    const { base } = storeToRefs(useBase())
 
     const { api, isLoading } = useApi()
 
@@ -191,7 +191,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       try {
         const data = await api.storage.upload(
           {
-            path: [NOCO, project.value.title, meta.value?.title, column.value?.title].join('/'),
+            path: [NOCO, base.value.title, meta.value?.title, column.value?.title].join('/'),
           },
           {
             files,

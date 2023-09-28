@@ -4,7 +4,6 @@ import {
   AuditOperationSubTypes,
   AuditOperationTypes,
 } from 'nocodb-sdk';
-import type { Audit } from '~/models';
 import type { AuditType } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
@@ -27,6 +26,7 @@ import type {
   UserSignupEvent,
   ViewEvent,
 } from '~/services/app-hooks/interfaces';
+import { Audit } from '~/models';
 import { Producer } from '~/services/producer/producer';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -50,18 +50,18 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           const param = data as ProjectInviteEvent;
 
           await this.auditInsert({
-            project_id: param.project.id,
+            base_id: param.base.id,
             op_type: AuditOperationTypes.AUTHENTICATION,
             op_sub_type: AuditOperationSubTypes.INVITE,
             user: param.invitedBy.email,
-            description: `invited ${param.user.email} to ${param.project.id} project `,
+            description: `invited ${param.user.email} to ${param.base.id} base `,
             ip: param.ip,
           });
 
           const count = await User.count();
 
           this.telemetryService.sendEvent({
-            evt_type: 'project:invite',
+            evt_type: 'base:invite',
             count,
           });
         }
@@ -74,7 +74,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
             op_type: AuditOperationTypes.AUTHENTICATION,
             op_sub_type: AuditOperationSubTypes.ROLES_MANAGEMENT,
             user: param.updatedBy.email,
-            description: `Roles for ${param.user.email} with has been updated to ${param.projectUser.roles}`,
+            description: `Roles for ${param.user.email} with has been updated to ${param.baseUser.roles}`,
             ip: param.ip,
           });
         }
@@ -89,7 +89,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
             user: param.user.email,
             description: `${param.user.email} has been re-invited`,
             ip: param.ip,
-            project_id: param.project.id,
+            base_id: param.base.id,
           });
         }
         break;
@@ -175,8 +175,8 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         {
           const param = data as TableEvent;
           await this.auditInsert({
-            project_id: param.table.project_id,
             base_id: param.table.base_id,
+            source_id: param.table.source_id,
             op_type: AuditOperationTypes.TABLE,
             op_sub_type: AuditOperationSubTypes.CREATE,
             user: param.user?.email,
@@ -193,8 +193,8 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           const { table, ip, user } = data as TableEvent;
 
           await this.auditInsert({
-            project_id: table.project_id,
             base_id: table.base_id,
+            source_id: table.source_id,
             op_type: AuditOperationTypes.TABLE,
             op_sub_type: AuditOperationSubTypes.DELETE,
             user: user?.email,
@@ -211,7 +211,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
 
           await this.auditInsert({
             // todo: type correction
-            project_id: (column as any).project_id,
+            base_id: (column as any).base_id,
             op_type: AuditOperationTypes.TABLE_COLUMN,
             op_sub_type: AuditOperationSubTypes.UPDATE,
             user: user?.email,
@@ -226,7 +226,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         {
           const { column, ip, user, table } = data as ColumnEvent;
           await this.auditInsert({
-            project_id: table.project_id,
+            base_id: table.base_id,
             op_type: AuditOperationTypes.TABLE_COLUMN,
             op_sub_type: AuditOperationSubTypes.CREATE,
             user: user?.email,
@@ -242,7 +242,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           const { column, ip, user, table } = data as ColumnEvent;
 
           await this.auditInsert({
-            project_id: (column as any).project_id,
+            base_id: (column as any).base_id,
             op_type: AuditOperationTypes.TABLE_COLUMN,
             op_sub_type: AuditOperationSubTypes.DELETE,
             user: user?.email,
@@ -410,19 +410,19 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.BASE_UPDATE:
         {
           this.telemetryService.sendEvent({
-            evt_type: 'base:updated',
+            evt_type: 'source:updated',
           });
         }
         break;
       case AppEvents.BASE_DELETE:
         {
-          this.telemetryService.sendEvent({ evt_type: 'base:deleted' });
+          this.telemetryService.sendEvent({ evt_type: 'source:deleted' });
         }
         break;
       case AppEvents.BASE_CREATE:
         {
           this.telemetryService.sendEvent({
-            evt_type: 'base:created',
+            evt_type: 'source:created',
           });
         }
         break;
@@ -471,18 +471,18 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         {
           const { xcdb } = data as ProjectCreateEvent;
           this.telemetryService.sendEvent({
-            evt_type: 'project:created',
+            evt_type: 'base:created',
             xcdb,
           });
 
-          this.telemetryService.sendEvent({ evt_type: 'project:rest' });
+          this.telemetryService.sendEvent({ evt_type: 'base:rest' });
         }
         break;
       case AppEvents.PROJECT_DELETE:
-        this.telemetryService.sendEvent({ evt_type: 'project:deleted' });
+        this.telemetryService.sendEvent({ evt_type: 'base:deleted' });
         break;
       case AppEvents.PROJECT_UPDATE:
-        this.telemetryService.sendEvent({ evt_type: 'project:update' });
+        this.telemetryService.sendEvent({ evt_type: 'base:update' });
         break;
       case AppEvents.UI_ACL_UPDATE:
         this.telemetryService.sendEvent({ evt_type: 'uiAcl:updated' });
@@ -491,7 +491,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         {
           const param = data as MetaDiffEvent;
 
-          if (param.base) {
+          if (param.source) {
             this.telemetryService.sendEvent({
               evt_type: 'baseMetaDiff:synced',
             });
@@ -526,14 +526,14 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
   }
 
   async auditInsert(param: Partial<Audit | AuditType>) {
-    // await Audit.insert(param)
-    try {
-      await this.producer.sendMessage(
-        'cloud-audit',
-        JSON.stringify({ ...param, created_at: Date.now() }),
-      );
-    } catch (e) {
-      this.logger.error(e);
-    }
+    await Audit.insert(param);
+    // try {
+    //   await this.producer.sendMessage(
+    //     'cloud-audit',
+    //     JSON.stringify({ ...param, created_at: Date.now() }),
+    //   );
+    // } catch (e) {
+    //   this.logger.error(e);
+    // }
   }
 }

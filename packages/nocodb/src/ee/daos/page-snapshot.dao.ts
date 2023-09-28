@@ -14,14 +14,14 @@ export class PageSnapshotDao {
 
   async create({
     workspaceId,
-    projectId,
+    baseId,
     pageId,
     page: _page,
     type,
     diffHtml,
   }: {
     workspaceId: string;
-    projectId: string;
+    baseId: string;
     pageId: string;
     page: DocsPageType;
     diffHtml;
@@ -42,7 +42,7 @@ export class PageSnapshotDao {
     //   const snapshot: DocsPageSnapshotType = {
     //     id,
     //     fk_workspace_id: workspaceId,
-    //     fk_project_id: projectId,
+    //     fk_project_id: baseId,
     //     fk_page_id: pageId,
     //     last_updated_by_id: lastUpdatedById,
     //     created_at: lastPageUpdatedTime.unix().toString(),
@@ -96,12 +96,12 @@ export class PageSnapshotDao {
   }
 
   async list({
-    projectId,
+    baseId,
     pageId,
     pageNumber,
     pageSize,
   }: {
-    projectId: string;
+    baseId: string;
     pageId: string;
     pageNumber?: number | undefined;
     pageSize?: number | undefined;
@@ -118,7 +118,7 @@ export class PageSnapshotDao {
     //     created_at,
     //     type
     //   FROM ${ClickhouseTables.PAGE_SNAPSHOT}
-    //   WHERE fk_project_id = '${projectId}' AND fk_page_id = '${pageId}'
+    //   WHERE fk_project_id = '${baseId}' AND fk_page_id = '${pageId}'
     //   ORDER BY created_at DESC
     //
     // `;

@@ -6,7 +6,7 @@ import { TablesService as TableServiceCE } from 'src/services/tables.service';
 import type { UserType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import getTableNameAlias from '~/helpers/getTableName';
-import { Model, Project } from '~/models';
+import { Base, Model } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -29,8 +29,8 @@ export class TablesService extends TableServiceCE {
   }
 
   async tableCreateMagic(param: {
-    projectId: string;
     baseId: string;
+    sourceId: string;
     tableName: string;
     title: string;
     user?: UserType;
@@ -40,25 +40,25 @@ export class TablesService extends TableServiceCE {
       title: param.title,
     };
 
-    const project = await Project.getWithInfo(param.projectId);
-    let base = project.bases[0];
+    const base = await Base.getWithInfo(param.baseId);
+    let source = base.sources[0];
 
-    if (param.baseId) {
-      base = project.bases.find((b) => b.id === param.baseId);
+    if (param.sourceId) {
+      source = base.sources.find((b) => b.id === param.sourceId);
     }
 
     if (
       !tableCreateBody.tableName ||
-      (project.prefix && project.prefix === tableCreateBody.tableName)
+      (base.prefix && base.prefix === tableCreateBody.tableName)
     ) {
       NcError.badRequest(
         'Missing table name `table_name` property in request body',
       );
     }
 
-    if (base.is_meta && project.prefix) {
-      if (!tableCreateBody.tableName.startsWith(project.prefix)) {
-        tableCreateBody.tableName = `${project.prefix}_${tableCreateBody.tableName}`;
+    if (source.is_meta && base.prefix) {
+      if (!tableCreateBody.tableName.startsWith(base.prefix)) {
+        tableCreateBody.tableName = `${base.prefix}_${tableCreateBody.tableName}`;
       }
     }
 
@@ -74,8 +74,8 @@ export class TablesService extends TableServiceCE {
     if (
       !(await Model.checkTitleAvailable({
         table_name: tableCreateBody.tableName,
-        project_id: project.id,
         base_id: base.id,
+        source_id: source.id,
       }))
     ) {
       NcError.badRequest('Duplicate table name');
@@ -84,22 +84,22 @@ export class TablesService extends TableServiceCE {
     if (!param.title) {
       tableCreateBody.title = getTableNameAlias(
         tableCreateBody.tableName,
-        project.prefix,
-        base,
+        base.prefix,
+        source,
       );
     }
 
     if (
       !(await Model.checkAliasAvailable({
         title: tableCreateBody.title,
-        project_id: project.id,
         base_id: base.id,
+        source_id: source.id,
       }))
     ) {
       NcError.badRequest('Duplicate table alias');
     }
 
-    const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
 
     let tableNameLengthLimit = 255;
     const sqlClientType = sqlClient.knex.clientType();
@@ -139,13 +139,13 @@ export class TablesService extends TableServiceCE {
     }
 
     await this.metaDiffServiceEE.baseMetaDiffSync({
-      projectId: project.id,
       baseId: base.id,
+      sourceId: source.id,
     });
 
     const table = await Model.getByIdOrName({
-      project_id: project.id,
       base_id: base.id,
+      source_id: source.id,
       table_name: param.tableName,
     });
 
@@ -158,33 +158,33 @@ export class TablesService extends TableServiceCE {
   }
 
   async schemaMagic(param: {
-    projectId: string;
     baseId: string;
+    sourceId: string;
     schemaName: string;
     title: string;
   }) {
-    const project = await Project.getWithInfo(param.projectId);
-    let base = project.bases[0];
+    const base = await Base.getWithInfo(param.baseId);
+    let source = base.sources[0];
     let prefixPrompt = '';
 
-    if (param.baseId) {
-      base = project.bases.find((b) => b.id === param.baseId);
+    if (param.sourceId) {
+      source = base.sources.find((b) => b.id === param.sourceId);
     }
 
-    if (base.is_meta && project.prefix) {
-      prefixPrompt = ` prefixing tables with '${project.prefix}_'`;
+    if (source.is_meta && base.prefix) {
+      prefixPrompt = ` prefixing tables with '${base.prefix}_'`;
     }
     /* if (
       !param.schemaName ||
-      (project.prefix && project.prefix === param.schemaName)
+      (base.prefix && base.prefix === param.schemaName)
     ) {
       NcError.badRequest(
         'Missing table name `table_name` property in request body'
       );
     }
-    if (base.is_meta && project.prefix) {
-      if (!param.schemaName.startsWith(project.prefix)) {
-        param.schemaName = `${project.prefix}_${param.schemaName}`;
+    if (base.is_meta && base.prefix) {
+      if (!param.schemaName.startsWith(base.prefix)) {
+        param.schemaName = `${base.prefix}_${param.schemaName}`;
       }
     }
     param.schemaName = DOMPurify.sanitize(param.schemaName);
@@ -197,8 +197,8 @@ export class TablesService extends TableServiceCE {
     if (
       !(await Model.checkTitleAvailable({
         table_name: param.schemaName,
-        project_id: project.id,
         base_id: base.id,
+        source_id: base.id,
       }))
     ) {
       NcError.badRequest('Duplicate table name');
@@ -206,21 +206,21 @@ export class TablesService extends TableServiceCE {
     if (!req.body.title) {
       req.body.title = getTableNameAlias(
         param.schemaName,
-        project.prefix,
+        base.prefix,
         base
       );
     }
     if (
       !(await Model.checkAliasAvailable({
         title: req.body.title,
-        project_id: project.id,
         base_id: base.id,
+        source_id: base.id,
       }))
     ) {
       NcError.badRequest('Duplicate table alias');
     } */
 
-    const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
 
     let tableNameLengthLimit = 255;
     const sqlClientType = sqlClient.knex.clientType();
@@ -261,8 +261,8 @@ export class TablesService extends TableServiceCE {
       }
 
       await this.metaDiffServiceEE.baseMetaDiffSync({
-        projectId: project.id,
         baseId: base.id,
+        sourceId: source.id,
       });
 
       return true;

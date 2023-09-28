@@ -1,15 +1,15 @@
 import type { SyncSource } from '~/models';
 import type {
   ApiTokenReqType,
-  BaseType,
   PluginTestReqType,
   PluginType,
+  SourceType,
 } from 'nocodb-sdk';
 import type {
+  BaseType,
   ColumnType,
   FilterType,
   HookType,
-  ProjectType,
   ProjectUserReqType,
   SortType,
   TableType,
@@ -18,41 +18,41 @@ import type {
 } from 'nocodb-sdk';
 
 export interface ProjectInviteEvent {
-  project: ProjectType;
+  base: BaseType;
   user: UserType;
   invitedBy: UserType;
   ip?: string;
 }
 
 export interface ProjectUserUpdateEvent {
-  project: ProjectType;
+  base: BaseType;
   user: UserType;
-  projectUser: ProjectUserReqType;
+  baseUser: ProjectUserReqType;
   updatedBy: UserType;
   ip?: string;
 }
 
 export interface ProjectUserResendInviteEvent {
-  project: ProjectType;
+  base: BaseType;
   user: UserType;
-  projectUser: ProjectUserReqType;
+  baseUser: ProjectUserReqType;
   invitedBy: UserType;
   ip?: string;
 }
 
 export interface ProjectCreateEvent {
-  project: ProjectType;
+  base: BaseType;
   user: UserType;
   xcdb: boolean;
 }
 
 export interface ProjectUpdateEvent {
-  project: ProjectType;
+  base: BaseType;
   user: UserType;
 }
 
 export interface ProjectDeleteEvent {
-  project: ProjectType;
+  base: BaseType;
   user: UserType;
 }
 
@@ -168,11 +168,11 @@ export interface PluginEvent {
 
 export interface SharedBaseEvent {
   link?: string;
-  project?: ProjectType;
+  base?: BaseType;
 }
 
 export interface BaseEvent {
-  base: BaseType;
+  source: SourceType;
 }
 
 export interface AttachmentEvent {
@@ -184,11 +184,11 @@ export interface FormColumnEvent {}
 export interface GridColumnEvent {}
 
 export interface MetaDiffEvent {
-  project: ProjectType;
-  base?: BaseType;
+  base: BaseType;
+  source?: SourceType;
 }
 export interface UIAclEvent {
-  project: ProjectType;
+  base: BaseType;
 }
 
 export interface SyncSourceEvent {

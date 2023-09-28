@@ -7,13 +7,13 @@ import { useShortcuts } from '../utils'
 import MdiFileDocumentOutline from '~icons/mdi/file-document-outline'
 import MdiFilterVariant from '~icons/mdi/filter-variant'
 import MaterialSymbolsPublic from '~icons/material-symbols/public'
-import { storeToRefs, useProject } from '#imports'
+import { storeToRefs, useBase } from '#imports'
 import type { PageSidebarNode } from '#imports'
 
 useShortcuts()
 const { showShareModal } = storeToRefs(useShare())
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
 const docStore = useDocStore()
 const {
@@ -126,10 +126,10 @@ const openImportModal = () => {
 const onMagic = async () => {
   isMagicLoading.value = true
   try {
-    await createPagesGpt({ text: magicFormData.value.title, projectId: project.value.id! })
+    await createPagesGpt({ text: magicFormData.value.title, baseId: base.value.id! })
     magicFormData.value.title = ''
-    await fetchNestedPages({ projectId: project.value.id! })
-    await openChildPageTabsOfRootPages({ projectId: project.value.id! })
+    await fetchNestedPages({ baseId: base.value.id! })
+    await openChildPageTabsOfRootPages({ baseId: base.value.id! })
   } catch (e) {
     console.error(e)
   } finally {
@@ -141,9 +141,9 @@ const onMagic = async () => {
 const onImport = async () => {
   isImporting.value = true
   try {
-    await createImport(project.value.id!, importFormData.value.title, 'nuxt')
-    await fetchNestedPages({ projectId: project.value.id! })
-    await openChildPageTabsOfRootPages({ projectId: project.value.id! })
+    await createImport(base.value.id!, importFormData.value.title, 'nuxt')
+    await fetchNestedPages({ baseId: base.value.id! })
+    await openChildPageTabsOfRootPages({ baseId: base.value.id! })
   } catch (e) {
     console.error(e)
   } finally {
@@ -154,7 +154,7 @@ const onImport = async () => {
 
 const addNewPage = () => {
   _addNewPage({
-    projectId: project.value.id!,
+    baseId: base.value.id!,
   })
 }
 
@@ -165,7 +165,7 @@ const closeMagicModal = () => {
 }
 
 const onShare = async (page: PageSidebarNode) => {
-  await openPage({ page, projectId: project.value.id! })
+  await openPage({ page, baseId: base.value.id! })
 
   setTimeout(() => {
     showShareModal.value = true
@@ -173,16 +173,16 @@ const onShare = async (page: PageSidebarNode) => {
 }
 
 watch(
-  () => project.value.id,
+  () => base.value.id,
   () => {
-    if (project.value.id && project.value.type === 'documentation') {
+    if (base.value.id && base.value.type === 'documentation') {
       const { addTab } = useTabs()
 
       addTab({
-        id: project.value.id,
-        title: project.value.title!,
+        id: base.value.id,
+        title: base.value.title!,
         type: TabType.DOCUMENT,
-        projectId: project.value.id,
+        baseId: base.value.id,
       })
     }
   },
@@ -195,8 +195,8 @@ watch(
       <div class="flex flex-col h-16">
         <div class="flex flex-row justify-between mt-2 items-center">
           <div class="flex flex-row gap-x-6 items-center">
-            <div data-testid="docs-project-title" :data-docs-project-title="project?.title" class="flex text-4xl font-semibold">
-              {{ project?.title }}
+            <div data-testid="docs-base-title" :data-docs-base-title="base?.title" class="flex text-4xl font-semibold">
+              {{ base?.title }}
             </div>
             <a-dropdown v-if="isEditAllowed" overlay-class-name="nc-docs-menu" :trigger="['click']">
               <div
@@ -347,7 +347,7 @@ watch(
                   <div
                     class="flex flex-col gap-y-2"
                     :data-testid="`docs-pagelist-page-${page.title}`"
-                    @click="() => openPage({page, projectId: project.id!})"
+                    @click="() => openPage({page, baseId: base.id!})"
                   >
                     <div style="font-weight: 450; font-size: 0.9rem">
                       {{ page?.title }}
@@ -357,7 +357,7 @@ watch(
                       Updated {{ dayjs(page!.updated_at!).local().fromNow() }}
                     </div>
                   </div>
-                  <div class="flex flex-grow h-12" @click="() => openPage({page, projectId: project.id!})"></div>
+                  <div class="flex flex-grow h-12" @click="() => openPage({page, baseId: base.id!})"></div>
                   <a-dropdown :trigger="['click']" placement="bottomRight">
                     <div
                       class="nc-docs-sidebar-page-options flex px-1 py-1 hover:( !bg-gray-300 !bg-opacity-30 rounded-md text-gray-600) cursor-pointer select-none group-hover:block text-gray-500"

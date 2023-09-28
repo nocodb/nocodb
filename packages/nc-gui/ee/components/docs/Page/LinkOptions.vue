@@ -6,7 +6,7 @@ import type { Mark } from 'prosemirror-model'
 
 const { editor } = defineProps<Props>()
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
 const docStore = useDocStore()
 const { nestedSlugsFromPageId, nestedUrl } = docStore
@@ -128,12 +128,12 @@ const onDelete = () => {
 }
 
 const onPageClick = (page: any) => {
-  const url = nestedUrl({ id: page.id, projectId: project.value.id! })
+  const url = nestedUrl({ id: page.id, baseId: base.value.id! })
   href.value = `/#${url}`
 
   try {
     isInternalLink.value = true
-    onChange(`/#${nestedUrl({ id: page.id, projectId: project.value.id!, publicUrl: true })}`)
+    onChange(`/#${nestedUrl({ id: page.id, baseId: base.value.id!, publicUrl: true })}`)
   } finally {
     isLinkOptionsVisible.value = false
   }
@@ -309,7 +309,7 @@ const openLink = () => {
                 {{ page.title }}
               </div>
               <div class="flex text-xs text-gray-400">
-                {{ nestedSlugsFromPageId({ id: page.id!, projectId: project.id! }).join('/') }}
+                {{ nestedSlugsFromPageId({ id: page.id!, baseId: base.id! }).join('/') }}
               </div>
             </div>
           </div>

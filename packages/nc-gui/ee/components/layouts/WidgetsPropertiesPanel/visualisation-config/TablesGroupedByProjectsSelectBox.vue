@@ -9,18 +9,18 @@ const { changeSelectedProjectIdAndTableIdOfFocusedWidget } = dashboardStore
 
 const tablesGroupedByProject = computed(() => {
   const tablesGroupedByProject: {
-    [key: string]: { projectId: string; projectTitle: string; tables: { projectIdAndTableId: string; tableName: string }[] }
+    [key: string]: { baseId: string; baseTitle: string; tables: { baseIdAndTableId: string; tableName: string }[] }
   } = {}
   availableTablesOfAllDBProjectsLinkedWithDashboardProject.value?.forEach((table) => {
-    if (!tablesGroupedByProject[table.project.id]) {
-      tablesGroupedByProject[table.project.id] = {
-        projectId: table.project.id,
-        projectTitle: table.project.title,
+    if (!tablesGroupedByProject[table.base.id]) {
+      tablesGroupedByProject[table.base.id] = {
+        baseId: table.base.id,
+        baseTitle: table.base.title,
         tables: [],
       }
     }
-    tablesGroupedByProject[table.project.id].tables.push({
-      projectIdAndTableId: `${table.project.id}___${table.id}`,
+    tablesGroupedByProject[table.base.id].tables.push({
+      baseIdAndTableId: `${table.base.id}___${table.id}`,
       tableName: table.title,
     })
   })
@@ -31,13 +31,13 @@ const tablesGroupedByProject = computed(() => {
 const internalDataSource = computed(() => focusedWidget.value?.data_source as DataSourceInternal | undefined)
 
 const handleChange = async (value: SelectValue) => {
-  const [projectId, tableId] = ((value as string) || '').split('___')
-  if (!projectId || !tableId) return
-  await changeSelectedProjectIdAndTableIdOfFocusedWidget(projectId, tableId)
+  const [baseId, tableId] = ((value as string) || '').split('___')
+  if (!baseId || !tableId) return
+  await changeSelectedProjectIdAndTableIdOfFocusedWidget(baseId, tableId)
 }
 
 const selectedProjectIdAndTableId = computed(() => {
-  const selectedProjectId = internalDataSource.value?.projectId
+  const selectedProjectId = internalDataSource.value?.baseId
   const selectedTableId = internalDataSource.value?.tableId
   if (!selectedProjectId || !selectedTableId) return ''
   return `${selectedProjectId}___${selectedTableId}`
@@ -49,28 +49,28 @@ const allDataIsReady = computed(() => {
 </script>
 
 <template>
-  <div class="nc-tables-grouped-by-projects-select-box-container">
+  <div class="nc-tables-grouped-by-bases-select-box-container">
     <a-select
       v-if="allDataIsReady"
       v-model:value="selectedProjectIdAndTableId"
       show-search
-      class="nc-tables-grouped-by-projects-select-box"
+      class="nc-tables-grouped-by-bases-select-box"
       @change="handleChange"
     >
       <a-select-opt-group
-        v-for="projectWithTables of tablesGroupedByProject"
-        :key="projectWithTables.projectId"
-        :value="projectWithTables.projectTitle"
+        v-for="baseWithTables of tablesGroupedByProject"
+        :key="baseWithTables.baseId"
+        :value="baseWithTables.baseTitle"
       >
         <template #label>
           <span>
-            {{ projectWithTables.projectTitle }}
+            {{ baseWithTables.baseTitle }}
           </span>
         </template>
         <a-select-option
-          v-for="table of projectWithTables.tables"
-          :key="table.projectIdAndTableId"
-          :value="table.projectIdAndTableId"
+          v-for="table of baseWithTables.tables"
+          :key="table.baseIdAndTableId"
+          :value="table.baseIdAndTableId"
         >
           <div class="flex gap-1 items-center">
             {{ table.tableName }}
@@ -82,12 +82,12 @@ const allDataIsReady = computed(() => {
 </template>
 
 <style>
-.nc-tables-grouped-by-projects-select-box {
+.nc-tables-grouped-by-bases-select-box {
   /* min-width: 10rem; */
   @apply flex-1 my-1 rounded-full;
 }
 
-.nc-tables-grouped-by-projects-select-box-container {
+.nc-tables-grouped-by-bases-select-box-container {
   /* margin-bottom: 1rem;
   display: flex;
   flex-direction: row; */

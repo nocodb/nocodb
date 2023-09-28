@@ -45,17 +45,17 @@ const { isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
-const project = inject(ProjectInj, ref())
+const base = inject(ProjectInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
 const isLocked = inject(IsLockedInj, ref(false))
 
 const isDefaultBase = computed(() => {
-  const base = project.value?.bases?.find((b) => b.id === vModel.value.base_id)
-  if (!base) return false
+  const source = base.value?.sources?.find((b) => b.id === vModel.value.source_id)
+  if (!source) return false
 
-  return _isDefaultBase(base)
+  return _isDefaultBase(source)
 })
 
 const isDropdownOpen = ref(false)

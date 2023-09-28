@@ -9,7 +9,6 @@ import {
 } from 'nocodb-sdk';
 import AWS from 'aws-sdk';
 import { ConfigService } from '@nestjs/config';
-import { extractRolesObj } from 'nocodb-sdk';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
 import WorkspaceUser from '~/models/WorkspaceUser';
@@ -17,10 +16,10 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import Workspace from '~/models/Workspace';
 import validateParams from '~/helpers/validateParams';
 import { NcError } from '~/helpers/catchError';
-import { Project, ProjectUser } from '~/models';
+import { Base, BaseUser } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { extractProps } from '~/helpers/extractProps';
-import { ProjectsService } from '~/services/projects.service';
+import { BasesService } from '~/services/bases.service';
 import { TablesService } from '~/services/tables.service';
 
 @Injectable()
@@ -30,7 +29,7 @@ export class WorkspacesService {
   constructor(
     private appHooksService: AppHooksService,
     private configService: ConfigService<AppConfig>,
-    private projectsService: ProjectsService,
+    private projectsService: BasesService,
     private tablesService: TablesService,
   ) {}
 
@@ -90,10 +89,10 @@ export class WorkspacesService {
         user: param.user,
       });
 
-      // Create a default project for single workspace creation
+      // Create a default base for single workspace creation
       if (!isBulkMode) {
-        const project = await this.projectsService.projectCreate({
-          project: {
+        const base = await this.projectsService.baseCreate({
+          base: {
             title: 'Getting Started',
             fk_workspace_id: workspace.id,
             type: 'database',
@@ -101,12 +100,12 @@ export class WorkspacesService {
           user: param.user,
         });
 
-        const sqlUI = SqlUiFactory.create({ client: project.bases[0].type });
+        const sqlUI = SqlUiFactory.create({ client: base.sources[0].type });
         const columns = sqlUI?.getNewTableColumns() as any;
 
         const table = await this.tablesService.tableCreate({
-          projectId: project.id,
-          baseId: project.bases[0].id,
+          baseId: base.id,
+          sourceId: base.sources[0].id,
           table: {
             title: 'Features',
             table_name: 'Features',
@@ -115,8 +114,8 @@ export class WorkspacesService {
           user: param.user,
         });
 
-        (project as any).tables = [table];
-        (workspace as any).projects = [project];
+        (base as any).tables = [table];
+        (workspace as any).bases = [base];
       }
 
       workspaces.push(workspace);
@@ -216,7 +215,7 @@ export class WorkspacesService {
 
     // block unauthorized user form deleting
 
-    // todo: unlink any project linked
+    // todo: unlink any base linked
     await Workspace.delete(param.workspaceId);
 
     this.appHooksService.emit(AppEvents.WORKSPACE_DELETE, {
@@ -233,22 +232,22 @@ export class WorkspacesService {
       roles: string[];
     };
     workspaceId: string;
-    projectId: string;
+    baseId: string;
   }) {
-    const { workspaceId, projectId, user } = param;
-    const project = await Project.get(projectId);
+    const { workspaceId, baseId, user } = param;
+    const base = await Base.get(baseId);
 
-    const projectUser = await ProjectUser.get(projectId, user.id);
+    const baseUser = await BaseUser.get(baseId, user.id);
     const currentWorkspaceUser = await WorkspaceUser.get(
-      (project as Project).fk_workspace_id,
+      (base as Base).fk_workspace_id,
       user.id,
     );
 
     if (
-      projectUser?.roles !== ProjectRoles.OWNER &&
+      baseUser?.roles !== ProjectRoles.OWNER &&
       currentWorkspaceUser?.roles !== WorkspaceUserRoles.OWNER
     ) {
-      NcError.forbidden('You are not the project owner');
+      NcError.forbidden('You are not the base owner');
     }
 
     // verify user is workaggerspace owner
@@ -259,8 +258,8 @@ export class WorkspacesService {
       NcError.forbidden('You are not the workspace owner');
     }
 
-    // update the project workspace id
-    await Project.update(param.projectId, {
+    // update the base workspace id
+    await Base.update(param.baseId, {
       fk_workspace_id: workspaceId,
     });
 
@@ -275,10 +274,10 @@ export class WorkspacesService {
     workspaceId: string;
   }) {
     const { workspaceId, user } = param;
-    const projects = await Project.listByWorkspaceAndUser(workspaceId, user.id);
+    const bases = await Base.listByWorkspaceAndUser(workspaceId, user.id);
 
-    return new PagedResponseImpl<WorkspaceType>(projects, {
-      count: projects.length,
+    return new PagedResponseImpl<WorkspaceType>(bases, {
+      count: bases.length,
     });
   }
 

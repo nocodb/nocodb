@@ -4,7 +4,7 @@ import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import path from 'path';
 import 'mocha';
 import request from 'supertest';
-import { createProject } from '../../../factory/project';
+import { createProject } from '../../../factory/base';
 import init from '../../../init';
 
 const FILE_PATH = path.join(__dirname, 'test.txt');
@@ -24,7 +24,7 @@ function attachmentTestsEE() {
     fs.unlinkSync(FILE_PATH);
   });
 
-  it('Upload file - Org level viewer with editor role in a project', async () => {
+  it('Upload file - Org level viewer with editor role in a base', async () => {
     // signup a new user
     const args = {
       email: 'dummyuser@example.com',
@@ -57,15 +57,15 @@ function attachmentTestsEE() {
       })
       .expect(201);
 
-    // invite user to project with editor role
+    // invite user to base with editor role
     await request(context.app)
-      .post(`/api/v1/db/meta/projects/${newProject.id}/users`)
+      .post(`/api/v1/meta/bases/${newProject.id}/users`)
       .set('xc-auth', context.token)
       .send({
         roles: ProjectRoles.EDITOR,
         email: args.email,
-        project_id: newProject.id,
-        projectName: newProject.title,
+        base_id: newProject.id,
+        baseName: newProject.title,
       })
       .expect(200);
 
@@ -77,7 +77,7 @@ function attachmentTestsEE() {
       .expect(200);
 
     const response = await request(context.app)
-      .post('/api/v1/db/storage/upload')
+      .post('/api/v1/storage/upload')
       .attach('files', FILE_PATH)
       .set('xc-auth', signinResponse.body.token)
       .expect(200);

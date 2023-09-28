@@ -1,4 +1,5 @@
-import type { Actions, AppInfo, State } from '~/composables/useGlobal/types'
+import { getActivePinia } from 'pinia'
+import type { Actions, AppInfo, State } from '../../../composables/useGlobal/types'
 import { NcProjectType, message, useNuxtApp } from '#imports'
 import { navigateTo } from '#app'
 
@@ -17,6 +18,16 @@ export function useGlobalActions(state: State): Actions {
     } finally {
       state.token.value = null
       state.user.value = null
+
+      // clear all stores data on logout
+      const pn = getActivePinia()
+      if (pn) {
+        pn._s.forEach((store) => {
+          store.$dispose()
+          delete pn.state.value[store.$id]
+        })
+      }
+
       // todo: update type in swagger.json
       if (!skipRedirect && (signoutRes as any).redirect_url) {
         location.href = (signoutRes as any).redirect_url
@@ -77,24 +88,24 @@ export function useGlobalActions(state: State): Actions {
   const navigateToProject = ({
     workspaceId: _workspaceId,
     type,
-    projectId,
+    baseId,
     query,
   }: {
     workspaceId?: string
-    projectId?: string
+    baseId?: string
     type?: NcProjectType
     query?: any
   }) => {
     const queryParams = query ? `?${new URLSearchParams(query).toString()}` : ''
     const workspaceId = _workspaceId || 'app'
     let path: string
-    if (projectId) {
+    if (baseId) {
       switch (type) {
         case NcProjectType.DOCS:
-          path = `/${workspaceId}/${projectId}/doc${queryParams}`
+          path = `/${workspaceId}/${baseId}/doc${queryParams}`
           break
         default:
-          path = `/${workspaceId}/${projectId}${queryParams}`
+          path = `/${workspaceId}/${baseId}${queryParams}`
           break
       }
     } else {
@@ -111,13 +122,13 @@ export function useGlobalActions(state: State): Actions {
   const ncNavigateTo = ({
     workspaceId: _workspaceId,
     type,
-    projectId,
+    baseId,
     tableId,
     viewId,
     query,
   }: {
     workspaceId?: string
-    projectId?: string
+    baseId?: string
     type?: NcProjectType
     tableId?: string
     viewId?: string
@@ -127,13 +138,13 @@ export function useGlobalActions(state: State): Actions {
     const queryParams = query ? `?${new URLSearchParams(query).toString()}` : ''
     const workspaceId = _workspaceId || 'app'
     let path: string
-    if (projectId)
+    if (baseId)
       switch (type) {
         case NcProjectType.DOCS:
-          path = `/${workspaceId}/${projectId}/doc${queryParams}`
+          path = `/${workspaceId}/${baseId}/doc${queryParams}`
           break
         default:
-          path = `/${workspaceId}/${projectId}${tablePath}${queryParams}`
+          path = `/${workspaceId}/${baseId}${tablePath}${queryParams}`
           break
       }
     else {

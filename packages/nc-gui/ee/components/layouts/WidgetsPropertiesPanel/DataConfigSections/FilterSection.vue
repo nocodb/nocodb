@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BaseType, DataSourceInternal, NumberWidget } from 'nocodb-sdk'
+import type { SourceType, DataSourceInternal, NumberWidget } from 'nocodb-sdk'
 import useWidgetFilters from './useWidgetFilters'
 import { ref } from '#imports'
 import type { Filter } from '#imports'
@@ -33,7 +33,7 @@ watch(
 
 const { $api } = useNuxtApp()
 
-const baseType = ref<BaseType>()
+const baseType = ref<SourceType>()
 
 watch(
   () => (focusedWidget.value?.data_source as DataSourceInternal)?.tableId,
@@ -41,8 +41,8 @@ watch(
     if (!widget) return
     const tableIdOfWidget = (focusedWidget.value?.data_source as DataSourceInternal).tableId
     const table = await $api.dbTable.read(tableIdOfWidget!)
-    const base = await $api.base.read(table.project_id!, table.base_id!)
-    baseType.value = base.type! as BaseType
+    const source = await $api.source.read(table.base_id!, table.source_id!)
+    baseType.value = source.type! as SourceType
   },
   { immediate: true },
 )

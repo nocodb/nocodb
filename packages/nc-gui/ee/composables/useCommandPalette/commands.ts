@@ -49,7 +49,7 @@ export const homeCommands = [
     icon: 'workspace',
   },
   {
-    id: 'projects',
+    id: 'bases',
     title: 'Projects',
     icon: shallowRef(MdiFileOutline),
   },
@@ -58,13 +58,13 @@ export const homeCommands = [
 /*
   Here is a list of all the available commands defined throughout the app.
   Commands prefixed with a '-' are static commands that are always available.
-  Commands prefixed with a '+' are dynamic commands that are only available when the user is in a specific context. 
+  Commands prefixed with a '+' are dynamic commands that are only available when the user is in a specific context.
   Commands prefixed with a '*' are scopes
 
   Commands:
     * home (Navigate Home)
     + workspaces (Workspaces)
-    + projects (Projects)
+    + bases (Projects)
     * workspace (Workspace)
       + tables (Tables)
       + views (Views)

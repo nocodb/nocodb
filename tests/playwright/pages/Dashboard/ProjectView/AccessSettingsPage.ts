@@ -2,11 +2,11 @@ import BasePage from '../../Base';
 import { ProjectViewPage } from './index';
 
 export class AccessSettingsPage extends BasePage {
-  readonly projectView: ProjectViewPage;
+  readonly baseView: ProjectViewPage;
 
-  constructor(projectView: ProjectViewPage) {
-    super(projectView.rootPage);
-    this.projectView = projectView;
+  constructor(baseView: ProjectViewPage) {
+    super(baseView.rootPage);
+    this.baseView = baseView;
   }
 
   get() {

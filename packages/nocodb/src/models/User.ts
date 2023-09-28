@@ -4,7 +4,7 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
-import { ProjectUser } from '~/models';
+import { BaseUser } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 
 export default class User implements UserType {
@@ -106,7 +106,7 @@ export default class User implements UserType {
     // delete the email-based cache to avoid unexpected behaviour since we can update email as well
     await NocoCache.del(`${CacheScope.USER}:${existingUser.email}`);
 
-    // as <projectId> is unknown, delete user:<email>___<projectId> in cache
+    // as <baseId> is unknown, delete user:<email>___<baseId> in cache
     await NocoCache.delAll(CacheScope.USER, `${existingUser.email}___*`);
 
     // get existing cache
@@ -252,7 +252,7 @@ export default class User implements UserType {
     userId: string,
     args: {
       user?: User;
-      projectId?: string;
+      baseId?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -260,10 +260,10 @@ export default class User implements UserType {
 
     if (!user) NcError.badRequest('User not found');
 
-    const projectRoles = await new Promise((resolve) => {
-      if (args.projectId) {
-        ProjectUser.get(args.projectId, user.id).then(async (projectUser) => {
-          const roles = projectUser?.roles;
+    const baseRoles = await new Promise((resolve) => {
+      if (args.baseId) {
+        BaseUser.get(args.baseId, user.id).then(async (baseUser) => {
+          const roles = baseUser?.roles;
           // + (user.roles ? `,${user.roles}` : '');
           if (roles) {
             resolve(extractRolesObj(roles));
@@ -280,7 +280,7 @@ export default class User implements UserType {
     return {
       ...sanitiseUserObj(user),
       roles: user.roles ? extractRolesObj(user.roles) : null,
-      project_roles: projectRoles ? projectRoles : null,
+      base_roles: baseRoles ? baseRoles : null,
     } as any;
   }
 }

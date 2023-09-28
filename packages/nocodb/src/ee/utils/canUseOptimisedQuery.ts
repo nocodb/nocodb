@@ -1,17 +1,17 @@
-import type { Base } from '~/models';
+import type { Source } from '~/models';
 import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
 
 export default async function canUseOptimisedQuery({
-  base,
+  source,
   disableOptimization,
 }: {
-  base: Base;
+  source: Source;
   disableOptimization: boolean;
 }) {
   return (
-    ((['mysql', 'mysql2'].includes(base.type) &&
-      (await isMysqlVersionSupported(base))) ||
-      ['pg'].includes(base.type)) &&
+    ((['mysql', 'mysql2'].includes(source.type) &&
+      (await isMysqlVersionSupported(source))) ||
+      ['pg'].includes(source.type)) &&
     !disableOptimization
   );
 }

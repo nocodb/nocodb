@@ -34,14 +34,14 @@ const changeView = useDebounceFn(
     await viewStore.changeView({ viewId, tableId, projectId })
     vOpen.value = false
   },
-  500,
+  200,
 )
 
 const keys = useMagicKeys()
 
 const { current } = keys
 
-onKeyUp('Control', async () => {
+onKeyUp('Enter', async () => {
   if (vOpen.value && newView.value) {
     await changeView({ viewId: newView.value.viewId, tableId: newView.value.tableId, projectId: newView.value.projectId })
   }
@@ -63,8 +63,7 @@ const renderCmdOrCtrlKey = () => {
   return isMac() ? '⌘' : 'CTRL'
 }
 
-whenever(keys['Ctrl+Shift+L'], async () => {
-  vOpen.value = true
+const moveUp = () => {
   const index = recentViews.value.findIndex((v) => v.tableID + v.viewName === selected.value)
   if (index === 0) {
     selected.value =
@@ -88,11 +87,9 @@ whenever(keys['Ctrl+Shift+L'], async () => {
       projectId: cmdOption.projectId,
     }
   }
-})
+}
 
-whenever(keys.ctrl_l, async () => {
-  if (current.has('shift')) return
-  vOpen.value = true
+const moveDown = () => {
   const index = recentViews.value.findIndex((v) => v.tableID + v.viewName === selected.value)
   if (index === recentViews.value.length - 1) {
     selected.value = recentViews.value[0].tableID + recentViews.value[0].viewName
@@ -116,6 +113,36 @@ whenever(keys.ctrl_l, async () => {
       projectId: cmdOption.projectId,
     }
   }
+}
+
+whenever(keys['Ctrl+Shift+L'], async () => {
+  vOpen.value = true
+  moveUp()
+})
+
+whenever(keys['Meta+Shift+L'], async () => {
+  vOpen.value = true
+  moveUp()
+})
+
+whenever(keys.ctrl_l, async () => {
+  if (current.has('shift')) return
+  vOpen.value = true
+  moveDown()
+})
+
+whenever(keys.meta_l, async () => {
+  if (current.has('shift')) return
+  vOpen.value = true
+  moveDown()
+})
+
+whenever(keys.arrowup, () => {
+  if (vOpen.value) moveUp()
+})
+
+whenever(keys.arrowdown, () => {
+  if (vOpen.value) moveDown()
 })
 
 const hide = () => {

@@ -63,7 +63,7 @@ watch(picked, (n, _o) => {
         @click="isPickerOn = !isPickerOn"
       >
         <GeneralTooltip>
-          <template #title>More colors</template>
+          <template #title>{{ $t('activity.moreColors') }}</template>
           <GeneralIcon class="mt-1.5" :icon="isPickerOn ? 'minus' : 'plus'" />
         </GeneralTooltip>
       </button>

@@ -451,6 +451,17 @@
     "zoomInToViewColumns": "Zoom in to view columns"
   },
   "activity": {
+    "enabledPublicViewing": "Enable public viewing",
+    "restrictAccessWithPassword": "Restrict access with password",
+    "manageProjectAccess": "Manage Project Access",
+    "allowDownload": "Allow Download",
+    "surveyMode": "Survey Mode",
+    "rtlOrientation": "RTL Orientation",
+    "useTheme": "Use Theme",
+    "copyLink": "Copy Link",
+    "copiedLink": "Link Copied",
+    "copyUrl": "Copy URL",
+    "moreColors": "More Colors",
     "moveProject": "Move Project",
     "createProject": "Create Project",
     "importProject": "Import Project",
@@ -490,6 +501,7 @@
     "groupBy": "Group By",
     "addSubGroup": "Add subgroup",
     "shareBase": {
+      "label": "Share base",
       "disable": "Disable shared base",
       "enable": "Anyone with the link",
       "link": "Shared base link"
@@ -555,7 +567,6 @@
     "createKanban": "Create Kanban View",
     "createForm": "Create Form View",
     "showSystemFields": "Show system fields",
-    "copyUrl": "Copy URL",
     "openTab": "Open new tab",
     "iFrame": "Copy embeddable HTML code",
     "addWebhook": "Add New Webhook",

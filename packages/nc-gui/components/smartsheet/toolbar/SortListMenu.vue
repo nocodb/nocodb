@@ -128,7 +128,7 @@ watch(open, () => {
       <SmartsheetToolbarCreateSort v-if="!sorts.length" :is-parent-open="open" @created="addSort" />
       <div
         v-else
-        :class="{ ' min-w-102': sorts.length }"
+        :class="{ 'min-w-102': sorts.length }"
         class="py-6 pl-6 nc-filter-list max-h-[max(80vh,30rem)]"
         data-testid="nc-sorts-menu"
       >

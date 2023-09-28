@@ -246,6 +246,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "noFiltersAdded": "No filters added",
     "editCards": "Edit Cards",
     "noFieldsFound": "No fields found",
     "displayValue": "Display Value",
@@ -689,6 +690,7 @@
     "selectField": "Select field"
   },
   "msg": {
+    "selectFieldToSort": "Select Field to Sort",
     "createWebhookMsg1": "Get started with web-hooks!",
     "createWebhookMsg2": "Create web-hooks to power you automations,",
     "createWebhookMsg3": "Get notified as soon as there are changes in your data",

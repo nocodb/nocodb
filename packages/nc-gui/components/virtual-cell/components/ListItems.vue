@@ -176,7 +176,7 @@ onKeyStroke('Escape', () => {
         <a-input
           ref="filterQueryRef"
           v-model:value="childrenExcludedListPagination.query"
-          :placeholder="`Search in ${relatedTableMeta?.title}`"
+          :placeholder="`${$t('general.searchIn')} ${relatedTableMeta?.title}`"
           class="w-full !rounded-md nc-excluded-search"
           size="small"
           :bordered="false"
@@ -193,7 +193,7 @@ onKeyStroke('Escape', () => {
       <!-- Add new record -->
       <NcButton
         v-if="!isPublic"
-        type="ghost"
+        type="secondary"
         size="xl"
         class="!text-brand-500"
         @click="
@@ -203,7 +203,7 @@ onKeyStroke('Escape', () => {
           }
         "
       >
-        <div class="flex items-center gap-1"><MdiPlus /> New Record</div>
+        <div class="flex items-center gap-1"><MdiPlus /> {{ $t('activity.newRecord') }}</div>
       </NcButton>
     </div>
 
@@ -271,7 +271,7 @@ onKeyStroke('Escape', () => {
     <div v-else class="py-2 h-[420px] flex flex-col gap-3 items-center justify-center text-gray-500">
       <InboxIcon class="w-16 h-16 mx-auto" />
       <p>
-        There are no records in table
+        {{ $t('msg.thereAreNoRecordsInTable') }}
         {{ relatedTableMeta?.title }}
       </p>
     </div>
@@ -279,8 +279,8 @@ onKeyStroke('Escape', () => {
 
     <div class="flex flex-row justify-between bg-white relative pt-1">
       <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50">
-        {{ relation === 'bt' ? (row.row[relatedTableMeta?.title] ? '1' : 0) : childrenListCount ?? 'No' }} records
-        {{ childrenListCount !== 0 ? 'are' : '' }} linked
+        {{ relation === 'bt' ? (row.row[relatedTableMeta?.title] ? '1' : 0) : childrenListCount ?? 'No' }}
+        {{ $t('objects.records') }} {{ childrenListCount !== 0 ? 'are' : '' }} {{ $t('general.linked') }}
       </div>
       <div class="flex absolute items-center py-2 justify-center w-full">
         <a-pagination
@@ -295,7 +295,7 @@ onKeyStroke('Escape', () => {
           show-less-items
         />
       </div>
-      <NcButton class="nc-close-btn ml-auto" type="ghost" @click="vModel = false"> Finish </NcButton>
+      <NcButton class="nc-close-btn ml-auto" type="ghost" @click="vModel = false"> {{ $t('general.finish') }} </NcButton>
     </div>
     <Suspense>
       <LazySmartsheetExpandedForm

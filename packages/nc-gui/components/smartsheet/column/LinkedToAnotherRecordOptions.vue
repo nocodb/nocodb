@@ -58,8 +58,8 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links)
     <div class="border-2 p-6">
       <a-form-item v-bind="validateInfos.type" class="nc-ltar-relation-type">
         <a-radio-group v-model:value="vModel.type" name="type" v-bind="validateInfos.type">
-          <a-radio value="hm">Has Many</a-radio>
-          <a-radio value="mm">Many To Many</a-radio>
+          <a-radio value="hm">{{ $t('title.hasMany') }}</a-radio>
+          <a-radio value="mm">{{ $t('title.manyToMany') }}</a-radio>
         </a-radio-group>
       </a-form-item>
 
@@ -132,7 +132,9 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links)
 
           <div class="flex flex-row">
             <a-form-item>
-              <a-checkbox v-model:checked="vModel.virtual" name="virtual" @change="onDataTypeChange">Virtual Relation</a-checkbox>
+              <a-checkbox v-model:checked="vModel.virtual" name="virtual" @change="onDataTypeChange">{{
+                $t('title.virtualRelation')
+              }}</a-checkbox>
             </a-form-item>
           </div>
         </template>

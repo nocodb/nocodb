@@ -51,6 +51,8 @@
     "or": "Or",
     "add": "Add",
     "edit": "Edit",
+    "link": "Link",
+    "links": "Links",
     "remove": "Remove",
     "import": "Import",
     "logout": "Log Out",
@@ -118,6 +120,7 @@
     "confirm": "Confirm",
     "generate": "Generate",
     "copy": "Copy",
+    "are": "are",
     "misc": "Miscellaneous",
     "lock": "Lock",
     "unlock": "Unlock",
@@ -145,7 +148,9 @@
     "source": "Source",
     "destination": "Destination",
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "linked": "linked",
+    "finish": "Finish"
   },
   "objects": {
     "workspace": "Workspace",
@@ -265,6 +270,10 @@
     "hideAll":"Hide all",
     "hideSystemFields": "hideSystemFields",
     "removeFile": "Remove File",
+    "hasMany": "Has Many",
+    "manyToMany": "Many to Many",
+    "virtualRelation": "Virtual Relation",
+    "linkMoreRecords": "Link more records",
     "downloadFile": "Download File",
     "renameTable": "Rename Table",
     "renamingTable": "Renaming Table",
@@ -337,6 +346,8 @@
     "renameFile": "Rename File"
   },
   "labels": {
+    "singularLabel": "Singular Label",
+    "pluralLabel": "Plural Label",
     "optional": "Optional",
     "clickToMake": "Click to make",
     "visibleForRole": "visible for role:",
@@ -749,14 +760,43 @@
     "selectField": "Select field"
   },
   "msg": {
+    "hm": {
+      "title": "Has Many Relation",
+      "icon": "HasManyIcon",
+      "tooltip_desc": "A single record from table ",
+      "tooltip_desc2": " can be linked with multiple records from table "
+    },
+    "mm": {
+      "title": "Many to Many Relation",
+      "icon": "ManytoManyIcon",
+      "tooltip_desc": "Multiple records from table ",
+      "tooltip_desc2": " can be linked with multiple records from table "
+    },
+    "bt": {
+      "title": "Belongs to Relation",
+      "icon": "BelongsToIcon",
+      "tooltip_desc": "A single record from table ",
+      "tooltip_desc2": " can be linked with a record from table "
+    },
+    "oo": {
+      "title": "One to One Relation",
+      "icon": "OnetoOneIcon",
+      "tooltip_desc": "A single record from table ",
+      "tooltip_desc2": " can be linked with a single record from table "
+    },
+    "noRecordsAreLinkedFromTable": "No records are linked from table",
+    "noRecordsLinked": "No records linked",
+    "recordsLinked": "records linked",
     "acceptOnlyValid": "Accepts only",
     "apiTokenCreate": "Create personal API tokens to use in automation or external apps.",
     "selectFieldToSort": "Select Field to Sort",
+    "thereAreNoRecordsInTable": "There are no records in table",
     "createWebhookMsg1": "Get started with web-hooks!",
     "createWebhookMsg2": "Create web-hooks to power you automations,",
     "createWebhookMsg3": "Get notified as soon as there are changes in your data",
     "areYouSureUWantTo": "Are you sure you want to delete the following",
     "idColumnRequired": "ID column is required, you can rename this later if required.",
+    "length59Required": "The length exceeds the max 59 characters",
     "warning": {
       "dbValid": "Please make sure database you are trying to connect is valid! This operation can cause schema loss!!",
       "barcode": {

@@ -163,6 +163,7 @@ onMounted(() => {
 </template>
 
 <style>
+/* TODO Move styles to Windi Classes */
 :root {
   --cmdj-secondary-background-color: rgb(230, 230, 230);
   --cmdj-secondary-text-color: rgb(101, 105, 111);

@@ -211,6 +211,8 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
+/* TODO Move styles to Windi Classes */
+
 :root {
   --cmdk-secondary-background-color: rgb(230, 230, 230);
   --cmdk-secondary-text-color: rgb(101, 105, 111);

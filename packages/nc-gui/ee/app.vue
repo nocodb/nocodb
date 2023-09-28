@@ -79,6 +79,7 @@ function onScope(scope: string) {
       <NuxtPage :key="key" :transition="false" />
     </NuxtLayout>
   </a-config-provider>
+  <!-- Command Menu -->
   <CmdK
     ref="commandPalette"
     v-model:open="cmdK"
@@ -88,6 +89,8 @@ function onScope(scope: string) {
     :load-temporary-scope="loadTemporaryScope"
     @scope="onScope"
   />
+  <!-- Recent Views. Cycles through recently visited Views -->
   <CmdL v-model:open="cmdL" />
+  <!-- Documentation. Integrated NocoDB Docs directlt inside the Product -->
   <CmdJ v-model:open="cmdJ" />
 </template>

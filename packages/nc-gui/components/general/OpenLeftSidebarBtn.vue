@@ -16,7 +16,7 @@ const onClick = () => {
     hide-on-click
     class="transition-all duration-150"
     :class="{
-      'opacity-0 w-0': !isMobileMode && isLeftSidebarOpen,
+      'opacity-0 w-0 pointer-events-none': !isMobileMode && isLeftSidebarOpen,
       'opacity-100 max-w-10': isMobileMode || !isLeftSidebarOpen,
     }"
   >

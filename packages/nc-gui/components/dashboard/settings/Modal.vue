@@ -43,6 +43,8 @@ provide(ProjectIdInj, projectId)
 
 const { $e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const dataSourcesReload = ref(false)
 
 const dataSourcesAwakened = ref(false)
@@ -107,12 +109,12 @@ const tabsInfo: TabGroup = {
   // },
   projectSettings: {
     // Project Settings
-    title: 'Project Settings',
+    title: t('labels.projectSettings'),
     icon: iconMap.settings,
     subTabs: {
       misc: {
         // Misc
-        title: 'Misc',
+        title: t('general.misc'),
         body: Misc,
       },
     },

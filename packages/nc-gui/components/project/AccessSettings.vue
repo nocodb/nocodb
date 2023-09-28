@@ -160,7 +160,7 @@ onMounted(async () => {
     </div>
     <template v-else>
       <div class="w-full flex flex-row justify-between items-baseline mt-6.5 mb-2 pr-0.25 ml-2">
-        <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md" placeholder="Search members">
+        <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md" :placeholder="$t('title.searchMembers')">
           <template #prefix>
             <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
           </template>
@@ -174,13 +174,13 @@ onMounted(async () => {
         v-else-if="!collaborators?.length"
         class="nc-collaborators-list w-full h-full flex flex-col items-center justify-center mt-36"
       >
-        <Empty description="No members found" />
+        <Empty :description="$t('title.noMembersFound')" />
       </div>
       <div v-else class="nc-collaborators-list nc-scrollbar-md">
         <div class="nc-collaborators-list-header">
-          <div class="flex w-3/5">Users</div>
-          <div class="flex w-2/5">Date Joined</div>
-          <div class="flex w-1/5">Access</div>
+          <div class="flex w-3/5">{{ $t('objects.users') }}</div>
+          <div class="flex w-2/5">{{ $t('title.dateJoined') }}</div>
+          <div class="flex w-1/5">{{ $t('general.access') }}</div>
           <div class="flex w-1/5"></div>
           <div class="flex w-1/5"></div>
         </div>

@@ -305,7 +305,7 @@ useMenuCloseOnEsc(open)
           <!-- Fields -->
           <span v-if="!isMobileMode" class="text-capitalize text-sm font-medium">
             <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY">
-              Edit Cards
+              {{ $t('title.editCards') }}
             </template>
             <template v-else>
               {{ $t('objects.fields') }}
@@ -352,7 +352,7 @@ useMenuCloseOnEsc(open)
               v-if="!fields?.filter((el) => el.title.toLowerCase().includes(filterQuery.toLowerCase())).length"
               class="px-0.5 py-2 text-gray-500"
             >
-              No fields found
+              {{ $t('title.noFieldsFound') }}
             </div>
             <Draggable v-model="fields" item-key="id" @change="onMove($event)">
               <template #item="{ element: field }">
@@ -401,7 +401,7 @@ useMenuCloseOnEsc(open)
                     <div class="flex items">
                       <a-tooltip placement="bottom">
                         <template #title>
-                          <span class="text-sm">Display Value</span>
+                          <span class="text-sm">$t('title.displayValue') </span>
                         </template>
                       </a-tooltip>
 
@@ -426,7 +426,7 @@ useMenuCloseOnEsc(open)
             class="nc-fields-show-all-fields !text-gray-500 !w-1/2"
             @click="showAllColumns = !showAllColumns"
           >
-            {{ showAllColumns ? 'Hide all' : $t('general.showAll') }} {{ $t('objects.fields').toLowerCase() }}
+            {{ showAllColumns ? $t('title.hideAll') : $t('general.showAll') }} {{ $t('objects.fields').toLowerCase() }}
           </NcButton>
           <NcButton
             v-if="!isPublic && !filterQuery"
@@ -435,7 +435,7 @@ useMenuCloseOnEsc(open)
             class="nc-fields-show-system-fields !text-gray-500 !w-1/2"
             @click="showSystemField = !showSystemField"
           >
-            {{ showSystemField ? 'Hide system fields' : $t('activity.showSystemFields') }}
+            {{ showSystemField ? $t('title.hideSystemFields') : $t('activity.showSystemFields') }}
           </NcButton>
         </div>
       </div>

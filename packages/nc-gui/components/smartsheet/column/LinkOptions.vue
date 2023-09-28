@@ -7,6 +7,8 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:value'])
 
+const { t } = useI18n()
+
 const vModel = useVModel(props, 'value', emit)
 
 const { validateInfos, setAdditionalValidations } = useColumnCreateStoreOrThrow()
@@ -17,7 +19,7 @@ setAdditionalValidations({
       validator: (_, value: string) => {
         return new Promise((resolve, reject) => {
           if (value?.length > 59) {
-            return reject(new Error('The length exceeds the max 59 characters'))
+            return reject(t('msg.length59Required'))
           }
           resolve(true)
         })
@@ -29,7 +31,7 @@ setAdditionalValidations({
       validator: (_, value: string) => {
         return new Promise((resolve, reject) => {
           if (value?.length > 59) {
-            return reject(new Error('The length exceeds the max 59 characters'))
+            return reject(t('msg.length59Required'))
           }
           resolve(true)
         })
@@ -49,14 +51,14 @@ vModel.value.meta = {
 <template>
   <a-row class="my-2" gutter="8">
     <a-col :span="12">
-      <a-form-item v-bind="validateInfos['meta.singular']" label="Singular Label">
-        <a-input v-model:value="vModel.meta.singular" placeholder="Link" class="!w-full nc-link-singular" />
+      <a-form-item v-bind="validateInfos['meta.singular']" :label="$t('labels.singularLabel')">
+        <a-input v-model:value="vModel.meta.singular" :placeholder="$t('general.link')" class="!w-full nc-link-singular" />
       </a-form-item>
     </a-col>
 
     <a-col :span="12">
-      <a-form-item v-bind="validateInfos['meta.plural']" label="Plural Label">
-        <a-input v-model:value="vModel.meta.plural" placeholder="Links" class="!w-full nc-link-plural" />
+      <a-form-item v-bind="validateInfos['meta.plural']" :label="$t('labels.pluralLabel')">
+        <a-input v-model:value="vModel.meta.plural" :placeholder="$t('general.links')" class="!w-full nc-link-plural" />
       </a-form-item>
     </a-col>
   </a-row>

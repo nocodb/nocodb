@@ -50,10 +50,6 @@ export default defineNuxtConfig({
           type: 'image/x-icon',
           href: './favicon.ico',
         },
-        {
-          rel: 'stylesheet',
-          href: 'https://cdn.jsdelivr.net/npm/typesense-docsearch-css@0.3.0',
-        },
         ...(process.env.NC_CDN_URL
           ? [
               {
@@ -81,8 +77,8 @@ export default defineNuxtConfig({
       ],
       script: [
         {
-          src: 'https://cdn.jsdelivr.net/npm/typesense-docsearch.js@3.4'
-        }
+          src: '/js/typesense-docsearch.js',
+        },
       ],
     },
   },
@@ -93,6 +89,7 @@ export default defineNuxtConfig({
     'virtual:windi-devtools',
     '~/assets/css/global.css',
     '~/assets/style.scss',
+    '~/assets/css/typesense-docsearch.css',
   ],
 
   runtimeConfig: {

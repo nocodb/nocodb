@@ -65,6 +65,9 @@
     "details": "Details",
     "skip": "Skip",
     "duplicate": "Duplicate",
+    "duplicating": "Duplicating",
+    "activate": "Activate",
+    "action": "Action",
     "insert": "Insert",
     "delete": "Delete",
     "deleting": "Deleting",
@@ -134,7 +137,9 @@
     "old": "Old",
     "data": "Data",
     "source": "Source",
-    "destination": "Destination"
+    "destination": "Destination",
+    "active": "Active",
+    "inactive": "Inactive"
   },
   "objects": {
     "workspace": "Workspace",
@@ -451,6 +456,7 @@
     "zoomInToViewColumns": "Zoom in to view columns"
   },
   "activity": {
+    "newWebhook": "New Webhook",
     "enablePublicAccess": "Enable Public Access",
     "editingAccess": "Editing access",
     "enabledPublicViewing": "Enable public viewing",
@@ -676,6 +682,9 @@
     "selectField": "Select field"
   },
   "msg": {
+    "createWebhookMsg1": "Get started with web-hooks!",
+    "createWebhookMsg2": "Create web-hooks to power you automations,",
+    "createWebhookMsg3": "Get notified as soon as there are changes in your data",
     "areYouSureUWantTo": "Are you sure you want to delete the following",
     "idColumnRequired": "ID column is required, you can rename this later if required.",
     "warning": {

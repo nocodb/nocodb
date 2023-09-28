@@ -17,7 +17,7 @@ import type { NcButtonSize } from '~/lib'
 interface Props {
   loading?: boolean
   disabled?: boolean
-  type?: ButtonType | 'danger' | undefined
+  type?: ButtonType | 'danger' | 'secondary' | undefined
   size?: NcButtonSize
   centered?: boolean
 }

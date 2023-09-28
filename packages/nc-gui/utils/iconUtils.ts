@@ -1,6 +1,7 @@
 import MdiCheckBold from '~icons/mdi/check-bold'
 import MdiCropSquare from '~icons/mdi/crop-square'
 import MdiCheckCircleOutline from '~icons/mdi/check-circle-outline'
+import MdiCheckboxMarkedCircle from '~icons/mdi/checkbox-marked-circle'
 import MdiCheckboxBlankCircleOutline from '~icons/mdi/checkbox-blank-circle-outline'
 import MdiStar from '~icons/mdi/star'
 import MdiStarOutline from '~icons/mdi/star-outline'
@@ -366,6 +367,7 @@ export const iconMap = {
   expand: h('span', { class: 'material-symbols' }, 'open_in_full'),
   shrink: h('span', { class: 'material-symbols' }, 'close_fullscreen'),
   check: NcCheck,
+  circleCheck: MdiCheckboxMarkedCircle,
   acl: h('span', { class: 'material-symbols' }, 'shield'),
   sync: MsSync,
   warning: MaterialSymbolsWarningOutlineRounded,

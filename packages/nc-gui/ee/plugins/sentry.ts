@@ -1,11 +1,10 @@
 // ref: https://localazy.com/blog/nuxt-3-tailwind-i18n-eslint-starter#add-sentry
 //      https://docs.sentry.io/platforms/javascript/guides/vue/
 import * as Sentry from '@sentry/vue'
-import {BrowserTracing} from '@sentry/tracing'
-import {defineNuxtPlugin} from 'nuxt/app'
+import { defineNuxtPlugin } from 'nuxt/app'
 
 export default defineNuxtPlugin((nuxtApp) => {
-  const {vueApp} = nuxtApp
+  const { vueApp } = nuxtApp
 
   Sentry.init({
     app: [vueApp],
@@ -13,7 +12,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     allowUrls: [/^https:\/\/\w+\.(nocodb\.com|noco\.to)/],
     environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',
     integrations: [
-      new BrowserTracing({
+      new Sentry.BrowserTracing({
         routingInstrumentation: Sentry.vueRouterInstrumentation(nuxtApp.$router),
       }),
     ],
@@ -21,7 +20,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     // of transactions for performance monitoring.
     // We recommend adjusting this value in production
     // todo: change in production before release
-    tracesSampleRate: 1.0
+    tracesSampleRate: 1.0,
   })
 
   return {

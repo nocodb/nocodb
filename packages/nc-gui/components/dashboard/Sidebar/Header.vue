@@ -34,11 +34,7 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
         hide-on-click
       >
         <template #title>
-          {{
-            isLeftSidebarOpen
-              ? `${$t('general.hide')} ${$t('objects.sidebar').toLowerCase()}`
-              : `${$t('general.show')} ${$t('objects.sidebar').toLowerCase()}`
-          }}
+          {{ isLeftSidebarOpen ? `${$t('title.hideSidebar')}` : `${$t('title.showSidebar')}` }}
         </template>
         <NcButton
           v-if="showSidebarBtn"

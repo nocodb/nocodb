@@ -135,7 +135,7 @@ watch(columns, () => {
       v-model:value="search.query"
       size="small"
       class="text-xs w-40"
-      :placeholder="`${$t('general.search')} in ${columns?.find((column) => column.value === search.field)?.label}`"
+      :placeholder="`${$t('general.searchIn')} ${columns?.find((column) => column.value === search.field)?.label}`"
       :bordered="false"
       data-testid="search-data-input"
       @press-enter="onPressEnter"

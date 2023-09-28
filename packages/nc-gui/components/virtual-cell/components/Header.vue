@@ -14,34 +14,37 @@ const { relation, relatedTableTitle, displayValue, showHeader, tableTitle } = de
   displayValue?: string
 }>()
 
+const { t } = useI18n()
+
 const relationMeta = computed(() => {
   if (relation === 'hm') {
     return {
-      title: 'Has Many Relation',
+      title: t('msg.hm.title'),
       icon: HasManyIcon,
-      tooltip_desc: 'A single record from table ',
-      tooltip_desc2: ' can be linked with a multiple records from table ',
+      tooltip_desc: t('msg.hm.tooltip_desc'),
+      tooltip_desc2: t('msg.hm.tooltip_desc2'),
     }
   } else if (relation === 'mm') {
     return {
-      title: 'Many to Many Relation',
+      title: t('msg.mm.title'),
       icon: ManytoManyIcon,
-      tooltip_desc: 'Multiple records from table ',
-      tooltip_desc2: ' can be linked with multiple records from table ',
+
+      tooltip_desc: t('msg.mm.tooltip_desc'),
+      tooltip_desc2: t('msg.mm.tooltip_desc2'),
     }
   } else if (relation === 'bt') {
     return {
-      title: 'Belongs to Relation',
+      title: t('msg.bt.title'),
       icon: BelongsToIcon,
-      tooltip_desc: 'A single record from table ',
-      tooltip_desc2: ' can be linked with a record from table ',
+      tooltip_desc: t('msg.bt.tooltip_desc'),
+      tooltip_desc2: t('msg.bt.tooltip_desc2'),
     }
   } else {
     return {
-      title: 'One to One Relation',
+      title: t('msg.oo.title'),
       icon: OnetoOneIcon,
-      tooltip_desc: 'A single record from table ',
-      tooltip_desc2: ' can be linked with a single record from table ',
+      tooltip_desc: t('msg.oo.tooltip_desc'),
+      tooltip_desc2: t('msg.oo.tooltip_desc2'),
     }
   }
 })

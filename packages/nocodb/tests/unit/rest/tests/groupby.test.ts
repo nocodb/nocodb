@@ -1,9 +1,13 @@
+import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
+import { createColumn, createLookupColumn } from '../../factory/column';
 import { createProject, createSakilaProject } from '../../factory/project';
 import { getTable } from '../../factory/table';
 import { getView, updateView } from '../../factory/view';
 import init from '../../init';
 import type { Column, Model, Project, View } from '../../../../src/models';
+import 'mocha';
+import { assert, expect } from 'chai';
 
 function groupByTests() {
   let context;
@@ -233,6 +237,113 @@ function groupByTests() {
       parseInt(response.body.list[0]['count']) !== 5
     )
       throw new Error('Invalid GroupBy With Filters');
+  });
+
+  it('Check One GroupBy Column with Links/Rollup', async function () {
+    const actorsColumn = filmColumns.find((c) => c.title === 'Actors');
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .set('xc-auth', context.token)
+      .query({
+        column_name: actorsColumn.title,
+        sort: `-${actorsColumn.title}`,
+      })
+      .expect(200);
+    expect(response.body.list[0]['Actors']).not.equal('0');
+    expect(response.body.list[0]['count']).not.equal('10');
+    expect(+response.body.list[0]['Actors']).to.be.gte(
+      +response.body.list[1]['Actors'],
+    );
+  });
+
+  it('Check One GroupBy Column with BT Lookup', async function () {
+    await createLookupColumn(context, {
+      project: sakilaProject,
+      title: 'LanguageName',
+      table: filmTable,
+      relatedTableName: 'language',
+      relatedTableColumnTitle: 'Name',
+    });
+
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .set('xc-auth', context.token)
+      .query({
+        column_name: 'LanguageName',
+        sort: `-LanguageName`,
+      })
+      .expect(200);
+    assert.match(response.body.list[0]['LanguageName'], /^English/);
+    expect(+response.body.list[0]['count']).to.equal(1000);
+    expect(response.body.list.length).to.equal(1);
+  });
+
+  it('Check One GroupBy Column with MM Lookup which is not supported', async function () {
+    await createLookupColumn(context, {
+      project: sakilaProject,
+      title: 'ActorNames',
+      table: filmTable,
+      relatedTableName: 'actor',
+      relatedTableColumnTitle: 'FirstName',
+    });
+
+    const res = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .set('xc-auth', context.token)
+      .query({
+        column_name: 'ActorNames',
+      })
+      .expect(400);
+
+    assert.match(res.body.msg, /not supported/);
+  });
+
+  it('Check One GroupBy Column with Formula and Formula referring another formula', async function () {
+    const formulaColumnTitle = 'Formula';
+    await createColumn(context, filmTable, {
+      uidt: UITypes.Formula,
+      title: formulaColumnTitle,
+      formula: `ADD({RentalDuration}, 10)`,
+    });
+
+    let res = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .set('xc-auth', context.token)
+      .query({
+        column_name: formulaColumnTitle,
+        sort: `-${formulaColumnTitle}`,
+      })
+      .expect(200);
+
+    expect(res.body.list.length).to.equal(5);
+    expect(res.body.list[0][formulaColumnTitle]).to.be.gte(
+      res.body.list[0][formulaColumnTitle],
+    );
+    expect(+res.body.list[0].count).to.equal(191);
+
+    // generate a formula column which refers to another formula column
+    const nestedFormulaColumnTitle = 'FormulaNested';
+
+    await createColumn(context, filmTable, {
+      uidt: UITypes.Formula,
+      title: nestedFormulaColumnTitle,
+      formula: `ADD(1000,(-1 * {${formulaColumnTitle}}))`,
+    });
+
+    res = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .set('xc-auth', context.token)
+      .query({
+        column_name: nestedFormulaColumnTitle,
+        sort: `-${nestedFormulaColumnTitle}`,
+      })
+      .expect(200);
+
+    expect(res.body.list.length).to.equal(5);
+    expect(res.body.list[0][nestedFormulaColumnTitle]).to.be.gte(
+      res.body.list[0][nestedFormulaColumnTitle],
+    );
+    expect(+res.body.list[res.body.list.length - 1].count).to.equal(191);
   });
 }
 

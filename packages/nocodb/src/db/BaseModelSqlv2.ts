@@ -348,6 +348,12 @@ class BaseModelSqlv2 {
 
     let data;
 
+    console.log(`
+
+${qb.toQuery()}
+
+    `);
+
     try {
       data = await this.execAndParse(qb);
     } catch (e) {
@@ -508,6 +514,7 @@ class BaseModelSqlv2 {
     args.column_name = args.column_name || '';
 
     const cols = await this.model.getColumns();
+    const groupByColumns: Record<string, Column> = {};
 
     const selectors = [];
     const groupBySelectors = [];
@@ -517,11 +524,13 @@ class BaseModelSqlv2 {
         const column = cols.find(
           (c) => c.column_name === col || c.title === col,
         );
+        groupByColumns[column.id] = column;
         if (!column) {
           throw NcError.notFound('Column not found');
         }
 
         switch (column.uidt) {
+          case UITypes.Links:
           case UITypes.Rollup:
             selectors.push(
               (
@@ -563,34 +572,25 @@ class BaseModelSqlv2 {
             break;
           case UITypes.Lookup:
             {
-              let selectQb;
-              try {
-                const _selectQb = await generateBTLookupSelectQuery({
-                  baseModelSqlv2: this,
-                  column,
-                  alias: null,
-                  model: this.model,
-                });
+              const _selectQb = await generateBTLookupSelectQuery({
+                baseModelSqlv2: this,
+                column,
+                alias: null,
+                model: this.model,
+              });
 
-                selectQb = this.dbDriver.raw(`?? as ??`, [
-                  this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
-                  sanitize(column.title),
-                ]);
-              } catch (e) {
-                console.log(e);
-                // return dummy select
-                selectQb = this.dbDriver.raw(`'ERR' as ??`, [
-                  sanitize(column.title),
-                ]);
-              }
+              const selectQb = this.dbDriver.raw(`?? as ??`, [
+                this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
+                sanitize(column.title),
+              ]);
 
               selectors.push(selectQb);
-              groupBySelectors.push(column.title);
+              groupBySelectors.push(sanitize(column.title));
             }
             break;
           default:
             selectors.push(column.column_name);
-            groupBySelectors.push(sanitize(column.title));
+            groupBySelectors.push(sanitize(column.column_name));
             break;
         }
       }),
@@ -643,6 +643,17 @@ class BaseModelSqlv2 {
         ? args.sortArr
         : await Sort.list({ viewId: this.viewId });
 
+    sorts = sorts.filter((sort) => {
+      if (!groupByColumns[sort.fk_column_id]) {
+        return true;
+      }
+
+      qb.orderBy(
+        groupByColumns[sort.fk_column_id].column_name ||
+          groupByColumns[sort.fk_column_id].title,
+      );
+    });
+
     if (sorts) await sortV2(this, sorts, qb);
     applyPaginate(qb, rest);
     return await qb;
@@ -677,6 +688,7 @@ class BaseModelSqlv2 {
 
           switch (column.uidt) {
             case UITypes.Rollup:
+            case UITypes.Links:
               selectors.push(
                 (
                   await genRollupSelectv2({
@@ -734,7 +746,7 @@ class BaseModelSqlv2 {
               break;
             default:
               selectors.push(column.column_name);
-              groupBySelectors.push(sanitize(column.title));
+              groupBySelectors.push(sanitize(column.column_name));
               break;
           }
         }),
@@ -4936,7 +4948,7 @@ async function generateBTLookupSelectQuery({
   {
     let aliasCount = 0,
       selectQb;
-    const alias = `__nc_lookup${aliasCount++}`;
+    const alias = `__nc_lk_${aliasCount++}`;
     const lookup = await column.getColOptions<LookupColumn>();
     {
       const relationCol = await lookup.getRelationColumn();
@@ -4967,7 +4979,7 @@ async function generateBTLookupSelectQuery({
     let lookupColumn = await lookup.getLookupColumn();
     let prevAlias = alias;
     while (lookupColumn.uidt === UITypes.Lookup) {
-      const nestedAlias = `__nc_sort${aliasCount++}`;
+      const nestedAlias = `__nc_lk_nested_${aliasCount++}`;
       const nestedLookup = await lookupColumn.getColOptions<LookupColumn>();
       const relationCol = await nestedLookup.getRelationColumn();
       const relation =

@@ -58,7 +58,6 @@ const { allowCSVDownload } = useSharedView()
           :show-system-fields="false"
         />
       </template>
-      <LazySmartsheetToolbarOpenViewSidebarBtn v-if="isViewSidebarAvailable" />
     </template>
   </div>
 </template>

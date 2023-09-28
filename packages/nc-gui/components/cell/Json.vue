@@ -4,8 +4,8 @@ import {
   ActiveCellInj,
   EditModeInj,
   IsFormInj,
-  ReadonlyInj,
   JsonExpandInj,
+  ReadonlyInj,
   computed,
   inject,
   ref,
@@ -42,7 +42,7 @@ const localValueState = ref<string | undefined>()
 
 const error = ref<string | undefined>()
 
-const isExpanded = inject(JsonExpandInj,ref(false))
+const isExpanded = inject(JsonExpandInj, ref(false))
 
 const localValue = computed<string | Record<string, any> | undefined>({
   get: () => localValueState.value,
@@ -140,13 +140,7 @@ useSelectedCellKeyupListener(active, (e) => {
 </script>
 
 <template>
-  <component
-    :is="isExpanded ? NcModal : 'div'"
-    v-model:visible="isExpanded"
-    :closable="false"
-    centered
-    :footer="null"
-  >
+  <component :is="isExpanded ? NcModal : 'div'" v-model:visible="isExpanded" :closable="false" centered :footer="null">
     <div v-if="editEnabled && !readonly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
       <div class="flex flex-row justify-between pt-1 pb-2" @mousedown.stop>
         <a-button type="text" size="small" @click="isExpanded = !isExpanded">

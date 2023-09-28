@@ -104,7 +104,7 @@ export class TreeViewPage extends BasePage {
             .getByTestId(`nc-tbl-title-${title}`)
             .click({
               position: {
-                x: 0,
+                x: 10,
                 y: 10,
               },
             }),

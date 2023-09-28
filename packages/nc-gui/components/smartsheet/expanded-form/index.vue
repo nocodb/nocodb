@@ -9,7 +9,6 @@ import {
   CellClickHookInj,
   FieldsInj,
   IsExpandedFormOpenInj,
-  IsFormInj,
   IsKanbanInj,
   IsPublicInj,
   MetaInj,

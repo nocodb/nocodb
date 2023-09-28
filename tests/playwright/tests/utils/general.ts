@@ -37,10 +37,8 @@ function isSubset(obj, potentialSubset) {
         if (!isSubset(objValue, potentialValue)) {
           return false;
         }
-        // skip strict type check since different database returns number values in string/number type
-        // todo: revert back to strict type check once we are consistent with type
         // eslint-disable-next-line no-prototype-builtins
-      } else if (!obj.hasOwnProperty(prop) || objValue != potentialValue) {
+      } else if (!obj.hasOwnProperty(prop) || objValue !== potentialValue) {
         return false;
       }
     }

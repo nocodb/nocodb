@@ -249,7 +249,7 @@ test.describe('GroupBy CRUD Operations', () => {
     });
   });
 
-  test.only('Single GroupBy CRUD Operations - Links', async ({ page }) => {
+  test('Single GroupBy CRUD Operations - Links', async ({ page }) => {
     await dashboard.treeView.openTable({ title: 'Film' });
 
     await toolbar.sort.add({ title: 'Actors', ascending: true, locallySaved: false });

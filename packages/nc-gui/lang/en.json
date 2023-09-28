@@ -247,6 +247,8 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "tokenName": "Token name",
+    "creator": "Creator",
     "updateSelectedRows": "Update Selected Rows",
     "noFiltersAdded": "No filters added",
     "editCards": "Edit Cards",
@@ -272,6 +274,7 @@
     "teamAndAuth": "Team & Auth",
     "rolesUserMgmt": "Roles & Users Management",
     "userMgmt": "Users Management",
+    "apiTokens": "API Tokens",
     "apiTokenMgmt": "API Tokens Management",
     "rolesMgmt": "Roles Management",
     "projMeta": "Project Metadata",
@@ -294,6 +297,7 @@
     "generateToken": "Generate Token",
     "APIsAndSupport": "APIs & Support",
     "helpCenter": "Help Center",
+    "noLabels": "No Labels",
     "swaggerDocumentation": "Swagger Documentation",
     "quickImportFrom": "Quick Import From",
     "quickImport": "Quick Import",
@@ -316,7 +320,8 @@
     "userManagement": "User Management",
     "licence": "Licence",
     "defaultView": "Default View",
-    "relations": "Relations"
+    "relations": "Relations",
+    "switchLanguage": "Switch Language"
   },
   "labels": {
     "searchProjects": "Search Projects",
@@ -325,6 +330,11 @@
     "notifyVia": "Notify Via",
     "projName": "Project name",
     "profile": "Profile",
+    "accountDetails": "Account Details",
+    "controlAppearance": "Control your Appearance.",
+    "accountEmailID": "Account Email ID",
+    "backToWorkspace": "Back to Workspace",
+    "untitledToken": "Untitled token",
     "tableName": "Table name",
     "dashboardName": "Dashboard name",
     "noViews": "No views",
@@ -364,6 +374,7 @@
     "where": "Where",
     "cache": "Cache",
     "chat": "Chat",
+    "showOrHide": "Show or Hide",
     "airtable": "Airtable",
     "csvFile": "CSV File",
     "jsonFile": "JSON File",
@@ -695,6 +706,7 @@
     "selectField": "Select field"
   },
   "msg": {
+    "apiTokenCreate": "Create personal API tokens to use in automation or external apps.",
     "selectFieldToSort": "Select Field to Sort",
     "createWebhookMsg1": "Get started with web-hooks!",
     "createWebhookMsg2": "Create web-hooks to power you automations,",
@@ -856,7 +868,9 @@
       "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
       "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
       "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
-      "noMoreRecords": "No more records"
+      "noMoreRecords": "No more records",
+      "tokenNameNotEmpty": "Token name should not be empty",
+      "tokenNameMaxLength": "Token name should not be more than 255 characters"
     },
     "error": {
       "viewNameRequired": "View name is required",

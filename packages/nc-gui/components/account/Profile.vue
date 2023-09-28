@@ -61,10 +61,10 @@ const onValidate = async (_: any, valid: boolean) => {
 <template>
   <div class="flex flex-col items-center">
     <div class="flex flex-col w-150">
-      <div class="flex font-medium text-xl">Profile</div>
+      <div class="flex font-medium text-xl">{{ $t('labels.profile') }}</div>
       <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-2">
-        <div class="flex font-medium text-base">Account details</div>
-        <div class="flex text-gray-500">Control your appearance.</div>
+        <div class="flex font-medium text-base">{{ $t('labels.accountDetails') }}</div>
+        <div class="flex text-gray-500">{{ $t('labels.controlAppearance') }}</div>
         <div class="flex flex-row mt-4">
           <div class="flex h-20 mt-1.5">
             <GeneralUserIcon size="xlarge" />
@@ -79,20 +79,20 @@ const onValidate = async (_: any, valid: boolean) => {
             @finish="onSubmit"
             @validate="onValidate"
           >
-            <div class="text-gray-800 mb-1.5">Name</div>
+            <div class="text-gray-800 mb-1.5">{{ $t('general.name') }}</div>
             <a-form-item name="title" :rules="formRules.title">
               <a-input
                 v-model:value="form.title"
                 class="w-full !rounded-md !py-1.5"
-                placeholder="Name"
+                :placeholder="$t('general.name')"
                 data-testid="nc-account-settings-rename-input"
               />
             </a-form-item>
-            <div class="text-gray-800 mb-1.5">Account Email ID</div>
+            <div class="text-gray-800 mb-1.5">{{ $t('labels.accountEmailID') }}</div>
             <a-input
               v-model:value="email"
               class="w-full !rounded-md !py-1.5"
-              placeholder="Email"
+              :placeholder="$t('general.email')"
               disabled
               data-testid="nc-account-settings-email-input"
             />
@@ -105,8 +105,8 @@ const onValidate = async (_: any, valid: boolean) => {
                 data-testid="nc-account-settings-save"
                 @click="onSubmit"
               >
-                <template #loading> Saving </template>
-                Save
+                <template #loading> {{ $t('general.saving') }} </template>
+                {{ $t('general.save') }}
               </NcButton>
             </div>
           </a-form>

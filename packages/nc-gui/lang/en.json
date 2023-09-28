@@ -237,6 +237,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "creatingTable": "Creating Table",
     "erdView": "ERD View",
     "newProj": "New Project",
     "myProject": "My Projects",
@@ -640,6 +641,7 @@
   },
   "msg": {
     "areYouSureUWantTo": "Are you sure you want to delete the following",
+    "idColumnRequired": "ID column is required, you can rename this later if required.",
     "warning": {
       "barcode": {
         "renderError": "Barcode error - please check compatibility between input and barcode type"

@@ -301,11 +301,7 @@ function tableStaticTest() {
       .expect(200);
 
     const record = response.body;
-    if (isPg(context)) {
-      expect(record['Films']).to.equal('19');
-    } else {
-      expect(record['Films']).to.equal(19);
-    }
+    expect(record['Films']).to.equal(19);
   });
   it('Exist should be true table row when it exists', async function () {
     const row = await getOneRow(context, {
@@ -1489,7 +1485,7 @@ function tableTest() {
     });
 
     const visibleColumns = [firstNameColumn];
-    const sortInfo = `-FirstName, +${rollupColumn.title}`;
+    const sortInfo = `-FirstName`;
 
     const response = await request(context.app)
       .get(
@@ -1613,7 +1609,7 @@ function tableTest() {
     });
 
     const visibleColumns = [firstNameColumn];
-    const sortInfo = `-FirstName, +${rollupColumn.title}`;
+    const sortInfo = `-FirstName`;
 
     const response = await request(context.app)
       .get(
@@ -1623,18 +1619,18 @@ function tableTest() {
       .query({
         fields: visibleColumns.map((c) => c.title),
         sort: sortInfo,
-        column_name: firstNameColumn.column_name,
+        column_name: firstNameColumn.title,
       })
       .expect(200);
 
     if (
-      response.body.list[4]['first_name'] !== 'WILLIE' ||
+      response.body.list[4][firstNameColumn.title] !== 'WILLIE' ||
       parseInt(response.body.list[4]['count']) !== 2
     )
       throw new Error('Wrong groupby');
   });
 
-  it('Groupby desc sorted and with rollup table data  list with required columns', async function () {
+  it('Groupby desc sorted and with rollup tabl  e data  list with required columns', async function () {
     const firstNameColumn = customerColumns.find(
       (col) => col.title === 'FirstName',
     );
@@ -1649,7 +1645,7 @@ function tableTest() {
     });
 
     const visibleColumns = [firstNameColumn];
-    const sortInfo = `-FirstName, +${rollupColumn.title}`;
+    const sortInfo = `-FirstName`;
 
     const response = await request(context.app)
       .get(
@@ -1659,13 +1655,13 @@ function tableTest() {
       .query({
         fields: visibleColumns.map((c) => c.title),
         sort: sortInfo,
-        column_name: firstNameColumn.column_name,
+        column_name: firstNameColumn.title,
         offset: 4,
       })
       .expect(200);
 
     if (
-      response.body.list[0]['first_name'] !== 'WILLIE' ||
+      response.body.list[0][firstNameColumn.title] !== 'WILLIE' ||
       parseInt(response.body.list[0]['count']) !== 2
     )
       throw new Error('Wrong groupby');

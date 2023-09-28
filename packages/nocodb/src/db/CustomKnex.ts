@@ -1,24 +1,42 @@
 import { Knex, knex } from 'knex';
 import { SnowflakeClient } from 'nc-help';
-import { types } from 'pg';
+import { defaults, types } from 'pg';
 import dayjs from 'dayjs';
 import type { FilterType } from 'nocodb-sdk';
 import type { BaseModelSql } from '~/db/BaseModelSql';
 import Filter from '~/models/Filter';
 
-// For the code, check out
-// https://raw.githubusercontent.com/brianc/node-pg-types/master/lib/builtins.js
+// refer : https://github.com/brianc/node-pg-types/blob/master/lib/builtins.js
+const pgTypes = {
+  FLOAT4: 700,
+  FLOAT8: 701,
+  DATE: 1082,
+  TIMESTAMP: 1114,
+  TIMESTAMPTZ: 1184,
+  NUMERIC: 1700,
+};
 
 // override parsing date column to Date()
-types.setTypeParser(1082, (val) => val);
+types.setTypeParser(pgTypes.DATE, (val) => val);
 // override timestamp
-types.setTypeParser(1114, (val) => {
+types.setTypeParser(pgTypes.TIMESTAMP, (val) => {
   return dayjs.utc(val).format('YYYY-MM-DD HH:mm:ssZ');
 });
 // override timestampz
-types.setTypeParser(1184, (val) => {
+types.setTypeParser(pgTypes.TIMESTAMPTZ, (val) => {
   return dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
 });
+
+const parseFloatVal = (val: string) => {
+  return parseFloat(val);
+};
+
+// parse integer values
+defaults.parseInt8 = true;
+
+// parse float values
+types.setTypeParser(pgTypes.FLOAT8, parseFloatVal);
+types.setTypeParser(pgTypes.NUMERIC, parseFloatVal);
 
 const opMappingGen = {
   eq: '=',

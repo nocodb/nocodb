@@ -100,9 +100,13 @@ export class KanbanPage extends BasePage {
 
   async verifyCardOrder(param: { order: string[]; stackIndex: number }) {
     const { order, stackIndex } = param;
+
     const stack = this.get().locator(`.nc-kanban-stack`).nth(stackIndex);
     for (let i = 0; i < order.length; i++) {
       const card = stack.locator(`.nc-kanban-item`).nth(i);
+
+      await (await card.elementHandle())?.waitForElementState('stable');
+
       await card.scrollIntoViewIfNeeded();
       const cardTitle = card.locator(`.nc-cell`);
       await expect(cardTitle).toHaveText(order[i]);

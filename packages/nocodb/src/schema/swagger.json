@@ -15337,6 +15337,896 @@
           }
         ]
       }
+    },
+    "/api/v1/tables/{tableId}/rows": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Table ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "query",
+          "required": true,
+          "description": "View ID"
+        }
+      ],
+      "get": {
+        "summary": "List Table Rows",
+        "operationId": "db-data-table-row-list",
+        "description": "List all table rows in a given table",
+        "tags": [
+          "DB Data Table Row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields",
+            "description": "Which fields to be shown"
+          },
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "Offset in rows"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Limit in rows"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortArrJson",
+            "description": "Used for multiple sort queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "description": "List of data objects",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "pageInfo": {
+                      "$ref": "#/components/schemas/Paginated",
+                      "description": "Paginated Info"
+                    }
+                  },
+                  "required": [
+                    "list",
+                    "pageInfo"
+                  ]
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "Id": 1,
+                          "Title": "baz",
+                          "SingleSelect": null,
+                          "Sheet-1 List": [
+                            {
+                              "Id": 1,
+                              "Title": "baz"
+                            }
+                          ],
+                          "LTAR": [
+                            {
+                              "Id": 1,
+                              "Title": "baz"
+                            }
+                          ]
+                        },
+                        {
+                          "Id": 2,
+                          "Title": "foo",
+                          "SingleSelect": "a",
+                          "Sheet-1 List": [
+                            {
+                              "Id": 2,
+                              "Title": "foo"
+                            }
+                          ],
+                          "LTAR": [
+                            {
+                              "Id": 2,
+                              "Title": "foo"
+                            }
+                          ]
+                        },
+                        {
+                          "Id": 3,
+                          "Title": "bar",
+                          "SingleSelect": "b",
+                          "Sheet-1 List": [],
+                          "LTAR": []
+                        }
+                      ],
+                      "pageInfo": {
+                        "totalRows": 3,
+                        "page": 1,
+                        "pageSize": 25,
+                        "isFirstPage": true,
+                        "isLastPage": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Table Rows",
+        "operationId": "db-data-table-row-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Data Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "Id": 1,
+                    "Title": "foo",
+                    "CreatedAt": "2023-03-11T09:10:53.567Z",
+                    "UpdatedAt": "2023-03-11T09:10:53.567Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Create a new row in a given table and project.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update Table Rows",
+        "operationId": "db-data-table-row-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Data Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "Id": 1,
+                    "Title": "foo",
+                    "CreatedAt": "2023-03-11T09:10:53.567Z",
+                    "UpdatedAt": "2023-03-11T09:10:53.567Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Create a new row in a given table and project.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete Table Rows",
+        "operationId": "db-data-table-row-delete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Data Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "Id": 1
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "Create a new row in a given table and project.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v1/tables/{tableId}/rows/{rowId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Table ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true,
+          "description": "Row ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "query",
+          "required": true,
+          "description": "View ID"
+        }
+      ],
+      "get": {
+        "summary": "Read Table Row",
+        "operationId": "db-data-table-row-read",
+        "description": "Get table row in a given table",
+        "tags": [
+          "DB Data Table Row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields",
+            "description": "Which fields to be shown"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "Offset in rows"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "Title": "baz",
+                      "SingleSelect": null,
+                      "Sheet-1 List": [
+                        {
+                          "Id": 1,
+                          "Title": "baz"
+                        }
+                      ],
+                      "LTAR": [
+                        {
+                          "Id": 1,
+                          "Title": "baz"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v1/tables/{tableId}/rows/count": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Table ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "query",
+          "required": true,
+          "description": "View ID"
+        }
+      ],
+      "get": {
+        "summary": "Table Rows Count",
+        "operationId": "db-data-table-row-count",
+        "description": "Count of rows in a given table",
+        "tags": [
+          "DB Data Table Row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields",
+            "description": "Which fields to be shown"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "list",
+                    "pageInfo"
+                  ]
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "Id": 1,
+                          "Title": "baz",
+                          "SingleSelect": null,
+                          "Sheet-1 List": [
+                            {
+                              "Id": 1,
+                              "Title": "baz"
+                            }
+                          ],
+                          "LTAR": [
+                            {
+                              "Id": 1,
+                              "Title": "baz"
+                            }
+                          ]
+                        },
+                        {
+                          "Id": 2,
+                          "Title": "foo",
+                          "SingleSelect": "a",
+                          "Sheet-1 List": [
+                            {
+                              "Id": 2,
+                              "Title": "foo"
+                            }
+                          ],
+                          "LTAR": [
+                            {
+                              "Id": 2,
+                              "Title": "foo"
+                            }
+                          ]
+                        },
+                        {
+                          "Id": 3,
+                          "Title": "bar",
+                          "SingleSelect": "b",
+                          "Sheet-1 List": [],
+                          "LTAR": []
+                        }
+                      ],
+                      "pageInfo": {
+                        "totalRows": 3,
+                        "page": 1,
+                        "pageSize": 25,
+                        "isFirstPage": true,
+                        "isLastPage": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v1/tables/{tableId}/links/{columnId}/rows/{rowId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Table ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "query",
+          "required": true,
+          "description": "View ID"
+        }
+      ],
+      "get": {
+        "summary": "Get Nested Relations Rows",
+        "operationId": "db-data-table-row-nested-list",
+        "description": "Linked rows in a given Links/LinkToAnotherRecord column",
+        "tags": [
+          "DB Data Table Row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields",
+            "description": "Which fields to be shown"
+          },
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "Offset in rows"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Limit in rows"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortArrJson",
+            "description": "Used for multiple sort queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "description": "List of data objects",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "pageInfo": {
+                      "$ref": "#/components/schemas/Paginated",
+                      "description": "Paginated Info"
+                    }
+                  },
+                  "required": [
+                    "list",
+                    "pageInfo"
+                  ]
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "Id": 1,
+                          "Title": "baz",
+                          "SingleSelect": null,
+                          "Sheet-1 List": [
+                            {
+                              "Id": 1,
+                              "Title": "baz"
+                            }
+                          ],
+                          "LTAR": [
+                            {
+                              "Id": 1,
+                              "Title": "baz"
+                            }
+                          ]
+                        },
+                        {
+                          "Id": 2,
+                          "Title": "foo",
+                          "SingleSelect": "a",
+                          "Sheet-1 List": [
+                            {
+                              "Id": 2,
+                              "Title": "foo"
+                            }
+                          ],
+                          "LTAR": [
+                            {
+                              "Id": 2,
+                              "Title": "foo"
+                            }
+                          ]
+                        },
+                        {
+                          "Id": 3,
+                          "Title": "bar",
+                          "SingleSelect": "b",
+                          "Sheet-1 List": [],
+                          "LTAR": []
+                        }
+                      ],
+                      "pageInfo": {
+                        "totalRows": 3,
+                        "page": 1,
+                        "pageSize": 25,
+                        "isFirstPage": true,
+                        "isLastPage": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Nested Relations Rows",
+        "operationId": "db-data-table-row-nested-link",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Data Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "Id": 1
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "Create a link with the row.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete Nested Relations Rows",
+        "operationId": "db-data-table-row-nested-unlink",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Data Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "Id": 1
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "Create a new row in a given table and project.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -20901,7 +21791,7 @@
           },
           {
             "type": "boolean"
-          }, 
+          },
           {
             "type": "number"
           }

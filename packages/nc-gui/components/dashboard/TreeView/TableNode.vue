@@ -46,6 +46,7 @@ const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeVie
 
 const { loadViews: _loadViews } = useViewsStore()
 const { activeView } = storeToRefs(useViewsStore())
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 // todo: temp
 const { projectTables } = storeToRefs(useTablesStore())
@@ -108,6 +109,10 @@ const onOpenTable = async () => {
   isLoading.value = true
   try {
     await _openTable(table.value)
+
+    if (isMobileMode.value) {
+      isLeftSidebarOpen.value = false
+    }
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

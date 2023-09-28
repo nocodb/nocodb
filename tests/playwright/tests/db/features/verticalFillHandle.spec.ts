@@ -99,12 +99,12 @@ test.describe('Fill Handle', () => {
 
   test('Number based', async () => {
     const fields = [
-      { title: 'Number', value: '33', type: 'text' },
-      { title: 'Decimal', value: '33.3', type: 'text' },
-      { title: 'Currency', value: '33.30', type: 'text' },
-      { title: 'Percent', value: '33', type: 'text' },
+      { title: 'Number', value: 33, type: 'text' },
+      { title: 'Decimal', value: 33.3, type: 'text' },
+      { title: 'Currency', value: 33.3, type: 'text' },
+      { title: 'Percent', value: 33, type: 'text' },
       { title: 'Duration', value: '00:01', type: 'text' },
-      { title: 'Rating', value: '3', type: 'rating' },
+      { title: 'Rating', value: 3, type: 'rating' },
       { title: 'Year', value: '2023', type: 'year' },
       { title: 'Time', value: '02:02', type: 'time' },
     ];
@@ -212,7 +212,7 @@ test.describe('Fill Handle', () => {
     await unsetup(p.context);
   });
 
-  test('Miscellaneous (Checkbox, attachment) @flaky', async () => {
+  test('Miscellaneous (Checkbox, attachment)', async () => {
     const fields = [
       { title: 'Checkbox', value: 'true', type: 'checkbox' },
       { title: 'Attachment', value: `${process.cwd()}/fixtures/sampleFiles/1.json`, type: 'attachment' },

@@ -46,12 +46,14 @@
     "yes": "Yes",
     "no": "No",
     "ok": "OK",
+    "back": "Back",
     "and": "And",
     "or": "Or",
     "add": "Add",
     "edit": "Edit",
     "remove": "Remove",
     "save": "Save",
+    "abort": "Abort",
     "saving": "Saving",
     "cancel": "Cancel",
     "clear": "Clear",
@@ -271,6 +273,12 @@
     "swaggerDocumentation": "Swagger Documentation",
     "quickImportFrom": "Quick Import From",
     "quickImport": "Quick Import",
+    "quickImportAirtable": "Quick Import - Airtable",
+    "quickImportCSV": "Quick Import - CSV",
+    "quickImportExcel": "Quick Import - Excel",
+    "quickImportJSON": "Quick Import - JSON",
+    "jsonEditor": "JSON Editor",
+    "comingSoon": "Coming Soon",
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
@@ -324,6 +332,10 @@
     "where": "Where",
     "cache": "Cache",
     "chat": "Chat",
+    "airtable": "Airtable",
+    "csvFile": "CSV File",
+    "jsonFile": "JSON File",
+    "microsoftExcel": "Microsoft Excel",
     "email": "E-mail",
     "storage": "Storage",
     "uiAcl": "UI-ACL",
@@ -389,6 +401,8 @@
     "noData": "No Data",
     "goToDashboard": "Go to Dashboard",
     "importing": "Importing",
+    "formatJson": "Format JSON",
+    "firstRowAsHeaders": "Use First Row as Headers",
     "flattenNested": "Flatten Nested",
     "downloadAllowed": "Download allowed",
     "weAreHiring": "We are Hiring!",
@@ -410,7 +424,11 @@
     "addRowGrid": "Manually add data in grid view",
     "addRowForm": "Enter record data through a form",
     "noAccess": "No access",
-    "restApis": "Rest APIs"
+    "restApis": "Rest APIs",
+    "includeData": "Include Data",
+    "includeView": "Include View",
+    "includeWebhook": "Include Webhook",
+    "zoomInToViewColumns": "Zoom in to view columns"
   },
   "activity": {
     "moveProject": "Move Project",
@@ -628,7 +646,8 @@
       "nonEditableFields": {
         "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
         "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
-      }
+      },
+      "duplicateProject": "Are you sure you want to duplicate the project?"
     },
     "info": {
       "pasteNotSupported": "Paste operation is not supported on the active cell",

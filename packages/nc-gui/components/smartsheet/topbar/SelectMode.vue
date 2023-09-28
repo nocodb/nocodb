@@ -17,7 +17,7 @@ const { onViewsTabChange } = useViewsStore()
     >
       <GeneralViewIcon v-if="activeView?.type" class="tab-icon" :meta="{ type: activeView?.type }" ignore-color />
       <GeneralLoader v-else class="tab-icon" />
-      <div class="tab-title nc-tab">Data</div>
+      <div class="tab-title nc-tab">{{ $t('general.data') }}</div>
     </div>
     <div
       class="tab"
@@ -34,7 +34,7 @@ const { onViewsTabChange } = useViewsStore()
           fontWeight: 500,
         }"
       />
-      <div class="tab-title nc-tab">Details</div>
+      <div class="tab-title nc-tab">{{ $t('general.details') }}</div>
     </div>
   </div>
 </template>

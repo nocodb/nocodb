@@ -1251,7 +1251,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                             <template #title>
                               <div class="flex flex-row items-center py-3">
                                 <MdiTableColumnPlusAfter class="flex h-[1rem] text-gray-500" />
-                                <div class="text-xs pl-2">Predict Columns</div>
+                                <div class="text-xs pl-2">{{ $t('activity.predictColumns') }}</div>
                                 <MdiChevronRight class="text-gray-500 ml-2" />
                               </div>
                             </template>
@@ -1280,14 +1280,14 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                             <div class="flex flex-row items-center py-3" @click="predictNextColumn">
                               <MdiReload v-if="predictingNextColumn" class="animate-infinite animate-spin" />
                               <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-gray-500" />
-                              <div class="text-xs pl-2">Predict Columns</div>
+                              <div class="text-xs pl-2">{{ $t('activity.predictColumns') }}</div>
                             </div>
                           </NcMenuItem>
                           <a-sub-menu v-if="predictedNextFormulas" key="predict-formula">
                             <template #title>
                               <div class="flex flex-row items-center py-3">
                                 <MdiCalculatorVariant class="flex h-[1rem] text-gray-500" />
-                                <div class="text-xs pl-2">Predict Formulas</div>
+                                <div class="text-xs pl-2">{{ $t('activity.predictFormulas') }}</div>
                                 <MdiChevronRight class="text-gray-500 ml-2" />
                               </div>
                             </template>
@@ -1310,7 +1310,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                             <div class="flex flex-row items-center py-3" @click="predictNextFormulas">
                               <MdiReload v-if="predictingNextFormulas" class="animate-infinite animate-spin" />
                               <MdiCalculatorVariant v-else class="flex h-[1rem] text-gray-500" />
-                              <div class="text-xs pl-2">Predict Formulas</div>
+                              <div class="text-xs pl-2">{{ $t('activity.predictFormulas') }}</div>
                             </div>
                           </NcMenuItem>
                         </NcMenu>
@@ -1518,8 +1518,8 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
               @click="emits('bulkUpdateDlg')"
             >
               <component :is="iconMap.edit" />
-              <!-- TODO i18n -->
-              Update Selected Rows
+
+              {{ $t('title.updateSelectedRows') }}
             </NcMenuItem>
 
             <NcMenuItem
@@ -1580,7 +1580,8 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
               @click="clearSelectedRangeOfCells()"
             >
               <GeneralIcon icon="closeBox" class="text-gray-500" />
-              Clear
+
+              {{ $t('general.clear') }}
             </NcMenuItem>
             <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected))" />
             <NcMenuItem
@@ -1597,7 +1598,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
               <NcMenuItem v-e="['a:row:delete']" class="nc-project-menu-item text-red-600" @click="deleteSelectedRangeOfRows">
                 <GeneralIcon icon="delete" class="text-gray-500 text-error" />
                 <!-- Delete Rows -->
-                Delete rows
+                {{ $t('activity.deleteRows') }}
               </NcMenuItem>
             </div>
           </NcMenu>

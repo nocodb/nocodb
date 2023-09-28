@@ -106,6 +106,7 @@
     "after": "After",
     "before": "Before",
     "search": "Search",
+    "searchIn": "Search In",
     "notification": "Notification",
     "reference": "Reference",
     "function": "Function",
@@ -245,6 +246,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "updateSelectedRows": "Update Selected Rows",
     "noFiltersAdded": "No filters added",
     "editCards": "Edit Cards",
     "noFieldsFound": "No fields found",
@@ -554,6 +556,9 @@
     "insertRow": "Insert new row",
     "duplicateRow": "Duplicate row",
     "deleteRow": "Delete row",
+    "deleteRows": "Delete rows",
+    "predictColumns": "Predict Columns",
+    "predictFormulas": "Predict Formulas",
     "deleteSelectedRow": "Delete selected rows",
     "importExcel": "Import Excel",
     "importCSV": "Import CSV",

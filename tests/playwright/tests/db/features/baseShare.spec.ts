@@ -4,6 +4,7 @@ import setup, { NcContext, unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { LoginPage } from '../../../pages/LoginPage';
 import { getDefaultPwd } from '../../../tests/utils/general';
+import { isEE } from '../../../setup/db';
 
 // To be enabled after shared base is implemented
 test.describe('Shared base', () => {
@@ -85,9 +86,11 @@ test.describe('Shared base', () => {
 
     await dashboard.rootPage.waitForTimeout(1000);
 
-    await dashboard.grid.workspaceMenu.switchWorkspace({
-      workspaceTitle: context.workspace.title,
-    });
+    if (isEE()) {
+      await dashboard.grid.workspaceMenu.switchWorkspace({
+        workspaceTitle: context.workspace.title,
+      });
+    }
 
     await dashboard.treeView.openProject({ title: context.project.title, context });
     await dashboard.treeView.openTable({ title: 'Country' });

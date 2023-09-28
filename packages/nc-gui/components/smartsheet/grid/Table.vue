@@ -1481,7 +1481,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                 @mouseup.stop
                 @click="addEmptyRow()"
               >
-                <td class="text-left pointer sticky left-0 !border-r-0">
+                <td class="text-left pointer !sticky !left-0 !z-10 !border-r-0">
                   <div class="px-2 w-full flex items-center text-gray-500">
                     <component :is="iconMap.plus" class="text-pint-500 text-base ml-2 text-gray-600 group-hover:text-black" />
                   </div>

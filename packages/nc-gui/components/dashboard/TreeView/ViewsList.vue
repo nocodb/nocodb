@@ -34,6 +34,7 @@ const table = inject(SidebarTableInj)!
 const { isMobileMode } = useGlobal()
 
 const { $e } = useNuxtApp()
+const { t } = useI18n()
 
 const isDefaultBase = computed(() => {
   const base = project.value?.bases?.find((b) => b.id === table.value.base_id)
@@ -84,11 +85,11 @@ function markItem(id: string) {
 /** validate view title */
 function validate(view: ViewType) {
   if (!view.title || view.title.trim().length < 0) {
-    return 'View name is required'
+    return t('msg.error.viewNameRequired')
   }
 
   if (views.value.some((v) => v.title === view.title && v.id !== view.id)) {
-    return 'View name should be unique'
+    return t('msg.error.viewNameDuplicate')
   }
 
   return true
@@ -357,7 +358,7 @@ function onOpenModal({
       'ml-24.75': !isDefaultBase,
     }"
   >
-    No Views
+    {{ $t('labels.noViews') }}
   </div>
 
   <a-menu

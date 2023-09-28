@@ -88,6 +88,8 @@ export class LeftSidebarPage extends BasePage {
     await this.clickWorkspace();
     const nodes = this.modal_workspace.locator('[data-testid="nc-workspace-list"]');
 
+    await this.rootPage.waitForTimeout(2000);
+
     for (let i = 0; i < (await nodes.count()); i++) {
       const text = await getTextExcludeIconText(nodes.nth(i));
       if (text.toLowerCase() === param.title.toLowerCase()) {
@@ -96,5 +98,7 @@ export class LeftSidebarPage extends BasePage {
       }
     }
     await this.rootPage.keyboard.press('Escape');
+
+    await this.rootPage.waitForTimeout(3500);
   }
 }

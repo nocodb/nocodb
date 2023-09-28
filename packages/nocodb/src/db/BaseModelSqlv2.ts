@@ -2487,6 +2487,7 @@ class BaseModelSqlv2 {
       skip_hooks = false,
       raw = false,
       insertOneByOneAsFallback = false,
+      isSingleRecordInsertion = false,
     }: {
       chunkSize?: number;
       cookie?: any;
@@ -2494,6 +2495,7 @@ class BaseModelSqlv2 {
       skip_hooks?: boolean;
       raw?: boolean;
       insertOneByOneAsFallback?: boolean;
+      isSingleRecordInsertion?: boolean;
     } = {},
   ) {
     let trx;
@@ -2680,8 +2682,14 @@ class BaseModelSqlv2 {
 
       await trx.commit();
 
-      if (!raw && !skip_hooks)
-        await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
+      if (!raw && !skip_hooks) {
+        if (isSingleRecordInsertion) {
+          const insertData = await this.readByPk(response[0]);
+          await this.afterInsert(insertData, this.dbDriver, cookie);
+        } else {
+          await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
+        }
+      }
 
       return response;
     } catch (e) {
@@ -2697,7 +2705,13 @@ class BaseModelSqlv2 {
       cookie,
       raw = false,
       throwExceptionIfNotExist = false,
-    }: { cookie?: any; raw?: boolean; throwExceptionIfNotExist?: boolean } = {},
+      isSingleRecordUpdation = false,
+    }: {
+      cookie?: any;
+      raw?: boolean;
+      throwExceptionIfNotExist?: boolean;
+      isSingleRecordUpdation?: boolean;
+    } = {},
   ) {
     let transaction;
     try {
@@ -2749,8 +2763,19 @@ class BaseModelSqlv2 {
         }
       }
 
-      if (!raw)
-        await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
+      if (!raw) {
+        if (isSingleRecordUpdation) {
+          await this.afterUpdate(
+            prevData[0],
+            newData[0],
+            trx,
+            cookie,
+            datas[0],
+          );
+        } else {
+          await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
+        }
+      }
 
       return res;
     } catch (e) {
@@ -2825,7 +2850,12 @@ class BaseModelSqlv2 {
     {
       cookie,
       throwExceptionIfNotExist = false,
-    }: { cookie?: any; throwExceptionIfNotExist?: boolean } = {},
+      isSingleRecordDeletion = false,
+    }: {
+      cookie?: any;
+      throwExceptionIfNotExist?: boolean;
+      isSingleRecordDeletion?: boolean;
+    } = {},
   ) {
     let transaction;
     try {
@@ -2927,7 +2957,11 @@ class BaseModelSqlv2 {
 
       await transaction.commit();
 
-      await this.afterBulkDelete(deleted, this.dbDriver, cookie);
+      if (isSingleRecordDeletion) {
+        await this.afterDelete(deleted[0], trx, cookie);
+      } else {
+        await this.afterBulkDelete(deleted, this.dbDriver, cookie);
+      }
 
       return res;
     } catch (e) {
@@ -4661,6 +4695,11 @@ function applyPaginate(
 }
 
 export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
+  // if id object is provided use as it is
+  if (id && typeof id === 'object') {
+    return id;
+  }
+
   const ids = Array.isArray(id) ? id : (id + '').split('___');
   const where = {};
   for (let i = 0; i < primaryKeys.length; ++i) {

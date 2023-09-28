@@ -130,13 +130,13 @@ const copyPasswordResetUrl = async (user: User) => {
 <template>
   <div data-testid="nc-super-user-list">
     <div class="max-w-[900px] mx-auto">
-      <div class="text-xl my-4 text-left font-weight-bold">User Management</div>
+      <div class="text-xl my-4 text-left font-weight-bold">{{ $t('title.userManagement') }}</div>
       <div class="py-2 flex gap-4 items-center">
         <a-input-search
           v-model:value="searchText"
           size="middle"
           class="max-w-[300px]"
-          placeholder="Search Users"
+          :placeholder="$t('labels.searchUsers')"
           @blur="loadUsers"
           @keydown.enter="loadUsers"
         >
@@ -157,7 +157,7 @@ const copyPasswordResetUrl = async (user: User) => {
         >
           <div class="flex items-center gap-1">
             <component :is="iconMap.plus" />
-            Invite new user
+            {{ $t('activity.inviteUser') }}
           </div>
         </a-button>
       </div>
@@ -186,7 +186,7 @@ const copyPasswordResetUrl = async (user: User) => {
         <a-table-column key="roles" :title="$t('objects.role')" data-index="roles">
           <template #default="{ record }">
             <div>
-              <div v-if="record.roles.includes('super')" class="font-weight-bold">Super Admin</div>
+              <div v-if="record.roles.includes('super')" class="font-weight-bold">{{ $t('labels.superAdmin') }}</div>
               <a-select
                 v-else
                 v-model:value="record.roles"

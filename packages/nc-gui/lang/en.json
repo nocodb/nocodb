@@ -446,6 +446,7 @@
     "addRowForm": "Enter record data through a form",
     "noAccess": "No access",
     "restApis": "Rest APIs",
+    "apis": "APIs",
     "includeData": "Include Data",
     "includeView": "Include View",
     "includeWebhook": "Include Webhook",

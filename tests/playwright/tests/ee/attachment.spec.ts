@@ -48,6 +48,9 @@ test.describe.skip('Attachment column', () => {
       columnHeader: 'testAttach',
       filePath: bigFile,
     });
+
+    await dashboard.rootPage.waitForTimeout(1000);
+
     // The size of ${file.name} exceeds the maximum file size ${attachmentMeta.maxAttachmentSize} MB.
     await dashboard.verifyToast({ message: 'The size of 6_bigSize.png exceeds the maximum file size 1 MB.' });
 
@@ -67,6 +70,8 @@ test.describe.skip('Attachment column', () => {
       count: 2,
     });
 
+    await dashboard.rootPage.waitForTimeout(1000);
+
     // add another file, should get rejected
     const oneFileArray = [`${process.cwd()}/fixtures/sampleFiles/Image/3.jpeg`];
     await dashboard.grid.cell.attachment.addFile({
@@ -74,6 +79,9 @@ test.describe.skip('Attachment column', () => {
       columnHeader: 'testAttach',
       filePath: oneFileArray,
     });
+
+    await dashboard.rootPage.waitForTimeout(1000);
+
     // wait for toast 'You can only upload at most 2 files to this cell'
     await dashboard.verifyToast({ message: 'You can only upload at most 2 files to this cell' });
 
@@ -88,6 +96,9 @@ test.describe.skip('Attachment column', () => {
       columnHeader: 'testAttach',
       filePath: threeFileArray,
     });
+
+    await dashboard.rootPage.waitForTimeout(1000);
+
     await dashboard.verifyToast({ message: 'You can only upload at most 2 files to this cell' });
 
     // open expand modal, try to insert file type not supported
@@ -97,6 +108,9 @@ test.describe.skip('Attachment column', () => {
       columnHeader: 'testAttach',
       filePath: [`${process.cwd()}/fixtures/sampleFiles/1.json`],
     });
+
+    await dashboard.rootPage.waitForTimeout(1000);
+
     await dashboard.verifyToast({
       message: '1.json has the mime type application/json which is not allowed in this column.',
     });
@@ -111,6 +125,9 @@ test.describe.skip('Attachment column', () => {
     await dashboard.grid.cell.attachment.expandModalAddFile({
       filePath: oneFileArray,
     });
+
+    await dashboard.rootPage.waitForTimeout(1000);
+
     await dashboard.verifyToast({ message: 'You can only upload at most 2 files to this cell' });
 
     // open expand modal, try to insert file type not supported
@@ -118,6 +135,9 @@ test.describe.skip('Attachment column', () => {
     await dashboard.grid.cell.attachment.expandModalAddFile({
       filePath: [`${process.cwd()}/fixtures/sampleFiles/1.json`],
     });
+
+    await dashboard.rootPage.waitForTimeout(1000);
+
     await dashboard.verifyToast({
       message: '1.json has the mime type application/json which is not allowed in this column.',
     });
@@ -127,6 +147,9 @@ test.describe.skip('Attachment column', () => {
     await dashboard.grid.cell.attachment.expandModalAddFile({
       filePath: bigFile,
     });
+
+    await dashboard.rootPage.waitForTimeout(1000);
+
     await dashboard.verifyToast({ message: 'The size of 6_bigSize.png exceeds the maximum file size 1 MB.' });
     await dashboard.grid.cell.attachment.expandModalClose();
 

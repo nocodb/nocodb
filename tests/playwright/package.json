@@ -38,7 +38,8 @@
     "ci:test:shard:3": "EE=true pnpm exec playwright test --workers=4 --shard=3/3",
     "ci:test:mysql": "E2E_DB_TYPE=mysql EE=true pnpm exec playwright test --workers=2",
     "ci:test:pg": "E2E_DB_TYPE=pg EE=true pnpm exec playwright test --workers=2",
-    "preinstall": "npx only-allow pnpm"
+    "preinstall": "npx only-allow pnpm",
+    "ci:test:flaky:repeat": "EE=true pnpm exec playwright test --workers=4 --grep @flaky --repeat-each=6"
   },
   "dependencies": {
     "body-parser": "^1.20.1",

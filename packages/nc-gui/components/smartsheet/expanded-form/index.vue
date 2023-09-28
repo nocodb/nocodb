@@ -368,20 +368,32 @@ export default {
     :width="commentsDrawer && isUIAllowed('commentList') ? 'min(80vw,1280px)' : 'min(80vw,1280px)'"
     :body-style="{ padding: 0 }"
     :closable="false"
-    size="large"
+    size="small"
     class="nc-drawer-expanded-form"
     :class="{ active: isExpanded }"
   >
-    <div class="h-[75vh] xs:(h-[95vh] max-h-full) max-h-215 flex flex-col p-6">
+    <div class="h-[85vh] xs:(max-h-full) max-h-215 flex flex-col p-6">
       <div class="flex h-8 flex-shrink-0 w-full items-center nc-expanded-form-header relative mb-4 justify-between">
         <template v-if="!isMobileMode">
           <div class="flex gap-3">
             <div class="flex gap-2">
-              <NcButton v-if="props.showNextPrevIcons" type="secondary" class="nc-prev-arrow !w-10" @click="$emit('prev')">
-                <MdiChevronUp class="text-md text-gray-700" />
+              <NcButton
+                v-if="props.showNextPrevIcons"
+                :disabled="props.firstRow"
+                type="secondary"
+                class="nc-prev-arrow !w-10"
+                @click="$emit('prev')"
+              >
+                <MdiChevronUp class="text-md" />
               </NcButton>
-              <NcButton v-if="!props.lastRow" type="secondary" class="nc-next-arrow !w-10" @click="onNext">
-                <MdiChevronDown class="text-md text-gray-700" />
+              <NcButton
+                v-if="props.showNextPrevIcons"
+                :disabled="props.lastRow"
+                type="secondary"
+                class="nc-next-arrow !w-10"
+                @click="onNext"
+              >
+                <MdiChevronDown class="text-md" />
               </NcButton>
             </div>
             <div v-if="displayValue" class="flex items-center truncate max-w-32 font-bold text-gray-800 text-xl">
@@ -456,8 +468,8 @@ export default {
           </div>
         </template>
       </div>
-      <div ref="wrapper" class="flex flex-grow flex-row h-[calc(100%-3rem)] w-full gap-4">
-        <div class="flex w-full flex-col border-1 rounded-xl overflow-hidden border-gray-200 xs:(border-0 rounded-none)">
+      <div ref="wrapper" class="flex flex-grow flex-row h-[calc(100%-4rem)] w-full gap-4">
+        <div class="flex w-2/3 xs:w-full flex-col border-1 rounded-xl overflow-hidden border-gray-200 xs:(border-0 rounded-none)">
           <div
             class="flex flex-col flex-grow mt-2 h-full max-h-full nc-scrollbar-md !pb-2 items-center w-full bg-white p-4 xs:p-0"
           >
@@ -544,7 +556,7 @@ export default {
           </div>
           <div
             v-if="isUIAllowed('dataEdit')"
-            class="w-full h-14 border-t-1 border-gray-200 bg-white flex items-center justify-end p-2 xs:(p-0 mt-4 border-t-0 gap-x-4 justify-between)"
+            class="w-full h-16 border-t-1 border-gray-200 bg-white flex items-center justify-end p-3 xs:(p-0 mt-4 border-t-0 gap-x-4 justify-between)"
           >
             <NcDropdown v-if="!isNew && isMobileMode">
               <NcButton type="secondary" class="nc-expand-form-more-actions w-10">
@@ -599,7 +611,7 @@ export default {
         </div>
         <div
           v-if="!isNew && commentsDrawer && isUIAllowed('commentList')"
-          class="nc-comments-drawer border-1 relative border-gray-200 w-[380px] bg-gray-50 rounded-xl min-w-0 overflow-hidden h-full xs:hidden"
+          class="nc-comments-drawer border-1 relative border-gray-200 w-1/3 max-w-125 bg-gray-50 rounded-xl min-w-0 overflow-hidden h-full xs:hidden"
           :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
         >
           <LazySmartsheetExpandedFormComments />

@@ -13,7 +13,7 @@ const current = useVModel(props, 'current', emits)
 
 const pageSize = useVModel(props, 'pageSize', emits)
 
-const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
+const totalPages = computed(() => Math.max(Math.ceil(total.value / pageSize.value), 1))
 
 const { isMobileMode } = useGlobal()
 

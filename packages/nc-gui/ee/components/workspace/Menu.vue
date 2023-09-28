@@ -6,7 +6,7 @@ const workspaceStore = useWorkspace()
 const { activeWorkspace, workspacesList, workspaceUserCount } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
-const { leftSidebarState, isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+const { leftSidebarState, isLeftSidebarOpen, leftSidebarWidth } = storeToRefs(useSidebarStore())
 const viewportWidth = ref(window.innerWidth)
 
 const { navigateToTable } = useTablesStore()
@@ -114,11 +114,11 @@ onBeforeUnmount(() => {
     >
       <div
         data-testid="nc-workspace-menu"
-        class="group cursor-pointer flex flex-grow w-full gap-x-2 items-center nc-workspace-menu overflow-hidden py-1.25 pr-0.25"
+        class="group cursor-pointer flex flex-grow w-full gap-x-2 items-center nc-workspace-menu overflow-hidden py-1.25 xs:py-1.75 pr-0.25"
       >
         <GeneralWorkspaceIcon :workspace="activeWorkspace" />
         <div v-if="activeWorkspace" class="flex min-w-10 w-full">
-          <div class="font-semibold text-base text-md truncate capitalize">
+          <div class="nc-workspace-title font-semibold text-base text-md truncate capitalize">
             {{ activeWorkspace.title }}
           </div>
           <GeneralIcon icon="arrowDown" class="ml-1 min-w-6 text-lg !text-gray-700" />
@@ -126,7 +126,11 @@ onBeforeUnmount(() => {
       </div>
 
       <template #overlay>
-        <NcMenu class="nc-workspace-dropdown-inner" style="min-width: calc(110% + 1rem)" @click="isWorkspaceDropdownOpen = false">
+        <NcMenu
+          class="nc-workspace-dropdown-inner"
+          :style="`width: ${leftSidebarWidth - 4}px`"
+          @click="isWorkspaceDropdownOpen = false"
+        >
           <a-menu-item-group class="!border-t-0">
             <div class="flex gap-x-3 min-w-0 px-4 py-3 items-center">
               <GeneralWorkspaceIcon :workspace="activeWorkspace" size="large" />
@@ -134,6 +138,7 @@ onBeforeUnmount(() => {
                 <div
                   class="mt-0.5 flex capitalize mb-0 nc-workspace-title truncate min-w-10 text-sm text-black font-medium"
                   style="line-height: 1.5rem"
+                  data-testid="nc-workspace-list"
                 >
                   {{ activeWorkspace?.title }}
                 </div>
@@ -152,7 +157,12 @@ onBeforeUnmount(() => {
             <NcDivider v-if="!isMobileMode" class="!mb-0" />
 
             <div class="max-h-300px nc-scrollbar-md !overflow-y-auto py-1">
-              <NcMenuItem v-for="workspace of otherWorkspaces" :key="workspace.id!" @click="switchWorkspace(workspace.id!)">
+              <NcMenuItem
+                v-for="workspace of otherWorkspaces"
+                :key="workspace.id!"
+                class="!h-10"
+                @click="switchWorkspace(workspace.id!)"
+              >
                 <div class="nc-workspace-menu-item group capitalize max-w-300px flex" data-testid="nc-workspace-list">
                   <GeneralWorkspaceIcon :workspace="workspace" hide-label size="small" />
                   <div class="mt-0.5 flex capitalize mb-0 nc-workspace-title truncate min-w-10">
@@ -178,6 +188,10 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped lang="scss">
+:deep(.nc-dropdown) {
+  @apply z-40;
+}
+
 .nc-workspace-menu-item {
   @apply flex items-center !py-0 !pl-1 gap-2 text-sm hover:text-black;
 }

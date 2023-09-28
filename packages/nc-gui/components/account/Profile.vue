@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 const { user } = useGlobal()
 
+const { t } = useI18n()
+
 const isErrored = ref(false)
 const isTitleUpdating = ref(false)
 const form = ref({
@@ -13,9 +15,9 @@ const formValidator = ref()
 
 const formRules = {
   title: [
-    { required: true, message: 'Name required' },
-    { min: 2, message: 'Name must be at least 2 characters long' },
-    { max: 60, message: 'Name must be at most 60 characters long' },
+    { required: true, message: t('error.nameRequired') },
+    { min: 2, message: t('error.nameMinLength') },
+    { max: 60, message: t('error.nameMaxLength') },
   ],
 }
 

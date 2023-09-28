@@ -245,6 +245,11 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "editCards": "Edit Cards",
+    "noFieldsFound": "No fields found",
+    "displayValue": "Display Value",
+    "hideAll":"Hide all",
+    "hideSystemFields": "hideSystemFields",
     "renameTable": "Rename Table",
     "renamingTable": "Renaming Table",
     "copyAuthToken": "Copy Auth Token",

@@ -589,8 +589,10 @@ ${qb.toQuery()}
             }
             break;
           default:
-            selectors.push(column.column_name);
-            groupBySelectors.push(sanitize(column.column_name));
+            selectors.push(
+              this.dbDriver.raw('?? as ??', [column.column_name, column.title]),
+            );
+            groupBySelectors.push(sanitize(column.title));
             break;
         }
       }),
@@ -651,6 +653,8 @@ ${qb.toQuery()}
       qb.orderBy(
         groupByColumns[sort.fk_column_id].column_name ||
           groupByColumns[sort.fk_column_id].title,
+        sort.direction,
+        sort.direction === 'desc' ? 'LAST' : 'FIRST',
       );
     });
 
@@ -745,8 +749,13 @@ ${qb.toQuery()}
               }
               break;
             default:
-              selectors.push(column.column_name);
-              groupBySelectors.push(sanitize(column.column_name));
+              selectors.push(
+                this.dbDriver.raw('?? as ??', [
+                  column.column_name,
+                  column.title,
+                ]),
+              );
+              groupBySelectors.push(sanitize(column.title));
               break;
           }
         }),

@@ -324,6 +324,8 @@
     "switchLanguage": "Switch Language"
   },
   "labels": {
+    "searchUsers": "Search Users",
+    "superAdmin": "Super Admin",
     "searchProjects": "Search Projects",
     "createdBy": "Created By",
     "createdOn": "Created On",
@@ -873,6 +875,9 @@
       "tokenNameMaxLength": "Token name should not be more than 255 characters"
     },
     "error": {
+      "nameRequired": "Name Required",
+      "nameMinLength": "Name must be at least 2 characters long",
+      "nameMaxLength": "Name must be at most 60 characters long",
       "viewNameRequired": "View name is required",
       "viewNameUnique": "View name should be unique",
       "searchProject": "Your search for {search} found no results",
@@ -883,8 +888,8 @@
       "dbConnectionStatus": "Invalid database parameters",
       "dbConnectionFailed": "Connection Failure:",
       "signUpRules": {
-        "emailReqd": "E-mail is required",
-        "emailInvalid": "E-mail must be valid",
+        "emailReqd": "Email is required",
+        "emailInvalid": "Email must be valid",
         "passwdRequired": "Password is required",
         "passwdLength": "You password must be atleast 8 characters",
         "passwdMismatch": "Passwords do not match",
@@ -956,6 +961,7 @@
       "futureRelease": "Coming soon!"
     },
     "success": {
+      "licenseKeyUpdated": "License Key Updated",
       "columnDuplicated": "Column duplicated successfully",
       "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",

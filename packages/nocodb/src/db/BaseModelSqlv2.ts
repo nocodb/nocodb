@@ -2768,7 +2768,7 @@ class BaseModelSqlv2 {
           await this.afterUpdate(
             prevData[0],
             newData[0],
-            trx,
+            null,
             cookie,
             datas[0],
           );
@@ -2958,7 +2958,7 @@ class BaseModelSqlv2 {
       await transaction.commit();
 
       if (isSingleRecordDeletion) {
-        await this.afterDelete(deleted[0], trx, cookie);
+        await this.afterDelete(deleted[0], null, cookie);
       } else {
         await this.afterBulkDelete(deleted, this.dbDriver, cookie);
       }

@@ -179,6 +179,7 @@ export const metaModuleMetadata = {
     AttachmentsService,
     ProjectUsersService,
     HooksService,
+    MetaDiffsService,
   ],
 };
 

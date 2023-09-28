@@ -188,17 +188,17 @@ onMounted(() => {
           <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
             <MdiFileOutline class="h-4 w-4" />
             Document
-            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ isMac() ? '⌘' : 'Ctrl' }} J </span>
+            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} J </span>
           </div>
           <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
             <MdiMapMarkerOutline class="h-4 w-4" />
             Quick Navigation
-            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ isMac() ? '⌘' : 'Ctrl' }} K </span>
+            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} K </span>
           </div>
-          <div class="flex flex-grow-1 w-full text-sm text-brand-500 items-center gap-2 justify-center">
+          <div class="flex flex-grow-1 text-brand-500 w-full text-sm items-center gap-2 justify-center">
             <MdiClockOutline class="h-4 w-4" />
             Recent
-            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ isMac() ? '⌘' : 'Ctrl' }} L </span>
+            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} L </span>
           </div>
         </div>
       </div>

@@ -16,8 +16,6 @@ const typesenseInstantsearchAdapter = new TypesenseInstantSearchAdapter({
   additionalSearchParameters: {
     query_by: 'anchor,content',
     group_by: 'url',
-    limit_hits: 6,
-    per_page: 6,
   },
 })
 

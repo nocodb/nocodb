@@ -85,7 +85,6 @@ export default defineNuxtConfig({
     'virtual:windi-devtools',
     '~/assets/css/global.css',
     '~/assets/style.scss',
-    'instantsearch.css/themes/algolia-min.css',
   ],
 
   runtimeConfig: {

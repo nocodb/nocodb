@@ -12,11 +12,19 @@ const vOpen = useVModel(props, 'open', emits)
 
 const modalEl = ref<HTMLElement>()
 
+const focus = () => {
+  modalEl.value?.querySelector('.cmdj-input')?.focus()
+}
+
 const selected = ref(0)
 
 const visit = (url: string) => {
   window.location.href = url
   vOpen.value = false
+}
+
+const renderCmdOrCtrlKey = () => {
+  return isMac() ? '⌘' : 'CTRL'
 }
 
 whenever(keys.ArrowDown, () => {
@@ -80,9 +88,11 @@ onClickOutside(modalEl, () => {
   hide()
 })
 
-const focus: VNodeRef = (el: HTMLInputElement) => el?.focus()
-
 const searchClient = nuxtApp.$typesenseInstantsearchAdapter.searchClient
+
+onMounted(() => {
+  focus()
+})
 </script>
 
 <template>
@@ -119,7 +129,7 @@ const searchClient = nuxtApp.$typesenseInstantsearchAdapter.searchClient
               class="cmdj-action cursor-pointer"
               :class="{ selected: index === selected }"
               @click="visit(item.url)"
-              @enter="visit(item.url)"
+              @keyup.enter="visit(item.url)"
             >
               <span class="cmdj-action-icon">
                 <MdiFileOutline class="h-4 w-4" />
@@ -133,17 +143,17 @@ const searchClient = nuxtApp.$typesenseInstantsearchAdapter.searchClient
             <div class="flex flex-grow-1 w-full text-brand-500 text-sm items-center gap-2 justify-center">
               <MdiFileOutline class="h-4 w-4" />
               Document
-              <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ isMac() ? '⌘' : 'Ctrl' }} J </span>
+              <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} J </span>
             </div>
             <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
               <MdiMapMarkerOutline class="h-4 w-4" />
               Quick Navigation
-              <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ isMac() ? '⌘' : 'Ctrl' }} K </span>
+              <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} K </span>
             </div>
             <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
               <MdiClockOutline class="h-4 w-4" />
               Recent
-              <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ isMac() ? '⌘' : 'Ctrl' }} L </span>
+              <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} L </span>
             </div>
           </div>
         </div>
@@ -164,16 +174,7 @@ const searchClient = nuxtApp.$typesenseInstantsearchAdapter.searchClient
   --cmdj-modal-background: #fff;
 }
 .cmdj-modal {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(255, 255, 255, 0.5);
-  z-index: 1000;
-
-  color: rgb(60, 65, 73);
-  font-size: 16px;
+  @apply absolute top-0 left-0 w-full h-full z-50 bg-white/50 font-medium text-gray-700;
 
   .cmdj-modal-content {
     position: relative;

@@ -47,6 +47,18 @@ onKeyUp('Control', async () => {
   }
 })
 
+function scrollToTarget() {
+  const element = document.querySelector('.cmdk-action.selected')
+  const headerOffset = 45
+  const elementPosition = element?.getBoundingClientRect().top
+  const offsetPosition = elementPosition! + window.pageYOffset - headerOffset
+
+  window.scrollTo({
+    top: offsetPosition,
+    behavior: 'smooth',
+  })
+}
+
 const renderCmdOrCtrlKey = () => {
   return isMac() ? '⌘' : 'CTRL'
 }
@@ -68,16 +80,13 @@ whenever(keys['Ctrl+Shift+L'], async () => {
   } else {
     selected.value = recentViews.value[index - 1].tableID + recentViews.value[index - 1].viewName
     const cmdOption = recentViews.value[index - 1]
+    scrollToTarget()
 
     newView.value = {
       viewId: cmdOption.viewId ?? null,
       tableId: cmdOption.tableID,
       projectId: cmdOption.projectId,
     }
-    document.querySelector('.cmdk-action.selected')?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest',
-    })
   }
 })
 
@@ -99,15 +108,13 @@ whenever(keys.ctrl_l, async () => {
     selected.value = recentViews.value[index + 1].tableID + recentViews.value[index + 1].viewName
     const cmdOption = recentViews.value[index + 1]
 
+    scrollToTarget()
+
     newView.value = {
       viewId: cmdOption.viewId ?? null,
       tableId: cmdOption.tableID,
       projectId: cmdOption.projectId,
     }
-    document.querySelector('.cmdk-action.selected')?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest',
-    })
   }
 })
 
@@ -154,14 +161,14 @@ onMounted(() => {
 
 <template>
   <div v-show="vOpen" class="cmdk-modal" :class="{ 'cmdk-modal-active': vOpen }">
-    <div ref="modalEl" class="cmdk-modal-content relative">
+    <div ref="modalEl" class="cmdk-modal-content !top-[15%] relative">
       <div class="fixed !h-8 w-full z-[50]">
         <div class="text-sm px-4 py-2 text-gray-500">Recent Views</div>
       </div>
       <div
         class="flex flex-col shrink grow overflow-hidden shadow-[rgb(0_0_0_/_50%)_0px_16px_70px] max-w-[650px] p-0 rounded-lg top-[25%]"
       >
-        <div class="max-h-84 mt-6 scroll-smooth actions overflow-auto nc-scrollbar-md relative m-0 px-0 py-2">
+        <div class="mt-6 scroll-smooth actions overflow-auto nc-scrollbar-md relative m-0 px-0 py-2">
           <div v-if="recentViews.length < 1" class="flex flex-col p-4 items-start justify-center text-md">No recent views</div>
           <div v-else class="flex flex-col w-full">
             <div

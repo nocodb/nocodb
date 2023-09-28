@@ -11,11 +11,11 @@ const modalEl = ref<HTMLElement | null>(null)
 const vOpen = useVModel(props, 'open', emits)
 
 const hide = () => {
-  document.getElementById('searchbar').classList.replace('block', 'hidden')
+  document.getElementById('searchbar')?.classList.replace('block', 'hidden')
   vOpen.value = false
 }
 const show = () => {
-  document.getElementById('searchbar').classList.replace('hidden', 'block')
+  document.getElementById('searchbar')?.classList.replace('hidden', 'block')
   document.getElementsByClassName('DocSearch DocSearch-Button')[0].click()
   vOpen.value = true
 }
@@ -66,7 +66,6 @@ onMounted(() => {
       ],
       apiKey: 'lNKDTZdJrE76Sg8WEyeN9mXT29l1xq7Q',
     },
-    bindKeyboardShortcuts: true,
     typesenseSearchParameters: {
       // Optional.
     },

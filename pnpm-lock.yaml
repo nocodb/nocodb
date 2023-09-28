@@ -36,12 +36,15 @@ importers:
       '@iconify/vue':
         specifier: ^4.1.1
         version: 4.1.1(vue@3.3.4)
-      '@nuxtjs/sentry':
-        specifier: ^7.5.0
-        version: 7.5.0(vue@3.3.4)
       '@pinia/nuxt':
         specifier: ^0.4.11
         version: 0.4.11(vue@3.3.4)
+      '@sentry/tracing':
+        specifier: ^7.72.0
+        version: 7.72.0
+      '@sentry/vue':
+        specifier: ^7.72.0
+        version: 7.72.0(vue@3.3.4)
       '@tiptap/extension-blockquote':
         specifier: 2.0.3
         version: 2.0.3(@tiptap/core@2.1.8)
@@ -5870,25 +5873,6 @@ packages:
     transitivePeerDependencies:
       - encoding
 
-  /@nuxtjs/sentry@7.5.0(vue@3.3.4):
-    resolution: {integrity: sha512-biirs9mCZ6MZVO9d7iYLu/agYPAnV8pH9aCOu+xqH5dgY1aLTv+mqzS4jEebi53eW7Aw4DcKsIwe8uhZAZQkAw==}
-    dependencies:
-      '@sentry/core': 7.72.0
-      '@sentry/integrations': 7.72.0
-      '@sentry/node': 7.72.0
-      '@sentry/utils': 7.72.0
-      '@sentry/vue': 7.72.0(vue@3.3.4)
-      consola: 3.2.3
-      defu: 6.1.2
-      hash-sum: 2.0.0
-      lodash.mergewith: 4.6.2
-      mlly: 1.4.1
-      pathe: 1.1.1
-    transitivePeerDependencies:
-      - supports-color
-      - vue
-    dev: false
-
   /@nx/devkit@16.7.4(nx@16.7.4):
     resolution: {integrity: sha512-SLito+/TAeDYR+d7IIpp/sBJm41WM+nIevILv0TSQW4Pq0ylUy1nUvV8Pe7l1ohZccDrQuebMUWPwGO0hv8SeQ==}
     peerDependencies:
@@ -6554,16 +6538,6 @@ packages:
       tslib: 1.14.1
     dev: false
 
-  /@sentry/integrations@7.72.0:
-    resolution: {integrity: sha512-ay2WgLtjsr0WS8+N7i7VmKzondoZRh3ISx8rb91LjmVrDNu8baleZAB59jkKe/JSy0gYh99umJuptc2te/65+A==}
-    engines: {node: '>=8'}
-    dependencies:
-      '@sentry/types': 7.72.0
-      '@sentry/utils': 7.72.0
-      localforage: 1.10.0
-      tslib: 2.6.2
-    dev: false
-
   /@sentry/minimal@6.3.5:
     resolution: {integrity: sha512-4RqIGAU0+8iI/1sw0GYPTr4SUA88/i2+JPjFJ+qloh5ANVaNwhFPRChw+Ys9xpre8LV9JZrEsEf8AvQr4fkNbA==}
     engines: {node: '>=6'}
@@ -6590,22 +6564,6 @@ packages:
       - supports-color
     dev: false
 
-  /@sentry/node@7.72.0:
-    resolution: {integrity: sha512-R5kNCIdaDa92EN6oCLiGJehw5wxayOM53WF60Ap6EJHZb5U8dM2BnODmQ6SCRLNB677p+620oSV6CCU286IleQ==}
-    engines: {node: '>=8'}
-    dependencies:
-      '@sentry-internal/tracing': 7.72.0
-      '@sentry/core': 7.72.0
-      '@sentry/types': 7.72.0
-      '@sentry/utils': 7.72.0
-      cookie: 0.5.0
-      https-proxy-agent: 5.0.1
-      lru_map: 0.3.3
-      tslib: 2.6.2
-    transitivePeerDependencies:
-      - supports-color
-    dev: false
-
   /@sentry/replay@7.72.0:
     resolution: {integrity: sha512-dHH/mYCFBwJ/kYmL9L5KihjwQKcefiuvcH0otHSwKSpbbeEoM/BV+SHQoYGd6OMSYnL9fq1dHfF7Zo26p5Yu0Q==}
     engines: {node: '>=12'}
@@ -6624,6 +6582,13 @@ packages:
       '@sentry/types': 6.3.5
       '@sentry/utils': 6.3.5
       tslib: 1.14.1
+    dev: false
+
+  /@sentry/tracing@7.72.0:
+    resolution: {integrity: sha512-DOMlyviMLNwWgN4gJw/TrHaAdBcZWvm8xLbgwMwrihRn/m84kmH2Ui1FUYpL30o/mH+mQS+53IHZukrgQjHkZA==}
+    engines: {node: '>=8'}
+    dependencies:
+      '@sentry-internal/tracing': 7.72.0
     dev: false
 
   /@sentry/types@6.3.5:
@@ -15727,10 +15692,6 @@ packages:
     engines: {node: '>=10.18.0'}
     dev: true
 
-  /immediate@3.0.6:
-    resolution: {integrity: sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ==}
-    dev: false
-
   /immutable@4.3.4:
     resolution: {integrity: sha512-fsXeu4J4i6WNWSikpI88v/PcVflZz+6kMhUfIwc5SY+poQRPnaf5V7qds6SUyUN3cVxEzuCab7QIoLOQ+DQ1wA==}
     dev: true
@@ -17496,12 +17457,6 @@ packages:
       - supports-color
     dev: true
 
-  /lie@3.1.1:
-    resolution: {integrity: sha512-RiNhHysUjhrDQntfYSfY4MU24coXXdEOgw9WGcKHNeEwffDYbF//u87M1EWaMGzuFoSbqW0C9C6lEEhDOAswfw==}
-    dependencies:
-      immediate: 3.0.6
-    dev: false
-
   /lilconfig@2.0.5:
     resolution: {integrity: sha512-xaYmXZtTHPAw5m+xLN8ab9C+3a8YmV3asNSPOATITbtwrfbwaLJj8h66H1WMIpALCkqsIzK3h7oQ+PdX+LQ9Eg==}
     engines: {node: '>=10'}
@@ -17650,12 +17605,6 @@ packages:
       windows-locale: 1.1.3
     dev: false
 
-  /localforage@1.10.0:
-    resolution: {integrity: sha512-14/H1aX7hzBBmmh7sGPd+AOMkkIrHM3Z1PAyGgZigA1H1p5O5ANnMyWzvpAETtG68/dC4pC0ncy3+PPGzXZHPg==}
-    dependencies:
-      lie: 3.1.1
-    dev: false
-
   /locate-path@2.0.0:
     resolution: {integrity: sha512-NCI2kiDkyR7VeEKm27Kda/iQHyKJe1Bu0FlTbYp3CqJu+9IFe9bLyAjMxf5ZDDbEg+iMPzB5zYyUTSm8wVTKmA==}
     engines: {node: '>=4'}
@@ -17735,10 +17684,6 @@ packages:
   /lodash.merge@4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
     dev: true
-
-  /lodash.mergewith@4.6.2:
-    resolution: {integrity: sha512-GK3g5RPZWTRSeLSpgP8Xhra+pnjBC56q9FZYe1d5RN3TJ35dbkGy3YqBSMbyCrlbi+CM9Z3Jk5yTL7RCsqboyQ==}
-    dev: false
 
   /lodash.once@4.1.1:
     resolution: {integrity: sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==}

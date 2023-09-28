@@ -348,13 +348,6 @@ class BaseModelSqlv2 {
     const proto = await this.getProto();
 
     let data;
-
-    console.log(`
-
-${qb.toQuery()}
-
-    `);
-
     try {
       data = await this.execAndParse(qb);
     } catch (e) {

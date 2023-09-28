@@ -638,6 +638,7 @@
     "selectField": "Select field"
   },
   "msg": {
+    "areYouSureUWantTo": "Are you sure you want to delete the following",
     "warning": {
       "barcode": {
         "renderError": "Barcode error - please check compatibility between input and barcode type"

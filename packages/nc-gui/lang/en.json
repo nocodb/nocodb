@@ -52,6 +52,7 @@
     "add": "Add",
     "edit": "Edit",
     "remove": "Remove",
+    "logout": "Log Out",
     "save": "Save",
     "abort": "Abort",
     "saving": "Saving",
@@ -237,6 +238,10 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "copyAuthToken": "Copy Auth Token",
+    "copiedAuthToken": "Copied Auth Token",
+    "showSidebar": "Show Sidebar",
+    "hideSidebar": "Hide Sidebar",
     "creatingTable": "Creating Table",
     "erdView": "ERD View",
     "newProj": "New Project",
@@ -270,7 +275,7 @@
     "importFromAirtable": "Import From Airtable",
     "generateToken": "Generate Token",
     "APIsAndSupport": "APIs & Support",
-    "helpCenter": "Help center",
+    "helpCenter": "Help Center",
     "swaggerDocumentation": "Swagger Documentation",
     "quickImportFrom": "Quick Import From",
     "quickImport": "Quick Import",
@@ -372,9 +377,11 @@
       "getAnswered": "Get your questions answered",
       "joinDiscord": "Join Discord",
       "joinCommunity": "Join NocoDB Community",
-      "joinReddit": "Join /r/NocoDB",
-      "followNocodb": "Follow NocoDB"
+      "joinReddit": "/r/NocoDB",
+      "followNocodb": "Follow NocoDB",
+      "communityTranslated": "(Community Translated)"
     },
+    "twitter": "Twitter",
     "docReference": "Document Reference",
     "selectUserRole": "Select User Role",
     "childTable": "Child table",

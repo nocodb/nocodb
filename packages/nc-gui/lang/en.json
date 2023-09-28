@@ -179,7 +179,8 @@
       "medium": "Medium",
       "tall": "Tall",
       "extra": "Extra"
-    }
+    },
+    "externalDb": "External Database"
   },
   "datatype": {
     "ID": "ID",
@@ -282,7 +283,8 @@
     "tokens": "Tokens",
     "userManagement": "User Management",
     "licence": "Licence",
-    "defaultView": "Default View"
+    "defaultView": "Default View",
+    "relations": "Relations"
   },
   "labels": {
     "searchProjects": "Search Projects",

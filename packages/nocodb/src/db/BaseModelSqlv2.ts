@@ -639,31 +639,28 @@ ${qb.toQuery()}
       qb,
     );
 
-    // group by using the column aliases
-    qb.groupBy(...groupBySelectors);
-
     if (!sorts)
       sorts = args.sortArr?.length
         ? args.sortArr
         : await Sort.list({ viewId: this.viewId });
 
-    // if sort is provided filter out the group by columns
-    // and apply it directly using group by column alias
-    // since using the query directly in group by query is not supported in all databases
-    sorts = sorts.filter((sort) => {
+    // if sort is provided filter out the group by columns sort and apply
+    // since we are grouping by the column and applying sort on any other column is not required
+    for (const sort of sorts) {
       if (!groupByColumns[sort.fk_column_id]) {
-        return true;
+        continue;
       }
 
       qb.orderBy(
-        groupByColumns[sort.fk_column_id].column_name ||
-          groupByColumns[sort.fk_column_id].title,
+        groupByColumns[sort.fk_column_id].title,
         sort.direction,
         sort.direction === 'desc' ? 'LAST' : 'FIRST',
       );
-    });
+    }
 
-    if (sorts) await sortV2(this, sorts, qb);
+    // group by using the column aliases
+    qb.groupBy(...groupBySelectors);
+
     applyPaginate(qb, rest);
     return await qb;
   }
@@ -4675,14 +4672,16 @@ export function extractSortsObject(
 
   let sorts = _sorts;
 
-  if (!Array.isArray(sorts)) sorts = sorts.split(',');
+  if (!Array.isArray(sorts)) sorts = sorts.split(/\s*,\s*/);
 
   return sorts.map((s) => {
     const sort: SortType = { direction: 'asc' };
     if (s.startsWith('-')) {
       sort.direction = 'desc';
       sort.fk_column_id = aliasColObjMap[s.slice(1)]?.id;
-    } else sort.fk_column_id = aliasColObjMap[s]?.id;
+    }
+    // replace + at the beginning if present
+    else sort.fk_column_id = aliasColObjMap[s.replace(/^\+/, '')]?.id;
 
     return new Sort(sort);
   });

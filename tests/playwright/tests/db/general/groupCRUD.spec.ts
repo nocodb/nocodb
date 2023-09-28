@@ -248,4 +248,23 @@ test.describe('GroupBy CRUD Operations', () => {
       value: 'Zzzzzzzzzzzzzzzzzzz',
     });
   });
+
+  test.only('Single GroupBy CRUD Operations - Links', async ({ page }) => {
+    await dashboard.treeView.openTable({ title: 'Film' });
+
+    await toolbar.sort.add({ title: 'Actors', ascending: true, locallySaved: false });
+
+    await toolbar.clickGroupBy();
+
+    await toolbar.groupBy.add({ title: 'Actors', ascending: false, locallySaved: false });
+
+    await dashboard.grid.groupPage.openGroup({ indexMap: [0] });
+
+    await dashboard.grid.groupPage.addNewRow({
+      indexMap: [0],
+      index: 10,
+      columnHeader: 'Item',
+      value: 'Aaaaaaaaaaaaaaaaaaaa',
+    });
+  });
 });

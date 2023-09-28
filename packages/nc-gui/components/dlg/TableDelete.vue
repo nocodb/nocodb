@@ -70,7 +70,8 @@ const onDelete = async () => {
 
     await loadTables()
 
-    removeFromRecentViews(toBeDeletedTable.id as string)
+    // Remove from recent views
+    removeFromRecentViews({ projectId: props.projectId, tableId: toBeDeletedTable.id as string })
 
     removeMeta(toBeDeletedTable.id as string)
     refreshCommandPalette()

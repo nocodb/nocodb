@@ -136,8 +136,22 @@ export const useViewsStore = defineStore('viewsStore', () => {
     await router.push({ name: routeName, params: { viewTitle: viewId || '', viewId: tableId, projectId } })
   }
 
-  const removeFromRecentViews = ({ viewId, tableId }: { viewId?: string | undefined; tableId: string }) => {
-    recentViews.value = recentViews.value.filter((f) => f.viewId !== viewId || f.tableID !== tableId)
+  const removeFromRecentViews = ({
+    viewId,
+    tableId,
+    projectId,
+  }: {
+    viewId?: string | undefined
+    tableId: string
+    projectId?: string
+  }) => {
+    if (projectId && !viewId && !tableId) {
+      recentViews.value = recentViews.value.filter((f) => f.projectId !== projectId)
+    } else if (projectId && tableId && !viewId) {
+      recentViews.value = recentViews.value.filter((f) => f.projectId !== projectId || f.tableID !== tableId)
+    } else if (tableId && viewId) {
+      recentViews.value = recentViews.value.filter((f) => f.viewId !== viewId || f.tableID !== tableId)
+    }
   }
 
   watch(

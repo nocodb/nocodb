@@ -66,6 +66,8 @@ const { activeWorkspace } = storeToRefs(workspaceStore)
 const { loadProjectTables } = useTablesStore()
 const { activeTable } = storeToRefs(useTablesStore())
 
+const { recentViews } = storeToRefs(useViewsStore())
+
 const { appInfo, navigateToProject } = useGlobal()
 
 useTabs()
@@ -136,10 +138,18 @@ const updateProjectTitle = async () => {
     await updateProject(project.value.id!, {
       title: tempTitle.value,
     })
+    // update project title in recent views
+    recentViews.value = recentViews.value.map((view) => {
+      if (view.project_id === project.value.id) {
+        view.project_title = tempTitle.value
+      }
+      return view
+    })
     editMode.value = false
     tempTitle.value = ''
 
     $e('a:project:rename')
+
 
     useTitle(`${project.value?.title}`)
   } catch (e: any) {

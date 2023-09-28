@@ -14,6 +14,8 @@ const projectsStore = useProjects()
 const { deleteProject, navigateToFirstProjectOrHome } = projectsStore
 const { projects } = storeToRefs(projectsStore)
 
+const { removeFromRecentViews } = useViewsStore()
+
 const { refreshCommandPalette } = useCommandPalette()
 
 const project = computed(() => projects.value.get(props.projectId))
@@ -41,6 +43,7 @@ const onDelete = async () => {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isLoading.value = false
+    removeFromRecentViews({ projectId: toBeDeletedProject.id! })
   }
 }
 </script>

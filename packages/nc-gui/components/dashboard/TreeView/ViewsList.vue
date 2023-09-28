@@ -244,6 +244,7 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
         scope: defineModelScope({ view: activeView.value }),
       })
     }
+    // update view name in recent views
     recentViews.value = recentViews.value.map((rv) => {
       if (rv.viewId === view.id && rv.tableID === view.fk_model_id) {
         rv.viewName = view.title
@@ -271,7 +272,7 @@ function openDeleteDialog(view: ViewType) {
 
       emits('deleted')
 
-      removeFromRecentViews({ viewId: view.id, tableId: view.fk_model_id })
+      removeFromRecentViews({ viewId: view.id, tableId: view.fk_model_id, projectId: project.value.id })
       refreshCommandPalette()
       if (activeView.value?.id === view.id) {
         navigateToTable({

@@ -81,6 +81,7 @@
     "access": "Access",
     "visibility": "Visibility",
     "hide": "Hide",
+    "deprecated": "Deprecated",
     "showAll": "Show all",
     "hideAll": "Hide all",
     "showMore": "Show more",
@@ -327,11 +328,13 @@
     "tokens": "Tokens",
     "userManagement": "User Management",
     "licence": "Licence",
+    "allowAllMimeTypes": "Allow All Mime Types",
     "defaultView": "Default View",
     "relations": "Relations",
     "switchLanguage": "Switch Language"
   },
   "labels": {
+    "optional": "Optional",
     "clickToMake": "Click to make",
     "visibleForRole": "visible for role:",
     "inUI": "in UI Dashboard",
@@ -735,6 +738,7 @@
     "selectField": "Select field"
   },
   "msg": {
+    "acceptOnlyValid": "Accepts only",
     "apiTokenCreate": "Create personal API tokens to use in automation or external apps.",
     "selectFieldToSort": "Select Field to Sort",
     "createWebhookMsg1": "Get started with web-hooks!",
@@ -961,6 +965,8 @@
       "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
       "columnNameRequired": "Column name is required",
+      "duplicateColumnName": "Duplicate column name",
+      "uiDataTypeRequired": "UI data type is required",
       "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Project name exceeds 50 characters",
       "projectNameCannotStartWithSpace": "Project name cannot start with space",

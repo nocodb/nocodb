@@ -452,6 +452,8 @@
     "zoomInToViewColumns": "Zoom in to view columns"
   },
   "activity": {
+    "enablePublicAccess": "Enable Public Access",
+    "editingAccess": "Editing access",
     "enabledPublicViewing": "Enable public viewing",
     "restrictAccessWithPassword": "Restrict access with password",
     "manageProjectAccess": "Manage Project Access",

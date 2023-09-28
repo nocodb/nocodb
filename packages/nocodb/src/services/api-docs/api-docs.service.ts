@@ -1,21 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import getSwaggerJSON from './swagger/getSwaggerJSON';
 import { NcError } from '~/helpers/catchError';
-import { Model, Project } from '~/models';
+import { Base, Model } from '~/models';
 
 @Injectable()
 export class ApiDocsService {
-  async swaggerJson(param: { projectId: string; siteUrl: string }) {
-    const project = await Project.get(param.projectId);
+  async swaggerJson(param: { baseId: string; siteUrl: string }) {
+    const base = await Base.get(param.baseId);
 
-    if (!project) NcError.notFound();
+    if (!base) NcError.notFound();
 
     const models = await Model.list({
-      project_id: param.projectId,
-      base_id: null,
+      base_id: param.baseId,
+      source_id: null,
     });
 
-    const swagger = await getSwaggerJSON(project, models);
+    const swagger = await getSwaggerJSON(base, models);
 
     swagger.servers = [
       {

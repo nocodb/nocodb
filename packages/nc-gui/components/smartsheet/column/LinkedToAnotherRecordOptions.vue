@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ModelTypes, MssqlUi, SqliteUi, UITypes } from 'nocodb-sdk'
-import { MetaInj, inject, ref, storeToRefs, useProject, useVModel } from '#imports'
+import { MetaInj, inject, ref, storeToRefs, useBase, useVModel } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 
@@ -16,8 +16,8 @@ const meta = inject(MetaInj, ref())
 
 const { setAdditionalValidations, validateInfos, onDataTypeChange, sqlUi, isXcdbBase } = useColumnCreateStoreOrThrow()
 
-const projectStore = useProject()
-const { tables } = storeToRefs(projectStore)
+const baseStore = useBase()
+const { tables } = storeToRefs(baseStore)
 
 const { t } = useI18n()
 
@@ -47,7 +47,7 @@ const refTables = computed(() => {
     return []
   }
 
-  return tables.value.filter((t) => t.type === ModelTypes.TABLE && t.base_id === meta.value?.base_id)
+  return tables.value.filter((t) => t.type === ModelTypes.TABLE && t.source_id === meta.value?.source_id)
 })
 
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())

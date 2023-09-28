@@ -5,7 +5,7 @@ import { UITypes, isSystemColumn } from 'nocodb-sdk'
 const props = defineProps<{
   visible: boolean
   tableId: string
-  projectId: string
+  baseId: string
 }>()
 
 const emits = defineEmits(['update:visible'])
@@ -17,13 +17,14 @@ const { closeTab } = useTabs()
 
 const { getMeta, removeMeta } = useMetas()
 
-const { loadTables, projectUrl, isXcdbBase } = useProject()
+const { loadTables, baseUrl, isXcdbBase } = useBase()
 const { refreshCommandPalette } = useCommandPalette()
 
-const { projectTables, activeTable } = storeToRefs(useTablesStore())
+const { removeFromRecentViews } = useViewsStore()
+const { baseTables, activeTable } = storeToRefs(useTablesStore())
 const { openTable } = useTablesStore()
 
-const tables = computed(() => projectTables.value.get(props.projectId) ?? [])
+const tables = computed(() => baseTables.value.get(props.baseId) ?? [])
 
 const table = computed(() => tables.value.find((t) => t.id === props.tableId))
 
@@ -42,7 +43,7 @@ const onDelete = async () => {
     const meta = (await getMeta(toBeDeletedTable.id as string, true)) as TableType
     const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
 
-    if (relationColumns?.length && !isXcdbBase(toBeDeletedTable.base_id)) {
+    if (relationColumns?.length && !isXcdbBase(toBeDeletedTable.source_id)) {
       const refColMsgs = await Promise.all(
         relationColumns.map(async (c, i) => {
           const refMeta = (await getMeta((c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id as string)) as TableType
@@ -69,17 +70,20 @@ const onDelete = async () => {
 
     await loadTables()
 
+    // Remove from recent views
+    removeFromRecentViews({ baseId: props.baseId, tableId: toBeDeletedTable.id as string })
+
     removeMeta(toBeDeletedTable.id as string)
     refreshCommandPalette()
     // Deleted table successfully
     $e('a:table:delete')
 
     if (oldActiveTableId === toBeDeletedTable.id) {
-      // Navigate to project if no tables left or open first table
+      // Navigate to base if no tables left or open first table
       if (tables.value.length === 0) {
         await navigateTo(
-          projectUrl({
-            id: props.projectId,
+          baseUrl({
+            id: props.baseId,
             type: 'database',
           }),
         )

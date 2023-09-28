@@ -10,8 +10,8 @@ import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 export default class MapView implements MapType {
   fk_view_id: string;
   title: string;
-  project_id?: string;
   base_id?: string;
+  source_id?: string;
   fk_geo_data_col_id?: string;
   meta?: MetaType;
 
@@ -46,8 +46,8 @@ export default class MapView implements MapType {
 
   static async insert(view: Partial<MapView>, ncMeta = Noco.ncMeta) {
     const insertObj = {
-      project_id: view.project_id,
       base_id: view.base_id,
+      source_id: view.source_id,
       fk_view_id: view.fk_view_id,
       fk_geo_data_col_id: view.fk_geo_data_col_id,
       meta: view.meta,
@@ -55,9 +55,9 @@ export default class MapView implements MapType {
 
     const viewRef = await View.get(view.fk_view_id);
 
-    if (!(view.project_id && view.base_id)) {
-      insertObj.project_id = viewRef.project_id;
+    if (!(view.base_id && view.source_id)) {
       insertObj.base_id = viewRef.base_id;
+      insertObj.source_id = viewRef.source_id;
     }
 
     await ncMeta.metaInsert2(null, null, MetaTable.MAP_VIEW, insertObj, true);

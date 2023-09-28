@@ -22,7 +22,10 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 export class ViewsController {
   constructor(private readonly viewsService: ViewsService) {}
 
-  @Get('/api/v1/db/meta/tables/:tableId/views')
+  @Get([
+    '/api/v1/db/meta/tables/:tableId/views',
+    '/api/v1/meta/tables/:tableId/views',
+  ])
   @Acl('viewList')
   async viewList(@Param('tableId') tableId: string, @Request() req) {
     return new PagedResponseImpl(
@@ -33,7 +36,7 @@ export class ViewsController {
     );
   }
 
-  @Patch('/api/v1/db/meta/views/:viewId')
+  @Patch(['/api/v1/db/meta/views/:viewId', '/api/v1/meta/views/:viewId'])
   @Acl('viewUpdate')
   async viewUpdate(
     @Param('viewId') viewId: string,
@@ -48,7 +51,7 @@ export class ViewsController {
     return result;
   }
 
-  @Delete('/api/v1/db/meta/views/:viewId')
+  @Delete(['/api/v1/db/meta/views/:viewId', '/api/v1/meta/views/:viewId'])
   @Acl('viewDelete')
   async viewDelete(@Param('viewId') viewId: string, @Request() req) {
     const result = await this.viewsService.viewDelete({
@@ -58,7 +61,10 @@ export class ViewsController {
     return result;
   }
 
-  @Post('/api/v1/db/meta/views/:viewId/show-all')
+  @Post([
+    '/api/v1/db/meta/views/:viewId/show-all',
+    '/api/v1/meta/views/:viewId/show-all',
+  ])
   @HttpCode(200)
   @Acl('showAllColumns')
   async showAllColumns(
@@ -70,7 +76,10 @@ export class ViewsController {
       ignoreIds,
     });
   }
-  @Post('/api/v1/db/meta/views/:viewId/hide-all')
+  @Post([
+    '/api/v1/db/meta/views/:viewId/hide-all',
+    '/api/v1/meta/views/:viewId/hide-all',
+  ])
   @HttpCode(200)
   @Acl('hideAllColumns')
   async hideAllColumns(
@@ -83,14 +92,20 @@ export class ViewsController {
     });
   }
 
-  @Post('/api/v1/db/meta/views/:viewId/share')
+  @Post([
+    '/api/v1/db/meta/views/:viewId/share',
+    '/api/v1/meta/views/:viewId/share',
+  ])
   @HttpCode(200)
   @Acl('shareView')
   async shareView(@Param('viewId') viewId: string, @Request() req) {
     return await this.viewsService.shareView({ viewId, user: req.user });
   }
 
-  @Get('/api/v1/db/meta/tables/:tableId/share')
+  @Get([
+    '/api/v1/db/meta/tables/:tableId/share',
+    '/api/v1/meta/tables/:tableId/share',
+  ])
   @Acl('shareViewList')
   async shareViewList(@Param('tableId') tableId: string) {
     return new PagedResponseImpl(
@@ -100,7 +115,10 @@ export class ViewsController {
     );
   }
 
-  @Patch('/api/v1/db/meta/views/:viewId/share')
+  @Patch([
+    '/api/v1/db/meta/views/:viewId/share',
+    '/api/v1/meta/views/:viewId/share',
+  ])
   @Acl('shareViewUpdate')
   async shareViewUpdate(
     @Param('viewId') viewId: string,
@@ -114,7 +132,10 @@ export class ViewsController {
     });
   }
 
-  @Delete('/api/v1/db/meta/views/:viewId/share')
+  @Delete([
+    '/api/v1/db/meta/views/:viewId/share',
+    '/api/v1/meta/views/:viewId/share',
+  ])
   @Acl('shareViewDelete')
   async shareViewDelete(@Param('viewId') viewId: string, @Request() req) {
     return await this.viewsService.shareViewDelete({ viewId, user: req.user });

@@ -3,7 +3,7 @@ import Layout from '../../../src/models/Layout';
 
 interface LayoutArgs {
   title: string;
-  project_id: string;
+  base_id: string;
 }
 
 const createLayout = async (context, dashboard, layoutArgs: LayoutArgs) => {

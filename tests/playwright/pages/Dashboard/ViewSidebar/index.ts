@@ -4,7 +4,7 @@ import BasePage from '../../Base';
 import { ViewTypes } from 'nocodb-sdk';
 
 export class ViewSidebarPage extends BasePage {
-  readonly project: any;
+  readonly base: any;
 
   readonly dashboard: DashboardPage;
   readonly createGalleryButton: Locator;
@@ -163,7 +163,7 @@ export class ViewSidebarPage extends BasePage {
       this.rootPage.locator('.ant-modal-content').locator('button:has-text("Create a View"):visible').click();
     await this.waitForResponse({
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: '/api/v1/db/meta/tables/',
+      requestUrlPathToMatch: '/api/v1/meta/tables/',
       uiAction: submitAction,
     });
     // await this.verifyToast({ message: 'View created successfully' });

@@ -8,7 +8,7 @@ test.describe('Swagger', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test.afterEach(async () => {
@@ -17,7 +17,7 @@ test.describe('Swagger', () => {
 
   test('Create column', async () => {
     // access swagger link
-    const link = `http://localhost:8080/api/v1/db/meta/projects/${context.project.id}/swagger`;
+    const link = `http://localhost:8080/api/v1/meta/bases/${context.base.id}/swagger`;
     await dashboard.rootPage.goto(link);
 
     const swagger = dashboard.rootPage;

@@ -127,7 +127,7 @@ export default class RedisCacheMgr extends CacheMgr {
   }> {
     // remove null from arrays
     subKeys = subKeys.filter((k) => k);
-    // e.g. key = nc:<orgs>:<scope>:<project_id_1>:<base_id_1>:list
+    // e.g. key = nc:<orgs>:<scope>:<project_id_1>:<source_id_1>:list
     const key =
       subKeys.length === 0
         ? `${this.prefix}:${scope}:list`
@@ -160,7 +160,7 @@ export default class RedisCacheMgr extends CacheMgr {
     // remove null from arrays
     subListKeys = subListKeys.filter((k) => k);
     // construct key for List
-    // e.g. nc:<orgs>:<scope>:<project_id_1>:<base_id_1>:list
+    // e.g. nc:<orgs>:<scope>:<project_id_1>:<source_id_1>:list
     const listKey =
       subListKeys.length === 0
         ? `${this.prefix}:${scope}:list`
@@ -241,7 +241,7 @@ export default class RedisCacheMgr extends CacheMgr {
   ): Promise<boolean> {
     // remove null from arrays
     subListKeys = subListKeys.filter((k) => k);
-    // e.g. key = nc:<orgs>:<scope>:<project_id_1>:<base_id_1>:list
+    // e.g. key = nc:<orgs>:<scope>:<project_id_1>:<source_id_1>:list
     const listKey =
       subListKeys.length === 0
         ? `${this.prefix}:${scope}:list`

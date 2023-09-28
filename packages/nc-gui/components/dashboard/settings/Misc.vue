@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { onMounted } from '@vue/runtime-core'
-import { ProjectIdInj, storeToRefs, useGlobal, useProject, watch } from '#imports'
+import { ProjectIdInj, storeToRefs, useGlobal, useBase, watch } from '#imports'
 
 const { includeM2M, showNull } = useGlobal()
 
-const projectStore = useProject()
-const projectsStore = useProjects()
-const { loadTables, hasEmptyOrNullFilters } = projectStore
-const { project } = storeToRefs(projectStore)
+const baseStore = useBase()
+const basesStore = useBases()
+const { loadTables, hasEmptyOrNullFilters } = baseStore
+const { base } = storeToRefs(baseStore)
 const _projectId = inject(ProjectIdInj, undefined)
-const projectId = computed(() => _projectId?.value ?? project.value?.id)
+const baseId = computed(() => _projectId?.value ?? base.value?.id)
 
 const { t } = useI18n()
 
@@ -19,15 +19,15 @@ watch(includeM2M, async () => await loadTables())
 const showNullAndEmptyInFilter = ref()
 
 onMounted(async () => {
-  await projectsStore.loadProject(projectId.value!, true)
-  showNullAndEmptyInFilter.value = projectsStore.getProjectMeta(projectId.value!)?.showNullAndEmptyInFilter
+  await basesStore.loadProject(baseId.value!, true)
+  showNullAndEmptyInFilter.value = basesStore.getProjectMeta(baseId.value!)?.showNullAndEmptyInFilter
 })
 
 async function showNullAndEmptyInFilterOnChange(evt: CheckboxChangeEvent) {
-  const project = projectsStore.projects.get(projectId.value!)
-  if (!project) throw new Error(`Project ${projectId.value} not found`)
+  const base = basesStore.bases.get(baseId.value!)
+  if (!base) throw new Error(`Base ${baseId.value} not found`)
 
-  const meta = projectsStore.getProjectMeta(projectId.value!) ?? {}
+  const meta = basesStore.getProjectMeta(baseId.value!) ?? {}
 
   // users cannot hide null & empty option if there is existing null / empty filters
   if (!evt.target.checked) {
@@ -41,9 +41,9 @@ async function showNullAndEmptyInFilterOnChange(evt: CheckboxChangeEvent) {
     showNullAndEmptyInFilter: showNullAndEmptyInFilter.value,
   }
   // update local state
-  project.meta = newProjectMeta
+  base.meta = newProjectMeta
   // update db
-  await projectsStore.updateProject(projectId.value!, {
+  await basesStore.updateProject(baseId.value!, {
     meta: JSON.stringify(newProjectMeta),
   })
 }

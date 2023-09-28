@@ -14,12 +14,12 @@ import {
   useI18n,
   useMetas,
   useNuxtApp,
-  useProject,
+  useBase,
   useTabs,
   watch,
 } from '#imports'
 
-export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => void; projectId: string; baseId?: string }) {
+export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => void; baseId: string; sourceId?: string }) {
   const table = reactive<{ title: string; table_name: string; columns: string[] }>({
     title: '',
     table_name: '',
@@ -40,32 +40,32 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
   const route = router.currentRoute
 
-  const projectsStore = useProjects()
+  const basesStore = useBases()
 
-  const { projects } = storeToRefs(projectsStore)
-  const { projectTables } = storeToRefs(useTablesStore())
+  const { bases } = storeToRefs(basesStore)
+  const { baseTables } = storeToRefs(useTablesStore())
 
   const { loadProjectTables } = useTablesStore()
 
-  const { loadTables, projectUrl, isXcdbBase } = useProject()
+  const { loadTables, baseUrl, isXcdbBase } = useBase()
 
   const workspaceId = computed(() => route.value.params.typeOrId as string)
 
-  const tables = computed(() => projectTables.value.get(param.projectId) || [])
-  const project = computed(() => projects.value.get(param.projectId))
+  const tables = computed(() => baseTables.value.get(param.baseId) || [])
+  const base = computed(() => bases.value.get(param.baseId))
 
   const { loadViews } = useViewsStore()
 
   const openTable = async (table: TableType) => {
-    if (!table.project_id) return
+    if (!table.base_id) return
 
-    let project = projects.value.get(table.project_id)
-    if (!project) {
-      await projectsStore.loadProject(table.project_id)
-      await loadProjectTables(table.project_id)
+    let base = bases.value.get(table.base_id)
+    if (!base) {
+      await basesStore.loadProject(table.base_id)
+      await loadProjectTables(table.base_id)
 
-      project = projects.value.get(table.project_id)
-      if (!project) throw new Error('Project not found')
+      base = bases.value.get(table.base_id)
+      if (!base) throw new Error('Base not found')
     }
 
     let workspaceIdOrType = workspaceId.value ?? 'nc'
@@ -74,10 +74,10 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
       workspaceIdOrType = route.value.params.typeOrId as string
     }
 
-    let projectIdOrBaseId = project.id
+    let baseIdOrBaseId = base.id
 
     if (['base'].includes(route.value.params.typeOrId as string)) {
-      projectIdOrBaseId = route.value.params.projectId as string
+      baseIdOrBaseId = route.value.params.baseId as string
     }
 
     await loadViews({
@@ -85,7 +85,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
     })
 
     await navigateTo({
-      path: `/${workspaceIdOrType}/${projectIdOrBaseId}/${table?.id}`,
+      path: `/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}`,
       query: route.value.query,
     })
 
@@ -93,19 +93,19 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
   }
 
   const createTable = async () => {
-    const { onTableCreate, projectId } = param
-    let { baseId } = param
+    const { onTableCreate, baseId } = param
+    let { sourceId } = param
 
-    if (!(projectId in projects.value)) {
-      await projectsStore.loadProject(projectId)
+    if (!(baseId in bases.value)) {
+      await basesStore.loadProject(baseId)
     }
 
-    if (!baseId) {
-      baseId = projects.value.get(projectId)?.bases?.[0].id
-      if (!baseId) throw new Error('Base not found')
+    if (!sourceId) {
+      sourceId = bases.value.get(baseId)?.sources?.[0].id
+      if (!sourceId) throw new Error('Source not found')
     }
 
-    const sqlUi = await projectsStore.getSqlUi(projectId, baseId)
+    const sqlUi = await basesStore.getSqlUi(baseId, sourceId)
 
     if (!sqlUi) return
     const columns = sqlUi?.getNewTableColumns().filter((col: ColumnType) => {
@@ -119,7 +119,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
     })
 
     try {
-      const tableMeta = await $api.base.tableCreate(projectId, baseId!, {
+      const tableMeta = await $api.source.tableCreate(baseId, sourceId!, {
         ...table,
         columns,
       })
@@ -159,7 +159,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
           const meta = (await getMeta(table.id as string, true)) as TableType
           const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
 
-          if (relationColumns?.length && !isXcdbBase(table.base_id)) {
+          if (relationColumns?.length && !isXcdbBase(table.source_id)) {
             const refColMsgs = await Promise.all(
               relationColumns.map(async (c, i) => {
                 const refMeta = (await getMeta(
@@ -194,11 +194,11 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
           message.info(t('msg.info.tableDeleted'))
           $e('a:table:delete')
 
-          // Navigate to project if no tables left or open first table
+          // Navigate to base if no tables left or open first table
           if (tables.value.length === 0) {
             await navigateTo(
-              projectUrl({
-                id: project.value!.id!,
+              baseUrl({
+                id: base.value!.id!,
                 type: 'database',
               }),
             )
@@ -215,7 +215,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
   return {
     table,
     tables,
-    project,
+    base,
 
     createTable,
     generateUniqueTitle,

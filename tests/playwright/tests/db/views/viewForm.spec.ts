@@ -17,7 +17,7 @@ test.describe('Form view', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     form = dashboard.form;
   });
 
@@ -218,7 +218,7 @@ test.describe('Form view', () => {
   });
 
   test('Form share, verify attachment file', async () => {
-    await dashboard.treeView.createTable({ title: 'New', projectTitle: context.project.title });
+    await dashboard.treeView.createTable({ title: 'New', baseTitle: context.base.title });
 
     await dashboard.grid.column.create({
       title: 'Attachment',
@@ -258,7 +258,7 @@ test.describe('Form view with LTAR', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     loginPage = new LoginPage(page);
     wsPage = new WorkspacePage(page);
 
@@ -297,23 +297,23 @@ test.describe('Form view with LTAR', () => {
     ];
 
     try {
-      const project = await api.project.read(context.project.id);
-      cityTable = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      const base = await api.base.read(context.base.id);
+      cityTable = await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
         table_name: 'City',
         title: 'City',
         columns: cityColumns,
       });
-      countryTable = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      countryTable = await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
         table_name: 'Country',
         title: 'Country',
         columns: countryColumns,
       });
 
       const cityRowAttributes = [{ City: 'Atlanta' }, { City: 'Pune' }, { City: 'London' }, { City: 'Sydney' }];
-      await api.dbTableRow.bulkCreate('noco', context.project.id, cityTable.id, cityRowAttributes);
+      await api.dbTableRow.bulkCreate('noco', context.base.id, cityTable.id, cityRowAttributes);
 
       const countryRowAttributes = [{ Country: 'India' }, { Country: 'UK' }, { Country: 'Australia' }];
-      await api.dbTableRow.bulkCreate('noco', context.project.id, countryTable.id, countryRowAttributes);
+      await api.dbTableRow.bulkCreate('noco', context.base.id, countryTable.id, countryRowAttributes);
 
       // create LTAR Country has-many City
       await api.dbTableColumn.create(countryTable.id, {
@@ -325,7 +325,7 @@ test.describe('Form view with LTAR', () => {
         type: 'hm',
       });
 
-      // await api.dbTableRow.nestedAdd('noco', context.project.id, countryTable.id, '1', 'hm', 'CityList', '1');
+      // await api.dbTableRow.nestedAdd('noco', context.base.id, countryTable.id, '1', 'hm', 'CityList', '1');
     } catch (e) {
       console.log(e);
     }
@@ -381,7 +381,7 @@ test.describe('Form view with LTAR', () => {
       await dashboard.leftSidebar.openWorkspace({ title: context.workspace.title });
       await dashboard.rootPage.waitForTimeout(500);
     }
-    await dashboard.treeView.openProject({ title: context.project.title, context });
+    await dashboard.treeView.openProject({ title: context.base.title, context });
     await dashboard.rootPage.waitForTimeout(500);
 
     await dashboard.treeView.openTable({ title: 'Country' });
@@ -408,7 +408,7 @@ test.describe('Form view', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test.afterEach(async () => {
@@ -443,8 +443,8 @@ test.describe('Form view', () => {
       },
     ];
 
-    const project = await api.project.read(context.project.id);
-    await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+    const base = await api.base.read(context.base.id);
+    await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
       table_name: 'selectBased',
       title: 'selectBased',
       columns: columns,

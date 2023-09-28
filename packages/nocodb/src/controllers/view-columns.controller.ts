@@ -19,7 +19,10 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 export class ViewColumnsController {
   constructor(private readonly viewColumnsService: ViewColumnsService) {}
 
-  @Get('/api/v1/db/meta/views/:viewId/columns/')
+  @Get([
+    '/api/v1/db/meta/views/:viewId/columns/',
+    '/api/v1/meta/views/:viewId/columns/',
+  ])
   @Acl('columnList')
   async columnList(@Param('viewId') viewId: string) {
     return new PagedResponseImpl(
@@ -29,7 +32,10 @@ export class ViewColumnsController {
     );
   }
 
-  @Post('/api/v1/db/meta/views/:viewId/columns/')
+  @Post([
+    '/api/v1/db/meta/views/:viewId/columns/',
+    '/api/v1/meta/views/:viewId/columns/',
+  ])
   @HttpCode(200)
   @Acl('columnAdd')
   async columnAdd(
@@ -43,7 +49,10 @@ export class ViewColumnsController {
     return viewColumn;
   }
 
-  @Patch('/api/v1/db/meta/views/:viewId/columns/:columnId')
+  @Patch([
+    '/api/v1/db/meta/views/:viewId/columns/:columnId',
+    '/api/v1/meta/views/:viewId/columns/:columnId',
+  ])
   @Acl('columnUpdate')
   async columnUpdate(
     @Param('viewId') viewId: string,

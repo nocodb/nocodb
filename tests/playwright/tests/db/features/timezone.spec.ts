@@ -29,7 +29,7 @@ const rowAttributes = [
   { Id: 3, DateTime: '2020-12-31 20:00:00-04:00' },
 ];
 
-async function timezoneSuite(projectTitle: string, context: NcContext, skipTableCreate?: boolean) {
+async function timezoneSuite(baseTitle: string, context: NcContext, skipTableCreate?: boolean) {
   const api = new Api({
     baseURL: `http://localhost:8080/`,
     headers: {
@@ -39,38 +39,38 @@ async function timezoneSuite(projectTitle: string, context: NcContext, skipTable
   // get current workspace information if in hub
   const workspaceId = context?.workspace?.id;
   try {
-    let projectList: ProjectListType;
-    if (isEE() && api['workspaceProject']) {
-      projectList = await api['workspaceProject'].list(workspaceId);
+    let baseList: ProjectListType;
+    if (isEE() && api['workspaceBase']) {
+      baseList = await api['workspaceBase'].list(workspaceId);
     } else {
-      projectList = await api.project.list();
+      baseList = await api.base.list();
     }
-    for (const project of projectList.list) {
-      // delete project with title 'xcdb' if it exists
-      if (project.title === projectTitle) {
-        await api.project.delete(project.id);
+    for (const base of baseList.list) {
+      // delete base with title 'xcdb' if it exists
+      if (base.title === baseTitle) {
+        await api.base.delete(base.id);
       }
     }
   } catch (e) {
     console.log(e);
   }
 
-  const project = await api.project.create({ title: projectTitle, fk_workspace_id: workspaceId, type: 'database' });
+  const base = await api.base.create({ title: baseTitle, fk_workspace_id: workspaceId, type: 'database' });
 
-  if (skipTableCreate) return { project, api };
-  const table = await api.base.tableCreate(project.id, project.bases?.[0].id, {
+  if (skipTableCreate) return { base, api };
+  const table = await api.source.tableCreate(base.id, base.sources?.[0].id, {
     table_name: 'dateTimeTable',
     title: 'dateTimeTable',
     columns: columns,
   });
-  return { project, table, api };
+  return { base, table, api };
 }
 
 // with appropriate credentials, connect to external db
 //
 async function connectToExtDb(context: any, dbName: string, api: Api<any>) {
   if (isPg(context)) {
-    await api.base.create(context.project.id, {
+    await api.source.create(context.base.id, {
       alias: dbName,
       type: 'pg',
       config: getKnexConfig({ dbName, dbType: 'pg' }),
@@ -78,7 +78,7 @@ async function connectToExtDb(context: any, dbName: string, api: Api<any>) {
       inflection_table: 'camelize',
     });
   } else if (isMysql(context)) {
-    await api.base.create(context.project.id, {
+    await api.source.create(context.base.id, {
       alias: dbName,
       type: 'mysql2',
       config: getKnexConfig({ dbName, dbType: 'mysql' }),
@@ -86,7 +86,7 @@ async function connectToExtDb(context: any, dbName: string, api: Api<any>) {
       inflection_table: 'camelize',
     });
   } else if (isSqlite(context)) {
-    await api.base.create(context.project.id, {
+    await api.source.create(context.base.id, {
       alias: dbName,
       type: 'sqlite3',
       config: {
@@ -115,14 +115,14 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
   let context: any;
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     if (!isSqlite(context)) return;
 
     try {
-      const { project, table, api } = await timezoneSuite(`xcdb${context.workerId}`, context);
+      const { base, table, api } = await timezoneSuite(`xcdb${context.workerId}`, context);
 
-      await api.dbTableRow.bulkCreate('noco', project.id, table.id, rowAttributes);
-      records = await api.dbTableRow.list('noco', project.id, table.id, { limit: 10 });
+      await api.dbTableRow.bulkCreate('noco', base.id, table.id, rowAttributes);
+      records = await api.dbTableRow.list('noco', base.id, table.id, { limit: 10 });
     } catch (e) {
       console.error(e);
     }
@@ -218,13 +218,13 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
   let context: any;
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
 
     try {
-      const { project, table, api } = await timezoneSuite(`xcdb${context.workerId}`, context);
+      const { base, table, api } = await timezoneSuite(`xcdb${context.workerId}`, context);
       await dashboard.rootPage.reload();
 
-      await api.dbTableRow.bulkCreate('noco', project.id, table.id, rowAttributes);
+      await api.dbTableRow.bulkCreate('noco', base.id, table.id, rowAttributes);
     } catch (e) {
       console.error(e);
     }
@@ -292,13 +292,13 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
 
-    const { project, api } = await timezoneSuite(`xcdb${context.workerId}`, context, true);
+    const { base, api } = await timezoneSuite(`xcdb${context.workerId}`, context, true);
     gApi = api;
     await dashboard.rootPage.reload();
 
-    context.project = project;
+    context.base = base;
 
     // Kludge: Using API for test preparation was not working
     // Hence switched over to UI based table creation
@@ -308,7 +308,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     await dashboard.treeView.createTable({
       title: 'dateTimeTable',
       mode: 'Xcdb',
-      projectTitle: context.project.title,
+      baseTitle: context.base.title,
       skipOpeningModal: false,
     });
     await dashboard.grid.column.create({
@@ -343,7 +343,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
    */
   test('Cell insert', async () => {
     // Verify stored value in database is UTC
-    records = await gApi.dbTableRow.list('noco', context.project.id, 'dateTimeTable', { limit: 10 });
+    records = await gApi.dbTableRow.list('noco', context.base.id, 'dateTimeTable', { limit: 10 });
 
     const readDate = records.list[0].DateTime;
     // skip seconds from readDate
@@ -377,7 +377,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     });
     await dashboard.expandedForm.save();
 
-    records = await gApi.dbTableRow.list('noco', context.project.id, 'dateTimeTable', { limit: 10 });
+    records = await gApi.dbTableRow.list('noco', context.base.id, 'dateTimeTable', { limit: 10 });
     const readDate = records.list[0].DateTime;
     // skip seconds from readDate
     // stored value expected to be in UTC
@@ -422,7 +422,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     expect(await dashboard.grid.cell.getClipboardText()).toBe('2021-01-01 08:00');
     await dashboard.grid.cell.pasteFromClipboard({ index: 1, columnHeader: 'DateTime' });
 
-    records = await gApi.dbTableRow.list('noco', context.project.id, 'dateTimeTable', { limit: 10 });
+    records = await gApi.dbTableRow.list('noco', context.base.id, 'dateTimeTable', { limit: 10 });
     expect(records.list.length).toBe(2);
     const readDate = records.list[1].DateTime;
     // skip seconds from readDate
@@ -516,7 +516,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -553,7 +553,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
         'xc-auth': context.token,
       },
     });
-    const table = await api.dbTable.list(context.project.id);
+    const table = await api.dbTable.list(context.base.id);
     let table_data: any;
     table_data = await api.dbTableColumn.create(table.list.find(x => x.title === 'MyTable').id, {
       title: 'formula-1',
@@ -636,7 +636,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
       if (verifyApiResponse) {
         let records;
         try {
-          records = await api.dbTableRow.list('noco', context.project.id, table_data.id, { limit: 10 });
+          records = await api.dbTableRow.list('noco', context.base.id, table_data.id, { limit: 10 });
         } catch (e) {
           console.log('api.dbTableRow.list', e);
         }
@@ -774,7 +774,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
     // Hence, we skip seconds from API response
     //
 
-    const records = await api.dbTableRow.list('noco', context.project.id, 'MyTable', { limit: 10 });
+    const records = await api.dbTableRow.list('noco', context.base.id, 'MyTable', { limit: 10 });
     let dateTimeWithoutTz = records.list.map(record => record.DatetimeWithoutTz);
     let dateTimeWithTz = records.list.map(record => record.DatetimeWithTz);
 
@@ -840,7 +840,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -889,7 +889,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
         'xc-auth': context.token,
       },
     });
-    const table = await api.dbTable.list(context.project.id);
+    const table = await api.dbTable.list(context.base.id);
     let table_data: any;
     table_data = await api.dbTableColumn.create(table.list.find(x => x.title === 'MyTable').id, {
       title: 'formula-1',
@@ -905,7 +905,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
     await dashboard.rootPage.reload();
     await dashboard.rootPage.waitForTimeout(2000);
 
-    const records = await api.dbTableRow.list('noco', context.project.id, table_data.id, { limit: 10 });
+    const records = await api.dbTableRow.list('noco', context.base.id, table_data.id, { limit: 10 });
     const formattedOffset = '+08:00';
 
     // Note that, for SQLite ExtDB connection, the timezone if not specified in the datetime string, it will be server timezone
@@ -975,7 +975,7 @@ test.describe.serial('Timezone- ExtDB (MySQL Only) : DB Timezone configured as H
   let context: any;
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
 
     // for PG, we need to restart server after reconfiguring timezone in .conf file
     // SQLite, does not support timezone configuration
@@ -1076,7 +1076,7 @@ test.describe.serial('Timezone- ExtDB (MySQL Only) : DB Timezone configured as H
     // Hence, we skip seconds from API response
     //
 
-    const records = await api.dbTableRow.list('sakila', context.project.id, 'MyTable', { limit: 10 });
+    const records = await api.dbTableRow.list('sakila', context.base.id, 'MyTable', { limit: 10 });
     let dateTimeWithoutTz = records.list.map(record => record.DatetimeWithoutTz);
     let dateTimeWithTz = records.list.map(record => record.DatetimeWithTz);
 

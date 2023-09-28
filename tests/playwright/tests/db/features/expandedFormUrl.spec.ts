@@ -11,7 +11,7 @@ test.describe('Expanded form URL', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test.afterEach(async () => {
@@ -21,7 +21,7 @@ test.describe('Expanded form URL', () => {
   async function viewTestTestTable(viewType: string) {
     await dashboard.treeView.createTable({
       title: 'Test Table',
-      projectTitle: context.project.title,
+      baseTitle: context.base.title,
     });
     await dashboard.grid.addNewRow({ index: 0 });
 
@@ -149,7 +149,7 @@ test.describe('Expanded record duplicate & delete options', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
   });
 

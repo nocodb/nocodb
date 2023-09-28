@@ -12,14 +12,14 @@ import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import getColumnUiType from '~/helpers/getColumnUiType';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { Audit, Column, Model, Project } from '~/models';
+import { Audit, Base, Column, Model } from '~/models';
 
 @Injectable()
 export class SqlViewsService {
   async sqlViewCreate(param: {
     clientIp: string;
-    projectId: string;
     baseId: string;
+    sourceId: string;
     body: {
       view_name: string;
       title: string;
@@ -31,25 +31,22 @@ export class SqlViewsService {
     return;
     const body = { ...param.body };
 
-    const project = await Project.getWithInfo(param.projectId);
-    let base = project.bases[0];
+    const base = await Base.getWithInfo(param.baseId);
+    let source = base.sources[0];
 
-    if (param.baseId) {
-      base = project.bases.find((b) => b.id === param.baseId);
+    if (param.sourceId) {
+      source = base.sources.find((b) => b.id === param.sourceId);
     }
 
-    if (
-      !body.view_name ||
-      (project.prefix && project.prefix === body.view_name)
-    ) {
+    if (!body.view_name || (base.prefix && base.prefix === body.view_name)) {
       NcError.badRequest(
         'Missing table name `view_name` property in request body',
       );
     }
 
-    if (base.is_meta && project.prefix) {
-      if (!body.view_name.startsWith(project.prefix)) {
-        body.view_name = `${project.prefix}_${body.view_name}`;
+    if (source.is_meta && base.prefix) {
+      if (!body.view_name.startsWith(base.prefix)) {
+        body.view_name = `${base.prefix}_${body.view_name}`;
       }
     }
 
@@ -65,30 +62,30 @@ export class SqlViewsService {
     if (
       !(await Model.checkTitleAvailable({
         table_name: body.view_name,
-        project_id: project.id,
         base_id: base.id,
+        source_id: source.id,
       }))
     ) {
       NcError.badRequest('Duplicate table name');
     }
 
     if (!body.title) {
-      body.title = getTableNameAlias(body.view_name, project.prefix, base);
+      body.title = getTableNameAlias(body.view_name, base.prefix, source);
     }
 
     if (
       !(await Model.checkAliasAvailable({
         title: body.title,
-        project_id: project.id,
         base_id: base.id,
+        source_id: source.id,
       }))
     ) {
       NcError.badRequest('Duplicate table alias');
     }
 
-    const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
+    const sqlMgr = await ProjectMgrv2.getSqlMgr(base);
 
-    const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
 
     let tableNameLengthLimit = 255;
     const sqlClientType = sqlClient.knex.clientType();
@@ -107,7 +104,7 @@ export class SqlViewsService {
     }
 
     // TODO - reimplement this
-    await sqlMgr.sqlOpPlus(base, 'viewCreate', {
+    await sqlMgr.sqlOpPlus(source, 'viewCreate', {
       view_name: body.view_name,
       view_definition: body.view_definition,
     });
@@ -120,18 +117,18 @@ export class SqlViewsService {
     > = (
       await sqlClient.columnList({
         tn: body.view_name,
-        schema: base.getConfig()?.schema,
+        schema: source.getConfig()?.schema,
       })
     )?.data?.list;
 
     const tables = await Model.list({
-      project_id: project.id,
       base_id: base.id,
+      source_id: source.id,
     });
 
     await Audit.insert({
-      project_id: project.id,
       base_id: base.id,
+      source_id: source.id,
       op_type: AuditOperationTypes.TABLE,
       op_sub_type: AuditOperationSubTypes.CREATE,
       user: param?.user?.email,
@@ -141,9 +138,9 @@ export class SqlViewsService {
 
     mapDefaultDisplayValue(columns);
 
-    const model = await Model.insert(project.id, base.id, {
+    const model = await Model.insert(base.id, source.id, {
       table_name: body.view_name,
-      title: getTableNameAlias(body.view_name, project.prefix, base),
+      title: getTableNameAlias(body.view_name, base.prefix, source),
       type: ModelTypes.VIEW,
       order: +(tables?.pop()?.order ?? 0) + 1,
     });
@@ -154,9 +151,9 @@ export class SqlViewsService {
       await Column.insert({
         fk_model_id: model.id,
         ...column,
-        title: getColumnNameAlias(column.cn, base),
+        title: getColumnNameAlias(column.cn, source),
         order: colOrder++,
-        uidt: getColumnUiType(base, column),
+        uidt: getColumnUiType(source, column),
       });
     }
 

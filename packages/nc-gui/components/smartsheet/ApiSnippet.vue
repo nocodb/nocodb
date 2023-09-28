@@ -10,7 +10,7 @@ import {
   useCopy,
   useGlobal,
   useI18n,
-  useProject,
+  useBase,
   useSmartsheetStoreOrThrow,
   useVModel,
   useViewData,
@@ -25,8 +25,8 @@ const emits = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
-const projectStore = useProject()
-const { project } = storeToRefs(projectStore)
+const baseStore = useBase()
+const { base } = storeToRefs(baseStore)
 
 const { appInfo, token } = useGlobal()
 
@@ -84,7 +84,7 @@ const selectedLangName = ref(langs[0].name)
 const apiUrl = computed(
   () =>
     new URL(
-      `/api/v1/db/data/noco/${project.value.id}/${meta.value?.title}/views/${view.value?.title}`,
+      `/api/v1/data/noco/${base.value.id}/${meta.value?.title}/views/${view.value?.title}`,
       (appInfo.value && appInfo.value.ncSiteUrl) || '/',
     ).href,
 )
@@ -118,7 +118,7 @@ const api = new Api({
 
 api.dbViewRow.list(
   "noco",
-  ${JSON.stringify(project.value.title)},
+  ${JSON.stringify(base.value.title)},
   ${JSON.stringify(meta.value?.title)},
   ${JSON.stringify(view.value?.title)}, ${JSON.stringify(queryParams.value, null, 4)}).then(function (data) {
   console.log(data);

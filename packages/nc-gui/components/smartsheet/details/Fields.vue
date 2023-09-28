@@ -651,17 +651,17 @@ onMounted(async () => {
                       <template #overlay>
                         <a-menu>
                           <a-menu-item key="table-explorer-duplicate" @click="duplicateField(field)">
-                            <div class="nc-project-menu-item">
+                            <div class="nc-base-menu-item">
                               <Icon class="iconify text-gray-800" icon="lucide:copy" /><span>Duplicate</span>
                             </div>
                           </a-menu-item>
                           <a-menu-item v-if="!field.pv" key="table-explorer-insert-above" @click="addField(field, true)">
-                            <div class="nc-project-menu-item">
+                            <div class="nc-base-menu-item">
                               <Icon class="iconify text-gray-800" icon="lucide:arrow-up" /><span>Insert above</span>
                             </div>
                           </a-menu-item>
                           <a-menu-item key="table-explorer-insert-below" @click="addField(field)">
-                            <div class="nc-project-menu-item">
+                            <div class="nc-base-menu-item">
                               <Icon class="iconify text-gray-800" icon="lucide:arrow-down" /><span>Insert below</span>
                             </div>
                           </a-menu-item>
@@ -669,7 +669,7 @@ onMounted(async () => {
                           <a-menu-divider class="my-0" />
 
                           <a-menu-item key="table-explorer-delete" @click="onFieldDelete(field)">
-                            <div class="nc-project-menu-item group text-red-500">
+                            <div class="nc-base-menu-item group text-red-500">
                               <GeneralIcon icon="delete" class="group-hover:text-accent" />
                               Delete
                             </div>
@@ -749,17 +749,17 @@ onMounted(async () => {
                       <template #overlay>
                         <a-menu>
                           <a-menu-item key="table-explorer-duplicate" @click="duplicateField(displayColumn)">
-                            <div class="nc-project-menu-item">
+                            <div class="nc-base-menu-item">
                               <Icon class="iconify text-gray-800" icon="lucide:copy" /><span>Duplicate</span>
                             </div>
                           </a-menu-item>
                           <a-menu-item v-if="!field.pv" key="table-explorer-insert-above" @click="addField(displayColumn, true)">
-                            <div class="nc-project-menu-item">
+                            <div class="nc-base-menu-item">
                               <Icon class="iconify text-gray-800" icon="lucide:arrow-up" /><span>Insert above</span>
                             </div>
                           </a-menu-item>
                           <a-menu-item key="table-explorer-insert-below" @click="addField(displayColumn)">
-                            <div class="nc-project-menu-item">
+                            <div class="nc-base-menu-item">
                               <Icon class="iconify text-gray-800" icon="lucide:arrow-down" /><span>Insert below</span>
                             </div>
                           </a-menu-item>
@@ -767,7 +767,7 @@ onMounted(async () => {
                           <a-menu-divider class="my-0" />
 
                           <a-menu-item key="table-explorer-delete" @click="onFieldDelete(displayColumn)">
-                            <div class="nc-project-menu-item group text-red-500">
+                            <div class="nc-base-menu-item group text-red-500">
                               <GeneralIcon icon="delete" class="group-hover:text-accent" />
                               Delete
                             </div>

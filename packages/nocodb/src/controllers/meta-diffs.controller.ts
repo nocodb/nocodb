@@ -8,21 +8,27 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 export class MetaDiffsController {
   constructor(private readonly metaDiffsService: MetaDiffsService) {}
 
-  @Get('/api/v1/db/meta/projects/:projectId/meta-diff')
+  @Get([
+    '/api/v1/db/meta/projects/:baseId/meta-diff',
+    '/api/v1/meta/bases/:baseId/meta-diff',
+  ])
   @Acl('metaDiff')
-  async metaDiff(@Param('projectId') projectId: string) {
-    return await this.metaDiffsService.metaDiff({ projectId });
+  async metaDiff(@Param('baseId') baseId: string) {
+    return await this.metaDiffsService.metaDiff({ baseId });
   }
 
-  @Get('/api/v1/db/meta/projects/:projectId/meta-diff/:baseId')
+  @Get([
+    '/api/v1/db/meta/projects/:baseId/meta-diff/:sourceId',
+    '/api/v1/meta/bases/:baseId/meta-diff/:sourceId',
+  ])
   @Acl('metaDiff')
   async baseMetaDiff(
-    @Param('projectId') projectId: string,
     @Param('baseId') baseId: string,
+    @Param('sourceId') sourceId: string,
   ) {
     return await this.metaDiffsService.baseMetaDiff({
+      sourceId,
       baseId,
-      projectId,
     });
   }
 }

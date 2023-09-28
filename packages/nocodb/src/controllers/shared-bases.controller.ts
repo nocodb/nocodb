@@ -19,16 +19,19 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 export class SharedBasesController {
   constructor(private readonly sharedBasesService: SharedBasesService) {}
 
-  @Post('/api/v1/db/meta/projects/:projectId/shared')
+  @Post([
+    '/api/v1/db/meta/projects/:baseId/shared',
+    '/api/v1/meta/bases/:baseId/shared',
+  ])
   @HttpCode(200)
   @Acl('createSharedBaseLink')
   async createSharedBaseLink(
     @Request() req,
     @Body() body: any,
-    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
   ): Promise<any> {
     const sharedBase = await this.sharedBasesService.createSharedBaseLink({
-      projectId: projectId,
+      baseId: baseId,
       roles: body?.roles,
       password: body?.password,
       siteUrl: req.ncSiteUrl,
@@ -37,15 +40,18 @@ export class SharedBasesController {
     return sharedBase;
   }
 
-  @Patch('/api/v1/db/meta/projects/:projectId/shared')
+  @Patch([
+    '/api/v1/db/meta/projects/:baseId/shared',
+    '/api/v1/meta/bases/:baseId/shared',
+  ])
   @Acl('updateSharedBaseLink')
   async updateSharedBaseLink(
     @Request() req,
     @Body() body: any,
-    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
   ): Promise<any> {
     const sharedBase = await this.sharedBasesService.updateSharedBaseLink({
-      projectId: projectId,
+      baseId: baseId,
       roles: body?.roles,
       password: body?.password,
       siteUrl: req.ncSiteUrl,
@@ -54,26 +60,30 @@ export class SharedBasesController {
     return sharedBase;
   }
 
-  @Delete('/api/v1/db/meta/projects/:projectId/shared')
+  @Delete([
+    '/api/v1/db/meta/projects/:baseId/shared',
+    '/api/v1/meta/bases/:baseId/shared',
+  ])
   @Acl('disableSharedBaseLink')
-  async disableSharedBaseLink(
-    @Param('projectId') projectId: string,
-  ): Promise<any> {
+  async disableSharedBaseLink(@Param('baseId') baseId: string): Promise<any> {
     const sharedBase = await this.sharedBasesService.disableSharedBaseLink({
-      projectId,
+      baseId,
     });
 
     return sharedBase;
   }
 
-  @Get('/api/v1/db/meta/projects/:projectId/shared')
+  @Get([
+    '/api/v1/db/meta/projects/:baseId/shared',
+    '/api/v1/meta/bases/:baseId/shared',
+  ])
   @Acl('getSharedBaseLink')
   async getSharedBaseLink(
     @Request() req,
-    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
   ): Promise<any> {
     const sharedBase = await this.sharedBasesService.getSharedBaseLink({
-      projectId: projectId,
+      baseId: baseId,
       siteUrl: req.ncSiteUrl,
     });
 

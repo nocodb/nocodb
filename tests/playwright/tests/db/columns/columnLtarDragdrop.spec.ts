@@ -15,7 +15,7 @@ test.describe('Links', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     grid = dashboard.grid;
 
     api = new Api({
@@ -48,16 +48,16 @@ test.describe('Links', () => {
     }
 
     // Create tables
-    const project = await api.project.read(context.project.id);
+    const base = await api.base.read(context.base.id);
 
     for (let i = 0; i < 2; i++) {
-      const table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      const table = await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
         table_name: `Table${i}`,
         title: `Table${i}`,
         columns: columns,
       });
       tables.push(table);
-      await api.dbTableRow.bulkCreate('noco', context.project.id, tables[i].id, rows);
+      await api.dbTableRow.bulkCreate('noco', context.base.id, tables[i].id, rows);
     }
 
     // refresh page

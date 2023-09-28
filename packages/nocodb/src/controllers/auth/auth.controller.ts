@@ -118,7 +118,7 @@ export class AuthController {
       ...req.user,
       roles: extractRolesObj(req.user.roles),
       workspace_roles: extractRolesObj(req.user.workspace_roles),
-      project_roles: extractRolesObj(req.user.project_roles),
+      base_roles: extractRolesObj(req.user.base_roles),
     };
     return user;
   }

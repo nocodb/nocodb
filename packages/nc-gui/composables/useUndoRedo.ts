@@ -1,6 +1,6 @@
 import type { Ref } from 'vue'
 import rfdc from 'rfdc'
-import type { ProjectType, TableType, ViewType } from 'nocodb-sdk'
+import type { BaseType, TableType, ViewType } from 'nocodb-sdk'
 import { createSharedComposable, ref, useRouter } from '#imports'
 import type { UndoRedoAction } from '#imports'
 
@@ -11,7 +11,7 @@ export const useUndoRedo = createSharedComposable(() => {
 
   const route = router.currentRoute
 
-  // keys: projectType | projectId | type | title | viewTitle
+  // keys: baseType | baseId | type | title | viewTitle
   const scope = computed<{ key: string; param: string }[]>(() => {
     const tempScope: { key: string; param: string }[] = [{ key: 'root', param: 'root' }]
     for (const [key, param] of Object.entries(route.value.params)) {
@@ -109,47 +109,47 @@ export const useUndoRedo = createSharedComposable(() => {
     return [{ key: 'root', param: 'root' }]
   }
 
-  const defineProjectScope = (param: { project?: ProjectType; model?: TableType; view?: ViewType; project_id?: string }) => {
-    if (param.project) {
-      return [{ key: 'projectId', param: param.project.id! }]
+  const defineProjectScope = (param: { base?: BaseType; model?: TableType; view?: ViewType; base_id?: string }) => {
+    if (param.base) {
+      return [{ key: 'baseId', param: param.base.id! }]
     } else if (param.model) {
-      return [{ key: 'projectId', param: param.model.project_id! }]
+      return [{ key: 'baseId', param: param.model.base_id! }]
     } else if (param.view) {
-      return [{ key: 'projectId', param: param.view.project_id! }]
+      return [{ key: 'baseId', param: param.view.base_id! }]
     } else {
-      return [{ key: 'projectId', param: param.project_id! }]
+      return [{ key: 'baseId', param: param.base_id! }]
     }
   }
 
-  const defineModelScope = (param: { model?: TableType; view?: ViewType; project_id?: string; model_id?: string }) => {
+  const defineModelScope = (param: { model?: TableType; view?: ViewType; base_id?: string; model_id?: string }) => {
     if (param.model) {
       return [
-        { key: 'projectId', param: param.model.project_id! },
+        { key: 'baseId', param: param.model.base_id! },
         { key: 'viewId', param: param.model.id! },
       ]
     } else if (param.view) {
       return [
-        { key: 'projectId', param: param.view.project_id! },
+        { key: 'baseId', param: param.view.base_id! },
         { key: 'viewId', param: param.view.fk_model_id! },
       ]
     } else {
       return [
-        { key: 'projectId', param: param.project_id! },
+        { key: 'baseId', param: param.base_id! },
         { key: 'viewId', param: param.model_id! },
       ]
     }
   }
 
-  const defineViewScope = (param: { view?: ViewType; project_id?: string; model_id?: string; title?: string; id?: string }) => {
+  const defineViewScope = (param: { view?: ViewType; base_id?: string; model_id?: string; title?: string; id?: string }) => {
     if (param.view) {
       return [
-        { key: 'projectId', param: param.view.project_id! },
+        { key: 'baseId', param: param.view.base_id! },
         { key: 'viewId', param: param.view.fk_model_id! },
         { key: 'viewTitle', param: [param.view.title, param.view.id!] },
       ]
     } else {
       return [
-        { key: 'projectId', param: param.project_id! },
+        { key: 'baseId', param: param.base_id! },
         { key: 'viewId', param: param.model_id! },
         { key: 'viewTitle', param: [param.title!, param.id!] },
       ]

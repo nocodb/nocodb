@@ -1,23 +1,23 @@
 import { Page, test } from '@playwright/test';
-import { ProjectType, ProjectTypes } from 'nocodb-sdk';
+import { BaseType, ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../pages/Dashboard';
 import setup, { NcContext } from '../../setup';
 
 test.describe('Tiptap:Table', () => {
   let dashboard: DashboardPage;
   let context: NcContext;
-  let project: ProjectType;
+  let base: BaseType;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, projectType: ProjectTypes.DOCUMENTATION });
-    project = context.project;
-    dashboard = new DashboardPage(page, context.project);
+    context = await setup({ page, baseType: ProjectTypes.DOCUMENTATION });
+    base = context.base;
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test('Tiptap:Table row', async ({ page }) => {
     const openedPage = await dashboard.docs.openedPage;
     await dashboard.sidebar.docsSidebar.createPage({
-      projectTitle: project.title as any,
+      baseTitle: base.title as any,
       title: 'page',
     });
 
@@ -153,7 +153,7 @@ test.describe('Tiptap:Table', () => {
   test('Tiptap:Table column', async ({ page }) => {
     const openedPage = dashboard.docs.openedPage;
     await dashboard.sidebar.docsSidebar.createPage({
-      projectTitle: project.title as any,
+      baseTitle: base.title as any,
       title: 'page',
     });
 
@@ -268,7 +268,7 @@ test.describe('Tiptap:Table', () => {
   async function testListItem(page: Page, rowIndex: number) {
     const openedPage = dashboard.docs.openedPage;
     await dashboard.sidebar.docsSidebar.createPage({
-      projectTitle: project.title as any,
+      baseTitle: base.title as any,
       title: 'page',
     });
 

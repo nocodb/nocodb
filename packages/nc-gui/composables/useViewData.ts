@@ -15,7 +15,7 @@ import {
   useGlobal,
   useI18n,
   useNuxtApp,
-  useProject,
+  useBase,
   useRoles,
   useRouter,
   useSharedView,
@@ -73,7 +73,7 @@ export function useViewData(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { project, isSharedBase } = storeToRefs(useProject())
+  const { base, isSharedBase } = storeToRefs(useBase())
 
   const { sharedView, fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
 
@@ -107,7 +107,7 @@ export function useViewData(
   async function syncCount() {
     const { count } = await $api.dbViewRow.count(
       NOCO,
-      project?.value?.id as string,
+      base?.value?.id as string,
       metaId.value as string,
       viewMeta?.value?.id as string,
     )
@@ -167,9 +167,9 @@ export function useViewData(
   }
 
   async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
-    if ((!project?.value?.id || !metaId.value || !viewMeta.value?.id) && !isPublic.value) return
+    if ((!base?.value?.id || !metaId.value || !viewMeta.value?.id) && !isPublic.value) return
     const response = !isPublic.value
-      ? await api.dbViewRow.list('noco', project.value.id!, metaId.value!, viewMeta.value!.id!, {
+      ? await api.dbViewRow.list('noco', base.value.id!, metaId.value!, viewMeta.value!.id!, {
           ...queryParams.value,
           ...params,
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),

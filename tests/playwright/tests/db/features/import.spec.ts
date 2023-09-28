@@ -13,7 +13,7 @@ test.describe('Import', () => {
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(70000);
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test.afterEach(async () => {
@@ -21,17 +21,17 @@ test.describe('Import', () => {
   });
 
   test('Airtable', async () => {
-    await dashboard.treeView.quickImport({ title: 'Airtable', projectTitle: context.project.title, context });
+    await dashboard.treeView.quickImport({ title: 'Airtable', baseTitle: context.base.title, context });
     await dashboard.importAirtable.import({
       key: airtableApiKey,
-      baseId: airtableApiBase,
+      sourceId: airtableApiBase,
     });
     await dashboard.rootPage.waitForTimeout(1000);
     await quickVerify({ dashboard, airtableImport: true, context });
   });
 
   test('CSV', async () => {
-    await dashboard.treeView.quickImport({ title: 'CSV file', projectTitle: context.project.title, context });
+    await dashboard.treeView.quickImport({ title: 'CSV file', baseTitle: context.base.title, context });
   });
 
   test('Excel', async () => {
@@ -46,7 +46,7 @@ test.describe('Import', () => {
       { name: 'Sheet4', columns: col },
     ];
 
-    await dashboard.treeView.quickImport({ title: 'Microsoft Excel', projectTitle: context.project.title, context });
+    await dashboard.treeView.quickImport({ title: 'Microsoft Excel', baseTitle: context.base.title, context });
     await dashboard.importTemplate.import({
       file: `${process.cwd()}/fixtures/sampleFiles/simple.xlsx`,
       result: expected,
@@ -66,6 +66,6 @@ test.describe('Import', () => {
   });
 
   test('JSON', async () => {
-    await dashboard.treeView.quickImport({ title: 'JSON file', projectTitle: context.project.title, context });
+    await dashboard.treeView.quickImport({ title: 'JSON file', baseTitle: context.base.title, context });
   });
 });

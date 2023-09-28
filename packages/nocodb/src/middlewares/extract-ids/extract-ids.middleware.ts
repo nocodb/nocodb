@@ -11,6 +11,7 @@ import type {
   NestMiddleware,
 } from '@nestjs/common';
 import {
+  Base,
   Column,
   Filter,
   FormViewColumn,
@@ -18,7 +19,6 @@ import {
   GridViewColumn,
   Hook,
   Model,
-  Project,
   Sort,
   SyncSource,
   View,
@@ -30,11 +30,11 @@ export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
   [OrgUserRoles.CREATOR]: 'Org Creator',
   [OrgUserRoles.VIEWER]: 'Org Viewer',
-  [ProjectRoles.OWNER]: 'Project Owner',
-  [ProjectRoles.CREATOR]: 'Project Creator',
-  [ProjectRoles.VIEWER]: 'Project Viewer',
-  [ProjectRoles.EDITOR]: 'Project Editor',
-  [ProjectRoles.COMMENTER]: 'Project Commenter',
+  [ProjectRoles.OWNER]: 'Base Owner',
+  [ProjectRoles.CREATOR]: 'Base Creator',
+  [ProjectRoles.VIEWER]: 'Base Viewer',
+  [ProjectRoles.EDITOR]: 'Base Editor',
+  [ProjectRoles.COMMENTER]: 'Base Commenter',
 };
 
 export function getRolesLabels(
@@ -56,27 +56,27 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   async use(req, res, next): Promise<any> {
     const { params } = req;
 
-    // extract project id based on request path params
-    if (params.projectName) {
-      const project = await Project.getByTitleOrId(params.projectName);
-      if (project) {
-        req.ncProjectId = project.id;
-        res.locals.project = project;
+    // extract base id based on request path params
+    if (params.baseName) {
+      const base = await Base.getByTitleOrId(params.baseName);
+      if (base) {
+        req.ncProjectId = base.id;
+        res.locals.base = base;
       }
     }
-    if (params.projectId) {
-      req.ncProjectId = params.projectId;
+    if (params.baseId) {
+      req.ncProjectId = params.baseId;
     } else if (params.dashboardId) {
       req.ncProjectId = params.dashboardId;
     } else if (params.tableId || params.modelId) {
       const model = await Model.getByIdOrName({
         id: params.tableId || params.modelId,
       });
-      req.ncProjectId = model?.project_id;
+      req.ncProjectId = model?.base_id;
     } else if (params.viewId) {
       const view =
         (await View.get(params.viewId)) || (await Model.get(params.viewId));
-      req.ncProjectId = view?.project_id;
+      req.ncProjectId = view?.base_id;
     } else if (
       params.formViewId ||
       params.gridViewId ||
@@ -89,45 +89,47 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           params.kanbanViewId ||
           params.galleryViewId,
       );
-      req.ncProjectId = view?.project_id;
+      req.ncProjectId = view?.base_id;
     } else if (params.publicDataUuid) {
       const view = await View.getByUUID(req.params.publicDataUuid);
-      req.ncProjectId = view?.project_id;
+      req.ncProjectId = view?.base_id;
     } else if (params.hookId) {
       const hook = await Hook.get(params.hookId);
-      req.ncProjectId = hook?.project_id;
+      req.ncProjectId = hook?.base_id;
     } else if (params.gridViewColumnId) {
       const gridViewColumn = await GridViewColumn.get(params.gridViewColumnId);
-      req.ncProjectId = gridViewColumn?.project_id;
+      req.ncProjectId = gridViewColumn?.base_id;
     } else if (params.formViewColumnId) {
       const formViewColumn = await FormViewColumn.get(params.formViewColumnId);
-      req.ncProjectId = formViewColumn?.project_id;
+      req.ncProjectId = formViewColumn?.base_id;
     } else if (params.galleryViewColumnId) {
       const galleryViewColumn = await GalleryViewColumn.get(
         params.galleryViewColumnId,
       );
-      req.ncProjectId = galleryViewColumn?.project_id;
+      req.ncProjectId = galleryViewColumn?.base_id;
     } else if (params.columnId) {
       const column = await Column.get({ colId: params.columnId });
-      req.ncProjectId = column?.project_id;
+      req.ncProjectId = column?.base_id;
     } else if (params.filterId) {
       const filter = await Filter.get(params.filterId);
-      req.ncProjectId = filter?.project_id;
+      req.ncProjectId = filter?.base_id;
     } else if (params.filterParentId) {
       const filter = await Filter.get(params.filterParentId);
-      req.ncProjectId = filter?.project_id;
+      req.ncProjectId = filter?.base_id;
     } else if (params.sortId) {
       const sort = await Sort.get(params.sortId);
-      req.ncProjectId = sort?.project_id;
+      req.ncProjectId = sort?.base_id;
     } else if (params.syncId) {
       const syncSource = await SyncSource.get(req.params.syncId);
-      req.ncProjectId = syncSource.project_id;
+      req.ncProjectId = syncSource.base_id;
     }
     // extract fk_model_id from query params only if it's audit post endpoint
     else if (
       [
         '/api/v1/db/meta/audits/rows/:rowId/update',
         '/api/v1/db/meta/audits/comments',
+        '/api/v1/meta/audits/rows/:rowId/update',
+        '/api/v1/meta/audits/comments',
       ].some(
         (auditInsertOrUpdatePath) => req.route.path === auditInsertOrUpdatePath,
       ) &&
@@ -137,13 +139,15 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const model = await Model.getByIdOrName({
         id: req.body.fk_model_id,
       });
-      req.ncProjectId = model?.project_id;
+      req.ncProjectId = model?.base_id;
     }
     // extract fk_model_id from query params only if it's audit get endpoint
     else if (
       [
         '/api/v1/db/meta/audits/comments/count',
         '/api/v1/db/meta/audits/comments',
+        '/api/v1/meta/audits/comments/count',
+        '/api/v1/meta/audits/comments',
       ].some((auditReadPath) => req.route.path === auditReadPath) &&
       req.method === 'GET' &&
       req.query.fk_model_id
@@ -151,19 +155,21 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const model = await Model.getByIdOrName({
         id: req.query?.fk_model_id,
       });
-      req.ncProjectId = model?.project_id;
+      req.ncProjectId = model?.base_id;
     }
-    // extract project id from query params only if it's userMe endpoint or webhook plugin list
+    // extract base id from query params only if it's userMe endpoint or webhook plugin list
     else if (
       [
         '/auth/user/me',
         '/api/v1/db/auth/user/me',
         '/api/v1/auth/user/me',
+        '/api/v1/auth/user/me',
         '/api/v1/db/meta/plugins/webhook',
+        '/api/v1/meta/plugins/webhook',
       ].some((userMePath) => req.route.path === userMePath) &&
-      req.query.project_id
+      req.query.base_id
     ) {
-      req.ncProjectId = req.query.project_id;
+      req.ncProjectId = req.query.base_id;
     }
 
     next();
@@ -180,8 +186,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 }
 
 function getUserRoleForScope(user: any, scope: string) {
-  if (scope === 'project') {
-    return user?.project_roles;
+  if (scope === 'base') {
+    return user?.base_roles;
   } else if (scope === 'org') {
     return user?.roles;
   }
@@ -220,9 +226,9 @@ export class AclMiddleware implements NestInterceptor {
       NcError.forbidden('Unauthorized access');
     }
 
-    // assign owner role to super admin for all projects
+    // assign owner role to super admin for all bases
     if (userScopeRole === OrgUserRoles.SUPER_ADMIN) {
-      req.user.project_roles = {
+      req.user.base_roles = {
         [ProjectRoles.OWNER]: true,
       };
     }
@@ -247,7 +253,7 @@ export class AclMiddleware implements NestInterceptor {
     ) {
       NcError.unauthorized('Unauthorized access');
     }
-    // todo : verify user have access to project or not
+    // todo : verify user have access to base or not
 
     const isAllowed =
       roles &&
@@ -282,7 +288,7 @@ export const Acl =
   (
     permissionName: string,
     {
-      scope = 'project',
+      scope = 'base',
       allowedRoles,
       blockApiTokenAccess,
     }: {

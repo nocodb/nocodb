@@ -15,7 +15,7 @@ import {
   useI18n,
   useMetas,
   useNuxtApp,
-  useProject,
+  useBase,
 } from '#imports'
 import type { CellRange, Row, UndoRedoAction } from '#imports'
 
@@ -44,7 +44,7 @@ export function useData(args: {
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
-  const { project } = storeToRefs(useProject())
+  const { base } = storeToRefs(useBase())
 
   const { $api } = useNuxtApp()
 
@@ -88,7 +88,7 @@ export function useData(args: {
 
       const insertedData = await $api.dbViewRow.create(
         NOCO,
-        project?.value.id as string,
+        base?.value.id as string,
         metaValue?.id as string,
         viewMetaValue?.id as string,
         insertObj,
@@ -172,7 +172,7 @@ export function useData(args: {
 
       const updatedRowData: Record<string, any> = await $api.dbViewRow.update(
         NOCO,
-        project?.value.id as string,
+        base?.value.id as string,
         metaValue?.id as string,
         viewMetaValue?.id as string,
         id,
@@ -319,7 +319,7 @@ export function useData(args: {
       updateArray.push({ ...updateData, ...pk })
     }
 
-    await $api.dbTableRow.bulkUpdate(NOCO, metaValue?.project_id as string, metaValue?.id as string, updateArray)
+    await $api.dbTableRow.bulkUpdate(NOCO, metaValue?.base_id as string, metaValue?.id as string, updateArray)
 
     if (!undo) {
       addUndo({
@@ -412,7 +412,7 @@ export function useData(args: {
   ) {
     if (!viewMetaValue) return
 
-    await $api.dbTableRow.bulkUpdateAll(NOCO, metaValue?.project_id as string, metaValue?.id as string, data, {
+    await $api.dbTableRow.bulkUpdateAll(NOCO, metaValue?.base_id as string, metaValue?.id as string, data, {
       viewId: viewMetaValue.id,
     })
 
@@ -430,7 +430,7 @@ export function useData(args: {
     try {
       await $api.dbTableRow.nestedAdd(
         NOCO,
-        project.value.title as string,
+        base.value.title as string,
         metaValue?.title as string,
         encodeURIComponent(rowId),
         type as 'mm' | 'hm',
@@ -486,7 +486,7 @@ export function useData(args: {
 
     const res: any = await $api.dbViewRow.delete(
       'noco',
-      project.value.id as string,
+      base.value.id as string,
       metaValue?.id as string,
       viewMetaValue?.id as string,
       encodeURIComponent(id),

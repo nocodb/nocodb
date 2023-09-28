@@ -2,7 +2,7 @@
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, TableType, UITypes } from 'nocodb-sdk'
 import { isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { MetaInj, inject, ref, storeToRefs, useColumnCreateStoreOrThrow, useMetas, useProject, useVModel } from '#imports'
+import { MetaInj, inject, ref, storeToRefs, useColumnCreateStoreOrThrow, useMetas, useBase, useVModel } from '#imports'
 
 const props = defineProps<{
   value: any
@@ -16,8 +16,8 @@ const meta = inject(MetaInj, ref())
 
 const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit } = useColumnCreateStoreOrThrow()
 
-const projectStore = useProject()
-const { tables } = storeToRefs(projectStore)
+const baseStore = useBase()
+const { tables } = storeToRefs(baseStore)
 
 const { metas } = useMetas()
 
@@ -55,7 +55,7 @@ const refTables = computed(() => {
         isLinksOrLTAR(c) &&
         (c.colOptions as LinkToAnotherRecordType).type !== 'bt' &&
         !c.system &&
-        c.base_id === meta.value?.base_id,
+        c.source_id === meta.value?.source_id,
     )
     .map((c) => ({
       col: c.colOptions,

@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import type { BaseType, TableType } from 'nocodb-sdk'
+import type { SourceType, TableType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import NcTooltip from '~/components/nc/Tooltip.vue'
 
 const { activeTables } = storeToRefs(useTablesStore())
 const { openTable } = useTablesStore()
-const { openedProject } = storeToRefs(useProjects())
+const { openedProject } = storeToRefs(useBases())
 
 const isNewBaseModalOpen = ref(false)
 
@@ -18,16 +18,16 @@ const { $e } = useNuxtApp()
 const isImportModalOpen = ref(false)
 
 const defaultBase = computed(() => {
-  return openedProject.value?.bases?.[0]
+  return openedProject.value?.sources?.[0]
 })
 
-const bases = computed(() => {
-  // Convert array of bases to map of bases
+const sources = computed(() => {
+  // Convert array of sources to map of sources
 
-  const baseMap = new Map<string, BaseType>()
+  const baseMap = new Map<string, SourceType>()
 
-  openedProject.value?.bases?.forEach((base) => {
-    baseMap.set(base.id!, base)
+  openedProject.value?.sources?.forEach((source) => {
+    baseMap.set(source.id!, source)
   })
 
   return baseMap
@@ -37,17 +37,17 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
   $e('c:table:create:navdraw')
 
   const isOpen = ref(true)
-  let baseId = openedProject.value!.bases?.[0].id
+  let sourceId = openedProject.value!.sources?.[0].id
   if (typeof baseIndex === 'number') {
-    baseId = openedProject.value!.bases?.[baseIndex].id
+    sourceId = openedProject.value!.sources?.[baseIndex].id
   }
 
-  if (!baseId || !openedProject.value?.id) return
+  if (!sourceId || !openedProject.value?.id) return
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
-    baseId, // || bases.value[0].id,
-    'projectId': openedProject.value.id,
+    sourceId, // || sources.value[0].id,
+    'baseId': openedProject.value.id,
     'onCreate': closeDialog,
     'onUpdate:modelValue': () => closeDialog(),
   })
@@ -82,7 +82,7 @@ const onCreateBaseClick = () => {
       <div
         v-if="isUIAllowed('tableCreate')"
         role="button"
-        class="nc-project-view-all-table-btn"
+        class="nc-base-view-all-table-btn"
         data-testid="proj-view-btn__add-new-table"
         @click="openTableCreateDialog()"
       >
@@ -93,7 +93,7 @@ const onCreateBaseClick = () => {
         v-if="isUIAllowed('tableCreate')"
         v-e="['c:table:import']"
         role="button"
-        class="nc-project-view-all-table-btn"
+        class="nc-base-view-all-table-btn"
         data-testid="proj-view-btn__import-data"
         @click="isImportModalOpen = true"
       >
@@ -127,14 +127,14 @@ const onCreateBaseClick = () => {
       <div class="w-1/5">{{ $t('labels.createdOn') }}</div>
     </div>
     <div
-      class="nc-project-view-all-table-list nc-scrollbar-md"
+      class="nc-base-view-all-table-list nc-scrollbar-md"
       :style="{
         height: 'calc(100vh - var(--topbar-height) - 18rem)',
       }"
     >
       <div
         v-for="table in [...activeTables].sort(
-          (a, b) => a.base_id!.localeCompare(b.base_id!) * 20 
+          (a, b) => a.source_id!.localeCompare(b.source_id!) * 20
         )"
         :key="table.id"
         class="py-4 flex flex-row w-full cursor-pointer hover:bg-gray-100 border-b-1 border-gray-100 px-2.25"
@@ -146,10 +146,10 @@ const onCreateBaseClick = () => {
           {{ table?.title }}
         </div>
         <div class="w-1/5 text-gray-600" data-testid="proj-view-list__item-type">
-          <div v-if="table.base_id === defaultBase?.id" class="ml-0.75">-</div>
+          <div v-if="table.source_id === defaultBase?.id" class="ml-0.75">-</div>
           <div v-else>
-            <GeneralBaseLogo :base-type="bases.get(table.base_id!)?.type" class="w-4 mr-1" />
-            {{ bases.get(table.base_id!)?.alias }}
+            <GeneralBaseLogo :source-type="sources.get(table.source_id!)?.type" class="w-4 mr-1" />
+            {{ sources.get(table.source_id!)?.alias }}
           </div>
         </div>
         <div class="w-1/5 text-gray-400 ml-0.25" data-testid="proj-view-list__item-created-at">
@@ -157,7 +157,7 @@ const onCreateBaseClick = () => {
         </div>
       </div>
     </div>
-    <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :base="defaultBase" />
+    <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :source="defaultBase" />
     <GeneralModal v-model:visible="isNewBaseModalOpen" size="medium">
       <div class="py-6 px-8">
         <LazyDashboardSettingsDataSourcesCreateBase @close="isNewBaseModalOpen = false" />
@@ -167,7 +167,7 @@ const onCreateBaseClick = () => {
 </template>
 
 <style lang="scss" scoped>
-.nc-project-view-all-table-btn {
+.nc-base-view-all-table-btn {
   @apply flex flex-col gap-y-6 p-4 bg-gray-100 rounded-xl w-56 cursor-pointer text-gray-600 hover:(bg-gray-200 text-black);
 
   .nc-icon {

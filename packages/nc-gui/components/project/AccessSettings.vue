@@ -4,11 +4,11 @@ import { OrderedProjectRoles, ProjectRoles, WorkspaceRolesToProjectRoles } from 
 import InfiniteLoading from 'v3-infinite-loading'
 import { isEeUI, storeToRefs, stringToColour, timeAgo } from '#imports'
 
-const projectsStore = useProjects()
-const { getProjectUsers, createProjectUser, updateProjectUser, removeProjectUser } = projectsStore
-const { activeProjectId } = storeToRefs(projectsStore)
+const basesStore = useBases()
+const { getProjectUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
+const { activeProjectId } = storeToRefs(basesStore)
 
-const { projectRoles } = useRoles()
+const { baseRoles } = useRoles()
 
 const collaborators = ref<
   {
@@ -33,7 +33,7 @@ const loadCollaborators = async () => {
     currentPage.value += 1
 
     const { users, totalRows } = await getProjectUsers({
-      projectId: activeProjectId.value!,
+      baseId: activeProjectId.value!,
       page: currentPage.value,
       ...(!userSearchText.value ? {} : ({ searchText: userSearchText.value } as any)),
       limit: 20,
@@ -44,7 +44,7 @@ const loadCollaborators = async () => {
       ...collaborators.value,
       ...users.map((user: any) => ({
         ...user,
-        project_roles: user.roles,
+        base_roles: user.roles,
         roles:
           user.roles ??
           (user.workspace_roles
@@ -98,7 +98,7 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
       } else {
         collab.roles = ProjectRoles.NO_ACCESS
       }
-    } else if (collab.project_roles) {
+    } else if (collab.base_roles) {
       collab.roles = roles
       await updateProjectUser(activeProjectId.value!, collab)
     } else {
@@ -140,7 +140,7 @@ onMounted(async () => {
   try {
     await loadCollaborators()
     const currentRoleIndex = OrderedProjectRoles.findIndex(
-      (role) => projectRoles.value && Object.keys(projectRoles.value).includes(role),
+      (role) => baseRoles.value && Object.keys(baseRoles.value).includes(role),
     )
     if (currentRoleIndex !== -1) {
       accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex + 1)

@@ -1430,10 +1430,6 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                           'align-middle': !rowHeight || rowHeight === 1,
                           'align-top': rowHeight && rowHeight !== 1,
                           'filling': isCellInFillRange(rowIndex, colIndex),
-                          'readonly':
-                            (isLookup(columnObj) || isRollup(columnObj) || isFormula(columnObj)) &&
-                            hasEditPermission &&
-                            isCellSelected(rowIndex, colIndex),
                         }"
                         :data-testid="`cell-${columnObj.title}-${rowIndex}`"
                         :data-key="`data-key-${rowIndex}-${columnObj.id}`"
@@ -1530,7 +1526,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
             <NcMenuItem
               v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
               v-e="['a:row:delete-bulk']"
-              class="nc-project-menu-item !text-red-600 !hover:bg-red-50"
+              class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
               data-testid="nc-delete-row"
               @click="deleteSelectedRows"
             >
@@ -1542,7 +1538,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
             <!-- <NcMenuItem -->
             <!-- v-if="contextMenuTarget && selectedRange.isSingleCell()" -->
             <!-- v-e="['a:row:insert']" -->
-            <!-- class="nc-project-menu-item" -->
+            <!-- class="nc-base-menu-item" -->
             <!-- @click="addEmptyRow(contextMenuTarget.row + 1)" -->
             <!-- > -->
             <!-- <GeneralIcon icon="plus" /> -->
@@ -1553,7 +1549,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
             <NcMenuItem
               v-if="contextMenuTarget"
               v-e="['a:row:copy']"
-              class="nc-project-menu-item"
+              class="nc-base-menu-item"
               data-testid="context-menu-item-copy"
               @click="copyValue(contextMenuTarget)"
             >
@@ -1570,7 +1566,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                 (isLinksOrLTAR(fields[contextMenuTarget.col]) || !isVirtualCol(fields[contextMenuTarget.col]))
               "
               v-e="['a:row:clear']"
-              class="nc-project-menu-item"
+              class="nc-base-menu-item"
               @click="clearCell(contextMenuTarget)"
             >
               <GeneralIcon icon="close" />
@@ -1581,7 +1577,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
             <NcMenuItem
               v-else-if="contextMenuTarget"
               v-e="['a:row:clear-range']"
-              class="nc-project-menu-item"
+              class="nc-base-menu-item"
               @click="clearSelectedRangeOfCells()"
             >
               <GeneralIcon icon="closeBox" class="text-gray-500" />
@@ -1592,7 +1588,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
             <NcMenuItem
               v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
               v-e="['a:row:delete']"
-              class="nc-project-menu-item !text-red-600 !hover:bg-red-50"
+              class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
               @click="confirmDeleteRow(contextMenuTarget.row)"
             >
               <GeneralIcon icon="delete" />
@@ -1600,12 +1596,8 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
               {{ $t('activity.deleteRow') }}
             </NcMenuItem>
             <div v-else-if="contextMenuTarget && deleteRangeOfRows">
-              <NcMenuItem
-                v-e="['a:row:delete']"
-                class="nc-project-menu-item !text-red-600 !hover:bg-red-50"
-                @click="deleteSelectedRangeOfRows"
-              >
-                <GeneralIcon icon="delete" class="text-gray-500 text-red-600" />
+              <NcMenuItem v-e="['a:row:delete']" class="nc-base-menu-item text-red-600" @click="deleteSelectedRangeOfRows">
+                <GeneralIcon icon="delete" class="text-gray-500 text-error" />
                 <!-- Delete Rows -->
                 {{ $t('activity.deleteRows') }}
               </NcMenuItem>
@@ -1785,10 +1777,6 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
   // todo: replace with css variable
   td.active::after {
     @apply text-primary border-current bg-primary bg-opacity-5;
-  }
-
-  td.active.readonly::after {
-    @apply text-primary bg-grey-50 bg-opacity-5 !border-gray-200;
   }
 
   td.active-cell::after {

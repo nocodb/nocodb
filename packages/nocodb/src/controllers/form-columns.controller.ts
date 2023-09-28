@@ -10,7 +10,10 @@ class FormColumnUpdateReqType {}
 export class FormColumnsController {
   constructor(private readonly formColumnsService: FormColumnsService) {}
 
-  @Patch('/api/v1/db/meta/form-columns/:formViewColumnId')
+  @Patch([
+    '/api/v1/db/meta/form-columns/:formViewColumnId',
+    '/api/v1/meta/form-columns/:formViewColumnId',
+  ])
   @Acl('columnUpdate')
   async columnUpdate(
     @Param('formViewColumnId') formViewColumnId: string,

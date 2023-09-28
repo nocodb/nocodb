@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { extractRolesObj, ProjectRoles } from 'nocodb-sdk';
 import { Strategy } from 'passport-custom';
-import { ApiToken, ProjectUser, User } from '~/models';
+import { ApiToken, BaseUser, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
         };
 
         if (!apiToken.fk_user_id) {
-          user.project_roles = extractRolesObj(ProjectRoles.EDITOR);
+          user.base_roles = extractRolesObj(ProjectRoles.EDITOR);
           return callback(null, user);
         }
 
@@ -37,13 +37,10 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
         });
 
         if (req['ncProjectId']) {
-          const projectUser = await ProjectUser.get(
-            req['ncProjectId'],
-            dbUser.id,
-          );
-          user.project_roles = extractRolesObj(projectUser?.roles);
-          if (user.project_roles.owner) {
-            user.project_roles.creator = true;
+          const baseUser = await BaseUser.get(req['ncProjectId'], dbUser.id);
+          user.base_roles = extractRolesObj(baseUser?.roles);
+          if (user.base_roles.owner) {
+            user.base_roles.creator = true;
           }
           return callback(null, sanitiseUserObj(user));
         }

@@ -87,24 +87,24 @@ const ToolOps = {
   PROJECT_MIGRATIONS_DOWN: 'migrationsDown',
   PROJECT_MIGRATIONS_TO_SQL: 'migrationsToSql',
 
-  PROJECT_HAS_DB: 'projectHasDb',
+  PROJECT_HAS_DB: 'baseHasDb',
   DB_TABLE_RENAME: 'tableRename',
 
   TEST_CONNECTION: 'testConnection',
 
-  PROJECT_CREATE_BY_WEB: 'projectCreateByWeb',
-  PROJECT_CHANGE_ENV: 'projectChangeEnv',
+  PROJECT_CREATE_BY_WEB: 'baseCreateByWeb',
+  PROJECT_CHANGE_ENV: 'baseChangeEnv',
 
-  PROJECT_UPDATE_BY_WEB: 'projectUpdateByWeb',
+  PROJECT_UPDATE_BY_WEB: 'baseUpdateByWeb',
 };
 
 export default class SqlMgr {
   // @ts-ignore
-  private project: any;
+  private base: any;
   // @ts-ignore
   private metaDb: any;
   // @ts-ignore
-  private project_id: any;
+  private base_id: any;
   private _project: any;
   // @ts-ignore
   private _migrator: KnexMigrator;
@@ -115,11 +115,11 @@ export default class SqlMgr {
   private currentProjectServers: any;
   private currentProjectFolder: any;
   // @ts-ignore
-  private projectRow: any;
+  private baseRow: any;
   // @ts-ignore
   private id: any;
   // @ts-ignore
-  private projectOpenData: any;
+  private baseOpenData: any;
 
   /**
    * Creates an instance of SqlMgr.
@@ -130,16 +130,16 @@ export default class SqlMgr {
   constructor(args: any = {}) {
     const func = 'constructor';
     log.api(`${func}:args:`, args);
-    this.project = args;
+    this.base = args;
     this.metaDb = args.metaDb;
-    this.project_id = args.project_id = args.id;
+    this.base_id = args.base_id = args.id;
     this._migrator = new KnexMigrator(args);
 
     this.currentProjectJson = {};
     this.currentProjectConnections = {};
     this.currentProjectServers = {};
     this.currentProjectFolder = {};
-    this.projectRow = {};
+    this.baseRow = {};
     this.id = null;
     // }
     return this;
@@ -149,7 +149,7 @@ export default class SqlMgr {
     return this._migrator;
   }
 
-  // project() {
+  // base() {
   //   return this._project;
   // }
   public async testConnection(args = {}) {
@@ -157,15 +157,15 @@ export default class SqlMgr {
     return client.testConnection();
   }
 
-  public async projectList(args = {}) {
+  public async baseList(args = {}) {
     return this._project.list(args);
   }
 
-  public async projectRead(args) {
+  public async baseRead(args) {
     return this._project.read(args);
   }
 
-  public async projectReadByWeb(args) {
+  public async baseReadByWeb(args) {
     const data = new Result();
     data.data.list = [];
     args.id = 1;
@@ -176,40 +176,40 @@ export default class SqlMgr {
       this.currentProjectJson.toolDir || process.cwd();
 
     args.folder = slash(this.currentProjectFolder);
-    const projectJson = {
+    const baseJson = {
       ...this.currentProjectJson,
       envs: { ...this.currentProjectJson.envs },
     };
 
     // delete db credentials
-    for (const env of Object.keys(projectJson.envs)) {
-      projectJson.envs[env] = {
-        ...projectJson.envs[env],
-        db: [...projectJson.envs[env].db],
+    for (const env of Object.keys(baseJson.envs)) {
+      baseJson.envs[env] = {
+        ...baseJson.envs[env],
+        db: [...baseJson.envs[env].db],
       };
-      for (let i = 0; i < projectJson.envs[env].db.length; i++) {
-        projectJson.envs[env].db[i] = {
-          ...projectJson.envs[env].db[i],
+      for (let i = 0; i < baseJson.envs[env].db.length; i++) {
+        baseJson.envs[env].db[i] = {
+          ...baseJson.envs[env].db[i],
           connection: {
-            database: projectJson.envs[env].db[i].connection.database,
+            database: baseJson.envs[env].db[i].connection.database,
           },
         };
       }
     }
 
     // remove meta db credentials
-    if (projectJson.meta?.db) delete projectJson.meta.db;
+    if (baseJson.meta?.db) delete baseJson.meta.db;
 
     // remove auth credentials
-    delete projectJson.auth;
+    delete baseJson.auth;
 
-    args.projectJson = projectJson;
+    args.baseJson = baseJson;
     data.data.list[0] = args;
     return data;
   }
 
-  public async projectReadByFolder(args) {
-    const _func = this.projectReadByFolder.name;
+  public async baseReadByFolder(args) {
+    const _func = this.baseReadByFolder.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
     //
@@ -231,7 +231,7 @@ export default class SqlMgr {
     return result;
   }
 
-  public projectGetFolder(args) {
+  public baseGetFolder(args) {
     return path.join(
       this.currentProjectFolder,
       'server',
@@ -265,7 +265,7 @@ export default class SqlMgr {
     );
   }
 
-  public projectGetGqlPolicyPath(args) {
+  public baseGetGqlPolicyPath(args) {
     return path.join(
       this.currentProjectFolder,
       'server',
@@ -276,12 +276,12 @@ export default class SqlMgr {
     );
   }
 
-  public async projectOpenByWeb(args) {
+  public async baseOpenByWeb(args) {
     try {
       this.currentProjectConnections = {};
       this.currentProjectJson = {};
 
-      // read the project from local tool db
+      // read the base from local tool db
       const data = new Result();
       data.data.list = [];
 
@@ -308,7 +308,7 @@ export default class SqlMgr {
                 dbAlias: this.currentProjectJson.envs[env].db[i].meta.dbAlias,
                 env: env,
                 config: args,
-                projectId: args.id,
+                baseId: args.id,
               }),
             });
 
@@ -320,14 +320,14 @@ export default class SqlMgr {
         }
       }
 
-      // args.projectJson = JSON.parse(JSON.stringify(this.currentProjectJson));
+      // args.baseJson = JSON.parse(JSON.stringify(this.currentProjectJson));
       data.data.list[0] = args;
 
-      this.projectOpenData = args;
+      this.baseOpenData = args;
 
       return data;
     } catch (e) {
-      console.log('projectOpen::error', e);
+      console.log('baseOpen::error', e);
       throw e;
     }
   }
@@ -341,7 +341,7 @@ export default class SqlMgr {
    * @returns
    * @memberof SqlMgr
    */
-  public async projectGetSqlClient(
+  public async baseGetSqlClient(
     args,
   ): Promise<
     | SnowflakeClient
@@ -351,7 +351,7 @@ export default class SqlMgr {
     | OracleClient
     | PGClient
   > {
-    const func = this.projectGetSqlClient.name;
+    const func = this.baseGetSqlClient.name;
     log.api(`${func}:args:`, args);
 
     const connectionKey = `${args.env}_${args.dbAlias}`;
@@ -380,8 +380,8 @@ export default class SqlMgr {
     throw new Error(`Could not find connectionconfig ${args}`);
   }
 
-  public async projectGetSchemaKey(args) {
-    const func = this.projectGetSqlClient.name;
+  public async baseGetSchemaKey(args) {
+    const func = this.baseGetSqlClient.name;
     log.api(`${func}:args:`, args);
 
     if (!args.env) {
@@ -416,27 +416,27 @@ export default class SqlMgr {
     throw new Error(`Could not find connectionconfig ${args}`);
   }
 
-  public async projectCreateByWeb(args) {
-    const func = this.projectCreateByWeb.name;
+  public async baseCreateByWeb(args) {
+    const func = this.baseCreateByWeb.name;
     const result = new Result();
     log.api(`${func}:args:`, args);
 
     console.log(args);
 
     try {
-      args.folder = args.folder || args.project.folder;
+      args.folder = args.folder || args.base.folder;
       args.folder = path.dirname(args.folder);
-      args.title = args.title || args.project.title;
-      args.type = args.type || args.project.type;
+      args.title = args.title || args.base.title;
+      args.type = args.type || args.base.type;
 
-      if (this.isDbConnectionProject(args.projectJson)) {
+      if (this.isDbConnectionProject(args.baseJson)) {
         // ignore
       } else {
         await this.migrator().init(args);
         await this.migrator().sync(args);
       }
 
-      this.projectOpenByWeb(args.projectJson);
+      this.baseOpenByWeb(args.baseJson);
     } catch (error) {
       log.ppe(error, func);
     }
@@ -444,8 +444,8 @@ export default class SqlMgr {
     return result;
   }
 
-  public async projectUpdateByWeb(args) {
-    const func = this.projectUpdateByWeb.name;
+  public async baseUpdateByWeb(args) {
+    const func = this.baseUpdateByWeb.name;
 
     const result = new Result();
     log.api(`${func}:args:`, args);
@@ -457,18 +457,18 @@ export default class SqlMgr {
         path.join(this.currentProjectFolder, 'config.xc.json'),
       );
 
-      args.folder = args.folder || args.project.folder;
+      args.folder = args.folder || args.base.folder;
       args.folder = path.dirname(args.folder);
-      args.title = args.title || args.project.title;
-      args.type = args.type || args.project.type;
+      args.title = args.title || args.base.title;
+      args.type = args.type || args.base.type;
 
-      if (this.isDbConnectionProject(args.projectJson)) {
+      if (this.isDbConnectionProject(args.baseJson)) {
       } else {
         await this.migrator().init(args);
         await this.migrator().sync(args);
       }
 
-      this.projectOpenByWeb(args.projectJson);
+      this.baseOpenByWeb(args.baseJson);
     } catch (error) {
       log.ppe(error, func);
     }
@@ -476,24 +476,24 @@ export default class SqlMgr {
     return result;
   }
 
-  public async projectUpdateWeb(args) {
-    const func = this.projectUpdateWeb.name;
+  public async baseUpdateWeb(args) {
+    const func = this.baseUpdateWeb.name;
     const result = new Result();
     log.api(`${func}:args:`, args);
 
     console.log(args);
 
     try {
-      args.title = args.title || args.project.title;
-      args.type = args.type || args.project.type;
+      args.title = args.title || args.base.title;
+      args.type = args.type || args.base.type;
 
-      if (this.isDbConnectionProject(args.projectJson)) {
+      if (this.isDbConnectionProject(args.baseJson)) {
       } else {
         await this.migrator().init(args);
         await this.migrator().sync(args);
       }
 
-      this.projectOpenByWeb(args.project);
+      this.baseOpenByWeb(args.base);
     } catch (error) {
       log.ppe(error, func);
     }
@@ -639,7 +639,7 @@ export default class SqlMgr {
 
   public _createProjectJsonFromDbUrls(args) {
     try {
-      const projectJson = {
+      const baseJson = {
         title: '',
         envs: {
           _noco: {
@@ -655,7 +655,7 @@ export default class SqlMgr {
           seedsFolder: 'seeds',
           queriesFolder: 'queries',
           apisFolder: 'apis',
-          projectType: args.projectType || 'rest',
+          baseType: args.baseType || 'rest',
           type: args.type || 'mvc',
           language: args.language || 'ts',
         },
@@ -663,7 +663,7 @@ export default class SqlMgr {
         seedsFolder: 'seeds',
         queriesFolder: 'queries',
         apisFolder: 'apis',
-        projectType: args.projectType || 'rest',
+        baseType: args.baseType || 'rest',
         type: args.type || 'mvc',
         language: args.language || 'ts',
         apiClient: {
@@ -678,10 +678,10 @@ export default class SqlMgr {
           config.meta.dbAlias = i > 1 ? `secondary${i}` : `secondary`;
         }
 
-        projectJson.envs._noco.db.push(config);
+        baseJson.envs._noco.db.push(config);
       }
 
-      return projectJson;
+      return baseJson;
     } catch (e) {
       console.log(e);
       throw e;
@@ -694,38 +694,38 @@ export default class SqlMgr {
    * @param {Object} args.url - database urls
    * @memberof SqlMgr
    */
-  public async projectCreateByDbUrl(args) {
-    const func = this.projectCreateByDbUrl.name;
+  public async baseCreateByDbUrl(args) {
+    const func = this.baseCreateByDbUrl.name;
     const result = new Result();
     log.api(`${func}:args:`, args);
 
     try {
       args.folder = path.join(args.folder, 'config.xc.json');
 
-      args.project = {
+      args.base = {
         title: path.basename(path.dirname(args.folder)),
         folder: args.folder,
         type: 'mysql',
       };
 
-      args.projectJson = this._createProjectJsonFromDbUrls(args);
+      args.baseJson = this._createProjectJsonFromDbUrls(args);
 
-      // result = await this._project.create(args.project);
+      // result = await this._project.create(args.base);
       if (result.code) {
         return result;
       }
 
-      args.folder = args.folder || args.project.folder;
+      args.folder = args.folder || args.base.folder;
       args.folder = path.dirname(args.folder);
-      args.title = args.title || args.project.title;
-      args.type = args.type || args.project.type;
+      args.title = args.title || args.base.title;
+      args.type = args.type || args.base.type;
 
-      if (this.isDbConnectionProject(args.projectJson)) {
+      if (this.isDbConnectionProject(args.baseJson)) {
       } else {
         await this.migrator().init(args);
         await this.migrator().sync(args);
       }
-      // this.projectOpen(args.project);
+      // this.baseOpen(args.base);
     } catch (error) {
       log.ppe(error, func);
     }
@@ -736,12 +736,12 @@ export default class SqlMgr {
   /**
    *
    *
-   * @param {*} args - project row object
+   * @param {*} args - base row object
    * @returns
    * @memberof SqlMgr
    */
-  public async projectRemove(args) {
-    const func = this.projectRemove.name;
+  public async baseRemove(args) {
+    const func = this.baseRemove.name;
     const result = new Result();
     log.api(`${func}:args:`, args);
 
@@ -768,7 +768,7 @@ export default class SqlMgr {
     console.log(args);
 
     // create sql client for this operation
-    const client = await this.projectGetSqlClient(args);
+    const client = await this.baseGetSqlClient(args);
 
     // do sql operation
     const data = await client[op](opArgs);
@@ -793,7 +793,7 @@ export default class SqlMgr {
     console.log(args);
 
     // create sql client for this operation
-    const sqlClient = await this.projectGetSqlClient(args);
+    const sqlClient = await this.baseGetSqlClient(args);
 
     // do sql operation
     const sqlMigrationStatements = await sqlClient[op](opArgs);
@@ -923,7 +923,7 @@ export default class SqlMgr {
 
       console.time('Copy and delete auth user migrations');
 
-      const sqlClient = await this.projectGetSqlClient({
+      const sqlClient = await this.baseGetSqlClient({
         env: '_noco',
         dbAlias: 'db',
       });
@@ -963,34 +963,34 @@ export default class SqlMgr {
   }
 
   public isProjectRest() {
-    return this.currentProjectJson.projectType.toLowerCase() === 'rest';
+    return this.currentProjectJson.baseType.toLowerCase() === 'rest';
   }
 
   public isProjectGrpc() {
-    return this.currentProjectJson.projectType.toLowerCase() === 'grpc';
+    return this.currentProjectJson.baseType.toLowerCase() === 'grpc';
   }
 
   public isProjectGraphql() {
-    return this.currentProjectJson.projectType.toLowerCase() === 'graphql';
+    return this.currentProjectJson.baseType.toLowerCase() === 'graphql';
   }
 
   public isProjectMigrations() {
-    return this.currentProjectJson.projectType.toLowerCase() === 'migrations';
+    return this.currentProjectJson.baseType.toLowerCase() === 'migrations';
   }
 
   public isProjectDbConnection() {
-    return this.currentProjectJson.projectType.toLowerCase() === 'dbconnection';
+    return this.currentProjectJson.baseType.toLowerCase() === 'dbconnection';
   }
 
   public isProjectNoApis() {
     return (
-      this.currentProjectJson.projectType.toLowerCase() === 'dbconnection' ||
-      this.currentProjectJson.projectType.toLowerCase() === 'migrations'
+      this.currentProjectJson.baseType.toLowerCase() === 'dbconnection' ||
+      this.currentProjectJson.baseType.toLowerCase() === 'migrations'
     );
   }
 
-  public isRestProject(projectJson) {
-    return projectJson.projectType.toLowerCase() === 'rest';
+  public isRestProject(baseJson) {
+    return baseJson.baseType.toLowerCase() === 'rest';
   }
 
   public isMvc() {
@@ -1000,22 +1000,22 @@ export default class SqlMgr {
     );
   }
 
-  public isGraphqlProject(projectJson) {
-    return projectJson.projectType.toLowerCase() === 'graphql';
+  public isGraphqlProject(baseJson) {
+    return baseJson.baseType.toLowerCase() === 'graphql';
   }
 
-  public isMigrationsProject(projectJson) {
-    return projectJson.projectType.toLowerCase() === 'migrations';
+  public isMigrationsProject(baseJson) {
+    return baseJson.baseType.toLowerCase() === 'migrations';
   }
 
-  public isDbConnectionProject(projectJson?) {
-    return projectJson?.projectType?.toLowerCase() === 'dbConnection';
+  public isDbConnectionProject(baseJson?) {
+    return baseJson?.baseType?.toLowerCase() === 'dbConnection';
   }
 
-  public isNoApisProject(projectJson) {
+  public isNoApisProject(baseJson) {
     return (
-      projectJson.projectType.toLowerCase() === 'dbConnection' ||
-      projectJson.projectType.toLowerCase() === 'migrations'
+      baseJson.baseType.toLowerCase() === 'dbConnection' ||
+      baseJson.baseType.toLowerCase() === 'migrations'
     );
   }
 
@@ -1107,11 +1107,11 @@ export default class SqlMgr {
   }
 
   public async executeRawQuery(args, query) {
-    const client = await this.projectGetSqlClient(args);
+    const client = await this.baseGetSqlClient(args);
     return client.raw(query);
   }
 
-  public async projectChangeEnv(args) {
+  public async baseChangeEnv(args) {
     try {
       const xcConfig = JSON.parse(
         await promisify(fs.readFile)(
@@ -1352,7 +1352,7 @@ export default class SqlMgr {
           break;
         case ToolOps.PROJECT_READ_BY_WEB:
           console.log('Within PROJECT_READ_BY_WEB handler', args);
-          result = this.projectReadByWeb({});
+          result = this.baseReadByWeb({});
           break;
         case ToolOps.DB_VIEW_READ:
           console.log('Within DB_VIEW_READ handler', args);
@@ -1412,7 +1412,7 @@ export default class SqlMgr {
 
         case ToolOps.PROJECT_HAS_DB:
           console.log('Within PROJECT_HAS_DB handler', args);
-          result = await this.projectHasDb();
+          result = await this.baseHasDb();
           break;
 
         case ToolOps.TEST_CONNECTION:
@@ -1422,17 +1422,17 @@ export default class SqlMgr {
 
         case ToolOps.PROJECT_CREATE_BY_WEB:
           console.log('Within PROJECT_CREATE_BY_WEB handler', args);
-          result = await this.projectCreateByWeb(args.args);
+          result = await this.baseCreateByWeb(args.args);
           break;
 
         case ToolOps.PROJECT_UPDATE_BY_WEB:
           console.log('Within PROJECT_UPDATE_BY_WEB handler', args);
-          result = await this.projectUpdateByWeb(args.args);
+          result = await this.baseUpdateByWeb(args.args);
           break;
 
         case ToolOps.PROJECT_CHANGE_ENV:
           console.log('Within PROJECT_CHANGE_ENV handler', args);
-          result = await this.projectChangeEnv(args.args);
+          result = await this.baseChangeEnv(args.args);
           break;
 
         case 'tableMetaCreate':
@@ -1481,7 +1481,7 @@ export default class SqlMgr {
     return result;
   }
 
-  public projectHasDb() {
+  public baseHasDb() {
     for (const env of Object.values(this.currentProjectJson.envs) as any[]) {
       if (env.db.length) {
         return true;

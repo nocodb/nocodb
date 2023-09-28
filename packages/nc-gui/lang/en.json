@@ -239,6 +239,8 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "renameTable": "Rename Table",
+    "renamingTable": "Renaming Table",
     "copyAuthToken": "Copy Auth Token",
     "copiedAuthToken": "Copied Auth Token",
     "showSidebar": "Show Sidebar",
@@ -658,7 +660,8 @@
         "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
         "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
       },
-      "duplicateProject": "Are you sure you want to duplicate the project?"
+      "duplicateProject": "Are you sure you want to duplicate the project?",
+      "duplicateTable": "Are you sure you want to duplicate the table?"
     },
     "info": {
       "pasteNotSupported": "Paste operation is not supported on the active cell",

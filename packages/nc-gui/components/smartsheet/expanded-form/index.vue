@@ -168,25 +168,36 @@ const onDuplicateRow = () => {
   }, 500)
 }
 
+const save = async () => {
+  if (isNew.value) {
+    const data = await _save(rowState.value)
+    await syncLTARRefs(data)
+    reloadTrigger?.trigger()
+  } else {
+    await _save()
+    reloadTrigger?.trigger()
+  }
+}
+
+const isPreventChangeModalOpen = ref(false)
+
+const discardPreventModal = () => {
+  emits('next')
+  isPreventChangeModalOpen.value = false
+}
+
 const onNext = async () => {
   if (changedColumns.value.size > 0) {
-    await Modal.confirm({
-      title: 'Do you want to save the changes?',
-      okText: 'Save',
-      cancelText: 'Discard',
-      onOk: async () => {
-        await save()
-        emits('next')
-      },
-      onCancel: () => {
-        emits('next')
-      },
-    })
+    isPreventChangeModalOpen.value = true
   } else {
     emits('next')
   }
 }
 
+const saveChanges = async () => {
+  await save()
+  emits('next')
+}
 const reloadParentRowHook = inject(ReloadRowDataHookInj, createEventHook())
 
 // override reload trigger and use it to reload grid and the form itself
@@ -230,18 +241,6 @@ const addNewRow = () => {
     isExpanded.value = true
   }, 500)
 }
-
-const save = async () => {
-  if (isNew.value) {
-    const data = await _save(rowState.value)
-    await syncLTARRefs(data)
-    reloadTrigger?.trigger()
-  } else {
-    await _save()
-    reloadTrigger?.trigger()
-  }
-}
-
 // attach keyboard listeners to switch between rows
 // using alt + left/right arrow keys
 useActiveKeyupListener(
@@ -372,7 +371,7 @@ export default {
     <div class="h-[85vh] xs:(max-h-full) max-h-215 flex flex-col p-6">
       <div class="flex h-8 flex-shrink-0 w-full items-center nc-expanded-form-header relative mb-4 justify-between">
         <template v-if="!isMobileMode">
-          <div class="flex gap-3">
+          <div class="flex gap-3 w-100">
             <div class="flex gap-2">
               <NcButton
                 v-if="props.showNextPrevIcons"
@@ -393,7 +392,7 @@ export default {
                 <MdiChevronDown class="text-md" />
               </NcButton>
             </div>
-            <div v-if="displayValue" class="flex items-center truncate max-w-32 font-bold text-gray-800 text-xl">
+            <div v-if="displayValue" class="flex items-center truncate font-bold text-gray-800 text-xl">
               {{ displayValue }}
             </div>
           </div>
@@ -614,6 +613,7 @@ export default {
                 type="primary"
                 size="medium"
                 class="nc-expand-form-save-btn !xs:(text-base)"
+                :disabled="changedColumns.size === 0"
                 @click="save"
               >
                 <div class="xs:px-1">Save</div>
@@ -644,6 +644,22 @@ export default {
       </span>
     </template>
   </GeneralDeleteModal>
+
+  <!-- Prevent unsaved change modal -->
+  <NcModal v-model:visible="isPreventChangeModalOpen" size="small">
+    <template #header>
+      <div class="flex flex-row items-center gap-x-2">Do you want to save the changes ?</div>
+    </template>
+    <div class="mt-2">
+      <div class="flex flex-row justify-end gap-x-2 mt-6">
+        <NcButton type="secondary" @click="discardPreventModal">{{ $t('general.quit') }}</NcButton>
+
+        <NcButton key="submit" type="primary" label="Rename Table" loading-label="Renaming Table" @click="saveChanges">
+          {{ $t('activity.saveAndQuit') }}
+        </NcButton>
+      </div>
+    </div>
+  </NcModal>
 </template>
 
 <style lang="scss">

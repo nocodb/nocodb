@@ -86,6 +86,7 @@ onClickOutside(inputWrapperRef, (e) => {
         :class="{
           'p-2': editEnabled,
           'py-1 h-full': isForm,
+          'px-1': isExpandedFormOpen,
         }"
         :style="{
           minHeight: `${height}px`,

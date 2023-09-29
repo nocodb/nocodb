@@ -359,6 +359,8 @@
     }
   },
   "labels": {
+    "icon": "Icon",
+    "max": "Max",
     "binaryEncodingFormat": "Binary encoding format",
     "syntax": "Syntax",
     "examples": "Examples",
@@ -832,25 +834,21 @@
     "validColumnsForBarCode": "The valid Column Types for a Barcode Column are: Number, Single Line Text, Long Text, Phone Number, URL, Email, Decimal. Please create one first.",
     "hm": {
       "title": "Has Many Relation",
-      "icon": "HasManyIcon",
       "tooltip_desc": "A single record from table ",
       "tooltip_desc2": " can be linked with multiple records from table "
     },
     "mm": {
       "title": "Many to Many Relation",
-      "icon": "ManytoManyIcon",
       "tooltip_desc": "Multiple records from table ",
       "tooltip_desc2": " can be linked with multiple records from table "
     },
     "bt": {
       "title": "Belongs to Relation",
-      "icon": "BelongsToIcon",
       "tooltip_desc": "A single record from table ",
       "tooltip_desc2": " can be linked with a record from table "
     },
     "oo": {
       "title": "One to One Relation",
-      "icon": "OnetoOneIcon",
       "tooltip_desc": "A single record from table ",
       "tooltip_desc2": " can be linked with a single record from table "
     },

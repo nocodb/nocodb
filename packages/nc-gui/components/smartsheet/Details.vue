@@ -16,6 +16,9 @@ const openedSubTab = computed({
 watch(
   openedSubTab,
   () => {
+    if (openedSubTab.value === 'field' && !isUIAllowed('hookList')) {
+      onViewsTabChange('relation')
+    }
     if (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) {
       onViewsTabChange('relation')
     }

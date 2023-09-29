@@ -24,7 +24,7 @@ const { onViewsTabChange } = useViewsStore()
       :class="{
         active: openedViewsTab !== 'view',
       }"
-      @click="onViewsTabChange(isEeUI ? 'field' : 'relation')"
+      @click="onViewsTabChange('field')"
     >
       <GeneralIcon
         icon="erd"

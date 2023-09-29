@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import NcModal from '../nc/Modal.vue'
 import {
-  Modal as AModal,
   ActiveCellInj,
   EditModeInj,
   IsFormInj,
+  JsonExpandInj,
   ReadonlyInj,
   computed,
   inject,
@@ -41,7 +42,7 @@ const localValueState = ref<string | undefined>()
 
 const error = ref<string | undefined>()
 
-const isExpanded = ref(false)
+const isExpanded = inject(JsonExpandInj, ref(false))
 
 const localValue = computed<string | Record<string, any> | undefined>({
   get: () => localValueState.value,
@@ -139,7 +140,7 @@ useSelectedCellKeyupListener(active, (e) => {
 </script>
 
 <template>
-  <component :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" :closable="false" centered :footer="null">
+  <component :is="isExpanded ? NcModal : 'div'" v-model:visible="isExpanded" :closable="false" centered :footer="null">
     <div v-if="editEnabled && !readonly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
       <div class="flex flex-row justify-between pt-1 pb-2" @mousedown.stop>
         <a-button type="text" size="small" @click="isExpanded = !isExpanded">
@@ -148,7 +149,7 @@ useSelectedCellKeyupListener(active, (e) => {
           <CilFullscreen v-else class="h-2.5" />
         </a-button>
 
-        <div v-if="!isForm || isExpanded" class="flex flex-row">
+        <div v-if="!isForm || isExpanded" class="flex flex-row my-1">
           <a-button type="text" size="small" :onclick="clear"><div class="text-xs">Cancel</div></a-button>
 
           <a-button type="primary" size="small" :disabled="!!error || localValue === vModel" @click="onSave">

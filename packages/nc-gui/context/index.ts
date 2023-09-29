@@ -50,3 +50,4 @@ export const TreeViewInj: InjectionKey<{
   openRenameTableDialog: (table: TableType, rightClick: boolean) => void
   contextMenuTarget: { type?: 'project' | 'base' | 'table' | 'main' | 'layout'; value?: any }
 }> = Symbol('tree-view-functions-injection')
+export const JsonExpandInj: InjectionKey<Ref<boolean>> = Symbol('json-expand-injection')

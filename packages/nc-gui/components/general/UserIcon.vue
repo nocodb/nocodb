@@ -3,21 +3,21 @@ const props = withDefaults(
   defineProps<{
     size?: 'small' | 'medium' | 'base' | 'large' | 'xlarge'
     name?: string
-    commentOwner?: string
+    email?: string
   }>(),
   {
-    commentOwner: '',
+    email: '',
   },
 )
 
 const { user } = useGlobal()
 
-const commentOwner = toRef(props, 'commentOwner')
+const emailProp = toRef(props, 'email')
 
 const backgroundColor = computed(() => {
   // in comments we need to generate user icon from email
-  if (commentOwner.value.length) {
-    return stringToColour(commentOwner.value)
+  if (emailProp.value.length) {
+    return stringToColour(emailProp.value)
   }
 
   return user.value?.email ? stringToColour(user.value?.email) : '#FFFFFF'

@@ -26,11 +26,11 @@ vModel.value.meta = {
 <template>
   <a-row>
     <a-col :span="24">
-      <span class="prose-sm mt-2">A duration of time in minutes or seconds (e.g. 1:23).</span>
+      <span class="prose-sm mt-2">{{ $t('labels.durationInfo') }}</span>
     </a-col>
 
     <a-col :span="24">
-      <a-form-item label="Duration Format">
+      <a-form-item :label="$t('labels.durationFormat')">
         <a-select v-model:value="vModel.meta.duration" class="w-52" dropdown-class-name="nc-dropdown-duration-option">
           <a-select-option v-for="(duration, i) of durationOptionList" :key="i" :value="duration.id">
             {{ duration.title }}

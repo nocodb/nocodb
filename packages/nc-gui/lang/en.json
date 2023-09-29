@@ -349,6 +349,8 @@
     "renameFile": "Rename File"
   },
   "labels": {
+    "durationInfo": "A duration of time in minutes or seconds (e.g. 1:23).",
+    "durationFormat": "Duration Format",
     "dateFormat": "Date Format",
     "timeFormat": "Time Format",
     "singularLabel": "Singular Label",
@@ -777,6 +779,7 @@
     "decimal8": "1.00000000"
   },
   "msg": {
+    "plsEnterANumber": "Please enter a number",
     "invalidDate": "Invalid date",
     "invalidLocale": "Invalid locale",
     "invalidCurrencyCode": "Invalid Currency Code",

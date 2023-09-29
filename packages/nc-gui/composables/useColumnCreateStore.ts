@@ -69,21 +69,23 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     }
 
     const formState = ref<Record<string, any>>({
-      title: 'title',
+      title: 'Untitled',
       uidt: UITypes.SingleLineText,
       ...clone(column.value || {}),
     })
 
     const generateUniqueColumnSuffix = () => {
-      let suffix = (meta.value?.columns?.length || 0) + 1
-      let columnName = `title${suffix}`
+      let columnName = `Untitled${formState.value.uidt}`
+      // Gets the no of columns in meta where meta.column_name === `Untitled${formState.value.uidt}`
+      // Allows to count suffix differently for different UIDTs
+      let suffix = (meta.value?.columns?.filter(c => c.column_name?.includes(columnName)).length || 0)
       while (
         (tableExplorerColumns?.value || meta.value?.columns)?.some(
           (c) => (c.column_name || '').toLowerCase() === columnName.toLowerCase(),
         )
       ) {
         suffix++
-        columnName = `title${suffix}`
+        columnName = `Untitled${suffix}`
       }
       return suffix
     }
@@ -93,7 +95,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       setAdditionalValidations({})
       formState.value = {
         meta: {},
-        ...sqlUi.value.getNewColumn(generateUniqueColumnSuffix()),
+        ...sqlUi.value.getNewColumn(generateUniqueColumnSuffix(),formState.value.uidt),
       }
       formState.value.title = formState.value.column_name
     }
@@ -145,10 +147,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           // only take title, column_name and uidt when creating a column
           // to avoid the extra props from being taken (e.g. SingleLineText -> LTAR -> SingleLineText)
           // to mess up the column creation
-          title: formState.value.title,
-          column_name: formState.value.column_name,
+          ...sqlUi.value.getNewColumn(generateUniqueColumnSuffix(),formState.value.uidt),
           uidt: formState.value.uidt,
-          temp_id: formState.value.temp_id,
         }),
         ...(isEdit.value && {
           // take the existing formState.value when editing a column
@@ -167,6 +167,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
       formState.value.dtxp = sqlUi.value.getDefaultLengthForDatatype(formState.value.dt)
       formState.value.dtxs = sqlUi.value.getDefaultScaleForDatatype(formState.value.dt)
+      formState.value.title = formState.value.column_name
 
       const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
       if (column && selectTypes.includes(formState.value.uidt) && selectTypes.includes(column.value?.uidt as UITypes)) {

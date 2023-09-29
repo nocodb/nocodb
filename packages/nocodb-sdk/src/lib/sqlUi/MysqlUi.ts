@@ -141,9 +141,9 @@ export class MysqlUi {
     ];
   }
 
-  static getNewColumn(suffix) {
+  static getNewColumn(suffix: number, uidt: UITypes) {
     return {
-      column_name: 'title' + suffix,
+      column_name: `Untitled${uidt}${suffix !== 0 ? suffix : ''}`,
       dt: 'varchar',
       dtx: 'specificType',
       ct: 'varchar(45)',

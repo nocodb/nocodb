@@ -93,7 +93,7 @@ onMounted(() => {
     @contextmenu.stop
   />
 
-  <span v-else-if="vModel === null && showNull" class="nc-null">{{ $t('labels.null') }}</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null">{{ $t('general.null') }}</span>
 
   <!-- only show the numeric value as previously string value was accepted -->
   <span v-else-if="!isNaN(vModel)">{{ currency }}</span>

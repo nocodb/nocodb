@@ -36,4 +36,3 @@ export { default as User } from './User';
 export { default as View } from './View';
 export { default as LinksColumn } from './LinksColumn';
 export { default as Notification } from './Notification';
-export { default as TemporaryUrl } from './TemporaryUrl';

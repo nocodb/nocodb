@@ -114,13 +114,9 @@ watch(
   },
 )
 
-const { currentRow } = useSmartsheetRowStoreOrThrow()
-
 /** updates attachments array for autosave */
 function updateModelValue(data: string | Record<string, any>[]) {
-  const parsedData = typeof data === 'string' ? JSON.parse(data) : data
-  currentRow.value.rowMeta.attachments = column.value?.title ? [column.value.title] : []
-  emits('update:modelValue', parsedData)
+  emits('update:modelValue', data)
 }
 
 /** Close modal on escape press, disable dropzone as well */

@@ -170,15 +170,6 @@ export function useData(args: {
     try {
       const id = extractPkFromRow(toUpdate.row, metaValue?.columns as ColumnType[])
 
-      let attachmentOverride = null
-
-      if (toUpdate.rowMeta?.attachments?.includes(property)) {
-        attachmentOverride = toUpdate.row[property].map((el: any) => {
-          const { signedUrl: _signedUrl, signedPath: _signedPath, ...rest } = el
-          return rest
-        })
-      }
-
       const updatedRowData: Record<string, any> = await $api.dbViewRow.update(
         NOCO,
         project?.value.id as string,
@@ -187,7 +178,7 @@ export function useData(args: {
         id,
         {
           // if value is undefined treat it as null
-          [property]: attachmentOverride ?? toUpdate.row[property] ?? null,
+          [property]: toUpdate.row[property] ?? null,
         },
         // todo:
         // {

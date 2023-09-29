@@ -863,7 +863,7 @@
     "webhookBodyMsg2": "body",
     "webhookBodyMsg3": "to refer the record under consideration",
     "formula": {
-      "hintStart": "Hint: Use {} to reference columns, e.g: {column_name}. For more, please check out",
+      "hintStart": "Hint: Use {placeholder1} to reference columns, e.g: {placeholder2}. For more, please check out",
       "hintEnd": "Formulas.",
       "noSuggestedFormulaFound": "No suggested formula found",
       "numericTypeIsExpected": "Numeric type is expected",

@@ -30,11 +30,11 @@ const emit = defineEmits(['update:value'])
 
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode]
 
-const { t } = useI18n()
-
 const vModel = useVModel(props, 'value', emit)
 
 const { formState, setAdditionalValidations, validateInfos, sqlUi, column } = useColumnCreateStoreOrThrow()
+
+const { t } = useI18n()
 
 const { loadMagic, predictFunction: _predictFunction } = useNocoEe()
 
@@ -741,7 +741,13 @@ const predictFunction = async () => {
     </a-form-item>
 
     <div class="text-gray-600 mt-2 mb-4 prose-sm">
-      {{ $t('msg.formula.hintStart') }}
+      {{
+        // As using {} in translation will be treated as placeholder, and this translation contain {} as part of th text
+        $t('msg.formula.hintStart', {
+          placeholder1: '{}',
+          placeholder2: '{column_name}',
+        })
+      }}
       <a class="prose-sm" href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features" target="_blank">
         {{ $t('msg.formula.hintEnd') }}
       </a>

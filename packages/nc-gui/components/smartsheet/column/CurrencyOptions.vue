@@ -12,6 +12,8 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:value'])
 
+const { t } = useI18n()
+
 const vModel = useVModel(props, 'value', emit)
 
 const validators = {
@@ -20,7 +22,7 @@ const validators = {
       validator: (_: any, locale: any) => {
         return new Promise<void>((resolve, reject) => {
           if (!validateCurrencyLocale(locale)) {
-            return reject(new Error('Invalid locale'))
+            return reject(new Error(t('msg.invalidLocale')))
           }
           resolve()
         })
@@ -32,7 +34,7 @@ const validators = {
       validator: (_: any, currencyCode: any) => {
         return new Promise<void>((resolve, reject) => {
           if (!validateCurrencyCode(currencyCode)) {
-            return reject(new Error('Invalid Currency Code'))
+            return reject(new Error(t('msg.invalidCurrencyCode')))
           }
           resolve()
         })
@@ -54,7 +56,7 @@ const currencyLocaleList = ref<{ text: string; value: string }[]>([])
 const isMoney = computed(() => vModel.value.dt === 'money')
 
 const message = computed(() => {
-  if (isMoney.value && isPg.value) return "PostgreSQL 'money' type has own currency settings"
+  if (isMoney.value && isPg.value) return t('msg.postgresHasItsOwnCurrencySettings')
   return ''
 })
 
@@ -77,7 +79,7 @@ currencyLocales().then((locales) => {
 <template>
   <a-row gutter="8">
     <a-col :span="12">
-      <a-form-item v-bind="validateInfos['meta.currency_locale']" label="Currency Locale">
+      <a-form-item v-bind="validateInfos['meta.currency_locale']" :label="$t('title.currencyLocale')">
         <a-select
           v-model:value="vModel.meta.currency_locale"
           class="w-52"
@@ -94,7 +96,7 @@ currencyLocales().then((locales) => {
     </a-col>
 
     <a-col :span="12">
-      <a-form-item v-bind="validateInfos['meta.currency_code']" label="Currency Code">
+      <a-form-item v-bind="validateInfos['meta.currency_code']" :label="$t('title.currencyCode')">
         <a-select
           v-model:value="vModel.meta.currency_code"
           class="w-52"

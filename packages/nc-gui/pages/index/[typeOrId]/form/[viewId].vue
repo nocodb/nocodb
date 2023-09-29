@@ -75,7 +75,7 @@ watch(
     >
       <div class="w-full flex flex-col gap-4">
         <!-- todo: i18n -->
-        <h2 class="text-xl font-semibold">This shared view is protected</h2>
+        <h2 class="text-xl font-semibold">{{ $t('msg.thisSharedViewIsProtected') }}</h2>
 
         <a-form layout="vertical" no-style :model="form" @finish="loadSharedView">
           <a-form-item name="password" :rules="[{ required: true, message: $t('msg.error.signUpRules.passwdRequired') }]">

@@ -39,6 +39,8 @@ const route = router.currentRoute
 
 const { xWhere, eventBus } = useSmartsheetStoreOrThrow()
 
+const { t } = useI18n()
+
 const bulkUpdateDlg = ref(false)
 
 const routeQuery = computed(() => route.value.query as Record<string, string>)
@@ -151,10 +153,10 @@ const addRowExpandOnClose = (row: Row) => {
 const toggleOptimisedQuery = () => {
   if (optimisedQuery.value) {
     optimisedQuery.value = false
-    message.info('Optimised query disabled')
+    message.info(t('msg.optimizedQueryDisabled'))
   } else {
     optimisedQuery.value = true
-    message.info('Optimised query enabled')
+    message.info(t('msg.optimizedQueryEnabled'))
   }
 }
 

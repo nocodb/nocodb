@@ -359,6 +359,9 @@
     "syntax": "Syntax",
     "examples": "Examples",
     "durationInfo": "A duration of time in minutes or seconds (e.g. 1:23).",
+    "negative": "Negative",
+    "default": "Default",
+    "defaultNumberPercent": "Default Number (%)",
     "durationFormat": "Duration Format",
     "dateFormat": "Date Format",
     "timeFormat": "Time Format",
@@ -767,6 +770,7 @@
       "save": "Save password",
       "confirm": "Confirm new password"
     },
+    "allowNegativeNumbers": "Allow negative numbers",
     "searchProjectTree": "Search tables",
     "searchFields": "Search fields",
     "searchColumn": "Search {search} column",

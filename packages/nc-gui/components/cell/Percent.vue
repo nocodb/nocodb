@@ -42,7 +42,7 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value
     class="w-full !text-sm !border-none !outline-none focus:ring-0 text-base p-1"
     :class="{ '!px-2': editEnabled }"
     type="number"
-    :placeholder="isEditColumn ? '(Optional)' : ''"
+    :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop
@@ -54,6 +54,6 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value
     @selectstart.capture.stop
     @mousedown.stop
   />
-  <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null capitalize">{{ $t('general.null') }}</span>
   <span v-else>{{ vModel }}</span>
 </template>

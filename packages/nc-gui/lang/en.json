@@ -835,6 +835,12 @@
       "columnWithTypeFoundButExpected": "Column {columnName} with {columnType} type is found but {expectedType} type is expected",
       "columnNotMatchedWithType": "{columnName} is not matched with {columnType}"
     },
+    "selectOption": {
+      "cantBeNull": "Select options can't be null",
+      "multiSelectCantHaveCommas": "MultiSelect columns can't have commas(',')",
+      "cantHaveDuplicates": "Select options can't have duplicates",
+      "createNewOptionNamed": "Create new option named"
+    },
     "plsEnterANumber": "Please enter a number",
     "invalidDate": "Invalid date",
     "invalidLocale": "Invalid locale",

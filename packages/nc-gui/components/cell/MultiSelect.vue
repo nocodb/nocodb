@@ -378,7 +378,7 @@ const selectedOpts = computed(() => {
       v-model:value="vModel"
       mode="multiple"
       class="w-full overflow-hidden"
-      :placeholder="isEditColumn ? '(Optional)' : ''"
+      :placeholder="isEditColumn ? $t('labels.optional') : ''"
       :bordered="false"
       clear-icon
       show-search
@@ -421,7 +421,7 @@ const selectedOpts = computed(() => {
         <div class="flex gap-2 text-gray-500 items-center h-full">
           <component :is="iconMap.plusThick" class="min-w-4" />
           <div class="text-xs whitespace-normal">
-            Create new option named <strong>{{ searchVal }}</strong>
+            {{ $t('msg.selectOption.createNewOptionNamed') }} <strong>{{ searchVal }}</strong>
           </div>
         </div>
       </a-select-option>

@@ -1320,9 +1320,9 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                           v-if="addColumnDropdown"
                           :preload="preloadColumn"
                           :column-position="columnOrder"
+                          :class="{ hidden: isJsonExpand }"
                           @submit="closeAddColumnDropdown(true)"
                           @cancel="closeAddColumnDropdown()"
-                          :class="{ hidden: isJsonExpand }"
                           @click.stop
                           @keydown.stop
                           @mounted="preloadColumn = undefined"

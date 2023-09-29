@@ -71,3 +71,14 @@
     var(--ifm-color-emphasis-100) 100%
   );
 }
+
+
+@media screen and (min-width: 768px) {
+  .DocSearch.DocSearch-Button{
+    width: 200px;
+    position: fixed;
+    left:50%;
+    transform: translateX(-50%);
+    top: 12px;
+  }
+}

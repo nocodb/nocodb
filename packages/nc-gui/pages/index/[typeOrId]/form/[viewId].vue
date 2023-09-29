@@ -79,7 +79,7 @@ watch(
 
         <a-form layout="vertical" no-style :model="form" @finish="loadSharedView">
           <a-form-item name="password" :rules="[{ required: true, message: $t('msg.error.signUpRules.passwdRequired') }]">
-            <a-input-password v-model:value="form.password" size="large" :placeholder="$t('msg.info.signUp.enterPassword')" />
+            <a-input-password v-model:value="form.password" size="large" :placeholder="$t('msg.enterPassword')" />
           </a-form-item>
 
           <Transition name="layout">

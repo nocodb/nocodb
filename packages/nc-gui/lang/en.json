@@ -267,6 +267,7 @@
     "dateJoined": "Date Joined",
     "tokenName": "Token name",
     "creator": "Creator",
+    "qrCode": "QR Code",
     "updateSelectedRows": "Update Selected Rows",
     "noFiltersAdded": "No filters added",
     "editCards": "Edit Cards",
@@ -773,6 +774,7 @@
       "save": "Save password",
       "confirm": "Confirm new password"
     },
+    "selectAColumnForTheQRCodeValue": "Select a column for the QR code value",
     "allowNegativeNumbers": "Allow negative numbers",
     "searchProjectTree": "Search tables",
     "searchFields": "Search fields",

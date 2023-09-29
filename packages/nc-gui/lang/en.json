@@ -349,6 +349,7 @@
     "renameFile": "Rename File"
   },
   "labels": {
+    "dateFormat": "Date Format",
     "singularLabel": "Singular Label",
     "pluralLabel": "Plural Label",
     "optional": "Optional",
@@ -766,6 +767,7 @@
     "selectField": "Select field"
   },
   "msg": {
+    "invalidDate": "Invalid date",
     "invalidLocale": "Invalid locale",
     "invalidCurrencyCode": "Invalid Currency Code",
     "postgresHasItsOwnCurrencySettings": "PostgreSQL 'money' type has own currency settings",

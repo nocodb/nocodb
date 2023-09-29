@@ -286,7 +286,7 @@ const selectedOpt = computed(() => {
       v-model:value="vModel"
       class="w-full overflow-hidden"
       :class="{ 'caret-transparent': !hasEditRoles }"
-      :placeholder="isEditColumn ? '(Optional)' : ''"
+      :placeholder="isEditColumn ? $t('labels.optional') : ''"
       :allow-clear="!column.rqd && editAllowed"
       :bordered="false"
       :open="isOpen && editAllowed"
@@ -324,7 +324,7 @@ const selectedOpt = computed(() => {
         <div class="flex gap-2 text-gray-500 items-center h-full">
           <component :is="iconMap.plusThick" class="min-w-4" />
           <div class="text-xs whitespace-normal">
-            Create new option named <strong>{{ searchVal }}</strong>
+            {{ $t('msg.selectOption.createNewOptionNamed') }} <strong>{{ searchVal }}</strong>
           </div>
         </div>
       </a-select-option>

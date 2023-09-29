@@ -350,6 +350,7 @@
   },
   "labels": {
     "dateFormat": "Date Format",
+    "timeFormat": "Time Format",
     "singularLabel": "Singular Label",
     "pluralLabel": "Plural Label",
     "optional": "Optional",

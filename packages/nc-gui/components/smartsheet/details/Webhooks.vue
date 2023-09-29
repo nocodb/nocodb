@@ -156,11 +156,11 @@ watch(
           <GeneralIcon icon="arrowLeft" />
         </NcButton>
         <div class="flex flex-row ml-2">
-          <NuxtLink class="link" :to="webhookMainUrl">Webhooks</NuxtLink>
+          <NuxtLink class="link" :to="webhookMainUrl">{{ $t('objects.webhooks') }}</NuxtLink>
         </div>
         <template v-if="selectedHook || isDraftMode">
           <div class="flex text-gray-400">/</div>
-          <div class="flex link">{{ selectedHook ? selectedHook.title : 'Create' }}</div>
+          <div class="flex link">{{ selectedHook ? selectedHook.title : $t('general.create') }}</div>
         </template>
         <div
           v-if="selectedHook"
@@ -170,7 +170,7 @@ watch(
             'bg-gray-100 text-gray-500': !selectedHook.active,
           }"
         >
-          {{ selectedHook.active ? 'Active' : 'Inactive' }}
+          {{ selectedHook.active ? $t('general.active') : $t('general.inactive') }}
         </div>
       </div>
       <NcButton
@@ -182,7 +182,7 @@ watch(
         @click="createWebhook()"
       >
         <div class="flex flex-row items-center justify-between w-full text-brand-500">
-          <span class="ml-1">New Webhook</span>
+          <span class="ml-1">{{ $t('activity.newWebhook') }}</span>
           <GeneralIcon icon="plus" />
         </div>
       </NcButton>
@@ -190,24 +190,24 @@ watch(
     <div v-if="!selectedHookId && !isDraftMode" class="flex flex-col h-full w-full items-center">
       <div v-if="hooks.length === 0" class="flex flex-col px-1.5 py-2.5 ml-1 h-full justify-center items-center gap-y-6">
         <GeneralIcon icon="webhook" class="flex text-5xl h-10" style="-webkit-text-stroke: 0.5px" />
-        <div class="flex text-gray-600 font-medium text-lg">Get started with web-hooks!</div>
+        <div class="flex text-gray-600 font-medium text-lg">{{ $t('msg.createWebhookMsg1') }}</div>
         <div class="flex flex-col items-center">
-          <div class="flex">Create web-hooks to power you automations,</div>
-          <div class="flex">Get notified as soon as there are changes in your data</div>
+          <div class="flex">{{ $t('msg.createWebhookMsg2') }}</div>
+          <div class="flex">{{ $t('msg.createWebhookMsg3') }}</div>
         </div>
         <NcButton v-e="['c:actions:webhook']" class="flex max-w-40" type="primary" @click="createWebhook()">
           <div class="flex flex-row items-center justify-between w-full">
-            <span class="ml-1">New Webhook</span>
+            <span class="ml-1">{{ $t('activity.newWebhook') }}</span>
             <GeneralIcon icon="plus" />
           </div>
         </NcButton>
       </div>
       <div v-else class="flex flex-col pb-2 mt-3 mb-2.5 w-full max-w-200">
         <div class="flex flex-row nc-view-sidebar-webhook-header pl-3 pr-2 !py-2.5">
-          <div class="nc-view-sidebar-webhook-item-toggle header">Activate</div>
-          <div class="nc-view-sidebar-webhook-item-title header">Title</div>
-          <div class="nc-view-sidebar-webhook-item-event header">Event</div>
-          <div class="nc-view-sidebar-webhook-item-action header">Action</div>
+          <div class="nc-view-sidebar-webhook-item-toggle header">{{ $t('general.activate') }}</div>
+          <div class="nc-view-sidebar-webhook-item-title header">{{ $t('general.title') }}</div>
+          <div class="nc-view-sidebar-webhook-item-event header">{{ $t('general.event') }}</div>
+          <div class="nc-view-sidebar-webhook-item-action header">{{ $t('general.action') }}</div>
         </div>
         <div v-for="hook in hooks" :key="hook.id" class="nc-view-sidebar-webhook-item">
           <div
@@ -255,13 +255,13 @@ watch(
                       :centered="false"
                       @click="copyWebhook(hook)"
                     >
-                      <template #loading> Duplicating </template>
-                      <div class="flex items-center gap-x-1"><GeneralIcon icon="copy" /> Duplicate</div>
+                      <template #loading> {{ $t('general.duplicating') }} </template>
+                      <div class="flex items-center gap-x-1"><GeneralIcon icon="copy" /> {{ $t('general.duplicate') }}</div>
                     </NcButton>
                     <NcButton type="text" class="w-full !rounded-none" :centered="false" @click="openDeleteModal(hook.id!)">
                       <div class="flex items-center justify-start gap-x-1 !text-red-500">
                         <GeneralIcon icon="delete" />
-                        Delete
+                        {{ $t('general.delete') }}
                       </div>
                     </NcButton>
                   </div>

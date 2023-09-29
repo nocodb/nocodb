@@ -45,7 +45,7 @@ watch(
         <template #tab>
           <div class="tab" data-testid="nc-relations-tab">
             <GeneralIcon icon="erd" class="tab-icon" :class="{}" />
-            <div>Relations</div>
+            <div>{{ $t('title.relations') }}</div>
           </div>
         </template>
         <SmartsheetDetailsErd />
@@ -55,7 +55,7 @@ watch(
         <template #tab>
           <div class="tab" data-testid="nc-apis-tab">
             <GeneralIcon icon="code" class="tab-icon" :class="{}" />
-            <div>APIs</div>
+            <div>{{ $t('labels.apis') }}</div>
           </div>
         </template>
         <SmartsheetDetailsApi />
@@ -65,7 +65,7 @@ watch(
         <template #tab>
           <div class="tab" data-testid="nc-webhooks-tab">
             <GeneralIcon icon="webhook" class="tab-icon" :class="{}" />
-            <div>Webhooks</div>
+            <div>{{ $t('objects.webhooks') }}</div>
           </div>
         </template>
         <SmartsheetDetailsWebhooks />

@@ -893,7 +893,7 @@ function viewRowTests() {
   };
 
   // todo: gallery view doesnt seem to support rollup
-  // it.only('Find one sorted filtered view with nested fields data list with a rollup column in customer table GALLERY', async function () {
+  // it('Find one sorted filtered view with nested fields data list with a rollup column in customer table GALLERY', async function () {
   //   await testFindOneSortedFilteredNestedFieldsDataWithRollup(ViewTypes.GALLERY);
   // });
 

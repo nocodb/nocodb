@@ -501,7 +501,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   <!-- ERD View -->
                   <NcMenuItem key="erd" data-testid="nc-sidebar-project-relations" @click="openProjectErdView(project)">
                     <GeneralIcon icon="erd" />
-                    Relations
+                    {{ $t('title.relations') }}
                   </NcMenuItem>
 
                   <!-- Swagger: Rest APIs -->
@@ -610,7 +610,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                             @contextmenu="setMenuContext('base', base)"
                           >
                             <GeneralBaseLogo :base-type="base.type" class="min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
-                            Default
+                            {{ $t('general.default') }}
                           </div>
                           <div
                             v-else
@@ -626,7 +626,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                               {{ base.alias || '' }}
                             </div>
                             <a-tooltip class="xs:(hidden)">
-                              <template #title>External DB</template>
+                              <template #title>{{ $t('objects.externalDb') }}</template>
                               <div>
                                 <GeneralIcon icon="info" class="text-gray-400 -mt-0.5 hover:text-gray-700 mr-1" />
                               </div>
@@ -659,7 +659,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                                   <!-- ERD View -->
                                   <NcMenuItem key="erd" @click="openErdView(base)">
                                     <GeneralIcon icon="erd" />
-                                    Relations
+                                    {{ $t('title.relations') }}
                                   </NcMenuItem>
 
                                   <DashboardTreeViewBaseOptions v-if="showBaseOption" v-model:project="project" :base="base" />

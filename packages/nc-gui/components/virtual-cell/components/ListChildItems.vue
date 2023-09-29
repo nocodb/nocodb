@@ -242,7 +242,7 @@ onKeyStroke('Escape', () => {
     >
       <InboxIcon class="w-16 h-16 mx-auto" />
       <p>
-        No records are linked from table
+        {{ $t('msg.noRecordsAreLinkedFromTable') }}
         {{ relatedTableMeta?.title }}
       </p>
       <NcButton
@@ -250,7 +250,7 @@ onKeyStroke('Escape', () => {
         data-testid="nc-child-list-button-link-to"
         @click="emit('attachRecord')"
       >
-        <div class="flex items-center gap-1"><MdiPlus /> Link more records</div>
+        <div class="flex items-center gap-1"><MdiPlus /> {{ $t('title.linkMoreRecords') }}</div>
       </NcButton>
     </div>
 
@@ -258,10 +258,13 @@ onKeyStroke('Escape', () => {
 
     <div class="flex flex-row justify-between bg-white relative pt-1">
       <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50">
-        {{ childrenListCount || 0 }} records {{ childrenListCount !== 0 ? 'are' : '' }} linked
+        {{ childrenListCount || 0 }} {{ $t('objects.records') }} {{ childrenListCount !== 0 ? $t('general.are') : '' }}
+        {{ $t('general.linked') }}
       </div>
       <div v-else class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50">
-        {{ state?.[colTitle]?.length || 0 }} records {{ state?.[colTitle]?.length !== 0 ? 'are' : '' }} linked
+        {{ state?.[colTitle]?.length || 0 }} {{ $t('objects.records') }}
+        {{ state?.[colTitle]?.length !== 0 ? $t('general.are') : '' }}
+        {{ $t('general.linked') }}
       </div>
       <div class="flex absolute items-center py-2 justify-center w-full">
         <a-pagination
@@ -277,13 +280,13 @@ onKeyStroke('Escape', () => {
         />
       </div>
       <div class="flex flex-row gap-2">
-        <NcButton v-if="!isForm" type="ghost" class="nc-close-btn" @click="vModel = false"> Finish </NcButton>
+        <NcButton v-if="!isForm" type="ghost" class="nc-close-btn" @click="vModel = false"> {{ $t('general.finish') }} </NcButton>
         <NcButton
           v-if="!readonly && childrenListCount > 0"
           data-testid="nc-child-list-button-link-to"
           @click="emit('attachRecord')"
         >
-          <div class="flex items-center gap-1"><MdiPlus /> Link more records</div>
+          <div class="flex items-center gap-1"><MdiPlus /> {{ $t('title.linkMoreRecords') }}</div>
         </NcButton>
       </div>
     </div>

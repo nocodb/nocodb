@@ -31,7 +31,7 @@ loadSettings()
 
 <template>
   <div data-testid="nc-app-settings">
-    <div class="text-xl mt-4 mb-8 text-center font-weight-bold">Settings</div>
+    <div class="text-xl mt-4 mb-8 text-center font-weight-bold capitalize">{{ $t('activity.settings') }}</div>
     <div class="flex justify-center">
       <a-form-item>
         <a-checkbox

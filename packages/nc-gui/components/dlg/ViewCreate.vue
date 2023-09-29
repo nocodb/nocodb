@@ -238,8 +238,21 @@ onMounted(async () => {
     <template #header>
       <div class="flex flex-row items-center gap-x-1.5">
         <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon !text-xl" />
-        {{ $t(`general.${selectedViewId ? 'duplicate' : 'create'}`) }} <span class="capitalize">{{ typeAlias }}</span>
-        {{ $t('objects.view') }}
+        <template v-if="form.type === ViewTypes.GRID">
+          {{ $t('labels.duplicateGridView') }}
+        </template>
+        <template v-else-if="form.type === ViewTypes.GALLERY">
+          {{ $t('labels.duplicateGalleryView') }}
+        </template>
+        <template v-else-if="form.type === ViewTypes.FORM">
+          {{ $t('labels.duplicateFormView') }}
+        </template>
+        <template v-else-if="form.type === ViewTypes.KANBAN">
+          {{ $t('labels.duplicateKanbanView') }}
+        </template>
+        <template v-else>
+          {{ $t('labels.duplicateView') }}
+        </template>
       </div>
     </template>
     <div class="mt-2">
@@ -266,8 +279,8 @@ onMounted(async () => {
             :disabled="groupingFieldColumnId || isMetaLoading"
             :loading="isMetaLoading"
             :options="viewSelectFieldOptions"
-            placeholder="Select a Grouping Field"
-            not-found-content="No Single Select Field can be found. Please create one first."
+            :placeholder="$t('placeholder.selectGroupField')"
+            :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
           />
         </a-form-item>
         <a-form-item
@@ -282,8 +295,8 @@ onMounted(async () => {
             :options="viewSelectFieldOptions"
             :disabled="groupingFieldColumnId || isMetaLoading"
             :loading="isMetaLoading"
-            placeholder="Select a GeoData Field"
-            not-found-content="No GeoData Field can be found. Please create one first."
+            :placeholder="$t('placeholder.selectGeoField')"
+            :not-found-content="$t('placeholder.selectGeoFieldNotFound')"
           />
         </a-form-item>
       </a-form>
@@ -294,8 +307,8 @@ onMounted(async () => {
         </NcButton>
 
         <NcButton type="primary" :loading="isViewCreating" @click="onSubmit">
-          Create View
-          <template #loading> Creating View </template>
+          {{ $t('labels.createView') }}
+          <template #loading> {{ $t('labels.creatingView') }}</template>
         </NcButton>
       </div>
     </div>

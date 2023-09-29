@@ -56,10 +56,7 @@ export class TopbarSharePage extends BasePage {
       .locator('.ant-switch')
       .nth(0)
       .click({
-        position: {
-          x: 4,
-          y: 4,
-        },
+        position: { x: 4, y: 4 },
       });
   }
 

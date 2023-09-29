@@ -8,6 +8,7 @@ import {
   FieldsInj,
   IsGroupByInj,
   IsLockedInj,
+  JsonExpandInj,
   MetaInj,
   NavigateDir,
   ReadonlyInj,
@@ -224,6 +225,9 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
     contextMenuTarget.value = target
   }
 }
+
+const isJsonExpand = ref(false)
+provide(JsonExpandInj, isJsonExpand)
 
 // #Cell - 1
 
@@ -1316,6 +1320,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                           v-if="addColumnDropdown"
                           :preload="preloadColumn"
                           :column-position="columnOrder"
+                          :class="{ hidden: isJsonExpand }"
                           @submit="closeAddColumnDropdown(true)"
                           @cancel="closeAddColumnDropdown()"
                           @click.stop

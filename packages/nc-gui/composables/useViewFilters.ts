@@ -447,10 +447,6 @@ export function useViewFilters(
           const lookupRelation = (await getMeta(nextCol.fk_model_id))?.columns?.find(
             (c) => c.id === (nextCol.colOptions as LookupType).fk_relation_column_id,
           )
-          if ((lookupRelation.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO) {
-            btLookup = false
-            continue
-          }
           const relatedTableMeta = await getMeta((lookupRelation.colOptions as LinkToAnotherRecordType).fk_related_model_id)
           nextCol = relatedTableMeta?.columns?.find((c) => c.id === (nextCol.colOptions as LookupType).fk_lookup_column_id)
 

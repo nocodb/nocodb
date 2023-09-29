@@ -90,8 +90,8 @@ onMounted(async () => {
       foldingStrategy: 'indentation',
       selectOnLineNumbers: true,
       scrollbar: {
-        verticalScrollbarSize: 8,
-        horizontalScrollbarSize: 8,
+        verticalScrollbarSize: 1,
+        horizontalScrollbarSize: 1,
       },
       tabSize: 2,
       automaticLayout: true,

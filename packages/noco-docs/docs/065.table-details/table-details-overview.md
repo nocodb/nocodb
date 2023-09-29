@@ -7,6 +7,8 @@ keywords: ['table details', 'table overview', 'table']
 
 `Table Details` section houses various tools & utilities to manage & work with your table schema & data. This essentially is a place for 'Creators' to build & manage their tables quickly. `Details` section is accessible using the `Data-Details` toggle switcher in the top navbar. 
 
+![image](/img/v2/table-details/details-tab.png)
+
 This section is divided into 4 parts:
 
 ## Fields

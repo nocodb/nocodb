@@ -34,6 +34,8 @@ const vModel = useVModel(props, 'value', emit)
 
 const { formState, setAdditionalValidations, validateInfos, sqlUi, column } = useColumnCreateStoreOrThrow()
 
+const { t } = useI18n()
+
 const { loadMagic, predictFunction: _predictFunction } = useNocoEe()
 
 enum JSEPNode {
@@ -155,17 +157,17 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
     const calleeName = parsedTree.callee.name.toUpperCase()
     // validate function name
     if (!availableFunctions.includes(calleeName)) {
-      errors.add(`'${calleeName}' function is not available`)
+      errors.add(t('msg.formula.functionNotAvailable', { function: calleeName }))
     }
     // validate arguments
     const validation = formulas[calleeName] && formulas[calleeName].validation
     if (validation && validation.args) {
       if (validation.args.rqd !== undefined && validation.args.rqd !== parsedTree.arguments.length) {
-        errors.add(`'${calleeName}' required ${validation.args.rqd} arguments`)
+        errors.add(t('msg.formula.requiredArgumentsFormula', { requiredArguments: validation.args.rqd, calleeName }))
       } else if (validation.args.min !== undefined && validation.args.min > parsedTree.arguments.length) {
-        errors.add(`'${calleeName}' required minimum ${validation.args.min} arguments`)
+        errors.add(t('msg.formula.minRequiredArgumentsFormula', { minRequiredArguments: validation.args.min, calleeName }))
       } else if (validation.args.max !== undefined && validation.args.max < parsedTree.arguments.length) {
-        errors.add(`'${calleeName}' required maximum ${validation.args.max} arguments`)
+        errors.add(t('msg.formula.maxRequiredArgumentsFormula', { maxRequiredArguments: validation.args.max, calleeName }))
       }
     }
     parsedTree.arguments.map((arg: Record<string, any>) => validateAgainstMeta(arg, errors))
@@ -181,7 +183,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
             formulaTypes.DATE,
             (v: any) => {
               if (!validateDateWithUnknownFormat(v)) {
-                typeErrors.add('The first parameter of WEEKDAY() should have date value')
+                typeErrors.add(t('msg.formula.firstParamWeekDayHaveDate'))
               }
             },
             typeErrors,
@@ -195,9 +197,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
                 typeof v !== 'string' ||
                 !['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].includes(v.toLowerCase())
               ) {
-                typeErrors.add(
-                  'The second parameter of WEEKDAY() should have the value either "sunday", "monday", "tuesday", "wednesday", "thursday", "friday" or "saturday"',
-                )
+                typeErrors.add(t('msg.formula.secondParamWeekDayHaveDate'))
               }
             },
             typeErrors,
@@ -213,7 +213,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
             formulaTypes.DATE,
             (v: any) => {
               if (!validateDateWithUnknownFormat(v)) {
-                typeErrors.add('The first parameter of DATEADD() should have date value')
+                typeErrors.add(t('msg.formula.firstParamDateAddHaveDate'))
               }
             },
             typeErrors,
@@ -224,7 +224,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
             formulaTypes.NUMERIC,
             (v: any) => {
               if (typeof v !== 'number') {
-                typeErrors.add('The second parameter of DATEADD() should have numeric value')
+                typeErrors.add(t('msg.formula.secondParamDateAddHaveNumber'))
               }
             },
             typeErrors,
@@ -235,7 +235,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
             formulaTypes.STRING,
             (v: any) => {
               if (!['day', 'week', 'month', 'year'].includes(v)) {
-                typeErrors.add('The third parameter of DATEADD() should have the value either "day", "week", "month" or "year"')
+                typeErrors.add(typeErrors.add(t('msg.formula.thirdParamDateAddHaveDate')))
               }
             },
             typeErrors,
@@ -247,7 +247,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
             formulaTypes.DATE,
             (v: any) => {
               if (!validateDateWithUnknownFormat(v)) {
-                typeErrors.add('The first parameter of DATETIME_DIFF() should have date value')
+                typeErrors.add(t('msg.formula.firstParamDateDiffHaveDate'))
               }
             },
             typeErrors,
@@ -258,7 +258,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
             formulaTypes.DATE,
             (v: any) => {
               if (!validateDateWithUnknownFormat(v)) {
-                typeErrors.add('The second parameter of DATETIME_DIFF() should have date value')
+                typeErrors.add(t('msg.formula.secondParamDateDiffHaveDate'))
               }
             },
             typeErrors,
@@ -290,9 +290,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
                   'y',
                 ].includes(v)
               ) {
-                typeErrors.add(
-                  'The third parameter of DATETIME_DIFF() should have value either "milliseconds", "ms", "seconds", "s", "minutes", "m", "hours", "h", "days", "d", "weeks", "w", "months", "M", "quarters", "Q", "years", or "y"',
-                )
+                typeErrors.add(t('msg.formula.thirdParamDateDiffHaveDate'))
               }
             },
             typeErrors,
@@ -304,7 +302,11 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
     errors = new Set([...errors, ...typeErrors])
   } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
     if (supportedColumns.value.filter((c) => !column || column.value?.id !== c.id).every((c) => c.title !== parsedTree.name)) {
-      errors.add(`Column '${parsedTree.name}' is not available`)
+      errors.add(
+        t('msg.formula.columnNotAvailable', {
+          columnName: parsedTree.name,
+        }),
+      )
     }
 
     // check circular reference
@@ -388,12 +390,12 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
       }
       // vertices not same as visited = cycle found
       if (vertices !== visited) {
-        errors.add('Can’t save field because it causes a circular reference')
+        errors.add(t('msg.formula.cantSaveCircularReference'))
       }
     }
   } else if (parsedTree.type === JSEPNode.BINARY_EXP) {
     if (!availableBinOps.includes(parsedTree.operator)) {
-      errors.add(`'${parsedTree.operator}' operation is not available`)
+      errors.add(t('msg.formula.operationNotAvailable', { operation: parsedTree.operator }))
     }
     validateAgainstMeta(parsedTree.left, errors)
     validateAgainstMeta(parsedTree.right, errors)
@@ -401,10 +403,10 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
     // do nothing
   } else if (parsedTree.type === JSEPNode.COMPOUND) {
     if (parsedTree.body.length) {
-      errors.add('Can’t save field because the formula is invalid')
+      errors.add(t('msg.formula.cantSaveFieldFormulaInvalid'))
     }
   } else {
-    errors.add('Can’t save field because the formula is invalid')
+    errors.add(t('msg.formula.cantSaveFieldFormulaInvalid'))
   }
   return errors
 }
@@ -418,11 +420,11 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
       func(parsedTree.value)
     } else if (expectedType === formulaTypes.NUMERIC) {
       if (typeof parsedTree.value !== 'number') {
-        typeErrors.add('Numeric type is expected')
+        typeErrors.add(t('msg.formula.numericTypeIsExpected'))
       }
     } else if (expectedType === formulaTypes.STRING) {
       if (typeof parsedTree.value !== 'string') {
-        typeErrors.add('string type is expected')
+        typeErrors.add(t('msg.formula.stringTypeIsExpected'))
       }
     }
   } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
@@ -435,9 +437,14 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
     if (col.uidt === UITypes.Formula) {
       const foundType = getRootDataType(jsep((col as any).formula_raw))
       if (foundType === 'N/A') {
-        typeErrors.add(`Not supported to reference column ${col.title}`)
+        typeErrors.add(t('msg.formula.notSupportedToReferenceColumn', { columnName: col.title }))
       } else if (expectedType !== foundType) {
-        typeErrors.add(`Type ${expectedType} is expected but found Type ${foundType}`)
+        typeErrors.add(
+          t('msg.formula.typeIsExpectedButFound', {
+            type: expectedType,
+            found: foundType,
+          }),
+        )
       }
     } else {
       switch (col.uidt) {
@@ -451,7 +458,11 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
         case UITypes.URL:
           if (expectedType !== formulaTypes.STRING) {
             typeErrors.add(
-              `Column '${parsedTree.name}' with ${formulaTypes.STRING} type is found but ${expectedType} type is expected`,
+              t('msg.formula.columnWithTypeFoundButExpected', {
+                columnName: parsedTree.name,
+                columnType: formulaTypes.STRING,
+                expectedType,
+              }),
             )
           }
           break
@@ -466,7 +477,11 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
         case UITypes.Currency:
           if (expectedType !== formulaTypes.NUMERIC) {
             typeErrors.add(
-              `Column '${parsedTree.name}' with ${formulaTypes.NUMERIC} type is found but ${expectedType} type is expected`,
+              t('msg.formula.columnWithTypeFoundButExpected', {
+                columnName: parsedTree.name,
+                columnType: formulaTypes.NUMERIC,
+                expectedType,
+              }),
             )
           }
           break
@@ -478,7 +493,11 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
         case UITypes.LastModifiedTime:
           if (expectedType !== formulaTypes.DATE) {
             typeErrors.add(
-              `Column '${parsedTree.name}' with ${formulaTypes.DATE} type is found but ${expectedType} type is expected`,
+              t('msg.formula.columnWithTypeFoundButExpected', {
+                columnName: parsedTree.name,
+                columnType: formulaTypes.DATE,
+                expectedType,
+              }),
             )
           }
           break
@@ -498,19 +517,29 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
         case UITypes.Collaborator:
         case UITypes.QrCode:
         default:
-          typeErrors.add(`Not supported to reference column '${parsedTree.name}'`)
+          typeErrors.add(t('msg.formula.notSupportedToReferenceColumn', { columnName: parsedTree.name }))
           break
       }
     }
   } else if (parsedTree.type === JSEPNode.UNARY_EXP || parsedTree.type === JSEPNode.BINARY_EXP) {
     if (expectedType !== formulaTypes.NUMERIC) {
       // parsedTree.name won't be available here
-      typeErrors.add(`${formulaTypes.NUMERIC} type is found but ${expectedType} type is expected`)
+      typeErrors.add(
+        t('msg.formula.typeIsExpectedButFound', {
+          type: formulaTypes.NUMERIC,
+          found: expectedType,
+        }),
+      )
     }
   } else if (parsedTree.type === JSEPNode.CALL_EXP) {
     const calleeName = parsedTree.callee.name.toUpperCase()
     if (formulas[calleeName]?.type && expectedType !== formulas[calleeName].type) {
-      typeErrors.add(`${expectedType} not matched with ${formulas[calleeName].type}`)
+      typeErrors.add(
+        t('msg.formula.typeIsExpectedButFound', {
+          type: expectedType,
+          found: formulas[calleeName].type,
+        }),
+      )
     }
   }
   return typeErrors
@@ -692,7 +721,7 @@ const predictFunction = async () => {
 
 <template>
   <div class="formula-wrapper">
-    <a-form-item v-bind="validateInfos.formula_raw" label="Formula">
+    <a-form-item v-bind="validateInfos.formula_raw" :label="$t('datatype.Formula')">
       <GeneralIcon
         v-if="isEeUI"
         icon="magic"
@@ -712,14 +741,20 @@ const predictFunction = async () => {
     </a-form-item>
 
     <div class="text-gray-600 mt-2 mb-4 prose-sm">
-      Hint: Use {} to reference columns, e.g: {column_name}. For more, please check out
+      {{
+        // As using {} in translation will be treated as placeholder, and this translation contain {} as part of th text
+        $t('msg.formula.hintStart', {
+          placeholder1: '{}',
+          placeholder2: '{column_name}',
+        })
+      }}
       <a class="prose-sm" href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features" target="_blank">
-        Formulas.
+        {{ $t('msg.formula.hintEnd') }}
       </a>
     </div>
 
     <div class="h-[250px] overflow-auto scrollbar-thin-primary">
-      <a-list ref="sugListRef" :data-source="suggestion" :locale="{ emptyText: 'No suggested formula was found' }">
+      <a-list ref="sugListRef" :data-source="suggestion" :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }">
         <template #renderItem="{ item, index }">
           <a-list-item
             :ref="
@@ -740,9 +775,9 @@ const predictFunction = async () => {
                   <a-col :span="18">
                     <div v-if="item.type === 'function'" class="text-xs text-gray-500">
                       {{ item.description }} <br /><br />
-                      Syntax: <br />
+                      {{ $t('labels.syntax') }}: <br />
                       {{ item.syntax }} <br /><br />
-                      Examples: <br />
+                      {{ $t('labels.examples') }}: <br />
 
                       <div v-for="(example, idx) of item.examples" :key="idx">
                         <div>({{ idx + 1 }}): {{ example }}</div>

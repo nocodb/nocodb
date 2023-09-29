@@ -66,10 +66,10 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
         <tr>
           <th></th>
           <th>
-            <div class="text-left font-normal ml-2">Header Name</div>
+            <div class="text-left font-normal ml-2">{{ $t('labels.headerName') }}</div>
           </th>
           <th>
-            <div class="text-left font-normal ml-2">Value</div>
+            <div class="text-left font-normal ml-2">{{ $t('placeholder.value') }}</div>
           </th>
           <th class="w-8"></th>
         </tr>
@@ -87,9 +87,9 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
             <a-form-item class="form-item">
               <a-auto-complete
                 v-model:value="headerRow.name"
-                placeholder="Key"
                 class="nc-input-hook-header-key"
                 :options="headerList"
+                :placeholder="$t('placeholder.key')"
                 :filter-option="filterOption"
               />
             </a-form-item>
@@ -97,7 +97,11 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
 
           <td class="px-2">
             <a-form-item class="form-item">
-              <a-input v-model:value="headerRow.value" placeholder="Value" class="!rounded-md nc-input-hook-header-value" />
+              <a-input
+                v-model:value="headerRow.value"
+                :placeholder="$t('placeholder.value')"
+                class="!rounded-md nc-input-hook-header-value"
+              />
             </a-form-item>
           </td>
 
@@ -120,7 +124,7 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
           <td :colspan="12" class="">
             <NcButton size="small" type="secondary" @click="addHeaderRow">
               <div class="flex flex-row items-center gap-x-1">
-                <div>Add Header</div>
+                <div>{{ $t('labels.addHeader') }}</div>
                 <component :is="iconMap.plus" class="flex mx-auto" />
               </div>
             </NcButton>

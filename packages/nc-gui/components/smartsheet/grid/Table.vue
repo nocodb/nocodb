@@ -235,7 +235,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
   if (!ctx || !hasEditPermission.value || (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))) return
 
   if (fields.value[ctx.col]?.uidt === UITypes.Links) {
-    return message.info('Links column clear is not supported yet')
+    return message.info(t('msg.linkColumnClearNotSupportedYet'))
   }
 
   const rowObj = dataRef.value[ctx.row]
@@ -270,10 +270,10 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
               activeCell.row = ctx.row
               scrollToCell?.()
             } else {
-              throw new Error('Record could not be found')
+              throw new Error(t('msg.recordCouldNotBeFound'))
             }
           } else {
-            throw new Error('Page size changed')
+            throw new Error(t('msg.pageSizeChanged'))
           }
         },
         args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value)],
@@ -297,10 +297,10 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
               activeCell.row = ctx.row
               scrollToCell?.()
             } else {
-              throw new Error('Record could not be found')
+              throw new Error(t('msg.recordCouldNotBeFound'))
             }
           } else {
-            throw new Error('Page size changed')
+            throw new Error(t('msg.pageSizeChanged'))
           }
         },
         args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value)],
@@ -1104,7 +1104,7 @@ watch(
           await loadData?.()
         } catch (e) {
           console.log(e)
-          message.error('Error loading data')
+          message.error(t('msg.errorLoadingData'))
         } finally {
           isViewDataLoading.value = false
         }

@@ -71,7 +71,7 @@ watch(
     :ref="focus"
     v-model="vModel"
     class="w-full outline-none text-sm px-1 py-2"
-    :placeholder="isEditColumn ? '(Optional)' : ''"
+    :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop
@@ -84,7 +84,7 @@ watch(
     @mousedown.stop
   />
 
-  <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
   <nuxt-link
     v-else-if="validEmail"

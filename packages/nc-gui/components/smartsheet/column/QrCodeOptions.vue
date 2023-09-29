@@ -14,6 +14,8 @@ const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
+const { t } = useI18n()
+
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 
 const { fields, metaColumnById } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
@@ -42,7 +44,7 @@ onMounted(() => {
 })
 
 setAdditionalValidations({
-  fk_qr_value_column_id: [{ required: true, message: 'Required' }],
+  fk_qr_value_column_id: [{ required: true, message: t('general.required') }],
 })
 </script>
 
@@ -57,7 +59,7 @@ setAdditionalValidations({
         <a-select
           v-model:value="vModel.fk_qr_value_column_id"
           :options="columnsAllowedAsQrValue"
-          placeholder="Select a column for the QR code value"
+          :placeholder="$t('placeholder.selectAColumnForTheQRCodeValue')"
           @click.stop
         />
       </a-form-item>

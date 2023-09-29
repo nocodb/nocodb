@@ -810,7 +810,14 @@
     "decimal8": "1.00000000"
   },
   "msg": {
+    "optimizedQueryDisabled": "Optimized query is disabled",
+    "optimizedQueryEnabled": "Optimized query is enabled",
+    "invalidTime": "Invalid Time",
+    "linkColumnClearNotSupportedYet": "Link column clear is not supported yet",
+    "recordCouldNotBeFound": "Record could not be found",
     "invalidPhoneNumber": "Invalid phone number",
+    "pageSizeChanged": "Page size changed",
+    "errorLoadingData": "Error loading data",
     "formula": {
       "hintStart": "Hint: Use {} to reference columns, e.g: {column_name}. For more, please check out",
       "hintEnd": "Formulas.",

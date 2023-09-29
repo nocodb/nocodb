@@ -15,9 +15,9 @@ const formValidator = ref()
 
 const formRules = {
   title: [
-    { required: true, message: t('error.nameRequired') },
-    { min: 2, message: t('error.nameMinLength') },
-    { max: 60, message: t('error.nameMaxLength') },
+    { required: true, message: t('msg.error.nameRequired') },
+    { min: 2, message: t('msg.error.nameMinLength') },
+    { max: 60, message: t('msg.error.nameMaxLength') },
   ],
 }
 

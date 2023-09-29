@@ -40,6 +40,8 @@ const editable = inject(EditModeInj, ref(false))
 
 const isLockedMode = inject(IsLockedInj, ref(false))
 
+const { t } = useI18n()
+
 const isEditColumn = inject(EditColumnInj, ref(false))
 
 const column = inject(ColumnInj)!
@@ -137,11 +139,11 @@ watch(
 
 const placeholder = computed(() => {
   if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
-    return '(Optional)'
+    return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
-    return 'NULL'
+    return t('general.null')
   } else if (isDateInvalid.value) {
-    return 'Invalid date'
+    return t('msg.invalidDate')
   } else {
     return ''
   }

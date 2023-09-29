@@ -84,7 +84,7 @@ onClickOutside(inputWrapperRef, (e) => {
         :style="{
           minHeight: `${height}px`,
         }"
-        :placeholder="isEditColumn ? '(Optional)' : ''"
+        :placeholder="isEditColumn ? $t('labels.optional') : ''"
         @blur="editEnabled = false"
         @keydown.alt.enter.stop
         @keydown.shift.enter.stop
@@ -99,7 +99,7 @@ onClickOutside(inputWrapperRef, (e) => {
         @mousedown.stop
       />
 
-      <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
+      <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
       <LazyCellClampedText v-else-if="rowHeight" :value="vModel" :lines="rowHeight" class="mr-7" />
 
@@ -113,7 +113,7 @@ onClickOutside(inputWrapperRef, (e) => {
         @click.stop="isVisible = !isVisible"
       >
         <NcTooltip placement="bottom">
-          <template #title>Expand</template>
+          <template #title>{{ $t('title.expand') }}</template>
           <component
             :is="iconMap.expand"
             class="transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-xs"
@@ -135,8 +135,8 @@ onClickOutside(inputWrapperRef, (e) => {
         <a-textarea
           ref="inputRef"
           v-model:value="vModel"
-          placeholder="Enter text"
           class="p-1 !pt-1 !pr-3 !border-0 !border-r-0 !focus:outline-transparent nc-scrollbar-md !text-black"
+          :placeholder="$t('activity.enterText')"
           :bordered="false"
           :auto-size="{ minRows: 20, maxRows: 20 }"
           :disabled="readOnly"

@@ -38,6 +38,8 @@ const isTimeInvalid = ref(false)
 
 const dateFormat = isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
+const { t } = useI18n()
+
 const localState = computed({
   get() {
     if (!modelValue) {
@@ -89,11 +91,11 @@ watch(
 
 const placeholder = computed(() => {
   if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
-    return '(Optional)'
+    return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
-    return 'NULL'
+    return t('general.null')
   } else if (isTimeInvalid.value) {
-    return 'Invalid time'
+    return t('msg.invalidTime')
   } else {
     return ''
   }

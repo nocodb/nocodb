@@ -258,6 +258,8 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "currencyLocale": "Currency Locale",
+    "currencyCode": "Currency Code",
     "searchMembers": "Search Members",
     "noMembersFound": "No members found",
     "dateJoined": "Date Joined",
@@ -764,6 +766,9 @@
     "selectField": "Select field"
   },
   "msg": {
+    "invalidLocale": "Invalid locale",
+    "invalidCurrencyCode": "Invalid Currency Code",
+    "postgresHasItsOwnCurrencySettings": "PostgreSQL 'money' type has own currency settings",
     "validColumnsForBarCode": "The valid Column Types for a Barcode Column are: Number, Single Line Text, Long Text, Phone Number, URL, Email, Decimal. Please create one first.",
     "hm": {
       "title": "Has Many Relation",

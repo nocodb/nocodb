@@ -41,7 +41,7 @@ const cmdInputEl = ref<HTMLInputElement>()
 const cmdInput = ref('')
 
 const renderCmdOrCtrlKey = () => {
-  return isMac() ? '⌘' : 'CTRL'
+  return isMac() ? '⌘' : 'Ctrl'
 }
 
 const selected = ref<string>()
@@ -301,7 +301,7 @@ defineExpose({
 
 <template>
   <div v-show="vOpen" class="cmdk-modal" :class="{ 'cmdk-modal-active': vOpen }">
-    <div ref="modalEl" class="cmdk-modal-content">
+    <div ref="modalEl" class="cmdk-modal-content h-[25.25rem]">
       <div class="cmdk-header">
         <div class="cmdk-breadcrumbs">
           <div
@@ -325,7 +325,7 @@ defineExpose({
         </div>
       </div>
       <div class="cmdk-body">
-        <div class="cmdk-actions">
+        <div class="cmdk-actions nc-scrollbar-md">
           <div v-if="searchedActionList.length === 0">
             <div class="cmdk-action">
               <div class="cmdk-action-content">No action found.</div>
@@ -362,22 +362,22 @@ defineExpose({
           </template>
         </div>
       </div>
-      <div class="cmdk-footer">
+      <div class="cmdk-footer absolute inset-x-0 bottom-0">
         <div class="flex justify-center w-full py-2">
           <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
             <MdiFileOutline class="h-4 w-4" />
             Document
-            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} J </span>
+            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} + J </span>
           </div>
           <div class="flex flex-grow-1 text-brand-500 w-full text-sm items-center gap-2 justify-center">
             <MdiMapMarkerOutline class="h-4 w-4" />
             Quick Navigation
-            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} K </span>
+            <span class="bg-brand-500 border-1 border-brand-500 text-sm text-white px-1 rounded-md"> {{ renderCmdOrCtrlKey() }} + K </span>
           </div>
           <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
             <MdiClockOutline class="h-4 w-4" />
             Recent
-            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} L </span>
+            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} + L </span>
           </div>
         </div>
       </div>
@@ -504,7 +504,7 @@ defineExpose({
   }
 
   .cmdk-actions {
-    max-height: 235px;
+    max-height: 253px;
     margin: 0px;
     padding: 0.5em 0px;
     list-style: none;

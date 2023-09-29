@@ -60,7 +60,7 @@ function scrollToTarget() {
 }
 
 const renderCmdOrCtrlKey = () => {
-  return isMac() ? '⌘' : 'CTRL'
+  return isMac() ? '⌘' : 'Ctrl'
 }
 
 const moveUp = () => {
@@ -100,7 +100,7 @@ const moveDown = () => {
       tableId: cmdOption.tableID,
       projectId: cmdOption.projectId,
     }
-    document.querySelector('.actions')?.scrollTo({ top: -10, behavior: 'smooth' })
+    document.querySelector('.actions')?.scrollTo({ top: 0, behavior: 'smooth' })
   } else {
     selected.value = recentViews.value[index + 1].tableID + recentViews.value[index + 1].viewName
     const cmdOption = recentViews.value[index + 1]
@@ -174,6 +174,7 @@ onClickOutside(modalEl, () => {
 })
 
 onMounted(() => {
+  document.querySelector('.cmdOpt-list')?.focus()
   if (!activeView.value) return
   const index = recentViews.value.findIndex(
     (v) => v.viewName === activeView?.value.name && v.tableID === activeView?.value.tableId,
@@ -188,16 +189,14 @@ onMounted(() => {
 
 <template>
   <div v-show="vOpen" class="cmdk-modal" :class="{ 'cmdk-modal-active': vOpen }">
-    <div ref="modalEl" class="cmdk-modal-content !top-[15%] relative">
+    <div ref="modalEl" class="cmdk-modal-content relative h-[25.25rem]">
       <div class="fixed !h-8 w-full z-[50]">
-        <div class="text-sm px-4 py-2 text-gray-500">Recent Views</div>
+        <div class="text-sm p-4 text-gray-500">Recent Views</div>
       </div>
-      <div
-        class="flex flex-col shrink grow overflow-hidden shadow-[rgb(0_0_0_/_50%)_0px_16px_70px] max-w-[650px] p-0 rounded-lg top-[25%]"
-      >
+      <div class="flex flex-col shrink grow overflow-hidden shadow-[rgb(0_0_0_/_50%)_0px_16px_70px] max-w-[650px] p-0 rounded-lg">
         <div class="mt-6 scroll-smooth actions overflow-auto nc-scrollbar-md relative m-0 px-0 py-2">
           <div v-if="recentViews.length < 1" class="flex flex-col p-4 items-start justify-center text-md">No recent views</div>
-          <div v-else class="flex flex-col w-full">
+          <div v-else class="flex mb-10 flex-col cmdOpt-list w-full">
             <div
               v-for="cmdOption of recentViews"
               :key="cmdOption.tableID + cmdOption.viewName"
@@ -221,22 +220,24 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      <div class="cmdk-footer">
+      <div class="cmdk-footer absolute !bg-white inset-x-0 bottom-0">
         <div class="flex justify-center w-full py-2">
           <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
             <MdiFileOutline class="h-4 w-4" />
             Document
-            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} J </span>
+            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} + J </span>
           </div>
           <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
             <MdiMapMarkerOutline class="h-4 w-4" />
             Quick Navigation
-            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} K </span>
+            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} + K </span>
           </div>
           <div class="flex flex-grow-1 text-brand-500 w-full text-sm items-center gap-2 justify-center">
             <MdiClockOutline class="h-4 w-4" />
             Recent
-            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} L </span>
+            <span class="bg-brand-500 text-white px-1 rounded-md border-1 border-brand-500">
+              {{ renderCmdOrCtrlKey() }} + L
+            </span>
           </div>
         </div>
       </div>

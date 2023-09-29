@@ -346,7 +346,14 @@
     "defaultView": "Default View",
     "relations": "Relations",
     "switchLanguage": "Switch Language",
-    "renameFile": "Rename File"
+    "renameFile": "Rename File",
+    "links": {
+      "noAction": "No Action",
+      "cascade": "Cascade",
+      "restrict": "Restrict",
+      "setNull": "Set NULL",
+      "setDefault": "Set Default"
+    }
   },
   "labels": {
     "syntax": "Syntax",

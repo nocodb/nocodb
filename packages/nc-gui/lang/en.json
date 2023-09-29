@@ -268,6 +268,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "parameterName": "Parameter Name",
     "currencyLocale": "Currency Locale",
     "currencyCode": "Currency Code",
     "searchMembers": "Search Members",
@@ -368,12 +369,14 @@
     }
   },
   "labels": {
+    "headerName": "Header Name",
     "icon": "Icon",
     "max": "Max",
     "binaryEncodingFormat": "Binary encoding format",
     "syntax": "Syntax",
     "examples": "Examples",
     "durationInfo": "A duration of time in minutes or seconds (e.g. 1:23).",
+    "addHeader": "Add Header",
     "enterDefaultUrlOptional": "Enter default URL (Optional)",
     "negative": "Negative",
     "default": "Default",
@@ -561,6 +564,7 @@
     "addFiles": "Add File(s)",
     "hideInUI": "Hide in UI",
     "addBase": "Add Base",
+    "addParameter": "Add Parameter",
     "editBase": "Edit Base",
     "enterText": "Enter text",
     "okEditBase": "Ok & Edit Base",
@@ -807,7 +811,9 @@
     "decimal5": "1.00000",
     "decimal6": "1.000000",
     "decimal7": "1.0000000",
-    "decimal8": "1.00000000"
+    "decimal8": "1.00000000",
+    "value": "Value",
+    "key": "Key"
   },
   "msg": {
     "optimizedQueryDisabled": "Optimized query is disabled",

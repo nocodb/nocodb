@@ -69,7 +69,7 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
             <div class="text-left font-normal ml-2">{{ $t('labels.headerName') }}</div>
           </th>
           <th>
-            <div class="text-left font-normal ml-2">{{ $t('labels.value') }}</div>
+            <div class="text-left font-normal ml-2">{{ $t('placeholder.value') }}</div>
           </th>
           <th class="w-8"></th>
         </tr>
@@ -89,7 +89,7 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
                 v-model:value="headerRow.name"
                 class="nc-input-hook-header-key"
                 :options="headerList"
-                :placeholder="$t('labels.key')"
+                :placeholder="$t('placeholder.key')"
                 :filter-option="filterOption"
               />
             </a-form-item>
@@ -99,7 +99,7 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
             <a-form-item class="form-item">
               <a-input
                 v-model:value="headerRow.value"
-                :placeholder="$t('labels.value')"
+                :placeholder="$t('placeholder.value')"
                 class="!rounded-md nc-input-hook-header-value"
               />
             </a-form-item>

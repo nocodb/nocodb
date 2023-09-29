@@ -349,6 +349,8 @@
     "renameFile": "Rename File"
   },
   "labels": {
+    "syntax": "Syntax",
+    "examples": "Examples",
     "durationInfo": "A duration of time in minutes or seconds (e.g. 1:23).",
     "durationFormat": "Duration Format",
     "dateFormat": "Date Format",
@@ -779,6 +781,33 @@
     "decimal8": "1.00000000"
   },
   "msg": {
+    "formula": {
+      "hintStart": "Hint: Use {} to reference columns, e.g: {column_name}. For more, please check out",
+      "hintEnd": "Formulas.",
+      "noSuggestedFormulaFound": "No suggested formula found",
+      "numericTypeIsExpected": "Numeric type is expected",
+      "stringTypeIsExpected": "String type is expected",
+      "operationNotAvailable": "{operation} operation not available",
+      "cantSaveFieldFormulaInvalid": "Can’t save field because formula is invalid",
+      "notSupportedToReferenceColumn": "Not supported to reference column {columnName}",
+      "typeIsExpectedButFound": "Type {type} is expected but found Type {found}",
+      "requiredArgumentsFormula": "{calleeName} requires {requiredArguments} arguments",
+      "minRequiredArgumentsFormula": "{calleeName} required minimum {minRequiredArguments} arguments",
+      "maxRequiredArgumentsFormula": "{calleeName} required maximum {maxRequiredArguments} arguments",
+      "functionNotAvailable": "{function} function is not available",
+      "firstParamWeekDayHaveDate": "The first parameter of WEEKDAY() should have date value",
+      "secondParamWeekDayHaveDate": "The second parameter of WEEKDAY() should have the value either \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" or \"saturday\"",
+      "firstParamDateAddHaveDate": "The first parameter of DATEADD() should have date value",
+      "secondParamDateAddHaveNumber": "The second parameter of DATEADD() should have numeric value",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\" or \"year\"",
+      "firstParamDateDiffHaveDate": "The first parameter of DATEDIFF() should have date value",
+      "secondParamDateDiffHaveDate": "The second parameter of DATEDIFF() should have date value",
+      "thirdParamDateDiffHaveDate": "The third parameter of DATETIME_DIFF() should have value either \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", or \"y\"",
+      "columnNotAvailable": "Column {columnName} is not available",
+      "cantSaveCircularReference": "Can’t save field because it causes a circular reference",
+      "columnWithTypeFoundButExpected": "Column {columnName} with {columnType} type is found but {expectedType} type is expected",
+      "columnNotMatchedWithType": "{columnName} is not matched with {columnType}"
+    },
     "plsEnterANumber": "Please enter a number",
     "invalidDate": "Invalid date",
     "invalidLocale": "Invalid locale",

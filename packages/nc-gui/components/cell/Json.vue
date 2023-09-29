@@ -149,10 +149,12 @@ useSelectedCellKeyupListener(active, (e) => {
         </a-button>
 
         <div v-if="!isForm || isExpanded" class="flex flex-row">
-          <a-button type="text" size="small" :onclick="clear"><div class="text-xs">Cancel</div></a-button>
+          <a-button type="text" size="small" :onclick="clear"
+            ><div class="text-xs">{{ $t('general.cancel') }}</div></a-button
+          >
 
           <a-button type="primary" size="small" :disabled="!!error || localValue === vModel" @click="onSave">
-            <div class="text-xs">Save</div>
+            <div class="text-xs">{{ $t('general.save') }}</div>
           </a-button>
         </div>
       </div>
@@ -171,7 +173,7 @@ useSelectedCellKeyupListener(active, (e) => {
       </span>
     </div>
 
-    <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
+    <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
     <span v-else>{{ vModel }}</span>
   </component>

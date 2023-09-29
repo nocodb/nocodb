@@ -12,6 +12,7 @@ interface Props {
 
 interface SubTabGroup {
   [key: string]: {
+    key: string
     title: string
     body: any
     onClick?: () => void
@@ -114,6 +115,7 @@ const tabsInfo: TabGroup = {
     subTabs: {
       misc: {
         // Misc
+        key: 'Misc',
         title: t('general.misc'),
         body: Misc,
       },
@@ -254,7 +256,7 @@ watch(
             v-model:state="vDataState"
             v-model:reload="dataSourcesReload"
             class="px-2 pb-2"
-            :data-testid="`nc-settings-subtab-${selectedSubTab.title}`"
+            :data-testid="`nc-settings-subtab-${selectedSubTab.key}`"
             :project-id="projectId"
             @awaken="handleAwaken"
           />
@@ -263,7 +265,7 @@ watch(
             v-else
             class="px-2 py-6"
             :project-id="projectId"
-            :data-testid="`nc-settings-subtab-${selectedSubTab.title}`"
+            :data-testid="`nc-settings-subtab-${selectedSubTab.key}`"
           />
         </div>
       </a-layout-content>

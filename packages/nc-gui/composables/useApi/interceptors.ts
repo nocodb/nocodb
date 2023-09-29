@@ -37,7 +37,9 @@ export function addAxiosInterceptors(api: Api<any>) {
 
   // Return a successful response back to the calling service
   api.instance.interceptors.response.use(
-    (response) => response,
+    (response) => {
+      return response
+    },
     // Handle Error
     (error) => {
       if (error.response && error.response.data && error.response.data.msg === DbNotFoundMsg) return router.replace('/project/0')

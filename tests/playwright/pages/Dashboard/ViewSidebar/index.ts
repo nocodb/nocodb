@@ -160,7 +160,7 @@ export class ViewSidebarPage extends BasePage {
         force: true,
       });
     const submitAction = () =>
-      this.rootPage.locator('.ant-modal-content').locator('button:has-text("Create View"):visible').click();
+      this.rootPage.locator('.ant-modal-content').locator('button:has-text("Create a View"):visible').click();
     await this.waitForResponse({
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: '/api/v1/db/meta/tables/',

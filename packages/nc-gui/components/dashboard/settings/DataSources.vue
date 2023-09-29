@@ -367,7 +367,7 @@ const isEditBaseModalOpen = computed({
                           <GeneralIcon icon="warning" class="group-hover:text-accent text-primary" />
                         </a-tooltip>
                         <GeneralIcon v-else icon="sync" class="group-hover:text-accent" />
-                        {{ $t('activity.metaSync') }}
+                        {{ $t('tooltip.metaSync') }}
                       </div>
                     </a-button>
                     <a-button

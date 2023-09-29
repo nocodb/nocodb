@@ -63,6 +63,8 @@
     "saving": "Saving",
     "cancel": "Cancel",
     "null": "Null",
+    "escape": "Escape",
+    "hex": "Hex",
     "clear": "Clear",
     "submit": "Submit",
     "create": "Create",
@@ -356,6 +358,7 @@
     }
   },
   "labels": {
+    "binaryEncodingFormat": "Binary encoding format",
     "syntax": "Syntax",
     "examples": "Examples",
     "durationInfo": "A duration of time in minutes or seconds (e.g. 1:23).",

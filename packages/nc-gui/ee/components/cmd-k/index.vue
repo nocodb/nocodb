@@ -154,15 +154,6 @@ const actionListGroupedBySection = computed(() => {
 
 const keys = useMagicKeys()
 
-
-const { ctrl_k } = useMagicKeys({
-  passive: false,
-  onEventFired(e) {
-    if (e.ctrlKey && e.key.toLowerCase() === 'k' && e.type === 'keydown')
-      e.preventDefault()
-  },
-})
-
 const setAction = (action: string) => {
   selected.value = action
   nextTick(() => {
@@ -238,9 +229,6 @@ whenever(keys.ctrl_k, () => {
 whenever(keys.meta_k, () => {
   show()
 })
-
-
-whenever(ctrl_k, () => show())
 
 whenever(keys.Escape, () => {
   if (vOpen.value) hide()
@@ -448,7 +436,7 @@ defineExpose({
     box-shadow: rgb(0 0 0 / 50%) 0px 16px 70px;
     top: 20%;
     border-radius: 0.5em;
-    max-width: 650px;
+    max-width: 640px;
     background: var(--cmdk-modal-background);
   }
 

@@ -1,5 +1,10 @@
 <script setup lang="ts">
 const modalEl = ref<HTMLElement | null>(null)
+const { user } = useGlobal()
+
+watch(user, () => {
+  window.doc_enabled = !!user.value
+})
 
 onMounted(() => {
   docsearch({

@@ -716,7 +716,7 @@ export async function singleQueryRead(ctx: {
       let res = rawRes?.[0]?.[0];
 
       // update attachment fields
-      // res = baseModel.convertAttachmentType(res, ctx.model);
+      res = await baseModel.convertAttachmentType(res, ctx.model);
 
       // update date time fields
       res = baseModel.convertDateFormat(res, ctx.model);
@@ -841,7 +841,7 @@ export async function singleQueryRead(ctx: {
   let res = rawRes?.[0]?.[0];
 
   // update attachment fields
-  // res = baseModel.convertAttachmentType(res, ctx.model);
+  res = await baseModel.convertAttachmentType(res, ctx.model);
 
   // update date time fields
   res = baseModel.convertDateFormat(res, ctx.model);
@@ -908,7 +908,7 @@ export async function singleQueryList(ctx: {
       let res = rawRes[0];
 
       // update attachment fields
-      // res = baseModel.convertAttachmentType(res, ctx.model);
+      res = await baseModel.convertAttachmentType(res, ctx.model);
 
       // update date time fields
       res = baseModel.convertDateFormat(res, ctx.model);
@@ -1059,7 +1059,7 @@ export async function singleQueryList(ctx: {
   }
 
   // update attachment fields
-  // res = baseModel.convertAttachmentType(res, ctx.model);
+  res = await baseModel.convertAttachmentType(res, ctx.model);
 
   // update date time fields
   res = baseModel.convertDateFormat(res, ctx.model);

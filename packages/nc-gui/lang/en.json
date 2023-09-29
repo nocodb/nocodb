@@ -765,7 +765,16 @@
     "defaultValue": "Default value",
     "filterByEmail": "Filter by E-mail",
     "filterQuery": "Filter query",
-    "selectField": "Select field"
+    "selectField": "Select field",
+    "precision": "Precision",
+    "decimal1": "1.0",
+    "decimal2": "1.00",
+    "decimal3": "1.000",
+    "decimal4": "1.0000",
+    "decimal5": "1.00000",
+    "decimal6": "1.000000",
+    "decimal7": "1.0000000",
+    "decimal8": "1.00000000"
   },
   "msg": {
     "invalidDate": "Invalid date",

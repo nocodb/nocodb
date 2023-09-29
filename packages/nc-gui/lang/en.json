@@ -153,7 +153,15 @@
     "active": "Active",
     "inactive": "Inactive",
     "linked": "linked",
-    "finish": "Finish"
+    "finish": "Finish",
+    "min": "Min",
+    "max": "Max",
+    "avg": "Avg",
+    "sum": "Sum",
+    "count": "Count",
+    "countDistinct": "Count Distinct",
+    "sumDistinct": "Sum Distinct",
+    "avgDistinct": "Avg Distinct"
   },
   "objects": {
     "workspace": "Workspace",
@@ -365,6 +373,7 @@
     "syntax": "Syntax",
     "examples": "Examples",
     "durationInfo": "A duration of time in minutes or seconds (e.g. 1:23).",
+
     "negative": "Negative",
     "default": "Default",
     "defaultNumberPercent": "Default Number (%)",

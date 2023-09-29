@@ -39,6 +39,7 @@
     }
   },
   "general": {
+    "quit": "Quit",
     "home": "Home",
     "load": "Load",
     "open": "Open",
@@ -299,7 +300,7 @@
     "noFieldsFound": "No fields found",
     "displayValue": "Display Value",
     "expand": "Expand",
-    "hideAll":"Hide all",
+    "hideAll": "Hide all",
     "hideSystemFields": "hideSystemFields",
     "removeFile": "Remove File",
     "hasMany": "Has Many",
@@ -399,6 +400,7 @@
     "addHeader": "Add Header",
     "enterDefaultUrlOptional": "Enter default URL (Optional)",
     "negative": "Negative",
+    "discard": "Discard",
     "default": "Default",
     "defaultNumberPercent": "Default Number (%)",
     "durationFormat": "Duration Format",
@@ -619,6 +621,7 @@
     "deleteProject": "Delete Project",
     "refreshProject": "Refresh projects",
     "saveProject": "Save Project",
+    "saveAndQuit": "Save & Quit",
     "deleteKanbanStack": "Delete stack?",
     "createProjectExtended": {
       "extDB": "Create By Connecting <br>To An External Database",
@@ -809,7 +812,7 @@
     "selectBarcodeFormat": "Select a Barcode format",
     "projName": "Enter Project Name",
     "selectGroupField": "Select a Grouping Field",
-    "selectGroupFieldNotFound" : "No Single Select Field can be found. Please create one first.",
+    "selectGroupFieldNotFound": "No Single Select Field can be found. Please create one first.",
     "selectGeoField": "Select a GeoData Field",
     "selectGeoFieldNotFound": "No GeoData Field can be found. Please create one first.",
     "password": {
@@ -844,7 +847,7 @@
     "key": "Key"
   },
   "msg": {
-    "enterPassword":"Enter password",
+    "enterPassword": "Enter password",
     "bySigningUp": "By signing up, you agree to the",
     "subscribeToOurWeeklyNewsletter": "Subscribe to our weekly newsletter",
     "verifyingPassword": "Verifying Password",

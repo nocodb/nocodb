@@ -80,7 +80,10 @@ onClickOutside(inputWrapperRef, (e) => {
         v-model="vModel"
         rows="4"
         class="h-full w-full outline-none border-none"
-        :class="`${editEnabled ? 'p-2' : ''}`"
+        :class="{
+          'p-2': editEnabled,
+          'px-1': isExpandedFormOpen,
+        }"
         :style="{
           minHeight: `${height}px`,
         }"

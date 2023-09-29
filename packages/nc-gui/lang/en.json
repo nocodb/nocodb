@@ -292,6 +292,7 @@
     "rowData": "Row data",
     "creator": "Creator",
     "qrCode": "QR Code",
+    "termsOfService": "Terms of Service",
     "updateSelectedRows": "Update Selected Rows",
     "noFiltersAdded": "No filters added",
     "editCards": "Edit Cards",
@@ -843,6 +844,8 @@
     "key": "Key"
   },
   "msg": {
+    "bySigningUp": "By signing up, you agree to the",
+    "subscribeToOurWeeklyNewsletter": "Subscribe to our weekly newsletter",
     "verifyingPassword": "Verifying Password",
     "thisSharedViewIsProtected": "This shared view is protected",
     "successfullySubmittedFormData": "Successfully submitted form data",

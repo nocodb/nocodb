@@ -66,6 +66,12 @@
     "escape": "Escape",
     "hex": "Hex",
     "clear": "Clear",
+    "slack": "Slack",
+    "microsoftTeams": "Microsoft Teams",
+    "discord": "Discord",
+    "matterMost": "Mattermost",
+    "twilio": "Twilio",
+    "whatsappTwilio": "WhatsApp Twilio",
     "submit": "Submit",
     "create": "Create",
     "details": "Details",
@@ -76,6 +82,9 @@
     "action": "Action",
     "insert": "Insert",
     "delete": "Delete",
+    "bulkInsert": "Bulk Insert",
+    "bulkDelete": "Bulk Delete",
+    "bulkUpdate": "Bulk Update",
     "deleting": "Deleting",
     "update": "Update",
     "rename": "Rename",
@@ -268,6 +277,8 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "parameter": "Parameter",
+    "headers": "Headers",
     "parameterName": "Parameter Name",
     "currencyLocale": "Currency Locale",
     "currencyCode": "Currency Code",
@@ -275,6 +286,7 @@
     "noMembersFound": "No members found",
     "dateJoined": "Date Joined",
     "tokenName": "Token name",
+    "rowData": "Row data",
     "creator": "Creator",
     "qrCode": "QR Code",
     "updateSelectedRows": "Update Selected Rows",
@@ -369,6 +381,10 @@
     }
   },
   "labels": {
+    "toAddress": "To Address",
+    "subject": "Subject",
+    "body": "Body",
+    "commaSeparatedMobileNumber": "Comma separated Mobile #",
     "headerName": "Header Name",
     "icon": "Icon",
     "max": "Max",
@@ -557,6 +573,7 @@
     "zoomInToViewColumns": "Zoom in to view columns"
   },
   "activity": {
+    "onCondition": "On Condition",
     "bulkDownload": "Bulk Download",
     "attachFile": "Attach File",
     "viewAttachment": "View Attachments",
@@ -776,6 +793,11 @@
     "clientCA": "Select CA file"
   },
   "placeholder": {
+    "selectSlackChannels": "Select Slack channels",
+    "selectTeamsChannels": "Select Microsoft Teams channels",
+    "selectDiscordChannels": "Select Discord channels",
+    "selectMattermostChannels": "Select Mattermost channels",
+    "webhookTitle": "Webhook Title",
     "barcodeColumn": "Select a column for the Barcode value",
     "notFoundContent": "No valid Column Type can be found.",
     "selectBarcodeFormat": "Select a Barcode format",
@@ -824,6 +846,9 @@
     "invalidPhoneNumber": "Invalid phone number",
     "pageSizeChanged": "Page size changed",
     "errorLoadingData": "Error loading data",
+    "webhookBodyMsg1": "Use context variable",
+    "webhookBodyMsg2": "body",
+    "webhookBodyMsg3": "to refer the record under consideration",
     "formula": {
       "hintStart": "Hint: Use {} to reference columns, e.g: {column_name}. For more, please check out",
       "hintEnd": "Formulas.",

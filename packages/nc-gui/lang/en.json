@@ -201,7 +201,8 @@
       "medium": "Medium",
       "tall": "Tall",
       "extra": "Extra"
-    }
+    },
+    "externalDb": "External Database"
   },
   "datatype": {
     "ID": "ID",

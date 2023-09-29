@@ -8,10 +8,10 @@ import {
   FieldsInj,
   IsGroupByInj,
   IsLockedInj,
+  JsonExpandInj,
   MetaInj,
   NavigateDir,
   ReadonlyInj,
-  JsonExpandInj,
   computed,
   enumColor,
   extractPkFromRow,
@@ -227,7 +227,7 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
 }
 
 const isJsonExpand = ref(false)
-provide(JsonExpandInj,isJsonExpand)
+provide(JsonExpandInj, isJsonExpand)
 
 // #Cell - 1
 

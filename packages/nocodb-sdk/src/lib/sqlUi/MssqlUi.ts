@@ -140,7 +140,7 @@ export class MssqlUi {
 
   static getNewColumn(suffix: number, uidt: UITypes) {
     return {
-      column_name: `Untitled${uidt}${suffix !== 0 ? suffix : ''}`,
+      column_name: `Untitled ${uidt} ${suffix}`,
       dt: 'varchar',
       dtx: 'specificType',
       ct: 'varchar(45)',

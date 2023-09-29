@@ -75,10 +75,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     })
 
     const generateUniqueColumnSuffix = () => {
-      let columnName = `Untitled${formState.value.uidt}`
+      let columnName = `Untitled ${formState.value.uidt}`
       // Gets the no of columns in meta where meta.column_name === `Untitled${formState.value.uidt}`
       // Allows to count suffix differently for different UIDTs
-      let suffix = (meta.value?.columns?.filter(c => c.column_name?.includes(columnName)).length || 0)
+      let suffix = meta.value?.columns?.filter((c) => c.column_name?.includes(columnName)).length || 0
       while (
         (tableExplorerColumns?.value || meta.value?.columns)?.some(
           (c) => (c.column_name || '').toLowerCase() === columnName.toLowerCase(),
@@ -87,7 +87,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         suffix++
         columnName = `Untitled${suffix}`
       }
-      return suffix
+      return suffix || ''
     }
 
     // actions
@@ -95,7 +95,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       setAdditionalValidations({})
       formState.value = {
         meta: {},
-        ...sqlUi.value.getNewColumn(generateUniqueColumnSuffix(),formState.value.uidt),
+        ...sqlUi.value.getNewColumn(generateUniqueColumnSuffix(), formState.value.uidt),
       }
       formState.value.title = formState.value.column_name
     }
@@ -147,7 +147,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           // only take title, column_name and uidt when creating a column
           // to avoid the extra props from being taken (e.g. SingleLineText -> LTAR -> SingleLineText)
           // to mess up the column creation
-          ...sqlUi.value.getNewColumn(generateUniqueColumnSuffix(),formState.value.uidt),
+          ...sqlUi.value.getNewColumn(generateUniqueColumnSuffix(), formState.value.uidt),
           uidt: formState.value.uidt,
         }),
         ...(isEdit.value && {

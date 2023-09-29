@@ -203,7 +203,7 @@ export class PgUi {
 
   static getNewColumn(suffix: number, uidt: UITypes) {
     return {
-      column_name: `Untitled${uidt}${suffix !== 0 ? suffix : ''}`,
+      column_name: `Untitled ${uidt} ${suffix}`,
       dt: 'character varying',
       dtx: 'specificType',
       ct: 'varchar(45)',

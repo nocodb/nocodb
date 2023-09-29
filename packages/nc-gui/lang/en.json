@@ -281,6 +281,7 @@
     "editCards": "Edit Cards",
     "noFieldsFound": "No fields found",
     "displayValue": "Display Value",
+    "expand": "Expand",
     "hideAll":"Hide all",
     "hideSystemFields": "hideSystemFields",
     "removeFile": "Remove File",
@@ -373,7 +374,7 @@
     "syntax": "Syntax",
     "examples": "Examples",
     "durationInfo": "A duration of time in minutes or seconds (e.g. 1:23).",
-
+    "enterDefaultUrlOptional": "Enter default URL (Optional)",
     "negative": "Negative",
     "default": "Default",
     "defaultNumberPercent": "Default Number (%)",
@@ -382,7 +383,7 @@
     "timeFormat": "Time Format",
     "singularLabel": "Singular Label",
     "pluralLabel": "Plural Label",
-    "optional": "Optional",
+    "optional": "(Optional)",
     "clickToMake": "Click to make",
     "visibleForRole": "visible for role:",
     "inUI": "in UI Dashboard",
@@ -561,6 +562,7 @@
     "hideInUI": "Hide in UI",
     "addBase": "Add Base",
     "editBase": "Edit Base",
+    "enterText": "Enter text",
     "okEditBase": "Ok & Edit Base",
     "showInUI": "Show in UI",
     "outOfSync": "Out of sync",
@@ -808,6 +810,7 @@
     "decimal8": "1.00000000"
   },
   "msg": {
+    "invalidPhoneNumber": "Invalid phone number",
     "formula": {
       "hintStart": "Hint: Use {} to reference columns, e.g: {column_name}. For more, please check out",
       "hintEnd": "Formulas.",
@@ -1051,6 +1054,7 @@
       "invalidChar": "Invalid character in folder path.",
       "invalidDbCredentials": "Invalid database credentials.",
       "unableToConnectToDb": "Unable to connect to database, please check your database is up.",
+      "invalidYear": "Invalid year",
       "userDoesntHaveSufficientPermission": "User does not exist or have sufficient permission to create schema.",
       "dbConnectionStatus": "Invalid database parameters",
       "dbConnectionFailed": "Connection Failure:",

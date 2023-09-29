@@ -87,7 +87,7 @@ const onDecode = async (scannedCodeValue: string) => {
           {{ sharedFormView.subheading }}
         </h2>
 
-        <a-alert v-if="notFound" type="warning" class="my-4 text-center" message="Not found" />
+        <a-alert v-if="notFound" type="warning" class="my-4 text-center" :message="$t('general.notFound')" />
 
         <template v-else-if="submitted">
           <div class="flex justify-center">
@@ -96,15 +96,15 @@ const onDecode = async (scannedCodeValue: string) => {
                 type="success"
                 class="my-4 text-center"
                 outlined
-                :message="sharedFormView.success_msg || 'Successfully submitted form data'"
+                :message="sharedFormView.success_msg || $t('msg.successfullySubmittedFormData')"
               />
 
               <p v-if="sharedFormView.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">
-                New form will be loaded after {{ secondsRemain }} seconds
+                {{ $t('msg.newFormWillBeLoaded', { seconds: secondsRemain }) }}
               </p>
 
               <div v-if="sharedFormView.submit_another_form" class="text-center">
-                <a-button type="primary" @click="submitted = false"> Submit Another Form</a-button>
+                <a-button type="primary" @click="submitted = false"> {{ $t('activity.submitAnotherForm') }}</a-button>
               </div>
             </div>
           </div>

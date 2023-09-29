@@ -99,6 +99,7 @@
     "deprecated": "Deprecated",
     "showAll": "Show all",
     "hideAll": "Hide all",
+    "notFound": "Not found",
     "showMore": "Show more",
     "showOptions": "Show options",
     "hideOptions": "Hide options",
@@ -842,6 +843,8 @@
     "key": "Key"
   },
   "msg": {
+    "verifyingPassword": "Verifying Password",
+    "thisSharedViewIsProtected": "This shared view is protected",
     "successfullySubmittedFormData": "Successfully submitted form data",
     "formViewNotSupportedOnMobile": "Form view is not supported on mobile",
     "newFormWillBeLoaded": "New form will be loaded after {seconds} seconds",

@@ -14,6 +14,8 @@ const vOpen = useVModel(props, 'open', emits)
 
 const modalEl = ref<HTMLElement>()
 
+const { user } = useGlobal()
+
 const viewStore = useViewsStore()
 
 const { recentViews, activeView } = storeToRefs(viewStore)
@@ -116,22 +118,26 @@ const moveDown = () => {
 }
 
 whenever(keys['Ctrl+Shift+L'], async () => {
+  if (!user.value) return
   vOpen.value = true
   moveUp()
 })
 
 whenever(keys['Meta+Shift+L'], async () => {
+  if (!user.value) return
   vOpen.value = true
   moveUp()
 })
 
 whenever(keys.ctrl_l, async () => {
+  if (!user.value) return
   if (current.has('shift')) return
   vOpen.value = true
   moveDown()
 })
 
 whenever(keys.meta_l, async () => {
+  if (!user.value) return
   if (current.has('shift')) return
   vOpen.value = true
   moveDown()
@@ -190,11 +196,11 @@ onMounted(() => {
 <template>
   <div v-show="vOpen" class="cmdk-modal" :class="{ 'cmdk-modal-active': vOpen }">
     <div ref="modalEl" class="cmdk-modal-content relative h-[25.25rem]">
-      <div class="fixed !h-8 w-full z-[50]">
-        <div class="text-sm p-4 text-gray-500">Recent Views</div>
+      <div class="flex items-center bg-white w-full z-[50]">
+        <div class="text-sm p-2 text-gray-500">Recent Views</div>
       </div>
-      <div class="flex flex-col shrink grow overflow-hidden shadow-[rgb(0_0_0_/_50%)_0px_16px_70px] max-w-[650px] p-0 rounded-lg">
-        <div class="mt-6 scroll-smooth actions overflow-auto nc-scrollbar-md relative m-0 px-0 py-2">
+      <div class="flex flex-col shrink grow overflow-hidden shadow-[rgb(0_0_0_/_50%)_0px_16px_70px] max-w-[650px] p-0">
+        <div class="scroll-smooth actions overflow-auto nc-scrollbar-md relative m-0 px-0 py-2">
           <div v-if="recentViews.length < 1" class="flex flex-col p-4 items-start justify-center text-md">No recent views</div>
           <div v-else class="flex mb-10 flex-col cmdOpt-list w-full">
             <div

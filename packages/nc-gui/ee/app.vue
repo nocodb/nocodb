@@ -9,8 +9,6 @@ const cmdK = ref(false)
 
 const cmdL = ref(false)
 
-const cmdJ = ref(false)
-
 const disableBaseLayout = computed(() => route.value.path.startsWith('/nc/view') || route.value.path.startsWith('/nc/form'))
 
 useTheme()
@@ -92,5 +90,5 @@ function onScope(scope: string) {
   <!-- Recent Views. Cycles through recently visited Views -->
   <CmdL v-model:open="cmdL" />
   <!-- Documentation. Integrated NocoDB Docs directlt inside the Product -->
-  <CmdJ v-model:open="cmdJ" />
+  <CmdJ />
 </template>

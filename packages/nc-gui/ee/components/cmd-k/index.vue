@@ -40,6 +40,8 @@ const cmdInputEl = ref<HTMLInputElement>()
 
 const cmdInput = ref('')
 
+const { user } = useGlobal()
+
 const renderCmdOrCtrlKey = () => {
   return isMac() ? '⌘' : 'Ctrl'
 }
@@ -192,6 +194,7 @@ const setScope = (scope: string) => {
 }
 
 const show = () => {
+  if (!user.value) return
   if (props.scope === 'disabled') return
   vOpen.value = true
   cmdInput.value = ''

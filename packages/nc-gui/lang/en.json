@@ -844,6 +844,7 @@
     "key": "Key"
   },
   "msg": {
+    "enterPassword":"Enter password",
     "bySigningUp": "By signing up, you agree to the",
     "subscribeToOurWeeklyNewsletter": "Subscribe to our weekly newsletter",
     "verifyingPassword": "Verifying Password",

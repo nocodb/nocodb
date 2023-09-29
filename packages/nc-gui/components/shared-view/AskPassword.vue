@@ -48,7 +48,7 @@ const focus: VNodeRef = (el: typeof InputPassword) => el?.$el?.querySelector('in
             class="nc-input-md"
             hide-details
             size="large"
-            :placeholder="$t('msg.info.signUp.enterPassword')"
+            :placeholder="$t('msg.enterPassword')"
           />
         </a-form-item>
       </a-form>

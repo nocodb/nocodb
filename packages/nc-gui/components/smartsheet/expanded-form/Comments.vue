@@ -146,14 +146,14 @@ const processedAudit = (log: string) => {
         'pb-2': tab !== 'comments',
       }"
     >
-      <div v-if="tab === 'comments'" ref="commentsWrapperEl" class="flex flex-col h-full">
+      <div v-if="tab === 'comments'" class="flex flex-col h-full">
         <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full">
           <div class="text-center text-3xl text-gray-700">
             <GeneralIcon icon="commentHere" />
           </div>
           <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
         </div>
-        <div v-else class="flex flex-col h-full py-2 pl-2 pr-1 space-y-2 nc-scrollbar-md">
+        <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-2 pl-2 pr-1 space-y-2 nc-scrollbar-md">
           <div v-for="log of comments" :key="log.id">
             <div class="bg-white rounded-xl group border-1 gap-2 border-gray-200">
               <div class="flex flex-col p-4 gap-3">

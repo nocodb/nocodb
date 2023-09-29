@@ -305,7 +305,7 @@ function generalDb() {
     cityColumns = await cityTable.getColumns();
   });
 
-  it.only('Nested List - Link to another record', async function () {
+  it('Nested List - Link to another record', async function () {
     const expectedRecords = [1, 3, 1, 2];
 
     // read first 4 records
@@ -322,7 +322,7 @@ function generalDb() {
     expect(cityList).to.deep.equal(expectedRecords);
   });
 
-  it.only('Nested List - Lookup', async function () {
+  it('Nested List - Lookup', async function () {
     const lookupColumn = await createLookupColumn(context, {
       project: sakilaProject,
       title: 'Lookup',
@@ -352,7 +352,7 @@ function generalDb() {
     expect(lookupData).to.deep.equal(expectedRecords);
   });
 
-  it.only('Nested List - Rollup', async function () {
+  it('Nested List - Rollup', async function () {
     const rollupColumn = await createRollupColumn(context, {
       project: sakilaProject,
       title: 'Rollup',
@@ -379,7 +379,7 @@ function generalDb() {
     expect(rollupData).to.deep.equal(expectedRecords);
   });
 
-  it.only('Nested Read - Link to another record', async function () {
+  it('Nested Read - Link to another record', async function () {
     const records = await ncAxiosGet({
       url: `/api/v1/tables/${countryTable.id}/rows/1`,
     });
@@ -388,7 +388,7 @@ function generalDb() {
     expect(+records.body['Cities']).to.equal(1);
   });
 
-  it.only('Nested Read - Lookup', async function () {
+  it('Nested Read - Lookup', async function () {
     const lookupColumn = await createLookupColumn(context, {
       project: sakilaProject,
       title: 'Lookup',
@@ -403,7 +403,7 @@ function generalDb() {
     expect(records.body.Lookup).to.deep.equal(['Kabul']);
   });
 
-  it.only('Nested Read - Rollup', async function () {
+  it('Nested Read - Rollup', async function () {
     const rollupColumn = await createRollupColumn(context, {
       project: sakilaProject,
       title: 'Rollup',
@@ -470,7 +470,7 @@ function textBased() {
 
   /////////////////////////////////////////////////////////////////////////////
 
-  it.only('List: default', async function () {
+  it('List: default', async function () {
     const rsp = await ncAxiosGet();
 
     const expectedPageInfo = {
@@ -492,7 +492,7 @@ function textBased() {
     );
   });
 
-  it.only('List: offset, limit', async function () {
+  it('List: offset, limit', async function () {
     const rsp = await ncAxiosGet({ query: { offset: 200, limit: 100 } });
 
     const expectedPageInfo = {
@@ -505,7 +505,7 @@ function textBased() {
     expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
   });
 
-  it.only('List: fields, single', async function () {
+  it('List: fields, single', async function () {
     const rsp = await ncAxiosGet({
       query: { fields: 'SingleLineText' },
     });
@@ -515,7 +515,7 @@ function textBased() {
     ).to.equal(true);
   });
 
-  it.only('List: fields, multiple', async function () {
+  it('List: fields, multiple', async function () {
     const rsp = await ncAxiosGet({
       query: { fields: ['SingleLineText', 'MultiLineText'] },
     });
@@ -528,7 +528,7 @@ function textBased() {
     ).to.equal(true);
   });
 
-  it.only('List: sort, ascending', async function () {
+  it('List: sort, ascending', async function () {
     const sortColumn = columns.find((c) => c.title === 'SingleLineText');
     const rsp = await ncAxiosGet({
       query: { sort: 'SingleLineText', limit: 400 },
@@ -539,7 +539,7 @@ function textBased() {
     expect(sortedArray).to.deep.equal(sortedArray.sort());
   });
 
-  it.only('List: sort, descending', async function () {
+  it('List: sort, descending', async function () {
     const sortColumn = columns.find((c) => c.title === 'SingleLineText');
     const rsp = await ncAxiosGet({
       query: { sort: '-SingleLineText', limit: 400 },
@@ -550,7 +550,7 @@ function textBased() {
     expect(descSortedArray).to.deep.equal(descSortedArray.sort().reverse());
   });
 
-  it.only('List: sort, multiple', async function () {
+  it('List: sort, multiple', async function () {
     const rsp = await ncAxiosGet({
       query: {
         sort: ['-SingleLineText', '-MultiLineText'],
@@ -566,7 +566,7 @@ function textBased() {
     expect(sortedArray).to.deep.equal(sortedArray.sort().reverse());
   });
 
-  it.only('List: filter, single', async function () {
+  it('List: filter, single', async function () {
     const rsp = await ncAxiosGet({
       query: {
         where: '(SingleLineText,eq,Afghanistan)',
@@ -579,7 +579,7 @@ function textBased() {
     expect(filteredArray).to.deep.equal(filteredArray.fill('Afghanistan'));
   });
 
-  it.only('List: filter, multiple', async function () {
+  it('List: filter, multiple', async function () {
     const rsp = await ncAxiosGet({
       query: {
         where:
@@ -597,7 +597,7 @@ function textBased() {
     );
   });
 
-  it.only('List: view ID', async function () {
+  it('List: view ID', async function () {
     const gridView = await createView(context, {
       title: 'grid0',
       table,
@@ -731,7 +731,7 @@ function textBased() {
     return gridView;
   }
 
-  it.only('List: view ID + sort', async function () {
+  it('List: view ID + sort', async function () {
     const gridView = await prepareViewForTests();
 
     const rsp = await ncAxiosGet({
@@ -750,7 +750,7 @@ function textBased() {
     expect(sortedArray).to.deep.equal(sortedArray.sort());
   });
 
-  it.only('List: view ID + filter', async function () {
+  it('List: view ID + filter', async function () {
     const gridView = await prepareViewForTests();
 
     const rsp = await ncAxiosGet({
@@ -769,7 +769,7 @@ function textBased() {
     expect(filteredArray).to.deep.equal(filteredArray.fill('1-541-754-3010'));
   });
 
-  it.only('List: view ID + fields', async function () {
+  it('List: view ID + fields', async function () {
     const gridView = await prepareViewForTests();
 
     const rsp = await ncAxiosGet({
@@ -789,7 +789,7 @@ function textBased() {
   });
 
   // Error handling
-  it.only('List: invalid ID', async function () {
+  it('List: invalid ID', async function () {
     // Invalid table ID
     await ncAxiosGet({
       url: `/api/v1/tables/123456789/rows`,
@@ -805,7 +805,7 @@ function textBased() {
     });
   });
 
-  it.only('List: invalid limit & offset', async function () {
+  it('List: invalid limit & offset', async function () {
     const expectedPageInfo = {
       totalRows: 400,
       page: 1,
@@ -858,7 +858,7 @@ function textBased() {
     expect(rsp.body.list.length).to.equal(0);
   });
 
-  it.only('List: invalid sort, filter, fields', async function () {
+  it('List: invalid sort, filter, fields', async function () {
     // expect to ignore invalid sort, filter, fields
 
     await ncAxiosGet({
@@ -892,13 +892,13 @@ function textBased() {
     Phone: '1-234-567-8910',
   };
 
-  it.only('Create: all fields', async function () {
+  it('Create: all fields', async function () {
     const rsp = await ncAxiosPost({ body: newRecord });
 
     expect(rsp.body).to.deep.equal({ Id: 401 });
   });
 
-  it.only('Create: few fields left out', async function () {
+  it('Create: few fields left out', async function () {
     const newRecord = {
       SingleLineText: 'abc',
       MultiLineText: 'abc abc \n abc \r abc \t abc 1234!@#$%^&*()_+',
@@ -909,14 +909,14 @@ function textBased() {
     expect(rsp.body).to.deep.equal({ Id: 401 });
   });
 
-  it.only('Create: bulk', async function () {
+  it('Create: bulk', async function () {
     const rsp = await ncAxiosPost({ body: [newRecord, newRecord, newRecord] });
 
     expect(rsp.body).to.deep.equal([{ Id: 401 }, { Id: 402 }, { Id: 403 }]);
   });
 
   // Error handling
-  it.only('Create: invalid ID', async function () {
+  it('Create: invalid ID', async function () {
     // Invalid table ID
     await ncAxiosPost({
       url: `/api/v1/tables/123456789/rows`,
@@ -944,13 +944,13 @@ function textBased() {
 
   /////////////////////////////////////////////////////////////////////////////
 
-  it.only('Read: all fields', async function () {
+  it('Read: all fields', async function () {
     const rsp = await ncAxiosGet({
       url: `/api/v1/tables/${table.id}/rows/100`,
     });
   });
 
-  it.only('Read: invalid ID', async function () {
+  it('Read: invalid ID', async function () {
     // Invalid table ID
     await ncAxiosGet({
       url: `/api/v1/tables/123456789/rows/100`,
@@ -970,7 +970,7 @@ function textBased() {
 
   /////////////////////////////////////////////////////////////////////////////
 
-  it.only('Update: all fields', async function () {
+  it('Update: all fields', async function () {
     const rsp = await ncAxiosPatch({
       body: [
         {
@@ -982,7 +982,7 @@ function textBased() {
     expect(rsp.body).to.deep.equal([{ Id: 1 }]);
   });
 
-  it.only('Update: partial', async function () {
+  it('Update: partial', async function () {
     const recordBeforeUpdate = await ncAxiosGet({
       url: `/api/v1/tables/${table.id}/rows/1`,
     });
@@ -1008,7 +1008,7 @@ function textBased() {
     });
   });
 
-  it.only('Update: bulk', async function () {
+  it('Update: bulk', async function () {
     const rsp = await ncAxiosPatch({
       body: [
         {
@@ -1028,7 +1028,7 @@ function textBased() {
 
   // Error handling
 
-  it.only('Update: invalid ID', async function () {
+  it('Update: invalid ID', async function () {
     // Invalid table ID
     await ncAxiosPatch({
       url: `/api/v1/tables/123456789/rows`,
@@ -1049,7 +1049,7 @@ function textBased() {
 
   /////////////////////////////////////////////////////////////////////////////
 
-  it.only('Delete: single', async function () {
+  it('Delete: single', async function () {
     const rsp = await ncAxiosDelete({ body: [{ Id: 1 }] });
     expect(rsp.body).to.deep.equal([{ Id: 1 }]);
 
@@ -1060,7 +1060,7 @@ function textBased() {
     });
   });
 
-  it.only('Delete: bulk', async function () {
+  it('Delete: bulk', async function () {
     const rsp = await ncAxiosDelete({ body: [{ Id: 1 }, { Id: 2 }] });
     expect(rsp.body).to.deep.equal([{ Id: 1 }, { Id: 2 }]);
 
@@ -1077,7 +1077,7 @@ function textBased() {
 
   // Error handling
 
-  it.only('Delete: invalid ID', async function () {
+  it('Delete: invalid ID', async function () {
     // Invalid table ID
     await ncAxiosDelete({
       url: `/api/v1/tables/123456789/rows`,
@@ -1224,7 +1224,7 @@ function numberBased() {
     },
   ];
 
-  it.only('Number based- List & CRUD', async function () {
+  it('Number based- List & CRUD', async function () {
     // list 10 records
     let rsp = await ncAxiosGet({
       query: {
@@ -1415,7 +1415,7 @@ function selectBased() {
     },
   ];
 
-  it.only('Select based- List & CRUD', async function () {
+  it('Select based- List & CRUD', async function () {
     // list 10 records
     let rsp = await ncAxiosGet({
       query: {
@@ -1548,7 +1548,7 @@ function dateBased() {
     expect(insertedRecords.length).to.equal(800);
   });
 
-  it.only('Date based- List & CRUD', async function () {
+  it('Date based- List & CRUD', async function () {
     // list 10 records
     let rsp = await ncAxiosGet({
       query: {
@@ -1778,7 +1778,7 @@ function linkBased() {
     return columns.find((c) => c.title === title).id;
   }
 
-  it.only('Has-Many ', async function () {
+  it('Has-Many ', async function () {
     // Create hm link between Country and City
     await ncAxiosLinkAdd({
       urlParams: {
@@ -1939,7 +1939,7 @@ function linkBased() {
     return Array.from({ length: count }, (_, index) => i + index);
   }
 
-  it.only('Create Many-Many ', async function () {
+  it('Create Many-Many ', async function () {
     await ncAxiosLinkAdd({
       urlParams: {
         tableId: tblActor.id,
@@ -2113,7 +2113,7 @@ function linkBased() {
 
   // Other scenarios
   // Has-many : change an existing link to a new one
-  it.only('HM: Change an existing link to a new one', async function () {
+  it('HM: Change an existing link to a new one', async function () {
     // add a link
     await ncAxiosLinkAdd({
       urlParams: {
@@ -2160,7 +2160,7 @@ function linkBased() {
   });
 
   // limit & offset verification
-  it.only('Limit & offset verification', async function () {
+  it('Limit & offset verification', async function () {
     // add a link
     await ncAxiosLinkAdd({
       urlParams: {
@@ -2468,7 +2468,7 @@ function linkBased() {
   }
 
   // Error handling (has-many)
-  it.only('Error handling : HM: Nested ADD', async function () {
+  it('Error handling : HM: Nested ADD', async function () {
     const validParams = {
       urlParams: {
         tableId: tblCountry.id,
@@ -2482,7 +2482,7 @@ function linkBased() {
     await nestedAddTests(validParams);
   });
 
-  it.only('Error handling : HM: Nested REMOVE', async function () {
+  it('Error handling : HM: Nested REMOVE', async function () {
     // Prepare data
     await ncAxiosLinkAdd({
       urlParams: {
@@ -2507,7 +2507,7 @@ function linkBased() {
     await nestedRemoveTests(validParams);
   });
 
-  it.only('Error handling : HM: Nested List', async function () {
+  it('Error handling : HM: Nested List', async function () {
     // Prepare data
     await ncAxiosLinkAdd({
       urlParams: {
@@ -2536,7 +2536,7 @@ function linkBased() {
   });
 
   // Error handling (belongs to)
-  it.only('Error handling : BT: Nested ADD', async function () {
+  it('Error handling : BT: Nested ADD', async function () {
     const validParams = {
       urlParams: {
         tableId: tblCity.id,
@@ -2550,7 +2550,7 @@ function linkBased() {
     await nestedAddTests(validParams, 'bt');
   });
 
-  it.only('Error handling : BT: Nested REMOVE', async function () {
+  it('Error handling : BT: Nested REMOVE', async function () {
     // Prepare data
     await ncAxiosLinkAdd({
       urlParams: {
@@ -2575,7 +2575,7 @@ function linkBased() {
     await nestedRemoveTests(validParams, 'bt');
   });
 
-  it.only('Error handling : BT: Nested List', async function () {
+  it('Error handling : BT: Nested List', async function () {
     // Prepare data
     await ncAxiosLinkAdd({
       urlParams: {
@@ -2604,7 +2604,7 @@ function linkBased() {
   });
 
   // Error handling (many-many)
-  it.only('Error handling : MM: Nested ADD', async function () {
+  it('Error handling : MM: Nested ADD', async function () {
     const validParams = {
       urlParams: {
         tableId: tblActor.id,
@@ -2618,7 +2618,7 @@ function linkBased() {
     await nestedAddTests(validParams);
   });
 
-  it.only('Error handling : MM: Nested REMOVE', async function () {
+  it('Error handling : MM: Nested REMOVE', async function () {
     // Prepare data
     await ncAxiosLinkAdd({
       urlParams: {
@@ -2643,7 +2643,7 @@ function linkBased() {
     await nestedRemoveTests(validParams);
   });
 
-  it.only('Error handling : MM: Nested List', async function () {
+  it('Error handling : MM: Nested List', async function () {
     // Prepare data
     await ncAxiosLinkAdd({
       urlParams: {

@@ -121,7 +121,7 @@ export default class Local implements IStorageAdapterV2 {
   }
 
   // method for validate/normalise the path for avoid path traversal attack
-  public validateAndNormalisePath(
+  protected validateAndNormalisePath(
     fileOrFolderPath: string,
     throw404 = false,
   ): string {

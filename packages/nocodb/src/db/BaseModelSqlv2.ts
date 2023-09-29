@@ -44,16 +44,7 @@ import { customValidators } from '~/db/util/customValidators';
 import { extractLimitAndOffset } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
-import {
-  Audit,
-  Base,
-  Column,
-  Filter,
-  Model,
-  Sort,
-  TemporaryUrl,
-  View,
-} from '~/models';
+import { Audit, Base, Column, Filter, Model, Sort, View } from '~/models';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
@@ -4017,42 +4008,17 @@ class BaseModelSqlv2 {
     return data;
   }
 
-  protected async _convertAttachmentType(
+  protected _convertAttachmentType(
     attachmentColumns: Record<string, any>[],
     d: Record<string, any>,
   ) {
     try {
       if (d) {
-        const promises = [];
-        for (const col of attachmentColumns) {
+        attachmentColumns.forEach((col) => {
           if (d[col.title] && typeof d[col.title] === 'string') {
             d[col.title] = JSON.parse(d[col.title]);
           }
-
-          if (d[col.title]?.length) {
-            for (const attachment of d[col.title]) {
-              if (attachment?.path) {
-                promises.push(
-                  TemporaryUrl.getTemporaryUrl({
-                    path: attachment.path.replace(/^download\//, ''),
-                  }).then((r) => (attachment.signedPath = r)),
-                );
-              } else if (attachment?.url) {
-                if (attachment.url.includes('.amazonaws.com/')) {
-                  const relativePath =
-                    attachment.url.split('.amazonaws.com/')[1];
-                  promises.push(
-                    TemporaryUrl.getTemporaryUrl({
-                      path: relativePath,
-                      s3: true,
-                    }).then((r) => (attachment.signedUrl = r)),
-                  );
-                }
-              }
-            }
-          }
-        }
-        await Promise.all(promises);
+        });
       }
     } catch {}
     return d;
@@ -4062,25 +4028,25 @@ class BaseModelSqlv2 {
     data: Record<string, any>,
     childTable?: Model,
   ) {
+    if (childTable && !childTable?.columns) {
+      await childTable.getColumns();
+    } else if (!this.model?.columns) {
+      await this.model.getColumns();
+    }
+
     // attachment is stored in text and parse in UI
     // convertAttachmentType is used to convert the response in string to array of object in API response
     if (data) {
-      if (childTable && !childTable?.columns) {
-        await childTable.getColumns();
-      } else if (!this.model?.columns) {
-        await this.model.getColumns();
-      }
-
       const attachmentColumns = (
         childTable ? childTable.columns : this.model.columns
       ).filter((c) => c.uidt === UITypes.Attachment);
       if (attachmentColumns.length) {
         if (Array.isArray(data)) {
-          data = await Promise.all(
-            data.map((d) => this._convertAttachmentType(attachmentColumns, d)),
+          data = data.map((d) =>
+            this._convertAttachmentType(attachmentColumns, d),
           );
         } else {
-          data = await this._convertAttachmentType(attachmentColumns, data);
+          data = this._convertAttachmentType(attachmentColumns, data);
         }
       }
     }
@@ -4878,6 +4844,7 @@ export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
           [primaryKeys[i].column_name, ids[i]],
         );
       };
+      continue;
     }
 
     // Cast the id to string.

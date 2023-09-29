@@ -90,34 +90,6 @@ export default class RedisMockCacheMgr extends CacheMgr {
   }
 
   // @ts-ignore
-  async setExpiring(key: string, value: any, seconds: number): Promise<any> {
-    if (typeof value !== 'undefined' && value) {
-      log(
-        `RedisMockCacheMgr::set: setting key ${key} with value ${value} for ${seconds} seconds`,
-      );
-
-      // TODO: better way to handle expiration in mock redis
-      setTimeout(() => {
-        this.del(key);
-      }, seconds * 1000);
-
-      if (typeof value === 'object') {
-        if (Array.isArray(value) && value.length) {
-          return this.client.sadd(key, value);
-        }
-        return this.client.set(
-          key,
-          JSON.stringify(value, this.getCircularReplacer()),
-        );
-      }
-      return this.client.set(key, value);
-    } else {
-      log(`RedisMockCacheMgr::set: value is empty for ${key}. Skipping ...`);
-      return Promise.resolve(true);
-    }
-  }
-
-  // @ts-ignore
   async getAll(pattern: string): Promise<any> {
     return this.client.hgetall(pattern);
   }

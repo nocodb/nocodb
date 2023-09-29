@@ -396,10 +396,6 @@ export default {
             <div v-if="displayValue" class="flex items-center truncate max-w-32 font-bold text-gray-800 text-xl">
               {{ displayValue }}
             </div>
-            <div class="bg-gray-100 px-2 gap-1 flex my-1 items-center rounded-lg text-gray-800 font-medium">
-              <component :is="iconMap.record" class="w-6 h-6 text-sm" />
-              All {{ meta.title }}
-            </div>
           </div>
           <div class="flex gap-2">
             <NcDropdown v-if="!isNew">

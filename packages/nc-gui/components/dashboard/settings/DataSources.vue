@@ -478,7 +478,7 @@ const isEditBaseModalOpen = computed({
           </Draggable>
         </div>
       </div>
-      <GeneralModal v-model:visible="isNewBaseModalOpen" size="medium">
+      <GeneralModal v-model:visible="isNewBaseModalOpen" closable :mask-closable="false" size="medium">
         <div class="py-6 px-8">
           <LazyDashboardSettingsDataSourcesCreateBase
             :connection-type="clientType"
@@ -502,7 +502,7 @@ const isEditBaseModalOpen = computed({
           <LazyDashboardSettingsUIAcl :base-id="activeBaseId" />
         </div>
       </GeneralModal>
-      <GeneralModal v-model:visible="isEditBaseModalOpen" size="medium">
+      <GeneralModal v-model:visible="isEditBaseModalOpen" closable :mask-closable="false" size="medium">
         <div class="p-6">
           <LazyDashboardSettingsDataSourcesEditBase
             :base-id="activeBaseId"

@@ -5,16 +5,20 @@ const props = withDefaults(
     width?: string | number
     size?: 'small' | 'medium' | 'large'
     destroyOnClose?: boolean
+    maskClosable?: boolean
+    closable?: boolean
   }>(),
   {
     size: 'medium',
     destroyOnClose: true,
+    maskClosable: true,
+    closable: false,
   },
 )
 
 const emits = defineEmits(['update:visible'])
 
-const { width: propWidth, destroyOnClose } = props
+const { width: propWidth, destroyOnClose, closable, maskClosable } = props
 
 const width = computed(() => {
   if (propWidth) {
@@ -60,10 +64,11 @@ const visible = useVModel(props, 'visible', emits)
     v-model:visible="visible"
     :class="{ active: visible }"
     :width="width"
-    :closable="false"
+    :closable="closable"
     wrap-class-name="nc-modal-wrapper"
     :footer="null"
     :destroy-on-close="destroyOnClose"
+    :mask-closable="maskClosable"
     @keydown.esc="visible = false"
   >
     <div :class="`nc-modal max-h-[${height}]`">

@@ -17,6 +17,8 @@ const hideMenu = toRef(props, 'hideMenu')
 
 const isForm = inject(IsFormInj, ref(false))
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isDropDownOpen = ref(false)
@@ -63,7 +65,12 @@ const openDropDown = () => {
     @click.right="openDropDown"
     @click="isDropDownOpen = false"
   >
-    <SmartsheetHeaderCellIcon v-if="column && !props.hideIcon" class="self-start" />
+    <SmartsheetHeaderCellIcon
+      v-if="column && !props.hideIcon"
+      :class="{
+        'self-start': isForm || isSurveyForm,
+      }"
+    />
     <div
       v-if="column"
       class="name pl-1"

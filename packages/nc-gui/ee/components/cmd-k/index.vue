@@ -363,6 +363,7 @@ defineExpose({
                       }"
                     />
                     <component :is="act.icon" v-else-if="act.icon" class="cmdk-action-icon" />
+                    {{ act.title }}
                   </div>
                 </div>
               </div>

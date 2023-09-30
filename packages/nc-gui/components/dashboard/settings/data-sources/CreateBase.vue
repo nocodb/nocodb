@@ -230,7 +230,7 @@ const focusInvalidInput = () => {
   form.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.parentNode?.querySelector('input')?.focus()
 }
 
-const { $jobs } = useNuxtApp()
+const { $poller } = useNuxtApp()
 
 const createBase = async () => {
   try {
@@ -257,23 +257,38 @@ const createBase = async () => {
       inflection_table: formState.value.inflection.inflectionTable,
     })
 
-    $jobs.subscribe({ id: jobData.id }, undefined, async (status: string) => {
-      if (status === JobStatus.COMPLETED) {
-        $e('a:base:create:extdb')
-
-        if (projectId.value) {
-          await loadProject(projectId.value, true)
-          await loadProjectTables(projectId.value, true)
+    $poller.subscribe(
+      { id: jobData.id },
+      async (data: {
+        id: string
+        status?: string
+        data?: {
+          error?: {
+            message: string
+          }
+          message?: string
+          result?: any
         }
+      }) => {
+        if (data.status !== 'close') {
+          if (data.status === JobStatus.COMPLETED) {
+            $e('a:base:create:extdb')
 
-        emit('baseCreated')
-        emit('close')
-      } else if (status === JobStatus.FAILED) {
-        message.error('Failed to create base')
-      }
+            if (projectId.value) {
+              await loadProject(projectId.value, true)
+              await loadProjectTables(projectId.value, true)
+            }
 
-      creatingBase.value = false
-    })
+            emit('baseCreated')
+            emit('close')
+            creatingBase.value = false
+          } else if (status === JobStatus.FAILED) {
+            message.error('Failed to create base')
+            creatingBase.value = false
+          }
+        }
+      },
+    )
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

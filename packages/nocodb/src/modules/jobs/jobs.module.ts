@@ -17,9 +17,8 @@ import { BaseDeleteProcessor } from './jobs/base-delete/base-delete.processor';
 
 // Jobs Module Related
 import { JobsLogService } from './jobs/jobs-log.service';
-import { JobsGateway } from './jobs.gateway';
-
-// Redis
+// import { JobsGateway } from './jobs.gateway';
+import { JobsController } from './jobs.controller';
 import { JobsService } from './redis/jobs.service';
 import { JobsRedisService } from './redis/jobs-redis.service';
 import { JobsEventService } from './redis/jobs-event.service';
@@ -50,6 +49,7 @@ import { GlobalModule } from '~/modules/global/global.module';
       : []),
   ],
   controllers: [
+    JobsController,
     ...(process.env.NC_WORKER_CONTAINER !== 'true'
       ? [
           DuplicateController,
@@ -61,7 +61,7 @@ import { GlobalModule } from '~/modules/global/global.module';
       : []),
   ],
   providers: [
-    ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [JobsGateway] : []),
+    ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [] : []),
     ...(process.env.NC_REDIS_JOB_URL
       ? [JobsRedisService, JobsEventService]
       : [FallbackQueueService, FallbackJobsEventService]),

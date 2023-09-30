@@ -1,18 +1,12 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { JobsRedisService } from './jobs-redis.service';
 import type { OnModuleInit } from '@nestjs/common';
-import { JobEvents, JOBS_QUEUE, JobStatus } from '~/interface/Jobs';
+import { JOBS_QUEUE, JobStatus } from '~/interface/Jobs';
 
 @Injectable()
 export class JobsService implements OnModuleInit {
-  constructor(
-    @InjectQueue(JOBS_QUEUE) private readonly jobsQueue: Queue,
-    private jobsRedisService: JobsRedisService,
-    private eventEmitter: EventEmitter2,
-  ) {}
+  constructor(@InjectQueue(JOBS_QUEUE) private readonly jobsQueue: Queue) {}
 
   // pause primary instance queue
   async onModuleInit() {
@@ -28,30 +22,13 @@ export class JobsService implements OnModuleInit {
 
     // if there is no worker and primary instance queue is paused, resume it
     // if there is any worker and primary instance queue is not paused, pause it
-    if (workerCount < 1 && localWorkerPaused) {
+    if (workerCount === 1 && localWorkerPaused) {
       await this.jobsQueue.resume(true);
-    } else if (workerCount > 0 && !localWorkerPaused) {
+    } else if (workerCount > 1 && !localWorkerPaused) {
       await this.jobsQueue.pause(true);
     }
 
     const job = await this.jobsQueue.add(name, data);
-
-    // subscribe to job events
-    this.jobsRedisService.subscribe(`jobs-${job.id.toString()}`, (data) => {
-      const cmd = data.cmd;
-      delete data.cmd;
-      switch (cmd) {
-        case JobEvents.STATUS:
-          this.eventEmitter.emit(JobEvents.STATUS, data);
-          if ([JobStatus.COMPLETED, JobStatus.FAILED].includes(data.status)) {
-            this.jobsRedisService.unsubscribe(`jobs-${data.id.toString()}`);
-          }
-          break;
-        case JobEvents.LOG:
-          this.eventEmitter.emit(JobEvents.LOG, data);
-          break;
-      }
-    });
 
     return job;
   }

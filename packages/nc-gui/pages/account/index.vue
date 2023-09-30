@@ -50,11 +50,7 @@ const logout = async () => {
             >
               <div class="flex flex-row gap-x-2 items-center h-8.5">
                 <GeneralIcon icon="arrowLeft" class="-mt-0.1" />
-<<<<<<< HEAD
-                <div class="flex text-xs text-gray-800">{{ $t('labels.backToWorkspace') }}</div>
-=======
-                <div class="flex text-sm font-medium text-gray-800">Back to Projects</div>
->>>>>>> a2f9e6a54 (fix: table ui base design and refactor type errros)
+                <div class="flex text-sm font-medium text-gray-800">{{ $t('labels.backToWorkspace') }}</div>
               </div>
             </div>
 

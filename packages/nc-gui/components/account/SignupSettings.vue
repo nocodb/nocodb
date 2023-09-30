@@ -30,20 +30,9 @@ loadSettings()
 </script>
 
 <template>
-<<<<<<< HEAD
-<<<<<<< HEAD
-  <div data-testid="nc-app-settings">
-    <div class="text-xl mt-4 mb-8 text-center font-weight-bold capitalize">{{ $t('activity.settings') }}</div>
-    <div class="flex justify-center">
-=======
-  <div class="p-7">
-    <h1 class="text-xl mt-4 mb-5 pl-3.5 font-weight-bold">Settings</h1>
-=======
   <div class="p-7 flex flex-col items-center">
-    <h1 class="text-xl mt-4 mb-5 pl-3.5 font-bold">Settings</h1>
->>>>>>> e66bad074 (fix: allignment)
+    <h1 class="text-2xl mt-4 mb-5 pl-3.5 font-bold">{{ t('activity.settings') }}</h1>
     <div class="flex items-center gap-2">
->>>>>>> 41d0c7c53 (fix: ui changes)
       <a-form-item>
         <a-checkbox
           v-model:checked="settings.invite_only_signup"

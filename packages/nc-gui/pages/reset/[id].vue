@@ -8,7 +8,6 @@ import {
   reactive,
   ref,
   useApi,
-  useI18n,
   useRoute,
   useRouter,
 } from '#imports'
@@ -26,8 +25,6 @@ const form = reactive({
   password: '',
   newPassword: '',
 })
-
-const { t } = useI18n()
 
 const formValidator = ref()
 
@@ -71,13 +68,11 @@ function resetError() {
         <div class="self-center flex flex-col justify-center items-center text-center gap-2">
           <h1 class="prose-2xl font-bold my-4 w-full">{{ $t('title.resetPassword') }}</h1>
 
-          <template>
-            <div class="prose-sm text-success flex items-center leading-8 gap-2">
-              {{ $t('msg.info.passwordRecovery.success') }} <ClaritySuccessLine />
-            </div>
+          <div class="prose-sm text-success flex items-center leading-8 gap-2">
+            {{ $t('msg.info.passwordRecovery.success') }} <ClaritySuccessLine />
+          </div>
 
-            <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
-          </template>
+          <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
         </div>
 
         <a-form ref="formValidator" layout="vertical" :model="form" no-style @finish="resetPassword">

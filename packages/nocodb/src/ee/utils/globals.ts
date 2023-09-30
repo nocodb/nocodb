@@ -153,4 +153,5 @@ export enum CacheScope {
   WORKSPACE_USER = 'workspaceUser',
   SINGLE_QUERY = 'singleQuery',
   TEMPORARY_URL = 'temporaryUrl',
+  JOBS = 'nc_jobs',
 }

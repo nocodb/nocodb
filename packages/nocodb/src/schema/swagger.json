@@ -16227,6 +16227,54 @@
           }
         ]
       }
+    },
+    "/jobs/listen": {
+      "post": {
+        "summary": "Jobs Listen",
+        "operationId": "jobs-listen",
+        "description": "Listen for job events",
+        "tags": [
+          "Jobs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/xc-auth"
+        }
+      ]
+    },
+    "/jobs/status": {
+      "post": {
+        "summary": "Jobs Status",
+        "operationId": "jobs-status",
+        "description": "Get job status",
+        "tags": [
+          "Jobs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/xc-auth"
+        }
+      ]
     }
   },
   "components": {

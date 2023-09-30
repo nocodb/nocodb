@@ -41,7 +41,7 @@ async function loadMetaDiff() {
   }
 }
 
-const { $jobs } = useNuxtApp()
+const { $poller } = useNuxtApp()
 
 async function syncMetaDiff() {
   try {
@@ -50,19 +50,34 @@ async function syncMetaDiff() {
     isLoading.value = true
     const jobData = await $api.base.metaDiffSync(project.value?.id, props.baseId)
 
-    $jobs.subscribe({ id: jobData.id }, undefined, async (status: string) => {
-      if (status === JobStatus.COMPLETED) {
-        // Table metadata recreated successfully
-        message.info(t('msg.info.metaDataRecreated'))
-        await loadTables()
-        await loadMetaDiff()
-        emit('baseSynced')
-        isLoading.value = false
-      } else if (status === JobStatus.FAILED) {
-        message.error('Failed to sync base metadata')
-        isLoading.value = false
-      }
-    })
+    $poller.subscribe(
+      { id: jobData.id },
+      async (data: {
+        id: string
+        status?: string
+        data?: {
+          error?: {
+            message: string
+          }
+          message?: string
+          result?: any
+        }
+      }) => {
+        if (data.status !== 'close') {
+          if (data.status === JobStatus.COMPLETED) {
+            // Table metadata recreated successfully
+            message.info(t('msg.info.metaDataRecreated'))
+            await loadTables()
+            await loadMetaDiff()
+            emit('baseSynced')
+            isLoading.value = false
+          } else if (status === JobStatus.FAILED) {
+            message.error('Failed to sync base metadata')
+            isLoading.value = false
+          }
+        }
+      },
+    )
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

@@ -130,7 +130,7 @@ jobs:
       uses: ./.github/workflows/playwright-test-workflow.yml
       with:
         db: mysql
-        shard: 4        
+        shard: 4       
     playwright-sqlite-1:
       needs: pre-build-for-playwright
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
@@ -151,14 +151,14 @@ jobs:
       uses: ./.github/workflows/playwright-test-workflow.yml
       with:
         db: sqlite
-        shard: 3 
+        shard: 3
     playwright-sqlite-4:
       needs: pre-build-for-playwright
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       uses: ./.github/workflows/playwright-test-workflow.yml
       with:
         db: sqlite
-        shard: 4                
+        shard: 4           
     playwright-pg-shard-1:
       needs: pre-build-for-playwright
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
@@ -179,11 +179,11 @@ jobs:
       uses: ./.github/workflows/playwright-test-workflow.yml
       with:
         db: pg
-        shard: 3   
+        shard: 3
     playwright-pg-shard-4:
       needs: pre-build-for-playwright
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       uses: ./.github/workflows/playwright-test-workflow.yml
       with:
         db: pg
-        shard: 4           
+        shard: 4       

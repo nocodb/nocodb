@@ -194,8 +194,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-show="vOpen" class="cmdk-modal" :class="{ 'cmdk-modal-active': vOpen }">
-    <div ref="modalEl" class="cmdk-modal-content relative h-[25.25rem]">
+  <div v-show="vOpen" class="cmdk-modal cmdl-modal" :class="{ 'cmdk-modal-active cmdl-modal-active': vOpen }">
+    <div ref="modalEl" class="cmdk-modal-content cmdl-modal-content relative h-[25.25rem]">
       <div class="flex items-center bg-white w-full z-[50]">
         <div class="text-sm p-2 text-gray-500">Recent Views</div>
       </div>

@@ -30,7 +30,7 @@ const { activeTable } = storeToRefs(useTablesStore())
         </template>
       </LazyGeneralEmojiPicker>
       <span
-        class="text-ellipsis overflow-hidden pl-1 text-gray-500"
+        class="text-ellipsis nc-active-table-title overflow-hidden pl-1 text-gray-500"
         :class="{
           'text-gray-500': !isMobileMode,
           'text-gray-700 max-w-1/2': isMobileMode,
@@ -51,7 +51,7 @@ const { activeTable } = storeToRefs(useTablesStore())
       </LazyGeneralEmojiPicker>
 
       <span
-        class="truncate pl-1.25 text-gray-700"
+        class="truncate nc-active-view-title pl-1.25 text-gray-700"
         :class="{
           'max-w-28/100': !isMobileMode,
         }"

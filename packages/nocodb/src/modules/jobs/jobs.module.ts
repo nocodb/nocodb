@@ -12,6 +12,8 @@ import { MetaSyncController } from './jobs/meta-sync/meta-sync.controller';
 import { MetaSyncProcessor } from './jobs/meta-sync/meta-sync.processor';
 import { BaseCreateController } from './jobs/base-create/base-create.controller';
 import { BaseCreateProcessor } from './jobs/base-create/base-create.processor';
+import { BaseDeleteController } from './jobs/base-delete/base-delete.controller';
+import { BaseDeleteProcessor } from './jobs/base-delete/base-delete.processor';
 
 // Jobs Module Related
 import { JobsLogService } from './jobs/jobs-log.service';
@@ -54,6 +56,7 @@ import { GlobalModule } from '~/modules/global/global.module';
           AtImportController,
           MetaSyncController,
           BaseCreateController,
+          BaseDeleteController,
         ]
       : []),
   ],
@@ -75,6 +78,7 @@ import { GlobalModule } from '~/modules/global/global.module';
     AtImportProcessor,
     MetaSyncProcessor,
     BaseCreateProcessor,
+    BaseDeleteProcessor,
   ],
 })
 export class JobsModule {}

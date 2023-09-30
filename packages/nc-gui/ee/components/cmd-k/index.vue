@@ -355,9 +355,14 @@ defineExpose({
                       :is="(iconMap as any)[act.icon]"
                       v-if="act.icon && typeof act.icon === 'string' && (iconMap as any)[act.icon]"
                       class="cmdk-action-icon"
+                      :class="{
+                        '!text-blue-500': act.icon === 'grid',
+                        '!text-purple-500': act.icon === 'form',
+                        '!text-[#FF9052]': act.icon === 'kanban',
+                        '!text-pink-500': act.icon === 'gallery',
+                      }"
                     />
                     <component :is="act.icon" v-else-if="act.icon" class="cmdk-action-icon" />
-                    {{ act.title }}
                   </div>
                 </div>
               </div>

@@ -1924,7 +1924,7 @@ function tableTest() {
   });
 
   // todo: Integrate filterArrJson with bulk delete all and update all
-  // it.only('Bulk delete all with condition', async function () {
+  // it('Bulk delete all with condition', async function () {
   //   const table = await createTable(context, project);
   //   const columns = await table.getColumns();
   //   const idColumn = columns.find((column) => column.title === 'Id')!;
@@ -1960,11 +1960,11 @@ function tableTest() {
   // });
 
   // todo: add test for bulk delete with ltar but need filterArrJson. filterArrJson not now supported with this api.
-  // it.only('Bulk update nested filtered table data list with a lookup column', async function () {
+  // it('Bulk update nested filtered table data list with a lookup column', async function () {
   // });
 
   // todo: Api does not support fields and sort
-  // it.only('Nested row list hm with selected fields', async () => {
+  // it('Nested row list hm with selected fields', async () => {
   //   const rowId = 1;
 
   //   const firstNameColumn = customerColumns.find(
@@ -1994,7 +1994,7 @@ function tableTest() {
   // })
 
   // todo: mm create api does not error out in the case of existing ref row id
-  // it.only('Create list mm existing ref row id', async () => {
+  // it('Create list mm existing ref row id', async () => {
   //   const rowId = 1;
   //   const rentalListColumn = (await customerTable.getColumns()).find(
   //     (column) => column.title === 'Rentals'

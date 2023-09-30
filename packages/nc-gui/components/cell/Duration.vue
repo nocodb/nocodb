@@ -23,6 +23,8 @@ const { modelValue, showValidationError = true } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
+const { t } = useI18n()
+
 const { showNull } = useGlobal()
 
 const column = inject(ColumnInj)
@@ -39,7 +41,9 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 
 const durationType = computed(() => parseProp(column?.value?.meta)?.duration || 0)
 
-const durationPlaceholder = computed(() => (isEditColumn.value ? '(Optional)' : durationOptions[durationType.value].title))
+const durationPlaceholder = computed(() =>
+  isEditColumn.value ? `(${t('labels.optional')})` : durationOptions[durationType.value].title,
+)
 
 const localState = computed({
   get: () => convertMS2Duration(modelValue, durationType.value),
@@ -105,13 +109,12 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value
       @mousedown.stop
     />
 
-    <span v-else-if="modelValue === null && showNull" class="nc-null">NULL</span>
+    <span v-else-if="modelValue === null && showNull" class="nc-null capitalize">{{ $t('general.null') }}</span>
 
     <span v-else> {{ localState }}</span>
 
     <div v-if="showWarningMessage && showValidationError" class="duration-warning">
-      <!-- TODO: i18n -->
-      Please enter a number
+      {{ $t('msg.plsEnterANumber') }}
     </div>
   </div>
 </template>

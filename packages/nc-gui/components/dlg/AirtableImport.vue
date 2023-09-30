@@ -270,7 +270,7 @@ onMounted(async () => {
   >
     <div class="px-5">
       <!--      Quick Import -->
-      <div class="mt-5 prose-xl font-weight-bold" @dblclick="enableAbort = true">{{ $t('title.quickImport') }} - AIRTABLE</div>
+      <div class="mt-5 prose-xl font-weight-bold" @dblclick="enableAbort = true">{{ $t('title.quickImportAirtable') }}</div>
 
       <div v-if="step === 1">
         <div class="mb-4">
@@ -353,7 +353,7 @@ onMounted(async () => {
           <!--          Import Formula Columns -->
           <a-tooltip placement="top">
             <template #title>
-              <span>Coming Soon!</span>
+              <span>{{ $t('title.comingSoon') }}</span>
             </template>
             <a-checkbox v-model:checked="syncSource.details.options.syncFormula" disabled>
               {{ $t('labels.importFormulaColumns') }}
@@ -420,7 +420,9 @@ onMounted(async () => {
           <a-button v-if="showGoToDashboardButton" class="mt-4" size="large" @click="dialogShow = false">
             {{ $t('labels.goToDashboard') }}
           </a-button>
-          <a-button v-else-if="enableAbort" class="mt-4" size="large" danger @click="abort()">ABORT</a-button>
+          <a-button v-else-if="enableAbort" class="mt-4 uppercase" size="large" danger @click="abort()">{{
+            $t('general.abort')
+          }}</a-button>
         </div>
       </div>
     </div>

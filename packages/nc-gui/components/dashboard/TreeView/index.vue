@@ -55,6 +55,8 @@ const { loadTables } = projectStore
 
 const { tables } = storeToRefs(projectStore)
 
+const { t } = useI18n()
+
 const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
 const { refreshCommandPalette } = useCommandPalette()
@@ -126,7 +128,7 @@ const duplicateTable = async (table: TableType) => {
 
           openTable(newTable!)
         } else if (status === JobStatus.FAILED) {
-          message.error('Failed to duplicate table')
+          message.error(t('msg.error.failedToDuplicateTable'))
           await loadTables()
         }
       })

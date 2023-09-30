@@ -61,7 +61,9 @@ const roleProperties = computed(() => {
         }"
       >
         <GeneralIcon :icon="roleProperties.icon" />
-        {{ roleProperties.label }}
+        <span class="flex whitespace-nowrap">
+          {{ roleProperties.label }}
+        </span>
         <GeneralIcon v-if="clickableRef" icon="arrowDown" />
       </div>
     </NcBadge>

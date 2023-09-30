@@ -61,7 +61,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
         {{ qrValue }}
       </div>
     </template>
-    <img v-if="showQrCode" :src="qrCodeLarge" alt="QR Code" />
+    <img v-if="showQrCode" :src="qrCodeLarge" :alt="$t('title.qrCode')" />
   </a-modal>
   <div v-if="tooManyCharsForQrCode" class="text-left text-wrap mt-2 text-[#e65100] text-[10px]">
     {{ $t('labels.qrCodeValueTooLong') }}
@@ -71,10 +71,10 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     :class="{ 'mx-auto': !isGallery }"
     :style="{ height: rowHeight ? `${rowHeight * 1.4}rem` : `1.4rem` }"
     :src="qrCode"
-    alt="QR Code"
+    :alt="$t('title.qrCode')"
     @click="showQrModal"
   />
-  <img v-else-if="showQrCode" class="mx-auto" :src="qrCode" alt="QR Code" @click="showQrModal" />
+  <img v-else-if="showQrCode" class="mx-auto" :src="qrCode" :alt="$t('title.qrCode')" @click="showQrModal" />
   <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('msg.warning.nonEditableFields.computedFieldUnableToClear') }}
   </div>

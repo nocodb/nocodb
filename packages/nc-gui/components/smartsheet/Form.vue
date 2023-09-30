@@ -389,8 +389,10 @@ watch(view, (nextView) => {
 <template>
   <template v-if="isMobileMode">
     <div class="pl-6 pr-[120px] py-6 bg-white flex-col justify-start items-start gap-2.5 inline-flex">
-      <div class="text-gray-500 text-5xl font-semibold leading-16">Available<br />in Desktop</div>
-      <div class="text-gray-500 text-base font-medium leading-normal">Form View is currently not supported on mobile.</div>
+      <div class="text-gray-500 text-5xl font-semibold leading-16">
+        {{ $t('general.available') }}<br />{{ $t('title.inDesktop') }}
+      </div>
+      <div class="text-gray-500 text-base font-medium leading-normal">{{ $t('msg.formViewNotSupportedOnMobile') }}</div>
     </div>
   </template>
   <template v-else>
@@ -399,16 +401,20 @@ watch(view, (nextView) => {
         <div v-if="formViewData" class="items-center justify-center text-center mt-2">
           <a-alert type="success">
             <template #message>
-              <div class="text-center">{{ formViewData.success_msg || 'Successfully submitted form data' }}</div>
+              <div class="text-center">{{ formViewData.success_msg || $t('msg.successfullySubmittedFormData') }}</div>
             </template>
           </a-alert>
 
           <div v-if="formViewData.show_blank_form" class="text-gray-400 mt-4">
-            New form will be loaded after {{ secondsRemain }} seconds
+            {{
+              $t('msg.newFormWillBeLoaded', {
+                seconds: secondsRemain,
+              })
+            }}
           </div>
 
           <div v-if="formViewData.submit_another_form || !isPublic" class="text-center mt-4">
-            <a-button type="primary" size="large" @click="submitted = false"> Submit Another Form</a-button>
+            <a-button type="primary" size="large" @click="submitted = false"> {{ $t('activity.submitAnotherForm') }}</a-button>
           </div>
         </div>
       </a-col>
@@ -773,7 +779,7 @@ watch(view, (nextView) => {
                     v-if="!localColumns.length"
                     class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center"
                   >
-                    Drag and drop fields here to add
+                    {{ $t('activity.dragAndDropFieldsHereToAdd') }}
                   </div>
                 </template>
               </Draggable>

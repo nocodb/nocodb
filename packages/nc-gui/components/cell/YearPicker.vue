@@ -33,6 +33,8 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 
 const isYearInvalid = ref(false)
 
+const { t } = useI18n()
+
 const localState = computed({
   get() {
     if (!modelValue) {
@@ -76,11 +78,11 @@ watch(
 
 const placeholder = computed(() => {
   if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
-    return '(Optional)'
+    return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
-    return 'NULL'
+    return t('general.null')
   } else if (isYearInvalid.value) {
-    return 'Invalid year'
+    return t('msg.invalidTime')
   } else {
     return ''
   }

@@ -213,8 +213,8 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
           :loading="loading"
           @click="() => renameTable()"
         >
-          Rename Table
-          <template #loading> Renaming Table </template>
+          {{ $t('title.renameTable') }}
+          <template #loading> {{ $t('title.renamingTable') }}</template>
         </NcButton>
       </div>
     </div>

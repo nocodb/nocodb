@@ -13,6 +13,8 @@ const route = useRoute()
 const { loadSharedView, meta } = useSharedView()
 const { isViewDataLoading } = storeToRefs(useViewsStore())
 
+provide(MetaInj, meta)
+
 const showPassword = ref(false)
 
 onMounted(async () => {

@@ -43,9 +43,11 @@ const { nestedLevel, parentId, autoSave, hookId, modelValue, showLoading, webHoo
 
 const nested = computed(() => nestedLevel.value > 0)
 
+const { t } = useI18n()
+
 const logicalOps = [
-  { value: 'and', text: 'AND' },
-  { value: 'or', text: 'OR' },
+  { value: 'and', text: t('general.and') },
+  { value: 'or', text: t('general.or') },
 ]
 
 const meta = inject(MetaInj, ref())
@@ -488,7 +490,7 @@ onMounted(async () => {
         'ml-0.5': !nested,
       }"
     >
-      No filters added
+      {{ $t('title.noFiltersAdded') }}
     </div>
 
     <slot />

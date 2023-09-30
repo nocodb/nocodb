@@ -24,11 +24,11 @@ const deleteParamRow = (i: number) => {
       <thead class="h-8">
         <tr>
           <th>
-            <div class="text-left font-normal ml-2">Parameter Name</div>
+            <div class="text-left font-normal ml-2">{{ $t('title.parameterName') }}</div>
           </th>
 
           <th>
-            <div class="text-left font-normal ml-2">Value</div>
+            <div class="text-left font-normal ml-2">{{ $t('placeholder.value') }}</div>
           </th>
 
           <th class="w-8">
@@ -41,13 +41,13 @@ const deleteParamRow = (i: number) => {
         <tr v-for="(paramRow, idx) in vModel" :key="idx" class="!h-2 overflow-hidden">
           <td class="px-2">
             <a-form-item class="form-item">
-              <a-input v-model:value="paramRow.name" placeholder="Key" class="!rounded-lg" />
+              <a-input v-model:value="paramRow.name" :placeholder="$t('placeholder.key')" class="!rounded-lg" />
             </a-form-item>
           </td>
 
           <td class="px-2">
             <a-form-item class="form-item">
-              <a-input v-model:value="paramRow.value" placeholder="Value" class="!rounded-lg" />
+              <a-input v-model:value="paramRow.value" :placeholder="$t('placeholder.value')" class="!rounded-lg" />
             </a-form-item>
           </td>
 
@@ -69,7 +69,7 @@ const deleteParamRow = (i: number) => {
           <td :colspan="12" class="">
             <NcButton size="small" type="secondary" @click="addParamRow">
               <div class="flex flex-row items-center gap-x-1">
-                <div>Add Parameter</div>
+                <div>{{ $t('activity.addParameter') }}</div>
                 <component :is="iconMap.plus" class="flex mx-auto" />
               </div>
             </NcButton>

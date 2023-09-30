@@ -88,7 +88,7 @@ function onKeyDown(e: any) {
     class="outline-none py-2 px-1 border-none w-full h-full text-sm"
     type="number"
     style="letter-spacing: 0.06rem"
-    :placeholder="isEditColumn ? '(Optional)' : ''"
+    :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown="onKeyDown"
     @keydown.down.stop
@@ -99,7 +99,7 @@ function onKeyDown(e: any) {
     @selectstart.capture.stop
     @mousedown.stop
   />
-  <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
   <span v-else class="text-sm">{{ displayValue }}</span>
 </template>
 

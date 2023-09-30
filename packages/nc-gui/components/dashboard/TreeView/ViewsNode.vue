@@ -45,8 +45,6 @@ const { isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
-const { activeViewTitleOrId } = storeToRefs(useViewsStore())
-
 const project = inject(ProjectInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
@@ -191,16 +189,6 @@ function onStopEdit() {
     isStopped.value = false
   }, 250)
 }
-
-function onRef(el: HTMLElement) {
-  if (activeViewTitleOrId.value === vModel.value.id) {
-    nextTick(() => {
-      setTimeout(() => {
-        el?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-      }, 1000)
-    })
-  }
-}
 </script>
 
 <template>
@@ -214,12 +202,7 @@ function onRef(el: HTMLElement) {
     @dblclick.stop="onDblClick"
     @click="onClick"
   >
-    <div
-      :ref="onRef"
-      v-e="['a:view:open', { view: vModel.type }]"
-      class="text-sm flex items-center w-full gap-1"
-      data-testid="view-item"
-    >
+    <div v-e="['a:view:open', { view: vModel.type }]" class="text-sm flex items-center w-full gap-1" data-testid="view-item">
       <div class="flex min-w-6" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
         <LazyGeneralEmojiPicker
           class="nc-table-icon"

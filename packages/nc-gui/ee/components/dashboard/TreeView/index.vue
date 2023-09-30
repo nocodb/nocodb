@@ -235,50 +235,6 @@ provide(TreeViewInj, {
 })
 
 useEventListener(document, 'contextmenu', handleContext, true)
-
-const scrollTableNode = () => {
-  const activeTableDom = document.querySelector(`.nc-treeview [data-table-id="${_activeTable.value?.id}"]`)
-  if (!activeTableDom) return
-
-  if (isElementInvisible(activeTableDom)) {
-    // Scroll to the table node
-    activeTableDom?.scrollIntoView({ behavior: 'auto' })
-  }
-}
-
-watch(
-  () => _activeTable.value?.id,
-  () => {
-    if (!_activeTable.value?.id) return
-
-    // TODO: Find a better way to scroll to the table node
-    setTimeout(() => {
-      scrollTableNode()
-    }, 1000)
-  },
-  {
-    immediate: true,
-  },
-)
-
-watch(
-  () => openedProject.value?.id,
-  async () => {
-    // As sidebar nodes take time to render
-    await new Promise((resolve) => setTimeout(resolve, 750))
-
-    const activeProjectDom = document.querySelector(`.nc-treeview [data-project-id="${activeProjectId.value}"]`)
-    if (!activeProjectDom) return
-
-    if (isElementInvisible(activeProjectDom)) {
-      // Scroll to the table node
-      activeProjectDom?.scrollIntoView({ behavior: 'auto', inline: 'start' })
-    }
-  },
-  {
-    immediate: true,
-  },
-)
 </script>
 
 <template>

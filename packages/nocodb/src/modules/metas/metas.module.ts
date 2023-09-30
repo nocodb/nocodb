@@ -180,6 +180,7 @@ export const metaModuleMetadata = {
     ProjectUsersService,
     HooksService,
     MetaDiffsService,
+    BasesService,
   ],
 };
 

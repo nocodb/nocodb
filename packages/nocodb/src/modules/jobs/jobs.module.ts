@@ -10,6 +10,8 @@ import { DuplicateController } from './jobs/export-import/duplicate.controller';
 import { DuplicateProcessor } from './jobs/export-import/duplicate.processor';
 import { MetaSyncController } from './jobs/meta-sync/meta-sync.controller';
 import { MetaSyncProcessor } from './jobs/meta-sync/meta-sync.processor';
+import { BaseCreateController } from './jobs/base-create/base-create.controller';
+import { BaseCreateProcessor } from './jobs/base-create/base-create.processor';
 
 // Jobs Module Related
 import { JobsLogService } from './jobs/jobs-log.service';
@@ -47,7 +49,12 @@ import { GlobalModule } from '~/modules/global/global.module';
   ],
   controllers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true'
-      ? [DuplicateController, AtImportController, MetaSyncController]
+      ? [
+          DuplicateController,
+          AtImportController,
+          MetaSyncController,
+          BaseCreateController,
+        ]
       : []),
   ],
   providers: [
@@ -67,6 +74,7 @@ import { GlobalModule } from '~/modules/global/global.module';
     DuplicateProcessor,
     AtImportProcessor,
     MetaSyncProcessor,
+    BaseCreateProcessor,
   ],
 })
 export class JobsModule {}

@@ -45,4 +45,16 @@ const getAllTables = async ({ project }: { project: Project }) => {
   return tables;
 };
 
-export { createTable, getTable, getAllTables };
+const updateTable = async (
+  context,
+  { table, args }: { table: Model; args: any },
+) => {
+  const response = await request(context.app)
+    .patch(`/api/v1/db/meta/tables/${table.id}`)
+    .set('xc-auth', context.token)
+    .send(args);
+
+  return response.body;
+};
+
+export { createTable, getTable, getAllTables, updateTable };

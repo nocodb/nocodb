@@ -47,6 +47,11 @@ function onOpenModal({
         force: true,
       })
 
+      table.value.meta = {
+        ...(table.value.meta as object),
+        hasNonDefaultViews: true,
+      }
+
       navigateToView({
         view,
         tableId: table.value.id!,

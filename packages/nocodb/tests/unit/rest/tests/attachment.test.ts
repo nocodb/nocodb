@@ -14,7 +14,6 @@ function attachmentTests() {
 
   beforeEach(async function () {
     console.time('#### attachmentTests');
-    context = await init();
     fs.writeFileSync(FILE_PATH, 'test', `utf-8`);
     context = await init();
     console.timeEnd('#### attachmentTests');

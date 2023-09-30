@@ -285,6 +285,13 @@ function openDeleteDialog(view: ViewType) {
         tableId: table.value.id!,
         force: true,
       })
+
+      const activeNonDefaultViews = viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? []
+
+      table.value.meta = {
+        ...(table.value.meta as object),
+        hasNonDefaultViews: activeNonDefaultViews.length > 1,
+      }
     },
   })
 
@@ -364,18 +371,8 @@ function onOpenModal({
 </script>
 
 <template>
-  <div
-    v-if="!views.length"
-    class="text-gray-500 my-1.75 xs:(my-2.5 text-base)"
-    :class="{
-      'ml-19.25 xs:ml-22.25': isDefaultBase,
-      'ml-24.75 xs:ml-30': !isDefaultBase,
-    }"
-  >
-    {{ $t('labels.noViews') }}
-  </div>
-
   <a-menu
+    v-if="views.length"
     ref="menuRef"
     :class="{ dragging }"
     class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"

@@ -1429,7 +1429,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                           'align-middle': !rowHeight || rowHeight === 1,
                           'align-top': rowHeight && rowHeight !== 1,
                           'filling': isCellInFillRange(rowIndex, colIndex),
-                          '!bg-gray-50 readonly':
+                          'readonly':
                             (isLookup(columnObj) || isRollup(columnObj) || isFormula(columnObj)) &&
                             hasEditPermission &&
                             isCellSelected(rowIndex, colIndex),
@@ -1776,7 +1776,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
   }
 
   td.active.readonly::after {
-    @apply text-primary bg-primary bg-opacity-5 !border-gray-200;
+    @apply text-primary bg-grey-50 bg-opacity-5 !border-gray-200;
   }
 
   td.active-cell::after {

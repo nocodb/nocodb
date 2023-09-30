@@ -90,9 +90,9 @@ export class OracleUi {
     ];
   }
 
-  static getNewColumn(suffix: number, uidt: UITypes) {
+  static getNewColumn(columnNameSuffix: String, uidt: UITypes) {
     return {
-      column_name: `Untitled ${uidt} ${suffix}`,
+      column_name: `Untitled ${uidt} ${columnNameSuffix}`,
       dt: 'varchar',
       dtx: 'specificType',
       ct: 'varchar(45)',

@@ -78,16 +78,16 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       let columnName = `Untitled ${formState.value.uidt}`
       // Gets the no of columns in meta where meta.column_name === `Untitled${formState.value.uidt}`
       // Allows to count suffix differently for different UIDTs
-      let suffix = meta.value?.columns?.filter((c) => c.column_name?.includes(columnName)).length || 0
+      let columnNameSuffix = meta.value?.columns?.filter((c) => c.column_name?.includes(columnName)).length || 0
       while (
         (tableExplorerColumns?.value || meta.value?.columns)?.some(
           (c) => (c.column_name || '').toLowerCase() === columnName.toLowerCase(),
         )
       ) {
-        suffix++
-        columnName = `Untitled${suffix}`
+        columnNameSuffix++
+        columnName = `Untitled${columnNameSuffix}`
       }
-      return suffix || ''
+      return columnNameSuffix || ''
     }
 
     // actions

@@ -49,6 +49,8 @@ const defaultOption = ref()
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
+const { t } = useI18n()
+
 const validators = {
   colOptions: [
     {
@@ -61,13 +63,13 @@ const validators = {
                 if ((opt as any).status === 'remove') continue
 
                 if (!opt.title.length) {
-                  return reject(new Error("Select options can't be null"))
+                  return reject(new Error(t('msg.selectOption.cantBeNull')))
                 }
                 if (vModel.value.uidt === UITypes.MultiSelect && opt.title.includes(',')) {
-                  return reject(new Error("MultiSelect columns can't have commas(',')"))
+                  return reject(new Error(t('msg.selectOption.multiSelectCantHaveCommas')))
                 }
                 if (options.value.filter((el) => el.title === opt.title && (el as any).status !== 'remove').length > 1) {
-                  return reject(new Error("Select options can't have duplicates"))
+                  return reject(new Error(t('msg.selectOption.cantHaveDuplicates')))
                 }
               }
               resolve()
@@ -218,11 +220,12 @@ watch(vModel.value, (next) => {
                   <LazyGeneralColorPicker
                     v-model="element.color"
                     :pick-button="true"
-                    @update:model-value="colorMenus[index] = false"
+                    @close-modal="colorMenus[index] = false"
+                    @input="(el:string) => (element.color = el)"
                   />
                 </template>
                 <MdiArrowDownDropCircle
-                  class="mr-2 text-[1.5em] outline-0 hover:!text-[1.75em]"
+                  class="mr-2 text-[1.5em] outline-0 hover:!text-[1.75em] cursor-pointer"
                   :class="{ 'text-[1.75em]': colorMenus[index] }"
                   :style="{ color: element.color }"
                 />

@@ -275,7 +275,6 @@ export class UsersService {
   async passwordReset(param: {
     body: PasswordResetReqType;
     token: string;
-    // todo: exclude
     req: any;
   }): Promise<any> {
     validatePayload(

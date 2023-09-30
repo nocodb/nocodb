@@ -338,7 +338,7 @@ onMounted(async () => {
 
 <template>
   <div class="edit-base bg-white relative flex flex-col justify-start gap-2 w-full p-2">
-    <h1 class="prose-2xl font-bold self-start">Edit Base</h1>
+    <h1 class="prose-2xl font-bold self-start">{{ $t('activity.editBase') }}</h1>
 
     <a-form
       ref="form"
@@ -562,7 +562,7 @@ onMounted(async () => {
       </a-form-item>
       <div class="w-full flex items-center mt-2 text-[#e65100]">
         <component :is="iconMap.warning" class="mr-2 mb-5.9" />
-        <div>Please make sure database you are trying to connect is valid! This operation can cause schema loss!!</div>
+        <div>{{ $t('msg.warning.dbValid') }}</div>
       </div>
     </a-form>
 
@@ -596,7 +596,7 @@ onMounted(async () => {
       <div class="text-lg font-semibold self-start mb-4">{{ t('msg.info.dbConnected') }}</div>
       <div class="flex gap-x-2 mt-5 ml-7 pt-2.5 justify-end">
         <NcButton key="back" type="secondary" @click="isConnSuccess = false">{{ $t('general.cancel') }}</NcButton>
-        <NcButton key="submit" type="primary" @click="editBase">Ok & Edit Base</NcButton>
+        <NcButton key="submit" type="primary" @click="editBase">{{ $t('activity.okEditBase') }}</NcButton>
       </div>
     </div>
   </GeneralModal>

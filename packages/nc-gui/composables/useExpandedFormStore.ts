@@ -31,7 +31,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const { t } = useI18n()
 
-  const commentsOnly = ref(true)
+  const commentsOnly = ref(false)
 
   const commentsAndLogs = ref<any[]>([])
 

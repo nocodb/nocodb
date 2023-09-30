@@ -168,9 +168,9 @@ onMounted(() => {
                 <template #label="{ value }">
                   <a-tooltip v-if="value === 'id'" placement="top" class="!flex">
                     <template #title>
-                      <span>ID column is required, you can rename this later if required.</span>
+                      <span>{{ $t('msg.idColumnRequired') }}</span>
                     </template>
-                    ID
+                    {{ $t('datatype.ID') }}
                   </a-tooltip>
                   <div v-else class="flex">
                     {{ value }}
@@ -190,7 +190,7 @@ onMounted(() => {
             @click="_createTable"
           >
             {{ $t('activity.createTable') }}
-            <template #loading> Creating Table </template>
+            <template #loading> {{ $t('title.creatingTable') }} </template>
           </NcButton>
         </div>
       </a-form>

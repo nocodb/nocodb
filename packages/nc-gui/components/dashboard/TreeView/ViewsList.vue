@@ -16,7 +16,6 @@ import {
   useCommandPalette,
   useDialog,
   useNuxtApp,
-  useRouter,
   useUndoRedo,
   viewTypeAlias,
   watch,
@@ -32,9 +31,12 @@ const emits = defineEmits<Emits>()
 const project = inject(ProjectInj)!
 const table = inject(SidebarTableInj)!
 
-const { isUIAllowed } = useRoles()
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
+const { isMobileMode } = useGlobal()
 
 const { $e } = useNuxtApp()
+const { t } = useI18n()
 
 const isDefaultBase = computed(() => {
   const base = project.value?.bases?.find((b) => b.id === table.value.base_id)
@@ -85,11 +87,11 @@ function markItem(id: string) {
 /** validate view title */
 function validate(view: ViewType) {
   if (!view.title || view.title.trim().length < 0) {
-    return 'View name is required'
+    return t('msg.error.viewNameRequired')
   }
 
   if (views.value.some((v) => v.title === view.title && v.id !== view.id)) {
-    return 'View name should be unique'
+    return t('msg.error.viewNameDuplicate')
   }
 
   return true
@@ -178,6 +180,7 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
 
 const initSortable = (el: HTMLElement) => {
   if (sortable) sortable.destroy()
+  if (isMobileMode.value) return
 
   sortable = new Sortable(el, {
     // handle: '.nc-drag-icon',
@@ -190,13 +193,17 @@ const initSortable = (el: HTMLElement) => {
 onMounted(() => menuRef.value && initSortable(menuRef.value.$el))
 
 /** Navigate to view by changing url param */
-function changeView(view: ViewType) {
-  navigateToView({
+async function changeView(view: ViewType) {
+  await navigateToView({
     view,
     tableId: table.value.id!,
     projectId: project.value.id!,
     hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
   })
+
+  if (isMobileMode.value) {
+    isLeftSidebarOpen.value = false
+  }
 }
 
 /** Rename a view */
@@ -268,6 +275,7 @@ function openDeleteDialog(view: ViewType) {
 
       await loadViews({
         tableId: table.value.id!,
+        force: true,
       })
     },
   })
@@ -324,7 +332,9 @@ function onOpenModal({
 
       refreshCommandPalette()
 
-      await loadViews()
+      await loadViews({
+        force: true,
+      })
 
       navigateToView({
         view,
@@ -346,27 +356,16 @@ function onOpenModal({
 </script>
 
 <template>
-  <DashboardTreeViewCreateViewBtn
-    v-if="isUIAllowed('viewCreateOrEdit')"
-    :overlay-class-name="isDefaultBase ? '!left-18 !min-w-42' : '!left-25 !min-w-42'"
+  <div
+    v-if="!views.length"
+    class="text-gray-500 my-1.75 xs:(my-2.5 text-base)"
+    :class="{
+      'ml-19.25 xs:ml-22.25': isDefaultBase,
+      'ml-24.75 xs:ml-30': !isDefaultBase,
+    }"
   >
-    <NcButton
-      type="text"
-      size="xsmall"
-      class="!w-full !py-0 !h-7 !text-gray-500 !hover:(bg-transparent font-normal text-brand-500) !font-normal !text-sm"
-      :centered="false"
-    >
-      <GeneralIcon
-        icon="plus"
-        class="mr-2"
-        :class="{
-          'ml-18.75': isDefaultBase,
-          'ml-24.25': !isDefaultBase,
-        }"
-      />
-      <span class="text-sm">New View</span>
-    </NcButton>
-  </DashboardTreeViewCreateViewBtn>
+    {{ $t('labels.noViews') }}
+  </div>
 
   <a-menu
     ref="menuRef"

@@ -5,11 +5,15 @@ const { isWorkspaceLoading } = storeToRefs(workspaceStore)
 
 const { isSharedBase } = storeToRefs(useProject())
 
+const { isMobileMode } = useGlobal()
+
 const treeViewDom = ref<HTMLElement>()
 
 const isTreeViewOnScrollTop = ref(false)
 
 const checkScrollTopMoreThanZero = () => {
+  if (isMobileMode.value) return
+
   if (treeViewDom.value) {
     if (treeViewDom.value.scrollTop > 0) {
       isTreeViewOnScrollTop.value = true
@@ -43,7 +47,7 @@ onUnmounted(() => {
     </div>
     <div
       ref="treeViewDom"
-      class="flex flex-col nc-scrollbar-dark-md flex-grow"
+      class="flex flex-col nc-scrollbar-dark-md flex-grow xs:(border-transparent pt-2)"
       :class="{
         'border-t-1': !isSharedBase,
         'border-transparent': !isTreeViewOnScrollTop,
@@ -52,7 +56,7 @@ onUnmounted(() => {
     >
       <LazyDashboardTreeView v-if="!isWorkspaceLoading" />
     </div>
-    <div v-if="!isSharedBase" style="height: var(--sidebar-bottom-height)">
+    <div v-if="!isSharedBase">
       <DashboardSidebarUserInfo />
     </div>
   </div>

@@ -56,7 +56,10 @@ test.describe.serial('Test table', () => {
     grid = dashboard.grid;
 
     // create a new xcdb project
+    await dashboard.rootPage.waitForTimeout(650);
     const xcdb = await createXcdb(context);
+    await dashboard.rootPage.waitForTimeout(650);
+
     await dashboard.rootPage.reload();
     await dashboard.treeView.openProject({ title: 'xcdb', context });
 

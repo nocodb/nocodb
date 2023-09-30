@@ -20,13 +20,15 @@ const project = toRef(props, 'project')
 const table = toRef(props, 'table')
 const baseIndex = toRef(props, 'baseIndex')
 
-const { openTable } = useTableNew({
+const { openTable: _openTable } = useTableNew({
   projectId: project.value.id!,
 })
 
 const route = useRoute()
 
 const { isUIAllowed } = useRoles()
+
+const { isMobileMode } = useGlobal()
 
 const tabStore = useTabs()
 const { updateTab } = tabStore
@@ -44,6 +46,7 @@ const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeVie
 
 const { loadViews: _loadViews } = useViewsStore()
 const { activeView } = storeToRefs(useViewsStore())
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 // todo: temp
 const { projectTables } = storeToRefs(useTablesStore())
@@ -102,6 +105,22 @@ const onExpand = async () => {
   }
 }
 
+const onOpenTable = async () => {
+  isLoading.value = true
+  try {
+    await _openTable(table.value)
+
+    if (isMobileMode.value) {
+      isLeftSidebarOpen.value = false
+    }
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoading.value = false
+    isExpanded.value = true
+  }
+}
+
 watch(
   () => activeView.value?.id,
   () => {
@@ -131,10 +150,10 @@ const isTableOpened = computed(() => {
     :data-active="openedTableId === table.id"
   >
     <GeneralTooltip
-      class="nc-tree-item-inner pl-11 pr-0.75 mb-0.25 rounded-md h-7.1 w-full group cursor-pointer hover:bg-gray-200"
+      class="nc-tree-item-inner nc-sidebar-node pl-11 pr-0.75 mb-0.25 rounded-md h-7.1 w-full group cursor-pointer hover:bg-gray-200"
       :class="{
         'hover:bg-gray-200': openedTableId !== table.id,
-        'pl-12': baseIndex !== 0,
+        'pl-12 xs:(pl-14)': baseIndex !== 0,
         'pl-6.5': baseIndex === 0,
         '!bg-primary-selected': isTableOpened,
       }"
@@ -145,13 +164,13 @@ const isTableOpened = computed(() => {
         class="table-context flex items-center gap-1 h-full"
         :data-testid="`nc-tbl-side-node-${table.title}`"
         @contextmenu="setMenuContext('table', table)"
-        @click="openTable(table)"
+        @click="onOpenTable"
       >
         <div class="flex flex-row h-full items-center">
-          <NcButton type="text" size="xxsmall" class="nc-sidebar-node-btn" @click.stop="onExpand">
+          <NcButton type="text" size="xxsmall" class="nc-sidebar-node-btn nc-sidebar-expand" @click.stop="onExpand">
             <GeneralIcon
               icon="triangleFill"
-              class="nc-sidebar-base-node-btns group-hover:visible invisible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.5 !text-gray-600 rotate-90 hover:bg-"
+              class="nc-sidebar-base-node-btns group-hover:visible invisible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.5 !text-gray-600 rotate-90"
               :class="{ '!rotate-180': isExpanded }"
             />
           </NcButton>
@@ -167,13 +186,13 @@ const isTableOpened = computed(() => {
                 :key="table.meta?.icon"
                 :emoji="table.meta?.icon"
                 size="small"
-                :readonly="!canUserEditEmote"
+                :readonly="!canUserEditEmote || isMobileMode"
                 @emoji-selected="setIcon($event, table)"
               >
                 <template #default>
                   <NcTooltip class="flex" placement="topLeft" hide-on-click :disabled="!canUserEditEmote">
                     <template #title>
-                      {{ 'Change icon' }}
+                      {{ $t('general.changeIcon') }}
                     </template>
 
                     <MdiTable
@@ -200,7 +219,7 @@ const isTableOpened = computed(() => {
         </div>
 
         <span
-          class="nc-tbl-title capitalize text-ellipsis overflow-hidden select-none"
+          class="nc-tbl-title nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none"
           :class="{
             'text-black !font-medium': isTableOpened,
           }"
@@ -210,7 +229,6 @@ const isTableOpened = computed(() => {
           {{ table.title }}
         </span>
         <div class="flex flex-grow h-full"></div>
-
         <div class="flex flex-row items-center">
           <NcDropdown
             v-if="
@@ -263,7 +281,14 @@ const isTableOpened = computed(() => {
             </template>
           </NcDropdown>
           <DashboardTreeViewCreateViewBtn v-if="isUIAllowed('viewCreateOrEdit')">
-            <NcButton type="text" size="xxsmall" class="nc-create-view-btn nc-sidebar-node-btn">
+            <NcButton
+              type="text"
+              size="xxsmall"
+              class="nc-create-view-btn nc-sidebar-node-btn"
+              :class="{
+                '!md:(visible opacity-100)': openedTableId === table.id,
+              }"
+            >
               <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
             </NcButton>
           </DashboardTreeViewCreateViewBtn>

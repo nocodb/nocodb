@@ -372,13 +372,13 @@ watch(
       <div class="text-lg font-semibold self-start mb-4">{{ t('msg.info.dbConnected') }}</div>
       <div class="flex gap-x-2 mt-5 ml-7 pt-2.5 justify-end">
         <NcButton key="back" type="secondary" @click="isConnSuccess = false">{{ $t('general.cancel') }}</NcButton>
-        <NcButton key="submit" type="primary" @click="createBase">Ok & Add Base</NcButton>
+        <NcButton key="submit" type="primary" @click="createBase"> {{ $t('activity.addBase') }}</NcButton>
       </div>
     </div>
   </GeneralModal>
   <div class="create-base bg-white relative flex flex-col justify-center gap-2 w-full">
     <h1 class="prose-2xl font-bold self-start mb-4 flex items-center gap-2">
-      New Base
+      {{ $t('title.newBase') }}
       <DashboardSettingsDataSourcesInfo />
       <span class="flex-grow"></span>
     </h1>
@@ -635,7 +635,7 @@ watch(
         <div class="text-lg font-semibold self-start mb-4">{{ t('msg.info.dbConnected') }}</div>
         <div class="flex gap-x-2 mt-5 ml-7 pt-2.5 justify-end">
           <NcButton key="back" type="secondary" @click="isConnSuccess = false">{{ $t('general.cancel') }}</NcButton>
-          <NcButton key="submit" type="primary" @click="createBase">Ok & Add Base</NcButton>
+          <NcButton key="submit" type="primary" @click="createBase">{{ $t('activity.addBase') }}</NcButton>
         </div>
       </div>
     </GeneralModal>

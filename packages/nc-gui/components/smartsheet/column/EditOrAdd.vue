@@ -56,6 +56,8 @@ const { appInfo } = useGlobal()
 
 const { betaFeatureToggleState } = useBetaFeatureToggle()
 
+const { openedViewsTab } = storeToRefs(useViewsStore())
+
 const { loadMagic, predictColumnType: _predictColumnType } = useNocoEe()
 
 const meta = inject(MetaInj, ref())
@@ -194,6 +196,10 @@ const handleEscape = (event: KeyboardEvent): void => {
   if (event.key === 'Escape') emit('cancel')
 }
 
+const isFieldsTab = computed(() => {
+  return openedViewsTab.value === 'field'
+})
+
 if (props.fromTableExplorer) {
   watch(
     formState,
@@ -220,8 +226,21 @@ if (props.fromTableExplorer) {
   >
     <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">
       <div class="flex flex-col gap-2">
+        <a-form-item v-if="isFieldsTab" v-bind="validateInfos.title" class="flex flex-grow">
+          <div
+            class="flex flex-grow px-2 py-1 items-center rounded-lg bg-white hover:bg-gray-100 focus:bg-gray-100 outline-none"
+            style="outline-style: solid; outline-width: thin"
+          >
+            <input
+              ref="antInput"
+              v-model="formState.title"
+              class="flex flex-grow text-lg font-bold outline-none bg-inherit"
+              :contenteditable="true"
+            />
+          </div>
+        </a-form-item>
         <a-form-item
-          v-if="!props.hideTitle"
+          v-if="!props.hideTitle && !isFieldsTab"
           :label="`${columnLabel} ${$t('general.name')}`"
           v-bind="validateInfos.title"
           :required="false"
@@ -258,7 +277,7 @@ if (props.fromTableExplorer) {
                 <div class="flex gap-1 items-center">
                   <component :is="opt.icon" class="text-gray-700 mx-1" />
                   {{ opt.name }}
-                  <span v-if="opt.deprecated" class="!text-xs !text-gray-300">(Deprecated)</span>
+                  <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
                 </div>
               </a-select-option>
             </a-select>
@@ -297,7 +316,7 @@ if (props.fromTableExplorer) {
         class="ml-1 mb-1"
       >
         <span class="text-[10px] text-gray-600">
-          {{ `Accept only valid ${formState.uidt}` }}
+          {{ `${$t('msg.acceptOnlyValid')} ${formState.uidt}` }}
         </span>
       </a-checkbox>
       <div class="!my-3">

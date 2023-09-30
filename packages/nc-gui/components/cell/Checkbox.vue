@@ -89,18 +89,16 @@ useSelectedCellKeyupListener(active, (e) => {
     }"
     @click="onClick(false, $event)"
   >
-    <div class="items-center" :class="{ 'w-full justify-start': isEditColumnMenu || isGallery }" @click="onClick(true)">
-      <div :class="{ 'bg-gray-100 rounded-full ': !vModel }">
-        <Transition name="layout" mode="out-in" :duration="100">
-          <component
-            :is="getMdiIcon(vModel ? checkboxMeta.icon.checked : checkboxMeta.icon.unchecked)"
-            class="nc-checkbox"
-            :style="{
-              color: checkboxMeta.color,
-            }"
-          />
-        </Transition>
-      </div>
+    <div class="items-center py-2" :class="{ 'w-full justify-start': isEditColumnMenu || isGallery }" @click="onClick(true)">
+      <Transition name="layout" mode="out-in" :duration="100">
+        <component
+          :is="getMdiIcon(vModel ? checkboxMeta.icon.checked : checkboxMeta.icon.unchecked)"
+          class="nc-checkbox"
+          :style="{
+            color: checkboxMeta.color,
+          }"
+        />
+      </Transition>
     </div>
   </div>
 </template>

@@ -11,7 +11,7 @@ test.describe('Project operations', () => {
   let dashboard: DashboardPage;
   let context: NcContext;
   let api: Api<any>;
-  test.setTimeout(100000);
+  test.setTimeout(150000);
 
   async function getProjectList(workspaceId?: string) {
     let projectList: ProjectListType;

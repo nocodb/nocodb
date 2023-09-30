@@ -33,7 +33,7 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value
     :ref="focus"
     v-model="vModel"
     class="h-full w-full outline-none p-2 bg-transparent"
-    :placeholder="isEditColumn ? '(Optional)' : ''"
+    :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop
@@ -46,7 +46,7 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value
     @mousedown.stop
   />
 
-  <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
   <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" />
 </template>

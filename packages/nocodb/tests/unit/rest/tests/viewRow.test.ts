@@ -893,7 +893,7 @@ function viewRowTests() {
   };
 
   // todo: gallery view doesnt seem to support rollup
-  // it.only('Find one sorted filtered view with nested fields data list with a rollup column in customer table GALLERY', async function () {
+  // it('Find one sorted filtered view with nested fields data list with a rollup column in customer table GALLERY', async function () {
   //   await testFindOneSortedFilteredNestedFieldsDataWithRollup(ViewTypes.GALLERY);
   // });
 
@@ -940,7 +940,7 @@ function viewRowTests() {
       .expect(200);
 
     if (
-      response.body.list[4]['first_name'] !== 'WILLIE' ||
+      response.body.list[4]['FirstName'] !== 'WILLIE' ||
       parseInt(response.body.list[4]['count']) !== 2
     )
       throw new Error('Wrong groupby');
@@ -986,13 +986,13 @@ function viewRowTests() {
       .query({
         fields: visibleColumns.map((c) => c.title),
         sort: sortInfo,
-        column_name: firstNameColumn.column_name,
+        column_name: firstNameColumn.title,
         offset: 4,
       })
       .expect(200);
 
     if (
-      response.body.list[0]['first_name'] !== 'WILLIE' ||
+      response.body.list[0]['FirstName'] !== 'WILLIE' ||
       parseInt(response.body.list[0]['count']) !== 2
     )
       throw new Error('Wrong groupby');

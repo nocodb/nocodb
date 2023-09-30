@@ -106,7 +106,12 @@ watch(open, () => {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-sort-menu nc-toolbar-dropdown">
+  <NcDropdown
+    v-model:visible="open"
+    :trigger="['click']"
+    class="!xs:hidden"
+    overlay-class-name="nc-dropdown-sort-menu nc-toolbar-dropdown"
+  >
     <div :class="{ 'nc-active-btn': sorts?.length }">
       <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-2">
@@ -123,7 +128,7 @@ watch(open, () => {
       <SmartsheetToolbarCreateSort v-if="!sorts.length" :is-parent-open="open" @created="addSort" />
       <div
         v-else
-        :class="{ ' min-w-102': sorts.length }"
+        :class="{ 'min-w-102': sorts.length }"
         class="py-6 pl-6 nc-filter-list max-h-[max(80vh,30rem)]"
         data-testid="nc-sorts-menu"
       >

@@ -31,6 +31,9 @@ test.describe('Attachment column', () => {
         columnHeader: 'testAttach',
         filePath: filepath,
       });
+
+      await dashboard.rootPage.waitForTimeout(500);
+
       await dashboard.grid.cell.attachment.verifyFile({
         index: i,
         columnHeader: 'testAttach',
@@ -41,10 +44,16 @@ test.describe('Attachment column', () => {
       columnHeader: 'testAttach',
       filePath: [`${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`],
     });
+
+    await dashboard.rootPage.waitForTimeout(1000);
+
     await dashboard.grid.cell.attachment.verifyFile({
       index: 4,
       columnHeader: 'testAttach',
     });
+
+    // Kludge: tooltip somehow persists. fix me!
+    await dashboard.rootPage.reload();
 
     await dashboard.viewSidebar.createFormView({
       title: 'Form 1',
@@ -71,7 +80,7 @@ test.describe('Attachment column', () => {
       filePath: [`${process.cwd()}/fixtures/sampleFiles/1.json`],
     });
 
-    await sharedForm.rootPage.waitForTimeout(500);
+    await sharedForm.rootPage.waitForTimeout(1000);
     await sharedForm.submit();
     await sharedForm.verifySuccessMessage();
     await newPage.close();

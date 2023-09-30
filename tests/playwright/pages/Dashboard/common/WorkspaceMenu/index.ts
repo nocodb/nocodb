@@ -17,6 +17,16 @@ export class WorkspaceMenuObject extends BasePage {
     await this.rootPage.locator('[data-testid="nc-workspace-menu"]').click();
   }
 
+  async switchWorkspace({ workspaceTitle }: { workspaceTitle: string }) {
+    await this.toggle();
+    await this.rootPage.waitForTimeout(2500);
+    await this.rootPage.getByTestId('nc-workspace-list').getByText(workspaceTitle).click({
+      force: true,
+    });
+    await this.rootPage.keyboard.press('Escape');
+    await this.rootPage.waitForTimeout(4000);
+  }
+
   async click({ menu, subMenu }: { menu: string; subMenu: string }) {
     const pMenu = this.rootPage.locator(`.nc-dropdown-workspace-menu:visible`);
     await pMenu.locator(`div.nc-workspace-menu-item:has-text("${menu}"):visible`).click();

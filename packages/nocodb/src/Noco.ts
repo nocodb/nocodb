@@ -1,5 +1,5 @@
 import path from 'path';
-import Sentry, { Handlers } from '@sentry/node';
+import * as Sentry from '@sentry/node';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
@@ -183,7 +183,7 @@ export default class Noco {
 
   private static initSentryErrorHandler(router) {
     if (process.env.NC_SENTRY_DSN) {
-      router.use(Handlers.errorHandler());
+      router.use(Sentry.Handlers.errorHandler());
     }
   }
 
@@ -192,7 +192,7 @@ export default class Noco {
       Sentry.init({ dsn: process.env.NC_SENTRY_DSN });
 
       // The request handler must be the first middleware on the app
-      router.use(Handlers.requestHandler());
+      router.use(Sentry.Handlers.requestHandler());
     }
   }
 }

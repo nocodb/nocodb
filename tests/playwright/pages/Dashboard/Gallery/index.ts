@@ -30,7 +30,6 @@ export class GalleryPage extends BasePage {
         y: 1,
       },
     });
-    await (await this.rootPage.locator('.ant-drawer-body').elementHandle())?.waitForElementState('stable');
   }
 
   // todo: Wait for render to complete

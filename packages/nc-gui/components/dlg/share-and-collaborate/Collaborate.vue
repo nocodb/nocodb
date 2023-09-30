@@ -4,6 +4,8 @@ const { loadUsers, users } = useManageUsers()
 
 const formRef = ref()
 
+const { t } = useI18n()
+
 const useForm = Form.useForm
 const validators = computed(() => {
   return {
@@ -11,12 +13,16 @@ const validators = computed(() => {
       {
         validator: (rule: any, value: string, callback: (errMsg?: string) => void) => {
           if (!value || value.length === 0) {
-            callback('Email is required')
+            callback(t('msg.error.signUpRules.emailReqd'))
             return
           }
           const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !validateEmail(e))
           if (invalidEmails.length > 0) {
-            callback(`${invalidEmails.length > 1 ? ' Invalid emails:' : 'Invalid email:'} ${invalidEmails.join(', ')} `)
+            callback(
+              `${
+                invalidEmails.length > 1 ? t('msg.error.signUpRules.invalidEmails') : t('msg.error.signUpRules.invalidEmail')
+              } ${invalidEmails.join(', ')} `,
+            )
           } else {
             callback()
           }

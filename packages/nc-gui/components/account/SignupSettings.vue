@@ -30,20 +30,19 @@ loadSettings()
 </script>
 
 <template>
-  <div data-testid="nc-app-settings">
-    <div class="text-xl mt-4 mb-8 text-center font-weight-bold">Settings</div>
-    <div class="flex justify-center">
+  <div class="p-7 flex flex-col items-center">
+    <h1 class="text-2xl mt-4 mb-5 pl-3.5 font-bold">{{ t('activity.settings') }}</h1>
+    <div class="flex items-center gap-2">
       <a-form-item>
         <a-checkbox
           v-model:checked="settings.invite_only_signup"
           v-e="['c:account:enable-signup']"
-          class="nc-checkbox nc-invite-only-signup-checkbox"
+          class="nc-checkbox nc-invite-only-signup-checkbox !mt-6"
           name="virtual"
           @change="saveSettings"
-        >
-          {{ $t('labels.inviteOnlySignup') }}
-        </a-checkbox>
+        />
       </a-form-item>
+      {{ $t('labels.inviteOnlySignup') }}
     </div>
   </div>
 </template>

@@ -10,6 +10,7 @@ import {
   computed,
   iconMap,
   inject,
+  onMounted,
   ref,
   useNuxtApp,
   useViewFilters,
@@ -42,9 +43,11 @@ const { nestedLevel, parentId, autoSave, hookId, modelValue, showLoading, webHoo
 
 const nested = computed(() => nestedLevel.value > 0)
 
+const { t } = useI18n()
+
 const logicalOps = [
-  { value: 'and', text: 'AND' },
-  { value: 'or', text: 'OR' },
+  { value: 'and', text: t('general.and') },
+  { value: 'or', text: t('general.or') },
 ]
 
 const meta = inject(MetaInj, ref())
@@ -68,6 +71,8 @@ const {
   saveOrUpdateDebounced,
   isComparisonOpAllowed,
   isComparisonSubOpAllowed,
+  loadBtLookupTypes,
+  btLookupTypesMap,
 } = useViewFilters(
   activeView,
   parentId?.value,
@@ -86,7 +91,8 @@ const addFiltersRowDomRef = ref<HTMLElement>()
 const columns = computed(() => meta.value?.columns)
 
 const getColumn = (filter: Filter) => {
-  return columns.value?.find((col: ColumnType) => col.id === filter.fk_column_id)
+  // extract looked up column if available
+  return btLookupTypesMap.value[filter.fk_column_id] || columns.value?.find((col: ColumnType) => col.id === filter.fk_column_id)
 }
 
 const filterPrevComparisonOp = ref<Record<string, string>>({})
@@ -289,6 +295,10 @@ const showFilterInput = (filter: Filter) => {
 onMounted(() => {
   loadFilters(hookId?.value)
 })
+
+onMounted(async () => {
+  await loadBtLookupTypes()
+})
 </script>
 
 <template>
@@ -480,7 +490,7 @@ onMounted(() => {
         'ml-0.5': !nested,
       }"
     >
-      No filters added
+      {{ $t('title.noFiltersAdded') }}
     </div>
 
     <slot />

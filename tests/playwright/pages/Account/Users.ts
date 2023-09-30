@@ -39,6 +39,8 @@ export class AccountUsersPage extends BasePage {
   }
 
   async invite({ email, role }: { email: string; role: string }) {
+    email = this.prefixEmail(email);
+
     await this.inviteUserBtn.click();
     await this.inviteUserModal.locator(`input[placeholder="E-mail"]`).fill(email);
     await this.inviteUserModal.locator(`.nc-user-roles`).click();
@@ -46,6 +48,9 @@ export class AccountUsersPage extends BasePage {
     await userRoleModal.locator(`.nc-role-option:has-text("${role}")`).click();
     await this.inviteUserModal.locator(`button:has-text("Invite")`).click();
     await this.verifyToast({ message: 'Successfully added user' });
+
+    // TODO: Wait on the invite api and get the invite url a better way as we are not waiting if the url is reflected in the UI
+    await this.rootPage.waitForTimeout(1000);
 
     // http://localhost:3000/#/signup/a5e7bf3a-cbb0-46bc-87f7-c2ae21796707
     return (await this.inviteUserModal.locator(`.ant-alert-message`).innerText()).split('\n')[0];
@@ -63,13 +68,15 @@ export class AccountUsersPage extends BasePage {
 
   async getUserRow({ email }: { email: string }) {
     // ensure page is loaded
+    email = this.prefixEmail(email);
+
     await this.get().waitFor();
-    return this.get().locator(`tr:has-text("${email}")`);
+    return this.get().locator(`[data-testid="nc-token-list"]:has-text("${email}")`);
   }
 
   async updateRole({ email, role }: { email: string; role: string }) {
     const userRow = await this.getUserRow({ email });
-    await userRow.locator(`.nc-user-roles`).click();
+    await userRow.locator('.nc-user-roles').click();
     await this.rootPage.locator(`.nc-users-list-role-option:visible:has-text("${role}")`).waitFor();
     await this.rootPage.locator(`.nc-users-list-role-option:visible:has-text("${role}")`).last().click();
     await this.rootPage.locator(`.nc-users-list-role-option`).last().waitFor({ state: 'hidden' });
@@ -81,12 +88,12 @@ export class AccountUsersPage extends BasePage {
 
   async openRowActionMenu({ email }: { email: string }) {
     const userRow = await this.getUserRow({ email });
-    return userRow.locator(`.nc-user-row-action`).click();
+    return userRow.locator(`.nc-icon`).click();
   }
 
   async deleteUser({ email }: { email: string }) {
     await this.openRowActionMenu({ email });
-    await this.rootPage.locator('[data-testid="nc-super-user-delete"]:visible').click();
+    await this.rootPage.locator('.nc-menu-item:has-text("Remove user")').click();
     await this.rootPage.locator('.ant-modal.active button:has-text("Delete User")').click();
     await this.verifyToast({ message: 'User deleted successfully' });
   }

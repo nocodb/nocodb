@@ -55,6 +55,17 @@ export default defineConfig({
       mono: ['Inter', 'mono'],
     },
     extend: {
+      screens: {
+        xs: {
+          max: '480px',
+        },
+        sm: {
+          min: '480px',
+        },
+        md: {
+          min: '820px',
+        },
+      },
       textColor: {
         primary: 'rgba(var(--color-primary), var(--tw-text-opacity))',
         accent: 'rgba(var(--color-accent), var(--tw-text-opacity))',

@@ -1,16 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { isSystemColumn, UITypes } from 'nocodb-sdk';
+import { isSystemColumn } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
 import { nocoExecute } from 'nc-help';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/modules/datas/helpers';
-import type { LinkToAnotherRecordColumn, LookupColumn } from '~/models';
-import {
-  getDbRows,
-  getViewAndModelByAliasOrId,
-  serializeCellValue,
-} from '~/modules/datas/helpers';
+import { getDbRows, getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
 import { Base, Column, Model, Project, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
@@ -944,77 +939,6 @@ export class DatasService {
     );
 
     return { offset, dbRows, elapsed, data };
-  }
-
-  async serializeCellValue({
-    value,
-    column,
-    siteUrl,
-  }: {
-    column?: Column;
-    value: any;
-    siteUrl: string;
-  }) {
-    if (!column) {
-      return value;
-    }
-
-    if (!value) return value;
-
-    switch (column?.uidt) {
-      case UITypes.Attachment: {
-        let data = value;
-        try {
-          if (typeof value === 'string') {
-            data = JSON.parse(value);
-          }
-        } catch {}
-
-        return (data || []).map(
-          (attachment) =>
-            `${encodeURI(attachment.title)}(${encodeURI(
-              attachment.path
-                ? `${siteUrl}/${attachment.path}`
-                : attachment.url,
-            )})`,
-        );
-      }
-      case UITypes.Lookup:
-        {
-          const colOptions = await column.getColOptions<LookupColumn>();
-          const lookupColumn = await colOptions.getLookupColumn();
-          return (
-            await Promise.all(
-              [...(Array.isArray(value) ? value : [value])].map(async (v) =>
-                serializeCellValue({
-                  value: v,
-                  column: lookupColumn,
-                  siteUrl,
-                }),
-              ),
-            )
-          ).join(', ');
-        }
-        break;
-      case UITypes.LinkToAnotherRecord:
-        {
-          const colOptions =
-            await column.getColOptions<LinkToAnotherRecordColumn>();
-          const relatedModel = await colOptions.getRelatedTable();
-          await relatedModel.getColumns();
-          return [...(Array.isArray(value) ? value : [value])]
-            .map((v) => {
-              return v[relatedModel.displayValue?.title];
-            })
-            .join(', ');
-        }
-        break;
-      default:
-        if (value && typeof value === 'object') {
-          return JSON.stringify(value);
-        }
-        return value;
-    }
   }
 
   async getColumnByIdOrName(columnNameOrId: string, model: Model) {

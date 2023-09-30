@@ -10,18 +10,16 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { isViewsLoading } = storeToRefs(useViewsStore())
 
-const { isMobileMode } = useGlobal()
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
+const { isMobileMode } = storeToRefs(useConfigStore())
 
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 </script>
 
 <template>
   <div
-    class="nc-table-topbar h-20 py-1 flex gap-2 items-center pr-2 pl-2.5 border-b border-gray-200 overflow-hidden relative"
-    :class="{
-      'nc-table-toolbar-mobile': isMobileMode,
-      'max-h-[var(--topbar-height)] min-h-[var(--topbar-height)]': !isMobileMode,
-    }"
+    class="nc-table-topbar h-20 py-1 flex gap-2 items-center border-b border-gray-200 overflow-hidden relative max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(pr-2 pl-2) xs:(px-1)"
     style="z-index: 7"
   >
     <template v-if="isViewsLoading">
@@ -31,13 +29,25 @@ const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
       <GeneralOpenLeftSidebarBtn />
       <LazySmartsheetToolbarViewInfo v-if="!isPublic" />
 
-      <div v-if="!isMobileMode" class="flex-1" />
+      <div class="flex-1" />
 
-      <div v-if="!isSharedBase" class="absolute mx-auto -left-1/8 right-0 w-47.5"><SmartsheetTopbarSelectMode /></div>
+      <div
+        v-if="!isSharedBase && !isMobileMode"
+        class="absolute mx-auto transition-all duration-150 right-0 w-47.5"
+        :class="{
+          '-left-1/10': isLeftSidebarOpen,
+          '-left-0': !isLeftSidebarOpen,
+        }"
+      >
+        <SmartsheetTopbarSelectMode />
+      </div>
 
-      <GeneralApiLoader />
+      <GeneralApiLoader v-if="!isMobileMode" />
 
-      <LazyGeneralShareProject v-if="(isForm || isGrid || isKanban || isGallery || isMap) && !isPublic" is-view-toolbar />
+      <LazyGeneralShareProject
+        v-if="(isForm || isGrid || isKanban || isGallery || isMap) && !isPublic && !isMobileMode"
+        is-view-toolbar
+      />
 
       <LazyGeneralLanguage
         v-if="isSharedBase"

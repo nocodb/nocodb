@@ -11,8 +11,8 @@ import { isEE } from '../../../setup/db';
 let api: Api<any>;
 
 const roleDb = [
-  { email: 'org_creator@nocodb.com', role: 'Organization Level Creator', url: '' },
-  { email: 'org_viewer@nocodb.com', role: 'Organization Level Viewer', url: '' },
+  { email: `org_creator_@nocodb.com`, role: 'Organization Level Creator', url: '' },
+  { email: `org_viewer_@nocodb.com`, role: 'Organization Level Viewer', url: '' },
 ];
 
 test.describe('User roles', () => {
@@ -113,16 +113,15 @@ test.describe('User roles', () => {
     await signupPage.signUp({
       email: roleDb[roleIdx].email,
       password: getDefaultPwd(),
-      withoutPrefix: true,
     });
 
     // wait for page rendering to complete after sign up
     await dashboard.rootPage.waitForTimeout(1000);
 
     if (roleDb[roleIdx].role === 'Organization Level Creator') {
-      expect(await dashboard.leftSidebar.btn_newProject.isVisible()).toBeTruthy();
+      await expect(dashboard.leftSidebar.btn_newProject).toBeVisible();
     } else {
-      expect(await dashboard.leftSidebar.btn_newProject.isVisible()).toBeFalsy();
+      await expect(dashboard.leftSidebar.btn_newProject).toHaveCount(0);
     }
   }
 });

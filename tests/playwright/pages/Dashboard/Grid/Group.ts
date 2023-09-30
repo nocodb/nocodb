@@ -100,15 +100,16 @@ export class GroupPageObject extends BasePage {
     const addNewRowBtn = this.get({ indexMap }).locator('.nc-grid-add-new-row');
     await addNewRowBtn.scrollIntoViewIfNeeded();
     await (await addNewRowBtn.elementHandle()).waitForElementState('stable');
-    await this.rootPage.waitForTimeout(100);
 
-    const rowCount = await this.get({ indexMap }).locator('.nc-grid-row').count();
+    await this.rootPage.waitForTimeout(200);
+    await this.rootPage.waitForLoadState('networkidle');
+    await this.rootPage.waitForTimeout(200);
+    await this.rootPage.waitForLoadState('domcontentloaded');
 
     await this.get({ indexMap }).locator('.nc-grid-add-new-row').click();
 
-    // add delay for UI to render (can wait for count to stabilize by reading it multiple times)
-    await this.rootPage.waitForTimeout(100);
-    expect(await this.get({ indexMap }).locator('.nc-grid-row').count()).toBe(rowCount + 1);
+    const rowCount = index + 1;
+    await expect(this.get({ indexMap }).locator('.nc-grid-row')).toHaveCount(rowCount);
 
     await this._fillRow({ indexMap, index, columnHeader, value: rowValue });
 
@@ -121,8 +122,7 @@ export class GroupPageObject extends BasePage {
     });
 
     // Click text=Delete Row
-    await this.rootPage.locator('text=Delete Row').click();
-
+    await this.rootPage.locator('.ant-dropdown-menu-item:has-text("Delete row")').click();
     // todo: improve selector
     await this.rootPage
       .locator('span.ant-dropdown-menu-title-content > nc-project-menu-item')

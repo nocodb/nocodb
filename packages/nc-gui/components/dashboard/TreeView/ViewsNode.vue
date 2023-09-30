@@ -41,6 +41,8 @@ const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType &
 
 const { $e } = useNuxtApp()
 
+const { isMobileMode } = useGlobal()
+
 const { isUIAllowed } = useRoles()
 
 const { activeViewTitleOrId } = storeToRefs(useViewsStore())
@@ -50,8 +52,6 @@ const project = inject(ProjectInj, ref())
 const activeView = inject(ActiveViewInj, ref())
 
 const isLocked = inject(IsLockedInj, ref(false))
-
-const { rightSidebarState } = storeToRefs(useSidebarStore())
 
 const isDefaultBase = computed(() => {
   const base = project.value?.bases?.find((b) => b.id === vModel.value.base_id)
@@ -80,6 +80,7 @@ const onClick = useDebounceFn(() => {
 
 /** Enable editing view name on dbl click */
 function onDblClick() {
+  if (isMobileMode.value) return
   if (!isUIAllowed('viewCreateOrEdit')) return
 
   if (!isEditing.value) {
@@ -191,12 +192,6 @@ function onStopEdit() {
   }, 250)
 }
 
-watch(rightSidebarState, () => {
-  if (rightSidebarState.value === 'peekCloseEnd') {
-    isDropdownOpen.value = false
-  }
-})
-
 function onRef(el: HTMLElement) {
   if (activeViewTitleOrId.value === vModel.value.id) {
     nextTick(() => {
@@ -210,10 +205,10 @@ function onRef(el: HTMLElement) {
 
 <template>
   <a-menu-item
-    class="!min-h-7 !max-h-7 !mb-0.25 select-none group text-gray-700 !flex !items-center !mt-0 hover:(!bg-gray-200 !text-gray-900) cursor-pointer"
+    class="nc-sidebar-node !min-h-7 !max-h-7 !mb-0.25 select-none group text-gray-700 !flex !items-center !mt-0 hover:(!bg-gray-200 !text-gray-900) cursor-pointer"
     :class="{
-      '!pl-18': isDefaultBase,
-      '!pl-23.5': !isDefaultBase,
+      '!pl-18 !xs:(pl-19.75)': isDefaultBase,
+      '!pl-23.5 !xs:(pl-27)': !isDefaultBase,
     }"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @dblclick.stop="onDblClick"
@@ -231,6 +226,7 @@ function onRef(el: HTMLElement) {
           :emoji="props.view?.meta?.icon"
           size="small"
           :clearable="true"
+          :readonly="isMobileMode"
           @emoji-selected="emits('selectIcon', $event)"
         >
           <template #default>
@@ -253,7 +249,7 @@ function onRef(el: HTMLElement) {
 
       <div
         v-else
-        class="capitalize text-ellipsis overflow-hidden select-none w-full"
+        class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none w-full"
         data-testid="sidebar-view-title"
         :class="{
           'font-medium': activeView?.id === vModel.id,
@@ -283,19 +279,19 @@ function onRef(el: HTMLElement) {
             <NcMenu class="min-w-27" :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`">
               <NcMenuItem @click.stop="onDblClick">
                 <GeneralIcon icon="edit" />
-                <div class="-ml-0.25">Rename</div>
+                <div class="-ml-0.25">{{ $t('general.rename') }}</div>
               </NcMenuItem>
               <NcMenuItem @click.stop="onDuplicate">
                 <GeneralIcon icon="duplicate" class="nc-view-copy-icon" />
-                Duplicate
+                {{ $t('general.duplicate') }}
               </NcMenuItem>
 
               <NcDivider />
 
               <template v-if="!vModel.is_default">
-                <NcMenuItem class="!text-red-500" l @click.stop="onDelete">
+                <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click.stop="onDelete">
                   <GeneralIcon icon="delete" class="text-sm nc-view-delete-icon" />
-                  <div class="-ml-0.25">Delete</div>
+                  <div class="-ml-0.25">{{ $t('general.delete') }}</div>
                 </NcMenuItem>
               </template>
             </NcMenu>

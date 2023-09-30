@@ -39,6 +39,8 @@ const route = router.currentRoute
 
 const { xWhere, eventBus } = useSmartsheetStoreOrThrow()
 
+const { t } = useI18n()
+
 const bulkUpdateDlg = ref(false)
 
 const routeQuery = computed(() => route.value.query as Record<string, string>)
@@ -102,6 +104,8 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) 
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
   if (rowId) {
+    expandedFormRowState.value = state
+
     router.push({
       query: {
         ...routeQuery.value,
@@ -149,10 +153,10 @@ const addRowExpandOnClose = (row: Row) => {
 const toggleOptimisedQuery = () => {
   if (optimisedQuery.value) {
     optimisedQuery.value = false
-    message.info('Optimised query disabled')
+    message.info(t('msg.optimizedQueryDisabled'))
   } else {
     optimisedQuery.value = true
-    message.info('Optimised query enabled')
+    message.info(t('msg.optimizedQueryEnabled'))
   }
 }
 
@@ -235,22 +239,21 @@ onMounted(() => {
       />
     </Suspense>
 
-    <Suspense>
-      <LazySmartsheetExpandedForm
-        v-if="expandedFormOnRowIdDlg"
-        :key="routeQuery.rowId"
-        v-model="expandedFormOnRowIdDlg"
-        :row="{ row: {}, oldRow: {}, rowMeta: {} }"
-        :meta="meta"
-        :row-id="routeQuery.rowId"
-        :view="view"
-        show-next-prev-icons
-        :first-row="getExpandedRowIndex() === 0"
-        :last-row="getExpandedRowIndex() === data.length - 1"
-        @next="navigateToSiblingRow(NavigateDir.NEXT)"
-        @prev="navigateToSiblingRow(NavigateDir.PREV)"
-      />
-    </Suspense>
+    <SmartsheetExpandedForm
+      v-if="expandedFormOnRowIdDlg"
+      :key="routeQuery.rowId"
+      v-model="expandedFormOnRowIdDlg"
+      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+      :meta="meta"
+      :state="expandedFormRowState"
+      :row-id="routeQuery.rowId"
+      :view="view"
+      show-next-prev-icons
+      :first-row="getExpandedRowIndex() === 0"
+      :last-row="getExpandedRowIndex() === data.length - 1"
+      @next="navigateToSiblingRow(NavigateDir.NEXT)"
+      @prev="navigateToSiblingRow(NavigateDir.PREV)"
+    />
 
     <Suspense>
       <LazyDlgBulkUpdate
@@ -269,7 +272,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
-.nc-pagination-wrapper .ant-dropdown-button {
+.nc-grid-pagination-wrapper .ant-dropdown-button {
   > .ant-btn {
     @apply !p-0 !rounded-l-lg hover:border-gray-300;
   }

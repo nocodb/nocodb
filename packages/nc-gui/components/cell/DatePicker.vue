@@ -25,6 +25,8 @@ const { modelValue, isPk } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
+const { t } = useI18n()
+
 const { showNull } = useGlobal()
 
 const columnMeta = inject(ColumnInj, null)!
@@ -84,11 +86,11 @@ watch(
 
 const placeholder = computed(() => {
   if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
-    return '(Optional)'
+    return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
-    return 'NULL'
+    return t('general.null')
   } else if (isDateInvalid.value) {
-    return 'Invalid date'
+    return t('msg.invalidDate')
   } else {
     return ''
   }

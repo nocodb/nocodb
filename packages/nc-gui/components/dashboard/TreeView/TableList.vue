@@ -21,6 +21,8 @@ const baseIndex = toRef(props, 'baseIndex')
 
 const base = computed(() => project.value?.bases?.[baseIndex.value])
 
+const { isMobileMode } = useGlobal()
+
 const { projectTables } = storeToRefs(useTablesStore())
 const tables = computed(() => projectTables.value.get(project.value.id!) ?? [])
 
@@ -44,6 +46,7 @@ const sortables: Record<string, Sortable> = {}
 const initSortable = (el: Element) => {
   const base_id = el.getAttribute('nc-base')
   if (!base_id) return
+  if (isMobileMode.value) return
 
   if (sortables[base_id]) sortables[base_id].destroy()
   Sortable.create(el as HTMLLIElement, {
@@ -137,7 +140,7 @@ const availableTables = computed(() => {
           'ml-19.25': baseIndex !== 0,
         }"
       >
-        Empty
+        {{ $t('general.empty') }}
       </div>
       <div
         v-if="project.bases?.[baseIndex] && project!.bases[baseIndex].enabled"

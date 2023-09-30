@@ -37,6 +37,7 @@ import NcLayers from '~icons/nc-icons/layers'
 import NcUsers from '~icons/nc-icons/users'
 import NcCheck from '~icons/nc-icons/check'
 import PlusSquare from '~icons/nc-icons/plus-square'
+import MobileShare from '~icons/nc-icons/share'
 import PhLayout from '~icons/ph/layout'
 import Delete from '~icons/material-symbols/delete-outline-rounded'
 import CiFilter from '~icons/mdi/filter-outline'
@@ -75,6 +76,8 @@ import Left from '~icons/material-symbols/chevron-left-rounded'
 import Up from '~icons/material-symbols/keyboard-arrow-up-rounded'
 import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
 import PhTriangleFill from '~icons/ph/triangle-fill'
+import LcSend from '~icons/lucide/send'
+import NcCommentHere from '~icons/nc-icons/comment-here'
 
 // Roles
 import MaterialSymbolsManageAccountsOutline from '~icons/material-symbols/manage-accounts-outline'
@@ -327,7 +330,7 @@ export const iconMap = {
   edit: MaterialSymbolsEdit,
   lookup: h('span', { class: 'material-symbols' }, 'search'),
   text: h('span', { class: 'material-symbols' }, 'text_fields'),
-  longText: h('span', { class: 'material-symbols' }, 'text_format'),
+  longText: h('span', { class: 'material-symbols' }, 'view_headline'),
   clock: h('span', { class: 'material-symbols' }, 'access_time'),
   web: h('span', { class: 'material-symbols' }, 'web'),
   webhook: h('span', { class: 'material-symbols' }, 'webhook'),
@@ -342,6 +345,7 @@ export const iconMap = {
   number: h('span', { class: 'material-symbols' }, 'looks_one'),
   email: h('span', { class: 'material-symbols' }, 'email'),
   sendEmail: h('span', { class: 'material-symbols' }, 'email'),
+  send: LcSend,
   currency: h('span', { class: 'material-symbols' }, 'attach_money'),
   percent: h('span', { class: 'material-symbols' }, 'percent'),
   decimal: h('span', { class: 'material-symbols' }, 'decimal_increase'),
@@ -366,6 +370,7 @@ export const iconMap = {
   sync: MsSync,
   warning: MaterialSymbolsWarningOutlineRounded,
   share: h('span', { class: 'material-symbols' }, 'share'),
+  mobileShare: MobileShare,
   reload: MdiRefresh,
   xml: h('span', { class: 'material-symbols' }, 'code'),
   airtable: LogosAirtable,
@@ -396,6 +401,7 @@ export const iconMap = {
   drag: MaterialSymbolsDragIndicator,
   comment: h('span', { class: 'material-symbols' }, 'comment'),
   doc: h('span', { class: 'material-symbols' }, 'menu_book'),
+  menu: h('span', { class: 'material-symbols' }, 'menu'),
   move: MsMove,
   creditCard: NcCreditCard,
   heightShort: NcIconsRowHeightShort,
@@ -414,6 +420,7 @@ export const iconMap = {
   role_commenter: MdiCommentAccountOutline,
   role_viewer: MaterialSymbolsPersonSearchOutline,
   role_no_access: MaterialSymbolsBlock,
+  commentHere: NcCommentHere,
 }
 
 export const getMdiIcon = (type: string): any => {

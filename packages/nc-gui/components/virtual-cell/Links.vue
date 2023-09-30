@@ -29,6 +29,8 @@ const childListDlg = ref(false)
 
 const { isUIAllowed } = useRoles()
 
+const { t } = useI18n()
+
 const { state, isNew } = useSmartsheetRowStoreOrThrow()
 
 const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp } = useProvideLTARStore(
@@ -47,18 +49,18 @@ loadRelatedTableMeta()
 const textVal = computed(() => {
   if (isForm?.value) {
     return state.value?.[colTitle.value]?.length
-      ? `${+state.value?.[colTitle.value]?.length} records Linked`
-      : 'No records linked'
+      ? `${+state.value?.[colTitle.value]?.length} ${t('msg.recordsLinked')}`
+      : t('msg.noRecordsLinked')
   }
 
   const parsedValue = +value?.value || 0
 
   if (!parsedValue) {
-    return 'No records linked'
+    return t('msg.noRecordsLinked')
   } else if (parsedValue === 1) {
-    return `1 ${column.value?.meta?.singular || 'Link'}`
+    return `1 ${column.value?.meta?.singular || t('general.link')}`
   } else {
-    return `${parsedValue} ${column.value?.meta?.plural || 'Links'}`
+    return `${parsedValue} ${column.value?.meta?.plural || t('general.links')}`
   }
 })
 

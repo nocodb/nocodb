@@ -19,8 +19,10 @@ const { setAdditionalValidations, validateInfos, onDataTypeChange, sqlUi, isXcdb
 const projectStore = useProject()
 const { tables } = storeToRefs(projectStore)
 
+const { t } = useI18n()
+
 setAdditionalValidations({
-  childId: [{ required: true, message: 'Required' }],
+  childId: [{ required: true, message: t('general.required') }],
 })
 
 const onUpdateDeleteOptions = sqlUi === MssqlUi ? ['NO ACTION'] : ['NO ACTION', 'CASCADE', 'RESTRICT', 'SET NULL', 'SET DEFAULT']
@@ -58,8 +60,8 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links)
     <div class="border-2 p-6">
       <a-form-item v-bind="validateInfos.type" class="nc-ltar-relation-type">
         <a-radio-group v-model:value="vModel.type" name="type" v-bind="validateInfos.type">
-          <a-radio value="hm">Has Many</a-radio>
-          <a-radio value="mm">Many To Many</a-radio>
+          <a-radio value="hm">{{ $t('title.hasMany') }}</a-radio>
+          <a-radio value="mm">{{ $t('title.manyToMany') }}</a-radio>
         </a-radio-group>
       </a-form-item>
 
@@ -110,7 +112,14 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links)
                 @change="onDataTypeChange"
               >
                 <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
-                  {{ option }}
+                  <template v-if="option === 'NO ACTION'">{{ $t('title.links.noAction') }}</template>
+                  <template v-else-if="option === 'CASCADE'">{{ $t('title.links.cascade') }}</template>
+                  <template v-else-if="option === 'RESTRICT'">{{ $t('title.links.restrict') }}</template>
+                  <template v-else-if="option === 'SET NULL'">{{ $t('title.links.setNull') }}</template>
+                  <template v-else-if="option === 'SET DEFAULT'">{{ $t('title.links.setDefault') }}</template>
+                  <template v-else>
+                    {{ option }}
+                  </template>
                 </a-select-option>
               </a-select>
             </a-form-item>
@@ -124,7 +133,14 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links)
                 @change="onDataTypeChange"
               >
                 <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
-                  {{ option }}
+                  <template v-if="option === 'NO ACTION'">{{ $t('title.links.noAction') }}</template>
+                  <template v-else-if="option === 'CASCADE'">{{ $t('title.links.cascade') }}</template>
+                  <template v-else-if="option === 'RESTRICT'">{{ $t('title.links.restrict') }}</template>
+                  <template v-else-if="option === 'SET NULL'">{{ $t('title.links.setNull') }}</template>
+                  <template v-else-if="option === 'SET DEFAULT'">{{ $t('title.links.setDefault') }}</template>
+                  <template v-else>
+                    {{ option }}
+                  </template>
                 </a-select-option>
               </a-select>
             </a-form-item>
@@ -132,7 +148,9 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links)
 
           <div class="flex flex-row">
             <a-form-item>
-              <a-checkbox v-model:checked="vModel.virtual" name="virtual" @change="onDataTypeChange">Virtual Relation</a-checkbox>
+              <a-checkbox v-model:checked="vModel.virtual" name="virtual" @change="onDataTypeChange">{{
+                $t('title.virtualRelation')
+              }}</a-checkbox>
             </a-form-item>
           </div>
         </template>

@@ -214,7 +214,7 @@ onMounted(async () => {
                 size="small"
                 class="my-1 hover:(ring ring-accent ring-opacity-100) focus:(!ring !ring-accent ring-opacity-100)"
               />
-              <div class="prose-xs text-gray-500">Subscribe to our weekly newsletter</div>
+              <div class="prose-xs text-gray-500">{{ $t('msg.subscribeToOurWeeklyNewsletter') }}</div>
             </div>
 
             <div class="text-end prose-sm">
@@ -227,8 +227,10 @@ onMounted(async () => {
       </div>
 
       <div class="prose-sm mt-4 text-gray-500">
-        By signing up, you agree to the
-        <a class="prose-sm !text-gray-500 underline" target="_blank" href="https://nocodb.com/policy-nocodb">Terms of Service</a>
+        {{ $t('msg.bySigningUp') }}
+        <a class="prose-sm !text-gray-500 underline" target="_blank" href="https://nocodb.com/policy-nocodb">
+          {{ $t('title.termsOfService') }}</a
+        >
       </div>
     </div>
   </NuxtLayout>

@@ -22,10 +22,10 @@ test.describe('Grid pagination', () => {
 
     await dashboard.treeView.openTable({ title: 'Country' });
     // click ">" to go to next page
-    await dashboard.grid.clickPagination({ page: '>' });
-    await dashboard.grid.verifyActivePage({ page: '2' });
+    await dashboard.grid.clickPagination({ type: 'next-page' });
+    await dashboard.grid.verifyActivePage({ pageNumber: '2' });
     // click "<" to go to prev page
-    await dashboard.grid.clickPagination({ page: '<' });
-    await dashboard.grid.verifyActivePage({ page: '1' });
+    await dashboard.grid.clickPagination({ type: 'prev-page' });
+    await dashboard.grid.verifyActivePage({ pageNumber: '1' });
   });
 });

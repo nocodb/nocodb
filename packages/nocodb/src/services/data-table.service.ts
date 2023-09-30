@@ -73,7 +73,11 @@ export class DataTableService {
     // if array then do bulk insert
     const result = await baseModel.bulkInsert(
       Array.isArray(param.body) ? param.body : [param.body],
-      { cookie: param.cookie, insertOneByOneAsFallback: true },
+      {
+        cookie: param.cookie,
+        insertOneByOneAsFallback: true,
+        isSingleRecordInsertion: !Array.isArray(param.body),
+      },
     );
 
     return Array.isArray(param.body) ? result : result[0];
@@ -101,7 +105,11 @@ export class DataTableService {
 
     await baseModel.bulkUpdate(
       Array.isArray(param.body) ? param.body : [param.body],
-      { cookie: param.cookie, throwExceptionIfNotExist: true },
+      {
+        cookie: param.cookie,
+        throwExceptionIfNotExist: true,
+        isSingleRecordUpdation: !Array.isArray(param.body),
+      },
     );
 
     return this.extractIdObj({ body: param.body, model });
@@ -128,7 +136,11 @@ export class DataTableService {
 
     await baseModel.bulkDelete(
       Array.isArray(param.body) ? param.body : [param.body],
-      { cookie: param.cookie, throwExceptionIfNotExist: true },
+      {
+        cookie: param.cookie,
+        throwExceptionIfNotExist: true,
+        isSingleRecordDeletion: !Array.isArray(param.body),
+      },
     );
 
     return this.extractIdObj({ body: param.body, model });

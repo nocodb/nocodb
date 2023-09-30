@@ -11,46 +11,36 @@ on:
 
 jobs:
   playwright:
-    runs-on: [self-hosted, aws]
+    runs-on: [self-hosted, v3]
     timeout-minutes: 100
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: pre-requisite checks
+      - name: Check node,pnpm Installation and set Path
         shell: bash
+        working-directory: scripts/self-hosted-gh-runner
+        timeout-minutes: 1
         run: |
-          node_version=$(node --version || echo "error")
-          pnpm_version=$(pnpm -v || echo "error")          
-          echo "node version: $node_version"
-          echo "pnpm version: $pnpm_version"
-          if [[ $node_version != v18* ]] || [[ $pnp_version != 8* ]]; then
-            echo "version mismatch: expected node v18 and pnpm v8"
-            RUN_PRERQUISITE_STEPS="true"  
-          elif [[ ${FORCE_RUN_PRERQUISITE_STEPS} == "true" ]];
-              # || [[ ! -f ${PRE_REQ_CHECK_FILE_PATH} ]];
-          then
-            echo "FORCE_RUN_PRERQUISITE_STEPS is true"
-            RUN_PRERQUISITE_STEPS="true"
-          else
-            RUN_PRERQUISITE_STEPS="false"  
-          fi
-          echo "RUN_PRERQUISITE_STEPS=${RUN_PRERQUISITE_STEPS}" >> $GITHUB_ENV
+          ./node-pnpm-check.sh
+          echo "make sure below mentioned versions are expected versions"
+          echo "If you are expecting the node and pnpm versions to be updated. Please update the node-pnpm-check.sh script"
+          env
       - name: Setup Node
-        if: env.RUN_PRERQUISITE_STEPS == 'true'
+        if: ${{ env.SETUP_NODE != 'false' }}
         uses: actions/setup-node@v3
         with:
-          node-version: 18.14.0
+          node-version: ${{ env.NC_REQ_NODE_V }}
       - name: Setup pnpm
-        if: env.RUN_PRERQUISITE_STEPS == 'true'
+        if: ${{ env.SETUP_PNPM != 'false' }}
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: ${{ env.NC_REQ_PNPM_V }}        
       - name: Get pnpm store directory
         shell: bash
         run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+          echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV          
       - uses: actions/cache@v3
-        if: env.RUN_PRERQUISITE_STEPS == 'true'
+        if: env.IS_NPM_CACHE_DOWNLOAD_REQUIRED == 'true'
         name: Setup pnpm cache
         with:
           path: ${{ env.STORE_PATH }}
@@ -59,22 +49,18 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - name: install dependencies
         run: pnpm bootstrap
-      - name: run frontend
+      - name: build frontend (nc-gui)
         working-directory: ./packages/nc-gui
         run: |
           pnpm run build
         timeout-minutes: 20
-      - name: Copy Artifacts to Local Artifacts Dir
-        if: always()
+      - name: upload frontend (nc-gui) build to artf server
         working-directory: ./
         run: |
           # expects the variables to be available in runner context.
-          path="gh-artifacts/runs/${GITHUB_RUN_ID}/ui-build/"
-          target_dir="/mnt/${path}"
-          mkdir -p ${target_dir}
-
-          # start : add any artifacts to be copied here
-          cp -r ./packages/nc-gui/.output ${target_dir}/  || echo "playwright reports directory does not exists" >>  ${target_dir}/playwright-report/index.html
-
-          SUMMARY='[UI BUILD](http://65.21.27.147/'${path}')'
-          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+          FILE="$(echo ${GITHUB_REPOSITORY} | sed "s,/,-,g")-${GITHUB_RUN_ID}.zip"
+          cd ./packages/nc-gui/
+          zip -r ${FILE} .output || echo "UI build directory does not exists" >&2
+          echo "uploading  ${FILE} to http://65.21.27.147/upload/${FILE}"
+          time curl -T "${FILE}" http://65.21.27.147/upload/${FILE} -n
+          

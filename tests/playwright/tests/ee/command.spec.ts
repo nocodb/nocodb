@@ -58,7 +58,7 @@ test.describe('Command Shortcuts', () => {
     expect(await dashboard.cmdK.isCmdKVisible()).toBe(0);
   });
 
-  test.only('Verify Command L Recent Switch', async ({ page }) => {
+  test('Verify Command L Recent Switch', async ({ page }) => {
     await page.waitForTimeout(1000);
     await dashboard.cmdL.openCmdL();
 

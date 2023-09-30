@@ -62,7 +62,7 @@ test.describe('User roles', () => {
     await unsetup(context);
   });
 
-  test.only('Invite user, update role and delete user', async () => {
+  test('Invite user, update role and delete user', async () => {
     test.slow();
 
     await accountUsersPage.goto({ waitForResponse: false });

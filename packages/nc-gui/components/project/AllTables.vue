@@ -1,10 +1,15 @@
 <script lang="ts" setup>
 import type { BaseType, TableType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
+import NcTooltip from '~/components/nc/Tooltip.vue'
 
 const { activeTables } = storeToRefs(useTablesStore())
 const { openTable } = useTablesStore()
 const { openedProject } = storeToRefs(useProjects())
+
+const isNewBaseModalOpen = ref(false)
+
+const isDataSourceLimitReached = computed(() => Number(openedProject.value?.bases?.length) > 1)
 
 const { isUIAllowed } = useRoles()
 
@@ -76,6 +81,25 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
         <GeneralIcon icon="download" />
         <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
       </div>
+      <component :is="isDataSourceLimitReached ? NcTooltip : 'div'">
+        <template #title>
+          <div>
+            {{ $t('tooltip.reachedSourceLimit') }} <br />
+            {{ $t('tooltip.manageInDataSourcesTab') }}
+          </div>
+        </template>
+        <div
+          class="nc-project-view-all-table-btn"
+          data-testid="proj-view-btn__import-data"
+          :class="{
+            disabled: isDataSourceLimitReached,
+          }"
+          @click="isNewBaseModalOpen = true"
+        >
+          <GeneralIcon icon="dataSource" />
+          <div class="label">{{ $t('labels.connectDataSource') }}</div>
+        </div>
+      </component>
     </div>
     <div class="flex flex-row w-full text-gray-400 border-b-1 border-gray-50 py-3 px-2.5">
       <div class="w-2/5">{{ $t('objects.table') }}</div>
@@ -114,12 +138,17 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
       </div>
     </div>
     <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :base="defaultBase" />
+    <GeneralModal v-model:visible="isNewBaseModalOpen" size="medium">
+      <div class="py-6 px-8">
+        <LazyDashboardSettingsDataSourcesCreateBase @close="isNewBaseModalOpen = false" />
+      </div>
+    </GeneralModal>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .nc-project-view-all-table-btn {
-  @apply flex flex-col gap-y-6 p-4 bg-gray-100 rounded-xl w-56 cursor-pointer text-gray-600 hover:(bg-gray-200 !text-black);
+  @apply flex flex-col gap-y-6 p-4 bg-gray-100 rounded-xl w-56 cursor-pointer text-gray-600 hover:(bg-gray-200 text-black);
 
   .nc-icon {
     @apply h-10 w-10;
@@ -128,5 +157,9 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
   .label {
     @apply text-base font-medium;
   }
+}
+
+.nc-project-view-all-table-btn.disabled {
+  @apply bg-gray-50 text-gray-400 hover:(bg-gray-50 text-gray-400) cursor-not-allowed;
 }
 </style>

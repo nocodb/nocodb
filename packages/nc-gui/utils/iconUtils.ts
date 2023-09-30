@@ -238,7 +238,7 @@ import MaterialSymbolsBlock from '~icons/material-symbols/block'
 } as const */
 
 export const iconMap = {
-  recordIcon: RecordIcon,
+  record: RecordIcon,
   workspaceDefault: MsGroup,
   search: NcSearch,
   error: h('span', { class: 'material-symbols' }, 'error'),

@@ -18,13 +18,13 @@ import {
   useVModel,
 } from '#imports'
 
-interface Iprop {
+interface Prop {
   modelValue?: boolean
   cellValue: any
   column: any
 }
 
-const props = defineProps<Iprop>()
+const props = defineProps<Prop>()
 
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
 
@@ -130,22 +130,20 @@ onKeyStroke('Escape', () => {
   vModel.value = false
 })
 
-/* 
+/*
    to render same number of skelton as the number of cards
    displayed
  */
-
 const skeltonCount = computed(() => {
   if (childrenListCount.value < 10 && childrenListPagination.page === 1) {
-    return childrenListCount.value === 0 ? 10 : childrenListCount.value
+    return childrenListCount.value || 10
   }
-  const totlaRows = Math.ceil(childrenListCount.value / 10)
+  const totalRows = Math.ceil(childrenListCount.value / 10)
 
-  if (totlaRows === childrenListPagination.page) {
+  if (totalRows === childrenListPagination.page) {
     return childrenListCount.value % 10
-  } else {
-    return 10
   }
+  return 10
 })
 
 const isDataExist = computed<boolean>(() => {
@@ -154,9 +152,7 @@ const isDataExist = computed<boolean>(() => {
 
 const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
   if (isPublic.value && !isForm.value) return
-  if (isNew.value) {
-    unlinkRow(rowRef, parseInt(id))
-  } else if (isChildrenListLinked.value[parseInt(id)]) {
+  if (isNew.value || isChildrenListLinked.value[parseInt(id)]) {
     unlinkRow(rowRef, parseInt(id))
   } else {
     linkRow(rowRef, parseInt(id))

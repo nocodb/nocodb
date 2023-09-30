@@ -138,6 +138,9 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
             continue
           }
         }
+        // this prevent file with same names
+        const isFileNameAlreadyExist = attachments.value.some((el) => el.title === file.name)
+        if (isFileNameAlreadyExist) return
 
         files.push(file)
       }

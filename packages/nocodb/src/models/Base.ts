@@ -87,7 +87,7 @@ export default class Base implements BaseType {
     );
 
     // call before reorder to update cache
-    const returnBase = await this.get(id, ncMeta);
+    const returnBase = await this.get(id, false, ncMeta);
 
     await this.reorderBases(base.projectId);
 
@@ -100,10 +100,11 @@ export default class Base implements BaseType {
       projectId: string;
       skipReorder?: boolean;
       meta?: any;
+      deleted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const oldBase = await Base.get(baseId, ncMeta);
+    const oldBase = await Base.get(baseId, false, ncMeta);
 
     if (!oldBase) NcError.badRequest('Wrong base id!');
 
@@ -123,6 +124,7 @@ export default class Base implements BaseType {
       'order',
       'enabled',
       'meta',
+      'deleted',
     ]);
 
     if (updateObj.config) {
@@ -156,7 +158,7 @@ export default class Base implements BaseType {
     );
 
     // call before reorder to update cache
-    const returnBase = await this.get(oldBase.id, ncMeta);
+    const returnBase = await this.get(oldBase.id, false, ncMeta);
 
     if (!base.skipReorder)
       await this.reorderBases(base.projectId, returnBase.id, ncMeta);
@@ -179,6 +181,20 @@ export default class Base implements BaseType {
         null,
         MetaTable.BASES,
         {
+          xcCondition: {
+            _or: [
+              {
+                deleted: {
+                  neq: true,
+                },
+              },
+              {
+                deleted: {
+                  eq: null,
+                },
+              },
+            ],
+          },
           orderBy: {
             order: 'asc',
           },
@@ -193,14 +209,20 @@ export default class Base implements BaseType {
       await NocoCache.setList(CacheScope.BASE, [args.projectId], baseDataList);
     }
 
-    baseDataList.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
+    baseDataList.sort(
+      (a, b) => (a?.order ?? Infinity) - (b?.order ?? Infinity),
+    );
 
     return baseDataList?.map((baseData) => {
       return this.castType(baseData);
     });
   }
 
-  static async get(id: string, ncMeta = Noco.ncMeta): Promise<Base> {
+  static async get(
+    id: string,
+    force = false,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Base> {
     let baseData =
       id &&
       (await NocoCache.get(
@@ -208,7 +230,29 @@ export default class Base implements BaseType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!baseData) {
-      baseData = await ncMeta.metaGet2(null, null, MetaTable.BASES, id);
+      baseData = await ncMeta.metaGet2(
+        null,
+        null,
+        MetaTable.BASES,
+        id,
+        null,
+        force
+          ? {}
+          : {
+              _or: [
+                {
+                  deleted: {
+                    neq: true,
+                  },
+                },
+                {
+                  deleted: {
+                    eq: null,
+                  },
+                },
+              ],
+            },
+      );
 
       if (baseData) {
         baseData.meta = parseMetaProp(baseData, 'meta');
@@ -220,9 +264,29 @@ export default class Base implements BaseType {
   }
 
   static async getByUUID(uuid: string, ncMeta = Noco.ncMeta) {
-    const base = await ncMeta.metaGet2(null, null, MetaTable.BASES, {
-      erd_uuid: uuid,
-    });
+    const base = await ncMeta.metaGet2(
+      null,
+      null,
+      MetaTable.BASES,
+      {
+        erd_uuid: uuid,
+      },
+      null,
+      {
+        _or: [
+          {
+            deleted: {
+              neq: true,
+            },
+          },
+          {
+            deleted: {
+              eq: null,
+            },
+          },
+        ],
+      },
+    );
 
     if (!base) return null;
 
@@ -394,6 +458,32 @@ export default class Base implements BaseType {
     await NcConnectionMgrv2.deleteAwait(this);
 
     return await ncMeta.metaDelete(null, null, MetaTable.BASES, this.id);
+  }
+
+  async softDelete(ncMeta = Noco.ncMeta, { force }: { force?: boolean } = {}) {
+    const bases = await Base.list({ projectId: this.project_id }, ncMeta);
+
+    if (bases[0].id === this.id && !force) {
+      NcError.badRequest('Cannot delete first base');
+    }
+
+    await ncMeta.metaUpdate(
+      this.project_id,
+      null,
+      MetaTable.BASES,
+      {
+        deleted: true,
+      },
+      this.id,
+    );
+
+    await NocoCache.deepDel(
+      CacheScope.BASE,
+      `${CacheScope.BASE}:${this.id}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+
+    await NocoCache.del(`${CacheScope.BASE}:${this.id}`);
   }
 
   async getModels(ncMeta = Noco.ncMeta) {

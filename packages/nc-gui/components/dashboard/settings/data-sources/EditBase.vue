@@ -43,6 +43,8 @@ const useForm = Form.useForm
 
 const testSuccess = ref(false)
 
+const testingConnection = ref(false)
+
 const form = ref<typeof Form>()
 
 const { api } = useApi()
@@ -50,6 +52,8 @@ const { api } = useApi()
 const { $e } = useNuxtApp()
 
 const { t } = useI18n()
+
+const editingBase = ref(false)
 
 const formState = ref<ProjectCreateForm>({
   title: '',
@@ -234,8 +238,6 @@ const editBase = async () => {
   }
 }
 
-const isConnSuccess = ref(false)
-
 const testConnection = async () => {
   try {
     await validate()
@@ -247,6 +249,8 @@ const testConnection = async () => {
   $e('a:base:edit:extdb:test-connection', [])
 
   try {
+    testingConnection.value = true
+
     if (formState.value.dataSource.client === ClientType.SQLITE) {
       testSuccess.value = true
     } else {
@@ -263,7 +267,6 @@ const testConnection = async () => {
 
       if (result.code === 0) {
         testSuccess.value = true
-        isConnSuccess.value = true
       } else {
         testSuccess.value = false
 
@@ -275,6 +278,8 @@ const testConnection = async () => {
 
     message.error(await extractSdkResponseErrorMsg(e))
   }
+
+  testingConnection.value = false
 }
 
 const handleImportURL = async () => {
@@ -427,7 +432,7 @@ onMounted(async () => {
           </a-form-item>
           <!--                Use Connection URL -->
           <div class="flex justify-end gap-2">
-            <NcButton size="small" type="primary" class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">
+            <NcButton size="small" type="ghost" class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">
               {{ $t('activity.useConnectionUrl') }}
             </NcButton>
           </div>
@@ -519,7 +524,7 @@ onMounted(async () => {
                   v-model:value="formState.inflection.inflectionTable"
                   dropdown-class-name="nc-dropdown-inflection-table-name"
                 >
-                  <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
+                  <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }}</a-select-option>
                 </a-select>
               </a-form-item>
 
@@ -528,7 +533,7 @@ onMounted(async () => {
                   v-model:value="formState.inflection.inflectionColumn"
                   dropdown-class-name="nc-dropdown-inflection-column-name"
                 >
-                  <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
+                  <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }}</a-select-option>
                 </a-select>
               </a-form-item>
 
@@ -545,15 +550,23 @@ onMounted(async () => {
 
       <a-form-item class="flex justify-end !mt-5">
         <div class="flex justify-end gap-2">
-          <NcButton type="secondary" size="small" class="nc-extdb-btn-test-connection !rounded-md" @click="testConnection">
+          <NcButton
+            :type="testSuccess ? 'ghost' : 'primary'"
+            size="small"
+            class="nc-extdb-btn-test-connection !rounded-md"
+            :loading="testingConnection"
+            @click="testConnection"
+          >
+            <GeneralIcon v-if="testSuccess" icon="circleCheck" class="text-primary mr-2" />
             {{ $t('activity.testDbConn') }}
           </NcButton>
 
           <NcButton
+            class="nc-extdb-btn-submit !rounded-md"
             size="small"
             type="primary"
             :disabled="!testSuccess"
-            class="nc-extdb-btn-submit !rounded-md"
+            :loading="editingBase"
             @click="editBase"
           >
             {{ $t('general.submit') }}
@@ -569,7 +582,7 @@ onMounted(async () => {
     <a-modal
       v-model:visible="configEditDlg"
       :title="$t('activity.editConnJson')"
-      width="600px"
+      width="500px"
       wrap-class-name="nc-modal-edit-connection-json"
       @ok="handleOk"
     >
@@ -589,17 +602,6 @@ onMounted(async () => {
       <a-input v-model:value="importURL" />
     </a-modal>
   </div>
-
-  <!-- connection succesfull modal -->
-  <GeneralModal v-model:visible="isConnSuccess" class="!w-97">
-    <div class="flex flex-col h-full p-8">
-      <div class="text-lg font-semibold self-start mb-4">{{ t('msg.info.dbConnected') }}</div>
-      <div class="flex gap-x-2 mt-5 ml-7 pt-2.5 justify-end">
-        <NcButton key="back" type="secondary" @click="isConnSuccess = false">{{ $t('general.cancel') }}</NcButton>
-        <NcButton key="submit" type="primary" @click="editBase">{{ $t('activity.okEditBase') }}</NcButton>
-      </div>
-    </div>
-  </GeneralModal>
 </template>
 
 <style lang="scss" scoped>

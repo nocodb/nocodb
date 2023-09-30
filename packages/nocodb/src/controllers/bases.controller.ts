@@ -1,14 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  Param,
-  Patch,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
 import { BaseReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -67,33 +57,5 @@ export class BasesController {
       count: bases.length,
       limit: bases.length,
     });
-  }
-
-  @Delete('/api/v1/db/meta/projects/:projectId/bases/:baseId')
-  @Acl('baseDelete')
-  async baseDelete(@Param('baseId') baseId: string) {
-    const result = await this.basesService.baseDelete({
-      baseId,
-    });
-    return result;
-  }
-
-  @Post('/api/v1/db/meta/projects/:projectId/bases')
-  @HttpCode(200)
-  @Acl('baseCreate')
-  async baseCreate(
-    @Param('projectId') projectId: string,
-    @Body() body: BaseReqType,
-  ) {
-    const base = await this.basesService.baseCreate({
-      projectId,
-      base: body,
-    });
-
-    if (base.isMeta()) {
-      delete base.config;
-    }
-
-    return base;
   }
 }

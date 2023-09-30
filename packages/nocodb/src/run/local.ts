@@ -17,8 +17,12 @@ server.use(
 server.set('view engine', 'ejs');
 
 (async () => {
-  const httpServer = server.listen(process.env.PORT || 8080, () => {
-    console.log(`App started successfully.\nVisit -> ${Noco.dashboardUrl}`);
-  });
-  server.use(await Noco.init({}, httpServer, server));
+  if (process.env.NC_WORKER_CONTAINER === 'true') {
+    await Noco.init({}, null, null);
+  } else {
+    const httpServer = server.listen(process.env.PORT || 8080, async () => {
+      console.log(`App started successfully.\nVisit -> ${Noco.dashboardUrl}`);
+      server.use(await Noco.init({}, httpServer, server));
+    });
+  }
 })().catch((e) => console.log(e));

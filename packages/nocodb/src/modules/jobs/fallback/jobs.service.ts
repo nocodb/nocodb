@@ -13,7 +13,7 @@ export class JobsService {
   async jobStatus(jobId: string) {
     return await (
       await this.fallbackQueueService.getJob(jobId)
-    ).status;
+    )?.status;
   }
 
   async jobList() {

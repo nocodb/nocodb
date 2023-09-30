@@ -156,7 +156,7 @@ test.describe('Bulk update 1', () => {
     await unsetup(context);
   });
 
-  test.only('Number based', async () => {
+  test('Number based', async () => {
     const fields = [
       { title: 'Number', value: '1', type: 'text' },
       { title: 'Decimal', value: '1.1', type: 'text' },

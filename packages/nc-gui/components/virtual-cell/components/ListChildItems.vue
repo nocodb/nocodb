@@ -18,7 +18,13 @@ import {
   useVModel,
 } from '#imports'
 
-const props = defineProps<{ modelValue?: boolean; cellValue: any; column: any }>()
+interface Iprop {
+  modelValue?: boolean
+  cellValue: any
+  column: any
+}
+
+const props = defineProps<Iprop>()
 
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
 
@@ -124,23 +130,21 @@ onKeyStroke('Escape', () => {
   vModel.value = false
 })
 
-const skeltonAmountToShow = ref(childrenListCount.value === 0 ? 10 : childrenListCount.value)
-
 /* 
    to render same number of skelton as the number of cards
    displayed
  */
-watch(childrenListPagination, () => {
-  if (childrenListCount.value < 10 && childrenListPagination.page === 1) {
-    skeltonAmountToShow.value = childrenListCount.value === 0 ? 10 : childrenListCount.value
-  }
 
+const skeltonCount = computed(() => {
+  if (childrenListCount.value < 10 && childrenListPagination.page === 1) {
+    return childrenListCount.value === 0 ? 10 : childrenListCount.value
+  }
   const totlaRows = Math.ceil(childrenListCount.value / 10)
 
   if (totlaRows === childrenListPagination.page) {
-    skeltonAmountToShow.value = childrenListCount.value % 10
+    return childrenListCount.value % 10
   } else {
-    skeltonAmountToShow.value = 10
+    return 10
   }
 })
 
@@ -150,11 +154,13 @@ const isDataExist = computed<boolean>(() => {
 
 const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
   if (isPublic.value && !isForm.value) return
-  isNew.value
-    ? unlinkRow(rowRef, parseInt(id))
-    : isChildrenListLinked.value[parseInt(id)]
-    ? unlinkRow(rowRef, parseInt(id))
-    : linkRow(rowRef, parseInt(id))
+  if (isNew.value) {
+    unlinkRow(rowRef, parseInt(id))
+  } else if (isChildrenListLinked.value[parseInt(id)]) {
+    unlinkRow(rowRef, parseInt(id))
+  } else {
+    linkRow(rowRef, parseInt(id))
+  }
 }
 </script>
 
@@ -202,19 +208,19 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
     <div v-if="isDataExist || isChildrenLoading" class="mt-2 mb-2">
       <div
         :class="{
-          'h-[420px]': !isForm,
-          'h-[250px]': isForm,
+          'h-105': !isForm,
+          'h-62.5': isForm,
         }"
         class="overflow-scroll nc-scrollbar-md cursor-pointer pr-1"
       >
         <template v-if="isChildrenLoading">
           <div
-            v-for="(x, i) in Array.from({ length: skeltonAmountToShow })"
+            v-for="(_, i) in Array.from({ length: skeltonCount })"
             :key="i"
             class="border-2 flex flex-row gap-2 mb-2 transition-all rounded-xl relative border-gray-200 hover:bg-gray-50"
           >
             <a-skeleton-image class="h-24 w-24 !rounded-xl" />
-            <div class="flex flex-col m-[.5rem] gap-2 flex-grow justify-center">
+            <div class="flex flex-col m-2 gap-2 flex-grow justify-center">
               <a-skeleton-input class="!w-48 !rounded-xl" active size="small" />
               <div class="flex flex-row gap-6 w-10/12">
                 <div class="flex flex-col gap-0.5">

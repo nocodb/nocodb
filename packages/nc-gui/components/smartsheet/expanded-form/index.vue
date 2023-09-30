@@ -3,7 +3,6 @@ import type { TableType, ViewType } from 'nocodb-sdk'
 import { isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import MdiChevronDown from '~icons/mdi/chevron-down'
-import RecordIcon from '~icons/nc-icons/record'
 
 import {
   CellClickHookInj,
@@ -398,7 +397,7 @@ export default {
               {{ displayValue }}
             </div>
             <div class="bg-gray-100 px-2 gap-1 flex my-1 items-center rounded-lg text-gray-800 font-medium">
-              <RecordIcon class="w-6 h-6 text-sm" />
+              <component :is="iconMap.recordIcon" class="w-6 h-6 text-sm" />
               All {{ meta.title }}
             </div>
           </div>

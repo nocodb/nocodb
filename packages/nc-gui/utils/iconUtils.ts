@@ -82,7 +82,7 @@ import NcAddDataSource from '~icons/nc-icons/add-data-source'
 import NcDatabaseIcon from '~icons/nc-icons/database'
 import Project from '~icons/nc-icons/project'
 import TableIcon from '~icons/nc-icons/table'
-
+import RecordIcon from '~icons/nc-icons/record'
 // Roles
 import MaterialSymbolsManageAccountsOutline from '~icons/material-symbols/manage-accounts-outline'
 // account
@@ -238,6 +238,7 @@ import MaterialSymbolsBlock from '~icons/material-symbols/block'
 } as const */
 
 export const iconMap = {
+  recordIcon: RecordIcon,
   workspaceDefault: MsGroup,
   search: NcSearch,
   error: h('span', { class: 'material-symbols' }, 'error'),

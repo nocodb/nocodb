@@ -294,9 +294,7 @@ test.describe('Undo Redo', () => {
 
   test('Row height', async ({ page }) => {
     async function verifyRowHeight({ height }: { height: string }) {
-      await dashboard.grid.rowPage.getRecordHeight(0).then(readValue => {
-        expect(readValue).toBe(height);
-      });
+      await expect(dashboard.grid.rowPage.getRecord(0)).toHaveAttribute('style', `height: ${height};`);
     }
 
     // close 'Team & Auth' tab

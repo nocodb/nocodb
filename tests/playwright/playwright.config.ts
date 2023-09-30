@@ -38,7 +38,7 @@ export default defineConfig({
     // headless: !!process.env.CI,
     headless: true,
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
-    actionTimeout: 4000,
+    actionTimeout: process.env.E2E_DB_TYPE === 'sqlite' ? 12000 : 4000,
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://localhost:3000',
 

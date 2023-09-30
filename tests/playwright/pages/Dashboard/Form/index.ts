@@ -138,6 +138,8 @@ export class FormPage extends BasePage {
   }
 
   async removeAllFields() {
+    // TODO: Otherwise form input boxes are not visible sometimes
+    await this.rootPage.waitForTimeout(1000);
     await this.removeAllButton.click();
   }
 

@@ -183,9 +183,10 @@ export class JobsController implements OnModuleInit {
       response = {
         status: 'update',
         data,
-        _mid: this.localJobs[jobId].messages.length + 1,
+        _mid: this.localJobs[jobId]._mid,
       };
       this.localJobs[jobId].messages.push(response);
+      this.localJobs[jobId]._mid += 1;
 
       // limit to 20 messages
       if (this.localJobs[jobId].messages.length > 20) {
@@ -201,9 +202,12 @@ export class JobsController implements OnModuleInit {
         data,
         _mid: 1,
       };
+
       this.localJobs[jobId] = {
         messages: [response],
+        _mid: 1,
       };
+
       NocoCache.set(`${CacheScope.JOBS}:${jobId}:messages`, {
         messages: this.localJobs[jobId].messages,
       });
@@ -248,9 +252,11 @@ export class JobsController implements OnModuleInit {
       response = {
         status: 'update',
         data,
-        _mid: this.localJobs[jobId].messages.length + 1,
+        _mid: this.localJobs[jobId]._mid,
       };
+
       this.localJobs[jobId].messages.push(response);
+      this.localJobs[jobId]._mid += 1;
 
       // limit to 20 messages
       if (this.localJobs[jobId].messages.length > 20) {
@@ -266,9 +272,12 @@ export class JobsController implements OnModuleInit {
         data,
         _mid: 1,
       };
+
       this.localJobs[jobId] = {
         messages: [response],
+        _mid: 1,
       };
+
       NocoCache.set(`${CacheScope.JOBS}:${jobId}:messages`, {
         messages: this.localJobs[jobId].messages,
       });

@@ -10,7 +10,7 @@ require('dotenv').config();
  * See https://playwright.dev/docs/test-configuration.
  */
 
-let workers = process.env.CI ? 2 : 4;
+let workers = 4;
 
 if (process.env.CI) {
   if (process.env.E2E_DB_TYPE === 'sqlite') workers = 1;

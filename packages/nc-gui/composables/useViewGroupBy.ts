@@ -164,7 +164,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     const groupby = groupBy.value[group.nestedIn.length]
 
     const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
-    if (!groupby || !(groupby.column.title)) return
+    if (!groupby || !groupby.column.title) return
 
     if (isPublic.value && !sharedView.value?.uuid) {
       return
@@ -203,16 +203,16 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
       }
       if (groupby.column.title && groupby.column.uidt) {
         acc.push({
-          key: valueToTitle(curr[(groupby.column.title)!], groupby.column),
+          key: valueToTitle(curr[groupby.column.title!], groupby.column),
           column: groupby.column,
           count: +curr.count,
-          color: findKeyColor(curr[(groupby.column.title)!], groupby.column),
+          color: findKeyColor(curr[groupby.column.title!], groupby.column),
           nestedIn: [
             ...group!.nestedIn,
             {
               title: groupby.column.title,
-              column_name: (groupby.column.title)!,
-              key: valueToTitle(curr[(groupby.column.title)!], groupby.column),
+              column_name: groupby.column.title!,
+              key: valueToTitle(curr[groupby.column.title!], groupby.column),
               column_uidt: groupby.column.uidt,
             },
           ],

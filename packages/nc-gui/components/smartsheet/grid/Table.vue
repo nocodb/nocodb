@@ -1429,6 +1429,10 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                           'align-middle': !rowHeight || rowHeight === 1,
                           'align-top': rowHeight && rowHeight !== 1,
                           'filling': isCellInFillRange(rowIndex, colIndex),
+                          '!bg-gray-50 readonly':
+                            (isLookup(columnObj) || isRollup(columnObj) || isFormula(columnObj)) &&
+                            hasEditPermission &&
+                            isCellSelected(rowIndex, colIndex),
                         }"
                         :data-testid="`cell-${columnObj.title}-${rowIndex}`"
                         :data-key="`data-key-${rowIndex}-${columnObj.id}`"
@@ -1769,6 +1773,10 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
   // todo: replace with css variable
   td.active::after {
     @apply text-primary border-current bg-primary bg-opacity-5;
+  }
+
+  td.active.readonly::after {
+    @apply text-primary bg-primary bg-opacity-5 !border-gray-200;
   }
 
   td.active-cell::after {

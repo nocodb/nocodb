@@ -351,6 +351,10 @@ watch(
     immediate: true,
   },
 )
+
+const showRightSections = computed(() => {
+  return !isNew && commentsDrawer && isUIAllowed('commentList')
+})
 </script>
 
 <script lang="ts">
@@ -468,7 +472,13 @@ export default {
         </template>
       </div>
       <div ref="wrapper" class="flex flex-grow flex-row h-[calc(100%-4rem)] w-full gap-4">
-        <div class="flex w-2/3 xs:w-full flex-col border-1 rounded-xl overflow-hidden border-gray-200 xs:(border-0 rounded-none)">
+        <div
+          class="flex xs:w-full flex-col border-1 rounded-xl overflow-hidden border-gray-200 xs:(border-0 rounded-none)"
+          :class="{
+            'w-full': !showRightSections,
+            'w-2/3': showRightSections,
+          }"
+        >
           <div
             class="flex flex-col flex-grow mt-2 h-full max-h-full nc-scrollbar-md !pb-2 items-center w-full bg-white p-4 xs:p-0"
           >
@@ -609,7 +619,7 @@ export default {
           </div>
         </div>
         <div
-          v-if="!isNew && commentsDrawer && isUIAllowed('commentList')"
+          v-if="showRightSections"
           class="nc-comments-drawer border-1 relative border-gray-200 w-1/3 max-w-125 bg-gray-50 rounded-xl min-w-0 overflow-hidden h-full xs:hidden"
           :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
         >

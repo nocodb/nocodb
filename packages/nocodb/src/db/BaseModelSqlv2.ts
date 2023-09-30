@@ -692,7 +692,7 @@ class BaseModelSqlv2 {
               );
               groupBySelectors.push(sanitize(column.title));
               break;
-            case UITypes.Formula:
+            case UITypes.Formula: {
               let selectQb;
               try {
                 const _selectQb = await this.getSelectQueryBuilderForFormula(
@@ -714,6 +714,7 @@ class BaseModelSqlv2 {
               selectors.push(selectQb);
               groupBySelectors.push(column.title);
               break;
+            }
             case UITypes.Lookup:
               {
                 const _selectQb = await generateBTLookupSelectQuery({
@@ -4000,7 +4001,7 @@ class BaseModelSqlv2 {
         : await this.dbDriver.raw(query);
 
     // update attachment fields
-    data = this.convertAttachmentType(data, childTable);
+    data = await this.convertAttachmentType(data, childTable);
 
     // update date time fields
     data = this.convertDateFormat(data, childTable);
@@ -4024,7 +4025,16 @@ class BaseModelSqlv2 {
     return d;
   }
 
-  public convertAttachmentType(data: Record<string, any>, childTable?: Model) {
+  public async convertAttachmentType(
+    data: Record<string, any>,
+    childTable?: Model,
+  ) {
+    if (childTable && !childTable?.columns) {
+      await childTable.getColumns();
+    } else if (!this.model?.columns) {
+      await this.model.getColumns();
+    }
+
     // attachment is stored in text and parse in UI
     // convertAttachmentType is used to convert the response in string to array of object in API response
     if (data) {

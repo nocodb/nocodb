@@ -15,9 +15,9 @@ const formValidator = ref()
 
 const formRules = {
   title: [
-    { required: true, message: t('error.nameRequired') },
-    { min: 2, message: t('error.nameMinLength') },
-    { max: 60, message: t('error.nameMaxLength') },
+    { required: true, message: t('msg.error.nameRequired') },
+    { min: 2, message: t('msg.error.nameMinLength') },
+    { max: 60, message: t('msg.error.nameMaxLength') },
   ],
 }
 
@@ -63,7 +63,7 @@ const onValidate = async (_: any, valid: boolean) => {
 <template>
   <div class="flex flex-col items-center">
     <div class="flex flex-col w-150">
-      <div class="flex font-medium text-xl">{{ $t('labels.profile') }}</div>
+      <div class="flex font-bold text-xl">{{ $t('labels.profile') }}</div>
       <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-2">
         <div class="flex font-medium text-base">{{ $t('labels.accountDetails') }}</div>
         <div class="flex text-gray-500">{{ $t('labels.controlAppearance') }}</div>

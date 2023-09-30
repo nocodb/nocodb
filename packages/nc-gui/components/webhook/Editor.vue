@@ -94,22 +94,22 @@ const formInput = ref({
   'Email': [
     {
       key: 'to',
-      label: 'To Address',
-      placeholder: 'To Address',
+      label: t('labels.toAddress'),
+      placeholder: t('labels.toAddress'),
       type: 'SingleLineText',
       required: true,
     },
     {
       key: 'subject',
-      label: 'Subject',
-      placeholder: 'Subject',
+      label: t('labels.subject'),
+      placeholder: t('labels.subject'),
       type: 'SingleLineText',
       required: true,
     },
     {
       key: 'body',
-      label: 'Body',
-      placeholder: 'Body',
+      label: t('labels.body'),
+      placeholder: t('labels.body'),
       type: 'LongText',
       required: true,
     },
@@ -117,8 +117,8 @@ const formInput = ref({
   'Slack': [
     {
       key: 'body',
-      label: 'Body',
-      placeholder: 'Body',
+      label: t('labels.body'),
+      placeholder: t('labels.body'),
       type: 'LongText',
       required: true,
     },
@@ -126,8 +126,8 @@ const formInput = ref({
   'Microsoft Teams': [
     {
       key: 'body',
-      label: 'Body',
-      placeholder: 'Body',
+      label: t('labels.body'),
+      placeholder: t('labels.body'),
       type: 'LongText',
       required: true,
     },
@@ -135,8 +135,8 @@ const formInput = ref({
   'Discord': [
     {
       key: 'body',
-      label: 'Body',
-      placeholder: 'Body',
+      label: t('labels.body'),
+      placeholder: t('labels.body'),
       type: 'LongText',
       required: true,
     },
@@ -144,8 +144,8 @@ const formInput = ref({
   'Mattermost': [
     {
       key: 'body',
-      label: 'Body',
-      placeholder: 'Body',
+      label: t('labels.body'),
+      placeholder: t('labels.body'),
       type: 'LongText',
       required: true,
     },
@@ -153,15 +153,15 @@ const formInput = ref({
   'Twilio': [
     {
       key: 'body',
-      label: 'Body',
-      placeholder: 'Body',
+      label: t('labels.body'),
+      placeholder: t('labels.body'),
       type: 'LongText',
       required: true,
     },
     {
       key: 'to',
-      label: 'Comma separated Mobile #',
-      placeholder: 'Comma separated Mobile #',
+      label: t('labels.commaSeparatedMobileNumber'),
+      placeholder: t('labels.commaSeparatedMobileNumber'),
       type: 'LongText',
       required: true,
     },
@@ -169,15 +169,15 @@ const formInput = ref({
   'Whatsapp Twilio': [
     {
       key: 'body',
-      label: 'Body',
-      placeholder: 'Body',
+      label: t('labels.body'),
+      placeholder: t('labels.body'),
       type: 'LongText',
       required: true,
     },
     {
       key: 'to',
-      label: 'Comma separated Mobile #',
-      placeholder: 'Comma separated Mobile #',
+      label: t('labels.commaSeparatedMobileNumber'),
+      placeholder: t('labels.commaSeparatedMobileNumber'),
       type: 'LongText',
       required: true,
     },
@@ -196,26 +196,26 @@ const showLogs = computed(
 )
 
 const eventList = ref<Record<string, any>[]>([
-  { text: ['After', 'Insert'], value: ['after', 'insert'] },
-  { text: ['After', 'Update'], value: ['after', 'update'] },
-  { text: ['After', 'Delete'], value: ['after', 'delete'] },
-  { text: ['After', 'Bulk Insert'], value: ['after', 'bulkInsert'] },
-  { text: ['After', 'Bulk Update'], value: ['after', 'bulkUpdate'] },
-  { text: ['After', 'Bulk Delete'], value: ['after', 'bulkDelete'] },
+  { text: [t('general.after'), t('general.insert')], value: ['after', 'insert'] },
+  { text: [t('general.after'), t('general.update')], value: ['after', 'update'] },
+  { text: [t('general.after'), t('general.delete')], value: ['after', 'delete'] },
+  { text: [t('general.after'), t('general.bulkInsert')], value: ['after', 'bulkInsert'] },
+  { text: [t('general.after'), t('general.bulkUpdate')], value: ['after', 'bulkUpdate'] },
+  { text: [t('general.after'), t('general.bulkDelete')], value: ['after', 'bulkDelete'] },
 ])
 
 const notificationList = computed(() => {
   return isEeUI
-    ? [{ type: 'URL' }]
+    ? [{ type: 'URL', text: t('datatype.URL') }]
     : [
-        { type: 'URL' },
-        { type: 'Email' },
-        { type: 'Slack' },
-        { type: 'Microsoft Teams' },
-        { type: 'Discord' },
-        { type: 'Mattermost' },
-        { type: 'Twilio' },
-        { type: 'Whatsapp Twilio' },
+        { type: 'URL', text: t('datatype.URL') },
+        { type: 'Email', text: t('datatype.Email') },
+        { type: 'Slack', text: t('general.slack') },
+        { type: 'Microsoft Teams', text: t('general.microsoftTeams') },
+        { type: 'Discord', text: t('general.discord') },
+        { type: 'Mattermost', text: t('general.matterMost') },
+        { type: 'Twilio', text: t('general.twilio') },
+        { type: 'Whatsapp Twilio', text: t('general.whatsappTwilio') },
       ]
 })
 
@@ -524,7 +524,7 @@ onMounted(async () => {
             ref="titleDomRef"
             v-model="hookRef.title"
             class="flex flex-grow text-lg font-medium capitalize outline-none bg-inherit nc-text-field-hook-title"
-            placeholder="Webhook Title"
+            :placeholder="$t('placeholder.webhookTitle')"
             :contenteditable="true"
             @blur="isRenaming = false"
             @focus="isRenaming = true"
@@ -535,7 +535,7 @@ onMounted(async () => {
     </div>
     <div class="flex flex-row gap-2">
       <NcButton class="nc-btn-webhook-test" type="secondary" size="small" @click="testWebhook">
-        <div class="flex items-center px-1">Test Webhook</div>
+        <div class="flex items-center px-1">{{ $t('activity.testWebhook') }}</div>
       </NcButton>
 
       <NcButton
@@ -546,7 +546,7 @@ onMounted(async () => {
         :disabled="!isValid"
         @click.prevent="saveHooks"
       >
-        <template #loading> Saving </template>
+        <template #loading> {{ $t('general.saving') }} </template>
         <div class="flex items-center px-1">{{ $t('general.save') }}</div>
       </NcButton>
     </div>
@@ -562,7 +562,7 @@ onMounted(async () => {
     >
       <a-form :model="hookRef" name="create-or-edit-webhook">
         <a-form-item>
-          <div class="form-field-header">Event</div>
+          <div class="form-field-header">{{ $t('general.event') }}</div>
           <a-row type="flex" :gutter="[16, 16]">
             <a-col :span="12">
               <a-form-item v-bind="validateInfos.eventOperation">
@@ -608,7 +608,7 @@ onMounted(async () => {
 
                       <MdiCellphoneMessage v-if="notificationOption.type === 'Twilio'" class="mr-2" />
 
-                      {{ notificationOption.type }}
+                      {{ notificationOption.text }}
                     </div>
                   </a-select-option>
                 </NcSelect>
@@ -654,11 +654,11 @@ onMounted(async () => {
                   />
                 </a-tab-pane>
 
-                <a-tab-pane key="params" tab="Parameters" force-render>
+                <a-tab-pane key="params" :tab="$t('title.parameter')" force-render>
                   <LazyApiClientParams v-model="hookRef.notification.payload.parameters" class="p-4" />
                 </a-tab-pane>
 
-                <a-tab-pane key="headers" tab="Headers" class="nc-tab-headers">
+                <a-tab-pane key="headers" :tab="$t('title.headers')" class="nc-tab-headers">
                   <LazyApiClientHeaders v-model="hookRef.notification.payload.headers" class="!p-4" />
                 </a-tab-pane>
 
@@ -682,7 +682,7 @@ onMounted(async () => {
                   v-model="hookRef.notification.payload.channels"
                   :selected-channel-list="hookRef.notification.payload.channels"
                   :available-channel-list="slackChannels"
-                  placeholder="Select Slack channels"
+                  :placeholder="$t('placeholder.selectSlackChannels')"
                 />
               </a-form-item>
             </a-col>
@@ -695,7 +695,7 @@ onMounted(async () => {
                   v-model="hookRef.notification.payload.channels"
                   :selected-channel-list="hookRef.notification.payload.channels"
                   :available-channel-list="teamsChannels"
-                  placeholder="Select Microsoft Teams channels"
+                  :placeholder="$t('placeholder.selectTeamsChannels')"
                 />
               </a-form-item>
             </a-col>
@@ -708,7 +708,7 @@ onMounted(async () => {
                   v-model="hookRef.notification.payload.channels"
                   :selected-channel-list="hookRef.notification.payload.channels"
                   :available-channel-list="discordChannels"
-                  placeholder="Select Discord channels"
+                  :placeholder="$t('placeholder.selectDiscordChannels')"
                 />
               </a-form-item>
             </a-col>
@@ -721,7 +721,7 @@ onMounted(async () => {
                   v-model="hookRef.notification.payload.channels"
                   :selected-channel-list="hookRef.notification.payload.channels"
                   :available-channel-list="mattermostChannels"
-                  placeholder="Select Mattermost channels"
+                  :placeholder="$t('placeholder.selectMattermostChannels')"
                 />
               </a-form-item>
             </a-col>
@@ -747,7 +747,7 @@ onMounted(async () => {
                   class="nc-check-box-hook-condition"
                   @update:checked="hookRef.condition = $event"
                 >
-                  On Condition
+                  {{ $t('activity.onCondition') }}
                 </a-checkbox>
 
                 <LazySmartsheetToolbarColumnFilter
@@ -767,11 +767,16 @@ onMounted(async () => {
             <a-col :span="24">
               <div v-if="isBodyShown" class="text-gray-600">
                 <div class="flex items-center">
-                  <em>Use context variable <strong>data</strong> to refer the record under consideration</em>
+                  <em
+                    >{{ $t('msg.webhookBodyMsg1') }} <strong>{{ $t('msg.webhookBodyMsg2') }}</strong>
+                    {{ $t('msg.webhookBodyMsg3') }}</em
+                  >
 
                   <a-tooltip bottom>
                     <template #title>
-                      <span> <strong>data</strong> : Row data <br /> </span>
+                      <span>
+                        <strong>{{ $t('general.data') }}</strong> : {{ $t('title.rowData') }} <br />
+                      </span>
                     </template>
                     <component :is="iconMap.info" class="ml-2" />
                   </a-tooltip>

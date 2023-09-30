@@ -35,27 +35,27 @@ const focus: VNodeRef = (el: typeof InputPassword) => el?.$el?.querySelector('in
     <template #header>
       <div class="flex flex-row items-center gap-x-2">
         <GeneralIcon icon="key" />
-        This shared view is protected
+        {{ $t('msg.thisSharedViewIsProtected') }}
       </div>
     </template>
 
     <div class="mt-2">
       <a-form ref="formRef" :model="formState" name="create-new-table-form" @finish="onFinish">
-        <a-form-item name="password" :rules="[{ required: true, message: 'Password is required' }]">
+        <a-form-item name="password" :rules="[{ required: true, message: $t('msg.error.signUpRules.passwdRequired') }]">
           <a-input-password
             ref="focus"
             v-model:value="formState.password"
             class="nc-input-md"
             hide-details
             size="large"
-            placeholder="Enter password"
+            :placeholder="$t('msg.enterPassword')"
           />
         </a-form-item>
       </a-form>
       <div class="flex flex-row justify-end gap-x-2 mt-6">
         <NcButton type="primary" html-type="submit" @click="onFinish"
-          >Unlock
-          <template #loading> Verifying Password </template>
+          >{{ $t('general.unlock') }}
+          <template #loading> {{ $t('msg.verifyingPassword') }}</template>
         </NcButton>
       </div>
     </div>

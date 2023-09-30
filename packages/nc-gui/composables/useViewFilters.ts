@@ -1,7 +1,7 @@
 import type { ColumnType, FilterType, LinkToAnotherRecordType, LookupType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { SelectProps } from 'ant-design-vue'
-import { RelationTypes, UITypes, isSystemColumn } from 'nocodb-sdk'
+import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   IsPublicInj,
@@ -440,17 +440,12 @@ export function useViewFilters(
       for (const col of meta.value?.columns || []) {
         if (col.uidt !== UITypes.Lookup) continue
         let nextCol = col
-        let btLookup = true
         // check all the relation of nested lookup columns is bt or not
         // include the column only if all only if all relations are bt
-        while (btLookup && nextCol && nextCol.uidt === UITypes.Lookup) {
+        while (nextCol && nextCol.uidt === UITypes.Lookup) {
           const lookupRelation = (await getMeta(nextCol.fk_model_id))?.columns?.find(
             (c) => c.id === (nextCol.colOptions as LookupType).fk_relation_column_id,
           )
-          if ((lookupRelation.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO) {
-            btLookup = false
-            continue
-          }
           const relatedTableMeta = await getMeta((lookupRelation.colOptions as LinkToAnotherRecordType).fk_related_model_id)
           nextCol = relatedTableMeta?.columns?.find((c) => c.id === (nextCol.colOptions as LookupType).fk_lookup_column_id)
 

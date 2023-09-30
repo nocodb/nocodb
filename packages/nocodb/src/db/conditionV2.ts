@@ -100,7 +100,11 @@ const parseConditionV2 = async (
       const parentModel = await parentColumn.getModel();
       await parentModel.getColumns();
       if (colOptions.type === RelationTypes.HAS_MANY) {
-        if (['blank', 'notblank'].includes(filter.comparison_op)) {
+        if (
+          ['blank', 'notblank', 'checked', 'notchecked'].includes(
+            filter.comparison_op,
+          )
+        ) {
           // handle self reference
           if (parentModel.id === childModel.id) {
             if (filter.comparison_op === 'blank') {
@@ -158,7 +162,11 @@ const parseConditionV2 = async (
           else qbP.whereIn(parentColumn.column_name, selectQb);
         };
       } else if (colOptions.type === RelationTypes.BELONGS_TO) {
-        if (['blank', 'notblank'].includes(filter.comparison_op)) {
+        if (
+          ['blank', 'notblank', 'checked', 'notchecked'].includes(
+            filter.comparison_op,
+          )
+        ) {
           // handle self reference
           if (parentModel.id === childModel.id) {
             if (filter.comparison_op === 'blank') {
@@ -221,7 +229,11 @@ const parseConditionV2 = async (
         const mmParentColumn = await colOptions.getMMParentColumn();
         const mmChildColumn = await colOptions.getMMChildColumn();
 
-        if (['blank', 'notblank'].includes(filter.comparison_op)) {
+        if (
+          ['blank', 'notblank', 'checked', 'notchecked'].includes(
+            filter.comparison_op,
+          )
+        ) {
           // handle self reference
           if (mmModel.id === childModel.id) {
             if (filter.comparison_op === 'blank') {
@@ -815,6 +827,7 @@ const negatedMapping = {
   nlike: { comparison_op: 'like' },
   neq: { comparison_op: 'eq' },
   blank: { comparison_op: 'notblank' },
+  notchecked: { comparison_op: 'checked' },
 };
 
 function getAlias(aliasCount: { count: number }) {

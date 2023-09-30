@@ -14,6 +14,8 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
 
+const { t } = useI18n()
+
 const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit } = useColumnCreateStoreOrThrow()
 
 const projectStore = useProject()
@@ -22,8 +24,8 @@ const { tables } = storeToRefs(projectStore)
 const { metas } = useMetas()
 
 setAdditionalValidations({
-  fk_relation_column_id: [{ required: true, message: 'Required' }],
-  fk_lookup_column_id: [{ required: true, message: 'Required' }],
+  fk_relation_column_id: [{ required: true, message: t('general.required') }],
+  fk_lookup_column_id: [{ required: true, message: t('general.required') }],
 })
 
 if (!vModel.value.fk_relation_column_id) vModel.value.fk_relation_column_id = null

@@ -97,7 +97,7 @@ watch(isExpandedFormOpen, () => {
     class="outline-none !py-2 !px-1 border-none rounded-md w-full h-full !text-sm"
     type="number"
     :step="precision"
-    :placeholder="isEditColumn ? '(Optional)' : ''"
+    :placeholder="isEditColumn ? $t('labels.optional') : ''"
     style="letter-spacing: 0.06rem"
     @blur="editEnabled = false"
     @keydown.down.stop="onKeyDown"
@@ -110,7 +110,7 @@ watch(isExpandedFormOpen, () => {
     @selectstart.capture.stop
     @mousedown.stop
   />
-  <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null capitalize">{{ $t('general.null') }}</span>
   <span v-else class="text-sm">{{ displayValue }}</span>
 </template>
 

@@ -91,7 +91,7 @@ watch(
       v-if="editEnabled"
       :ref="focus"
       v-model="vModel"
-      :placeholder="isEditColumn ? 'Enter default URL (Optional)' : ''"
+      :placeholder="isEditColumn ? $t('labels.enterDefaultUrlOptional') : ''"
       class="outline-none text-sm w-full px-2 py-2 bg-transparent h-full"
       @blur="editEnabled = false"
       @keydown.down.stop
@@ -105,7 +105,7 @@ watch(
       @mousedown.stop
     />
 
-    <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
+    <span v-else-if="vModel === null && showNull" class="nc-null uppercase"> $t('general.null')</span>
 
     <nuxt-link
       v-else-if="isValid && !cellUrlOptions?.overlay"

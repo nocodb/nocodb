@@ -108,29 +108,33 @@ jobs:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       uses: ./.github/workflows/playwright-test-workflow.yml
       with:
-        db: sqlite
+        db: mysql
         shard: 1
+        workers: 4
     playwright-mysql-2:
       needs: pre-build-for-playwright
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       uses: ./.github/workflows/playwright-test-workflow.yml
       with:
-        db: sqlite
+        db: mysql
         shard: 2
+        workers: 4
     playwright-mysql-3:
       needs: pre-build-for-playwright
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       uses: ./.github/workflows/playwright-test-workflow.yml
       with:
-        db: sqlite
+        db: mysql
         shard: 3
+        workers: 4
     playwright-mysql-4:
       needs: pre-build-for-playwright
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       uses: ./.github/workflows/playwright-test-workflow.yml
       with:
-        db: sqlite
-        shard: 4        
+        db: mysql
+        shard: 4       
+        workers: 4
     playwright-sqlite-1:
       needs: pre-build-for-playwright
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
@@ -138,6 +142,7 @@ jobs:
       with:
         db: sqlite
         shard: 1
+        workers: 1
     playwright-sqlite-2:
       needs: pre-build-for-playwright
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
@@ -145,45 +150,52 @@ jobs:
       with:
         db: sqlite
         shard: 2
+        workers: 1
     playwright-sqlite-3:
       needs: pre-build-for-playwright
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       uses: ./.github/workflows/playwright-test-workflow.yml
       with:
         db: sqlite
-        shard: 3 
+        shard: 3
+        workers: 1
     playwright-sqlite-4:
       needs: pre-build-for-playwright
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       uses: ./.github/workflows/playwright-test-workflow.yml
       with:
         db: sqlite
-        shard: 4                
+        shard: 4
+        workers: 1            
     playwright-pg-shard-1:
       needs: pre-build-for-playwright
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       uses: ./.github/workflows/playwright-test-workflow.yml
       with:
-        db: sqlite
+        db: pg
         shard: 1
+        workers: 4
     playwright-pg-shard-2:
       needs: pre-build-for-playwright
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       uses: ./.github/workflows/playwright-test-workflow.yml
       with:
-        db: sqlite
+        db: pg
         shard: 2
+        workers: 4
     playwright-pg-shard-3:
       needs: pre-build-for-playwright
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       uses: ./.github/workflows/playwright-test-workflow.yml
       with:
-        db: sqlite
-        shard: 3   
+        db: pg
+        shard: 3
+        workers: 4 
     playwright-pg-shard-4:
       needs: pre-build-for-playwright
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       uses: ./.github/workflows/playwright-test-workflow.yml
       with:
-        db: sqlite
-        shard: 4           
+        db: pg
+        shard: 4
+        workers: 4       

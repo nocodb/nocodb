@@ -125,6 +125,15 @@ onKeyDown('Escape', () => {
   isOverDropZone.value = false
 })
 
+onKeyDown(' ', (e) => {
+  if (!isForm.value) return
+  if (!e.target.closest('.nc-attachment-cell')) return
+  if (!isReadonly.value) {
+    e.preventDefault()
+    open()
+  }
+})
+
 /** sync storedFiles state with row state */
 watch(
   () => storedFiles.value.length || 0,

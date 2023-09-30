@@ -197,6 +197,9 @@ useSelectedCellKeyupListener(activeCell, (e) => {
       break
     // skip space bar key press since it's used for expand row
     case ' ':
+      e.preventDefault()
+      if (!isForm.value) break
+      isOpen.value = true
       break
     case 'ArrowUp':
     case 'ArrowDown':

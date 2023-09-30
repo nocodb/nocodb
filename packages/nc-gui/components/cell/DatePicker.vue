@@ -37,6 +37,8 @@ const isLockedMode = inject(IsLockedInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
@@ -182,6 +184,11 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
       break
     case ';':
       localState.value = dayjs(new Date())
+      break
+    case ' ':
+      if (!isForm.value) return
+      e.stopPropagation()
+      open.value = true
       break
   }
 })

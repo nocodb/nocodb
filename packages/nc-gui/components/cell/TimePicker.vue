@@ -32,6 +32,8 @@ const editable = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const column = inject(ColumnInj)!
 
 const isTimeInvalid = ref(false)
@@ -104,6 +106,11 @@ const placeholder = computed(() => {
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
+      e.stopPropagation()
+      open.value = true
+      break
+    case ' ':
+      if (!isForm.value) break
       e.stopPropagation()
       open.value = true
       break

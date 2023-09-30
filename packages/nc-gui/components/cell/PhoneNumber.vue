@@ -13,6 +13,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const { showNull } = useGlobal()
 
 const { t } = useI18n()
@@ -42,7 +44,8 @@ const validEmail = computed(() => vModel.value && isMobilePhone(vModel.value))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) =>
+  !isExpandedFormOpen.value && !isForm.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
 
 watch(
   () => editEnabled.value,

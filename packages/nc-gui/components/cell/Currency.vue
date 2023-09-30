@@ -18,6 +18,8 @@ const editEnabled = inject(EditModeInj)!
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const _vModel = useVModel(props, 'modelValue', emit)
 
 const vModel = computed({
@@ -57,7 +59,8 @@ const currency = computed(() => {
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) =>
+  !isExpandedFormOpen.value && !isForm.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
 
 const submitCurrency = () => {
   if (lastSaved.value !== vModel.value) {

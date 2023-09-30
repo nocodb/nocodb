@@ -31,6 +31,8 @@ const vModel = computed({
 })
 
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
+  e.preventDefault()
+  vModel.value = +e.key === +vModel.value ? 0 : +e.key
   if (/^\d$/.test(e.key)) {
     e.stopPropagation()
     vModel.value = +e.key === +vModel.value ? 0 : +e.key

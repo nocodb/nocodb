@@ -134,6 +134,10 @@ useSelectedCellKeyupListener(activeCell, (e) => {
       break
     // skip space bar key press since it's used for expand row
     case ' ':
+      if (!isForm.value) break
+      if (editAllowed.value && active.value && !isOpen.value) {
+        isOpen.value = true
+      }
       break
     default:
       if (!editAllowed.value) {
@@ -293,7 +297,6 @@ const selectedOpt = computed(() => {
       :disabled="readOnly || !editAllowed || isLockedMode"
       :show-arrow="hasEditRoles && !(readOnly || isLockedMode) && active && vModel === null"
       :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && active ? 'active' : ''}`"
-      :show-search="isOpen && active"
       @select="onSelect"
       @keydown="onKeydown($event)"
       @search="search"

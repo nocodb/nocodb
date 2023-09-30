@@ -7,6 +7,7 @@ import {
   ColumnInj,
   EditColumnInj,
   ReadonlyInj,
+  VNode,
   dateFormats,
   inject,
   isDrawerOrModalExist,
@@ -37,6 +38,8 @@ const readOnly = inject(ReadonlyInj, ref(false))
 const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
+
+const isForm = inject(IsFormInj, ref(false))
 
 const isLockedMode = inject(IsLockedInj, ref(false))
 
@@ -232,6 +235,10 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     case ';':
       localState.value = dayjs(new Date())
       break
+    case ' ':
+      if (!isForm.value) break
+      e.stopPropagation()
+      active.value = true
   }
 })
 
@@ -256,10 +263,13 @@ const clickHandler = () => {
 const isColDisabled = computed(() => {
   return isSystemColumn(column.value) || readOnly.value || (localState.value && isPk)
 })
+
+const focus = (el: VNodeRef) => !isForm.value && !isEditColumn.value && el?.focus()
 </script>
 
 <template>
   <a-date-picker
+    :ref="focus"
     v-model:value="localState"
     :disabled="isColDisabled"
     :show-time="true"

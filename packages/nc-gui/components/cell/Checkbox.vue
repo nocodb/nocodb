@@ -56,13 +56,8 @@ const vModel = computed<boolean | number>({
   set: (val: any) => emits('update:modelValue', isMssql(column?.value?.base_id) ? +val : val),
 })
 
-function onClick(force?: boolean, event?: MouseEvent) {
-  if (
-    (event?.target as HTMLElement)?.classList?.contains('nc-checkbox') ||
-    (event?.target as HTMLElement)?.closest('.nc-checkbox')
-  ) {
-    return
-  }
+function onClick(force?: boolean, event?: MouseEvent | KeyboardEvent) {
+  event?.preventDefault()
   if (!readOnly?.value && (force || active.value)) {
     vModel.value = !vModel.value
   }
@@ -73,6 +68,11 @@ useSelectedCellKeyupListener(active, (e) => {
     case 'Enter':
       onClick()
       e.stopPropagation()
+      break
+    case ' ':
+      if (!isForm?.value) break
+      e.preventDefault()
+      onClick()
       break
   }
 })
@@ -97,6 +97,8 @@ useSelectedCellKeyupListener(active, (e) => {
           :style="{
             color: checkboxMeta.color,
           }"
+          tabindex="0"
+          @keydown.space.stop="onClick(true, $event)"
         />
       </Transition>
     </div>

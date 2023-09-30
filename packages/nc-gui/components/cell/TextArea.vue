@@ -34,7 +34,10 @@ const vModel = useVModel(props, 'modelValue', emits, { defaultValue: '' })
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLTextAreaElement)?.focus()
+const isForm = inject(IsFormInj, ref(false))
+
+const focus: VNodeRef = (el) =>
+  !isExpandedFormOpen.value && !isForm.value && !isEditColumn.value && (el as HTMLTextAreaElement)?.focus()
 
 const height = computed(() => {
   if (!rowHeight.value) return 60
@@ -79,6 +82,7 @@ onClickOutside(inputWrapperRef, (e) => {
         :ref="focus"
         v-model="vModel"
         rows="4"
+        :cols="isForm ? 100 : 25"
         class="h-full w-full outline-none border-none"
         :class="`${editEnabled ? 'p-2' : ''}`"
         :style="{

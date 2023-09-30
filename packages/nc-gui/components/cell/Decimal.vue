@@ -25,6 +25,8 @@ const column = inject(ColumnInj, null)!
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const domRef = ref<HTMLElement>()
 
 const meta = computed(() => {
@@ -80,7 +82,8 @@ const onKeyDown = (e: any) => {
   }
 }
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) =>
+  !isExpandedFormOpen.value && !isForm.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
 
 watch(isExpandedFormOpen, () => {
   if (!isExpandedFormOpen.value) {

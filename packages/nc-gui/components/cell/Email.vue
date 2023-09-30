@@ -34,6 +34,8 @@ const localState = ref(value)
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const isEditColumn = inject(EditColumnInj, ref(false))
 
 const vModel = computed({
@@ -50,7 +52,8 @@ const validEmail = computed(() => vModel.value && validateEmail(vModel.value))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) =>
+  !isExpandedFormOpen.value && !isForm.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
 
 watch(
   () => editEnabled.value,

@@ -27,6 +27,8 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const editable = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
@@ -91,6 +93,11 @@ const placeholder = computed(() => {
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
+      e.stopPropagation()
+      open.value = true
+      break
+    case ' ':
+      if (!isForm.value) return
       e.stopPropagation()
       open.value = true
       break

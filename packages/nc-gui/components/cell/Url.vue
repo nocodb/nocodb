@@ -45,6 +45,8 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const vModel = computed({
   get: () => value,
   set: (val) => {
@@ -70,7 +72,8 @@ const { cellUrlOptions } = useCellUrlConfig(url)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) =>
+  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
 watch(
   () => editEnabled.value,

@@ -16,6 +16,8 @@ const editEnabled = inject(EditModeInj)
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const _vModel = useVModel(props, 'modelValue', emits)
 
 const vModel = computed({
@@ -31,7 +33,8 @@ const vModel = computed({
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) =>
+  !isExpandedFormOpen.value && !isForm.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>

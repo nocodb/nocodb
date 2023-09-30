@@ -1,10 +1,23 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
-import { IsFormInj, isImage, useAttachment } from '#imports'
+import {
+  type ComputedRef,
+  IsExpandedFormOpenInj,
+  IsFormInj,
+  IsPublicInj,
+  RowHeightInj,
+  computed,
+  inject,
+  isImage,
+  provide,
+  ref,
+  useAttachment,
+  useVModel,
+} from '#imports'
 import MaximizeIcon from '~icons/nc-icons/maximize'
 import LinkIcon from '~icons/nc-icons/link'
 
-const { row, fields, relatedTableDisplayValueProp, isLoading, isLinked, attachment } = defineProps<{
+const props = defineProps<{
   row: any
   fields: any[]
   attachment: any
@@ -12,13 +25,16 @@ const { row, fields, relatedTableDisplayValueProp, isLoading, isLinked, attachme
   isLoading: boolean
   isLinked: boolean
 }>()
+
 defineEmits(['expand'])
 
 provide(IsExpandedFormOpenInj, ref(true))
 
+provide(RowHeightInj, ref(1 as const))
+
 const isForm = inject(IsFormInj, ref(false))
 
-provide(RowHeightInj, ref(1 as const))
+const row = useVModel(props, 'row')
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -31,10 +47,12 @@ interface Attachment {
   mimetype: string
 }
 
-const attachments: Attachment[] = computed(() => {
+const attachments: ComputedRef<Attachment[]> = computed(() => {
   try {
-    if (attachment && row[attachment.title]) {
-      return typeof row[attachment.title] === 'string' ? JSON.parse(row[attachment.title]) : row[attachment.title]
+    if (props.attachment && row.value[props.attachment.title]) {
+      return typeof row.value[props.attachment.title] === 'string'
+        ? JSON.parse(row.value[props.attachment.title])
+        : row.value[props.attachment.title]
     }
     return []
   } catch (e) {
@@ -57,12 +75,12 @@ const attachments: Attachment[] = computed(() => {
     <div class="flex flex-row items-center justify-start w-full">
       <a-carousel v-if="attachment && attachments && attachments.length" autoplay class="!w-24 !h-24">
         <template #customPaging> </template>
-        <template v-for="(attachmen, index) in attachments">
+        <template v-for="(attachmentObj, index) in attachments">
           <LazyCellAttachmentImage
-            v-if="isImage(attachmen.title, attachmen.mimetype ?? attachmen.type)"
-            :key="`carousel-${attachmen.title}-${index}`"
+            v-if="isImage(attachmentObj.title, attachmentObj.mimetype ?? attachmentObj.type)"
+            :key="`carousel-${attachmentObj.title}-${index}`"
             class="!h-24 !w-24 object-cover !rounded-l-xl"
-            :srcs="getPossibleAttachmentSrc(attachmen)"
+            :srcs="getPossibleAttachmentSrc(attachmentObj)"
           />
         </template>
       </a-carousel>

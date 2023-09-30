@@ -31,8 +31,6 @@ const sources = ref<BaseType[]>([])
 
 const activeBaseId = ref('')
 
-const metadiffbases = ref<string[]>([])
-
 const clientType = ref<ClientType>(ClientType.MYSQL)
 
 const isReloading = ref(false)
@@ -55,28 +53,11 @@ async function loadBases(changed?: boolean) {
     if (baseList.list && baseList.list.length) {
       sources.value = baseList.list
     }
-
-    await loadMetaDiff()
   } catch (e) {
     console.error(e)
   } finally {
     vReload.value = false
     isReloading.value = false
-  }
-}
-
-async function loadMetaDiff() {
-  try {
-    metadiffbases.value = []
-
-    const metadiff = await $api.project.metaDiffGet(project.value.id as string)
-    for (const model of metadiff) {
-      if (model.detectedChanges?.length > 0) {
-        metadiffbases.value.push(model.base_id)
-      }
-    }
-  } catch (e) {
-    console.error(e)
   }
 }
 
@@ -362,11 +343,7 @@ const isEditBaseModalOpen = computed({
                       @click="baseAction(sources[0].id, DataSourcesSubTab.Metadata)"
                     >
                       <div class="flex items-center gap-2 text-gray-600">
-                        <a-tooltip v-if="metadiffbases.includes(sources[0].id)">
-                          <template #title>{{ $t('activity.outOfSync') }}</template>
-                          <GeneralIcon icon="warning" class="group-hover:text-accent text-primary" />
-                        </a-tooltip>
-                        <GeneralIcon v-else icon="sync" class="group-hover:text-accent" />
+                        <GeneralIcon icon="sync" class="group-hover:text-accent" />
                         {{ $t('tooltip.metaSync') }}
                       </div>
                     </a-button>
@@ -472,11 +449,7 @@ const isEditBaseModalOpen = computed({
                       @click="baseAction(base.id, DataSourcesSubTab.Metadata)"
                     >
                       <div class="flex items-center gap-2 text-gray-600">
-                        <a-tooltip v-if="metadiffbases.includes(base.id)">
-                          <template #title>{{ $t('activity.outOfSync') }}</template>
-                          <GeneralIcon icon="warning" class="group-hover:text-accent text-primary" />
-                        </a-tooltip>
-                        <GeneralIcon v-else icon="sync" class="group-hover:text-accent" />
+                        <GeneralIcon icon="sync" class="group-hover:text-accent" />
                         {{ $t('tooltip.metaSync') }}
                       </div>
                     </a-button>

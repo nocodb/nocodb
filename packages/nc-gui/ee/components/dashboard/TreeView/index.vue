@@ -28,7 +28,7 @@ const { isUIAllowed } = useRoles()
 
 const { addTab } = useTabs()
 
-const { $e, $jobs } = useNuxtApp()
+const { $e, $poller } = useNuxtApp()
 
 const router = useRouter()
 
@@ -123,20 +123,34 @@ const duplicateTable = async (table: TableType) => {
     'modelValue': isOpen,
     'table': table,
     'onOk': async (jobData: { id: string }) => {
-      $jobs.subscribe({ id: jobData.id }, undefined, async (status: string, data?: any) => {
-        if (status === JobStatus.COMPLETED) {
-          await loadTables()
-          refreshCommandPalette()
-          const newTable = tables.value.find((el) => el.id === data?.result?.id)
-          if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
+      $poller.subscribe(
+        { id: jobData.id },
+        async (data: {
+          id: string
+          status?: string
+          data?: {
+            error?: {
+              message: string
+            }
+            message?: string
+            result?: any
+          }
+        }) => {
+          if (data.status !== 'close') {
+            if (data.status === JobStatus.COMPLETED) {
+              await loadTables()
+              refreshCommandPalette()
+              const newTable = tables.value.find((el) => el.id === data.data?.result?.id)
+              if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
 
-          openTable(newTable!)
-        } else if (status === JobStatus.FAILED) {
-          message.error('Failed to duplicate table')
-          await loadTables()
-        }
-      })
-
+              openTable(newTable!)
+            } else if (status === JobStatus.FAILED) {
+              message.error('Failed to duplicate table')
+              await loadTables()
+            }
+          }
+        },
+      )
       $e('a:table:duplicate')
     },
     'onUpdate:modelValue': closeDialog,

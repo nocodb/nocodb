@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  HttpCode,
-  Param,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -31,28 +24,5 @@ export class MetaDiffsController {
       baseId,
       projectId,
     });
-  }
-
-  @Post('/api/v1/db/meta/projects/:projectId/meta-diff')
-  @HttpCode(200)
-  @Acl('metaDiffSync')
-  async metaDiffSync(@Param('projectId') projectId: string) {
-    await this.metaDiffsService.metaDiffSync({ projectId });
-    return { msg: 'The meta has been synchronized successfully' };
-  }
-
-  @Post('/api/v1/db/meta/projects/:projectId/meta-diff/:baseId')
-  @HttpCode(200)
-  @Acl('baseMetaDiffSync')
-  async baseMetaDiffSync(
-    @Param('projectId') projectId: string,
-    @Param('baseId') baseId: string,
-  ) {
-    await this.metaDiffsService.baseMetaDiffSync({
-      projectId,
-      baseId,
-    });
-
-    return { msg: 'The base meta has been synchronized successfully' };
   }
 }

@@ -446,30 +446,45 @@ const duplicateProject = (project: ProjectType) => {
   selectedProjectToDuplicate.value = project
   isDuplicateDlgOpen.value = true
 }
-const { $jobs } = useNuxtApp()
+const { $poller } = useNuxtApp()
 
 const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string }) => {
   await loadProjects('workspace')
 
-  $jobs.subscribe({ id: jobData.id }, undefined, async (status: string) => {
-    if (status === JobStatus.COMPLETED) {
-      await loadProjects('workspace')
-      const project = projects.value.get(jobData.project_id)
-
-      // open project after duplication
-      if (project) {
-        await navigateToProject({
-          workspaceId: project.fk_workspace_id,
-          projectId: project.id,
-          type: project.type,
-        })
+  $poller.subscribe(
+    { id: jobData.id },
+    async (data: {
+      id: string
+      status?: string
+      data?: {
+        error?: {
+          message: string
+        }
+        message?: string
+        result?: any
       }
-      refreshCommandPalette()
-    } else if (status === JobStatus.FAILED) {
-      message.error('Failed to duplicate project')
-      await loadProjects('workspace')
-    }
-  })
+    }) => {
+      if (data.status !== 'close') {
+        if (data.status === JobStatus.COMPLETED) {
+          await loadProjects('workspace')
+          const project = projects.value.get(jobData.project_id)
+
+          // open project after duplication
+          if (project) {
+            await navigateToProject({
+              workspaceId: project.fk_workspace_id,
+              projectId: project.id,
+              type: project.type,
+            })
+          }
+          refreshCommandPalette()
+        } else if (data.status === JobStatus.FAILED) {
+          message.error('Failed to duplicate project')
+          await loadProjects('workspace')
+        }
+      }
+    },
+  )
 
   $e('a:project:duplicate')
 }

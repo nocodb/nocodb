@@ -150,6 +150,7 @@ export enum CacheScope {
   USER_PROJECT = 'userProject',
   DASHBOARD_PROJECT_DB_PROJECT_LINKING = 'dashboardProjectDBProjectLinking',
   SINGLE_QUERY = 'singleQuery',
+  JOBS = 'nc_jobs',
 }
 
 export enum CacheGetType {

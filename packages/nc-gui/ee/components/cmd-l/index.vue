@@ -285,7 +285,7 @@ onMounted(() => {
     transition: color 0s ease 0s;
     width: 100%;
     font-size: 0.9em;
-    border-left: 2px solid transparent;
+    border-left: 4px solid transparent;
 
     &.selected {
       cursor: pointer;

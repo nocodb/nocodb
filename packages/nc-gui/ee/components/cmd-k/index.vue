@@ -496,35 +496,6 @@ defineExpose({
     color: rgb(165, 165, 165);
   }
 
-  .cmdk-breadcrumbs {
-    display: inline-flex;
-    overflow: hidden;
-    padding: 1em 4em 0px 1em;
-  }
-
-  .cmdk-breadcrumb-item {
-    background: #edf1f5;
-    text-align: center;
-    line-height: 1.2em;
-    border-radius: 0.25em;
-    border: 0px;
-    cursor: pointer;
-    padding: 0.1em 0.5em;
-    color: var(--cmdk-secondary-text-color);
-    margin-right: 0.5em;
-    outline: none;
-    font-size: 0.8em;
-  }
-
-  .cmdk-breadcrumb-item.is-active {
-    background: #edf1f5;
-  }
-
-  .cmdk-breadcrumb-item:hover,
-  .cmdk-breadcrumb-item.is-active:hover {
-    background: #c9cdd2;
-  }
-
   .cmdk-actions {
     max-height: 310px;
     margin: 0px;
@@ -552,12 +523,12 @@ defineExpose({
       transition: color 0s ease 0s;
       width: 100%;
       font-size: 0.9em;
-      border-left: 2px solid transparent;
+      border-left: 4px solid transparent;
 
       &.selected {
         cursor: pointer;
         background-color: rgb(248, 249, 251);
-        border-left: 2px solid var(--ant-primary-color);
+        border-left: 4px solid var(--ant-primary-color);
         outline: none;
       }
 

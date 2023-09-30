@@ -33,6 +33,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
   (updateModelValue: (data: string | Record<string, any>[]) => void) => {
     const isReadonly = inject(ReadonlyInj, ref(false))
 
+    const { t } = useI18n()
+
     const isPublic = inject(IsPublicInj, ref(false))
 
     const isForm = inject(IsFormInj, ref(false))
@@ -60,8 +62,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const { files, open } = useFileDialog()
 
     const { appInfo } = useGlobal()
-
-    const { t } = useI18n()
 
     const { getAttachmentSrc } = useAttachment()
 
@@ -140,8 +140,14 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         }
         // this prevent file with same names
         const isFileNameAlreadyExist = attachments.value.some((el) => el.title === file.name)
-        if (isFileNameAlreadyExist) return
-
+        if (isFileNameAlreadyExist) {
+          message.error(
+            t('labels.duplicateAttachment', {
+              filename: file.name,
+            }),
+          )
+          return
+        }
         files.push(file)
       }
 

@@ -186,8 +186,8 @@ const onDecode = async (scannedCodeValue: string) => {
                     </LazySmartsheetDivDataCell>
 
                     <div
-                      class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1"
-                      style="word-break: break-all"
+                      class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1 leading-[18px]"
+                      style="word-break: break-word"
                     >
                       <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
                         {{ error.$message }}

@@ -80,6 +80,7 @@ import PhTriangleFill from '~icons/ph/triangle-fill'
 import LcSend from '~icons/lucide/send'
 import NcCommentHere from '~icons/nc-icons/comment-here'
 import NcAddDataSource from '~icons/nc-icons/add-data-source'
+import NcDatabaseIcon from '~icons/nc-icons/database'
 
 // Roles
 import MaterialSymbolsManageAccountsOutline from '~icons/material-symbols/manage-accounts-outline'
@@ -414,6 +415,7 @@ export const iconMap = {
   heightExtra: NcIconsRowHeightExtraTall,
   databaseSearch: MdiDatabaseSearch,
   layers: NcLayers,
+  ncDatabase: NcDatabaseIcon,
   magic: PhSparkleFill,
   magic1: MdiMagicStaff,
   workspace: h('span', { class: 'material-symbols' }, 'dataset'),

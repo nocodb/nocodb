@@ -5,6 +5,8 @@ const { isMobileMode } = useGlobal()
 
 const { openedViewsTab, activeView } = storeToRefs(useViewsStore())
 
+const { project } = storeToRefs(useProject())
+
 const { activeTable } = storeToRefs(useTablesStore())
 </script>
 
@@ -12,13 +14,31 @@ const { activeTable } = storeToRefs(useTablesStore())
   <div
     class="flex flex-row font-medium items-center border-gray-50 mt-0.5"
     :class="{
-      'min-w-2/5 max-w-2/5': !isMobileMode && activeView?.type !== ViewTypes.KANBAN,
+      'min-w-37/100 max-w-37/100': !isMobileMode && activeView?.type !== ViewTypes.KANBAN,
       'min-w-1/4 max-w-1/4': !isMobileMode && activeView?.type === ViewTypes.KANBAN,
       'w-2/3 text-base ml-1.5': isMobileMode,
     }"
   >
+    <template v-if="!isMobileMode">
+      <NcTooltip class="ml-0.75">
+        <template #title>
+          {{ project?.title }}
+        </template>
+        <div class="flex flex-row items-center gap-x-1.5">
+          <GeneralProjectIcon
+            :meta="{ type: project?.type }"
+            class="!grayscale"
+            :style="{
+              filter: 'grayscale(100%)',
+            }"
+          />
+          <div class="text-gray-500">..</div>
+        </div>
+      </NcTooltip>
+      <div class="px-1.5 text-gray-500">/</div>
+    </template>
     <template v-if="!(isMobileMode && !activeView?.is_default)">
-      <LazyGeneralEmojiPicker :emoji="activeTable?.meta?.icon" readonly size="xsmall">
+      <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeTable?.meta?.icon" readonly size="xsmall">
         <template #default>
           <MdiTable
             class="min-w-5"
@@ -29,35 +49,61 @@ const { activeTable } = storeToRefs(useTablesStore())
           />
         </template>
       </LazyGeneralEmojiPicker>
-      <span
-        class="text-ellipsis nc-active-table-title overflow-hidden pl-1 text-gray-500"
+      <NcTooltip
+        class="truncate nc-active-table-title"
         :class="{
-          'text-gray-500': !isMobileMode,
-          'text-gray-700 max-w-1/2': isMobileMode,
+          'max-w-1/3': !isMobileMode,
+          'max-w-1/4': isMobileMode,
         }"
-        :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
       >
-        {{ activeTable?.title }}
-      </span>
+        <template #title>
+          {{ activeTable?.title }}
+        </template>
+        <span
+          class="text-ellipsis overflow-hidden text-gray-500"
+          :class="{
+            'text-gray-500': !isMobileMode,
+            'text-gray-700': isMobileMode,
+          }"
+          :style="{
+            wordBreak: 'keep-all',
+            whiteSpace: 'nowrap',
+            display: 'inline',
+          }"
+        >
+          {{ activeTable?.title }}
+        </span>
+      </NcTooltip>
     </template>
 
-    <div v-if="!isMobileMode" class="px-2 text-gray-300">/</div>
+    <div v-if="!isMobileMode" class="px-1 text-gray-500">/</div>
 
     <template v-if="!(isMobileMode && activeView?.is_default)">
-      <LazyGeneralEmojiPicker :emoji="activeView?.meta?.icon" readonly size="xsmall">
+      <!-- <LazyGeneralEmojiPicker :emoji="activeView?.meta?.icon" readonly size="xsmall">
         <template #default>
           <GeneralViewIcon :meta="{ type: activeView?.type }" class="min-w-4.5 text-lg flex" />
         </template>
-      </LazyGeneralEmojiPicker>
+      </LazyGeneralEmojiPicker> -->
 
-      <span
-        class="truncate nc-active-view-title pl-1.25 text-gray-700"
+      <NcTooltip
+        class="truncate nc-active-view-title"
         :class="{
-          'max-w-28/100': !isMobileMode,
+          'max-w-1/3': !isMobileMode,
+          'max-w-1/4': isMobileMode,
         }"
       >
-        {{ activeView?.is_default ? $t('title.defaultView') : activeView?.title }}
-      </span>
+        <template #title>
+          {{ activeView?.is_default ? $t('title.defaultView') : activeView?.title }}
+        </template>
+        <span
+          class="truncate pl-1.25 text-gray-800 font-medium"
+          :class="{
+            'max-w-28/100': !isMobileMode,
+          }"
+        >
+          {{ activeView?.is_default ? $t('title.defaultView') : activeView?.title }}
+        </span>
+      </NcTooltip>
     </template>
 
     <LazySmartsheetToolbarReload v-if="openedViewsTab === 'view' && !isMobileMode" />

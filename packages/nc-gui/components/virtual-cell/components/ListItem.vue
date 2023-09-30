@@ -35,7 +35,7 @@ interface Attachment {
 
 const attachments: ComputedRef<Attachment[]> = computed(() => {
   try {
-    if (props.attachment && props.attachment[props.attachment.title]) {
+    if (props.attachment && props.row[props.attachment.title]) {
       return typeof row.value[props.attachment.title] === 'string'
         ? JSON.parse(row.value[props.attachment.title])
         : row.value[props.attachment.title]

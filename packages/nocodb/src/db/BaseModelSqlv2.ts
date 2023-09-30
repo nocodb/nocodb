@@ -692,7 +692,7 @@ class BaseModelSqlv2 {
               );
               groupBySelectors.push(sanitize(column.title));
               break;
-            case UITypes.Formula:
+            case UITypes.Formula: {
               let selectQb;
               try {
                 const _selectQb = await this.getSelectQueryBuilderForFormula(
@@ -714,6 +714,7 @@ class BaseModelSqlv2 {
               selectors.push(selectQb);
               groupBySelectors.push(column.title);
               break;
+            }
             case UITypes.Lookup:
               {
                 const _selectQb = await generateBTLookupSelectQuery({

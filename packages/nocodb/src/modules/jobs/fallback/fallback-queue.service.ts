@@ -3,6 +3,7 @@ import PQueue from 'p-queue';
 import Emittery from 'emittery';
 import { DuplicateProcessor } from '../jobs/export-import/duplicate.processor';
 import { AtImportProcessor } from '../jobs/at-import/at-import.processor';
+import { MetaSyncProcessor } from '../jobs/meta-sync/meta-sync.processor';
 import { JobsEventService } from './jobs-event.service';
 import { JobStatus, JobTypes } from '~/interface/Jobs';
 
@@ -25,6 +26,7 @@ export class QueueService {
     private readonly jobsEventService: JobsEventService,
     private readonly duplicateProcessor: DuplicateProcessor,
     private readonly atImportProcessor: AtImportProcessor,
+    private readonly metaSyncProcessor: MetaSyncProcessor,
   ) {
     this.emitter.on(JobStatus.ACTIVE, (data: { job: Job }) => {
       const job = this.queueMemory.find((job) => job.id === data.job.id);
@@ -65,6 +67,10 @@ export class QueueService {
     [JobTypes.AtImport]: {
       this: this.atImportProcessor,
       fn: this.atImportProcessor.job,
+    },
+    [JobTypes.MetaSync]: {
+      this: this.metaSyncProcessor,
+      fn: this.metaSyncProcessor.job,
     },
   };
 

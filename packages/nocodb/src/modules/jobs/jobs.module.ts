@@ -1,11 +1,17 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
+
+// Jobs
 import { ExportService } from './jobs/export-import/export.service';
 import { ImportService } from './jobs/export-import/import.service';
 import { AtImportController } from './jobs/at-import/at-import.controller';
 import { AtImportProcessor } from './jobs/at-import/at-import.processor';
 import { DuplicateController } from './jobs/export-import/duplicate.controller';
 import { DuplicateProcessor } from './jobs/export-import/duplicate.processor';
+import { MetaSyncController } from './jobs/meta-sync/meta-sync.controller';
+import { MetaSyncProcessor } from './jobs/meta-sync/meta-sync.processor';
+
+// Jobs Module Related
 import { JobsLogService } from './jobs/jobs-log.service';
 import { JobsGateway } from './jobs.gateway';
 
@@ -41,7 +47,7 @@ import { GlobalModule } from '~/modules/global/global.module';
   ],
   controllers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true'
-      ? [DuplicateController, AtImportController]
+      ? [DuplicateController, AtImportController, MetaSyncController]
       : []),
   ],
   providers: [
@@ -60,6 +66,7 @@ import { GlobalModule } from '~/modules/global/global.module';
     ImportService,
     DuplicateProcessor,
     AtImportProcessor,
+    MetaSyncProcessor,
   ],
 })
 export class JobsModule {}

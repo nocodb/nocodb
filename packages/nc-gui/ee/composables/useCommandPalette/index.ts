@@ -9,6 +9,7 @@ interface CmdAction {
   handler?: Function
   icon?: VNode | string
   keywords?: string[]
+  projectName?: string
   section?: string
 }
 
@@ -27,7 +28,7 @@ export const useCommandPalette = createSharedComposable(() => {
 
   const cmdLoading = ref(false)
 
-  const cmdPlaceholder = ref('Search workspace, projects, tables, views & more...')
+  const cmdPlaceholder = ref('Search...')
 
   const commands = ref({
     homeCommands,

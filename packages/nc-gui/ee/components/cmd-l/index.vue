@@ -218,7 +218,7 @@ onMounted(() => {
                   {{ cmdOption.viewName }}
                 </div>
                 <div class="flex gap-2 bg-gray-100 px-2 py-1 rounded-md text-gray-600 items-center">
-                  <ProjectIcon class="w-3 h-3" />
+                  <ProjectIcon class="w-4 h-4" />
                   {{ cmdOption.projectName }}
                 </div>
               </div>

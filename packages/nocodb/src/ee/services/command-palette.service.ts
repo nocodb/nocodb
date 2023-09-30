@@ -111,6 +111,7 @@ export class CommandPaletteService {
               title: v._ptn,
               parent: `ws-${workspace.id}-tables`,
               icon: 'table',
+              projectName: projects.find((el) => el.id === v.project_id)?.title,
               section: projects.find((el) => el.id === v.project_id)?.title,
               handler: {
                 type: 'navigate',
@@ -123,6 +124,7 @@ export class CommandPaletteService {
             title: `${v.title}`,
             parent: `ws-${workspace.id}-views`,
             icon: viewTypeAlias[v.type] || 'table',
+            projectName: projects.find((el) => el.id === v.project_id)?.title,
             section: `${
               projects.find((el) => el.id === v.project_id)?.title
             } / ${v._ptn}`,

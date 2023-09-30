@@ -4,6 +4,7 @@ import { useMagicKeys, whenever } from '@vueuse/core'
 import { commandScore } from './command-score'
 import type { ComputedRef, VNode } from '#imports'
 import { iconMap, onClickOutside } from '#imports'
+import ProjectIcon from '~icons/nc-icons/project'
 
 interface CmdAction {
   id: string
@@ -306,17 +307,18 @@ defineExpose({
   <div v-show="vOpen" class="cmdk-modal" :class="{ 'cmdk-modal-active': vOpen }">
     <div ref="modalEl" class="cmdk-modal-content h-[25.25rem]">
       <div class="cmdk-header">
-        <div class="cmdk-breadcrumbs">
+        <div class="cmdk-input-wrapper">
+          <GeneralIcon icon="search" class="h-4 w-4 text-gray-500" />
           <div
             v-for="el of nestedScope"
             :key="`cmdk-breadcrumb-${el.id}`"
-            :class="`cmdk-breadcrumb-item${activeScope === el.id ? ' is-active' : ''}`"
+            class="text-gray-600 text-sm cursor-pointer font-medium"
             @click="setScope(el.id)"
           >
             {{ el.label }}
+
+            <span class="text-gray-400 text-sm font-medium pl-1">/</span>
           </div>
-        </div>
-        <div class="cmdk-input-wrapper">
           <input
             ref="cmdInputEl"
             v-model="cmdInput"
@@ -350,7 +352,7 @@ defineExpose({
                   @mouseenter="setAction(act.id)"
                   @click="fireAction(act)"
                 >
-                  <div class="cmdk-action-content">
+                  <div class="cmdk-action-content w-full">
                     <component
                       :is="(iconMap as any)[act.icon]"
                       v-if="act.icon && typeof act.icon === 'string' && (iconMap as any)[act.icon]"
@@ -363,7 +365,17 @@ defineExpose({
                       }"
                     />
                     <component :is="act.icon" v-else-if="act.icon" class="cmdk-action-icon" />
-                    {{ act.title }}
+                    <div class="flex-grow-1 w-full">
+                      {{ act.title }}
+                    </div>
+                    <div
+                      v-if="act.projectName"
+                      class="flex items-center gap-2 text-gray-600 font-medium bg-gray-100 px-1 rounded py-1"
+                    >
+                      <ProjectIcon class="w-4 h-4" />
+
+                      {{ act.projectName }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -381,7 +393,9 @@ defineExpose({
           <div class="flex flex-grow-1 text-brand-500 w-full text-sm items-center gap-2 justify-center">
             <MdiMapMarkerOutline class="h-4 w-4" />
             Quick Navigation
-            <span class="bg-brand-500 border-1 border-brand-500 text-sm text-white px-1 rounded-md"> {{ renderCmdOrCtrlKey() }} + K </span>
+            <span class="bg-brand-500 border-1 border-brand-500 text-sm text-white px-1 rounded-md">
+              {{ renderCmdOrCtrlKey() }} + K
+            </span>
           </div>
           <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
             <MdiClockOutline class="h-4 w-4" />
@@ -450,18 +464,17 @@ defineExpose({
   }
 
   .cmdk-input-wrapper {
-    display: flex;
+    @apply py-2 px-4 flex items-center gap-2;
     border-bottom: 1px solid rgb(230, 230, 230);
   }
 
   .cmdk-input {
-    padding: 1.25em;
+    @apply text-sm;
     flex-grow: 1;
     flex-shrink: 0;
     margin: 0px;
     border: none;
     appearance: none;
-    font-size: 1.125em;
     background: transparent;
     outline: none;
     box-shadow: var(--tw-ring-inset) 0 0 0 calc(0px + var(--tw-ring-offset-width)) var(--tw-ring-color) !important;
@@ -513,7 +526,7 @@ defineExpose({
   }
 
   .cmdk-actions {
-    max-height: 253px;
+    max-height: 310px;
     margin: 0px;
     padding: 0.5em 0px;
     list-style: none;

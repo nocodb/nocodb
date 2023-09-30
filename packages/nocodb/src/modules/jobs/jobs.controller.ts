@@ -10,23 +10,33 @@ import {
 } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { customAlphabet } from 'nanoid';
+import { ModuleRef } from '@nestjs/core';
 import { JobsRedisService } from './redis/jobs-redis.service';
+import type { OnModuleInit } from '@nestjs/common';
 import { JobStatus } from '~/interface/Jobs';
 import { JobEvents } from '~/interface/Jobs';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import NocoCache from '~/cache/NocoCache';
-import { CacheDelDirection, CacheGetType, CacheScope } from '~/utils/globals';
+import { CacheGetType, CacheScope } from '~/utils/globals';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const POLLING_INTERVAL = 30000;
 
 @Controller()
 @UseGuards(GlobalGuard)
-export class JobsController {
+export class JobsController implements OnModuleInit {
+  jobsRedisService: JobsRedisService;
+
   constructor(
     @Inject('JobsService') private readonly jobsService,
-    private readonly jobsRedisService: JobsRedisService,
+    private moduleRef: ModuleRef,
   ) {}
+
+  onModuleInit() {
+    if (process.env.NC_REDIS_JOB_URL) {
+      this.jobsRedisService = this.moduleRef.get(JobsRedisService);
+    }
+  }
 
   private jobRooms = {};
   private localJobs = {};
@@ -88,32 +98,36 @@ export class JobsController {
         listeners: [res],
       };
       // subscribe to job events
-      this.jobsRedisService.subscribe(jobId, (data) => {
-        if (this.jobRooms[jobId]) {
-          this.jobRooms[jobId].listeners.forEach((res) => {
-            if (!res.headersSent) {
-              res.send({
-                status: 'refresh',
-              });
-            }
-          });
-        }
+      if (this.jobsRedisService) {
+        this.jobsRedisService.subscribe(jobId, (data) => {
+          if (this.jobRooms[jobId]) {
+            this.jobRooms[jobId].listeners.forEach((res) => {
+              if (!res.headersSent) {
+                res.send({
+                  status: 'refresh',
+                });
+              }
+            });
+          }
 
-        const cmd = data.cmd;
-        delete data.cmd;
-        switch (cmd) {
-          case JobEvents.STATUS:
-            if ([JobStatus.COMPLETED, JobStatus.FAILED].includes(data.status)) {
-              this.jobsRedisService.unsubscribe(jobId);
-              delete this.jobRooms[jobId];
-              this.closedJobs.push(jobId);
-              setTimeout(() => {
-                this.closedJobs = this.closedJobs.filter((j) => j !== jobId);
-              }, POLLING_INTERVAL * 1.5);
-            }
-            break;
-        }
-      });
+          const cmd = data.cmd;
+          delete data.cmd;
+          switch (cmd) {
+            case JobEvents.STATUS:
+              if (
+                [JobStatus.COMPLETED, JobStatus.FAILED].includes(data.status)
+              ) {
+                this.jobsRedisService.unsubscribe(jobId);
+                delete this.jobRooms[jobId];
+                this.closedJobs.push(jobId);
+                setTimeout(() => {
+                  this.closedJobs = this.closedJobs.filter((j) => j !== jobId);
+                }, POLLING_INTERVAL * 1.5);
+              }
+              break;
+          }
+        });
+      }
     }
 
     res.on('close', () => {
@@ -203,7 +217,7 @@ export class JobsController {
       });
     }
 
-    if (process.env.NC_WORKER_CONTAINER === 'true') {
+    if (process.env.NC_WORKER_CONTAINER === 'true' && this.jobsRedisService) {
       this.jobsRedisService.publish(jobId, {
         cmd: JobEvents.STATUS,
         ...data,
@@ -219,7 +233,7 @@ export class JobsController {
       setTimeout(() => {
         delete this.jobRooms[jobId];
         delete this.localJobs[jobId];
-        NocoCache.deepDel(`jobs`, jobId, CacheDelDirection.CHILD_TO_PARENT);
+        NocoCache.del(`${CacheScope.JOBS}:${jobId}:messages`);
       }, POLLING_INTERVAL);
     }
   }
@@ -268,7 +282,7 @@ export class JobsController {
       });
     }
 
-    if (process.env.NC_WORKER_CONTAINER === 'true') {
+    if (process.env.NC_WORKER_CONTAINER === 'true' && this.jobsRedisService) {
       this.jobsRedisService.publish(jobId, {
         cmd: JobEvents.LOG,
         ...data,

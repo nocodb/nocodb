@@ -204,11 +204,6 @@ export class DashboardPage extends BasePage {
     await this.sidebar.userMenu.clickLogout();
     await this.rootPage.waitForTimeout(1000);
 
-    // To be Removed
-    // TODO: Remove this once the issue is fixed
-    // Logout is broken
-    await this.rootPage.reload();
-
     await this.rootPage.locator('[data-testid="nc-form-signin"]:visible').waitFor();
     await new Promise(resolve => setTimeout(resolve, 150));
   }

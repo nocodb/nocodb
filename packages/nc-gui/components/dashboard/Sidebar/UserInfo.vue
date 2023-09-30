@@ -26,7 +26,8 @@ const logout = async () => {
   try {
     await signOut(false)
 
-    await clearWorkspaces()
+    // No need as all stores are cleared on signout
+    // await clearWorkspaces()
 
     await navigateTo('/signin')
   } catch (e) {

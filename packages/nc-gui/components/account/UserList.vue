@@ -4,7 +4,7 @@ import type { OrgUserReqType, RequestParams, Roles, UserType } from 'nocodb-sdk'
 import type { User } from '#imports'
 import { extractSdkResponseErrorMsg, iconMap, useApi, useCopy, useDashboard, useNuxtApp } from '#imports'
 
-const { api, isLoading } = useApi()
+const { api } = useApi()
 
 const { $e } = useNuxtApp()
 

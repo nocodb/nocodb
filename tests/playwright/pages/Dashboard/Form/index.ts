@@ -105,6 +105,9 @@ export class FormPage extends BasePage {
   }
 
   async reorderFields({ sourceField, destinationField }: { sourceField: string; destinationField: string }) {
+    // TODO: Otherwise form input boxes are not visible sometimes
+    await this.rootPage.waitForTimeout(650);
+
     await expect(this.get().locator(`.nc-form-drag-${sourceField}`)).toBeVisible();
     await expect(this.get().locator(`.nc-form-drag-${destinationField}`)).toBeVisible();
     const src = this.get().locator(`.nc-form-drag-${sourceField.replace(' ', '')}`);
@@ -113,6 +116,9 @@ export class FormPage extends BasePage {
   }
 
   async removeField({ field, mode }: { mode: string; field: string }) {
+    // TODO: Otherwise form input boxes are not visible sometimes
+    await this.rootPage.waitForTimeout(650);
+
     if (mode === 'dragDrop') {
       const src = this.get().locator(`.nc-form-drag-${field.replace(' ', '')}`);
       const dst = this.get().locator(`[data-testid="nc-drag-n-drop-to-hide"]`);
@@ -124,6 +130,9 @@ export class FormPage extends BasePage {
   }
 
   async addField({ field, mode }: { mode: string; field: string }) {
+    // TODO: Otherwise form input boxes are not visible sometimes
+    await this.rootPage.waitForTimeout(650);
+
     if (mode === 'dragDrop') {
       const src = this.get().locator(`[data-testid="nc-form-hidden-column-${field}"] > div.ant-card-body`);
       const dst = this.get().locator(`[data-testid="nc-form-input-Country"]`);
@@ -140,6 +149,7 @@ export class FormPage extends BasePage {
   async removeAllFields() {
     // TODO: Otherwise form input boxes are not visible sometimes
     await this.rootPage.waitForTimeout(1000);
+
     await this.removeAllButton.click();
   }
 

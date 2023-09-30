@@ -10,6 +10,14 @@ require('dotenv').config();
  * See https://playwright.dev/docs/test-configuration.
  */
 
+let workers = process.env.CI ? 2 : 4;
+
+if (process.env.CI) {
+  if (process.env.E2E_DB_TYPE === 'sqlite') workers = 1;
+  if (process.env.E2E_DB_TYPE === 'mysql') workers = 4;
+  if (process.env.E2E_DB_TYPE === 'pg') workers = 4;
+}
+
 export default defineConfig({
   testDir: process.env.PW_QUICK_TEST ? './quickTests' : './tests',
   /* Maximum time one test can run for. */
@@ -29,8 +37,7 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 3 : 0,
   /* Opt out of parallel tests on CI. */
-  // workers: process.env.CI ? 2 : 4,
-  workers: process.env.CI ? 2 : 4,
+  workers: workers,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -38,7 +45,7 @@ export default defineConfig({
     // headless: !!process.env.CI,
     headless: true,
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
-    actionTimeout: process.env.E2E_DB_TYPE === 'sqlite' ? 12000 : 4000,
+    actionTimeout: 4000,
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://localhost:3000',
 

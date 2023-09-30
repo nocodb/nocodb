@@ -615,13 +615,13 @@ watch(
       <a-form-item class="flex justify-end !mt-5">
         <div class="flex justify-end gap-2">
           <NcButton
-            type="primary"
+            :type="testSuccess ? 'ghost' : 'primary'"
             size="small"
             class="nc-extdb-btn-test-connection !rounded-md"
             :loading="testingConnection"
             @click="testConnection"
           >
-            <GeneralIcon v-if="testSuccess" icon="circleCheck" class="mr-2" />
+            <GeneralIcon v-if="testSuccess" icon="circleCheck" class="text-primary mr-2" />
             {{ $t('activity.testDbConn') }}
           </NcButton>
 

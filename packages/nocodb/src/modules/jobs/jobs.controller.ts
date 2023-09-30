@@ -18,7 +18,7 @@ import NocoCache from '~/cache/NocoCache';
 import { CacheDelDirection, CacheGetType, CacheScope } from '~/utils/globals';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
-const POLLING_INTERVAL = 10000;
+const POLLING_INTERVAL = 30000;
 
 @Controller()
 @UseGuards(GlobalGuard)
@@ -109,7 +109,7 @@ export class JobsController {
               this.closedJobs.push(jobId);
               setTimeout(() => {
                 this.closedJobs = this.closedJobs.filter((j) => j !== jobId);
-              }, POLLING_INTERVAL * 2);
+              }, POLLING_INTERVAL * 1.5);
             }
             break;
         }
@@ -172,6 +172,12 @@ export class JobsController {
         _mid: this.localJobs[jobId].messages.length + 1,
       };
       this.localJobs[jobId].messages.push(response);
+
+      // limit to 20 messages
+      if (this.localJobs[jobId].messages.length > 20) {
+        this.localJobs[jobId].messages.shift();
+      }
+
       NocoCache.set(`${CacheScope.JOBS}:${jobId}:messages`, {
         messages: this.localJobs[jobId].messages,
       });
@@ -208,7 +214,7 @@ export class JobsController {
       this.closedJobs.push(jobId);
       setTimeout(() => {
         this.closedJobs = this.closedJobs.filter((j) => j !== jobId);
-      }, POLLING_INTERVAL * 2);
+      }, POLLING_INTERVAL * 1.5);
 
       setTimeout(() => {
         delete this.jobRooms[jobId];
@@ -231,6 +237,12 @@ export class JobsController {
         _mid: this.localJobs[jobId].messages.length + 1,
       };
       this.localJobs[jobId].messages.push(response);
+
+      // limit to 20 messages
+      if (this.localJobs[jobId].messages.length > 20) {
+        this.localJobs[jobId].messages.shift();
+      }
+
       NocoCache.set(`${CacheScope.JOBS}:${jobId}:messages`, {
         messages: this.localJobs[jobId].messages,
       });

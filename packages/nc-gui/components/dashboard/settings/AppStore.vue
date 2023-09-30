@@ -108,11 +108,11 @@ onMounted(async () => {
       </div>
     </a-modal>
 
-    <div class="flex sm:flex-col lg:flex-row flex-wrap mt-4 gap-4">
+    <div class="flex flex-col md:flex-row flex-wrap mt-4 w-full gap-5 mb-10">
       <a-card
         v-for="(app, i) in apps"
         :key="i"
-        class="sm:w-100 md:w-full lg:w-135"
+        class="sm:w-138.2"
         :class="`relative flex overflow-x-hidden app-item-card !shadow-sm rounded-md w-full nc-app-store-card-${app.title}`"
       >
         <div class="install-btn flex flex-row justify-end space-x-1">

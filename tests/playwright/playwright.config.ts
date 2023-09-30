@@ -14,8 +14,8 @@ let workers = process.env.CI ? 2 : 4;
 
 if (process.env.CI) {
   if (process.env.E2E_DB_TYPE === 'sqlite') workers = 1;
-  if (process.env.E2E_DB_TYPE === 'mysql') workers = 4;
-  if (process.env.E2E_DB_TYPE === 'pg') workers = 4;
+  if (process.env.E2E_DB_TYPE === 'mysql') workers = 3;
+  if (process.env.E2E_DB_TYPE === 'pg') workers = 3;
 }
 
 export default defineConfig({

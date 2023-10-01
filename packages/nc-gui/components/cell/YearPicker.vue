@@ -96,11 +96,6 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
       e.stopPropagation()
       open.value = true
       break
-    case ' ':
-      if (!isForm.value) return
-      e.stopPropagation()
-      open.value = true
-      break
     case 'Escape':
       if (open.value) {
         e.stopPropagation()
@@ -126,6 +121,12 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     @click="open = (active || editable) && !open"
     @change="open = (active || editable) && !open"
     @ok="open = !open"
+    @keydown.space.stop="
+      (e) => {
+        e.preventDefault()
+        open = (active || editable) && !open
+      }
+    "
   >
     <template #suffixIcon></template>
   </a-date-picker>

@@ -126,11 +126,12 @@ onKeyDown('Escape', () => {
 })
 
 onKeyDown(' ', (e) => {
-  if (!isForm.value) return
-  if (!e.target.closest('.nc-attachment-cell')) return
-  if (!isReadonly.value) {
-    e.preventDefault()
-    open()
+  if (isForm.value || isExpandedForm.value) {
+    if (!e.target.closest('.nc-attachment-cell')) return
+    if (!isReadonly.value) {
+      e.preventDefault()
+      open()
+    }
   }
 })
 
@@ -143,7 +144,7 @@ watch(
 )
 
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
-  if (e.key === 'Enter' && !isReadonly.value) {
+  if ((e.key === 'Enter' || e.key === ' ') && !isReadonly.value) {
     e.stopPropagation()
     if (!modalVisible.value) {
       modalVisible.value = true

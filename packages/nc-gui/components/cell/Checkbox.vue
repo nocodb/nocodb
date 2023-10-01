@@ -89,7 +89,12 @@ useSelectedCellKeyupListener(active, (e) => {
     }"
     @click="onClick(false, $event)"
   >
-    <div class="items-center py-2" :class="{ 'w-full justify-start': isEditColumnMenu || isGallery }" @click="onClick(true)">
+    <div
+      tabindex="0"
+      class="items-center py-2"
+      :class="{ 'w-full justify-start': isEditColumnMenu || isGallery }"
+      @keydown.space.stop="onClick(true, $event)"
+    >
       <Transition name="layout" mode="out-in" :duration="100">
         <component
           :is="getMdiIcon(vModel ? checkboxMeta.icon.checked : checkboxMeta.icon.unchecked)"
@@ -97,7 +102,6 @@ useSelectedCellKeyupListener(active, (e) => {
           :style="{
             color: checkboxMeta.color,
           }"
-          tabindex="0"
           @keydown.space.stop="onClick(true, $event)"
         />
       </Transition>

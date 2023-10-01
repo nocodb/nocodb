@@ -235,10 +235,6 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     case ';':
       localState.value = dayjs(new Date())
       break
-    case ' ':
-      if (!isForm.value) break
-      e.stopPropagation()
-      active.value = true
   }
 })
 
@@ -284,6 +280,12 @@ const focus = (el: VNodeRef) => !isForm.value && !isEditColumn.value && el?.focu
     :open="readOnly || (localState && isPk) || isLockedMode ? false : open && (active || editable)"
     @click="clickHandler"
     @ok="open = !open"
+    @keydown.space.stop="
+      (e) => {
+        e.preventDefault()
+        clickHandler()
+      }
+    "
   >
     <template #suffixIcon></template>
   </a-date-picker>

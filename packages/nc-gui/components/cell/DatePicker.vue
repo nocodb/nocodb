@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { onKeyDown } from '@vueuse/core'
 import {
   ActiveCellInj,
   CellClickHookInj,
@@ -185,11 +186,6 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     case ';':
       localState.value = dayjs(new Date())
       break
-    case ' ':
-      if (!isForm.value) return
-      e.stopPropagation()
-      open.value = true
-      break
   }
 })
 
@@ -199,7 +195,6 @@ const updateOpen = (next: boolean) => {
     open.value = false
   }
 }
-
 const cellClickHook = inject(CellClickHookInj, null)
 const cellClickHandler = () => {
   open.value = (active.value || editable.value) && !open.value
@@ -233,6 +228,12 @@ const clickHandler = () => {
     :open="((readOnly || (localState && isPk)) && !active && !editable) || isLockedMode ? false : open"
     @click="clickHandler"
     @update:open="updateOpen"
+    @keydown.space.stop="
+      (e) => {
+        e.preventDefault()
+        clickHandler()
+      }
+    "
   >
     <template #suffixIcon></template>
   </a-date-picker>

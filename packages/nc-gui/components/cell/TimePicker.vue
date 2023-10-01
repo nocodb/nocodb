@@ -109,11 +109,6 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
       e.stopPropagation()
       open.value = true
       break
-    case ' ':
-      if (!isForm.value) break
-      e.stopPropagation()
-      open.value = true
-      break
     case 'Escape':
       if (open.value) {
         e.stopPropagation()
@@ -140,6 +135,12 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :popup-class-name="`${randomClass} nc-picker-time ${open ? 'active' : ''}`"
     @click="open = (active || editable) && !open"
     @ok="open = !open"
+    @keydown.space.stop="
+      (e) => {
+        e.preventDefault()
+        open = (active || editable) && !open
+      }
+    "
   >
     <template #suffixIcon></template>
   </a-time-picker>

@@ -73,10 +73,6 @@ function resetError() {
   if (error.value) error.value = null
 }
 
-onMounted(async () => {
-  await clearWorkspaces()
-})
-
 // todo: move to utils
 // extract workspace id from url
 const subDomain = location.host?.split('.')[0]

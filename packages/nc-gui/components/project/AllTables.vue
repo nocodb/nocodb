@@ -84,8 +84,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
       <component :is="isDataSourceLimitReached ? NcTooltip : 'div'">
         <template #title>
           <div>
-            {{ $t('tooltip.reachedSourceLimit') }} <br />
-            {{ $t('tooltip.manageInDataSourcesTab') }}
+            {{ $t('tooltip.reachedSourceLimit') }}
           </div>
         </template>
         <div

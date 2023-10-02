@@ -567,7 +567,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="w-full h-full p-4">
+  <div class="w-full p-4">
     <div class="max-w-250 h-full w-full mx-auto">
       <div class="flex w-full justify-between py-2">
         <a-input v-model:value="searchQuery" class="!h-8 !px-1 !rounded-lg !w-72" placeholder="Search field">
@@ -609,8 +609,8 @@ onMounted(async () => {
           </NcButton>
         </div>
       </div>
-      <div class="flex flex-row h-full rounded-lg border-1 border-gray-200">
-        <div class="nc-scrollbar-md w-full h-full flex-grow-1">
+      <div class="flex flex-row rounded-lg border-1 border-gray-200">
+        <div class="nc-scrollbar-md w-full h-[calc(100vh-(var(--topbar-height)*3.85))] flex-grow-1">
           <Draggable v-model="fields" item-key="id" @change="onMove($event)">
             <template #item="{ element: field }">
               <div
@@ -797,7 +797,7 @@ onMounted(async () => {
           </Draggable>
         </div>
         <Transition v-if="!changingField" name="slide-fade">
-          <div class="border-gray-200 border-l-1 rounded-r-xl h-full">
+          <div class="border-gray-200 border-l-1 rounded-r-xl h-[calc(100vh-(var(--topbar-height)*3.85))]">
             <SmartsheetColumnEditOrAddProvider
               v-if="activeField"
               class="p-4 w-[25rem]"

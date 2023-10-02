@@ -363,7 +363,7 @@ useMenuCloseOnEsc(open)
                       .includes(field)
                   "
                   :key="field.id"
-                  class="px-2 py-2 flex flex-row items-center first:border-t-1 border-b-1 border-x-1 first:rounded-t-md last:rounded-b-md border-gray-200"
+                  class="px-2 py-2 flex flex-row items-center first:border-t-1 border-b-1 border-x-1 first:rounded-t-lg last:rounded-b-lg border-gray-200"
                   :data-testid="`nc-fields-menu-${field.title}`"
                   @click.stop
                 >
@@ -393,7 +393,7 @@ useMenuCloseOnEsc(open)
                 <div
                   v-if="gridDisplayValueField && filteredFieldList[0].title.toLowerCase().includes(filterQuery.toLowerCase())"
                   :key="`pv-${gridDisplayValueField.id}`"
-                  class="pl-7.5 pr-2.1 py-2 flex flex-row items-center border-1 rounded-t-lg border-gray-200"
+                  class="pl-7.5 pr-2.1 py-2 flex flex-row items-center border-1 border-gray-200"
                   :class="{
                     'rounded-t-lg': filteredFieldList.length > 1,
                     'rounded-lg': filteredFieldList.length === 1,

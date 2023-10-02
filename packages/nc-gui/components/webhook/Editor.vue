@@ -15,7 +15,7 @@ import {
   reactive,
   ref,
   useApi,
-  useGlobal,
+  // useGlobal,
   useI18n,
   useNuxtApp,
   watch,
@@ -35,7 +35,7 @@ const { $e } = useNuxtApp()
 
 const { api, isLoading: loading } = useApi()
 
-const { appInfo } = useGlobal()
+// const { appInfo } = useGlobal()
 
 const { hooks } = storeToRefs(useWebhooksStore())
 

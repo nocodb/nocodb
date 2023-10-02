@@ -134,6 +134,7 @@ const onCancel = () => {
             Cancel
           </NcButton>
           <NcButton
+            v-e="['c:workspace:settings:rename']"
             type="primary"
             html-type="submit"
             :disabled="isErrored || (form.title && form.title === activeWorkspace.title)"
@@ -154,7 +155,7 @@ const onCancel = () => {
         <div class="font-sm text-normal font-medium ml-3">This action is irreversible</div>
       </div>
       <div class="flex flex-row w-full justify-end mt-8">
-        <NcButton type="danger" @click="handleDelete"> Delete Workspace </NcButton>
+        <NcButton v-e="['c:workspace:settings:delete']" type="danger" @click="handleDelete"> Delete Workspace </NcButton>
       </div>
     </div>
   </div>
@@ -178,6 +179,7 @@ const onCancel = () => {
           <NcButton html-type="back" type="secondary" @click="isDeleteModalVisible = false">{{ $t('general.cancel') }} </NcButton>
           <NcButton
             key="submit"
+            v-e="['a:workspace:settings:delete']"
             html-type="submit"
             type="danger"
             :disabled="form.modalInput !== activeWorkspace.title"

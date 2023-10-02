@@ -54,6 +54,7 @@ onMounted(async () => {
         <div class="flex text-xl font-medium">Upgrade your workspace</div>
 
         <NcButton
+          v-e="['c:workspace:settings:upgrade']"
           type="primary"
           size="large"
           class="!rounded-md !w-[98px] !h-[40px]"

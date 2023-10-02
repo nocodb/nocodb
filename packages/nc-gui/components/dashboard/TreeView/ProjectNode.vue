@@ -410,7 +410,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
             />
           </NcButton>
 
-          <div class="flex items-center mr-1" @click="onProjectClick(project)">
+          <div v-e="['c:base:open']" class="flex items-center mr-1" @click="onProjectClick(project)">
             <div class="flex items-center select-none w-6 h-full">
               <a-spin
                 v-if="project.isLoading"

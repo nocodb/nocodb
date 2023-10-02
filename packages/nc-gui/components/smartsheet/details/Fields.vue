@@ -347,10 +347,12 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
   const order = calculateOrderForIndex(_event.moved.newIndex, _event.moved.newIndex < _event.moved.oldIndex)
 
   const op = ops.value.find((op) => compareCols(op.column, field))
-
   if (op?.op === 'update') {
-    message.warning('You cannot move field that is being edited. Either save or discard changes first')
-    return
+    const diffs = diff(op.column, field)
+    if (!(Object.keys(diffs).length === 1 && 'column_order' in diffs)) {
+      message.warning('You cannot move field that is being edited. Either save or discard changes first')
+      return
+    }
   }
 
   if (op?.op === 'delete') {
@@ -393,7 +395,6 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
 const isColumnValid = (column: TableExplorerColumn) => {
   const isDeleteOp = ops.value.find((op) => compareCols(column, op.column) && op.op === 'delete')
   const isNew = ops.value.find((op) => compareCols(column, op.column) && op.op === 'add')
-  console.log(isNew)
   if (isDeleteOp) return true
   if (!column.title) {
     return false
@@ -505,17 +506,18 @@ const saveChanges = async () => {
       }
     }
 
-    const res = await $api.dbTableColumn.bulk(meta.value?.id, {
-      hash: columnsHash.value,
-      ops: ops.value,
-    })
-
     for (const op of visibilityOps.value) {
       await toggleFieldVisibility(op.visible, {
         ...op.column,
         show: op.visible,
       })
     }
+
+    const res = await $api.dbTableColumn.bulk(meta.value?.id, {
+      hash: columnsHash.value,
+      ops: ops.value,
+    })
+
     await loadViewColumns()
 
     if (res) {

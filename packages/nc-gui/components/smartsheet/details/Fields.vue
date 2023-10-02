@@ -88,7 +88,7 @@ const getFieldOrder = (field?: TableExplorerColumn) => {
 
 const fields = computed<TableExplorerColumn[]>({
   get: () => {
-    const x = (meta.value?.columns as ColumnType[])
+    const x = ((meta.value?.columns as ColumnType[]) ?? [])
       .filter((field) => !field.fk_column_id && !isSystemColumn(field))
       .concat(newFields.value)
       .sort((a, b) => {
@@ -614,12 +614,12 @@ onMounted(async () => {
         </div>
       </div>
       <div class="flex flex-row rounded-lg border-1 border-gray-200">
-        <div class="nc-scrollbar-md !overflow-auto w-full h-[calc(100vh-(var(--topbar-height)*3.85))] flex-grow-1">
+        <div class="nc-scrollbar-md !overflow-auto w-full flex-grow-1 nc-fields-height">
           <Draggable v-model="fields" item-key="id" @change="onMove($event)">
             <template #item="{ element: field }">
               <div
                 v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"
-                class="flex px-2 hover:bg-gray-100 first:rounded-t-lg border-b-1 border-gray-200 pl-5 group"
+                class="flex px-2 hover:bg-gray-100 first:rounded-t-lg border-b-1 last:rounded-b-none border-gray-200 pl-5 group"
                 :class="` ${compareCols(field, activeField) ? 'selected' : ''}`"
                 @click="changeField(field, $event)"
               >
@@ -861,5 +861,9 @@ onMounted(async () => {
 }
 .slide-fade-leave-to {
   opacity: 0;
+}
+
+.nc-fields-height {
+  height: calc(100vh - (var(--topbar-height) * 3.6));
 }
 </style>

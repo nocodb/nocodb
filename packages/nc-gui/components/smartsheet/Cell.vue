@@ -203,7 +203,7 @@ onUnmounted(() => {
       {
         'text-brand-500': isPrimary(column) && !props.virtual && !isForm,
         'nc-grid-numeric-cell-right': isGrid && isNumericField && !isEditColumnMenu && !isForm && !isExpandedFormOpen,
-        'h-[40px]': !props.editEnabled && isForm && !isSurveyForm && !isAttachment(column) && !props.virtual,
+        'h-[40px]': isForm && !isSurveyForm && !isAttachment(column) && !props.virtual,
         'nc-grid-numeric-cell-left': (isForm && isNumericField && isExpandedFormOpen) || isEditColumnMenu,
       },
     ]"

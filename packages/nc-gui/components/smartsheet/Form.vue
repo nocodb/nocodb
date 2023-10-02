@@ -552,8 +552,8 @@ watch(view, (nextView) => {
                     class="w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
                     :style="{
                       'borderRightWidth': '0px !important',
-                      'height': '54px',
-                      'min-height': '54px',
+                      'height': '70px',
+                      'max-height': '250px',
                       'resize': 'vertical',
                     }"
                     size="large"
@@ -768,7 +768,7 @@ watch(view, (nextView) => {
                       </LazySmartsheetDivDataCell>
                     </a-form-item>
 
-                    <div class="nc-form-help-text text-gray-500 text-xs" data-testid="nc-form-input-help-text-label">
+                    <div class="nc-form-help-text text-gray-500 text-xs truncate" data-testid="nc-form-input-help-text-label">
                       {{ element.description }}
                     </div>
                   </div>

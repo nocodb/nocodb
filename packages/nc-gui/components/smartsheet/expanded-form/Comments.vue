@@ -163,7 +163,8 @@ const processedAudit = (log: string) => {
               <div class="flex flex-col p-4 gap-3">
                 <div class="flex justify-between">
                   <div class="flex items-center gap-2">
-                    <GeneralUserIcon size="base" :name="log.display_name ?? log.user" :user="log" />
+                    <GeneralUserIcon size="base" :name="log.display_name ?? log.user" :comment-owner="log.user" />
+
                     <div class="flex flex-col">
                       <span class="truncate font-bold max-w-42">
                         {{ log.display_name ?? log.user.split('@')[0] ?? 'Shared base' }}

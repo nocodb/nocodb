@@ -1,14 +1,27 @@
 <script lang="ts" setup>
-import type { UserType } from 'nocodb-sdk'
-const props = defineProps<{
-  size?: 'small' | 'medium' | 'base' | 'large' | 'xlarge'
-  name?: string
-  user: UserType
-}>()
+const props = withDefaults(
+  defineProps<{
+    size?: 'small' | 'medium' | 'base' | 'large' | 'xlarge'
+    name?: string
+    commentOwner?: string
+  }>(),
+  {
+    commentOwner: '',
+  },
+)
 
-const user = toRef(props, 'user')
+const { user } = useGlobal()
 
-const backgroundColor = computed(() => (user.value?.id ? stringToColour(user.value?.id) : '#FFFFFF'))
+const commentOwner = toRef(props, 'commentOwner')
+
+const backgroundColor = computed(() => {
+  // in comments we need to generate user icon from email
+  if (commentOwner.value.length) {
+    return stringToColour(commentOwner.value)
+  }
+
+  return user.value?.email ? stringToColour(user.value?.email) : '#FFFFFF'
+})
 
 const size = computed(() => props.size || 'medium')
 

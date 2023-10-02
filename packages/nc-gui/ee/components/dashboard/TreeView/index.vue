@@ -75,7 +75,7 @@ const setMenuContext = (type: 'project' | 'base' | 'table' | 'main' | 'layout', 
 function openRenameTableDialog(table: TableType, rightClick = false) {
   if (!table || !table.base_id) return
 
-  $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
+  $e('c:table:rename')
 
   const isOpen = ref(true)
 
@@ -118,6 +118,8 @@ const duplicateTable = async (table: TableType) => {
   if (!table || !table.id || !table.project_id) return
 
   const isOpen = ref(true)
+
+  $e('c:table:duplicate')
 
   const { close } = useDialog(resolveComponent('DlgTableDuplicate'), {
     'modelValue': isOpen,

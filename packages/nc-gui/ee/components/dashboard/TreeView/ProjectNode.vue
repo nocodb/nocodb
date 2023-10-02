@@ -204,8 +204,6 @@ const setIcon = async (icon: string, project: ProjectType) => {
 }
 
 function openTableCreateDialog(baseIndex?: number | undefined) {
-  $e('c:table:create:navdraw')
-
   const isOpen = ref(true)
   let baseId = project.value!.bases?.[0].id
   if (typeof baseIndex === 'number') {
@@ -287,6 +285,8 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
   if (!project) {
     return
   }
+
+  if (!toggleIsExpanded) $e('c:base:open')
 
   ignoreNavigation = isMobileMode.value || ignoreNavigation
   toggleIsExpanded = isMobileMode.value || toggleIsExpanded
@@ -479,6 +479,16 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
   $e('a:project:duplicate')
 }
+
+const tableDelete = () => {
+  isTableDeleteDialogVisible.value = true
+  $e('c:table:delete')
+}
+
+const projectDelete = () => {
+  isProjectDeleteDialogVisible.value = true
+  $e('c:project:delete')
+}
 </script>
 
 <template>
@@ -591,11 +601,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                     {{ $t('general.rename') }}
                   </NcMenuItem>
 
-                  <NcMenuItem
-                    v-e="['a:base:star']"
-                    data-testid="nc-sidebar-project-starred"
-                    @click="() => toggleStarred(project.id)"
-                  >
+                  <NcMenuItem data-testid="nc-sidebar-project-starred" @click="() => toggleStarred(project.id)">
                     <GeneralIcon v-if="project.starred" icon="unStar" class="group-hover:text-black" />
                     <GeneralIcon v-else icon="star" class="group-hover:text-black" />
                     <div class="ml-0.25">
@@ -621,9 +627,13 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   <!-- ERD View -->
                   <NcMenuItem
                     key="erd"
-                    v-e="['c:base:erd']"
                     data-testid="nc-sidebar-project-relations"
-                    @click="openProjectErdView(project)"
+                    @click="
+                      () => {
+                        $e('c:base:erd')
+                        openProjectErdView(project)
+                      }
+                    "
                   >
                     <GeneralIcon icon="erd" />
                     Relations
@@ -634,10 +644,14 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                 <NcMenuItem
                   v-if="isUIAllowed('apiDocs')"
                   key="api"
-                  v-e="['c:base:api-docs']"
                   class="group"
                   data-testid="nc-sidebar-project-rest-apis"
-                  @click.stop="openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)"
+                  @click.stop="
+                    () => {
+                      $e('c:base:api-docs')
+                      openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)
+                    }
+                  "
                 >
                   <GeneralIcon icon="snippet" class="group-hover:text-black !max-w-3.9" />
                   {{ $t('labels.restApis') }}
@@ -665,10 +679,9 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
                 <NcMenuItem
                   v-if="isUIAllowed('projectDelete', { roles: [project.workspace_role, project.project_role].join() })"
-                  v-e="['c:base:delete']"
                   class="!text-red-500 !hover:bg-red-50"
                   data-testid="nc-sidebar-project-delete"
-                  @click="isProjectDeleteDialogVisible = true"
+                  @click="projectDelete"
                 >
                   <GeneralIcon icon="delete" class="w-4" />
                   <div>
@@ -891,7 +904,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
             </div>
           </NcMenuItem>
 
-          <NcMenuItem v-if="isUIAllowed('tableDelete')" v-e="['c:table:delete']" @click="isTableDeleteDialogVisible = true">
+          <NcMenuItem v-if="isUIAllowed('tableDelete')" @click="tableDelete">
             <div class="nc-project-option-item text-red-600">
               <GeneralIcon icon="delete" />
               {{ $t('general.delete') }}

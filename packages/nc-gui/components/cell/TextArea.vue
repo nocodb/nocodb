@@ -28,6 +28,8 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref(1 as const))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const { showNull } = useGlobal()
 
 const vModel = useVModel(props, 'modelValue', emits, { defaultValue: '' })
@@ -68,10 +70,11 @@ onClickOutside(inputWrapperRef, (e) => {
 <template>
   <NcDropdown v-model:visible="isVisible" class="overflow-visible" :trigger="[]" placement="bottomLeft">
     <div
-      class="flex flex-row pt-0.5"
+      class="flex flex-row pt-0.5 w-full"
       :class="{
         'min-h-10': rowHeight !== 1,
         'min-h-6.5': rowHeight === 1,
+        'h-full': isForm,
       }"
     >
       <textarea
@@ -80,7 +83,10 @@ onClickOutside(inputWrapperRef, (e) => {
         v-model="vModel"
         rows="4"
         class="h-full w-full outline-none border-none"
-        :class="`${editEnabled ? 'p-2' : ''}`"
+        :class="{
+          'p-2': editEnabled,
+          'py-1 h-full': isForm,
+        }"
         :style="{
           minHeight: `${height}px`,
         }"

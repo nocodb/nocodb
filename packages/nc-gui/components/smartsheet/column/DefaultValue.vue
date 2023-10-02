@@ -49,7 +49,7 @@ useProvideSmartsheetRowStore(vModel, rowRef)
   <div class="!my-3 text-xs">{{ $t('placeholder.defaultValue') }}</div>
   <div class="flex flex-row gap-2">
     <div class="border-1 flex items-center w-full px-3 my-[-4px] border-gray-300 rounded-md">
-      <LazySmartsheetCell :column="vModel" :model-value="cdfValue" :edit-enabled="true" />
+      <LazySmartsheetCell :column="vModel" :model-value="cdfValue" :edit-enabled="true" class="!border-none" />
       <component
         :is="iconMap.close"
         v-if="vModel.uidt !== UITypes.Year"

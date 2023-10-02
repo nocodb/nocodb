@@ -9,7 +9,6 @@ import {
   populateSamplePayloadV2,
 } from '~/helpers/populateSamplePayload';
 import { invokeWebhook } from '~/helpers/webhookHelpers';
-import Noco from '~/Noco';
 import { Hook, HookLog, Model } from '~/models';
 
 @Injectable()

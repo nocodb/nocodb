@@ -1,0 +1,61 @@
+{
+  "unversionedId": "table-operations/search",
+  "id": "table-operations/search",
+  "title": "Search",
+  "description": "NocoDB offers a quick search feature that allows you to search for records by field from the toolbar menu. This feature is useful when working with large datasets and can be used in conjunction with the Filter feature to further refine your search results.",
+  "source": "@site/docs/060.table-operations/070.search.md",
+  "sourceDirName": "060.table-operations",
+  "slug": "/table-operations/search",
+  "permalink": "/table-operations/search",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.table-operations/070.search.md",
+  "tags": [
+    {
+      "label": "Table operations",
+      "permalink": "/tags/table-operations"
+    },
+    {
+      "label": "Search",
+      "permalink": "/tags/search"
+    },
+    {
+      "label": "Gallery View",
+      "permalink": "/tags/gallery-view"
+    },
+    {
+      "label": "Kanban View",
+      "permalink": "/tags/kanban-view"
+    },
+    {
+      "label": "Grid View",
+      "permalink": "/tags/grid-view"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 70,
+  "frontMatter": {
+    "title": "Search",
+    "tags": [
+      "Table operations",
+      "Search",
+      "Gallery View",
+      "Kanban View",
+      "Grid View"
+    ],
+    "keywords": [
+      "NocoDB table search",
+      "search table",
+      "search records",
+      "search"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Row height",
+    "permalink": "/table-operations/row-height"
+  },
+  "next": {
+    "title": "Download",
+    "permalink": "/table-operations/download"
+  }
+}

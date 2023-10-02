@@ -1,0 +1,50 @@
+{
+  "unversionedId": "fields/field-types/text-based/email",
+  "id": "fields/field-types/text-based/email",
+  "title": "Email",
+  "description": "Email field is text based field custom-built for storing E-mail IDs. It is a special type of Single line text field with",
+  "source": "@site/docs/070.fields/040.field-types/010.text-based/030.email.md",
+  "sourceDirName": "070.fields/040.field-types/010.text-based",
+  "slug": "/fields/field-types/text-based/email",
+  "permalink": "/fields/field-types/text-based/email",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.fields/040.field-types/010.text-based/030.email.md",
+  "tags": [
+    {
+      "label": "Fields",
+      "permalink": "/tags/fields"
+    },
+    {
+      "label": "Field types",
+      "permalink": "/tags/field-types"
+    },
+    {
+      "label": "Text based types",
+      "permalink": "/tags/text-based-types"
+    },
+    {
+      "label": "Email",
+      "permalink": "/tags/email"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 30,
+  "frontMatter": {
+    "title": "Email",
+    "tags": [
+      "Fields",
+      "Field types",
+      "Text based types",
+      "Email"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Long text",
+    "permalink": "/fields/field-types/text-based/long-text"
+  },
+  "next": {
+    "title": "Phone Number",
+    "permalink": "/fields/field-types/text-based/phonenumber"
+  }
+}

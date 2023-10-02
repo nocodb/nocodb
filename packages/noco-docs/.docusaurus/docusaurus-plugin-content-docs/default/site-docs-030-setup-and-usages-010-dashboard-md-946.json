@@ -1,0 +1,28 @@
+{
+  "unversionedId": "setup-and-usages/dashboard",
+  "id": "setup-and-usages/dashboard",
+  "title": "Dashboard",
+  "description": "Accessing the Dashboard!",
+  "source": "@site/docs/030.setup-and-usages/010.dashboard.md",
+  "sourceDirName": "030.setup-and-usages",
+  "slug": "/setup-and-usages/dashboard",
+  "permalink": "/setup-and-usages/dashboard",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/030.setup-and-usages/010.dashboard.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Dashboard",
+    "description": "Accessing the Dashboard!"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Upgrading",
+    "permalink": "/getting-started/upgrading"
+  },
+  "next": {
+    "title": "Table Operations",
+    "permalink": "/setup-and-usages/table-operations"
+  }
+}

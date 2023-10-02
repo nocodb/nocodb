@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/QR-code",
+  "id": "fields/field-types/QR-code",
+  "title": "QR code",
+  "description": "",
+  "source": "@site/docs/060.fields/030.field-types/300.QR-code.md",
+  "sourceDirName": "060.fields/030.field-types",
+  "slug": "/fields/field-types/QR-code",
+  "permalink": "/fields/field-types/QR-code",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/300.QR-code.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 300,
+  "frontMatter": {
+    "title": "QR code"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Duration",
+    "permalink": "/fields/field-types/date-time-based/duration"
+  },
+  "next": {
+    "title": "Barcode",
+    "permalink": "/fields/field-types/barcode"
+  }
+}

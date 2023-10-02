@@ -1,0 +1,68 @@
+{
+  "unversionedId": "tables/import-data-into-existing-table",
+  "id": "tables/import-data-into-existing-table",
+  "title": "Import data into an existing table",
+  "description": "Learn how to import data into an existing table in NocoDB.",
+  "source": "@site/docs/050.tables/040.import-data-into-existing-table.md",
+  "sourceDirName": "050.tables",
+  "slug": "/tables/import-data-into-existing-table",
+  "permalink": "/tables/import-data-into-existing-table",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/050.tables/040.import-data-into-existing-table.md",
+  "tags": [
+    {
+      "label": "Tables",
+      "permalink": "/tags/tables"
+    },
+    {
+      "label": "Import",
+      "permalink": "/tags/import"
+    },
+    {
+      "label": "CSV",
+      "permalink": "/tags/csv"
+    },
+    {
+      "label": "Excel",
+      "permalink": "/tags/excel"
+    },
+    {
+      "label": "XLSX",
+      "permalink": "/tags/xlsx"
+    },
+    {
+      "label": "JSON",
+      "permalink": "/tags/json"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 40,
+  "frontMatter": {
+    "title": "Import data into an existing table",
+    "description": "Learn how to import data into an existing table in NocoDB.",
+    "tags": [
+      "Tables",
+      "Import",
+      "CSV",
+      "Excel",
+      "XLSX",
+      "JSON"
+    ],
+    "keywords": [
+      "NocoDB table",
+      "import data into table",
+      "import data from csv",
+      "import data from excel",
+      "import data from xlsx"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Create table via import",
+    "permalink": "/tables/create-table-via-import"
+  },
+  "next": {
+    "title": "Actions on table",
+    "permalink": "/tables/actions-on-table"
+  }
+}

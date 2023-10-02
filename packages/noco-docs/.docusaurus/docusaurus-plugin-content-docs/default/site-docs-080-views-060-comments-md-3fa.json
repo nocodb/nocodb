@@ -1,0 +1,25 @@
+{
+  "unversionedId": "views/comments",
+  "id": "views/comments",
+  "title": "comments",
+  "description": "",
+  "source": "@site/docs/080.views/060.comments.md",
+  "sourceDirName": "080.views",
+  "slug": "/views/comments",
+  "permalink": "/views/comments",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/080.views/060.comments.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 60,
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "delete",
+    "permalink": "/views/delete"
+  },
+  "next": {
+    "title": "configurations",
+    "permalink": "/views/configurations"
+  }
+}

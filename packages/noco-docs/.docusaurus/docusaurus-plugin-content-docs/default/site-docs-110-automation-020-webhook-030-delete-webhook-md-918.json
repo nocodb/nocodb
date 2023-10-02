@@ -1,0 +1,27 @@
+{
+  "unversionedId": "automation/webhook/delete-webhook",
+  "id": "automation/webhook/delete-webhook",
+  "title": "Delete webhook",
+  "description": "",
+  "source": "@site/docs/110.automation/020.webhook/030.delete-webhook.md",
+  "sourceDirName": "110.automation/020.webhook",
+  "slug": "/automation/webhook/delete-webhook",
+  "permalink": "/automation/webhook/delete-webhook",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/110.automation/020.webhook/030.delete-webhook.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 30,
+  "frontMatter": {
+    "title": "Delete webhook"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Create webhook",
+    "permalink": "/automation/webhook/create-webhook"
+  },
+  "next": {
+    "title": "Actions on webhook",
+    "permalink": "/automation/webhook/actions-on-webhook"
+  }
+}

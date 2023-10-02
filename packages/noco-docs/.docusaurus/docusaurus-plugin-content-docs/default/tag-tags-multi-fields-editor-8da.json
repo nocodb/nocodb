@@ -1,0 +1,14 @@
+{
+  "label": "Multi-fields editor",
+  "permalink": "/tags/multi-fields-editor",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "fields/multi-fields-editor",
+      "title": "Multi-field editor",
+      "description": "Understanding use of multi-field editor in NocoDB!",
+      "permalink": "/fields/multi-fields-editor"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/custom-types/geometry",
+  "id": "fields/field-types/custom-types/geometry",
+  "title": "Geometry",
+  "description": "Create a geometry field",
+  "source": "@site/docs/070.fields/030.field-types/050.custom-types/060.geometry.md",
+  "sourceDirName": "070.fields/030.field-types/050.custom-types",
+  "slug": "/fields/field-types/custom-types/geometry",
+  "permalink": "/fields/field-types/custom-types/geometry",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.fields/030.field-types/050.custom-types/060.geometry.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 60,
+  "frontMatter": {
+    "title": "Geometry"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Barcode",
+    "permalink": "/fields/field-types/custom-types/barcode"
+  },
+  "next": {
+    "title": "Specific DB type",
+    "permalink": "/fields/field-types/custom-types/specific-db-type"
+  }
+}

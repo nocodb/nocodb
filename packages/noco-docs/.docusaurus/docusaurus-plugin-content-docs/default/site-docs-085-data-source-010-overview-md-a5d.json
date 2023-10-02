@@ -1,0 +1,28 @@
+{
+  "unversionedId": "data-source/overview",
+  "id": "data-source/overview",
+  "title": "Data Sources",
+  "description": "NocoDB Data-Source sync, access control & re-config",
+  "source": "@site/docs/085.data-source/010.overview.md",
+  "sourceDirName": "085.data-source",
+  "slug": "/data-source/overview",
+  "permalink": "/data-source/overview",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/085.data-source/010.overview.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Data Sources",
+    "description": "NocoDB Data-Source sync, access control & re-config"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Download",
+    "permalink": "/toolbar/download"
+  },
+  "next": {
+    "title": "Roles & Permissions overview",
+    "permalink": "/roles-and-permissions/overview"
+  }
+}

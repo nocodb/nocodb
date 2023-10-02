@@ -1,0 +1,14 @@
+{
+  "label": "Multi select",
+  "permalink": "/tags/multi-select",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "fields/field-types/select-based/multi-select",
+      "title": "Multi Select",
+      "description": "Multi Select fields allow you to select multiple options from a list of options. The options can be defined in the field configuration.",
+      "permalink": "/fields/field-types/select-based/multi-select"
+    }
+  ]
+}

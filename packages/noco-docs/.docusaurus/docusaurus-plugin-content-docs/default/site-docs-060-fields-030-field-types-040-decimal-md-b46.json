@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/decimal",
+  "id": "fields/field-types/decimal",
+  "title": "Decimal",
+  "description": "",
+  "source": "@site/docs/060.fields/030.field-types/040.decimal.md",
+  "sourceDirName": "060.fields/030.field-types",
+  "slug": "/fields/field-types/decimal",
+  "permalink": "/fields/field-types/decimal",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/040.decimal.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 40,
+  "frontMatter": {
+    "title": "Decimal"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Number",
+    "permalink": "/fields/field-types/number"
+  },
+  "next": {
+    "title": "Percent",
+    "permalink": "/fields/field-types/percent"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/text-based/single-line-text",
+  "id": "fields/field-types/text-based/single-line-text",
+  "title": "Single line text",
+  "description": "Single line text field is a simple text based field. It can hold any text value. It is generally used for storing short text values like name, email, phone number, etc. For storing text values with multiple lines, use Long text field.",
+  "source": "@site/docs/060.fields/030.field-types/010.text-based/010.single-line-text.md",
+  "sourceDirName": "060.fields/030.field-types/010.text-based",
+  "slug": "/fields/field-types/text-based/single-line-text",
+  "permalink": "/fields/field-types/text-based/single-line-text",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/010.text-based/010.single-line-text.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Single line text"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Display Value",
+    "permalink": "/fields/display-value"
+  },
+  "next": {
+    "title": "Long text",
+    "permalink": "/fields/field-types/text-based/long-text"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "unversionedId": "developer-resources/webhooks",
+  "id": "version-0.109.7/developer-resources/webhooks",
+  "title": "Webhooks",
+  "description": "Webhooks allows user to trigger on certain operations on following database operations",
+  "source": "@site/versioned_docs/version-0.109.7/040.developer-resources/040.webhooks.md",
+  "sourceDirName": "040.developer-resources",
+  "slug": "/developer-resources/webhooks",
+  "permalink": "/0.109.7/developer-resources/webhooks",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/versioned_docs/version-0.109.7/040.developer-resources/040.webhooks.md",
+  "tags": [],
+  "version": "0.109.7",
+  "sidebarPosition": 40,
+  "frontMatter": {
+    "title": "Webhooks",
+    "description": "Webhooks allows user to trigger on certain operations on following database operations"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "NocoDB SDK",
+    "permalink": "/0.109.7/developer-resources/sdk"
+  },
+  "next": {
+    "title": "Upload via API",
+    "permalink": "/0.109.7/developer-resources/upload-via-api"
+  }
+}

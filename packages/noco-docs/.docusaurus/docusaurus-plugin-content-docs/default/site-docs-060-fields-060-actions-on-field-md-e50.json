@@ -1,0 +1,33 @@
+{
+  "unversionedId": "fields/actions-on-field",
+  "id": "fields/actions-on-field",
+  "title": "Actions on field",
+  "description": "Fields context menu",
+  "source": "@site/docs/060.fields/060.actions-on-field.md",
+  "sourceDirName": "060.fields",
+  "slug": "/fields/actions-on-field",
+  "permalink": "/fields/actions-on-field",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/060.actions-on-field.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 60,
+  "frontMatter": {
+    "title": "Actions on field",
+    "keywords": [
+      "NocoDB fields",
+      "fields overview",
+      "field administration",
+      "field organization"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Duration",
+    "permalink": "/fields/field-types/date-time-based/duration"
+  },
+  "next": {
+    "title": "Records overview",
+    "permalink": "/records/records-overview"
+  }
+}

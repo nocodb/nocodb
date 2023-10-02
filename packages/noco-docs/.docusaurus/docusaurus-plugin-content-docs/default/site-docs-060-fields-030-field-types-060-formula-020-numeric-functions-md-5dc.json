@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/formula/numeric-functions",
+  "id": "fields/field-types/formula/numeric-functions",
+  "title": "Numeric functions",
+  "description": "Numeric functions",
+  "source": "@site/docs/060.fields/030.field-types/060.formula/020.numeric-functions.md",
+  "sourceDirName": "060.fields/030.field-types/060.formula",
+  "slug": "/fields/field-types/formula/numeric-functions",
+  "permalink": "/fields/field-types/formula/numeric-functions",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/060.formula/020.numeric-functions.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "Numeric functions"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Numeric and Logical Operators",
+    "permalink": "/fields/field-types/formula/operators"
+  },
+  "next": {
+    "title": "String functions",
+    "permalink": "/fields/field-types/formula/string-functions"
+  }
+}

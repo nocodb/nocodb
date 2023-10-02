@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/custom-types/attachment",
+  "id": "fields/field-types/custom-types/attachment",
+  "title": "Attachment",
+  "description": "",
+  "source": "@site/docs/060.fields/030.field-types/050.custom-types/060.attachment.md",
+  "sourceDirName": "060.fields/030.field-types/050.custom-types",
+  "slug": "/fields/field-types/custom-types/attachment",
+  "permalink": "/fields/field-types/custom-types/attachment",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/050.custom-types/060.attachment.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 60,
+  "frontMatter": {
+    "title": "Attachment"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Rollup",
+    "permalink": "/fields/field-types/links-based/rollup"
+  },
+  "next": {
+    "title": "Checkbox",
+    "permalink": "/fields/field-types/custom-types/checkbox"
+  }
+}

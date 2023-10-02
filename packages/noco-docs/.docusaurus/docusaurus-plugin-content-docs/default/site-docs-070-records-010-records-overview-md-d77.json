@@ -1,0 +1,47 @@
+{
+  "unversionedId": "records/records-overview",
+  "id": "records/records-overview",
+  "title": "Records overview",
+  "description": "Learn how to create, import, and manage records in NocoDB.",
+  "source": "@site/docs/070.records/010.records-overview.md",
+  "sourceDirName": "070.records",
+  "slug": "/records/records-overview",
+  "permalink": "/records/records-overview",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.records/010.records-overview.md",
+  "tags": [
+    {
+      "label": "records",
+      "permalink": "/tags/records"
+    },
+    {
+      "label": "record overview",
+      "permalink": "/tags/record-overview"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Records overview",
+    "description": "Learn how to create, import, and manage records in NocoDB.",
+    "tags": [
+      "records",
+      "record overview"
+    ],
+    "keywords": [
+      "NocoDB record",
+      "record overview",
+      "record administration",
+      "record organization"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Actions on field",
+    "permalink": "/fields/actions-on-field"
+  },
+  "next": {
+    "title": "Create record",
+    "permalink": "/records/create-record"
+  }
+}

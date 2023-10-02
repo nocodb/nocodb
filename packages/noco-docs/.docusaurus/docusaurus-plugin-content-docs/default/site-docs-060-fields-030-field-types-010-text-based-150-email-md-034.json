@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/text-based/email",
+  "id": "fields/field-types/text-based/email",
+  "title": "Email",
+  "description": "---",
+  "source": "@site/docs/060.fields/030.field-types/010.text-based/150.email.md",
+  "sourceDirName": "060.fields/030.field-types/010.text-based",
+  "slug": "/fields/field-types/text-based/email",
+  "permalink": "/fields/field-types/text-based/email",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/010.text-based/150.email.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 150,
+  "frontMatter": {
+    "title": "Email"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Long text",
+    "permalink": "/fields/field-types/text-based/long-text"
+  },
+  "next": {
+    "title": "Phone Number",
+    "permalink": "/fields/field-types/text-based/phonenumber"
+  }
+}

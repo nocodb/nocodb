@@ -1,0 +1,33 @@
+{
+  "unversionedId": "views/views-overview",
+  "id": "views/views-overview",
+  "title": "View Overview",
+  "description": "Understanding Views in NocoDB!",
+  "source": "@site/docs/080.views/010.views-overview.md",
+  "sourceDirName": "080.views",
+  "slug": "/views/views-overview",
+  "permalink": "/views/views-overview",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/080.views/010.views-overview.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "View Overview",
+    "description": "Understanding Views in NocoDB!",
+    "keywords": [
+      "NocoDB view",
+      "view administration",
+      "view organization"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Actions on record",
+    "permalink": "/records/actions-on-record"
+  },
+  "next": {
+    "title": "Create view",
+    "permalink": "/views/create-view"
+  }
+}

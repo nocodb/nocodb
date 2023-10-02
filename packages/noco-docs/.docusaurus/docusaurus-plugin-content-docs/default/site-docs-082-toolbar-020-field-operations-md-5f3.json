@@ -1,0 +1,27 @@
+{
+  "unversionedId": "toolbar/field-operations",
+  "id": "toolbar/field-operations",
+  "title": "Hide & Reorder Fields",
+  "description": "Utilize the Fields button in the toolbar to manage the visibility of fields within the system. By default, all system-related fields are concealed, but you have the option to enable them by selecting Show system fields.",
+  "source": "@site/docs/082.toolbar/020.field-operations.md",
+  "sourceDirName": "082.toolbar",
+  "slug": "/toolbar/field-operations",
+  "permalink": "/toolbar/field-operations",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/082.toolbar/020.field-operations.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "Hide & Reorder Fields"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Toolbar overview",
+    "permalink": "/toolbar/overview"
+  },
+  "next": {
+    "title": "Filtering records",
+    "permalink": "/toolbar/filter"
+  }
+}

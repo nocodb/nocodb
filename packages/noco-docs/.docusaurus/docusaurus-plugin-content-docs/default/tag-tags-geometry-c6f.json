@@ -1,0 +1,14 @@
+{
+  "label": "Geometry",
+  "permalink": "/tags/geometry",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "fields/field-types/custom-types/geometry",
+      "title": "Geometry",
+      "description": "Create a geometry field",
+      "permalink": "/fields/field-types/custom-types/geometry"
+    }
+  ]
+}

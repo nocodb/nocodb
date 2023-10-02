@@ -1,0 +1,27 @@
+{
+  "unversionedId": "records/comment-on-a-record",
+  "id": "records/comment-on-a-record",
+  "title": "Comments",
+  "description": "",
+  "source": "@site/docs/070.records/060.comment-on-a-record.md",
+  "sourceDirName": "070.records",
+  "slug": "/records/comment-on-a-record",
+  "permalink": "/records/comment-on-a-record",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.records/060.comment-on-a-record.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 60,
+  "frontMatter": {
+    "title": "Comments"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Create row",
+    "permalink": "/records/create-record"
+  },
+  "next": {
+    "title": "Configurations",
+    "permalink": "/records/configurations"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "unversionedId": "views/configurations",
+  "id": "views/configurations",
+  "title": "configurations",
+  "description": "",
+  "source": "@site/docs/080.views/070.configurations.md",
+  "sourceDirName": "080.views",
+  "slug": "/views/configurations",
+  "permalink": "/views/configurations",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/080.views/070.configurations.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 70,
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "delete",
+    "permalink": "/views/delete"
+  },
+  "next": {
+    "title": "FAQs",
+    "permalink": "/FAQs"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "unversionedId": "bases/actions-on-base",
+  "id": "bases/actions-on-base",
+  "title": "Actions on base",
+  "description": "Base context menu",
+  "source": "@site/docs/040.bases/090.actions-on-base.md",
+  "sourceDirName": "040.bases",
+  "slug": "/bases/actions-on-base",
+  "permalink": "/bases/actions-on-base",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/040.bases/090.actions-on-base.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 90,
+  "frontMatter": {
+    "title": "Actions on base"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Share Base",
+    "permalink": "/bases/share-base"
+  },
+  "next": {
+    "title": "Table overview",
+    "permalink": "/tables/table-overview"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "unversionedId": "automation/overview",
+  "id": "automation/overview",
+  "title": "Automation overview",
+  "description": "",
+  "source": "@site/docs/110.automation/010.overview.md",
+  "sourceDirName": "110.automation",
+  "slug": "/automation/overview",
+  "permalink": "/automation/overview",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/110.automation/010.overview.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Automation overview"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Share View",
+    "permalink": "/collaboration/share-view"
+  },
+  "next": {
+    "title": "Webhook overview",
+    "permalink": "/automation/webhook/webhook-overview"
+  }
+}

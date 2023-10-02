@@ -1,0 +1,50 @@
+{
+  "unversionedId": "fields/field-types/text-based/long-text",
+  "id": "fields/field-types/text-based/long-text",
+  "title": "Long text",
+  "description": "Long Text field is text based field that allows text in multiple lines. It is useful for storing lengthy text like description, notes, etc.",
+  "source": "@site/docs/070.fields/040.field-types/010.text-based/020.long-text.md",
+  "sourceDirName": "070.fields/040.field-types/010.text-based",
+  "slug": "/fields/field-types/text-based/long-text",
+  "permalink": "/fields/field-types/text-based/long-text",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.fields/040.field-types/010.text-based/020.long-text.md",
+  "tags": [
+    {
+      "label": "Fields",
+      "permalink": "/tags/fields"
+    },
+    {
+      "label": "Field types",
+      "permalink": "/tags/field-types"
+    },
+    {
+      "label": "Text based types",
+      "permalink": "/tags/text-based-types"
+    },
+    {
+      "label": "Long text",
+      "permalink": "/tags/long-text"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "Long text",
+    "tags": [
+      "Fields",
+      "Field types",
+      "Text based types",
+      "Long text"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Single line text",
+    "permalink": "/fields/field-types/text-based/single-line-text"
+  },
+  "next": {
+    "title": "Email",
+    "permalink": "/fields/field-types/text-based/email"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "unversionedId": "fields/fields-editor",
+  "id": "fields/fields-editor",
+  "title": "Multi-field editor",
+  "description": "Understanding use of multi-field editor in NocoDB!",
+  "source": "@site/docs/070.fields/050.fields-editor.md",
+  "sourceDirName": "070.fields",
+  "slug": "/fields/fields-editor",
+  "permalink": "/fields/fields-editor",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.fields/050.fields-editor.md",
+  "tags": [
+    {
+      "label": "Fields",
+      "permalink": "/tags/fields"
+    },
+    {
+      "label": "Multi-fields editor",
+      "permalink": "/tags/multi-fields-editor"
+    },
+    {
+      "label": "Productivity hacks",
+      "permalink": "/tags/productivity-hacks"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 50,
+  "frontMatter": {
+    "title": "Multi-field editor",
+    "description": "Understanding use of multi-field editor in NocoDB!",
+    "tags": [
+      "Fields",
+      "Multi-fields editor",
+      "Productivity hacks"
+    ],
+    "keywords": [
+      "NocoDB fields editor",
+      "fields editor",
+      "fields editor in nocoDB",
+      "fields editor in nocoDB"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Duration",
+    "permalink": "/fields/field-types/date-time-based/duration"
+  },
+  "next": {
+    "title": "Actions on field",
+    "permalink": "/fields/actions-on-field"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "unversionedId": "setup-and-usages/share-view",
+  "id": "version-0.109.7/setup-and-usages/share-view",
+  "title": "Share View",
+  "description": "Procedures to share a view",
+  "source": "@site/versioned_docs/version-0.109.7/030.setup-and-usages/140.share-view.md",
+  "sourceDirName": "030.setup-and-usages",
+  "slug": "/setup-and-usages/share-view",
+  "permalink": "/0.109.7/setup-and-usages/share-view",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/versioned_docs/version-0.109.7/030.setup-and-usages/140.share-view.md",
+  "tags": [],
+  "version": "0.109.7",
+  "sidebarPosition": 140,
+  "frontMatter": {
+    "title": "Share View",
+    "description": "Procedures to share a view"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Share Base",
+    "permalink": "/0.109.7/setup-and-usages/share-base"
+  },
+  "next": {
+    "title": "Keyboard Maneuver",
+    "permalink": "/0.109.7/setup-and-usages/keyboard-maneuver"
+  }
+}

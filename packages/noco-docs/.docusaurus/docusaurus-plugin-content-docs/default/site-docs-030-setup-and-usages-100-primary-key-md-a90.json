@@ -1,0 +1,28 @@
+{
+  "unversionedId": "setup-and-usages/primary-key",
+  "id": "setup-and-usages/primary-key",
+  "title": "Primary Key",
+  "description": "Understanding Primary Key in NocoDB!",
+  "source": "@site/docs/030.setup-and-usages/100.primary-key.md",
+  "sourceDirName": "030.setup-and-usages",
+  "slug": "/setup-and-usages/primary-key",
+  "permalink": "/setup-and-usages/primary-key",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/030.setup-and-usages/100.primary-key.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 100,
+  "frontMatter": {
+    "title": "Primary Key",
+    "description": "Understanding Primary Key in NocoDB!"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Formulas",
+    "permalink": "/setup-and-usages/formulas"
+  },
+  "next": {
+    "title": "Display Value",
+    "permalink": "/setup-and-usages/display-value"
+  }
+}

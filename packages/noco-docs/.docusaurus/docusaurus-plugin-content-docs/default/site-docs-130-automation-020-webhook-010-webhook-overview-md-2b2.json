@@ -1,0 +1,40 @@
+{
+  "unversionedId": "automation/webhook/webhook-overview",
+  "id": "automation/webhook/webhook-overview",
+  "title": "Webhook overview",
+  "description": "You can employ webhooks to notify external systems whenever there are additions, updates, or removals of rows within NocoDB. This feature allows you to receive instantaneous notifications for any changes made to your database. NocoDB also offers webhooks for bulk endpoints for creating, updating, or deleting multiple records simultaneously.",
+  "source": "@site/docs/130.automation/020.webhook/010.webhook-overview.md",
+  "sourceDirName": "130.automation/020.webhook",
+  "slug": "/automation/webhook/webhook-overview",
+  "permalink": "/automation/webhook/webhook-overview",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/130.automation/020.webhook/010.webhook-overview.md",
+  "tags": [
+    {
+      "label": "Webhook",
+      "permalink": "/tags/webhook"
+    },
+    {
+      "label": "Overview",
+      "permalink": "/tags/overview"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Webhook overview",
+    "tags": [
+      "Webhook",
+      "Overview"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "In Open Source",
+    "permalink": "/collaboration/oss-specific-details"
+  },
+  "next": {
+    "title": "Create webhook",
+    "permalink": "/automation/webhook/create-webhook"
+  }
+}

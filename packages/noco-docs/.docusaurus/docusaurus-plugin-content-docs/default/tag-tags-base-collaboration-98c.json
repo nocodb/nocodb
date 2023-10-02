@@ -1,0 +1,20 @@
+{
+  "label": "base collaboration",
+  "permalink": "/tags/base-collaboration",
+  "allTagsPath": "/tags",
+  "count": 2,
+  "items": [
+    {
+      "id": "collaboration/base-collaboration",
+      "title": "Base Collaboration",
+      "description": "Invite team members to work on a base",
+      "permalink": "/collaboration/base-collaboration"
+    },
+    {
+      "id": "collaboration/overview",
+      "title": "Collaboration overview",
+      "description": "This article explains various collaboration features that NocoDB offers.",
+      "permalink": "/collaboration/overview"
+    }
+  ]
+}

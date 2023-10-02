@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/formula/date-functions",
+  "id": "fields/field-types/formula/date-functions",
+  "title": "Date functions",
+  "description": "| Name              | Syntax                                                                                                                                                                                                       | Sample                                                | Output                                                                                                  | Remark                                                                                                                                                                                        |",
+  "source": "@site/docs/070.fields/030.field-types/060.formula/040.date-functions.md",
+  "sourceDirName": "070.fields/030.field-types/060.formula",
+  "slug": "/fields/field-types/formula/date-functions",
+  "permalink": "/fields/field-types/formula/date-functions",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.fields/030.field-types/060.formula/040.date-functions.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 40,
+  "frontMatter": {
+    "title": "Date functions"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "String functions",
+    "permalink": "/fields/field-types/formula/string-functions"
+  },
+  "next": {
+    "title": "Conditional expressions",
+    "permalink": "/fields/field-types/formula/conditional-expressions"
+  }
+}

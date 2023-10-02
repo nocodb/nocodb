@@ -1,0 +1,50 @@
+{
+  "unversionedId": "fields/field-types/select-based/single-select",
+  "id": "fields/field-types/select-based/single-select",
+  "title": "Single Select",
+  "description": "Single select fields allow you to select a single option from a list of options. The options can be defined in the field configuration.",
+  "source": "@site/docs/070.fields/040.field-types/030.select-based/010.single-select.md",
+  "sourceDirName": "070.fields/040.field-types/030.select-based",
+  "slug": "/fields/field-types/select-based/single-select",
+  "permalink": "/fields/field-types/select-based/single-select",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.fields/040.field-types/030.select-based/010.single-select.md",
+  "tags": [
+    {
+      "label": "Fields",
+      "permalink": "/tags/fields"
+    },
+    {
+      "label": "Field types",
+      "permalink": "/tags/field-types"
+    },
+    {
+      "label": "Select based types",
+      "permalink": "/tags/select-based-types"
+    },
+    {
+      "label": "Single select",
+      "permalink": "/tags/single-select"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Single Select",
+    "tags": [
+      "Fields",
+      "Field types",
+      "Select based types",
+      "Single select"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Currency",
+    "permalink": "/fields/field-types/numerical/currency"
+  },
+  "next": {
+    "title": "Multi Select",
+    "permalink": "/fields/field-types/select-based/multi-select"
+  }
+}

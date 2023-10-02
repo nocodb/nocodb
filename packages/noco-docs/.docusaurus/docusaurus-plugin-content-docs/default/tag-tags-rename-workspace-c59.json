@@ -1,0 +1,14 @@
+{
+  "label": "rename workspace",
+  "permalink": "/tags/rename-workspace",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "workspaces/actions-on-workspace",
+      "title": "Actions on workspace",
+      "description": "This article explains how to rename or delete a workspace.",
+      "permalink": "/workspaces/actions-on-workspace"
+    }
+  ]
+}

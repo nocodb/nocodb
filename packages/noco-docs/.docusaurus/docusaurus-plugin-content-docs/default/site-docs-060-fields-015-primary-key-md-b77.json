@@ -1,0 +1,34 @@
+{
+  "unversionedId": "fields/primary-key",
+  "id": "fields/primary-key",
+  "title": "Primary Key",
+  "description": "Understanding Primary Key in NocoDB!",
+  "source": "@site/docs/060.fields/015.primary-key.md",
+  "sourceDirName": "060.fields",
+  "slug": "/fields/primary-key",
+  "permalink": "/fields/primary-key",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/015.primary-key.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 15,
+  "frontMatter": {
+    "title": "Primary Key",
+    "description": "Understanding Primary Key in NocoDB!",
+    "keywords": [
+      "NocoDB primary key",
+      "primary key",
+      "primary key in NocoDB",
+      "primary key in database"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Fields overview",
+    "permalink": "/fields/fields-overview"
+  },
+  "next": {
+    "title": "Display Value",
+    "permalink": "/fields/display-value"
+  }
+}

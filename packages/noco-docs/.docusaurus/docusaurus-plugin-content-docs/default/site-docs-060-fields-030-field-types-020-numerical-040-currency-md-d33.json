@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/numerical/currency",
+  "id": "fields/field-types/numerical/currency",
+  "title": "Currency",
+  "description": "Currency field type is used to store currency values. It is a numerical field with additional provision to set the currency symbol in display.",
+  "source": "@site/docs/060.fields/030.field-types/020.numerical/040.currency.md",
+  "sourceDirName": "060.fields/030.field-types/020.numerical",
+  "slug": "/fields/field-types/numerical/currency",
+  "permalink": "/fields/field-types/numerical/currency",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/020.numerical/040.currency.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 40,
+  "frontMatter": {
+    "title": "Currency"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Percent",
+    "permalink": "/fields/field-types/numerical/percent"
+  },
+  "next": {
+    "title": "Single Select",
+    "permalink": "/fields/field-types/select-based/single-select"
+  }
+}

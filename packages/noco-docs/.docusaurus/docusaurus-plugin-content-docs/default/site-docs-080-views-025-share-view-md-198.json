@@ -1,0 +1,53 @@
+{
+  "unversionedId": "views/share-view",
+  "id": "views/share-view",
+  "title": "Share View",
+  "description": "Procedures to share a view",
+  "source": "@site/docs/080.views/025.share-view.md",
+  "sourceDirName": "080.views",
+  "slug": "/views/share-view",
+  "permalink": "/views/share-view",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/080.views/025.share-view.md",
+  "tags": [
+    {
+      "label": "views",
+      "permalink": "/tags/views"
+    },
+    {
+      "label": "share view",
+      "permalink": "/tags/share-view"
+    },
+    {
+      "label": "share",
+      "permalink": "/tags/share"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 25,
+  "frontMatter": {
+    "title": "Share View",
+    "description": "Procedures to share a view",
+    "tags": [
+      "views",
+      "share view",
+      "share"
+    ],
+    "keywords": [
+      "NocoDB view",
+      "share view",
+      "share",
+      "share view with password protection",
+      "share view with download options"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Create view",
+    "permalink": "/views/create-view"
+  },
+  "next": {
+    "title": "Grid",
+    "permalink": "/views/view-types/grid"
+  }
+}

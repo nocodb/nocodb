@@ -1,0 +1,41 @@
+{
+  "unversionedId": "getting-started/on-self-hosted-plan/upgrading",
+  "id": "getting-started/on-self-hosted-plan/upgrading",
+  "title": "Upgrading",
+  "description": "Upgrading NocoDB : Docker, Node and Homebrew!",
+  "source": "@site/docs/020.getting-started/050.on-self-hosted-plan/030.upgrading.md",
+  "sourceDirName": "020.getting-started/050.on-self-hosted-plan",
+  "slug": "/getting-started/on-self-hosted-plan/upgrading",
+  "permalink": "/getting-started/on-self-hosted-plan/upgrading",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/020.getting-started/050.on-self-hosted-plan/030.upgrading.md",
+  "tags": [
+    {
+      "label": "Self-Hosted plan",
+      "permalink": "/tags/self-hosted-plan"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 30,
+  "frontMatter": {
+    "title": "Upgrading",
+    "description": "Upgrading NocoDB : Docker, Node and Homebrew!",
+    "tags": [
+      "Self-Hosted plan"
+    ],
+    "keywords": [
+      "NocoDB upgrade",
+      "upgrade NocoDB",
+      "upgrade nocodb"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Environment Variables",
+    "permalink": "/getting-started/on-self-hosted-plan/environment-variables"
+  },
+  "next": {
+    "title": "Workspace overview",
+    "permalink": "/workspaces/workspace-overview"
+  }
+}

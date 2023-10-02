@@ -1,0 +1,27 @@
+{
+  "unversionedId": "bases/delete-base",
+  "id": "bases/delete-base",
+  "title": "Delete base",
+  "description": "Related articles",
+  "source": "@site/docs/040.bases/080.delete-base.md",
+  "sourceDirName": "040.bases",
+  "slug": "/bases/delete-base",
+  "permalink": "/bases/delete-base",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/040.bases/080.delete-base.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 80,
+  "frontMatter": {
+    "title": "Delete base"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Share Base",
+    "permalink": "/bases/share-base"
+  },
+  "next": {
+    "title": "Actions on base",
+    "permalink": "/bases/actions-on-base"
+  }
+}

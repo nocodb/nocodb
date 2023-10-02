@@ -1,0 +1,25 @@
+{
+  "unversionedId": "projects/delete-workspace",
+  "id": "projects/delete-workspace",
+  "title": "delete-workspace",
+  "description": "",
+  "source": "@site/docs/040.projects/040.delete-workspace.md",
+  "sourceDirName": "040.projects",
+  "slug": "/projects/delete-workspace",
+  "permalink": "/projects/delete-workspace",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/040.projects/040.delete-workspace.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 40,
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "modify-workspace",
+    "permalink": "/projects/modify-workspace"
+  },
+  "next": {
+    "title": "FAQs",
+    "permalink": "/FAQs"
+  }
+}

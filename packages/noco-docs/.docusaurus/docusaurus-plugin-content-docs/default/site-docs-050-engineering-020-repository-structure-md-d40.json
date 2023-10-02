@@ -1,0 +1,29 @@
+{
+  "unversionedId": "engineering/repository-structure",
+  "id": "engineering/repository-structure",
+  "title": "Repository structure",
+  "description": "Repository Structure",
+  "source": "@site/docs/050.engineering/020.repository-structure.md",
+  "sourceDirName": "050.engineering",
+  "slug": "/engineering/repository-structure",
+  "permalink": "/engineering/repository-structure",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/050.engineering/020.repository-structure.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "Repository structure",
+    "description": "Repository Structure",
+    "hide_table_of_contents": true
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Architecture Overview",
+    "permalink": "/engineering/architecture"
+  },
+  "next": {
+    "title": "Development Setup",
+    "permalink": "/engineering/development-setup"
+  }
+}

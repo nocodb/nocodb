@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/custom-types/specific-db-type",
+  "id": "fields/field-types/custom-types/specific-db-type",
+  "title": "Specific DB type",
+  "description": "Create a Specific DB Type field",
+  "source": "@site/docs/070.fields/030.field-types/050.custom-types/070.specific-db-type.md",
+  "sourceDirName": "070.fields/030.field-types/050.custom-types",
+  "slug": "/fields/field-types/custom-types/specific-db-type",
+  "permalink": "/fields/field-types/custom-types/specific-db-type",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.fields/030.field-types/050.custom-types/070.specific-db-type.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 70,
+  "frontMatter": {
+    "title": "Specific DB type"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Geometry",
+    "permalink": "/fields/field-types/custom-types/geometry"
+  },
+  "next": {
+    "title": "JSON",
+    "permalink": "/fields/field-types/custom-types/json"
+  }
+}

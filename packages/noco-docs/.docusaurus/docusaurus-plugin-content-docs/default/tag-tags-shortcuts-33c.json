@@ -1,0 +1,20 @@
+{
+  "label": "Shortcuts",
+  "permalink": "/tags/shortcuts",
+  "allTagsPath": "/tags",
+  "count": 2,
+  "items": [
+    {
+      "id": "records/actions-on-record",
+      "title": "Actions on record",
+      "description": "Keyboard navigation within Grid view",
+      "permalink": "/records/actions-on-record"
+    },
+    {
+      "id": "getting-started/keyboard-shortcuts",
+      "title": "Keyboard shortcuts",
+      "description": "Quick Actions",
+      "permalink": "/getting-started/keyboard-shortcuts"
+    }
+  ]
+}

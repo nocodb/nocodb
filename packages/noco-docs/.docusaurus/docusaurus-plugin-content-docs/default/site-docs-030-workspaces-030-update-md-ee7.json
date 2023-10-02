@@ -1,0 +1,25 @@
+{
+  "unversionedId": "workspaces/update",
+  "id": "workspaces/update",
+  "title": "update",
+  "description": "",
+  "source": "@site/docs/030.workspaces/030.update.md",
+  "sourceDirName": "030.workspaces",
+  "slug": "/workspaces/update",
+  "permalink": "/workspaces/update",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/030.workspaces/030.update.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 30,
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "create",
+    "permalink": "/workspaces/create"
+  },
+  "next": {
+    "title": "delete",
+    "permalink": "/workspaces/delete"
+  }
+}

@@ -1,0 +1,781 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/",
+      "versions": [
+        {
+          "name": "current",
+          "label": "Latest",
+          "isLast": true,
+          "path": "/",
+          "mainDocId": "index",
+          "docs": [
+            {
+              "id": "account-settings/api-tokens",
+              "path": "/account-settings/api-tokens",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "account-settings/oss-specific-details",
+              "path": "/account-settings/oss-specific-details",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "account-settings/profile-page",
+              "path": "/account-settings/profile-page",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "automation/webhook/actions-on-webhook",
+              "path": "/automation/webhook/actions-on-webhook",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "automation/webhook/create-webhook",
+              "path": "/automation/webhook/create-webhook",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "automation/webhook/webhook-overview",
+              "path": "/automation/webhook/webhook-overview",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bases/actions-on-base",
+              "path": "/bases/actions-on-base",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bases/base-collaboration",
+              "path": "/bases/base-collaboration",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bases/base-overview",
+              "path": "/bases/base-overview",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bases/create-base",
+              "path": "/bases/create-base",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bases/import-base-from-airtable",
+              "path": "/bases/import-base-from-airtable",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bases/share-base",
+              "path": "/bases/share-base",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "collaboration/base-collaboration",
+              "path": "/collaboration/base-collaboration",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "collaboration/collaboration-overview",
+              "path": "/collaboration/collaboration-overview",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "collaboration/oss-specific-details",
+              "path": "/collaboration/oss-specific-details",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "collaboration/share-base",
+              "path": "/collaboration/share-base",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "collaboration/share-view",
+              "path": "/collaboration/share-view",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "collaboration/workspace-collaboration",
+              "path": "/collaboration/workspace-collaboration",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "data-source/data-source-overview",
+              "path": "/data-source/data-source-overview",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "engineering/architecture",
+              "path": "/engineering/architecture",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "engineering/builds-and-releases",
+              "path": "/engineering/builds-and-releases",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "engineering/development-setup",
+              "path": "/engineering/development-setup",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "engineering/playwright",
+              "path": "/engineering/playwright",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "engineering/repository-structure",
+              "path": "/engineering/repository-structure",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "engineering/translation",
+              "path": "/engineering/translation",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "engineering/unit-testing",
+              "path": "/engineering/unit-testing",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "engineering/writing-docs",
+              "path": "/engineering/writing-docs",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "FAQs",
+              "path": "/FAQs",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/actions-on-field",
+              "path": "/fields/actions-on-field",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/display-value",
+              "path": "/fields/display-value",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/custom-types/attachment",
+              "path": "/fields/field-types/custom-types/attachment",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/custom-types/barcode",
+              "path": "/fields/field-types/custom-types/barcode",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/custom-types/checkbox",
+              "path": "/fields/field-types/custom-types/checkbox",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/custom-types/geometry",
+              "path": "/fields/field-types/custom-types/geometry",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/custom-types/json",
+              "path": "/fields/field-types/custom-types/json",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/custom-types/QR-code",
+              "path": "/fields/field-types/custom-types/QR-code",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/custom-types/rating",
+              "path": "/fields/field-types/custom-types/rating",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/custom-types/specific-db-type",
+              "path": "/fields/field-types/custom-types/specific-db-type",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/date-time-based/date",
+              "path": "/fields/field-types/date-time-based/date",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/date-time-based/date-time",
+              "path": "/fields/field-types/date-time-based/date-time",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/date-time-based/duration",
+              "path": "/fields/field-types/date-time-based/duration",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/date-time-based/time",
+              "path": "/fields/field-types/date-time-based/time",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/formula/conditional-expressions",
+              "path": "/fields/field-types/formula/conditional-expressions",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/formula/date-functions",
+              "path": "/fields/field-types/formula/date-functions",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/formula/formula",
+              "path": "/fields/field-types/formula/formula",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/formula/numeric-functions",
+              "path": "/fields/field-types/formula/numeric-functions",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/formula/operators",
+              "path": "/fields/field-types/formula/operators",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/formula/string-functions",
+              "path": "/fields/field-types/formula/string-functions",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/links-based/links",
+              "path": "/fields/field-types/links-based/links",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/links-based/lookup",
+              "path": "/fields/field-types/links-based/lookup",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/links-based/rollup",
+              "path": "/fields/field-types/links-based/rollup",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/numerical/currency",
+              "path": "/fields/field-types/numerical/currency",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/numerical/decimal",
+              "path": "/fields/field-types/numerical/decimal",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/numerical/number",
+              "path": "/fields/field-types/numerical/number",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/numerical/percent",
+              "path": "/fields/field-types/numerical/percent",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/select-based/multi-select",
+              "path": "/fields/field-types/select-based/multi-select",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/select-based/single-select",
+              "path": "/fields/field-types/select-based/single-select",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/text-based/email",
+              "path": "/fields/field-types/text-based/email",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/text-based/long-text",
+              "path": "/fields/field-types/text-based/long-text",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/text-based/phonenumber",
+              "path": "/fields/field-types/text-based/phonenumber",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/text-based/single-line-text",
+              "path": "/fields/field-types/text-based/single-line-text",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/field-types/text-based/url",
+              "path": "/fields/field-types/text-based/url",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/fields-overview",
+              "path": "/fields/fields-overview",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/multi-fields-editor",
+              "path": "/fields/multi-fields-editor",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fields/primary-key",
+              "path": "/fields/primary-key",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "getting-started/keyboard-shortcuts",
+              "path": "/getting-started/keyboard-shortcuts",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "getting-started/quick-start",
+              "path": "/getting-started/quick-start",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "getting-started/self-hosted/environment-variables",
+              "path": "/getting-started/self-hosted/environment-variables",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "getting-started/self-hosted/installation",
+              "path": "/getting-started/self-hosted/installation",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "getting-started/self-hosted/upgrading",
+              "path": "/getting-started/self-hosted/upgrading",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "getting-started/terminologies",
+              "path": "/getting-started/terminologies",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "index",
+              "path": "/",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "records/actions-on-record",
+              "path": "/records/actions-on-record",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "records/create-record",
+              "path": "/records/create-record",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "records/expand-record",
+              "path": "/records/expand-record",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "records/records-overview",
+              "path": "/records/records-overview",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "roles-and-permissions/roles-permissions-overview",
+              "path": "/roles-and-permissions/roles-permissions-overview",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "table-details/table-details-overview",
+              "path": "/table-details/table-details-overview",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "table-operations/download",
+              "path": "/table-operations/download",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "table-operations/field-operations",
+              "path": "/table-operations/field-operations",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "table-operations/filter",
+              "path": "/table-operations/filter",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "table-operations/group-by",
+              "path": "/table-operations/group-by",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "table-operations/overview",
+              "path": "/table-operations/overview",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "table-operations/row-height",
+              "path": "/table-operations/row-height",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "table-operations/search",
+              "path": "/table-operations/search",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "table-operations/sort",
+              "path": "/table-operations/sort",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "tables/actions-on-table",
+              "path": "/tables/actions-on-table",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "tables/create-table",
+              "path": "/tables/create-table",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "tables/create-table-via-import",
+              "path": "/tables/create-table-via-import",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "tables/import-data-into-existing-table",
+              "path": "/tables/import-data-into-existing-table",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "tables/table-overview",
+              "path": "/tables/table-overview",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "views/actions-on-view",
+              "path": "/views/actions-on-view",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "views/create-view",
+              "path": "/views/create-view",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "views/share-view",
+              "path": "/views/share-view",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "views/view-types/form",
+              "path": "/views/view-types/form",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "views/view-types/gallery",
+              "path": "/views/view-types/gallery",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "views/view-types/grid",
+              "path": "/views/view-types/grid",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "views/view-types/kanban",
+              "path": "/views/view-types/kanban",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "views/views-overview",
+              "path": "/views/views-overview",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "workspaces/actions-on-workspace",
+              "path": "/workspaces/actions-on-workspace",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "workspaces/create-workspace",
+              "path": "/workspaces/create-workspace",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "workspaces/workspace-collaboration",
+              "path": "/workspaces/workspace-collaboration",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "workspaces/workspace-overview",
+              "path": "/workspaces/workspace-overview",
+              "sidebar": "tutorialSidebar"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "tutorialSidebar": {
+              "link": {
+                "path": "/",
+                "label": "index"
+              }
+            }
+          }
+        },
+        {
+          "name": "0.109.7",
+          "label": "0.109.7 - Old UI",
+          "isLast": false,
+          "path": "/0.109.7",
+          "mainDocId": "index",
+          "docs": [
+            {
+              "id": "developer-resources/accessing-apis",
+              "path": "/0.109.7/developer-resources/accessing-apis",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "developer-resources/rest-apis",
+              "path": "/0.109.7/developer-resources/rest-apis",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "developer-resources/sdk",
+              "path": "/0.109.7/developer-resources/sdk",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "developer-resources/upload-via-api",
+              "path": "/0.109.7/developer-resources/upload-via-api",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "developer-resources/webhooks",
+              "path": "/0.109.7/developer-resources/webhooks",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "engineering/architecture",
+              "path": "/0.109.7/engineering/architecture",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "engineering/builds-and-releases",
+              "path": "/0.109.7/engineering/builds-and-releases",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "engineering/development-setup",
+              "path": "/0.109.7/engineering/development-setup",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "engineering/playwright",
+              "path": "/0.109.7/engineering/playwright",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "engineering/repository-structure",
+              "path": "/0.109.7/engineering/repository-structure",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "engineering/translation",
+              "path": "/0.109.7/engineering/translation",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "engineering/unit-testing",
+              "path": "/0.109.7/engineering/unit-testing",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "FAQs",
+              "path": "/0.109.7/FAQs",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "getting-started/demos",
+              "path": "/0.109.7/getting-started/demos",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "getting-started/environment-variables",
+              "path": "/0.109.7/getting-started/environment-variables",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "getting-started/installation",
+              "path": "/0.109.7/getting-started/installation",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "getting-started/upgrading",
+              "path": "/0.109.7/getting-started/upgrading",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "index",
+              "path": "/0.109.7/",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/account-settings",
+              "path": "/0.109.7/setup-and-usages/account-settings",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/audit",
+              "path": "/0.109.7/setup-and-usages/audit",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/code-snippets",
+              "path": "/0.109.7/setup-and-usages/code-snippets",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/column-operations",
+              "path": "/0.109.7/setup-and-usages/column-operations",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/column-types",
+              "path": "/0.109.7/setup-and-usages/column-types",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/dashboard",
+              "path": "/0.109.7/setup-and-usages/dashboard",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/display-value",
+              "path": "/0.109.7/setup-and-usages/display-value",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/expanded-form",
+              "path": "/0.109.7/setup-and-usages/expanded-form",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/formulas",
+              "path": "/0.109.7/setup-and-usages/formulas",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free",
+              "path": "/0.109.7/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/keyboard-maneuver",
+              "path": "/0.109.7/setup-and-usages/keyboard-maneuver",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/languages",
+              "path": "/0.109.7/setup-and-usages/languages",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/link-to-another-record",
+              "path": "/0.109.7/setup-and-usages/link-to-another-record",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/links",
+              "path": "/0.109.7/setup-and-usages/links",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/lookup",
+              "path": "/0.109.7/setup-and-usages/lookup",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/meta-management",
+              "path": "/0.109.7/setup-and-usages/meta-management",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/primary-key",
+              "path": "/0.109.7/setup-and-usages/primary-key",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/project-settings",
+              "path": "/0.109.7/setup-and-usages/project-settings",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/rollup",
+              "path": "/0.109.7/setup-and-usages/rollup",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/share-base",
+              "path": "/0.109.7/setup-and-usages/share-base",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/share-view",
+              "path": "/0.109.7/setup-and-usages/share-view",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/sync-schema",
+              "path": "/0.109.7/setup-and-usages/sync-schema",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/table-operations",
+              "path": "/0.109.7/setup-and-usages/table-operations",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/team-and-auth",
+              "path": "/0.109.7/setup-and-usages/team-and-auth",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/usage-information",
+              "path": "/0.109.7/setup-and-usages/usage-information",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "setup-and-usages/views",
+              "path": "/0.109.7/setup-and-usages/views",
+              "sidebar": "tutorialSidebar"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "tutorialSidebar": {
+              "link": {
+                "path": "/0.109.7/",
+                "label": "version-0.109.7/index"
+              }
+            }
+          }
+        }
+      ],
+      "breadcrumbs": true
+    }
+  }
+}

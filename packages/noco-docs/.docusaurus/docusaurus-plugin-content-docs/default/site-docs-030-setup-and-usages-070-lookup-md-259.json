@@ -1,0 +1,28 @@
+{
+  "unversionedId": "setup-and-usages/lookup",
+  "id": "setup-and-usages/lookup",
+  "title": "Lookup",
+  "description": "Understanding Lookup Column!",
+  "source": "@site/docs/030.setup-and-usages/070.lookup.md",
+  "sourceDirName": "030.setup-and-usages",
+  "slug": "/setup-and-usages/lookup",
+  "permalink": "/setup-and-usages/lookup",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/030.setup-and-usages/070.lookup.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 70,
+  "frontMatter": {
+    "title": "Lookup",
+    "description": "Understanding Lookup Column!"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Links",
+    "permalink": "/setup-and-usages/links"
+  },
+  "next": {
+    "title": "Rollup",
+    "permalink": "/setup-and-usages/rollup"
+  }
+}

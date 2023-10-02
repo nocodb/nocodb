@@ -1,0 +1,36 @@
+{
+  "unversionedId": "engineering/writing-docs",
+  "id": "engineering/writing-docs",
+  "title": "Writing docs",
+  "description": "Overview to writing docs",
+  "source": "@site/docs/150.engineering/080.writing-docs.md",
+  "sourceDirName": "150.engineering",
+  "slug": "/engineering/writing-docs",
+  "permalink": "/engineering/writing-docs",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/150.engineering/080.writing-docs.md",
+  "tags": [
+    {
+      "label": "Engineering",
+      "permalink": "/tags/engineering"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 80,
+  "frontMatter": {
+    "title": "Writing docs",
+    "description": "Overview to writing docs",
+    "tags": [
+      "Engineering"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "i18n translation",
+    "permalink": "/engineering/translation"
+  },
+  "next": {
+    "title": "FAQs",
+    "permalink": "/FAQs"
+  }
+}

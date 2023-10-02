@@ -1,0 +1,45 @@
+{
+  "unversionedId": "fields/field-types/date-time-based/duration",
+  "id": "fields/field-types/date-time-based/duration",
+  "title": "Duration",
+  "description": "Duration field type is used to store duration of time in seconds or minutes. Different formats are supported by NocoDB, as detailed in the table below.",
+  "source": "@site/docs/070.fields/040.field-types/070.date-time-based/040.duration.md",
+  "sourceDirName": "070.fields/040.field-types/070.date-time-based",
+  "slug": "/fields/field-types/date-time-based/duration",
+  "permalink": "/fields/field-types/date-time-based/duration",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.fields/040.field-types/070.date-time-based/040.duration.md",
+  "tags": [
+    {
+      "label": "Fields",
+      "permalink": "/tags/fields"
+    },
+    {
+      "label": "Field types",
+      "permalink": "/tags/field-types"
+    },
+    {
+      "label": "Date & Time",
+      "permalink": "/tags/date-time"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 40,
+  "frontMatter": {
+    "title": "Duration",
+    "tags": [
+      "Fields",
+      "Field types",
+      "Date & Time"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Time",
+    "permalink": "/fields/field-types/date-time-based/time"
+  },
+  "next": {
+    "title": "Multi-field editor",
+    "permalink": "/fields/multi-fields-editor"
+  }
+}

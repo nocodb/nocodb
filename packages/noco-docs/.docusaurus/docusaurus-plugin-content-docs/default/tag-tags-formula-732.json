@@ -1,0 +1,44 @@
+{
+  "label": "Formula",
+  "permalink": "/tags/formula",
+  "allTagsPath": "/tags",
+  "count": 6,
+  "items": [
+    {
+      "id": "fields/field-types/formula/conditional-expressions",
+      "title": "Conditional expressions",
+      "description": "Conditional expressions",
+      "permalink": "/fields/field-types/formula/conditional-expressions"
+    },
+    {
+      "id": "fields/field-types/formula/date-functions",
+      "title": "Date functions",
+      "description": "| Name              | Syntax                                                                                                                                                                                                       | Sample                                                | Output                                                                                                  | Remark                                                                                                                                                                                        |",
+      "permalink": "/fields/field-types/formula/date-functions"
+    },
+    {
+      "id": "fields/field-types/formula/formula",
+      "title": "Formula",
+      "description": "Create a formula field",
+      "permalink": "/fields/field-types/formula/formula"
+    },
+    {
+      "id": "fields/field-types/formula/operators",
+      "title": "Numeric and Logical Operators",
+      "description": "Numeric operators",
+      "permalink": "/fields/field-types/formula/operators"
+    },
+    {
+      "id": "fields/field-types/formula/numeric-functions",
+      "title": "Numeric functions",
+      "description": "Numeric functions",
+      "permalink": "/fields/field-types/formula/numeric-functions"
+    },
+    {
+      "id": "fields/field-types/formula/string-functions",
+      "title": "String functions",
+      "description": "String functions",
+      "permalink": "/fields/field-types/formula/string-functions"
+    }
+  ]
+}

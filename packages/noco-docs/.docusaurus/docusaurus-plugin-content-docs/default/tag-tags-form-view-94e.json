@@ -1,0 +1,32 @@
+{
+  "label": "Form View",
+  "permalink": "/tags/form-view",
+  "allTagsPath": "/tags",
+  "count": 4,
+  "items": [
+    {
+      "id": "views/actions-on-view",
+      "title": "Actions on view",
+      "description": "Learn how to delete, rename, duplicate a a view in NocoDB.",
+      "permalink": "/views/actions-on-view"
+    },
+    {
+      "id": "views/create-view",
+      "title": "Create view",
+      "description": "Learn how to create a view in NocoDB.",
+      "permalink": "/views/create-view"
+    },
+    {
+      "id": "collaboration/share-view",
+      "title": "Share view",
+      "description": "Procedures to share a view",
+      "permalink": "/collaboration/share-view"
+    },
+    {
+      "id": "views/share-view",
+      "title": "Share view",
+      "description": "Procedures to share a view",
+      "permalink": "/views/share-view"
+    }
+  ]
+}

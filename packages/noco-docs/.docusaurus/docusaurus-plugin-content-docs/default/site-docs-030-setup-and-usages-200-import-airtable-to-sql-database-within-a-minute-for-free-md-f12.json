@@ -1,0 +1,28 @@
+{
+  "unversionedId": "setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free",
+  "id": "setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free",
+  "title": "Import Airtable to NocoDB",
+  "description": "A complete import of your Airtable to any MySQL, Postgres, SQLite and SQL server databases within minutes",
+  "source": "@site/docs/030.setup-and-usages/200.import-airtable-to-sql-database-within-a-minute-for-free.md",
+  "sourceDirName": "030.setup-and-usages",
+  "slug": "/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free",
+  "permalink": "/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/030.setup-and-usages/200.import-airtable-to-sql-database-within-a-minute-for-free.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 200,
+  "frontMatter": {
+    "title": "Import Airtable to NocoDB",
+    "description": "A complete import of your Airtable to any MySQL, Postgres, SQLite and SQL server databases within minutes"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Expanded Form",
+    "permalink": "/setup-and-usages/expanded-form"
+  },
+  "next": {
+    "title": "Usage Information",
+    "permalink": "/setup-and-usages/usage-information"
+  }
+}

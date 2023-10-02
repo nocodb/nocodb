@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/custom-types/json",
+  "id": "fields/field-types/custom-types/json",
+  "title": "JSON",
+  "description": "JSON is a custom field type that allows you to store JSON data in a column. Useful for storing data that can be represented as a JSON object, like API Response, or a set of key-value pairs.",
+  "source": "@site/docs/060.fields/030.field-types/050.custom-types/080.json.md",
+  "sourceDirName": "060.fields/030.field-types/050.custom-types",
+  "slug": "/fields/field-types/custom-types/json",
+  "permalink": "/fields/field-types/custom-types/json",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/050.custom-types/080.json.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 80,
+  "frontMatter": {
+    "title": "JSON"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Specific DB type",
+    "permalink": "/fields/field-types/custom-types/specific-db-type"
+  },
+  "next": {
+    "title": "Formula",
+    "permalink": "/fields/field-types/formula/formula"
+  }
+}

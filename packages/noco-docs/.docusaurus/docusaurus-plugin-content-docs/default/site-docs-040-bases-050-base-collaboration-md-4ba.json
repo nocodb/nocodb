@@ -1,0 +1,72 @@
+{
+  "unversionedId": "bases/base-collaboration",
+  "id": "bases/base-collaboration",
+  "title": "Base collaboration",
+  "description": "Invite team members to work on a base",
+  "source": "@site/docs/040.bases/050.base-collaboration.md",
+  "sourceDirName": "040.bases",
+  "slug": "/bases/base-collaboration",
+  "permalink": "/bases/base-collaboration",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/040.bases/050.base-collaboration.md",
+  "tags": [
+    {
+      "label": "Bases",
+      "permalink": "/tags/bases"
+    },
+    {
+      "label": "Collaboration",
+      "permalink": "/tags/collaboration"
+    },
+    {
+      "label": "Members",
+      "permalink": "/tags/members"
+    },
+    {
+      "label": "Invite",
+      "permalink": "/tags/invite"
+    },
+    {
+      "label": "Roles",
+      "permalink": "/tags/roles"
+    },
+    {
+      "label": "Permissions",
+      "permalink": "/tags/permissions"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 50,
+  "frontMatter": {
+    "title": "Base collaboration",
+    "description": "Invite team members to work on a base",
+    "tags": [
+      "Bases",
+      "Collaboration",
+      "Members",
+      "Invite",
+      "Roles",
+      "Permissions"
+    ],
+    "keywords": [
+      "NocoDB base",
+      "base collaboration",
+      "base context menu",
+      "base owner",
+      "base collaboration",
+      "base actions",
+      "base settings",
+      "base administration",
+      "base organization"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Import Airtable to NocoDB",
+    "permalink": "/bases/import-base-from-airtable"
+  },
+  "next": {
+    "title": "Share base",
+    "permalink": "/bases/share-base"
+  }
+}

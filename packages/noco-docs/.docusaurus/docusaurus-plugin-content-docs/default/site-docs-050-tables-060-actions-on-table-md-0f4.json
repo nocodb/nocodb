@@ -1,0 +1,59 @@
+{
+  "unversionedId": "tables/actions-on-table",
+  "id": "tables/actions-on-table",
+  "title": "Actions on table",
+  "description": "Learn how to rename, duplicate, and delete a table in NocoDB.",
+  "source": "@site/docs/050.tables/060.actions-on-table.md",
+  "sourceDirName": "050.tables",
+  "slug": "/tables/actions-on-table",
+  "permalink": "/tables/actions-on-table",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/050.tables/060.actions-on-table.md",
+  "tags": [
+    {
+      "label": "Tables",
+      "permalink": "/tags/tables"
+    },
+    {
+      "label": "Rename",
+      "permalink": "/tags/rename"
+    },
+    {
+      "label": "Duplicate",
+      "permalink": "/tags/duplicate"
+    },
+    {
+      "label": "Delete",
+      "permalink": "/tags/delete"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 60,
+  "frontMatter": {
+    "title": "Actions on table",
+    "description": "Learn how to rename, duplicate, and delete a table in NocoDB.",
+    "tags": [
+      "Tables",
+      "Rename",
+      "Duplicate",
+      "Delete"
+    ],
+    "keywords": [
+      "NocoDB table",
+      "rename table",
+      "duplicate table",
+      "delete table",
+      "table administration",
+      "table organization"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Import data into an existing table",
+    "permalink": "/tables/import-data-into-existing-table"
+  },
+  "next": {
+    "title": "Table operations overview",
+    "permalink": "/table-operations/overview"
+  }
+}

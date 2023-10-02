@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/date-time-based/date-time",
+  "id": "fields/field-types/date-time-based/date-time",
+  "title": "Date Time",
+  "description": "Date Time field type is used to store both date and time values in a single column.",
+  "source": "@site/docs/060.fields/030.field-types/070.date-time-based/010.date-time.md",
+  "sourceDirName": "060.fields/030.field-types/070.date-time-based",
+  "slug": "/fields/field-types/date-time-based/date-time",
+  "permalink": "/fields/field-types/date-time-based/date-time",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/070.date-time-based/010.date-time.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Date Time"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Conditional expressions",
+    "permalink": "/fields/field-types/formula/conditional-expressions"
+  },
+  "next": {
+    "title": "Date",
+    "permalink": "/fields/field-types/date-time-based/date"
+  }
+}

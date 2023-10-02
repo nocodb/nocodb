@@ -1,0 +1,27 @@
+{
+  "unversionedId": "automation/webhook/create-webhook",
+  "id": "automation/webhook/create-webhook",
+  "title": "Create webhook",
+  "description": "Create Webhook",
+  "source": "@site/docs/110.automation/020.webhook/020.create-webhook.md",
+  "sourceDirName": "110.automation/020.webhook",
+  "slug": "/automation/webhook/create-webhook",
+  "permalink": "/automation/webhook/create-webhook",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/110.automation/020.webhook/020.create-webhook.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "Create webhook"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Webhook overview",
+    "permalink": "/automation/webhook/webhook-overview"
+  },
+  "next": {
+    "title": "Actions on webhook",
+    "permalink": "/automation/webhook/actions-on-webhook"
+  }
+}

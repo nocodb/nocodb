@@ -1,0 +1,27 @@
+{
+  "unversionedId": "Toolbar/group-by",
+  "id": "Toolbar/group-by",
+  "title": "Group by",
+  "description": "Group by",
+  "source": "@site/docs/082.Toolbar/050.group-by.md",
+  "sourceDirName": "082.Toolbar",
+  "slug": "/Toolbar/group-by",
+  "permalink": "/Toolbar/group-by",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/082.Toolbar/050.group-by.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 50,
+  "frontMatter": {
+    "title": "Group by"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Sorting records",
+    "permalink": "/Toolbar/sort"
+  },
+  "next": {
+    "title": "Row Height",
+    "permalink": "/Toolbar/row-height"
+  }
+}

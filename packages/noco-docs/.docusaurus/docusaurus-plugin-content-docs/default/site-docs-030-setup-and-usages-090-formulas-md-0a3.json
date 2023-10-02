@@ -1,0 +1,28 @@
+{
+  "unversionedId": "setup-and-usages/formulas",
+  "id": "setup-and-usages/formulas",
+  "title": "Formulas",
+  "description": "NocoDB Formulas Syntaxes and Functions",
+  "source": "@site/docs/030.setup-and-usages/090.formulas.md",
+  "sourceDirName": "030.setup-and-usages",
+  "slug": "/setup-and-usages/formulas",
+  "permalink": "/setup-and-usages/formulas",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/030.setup-and-usages/090.formulas.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 90,
+  "frontMatter": {
+    "title": "Formulas",
+    "description": "NocoDB Formulas Syntaxes and Functions"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Rollup",
+    "permalink": "/setup-and-usages/rollup"
+  },
+  "next": {
+    "title": "Primary Key",
+    "permalink": "/setup-and-usages/primary-key"
+  }
+}

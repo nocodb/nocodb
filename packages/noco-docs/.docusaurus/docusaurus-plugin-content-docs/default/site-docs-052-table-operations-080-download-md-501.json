@@ -1,0 +1,34 @@
+{
+  "unversionedId": "table-operations/download",
+  "id": "table-operations/download",
+  "title": "Download",
+  "description": "NocoDB offers users the ability to export data from the spreadsheet grid in a variety of formats. This feature is useful when working with large datasets and can be used in conjunction with the Filter and Sort feature to further refine your data.",
+  "source": "@site/docs/052.table-operations/080.download.md",
+  "sourceDirName": "052.table-operations",
+  "slug": "/table-operations/download",
+  "permalink": "/table-operations/download",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/052.table-operations/080.download.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 80,
+  "frontMatter": {
+    "title": "Download",
+    "keywords": [
+      "NocoDB table",
+      "download",
+      "export",
+      "table administration",
+      "table organization"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Search",
+    "permalink": "/table-operations/search"
+  },
+  "next": {
+    "title": "Fields overview",
+    "permalink": "/fields/fields-overview"
+  }
+}

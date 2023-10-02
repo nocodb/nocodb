@@ -1,0 +1,32 @@
+{
+  "label": "Member",
+  "permalink": "/tags/member",
+  "allTagsPath": "/tags",
+  "count": 4,
+  "items": [
+    {
+      "id": "collaboration/base-collaboration",
+      "title": "Base collaboration",
+      "description": "Invite team members to work on a base",
+      "permalink": "/collaboration/base-collaboration"
+    },
+    {
+      "id": "collaboration/collaboration-overview",
+      "title": "Collaboration overview",
+      "description": "This article explains various collaboration features that NocoDB offers.",
+      "permalink": "/collaboration/collaboration-overview"
+    },
+    {
+      "id": "account-settings/profile-page",
+      "title": "Profile page",
+      "description": "This article explains how to manage your profile page.",
+      "permalink": "/account-settings/profile-page"
+    },
+    {
+      "id": "collaboration/workspace-collaboration",
+      "title": "Workspace collaboration",
+      "description": "This article explains how to invite members to your workspace, change their roles and procedure to remove them from the workspace.",
+      "permalink": "/collaboration/workspace-collaboration"
+    }
+  ]
+}

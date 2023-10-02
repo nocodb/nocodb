@@ -1,0 +1,14 @@
+{
+  "label": "Comments",
+  "permalink": "/tags/comments",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "records/expand-record",
+      "title": "Expanded record",
+      "description": "NocoDB provides Expanded Form to let you edit your data easily",
+      "permalink": "/records/expand-record"
+    }
+  ]
+}

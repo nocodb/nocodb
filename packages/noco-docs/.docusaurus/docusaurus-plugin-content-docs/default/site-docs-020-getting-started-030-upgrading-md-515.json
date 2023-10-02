@@ -1,0 +1,28 @@
+{
+  "unversionedId": "getting-started/upgrading",
+  "id": "getting-started/upgrading",
+  "title": "Upgrading",
+  "description": "Upgrading NocoDB : Docker, Node and Homebrew!",
+  "source": "@site/docs/020.getting-started/030.upgrading.md",
+  "sourceDirName": "020.getting-started",
+  "slug": "/getting-started/upgrading",
+  "permalink": "/getting-started/upgrading",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/020.getting-started/030.upgrading.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 30,
+  "frontMatter": {
+    "title": "Upgrading",
+    "description": "Upgrading NocoDB : Docker, Node and Homebrew!"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Environment Variables",
+    "permalink": "/getting-started/environment-variables"
+  },
+  "next": {
+    "title": "Dashboard",
+    "permalink": "/setup-and-usages/dashboard"
+  }
+}

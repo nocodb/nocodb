@@ -1,0 +1,28 @@
+{
+  "unversionedId": "setup-and-usages/project-settings",
+  "id": "setup-and-usages/project-settings",
+  "title": "Team & Settings > Project settings",
+  "description": "General project configuration options",
+  "source": "@site/docs/030.setup-and-usages/260.project-settings.md",
+  "sourceDirName": "030.setup-and-usages",
+  "slug": "/setup-and-usages/project-settings",
+  "permalink": "/setup-and-usages/project-settings",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/030.setup-and-usages/260.project-settings.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 260,
+  "frontMatter": {
+    "title": "Team & Settings > Project settings",
+    "description": "General project configuration options"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Audit",
+    "permalink": "/setup-and-usages/audit"
+  },
+  "next": {
+    "title": "Accessing APIs",
+    "permalink": "/developer-resources/accessing-apis"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/links-based/lookup",
+  "id": "fields/field-types/links-based/lookup",
+  "title": "LookUp",
+  "description": "Lookup fields help bring additional column information from related table into the current table. This is useful when you want to display additional information about a record in a table. For example, if you have a table of Orders and a table of Customers, you can use a Lookup field to display the customer's name and address in the Orders table.",
+  "source": "@site/docs/060.fields/030.field-types/040.links-based/020.lookup.md",
+  "sourceDirName": "060.fields/030.field-types/040.links-based",
+  "slug": "/fields/field-types/links-based/lookup",
+  "permalink": "/fields/field-types/links-based/lookup",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/040.links-based/020.lookup.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "LookUp"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Links",
+    "permalink": "/fields/field-types/links-based/links"
+  },
+  "next": {
+    "title": "Rollup",
+    "permalink": "/fields/field-types/links-based/rollup"
+  }
+}

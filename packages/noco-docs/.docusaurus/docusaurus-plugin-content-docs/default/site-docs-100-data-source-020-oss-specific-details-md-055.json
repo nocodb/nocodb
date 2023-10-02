@@ -1,0 +1,28 @@
+{
+  "unversionedId": "data-source/oss-specific-details",
+  "id": "data-source/oss-specific-details",
+  "title": "On Self-Hosted plan",
+  "description": "NocoDB provides all the user operation logs under Audit log",
+  "source": "@site/docs/100.data-source/020.oss-specific-details.md",
+  "sourceDirName": "100.data-source",
+  "slug": "/data-source/oss-specific-details",
+  "permalink": "/data-source/oss-specific-details",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/100.data-source/020.oss-specific-details.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "On Self-Hosted plan",
+    "description": "NocoDB provides all the user operation logs under Audit log"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Data Sources overview",
+    "permalink": "/data-source/data-source-overview"
+  },
+  "next": {
+    "title": "Roles & Permissions Overview",
+    "permalink": "/roles-and-permissions/overview"
+  }
+}

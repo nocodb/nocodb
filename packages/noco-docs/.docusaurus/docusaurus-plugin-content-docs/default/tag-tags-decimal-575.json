@@ -1,0 +1,14 @@
+{
+  "label": "Decimal",
+  "permalink": "/tags/decimal",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "fields/field-types/numerical/decimal",
+      "title": "Decimal",
+      "description": "Decimal field type is used to store decimal values. Use cases include storing salary, price, etc. NocoDB supports precision of upto 8 digits.",
+      "permalink": "/fields/field-types/numerical/decimal"
+    }
+  ]
+}

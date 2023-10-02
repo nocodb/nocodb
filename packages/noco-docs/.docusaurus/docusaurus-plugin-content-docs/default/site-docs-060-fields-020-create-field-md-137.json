@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/create-field",
+  "id": "fields/create-field",
+  "title": "Create field",
+  "description": "Create field",
+  "source": "@site/docs/060.fields/020.create-field.md",
+  "sourceDirName": "060.fields",
+  "slug": "/fields/create-field",
+  "permalink": "/fields/create-field",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/020.create-field.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "Create field"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Fields overview",
+    "permalink": "/fields/fields-overview"
+  },
+  "next": {
+    "title": "Single line text",
+    "permalink": "/fields/field-types/text-based/single-line-text"
+  }
+}

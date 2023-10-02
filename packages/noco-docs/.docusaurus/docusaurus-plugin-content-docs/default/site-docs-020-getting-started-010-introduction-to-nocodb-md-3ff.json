@@ -1,0 +1,27 @@
+{
+  "unversionedId": "getting-started/introduction-to-nocodb",
+  "id": "getting-started/introduction-to-nocodb",
+  "title": "Introduction to NocoDB",
+  "description": "image",
+  "source": "@site/docs/020.getting-started/010.introduction-to-nocodb.md",
+  "sourceDirName": "020.getting-started",
+  "slug": "/getting-started/introduction-to-nocodb",
+  "permalink": "/getting-started/introduction-to-nocodb",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/020.getting-started/010.introduction-to-nocodb.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Introduction to NocoDB"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Welcome",
+    "permalink": "/"
+  },
+  "next": {
+    "title": "Quick start",
+    "permalink": "/getting-started/quick-start"
+  }
+}

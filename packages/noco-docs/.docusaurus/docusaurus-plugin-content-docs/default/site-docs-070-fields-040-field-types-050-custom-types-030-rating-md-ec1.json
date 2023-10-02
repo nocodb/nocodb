@@ -1,0 +1,50 @@
+{
+  "unversionedId": "fields/field-types/custom-types/rating",
+  "id": "fields/field-types/custom-types/rating",
+  "title": "Rating",
+  "description": "The",
+  "source": "@site/docs/070.fields/040.field-types/050.custom-types/030.rating.md",
+  "sourceDirName": "070.fields/040.field-types/050.custom-types",
+  "slug": "/fields/field-types/custom-types/rating",
+  "permalink": "/fields/field-types/custom-types/rating",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.fields/040.field-types/050.custom-types/030.rating.md",
+  "tags": [
+    {
+      "label": "Fields",
+      "permalink": "/tags/fields"
+    },
+    {
+      "label": "Field types",
+      "permalink": "/tags/field-types"
+    },
+    {
+      "label": "Custom types",
+      "permalink": "/tags/custom-types"
+    },
+    {
+      "label": "Rating",
+      "permalink": "/tags/rating"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 30,
+  "frontMatter": {
+    "title": "Rating",
+    "tags": [
+      "Fields",
+      "Field types",
+      "Custom types",
+      "Rating"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Checkbox",
+    "permalink": "/fields/field-types/custom-types/checkbox"
+  },
+  "next": {
+    "title": "QR code",
+    "permalink": "/fields/field-types/custom-types/QR-code"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "unversionedId": "columns/configurations",
+  "id": "columns/configurations",
+  "title": "Configurations",
+  "description": "",
+  "source": "@site/docs/060.columns/060.configurations.md",
+  "sourceDirName": "060.columns",
+  "slug": "/columns/configurations",
+  "permalink": "/columns/configurations",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.columns/060.configurations.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 60,
+  "frontMatter": {
+    "title": "Configurations"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Delete",
+    "permalink": "/columns/delete"
+  },
+  "next": {
+    "title": "Overview",
+    "permalink": "/rows/overview"
+  }
+}

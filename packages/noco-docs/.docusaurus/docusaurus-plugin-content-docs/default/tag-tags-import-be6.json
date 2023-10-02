@@ -1,0 +1,26 @@
+{
+  "label": "Import",
+  "permalink": "/tags/import",
+  "allTagsPath": "/tags",
+  "count": 3,
+  "items": [
+    {
+      "id": "tables/create-table-via-import",
+      "title": "Create table via import",
+      "description": "Learn how to create a table in NocoDB via import from CSV, Excel or JSON.",
+      "permalink": "/tables/create-table-via-import"
+    },
+    {
+      "id": "bases/import-base-from-airtable",
+      "title": "Import Airtable to NocoDB",
+      "description": "A complete import of your Airtable to any MySQL, Postgres, SQLite and SQL server databases within minutes",
+      "permalink": "/bases/import-base-from-airtable"
+    },
+    {
+      "id": "tables/import-data-into-existing-table",
+      "title": "Import data into an existing table",
+      "description": "Learn how to import data into an existing table in NocoDB.",
+      "permalink": "/tables/import-data-into-existing-table"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "unversionedId": "views/view-types/forms",
+  "id": "views/view-types/forms",
+  "title": "Forms",
+  "description": "Form View allows you to arrange fields in a form to input data.",
+  "source": "@site/docs/080.views/090.view-types/030.forms.md",
+  "sourceDirName": "080.views/090.view-types",
+  "slug": "/views/view-types/forms",
+  "permalink": "/views/view-types/forms",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/080.views/090.view-types/030.forms.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 30,
+  "frontMatter": {
+    "title": "Forms"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Gallery",
+    "permalink": "/views/view-types/gallery"
+  },
+  "next": {
+    "title": "Kanban",
+    "permalink": "/views/view-types/kanban"
+  }
+}

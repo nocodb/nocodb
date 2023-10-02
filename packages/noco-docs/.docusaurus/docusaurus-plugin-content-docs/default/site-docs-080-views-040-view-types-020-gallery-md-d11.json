@@ -1,0 +1,32 @@
+{
+  "unversionedId": "views/view-types/gallery",
+  "id": "views/view-types/gallery",
+  "title": "Gallery",
+  "description": "Gallery View allows you to display images as thumbnails with other fields just like a gallery. This view type is ideal for viewing images in a gallery-like interface. Like in Gallery, you can also perform various operations on the gallery view, such as sorting, filtering, grouping, and searching. You can also export the data in the gallery view to CSV or Excel format. This section will cover all the operations that can be performed on the gallery view.",
+  "source": "@site/docs/080.views/040.view-types/020.gallery.md",
+  "sourceDirName": "080.views/040.view-types",
+  "slug": "/views/view-types/gallery",
+  "permalink": "/views/view-types/gallery",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/080.views/040.view-types/020.gallery.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "Gallery",
+    "keywords": [
+      "NocoDB gallery view",
+      "gallery view",
+      "gallery"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Grid",
+    "permalink": "/views/view-types/grid"
+  },
+  "next": {
+    "title": "Forms",
+    "permalink": "/views/view-types/form"
+  }
+}

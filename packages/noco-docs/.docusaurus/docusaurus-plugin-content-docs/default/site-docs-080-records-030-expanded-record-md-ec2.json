@@ -1,0 +1,57 @@
+{
+  "unversionedId": "records/expanded-record",
+  "id": "records/expanded-record",
+  "title": "Expanded record",
+  "description": "NocoDB provides Expanded Form to let you edit your data easily",
+  "source": "@site/docs/080.records/030.expanded-record.md",
+  "sourceDirName": "080.records",
+  "slug": "/records/expanded-record",
+  "permalink": "/records/expanded-record",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/080.records/030.expanded-record.md",
+  "tags": [
+    {
+      "label": "Records",
+      "permalink": "/tags/records"
+    },
+    {
+      "label": "Expanded record",
+      "permalink": "/tags/expanded-record"
+    },
+    {
+      "label": "Activity feed",
+      "permalink": "/tags/activity-feed"
+    },
+    {
+      "label": "Comments",
+      "permalink": "/tags/comments"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 30,
+  "frontMatter": {
+    "title": "Expanded record",
+    "tags": [
+      "Records",
+      "Expanded record",
+      "Activity feed",
+      "Comments"
+    ],
+    "description": "NocoDB provides Expanded Form to let you edit your data easily",
+    "keywords": [
+      "NocoDB expanded form",
+      "expanded form",
+      "expanded record",
+      "expanded record view"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Create record",
+    "permalink": "/records/create-record"
+  },
+  "next": {
+    "title": "Actions on record",
+    "permalink": "/records/actions-on-record"
+  }
+}

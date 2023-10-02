@@ -1,0 +1,55 @@
+{
+  "unversionedId": "automation/webhook/actions-on-webhook",
+  "id": "automation/webhook/actions-on-webhook",
+  "title": "Actions on webhook",
+  "description": "Enable/Disable Webhook",
+  "source": "@site/docs/130.automation/020.webhook/040.actions-on-webhook.md",
+  "sourceDirName": "130.automation/020.webhook",
+  "slug": "/automation/webhook/actions-on-webhook",
+  "permalink": "/automation/webhook/actions-on-webhook",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/130.automation/020.webhook/040.actions-on-webhook.md",
+  "tags": [
+    {
+      "label": "Webhook",
+      "permalink": "/tags/webhook"
+    },
+    {
+      "label": "Delete",
+      "permalink": "/tags/delete"
+    },
+    {
+      "label": "Duplicate",
+      "permalink": "/tags/duplicate"
+    },
+    {
+      "label": "Disable",
+      "permalink": "/tags/disable"
+    },
+    {
+      "label": "Enable",
+      "permalink": "/tags/enable"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 40,
+  "frontMatter": {
+    "title": "Actions on webhook",
+    "tags": [
+      "Webhook",
+      "Delete",
+      "Duplicate",
+      "Disable",
+      "Enable"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Create webhook",
+    "permalink": "/automation/webhook/create-webhook"
+  },
+  "next": {
+    "title": "Profile page",
+    "permalink": "/account-settings/profile-page"
+  }
+}

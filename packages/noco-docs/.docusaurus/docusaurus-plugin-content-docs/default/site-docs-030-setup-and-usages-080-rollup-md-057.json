@@ -1,0 +1,28 @@
+{
+  "unversionedId": "setup-and-usages/rollup",
+  "id": "setup-and-usages/rollup",
+  "title": "Rollup",
+  "description": "Understanding Rollup Column!",
+  "source": "@site/docs/030.setup-and-usages/080.rollup.md",
+  "sourceDirName": "030.setup-and-usages",
+  "slug": "/setup-and-usages/rollup",
+  "permalink": "/setup-and-usages/rollup",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/030.setup-and-usages/080.rollup.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 80,
+  "frontMatter": {
+    "title": "Rollup",
+    "description": "Understanding Rollup Column!"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Lookup",
+    "permalink": "/setup-and-usages/lookup"
+  },
+  "next": {
+    "title": "Formulas",
+    "permalink": "/setup-and-usages/formulas"
+  }
+}

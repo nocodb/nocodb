@@ -1,0 +1,45 @@
+{
+  "unversionedId": "account-settings/oss-specific-details",
+  "id": "account-settings/oss-specific-details",
+  "title": "In Open Source",
+  "description": "This article explains Account settings specifics in Open source NocoDB.",
+  "source": "@site/docs/140.account-settings/030.oss-specific-details.md",
+  "sourceDirName": "140.account-settings",
+  "slug": "/account-settings/oss-specific-details",
+  "permalink": "/account-settings/oss-specific-details",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/140.account-settings/030.oss-specific-details.md",
+  "tags": [
+    {
+      "label": "Account settings",
+      "permalink": "/tags/account-settings"
+    },
+    {
+      "label": "Open Source",
+      "permalink": "/tags/open-source"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 30,
+  "frontMatter": {
+    "title": "In Open Source",
+    "description": "This article explains Account settings specifics in Open source NocoDB.",
+    "tags": [
+      "Account settings",
+      "Open Source"
+    ],
+    "keywords": [
+      "Account settings",
+      "Open Source"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "API tokens",
+    "permalink": "/account-settings/api-tokens"
+  },
+  "next": {
+    "title": "Architecture overview",
+    "permalink": "/engineering/architecture"
+  }
+}

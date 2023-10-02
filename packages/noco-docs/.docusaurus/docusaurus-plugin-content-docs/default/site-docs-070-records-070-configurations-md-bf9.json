@@ -1,0 +1,27 @@
+{
+  "unversionedId": "records/configurations",
+  "id": "records/configurations",
+  "title": "Configurations",
+  "description": "",
+  "source": "@site/docs/070.records/070.configurations.md",
+  "sourceDirName": "070.records",
+  "slug": "/records/configurations",
+  "permalink": "/records/configurations",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.records/070.configurations.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 70,
+  "frontMatter": {
+    "title": "Configurations"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Comments",
+    "permalink": "/records/comment-on-record"
+  },
+  "next": {
+    "title": "Overview",
+    "permalink": "/views/overview"
+  }
+}

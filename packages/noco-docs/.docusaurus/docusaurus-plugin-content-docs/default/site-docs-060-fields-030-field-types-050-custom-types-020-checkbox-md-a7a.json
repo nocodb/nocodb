@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/custom-types/checkbox",
+  "id": "fields/field-types/custom-types/checkbox",
+  "title": "Checkbox",
+  "description": "The checkbox field type is used to store boolean values. It can be used to store a simple yes/no value, or true/false, or any other boolean value.",
+  "source": "@site/docs/060.fields/030.field-types/050.custom-types/020.checkbox.md",
+  "sourceDirName": "060.fields/030.field-types/050.custom-types",
+  "slug": "/fields/field-types/custom-types/checkbox",
+  "permalink": "/fields/field-types/custom-types/checkbox",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/050.custom-types/020.checkbox.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "Checkbox"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Attachment",
+    "permalink": "/fields/field-types/custom-types/attachment"
+  },
+  "next": {
+    "title": "Rating",
+    "permalink": "/fields/field-types/custom-types/rating"
+  }
+}

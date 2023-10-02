@@ -1,0 +1,28 @@
+{
+  "unversionedId": "developer-resources/rest-apis",
+  "id": "developer-resources/rest-apis",
+  "title": "REST APIs",
+  "description": "NocoDB REST API Overview",
+  "source": "@site/docs/040.developer-resources/020.rest-apis.md",
+  "sourceDirName": "040.developer-resources",
+  "slug": "/developer-resources/rest-apis",
+  "permalink": "/developer-resources/rest-apis",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/040.developer-resources/020.rest-apis.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "REST APIs",
+    "description": "NocoDB REST API Overview"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Accessing APIs",
+    "permalink": "/developer-resources/accessing-apis"
+  },
+  "next": {
+    "title": "NocoDB SDK",
+    "permalink": "/developer-resources/sdk"
+  }
+}

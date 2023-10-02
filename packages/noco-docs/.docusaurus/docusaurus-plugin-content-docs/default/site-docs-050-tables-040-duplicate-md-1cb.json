@@ -1,0 +1,27 @@
+{
+  "unversionedId": "tables/duplicate",
+  "id": "tables/duplicate",
+  "title": "Duplicate",
+  "description": "",
+  "source": "@site/docs/050.tables/040.duplicate.md",
+  "sourceDirName": "050.tables",
+  "slug": "/tables/duplicate",
+  "permalink": "/tables/duplicate",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/050.tables/040.duplicate.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 40,
+  "frontMatter": {
+    "title": "Duplicate"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Create",
+    "permalink": "/tables/create-table"
+  },
+  "next": {
+    "title": "Delete",
+    "permalink": "/tables/delete"
+  }
+}

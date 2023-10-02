@@ -1,0 +1,69 @@
+{
+  "unversionedId": "table-operations/field-operations",
+  "id": "table-operations/field-operations",
+  "title": "Hide & reorder fields",
+  "description": "Learn how to hide and reorder fields in NocoDB.",
+  "source": "@site/docs/060.table-operations/020.field-operations.md",
+  "sourceDirName": "060.table-operations",
+  "slug": "/table-operations/field-operations",
+  "permalink": "/table-operations/field-operations",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.table-operations/020.field-operations.md",
+  "tags": [
+    {
+      "label": "Table operations",
+      "permalink": "/tags/table-operations"
+    },
+    {
+      "label": "Reorder",
+      "permalink": "/tags/reorder"
+    },
+    {
+      "label": "Show/Hide",
+      "permalink": "/tags/show-hide"
+    },
+    {
+      "label": "Cover image",
+      "permalink": "/tags/cover-image"
+    },
+    {
+      "label": "Gallery View",
+      "permalink": "/tags/gallery-view"
+    },
+    {
+      "label": "Kanban View",
+      "permalink": "/tags/kanban-view"
+    },
+    {
+      "label": "Grid View",
+      "permalink": "/tags/grid-view"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "Hide & reorder fields",
+    "description": "Learn how to hide and reorder fields in NocoDB.",
+    "tags": [
+      "Table operations",
+      "Reorder",
+      "Show/Hide",
+      "Cover image",
+      "Gallery View",
+      "Kanban View",
+      "Grid View"
+    ],
+    "keywords": [
+      "fields, hide fields, reorder fields, change cover field, gallery view, kanban view"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Table operations overview",
+    "permalink": "/table-operations/overview"
+  },
+  "next": {
+    "title": "Filtering records",
+    "permalink": "/table-operations/filter"
+  }
+}

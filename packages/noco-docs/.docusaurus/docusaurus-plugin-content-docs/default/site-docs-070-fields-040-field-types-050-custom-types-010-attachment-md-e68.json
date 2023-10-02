@@ -1,0 +1,50 @@
+{
+  "unversionedId": "fields/field-types/custom-types/attachment",
+  "id": "fields/field-types/custom-types/attachment",
+  "title": "Attachment",
+  "description": "Attachment fields allow you to upload files to your records. You can upload any file type, and the file will be linked to the record. You can also upload multiple files to a single Attachment field record.",
+  "source": "@site/docs/070.fields/040.field-types/050.custom-types/010.attachment.md",
+  "sourceDirName": "070.fields/040.field-types/050.custom-types",
+  "slug": "/fields/field-types/custom-types/attachment",
+  "permalink": "/fields/field-types/custom-types/attachment",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.fields/040.field-types/050.custom-types/010.attachment.md",
+  "tags": [
+    {
+      "label": "Fields",
+      "permalink": "/tags/fields"
+    },
+    {
+      "label": "Field types",
+      "permalink": "/tags/field-types"
+    },
+    {
+      "label": "Custom types",
+      "permalink": "/tags/custom-types"
+    },
+    {
+      "label": "Attachment",
+      "permalink": "/tags/attachment"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Attachment",
+    "tags": [
+      "Fields",
+      "Field types",
+      "Custom types",
+      "Attachment"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Rollup",
+    "permalink": "/fields/field-types/links-based/rollup"
+  },
+  "next": {
+    "title": "Checkbox",
+    "permalink": "/fields/field-types/custom-types/checkbox"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "unversionedId": "developer-resources/upload-via-api",
+  "id": "version-0.109.7/developer-resources/upload-via-api",
+  "title": "Upload via API",
+  "description": "Upload files locally present or from public remote URL via API",
+  "source": "@site/versioned_docs/version-0.109.7/040.developer-resources/050.upload-via-api.md",
+  "sourceDirName": "040.developer-resources",
+  "slug": "/developer-resources/upload-via-api",
+  "permalink": "/0.109.7/developer-resources/upload-via-api",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/versioned_docs/version-0.109.7/040.developer-resources/050.upload-via-api.md",
+  "tags": [],
+  "version": "0.109.7",
+  "sidebarPosition": 50,
+  "frontMatter": {
+    "title": "Upload via API",
+    "description": "Upload files locally present or from public remote URL via API",
+    "hide_table_of_contents": true
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Webhooks",
+    "permalink": "/0.109.7/developer-resources/webhooks"
+  },
+  "next": {
+    "title": "Architecture Overview",
+    "permalink": "/0.109.7/engineering/architecture"
+  }
+}

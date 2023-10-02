@@ -1,0 +1,36 @@
+{
+  "unversionedId": "table-operations/group-by",
+  "id": "table-operations/group-by",
+  "title": "Grouping Records",
+  "description": "Grouping records in NocoDB allows for efficient categorization of data into specific Groups and Subgroups. NocoDB supports three levels of record segregation, providing a powerful organizational tool.",
+  "source": "@site/docs/052.table-operations/050.group-by.md",
+  "sourceDirName": "052.table-operations",
+  "slug": "/table-operations/group-by",
+  "permalink": "/table-operations/group-by",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/052.table-operations/050.group-by.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 50,
+  "frontMatter": {
+    "title": "Grouping Records",
+    "keywords": [
+      "NocoDB table group by",
+      "group By column",
+      "group By",
+      "table group by",
+      "grouping records",
+      "grouping",
+      "group by in table"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Sorting records",
+    "permalink": "/table-operations/sort"
+  },
+  "next": {
+    "title": "Row Height",
+    "permalink": "/table-operations/row-height"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "unversionedId": "setup-and-usages/link-to-another-record",
+  "id": "version-0.109.7/setup-and-usages/link-to-another-record",
+  "title": "Link To Another Record",
+  "description": "Understanding Link To Another Record (LTAR) Columns!",
+  "source": "@site/versioned_docs/version-0.109.7/030.setup-and-usages/060.link-to-another-record.md",
+  "sourceDirName": "030.setup-and-usages",
+  "slug": "/setup-and-usages/link-to-another-record",
+  "permalink": "/0.109.7/setup-and-usages/link-to-another-record",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/versioned_docs/version-0.109.7/030.setup-and-usages/060.link-to-another-record.md",
+  "tags": [],
+  "version": "0.109.7",
+  "sidebarPosition": 60,
+  "frontMatter": {
+    "title": "Link To Another Record",
+    "description": "Understanding Link To Another Record (LTAR) Columns!"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Code Snippets",
+    "permalink": "/0.109.7/setup-and-usages/code-snippets"
+  },
+  "next": {
+    "title": "Lookup",
+    "permalink": "/0.109.7/setup-and-usages/lookup"
+  }
+}

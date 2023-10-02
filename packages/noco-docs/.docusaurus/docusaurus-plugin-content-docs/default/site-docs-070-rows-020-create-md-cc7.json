@@ -1,0 +1,27 @@
+{
+  "unversionedId": "rows/create",
+  "id": "rows/create",
+  "title": "Create",
+  "description": "",
+  "source": "@site/docs/070.rows/020.create.md",
+  "sourceDirName": "070.rows",
+  "slug": "/rows/create",
+  "permalink": "/rows/create",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.rows/020.create.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "Create"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Overview",
+    "permalink": "/rows/rows-overview"
+  },
+  "next": {
+    "title": "Duplicate",
+    "permalink": "/rows/duplicate"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/links",
+  "id": "fields/field-types/links",
+  "title": "Links",
+  "description": "",
+  "source": "@site/docs/060.fields/030.field-types/200.links.md",
+  "sourceDirName": "060.fields/030.field-types",
+  "slug": "/fields/field-types/links",
+  "permalink": "/fields/field-types/links",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/200.links.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 200,
+  "frontMatter": {
+    "title": "Links"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Duration",
+    "permalink": "/fields/field-types/date-time-based/duration"
+  },
+  "next": {
+    "title": "LookUp",
+    "permalink": "/fields/field-types/lookup"
+  }
+}

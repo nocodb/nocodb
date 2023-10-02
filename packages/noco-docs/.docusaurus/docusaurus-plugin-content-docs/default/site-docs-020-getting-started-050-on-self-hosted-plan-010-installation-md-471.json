@@ -1,0 +1,43 @@
+{
+  "unversionedId": "getting-started/on-self-hosted-plan/installation",
+  "id": "getting-started/on-self-hosted-plan/installation",
+  "title": "Installation",
+  "description": "Simple installation - takes about three minutes!",
+  "source": "@site/docs/020.getting-started/050.on-self-hosted-plan/010.installation.md",
+  "sourceDirName": "020.getting-started/050.on-self-hosted-plan",
+  "slug": "/getting-started/on-self-hosted-plan/installation",
+  "permalink": "/getting-started/on-self-hosted-plan/installation",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/020.getting-started/050.on-self-hosted-plan/010.installation.md",
+  "tags": [
+    {
+      "label": "Self-Hosted plan",
+      "permalink": "/tags/self-hosted-plan"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Installation",
+    "description": "Simple installation - takes about three minutes!",
+    "tags": [
+      "Self-Hosted plan"
+    ],
+    "keywords": [
+      "NocoDB installation",
+      "NocoDB docker installation",
+      "NocoDB nodejs installation",
+      "NocoDB quick try",
+      "NocoDB prerequisites"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Keyboard shortcuts",
+    "permalink": "/getting-started/keyboard-shortcuts"
+  },
+  "next": {
+    "title": "Environment Variables",
+    "permalink": "/getting-started/on-self-hosted-plan/environment-variables"
+  }
+}

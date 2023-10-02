@@ -1,0 +1,72 @@
+{
+  "unversionedId": "collaboration/overview",
+  "id": "collaboration/overview",
+  "title": "Collaboration overview",
+  "description": "This article explains various collaboration features that NocoDB offers.",
+  "source": "@site/docs/100.collaboration/010.overview.md",
+  "sourceDirName": "100.collaboration",
+  "slug": "/collaboration/overview",
+  "permalink": "/collaboration/overview",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/100.collaboration/010.overview.md",
+  "tags": [
+    {
+      "label": "collaboration",
+      "permalink": "/tags/collaboration"
+    },
+    {
+      "label": "workspace collaboration",
+      "permalink": "/tags/workspace-collaboration"
+    },
+    {
+      "label": "base collaboration",
+      "permalink": "/tags/base-collaboration"
+    },
+    {
+      "label": "share base",
+      "permalink": "/tags/share-base"
+    },
+    {
+      "label": "share view",
+      "permalink": "/tags/share-view"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Collaboration overview",
+    "description": "This article explains various collaboration features that NocoDB offers.",
+    "tags": [
+      "collaboration",
+      "workspace collaboration",
+      "base collaboration",
+      "share base",
+      "share view"
+    ],
+    "keywords": [
+      "Collaboration overview",
+      "Workspace collaboration",
+      "Base collaboration",
+      "Share base",
+      "Share view",
+      "Team collaboration",
+      "Workspace management",
+      "Workspace settings",
+      "Workspace administration",
+      "Member invitation",
+      "User access",
+      "Member management",
+      "Workspace teamwork",
+      "Workspace organization"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Roles & Permissions Overview",
+    "permalink": "/roles-and-permissions/overview"
+  },
+  "next": {
+    "title": "Workspace collaboration",
+    "permalink": "/collaboration/workspace-collaboration"
+  }
+}

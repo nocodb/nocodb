@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/date-time-based/date",
+  "id": "fields/field-types/date-time-based/date",
+  "title": "Date",
+  "description": "Date field type is used to store date values in a single column. NocoDB supports a wide range of date formats, as detailed in the table below.",
+  "source": "@site/docs/070.fields/030.field-types/070.date-time-based/020.date.md",
+  "sourceDirName": "070.fields/030.field-types/070.date-time-based",
+  "slug": "/fields/field-types/date-time-based/date",
+  "permalink": "/fields/field-types/date-time-based/date",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.fields/030.field-types/070.date-time-based/020.date.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "Date"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Date Time",
+    "permalink": "/fields/field-types/date-time-based/date-time"
+  },
+  "next": {
+    "title": "Time",
+    "permalink": "/fields/field-types/date-time-based/time"
+  }
+}

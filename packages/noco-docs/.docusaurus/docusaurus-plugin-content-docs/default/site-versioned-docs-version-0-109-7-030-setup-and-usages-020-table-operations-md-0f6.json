@@ -1,0 +1,28 @@
+{
+  "unversionedId": "setup-and-usages/table-operations",
+  "id": "version-0.109.7/setup-and-usages/table-operations",
+  "title": "Table Operations",
+  "description": "Table Operations: Row, Column, Quick Import, Export & Import",
+  "source": "@site/versioned_docs/version-0.109.7/030.setup-and-usages/020.table-operations.md",
+  "sourceDirName": "030.setup-and-usages",
+  "slug": "/setup-and-usages/table-operations",
+  "permalink": "/0.109.7/setup-and-usages/table-operations",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/versioned_docs/version-0.109.7/030.setup-and-usages/020.table-operations.md",
+  "tags": [],
+  "version": "0.109.7",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "Table Operations",
+    "description": "Table Operations: Row, Column, Quick Import, Export & Import"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Dashboard",
+    "permalink": "/0.109.7/setup-and-usages/dashboard"
+  },
+  "next": {
+    "title": "Column Operations",
+    "permalink": "/0.109.7/setup-and-usages/column-operations"
+  }
+}

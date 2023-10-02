@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/numerical/percent",
+  "id": "fields/field-types/numerical/percent",
+  "title": "Percent",
+  "description": "Create field",
+  "source": "@site/docs/060.fields/030.field-types/020.numerical/050.percent.md",
+  "sourceDirName": "060.fields/030.field-types/020.numerical",
+  "slug": "/fields/field-types/numerical/percent",
+  "permalink": "/fields/field-types/numerical/percent",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/020.numerical/050.percent.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 50,
+  "frontMatter": {
+    "title": "Percent"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Decimal",
+    "permalink": "/fields/field-types/numerical/decimal"
+  },
+  "next": {
+    "title": "Single Select",
+    "permalink": "/fields/field-types/select-based/single-select"
+  }
+}

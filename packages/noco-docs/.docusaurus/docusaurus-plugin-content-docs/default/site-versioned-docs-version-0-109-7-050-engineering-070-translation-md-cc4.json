@@ -1,0 +1,28 @@
+{
+  "unversionedId": "engineering/translation",
+  "id": "version-0.109.7/engineering/translation",
+  "title": "i18n translation",
+  "description": "Contribute to NocoDB's i18n translation",
+  "source": "@site/versioned_docs/version-0.109.7/050.engineering/070.translation.md",
+  "sourceDirName": "050.engineering",
+  "slug": "/engineering/translation",
+  "permalink": "/0.109.7/engineering/translation",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/versioned_docs/version-0.109.7/050.engineering/070.translation.md",
+  "tags": [],
+  "version": "0.109.7",
+  "sidebarPosition": 70,
+  "frontMatter": {
+    "title": "i18n translation",
+    "description": "Contribute to NocoDB's i18n translation"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Releases & Builds",
+    "permalink": "/0.109.7/engineering/builds-and-releases"
+  },
+  "next": {
+    "title": "FAQs",
+    "permalink": "/0.109.7/FAQs"
+  }
+}

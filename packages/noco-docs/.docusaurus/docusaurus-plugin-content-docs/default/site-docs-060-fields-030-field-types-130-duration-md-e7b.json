@@ -1,0 +1,25 @@
+{
+  "unversionedId": "fields/field-types/duration",
+  "id": "fields/field-types/duration",
+  "title": "duration",
+  "description": "",
+  "source": "@site/docs/060.fields/030.field-types/130.duration.md",
+  "sourceDirName": "060.fields/030.field-types",
+  "slug": "/fields/field-types/duration",
+  "permalink": "/fields/field-types/duration",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/130.duration.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 130,
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "time",
+    "permalink": "/fields/field-types/time"
+  },
+  "next": {
+    "title": "email",
+    "permalink": "/fields/field-types/email"
+  }
+}

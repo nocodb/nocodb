@@ -1,0 +1,75 @@
+{
+  "unversionedId": "bases/actions-on-base",
+  "id": "bases/actions-on-base",
+  "title": "Actions on base",
+  "description": "Actions you can perform on a base in NocoDB: Rename, duplicate, delete, star a base.",
+  "source": "@site/docs/040.bases/070.actions-on-base.md",
+  "sourceDirName": "040.bases",
+  "slug": "/bases/actions-on-base",
+  "permalink": "/bases/actions-on-base",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/040.bases/070.actions-on-base.md",
+  "tags": [
+    {
+      "label": "Bases",
+      "permalink": "/tags/bases"
+    },
+    {
+      "label": "Rename",
+      "permalink": "/tags/rename"
+    },
+    {
+      "label": "Duplicate",
+      "permalink": "/tags/duplicate"
+    },
+    {
+      "label": "Delete",
+      "permalink": "/tags/delete"
+    },
+    {
+      "label": "Star",
+      "permalink": "/tags/star"
+    },
+    {
+      "label": "Relations",
+      "permalink": "/tags/relations"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 70,
+  "frontMatter": {
+    "title": "Actions on base",
+    "description": "Actions you can perform on a base in NocoDB: Rename, duplicate, delete, star a base.",
+    "tags": [
+      "Bases",
+      "Rename",
+      "Duplicate",
+      "Delete",
+      "Star",
+      "Relations"
+    ],
+    "keywords": [
+      "NocoDB base",
+      "base rename",
+      "base duplicate",
+      "base delete",
+      "base star",
+      "base context menu",
+      "base owner",
+      "base collaboration",
+      "base actions",
+      "base settings",
+      "base administration",
+      "base organization"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Share base",
+    "permalink": "/bases/share-base"
+  },
+  "next": {
+    "title": "Table overview",
+    "permalink": "/tables/table-overview"
+  }
+}

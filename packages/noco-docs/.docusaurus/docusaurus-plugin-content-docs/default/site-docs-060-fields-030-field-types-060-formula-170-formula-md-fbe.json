@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/formula/formula",
+  "id": "fields/field-types/formula/formula",
+  "title": "Formula",
+  "description": "",
+  "source": "@site/docs/060.fields/030.field-types/060.formula/170.formula.md",
+  "sourceDirName": "060.fields/030.field-types/060.formula",
+  "slug": "/fields/field-types/formula/formula",
+  "permalink": "/fields/field-types/formula/formula",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/060.formula/170.formula.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 170,
+  "frontMatter": {
+    "title": "Formula"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "JSON",
+    "permalink": "/fields/field-types/custom-types/json"
+  },
+  "next": {
+    "title": "Date Time",
+    "permalink": "/fields/field-types/date-time-based/date-time"
+  }
+}

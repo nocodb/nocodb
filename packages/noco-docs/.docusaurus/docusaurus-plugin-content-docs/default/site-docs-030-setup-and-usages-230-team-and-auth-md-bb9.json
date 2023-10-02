@@ -1,0 +1,28 @@
+{
+  "unversionedId": "setup-and-usages/team-and-auth",
+  "id": "setup-and-usages/team-and-auth",
+  "title": "Team & Auth",
+  "description": "Breakdown of roles & permissions for team user management",
+  "source": "@site/docs/030.setup-and-usages/230.team-and-auth.md",
+  "sourceDirName": "030.setup-and-usages",
+  "slug": "/setup-and-usages/team-and-auth",
+  "permalink": "/setup-and-usages/team-and-auth",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/030.setup-and-usages/230.team-and-auth.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 230,
+  "frontMatter": {
+    "title": "Team & Auth",
+    "description": "Breakdown of roles & permissions for team user management"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Usage Information",
+    "permalink": "/setup-and-usages/usage-information"
+  },
+  "next": {
+    "title": "Data Sources",
+    "permalink": "/setup-and-usages/meta-management"
+  }
+}

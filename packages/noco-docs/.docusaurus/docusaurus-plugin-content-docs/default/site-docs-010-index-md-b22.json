@@ -1,0 +1,25 @@
+{
+  "unversionedId": "index",
+  "id": "index",
+  "title": "Welcome",
+  "description": "NocoDB Documentation",
+  "source": "@site/docs/010.index.md",
+  "sourceDirName": ".",
+  "slug": "/",
+  "permalink": "/",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/010.index.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Welcome",
+    "description": "NocoDB Documentation",
+    "slug": "/"
+  },
+  "sidebar": "tutorialSidebar",
+  "next": {
+    "title": "Quick start",
+    "permalink": "/getting-started/quick-start"
+  }
+}

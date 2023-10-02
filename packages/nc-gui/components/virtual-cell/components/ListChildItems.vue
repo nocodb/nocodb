@@ -247,6 +247,7 @@ onKeyStroke('Escape', () => {
       </p>
       <NcButton
         v-if="!readonly && childrenListCount < 1"
+        v-e="['c:links:link']"
         data-testid="nc-child-list-button-link-to"
         @click="emit('attachRecord')"
       >
@@ -283,6 +284,7 @@ onKeyStroke('Escape', () => {
         <NcButton v-if="!isForm" type="ghost" class="nc-close-btn" @click="vModel = false"> {{ $t('general.finish') }} </NcButton>
         <NcButton
           v-if="!readonly && childrenListCount > 0"
+          v-e="['c:links:link']"
           data-testid="nc-child-list-button-link-to"
           @click="emit('attachRecord')"
         >

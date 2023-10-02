@@ -7,7 +7,7 @@ import { NcProjectType, useWorkspace } from '#imports'
 
 // todo: merge with project store
 export const useProjects = defineStore('projectsStore', () => {
-  const { $api } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
 
   const { loadRoles } = useRoles()
   const { appInfo } = useGlobal()
@@ -107,7 +107,7 @@ export const useProjects = defineStore('projectsStore', () => {
       projects.value.set(project.id!, {
         ...(projects.value.get(project.id!) || {}),
         ...project,
-        isExpanded: route.value.params.projectId === project.id || projects.value.get(project.id!)?.isExpanded,
+        isExpanded: true,
         isLoading: false,
       })
 
@@ -344,6 +344,8 @@ export const useProjects = defineStore('projectsStore', () => {
           baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace?.id}.${appInfo.value.baseHostName}` : undefined,
         },
       )
+
+      $e('a:base:star:toggle')
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }

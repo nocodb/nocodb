@@ -35,6 +35,7 @@ const centered = computed(() => props.centered ?? true)
 <template>
   <NcButton
     v-if="isUIAllowed('projectCreate') && !isSharedBase"
+    v-e="['c:base:create']"
     type="text"
     :size="size"
     :centered="centered"

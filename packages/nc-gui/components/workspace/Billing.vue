@@ -26,7 +26,13 @@ const upgradeWorkspace = async () => {
       <template v-if="activeWorkspace.plan === WorkspacePlan.FREE">
         <div class="flex text-xl font-medium">Upgrade your workspace</div>
 
-        <a-button type="primary" size="large" class="!rounded-md" :loading="isUpgrading" @click="upgradeWorkspace"
+        <a-button
+          v-e="['c:workspace:settings:upgrade']"
+          type="primary"
+          size="large"
+          class="!rounded-md"
+          :loading="isUpgrading"
+          @click="upgradeWorkspace"
           >Upgrade
         </a-button>
       </template>

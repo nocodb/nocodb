@@ -6,8 +6,8 @@ const { hoverable } = defineProps<{
 </script>
 
 <template>
-  <img
-    src="~/assets/nc-icons/database.svg"
+  <GeneralIcon
+    icon="ncDatabase"
     class="text-[#2824FB] nc-project-icon"
     :class="{
       'nc-project-icon-hoverable': hoverable,

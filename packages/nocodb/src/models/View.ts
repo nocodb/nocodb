@@ -501,6 +501,11 @@ export default class View implements ViewType {
       }
     }
 
+    await Model.getNonDefaultViewsCountAndReset(
+      { modelId: view.fk_model_id },
+      ncMeta,
+    );
+
     return View.get(view_id, ncMeta);
   }
 
@@ -1077,6 +1082,11 @@ export default class View implements ViewType {
     await NocoCache.delAll(
       CacheScope.SINGLE_QUERY,
       `${view.fk_model_id}:${view.id}:*`,
+    );
+
+    await Model.getNonDefaultViewsCountAndReset(
+      { modelId: view.fk_model_id },
+      ncMeta,
     );
   }
 

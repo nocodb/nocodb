@@ -85,7 +85,7 @@ watch(showShareModal, (val) => {
 <template>
   <a-modal
     v-model:visible="showShareModal"
-    class="!top-[55%]"
+    class="!top-[1%]"
     :class="{ active: showShareModal }"
     wrap-class-name="nc-modal-share-collaborate"
     :closable="false"
@@ -206,7 +206,7 @@ watch(showShareModal, (val) => {
 <style lang="scss">
 .nc-modal-share-collaborate {
   .ant-modal {
-    top: 28vh !important;
+    top: 10vh !important;
   }
 
   .share-view,

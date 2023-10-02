@@ -25,6 +25,8 @@ const { loadProject } = useProjects()
 const projectStore = useProject()
 const { project } = storeToRefs(projectStore)
 
+const { projectPageTab } = storeToRefs(useConfigStore())
+
 const { refreshCommandPalette } = useCommandPalette()
 
 const sources = ref<BaseType[]>([])
@@ -140,11 +142,17 @@ const forceAwaken = () => {
   emits('awaken', forceAwakened.value)
 }
 
-onMounted(async () => {
-  if (sources.value.length === 0) {
-    loadBases()
-  }
-})
+watch(
+  projectPageTab,
+  () => {
+    if (projectPageTab.value === 'data-source') {
+      loadBases()
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 watch(
   () => props.reload,

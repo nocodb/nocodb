@@ -27,6 +27,10 @@ const props = defineProps<{
   }
 }
 
+.ant-tabs-tab + .ant-tabs-tab {
+  @apply ml-4;
+}
+
 .nc-tabs {
   .ant-tabs-tab {
     @apply px-2 text-gray-600 !hover:text-gray-800;

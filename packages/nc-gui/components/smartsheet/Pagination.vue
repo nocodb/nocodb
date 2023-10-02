@@ -94,6 +94,7 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
         class="xs:(mr-2)"
         :class="{ 'rtl-pagination': isRTLLanguage }"
         :total="+count"
+        entity-name="grid"
       />
       <div v-else class="mx-auto flex items-center mt-n1" style="max-width: 250px">
         <span class="text-xs" style="white-space: nowrap"> Change page:</span>

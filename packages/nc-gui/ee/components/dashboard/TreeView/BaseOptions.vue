@@ -149,6 +149,7 @@ function openQuickImportDialog(type: string) {
     <NcMenuItem
       v-if="isUIAllowed('airtableImport', { roles: projectRole })"
       key="quick-import-airtable"
+      v-e="['c:import:airtable']"
       @click="openAirtableImportDialog(base.id)"
     >
       <GeneralIcon icon="airtable" class="max-w-3.75 group-hover:text-black" />
@@ -158,6 +159,7 @@ function openQuickImportDialog(type: string) {
     <NcMenuItem
       v-if="isUIAllowed('csvImport', { roles: projectRole })"
       key="quick-import-csv"
+      v-e="['c:import:csv']"
       @click="openQuickImportDialog('csv')"
     >
       <GeneralIcon icon="csv" class="w-4 group-hover:text-black" />
@@ -167,6 +169,7 @@ function openQuickImportDialog(type: string) {
     <NcMenuItem
       v-if="isUIAllowed('jsonImport', { roles: projectRole })"
       key="quick-import-json"
+      v-e="['c:import:json']"
       @click="openQuickImportDialog('json')"
     >
       <GeneralIcon icon="code" class="w-4 group-hover:text-black" />
@@ -176,6 +179,7 @@ function openQuickImportDialog(type: string) {
     <NcMenuItem
       v-if="isUIAllowed('excelImport', { roles: projectRole })"
       key="quick-import-excel"
+      v-e="['c:import:excel']"
       @click="openQuickImportDialog('excel')"
     >
       <GeneralIcon icon="excel" class="max-w-4 group-hover:text-black" />

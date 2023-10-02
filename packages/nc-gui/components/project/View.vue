@@ -10,15 +10,19 @@ const { navigateToProjectPage } = useProject()
 const router = useRouter()
 const route = router.currentRoute
 
+const { $e } = useNuxtApp()
+
 /* const defaultBase = computed(() => {
   return openedProject.value?.bases?.[0]
 }) */
 
 const { isUIAllowed } = useRoles()
 
-const { isMobileMode } = useGlobal()
+const { project } = storeToRefs(useProject())
 
-const activeKey = ref<'allTable' | 'collaborator' | 'data-source'>('allTable')
+const { projectPageTab } = storeToRefs(useConfigStore())
+
+const { isMobileMode } = useGlobal()
 
 const baseSettingsState = ref('')
 
@@ -27,21 +31,27 @@ watch(
   (newVal, oldVal) => {
     if (newVal && newVal !== oldVal) {
       if (newVal === 'collaborator') {
-        activeKey.value = 'collaborator'
+        projectPageTab.value = 'collaborator'
       } else if (newVal === 'data-source') {
-        activeKey.value = 'data-source'
+        projectPageTab.value = 'data-source'
       } else {
-        activeKey.value = 'allTable'
+        projectPageTab.value = 'allTable'
       }
+
+      return
     }
+
+    projectPageTab.value = 'allTable'
   },
   { immediate: true },
 )
 
-watch(activeKey, () => {
-  if (activeKey.value) {
+watch(projectPageTab, () => {
+  $e(`a:project:view:tab-change:${projectPageTab.value}`)
+
+  if (projectPageTab.value) {
     navigateToProjectPage({
-      page: activeKey.value as any,
+      page: projectPageTab.value as any,
     })
   }
 })
@@ -75,17 +85,17 @@ watch(
         height: 'calc(100% - var(--topbar-height))',
       }"
     >
-      <a-tabs v-model:activeKey="activeKey" class="w-full">
+      <a-tabs v-model:activeKey="projectPageTab" class="w-full">
         <a-tab-pane key="allTable">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__all-tables">
               <NcLayout />
               <div>{{ $t('labels.allTables') }}</div>
               <div
-                class="flex pl-1.25 px-1.5 py-0.75 rounded-md text-xs"
+                class="tab-info"
                 :class="{
-                  'bg-primary-selected': activeKey === 'allTable',
-                  'bg-gray-50': activeKey !== 'allTable',
+                  'bg-primary-selected': projectPageTab === 'allTable',
+                  'bg-gray-50': projectPageTab !== 'allTable',
                 }"
               >
                 {{ activeTables.length }}
@@ -111,6 +121,16 @@ watch(
             <div class="tab-title" data-testid="proj-view-tab__data-sources">
               <GeneralIcon icon="database" />
               <div>{{ $t('labels.dataSources') }}</div>
+              <div
+                v-if="project.bases?.length"
+                class="tab-info"
+                :class="{
+                  'bg-primary-selected': projectPageTab === 'data-source',
+                  'bg-gray-50': projectPageTab !== 'data-source',
+                }"
+              >
+                {{ project.bases.length - 1 }}
+              </div>
             </div>
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" />
@@ -136,5 +156,9 @@ watch(
 }
 :deep(.ant-tabs-tab-active .tab-title) {
   @apply text-primary;
+}
+
+.tab-info {
+  @apply flex pl-1.25 px-1.5 py-0.75 rounded-md text-xs;
 }
 </style>

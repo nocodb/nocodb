@@ -2,6 +2,10 @@
 const { openedViewsTab } = storeToRefs(useViewsStore())
 const { onViewsTabChange } = useViewsStore()
 
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
+const { $e } = useNuxtApp()
+
 const { isUIAllowed } = useRoles()
 
 const openedSubTab = computed({
@@ -22,6 +26,8 @@ watch(
     if (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) {
       onViewsTabChange('relation')
     }
+
+    $e(`c:table:tab-open:${openedSubTab.value}`)
   },
   {
     immediate: true,
@@ -30,8 +36,14 @@ watch(
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full" data-testid="nc-details-wrapper">
-    <NcTabs v-model="openedSubTab" centered>
+  <div
+    class="flex flex-col h-full w-full"
+    data-testid="nc-details-wrapper"
+    :class="{
+      'nc-details-tab-left-sidebar-close': !isLeftSidebarOpen,
+    }"
+  >
+    <NcTabs v-model:activeKey="openedSubTab" centered class="nc-details-tab">
       <a-tab-pane v-if="isUIAllowed('fieldAdd')" key="field">
         <template #tab>
           <div class="tab" data-testid="nc-fields-tab">
@@ -79,15 +91,25 @@ watch(
   @apply flex flex-row items-center gap-x-1.5 pr-0.5;
 }
 
-:deep(.nc-tabs.centered) {
+:deep(.ant-tabs-nav) {
+  min-height: calc(var(--topbar-height) - 1.75px);
+}
+</style>
+
+<style lang="scss">
+.nc-details-tab.nc-tabs.centered {
   > .ant-tabs-nav {
     .ant-tabs-nav-wrap {
-      @apply absolute mx-auto -left-1/8 right-0;
+      @apply absolute mx-auto -left-9.5;
     }
   }
 }
 
-:deep(.ant-tabs-nav) {
-  min-height: calc(var(--topbar-height) - 1.75px);
+.nc-details-tab-left-sidebar-close > .nc-details-tab.nc-tabs.centered {
+  > .ant-tabs-nav {
+    .ant-tabs-nav-wrap {
+      @apply absolute mx-auto left-0;
+    }
+  }
 }
 </style>

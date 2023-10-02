@@ -19,28 +19,28 @@ test.describe('Command Shortcuts', () => {
     await page.waitForTimeout(1000);
     await dashboard.cmdJ.openCmdJ();
 
-    expect(await dashboard.cmdJ.isCmdJVisible()).toBe(1);
+    await expect(dashboard.cmdJ.get()).toBeVisible();
 
     await dashboard.cmdJ.searchText('Column');
     await page.keyboard.press('Escape');
-    expect(await dashboard.cmdJ.isCmdJVisible()).toBe(0);
+    await expect(dashboard.cmdJ.get()).toHaveCount(0);
 
     await dashboard.signOut();
 
     await page.waitForTimeout(1000);
 
     await dashboard.cmdJ.openCmdJ();
-    expect(await dashboard.cmdJ.isCmdJVisible()).toBe(0);
+    await expect(dashboard.cmdJ.get()).toHaveCount(0);
   });
 
   test('Verify Command K', async ({ page }) => {
     await page.waitForTimeout(1000);
     await dashboard.cmdK.openCmdK();
 
-    expect(await dashboard.cmdK.isCmdKVisible()).toBe(1);
+    await expect(dashboard.cmdK.get()).toBeVisible();
 
     await page.keyboard.press('Escape');
-    expect(await dashboard.cmdK.isCmdKVisible()).toBe(0);
+    await expect(dashboard.cmdK.get()).toHaveCount(0);
 
     await dashboard.cmdK.openCmdK();
 
@@ -55,17 +55,17 @@ test.describe('Command Shortcuts', () => {
     await page.waitForTimeout(1000);
 
     await dashboard.cmdK.openCmdK();
-    expect(await dashboard.cmdK.isCmdKVisible()).toBe(0);
+    await expect(dashboard.cmdK.get()).toHaveCount(0);
   });
 
   test('Verify Command L Recent Switch', async ({ page }) => {
     await page.waitForTimeout(1000);
     await dashboard.cmdL.openCmdL();
 
-    expect(await dashboard.cmdL.isCmdLVisible()).toBe(1);
+    await expect(dashboard.cmdL.get()).toBeVisible();
 
     await page.keyboard.press('Escape');
-    expect(await dashboard.cmdL.isCmdLVisible()).toBe(0);
+    await expect(dashboard.cmdL.get()).toHaveCount(0);
 
     await dashboard.treeView.openTable({ title: 'Actor' });
     await dashboard.treeView.openTable({ title: 'Address' });
@@ -93,6 +93,6 @@ test.describe('Command Shortcuts', () => {
     await dashboard.signOut();
 
     await dashboard.cmdL.openCmdL();
-    expect(await dashboard.cmdL.isCmdLVisible()).toBe(0);
+    await expect(dashboard.cmdL.get()).toHaveCount(0);
   });
 });

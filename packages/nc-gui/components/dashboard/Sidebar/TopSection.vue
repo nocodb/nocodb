@@ -48,6 +48,7 @@ const navigateToSettings = () => {
 
       <NcButton
         v-if="isUIAllowed('workspaceSettings')"
+        v-e="['c:team:settings']"
         type="text"
         size="small"
         class="nc-sidebar-top-button !xs:hidden"

@@ -56,14 +56,17 @@ export default defineConfig({
     },
     extend: {
       screens: {
-        xs: {
+        'xs': {
           max: '480px',
         },
-        sm: {
+        'sm': {
           min: '480px',
         },
-        md: {
+        'md': {
           min: '820px',
+        },
+        '2xl': {
+          min: '1780px',
         },
       },
       textColor: {

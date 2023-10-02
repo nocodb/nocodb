@@ -119,13 +119,20 @@ const onRoleToggle = async () => {
     <div class="flex flex-col w-full p-3 border-1 border-gray-100 rounded-md">
       <div class="flex flex-row w-full justify-between">
         <div class="text-black font-medium">{{ $t('activity.enablePublicAccess') }}</div>
-        <a-switch :checked="isSharedBaseEnabled" :loading="isToggleBaseLoading" class="ml-2" @click="toggleSharedBase" />
+        <a-switch
+          v-e="['c:share:base:enable:toggle']"
+          :checked="isSharedBaseEnabled"
+          :loading="isToggleBaseLoading"
+          class="ml-2"
+          @click="toggleSharedBase"
+        />
       </div>
       <div v-if="isSharedBaseEnabled" class="flex flex-col w-full mt-3 border-t-1 pt-3 border-gray-100">
         <GeneralCopyUrl v-model:url="url" />
         <div class="flex flex-row justify-between mt-3 bg-gray-50 px-3 py-2 rounded-md">
           <div class="text-black">{{ $t('activity.editingAccess') }}</div>
           <a-switch
+            v-e="['c:share:base:role:toggle']"
             :loading="isRoleToggleLoading"
             :checked="base?.role === ShareBaseRole.Editor"
             class="ml-2"

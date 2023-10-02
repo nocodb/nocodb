@@ -60,7 +60,7 @@ test.describe('Shared base', () => {
     await unsetup(context);
   });
 
-  test.skip('#1', async () => {
+  test('#1', async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
 

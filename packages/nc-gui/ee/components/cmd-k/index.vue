@@ -312,6 +312,7 @@ defineExpose({
           <div
             v-for="el of nestedScope"
             :key="`cmdk-breadcrumb-${el.id}`"
+            v-e="['a:cmdk:setScope']"
             class="text-gray-600 text-sm cursor-pointer font-medium"
             @click="setScope(el.id)"
           >
@@ -347,6 +348,7 @@ defineExpose({
                 <div
                   v-for="act of section"
                   :key="act.id"
+                  v-e="['a:cmdk:action']"
                   class="cmdk-action"
                   :class="{ selected: selected === act.id }"
                   @mouseenter="setAction(act.id)"

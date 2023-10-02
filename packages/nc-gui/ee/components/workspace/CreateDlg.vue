@@ -112,6 +112,7 @@ watch(
           {{ $t('general.cancel') }}
         </NcButton>
         <NcButton
+          v-e="['a:workspace:create']"
           type="primary"
           :loading="isCreating"
           :disabled="validateInfos.title.validateStatus === 'error'"

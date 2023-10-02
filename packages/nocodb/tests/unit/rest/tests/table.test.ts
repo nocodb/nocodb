@@ -1,11 +1,13 @@
 import 'mocha';
 import request from 'supertest';
+import { expect } from 'chai';
+import { createView, deleteView } from 'tests/unit/factory/view';
+import { ViewTypes } from 'nocodb-sdk';
 import init from '../../init';
-import { createTable, getAllTables } from '../../factory/table';
+import { createTable, getAllTables, updateTable } from '../../factory/table';
 import { createProject } from '../../factory/project';
 import { defaultColumns } from '../../factory/column';
 import Model from '../../../../src/models/Model';
-import { expect } from 'chai';
 
 // Test case list
 // 1. Get table list
@@ -276,6 +278,81 @@ function tableTest() {
 
     //   new Error();
     // });
+  });
+
+  it('Add and delete view should update hasNonDefaultViews', async () => {
+    let response = await request(context.app)
+      .get(`/api/v1/db/meta/projects/${project.id}/tables`)
+      .set('xc-auth', context.token)
+      .send({})
+      .expect(200);
+
+    expect(response.body.list[0].meta.hasNonDefaultViews).to.be.false;
+
+    const view = await createView(context, {
+      table,
+      title: 'view1',
+      type: ViewTypes.GRID,
+    });
+
+    response = await request(context.app)
+      .get(`/api/v1/db/meta/projects/${project.id}/tables`)
+      .set('xc-auth', context.token)
+      .send({})
+      .expect(200);
+
+    expect(response.body.list[0].meta.hasNonDefaultViews).to.be.true;
+
+    await deleteView(context, { viewId: view.id });
+
+    response = await request(context.app)
+      .get(`/api/v1/db/meta/projects/${project.id}/tables`)
+      .set('xc-auth', context.token)
+      .send({})
+      .expect(200);
+
+    expect(response.body.list[0].meta.hasNonDefaultViews).to.be.false;
+  });
+
+  it('Project with empty meta should update hasNonDefaultViews', async () => {
+    let response = await request(context.app)
+      .get(`/api/v1/db/meta/projects/${project.id}/tables`)
+      .set('xc-auth', context.token)
+      .send({})
+      .expect(200);
+
+    expect(response.body.list[0].meta.hasNonDefaultViews).to.be.false;
+
+    const view = await createView(context, {
+      table,
+      title: 'view1',
+      type: ViewTypes.GRID,
+    });
+
+    await updateTable(context, {
+      table,
+      args: {
+        meta: {},
+      },
+    });
+
+    response = await request(context.app)
+      .get(`/api/v1/db/meta/projects/${project.id}/tables`)
+      .set('xc-auth', context.token)
+      .send({})
+      .expect(200);
+
+    expect(response.body.list[0].meta.hasNonDefaultViews).to.be.true;
+
+    await deleteView(context, { viewId: view.id });
+
+    response = await request(context.app)
+      .get(`/api/v1/db/meta/projects/${project.id}/tables`)
+      .set('xc-auth', context.token)
+      .send({})
+      .expect(200);
+
+    expect(response.body.list[0].meta.hasNonDefaultViews).to.be.false;
   });
 }
 

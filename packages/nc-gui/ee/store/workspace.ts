@@ -199,6 +199,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace.value.id!}.${appInfo.value.baseHostName}` : undefined,
         },
       )
+      $e('a:workspace:settings:invite-user')
       await loadCollaborators()
     } finally {
       isInvitingCollaborators.value = false
@@ -214,6 +215,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     await $api.workspaceUser.delete(activeWorkspace.value.id!, userId, {
       baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace.value.id!}.${appInfo.value.baseHostName}` : undefined,
     })
+
+    $e('a:workspace:settings:remove-user')
+
     await loadCollaborators()
   }
 

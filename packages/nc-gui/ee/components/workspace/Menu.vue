@@ -11,6 +11,8 @@ const viewportWidth = ref(window.innerWidth)
 
 const { navigateToTable } = useTablesStore()
 
+const { $e } = useNuxtApp()
+
 const { navigateToProject, isMobileMode } = useGlobal()
 
 const _isWorkspaceDropdownOpen = ref(false)
@@ -51,6 +53,8 @@ const projectStore = useProject()
 const { isSharedBase } = storeToRefs(projectStore)
 
 const switchWorkspace = async (workspaceId: string) => {
+  $e('a:workspace:switch')
+
   navigateToProject({
     workspaceId,
   })
@@ -73,6 +77,12 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onWindowResize)
 })
+
+const onWorkspaceCreateClick = () => {
+  $e('c:workspace:create')
+
+  createDlg.value = true
+}
 </script>
 
 <template>
@@ -100,6 +110,7 @@ onBeforeUnmount(() => {
     </div>
   </div>
   <div
+    v-else
     class="flex flex-row flex-grow w-full max-w-85/100 hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md"
     :style="{
       maxWidth: `calc(100% - 2.5rem)`,
@@ -107,6 +118,7 @@ onBeforeUnmount(() => {
   >
     <NcDropdown
       v-model:visible="isWorkspaceDropdownOpen"
+      v-e="['c:workspace:menu']"
       class="h-full min-w-0 rounded-lg"
       :trigger="['click']"
       placement="bottom"
@@ -172,7 +184,7 @@ onBeforeUnmount(() => {
               </NcMenuItem>
             </div>
             <NcDivider v-if="otherWorkspaces.length && !isMobileMode" class="!mt-0" />
-            <NcMenuItem v-if="!isMobileMode" @click="createDlg = true">
+            <NcMenuItem v-if="!isMobileMode" v-e="['c:workspace:create']" @click="onWorkspaceCreateClick">
               <div class="nc-workspace-menu-item group">
                 <GeneralIcon icon="plusSquare" class="!text-inherit" />
 

@@ -105,7 +105,7 @@ export const useProjects = defineStore('projectsStore', () => {
         ...(projects.value.get(project.id!) || {}),
         ...project,
         bases: [...(project.bases ?? projects.value.get(project.id!)?.bases ?? [])],
-        isExpanded: route.value.params.projectId === project.id || projects.value.get(project.id!)?.isExpanded,
+        isExpanded: true,
         isLoading: false,
       })
 

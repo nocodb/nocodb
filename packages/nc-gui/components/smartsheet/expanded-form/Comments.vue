@@ -115,6 +115,7 @@ const processedAudit = (log: string) => {
     <div class="h-16 bg-white rounded-t-lg border-gray-200 border-b-1">
       <div class="flex flex-row gap-2 m-2 p-1 bg-gray-100 rounded-lg">
         <div
+          v-e="['c:row-expand:comment']"
           class="tab flex-1 px-4 py-2 transition-all text-gray-600 cursor-pointer rounded-lg"
           :class="{
             'bg-white shadow !text-brand-500 !hover:text-brand-500': tab === 'comments',
@@ -127,6 +128,7 @@ const processedAudit = (log: string) => {
           </div>
         </div>
         <div
+          v-e="['c:row-expand:audit']"
           class="tab flex-1 px-4 py-2 transition-all text-gray-600 cursor-pointer rounded-lg"
           :class="{
             'bg-white shadow !text-brand-500 !hover:text-brand-500': tab === 'audits',
@@ -171,6 +173,7 @@ const processedAudit = (log: string) => {
                   </div>
                   <NcButton
                     v-if="log.user === user!.email && !editLog && !appInfo.ee"
+                    v-e="['c:row-expand:comment:edit']"
                     type="secondary"
                     class="!px-2 opacity-0 group-hover:opacity-100 transition-all"
                     size="sm"
@@ -192,7 +195,7 @@ const processedAudit = (log: string) => {
                 </div>
                 <div v-if="log.id === editLog?.id" class="flex justify-end gap-1">
                   <NcButton type="secondary" size="sm" @click="onCancel"> Cancel </NcButton>
-                  <NcButton size="sm" @click="onEditComment"> Save </NcButton>
+                  <NcButton v-e="['a:row-expand:comment:save']" size="sm" @click="onEditComment"> Save </NcButton>
                 </div>
               </div>
             </div>
@@ -209,7 +212,13 @@ const processedAudit = (log: string) => {
               @keyup.enter.prevent="saveComment"
             >
             </a-input>
-            <NcButton size="medium" class="!w-8" :disabled="!comment.length" @click="saveComment">
+            <NcButton
+              v-e="['a:row-expand:comment:save']"
+              size="medium"
+              class="!w-8"
+              :disabled="!comment.length"
+              @click="saveComment"
+            >
               <GeneralIcon icon="send" />
             </NcButton>
           </div>

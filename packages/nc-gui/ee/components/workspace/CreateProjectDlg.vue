@@ -155,6 +155,7 @@ watch(dialogShow, () => {
       <div class="flex flex-row justify-end mt-7 gap-x-2">
         <NcButton type="secondary" @click="dialogShow = false">Cancel</NcButton>
         <NcButton
+          v-e="['a:base:create']"
           data-testid="docs-create-proj-dlg-create-btn"
           :loading="creating"
           type="primary"

@@ -41,7 +41,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { project } = storeToRefs(useProject())
 
-    const { $api } = useNuxtApp()
+    const { $api, $e } = useNuxtApp()
 
     const activeView = inject(ActiveViewInj, ref())
 
@@ -305,6 +305,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               await loadChildrenList()
             }
             onSuccess?.(row)
+
+            $e('a:links:delete-related-row')
           } catch (e: any) {
             message.error(`${t('msg.error.deleteFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
           }
@@ -375,6 +377,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       }
 
       reloadData?.(false)
+      $e('a:links:unlink')
     }
 
     const link = async (
@@ -444,6 +447,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       }
 
       reloadData?.(false)
+      $e('a:links:link')
     }
 
     // watchers

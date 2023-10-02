@@ -98,6 +98,7 @@ const localCellValue = computed<any[]>(() => {
     <div class="block flex-shrink truncate">
       <component
         :is="isLocked || isUnderLookup ? 'span' : 'a'"
+        v-e="['c:cell:links:modal:open']"
         :title="textVal"
         class="text-center nc-datatype-link underline-transparent"
         :class="{ '!text-gray-300': !textVal }"

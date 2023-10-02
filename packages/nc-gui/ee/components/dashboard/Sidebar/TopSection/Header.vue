@@ -4,6 +4,7 @@ const { commandPalette } = useCommandPalette()
 
 <template>
   <NcButton
+    v-e="['c:quick-actions']"
     type="text"
     size="small"
     class="nc-sidebar-top-button w-full !hover:bg-gray-200 !rounded-md !xs:hidden"

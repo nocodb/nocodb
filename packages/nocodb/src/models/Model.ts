@@ -221,6 +221,19 @@ export default class Model implements TableType {
         (a.order != null ? a.order : Infinity) -
         (b.order != null ? b.order : Infinity),
     );
+
+    for (const model of modelList) {
+      if (model.meta?.hasNonDefaultViews === undefined) {
+        model.meta = {
+          ...(model.meta ?? {}),
+          hasNonDefaultViews: await Model.getNonDefaultViewsCountAndReset(
+            { modelId: model.id },
+            ncMeta,
+          ),
+        };
+      }
+    }
+
     return modelList.map((m) => new Model(m));
   }
 
@@ -253,6 +266,18 @@ export default class Model implements TableType {
       }
 
       await NocoCache.setList(CacheScope.MODEL, [project_id], modelList);
+    }
+
+    for (const model of modelList) {
+      if (model.meta?.hasNonDefaultViews === undefined) {
+        model.meta = {
+          ...(model.meta ?? {}),
+          hasNonDefaultViews: await Model.getNonDefaultViewsCountAndReset(
+            { modelId: model.id },
+            ncMeta,
+          ),
+        };
+      }
     }
 
     return modelList.map((m) => new Model(m));
@@ -963,5 +988,27 @@ export default class Model implements TableType {
       },
       tableId,
     );
+  }
+
+  static async getNonDefaultViewsCountAndReset(
+    {
+      modelId,
+    }: {
+      modelId: string;
+    },
+    _ncMeta = Noco.ncMeta,
+  ) {
+    const model = await this.get(modelId);
+    let modelMeta = parseMetaProp(model);
+
+    const views = await View.list(modelId);
+    modelMeta = {
+      ...(modelMeta ?? {}),
+      hasNonDefaultViews: views.length > 1,
+    };
+
+    await this.updateMeta(modelId, modelMeta);
+
+    return modelMeta?.hasNonDefaultViews;
   }
 }

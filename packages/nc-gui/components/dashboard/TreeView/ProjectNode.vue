@@ -29,6 +29,9 @@ const indicator = h(LoadingOutlined, {
 const router = useRouter()
 const route = router.currentRoute
 
+const { isSharedBase } = storeToRefs(useProject())
+const { projectUrl } = useProject()
+
 const { setMenuContext, openRenameTableDialog, duplicateTable, contextMenuTarget } = inject(TreeViewInj)!
 
 const project = inject(ProjectInj)!
@@ -64,8 +67,6 @@ const input = ref<HTMLInputElement>()
 const projectRole = inject(ProjectRoleInj)
 
 const { activeProjectId } = storeToRefs(useProjects())
-
-const { projectUrl } = useProject()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
@@ -162,8 +163,6 @@ const setIcon = async (icon: string, project: ProjectType) => {
 }
 
 function openTableCreateDialog(baseIndex?: number | undefined) {
-  $e('c:table:create:navdraw')
-
   const isOpen = ref(true)
   let baseId = project.value!.bases?.[0].id
   if (typeof baseIndex === 'number') {
@@ -228,13 +227,12 @@ const addNewProjectChildEntity = async () => {
   }
 }
 
-// todo: temp
-const isSharedBase = ref(false)
-
 const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
   if (!project) {
     return
   }
+
+  if (!toggleIsExpanded) $e('c:base:open')
 
   ignoreNavigation = isMobileMode.value || ignoreNavigation
   toggleIsExpanded = isMobileMode.value || toggleIsExpanded
@@ -247,12 +245,6 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
 
   const isProjectPopulated = projectsStore.isProjectPopulated(project.id!)
 
-  let isSharedBase = false
-  // if shared base ignore navigation
-  if (route.value.params.typeOrId === 'base') {
-    isSharedBase = true
-  }
-
   if (!isProjectPopulated) project.isLoading = true
 
   if (!ignoreNavigation) {
@@ -260,7 +252,7 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
       projectUrl({
         id: project.id!,
         type: 'database',
-        isSharedBase,
+        isSharedBase: isSharedBase.value,
       }),
     )
   }
@@ -384,6 +376,16 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
   )
   $e('a:project:duplicate')
 }
+
+const tableDelete = () => {
+  isTableDeleteDialogVisible.value = true
+  $e('c:table:delete')
+}
+
+const projectDelete = () => {
+  isProjectDeleteDialogVisible.value = true
+  $e('c:project:delete')
+}
 </script>
 
 <template>
@@ -405,6 +407,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
           class="nc-sidebar-node project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full pr-1"
         >
           <NcButton
+            v-e="['c:base:expand']"
             type="text"
             size="xxsmall"
             class="nc-sidebar-node-btn nc-sidebar-expand ml-0.75 !xs:visible"
@@ -428,6 +431,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
               <LazyGeneralEmojiPicker
                 v-else
                 :key="project.meta?.icon"
+                v-e="['c:base:emojiSelect']"
                 :emoji="project.meta?.icon"
                 :readonly="true"
                 size="small"
@@ -464,6 +468,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
           <NcDropdown v-model:visible="isOptionsOpen" :trigger="['click']">
             <NcButton
+              v-e="['c:base:options']"
               class="nc-sidebar-node-btn"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
               data-testid="nc-sidebar-context-menu"
@@ -484,13 +489,19 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                 @click="isOptionsOpen = false"
               >
                 <template v-if="!isSharedBase">
-                  <NcMenuItem v-if="isUIAllowed('projectRename')" data-testid="nc-sidebar-project-rename" @click="enableEditMode">
+                  <NcMenuItem
+                    v-if="isUIAllowed('projectRename')"
+                    v-e="['c:base:rename']"
+                    data-testid="nc-sidebar-project-rename"
+                    @click="enableEditMode"
+                  >
                     <GeneralIcon icon="edit" class="group-hover:text-black" />
                     {{ $t('general.rename') }}
                   </NcMenuItem>
 
                   <NcMenuItem
                     v-if="isUIAllowed('projectDuplicate', { roles: [stringifyRolesObj(orgRoles), projectRole].join() })"
+                    v-e="['c:base:duplicate']"
                     data-testid="nc-sidebar-project-duplicate"
                     @click="duplicateProject(project)"
                   >
@@ -504,7 +515,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   <NcMenuItem
                     v-if="!isEeUI"
                     key="copy"
-                    v-e="['c:navbar:user:copy-proj-info']"
+                    v-e="['c:base:copy-proj-info']"
                     data-testid="nc-sidebar-project-copy-project-info"
                     @click.stop="copyProjectInfo"
                   >
@@ -513,7 +524,12 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   </NcMenuItem>
 
                   <!-- ERD View -->
-                  <NcMenuItem key="erd" data-testid="nc-sidebar-project-relations" @click="openProjectErdView(project)">
+                  <NcMenuItem
+                    key="erd"
+                    v-e="['c:base:erd']"
+                    data-testid="nc-sidebar-project-relations"
+                    @click="openProjectErdView(project)"
+                  >
                     <GeneralIcon icon="erd" />
                     {{ $t('title.relations') }}
                   </NcMenuItem>
@@ -522,9 +538,14 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   <NcMenuItem
                     v-if="isUIAllowed('apiDocs')"
                     key="api"
-                    v-e="['e:api-docs']"
+                    v-e="['c:base:api-docs']"
                     data-testid="nc-sidebar-project-rest-apis"
-                    @click.stop="openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)"
+                    @click.stop="
+                      () => {
+                        $e('c:base:api-docs')
+                        openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)
+                      }
+                    "
                   >
                     <GeneralIcon icon="snippet" class="group-hover:text-black !max-w-3.9" />
                     {{ $t('activity.account.swagger') }}
@@ -541,7 +562,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                 <NcMenuItem
                   v-if="isUIAllowed('projectMiscSettings')"
                   key="teamAndSettings"
-                  v-e="['c:navdraw:project-settings']"
+                  v-e="['c:base:settings']"
                   data-testid="nc-sidebar-project-settings"
                   class="nc-sidebar-project-project-settings"
                   @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
@@ -553,7 +574,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   v-if="isUIAllowed('projectDelete', { roles: [stringifyRolesObj(orgRoles), projectRole].join() })"
                   data-testid="nc-sidebar-project-delete"
                   class="!text-red-500 !hover:bg-red-50"
-                  @click="isProjectDeleteDialogVisible = true"
+                  @click="projectDelete"
                 >
                   <GeneralIcon icon="delete" class="w-4" />
                   {{ $t('general.delete') }}
@@ -564,6 +585,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
           <NcButton
             v-if="isUIAllowed('tableCreate', { roles: projectRole })"
+            v-e="['c:base:create-table']"
             class="nc-sidebar-node-btn"
             size="xxsmall"
             type="text"
@@ -598,6 +620,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                   <a-collapse
                     v-else-if="base && base.enabled"
                     v-model:activeKey="activeKey"
+                    v-e="['c:source:toggle-expand']"
                     class="!mx-0 !px-0 nc-sidebar-base-node"
                     :class="[{ hidden: searchActive && !!filterQuery }]"
                     expand-icon-position="left"
@@ -653,6 +676,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                               @update:visible="isBasesOptionsOpen[base!.id!] = $event"
                             >
                               <NcButton
+                                v-e="['c:source:options']"
                                 class="nc-sidebar-node-btn"
                                 :class="{ '!text-black !opacity-100': isBasesOptionsOpen[base!.id!] }"
                                 type="text"
@@ -671,7 +695,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
                                   @click="isBasesOptionsOpen[base!.id!] = false"
                                 >
                                   <!-- ERD View -->
-                                  <NcMenuItem key="erd" @click="openErdView(base)">
+                                  <NcMenuItem key="erd" v-e="['c:source:erd']" @click="openErdView(base)">
                                     <GeneralIcon icon="erd" />
                                     {{ $t('title.relations') }}
                                   </NcMenuItem>
@@ -683,6 +707,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
                             <NcButton
                               v-if="isUIAllowed('tableCreate', { roles: projectRole })"
+                              v-e="['c:source:add-table']"
                               type="text"
                               size="xxsmall"
                               class="nc-sidebar-node-btn"
@@ -716,6 +741,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
         <template v-else-if="contextMenuTarget.type === 'base'"></template>
 
         <template v-else-if="contextMenuTarget.type === 'table'">
+          v-e="['c:table:rename']"
           <NcMenuItem v-if="isUIAllowed('tableRename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
             <div class="nc-project-option-item">
               <GeneralIcon icon="edit" class="text-gray-700" />
@@ -725,6 +751,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
 
           <NcMenuItem
             v-if="isUIAllowed('tableDuplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
+            v-e="['c:table:duplicate']"
             @click="duplicateTable(contextMenuTarget.value)"
           >
             <div class="nc-project-option-item">
@@ -733,7 +760,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
             </div>
           </NcMenuItem>
           <NcDivider />
-          <NcMenuItem v-if="isUIAllowed('table-delete')" class="!hover:bg-red-50" @click="isTableDeleteDialogVisible = true">
+          <NcMenuItem v-if="isUIAllowed('table-delete')" class="!hover:bg-red-50" @click="tableDelete">
             <div class="nc-project-option-item text-red-600">
               <GeneralIcon icon="delete" />
               {{ $t('general.delete') }}

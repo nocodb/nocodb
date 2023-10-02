@@ -132,7 +132,7 @@ useMenuCloseOnEsc(open)
                 <template v-for="(dialog, type) in quickImportDialogs">
                   <a-menu-item v-if="isUIAllowed(`${type}TableImport`) && !isView && !isPublicView" :key="type">
                     <div
-                      v-e="[`a:actions:upload-${type}`]"
+                      v-e="[`a:upload:${type}`]"
                       class="nc-project-menu-item"
                       :class="{ disabled: isLocked }"
                       @click="!isLocked ? (dialog.value = true) : {}"
@@ -146,7 +146,7 @@ useMenuCloseOnEsc(open)
             </template>
             <a-sub-menu key="download">
               <template #title>
-                <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
+                <div v-e="['c:download']" class="nc-project-menu-item group">
                   <DownloadIcon class="w-4 h-4" />
                   {{ $t('general.download') }}
                   <div class="flex-1" />

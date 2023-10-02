@@ -652,10 +652,7 @@ export default {
       <span>
         <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
           <component :is="iconMap.table" class="nc-view-icon" />
-          <div
-            class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
-            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-          >
+          <div class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75 break-keep whitespace-nowrap">
             {{ meta.title }}
           </div>
         </div>

@@ -182,7 +182,7 @@ const isDataExist = computed<boolean>(() => {
           <div
             v-for="(x, i) in Array.from({ length: 10 })"
             :key="i"
-            class="!border-2 flex flex-row gap-2 mb-2 transition-all !rounded-xl relative !border-gray-200 hover:bg-gray-50"
+            class="border-2 flex flex-row gap-2 mb-2 transition-all rounded-xl relative border-gray-200 hover:bg-gray-50"
           >
             <a-skeleton-image class="h-24 w-24 !rounded-xl" />
             <div class="flex flex-col m-[.5rem] gap-2 flex-grow justify-center">
@@ -224,10 +224,10 @@ const isDataExist = computed<boolean>(() => {
               () => {
                 if (isPublic && !isForm) return
                 isNew
-                  ? unlinkRow(refRow, Number.parseInt(id))
-                  : isChildrenListLinked[Number.parseInt(id)]
-                  ? unlinkRow(refRow, Number.parseInt(id))
-                  : linkRow(refRow, Number.parseInt(id))
+                  ? unlinkRow(refRow, parseInt(id))
+                  : isChildrenListLinked[parseInt(id)]
+                  ? unlinkRow(refRow, parseInt(id))
+                  : linkRow(refRow, parseInt(id))
               }
             "
           />

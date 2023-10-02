@@ -72,7 +72,9 @@ const readOnly = toRef(props, 'readOnly', false)
 
 provide(ColumnInj, column)
 
-provide(EditModeInj, useVModel(props, 'editEnabled', emit))
+const editEnabled = useVModel(props, 'editEnabled', emit)
+
+provide(EditModeInj, editEnabled)
 
 provide(ActiveCellInj, active)
 
@@ -187,6 +189,11 @@ onMounted(() => {
   intersectionObserver.value?.observe(elementToObserve.value!)
 })
 
+// remove border of element when clicked outside
+onClickOutside(elementToObserve as any, () => {
+  editEnabled.value = false
+})
+
 // disconnect the observer when the cell is unmounted
 onUnmounted(() => {
   intersectionObserver.value?.disconnect()
@@ -205,7 +212,7 @@ onUnmounted(() => {
         'h-10': isForm && !isSurveyForm && !isAttachment(column) && !props.virtual,
         'nc-grid-numeric-cell-left': (isForm && isNumericField && isExpandedFormOpen) || isEditColumnMenu,
         '!min-h-40': isTextArea(column) && props.editEnabled,
-        '!border-2': props.editEnabled,
+        '!border-2': props.editEnabled && (isSurveyForm || isForm),
       },
     ]"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"

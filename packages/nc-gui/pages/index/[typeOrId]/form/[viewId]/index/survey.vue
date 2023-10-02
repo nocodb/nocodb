@@ -405,14 +405,9 @@ onMounted(() => {
                 </p>
 
                 <div v-if="sharedFormView?.submit_another_form" class="text-center">
-                  <button
-                    type="button"
-                    class="scaling-btn bg-opacity-100"
-                    data-testid="nc-survey-form__btn-submit-another-form"
-                    @click="resetForm"
-                  >
+                  <NcButton type="primary" data-testid="nc-survey-form__btn-submit-another-form" @click="resetForm">
                     Submit Another Form
-                  </button>
+                  </NcButton>
                 </div>
               </div>
             </div>

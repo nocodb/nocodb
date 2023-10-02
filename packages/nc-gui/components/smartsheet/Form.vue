@@ -691,7 +691,7 @@ watch(view, (nextView) => {
                         </a-input>
                       </a-form-item>
 
-                      <a-form-item class="mt-2 mb-0 w-1/2 !mb-1">
+                      <a-form-item class="mt-2 mb-0 w-1/2">
                         <a-input
                           v-model:value="element.description"
                           type="text"

@@ -48,7 +48,6 @@ import {
   useDebounceFn,
   useProject,
   useSmartsheetRowStoreOrThrow,
-  useVModel,
 } from '#imports'
 
 interface Props {
@@ -205,7 +204,8 @@ onUnmounted(() => {
         'nc-grid-numeric-cell-right': isGrid && isNumericField && !isEditColumnMenu && !isForm && !isExpandedFormOpen,
         'h-10': isForm && !isSurveyForm && !isAttachment(column) && !props.virtual,
         'nc-grid-numeric-cell-left': (isForm && isNumericField && isExpandedFormOpen) || isEditColumnMenu,
-        'h-40': column.uidt === 'LongText' && props.editEnabled,
+        '!min-h-40': isTextArea(column) && props.editEnabled,
+        '!border-2': props.editEnabled,
       },
     ]"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"

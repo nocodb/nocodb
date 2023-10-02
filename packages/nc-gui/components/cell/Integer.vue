@@ -87,6 +87,9 @@ function onKeyDown(e: any) {
     v-model="vModel"
     class="outline-none py-2 px-1 border-none w-full h-full text-sm"
     type="number"
+    :class="{
+      'pl-2': isExpandedFormOpen,
+    }"
     style="letter-spacing: 0.06rem"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"

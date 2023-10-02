@@ -189,11 +189,6 @@ onMounted(() => {
   intersectionObserver.value?.observe(elementToObserve.value!)
 })
 
-// remove border of element when clicked outside
-onClickOutside(elementToObserve as any, () => {
-  editEnabled.value = false
-})
-
 // disconnect the observer when the cell is unmounted
 onUnmounted(() => {
   intersectionObserver.value?.disconnect()

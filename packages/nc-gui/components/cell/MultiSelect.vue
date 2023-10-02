@@ -321,6 +321,8 @@ const handleClose = (e: MouseEvent) => {
     !aselect.value.$el.contains(e.target) &&
     !document.querySelector('.nc-dropdown-multi-select-cell.active')?.contains(e.target as Node)
   ) {
+    // loose focus when clicked outside
+    isEditable.value = false
     isOpen.value = false
   }
 }

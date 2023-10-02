@@ -127,6 +127,15 @@ onKeyStroke('Escape', () => {
 const isDataExist = computed<boolean>(() => {
   return childrenList.value?.pageInfo?.totalRows || (isNew.value && state.value?.[colTitle.value]?.length)
 })
+
+const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
+  if (isPublic.value && !isForm.value) return
+  isNew.value
+    ? unlinkRow(rowRef, parseInt(id))
+    : isChildrenListLinked.value[parseInt(id)]
+    ? unlinkRow(rowRef, parseInt(id))
+    : linkRow(rowRef, parseInt(id))
+}
 </script>
 
 <template>
@@ -220,16 +229,7 @@ const isDataExist = computed<boolean>(() => {
             :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
             :is-loading="isChildrenListLoading[Number.parseInt(id)]"
             @expand="onClick(refRow)"
-            @click="
-              () => {
-                if (isPublic && !isForm) return
-                isNew
-                  ? unlinkRow(refRow, parseInt(id))
-                  : isChildrenListLinked[parseInt(id)]
-                  ? unlinkRow(refRow, parseInt(id))
-                  : linkRow(refRow, parseInt(id))
-              }
-            "
+            @click="linkOrUnLink(refRow, id)"
           />
         </template>
       </div>

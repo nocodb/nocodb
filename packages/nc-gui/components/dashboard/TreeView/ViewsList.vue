@@ -341,6 +341,7 @@ function onOpenModal({
 
       await loadViews({
         force: true,
+        tableId: table.value.id!,
       })
 
       navigateToView({

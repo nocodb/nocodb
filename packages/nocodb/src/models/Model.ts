@@ -996,18 +996,18 @@ export default class Model implements TableType {
     }: {
       modelId: string;
     },
-    _ncMeta = Noco.ncMeta,
+    ncMeta = Noco.ncMeta,
   ) {
-    const model = await this.get(modelId);
+    const model = await this.get(modelId, ncMeta);
     let modelMeta = parseMetaProp(model);
 
-    const views = await View.list(modelId);
+    const views = await View.list(modelId, ncMeta);
     modelMeta = {
       ...(modelMeta ?? {}),
       hasNonDefaultViews: views.length > 1,
     };
 
-    await this.updateMeta(modelId, modelMeta);
+    await this.updateMeta(modelId, modelMeta, ncMeta);
 
     return modelMeta?.hasNonDefaultViews;
   }

@@ -282,7 +282,7 @@ function tableTest() {
 
   it('Add and delete view should update hasNonDefaultViews', async () => {
     let response = await request(context.app)
-      .get(`/api/v1/db/meta/projects/${project.id}/tables`)
+      .get(`/api/v1/meta/base/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200);
@@ -296,7 +296,7 @@ function tableTest() {
     });
 
     response = await request(context.app)
-      .get(`/api/v1/db/meta/projects/${project.id}/tables`)
+      .get(`/api/v1/meta/base/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200);
@@ -306,7 +306,7 @@ function tableTest() {
     await deleteView(context, { viewId: view.id });
 
     response = await request(context.app)
-      .get(`/api/v1/db/meta/projects/${project.id}/tables`)
+      .get(`/api/v1/meta/base/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200);
@@ -316,7 +316,7 @@ function tableTest() {
 
   it('Project with empty meta should update hasNonDefaultViews', async () => {
     let response = await request(context.app)
-      .get(`/api/v1/db/meta/projects/${project.id}/tables`)
+      .get(`/api/v1/meta/base/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200);
@@ -337,7 +337,7 @@ function tableTest() {
     });
 
     response = await request(context.app)
-      .get(`/api/v1/db/meta/projects/${project.id}/tables`)
+      .get(`/api/v1/meta/base/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200);
@@ -347,7 +347,7 @@ function tableTest() {
     await deleteView(context, { viewId: view.id });
 
     response = await request(context.app)
-      .get(`/api/v1/db/meta/projects/${project.id}/tables`)
+      .get(`/api/v1/meta/base/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200);

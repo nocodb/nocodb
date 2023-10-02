@@ -55,7 +55,8 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
       <NcTooltip
         class="truncate nc-active-table-title"
         :class="{
-          'max-w-1/3': !isMobileMode,
+          'max-w-1/2': !isMobileMode && activeView?.is_default,
+          'max-w-20/100': !isMobileMode && !activeView?.is_default,
           'max-w-1/4': isMobileMode,
         }"
       >
@@ -66,7 +67,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
           class="text-ellipsis overflow-hidden text-gray-500"
           :class="{
             'text-gray-500': !isMobileMode,
-            'text-gray-700': isMobileMode,
+            'text-gray-700 font-medium': isMobileMode || activeView?.is_default,
           }"
           :style="{
             wordBreak: 'keep-all',
@@ -91,7 +92,8 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
       <NcTooltip
         class="truncate nc-active-view-title"
         :class="{
-          'max-w-1/3': !isMobileMode,
+          'max-w-2/5': !isMobileMode && activeView?.is_default,
+          'max-w-3/5': !isMobileMode && !activeView?.is_default,
           'max-w-1/4': isMobileMode,
         }"
       >
@@ -99,9 +101,11 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
           {{ activeView?.is_default ? $t('title.defaultView') : activeView?.title }}
         </template>
         <span
-          class="truncate pl-1.25 text-gray-800 font-medium"
+          class="truncate pl-1.25"
           :class="{
             'max-w-28/100': !isMobileMode,
+            'text-gray-500': activeView?.is_default,
+            'text-gray-800 font-medium': !activeView?.is_default,
           }"
         >
           {{ activeView?.is_default ? $t('title.defaultView') : activeView?.title }}

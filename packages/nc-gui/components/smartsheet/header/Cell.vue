@@ -17,6 +17,8 @@ const hideMenu = toRef(props, 'hideMenu')
 
 const isForm = inject(IsFormInj, ref(false))
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isDropDownOpen = ref(false)
@@ -63,12 +65,16 @@ const openDropDown = () => {
     @click.right="openDropDown"
     @click="isDropDownOpen = false"
   >
-    <SmartsheetHeaderCellIcon v-if="column && !props.hideIcon" />
+    <SmartsheetHeaderCellIcon
+      v-if="column && !props.hideIcon"
+      :class="{
+        'self-start': isForm || isSurveyForm,
+      }"
+    />
     <div
       v-if="column"
-      class="name pl-1 !truncate"
+      class="name pl-1"
       :class="{ 'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu }"
-      style="white-space: pre-line"
       :title="column.title"
     >
       {{ column.title }}
@@ -114,6 +120,7 @@ const openDropDown = () => {
 <style scoped>
 .name {
   max-width: calc(100% - 10px);
-  word-break: break-all;
+  word-break: break-word;
+  white-space: pre-line;
 }
 </style>

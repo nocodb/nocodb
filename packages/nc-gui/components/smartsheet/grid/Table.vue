@@ -1600,8 +1600,12 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
               {{ $t('activity.deleteRow') }}
             </NcMenuItem>
             <div v-else-if="contextMenuTarget && deleteRangeOfRows">
-              <NcMenuItem v-e="['a:row:delete']" class="nc-project-menu-item text-red-600" @click="deleteSelectedRangeOfRows">
-                <GeneralIcon icon="delete" class="text-gray-500 text-error" />
+              <NcMenuItem
+                v-e="['a:row:delete']"
+                class="nc-project-menu-item !text-red-600 !hover:bg-red-50"
+                @click="deleteSelectedRangeOfRows"
+              >
+                <GeneralIcon icon="delete" class="text-gray-500 text-red-600" />
                 <!-- Delete Rows -->
                 {{ $t('activity.deleteRows') }}
               </NcMenuItem>

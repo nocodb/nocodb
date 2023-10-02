@@ -22,6 +22,7 @@ import {
   isDate,
   isDateTime,
   isDecimal,
+  isDrawerExist,
   isDuration,
   isEmail,
   isFloat,
@@ -48,7 +49,6 @@ import {
   useDebounceFn,
   useProject,
   useSmartsheetRowStoreOrThrow,
-  useVModel,
 } from '#imports'
 
 interface Props {
@@ -73,7 +73,9 @@ const readOnly = toRef(props, 'readOnly', false)
 
 provide(ColumnInj, column)
 
-provide(EditModeInj, useVModel(props, 'editEnabled', emit))
+const editEnabled = useVModel(props, 'editEnabled', emit)
+
+provide(EditModeInj, editEnabled)
 
 provide(ActiveCellInj, active)
 
@@ -203,8 +205,10 @@ onUnmounted(() => {
       {
         'text-brand-500': isPrimary(column) && !props.virtual && !isForm,
         'nc-grid-numeric-cell-right': isGrid && isNumericField && !isEditColumnMenu && !isForm && !isExpandedFormOpen,
-        'h-[40px]': !props.editEnabled && isForm && !isSurveyForm && !isAttachment(column) && !props.virtual,
+        'h-10': isForm && !isSurveyForm && !isAttachment(column) && !props.virtual,
         'nc-grid-numeric-cell-left': (isForm && isNumericField && isExpandedFormOpen) || isEditColumnMenu,
+        '!min-h-30 resize-y': isTextArea(column) && (isForm || isSurveyForm),
+        '!border-2 !border-brand-500': props.editEnabled && (isSurveyForm || isForm) && !isDrawerExist(),
       },
     ]"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"

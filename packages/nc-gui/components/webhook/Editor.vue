@@ -72,7 +72,7 @@ let hookRef = reactive<
   version: 'v2',
 })
 
-const isBodyShown = ref(hookRef.version === 'v1' || (hookRef.version === 'v2' && appInfo.value.ee))
+const isBodyShown = ref(hookRef.version === 'v1')
 
 const urlTabKey = ref(isBodyShown.value ? 'body' : 'params')
 

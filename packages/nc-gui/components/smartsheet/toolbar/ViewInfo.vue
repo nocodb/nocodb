@@ -23,7 +23,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
     }"
   >
     <template v-if="!isMobileMode">
-      <NcTooltip class="ml-0.75">
+      <NcTooltip class="ml-0.75 max-w-1/4">
         <template #title>
           {{ project?.title }}
         </template>
@@ -32,10 +32,14 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
             :meta="{ type: project?.type }"
             class="!grayscale"
             :style="{
-              filter: 'grayscale(100%)',
+              filter: 'grayscale(100%) brightness(115%)',
             }"
           />
-          <div class="text-gray-500">..</div>
+          <div class="hidden !2xl:(flex truncate ml-1)">
+            <span class="truncate text-gray-700">
+              {{ project?.title }}
+            </span>
+          </div>
         </div>
       </NcTooltip>
       <div class="px-1.5 text-gray-500">/</div>
@@ -55,16 +59,15 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
       <NcTooltip
         class="truncate nc-active-table-title"
         :class="{
-          'max-w-1/2': !isMobileMode && activeView?.is_default,
+          'max-w-1/2': isMobileMode || activeView?.is_default,
           'max-w-20/100': !isMobileMode && !activeView?.is_default,
-          'max-w-1/4': isMobileMode,
         }"
       >
         <template #title>
           {{ activeTable?.title }}
         </template>
         <span
-          class="text-ellipsis overflow-hidden text-gray-500"
+          class="text-ellipsis overflow-hidden text-gray-500 xs:ml-2"
           :class="{
             'text-gray-500': !isMobileMode,
             'text-gray-700 font-medium': isMobileMode || activeView?.is_default,
@@ -83,18 +86,18 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
     <div v-if="!isMobileMode" class="px-1 text-gray-500">/</div>
 
     <template v-if="!(isMobileMode && activeView?.is_default)">
-      <!-- <LazyGeneralEmojiPicker :emoji="activeView?.meta?.icon" readonly size="xsmall">
+      <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeView?.meta?.icon" readonly size="xsmall">
         <template #default>
           <GeneralViewIcon :meta="{ type: activeView?.type }" class="min-w-4.5 text-lg flex" />
         </template>
-      </LazyGeneralEmojiPicker> -->
+      </LazyGeneralEmojiPicker>
 
       <NcTooltip
         class="truncate nc-active-view-title"
         :class="{
           'max-w-2/5': !isMobileMode && activeView?.is_default,
           'max-w-3/5': !isMobileMode && !activeView?.is_default,
-          'max-w-1/4': isMobileMode,
+          'max-w-1/2': isMobileMode,
         }"
       >
         <template #title>

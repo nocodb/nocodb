@@ -22,6 +22,7 @@ import {
   isDate,
   isDateTime,
   isDecimal,
+  isDrawerExist,
   isDuration,
   isEmail,
   isFloat,
@@ -207,7 +208,7 @@ onUnmounted(() => {
         'h-10': isForm && !isSurveyForm && !isAttachment(column) && !props.virtual,
         'nc-grid-numeric-cell-left': (isForm && isNumericField && isExpandedFormOpen) || isEditColumnMenu,
         '!min-h-30 resize-y': isTextArea(column) && (isForm || isSurveyForm),
-        '!border-2 !border-brand-500': props.editEnabled && (isSurveyForm || isForm),
+        '!border-2 !border-brand-500': props.editEnabled && (isSurveyForm || isForm) && !isDrawerExist(),
       },
     ]"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"

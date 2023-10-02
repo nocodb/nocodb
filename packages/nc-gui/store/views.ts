@@ -1,4 +1,4 @@
-import { type ViewType } from 'nocodb-sdk'
+import type { ViewType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { ViewPageType } from '~/lib'
 
@@ -6,6 +6,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const { $api } = useNuxtApp()
 
   const router = useRouter()
+  const recentViews = ref<any>([])
   const route = router.currentRoute
 
   const tablesStore = useTablesStore()
@@ -20,6 +21,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       viewsByTable.value.set(tablesStore.activeTableId, value)
     },
   })
+
   const isViewsLoading = ref(true)
   const isViewDataLoading = ref(true)
   const isPublic = computed(() => route.value.meta?.public)
@@ -118,6 +120,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
     })
   }
 
+  const changeView = async (..._args: any) => {}
+
+  const removeFromRecentViews = (..._args: any) => {}
+
   watch(
     () => tablesStore.activeTableId,
     async (newId, oldId) => {
@@ -203,6 +209,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     isViewDataLoading,
     isPaginationLoading,
     loadViews,
+    recentViews,
     views,
     activeView,
     openedViewsTab,
@@ -211,6 +218,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     viewsByTable,
     activeViewTitleOrId,
     navigateToView,
+    changeView,
+    removeFromRecentViews,
   }
 })
 

@@ -203,8 +203,9 @@ onUnmounted(() => {
       {
         'text-brand-500': isPrimary(column) && !props.virtual && !isForm,
         'nc-grid-numeric-cell-right': isGrid && isNumericField && !isEditColumnMenu && !isForm && !isExpandedFormOpen,
-        'h-[40px]': isForm && !isSurveyForm && !isAttachment(column) && !props.virtual,
+        'h-10': isForm && !isSurveyForm && !isAttachment(column) && !props.virtual,
         'nc-grid-numeric-cell-left': (isForm && isNumericField && isExpandedFormOpen) || isEditColumnMenu,
+        'h-40': column.uidt === 'LongText' && props.editEnabled,
       },
     ]"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"

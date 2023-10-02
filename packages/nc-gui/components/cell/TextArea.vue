@@ -68,7 +68,7 @@ onClickOutside(inputWrapperRef, (e) => {
 <template>
   <NcDropdown v-model:visible="isVisible" class="overflow-visible" :trigger="[]" placement="bottomLeft">
     <div
-      class="flex flex-row pt-0.5"
+      class="flex flex-row pt-0.5 w-full"
       :class="{
         'min-h-10': rowHeight !== 1,
         'min-h-6.5': rowHeight === 1,

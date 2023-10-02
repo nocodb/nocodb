@@ -237,7 +237,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="el" class="survey pt-8 md:p-0 w-full h-full flex flex-col bg-[red]">
+  <div ref="el" class="survey pt-8 md:p-0 w-full h-full flex flex-col">
     <div
       v-if="sharedFormView"
       style="height: max(40vh, 225px); min-height: 225px"
@@ -350,8 +350,7 @@ onMounted(() => {
                   :mouse-leave-delay="0"
                 >
                   <!-- Ok button for question -->
-                  <button
-                    class="bg-opacity-100 scaling-btn flex items-center gap-1"
+                  <NcButton
                     data-testid="nc-survey-form__btn-next"
                     :class="[
                       v$.localState[field.title]?.$error || columnValidationError ? 'after:!bg-gray-100 after:!ring-red-500' : '',
@@ -373,7 +372,7 @@ onMounted(() => {
                       />
                       <component :is="iconMap.check" v-else class="text-white md:text-md" />
                     </Transition>
-                  </button>
+                  </NcButton>
                 </a-tooltip>
 
                 <!-- todo: i18n -->

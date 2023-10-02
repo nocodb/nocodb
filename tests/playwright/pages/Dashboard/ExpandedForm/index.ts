@@ -125,10 +125,12 @@ export class ExpandedFormPage extends BasePage {
       });
     }
 
-    await this.get().press('Escape');
-    await this.get().waitFor({ state: 'hidden' });
     await this.verifyToast({ message: `updated successfully.` });
     await this.rootPage.locator('[data-testid="grid-load-spinner"]').waitFor({ state: 'hidden' });
+    // removing focus from toast
+    await this.rootPage.locator('.nc-modal').click();
+    await this.get().press('Escape');
+    await this.get().waitFor({ state: 'hidden' });
   }
 
   // check for the expanded form header table name

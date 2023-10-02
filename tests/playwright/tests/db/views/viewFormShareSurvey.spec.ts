@@ -2,6 +2,7 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { SurveyFormPage } from '../../../pages/Dashboard/SurveyForm';
 import setup, { unsetup } from '../../../setup';
+import { enableQuickRun } from '../../../setup/db';
 
 test.describe('Share form', () => {
   let dashboard: DashboardPage;
@@ -18,6 +19,8 @@ test.describe('Share form', () => {
   });
 
   test('Survey', async () => {
+    if (enableQuickRun()) test.skip();
+
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });

@@ -3,6 +3,7 @@ const props = defineProps<{
   current: number
   total: number
   pageSize: number
+  entityName?: string
 }>()
 
 const emits = defineEmits(['update:current', 'update:pageSize'])
@@ -12,6 +13,8 @@ const { total } = toRefs(props)
 const current = useVModel(props, 'current', emits)
 
 const pageSize = useVModel(props, 'pageSize', emits)
+
+const entityName = computed(() => props.entityName || 'item')
 
 const totalPages = computed(() => Math.max(Math.ceil(total.value / pageSize.value), 1))
 
@@ -38,6 +41,7 @@ const goToFirstPage = () => {
   <div class="nc-pagination flex flex-row items-center gap-x-2">
     <NcButton
       v-if="!isMobileMode"
+      v-e="[`a:pagination:${entityName}:first-page`]"
       class="first-page"
       type="secondary"
       size="small"
@@ -47,7 +51,14 @@ const goToFirstPage = () => {
       <GeneralIcon icon="doubleLeftArrow" />
     </NcButton>
 
-    <NcButton class="prev-page" type="secondary" size="small" :disabled="current === 1" @click="changePage({ increase: false })">
+    <NcButton
+      v-e="[`a:pagination:${entityName}:prev-page`]"
+      class="prev-page"
+      type="secondary"
+      size="small"
+      :disabled="current === 1"
+      @click="changePage({ increase: false })"
+    >
       <GeneralIcon icon="arrowLeft" />
     </NcButton>
     <div class="text-gray-600">
@@ -59,6 +70,7 @@ const goToFirstPage = () => {
     </div>
 
     <NcButton
+      v-e="[`a:pagination:${entityName}:next-page`]"
       class="next-page"
       type="secondary"
       size="small"
@@ -70,6 +82,7 @@ const goToFirstPage = () => {
 
     <NcButton
       v-if="!isMobileMode"
+      v-e="[`a:pagination:${entityName}:last-page`]"
       class="last-page"
       type="secondary"
       size="small"

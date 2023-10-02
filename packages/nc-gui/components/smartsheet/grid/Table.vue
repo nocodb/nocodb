@@ -1627,11 +1627,18 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
     >
       <template #add-record>
         <div v-if="isAddingEmptyRowAllowed" class="flex ml-1">
-          <NcButton v-if="isMobileMode" class="nc-grid-add-new-row" type="secondary" @click="onNewRecordToFormClick()">
+          <NcButton
+            v-if="isMobileMode"
+            v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
+            class="nc-grid-add-new-row"
+            type="secondary"
+            @click="onNewRecordToFormClick()"
+          >
             {{ $t('activity.newRecord') }}
           </NcButton>
           <a-dropdown-button
             v-else
+            v-e="[isAddNewRecordGridMode ? 'c:row:add:grid:toggle' : 'c:row:add:form:toggle']"
             class="nc-grid-add-new-row"
             placement="top"
             @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
@@ -1654,7 +1661,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                   }"
                 >
                   <div
-                    v-e="['c:row:add:grid-top']"
+                    v-e="['c:row:add:grid']"
                     :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
                     class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-grid"
                     @click="onNewRecordToGridClick"
@@ -1671,7 +1678,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                     <div class="flex flex-row text-xs text-gray-400 ml-7.25">{{ $t('labels.addRowGrid') }}</div>
                   </div>
                   <div
-                    v-e="['c:row:add:expanded-form']"
+                    v-e="['c:row:add:form']"
                     :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
                     class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-form"
                     @click="onNewRecordToFormClick"

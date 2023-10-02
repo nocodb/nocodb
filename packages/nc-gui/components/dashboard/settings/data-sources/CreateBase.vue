@@ -27,9 +27,11 @@ import {
   watch,
 } from '#imports'
 
-const { connectionType } = defineProps<{ connectionType: ClientType }>()
+const props = defineProps<{ connectionType?: ClientType }>()
 
 const emit = defineEmits(['baseCreated', 'close'])
+
+const connectionType = computed(() => props.connectionType ?? ClientType.MYSQL)
 
 const projectStore = useProject()
 const { loadProject } = useProjects()
@@ -391,7 +393,7 @@ onMounted(async () => {
 })
 
 watch(
-  () => connectionType,
+  connectionType,
   (v) => {
     formState.value.dataSource.client = v
     onClientChange()
@@ -626,6 +628,7 @@ watch(
           </NcButton>
 
           <NcButton
+            v-e="['a:source:create']"
             size="small"
             type="primary"
             :disabled="!testSuccess"

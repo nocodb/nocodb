@@ -76,6 +76,21 @@ export const useTablesStore = defineStore('tablesStore', () => {
       includeM2M: includeM2M.value,
     })
 
+    tables.list?.forEach((t) => {
+      let meta = t.meta
+      if (typeof meta === 'string') {
+        try {
+          meta = JSON.parse(meta)
+        } catch (e) {
+          console.error(e)
+        }
+      }
+
+      if (!meta) meta = {}
+
+      t.meta = meta
+    })
+
     projectTables.value.set(projectId, tables.list || [])
   }
 

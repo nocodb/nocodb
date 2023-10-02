@@ -158,13 +158,20 @@ watch(open, () => {
               <a-select-option
                 v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(sort.fk_column_id))"
                 :key="j"
+                v-e="['c:sort:operation:select']"
                 :value="option.value"
               >
                 <span>{{ option.text }}</span>
               </a-select-option>
             </NcSelect>
 
-            <NcButton type="text" size="small" class="nc-sort-item-remove-btn !max-w-8" @click.stop="deleteSort(sort, i)">
+            <NcButton
+              v-e="['c:sort:delete']"
+              type="text"
+              size="small"
+              class="nc-sort-item-remove-btn !max-w-8"
+              @click.stop="deleteSort(sort, i)"
+            >
               <component :is="iconMap.deleteListItem" />
             </NcButton>
           </template>
@@ -176,7 +183,7 @@ watch(open, () => {
           :trigger="['click']"
           overlay-class-name="nc-toolbar-dropdown"
         >
-          <NcButton class="!text-brand-500" type="text" size="small" @click.stop="showCreateSort = true">
+          <NcButton v-e="['c:sort:add']" class="!text-brand-500" type="text" size="small" @click.stop="showCreateSort = true">
             <div class="flex gap-1 items-center">
               <component :is="iconMap.plus" />
               <!-- Add Sort Option -->

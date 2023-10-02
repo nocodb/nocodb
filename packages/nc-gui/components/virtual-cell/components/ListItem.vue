@@ -137,6 +137,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
     </div>
     <NcButton
       v-if="!isForm && !isPublic"
+      v-e="['c:row-expand:open']"
       type="text"
       size="lg"
       class="!px-2 nc-expand-item !group-hover:block !hidden !border-1 !shadow-sm !border-gray-200 !bg-white !absolute right-3 bottom-3"

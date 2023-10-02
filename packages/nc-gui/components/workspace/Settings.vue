@@ -127,6 +127,7 @@ const onCancel = () => {
             Cancel
           </NcButton>
           <NcButton
+            v-e="['c:workspace:settings:rename']"
             type="primary"
             html-type="submit"
             :disabled="isErrored || (form.title && form.title === activeWorkspace.title)"
@@ -148,7 +149,13 @@ const onCancel = () => {
       </div>
 
       <div class="flex flex-row w-full justify-end mt-8">
-        <NcButton type="danger" :disabled="!isConfirmed" :loading="isDeleting" @click="onDelete">
+        <NcButton
+          v-e="['c:workspace:settings:delete']"
+          type="danger"
+          :disabled="!isConfirmed"
+          :loading="isDeleting"
+          @click="onDelete"
+        >
           <template #loading> Deleting Workspace </template>
           Delete Workspace
         </NcButton>

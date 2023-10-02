@@ -207,7 +207,6 @@ export function useViewData(
       offset: (page - 1) * (paginationData.value.pageSize || appInfoDefaultLimit),
       where: where?.value,
     } as any)
-    $e('a:grid:pagination')
   }
 
   const {

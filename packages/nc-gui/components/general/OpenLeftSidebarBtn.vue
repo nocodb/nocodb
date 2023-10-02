@@ -12,6 +12,7 @@ const onClick = () => {
 
 <template>
   <NcTooltip
+    v-e="['c:leftSidebar:hideToggle']"
     placement="topLeft"
     hide-on-click
     class="transition-all duration-150"

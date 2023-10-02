@@ -95,7 +95,9 @@ const isEaster = ref(false)
     </div>
     <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
       <NcButton key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
-      <NcButton key="submit" :loading="isLoading" @click="_duplicate">{{ $t('general.confirm') }} </NcButton>
+      <NcButton key="submit" v-e="['a:base:duplicate']" :loading="isLoading" @click="_duplicate"
+        >{{ $t('general.confirm') }}
+      </NcButton>
     </div>
   </GeneralModal>
 </template>

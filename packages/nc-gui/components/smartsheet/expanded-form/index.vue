@@ -351,6 +351,10 @@ watch(
     immediate: true,
   },
 )
+
+const showRightSections = computed(() => {
+  return !isNew.value && commentsDrawer.value && isUIAllowed('commentList')
+})
 </script>
 
 <script lang="ts">
@@ -455,20 +459,38 @@ export default {
         </template>
         <template v-else>
           <div class="flex flex-row w-full">
-            <NcButton v-if="props.showNextPrevIcons" type="secondary" class="nc-prev-arrow !w-10" @click="$emit('prev')">
+            <NcButton
+              v-if="props.showNextPrevIcons"
+              v-e="['c:row-expand:prev']"
+              type="secondary"
+              class="nc-prev-arrow !w-10"
+              @click="$emit('prev')"
+            >
               <GeneralIcon icon="arrowLeft" class="text-lg text-gray-700" />
             </NcButton>
             <div class="flex flex-grow justify-center items-center font-semibold text-lg">
               <div>{{ meta.title }}</div>
             </div>
-            <NcButton v-if="!props.lastRow" type="secondary" class="nc-next-arrow !w-10" @click="onNext">
+            <NcButton
+              v-if="!props.lastRow"
+              v-e="['c:row-expand:next']"
+              type="secondary"
+              class="nc-next-arrow !w-10"
+              @click="onNext"
+            >
               <GeneralIcon icon="arrowRight" class="text-lg text-gray-700" />
             </NcButton>
           </div>
         </template>
       </div>
       <div ref="wrapper" class="flex flex-grow flex-row h-[calc(100%-4rem)] w-full gap-4">
-        <div class="flex w-2/3 xs:w-full flex-col border-1 rounded-xl overflow-hidden border-gray-200 xs:(border-0 rounded-none)">
+        <div
+          class="flex xs:w-full flex-col border-1 rounded-xl overflow-hidden border-gray-200 xs:(border-0 rounded-none)"
+          :class="{
+            'w-full': !showRightSections,
+            'w-2/3': showRightSections,
+          }"
+        >
           <div
             class="flex flex-col flex-grow mt-2 h-full max-h-full nc-scrollbar-md !pb-2 items-center w-full bg-white p-4 xs:p-0"
           >
@@ -597,6 +619,7 @@ export default {
                 <div class="px-1">Close</div>
               </NcButton>
               <NcButton
+                v-e="['c:row-expand:save']"
                 data-testid="nc-expanded-form-save"
                 type="primary"
                 size="medium"
@@ -609,7 +632,7 @@ export default {
           </div>
         </div>
         <div
-          v-if="!isNew && commentsDrawer && isUIAllowed('commentList')"
+          v-if="showRightSections"
           class="nc-comments-drawer border-1 relative border-gray-200 w-1/3 max-w-125 bg-gray-50 rounded-xl min-w-0 overflow-hidden h-full xs:hidden"
           :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
         >
@@ -627,7 +650,8 @@ export default {
     </div>
     <div class="flex flex-row gap-x-2 mt-4 pt-1.5 justify-end pt-4 gap-x-3">
       <NcButton v-if="isMobileMode" type="secondary" @click="showDeleteRowModal = false">{{ $t('general.cancel') }} </NcButton>
-      <NcButton @click="onConfirmDeleteRowClick">{{ $t('general.confirm') }} </NcButton>
+
+      <NcButton v-e="['a:row-expand:delete']" @click="onConfirmDeleteRowClick">{{ $t('general.confirm') }} </NcButton>
     </div>
   </NcModal>
 </template>

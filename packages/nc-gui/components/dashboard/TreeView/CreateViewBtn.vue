@@ -76,6 +76,9 @@ async function onOpenModal({
 
   function closeDialog() {
     isOpen.value = false
+    isDlgOpen.value = false
+
+    close(1000)
   }
 }
 </script>

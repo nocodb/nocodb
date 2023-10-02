@@ -1388,6 +1388,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                             <template v-else-if="!isLocked">
                               <span
                                 v-if="row.rowMeta?.commentCount && expandForm"
+                                v-e="['c:expanded-form:open']"
                                 class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
                                 :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
                                 @click="expandAndLooseFocus(row, state)"
@@ -1401,7 +1402,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                                 <component
                                   :is="iconMap.expand"
                                   v-if="expandForm"
-                                  v-e="['c:row-expand']"
+                                  v-e="['c:expanded-form:open']"
                                   class="select-none transform hover:(text-black scale-120) nc-row-expand"
                                   @click="expandAndLooseFocus(row, state)"
                                 />

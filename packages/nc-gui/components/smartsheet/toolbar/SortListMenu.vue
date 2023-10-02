@@ -183,14 +183,7 @@ watch(open, () => {
           :trigger="['click']"
           overlay-class-name="nc-toolbar-dropdown"
         >
-          <NcButton
-            v-e="['c:sort:add']"
-            class="!text-brand-500"
-            type="text"
-            size="small"
-            @click.stop="showCreateSort = true"
-            @click.stop="deleteSort(sort, i)"
-          >
+          <NcButton v-e="['c:sort:add']" class="!text-brand-500" type="text" size="small" @click.stop="showCreateSort = true">
             <div class="flex gap-1 items-center">
               <component :is="iconMap.plus" />
               <!-- Add Sort Option -->

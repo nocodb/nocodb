@@ -167,13 +167,20 @@ const isTableOpened = computed(() => {
         @click="onOpenTable"
       >
         <div class="flex flex-row h-full items-center">
-          <NcButton type="text" size="xxsmall" class="nc-sidebar-node-btn nc-sidebar-expand" @click.stop="onExpand">
+          <NcButton
+            v-if="(table.meta as any)?.hasNonDefaultViews"
+            type="text"
+            size="xxsmall"
+            class="nc-sidebar-node-btn nc-sidebar-expand"
+            @click.stop="onExpand"
+          >
             <GeneralIcon
               icon="triangleFill"
               class="nc-sidebar-base-node-btns group-hover:visible invisible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.5 !text-gray-600 rotate-90"
               :class="{ '!rotate-180': isExpanded }"
             />
           </NcButton>
+          <div v-else class="min-w-5.75"></div>
           <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
             <div
               class="flex items-center nc-table-icon"

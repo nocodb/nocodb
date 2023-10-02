@@ -93,7 +93,7 @@ const value = computed({
 })
 
 watch(
-  commentsAndLogs,
+  [commentsAndLogs, tab],
   () => {
     setTimeout(() => {
       if (commentsWrapperEl.value) commentsWrapperEl.value.scrollTop = commentsWrapperEl.value?.scrollHeight
@@ -240,11 +240,11 @@ const processedAudit = (log: string) => {
           <div class="bg-white rounded-xl border-1 gap-3 border-gray-200">
             <div class="flex flex-col p-4 gap-3">
               <div class="flex justify-between">
-                <div class="flex font-bold items-center gap-2">
-                  <GeneralUserIcon size="base" :name="log.display_name ?? log.user" />
+                <div class="flex items-center gap-2">
+                  <GeneralUserIcon size="base" :name="log.display_name ?? log.user" :email="log.user" />
 
                   <div class="flex flex-col">
-                    <span class="truncate max-w-50">
+                    <span class="truncate max-w-50 font-bold">
                       {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared base' }}
                     </span>
                     <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">

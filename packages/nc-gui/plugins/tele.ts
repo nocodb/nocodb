@@ -84,8 +84,12 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     }
 
     watch((nuxtApp.$state as ReturnType<typeof useGlobal>).token, (newToken, oldToken) => {
-      if (newToken && newToken !== oldToken) init(newToken)
-      else if (!newToken) socket.disconnect()
+      try {
+        if (newToken && newToken !== oldToken) init(newToken)
+        else if (!newToken) socket?.disconnect()
+      } catch (e) {
+        console.error(e)
+      }
     })
 
     nuxtApp.provide('tele', tele)

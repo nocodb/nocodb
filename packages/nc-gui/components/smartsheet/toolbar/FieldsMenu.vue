@@ -394,6 +394,7 @@ useMenuCloseOnEsc(open)
                   v-if="gridDisplayValueField && filteredFieldList[0].title.toLowerCase().includes(filterQuery.toLowerCase())"
                   :key="`pv-${gridDisplayValueField.id}`"
                   class="pl-7.5 pr-2.1 py-1.9 flex flex-row items-center border-1 rounded-t-lg border-gray-200"
+                  :class="{ 'rounded-b-md': filteredFieldList.length === 1 }"
                   :data-testid="`nc-fields-menu-${gridDisplayValueField.title}`"
                   @click.stop
                 >

@@ -392,26 +392,28 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
 
 const isColumnValid = (column: TableExplorerColumn) => {
   const isDeleteOp = ops.value.find((op) => compareCols(column, op.column) && op.op === 'delete')
+  const isNew = ops.value.find((op) => compareCols(column, op.column) && op.op === 'add')
+  console.log(isNew)
   if (isDeleteOp) return true
   if (!column.title) {
     return false
   }
-  if (column.uidt === UITypes.Links || column.uidt === UITypes.LinkToAnotherRecord) {
+  if ((column.uidt === UITypes.Links || column.uidt === UITypes.LinkToAnotherRecord) && isNew) {
     if (!column.childColumn || !column.childTable || !column.childId) {
       return false
     }
   }
-  if (column.uidt === UITypes.Lookup) {
+  if (column.uidt === UITypes.Lookup && isNew) {
     if (!column.fk_relation_column_id || !column.fk_lookup_column_id) {
       return false
     }
   }
-  if (column.uidt === UITypes.Rollup) {
+  if (column.uidt === UITypes.Rollup && isNew) {
     if (!column.fk_relation_column_id || !column.fk_rollup_column_id || !column.rollup_function) {
       return false
     }
   }
-  if (column.uidt === UITypes.Formula) {
+  if (column.uidt === UITypes.Formula && isNew) {
     if (!column.formula_raw) {
       return false
     }

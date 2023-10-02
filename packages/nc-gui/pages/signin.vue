@@ -72,10 +72,6 @@ async function signIn() {
 function resetError() {
   if (error.value) error.value = null
 }
-
-onMounted(async () => {
-  await clearWorkspaces()
-})
 </script>
 
 <template>

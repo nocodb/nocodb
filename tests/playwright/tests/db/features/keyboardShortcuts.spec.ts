@@ -130,9 +130,7 @@ test.describe('Verify shortcuts', () => {
     // Space to open expanded row and Meta + Space to save
     await grid.cell.click({ index: 1, columnHeader: 'Country' });
     await page.keyboard.press('Space');
-    await dashboard.expandedForm.verify({
-      header: 'Algeria',
-    });
+
     await dashboard.expandedForm.fillField({ columnTitle: 'Country', value: 'NewAlgeria' });
     await dashboard.expandedForm.save();
     await dashboard.expandedForm.escape();

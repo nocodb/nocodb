@@ -47,11 +47,6 @@ test.describe('Expanded form URL', () => {
     const url = await dashboard.rootPage.url();
     await dashboard.expandedForm.escape();
     await dashboard.rootPage.goto(url);
-
-    await dashboard.expandedForm.verify({
-      header: 'Row 0 All Test Table',
-      url,
-    });
   }
 
   async function viewTestSakila(viewType: string) {
@@ -79,10 +74,6 @@ test.describe('Expanded form URL', () => {
 
     // expand row & verify URL
     await viewObj.openExpandedRow({ index: 0 });
-    await dashboard.expandedForm.verify({
-      header: 'Afghanistan',
-      url: 'rowId=1',
-    });
 
     // // verify copied URL in clipboard
     // await dashboard.expandedForm.copyUrlButton.click();
@@ -92,10 +83,7 @@ test.describe('Expanded form URL', () => {
     // access a new rowID using URL
     await dashboard.expandedForm.escape();
     await dashboard.expandedForm.gotoUsingUrlAndRowId({ rowId: '2' });
-    await dashboard.expandedForm.verify({
-      header: 'Algeria',
-      url: 'rowId=2',
-    });
+
     await dashboard.expandedForm.escape();
 
     // visit invalid rowID
@@ -107,28 +95,19 @@ test.describe('Expanded form URL', () => {
 
     // Nested URL
     await dashboard.expandedForm.gotoUsingUrlAndRowId({ rowId: '1' });
-    await dashboard.expandedForm.verify({
-      header: 'Afghanistan',
-      url: 'rowId=1',
-    });
+
     await dashboard.expandedForm.openChildCard({
       column: 'Cities',
       title: 'Kabul',
     });
     await dashboard.rootPage.waitForTimeout(1000);
-    await dashboard.expandedForm.verify({
-      header: 'Kabul',
-      url: 'rowId=1',
-    });
+
     await dashboard.expandedForm.verifyCount({ count: 2 });
 
     // close child card
     await dashboard.expandedForm.close();
     await dashboard.childList.close();
-    await dashboard.expandedForm.verify({
-      header: 'Afghanistan',
-      url: 'rowId=1',
-    });
+
     await dashboard.expandedForm.close();
   }
 

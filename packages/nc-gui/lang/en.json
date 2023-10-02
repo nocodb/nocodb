@@ -419,6 +419,7 @@
     "allTables": "All Tables",
     "members": "Members",
     "dataSources": "Data Sources",
+    "connectDataSource": "Connect Data Source",
     "searchProjects": "Search Projects",
     "createdBy": "Created By",
     "viewingAttachmentsOf": "Viewing Attachments of",
@@ -771,6 +772,8 @@
     "startCommenting": "Start commenting!"
   },
   "tooltip": {
+    "reachedSourceLimit": "Reached Data Source limit",
+    "manageInDataSourcesTab": "Manage in Data Sources tab",
     "saveChanges": "Save changes",
     "xcDB": "Create a new project",
     "extDB": "Supports MySQL, PostgreSQL, SQL Server & SQLite",

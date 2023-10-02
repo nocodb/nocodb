@@ -96,6 +96,7 @@ const onArrowUp = () => {
       <div
         v-for="(option, index) in options"
         :key="index"
+        v-e="['c:sort:add:column:select']"
         class="flex flex-row h-10 items-center gap-x-1.5 px-2.5 hover:bg-gray-100 cursor-pointer nc-sort-column-search-item"
         :class="{
           'bg-gray-100': activeFieldIndex === index,

@@ -90,11 +90,4 @@ watch(
 :deep(.ant-tabs-nav) {
   min-height: calc(var(--topbar-height) - 1.75px);
 }
-
-:deep(.ant-tabs-content-holder) {
-  @apply h-[calc(100vh-(var(--topbar-height)*2.5))];
-  .ant-tabs-content {
-    @apply !h-full;
-  }
-}
 </style>

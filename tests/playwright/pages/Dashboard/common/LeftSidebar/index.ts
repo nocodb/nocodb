@@ -35,10 +35,10 @@ export class LeftSidebarPage extends BasePage {
   async createProject({ title, context }: { title: string; context: NcContext }) {
     title = isEE() ? title : `nc-${context.workerId}-${title}`;
     await this.btn_newProject.click();
-    await this.rootPage.locator('.ant-modal-content:has-text(" Create Database")').waitFor();
-    await this.rootPage.locator('.ant-modal-content:has-text(" Create Database")').locator('input').fill(title);
+    await this.rootPage.locator('.ant-modal-content:has-text(" Create Base")').waitFor();
+    await this.rootPage.locator('.ant-modal-content:has-text(" Create Base")').locator('input').fill(title);
     await this.rootPage
-      .locator('.ant-modal-content:has-text(" Create Database")')
+      .locator('.ant-modal-content:has-text(" Create Base")')
       .locator('button.ant-btn-primary')
       .click();
   }

@@ -206,6 +206,7 @@ onMounted(() => {
             <div
               v-for="cmdOption of recentViews"
               :key="cmdOption.tableID + cmdOption.viewName"
+              v-e="['a:cmdL:changeView']"
               :class="{
                 selected: selected === cmdOption.tableID + cmdOption.viewName,
               }"

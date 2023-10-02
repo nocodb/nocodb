@@ -14,7 +14,7 @@ import {
   useI18n,
   useMetas,
   useNuxtApp,
-  useProject,
+  useBase,
   watch,
 } from '#imports'
 
@@ -34,9 +34,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     column: Ref<ColumnType | undefined>,
     tableExplorerColumns?: Ref<ColumnType[] | undefined>,
   ) => {
-    const projectStore = useProject()
-    const { isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc, isXcdbBase: isXcdbBaseFunc, getBaseType } = projectStore
-    const { sqlUis } = storeToRefs(projectStore)
+    const baseStore = useBase()
+    const { isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc, isXcdbBase: isXcdbBaseFunc, getBaseType } = baseStore
+    const { sqlUis } = storeToRefs(baseStore)
 
     const { $api } = useNuxtApp()
 
@@ -46,19 +46,19 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const { $e } = useNuxtApp()
 
-    const sqlUi = ref(meta.value?.base_id ? sqlUis.value[meta.value?.base_id] : Object.values(sqlUis.value)[0])
+    const sqlUi = ref(meta.value?.source_id ? sqlUis.value[meta.value?.source_id] : Object.values(sqlUis.value)[0])
 
     const isEdit = computed(() => !!column?.value?.id)
 
-    const isMysql = computed(() => isMysqlFunc(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
+    const isMysql = computed(() => isMysqlFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
 
-    const isPg = computed(() => isPgFunc(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
+    const isPg = computed(() => isPgFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
 
-    const isMssql = computed(() => isMssqlFunc(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
+    const isMssql = computed(() => isMssqlFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
 
-    const isXcdbBase = computed(() => isXcdbBaseFunc(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
+    const isXcdbBase = computed(() => isXcdbBaseFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
 
-    const baseType = computed(() => getBaseType(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
+    const baseType = computed(() => getBaseType(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
 
     const idType = null
 

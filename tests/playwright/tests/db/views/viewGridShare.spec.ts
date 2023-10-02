@@ -11,7 +11,7 @@ test.describe('Shared view', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test('Grid Share with GroupBy', async ({ page }) => {
@@ -35,7 +35,7 @@ test.describe('Shared view', () => {
 
     // fix me! kludge@hub; page wasn't getting loaded from previous step
     await page.reload();
-    const sharedPage = new DashboardPage(page, context.project);
+    const sharedPage = new DashboardPage(page, context.base);
     await sharedPage.grid.groupPage.openGroup({ indexMap: [0] });
 
     await sharedPage.grid.groupPage.validateFirstRow({
@@ -164,7 +164,7 @@ test.describe('Shared view', () => {
     await page.goto(sharedLink);
     // fix me! kludge@hub; page wasn't getting loaded from previous step
     await page.reload();
-    const sharedPage = new DashboardPage(page, context.project);
+    const sharedPage = new DashboardPage(page, context.base);
 
     const expectedColumns = [
       { title: 'Address', isVisible: true },
@@ -283,7 +283,7 @@ test.describe('Shared view', () => {
     await page.reload();
 
     // verify if password request modal exists
-    const sharedPage2 = new DashboardPage(page, context.project);
+    const sharedPage2 = new DashboardPage(page, context.base);
     await sharedPage2.rootPage.locator('input[placeholder="Enter password"]').fill('incorrect p@ssword');
     await sharedPage2.rootPage.click('button:has-text("Unlock")');
     await sharedPage2.verifyToast({ message: 'INVALID_SHARED_VIEW_PASSWORD' });

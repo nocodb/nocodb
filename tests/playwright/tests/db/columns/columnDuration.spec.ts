@@ -46,7 +46,7 @@ test.describe('Duration column', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test.afterEach(async () => {
@@ -54,7 +54,7 @@ test.describe('Duration column', () => {
   });
 
   test('Create duration column', async () => {
-    await dashboard.treeView.createTable({ title: 'tablex', projectTitle: context.project.title });
+    await dashboard.treeView.createTable({ title: 'tablex', baseTitle: context.base.title });
     // Create duration column
     await dashboard.grid.column.create({
       title: 'NC_DURATION_0',

@@ -278,7 +278,7 @@ onKeyStroke('Escape', () => {
     </template>
     <div
       v-if="!isChildrenExcludedLoading && !childrenExcludedList?.pageInfo?.totalRows"
-      class="py-2 h-105 flex flex-col gap-3 items-center justify-center text-gray-500"
+      class="py-2 h-[420px] flex flex-col gap-3 items-center justify-center text-gray-500"
     >
       <InboxIcon class="w-16 h-16 mx-auto" />
       <p>

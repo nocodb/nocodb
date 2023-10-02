@@ -90,7 +90,7 @@ export const hexToRGB = (hex: string) => {
   return `${r}, ${g}, ${b}`
 }
 
-export const projectThemeColors = [
+export const baseThemeColors = [
   themeV2Colors['royal-blue'].DEFAULT,
   '#2D7FF9',
   '#18BFFF',

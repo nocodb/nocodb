@@ -9,7 +9,7 @@ const viewsStore = useViewsStore()
 const { loadViews, navigateToView } = viewsStore
 
 const table = inject(SidebarTableInj)!
-const project = inject(ProjectInj)!
+const base = inject(ProjectInj)!
 
 const isViewListLoading = ref(false)
 const toBeCreateType = ref<ViewTypes>()
@@ -67,7 +67,7 @@ async function onOpenModal({
       navigateToView({
         view,
         tableId: table.value.id!,
-        projectId: project.value.id!,
+        baseId: base.value.id!,
       })
 
       $e('a:view:create', { view: view.type })

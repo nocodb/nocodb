@@ -79,7 +79,7 @@ const copyUrl = async () => {
   try {
     await copy(inviteUrl.value)
 
-    // Copied shareable base url to clipboard!
+    // Copied shareable source url to clipboard!
     message.success(t('msg.success.shareableURLCopied'))
   } catch (e: any) {
     message.error(e.message)

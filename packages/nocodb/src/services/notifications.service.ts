@@ -31,15 +31,15 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     switch (event) {
       case AppEvents.PROJECT_INVITE:
         {
-          const { project, user, invitedBy } = data as ProjectInviteEvent;
+          const { base, user, invitedBy } = data as ProjectInviteEvent;
 
           await this.insertNotification({
             fk_user_id: user.id,
             type: AppEvents.PROJECT_INVITE,
             body: {
-              id: project.id,
-              title: project.title,
-              type: project.type,
+              id: base.id,
+              title: base.title,
+              type: base.type,
               invited_by: invitedBy.email,
             },
           });

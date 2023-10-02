@@ -46,7 +46,7 @@ const usernameInitials = computed(() => {
 
 <template>
   <div
-    class="flex nc-user-avatar font-bold"
+    class="flex nc-user-avatar"
     :class="{
       'min-w-4 min-h-4': size === 'small',
       'min-w-6 min-h-6': size === 'medium',

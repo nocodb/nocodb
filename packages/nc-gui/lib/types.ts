@@ -1,4 +1,4 @@
-import type { ColumnType, FilterType, MetaType, PaginatedType, ProjectType, Roles, RolesObj, ViewTypes } from 'nocodb-sdk'
+import type { ColumnType, FilterType, MetaType, PaginatedType, BaseType, Roles, RolesObj, ViewTypes } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
@@ -11,10 +11,10 @@ interface User {
   firstname: string | null
   lastname: string | null
   roles: RolesObj
-  project_roles: RolesObj
+  base_roles: RolesObj
   workspace_roles: RolesObj
   invite_token?: string
-  project_id?: string
+  base_id?: string
   display_name?: string | null
 }
 
@@ -84,7 +84,7 @@ interface TabItem {
   filterState?: Map<string, any>
   meta?: MetaType
   tabMeta?: any
-  projectId?: string
+  baseId?: string
 }
 
 interface SharedViewMeta extends Record<string, any> {
@@ -111,15 +111,15 @@ type streamImportFileList = UploadFile[]
 type Nullable<T> = { [K in keyof T]: T[K] | null }
 
 /**
- * @description: Project type for frontend
+ * @description: Base type for frontend
  */
-type NcProject = ProjectType & {
+type NcProject = BaseType & {
   /**
-   * When project is expanded in sidebar
+   * When base is expanded in sidebar
    * */
   isExpanded?: boolean
   /**
-   * When project's content is being fetched i.e tables, views, etc
+   * When base's content is being fetched i.e tables, views, etc
    */
   isLoading?: boolean
   temp_title?: string

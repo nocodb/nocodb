@@ -9,7 +9,7 @@ import {
   useCopy,
   useI18n,
   useNuxtApp,
-  useProject,
+  useBase,
 } from '#imports'
 
 interface ApiToken extends ApiTokenType {
@@ -20,8 +20,8 @@ const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
-const projectStore = useProject()
-const { project } = storeToRefs(projectStore)
+const baseStore = useBase()
+const { base } = storeToRefs(baseStore)
 
 const { copy } = useCopy()
 
@@ -34,9 +34,9 @@ const showDeleteTokenModal = ref(false)
 const selectedTokenData = ref<ApiToken>({})
 
 const loadApiTokens = async () => {
-  if (!project.value?.id) return
+  if (!base.value?.id) return
 
-  tokensInfo.value = (await $api.apiToken.list(project.value.id)).list
+  tokensInfo.value = (await $api.apiToken.list(base.value.id)).list
 }
 
 const openNewTokenModal = () => {
@@ -59,9 +59,9 @@ const copyToken = async (token: string | undefined) => {
 
 const generateToken = async () => {
   try {
-    if (!project.value?.id) return
+    if (!base.value?.id) return
 
-    await $api.apiToken.create(project.value.id, selectedTokenData.value)
+    await $api.apiToken.create(base.value.id, selectedTokenData.value)
     showNewTokenModal.value = false
     // Token generated successfully
     message.success(t('msg.success.tokenGenerated'))
@@ -76,9 +76,9 @@ const generateToken = async () => {
 
 const deleteToken = async () => {
   try {
-    if (!project.value?.id || !selectedTokenData.value.token) return
+    if (!base.value?.id || !selectedTokenData.value.token) return
 
-    await $api.apiToken.delete(project.value.id, selectedTokenData.value.token)
+    await $api.apiToken.delete(base.value.id, selectedTokenData.value.token)
 
     // Token deleted successfully
     message.success(t('msg.success.tokenDeleted'))

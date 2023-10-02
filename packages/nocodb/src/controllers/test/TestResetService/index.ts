@@ -3,13 +3,13 @@ import resetPgSakilaProject from './resetPgSakilaProject';
 import resetMysqlSakilaProject from './resetMysqlSakilaProject';
 import resetMetaSakilaSqliteProject from './resetMetaSakilaSqliteProject';
 import type ApiToken from '~/models/ApiToken';
-import Project from '~/models/Project';
+import Base from '~/models/Base';
 // import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
 import User from '~/models/User';
 import NocoCache from '~/cache/NocoCache';
 import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
-import ProjectUser from '~/models/ProjectUser';
+import BaseUser from '~/models/BaseUser';
 
 const workerStatus = {};
 
@@ -22,7 +22,7 @@ const loginRootUser = async () => {
   return response.data.token;
 };
 
-const projectTitleByType = {
+const baseTitleByType = {
   sqlite: 'sampleREST',
   mysql: 'externalREST',
   pg: 'pgExtREST',
@@ -71,7 +71,7 @@ export class TestResetService {
 
       const token = await loginRootUser();
 
-      const { project } = await this.resetProject({
+      const { base } = await this.resetProject({
         token,
         dbType: this.dbType,
         parallelId: this.parallelId,
@@ -83,11 +83,11 @@ export class TestResetService {
         await removeAllPrefixedUsersExceptSuper(this.parallelId);
         await removeAllTokensCreatedByTheTest(this.parallelId);
       } catch (e) {
-        console.log(`Error in cleaning up project: ${this.parallelId}`, e);
+        console.log(`Error in cleaning up base: ${this.parallelId}`, e);
       }
 
       workerStatus[this.parallelId] = 'completed';
-      return { token, project };
+      return { token, base };
     } catch (e) {
       console.error('TestResetService:process', e);
       workerStatus[this.parallelId] = 'errored';
@@ -106,25 +106,25 @@ export class TestResetService {
     parallelId: string;
     workerId: string;
   }) {
-    const title = `${projectTitleByType[dbType]}${parallelId}`;
-    const project: Project | undefined = await Project.getByTitle(title);
+    const title = `${baseTitleByType[dbType]}${parallelId}`;
+    const base: Base | undefined = await Base.getByTitle(title);
 
-    if (project) {
-      await this.removeProjectUsersFromCache(project);
+    if (base) {
+      await this.removeProjectUsersFromCache(base);
 
       // Kludge: Soft reset to support PG as root DB in PW tests
       // Revisit to fix this later
 
-      // const bases = await project.getBases();
+      // const sources = await base.getBases();
       //
-      // for (const base of bases) {
+      // for (const base of sources) {
       //   await NcConnectionMgrv2.deleteAwait(base);
       //   await base.delete(Noco.ncMeta, { force: true });
       // }
       //
-      // await Project.delete(project.id);
+      // await Base.delete(base.id);
 
-      await Project.softDelete(project.id);
+      await Base.softDelete(base.id);
     }
 
     if (dbType == 'sqlite') {
@@ -139,7 +139,7 @@ export class TestResetService {
         token,
         title,
         parallelId,
-        oldProject: project,
+        oldProject: base,
         isEmptyProject: this.isEmptyProject,
       });
     } else if (dbType == 'pg') {
@@ -147,30 +147,28 @@ export class TestResetService {
         token,
         title,
         parallelId: workerId,
-        oldProject: project,
+        oldProject: base,
         isEmptyProject: this.isEmptyProject,
       });
     }
 
     return {
-      project: await Project.getByTitle(title),
+      base: await Base.getByTitle(title),
     };
   }
 
   // todo: Remove this once user deletion improvement PR is merged
-  removeProjectUsersFromCache = async (project: Project) => {
-    const projectUsers = await ProjectUser.getUsersList({
-      project_id: project.id,
+  removeProjectUsersFromCache = async (base: Base) => {
+    const baseUsers = await BaseUser.getUsersList({
+      base_id: base.id,
       limit: 1000,
       offset: 0,
     });
 
-    for (const projectUser of projectUsers) {
+    for (const baseUser of baseUsers) {
       try {
-        const user: User = (await User.get(projectUser.id)) as any;
-        await NocoCache.del(
-          `${CacheScope.PROJECT_USER}:${project.id}:${user.id}`,
-        );
+        const user: User = (await User.get(baseUser.id)) as any;
+        await NocoCache.del(`${CacheScope.PROJECT_USER}:${base.id}:${user.id}`);
       } catch (e) {
         console.error('removeProjectUsersFromCache', e);
       }
@@ -179,11 +177,11 @@ export class TestResetService {
 }
 
 const removeAllProjectCreatedByTheTest = async (parallelId: string) => {
-  const projects = await Project.list({});
+  const bases = await Base.list({});
 
-  for (const project of projects) {
-    if (project.title.startsWith(`nc_test_${parallelId}_`)) {
-      await Project.delete(project.id);
+  for (const base of bases) {
+    if (base.title.startsWith(`nc_test_${parallelId}_`)) {
+      await Base.delete(base.id);
     }
   }
 };

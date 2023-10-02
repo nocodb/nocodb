@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { Project } from '~/models';
+import { Base } from '~/models';
 
 // todo: load from config
 const config = {
@@ -16,22 +16,22 @@ export class SharedBasesService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
   async createSharedBaseLink(param: {
-    projectId: string;
+    baseId: string;
     roles: string;
     password: string;
     siteUrl: string;
   }): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SharedBaseReq', param);
 
-    const project = await Project.get(param.projectId);
+    const base = await Base.get(param.baseId);
 
     let roles = param?.roles;
     if (!roles || (roles !== 'editor' && roles !== 'viewer')) {
       roles = 'viewer';
     }
 
-    if (!project) {
-      NcError.badRequest('Invalid project id');
+    if (!base) {
+      NcError.badRequest('Invalid base id');
     }
 
     const data: any = {
@@ -40,84 +40,84 @@ export class SharedBasesService {
       roles,
     };
 
-    await Project.update(project.id, data);
+    await Base.update(base.id, data);
 
     data.url = `${param.siteUrl}${config.dashboardPath}#/nc/base/${data.uuid}`;
     delete data.password;
 
     this.appHooksService.emit(AppEvents.SHARED_BASE_GENERATE_LINK, {
       link: data.url,
-      project,
+      base,
     });
 
     return data;
   }
 
   async updateSharedBaseLink(param: {
-    projectId: string;
+    baseId: string;
     roles: string;
     password: string;
     siteUrl: string;
   }): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SharedBaseReq', param);
 
-    const project = await Project.get(param.projectId);
+    const base = await Base.get(param.baseId);
 
     let roles = param.roles;
     if (!roles || (roles !== 'editor' && roles !== 'viewer')) {
       roles = 'viewer';
     }
 
-    if (!project) {
-      NcError.badRequest('Invalid project id');
+    if (!base) {
+      NcError.badRequest('Invalid base id');
     }
     const data: any = {
-      uuid: project.uuid || uuidv4(),
+      uuid: base.uuid || uuidv4(),
       password: param.password,
       roles,
     };
 
-    await Project.update(project.id, data);
+    await Base.update(base.id, data);
 
     data.url = `${param.siteUrl}${config.dashboardPath}#/nc/base/${data.uuid}`;
     delete data.password;
     this.appHooksService.emit(AppEvents.SHARED_BASE_GENERATE_LINK, {
       link: data.url,
-      project,
+      base,
     });
     return data;
   }
 
-  async disableSharedBaseLink(param: { projectId: string }): Promise<any> {
-    const project = await Project.get(param.projectId);
+  async disableSharedBaseLink(param: { baseId: string }): Promise<any> {
+    const base = await Base.get(param.baseId);
 
-    if (!project) {
-      NcError.badRequest('Invalid project id');
+    if (!base) {
+      NcError.badRequest('Invalid base id');
     }
     const data: any = {
       uuid: null,
     };
 
-    await Project.update(project.id, data);
+    await Base.update(base.id, data);
 
     this.appHooksService.emit(AppEvents.SHARED_BASE_DELETE_LINK, {
-      project,
+      base,
     });
     return { uuid: null };
   }
 
   async getSharedBaseLink(param: {
-    projectId: string;
+    baseId: string;
     siteUrl: string;
   }): Promise<any> {
-    const project = await Project.get(param.projectId);
+    const base = await Base.get(param.baseId);
 
-    if (!project) {
-      NcError.badRequest('Invalid project id');
+    if (!base) {
+      NcError.badRequest('Invalid base id');
     }
     const data: any = {
-      uuid: project.uuid,
-      roles: project.roles,
+      uuid: base.uuid,
+      roles: base.roles,
     };
     if (data.uuid)
       data.url = `${param.siteUrl}${config.dashboardPath}#/nc/base/${data.shared_base_id}`;

@@ -89,7 +89,7 @@ export default {
             <template #overlay>
               <a-menu class="!py-0 leading-8 !rounded min-w-40">
                 <a-menu-item key="0" data-testid="nc-menu-accounts__user-settings" class="!rounded-t">
-                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/account/users">
+                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-base-menu-item group !no-underline" to="/account/users">
                     <MdiAccountCircleOutline class="mt-1 group-hover:text-accent" />&nbsp;
                     <div class="prose group-hover:text-primary">
                       <div>Account</div>
@@ -102,7 +102,7 @@ export default {
                 <!--                <a-menu-item v-if="isUIAllowed('superAdminAppStore')" key="0" class="!rounded-t">
                   <nuxt-link
                     v-e="['c:settings:appstore', { page: true }]"
-                    class="nc-project-menu-item group !no-underline"
+                    class="nc-base-menu-item group !no-underline"
                     to="/admin/users"
                   >
                     <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
@@ -117,7 +117,7 @@ export default {
                 <a-menu-item key="1" class="!rounded-b group" data-testid="nc-menu-accounts__sign-out">
                   <div
                     v-e="['a:navbar:user:sign-out']"
-                    class="nc-project-menu-item group"
+                    class="nc-base-menu-item group"
                     data-testid="nc-logout-btn"
                     @click="logout"
                   >

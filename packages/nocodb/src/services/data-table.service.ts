@@ -6,7 +6,7 @@ import { DatasService } from '~/services/datas.service';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { Base, Column, Model, View } from '~/models';
+import { Column, Model, Source, View } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class DataTableService {
   constructor(private datasService: DatasService) {}
 
   async dataList(param: {
-    projectId?: string;
+    baseId?: string;
     modelId: string;
     query: any;
     viewId?: string;
@@ -29,7 +29,7 @@ export class DataTableService {
   }
 
   async dataRead(param: {
-    projectId?: string;
+    baseId?: string;
     modelId: string;
     rowId: string;
     viewId?: string;
@@ -37,12 +37,12 @@ export class DataTableService {
   }) {
     const { model, view } = await this.getModelAndView(param);
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const row = await baseModel.readByPk(param.rowId, false, param.query);
@@ -55,19 +55,19 @@ export class DataTableService {
   }
 
   async dataInsert(param: {
-    projectId?: string;
+    baseId?: string;
     viewId?: string;
     modelId: string;
     body: any;
     cookie: any;
   }) {
     const { model, view } = await this.getModelAndView(param);
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     // if array then do bulk insert
@@ -84,7 +84,7 @@ export class DataTableService {
   }
 
   async dataUpdate(param: {
-    projectId?: string;
+    baseId?: string;
     modelId: string;
     viewId?: string;
     // rowId: string;
@@ -95,12 +95,12 @@ export class DataTableService {
 
     await this.checkForDuplicateRow({ rows: param.body, model });
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     await baseModel.bulkUpdate(
@@ -116,7 +116,7 @@ export class DataTableService {
   }
 
   async dataDelete(param: {
-    projectId?: string;
+    baseId?: string;
     modelId: string;
     viewId?: string;
     // rowId: string;
@@ -127,11 +127,11 @@ export class DataTableService {
 
     await this.checkForDuplicateRow({ rows: param.body, model });
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     await baseModel.bulkDelete(
@@ -147,19 +147,19 @@ export class DataTableService {
   }
 
   async dataCount(param: {
-    projectId?: string;
+    baseId?: string;
     viewId?: string;
     modelId: string;
     query: any;
   }) {
     const { model, view } = await this.getModelAndView(param);
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const countArgs: any = { ...param.query };
@@ -173,7 +173,7 @@ export class DataTableService {
   }
 
   private async getModelAndView(param: {
-    projectId?: string;
+    baseId?: string;
     viewId?: string;
     modelId: string;
   }) {
@@ -183,8 +183,8 @@ export class DataTableService {
       NcError.notFound(`Table with id '${param.modelId}' not found`);
     }
 
-    if (param.projectId && model.project_id !== param.projectId) {
-      throw new Error('Table not belong to project');
+    if (param.baseId && model.base_id !== param.baseId) {
+      throw new Error('Table not belong to base');
     }
 
     let view: View;
@@ -257,12 +257,12 @@ export class DataTableService {
     columnId: string;
   }) {
     const { model, view } = await this.getModelAndView(param);
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     if (!(await baseModel.exist(param.rowId))) {
@@ -367,12 +367,12 @@ export class DataTableService {
 
     const { model, view } = await this.getModelAndView(param);
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const column = await this.getColumn(param);
@@ -404,12 +404,12 @@ export class DataTableService {
     if (!model)
       NcError.notFound('Table with id ' + param.modelId + ' not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const column = await this.getColumn(param);

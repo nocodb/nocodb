@@ -1,21 +1,21 @@
 <script lang="ts" setup>
-import type { BaseType } from 'nocodb-sdk'
+import type { SourceType } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
-  base: BaseType
+  source: SourceType
 }>()
 
 const emits = defineEmits(['update:visible'])
 
-const base = toRef(props, 'base')
+const source = toRef(props, 'source')
 
 const visible = useVModel(props, 'visible', emits)
 
 const { $e } = useNuxtApp()
 
-function openAirtableImportDialog(baseId?: string) {
-  if (!baseId) return
+function openAirtableImportDialog(sourceId?: string) {
+  if (!sourceId) return
 
   $e('a:actions:import-airtable')
 
@@ -23,7 +23,7 @@ function openAirtableImportDialog(baseId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
     'modelValue': isOpen,
-    'baseId': baseId,
+    'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -35,7 +35,7 @@ function openAirtableImportDialog(baseId?: string) {
 }
 
 function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
-  if (!base.value.id) return
+  if (!source.value.id) return
 
   $e(`a:actions:import-${type}`)
 
@@ -44,7 +44,7 @@ function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
   const { close } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
     'importType': type,
-    'baseId': base.value.id,
+    'sourceId': source.value.id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -59,7 +59,7 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
   visible.value = false
 
   if (type === 'airtable') {
-    openAirtableImportDialog(base.value.id)
+    openAirtableImportDialog(source.value.id)
   } else {
     openQuickImportDialog(type)
   }
@@ -71,21 +71,21 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
     <div class="flex flex-col px-8 pt-6 pb-9">
       <div class="text-lg font-medium mb-6">{{ $t('general.import') }}</div>
       <div class="row mb-10">
-        <div class="nc-project-view-import-sub-btn" @click="onClick('airtable')">
+        <div class="nc-base-view-import-sub-btn" @click="onClick('airtable')">
           <GeneralIcon icon="airtable" />
           <div class="label">{{ $t('labels.airtable') }}</div>
         </div>
-        <div class="nc-project-view-import-sub-btn" @click="onClick('csv')">
+        <div class="nc-base-view-import-sub-btn" @click="onClick('csv')">
           <GeneralIcon icon="csv" />
           <div class="label">{{ $t('labels.csv') }}</div>
         </div>
       </div>
       <div class="row">
-        <div class="nc-project-view-import-sub-btn" @click="onClick('excel')">
+        <div class="nc-base-view-import-sub-btn" @click="onClick('excel')">
           <GeneralIcon icon="excelColored" />
           <div class="label">{{ $t('labels.excel') }}</div>
         </div>
-        <div class="nc-project-view-import-sub-btn" @click="onClick('json')">
+        <div class="nc-base-view-import-sub-btn" @click="onClick('json')">
           <GeneralIcon icon="code" />
           <div class="label">{{ $t('labels.json') }}</div>
         </div>
@@ -98,7 +98,7 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
 .row {
   @apply flex flex-row gap-x-10;
 }
-.nc-project-view-import-sub-btn {
+.nc-base-view-import-sub-btn {
   @apply flex flex-col gap-y-6 p-16 bg-gray-50 items-center justify-center rounded-xl w-56 cursor-pointer text-gray-600 hover:(bg-gray-100 !text-black);
 
   .nc-icon {

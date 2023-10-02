@@ -19,7 +19,7 @@ export class TelemetryService {
     evt_type: string;
     [key: string]: any;
   }) {
-    if (event === '$pageview') T.page({ ...payload, event_name: event });
-    else T.event({ ...payload, event_name: event });
+    if (event === '$pageview') T.page({ ...payload, event });
+    else T.event({ ...payload, event });
   }
 }

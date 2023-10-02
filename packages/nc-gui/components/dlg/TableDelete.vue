@@ -5,7 +5,7 @@ import { UITypes, isSystemColumn } from 'nocodb-sdk'
 const props = defineProps<{
   visible: boolean
   tableId: string
-  projectId: string
+  baseId: string
 }>()
 
 const emits = defineEmits(['update:visible'])
@@ -17,14 +17,14 @@ const { closeTab } = useTabs()
 
 const { getMeta, removeMeta } = useMetas()
 
-const { loadTables, projectUrl, isXcdbBase } = useProject()
+const { loadTables, baseUrl, isXcdbBase } = useBase()
 const { refreshCommandPalette } = useCommandPalette()
 
 const { removeFromRecentViews } = useViewsStore()
-const { projectTables, activeTable } = storeToRefs(useTablesStore())
+const { baseTables, activeTable } = storeToRefs(useTablesStore())
 const { openTable } = useTablesStore()
 
-const tables = computed(() => projectTables.value.get(props.projectId) ?? [])
+const tables = computed(() => baseTables.value.get(props.baseId) ?? [])
 
 const table = computed(() => tables.value.find((t) => t.id === props.tableId))
 
@@ -43,7 +43,7 @@ const onDelete = async () => {
     const meta = (await getMeta(toBeDeletedTable.id as string, true)) as TableType
     const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
 
-    if (relationColumns?.length && !isXcdbBase(toBeDeletedTable.base_id)) {
+    if (relationColumns?.length && !isXcdbBase(toBeDeletedTable.source_id)) {
       const refColMsgs = await Promise.all(
         relationColumns.map(async (c, i) => {
           const refMeta = (await getMeta((c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id as string)) as TableType
@@ -71,7 +71,7 @@ const onDelete = async () => {
     await loadTables()
 
     // Remove from recent views
-    removeFromRecentViews({ projectId: props.projectId, tableId: toBeDeletedTable.id as string })
+    removeFromRecentViews({ baseId: props.baseId, tableId: toBeDeletedTable.id as string })
 
     removeMeta(toBeDeletedTable.id as string)
     refreshCommandPalette()
@@ -79,11 +79,11 @@ const onDelete = async () => {
     $e('a:table:delete')
 
     if (oldActiveTableId === toBeDeletedTable.id) {
-      // Navigate to project if no tables left or open first table
+      // Navigate to base if no tables left or open first table
       if (tables.value.length === 0) {
         await navigateTo(
-          projectUrl({
-            id: props.projectId,
+          baseUrl({
+            id: props.baseId,
             type: 'database',
           }),
         )
@@ -110,7 +110,7 @@ const onDelete = async () => {
   <GeneralDeleteModal v-model:visible="visible" :entity-name="$t('objects.table')" :on-delete="onDelete">
     <template #entity-preview>
       <div v-if="table" class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
-        <GeneralTableIcon :meta="table" class="nc-view-icon" />
+        <GeneralTableIcon :meta="table" class="nc-view-icon"></GeneralTableIcon>
         <div
           class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

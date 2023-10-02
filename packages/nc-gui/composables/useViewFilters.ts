@@ -15,7 +15,7 @@ import {
   useDebounceFn,
   useMetas,
   useNuxtApp,
-  useProject,
+  useBase,
   useRoles,
   watch,
 } from '#imports'
@@ -38,7 +38,7 @@ export function useViewFilters(
 
   const { nestedFilters } = useSmartsheetStoreOrThrow()
 
-  const { projectMeta } = storeToRefs(useProject())
+  const { baseMeta } = storeToRefs(useBase())
 
   const isPublic = inject(IsPublicInj, ref(false))
 
@@ -141,8 +141,8 @@ export function useViewFilters(
       // include allowed values only if selected column type matches
       if (filter.fk_column_id && compOp.includedTypes.includes(types.value[filter.fk_column_id])) {
         // for 'empty', 'notempty', 'null', 'notnull',
-        // show them based on `showNullAndEmptyInFilter` in Project Settings
-        return isNullOrEmptyOp ? projectMeta.value.showNullAndEmptyInFilter : true
+        // show them based on `showNullAndEmptyInFilter` in Base Settings
+        return isNullOrEmptyOp ? baseMeta.value.showNullAndEmptyInFilter : true
       } else {
         return false
       }
@@ -150,14 +150,14 @@ export function useViewFilters(
       // include not allowed values only if selected column type not matches
       if (filter.fk_column_id && !compOp.excludedTypes.includes(types.value[filter.fk_column_id])) {
         // for 'empty', 'notempty', 'null', 'notnull',
-        // show them based on `showNullAndEmptyInFilter` in Project Settings
-        return isNullOrEmptyOp ? projectMeta.value.showNullAndEmptyInFilter : true
+        // show them based on `showNullAndEmptyInFilter` in Base Settings
+        return isNullOrEmptyOp ? baseMeta.value.showNullAndEmptyInFilter : true
       } else {
         return false
       }
     }
     // explicitly include for non-null / non-empty ops
-    return isNullOrEmptyOp ? projectMeta.value.showNullAndEmptyInFilter : true
+    return isNullOrEmptyOp ? baseMeta.value.showNullAndEmptyInFilter : true
   }
 
   const isComparisonSubOpAllowed = (
@@ -443,6 +443,7 @@ export function useViewFilters(
         // check all the relation of nested lookup columns is bt or not
         // include the column only if all only if all relations are bt
         while (nextCol && nextCol.uidt === UITypes.Lookup) {
+          // extract the relation column meta
           const lookupRelation = (await getMeta(nextCol.fk_model_id))?.columns?.find(
             (c) => c.id === (nextCol.colOptions as LookupType).fk_relation_column_id,
           )

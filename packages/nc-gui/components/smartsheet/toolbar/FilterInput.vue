@@ -26,7 +26,7 @@ import {
   ref,
   storeToRefs,
   toRef,
-  useProject,
+  useBase,
 } from '#imports'
 import type { Filter } from '#imports'
 import SingleSelect from '~/components/cell/SingleSelect.vue'
@@ -86,9 +86,9 @@ const checkTypeFunctions = {
 
 type FilterType = keyof typeof checkTypeFunctions
 
-const { sqlUis } = storeToRefs(useProject())
+const { sqlUis } = storeToRefs(useBase())
 
-const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : Object.values(sqlUis.value)[0])
+const sqlUi = ref(column.value?.source_id ? sqlUis.value[column.value?.source_id] : Object.values(sqlUis.value)[0])
 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 

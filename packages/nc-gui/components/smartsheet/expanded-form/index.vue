@@ -3,6 +3,7 @@ import type { TableType, ViewType } from 'nocodb-sdk'
 import { isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import MdiChevronDown from '~icons/mdi/chevron-down'
+import TableIcon from '~icons/nc-icons/table'
 
 import {
   CellClickHookInj,
@@ -405,6 +406,10 @@ export default {
             </div>
             <div v-if="displayValue" class="flex items-center truncate font-bold text-gray-800 text-xl">
               {{ displayValue }}
+            </div>
+            <div class="bg-gray-100 px-2 gap-1 flex my-1 items-center rounded-lg text-gray-800 font-medium">
+              <TableIcon class="w-6 h-6 text-sm" />
+              All {{ meta.title }}
             </div>
           </div>
           <div class="flex gap-2">

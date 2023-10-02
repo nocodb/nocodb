@@ -125,7 +125,7 @@ export class GroupPageObject extends BasePage {
     await this.rootPage.locator('.ant-dropdown-menu-item:has-text("Delete row")').click();
     // todo: improve selector
     await this.rootPage
-      .locator('span.ant-dropdown-menu-title-content > nc-project-menu-item')
+      .locator('span.ant-dropdown-menu-title-content > nc-base-menu-item')
       .waitFor({ state: 'hidden' });
 
     await this.rootPage.waitForTimeout(300);

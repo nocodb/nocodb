@@ -2,7 +2,7 @@
 import type { GridType } from 'nocodb-sdk'
 import { ActiveViewInj, IsLockedInj, iconMap, inject, ref, storeToRefs, useMenuCloseOnEsc, useUndoRedo } from '#imports'
 
-const { isSharedBase } = storeToRefs(useProject())
+const { isSharedBase } = storeToRefs(useBase())
 
 const view = inject(ActiveViewInj, ref())
 

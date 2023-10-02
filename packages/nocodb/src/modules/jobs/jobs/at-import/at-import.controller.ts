@@ -17,7 +17,10 @@ import { JobTypes } from '~/interface/Jobs';
 export class AtImportController {
   constructor(@Inject('JobsService') private readonly jobsService) {}
 
-  @Post('/api/v1/db/meta/syncs/:syncId/trigger')
+  @Post([
+    '/api/v1/db/meta/syncs/:syncId/trigger',
+    '/api/v1/meta/syncs/:syncId/trigger',
+  ])
   @Acl('airtableImport')
   @HttpCode(200)
   async triggerSync(@Request() req) {
@@ -44,8 +47,8 @@ export class AtImportController {
     const job = await this.jobsService.add(JobTypes.AtImport, {
       syncId: req.params.syncId,
       ...(syncSource?.details || {}),
-      projectId: syncSource.project_id,
       baseId: syncSource.base_id,
+      sourceId: syncSource.source_id,
       authToken: '',
       baseURL,
       user: user,
@@ -54,7 +57,10 @@ export class AtImportController {
     return { id: job.id };
   }
 
-  @Post('/api/v1/db/meta/syncs/:syncId/abort')
+  @Post([
+    '/api/v1/db/meta/syncs/:syncId/abort',
+    '/api/v1/meta/syncs/:syncId/abort',
+  ])
   @Acl('airtableImport')
   @HttpCode(200)
   async abortImport(@Request() _) {

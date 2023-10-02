@@ -42,7 +42,7 @@ const logout = async () => {
             mode="inline"
           >
             <div
-              v-if="!$route.params.projectType"
+              v-if="!$route.params.baseType"
               v-e="['c:navbar:home']"
               data-testid="nc-noco-brand-icon"
               class="transition-all duration-200 px-2 mx-2 mt-1.5 cursor-pointer transform hover:bg-gray-100 my-1 nc-noco-brand-icon h-8 rounded-md min-w-60"

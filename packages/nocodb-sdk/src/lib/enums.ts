@@ -22,13 +22,13 @@ export enum WorkspaceUserRoles {
 }
 
 export enum AppEvents {
-  PROJECT_CREATE = 'project.create',
-  PROJECT_INVITE = 'project.invite',
-  PROJECT_USER_UPDATE = 'project.user.update',
-  PROJECT_USER_RESEND_INVITE = 'project.user.resend.invite',
-  PROJECT_DELETE = 'project.delete',
-  PROJECT_UPDATE = 'project.update',
-  PROJECT_CLONE = 'project.clone',
+  PROJECT_CREATE = 'base.create',
+  PROJECT_INVITE = 'base.invite',
+  PROJECT_USER_UPDATE = 'base.user.update',
+  PROJECT_USER_RESEND_INVITE = 'base.user.resend.invite',
+  PROJECT_DELETE = 'base.delete',
+  PROJECT_UPDATE = 'base.update',
+  PROJECT_CLONE = 'base.clone',
 
   WELCOME = 'app.welcome',
 
@@ -84,9 +84,9 @@ export enum AppEvents {
   API_TOKEN_DELETE = 'api.token.delete',
   IMAGE_UPLOAD = 'image.upload',
 
-  BASE_CREATE = 'base.create',
-  BASE_DELETE = 'base.delete',
-  BASE_UPDATE = 'base.update',
+  BASE_CREATE = 'source.create',
+  BASE_DELETE = 'source.delete',
+  BASE_UPDATE = 'source.update',
 
   FORM_COLUMN_UPDATE = 'form.column.update',
 
@@ -196,19 +196,19 @@ export const RoleColors = {
 
 export const RoleDescriptions = {
   [WorkspaceUserRoles.OWNER]: 'Full access to workspace',
-  [WorkspaceUserRoles.CREATOR]: 'Can create projects, sync tables, views, setup web-hooks and more',
-  [WorkspaceUserRoles.EDITOR]: 'Can edit data in workspace projects',
-  [WorkspaceUserRoles.COMMENTER]: 'Can view and comment data in workspace projects',
-  [WorkspaceUserRoles.VIEWER]: 'Can view data in workspace projects',
-  [ProjectRoles.OWNER]: 'Full access to project',
+  [WorkspaceUserRoles.CREATOR]: 'Can create bases, sync tables, views, setup web-hooks and more',
+  [WorkspaceUserRoles.EDITOR]: 'Can edit data in workspace bases',
+  [WorkspaceUserRoles.COMMENTER]: 'Can view and comment data in workspace bases',
+  [WorkspaceUserRoles.VIEWER]: 'Can view data in workspace bases',
+  [ProjectRoles.OWNER]: 'Full access to base',
   [ProjectRoles.CREATOR]: 'Can create tables, views, setup webhook, invite collaborators and more',
   [ProjectRoles.EDITOR]: 'Can view, add & modify records, add comments on them',
   [ProjectRoles.COMMENTER]: 'Can view records and add comment on them',
   [ProjectRoles.VIEWER]: 'Can only view records',
-  [ProjectRoles.NO_ACCESS]: 'Cannot access this project',
+  [ProjectRoles.NO_ACCESS]: 'Cannot access this base',
   [OrgUserRoles.SUPER_ADMIN]: 'Full access to all',
-  [OrgUserRoles.CREATOR]: 'Can create projects, sync tables, views, setup web-hooks and more',
-  [OrgUserRoles.VIEWER]: 'Can only view projects',
+  [OrgUserRoles.CREATOR]: 'Can create bases, sync tables, views, setup web-hooks and more',
+  [OrgUserRoles.VIEWER]: 'Can only view bases',
 };
 
 export const RoleIcons = {

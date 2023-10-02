@@ -93,7 +93,7 @@ const value = computed({
 })
 
 watch(
-  [commentsAndLogs, tab],
+  commentsAndLogs,
   () => {
     setTimeout(() => {
       if (commentsWrapperEl.value) commentsWrapperEl.value.scrollTop = commentsWrapperEl.value?.scrollHeight
@@ -150,14 +150,14 @@ const processedAudit = (log: string) => {
         'pb-2': tab !== 'comments',
       }"
     >
-      <div v-if="tab === 'comments'" class="flex flex-col h-full">
+      <div v-if="tab === 'comments'" ref="commentsWrapperEl" class="flex flex-col h-full">
         <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full">
           <div class="text-center text-3xl text-gray-700">
             <GeneralIcon icon="commentHere" />
           </div>
           <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
         </div>
-        <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-2 pl-2 pr-1 space-y-2 nc-scrollbar-md">
+        <div v-else class="flex flex-col h-full py-2 pl-2 pr-1 space-y-2 nc-scrollbar-md">
           <div v-for="log of comments" :key="log.id">
             <div class="bg-white rounded-xl group border-1 gap-2 border-gray-200">
               <div class="flex flex-col p-4 gap-3">
@@ -167,7 +167,7 @@ const processedAudit = (log: string) => {
 
                     <div class="flex flex-col">
                       <span class="truncate font-bold max-w-42">
-                        {{ log.display_name ?? log.user.split('@')[0] ?? 'Shared base' }}
+                        {{ log.display_name ?? log.user.split('@')[0] ?? 'Shared source' }}
                       </span>
                       <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
                         {{ log.created_at !== log.updated_at ? `Edited ${timeAgo(log.updated_at)}` : timeAgo(log.created_at) }}
@@ -240,12 +240,12 @@ const processedAudit = (log: string) => {
           <div class="bg-white rounded-xl border-1 gap-3 border-gray-200">
             <div class="flex flex-col p-4 gap-3">
               <div class="flex justify-between">
-                <div class="flex items-center gap-2">
-                  <GeneralUserIcon size="base" :name="log.display_name ?? log.user" :email="log.user" />
+                <div class="flex font-bold items-center gap-2">
+                  <GeneralUserIcon size="base" :name="log.display_name ?? log.user" />
 
                   <div class="flex flex-col">
-                    <span class="truncate max-w-50 font-bold">
-                      {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared base' }}
+                    <span class="truncate max-w-50">
+                      {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared source' }}
                     </span>
                     <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
                       {{ timeAgo(log.created_at) }}

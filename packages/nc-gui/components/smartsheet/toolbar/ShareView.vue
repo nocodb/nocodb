@@ -8,14 +8,14 @@ import {
   iconMap,
   isRtlLang,
   message,
-  projectThemeColors,
+  baseThemeColors,
   ref,
   storeToRefs,
   useCopy,
   useDashboard,
   useI18n,
   useNuxtApp,
-  useProject,
+  useBase,
   useRoles,
   useSmartsheetStoreOrThrow,
   watch,
@@ -34,7 +34,7 @@ const { dashboardUrl } = useDashboard()
 
 const { isUIAllowed } = useRoles()
 
-const { isSharedBase } = storeToRefs(useProject())
+const { isSharedBase } = storeToRefs(useBase())
 
 const { isMobileMode } = useGlobal()
 
@@ -390,7 +390,7 @@ watch(shared, () => {
                   data-testid="nc-modal-share-view__theme-picker"
                   class="!p-0"
                   :model-value="shared.meta.theme?.primaryColor"
-                  :colors="projectThemeColors"
+                  :colors="baseThemeColors"
                   :row-size="9"
                   :advanced="false"
                   @input="onChangeTheme"

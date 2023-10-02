@@ -22,7 +22,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
   excelData: any
 
-  project: {
+  base: {
     tables: Record<string, any>[]
   }
 
@@ -36,7 +36,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
     super(progressCallback)
     this.config = parserConfig
     this.excelData = data
-    this.project = {
+    this.base = {
       tables: [],
     }
     this.xlsx = xlsx || ({} as any)
@@ -230,7 +230,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
               }
               table.columns.push(column)
             }
-            this.project.tables.push(table)
+            this.base.tables.push(table)
 
             this.data[tn] = []
             if (this.config.shouldImportData) {
@@ -289,7 +289,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   getTemplate() {
-    return this.project
+    return this.base
   }
 
   getData() {
@@ -297,6 +297,6 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   getColumns() {
-    return this.project.tables.map((t: Record<string, any>) => t.columns)
+    return this.base.tables.map((t: Record<string, any>) => t.columns)
   }
 }

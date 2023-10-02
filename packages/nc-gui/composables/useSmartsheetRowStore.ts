@@ -19,7 +19,7 @@ import {
   useInjectionState,
   useMetas,
   useNuxtApp,
-  useProject,
+  useBase,
 } from '#imports'
 import type { Row } from '#imports'
 
@@ -29,7 +29,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
 
     const { t } = useI18n()
 
-    const { project } = storeToRefs(useProject())
+    const { base } = storeToRefs(useBase())
 
     const { metas } = useMetas()
 
@@ -80,7 +80,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
       try {
         await $api.dbTableRow.nestedAdd(
           NOCO,
-          project.value.id as string,
+          base.value.id as string,
           metaValue?.id as string,
           encodeURIComponent(rowId),
           type as 'mm' | 'hm',
@@ -143,7 +143,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
             if (!currentRow.value.row[column.title!]) return
             await $api.dbTableRow.nestedRemove(
               NOCO,
-              project.value.id as string,
+              base.value.id as string,
               meta.value?.id as string,
               extractPkFromRow(currentRow.value.row, meta.value?.columns as ColumnType[]),
               'bt' as any,
@@ -155,7 +155,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
             for (const link of (currentRow.value.row[column.title!] as Record<string, any>[]) || []) {
               await $api.dbTableRow.nestedRemove(
                 NOCO,
-                project.value.id as string,
+                base.value.id as string,
                 meta.value?.id as string,
                 encodeURIComponent(extractPkFromRow(currentRow.value.row, meta.value?.columns as ColumnType[])),
                 (<LinkToAnotherRecordType>column?.colOptions).type as 'hm' | 'mm',
@@ -174,7 +174,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     const loadRow = async () => {
       const record = await $api.dbTableRow.read(
         NOCO,
-        project.value?.id as string,
+        base.value?.id as string,
         meta.value?.title as string,
         encodeURIComponent(extractPkFromRow(unref(row)?.row, meta.value?.columns as ColumnType[])),
       )

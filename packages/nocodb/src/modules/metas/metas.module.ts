@@ -7,7 +7,7 @@ import { ApiDocsController } from '~/controllers/api-docs/api-docs.controller';
 import { ApiTokensController } from '~/controllers/api-tokens.controller';
 import { AttachmentsController } from '~/controllers/attachments.controller';
 import { AuditsController } from '~/controllers/audits.controller';
-import { BasesController } from '~/controllers/bases.controller';
+import { SourcesController } from '~/controllers/sources.controller';
 import { CachesController } from '~/controllers/caches.controller';
 import { ColumnsController } from '~/controllers/columns.controller';
 import { FiltersController } from '~/controllers/filters.controller';
@@ -25,7 +25,7 @@ import { OrgLcenseController } from '~/controllers/org-lcense.controller';
 import { OrgTokensController } from '~/controllers/org-tokens.controller';
 import { OrgUsersController } from '~/controllers/org-users.controller';
 import { PluginsController } from '~/controllers/plugins.controller';
-import { ProjectsController } from '~/controllers/projects.controller';
+import { BasesController } from '~/controllers/bases.controller';
 import { PublicMetasController } from '~/controllers/public-metas.controller';
 import { SharedBasesController } from '~/controllers/shared-bases.controller';
 import { SortsController } from '~/controllers/sorts.controller';
@@ -37,7 +37,7 @@ import { ViewsController } from '~/controllers/views.controller';
 import { ApiTokensService } from '~/services/api-tokens.service';
 import { AttachmentsService } from '~/services/attachments.service';
 import { AuditsService } from '~/services/audits.service';
-import { BasesService } from '~/services/bases.service';
+import { SourcesService } from '~/services/sources.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { CachesService } from '~/services/caches.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -57,7 +57,7 @@ import { OrgTokensEeService } from '~/services/org-tokens-ee.service';
 import { OrgTokensService } from '~/services/org-tokens.service';
 import { OrgUsersService } from '~/services/org-users.service';
 import { PluginsService } from '~/services/plugins.service';
-import { ProjectsService } from '~/services/projects.service';
+import { BasesService } from '~/services/bases.service';
 import { PublicMetasService } from '~/services/public-metas.service';
 import { SharedBasesService } from '~/services/shared-bases.service';
 import { SortsService } from '~/services/sorts.service';
@@ -67,8 +67,8 @@ import { UtilsService } from '~/services/utils.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
 import { ApiDocsService } from '~/services/api-docs/api-docs.service';
-import { ProjectUsersController } from '~/controllers/project-users.controller';
-import { ProjectUsersService } from '~/services/project-users/project-users.service';
+import { BaseUsersController } from '~/controllers/base-users.controller';
+import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { NotificationsService } from '~/services/notifications.service';
 import { NotificationsController } from '~/controllers/notifications.controller';
 import { NotificationsGateway } from '~/gateways/notifications/notifications.gateway';
@@ -90,7 +90,7 @@ export const metaModuleMetadata = {
           ApiTokensController,
           AttachmentsController,
           AuditsController,
-          BasesController,
+          SourcesController,
           CachesController,
           ColumnsController,
           FiltersController,
@@ -108,8 +108,8 @@ export const metaModuleMetadata = {
           OrgTokensController,
           OrgUsersController,
           PluginsController,
-          ProjectUsersController,
-          ProjectsController,
+          BaseUsersController,
+          BasesController,
           PublicMetasController,
           ViewsController,
           ViewColumnsController,
@@ -128,7 +128,7 @@ export const metaModuleMetadata = {
     ApiTokensService,
     AttachmentsService,
     AuditsService,
-    BasesService,
+    SourcesService,
     CachesService,
     ColumnsService,
     FiltersService,
@@ -146,10 +146,9 @@ export const metaModuleMetadata = {
     OrgTokensEeService,
     OrgTokensService,
     OrgUsersService,
-    ProjectUsersService,
     PluginsService,
-    ProjectUsersService,
-    ProjectsService,
+    BaseUsersService,
+    BasesService,
     PublicMetasService,
     ViewsService,
     ViewColumnsService,
@@ -175,12 +174,13 @@ export const metaModuleMetadata = {
     FormColumnsService,
     GalleriesService,
     KanbansService,
-    ProjectsService,
+    BasesService,
     AttachmentsService,
-    ProjectUsersService,
+    BaseUsersService,
     HooksService,
     MetaDiffsService,
     BasesService,
+    SourcesService,
   ],
 };
 

@@ -31,7 +31,7 @@ const vModel = useVModel(props, 'value', emit)
 
 const { formState, setAdditionalValidations, validateInfos, isMysql } = useColumnCreateStoreOrThrow()
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
 const { loadMagic, optionsMagic: _optionsMagic } = useNocoEe()
 
@@ -140,7 +140,7 @@ const addNewOption = () => {
 }
 
 const optionsMagic = async () => {
-  await _optionsMagic(project, formState, getNextColor, options.value, renderedOptions.value)
+  await _optionsMagic(base, formState, getNextColor, options.value, renderedOptions.value)
 }
 
 const syncOptions = () => {

@@ -49,13 +49,13 @@ declare module 'vue-router' {
   }
 
   interface RouteParams {
-    projectId: string
-    projectType: 'base' | 'nc' | string
+    baseId: string
+    baseType: 'base' | 'nc' | string
     type: TabType
     title: string
     viewId: string
     viewTitle: string
-    baseId: string
+    sourceId: string
     token: string
   }
 }

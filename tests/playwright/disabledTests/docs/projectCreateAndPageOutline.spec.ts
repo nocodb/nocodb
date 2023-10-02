@@ -3,16 +3,16 @@ import { ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../pages/Dashboard';
 import setup from '../../setup';
 
-test.describe('Create docs project and verify docs UI', () => {
+test.describe('Create docs base and verify docs UI', () => {
   let dashboard: DashboardPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, projectType: ProjectTypes.DOCUMENTATION });
-    dashboard = new DashboardPage(page, context.project);
+    context = await setup({ page, baseType: ProjectTypes.DOCUMENTATION });
+    dashboard = new DashboardPage(page, context.base);
   });
 
-  test('Create docs project and page outline', async ({ page }) => {
+  test('Create docs base and page outline', async ({ page }) => {
     await dashboard.sidebar.createProject({
       title: 'test-docs',
       type: ProjectTypes.DOCUMENTATION,
@@ -22,7 +22,7 @@ test.describe('Create docs project and verify docs UI', () => {
     await dashboard.shareProjectButton.verifyShareStatus({ visibility: 'private' });
 
     await dashboard.sidebar.docsSidebar.createPage({
-      projectTitle: 'test-docs',
+      baseTitle: 'test-docs',
       title: 'page',
     });
 

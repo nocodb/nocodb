@@ -13,7 +13,7 @@ import {
   useCommandPalette,
   useMetas,
   useNuxtApp,
-  useProject,
+  useBase,
   useTablesStore,
   useTabs,
   useUndoRedo,
@@ -25,10 +25,10 @@ import {
 interface Props {
   modelValue?: boolean
   tableMeta: TableType
-  baseId: string
+  sourceId: string
 }
 
-const { tableMeta, baseId, ...props } = defineProps<Props>()
+const { tableMeta, sourceId, ...props } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'updated'])
 
@@ -42,9 +42,9 @@ const { updateTab } = useTabs()
 
 const { loadProjectTables } = useTablesStore()
 
-const projectStore = useProject()
-const { loadTables, isMysql, isMssql, isPg } = projectStore
-const { tables, project } = storeToRefs(projectStore)
+const baseStore = useBase()
+const { loadTables, isMysql, isMssql, isPg } = baseStore
+const { tables, base } = storeToRefs(baseStore)
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -68,15 +68,15 @@ const validators = computed(() => {
         validator: (rule: any, value: any) => {
           return new Promise<void>((resolve, reject) => {
             let tableNameLengthLimit = 255
-            if (isMysql(baseId)) {
+            if (isMysql(sourceId)) {
               tableNameLengthLimit = 64
-            } else if (isPg(baseId)) {
+            } else if (isPg(sourceId)) {
               tableNameLengthLimit = 63
-            } else if (isMssql(baseId)) {
+            } else if (isMssql(sourceId)) {
               tableNameLengthLimit = 128
             }
-            const projectPrefix = project?.value?.prefix || ''
-            if ((projectPrefix + value).length > tableNameLengthLimit) {
+            const basePrefix = base?.value?.prefix || ''
+            if ((basePrefix + value).length > tableNameLengthLimit) {
               return reject(new Error(`Table name exceeds ${tableNameLengthLimit} characters`))
             }
             resolve()
@@ -127,14 +127,14 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
   loading.value = true
   try {
     await $api.dbTable.update(tableMeta.id as string, {
-      project_id: tableMeta.project_id,
+      base_id: tableMeta.base_id,
       table_name: formState.title,
       title: formState.title,
     })
 
     dialogShow.value = false
 
-    await loadProjectTables(tableMeta.project_id!, true)
+    await loadProjectTables(tableMeta.base_id!, true)
 
     if (!undo) {
       addUndo({
@@ -168,7 +168,7 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
 
     $e('a:table:rename')
 
-    useTitle(`${project.value?.title}: ${newMeta?.title}`)
+    useTitle(`${base.value?.title}: ${newMeta?.title}`)
 
     dialogShow.value = false
   } catch (e: any) {

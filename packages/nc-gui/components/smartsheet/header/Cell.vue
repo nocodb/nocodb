@@ -63,7 +63,7 @@ const openDropDown = () => {
     @click.right="openDropDown"
     @click="isDropDownOpen = false"
   >
-    <SmartsheetHeaderCellIcon v-if="column && !props.hideIcon" />
+    <SmartsheetHeaderCellIcon v-if="column && !props.hideIcon" class="self-start" />
     <div
       v-if="column"
       class="name pl-1"

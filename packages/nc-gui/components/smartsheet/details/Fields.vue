@@ -565,7 +565,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="w-full p-4">
+  <div class="w-full h-full p-4">
     <div class="max-w-250 w-full mx-auto">
       <div class="flex w-full justify-between py-2">
         <a-input v-model:value="searchQuery" class="!h-8 !px-1 !rounded-lg !w-72" placeholder="Search field">
@@ -607,12 +607,12 @@ onMounted(async () => {
           </NcButton>
         </div>
       </div>
-      <div class="flex flex-row h-full border-1">
+      <div class="flex flex-row h-full rounded-lg border-1 border-gray-200">
         <Draggable v-model="fields" item-key="id" class="w-full h-full flex-grow-1" @change="onMove($event)">
           <template #item="{ element: field }">
             <div
               v-if="field.title && field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"
-              class="flex px-2 bg-white hover:bg-gray-100 first:rounded-t-lg border-b-1 pl-5 group"
+              class="flex px-2 bg-white hover:bg-gray-100 first:rounded-t-lg border-b-1 border-gray-200 pl-5 group"
               :class="` ${compareCols(field, activeField) ? 'selected' : ''}`"
               @click="changeField(field, $event)"
             >
@@ -722,7 +722,7 @@ onMounted(async () => {
           </template>
           <template v-if="displayColumn && displayColumn.title.toLowerCase().includes(searchQuery.toLowerCase())" #header>
             <div
-              class="flex px-2 bg-white hover:bg-gray-100 border-b-1 first:rounded-tl-lg last:border-b-1 pl-5 group"
+              class="flex px-2 bg-white hover:bg-gray-100 border-b-1 border-gray-200 first:rounded-tl-lg last:border-b-1 pl-5 group"
               :class="` ${compareCols(displayColumn, activeField) ? 'selected' : ''}`"
               @click="changeField(displayColumn, $event)"
             >
@@ -788,10 +788,10 @@ onMounted(async () => {
           </template>
         </Draggable>
         <Transition v-if="!changingField" name="slide-fade">
-          <div class="!w-[25rem] border-gray-200 border-l-1 rounded-r-xl h-full">
+          <div class="border-gray-200 border-l-1 rounded-r-xl h-full">
             <SmartsheetColumnEditOrAddProvider
               v-if="activeField"
-              class="w-full p-4"
+              class="p-4 w-[25rem]"
               :column="activeField"
               :preload="fieldState(activeField)"
               :table-explorer-columns="fields"
@@ -800,7 +800,7 @@ onMounted(async () => {
               @update="onFieldUpdate"
               @add="onFieldAdd"
             />
-            <div v-else class="w-full flex flex-col justify-center p-4 items-center">
+            <div v-else class="w-[25rem] flex flex-col justify-center p-4 items-center">
               <img src="~assets/img/fieldPlaceholder.svg" class="!w-[18rem]" />
               <div class="text-2xl text-gray-600 font-bold text-center pt-6">Select a field</div>
               <div class="text-center text-sm px-2 text-gray-500 pt-6">

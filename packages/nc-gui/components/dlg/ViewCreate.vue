@@ -306,11 +306,12 @@ onMounted(async () => {
           {{ $t('general.cancel') }}
         </NcButton>
 
-        <NcButton v-if="form.copy_from_id" v-e="['a:view:duplicate']" type="primary" :loading="isViewCreating" @click="onSubmit">
-          {{ $t('labels.createView') }}
-          <template #loading> {{ $t('labels.creatingView') }}</template>
-        </NcButton>
-        <NcButton v-if="form.copy_from_id" v-e="['a:view:create']" type="primary" :loading="isViewCreating" @click="onSubmit">
+        <NcButton
+          v-e="[form.copy_from_id ? 'a:view:duplicate' : 'a:view:create']"
+          type="primary"
+          :loading="isViewCreating"
+          @click="onSubmit"
+        >
           {{ $t('labels.createView') }}
           <template #loading> {{ $t('labels.creatingView') }}</template>
         </NcButton>

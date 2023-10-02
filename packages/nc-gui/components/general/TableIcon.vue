@@ -16,7 +16,6 @@ const { meta: tableMeta } = defineProps<{
     :emoji="tableMeta.meta?.icon"
     readonly
   />
-
   <component :is="iconMap.eye" v-else-if="tableMeta?.type === 'view'" class="w-5 mx-0.75" />
   <component :is="iconMap.table" v-else class="w-5 mx-0.5" />
 </template>

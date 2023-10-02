@@ -3,7 +3,6 @@ import type { TableType, ViewType } from 'nocodb-sdk'
 import { isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import MdiChevronDown from '~icons/mdi/chevron-down'
-import TableIcon from '~icons/nc-icons/table'
 
 import {
   CellClickHookInj,
@@ -15,6 +14,7 @@ import {
   ReloadRowDataHookInj,
   computedInject,
   createEventHook,
+  iconMap,
   inject,
   message,
   provide,
@@ -65,6 +65,9 @@ const meta = toRef(props, 'meta')
 const router = useRouter()
 
 const isPublic = inject(IsPublicInj, ref(false))
+
+// to check if a expanded form which is not yet saved exist or not
+const isUnsavedFormExist = ref(false)
 
 const { isUIAllowed } = useRoles()
 
@@ -151,6 +154,7 @@ const onClose = () => {
 
 const onDuplicateRow = () => {
   duplicatingRowInProgress.value = true
+  isUnsavedFormExist.value = true
   const oldRow = { ...row.value.row }
   delete oldRow.ncRecordId
   const newRow = Object.assign(
@@ -168,25 +172,38 @@ const onDuplicateRow = () => {
   }, 500)
 }
 
+const save = async () => {
+  if (isNew.value) {
+    const data = await _save(rowState.value)
+    await syncLTARRefs(data)
+    reloadTrigger?.trigger()
+  } else {
+    await _save()
+    reloadTrigger?.trigger()
+  }
+  isUnsavedFormExist.value = false
+}
+
+const isPreventChangeModalOpen = ref(false)
+
+const discardPreventModal = () => {
+  emits('next')
+  isPreventChangeModalOpen.value = false
+}
+
 const onNext = async () => {
   if (changedColumns.value.size > 0) {
-    await Modal.confirm({
-      title: 'Do you want to save the changes?',
-      okText: 'Save',
-      cancelText: 'Discard',
-      onOk: async () => {
-        await save()
-        emits('next')
-      },
-      onCancel: () => {
-        emits('next')
-      },
-    })
+    isPreventChangeModalOpen.value = true
   } else {
     emits('next')
   }
 }
 
+const saveChanges = async () => {
+  isUnsavedFormExist.value = false
+  await save()
+  emits('next')
+}
 const reloadParentRowHook = inject(ReloadRowDataHookInj, createEventHook())
 
 // override reload trigger and use it to reload grid and the form itself
@@ -207,6 +224,10 @@ if (isKanban.value) {
     }
   }
 }
+
+watch(isUnsavedFormExist, () => {
+  console.log(isUnsavedFormExist.value, 'HEHEH')
+})
 
 provide(IsExpandedFormOpenInj, isExpanded)
 
@@ -230,18 +251,6 @@ const addNewRow = () => {
     isExpanded.value = true
   }, 500)
 }
-
-const save = async () => {
-  if (isNew.value) {
-    const data = await _save(rowState.value)
-    await syncLTARRefs(data)
-    reloadTrigger?.trigger()
-  } else {
-    await _save()
-    reloadTrigger?.trigger()
-  }
-}
-
 // attach keyboard listeners to switch between rows
 // using alt + left/right arrow keys
 useActiveKeyupListener(
@@ -325,14 +334,9 @@ const onConfirmDeleteRowClick = async () => {
   showDeleteRowModal.value = false
   await deleteRowById(primaryKey.value)
   message.success('Row deleted')
-  // if (!props.lastRow) {
-  //   await onNext()
-  // } else if (!props.firstRow) {
-  //   emits('prev')
-  // } else {
-  // }
   reloadTrigger.trigger()
   onClose()
+  showDeleteRowModal.value = false
 }
 
 watch(
@@ -378,7 +382,7 @@ export default {
     <div class="h-[85vh] xs:(max-h-full) max-h-215 flex flex-col p-6">
       <div class="flex h-8 flex-shrink-0 w-full items-center nc-expanded-form-header relative mb-4 justify-between">
         <template v-if="!isMobileMode">
-          <div class="flex gap-3">
+          <div class="flex gap-3 w-100">
             <div class="flex gap-2">
               <NcButton
                 v-if="props.showNextPrevIcons"
@@ -399,12 +403,8 @@ export default {
                 <MdiChevronDown class="text-md" />
               </NcButton>
             </div>
-            <div v-if="displayValue" class="flex items-center truncate max-w-32 font-bold text-gray-800 text-xl">
+            <div v-if="displayValue" class="flex items-center truncate font-bold text-gray-800 text-xl">
               {{ displayValue }}
-            </div>
-            <div class="bg-gray-100 px-2 gap-1 flex my-1 items-center rounded-lg text-gray-800 font-medium">
-              <TableIcon class="w-6 h-6 text-sm" />
-              All {{ meta.title }}
             </div>
           </div>
           <div class="flex gap-2">
@@ -438,7 +438,7 @@ export default {
                   <NcMenuItem
                     v-if="isUIAllowed('dataEdit') && !isNew"
                     v-e="['c:row-expand:delete']"
-                    class="!text-red-500"
+                    class="!text-red-500 !hover:bg-red-50"
                     @click="!isNew && onDeleteRowClick()"
                   >
                     <component :is="iconMap.delete" data-testid="nc-expanded-form-delete" class="cursor-pointer nc-delete-row" />
@@ -595,7 +595,7 @@ export default {
                   <NcMenuItem
                     v-if="isUIAllowed('dataEdit') && !isNew"
                     v-e="['c:row-expand:delete']"
-                    class="!text-red-500"
+                    class="!text-red-500 !hover:bg-red-50"
                     @click="!isNew && onDeleteRowClick()"
                   >
                     <div data-testid="nc-expanded-form-delete">
@@ -624,6 +624,7 @@ export default {
                 type="primary"
                 size="medium"
                 class="nc-expand-form-save-btn !xs:(text-base)"
+                :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
                 @click="save"
               >
                 <div class="xs:px-1">Save</div>
@@ -642,16 +643,32 @@ export default {
     </div>
   </NcModal>
 
-  <NcModal v-model:visible="showDeleteRowModal" class="!w-[25rem] !xs-">
-    <div class="">
-      <div class="prose-xl font-bold self-center">Delete row ?</div>
+  <GeneralDeleteModal v-model:visible="showDeleteRowModal" entity-name="Record" :on-delete="() => onConfirmDeleteRowClick()">
+    <template #entity-preview>
+      <span>
+        <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
+          <component :is="iconMap.table" class="nc-view-icon" />
+          <div class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75 break-keep whitespace-nowrap">
+            {{ meta.title }}
+          </div>
+        </div>
+      </span>
+    </template>
+  </GeneralDeleteModal>
 
-      <div class="mt-4">Are you sure you want to delete this row?</div>
-    </div>
-    <div class="flex flex-row gap-x-2 mt-4 pt-1.5 justify-end pt-4 gap-x-3">
-      <NcButton v-if="isMobileMode" type="secondary" @click="showDeleteRowModal = false">{{ $t('general.cancel') }} </NcButton>
+  <!-- Prevent unsaved change modal -->
+  <NcModal v-model:visible="isPreventChangeModalOpen" size="small">
+    <template #header>
+      <div class="flex flex-row items-center gap-x-2">Do you want to save the changes ?</div>
+    </template>
+    <div class="mt-2">
+      <div class="flex flex-row justify-end gap-x-2 mt-6">
+        <NcButton type="secondary" @click="discardPreventModal">{{ $t('general.quit') }}</NcButton>
 
-      <NcButton v-e="['a:row-expand:delete']" @click="onConfirmDeleteRowClick">{{ $t('general.confirm') }} </NcButton>
+        <NcButton key="submit" type="primary" label="Rename Table" loading-label="Renaming Table" @click="saveChanges">
+          {{ $t('activity.saveAndQuit') }}
+        </NcButton>
+      </div>
     </div>
   </NcModal>
 </template>

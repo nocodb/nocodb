@@ -1,12 +1,27 @@
 <script lang="ts" setup>
-const props = defineProps<{
-  size?: 'small' | 'medium' | 'base' | 'large' | 'xlarge'
-  name?: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    size?: 'small' | 'medium' | 'base' | 'large' | 'xlarge'
+    name?: string
+    email?: string
+  }>(),
+  {
+    email: '',
+  },
+)
 
 const { user } = useGlobal()
 
-const backgroundColor = computed(() => (user.value?.id ? stringToColour(user.value?.id) : '#FFFFFF'))
+const emailProp = toRef(props, 'email')
+
+const backgroundColor = computed(() => {
+  // in comments we need to generate user icon from email
+  if (emailProp.value.length) {
+    return stringToColour(emailProp.value)
+  }
+
+  return user.value?.email ? stringToColour(user.value?.email) : '#FFFFFF'
+})
 
 const size = computed(() => props.size || 'medium')
 
@@ -31,7 +46,7 @@ const usernameInitials = computed(() => {
 
 <template>
   <div
-    class="flex nc-user-avatar"
+    class="flex nc-user-avatar font-bold"
     :class="{
       'min-w-4 min-h-4': size === 'small',
       'min-w-6 min-h-6': size === 'medium',

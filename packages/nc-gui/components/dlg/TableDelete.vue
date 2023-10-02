@@ -20,6 +20,7 @@ const { getMeta, removeMeta } = useMetas()
 const { loadTables, projectUrl, isXcdbBase } = useProject()
 const { refreshCommandPalette } = useCommandPalette()
 
+const { removeFromRecentViews } = useViewsStore()
 const { projectTables, activeTable } = storeToRefs(useTablesStore())
 const { openTable } = useTablesStore()
 
@@ -68,6 +69,9 @@ const onDelete = async () => {
     })
 
     await loadTables()
+
+    // Remove from recent views
+    removeFromRecentViews({ projectId: props.projectId, tableId: toBeDeletedTable.id as string })
 
     removeMeta(toBeDeletedTable.id as string)
     refreshCommandPalette()

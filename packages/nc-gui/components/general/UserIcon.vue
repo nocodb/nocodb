@@ -1,10 +1,12 @@
 <script lang="ts" setup>
+import type { UserType } from 'nocodb-sdk'
 const props = defineProps<{
   size?: 'small' | 'medium' | 'base' | 'large' | 'xlarge'
   name?: string
+  user: UserType
 }>()
 
-const { user } = useGlobal()
+const user = toRef(props, 'user')
 
 const backgroundColor = computed(() => (user.value?.id ? stringToColour(user.value?.id) : '#FFFFFF'))
 

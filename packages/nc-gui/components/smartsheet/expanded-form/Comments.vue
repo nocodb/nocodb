@@ -8,7 +8,9 @@ const { loadCommentsAndLogs, commentsAndLogs, saveComment, comment, updateCommen
 
 const commentsWrapperEl = ref<HTMLDivElement>()
 
-await loadCommentsAndLogs()
+onMounted(async () => {
+  await loadCommentsAndLogs()
+})
 
 const { user } = useGlobal()
 
@@ -161,10 +163,10 @@ const processedAudit = (log: string) => {
               <div class="flex flex-col p-4 gap-3">
                 <div class="flex justify-between">
                   <div class="flex items-center gap-2">
-                    <GeneralUserIcon size="base" :name="log.display_name ?? log.user" />
+                    <GeneralUserIcon size="base" :name="log.display_name ?? log.user" :user="log" />
                     <div class="flex flex-col">
                       <span class="truncate font-bold max-w-42">
-                        {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared base' }}
+                        {{ log.display_name ?? log.user.split('@')[0] ?? 'Shared base' }}
                       </span>
                       <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
                         {{ log.created_at !== log.updated_at ? `Edited ${timeAgo(log.updated_at)}` : timeAgo(log.created_at) }}

@@ -280,8 +280,9 @@ const focus = (el: VNodeRef) => !isForm.value && !isEditColumn.value && el?.focu
     :open="readOnly || (localState && isPk) || isLockedMode ? false : open && (active || editable)"
     @click="clickHandler"
     @ok="open = !open"
-    @keydown.space.stop="
+    @keydown.space="
       (e) => {
+        if (!isForm.value && !e.target.closest('.nc-picker-datetime')) return
         e.preventDefault()
         clickHandler()
       }

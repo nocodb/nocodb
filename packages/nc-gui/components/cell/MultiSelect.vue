@@ -4,6 +4,7 @@ import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
+import { onKeyDown } from '@vueuse/core'
 import {
   ActiveCellInj,
   CellClickHookInj,
@@ -196,11 +197,6 @@ useSelectedCellKeyupListener(activeCell, (e) => {
       }
       break
     // skip space bar key press since it's used for expand row
-    case ' ':
-      e.preventDefault()
-      if (!isForm.value) break
-      isOpen.value = true
-      break
     case 'ArrowUp':
     case 'ArrowDown':
     case 'ArrowRight':
@@ -391,7 +387,7 @@ const selectedOpts = computed(() => {
       :class="{ 'caret-transparent': !hasEditRoles }"
       :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
       @search="search"
-      @keydown.stop
+      @keydown.space.stop="toggleMenu"
     >
       <a-select-option
         v-for="op of options"

@@ -4,6 +4,7 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { createDemoTable } from '../../../setup/demoTable';
 import { TopbarPage } from '../../../pages/Dashboard/common/Topbar';
+import { enableQuickRun } from '../../../setup/db';
 
 const validateResponse = false;
 
@@ -26,6 +27,8 @@ async function undo({ page, dashboard }: { page: Page; dashboard: DashboardPage 
 }
 
 test.describe('GroupBy CRUD Operations', () => {
+  if (enableQuickRun()) test.skip();
+
   let dashboard: DashboardPage, toolbar: ToolbarPage, topbar: TopbarPage;
   let context: any;
 

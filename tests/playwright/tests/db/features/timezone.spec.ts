@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
 import { Api, ProjectListType, UITypes } from 'nocodb-sdk';
-import { isEE, isMysql, isPg, isSqlite } from '../../../setup/db';
+import { enableQuickRun, isEE, isMysql, isPg, isSqlite } from '../../../setup/db';
 import { getKnexConfig } from '../../utils/config';
 import { getBrowserTimezoneOffset } from '../../utils/general';
 import config from '../../../playwright.config';
@@ -110,6 +110,7 @@ async function connectToExtDb(context: any, dbName: string, api: Api<any>) {
 
 // serial : as we are creating an external db, we need to run the tests sequentially
 test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
+  if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage;
   let api: Api<any>, records: any[];
   let context: any;
@@ -214,6 +215,7 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
 // Change browser timezone & locale to Asia/Hong-Kong
 //
 test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
+  if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage;
   let context: any;
   test.beforeEach(async ({ page }) => {
@@ -282,6 +284,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
+  if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage;
   let gApi: Api<any>, records: any[];
   let context: any;
@@ -471,6 +474,7 @@ function getDateTimeInUTCTimeZone(dateString: string) {
 }
 
 test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same as server timezone', async () => {
+  if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage;
   let api: Api<any>;
   let context: any;
@@ -830,6 +834,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
 });
 
 test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to HKT', async () => {
+  if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage;
   let api: Api<any>;
   let context: any;
@@ -970,6 +975,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
 });
 
 test.describe.serial('Timezone- ExtDB (MySQL Only) : DB Timezone configured as HKT', () => {
+  if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage;
   let api: Api<any>;
   let context: any;

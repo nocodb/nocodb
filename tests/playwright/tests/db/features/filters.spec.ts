@@ -7,6 +7,7 @@ import { Api } from 'nocodb-sdk';
 import { rowMixedValue } from '../../../setup/xcdb-records';
 import dayjs from 'dayjs';
 import { createDemoTable } from '../../../setup/demoTable';
+import { enableQuickRun } from '../../../setup/db';
 
 let dashboard: DashboardPage, toolbar: ToolbarPage;
 let context: any;
@@ -111,6 +112,7 @@ async function verifyFilter(param: {
 //
 
 test.describe('Filter Tests: Numerical', () => {
+  if (enableQuickRun()) test.skip();
   async function numBasedFilterTest(dataType, eqString, isLikeString) {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'numberBased' });
@@ -299,6 +301,7 @@ test.describe('Filter Tests: Numerical', () => {
 //
 
 test.describe('Filter Tests: Text based', () => {
+  if (enableQuickRun()) test.skip();
   async function textBasedFilterTest(dataType, eqString, isLikeString) {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'textBased' });
@@ -418,6 +421,7 @@ test.describe('Filter Tests: Text based', () => {
 //
 
 test.describe('Filter Tests: Select based', () => {
+  if (enableQuickRun()) test.skip();
   async function selectBasedFilterTest(dataType, is, anyof, allof) {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'selectBased' });
@@ -536,6 +540,7 @@ function getUTCEpochTime(date) {
 }
 
 test.describe('Filter Tests: Date based', () => {
+  if (enableQuickRun()) test.skip();
   const today = getUTCEpochTime(new Date());
   const tomorrow = getUTCEpochTime(new Date(new Date().setDate(new Date().getDate() + 1)));
   const yesterday = getUTCEpochTime(new Date(new Date().setDate(new Date().getDate() - 1)));
@@ -843,6 +848,7 @@ test.describe('Filter Tests: Date based', () => {
 //
 
 test.describe('Filter Tests: AddOn', () => {
+  if (enableQuickRun()) test.skip();
   async function addOnFilterTest(dataType) {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'addOnTypes', networkResponse: false });
@@ -948,6 +954,7 @@ test.describe('Filter Tests: AddOn', () => {
 //
 
 test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
+  if (enableQuickRun()) test.skip();
   async function linkToAnotherRecordFilterTest() {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
@@ -1093,6 +1100,7 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
 //
 
 test.describe('Filter Tests: Toggle button', () => {
+  if (enableQuickRun()) test.skip();
   /**
    *  Steps
    *
@@ -1176,6 +1184,7 @@ test.describe('Filter Tests: Toggle button', () => {
 });
 
 test.describe('Filter Tests: Filter groups', () => {
+  if (enableQuickRun()) test.skip();
   /**
    *  Steps
    *

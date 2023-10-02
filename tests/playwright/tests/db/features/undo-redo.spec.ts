@@ -5,7 +5,7 @@ import { Api, UITypes } from 'nocodb-sdk';
 import { rowMixedValue } from '../../../setup/xcdb-records';
 import { GridPage } from '../../../pages/Dashboard/Grid';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
-import { isSqlite } from '../../../setup/db';
+import { enableQuickRun, isSqlite } from '../../../setup/db';
 
 const validateResponse = false;
 
@@ -44,6 +44,7 @@ async function undo({ page, dashboard }: { page: Page; dashboard: DashboardPage 
 }
 
 test.describe('Undo Redo', () => {
+  if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage, grid: GridPage, toolbar: ToolbarPage, context: any, api: Api<any>, table: any;
 
   test.beforeEach(async ({ page }) => {
@@ -351,6 +352,7 @@ test.describe('Undo Redo', () => {
 });
 
 test.describe('Undo Redo - Table & view rename operations', () => {
+  if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage, context: any, api: Api<any>, table: any;
 
   test.beforeEach(async ({ page }) => {
@@ -465,6 +467,7 @@ test.describe('Undo Redo - Table & view rename operations', () => {
 });
 
 test.describe('Undo Redo - LTAR', () => {
+  if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage, grid: GridPage, context: any, api: Api<any>, cityTable: any, countryTable: any;
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
@@ -645,6 +648,7 @@ test.describe('Undo Redo - LTAR', () => {
 });
 
 test.describe('Undo Redo - Select based', () => {
+  if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage, /*grid: GridPage,*/ context: any, api: Api<any>, table: any;
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });

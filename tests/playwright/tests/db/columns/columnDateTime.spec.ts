@@ -1,6 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
+import { enableQuickRun } from '../../../setup/db';
 
 const dateTimeData = [
   {
@@ -57,6 +58,7 @@ const dateTimeData = [
 ];
 
 test.describe('DateTime Column', () => {
+  if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage;
   let context: NcContext;
 

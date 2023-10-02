@@ -3,12 +3,14 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 
 import setup, { unsetup } from '../../../setup';
-import { isPg, isSqlite } from '../../../setup/db';
+import { enableQuickRun, isPg, isSqlite } from '../../../setup/db';
 import { TopbarPage } from '../../../pages/Dashboard/common/Topbar';
 
 const filmRatings = ['G', 'PG', 'PG-13', 'R', 'NC-17'];
 
 test.describe('View', () => {
+  if (enableQuickRun()) test.skip();
+
   let dashboard: DashboardPage, toolbar: ToolbarPage, topbar: TopbarPage;
   let context: any;
 

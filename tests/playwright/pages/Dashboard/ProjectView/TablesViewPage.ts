@@ -24,11 +24,11 @@ export class TablesViewPage extends BasePage {
     await this.get().waitFor({ state: 'visible' });
 
     if (role.toLowerCase() === 'creator' || role.toLowerCase() === 'owner') {
-      expect(await this.btn_addNewTable.isVisible()).toBeTruthy();
-      expect(await this.btn_importData.isVisible()).toBeTruthy();
+      await expect(this.btn_addNewTable).toBeVisible();
+      await expect(this.btn_importData).toBeVisible();
     } else {
-      expect(await this.btn_addNewTable.isVisible()).toBeFalsy();
-      expect(await this.btn_importData.isVisible()).toBeFalsy();
+      await expect(this.btn_addNewTable).toHaveCount(0);
+      await expect(this.btn_importData).toHaveCount(0);
     }
   }
 }

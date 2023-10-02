@@ -628,6 +628,7 @@ watch(
           </NcButton>
 
           <NcButton
+            v-e="['a:source:create']"
             size="small"
             type="primary"
             :disabled="!testSuccess"

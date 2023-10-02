@@ -184,6 +184,7 @@ onMounted(() => {
           <NcButton type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
 
           <NcButton
+            v-e="['a:table:create']"
             type="primary"
             :disabled="validateInfos.title.validateStatus === 'error'"
             :loading="creating"

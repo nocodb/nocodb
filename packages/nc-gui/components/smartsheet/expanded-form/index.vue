@@ -15,6 +15,7 @@ import {
   ReloadRowDataHookInj,
   computedInject,
   createEventHook,
+  iconMap,
   inject,
   message,
   provide,
@@ -316,23 +317,29 @@ useActiveKeyupListener(
 )
 
 const showDeleteRowModal = ref(false)
+const isDeleteHappening = ref(false)
 
 const onDeleteRowClick = () => {
   showDeleteRowModal.value = true
 }
 
 const onConfirmDeleteRowClick = async () => {
-  showDeleteRowModal.value = false
-  await deleteRowById(primaryKey.value)
-  message.success('Row deleted')
-  // if (!props.lastRow) {
-  //   await onNext()
-  // } else if (!props.firstRow) {
-  //   emits('prev')
-  // } else {
-  // }
-  reloadTrigger.trigger()
-  onClose()
+  try {
+    showDeleteRowModal.value = false
+    message.success('Row deleted')
+    await deleteRowById(primaryKey.value)
+    // if (!props.lastRow) {
+    //   await onNext()
+    // } else if (!props.firstRow) {
+    //   emits('prev')
+    // } else {
+    // }
+    reloadTrigger.trigger()
+    onClose()
+  } finally {
+    showDeleteRowModal.value = false
+    isDeleteHappening.value = false
+  }
 }
 
 watch(

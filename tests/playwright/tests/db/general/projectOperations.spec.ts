@@ -64,7 +64,7 @@ test.describe('Project operations', () => {
     await dashboard.treeView.deleteProject({ title: 'project-rename', context });
   });
 
-  test.skip('project_duplicate', async () => {
+  test('project_duplicate', async () => {
     // if project already exists, delete it to avoid test failures due to residual data
     const random = Math.floor(Math.random() * 1000000);
     const testProjectName = `Project-To-Import-Export-${random}`;

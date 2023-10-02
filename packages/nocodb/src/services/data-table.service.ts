@@ -212,7 +212,7 @@ export class DataTableService {
 
     const result = (Array.isArray(body) ? body : [body]).map((row) => {
       return pkColumns.reduce((acc, col) => {
-        acc[col.title] = row[col.title];
+        acc[col.title] = row[col.title] ?? row[col.column_name];
         return acc;
       }, {});
     });
@@ -238,12 +238,20 @@ export class DataTableService {
     for (const row of rows) {
       let pk;
       // if only one primary key then extract the value
-      if (model.primaryKeys.length === 1) pk = row[model.primaryKey.title];
+      if (model.primaryKeys.length === 1)
+        pk = row[model.primaryKey.title] ?? row[model.primaryKey.column_name];
       // if composite primary key then join the values with ___
-      else pk = model.primaryKeys.map((pk) => row[pk.title]).join('___');
+      else
+        pk = model.primaryKeys
+          .map((pk) => row[pk.title] ?? row[pk.column_name])
+          .join('___');
       // if duplicate then throw error
       if (keys.has(pk)) {
         NcError.unprocessableEntity('Duplicate row with id ' + pk);
+      }
+
+      if (pk === undefined || pk === null) {
+        NcError.unprocessableEntity('Primary key is required');
       }
       keys.add(pk);
     }

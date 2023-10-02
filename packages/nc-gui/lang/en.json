@@ -55,7 +55,6 @@
     "links": "Links",
     "remove": "Remove",
     "import": "Import",
-    "logout": "Log Out",
     "empty": "Empty",
     "changeIcon": "Change Icon",
     "save": "Save",
@@ -272,11 +271,13 @@
     "isEqual": "is equal",
     "isNotEqual": "is not equal",
     "isLike": "is like",
-    "isNot like": "is not like",
+    "isNotlike": "is not like",
     "isEmpty": "is empty",
     "isNotEmpty": "is not empty",
     "isNull": "is null",
-    "isNotNull": "is not null"
+    "isNotNull": "is not null",
+    "isBlank": "is blank",
+    "isNotBlank": "is not blank"
   },
   "title": {
     "parameter": "Parameter",
@@ -371,6 +372,11 @@
     "tokens": "Tokens",
     "userManagement": "User Management",
     "licence": "Licence",
+<<<<<<< HEAD
+    "allTables": "All tables",
+    "dataSources": "Data sources",
+    "defaultView": "Default View"
+=======
     "allowAllMimeTypes": "Allow All Mime Types",
     "defaultView": "Default View",
     "relations": "Relations",
@@ -383,6 +389,7 @@
       "setNull": "Set NULL",
       "setDefault": "Set Default"
     }
+>>>>>>> 3909b77eaf52178d67ac664757db28a5f650c90e
   },
   "labels": {
     "duplicateAttachment": "File with name {filename} already attached",
@@ -571,6 +578,9 @@
     "addRowForm": "Enter record data through a form",
     "noAccess": "No access",
     "restApis": "Rest APIs",
+    "logOut": "Log Out",
+    "joinOurDiscord": "Join our Discord",
+    "enterValue": "Enter a value",
     "apis": "APIs",
     "includeData": "Include Data",
     "includeView": "Include View",

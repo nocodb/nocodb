@@ -1,5 +1,5 @@
 import { ProjectTypes } from 'nocodb-sdk';
-import type { ProjectType } from 'nocodb-sdk';
+import type { BaseType } from 'nocodb-sdk';
 import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -32,7 +32,7 @@ export default class DashboardProjectDBProject {
 
     if (dashboardProject?.type !== ProjectTypes.DASHBOARD) {
       throw new Error(
-        `Project with id ${dashboardProjectDBProject.dashboard_project_id} is not of type ${ProjectTypes.DASHBOARD}`,
+        `Base with id ${dashboardProjectDBProject.dashboard_project_id} is not of type ${ProjectTypes.DASHBOARD}`,
       );
     }
 
@@ -42,7 +42,7 @@ export default class DashboardProjectDBProject {
 
     if (dbProject?.type !== ProjectTypes.DATABASE) {
       throw new Error(
-        `Project with id ${dashboardProjectDBProject.db_project_id} is not of type ${ProjectTypes.DATABASE}`,
+        `Base with id ${dashboardProjectDBProject.db_project_id} is not of type ${ProjectTypes.DATABASE}`,
       );
     }
 
@@ -87,12 +87,12 @@ export default class DashboardProjectDBProject {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    // TODO: consider to also do checks here that the projects are actually of type Dashboard and DB
+    // TODO: consider to also do checks here that the bases are actually of type Dashboard and DB
     const queryBuilder = ncMeta
       .knex(MetaTable.PROJECT)
       .select(
         `${MetaTable.PROJECT}.*`,
-        // TODO: add here more project fields if needed
+        // TODO: add here more base fields if needed
         `${MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS}.dashboard_project_id`,
       )
       .offset(offset)
@@ -151,7 +151,7 @@ export default class DashboardProjectDBProject {
     dbProjectId: string,
     _params?: any,
     ncMeta = Noco.ncMeta,
-  ): Promise<ProjectType[]> {
+  ): Promise<BaseType[]> {
     const dashboardProjectList = await ncMeta
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.*`)

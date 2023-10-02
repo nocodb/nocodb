@@ -219,7 +219,7 @@ test.describe('Filter Tests: Numerical', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
 
     api = new Api({
@@ -230,7 +230,7 @@ test.describe('Filter Tests: Numerical', () => {
     });
 
     const table = await createDemoTable({ context, type: 'numberBased', recordCnt: 400 });
-    records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 400 });
+    records = await api.dbTableRow.list('noco', context.base.id, table.id, { limit: 400 });
     await page.reload();
   });
 
@@ -374,7 +374,7 @@ test.describe('Filter Tests: Text based', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
 
     api = new Api({
@@ -385,7 +385,7 @@ test.describe('Filter Tests: Text based', () => {
     });
 
     const table = await createDemoTable({ context, type: 'textBased', recordCnt: 400 });
-    records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 400 });
+    records = await api.dbTableRow.list('noco', context.base.id, table.id, { limit: 400 });
     await page.reload();
   });
 
@@ -498,7 +498,7 @@ test.describe('Filter Tests: Select based', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
 
     api = new Api({
@@ -509,7 +509,7 @@ test.describe('Filter Tests: Select based', () => {
     });
 
     const table = await createDemoTable({ context, type: 'selectBased', recordCnt: 400 });
-    records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 400 });
+    records = await api.dbTableRow.list('noco', context.base.id, table.id, { limit: 400 });
 
     await page.reload();
   });
@@ -810,7 +810,7 @@ test.describe('Filter Tests: Date based', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
 
     api = new Api({
@@ -821,7 +821,7 @@ test.describe('Filter Tests: Date based', () => {
     });
 
     const table = await createDemoTable({ context, type: 'dateTimeBased', recordCnt: 800 });
-    records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 800 });
+    records = await api.dbTableRow.list('noco', context.base.id, table.id, { limit: 800 });
 
     await page.reload();
   });
@@ -882,7 +882,7 @@ test.describe('Filter Tests: AddOn', () => {
   }
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
 
     api = new Api({
@@ -911,8 +911,8 @@ test.describe('Filter Tests: AddOn', () => {
     ];
 
     try {
-      const project = await api.project.read(context.project.id);
-      const table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      const base = await api.base.read(context.base.id);
+      const table = await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
         table_name: 'addOnTypes',
         title: 'addOnTypes',
         columns: columns,
@@ -927,8 +927,8 @@ test.describe('Filter Tests: AddOn', () => {
         rowAttributes.push(row);
       }
 
-      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributes);
-      records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 400 });
+      await api.dbTableRow.bulkCreate('noco', context.base.id, table.id, rowAttributes);
+      records = await api.dbTableRow.list('noco', context.base.id, table.id, { limit: 400 });
     } catch (e) {
       console.error(e);
     }
@@ -1061,7 +1061,7 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
     // todo: confirm with @dstala
     // context = await setup({ page, isEmptyProject: true });
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
 
     api = new Api({
@@ -1098,12 +1098,12 @@ test.describe('Filter Tests: Toggle button', () => {
    *
    * 1. Open table
    * 2. Verify filter options : should not include NULL & EMPTY options
-   * 3. Enable `Show NULL & EMPTY in Filter` in Project Settings
+   * 3. Enable `Show NULL & EMPTY in Filter` in Base Settings
    * 4. Verify filter options : should include NULL & EMPTY options
    * 5. Add NULL & EMPTY filters
-   * 6. Disable `Show NULL & EMPTY in Filter` in Project Settings : should not be allowed
+   * 6. Disable `Show NULL & EMPTY in Filter` in Base Settings : should not be allowed
    * 7. Remove the NULL & EMPTY filters
-   * 8. Disable `Show NULL & EMPTY in Filter` in Project Settings again : should be allowed
+   * 8. Disable `Show NULL & EMPTY in Filter` in Base Settings again : should be allowed
    *
    */
 
@@ -1111,7 +1111,7 @@ test.describe('Filter Tests: Toggle button', () => {
     // todo: confirm with @dstala
     // context = await setup({ page, isEmptyProject: true });
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
   });
 
@@ -1181,18 +1181,18 @@ test.describe('Filter Tests: Filter groups', () => {
    *
    * 1. Open table
    * 2. Verify filter options : should not include NULL & EMPTY options
-   * 3. Enable `Show NULL & EMPTY in Filter` in Project Settings
+   * 3. Enable `Show NULL & EMPTY in Filter` in Base Settings
    * 4. Verify filter options : should include NULL & EMPTY options
    * 5. Add NULL & EMPTY filters
-   * 6. Disable `Show NULL & EMPTY in Filter` in Project Settings : should not be allowed
+   * 6. Disable `Show NULL & EMPTY in Filter` in Base Settings : should not be allowed
    * 7. Remove the NULL & EMPTY filters
-   * 8. Disable `Show NULL & EMPTY in Filter` in Project Settings again : should be allowed
+   * 8. Disable `Show NULL & EMPTY in Filter` in Base Settings again : should be allowed
    *
    */
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
   });
 

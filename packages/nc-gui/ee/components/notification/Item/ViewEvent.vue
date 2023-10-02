@@ -23,7 +23,7 @@ const action = computed(() => {
 
 const onClick = () => {
   if (item.value.type === AppEvents.VIEW_DELETE) return
-  navigateToProject({ workspaceId: item.value.body.workspace_id, projectId: item.value.body.id })
+  navigateToProject({ workspaceId: item.value.body.workspace_id, baseId: item.value.body.id })
 }
 </script>
 

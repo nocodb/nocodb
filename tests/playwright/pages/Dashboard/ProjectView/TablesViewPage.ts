@@ -3,14 +3,14 @@ import { ProjectViewPage } from './index';
 import { expect, Locator } from '@playwright/test';
 
 export class TablesViewPage extends BasePage {
-  readonly projectView: ProjectViewPage;
+  readonly baseView: ProjectViewPage;
 
   readonly btn_addNewTable: Locator;
   readonly btn_importData: Locator;
 
-  constructor(projectView: ProjectViewPage) {
-    super(projectView.rootPage);
-    this.projectView = projectView;
+  constructor(baseView: ProjectViewPage) {
+    super(baseView.rootPage);
+    this.baseView = baseView;
 
     this.btn_addNewTable = this.get().locator('[data-testid="proj-view-btn__add-new-table"]');
     this.btn_importData = this.get().locator('[data-testid="proj-view-btn__import-data"]');

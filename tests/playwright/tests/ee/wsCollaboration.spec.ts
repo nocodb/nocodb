@@ -23,7 +23,7 @@ test.describe('Collaborators', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     workspacePage = new WorkspacePage(page);
     collaborationPage = workspacePage.collaboration;
 
@@ -64,9 +64,9 @@ test.describe('Collaborators', () => {
     await dashboard.rootPage.waitForTimeout(500);
     await dashboard.leftSidebar.openWorkspace({ title: context.workspace.title });
     await dashboard.rootPage.waitForTimeout(500);
-    await dashboard.treeView.openProject({ title: context.project.title, context });
+    await dashboard.treeView.openProject({ title: context.base.title, context });
     await dashboard.rootPage.waitForTimeout(500);
-    await dashboard.treeView.openProject({ title: context.project.title, context });
+    await dashboard.treeView.openProject({ title: context.base.title, context });
     // wait for render
     await dashboard.rootPage.waitForTimeout(1000);
 
@@ -92,12 +92,12 @@ test.describe('Collaborators', () => {
   test('WS role access validation: creator', async ({ page }) => {
     await testUserAccess(page, roleDb[0]);
 
-    const projectNode = dashboard.sidebar.projectNode;
-    await projectNode.verifyTableAddBtn({ projectTitle: context.project.title, visible: true });
+    const baseNode = dashboard.sidebar.baseNode;
+    await baseNode.verifyTableAddBtn({ baseTitle: context.base.title, visible: true });
 
-    await projectNode.clickOptions({ projectTitle: context.project.title });
-    await projectNode.verifyProjectOptions({
-      projectTitle: context.project.title,
+    await baseNode.clickOptions({ baseTitle: context.base.title });
+    await baseNode.verifyProjectOptions({
+      baseTitle: context.base.title,
       deleteVisible: false,
       duplicateVisible: true,
       importVisible: true,
@@ -109,9 +109,9 @@ test.describe('Collaborators', () => {
     });
 
     await dashboard.sidebar.createProject({ title: 'test', type: ProjectTypes.DATABASE });
-    await projectNode.clickOptions({ projectTitle: 'test' });
-    await projectNode.verifyProjectOptions({
-      projectTitle: 'test',
+    await baseNode.clickOptions({ baseTitle: 'test' });
+    await baseNode.verifyProjectOptions({
+      baseTitle: 'test',
       deleteVisible: true,
       duplicateVisible: true,
       importVisible: true,
@@ -139,12 +139,12 @@ test.describe('Collaborators', () => {
   test('WS role access validation: editor', async ({ page }) => {
     await testUserAccess(page, roleDb[1]);
 
-    const projectNode = dashboard.sidebar.projectNode;
-    await projectNode.verifyTableAddBtn({ projectTitle: context.project.title, visible: false });
+    const baseNode = dashboard.sidebar.baseNode;
+    await baseNode.verifyTableAddBtn({ baseTitle: context.base.title, visible: false });
 
-    await projectNode.clickOptions({ projectTitle: context.project.title });
-    await projectNode.verifyProjectOptions({
-      projectTitle: context.project.title,
+    await baseNode.clickOptions({ baseTitle: context.base.title });
+    await baseNode.verifyProjectOptions({
+      baseTitle: context.base.title,
       deleteVisible: false,
       duplicateVisible: false,
       importVisible: false,
@@ -168,12 +168,12 @@ test.describe('Collaborators', () => {
   test('WS role access validation: commenter', async ({ page }) => {
     await testUserAccess(page, roleDb[2]);
 
-    const projectNode = dashboard.sidebar.projectNode;
-    await projectNode.verifyTableAddBtn({ projectTitle: context.project.title, visible: false });
+    const baseNode = dashboard.sidebar.baseNode;
+    await baseNode.verifyTableAddBtn({ baseTitle: context.base.title, visible: false });
 
-    await projectNode.clickOptions({ projectTitle: context.project.title });
-    await projectNode.verifyProjectOptions({
-      projectTitle: context.project.title,
+    await baseNode.clickOptions({ baseTitle: context.base.title });
+    await baseNode.verifyProjectOptions({
+      baseTitle: context.base.title,
       deleteVisible: false,
       duplicateVisible: false,
       importVisible: false,
@@ -197,12 +197,12 @@ test.describe('Collaborators', () => {
   test('WS role access validation: viewer', async ({ page }) => {
     await testUserAccess(page, roleDb[3]);
 
-    const projectNode = dashboard.sidebar.projectNode;
-    await projectNode.verifyTableAddBtn({ projectTitle: context.project.title, visible: false });
+    const baseNode = dashboard.sidebar.baseNode;
+    await baseNode.verifyTableAddBtn({ baseTitle: context.base.title, visible: false });
 
-    await projectNode.clickOptions({ projectTitle: context.project.title });
-    await projectNode.verifyProjectOptions({
-      projectTitle: context.project.title,
+    await baseNode.clickOptions({ baseTitle: context.base.title });
+    await baseNode.verifyProjectOptions({
+      baseTitle: context.base.title,
       deleteVisible: false,
       duplicateVisible: false,
       importVisible: false,

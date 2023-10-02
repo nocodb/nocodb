@@ -4,6 +4,6 @@ const { activeTable } = storeToRefs(useTablesStore())
 
 <template>
   <div class="flex flex-col p-4" style="height: calc(100vh - (var(--topbar-height) * 2))">
-    <LazyErdView :table="activeTable" :base-id="activeTable?.base_id" :show-all-columns="false" />
+    <LazyErdView :table="activeTable" :source-id="activeTable?.source_id" :show-all-columns="false" />
   </div>
 </template>

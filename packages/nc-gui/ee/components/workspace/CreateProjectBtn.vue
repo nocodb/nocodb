@@ -14,14 +14,14 @@ const props = defineProps<{
 
 const { isUIAllowed } = useRoles()
 
-const projectStore = useProject()
-const { isSharedBase } = storeToRefs(projectStore)
+const baseStore = useBase()
+const { isSharedBase } = storeToRefs(baseStore)
 
 const workspaceStore = useWorkspace()
 const { activeWorkspaceId: _activeWorkspaceId } = storeToRefs(workspaceStore)
 
-const projectCreateDlg = ref(false)
-const projectType = ref(NcProjectType.DB)
+const baseCreateDlg = ref(false)
+const baseType = ref(NcProjectType.DB)
 const dashboardProjectCreateDlg = ref(false)
 
 const size = computed(() => props.size || 'small')
@@ -34,23 +34,23 @@ const centered = computed(() => props.centered ?? true)
 
 <template>
   <NcButton
-    v-if="isUIAllowed('projectCreate') && !isSharedBase"
+    v-if="isUIAllowed('baseCreate') && !isSharedBase"
     v-e="['c:base:create']"
     type="text"
     :size="size"
     :centered="centered"
-    @click="projectCreateDlg = true"
+    @click="baseCreateDlg = true"
   >
     <slot />
 
-    <WorkspaceCreateProjectDlg v-model="projectCreateDlg" :type="projectType" />
+    <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
     <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
   </NcButton>
   <!-- <a-dropdown v-model:visible="isOpen" class="w-full">
       <template #overlay>
         <a-menu>
           <a-menu-item @click="navigateToCreateProject(NcProjectType.DB)">
-            <div class="py-4 px-1 flex items-center gap-2 nc-create-project-btn-db">
+            <div class="py-4 px-1 flex items-center gap-2 nc-create-base-btn-db">
               <GeneralProjectIcon :type="NcProjectType.DB" class="text-[#2824FB] text-lg" />
               Database
               <span class="flex-grow" />
@@ -66,7 +66,7 @@ const centered = computed(() => props.centered ?? true)
             </div>
           </a-menu-item>
           <a-menu-item @click="navigateToCreateProject(NcProjectType.DOCS)">
-            <div class="py-4 px-1 flex items-center gap-2 nc-create-project-btn-docs">
+            <div class="py-4 px-1 flex items-center gap-2 nc-create-base-btn-docs">
               <GeneralProjectIcon :type="NcProjectType.DOCS" class="text-[#247727] text-lg" />
               Documentation
               <span class="flex-grow" />

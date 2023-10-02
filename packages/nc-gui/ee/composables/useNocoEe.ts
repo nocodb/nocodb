@@ -1,4 +1,4 @@
-import type { ColumnType, ProjectType, TableType } from 'nocodb-sdk'
+import type { ColumnType, BaseType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 
 export const useNocoEe = () => {
@@ -30,7 +30,7 @@ export const useNocoEe = () => {
   }
 
   const optionsMagic = async (
-    project: Ref<ProjectType>,
+    base: Ref<BaseType>,
     formState: Ref<Record<string, any>>,
     getNextColor: () => string,
     options: any[],
@@ -42,7 +42,7 @@ export const useNocoEe = () => {
       const res: Array<string> = await $api.utils.magic({
         operation: 'selectOptions',
         data: {
-          schema: project.value?.title,
+          schema: base.value?.title,
           title: formState.value?.title,
           table: formState.value?.table_name,
         },
@@ -152,13 +152,13 @@ export const useNocoEe = () => {
   }
 
   const createTableMagic = async (
-    project: Ref<ProjectType>,
-    baseId: string,
+    base: Ref<BaseType>,
+    sourceId: string,
     table: { title: string; table_name: string; columns: string[] },
     onTableCreate?: (t: TableType) => void,
   ) => {
     try {
-      const tableMeta = await $api.base.tableMagic(project?.value?.id as string, baseId as string, {
+      const tableMeta = await $api.source.tableMagic(base?.value?.id as string, sourceId as string, {
         table_name: table.table_name,
         title: table.title,
       })
@@ -172,13 +172,13 @@ export const useNocoEe = () => {
   }
 
   const createSchemaMagic = async (
-    project: Ref<ProjectType>,
-    baseId: string,
+    base: Ref<BaseType>,
+    sourceId: string,
     table: { title: string; table_name: string; columns: string[] },
     onTableCreate?: (t: TableType) => void,
   ) => {
     try {
-      const tableMeta = await $api.base.schemaMagic(project?.value?.id as string, baseId as string, {
+      const tableMeta = await $api.source.schemaMagic(base?.value?.id as string, sourceId as string, {
         schema_name: table.table_name,
         title: table.title,
       })

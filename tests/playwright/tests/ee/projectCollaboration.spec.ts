@@ -15,20 +15,20 @@ const roleDb = [
   { email: 'pjt_viewer@nocodb.com', role: 'Viewer' },
 ];
 
-test.describe('Project Collaboration', () => {
+test.describe('Base Collaboration', () => {
   let dashboard: DashboardPage;
   let workspacePage: WorkspacePage;
   let collaborationPage: CollaborationPage;
-  let projectViewPage: ProjectViewPage;
+  let baseViewPage: ProjectViewPage;
   let context: any;
   let api: Api<any>;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     workspacePage = new WorkspacePage(page);
     collaborationPage = workspacePage.collaboration;
-    projectViewPage = dashboard.projectView;
+    baseViewPage = dashboard.baseView;
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -53,7 +53,7 @@ test.describe('Project Collaboration', () => {
     await unsetup(context);
   });
 
-  const projectCollabVerify = async (
+  const baseCollabVerify = async (
     page: Page,
     user: {
       email: string;
@@ -66,16 +66,16 @@ test.describe('Project Collaboration', () => {
 
     await collaborationPage.addUsers(user.email, 'viewer');
 
-    await dashboard.treeView.openProject({ title: context.project.title, context });
+    await dashboard.treeView.openProject({ title: context.base.title, context });
 
     // tab access validation
-    await projectViewPage.verifyAccess('Owner');
+    await baseViewPage.verifyAccess('Owner');
 
-    await projectViewPage.tab_accessSettings.click();
+    await baseViewPage.tab_accessSettings.click();
 
     // update roles
 
-    await projectViewPage.accessSettings.setRole(user.email, user.role);
+    await baseViewPage.accessSettings.setRole(user.email, user.role);
 
     await dashboard.signOut();
 
@@ -90,15 +90,15 @@ test.describe('Project Collaboration', () => {
     await dashboard.rootPage.waitForTimeout(500);
     await dashboard.leftSidebar.openWorkspace({ title: context.workspace.title });
     await dashboard.rootPage.waitForTimeout(500);
-    await dashboard.treeView.openProject({ title: context.project.title, context });
+    await dashboard.treeView.openProject({ title: context.base.title, context });
     await dashboard.rootPage.waitForTimeout(500);
-    await dashboard.treeView.openProject({ title: context.project.title, context });
-    await dashboard.projectView.verifyAccess(user.role);
+    await dashboard.treeView.openProject({ title: context.base.title, context });
+    await dashboard.baseView.verifyAccess(user.role);
 
     await dashboard.treeView.openTable({ title: 'Country' });
     await dashboard.treeView.validateRoleAccess({
       role: user.role,
-      projectTitle: context.project.title,
+      baseTitle: context.base.title,
       tableTitle: 'Country',
       context,
     });
@@ -109,20 +109,20 @@ test.describe('Project Collaboration', () => {
     await dashboard.grid.openExpandedRow({ index: 0 });
     await dashboard.expandedForm.verifyRoleAccess({ role: user.role });
 
-    await dashboard.sidebar.projectNode.click({
-      projectTitle: context.project.title,
+    await dashboard.sidebar.baseNode.click({
+      baseTitle: context.base.title,
     });
   };
 
-  test('EE: Project role access validation: Creator', async ({ page }) => {
-    await projectCollabVerify(page, roleDb[0]);
+  test('EE: Base role access validation: Creator', async ({ page }) => {
+    await baseCollabVerify(page, roleDb[0]);
 
-    const projectNode = dashboard.sidebar.projectNode;
-    await projectNode.verifyTableAddBtn({ projectTitle: context.project.title, visible: true });
+    const baseNode = dashboard.sidebar.baseNode;
+    await baseNode.verifyTableAddBtn({ baseTitle: context.base.title, visible: true });
 
-    await projectNode.clickOptions({ projectTitle: context.project.title });
-    await projectNode.verifyProjectOptions({
-      projectTitle: context.project.title,
+    await baseNode.clickOptions({ baseTitle: context.base.title });
+    await baseNode.verifyProjectOptions({
+      baseTitle: context.base.title,
       deleteVisible: false,
       duplicateVisible: true,
       importVisible: true,
@@ -134,15 +134,15 @@ test.describe('Project Collaboration', () => {
     });
   });
 
-  test('EE: Project role access validation: Editor', async ({ page }) => {
-    await projectCollabVerify(page, roleDb[1]);
+  test('EE: Base role access validation: Editor', async ({ page }) => {
+    await baseCollabVerify(page, roleDb[1]);
 
-    const projectNode = dashboard.sidebar.projectNode;
-    await projectNode.verifyTableAddBtn({ projectTitle: context.project.title, visible: false });
+    const baseNode = dashboard.sidebar.baseNode;
+    await baseNode.verifyTableAddBtn({ baseTitle: context.base.title, visible: false });
 
-    await projectNode.clickOptions({ projectTitle: context.project.title });
-    await projectNode.verifyProjectOptions({
-      projectTitle: context.project.title,
+    await baseNode.clickOptions({ baseTitle: context.base.title });
+    await baseNode.verifyProjectOptions({
+      baseTitle: context.base.title,
       deleteVisible: false,
       duplicateVisible: false,
       importVisible: false,
@@ -154,15 +154,15 @@ test.describe('Project Collaboration', () => {
     });
   });
 
-  test('EE: Project role access validation: Commentor', async ({ page }) => {
-    await projectCollabVerify(page, roleDb[2]);
+  test('EE: Base role access validation: Commentor', async ({ page }) => {
+    await baseCollabVerify(page, roleDb[2]);
 
-    const projectNode = dashboard.sidebar.projectNode;
-    await projectNode.verifyTableAddBtn({ projectTitle: context.project.title, visible: false });
+    const baseNode = dashboard.sidebar.baseNode;
+    await baseNode.verifyTableAddBtn({ baseTitle: context.base.title, visible: false });
 
-    await projectNode.clickOptions({ projectTitle: context.project.title });
-    await projectNode.verifyProjectOptions({
-      projectTitle: context.project.title,
+    await baseNode.clickOptions({ baseTitle: context.base.title });
+    await baseNode.verifyProjectOptions({
+      baseTitle: context.base.title,
       deleteVisible: false,
       duplicateVisible: false,
       importVisible: false,
@@ -174,15 +174,15 @@ test.describe('Project Collaboration', () => {
     });
   });
 
-  test('EE: Project role access validation: Viewer', async ({ page }) => {
-    await projectCollabVerify(page, roleDb[3]);
+  test('EE: Base role access validation: Viewer', async ({ page }) => {
+    await baseCollabVerify(page, roleDb[3]);
 
-    const projectNode = dashboard.sidebar.projectNode;
-    await projectNode.verifyTableAddBtn({ projectTitle: context.project.title, visible: false });
+    const baseNode = dashboard.sidebar.baseNode;
+    await baseNode.verifyTableAddBtn({ baseTitle: context.base.title, visible: false });
 
-    await projectNode.clickOptions({ projectTitle: context.project.title });
-    await projectNode.verifyProjectOptions({
-      projectTitle: context.project.title,
+    await baseNode.clickOptions({ baseTitle: context.base.title });
+    await baseNode.verifyProjectOptions({
+      baseTitle: context.base.title,
       deleteVisible: false,
       duplicateVisible: false,
       importVisible: false,

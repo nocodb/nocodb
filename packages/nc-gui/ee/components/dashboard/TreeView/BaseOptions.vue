@@ -1,34 +1,34 @@
 <script lang="ts" setup>
-import type { BaseType, ProjectType } from 'nocodb-sdk'
+import type { SourceType, BaseType } from 'nocodb-sdk'
 
 const props = defineProps<{
+  source: SourceType
   base: BaseType
-  project: ProjectType
 }>()
 
-const emits = defineEmits(['update:project'])
+const emits = defineEmits(['update:base'])
 
-const base = toRef(props, 'base')
+const source = toRef(props, 'source')
 
-const _project = useVModel(props, 'project', emits)
+const _project = useVModel(props, 'base', emits)
 
 const { isUIAllowed } = useRoles()
 
-const projectRole = inject(ProjectRoleInj)
+const baseRole = inject(ProjectRoleInj)
 
 const { $e } = useNuxtApp()
 
-function openTableCreateMagicDialog(baseId?: string) {
-  if (!baseId) return
+function openTableCreateMagicDialog(sourceId?: string) {
+  if (!sourceId) return
 
   $e('c:table:create:navdraw')
 
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgTableMagic'), {
-    'v-if': baseId,
+    'v-if': sourceId,
     'modelValue': isOpen,
-    'baseId': baseId,
+    'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -39,8 +39,8 @@ function openTableCreateMagicDialog(baseId?: string) {
   }
 }
 
-function openSchemaMagicDialog(baseId?: string) {
-  if (!baseId) return
+function openSchemaMagicDialog(sourceId?: string) {
+  if (!sourceId) return
 
   $e('c:table:create:navdraw')
 
@@ -48,7 +48,7 @@ function openSchemaMagicDialog(baseId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgSchemaMagic'), {
     'modelValue': isOpen,
-    'baseId': baseId,
+    'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -59,8 +59,8 @@ function openSchemaMagicDialog(baseId?: string) {
   }
 }
 
-function openAirtableImportDialog(baseId?: string) {
-  if (!baseId) return
+function openAirtableImportDialog(sourceId?: string) {
+  if (!sourceId) return
 
   $e('a:actions:import-airtable')
 
@@ -68,7 +68,7 @@ function openAirtableImportDialog(baseId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
     'modelValue': isOpen,
-    'baseId': baseId,
+    'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -80,7 +80,7 @@ function openAirtableImportDialog(baseId?: string) {
 }
 
 function openQuickImportDialog(type: string) {
-  if (!base.value?.id) return
+  if (!source.value?.id) return
 
   $e(`a:actions:import-${type}`)
 
@@ -89,7 +89,7 @@ function openQuickImportDialog(type: string) {
   const { close } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
     'importType': type,
-    'baseId': base.value.id,
+    'sourceId': source.value.id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -105,7 +105,7 @@ function openQuickImportDialog(type: string) {
   <!-- NocoAI -->
   <a-sub-menu v-if="false">
     <template #title>
-      <div class="nc-project-menu-item group">
+      <div class="nc-base-menu-item group">
         <GeneralIcon icon="magic" class="group-hover:text-black" />
         NocoAI
         <div class="flex-1" />
@@ -116,14 +116,14 @@ function openQuickImportDialog(type: string) {
 
     <template #expandIcon></template>
 
-    <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(base.id)">
-      <div class="color-transition nc-project-menu-item group">
+    <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(source.id)">
+      <div class="color-transition nc-base-menu-item group">
         <GeneralIcon icon="magic1" class="group-hover:text-black" />
         Create table
       </div>
     </a-menu-item>
-    <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(base.id)">
-      <div class="color-transition nc-project-menu-item group">
+    <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(source.id)">
+      <div class="color-transition nc-base-menu-item group">
         <GeneralIcon icon="magic1" class="group-hover:text-black" />
         Create schema
       </div>
@@ -134,11 +134,11 @@ function openQuickImportDialog(type: string) {
   <NcSubMenu
     v-if="
       ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
-        isUIAllowed(permission, false, projectRole),
+        isUIAllowed(permission, false, baseRole),
       )
     "
     class="py-0"
-    data-testid="nc-sidebar-project-import"
+    data-testid="nc-sidebar-base-import"
   >
     <template #title>
       <GeneralIcon icon="download" />
@@ -147,17 +147,17 @@ function openQuickImportDialog(type: string) {
     </template>
 
     <NcMenuItem
-      v-if="isUIAllowed('airtableImport', { roles: projectRole })"
+      v-if="isUIAllowed('airtableImport', { roles: baseRole })"
       key="quick-import-airtable"
       v-e="['c:import:airtable']"
-      @click="openAirtableImportDialog(base.id)"
+      @click="openAirtableImportDialog(source.id)"
     >
       <GeneralIcon icon="airtable" class="max-w-3.75 group-hover:text-black" />
       <div class="ml-0.5">Airtable</div>
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="isUIAllowed('csvImport', { roles: projectRole })"
+      v-if="isUIAllowed('csvImport', { roles: baseRole })"
       key="quick-import-csv"
       v-e="['c:import:csv']"
       @click="openQuickImportDialog('csv')"
@@ -167,7 +167,7 @@ function openQuickImportDialog(type: string) {
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="isUIAllowed('jsonImport', { roles: projectRole })"
+      v-if="isUIAllowed('jsonImport', { roles: baseRole })"
       key="quick-import-json"
       v-e="['c:import:json']"
       @click="openQuickImportDialog('json')"
@@ -177,7 +177,7 @@ function openQuickImportDialog(type: string) {
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="isUIAllowed('excelImport', { roles: projectRole })"
+      v-if="isUIAllowed('excelImport', { roles: baseRole })"
       key="quick-import-excel"
       v-e="['c:import:excel']"
       @click="openQuickImportDialog('excel')"

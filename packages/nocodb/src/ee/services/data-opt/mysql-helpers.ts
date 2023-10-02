@@ -12,7 +12,7 @@ import type {
   View,
 } from '~/models';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import { Base } from '~/models';
+import { Source } from '~/models';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Column, Filter, Model, Sort } from '~/models';
 import { getAliasGenerator, ROOT_ALIAS } from '~/utils';
@@ -664,15 +664,15 @@ function getUniquePlaceholders(
 export async function singleQueryRead(ctx: {
   model: Model;
   view: View;
-  base: Base;
+  source: Source;
   params;
   id: string;
   getHiddenColumn?: boolean;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   await ctx.model.getColumns();
 
-  if (!['mysql', 'mysql2'].includes(ctx.base.type)) {
-    throw new Error('Base is not mysql');
+  if (!['mysql', 'mysql2'].includes(ctx.source.type)) {
+    throw new Error('Source is not mysql');
   }
 
   let skipCache = process.env.NC_DISABLE_CACHE === 'true';
@@ -690,7 +690,7 @@ export async function singleQueryRead(ctx: {
   }
 
   // get knex connection
-  const knex = await NcConnectionMgrv2.get(ctx.base);
+  const knex = await NcConnectionMgrv2.get(ctx.source);
 
   const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
     ctx.view?.id ?? 'default'
@@ -852,11 +852,11 @@ export async function singleQueryRead(ctx: {
 export async function singleQueryList(ctx: {
   model: Model;
   view: View;
-  base: Base;
+  source: Source;
   params;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
-  if (!['mysql', 'mysql2'].includes(ctx.base.type)) {
-    throw new Error('Base is not mysql');
+  if (!['mysql', 'mysql2'].includes(ctx.source.type)) {
+    throw new Error('Source is not mysql');
   }
 
   let skipCache = process.env.NC_DISABLE_CACHE === 'true';
@@ -881,7 +881,7 @@ export async function singleQueryList(ctx: {
   const getAlias = getAliasGenerator();
 
   // get knex connection
-  const knex = await NcConnectionMgrv2.get(ctx.base);
+  const knex = await NcConnectionMgrv2.get(ctx.source);
 
   const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
     ctx.view?.id ?? 'default'
@@ -1081,20 +1081,20 @@ export async function singleQueryList(ctx: {
 
 // allow if MySQL version is >= 8.0.0 and not MariaDB
 // const version = await base.getDbVersion();
-export async function isMysqlVersionSupported(base: Base) {
+export async function isMysqlVersionSupported(source: Source) {
   // if version is not present in meta then get it from db
   // and store it in base meta for later use
   let meta;
-  if (!base.meta || !('dbVersion' in base.meta)) {
+  if (!source.meta || !('dbVersion' in source.meta)) {
     try {
-      const knex = await NcConnectionMgrv2.get(base);
-      meta = base.meta || {};
+      const knex = await NcConnectionMgrv2.get(source);
+      meta = source.meta || {};
       meta.dbVersion = await knex
         .raw('select version() as version')
         .then((res) => res[0][0].version);
 
-      Base.updateBase(base.id, {
-        projectId: base.project_id,
+      Source.updateBase(source.id, {
+        baseId: source.base_id,
         skipReorder: true,
         meta,
       })
@@ -1109,7 +1109,7 @@ export async function isMysqlVersionSupported(base: Base) {
       return false;
     }
   } else {
-    meta = base.meta;
+    meta = source.meta;
   }
 
   if (!meta || !meta.dbVersion || /Maria/i.test(meta.dbVersion)) {

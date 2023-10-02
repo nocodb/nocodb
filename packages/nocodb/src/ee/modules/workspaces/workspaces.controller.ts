@@ -2,9 +2,7 @@ import {
   Body,
   Controller,
   Delete,
-  forwardRef,
   Get,
-  Inject,
   Param,
   Patch,
   Post,
@@ -125,26 +123,26 @@ export class WorkspacesController {
   }
 
   @UseGuards(GlobalGuard)
-  @Post('/api/v1/workspaces/:workspaceId/projects/:projectId/move')
+  @Post('/api/v1/workspaces/:workspaceId/bases/:baseId/move')
   @Acl('moveProjectToWorkspace', {
     scope: 'workspace',
     blockApiTokenAccess: true,
   })
   async moveProjectToWorkspace(
     @Param('workspaceId') workspaceId: string,
-    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
     @Request() req,
   ) {
     return await this.workspacesService.moveProject({
       workspaceId,
-      projectId,
+      baseId,
       user: req.user,
     });
   }
 
   @UseGuards(GlobalGuard)
-  @Get('/api/v1/workspaces/:workspaceId/projects')
-  @Acl('workspaceProjectList', {
+  @Get('/api/v1/workspaces/:workspaceId/bases')
+  @Acl('workspaceBaseList', {
     scope: 'workspace',
     blockApiTokenAccess: true,
   })

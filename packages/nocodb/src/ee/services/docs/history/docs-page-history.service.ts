@@ -44,12 +44,12 @@ export class DocsPageHistoryService {
 
   async restore(params: {
     workspaceId: string;
-    projectId: string;
+    baseId: string;
     pageId: string;
     snapshotId: string;
     user: any;
   }) {
-    const { workspaceId, projectId, pageId, snapshotId, user } = params;
+    const { workspaceId, baseId, pageId, snapshotId, user } = params;
 
     const snapshot = await this.pageSnapshotDao.get({ id: snapshotId });
     if (!snapshot) throw new Error('Snapshot not found');
@@ -68,24 +68,24 @@ export class DocsPageHistoryService {
       };
     }
 
-    const oldPage = await this.pageDao.get({ id: pageId, projectId });
+    const oldPage = await this.pageDao.get({ id: pageId, baseId });
 
     const service = this.pageUpdateService;
     await service.process({
       workspaceId,
-      projectId,
+      baseId,
       pageId,
       attributes: updateAttrs,
       user,
       snapshotDisabled: true,
     });
 
-    const page = await this.pageDao.get({ id: pageId, projectId });
+    const page = await this.pageDao.get({ id: pageId, baseId });
     const diffHtml = await this.getDiff(page, oldPage);
 
     const snap = await this.pageSnapshotDao.create({
       workspaceId,
-      projectId,
+      baseId,
       pageId,
       type: 'restored',
       page,
@@ -94,7 +94,7 @@ export class DocsPageHistoryService {
 
     await this.pageDao.addSnapshot({
       pageId,
-      projectId,
+      baseId,
       lastSnapshotAt: page.updated_at,
       snapshot: snap,
     });
@@ -130,7 +130,7 @@ export class DocsPageHistoryService {
     if (!this.isClickHouseConfigured()) return;
 
     const { workspaceId, newPage, snapshotType: _snapshotType } = params;
-    const projectId = newPage.project_id;
+    const baseId = newPage.base_id;
 
     const oldSnapshot = this.oldSnapshotFromPage(newPage);
 
@@ -187,7 +187,7 @@ export class DocsPageHistoryService {
 
     const snap = await this.pageSnapshotDao.create({
       workspaceId,
-      projectId,
+      baseId,
       pageId,
       type: snapshotType,
       page: newPage,
@@ -196,19 +196,19 @@ export class DocsPageHistoryService {
 
     await this.pageDao.addSnapshot({
       pageId,
-      projectId,
+      baseId,
       lastSnapshotAt: newPage.updated_at,
       snapshot: snap,
     });
   }
 
   async list({
-    projectId,
+    baseId,
     pageId,
     pageNumber,
     pageSize,
   }: {
-    projectId: string;
+    baseId: string;
     pageId: string;
     pageNumber?: number | undefined;
     pageSize?: number | undefined;
@@ -221,7 +221,7 @@ export class DocsPageHistoryService {
       };
 
     return await this.pageSnapshotDao.list({
-      projectId,
+      baseId,
       pageId,
       pageNumber,
       pageSize,

@@ -11,10 +11,10 @@ export class ProjectsPage extends BasePage {
 
   constructor(rootPage: Page) {
     super(rootPage);
-    this.buttonEditProject = this.get().locator('.nc-action-btn.nc-edit-project');
-    this.buttonDeleteProject = this.get().locator('.nc-action-btn.nc-delete-project');
+    this.buttonEditProject = this.get().locator('.nc-action-btn.nc-edit-base');
+    this.buttonDeleteProject = this.get().locator('.nc-action-btn.nc-delete-base');
     this.buttonMoreActions = this.get().locator('.nc-import-menu');
-    this.buttonNewProject = this.get().locator('.nc-new-project-menu');
+    this.buttonNewProject = this.get().locator('.nc-new-base-menu');
     this.buttonColorSelector = this.get().locator('div.color-selector');
   }
 
@@ -24,31 +24,31 @@ export class ProjectsPage extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator('[data-testid="projects-container"]');
+    return this.rootPage.locator('[data-testid="bases-container"]');
   }
 
-  // create project
+  // create base
   async createProject({ name = 'sample', withoutPrefix }: { name?: string; type?: string; withoutPrefix?: boolean }) {
     if (!withoutPrefix) name = this.prefixTitle(name);
 
-    // Click "New Project" button
-    await this.get().locator('.nc-new-project-menu').click();
+    // Click "New Base" button
+    await this.get().locator('.nc-new-base-menu').click();
 
-    await this.rootPage.locator(`.nc-metadb-project-name`).waitFor();
-    await this.rootPage.locator(`input.nc-metadb-project-name`).fill(name);
+    await this.rootPage.locator(`.nc-metadb-base-name`).waitFor();
+    await this.rootPage.locator(`input.nc-metadb-base-name`).fill(name);
 
     const createProjectSubmitAction = () => this.rootPage.locator(`button:has-text("Create")`).click();
     await this.waitForResponse({
       uiAction: createProjectSubmitAction,
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: '/api/v1/db/meta/projects/',
+      requestUrlPathToMatch: '/api/v1/meta/bases/',
     });
 
     // wait for dashboard to render
     await this.rootPage.locator('.nc-container').waitFor({ state: 'visible' });
   }
 
-  // duplicate project
+  // duplicate base
   async duplicateProject({
     name = 'sample',
     withoutPrefix,
@@ -65,9 +65,9 @@ export class ProjectsPage extends BasePage {
     // click three-dot
     await this.rootPage.getByTestId('p-three-dot-' + name).click();
     // check duplicate visible
-    await expect(this.rootPage.getByTestId('dupe-project-' + name)).toBeVisible();
+    await expect(this.rootPage.getByTestId('dupe-base-' + name)).toBeVisible();
     // click duplicate
-    await this.rootPage.getByTestId('dupe-project-' + name).click();
+    await this.rootPage.getByTestId('dupe-base-' + name).click();
 
     // Find the checkbox element with the label "Include data"
     const includeDataCheckbox = this.rootPage.getByText('Include data', { exact: true });
@@ -83,27 +83,27 @@ export class ProjectsPage extends BasePage {
       await includeViewsCheckbox.click(); // click the checkbox to check it
     }
 
-    // click duplicate confirmation "Do you want to duplicate 'sampleREST0' project?"
+    // click duplicate confirmation "Do you want to duplicate 'sampleREST0' base?"
     const dupeProjectSubmitAction = () => this.rootPage.getByRole('button', { name: 'Confirm' }).click();
 
     await this.waitForResponse({
       uiAction: dupeProjectSubmitAction,
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: 'api/v1/db/meta/duplicate/',
+      requestUrlPathToMatch: 'api/v1/meta/duplicate/',
     });
     // wait for duplicate create completed and render kebab
     await this.get().locator(`[data-testid="p-three-dot-${name} copy"]`).waitFor();
   }
 
   async checkProjectCreateButton({ exists = true }) {
-    await expect(this.rootPage.locator('.nc-new-project-menu:visible')).toHaveCount(exists ? 1 : 0);
+    await expect(this.rootPage.locator('.nc-new-base-menu:visible')).toHaveCount(exists ? 1 : 0);
   }
 
   async reloadProjects() {
-    const reloadUiAction = () => this.get().locator('[data-testid="projects-reload-button"]').click();
+    const reloadUiAction = () => this.get().locator('[data-testid="bases-reload-button"]').click();
     await this.waitForResponse({
       uiAction: reloadUiAction,
-      requestUrlPathToMatch: '/api/v1/db/meta/projects',
+      requestUrlPathToMatch: '/api/v1/meta/bases',
       httpMethodsToMatch: ['GET'],
     });
   }
@@ -134,7 +134,7 @@ export class ProjectsPage extends BasePage {
   }) {
     if (!withoutPrefix) title = this.prefixTitle(title);
 
-    let project: any;
+    let base: any;
 
     const responsePromise = this.rootPage.waitForResponse(async res => {
       let json: any = {};
@@ -145,12 +145,12 @@ export class ProjectsPage extends BasePage {
       }
 
       const isRequiredResponse =
-        res.request().url().includes('/api/v1/db/meta/projects') &&
+        res.request().url().includes('/api/v1/meta/bases') &&
         ['GET'].includes(res.request().method()) &&
         json?.title === title;
 
       if (isRequiredResponse) {
-        project = json;
+        base = json;
       }
 
       return isRequiredResponse;
@@ -164,23 +164,23 @@ export class ProjectsPage extends BasePage {
 
     await responsePromise;
 
-    const dashboard = new DashboardPage(this.rootPage, project);
+    const dashboard = new DashboardPage(this.rootPage, base);
 
     if (waitForAuthTab) await dashboard.waitForTabRender({ title: 'Team & Auth' });
 
-    return project;
+    return base;
   }
 
   async deleteProject({ title, withoutPrefix }: { title: string; withoutPrefix?: boolean }) {
     if (!withoutPrefix) title = this.prefixTitle(title);
 
-    await this.get().locator(`[data-testid="delete-project-${title}"]`).click();
+    await this.get().locator(`[data-testid="delete-base-${title}"]`).click();
 
     const deleteProjectAction = () => this.rootPage.locator(`button:has-text("Yes")`).click();
     await this.waitForResponse({
       uiAction: deleteProjectAction,
       httpMethodsToMatch: ['DELETE'],
-      requestUrlPathToMatch: '/api/v1/db/meta/projects/',
+      requestUrlPathToMatch: '/api/v1/meta/bases/',
     });
 
     await this.get().locator('.ant-table-row', { hasText: title }).waitFor({ state: 'hidden' });
@@ -198,21 +198,21 @@ export class ProjectsPage extends BasePage {
     if (!withoutPrefix) title = this.prefixTitle(title);
     if (!withoutPrefix) newTitle = this.prefixTitle(newTitle);
 
-    const project = this.rootPage;
-    const projRow = project.locator(`tr`, {
-      has: project.locator(`td.ant-table-cell:has-text("${title}")`),
+    const base = this.rootPage;
+    const projRow = base.locator(`tr`, {
+      has: base.locator(`td.ant-table-cell:has-text("${title}")`),
     });
     await projRow.locator('.nc-action-btn').nth(0).click();
 
     // there is a flicker; add delay to avoid flakiness
     await this.rootPage.waitForTimeout(1000);
 
-    await project.locator('input.nc-metadb-project-name').fill(newTitle);
+    await base.locator('input.nc-metadb-base-name').fill(newTitle);
     // press enter to save
-    const submitAction = () => project.locator('input.nc-metadb-project-name').press('Enter');
+    const submitAction = () => base.locator('input.nc-metadb-base-name').press('Enter');
     await this.waitForResponse({
       uiAction: submitAction,
-      requestUrlPathToMatch: 'api/v1/db/meta/projects/',
+      requestUrlPathToMatch: 'api/v1/meta/bases/',
       httpMethodsToMatch: ['PATCH'],
     });
   }
@@ -227,8 +227,8 @@ export class ProjectsPage extends BasePage {
   }
 
   async verifyLanguage(param: { json: any }) {
-    const title = this.rootPage.locator(`.nc-project-page-title`);
-    const menu = this.rootPage.locator(`.nc-new-project-menu`);
+    const title = this.rootPage.locator(`.nc-base-page-title`);
+    const menu = this.rootPage.locator(`.nc-new-base-menu`);
     await expect(title).toHaveText(param.json.title.myProject);
     await expect(menu).toHaveText(param.json.title.newProj);
     await this.rootPage.locator(`[placeholder="${param.json.activity.searchProject}"]`).waitFor();
@@ -244,11 +244,11 @@ export class ProjectsPage extends BasePage {
   }
 
   async waitForRender() {
-    await this.rootPage.locator('.nc-project-page-title:has-text("My Projects")').waitFor();
+    await this.rootPage.locator('.nc-base-page-title:has-text("My Projects")').waitFor();
   }
 
   async validateRoleAccess(param: { role: string }) {
-    // new user; by default org level permission is to viewer (can't create project)
+    // new user; by default org level permission is to viewer (can't create base)
     await expect(this.buttonNewProject).toBeVisible({ visible: false });
 
     // role specific permissions

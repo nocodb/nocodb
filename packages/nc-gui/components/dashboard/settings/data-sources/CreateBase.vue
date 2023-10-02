@@ -17,7 +17,7 @@ import {
   iconMap,
   nextTick,
   onMounted,
-  projectTitleValidator,
+  baseTitleValidator,
   readFile,
   ref,
   storeToRefs,
@@ -29,18 +29,18 @@ import {
 
 const props = defineProps<{ connectionType?: ClientType }>()
 
-const emit = defineEmits(['baseCreated', 'close'])
+const emit = defineEmits(['sourceCreated', 'close'])
 
 const connectionType = computed(() => props.connectionType ?? ClientType.MYSQL)
 
-const projectStore = useProject()
-const { loadProject } = useProjects()
-const { project } = storeToRefs(projectStore)
+const baseStore = useBase()
+const { loadProject } = useBases()
+const { base } = storeToRefs(baseStore)
 
 const { loadProjectTables } = useTablesStore()
 
 const _projectId = inject(ProjectIdInj, undefined)
-const projectId = computed(() => _projectId?.value ?? project.value?.id)
+const baseId = computed(() => _projectId?.value ?? base.value?.id)
 
 const useForm = Form.useForm
 
@@ -56,7 +56,7 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const creatingBase = ref(false)
+const creatingSource = ref(false)
 
 const formState = ref<ProjectCreateForm>({
   title: '',
@@ -122,9 +122,9 @@ const validators = computed(() => {
     'title': [
       {
         required: true,
-        message: 'Base name is required',
+        message: 'Source name is required',
       },
-      projectTitleValidator,
+      baseTitleValidator,
     ],
     'extraParameters': [extraParameterValidator],
     'dataSource.client': [fieldRequiredValidator()],
@@ -234,7 +234,7 @@ const focusInvalidInput = () => {
 
 const { $poller } = useNuxtApp()
 
-const createBase = async () => {
+const createSource = async () => {
   try {
     await validate()
   } catch (e) {
@@ -243,15 +243,15 @@ const createBase = async () => {
   }
 
   try {
-    if (!projectId.value) return
+    if (!baseId.value) return
 
-    creatingBase.value = true
+    creatingSource.value = true
 
     const connection = getConnectionConfig()
 
     const config = { ...formState.value.dataSource, connection }
 
-    const jobData = await api.base.create(projectId.value, {
+    const jobData = await api.source.create(baseId.value, {
       alias: formState.value.title,
       type: formState.value.dataSource.client,
       config,
@@ -276,17 +276,17 @@ const createBase = async () => {
           if (data.status === JobStatus.COMPLETED) {
             $e('a:base:create:extdb')
 
-            if (projectId.value) {
-              await loadProject(projectId.value, true)
-              await loadProjectTables(projectId.value, true)
+            if (baseId.value) {
+              await loadProject(baseId.value, true)
+              await loadProjectTables(baseId.value, true)
             }
 
-            emit('baseCreated')
+            emit('sourceCreated')
             emit('close')
-            creatingBase.value = false
+            creatingSource.value = false
           } else if (status === JobStatus.FAILED) {
             message.error('Failed to create base')
-            creatingBase.value = false
+            creatingSource.value = false
           }
         }
       },
@@ -304,7 +304,7 @@ const testConnection = async () => {
     return
   }
 
-  $e('a:base:create:extdb:test-connection', [])
+  $e('a:source:create:extdb:test-connection', [])
 
   try {
     testingConnection.value = true
@@ -403,8 +403,8 @@ watch(
 </script>
 
 <template>
-  <div class="create-base bg-white relative flex flex-col justify-center gap-2 w-full">
-    <h1 class="prose-2xl font-bold self-start mb-4 flex items-center gap-2">
+  <div class="create-source bg-white relative flex flex-col justify-center gap-2 w-full">
+    <h1 class="prose-xl font-bold self-start mb-4 flex items-center gap-2">
       {{ $t('title.newBase') }}
       <DashboardSettingsDataSourcesInfo />
       <span class="flex-grow"></span>
@@ -413,7 +413,7 @@ watch(
     <a-form
       ref="form"
       :model="formState"
-      name="external-project-create-form"
+      name="external-base-create-form"
       layout="horizontal"
       no-style
       :label-col="{ span: 8 }"
@@ -424,7 +424,7 @@ watch(
           maxHeight: '60vh',
         }"
       >
-        <a-form-item label="Base Name" v-bind="validateInfos.title">
+        <a-form-item label="Source Name" v-bind="validateInfos.title">
           <a-input v-model:value="formState.title" class="nc-extdb-proj-name" />
         </a-form-item>
 
@@ -628,13 +628,12 @@ watch(
           </NcButton>
 
           <NcButton
-            v-e="['a:source:create']"
             size="small"
             type="primary"
             :disabled="!testSuccess"
             :loading="creatingBase"
             class="nc-extdb-btn-submit !rounded-md"
-            @click="createBase"
+            @click="createSource"
           >
             {{ $t('general.submit') }}
           </NcButton>
@@ -688,7 +687,7 @@ watch(
   @apply !min-h-0;
 }
 
-.create-base {
+.create-source {
   :deep(.ant-input-affix-wrapper),
   :deep(.ant-input),
   :deep(.ant-select) {

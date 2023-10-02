@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LayoutType, ProjectType } from 'nocodb-sdk'
+import type { LayoutType, BaseType } from 'nocodb-sdk'
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import {
   Form,
@@ -18,7 +18,7 @@ import {
 interface Props {
   modelValue?: boolean
   layout: LayoutType
-  dashboardProject: ProjectType
+  dashboardProject: BaseType
 }
 
 const { layout, dashboardProject, ...props } = defineProps<Props>()
@@ -52,8 +52,8 @@ const validators = computed(() => {
         validator: (rule: any, value: any) => {
           return new Promise<void>((resolve, reject) => {
             const layoutNameLengthLimit = 255
-            const projectPrefix = dashboardProject?.prefix || ''
-            if ((projectPrefix + value).length > layoutNameLengthLimit) {
+            const basePrefix = dashboardProject?.prefix || ''
+            if ((basePrefix + value).length > layoutNameLengthLimit) {
               return reject(new Error(`Layout name exceeds ${layoutNameLengthLimit} characters`))
             }
             resolve()
@@ -110,7 +110,7 @@ const renameLayout = async () => {
     })
 
     dialogShow.value = false
-    await fetchLayouts({ projectId: dashboardProject.id! })
+    await fetchLayouts({ baseId: dashboardProject.id! })
 
     message.success(t('msg.success.layoutRenamed'))
 

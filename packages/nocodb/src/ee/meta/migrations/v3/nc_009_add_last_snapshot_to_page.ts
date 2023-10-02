@@ -9,7 +9,7 @@ const up = async (knex: Knex) => {
     await knex.schema.alterTable(
       await Page.tableName({
         workspaceId: workspace.id,
-        projectId: workspace.id,
+        baseId: workspace.id,
       }),
       (table) => {
         // Add last_snapshot_at column
@@ -27,7 +27,7 @@ const down = async (knex: Knex) => {
     await knex.schema.alterTable(
       await Page.tableName({
         workspaceId: workspace.id,
-        projectId: workspace.id,
+        baseId: workspace.id,
       }),
       (table) => {
         // Add last_snapshot_at column

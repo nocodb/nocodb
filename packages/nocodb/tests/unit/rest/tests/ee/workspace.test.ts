@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
-import { createProject } from '../../../factory/project';
+import { createProject } from '../../../factory/base';
 import init from '../../../init';
 
 function workspaceTests() {

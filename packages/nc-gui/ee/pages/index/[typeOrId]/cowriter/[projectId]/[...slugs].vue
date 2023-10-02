@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { useProject, useProvideCowriterStore, useRoute } from '#imports'
+import { useBase, useProvideCowriterStore, useRoute } from '#imports'
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 const route = useRoute()
 
-const { loadProject } = useProject()
+const { loadProject } = useBase()
 
-const { cowriterLayout } = useProvideCowriterStore(route.params.projectId as string)
+const { cowriterLayout } = useProvideCowriterStore(route.params.baseId as string)
 
-loadProject(true, route.params.projectId as string)
+loadProject(true, route.params.baseId as string)
 
 definePageMeta({
   key: 'true',

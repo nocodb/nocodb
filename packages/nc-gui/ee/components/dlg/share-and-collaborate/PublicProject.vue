@@ -1,16 +1,16 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
 
-const projectStore = useProject()
-const { loadProject, updateProject } = projectStore
-const { project } = storeToRefs(projectStore)
+const baseStore = useBase()
+const { loadProject, updateProject } = baseStore
+const { base } = storeToRefs(baseStore)
 
-const { projectUrl } = useDocStore()
+const { baseUrl } = useDocStore()
 
-const { setProject } = useProjects()
+const { setProject } = useBases()
 
-const projectMeta = computed(() => {
-  return typeof project.value.meta === 'string' ? JSON.parse(project.value.meta) : project.value.meta ?? {}
+const baseMeta = computed(() => {
+  return typeof base.value.meta === 'string' ? JSON.parse(base.value.meta) : base.value.meta ?? {}
 })
 
 const isProjectUpdating = ref(false)
@@ -23,7 +23,7 @@ const isCopied = ref({
 const copyUrl = async () => {
   isCopied.value.link = false
 
-  await navigator.clipboard.writeText(projectUrl(project.value.id!, { completeUrl: true, publicMode: true }))
+  await navigator.clipboard.writeText(baseUrl(base.value.id!, { completeUrl: true, publicMode: true }))
 
   setTimeout(() => {
     isCopied.value.link = true
@@ -31,12 +31,12 @@ const copyUrl = async () => {
 }
 
 const openUrl = async () => {
-  window.open(projectUrl(project.value.id!, { completeUrl: true, publicMode: true }), '_blank')
+  window.open(baseUrl(base.value.id!, { completeUrl: true, publicMode: true }), '_blank')
 }
 
 const embedHtml = async () => {
   await navigator.clipboard.writeText(
-    `<iframe src="${projectUrl(project.value.id!, {
+    `<iframe src="${baseUrl(base.value.id!, {
       completeUrl: true,
       publicMode: true,
     })}" width="100%" height="100%" style="border: none;"></iframe>`,
@@ -48,7 +48,7 @@ const toggleProjectPublicState = async () => {
   isProjectUpdating.value = true
 
   let updates
-  if (projectMeta.value.isPublic) {
+  if (baseMeta.value.isPublic) {
     updates = {
       isPublic: false,
     }
@@ -59,7 +59,7 @@ const toggleProjectPublicState = async () => {
   }
 
   try {
-    let meta = project.value.meta
+    let meta = base.value.meta
     if (typeof meta === 'string') {
       meta = JSON.parse(meta)
     }
@@ -71,8 +71,8 @@ const toggleProjectPublicState = async () => {
 
     await loadProject()
 
-    setProject(project.value.id!, {
-      ...project.value,
+    setProject(base.value.id!, {
+      ...base.value,
       meta: {
         ...(meta as any),
         ...updates,
@@ -101,14 +101,14 @@ watch(
       <div class="flex flex-row w-full justify-between">
         <div class="flex" :style="{ fontWeight: 500 }">Enable public viewing</div>
         <a-switch
-          :checked="projectMeta?.isPublic"
+          :checked="baseMeta?.isPublic"
           :loading="isProjectUpdating"
-          class="docs-project-share-public-toggle !mt-0.25"
-          data-testid="docs-project-share-public-toggle"
+          class="docs-base-share-public-toggle !mt-0.25"
+          data-testid="docs-base-share-public-toggle"
           @click="toggleProjectPublicState"
         />
       </div>
-      <div v-if="projectMeta?.isPublic" class="flex flex-row justify-end text-gray-600 gap-x-1.5 my-0.5">
+      <div v-if="baseMeta?.isPublic" class="flex flex-row justify-end text-gray-600 gap-x-1.5 my-0.5">
         <div class="flex py-1.5 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300" @click="openUrl">
           <RiExternalLinkLine class="h-3.75" />
         </div>
@@ -123,7 +123,7 @@ watch(
         </div>
         <div
           class="flex flex-row py-1 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300 gap-x-1 items-center"
-          data-testid="docs-share-project-copy-link"
+          data-testid="docs-share-base-copy-link"
           @click="copyUrl"
         >
           <MdiCheck v-if="isCopied.link" class="h-3.5" />
@@ -139,7 +139,7 @@ watch(
 </template>
 
 <style lang="scss">
-.docs-project-share-public-toggle {
+.docs-base-share-public-toggle {
   height: 1.25rem !important;
   min-width: 2.4rem !important;
   width: 2.4rem !important;

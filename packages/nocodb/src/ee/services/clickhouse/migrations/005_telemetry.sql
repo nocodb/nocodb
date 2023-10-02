@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS usage_telemetry (
     url String,
     workspace_id String(20),
   	user_id String(20),
-    project_id String(120),
+    base_id String(120),
 
     req_ipv4 IPv4,
     req_ipv6 IPv6,

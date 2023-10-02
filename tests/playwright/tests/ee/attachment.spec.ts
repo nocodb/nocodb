@@ -12,7 +12,7 @@ test.describe.skip('Attachment column', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false, isSuperUser: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     accountPage = new AccountPage(page);
     accountLicensePage = new AccountLicensePage(accountPage);
   });

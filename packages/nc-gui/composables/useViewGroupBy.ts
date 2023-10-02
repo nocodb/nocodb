@@ -1,12 +1,12 @@
 import { type ColumnType, type SelectOptionsType, UITypes, type ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { GROUP_BY_VARS, ref, storeToRefs, useApi, useProject } from '#imports'
+import { GROUP_BY_VARS, ref, storeToRefs, useApi, useBase } from '#imports'
 import type { Group, GroupNestedIn, Row } from '#imports'
 
 export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: ComputedRef<string | undefined>) => {
   const { api } = useApi()
 
-  const { project } = storeToRefs(useProject())
+  const { base } = storeToRefs(useBase())
 
   const { sharedView, fetchSharedViewData } = useSharedView()
 
@@ -151,7 +151,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
   async function loadGroups(params: any = {}, group?: Group) {
     group = group || rootGroup.value
 
-    if (!project?.value?.id || !view.value?.id || !view.value?.fk_model_id || !group) return
+    if (!base?.value?.id || !view.value?.id || !view.value?.fk_model_id || !group) return
 
     if (groupBy.value.length === 0) {
       group.children = []
@@ -171,7 +171,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     }
 
     const response = !isPublic.value
-      ? await api.dbViewRow.groupBy('noco', project.value.id, view.value.fk_model_id, view.value.id, {
+      ? await api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
           offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByLimit),
           limit: group.paginationData.pageSize ?? groupByLimit,
           ...params,
@@ -263,7 +263,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
   }
 
   async function loadGroupData(group: Group, force = false) {
-    if (!project?.value?.id || !view.value?.id || !view.value?.fk_model_id) return
+    if (!base?.value?.id || !view.value?.id || !view.value?.fk_model_id) return
 
     if (group.children && !force) return
 
@@ -280,7 +280,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     }
 
     const response = !isPublic.value
-      ? await api.dbViewRow.list('noco', project.value.id, view.value.fk_model_id, view.value.id, {
+      ? await api.dbViewRow.list('noco', base.value.id, view.value.fk_model_id, view.value.id, {
           ...query,
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),

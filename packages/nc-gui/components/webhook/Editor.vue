@@ -39,7 +39,7 @@ const { api, isLoading: loading } = useApi()
 
 const { hooks } = storeToRefs(useWebhooksStore())
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
 const meta = inject(MetaInj, ref())
 
@@ -377,7 +377,7 @@ async function loadPluginList() {
     const plugins = (
       await api.plugin.webhookList({
         query: {
-          project_id: project.value.id,
+          base_id: base.value.id,
         },
       })
     ).list!

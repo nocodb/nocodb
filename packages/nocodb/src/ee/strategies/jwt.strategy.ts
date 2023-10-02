@@ -29,7 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return {
       ...(await User.getWithRoles(user.id, {
         user,
-        projectId: req.ncProjectId,
+        baseId: req.ncProjectId,
         workspaceId: req.ncWorkspaceId,
       })),
       provider: jwtPayload.provider ?? undefined,

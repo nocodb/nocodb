@@ -3,7 +3,7 @@ import {
   ColumnType,
   FilterType,
   HookType,
-  ProjectType,
+  BaseType,
   SortType,
 } from './Api';
 
@@ -37,7 +37,7 @@ export type ProjectUserUpdatePayloadType = any;
 
 export interface ModelVisibilityListParamsType {
   includeM2M?: boolean;
-  projectId: string;
+  baseId: string;
 }
 
 export type ModelVisibilitySetPayloadType = any;
@@ -48,7 +48,7 @@ export interface ListParamsType {
   sort?: string;
 }
 
-export type CreatePayloadType = ProjectType & { external?: boolean };
+export type CreatePayloadType = BaseType & { external?: boolean };
 
 export interface SharedBaseCreatePayloadType {
   roles?: string;
@@ -70,7 +70,7 @@ export interface ListParams7Type {
   pageSize?: number;
   sort?: string;
   includeM2M?: boolean;
-  projectId: string;
+  baseId: string;
 }
 
 export interface UpdatePayloadType {
@@ -226,7 +226,7 @@ export interface CommentCountParamsType {
 export interface AuditListParamsType {
   offset?: string;
   limit?: string;
-  projectId: string;
+  baseId: string;
 }
 
 export interface AuditRowUpdatePayloadType {

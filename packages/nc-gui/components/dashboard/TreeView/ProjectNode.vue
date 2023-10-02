@@ -2,7 +2,7 @@
 import { nextTick } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import { stringifyRolesObj } from 'nocodb-sdk'
-import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
+import type { SourceType, BaseType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import { useTitle } from '@vueuse/core'
 import {
@@ -13,7 +13,7 @@ import {
   extractSdkResponseErrorMsg,
   openLink,
   storeToRefs,
-  useProjects,
+  useBases,
 } from '#imports'
 import type { NcProject } from '#imports'
 import { useNuxtApp } from '#app'
@@ -29,19 +29,19 @@ const indicator = h(LoadingOutlined, {
 const router = useRouter()
 const route = router.currentRoute
 
-const { isSharedBase } = storeToRefs(useProject())
-const { projectUrl } = useProject()
+const { isSharedBase } = storeToRefs(useBase())
+const { projectUrl } = useBase()
 
 const { setMenuContext, openRenameTableDialog, duplicateTable, contextMenuTarget } = inject(TreeViewInj)!
 
-const project = inject(ProjectInj)!
+const base = inject(ProjectInj)!
 
-const projectsStore = useProjects()
+const basesStore = useBases()
 
 const { isMobileMode } = useGlobal()
 
-const { loadProject, loadProjects, createProject: _createProject, updateProject, getProjectMetaInfo } = projectsStore
-const { projects } = storeToRefs(projectsStore)
+const { loadProject, loadProjects, createProject: _createProject, updateProject, getProjectMetaInfo } = basesStore
+const { bases } = storeToRefs(basesStore)
 
 const { loadProjectTables } = useTablesStore()
 const { activeTable } = storeToRefs(useTablesStore())
@@ -64,9 +64,11 @@ const { t } = useI18n()
 
 const input = ref<HTMLInputElement>()
 
-const projectRole = inject(ProjectRoleInj)
+const baseRole = inject(ProjectRoleInj)
 
-const { activeProjectId } = storeToRefs(useProjects())
+const { activeProjectId } = storeToRefs(useBases())
+
+const { baseUrl } = useBase()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
@@ -82,9 +84,9 @@ const keys = ref<Record<string, number>>({})
 const isTableDeleteDialogVisible = ref(false)
 const isProjectDeleteDialogVisible = ref(false)
 
-// If only project is open, i.e in case of docs, project view is open and not the page view
-const projectViewOpen = computed(() => {
-  const routeNameSplit = String(route.value?.name).split('projectId-index-index')
+// If only base is open, i.e in case of docs, base view is open and not the page view
+const baseViewOpen = computed(() => {
+  const routeNameSplit = String(route.value?.name).split('baseId-index-index')
   if (routeNameSplit.length <= 1) return false
 
   const routeNameAfterProjectView = routeNameSplit[routeNameSplit.length - 1]
@@ -97,7 +99,7 @@ const showBaseOption = computed(() => {
 
 const enableEditMode = () => {
   editMode.value = true
-  tempTitle.value = project.value.title!
+  tempTitle.value = base.value.title!
   nextTick(() => {
     input.value?.focus()
     input.value?.select()
@@ -109,15 +111,15 @@ const updateProjectTitle = async () => {
   if (!tempTitle.value) return
 
   try {
-    await updateProject(project.value.id!, {
+    await updateProject(base.value.id!, {
       title: tempTitle.value,
     })
     editMode.value = false
     tempTitle.value = ''
 
-    $e('a:project:rename')
+    $e('a:base:rename')
 
-    useTitle(`${project.value?.title}`)
+    useTitle(`${base.value?.title}`)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -129,7 +131,7 @@ const copyProjectInfo = async () => {
   try {
     if (
       await copy(
-        Object.entries(await getProjectMetaInfo(project.value.id!)!)
+        Object.entries(await getProjectMetaInfo(base.value.id!)!)
           .map(([k, v]) => `${k}: **${v}**`)
           .join('\n'),
       )
@@ -147,34 +149,34 @@ defineExpose({
   enableEditMode,
 })
 
-const setIcon = async (icon: string, project: ProjectType) => {
+const setIcon = async (icon: string, base: BaseType) => {
   try {
     const meta = {
-      ...((project.meta as object) || {}),
+      ...((base.meta as object) || {}),
       icon,
     }
 
-    projectsStore.updateProject(project.id!, { meta: JSON.stringify(meta) })
+    basesStore.updateProject(base.id!, { meta: JSON.stringify(meta) })
 
-    $e('a:project:icon:navdraw', { icon })
+    $e('a:base:icon:navdraw', { icon })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
-function openTableCreateDialog(baseIndex?: number | undefined) {
+function openTableCreateDialog(sourceIndex?: number | undefined) {
   const isOpen = ref(true)
-  let baseId = project.value!.bases?.[0].id
-  if (typeof baseIndex === 'number') {
-    baseId = project.value!.bases?.[baseIndex].id
+  let sourceId = base.value!.sources?.[0].id
+  if (typeof sourceIndex === 'number') {
+    sourceId = base.value!.sources?.[sourceIndex].id
   }
 
-  if (!baseId || !project.value?.id) return
+  if (!sourceId || !base.value?.id) return
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
-    baseId, // || bases.value[0].id,
-    'projectId': project.value!.id,
+    sourceId, // || sources.value[0].id,
+    'baseId': base.value!.id,
     'onCreate': closeDialog,
     'onUpdate:modelValue': () => closeDialog(),
   })
@@ -184,10 +186,10 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
     if (!table) return
 
-    project.value.isExpanded = true
+    base.value.isExpanded = true
 
-    if (!activeKey.value || !activeKey.value.includes(`collapse-${baseId}`)) {
-      activeKey.value.push(`collapse-${baseId}`)
+    if (!activeKey.value || !activeKey.value.includes(`collapse-${sourceId}`)) {
+      activeKey.value.push(`collapse-${sourceId}`)
     }
 
     // TODO: Better way to know when the table node dom is available
@@ -208,27 +210,27 @@ const addNewProjectChildEntity = async () => {
 
   isAddNewProjectChildEntityLoading.value = true
 
-  const isProjectPopulated = projectsStore.isProjectPopulated(project.value.id!)
-  if (!isProjectPopulated && project.value.type === NcProjectType.DB) {
+  const isProjectPopulated = basesStore.isProjectPopulated(base.value.id!)
+  if (!isProjectPopulated && base.value.type === NcProjectType.DB) {
     // We do not wait for tables api, so that add new table is seamless.
     // Only con would be while saving table duplicate table name FE validation might not work
     // If the table list api takes time to load before the table name validation
-    loadProjectTables(project.value.id!)
+    loadProjectTables(base.value.id!)
   }
 
   try {
     openTableCreateDialog()
 
-    if (!project.value.isExpanded && project.value.type !== NcProjectType.DB) {
-      project.value.isExpanded = true
+    if (!base.value.isExpanded && base.value.type !== NcProjectType.DB) {
+      base.value.isExpanded = true
     }
   } finally {
     isAddNewProjectChildEntityLoading.value = false
   }
 }
 
-const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
-  if (!project) {
+const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
+  if (!base) {
     return
   }
 
@@ -238,19 +240,19 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
   toggleIsExpanded = isMobileMode.value || toggleIsExpanded
 
   if (toggleIsExpanded) {
-    project.isExpanded = !project.isExpanded
+    base.isExpanded = !base.isExpanded
   } else {
-    project.isExpanded = true
+    base.isExpanded = true
   }
 
-  const isProjectPopulated = projectsStore.isProjectPopulated(project.id!)
+  const isProjectPopulated = basesStore.isProjectPopulated(base.id!)
 
-  if (!isProjectPopulated) project.isLoading = true
+  if (!isProjectPopulated) base.isLoading = true
 
   if (!ignoreNavigation) {
     await navigateTo(
-      projectUrl({
-        id: project.id!,
+      baseUrl({
+        id: base.id!,
         type: 'database',
         isSharedBase: isSharedBase.value,
       }),
@@ -258,32 +260,32 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
   }
 
   if (!isProjectPopulated) {
-    await loadProjectTables(project.id!)
+    await loadProjectTables(base.id!)
   }
 
   if (!isProjectPopulated) {
-    const updatedProject = projects.value.get(project.id!)!
+    const updatedProject = bases.value.get(base.id!)!
     updatedProject.isLoading = false
   }
 }
 
-function openErdView(base: BaseType) {
-  activeBaseId.value = base.id
+function openErdView(source: SourceType) {
+  activeBaseId.value = source.id
   isErdModalOpen.value = !isErdModalOpen.value
 }
 
-async function openProjectErdView(_project: ProjectType) {
+async function openProjectErdView(_project: BaseType) {
   if (!_project.id) return
 
-  if (!projectsStore.isProjectPopulated(_project.id)) {
+  if (!basesStore.isProjectPopulated(_project.id)) {
     await loadProject(_project.id)
   }
 
-  const project = projects.value.get(_project.id)
+  const base = bases.value.get(_project.id)
 
-  const base = project?.bases?.[0]
-  if (!base) return
-  openErdView(base)
+  const source = base?.sources?.[0]
+  if (!source) return
+  openErdView(source)
 }
 
 const reloadTables = async () => {
@@ -293,11 +295,11 @@ const reloadTables = async () => {
 }
 
 const contextMenuBase = computed(() => {
-  if (contextMenuTarget.type === 'base') {
+  if (contextMenuTarget.type === 'source') {
     return contextMenuTarget.value
   } else if (contextMenuTarget.type === 'table') {
-    const base = project.value?.bases?.find((b) => b.id === contextMenuTarget.value.base_id)
-    if (base) return base
+    const source = base.value?.sources?.find((b) => b.id === contextMenuTarget.value.source_id)
+    if (source) return source
   }
   return null
 })
@@ -307,11 +309,11 @@ watch(
   async () => {
     if (!activeTable.value) return
 
-    const baseId = activeTable.value.base_id
-    if (!baseId) return
+    const sourceId = activeTable.value.source_id
+    if (!sourceId) return
 
-    if (!activeKey.value.includes(`collapse-${baseId}`)) {
-      activeKey.value.push(`collapse-${baseId}`)
+    if (!activeKey.value.includes(`collapse-${sourceId}`)) {
+      activeKey.value.push(`collapse-${sourceId}`)
     }
   },
   {
@@ -332,13 +334,13 @@ onKeyStroke('Escape', () => {
 const isDuplicateDlgOpen = ref(false)
 const selectedProjectToDuplicate = ref()
 
-const duplicateProject = (project: ProjectType) => {
-  selectedProjectToDuplicate.value = project
+const duplicateProject = (base: BaseType) => {
+  selectedProjectToDuplicate.value = base
   isDuplicateDlgOpen.value = true
 }
 const { $poller } = useNuxtApp()
 
-const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string }) => {
+const DlgProjectDuplicateOnOk = async (jobData: { id: string; base_id: string }) => {
   await loadProjects('workspace')
 
   $poller.subscribe(
@@ -358,23 +360,23 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; project_id: string
         if (data.status === JobStatus.COMPLETED) {
           await loadProjects('workspace')
 
-          const project = projects.value.get(jobData.project_id)
+          const base = bases.value.get(jobData.base_id)
 
-          // open project after duplication
-          if (project) {
+          // open base after duplication
+          if (base) {
             await navigateToProject({
-              projectId: project.id,
-              type: project.type,
+              baseId: base.id,
+              type: base.type,
             })
           }
         } else if (data.status === JobStatus.FAILED) {
-          message.error('Failed to duplicate project')
+          message.error('Failed to duplicate base')
           await loadProjects('workspace')
         }
       }
     },
   )
-  $e('a:project:duplicate')
+  $e('a:base:duplicate')
 }
 
 const tableDelete = () => {
@@ -391,54 +393,54 @@ const projectDelete = () => {
 <template>
   <NcDropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
     <div
-      class="mx-1 nc-project-sub-menu rounded-md"
-      :class="{ active: project.isExpanded }"
-      :data-testid="`nc-sidebar-project-${project.title}`"
-      :data-project-id="project.id"
+      class="mx-1 nc-base-sub-menu rounded-md"
+      :class="{ active: base.isExpanded }"
+      :data-testid="`nc-sidebar-base-${base.title}`"
+      :data-base-id="base.id"
     >
-      <div class="flex items-center gap-0.75 py-0.25 cursor-pointer" @contextmenu="setMenuContext('project', project)">
+      <div class="flex items-center gap-0.75 py-0.25 cursor-pointer" @contextmenu="setMenuContext('base', base)">
         <div
-          ref="projectNodeRefs"
+          ref="baseNodeRefs"
           :class="{
-            'bg-primary-selected active': activeProjectId === project.id && projectViewOpen && !isMobileMode,
-            'hover:bg-gray-200': !(activeProjectId === project.id && projectViewOpen),
+            'bg-primary-selected active': activeProjectId === base.id && baseViewOpen && !isMobileMode,
+            'hover:bg-gray-200': !(activeProjectId === base.id && baseViewOpen),
           }"
-          :data-testid="`nc-sidebar-project-title-${project.title}`"
-          class="nc-sidebar-node project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full pr-1"
+          :data-testid="`nc-sidebar-base-title-${base.title}`"
+          class="nc-sidebar-node base-title-node h-7.25 flex-grow rounded-md group flex items-center w-full pr-1"
         >
           <NcButton
             v-e="['c:base:expand']"
             type="text"
             size="xxsmall"
             class="nc-sidebar-node-btn nc-sidebar-expand ml-0.75 !xs:visible"
-            @click="onProjectClick(project, true, true)"
+            @click="onProjectClick(base, true, true)"
           >
             <GeneralIcon
               icon="triangleFill"
               class="group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90 !xs:visible"
-              :class="{ '!rotate-180': project.isExpanded, '!visible': isOptionsOpen }"
+              :class="{ '!rotate-180': base.isExpanded, '!visible': isOptionsOpen }"
             />
           </NcButton>
 
-          <div class="flex items-center mr-1" @click="onProjectClick(project)">
+          <div class="flex items-center mr-1" @click="onProjectClick(base)">
             <div class="flex items-center select-none w-6 h-full">
               <a-spin
-                v-if="project.isLoading"
+                v-if="base.isLoading"
                 class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8"
                 :indicator="indicator"
               />
 
               <LazyGeneralEmojiPicker
                 v-else
-                :key="project.meta?.icon"
+                :key="base.meta?.icon"
+                :emoji="base.meta?.icon"
                 v-e="['c:base:emojiSelect']"
-                :emoji="project.meta?.icon"
                 :readonly="true"
                 size="small"
-                @emoji-selected="setIcon($event, project)"
+                @emoji-selected="setIcon($event, base)"
               >
                 <template #default>
-                  <GeneralProjectIcon :type="project.type" />
+                  <GeneralProjectIcon :type="base.type" />
                 </template>
               </LazyGeneralEmojiPicker>
             </div>
@@ -449,7 +451,7 @@ const projectDelete = () => {
             ref="input"
             v-model="tempTitle"
             class="flex-grow leading-1 outline-0 ring-none capitalize !text-inherit !bg-transparent w-4/5"
-            :class="{ 'text-black font-semibold': activeProjectId === project.id && projectViewOpen && !isMobileMode }"
+            :class="{ 'text-black font-semibold': activeProjectId === base.id && baseViewOpen && !isMobileMode }"
             @click.stop
             @keyup.enter="updateProjectTitle"
             @keyup.esc="updateProjectTitle"
@@ -459,12 +461,12 @@ const projectDelete = () => {
             v-else
             class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-            :class="{ 'text-black font-semibold': activeProjectId === project.id && projectViewOpen }"
-            @click="onProjectClick(project)"
+            :class="{ 'text-black font-semibold': activeProjectId === base.id && baseViewOpen }"
+            @click="onProjectClick(base)"
           >
-            {{ project.title }}
+            {{ base.title }}
           </span>
-          <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(project)"></div>
+          <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(base)"></div>
 
           <NcDropdown v-model:visible="isOptionsOpen" :trigger="['click']">
             <NcButton
@@ -485,12 +487,12 @@ const projectDelete = () => {
                   maxHeight: '70vh',
                   overflow: 'overlay',
                 }"
-                :data-testid="`nc-sidebar-project-${project.title}-options`"
+                :data-testid="`nc-sidebar-base-${base.title}-options`"
                 @click="isOptionsOpen = false"
               >
                 <template v-if="!isSharedBase">
                   <NcMenuItem
-                    v-if="isUIAllowed('projectRename')"
+                    v-if="isUIAllowed('baseRename')"
                     v-e="['c:base:rename']"
                     data-testid="nc-sidebar-project-rename"
                     @click="enableEditMode"
@@ -500,23 +502,23 @@ const projectDelete = () => {
                   </NcMenuItem>
 
                   <NcMenuItem
-                    v-if="isUIAllowed('projectDuplicate', { roles: [stringifyRolesObj(orgRoles), projectRole].join() })"
+                    v-if="isUIAllowed('baseDuplicate', { roles: [stringifyRolesObj(orgRoles), baseRole].join() })"
                     v-e="['c:base:duplicate']"
-                    data-testid="nc-sidebar-project-duplicate"
-                    @click="duplicateProject(project)"
+                    data-testid="nc-sidebar-base-duplicate"
+                    @click="duplicateProject(base)"
                   >
                     <GeneralIcon icon="duplicate" class="text-gray-700" />
                     {{ $t('general.duplicate') }}
                   </NcMenuItem>
 
-                  <NcDivider v-if="['projectDuplicate', 'projectRename'].some((permission) => isUIAllowed(permission))" />
+                  <NcDivider v-if="['baseDuplicate', 'baseRename'].some((permission) => isUIAllowed(permission))" />
 
                   <!-- Copy Project Info -->
                   <NcMenuItem
                     v-if="!isEeUI"
                     key="copy"
+                    data-testid="nc-sidebar-base-copy-base-info"
                     v-e="['c:base:copy-proj-info']"
-                    data-testid="nc-sidebar-project-copy-project-info"
                     @click.stop="copyProjectInfo"
                   >
                     <GeneralIcon icon="copy" class="group-hover:text-black" />
@@ -527,8 +529,8 @@ const projectDelete = () => {
                   <NcMenuItem
                     key="erd"
                     v-e="['c:base:erd']"
-                    data-testid="nc-sidebar-project-relations"
-                    @click="openProjectErdView(project)"
+                    data-testid="nc-sidebar-base-relations"
+                    @click="openProjectErdView(base)"
                   >
                     <GeneralIcon icon="erd" />
                     {{ $t('title.relations') }}
@@ -539,11 +541,11 @@ const projectDelete = () => {
                     v-if="isUIAllowed('apiDocs')"
                     key="api"
                     v-e="['c:base:api-docs']"
-                    data-testid="nc-sidebar-project-rest-apis"
+                    data-testid="nc-sidebar-base-rest-apis"
                     @click.stop="
                       () => {
                         $e('c:base:api-docs')
-                        openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)
+                        openLink(`/api/v1/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)
                       }
                     "
                   >
@@ -552,27 +554,27 @@ const projectDelete = () => {
                   </NcMenuItem>
                 </template>
 
-                <template v-if="project.bases && project.bases[0] && showBaseOption">
+                <template v-if="base.sources && base.sources[0] && showBaseOption">
                   <NcDivider />
-                  <DashboardTreeViewBaseOptions v-model:project="project" :base="project.bases[0]" />
+                  <DashboardTreeViewBaseOptions v-model:base="base" :source="base.sources[0]" />
                 </template>
 
-                <NcDivider v-if="['projectMiscSettings', 'projectDelete'].some((permission) => isUIAllowed(permission))" />
+                <NcDivider v-if="['baseMiscSettings', 'baseDelete'].some((permission) => isUIAllowed(permission))" />
 
                 <NcMenuItem
-                  v-if="isUIAllowed('projectMiscSettings')"
+                  v-if="isUIAllowed('baseMiscSettings')"
                   key="teamAndSettings"
                   v-e="['c:base:settings']"
-                  data-testid="nc-sidebar-project-settings"
-                  class="nc-sidebar-project-project-settings"
-                  @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
+                  data-testid="nc-sidebar-base-settings"
+                  class="nc-sidebar-base-base-settings"
+                  @click="toggleDialog(true, 'teamAndAuth', undefined, base.id)"
                 >
                   <GeneralIcon icon="settings" class="group-hover:text-black" />
                   {{ $t('activity.settings') }}
                 </NcMenuItem>
                 <NcMenuItem
-                  v-if="isUIAllowed('projectDelete', { roles: [stringifyRolesObj(orgRoles), projectRole].join() })"
-                  data-testid="nc-sidebar-project-delete"
+                  v-if="isUIAllowed('baseDelete', { roles: [stringifyRolesObj(orgRoles), baseRole].join() })"
+                  data-testid="nc-sidebar-base-delete"
                   class="!text-red-500 !hover:bg-red-50"
                   @click="projectDelete"
                 >
@@ -584,12 +586,12 @@ const projectDelete = () => {
           </NcDropdown>
 
           <NcButton
-            v-if="isUIAllowed('tableCreate', { roles: projectRole })"
+            v-if="isUIAllowed('tableCreate', { roles: baseRole })"
             v-e="['c:base:create-table']"
             class="nc-sidebar-node-btn"
             size="xxsmall"
             type="text"
-            data-testid="nc-sidebar-add-project-entity"
+            data-testid="nc-sidebar-add-base-entity"
             :class="{ '!text-black !visible': isAddNewProjectChildEntityLoading, '!visible': isOptionsOpen }"
             :loading="isAddNewProjectChildEntityLoading"
             @click.stop="addNewProjectChildEntity"
@@ -600,28 +602,28 @@ const projectDelete = () => {
       </div>
 
       <div
-        v-if="project.id && !project.isLoading"
+        v-if="base.id && !base.isLoading"
         key="g1"
         class="overflow-x-hidden transition-max-height"
-        :class="{ 'max-h-0': !project.isExpanded }"
+        :class="{ 'max-h-0': !base.isExpanded }"
       >
-        <template v-if="project && project?.bases">
+        <template v-if="base && base?.sources">
           <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
-            <div v-if="project?.bases?.[0]?.enabled" class="flex-1">
+            <div v-if="base?.sources?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">
-                <DashboardTreeViewTableList :project="project" :base-index="0" />
+                <DashboardTreeViewTableList :base="base" :source-index="0" />
               </div>
             </div>
 
-            <div v-if="project?.bases?.slice(1).filter((el) => el.enabled)?.length" class="transition-height duration-200">
+            <div v-if="base?.sources?.slice(1).filter((el) => el.enabled)?.length" class="transition-height duration-200">
               <div class="border-none sortable-list">
-                <div v-for="(base, baseIndex) of project.bases" :key="`base-${base.id}`">
-                  <template v-if="baseIndex === 0"></template>
+                <div v-for="(source, sourceIndex) of base.sources" :key="`source-${source.id}`">
+                  <template v-if="sourceIndex === 0"></template>
                   <a-collapse
-                    v-else-if="base && base.enabled"
+                    v-else-if="source && source.enabled"
                     v-model:activeKey="activeKey"
+                    class="!mx-0 !px-0 nc-sidebar-source-node"
                     v-e="['c:source:toggle-expand']"
-                    class="!mx-0 !px-0 nc-sidebar-base-node"
                     :class="[{ hidden: searchActive && !!filterQuery }]"
                     expand-icon-position="left"
                     :bordered="false"
@@ -633,34 +635,34 @@ const projectDelete = () => {
                       >
                         <GeneralIcon
                           icon="triangleFill"
-                          class="nc-sidebar-base-node-btns -mt-0.75 invisible xs:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.5 text-gray-500 rotate-90"
+                          class="nc-sidebar-source-node-btns -mt-0.75 invisible xs:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.5 text-gray-500 rotate-90"
                           :class="{ '!rotate-180': isActive }"
                         />
                       </div>
                     </template>
-                    <a-collapse-panel :key="`collapse-${base.id}`">
+                    <a-collapse-panel :key="`collapse-${source.id}`">
                       <template #header>
                         <div class="nc-sidebar-node min-w-20 w-full flex flex-row group py-0.25">
                           <div
-                            v-if="baseIndex === 0"
-                            class="base-context flex items-center gap-2 text-gray-800 nc-sidebar-node-title"
-                            @contextmenu="setMenuContext('base', base)"
+                            v-if="sourceIndex === 0"
+                            class="source-context flex items-center gap-2 text-gray-800 nc-sidebar-node-title"
+                            @contextmenu="setMenuContext('source', source)"
                           >
-                            <GeneralBaseLogo :base-type="base.type" class="min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
+                            <GeneralBaseLogo :source-type="source.type" class="min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
                             {{ $t('general.default') }}
                           </div>
                           <div
                             v-else
-                            class="base-context flex flex-grow items-center gap-1.75 text-gray-800 min-w-1/20 max-w-full"
-                            @contextmenu="setMenuContext('base', base)"
+                            class="source-context flex flex-grow items-center gap-1.75 text-gray-800 min-w-1/20 max-w-full"
+                            @contextmenu="setMenuContext('source', source)"
                           >
-                            <GeneralBaseLogo :base-type="base.type" class="min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
+                            <GeneralBaseLogo :source-type="source.type" class="min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
                             <div
-                              :data-testid="`nc-sidebar-project-${base.alias}`"
+                              :data-testid="`nc-sidebar-base-${source.alias}`"
                               class="nc-sidebar-node-title flex capitalize text-ellipsis overflow-hidden select-none"
                               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
                             >
-                              {{ base.alias || '' }}
+                              {{ source.alias || '' }}
                             </div>
                             <a-tooltip class="xs:(hidden)">
                               <template #title>{{ $t('objects.externalDb') }}</template>
@@ -671,17 +673,17 @@ const projectDelete = () => {
                           </div>
                           <div class="flex flex-row items-center gap-x-0.25 w-12.25">
                             <NcDropdown
-                              :visible="isBasesOptionsOpen[base!.id!]"
+                              :visible="isBasesOptionsOpen[source!.id!]"
                               :trigger="['click']"
-                              @update:visible="isBasesOptionsOpen[base!.id!] = $event"
+                              @update:visible="isBasesOptionsOpen[source!.id!] = $event"
                             >
                               <NcButton
                                 v-e="['c:source:options']"
                                 class="nc-sidebar-node-btn"
-                                :class="{ '!text-black !opacity-100': isBasesOptionsOpen[base!.id!] }"
+                                :class="{ '!text-black !opacity-100': isBasesOptionsOpen[source!.id!] }"
                                 type="text"
                                 size="xxsmall"
-                                @click.stop="isBasesOptionsOpen[base!.id!] = !isBasesOptionsOpen[base!.id!]"
+                                @click.stop="isBasesOptionsOpen[source!.id!] = !isBasesOptionsOpen[source!.id!]"
                               >
                                 <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
                               </NcButton>
@@ -692,26 +694,26 @@ const projectDelete = () => {
                                     maxHeight: '70vh',
                                     overflow: 'overlay',
                                   }"
-                                  @click="isBasesOptionsOpen[base!.id!] = false"
+                                  @click="isBasesOptionsOpen[source!.id!] = false"
                                 >
                                   <!-- ERD View -->
-                                  <NcMenuItem key="erd" v-e="['c:source:erd']" @click="openErdView(base)">
+                                  <NcMenuItem key="erd" v-e="['c:source:erd']" @click="openErdView(source)">
                                     <GeneralIcon icon="erd" />
                                     {{ $t('title.relations') }}
                                   </NcMenuItem>
 
-                                  <DashboardTreeViewBaseOptions v-if="showBaseOption" v-model:project="project" :base="base" />
+                                  <DashboardTreeViewBaseOptions v-if="showBaseOption" v-model:base="base" :source="source" />
                                 </NcMenu>
                               </template>
                             </NcDropdown>
 
                             <NcButton
-                              v-if="isUIAllowed('tableCreate', { roles: projectRole })"
+                              v-if="isUIAllowed('tableCreate', { roles: baseRole })"
                               v-e="['c:source:add-table']"
                               type="text"
                               size="xxsmall"
                               class="nc-sidebar-node-btn"
-                              @click.stop="openTableCreateDialog(baseIndex)"
+                              @click.stop="openTableCreateDialog(sourceIndex)"
                             >
                               <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
                             </NcButton>
@@ -720,10 +722,10 @@ const projectDelete = () => {
                       </template>
                       <div
                         ref="menuRefs"
-                        :key="`sortable-${base.id}-${base.id && base.id in keys ? keys[base.id] : '0'}`"
-                        :nc-base="base.id"
+                        :key="`sortable-${source.id}-${source.id && source.id in keys ? keys[source.id] : '0'}`"
+                        :nc-source="source.id"
                       >
-                        <DashboardTreeViewTableList :project="project" :base-index="baseIndex" />
+                        <DashboardTreeViewTableList :base="base" :source-index="sourceIndex" />
                       </div>
                     </a-collapse-panel>
                   </a-collapse>
@@ -736,14 +738,13 @@ const projectDelete = () => {
     </div>
     <template v-if="!isSharedBase" #overlay>
       <NcMenu class="!py-0 rounded text-sm">
-        <template v-if="contextMenuTarget.type === 'project' && project.type === 'database'"></template>
+        <template v-if="contextMenuTarget.type === 'base' && base.type === 'database'"></template>
 
-        <template v-else-if="contextMenuTarget.type === 'base'"></template>
+        <template v-else-if="contextMenuTarget.type === 'source'"></template>
 
         <template v-else-if="contextMenuTarget.type === 'table'">
-          v-e="['c:table:rename']"
-          <NcMenuItem v-if="isUIAllowed('tableRename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
-            <div class="nc-project-option-item">
+          <NcMenuItem v-if="isUIAllowed('tableRename')" v-e="['c:table:rename']" @click="openRenameTableDialog(contextMenuTarget.value, true)">
+            <div class="nc-base-option-item">
               <GeneralIcon icon="edit" class="text-gray-700" />
               {{ $t('general.rename') }}
             </div>
@@ -754,14 +755,14 @@ const projectDelete = () => {
             v-e="['c:table:duplicate']"
             @click="duplicateTable(contextMenuTarget.value)"
           >
-            <div class="nc-project-option-item">
+            <div class="nc-base-option-item">
               <GeneralIcon icon="duplicate" class="text-gray-700" />
               {{ $t('general.duplicate') }}
             </div>
           </NcMenuItem>
           <NcDivider />
           <NcMenuItem v-if="isUIAllowed('table-delete')" class="!hover:bg-red-50" @click="tableDelete">
-            <div class="nc-project-option-item text-red-600">
+            <div class="nc-base-option-item text-red-600">
               <GeneralIcon icon="delete" />
               {{ $t('general.delete') }}
             </div>
@@ -770,7 +771,7 @@ const projectDelete = () => {
 
         <template v-else>
           <NcMenuItem @click="reloadTables">
-            <div class="nc-project-option-item">
+            <div class="nc-base-option-item">
               {{ $t('general.reload') }}
             </div>
           </NcMenuItem>
@@ -779,21 +780,21 @@ const projectDelete = () => {
     </template>
   </NcDropdown>
   <DlgTableDelete
-    v-if="contextMenuTarget.value?.id && project?.id"
+    v-if="contextMenuTarget.value?.id && base?.id"
     v-model:visible="isTableDeleteDialogVisible"
     :table-id="contextMenuTarget.value?.id"
-    :project-id="project?.id"
+    :base-id="base?.id"
   />
-  <DlgProjectDelete v-model:visible="isProjectDeleteDialogVisible" :project-id="project?.id" />
+  <DlgProjectDelete v-model:visible="isProjectDeleteDialogVisible" :base-id="base?.id" />
   <DlgProjectDuplicate
     v-if="selectedProjectToDuplicate"
     v-model="isDuplicateDlgOpen"
-    :project="selectedProjectToDuplicate"
+    :base="selectedProjectToDuplicate"
     :on-ok="DlgProjectDuplicateOnOk"
   />
   <GeneralModal v-model:visible="isErdModalOpen" size="large">
     <div class="h-[80vh]">
-      <LazyDashboardSettingsErd :base-id="activeBaseId" />
+      <LazyDashboardSettingsErd :source-id="activeBaseId" />
     </div>
   </GeneralModal>
 </template>
@@ -811,7 +812,7 @@ const projectDelete = () => {
   @apply !px-0 !pb-0 !pt-0.25;
 }
 
-:deep(.ant-collapse-header:hover .nc-sidebar-base-node-btns) {
+:deep(.ant-collapse-header:hover .nc-sidebar-source-node-btns) {
   @apply visible;
 }
 </style>

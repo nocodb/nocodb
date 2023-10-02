@@ -87,12 +87,12 @@ async function signUp() {
     try {
       // TODO: Add to swagger
       const workspace = (user as any).createdWorkspace
-      const project = (workspace as any)?.projects?.[0]
-      const table = project?.tables?.[0]
+      const base = (workspace as any)?.bases?.[0]
+      const table = base?.tables?.[0]
 
-      if (workspace && project && table) {
+      if (workspace && base && table) {
         return await navigateToTable({
-          projectId: project.id,
+          baseId: base.id,
           tableId: table.id,
           workspaceId: workspace.id,
         })

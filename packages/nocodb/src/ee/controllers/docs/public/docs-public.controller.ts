@@ -5,24 +5,24 @@ import { PublicDocsService } from '../../../services/docs/public/public-docs.ser
 export class DocsPublicController {
   constructor(private readonly publicDocsService: PublicDocsService) {}
 
-  @Get('/api/v1/public/docs/:projectId/pages/:id')
+  @Get('/api/v1/public/docs/:baseId/pages/:id')
   async getPublicPageAndProject(
-    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
     @Param('id') id: string,
   ) {
     return await this.publicDocsService.getPublicPageAndProject({
       pageId: id,
-      projectId,
+      baseId,
     });
   }
 
-  @Get('/api/v1/public/docs/:projectId/pages/:parentPageId/nested')
+  @Get('/api/v1/public/docs/:baseId/pages/:parentPageId/nested')
   async listPublicPages(
-    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
     @Param('parentPageId') parentPageId: string,
   ) {
     return await this.publicDocsService.listPublicPages({
-      projectId,
+      baseId,
       parentPageId,
     });
   }

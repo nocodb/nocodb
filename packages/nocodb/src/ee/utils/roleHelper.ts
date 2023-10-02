@@ -15,8 +15,8 @@ export function getProjectRolePower(user: any) {
   let role = null;
   let power = -1;
 
-  if (user.project_roles) {
-    for (const r of Object.keys(user.project_roles)) {
+  if (user.base_roles) {
+    for (const r of Object.keys(user.base_roles)) {
       const ind = reverseOrderedProjectRoles.indexOf(r as ProjectRoles);
       if (ind > power) {
         role = r;
@@ -76,12 +76,12 @@ export function getWorkspaceRolePower(user: any) {
 
 export function mapWorkspaceRolesObjToProjectRolesObj(wsRoles: any) {
   wsRoles = extractRolesObj(wsRoles);
-  let projectRoles = null;
+  let baseRoles = null;
   if (wsRoles) {
     for (const r of Object.keys(wsRoles)) {
-      if (!projectRoles) projectRoles = {};
-      projectRoles[WorkspaceRolesToProjectRoles[r]] = wsRoles[r];
+      if (!baseRoles) baseRoles = {};
+      baseRoles[WorkspaceRolesToProjectRoles[r]] = wsRoles[r];
     }
   }
-  return projectRoles;
+  return baseRoles;
 }

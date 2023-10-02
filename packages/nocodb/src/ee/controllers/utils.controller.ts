@@ -10,7 +10,7 @@ export class UtilsController extends UtilsControllerCE {
     super(utilsService);
   }
 
-  @Post('/api/v1/db/meta/magic')
+  @Post(['/api/v1/db/meta/magic', '/api/v1/meta/magic'])
   @UseGuards(GlobalGuard)
   @Acl('genericGPT')
   async genericGPT(@Body() body: any) {

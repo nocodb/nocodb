@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BaseType, ColumnType } from 'nocodb-sdk'
+import type { SourceType, ColumnType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import {
   ColumnInj,
@@ -42,8 +42,8 @@ import Text from '~/components/cell/Text.vue'
 
 interface Props {
   column: ColumnType
-  // project: ProjectType
-  baseType: BaseType
+  // base: BaseType
+  baseType: SourceType
   filter: Filter
 }
 

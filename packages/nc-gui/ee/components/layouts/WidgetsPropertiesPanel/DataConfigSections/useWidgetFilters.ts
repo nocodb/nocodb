@@ -13,7 +13,7 @@ const useWidgetFilters = (widget: Ref<Widget | undefined>, parentId?: string) =>
   const router = useRouter()
   const route = router.currentRoute
   const filters = ref<Filter[]>([])
-  const openedProjectId = computed<string>(() => route.value.params.projectId as string)
+  const openedProjectId = computed<string>(() => route.value.params.baseId as string)
 
   const options = computed<SelectProps['options']>(() => {
     return columns.value?.filter((c: ColumnType) => {
@@ -58,9 +58,9 @@ const useWidgetFilters = (widget: Ref<Widget | undefined>, parentId?: string) =>
       if (filter.fk_column_id && compOp.includedTypes.includes(types.value[filter.fk_column_id])) {
         return true
         // for 'empty', 'notempty', 'null', 'notnull',
-        // show them based on `showNullAndEmptyInFilter` in Project Settings
+        // show them based on `showNullAndEmptyInFilter` in Base Settings
         // TODO: consider to take showNullAndEmptyInFilter for Dashboards into account as well:
-        // return isNullOrEmptyOp ? projectMeta.value.showNullAndEmptyInFilter : true
+        // return isNullOrEmptyOp ? baseMeta.value.showNullAndEmptyInFilter : true
       } else {
         return false
       }
@@ -68,14 +68,14 @@ const useWidgetFilters = (widget: Ref<Widget | undefined>, parentId?: string) =>
       // include not allowed values only if selected column type not matches
       if (filter.fk_column_id && !compOp.excludedTypes.includes(types.value[filter.fk_column_id])) {
         // for 'empty', 'notempty', 'null', 'notnull',
-        // show them based on `showNullAndEmptyInFilter` in Project Settings
+        // show them based on `showNullAndEmptyInFilter` in Base Settings
         return true
       } else {
         return false
       }
     }
     // explicitly include for non-null / non-empty ops
-    // return isNullOrEmptyOp ? projectMeta.value.showNullAndEmptyInFilter : true
+    // return isNullOrEmptyOp ? baseMeta.value.showNullAndEmptyInFilter : true
     return true
   }
 

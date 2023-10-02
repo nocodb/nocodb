@@ -1,16 +1,16 @@
 <script lang="ts" setup>
-import type { LayoutType, ProjectType } from 'nocodb-sdk'
+import type { LayoutType, BaseType } from 'nocodb-sdk'
 import { toRef } from '@vue/reactivity'
 
 import { useNuxtApp } from '#app'
 import { ProjectRoleInj, TreeViewInj, useRoles } from '#imports'
 
 const props = defineProps<{
-  project: ProjectType
+  base: BaseType
   layout: LayoutType
 }>()
 
-const project = toRef(props, 'project')
+const base = toRef(props, 'base')
 const layout = toRef(props, 'layout')
 
 const route = useRoute()
@@ -21,7 +21,7 @@ const { $e } = useNuxtApp()
 
 const { deleteLayout } = useDashboardStore()
 
-const projectRole = inject(ProjectRoleInj)
+const baseRole = inject(ProjectRoleInj)
 
 const { setMenuContext } = inject(TreeViewInj)!
 
@@ -35,7 +35,7 @@ function openRenameLayoutDialog(layout: LayoutType, rightClick = false) {
   const { close } = useDialog(resolveComponent('DlgLayoutRename'), {
     'modelValue': isOpen,
     'layout': layout,
-    'dashboardProject': project.value,
+    'dashboardProject': base.value,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -46,7 +46,7 @@ function openRenameLayoutDialog(layout: LayoutType, rightClick = false) {
   }
 }
 
-const { isSharedBase } = useProject()
+const { isSharedBase } = useBase()
 </script>
 
 <template>
@@ -55,7 +55,7 @@ const { isSharedBase } = useProject()
     :data-order="layout.order"
     :data-id="layout.id"
     :data-testid="`tree-view-layout-${layout.title}`"
-    :class="[`nc-project-tree-tbl nc-project-tree-tbl-${layout.title}`, { active: openeLayoutId === layout.id }]"
+    :class="[`nc-base-tree-tbl nc-base-tree-tbl-${layout.title}`, { active: openeLayoutId === layout.id }]"
   >
     <GeneralTooltip
       class="pl-4 pr-2 mb-0.25 rounded-md h-7.25 select-none"
@@ -87,7 +87,7 @@ const { isSharedBase } = useProject()
         <a-dropdown
           v-if="
             !isSharedBase &&
-            (isUIAllowed('layoutRename', { roles: projectRole }) || isUIAllowed('layoutDelete', { roles: projectRole }))
+            (isUIAllowed('layoutRename', { roles: baseRole }) || isUIAllowed('layoutDelete', { roles: baseRole }))
           "
           :trigger="['click']"
           @click.stop
@@ -101,18 +101,18 @@ const { isSharedBase } = useProject()
 
           <template #overlay>
             <a-menu class="!py-0 rounded text-sm">
-              <a-menu-item v-if="isUIAllowed('layoutRename', { roles: projectRole })" @click="openRenameLayoutDialog(layout)">
-                <div class="nc-project-menu-item" :data-testid="`sidebar-layout-rename-${layout.title}`">
+              <a-menu-item v-if="isUIAllowed('layoutRename', { roles: baseRole })" @click="openRenameLayoutDialog(layout)">
+                <div class="nc-base-menu-item" :data-testid="`sidebar-layout-rename-${layout.title}`">
                   {{ $t('general.rename') }}
                 </div>
               </a-menu-item>
 
               <a-menu-item
-                v-if="isUIAllowed('layoutDelete', { roles: projectRole })"
+                v-if="isUIAllowed('layoutDelete', { roles: baseRole })"
                 :data-testid="`sidebar-layout-delete-${layout.title}`"
-                @click="deleteLayout(project, layout)"
+                @click="deleteLayout(base, layout)"
               >
-                <div class="nc-project-menu-item">
+                <div class="nc-base-menu-item">
                   {{ $t('general.delete') }}
                 </div>
               </a-menu-item>

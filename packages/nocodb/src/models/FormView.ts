@@ -26,8 +26,8 @@ export default class FormView implements FormType {
 
   fk_view_id: string;
   columns?: FormViewColumn[];
-  project_id?: string;
   base_id?: string;
+  source_id?: string;
   meta?: MetaType;
 
   constructor(data: FormView) {
@@ -56,8 +56,8 @@ export default class FormView implements FormType {
   static async insert(view: Partial<FormView>, ncMeta = Noco.ncMeta) {
     const insertObj = extractProps(view, [
       'fk_view_id',
-      'project_id',
       'base_id',
+      'source_id',
       'heading',
       'subheading',
       'success_msg',
@@ -73,10 +73,10 @@ export default class FormView implements FormType {
     if (insertObj.meta) {
       insertObj.meta = serializeJSON(insertObj.meta);
     }
-    if (!(view.project_id && view.base_id)) {
+    if (!(view.base_id && view.source_id)) {
       const viewRef = await View.get(view.fk_view_id);
-      insertObj.project_id = viewRef.project_id;
       insertObj.base_id = viewRef.base_id;
+      insertObj.source_id = viewRef.source_id;
     }
     await ncMeta.metaInsert2(null, null, MetaTable.FORM_VIEW, insertObj, true);
 

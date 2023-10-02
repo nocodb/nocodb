@@ -24,14 +24,16 @@ export class DataAliasController {
 
   // todo: Handle the error case where view doesnt belong to model
   @Get([
-    '/api/v1/db/data/:orgs/:projectName/:tableName',
-    '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName',
+    '/api/v1/db/data/:orgs/:baseName/:tableName',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName',
+    '/api/v1/data/:orgs/:baseName/:tableName',
+    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName',
   ])
   @Acl('dataList')
   async dataList(
     @Request() req,
     @Response() res,
-    @Param('projectName') projectName: string,
+    @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
     @Query('opt') opt: string,
@@ -39,7 +41,7 @@ export class DataAliasController {
     const startTime = process.hrtime();
     const responseData = await this.datasService.dataList({
       query: req.query,
-      projectName: projectName,
+      baseName: baseName,
       tableName: tableName,
       viewName: viewName,
       disableOptimization: opt === 'false',
@@ -56,58 +58,64 @@ export class DataAliasController {
   }
 
   @Get([
-    '/api/v1/db/data/:orgs/:projectName/:tableName/find-one',
-    '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/find-one',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/find-one',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/find-one',
+    '/api/v1/data/:orgs/:baseName/:tableName/find-one',
+    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/find-one',
   ])
   @Acl('dataFindOne')
   async dataFindOne(
     @Request() req,
-    @Param('projectName') projectName: string,
+    @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
   ) {
     return await this.datasService.dataFindOne({
       query: req.query,
-      projectName: projectName,
+      baseName: baseName,
       tableName: tableName,
       viewName: viewName,
     });
   }
 
   @Get([
-    '/api/v1/db/data/:orgs/:projectName/:tableName/groupby',
-    '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/groupby',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/groupby',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/groupby',
+    '/api/v1/data/:orgs/:baseName/:tableName/groupby',
+    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/groupby',
   ])
   @Acl('dataGroupBy')
   async dataGroupBy(
     @Request() req,
-    @Param('projectName') projectName: string,
+    @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
   ) {
     return await this.datasService.dataGroupBy({
       query: req.query,
-      projectName: projectName,
+      baseName: baseName,
       tableName: tableName,
       viewName: viewName,
     });
   }
 
   @Get([
-    '/api/v1/db/data/:orgs/:projectName/:tableName/count',
-    '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/count',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/count',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/count',
+    '/api/v1/data/:orgs/:baseName/:tableName/count',
+    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/count',
   ])
   @Acl('dataCount')
   async dataCount(
     @Request() req,
     @Response() res,
-    @Param('projectName') projectName: string,
+    @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
   ) {
     const countResult = await this.datasService.dataCount({
       query: req.query,
-      projectName: projectName,
+      baseName: baseName,
       tableName: tableName,
       viewName: viewName,
     });
@@ -116,21 +124,23 @@ export class DataAliasController {
   }
 
   @Post([
-    '/api/v1/db/data/:orgs/:projectName/:tableName',
-    '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName',
+    '/api/v1/db/data/:orgs/:baseName/:tableName',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName',
+    '/api/v1/data/:orgs/:baseName/:tableName',
+    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName',
   ])
   @HttpCode(200)
   @Acl('dataInsert')
   async dataInsert(
     @Request() req,
-    @Param('projectName') projectName: string,
+    @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
     @Body() body: any,
     @Query('opt') opt: string,
   ) {
     return await this.datasService.dataInsert({
-      projectName: projectName,
+      baseName: baseName,
       tableName: tableName,
       viewName: viewName,
       body: body,
@@ -140,20 +150,22 @@ export class DataAliasController {
   }
 
   @Patch([
-    '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
-    '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/:rowId',
+    '/api/v1/data/:orgs/:baseName/:tableName/:rowId',
+    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/:rowId',
   ])
   @Acl('dataUpdate')
   async dataUpdate(
     @Request() req,
-    @Param('projectName') projectName: string,
+    @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
     @Param('rowId') rowId: string,
     @Query('opt') opt: string,
   ) {
     return await this.datasService.dataUpdate({
-      projectName: projectName,
+      baseName: baseName,
       tableName: tableName,
       viewName: viewName,
       body: req.body,
@@ -164,19 +176,21 @@ export class DataAliasController {
   }
 
   @Delete([
-    '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
-    '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/:rowId',
+    '/api/v1/data/:orgs/:baseName/:tableName/:rowId',
+    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/:rowId',
   ])
   @Acl('dataDelete')
   async dataDelete(
     @Request() req,
-    @Param('projectName') projectName: string,
+    @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
     @Param('rowId') rowId: string,
   ) {
     return await this.datasService.dataDelete({
-      projectName: projectName,
+      baseName: baseName,
       tableName: tableName,
       viewName: viewName,
       cookie: req,
@@ -185,13 +199,15 @@ export class DataAliasController {
   }
 
   @Get([
-    '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
-    '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/:rowId',
+    '/api/v1/data/:orgs/:baseName/:tableName/:rowId',
+    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/:rowId',
   ])
   @Acl('dataRead')
   async dataRead(
     @Request() req,
-    @Param('projectName') projectName: string,
+    @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
     @Param('rowId') rowId: string,
@@ -199,7 +215,7 @@ export class DataAliasController {
     @Query('getHiddenColumn') getHiddenColumn: boolean,
   ) {
     return await this.datasService.dataRead({
-      projectName: projectName,
+      baseName: baseName,
       tableName: tableName,
       viewName: viewName,
       rowId: rowId,
@@ -210,20 +226,22 @@ export class DataAliasController {
   }
 
   @Get([
-    '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/exist',
-    '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId/exist',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/exist',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/:rowId/exist',
+    '/api/v1/data/:orgs/:baseName/:tableName/:rowId/exist',
+    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/:rowId/exist',
   ])
   @Acl('dataExist')
   async dataExist(
     @Request() req,
     @Response() res,
-    @Param('projectName') projectName: string,
+    @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
     @Param('rowId') rowId: string,
   ) {
     const exists = await this.datasService.dataExist({
-      projectName: projectName,
+      baseName: baseName,
       tableName: tableName,
       viewName: viewName,
       rowId: rowId,
@@ -236,21 +254,23 @@ export class DataAliasController {
   // todo: Handle the error case where view doesnt belong to model
 
   @Get([
-    '/api/v1/db/data/:orgs/:projectName/:tableName/group/:columnId',
-    '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/group/:columnId',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/group/:columnId',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/group/:columnId',
+    '/api/v1/data/:orgs/:baseName/:tableName/group/:columnId',
+    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/group/:columnId',
   ])
   @Acl('groupedDataList')
   async groupedDataList(
     @Request() req,
     @Response() res,
-    @Param('projectName') projectName: string,
+    @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
     @Param('columnId') columnId: string,
   ) {
     const startTime = process.hrtime();
     const groupedData = await this.datasService.groupedDataList({
-      projectName: projectName,
+      baseName: baseName,
       tableName: tableName,
       viewName: viewName,
       query: req.query,

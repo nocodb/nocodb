@@ -1,11 +1,11 @@
 <script setup lang="ts">
 const props = defineProps<{
-  baseId: string
+  sourceId: string
 }>()
 </script>
 
 <template>
   <div class="w-full h-full !p-0">
-    <ErdView :base-id="props.baseId" />
+    <ErdView :source-id="props.sourceId" />
   </div>
 </template>

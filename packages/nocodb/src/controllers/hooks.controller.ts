@@ -22,13 +22,19 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 export class HooksController {
   constructor(private readonly hooksService: HooksService) {}
 
-  @Get('/api/v1/db/meta/tables/:tableId/hooks')
+  @Get([
+    '/api/v1/db/meta/tables/:tableId/hooks',
+    '/api/v1/meta/tables/:tableId/hooks',
+  ])
   @Acl('hookList')
   async hookList(@Param('tableId') tableId: string) {
     return new PagedResponseImpl(await this.hooksService.hookList({ tableId }));
   }
 
-  @Post('/api/v1/db/meta/tables/:tableId/hooks')
+  @Post([
+    '/api/v1/db/meta/tables/:tableId/hooks',
+    '/api/v1/meta/tables/:tableId/hooks',
+  ])
   @HttpCode(200)
   @Acl('hookCreate')
   async hookCreate(
@@ -42,19 +48,22 @@ export class HooksController {
     return hook;
   }
 
-  @Delete('/api/v1/db/meta/hooks/:hookId')
+  @Delete(['/api/v1/db/meta/hooks/:hookId', '/api/v1/meta/hooks/:hookId'])
   @Acl('hookDelete')
   async hookDelete(@Param('hookId') hookId: string) {
     return await this.hooksService.hookDelete({ hookId });
   }
 
-  @Patch('/api/v1/db/meta/hooks/:hookId')
+  @Patch(['/api/v1/db/meta/hooks/:hookId', '/api/v1/meta/hooks/:hookId'])
   @Acl('hookUpdate')
   async hookUpdate(@Param('hookId') hookId: string, @Body() body: HookReqType) {
     return await this.hooksService.hookUpdate({ hookId, hook: body });
   }
 
-  @Post('/api/v1/db/meta/tables/:tableId/hooks/test')
+  @Post([
+    '/api/v1/db/meta/tables/:tableId/hooks/test',
+    '/api/v1/meta/tables/:tableId/hooks/test',
+  ])
   @HttpCode(200)
   @Acl('hookTest')
   async hookTest(@Body() body: HookTestReqType, @Request() req: any) {
@@ -76,9 +85,10 @@ export class HooksController {
     }
   }
 
-  @Get(
+  @Get([
     '/api/v1/db/meta/tables/:tableId/hooks/samplePayload/:operation/:version',
-  )
+    '/api/v1/meta/tables/:tableId/hooks/samplePayload/:operation/:version',
+  ])
   @Acl('tableSampleData')
   async tableSampleData(
     @Param('tableId') tableId: string,
@@ -92,7 +102,10 @@ export class HooksController {
     });
   }
 
-  @Get('/api/v1/db/meta/hooks/:hookId/logs')
+  @Get([
+    '/api/v1/db/meta/hooks/:hookId/logs',
+    '/api/v1/meta/hooks/:hookId/logs',
+  ])
   @Acl('hookLogList')
   async hookLogList(@Param('hookId') hookId: string, @Request() req: any) {
     return new PagedResponseImpl(

@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { computed, iconMap, navigateTo, storeToRefs, useGlobal, useProject, useRoute, useSidebar } from '#imports'
+import { computed, iconMap, navigateTo, storeToRefs, useGlobal, useBase, useRoute, useSidebar } from '#imports'
 
 const { signOut, signedIn, user, currentVersion } = useGlobal()
 
 const { isOpen } = useSidebar('nc-mini-sidebar', { isOpen: true })
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
 const route = useRoute()
 
@@ -80,9 +80,9 @@ const logout = async () => {
 
               <a-menu-item class="active:(ring ring-accent ring-opacity-100)">
                 <div
-                  v-e="['c:project:create:xcdb']"
+                  v-e="['c:base:create:xcdb']"
                   class="group flex items-center gap-2 py-2 hover:text-primary"
-                  @click="navigateTo('/project/create')"
+                  @click="navigateTo('/base/create')"
                 >
                   <component :is="iconMap.plus" class="text-lg group-hover:text-accent" />
                   {{ $t('activity.createProject') }}
@@ -91,9 +91,9 @@ const logout = async () => {
 
               <a-menu-item class="rounded-b active:(ring ring-accent)">
                 <div
-                  v-e="['c:project:create:extdb']"
+                  v-e="['c:base:create:extdb']"
                   class="group flex items-center gap-2 py-2 hover:text-primary"
-                  @click="navigateTo('/project/create-external')"
+                  @click="navigateTo('/base/create-external')"
                 >
                   <component :is="iconMap.database" class="text-lg group-hover:text-accent" />
                   <div v-html="$t('activity.createProjectExtended.extDB')" />
@@ -105,12 +105,12 @@ const logout = async () => {
       </a-dropdown>
 
       <a-tooltip placement="right">
-        <template v-if="project" #title>{{ project.title }}</template>
+        <template v-if="base" #title>{{ base.title }}</template>
 
         <div
-          :class="[route.name.includes('nc-projectId') ? 'active' : 'pointer-events-none !text-gray-400']"
+          :class="[route.name.includes('nc-baseId') ? 'active' : 'pointer-events-none !text-gray-400']"
           class="nc-mini-sidebar-item"
-          @click="navigateTo(`/${route.params.projectType}/${route.params.projectId}`)"
+          @click="navigateTo(`/${route.params.baseType}/${route.params.baseId}`)"
         >
           <component :is="iconMap.database" class="cursor-pointer transform hover:scale-105 text-2xl" />
         </div>

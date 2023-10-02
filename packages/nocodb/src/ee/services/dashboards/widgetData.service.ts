@@ -17,7 +17,7 @@ import { getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Widget from '~/models/Widget';
-import { Base, Column, Filter, Model, View } from '~/models';
+import { Column, Filter, Model, Source, View } from '~/models';
 
 const _parseWidgetFromAPI = (widgetFromAPI: WidgetType): Widget => {
   // TODO: improve parsing, e.g. via 3rd party library (is AJV a candidate here?)
@@ -63,18 +63,18 @@ export class WidgetDataService {
       const data_source: DataSourceInternal = widget.data_source;
       // * check which view is used for the widget
       // THE FOLLOWING BLOCK COULD BE MINIFIED FOR NOW / POC SAKE
-      // * check if layout editor (OR THE Dashboard Project?) has acces to DB project of the view
+      // * check if layout editor (OR THE Dashboard Base?) has acces to DB base of the view
       //   * for that it's probably needed to save either
       //     * a) the layout editor user-id in the Layout
-      //     * b) to somehow save the project-ids that the Layout should have access to already now
+      //     * b) to somehow save the base-ids that the Layout should have access to already now
       //          => that way, the access right is not tied to one particular layout editor user
-      //             (who could be removed from the layout project at some point)
-      //             and the whole project could indpendently of one user be reconfigured regarding which resources it has access to
+      //             (who could be removed from the layout base at some point)
+      //             and the whole base could indpendently of one user be reconfigured regarding which resources it has access to
 
       switch (widget.widget_type) {
         case WidgetTypeType.Number: {
           const numberWidget: NumberWidget = widget as NumberWidget;
-          const { projectId, tableId, viewId } = data_source;
+          const { baseId, tableId, viewId } = data_source;
           const { recordCountOrFieldSummary } = numberWidget.data_config;
 
           let aggregateColumnName, aggregateFunction;
@@ -104,7 +104,7 @@ export class WidgetDataService {
           const widgetData = await this.dataGroupAndAggregateBy({
             widget,
             query: undefined,
-            projectName: projectId,
+            baseName: baseId,
             tableName: tableId,
             viewName: viewId,
             aggregateColumnName: aggregateColumnName,
@@ -128,7 +128,7 @@ export class WidgetDataService {
         case WidgetTypeType.PieChart:
         case WidgetTypeType.ScatterPlot: {
           const chartWidget = widget as ChartWidget;
-          const { projectId, tableId, viewId } = data_source;
+          const { baseId, tableId, viewId } = data_source;
           const {
             xAxisColId,
             recordCountOrFieldSummary,
@@ -174,7 +174,7 @@ export class WidgetDataService {
           const widgetData = await this.dataGroupAndAggregateBy({
             widget,
             query: undefined,
-            projectName: projectId,
+            baseName: baseId,
             tableName: tableId,
             viewName: viewId,
             aggregateColumnName,
@@ -244,12 +244,12 @@ export class WidgetDataService {
   }) {
     const { model, view, query = {} } = param;
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const widgetFilterArr = param.ignoreFilters

@@ -6,7 +6,7 @@ import { computed } from '@vue/reactivity'
 import {
   NcProjectType,
   extractSdkResponseErrorMsg,
-  projectTitleValidator,
+  baseTitleValidator,
   ref,
   useGlobal,
   useVModel,
@@ -25,10 +25,10 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 const workspaceStore = useWorkspace()
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
-const projectsStore = useProjects()
-const { createProject: _createProject } = projectsStore
+const basesStore = useBases()
+const { createProject: _createProject } = basesStore
 
-const projectType = computed(() => props.type ?? NcProjectType.DB)
+const baseType = computed(() => props.type ?? NcProjectType.DB)
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -39,7 +39,7 @@ const nameValidationRules = [
     required: true,
     message: 'Database name is required',
   },
-  projectTitleValidator,
+  baseTitleValidator,
 ] as RuleObject[]
 
 const form = ref<typeof Form>()
@@ -53,16 +53,16 @@ const creating = ref(false)
 const createProject = async () => {
   creating.value = true
   try {
-    const project = await _createProject({
-      type: projectType.value,
+    const base = await _createProject({
+      type: baseType.value,
       title: formState.value.title,
       workspaceId: activeWorkspace.value!.id!,
     })
 
     navigateToProject({
-      projectId: project.id!,
+      baseId: base.id!,
       workspaceId: activeWorkspace.value!.id!,
-      type: projectType.value,
+      type: baseType.value,
     })
 
     refreshCommandPalette()
@@ -86,7 +86,7 @@ watch(dialogShow, async (n, o) => {
   form.value?.resetFields()
 
   formState.value = {
-    title: 'Untitled Database',
+    title: 'Untitled Base',
   }
   await nextTick()
   input.value?.$el?.focus()
@@ -94,11 +94,11 @@ watch(dialogShow, async (n, o) => {
 })
 
 const typeLabel = computed(() => {
-  switch (projectType.value) {
+  switch (baseType.value) {
     case NcProjectType.DOCS:
       return 'Book'
     case NcProjectType.DB:
-      return 'Database'
+      return 'Base'
     default:
       return ''
   }
@@ -110,7 +110,7 @@ watch(dialogShow, () => {
     form.value?.resetFields()
 
     formState.value = {
-      title: 'Untitled Database',
+      title: 'Untitled Base',
     }
 
     await nextTick()
@@ -126,7 +126,7 @@ watch(dialogShow, () => {
     <template #header>
       <!-- Create A New Table -->
       <div class="flex flex-row items-center">
-        <GeneralProjectIcon :type="projectType" class="mr-2.5 !text-lg !h-4" />
+        <GeneralProjectIcon :type="baseType" class="mr-2.5 !text-lg !h-4" />
         Create {{ typeLabel }}
       </div>
     </template>
@@ -146,7 +146,7 @@ watch(dialogShow, () => {
             ref="input"
             v-model:value="formState.title"
             name="title"
-            class="nc-metadb-project-name nc-input-md"
+            class="nc-metadb-base-name nc-input-md"
             placeholder="Title"
           />
         </a-form-item>

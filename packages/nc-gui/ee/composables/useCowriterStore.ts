@@ -1,8 +1,8 @@
-import type { ColumnType, CowriterType, ProjectType, TableReqType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, CowriterType, BaseType, TableReqType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isSystemColumn } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, useCopy, useNuxtApp } from '#imports'
 
-const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId: string) => {
+const [useProvideCowriterStore, useCowriterStore] = useInjectionState((baseId: string) => {
   enum COWRITER_TABS {
     INPUT_FIELDS_KEY = 'cowriter-form',
     INPUT_PROMPT_KEY = 'cowriter-prompt',
@@ -18,7 +18,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
 
   const cowriterLayout = ref<'form' | 'grid'>('form')
 
-  const cowriterProject = ref<ProjectType | null>()
+  const cowriterProject = ref<BaseType | null>()
 
   const cowriterTable = ref<TableType | TableReqType | null>()
 
@@ -69,7 +69,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
 
   async function loadCowriterProject() {
     try {
-      cowriterProject.value = await $api.project.read(projectId)
+      cowriterProject.value = await $api.base.read(baseId)
       if (cowriterProject.value) {
         const meta =
           typeof cowriterProject.value.meta === 'string' ? JSON.parse(cowriterProject.value.meta) : cowriterProject.value.meta
@@ -99,7 +99,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
 
   async function loadCowriterTable() {
     try {
-      const firstTable = (await $api.dbTable.list(projectId)).list?.[0]
+      const firstTable = (await $api.dbTable.list(baseId)).list?.[0]
       cowriterTable.value = await $api.dbTable.read(firstTable!.id!)
       await loadCowriterView()
       await loadCowriterList()
@@ -189,7 +189,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     try {
       const oldMeta =
         typeof cowriterProject.value.meta === 'string' ? JSON.parse(cowriterProject.value.meta) : cowriterProject.value.meta
-      $api.project.update(cowriterProject.value.id!, {
+      $api.base.update(cowriterProject.value.id!, {
         meta: JSON.stringify({
           ...oldMeta,
           prompt_statement: promptStatementTemplate.value,
@@ -255,8 +255,8 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
 
   watch(
     cowriterProject,
-    async (project) => {
-      if (project) return
+    async (base) => {
+      if (base) return
       await Promise.all([loadCowriterProject(), loadCowriterTable()])
     },
     { immediate: true },

@@ -33,7 +33,7 @@
     {
       "name": "Meta APIs",
       "tags": [
-        "Base",
+        "Source",
         "DB Table",
         "DB Table Column",
         "DB Table Filter",
@@ -44,7 +44,7 @@
         "DB View Column",
         "DB View Share",
         "Plugin",
-        "Project",
+        "Base",
         "Utils"
       ]
     },
@@ -75,7 +75,7 @@
           "name": "dashboardId",
           "in": "path",
           "required": true,
-          "description": "Unique Dashboard/Project ID"
+          "description": "Unique Dashboard/Base ID"
         }
       ],
       "post": {
@@ -108,7 +108,7 @@
         "tags": [
           "Dashboard"
         ],
-        "description": "Create a new Layout in a given Dashboard project",
+        "description": "Create a new Layout in a given Dashboard base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -134,7 +134,7 @@
         "tags": [
           "Dashboard"
         ],
-        "description": "List all Layouts in a given Dashboard project"
+        "description": "List all Layouts in a given Dashboard base"
       }
     },
     "/api/v1/dashboards/{dashboardId}/layouts/{layoutId}": {
@@ -423,7 +423,7 @@
           "name": "dashboardId",
           "in": "path",
           "required": true,
-          "description": "Unique Dashboard Project ID"
+          "description": "Unique Dashboard Base ID"
         },
         {
           "schema": {
@@ -462,7 +462,7 @@
                     "value": {
                       "list": [
                         {
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "comparison_op": "eq",
                           "comparison_sub_op": null,
                           "created_at": "2023-03-02 18:18:05",
@@ -475,7 +475,7 @@
                           "is_group": null,
                           "logical_op": "and",
                           "order": 1,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "updated_at": "2023-03-02 18:18:05",
                           "value": "foo"
                         }
@@ -521,7 +521,7 @@
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "source_id": "ds_g4ccx6e77h1dmi",
                       "comparison_op": "eq",
                       "comparison_sub_op": null,
                       "created_at": "2023-03-02 18:18:05",
@@ -534,7 +534,7 @@
                       "is_group": null,
                       "logical_op": "and",
                       "order": 1,
-                      "project_id": "p_xm3thidrblw4n7",
+                      "base_id": "p_xm3thidrblw4n7",
                       "updated_at": "2023-03-02 18:18:05",
                       "value": "foo"
                     }
@@ -579,7 +579,7 @@
         ]
       }
     },
-    "api/v1/public/docs/{projectId}/pages/{parentPageId}/nested": {
+    "api/v1/public/docs/{baseId}/pages/{parentPageId}/nested": {
       "get": {
         "summary": "List tree of public pages of given parent page and its children. If the given parent page is published under a different parent page, the tree's top level will be that parent page",
         "operationId": "list-public-pages",
@@ -604,10 +604,10 @@
         "description": ""
       }
     },
-    "/api/v1/public/docs/{projectId}/pages/{id}": {
+    "/api/v1/public/docs/{baseId}/pages/{id}": {
       "get": {
-        "summary": "Get public page and its project",
-        "operationId": "get-public-page-and-project",
+        "summary": "Get public page and its base",
+        "operationId": "get-public-page-and-base",
         "responses": {
           "200": {
             "description": "OK",
@@ -619,8 +619,8 @@
                     "page": {
                       "$ref": "#/components/schemas/DocsPage"
                     },
-                    "project": {
-                      "$ref": "#/components/schemas/Project"
+                    "base": {
+                      "$ref": "#/components/schemas/Base"
                     }
                   }
                 }
@@ -634,7 +634,7 @@
         "description": ""
       }
     },
-    "/api/v1/docs/{projectId}/pages": {
+    "/api/v1/docs/{baseId}/pages": {
       "get": {
         "summary": "List all pages",
         "operationId": "list-pages",
@@ -695,7 +695,7 @@
       },
       "parameters": []
     },
-    "/api/v1/docs/{projectId}/pages/{id}": {
+    "/api/v1/docs/{baseId}/pages/{id}": {
       "get": {
         "summary": "Get page by id",
         "operationId": "get-page",
@@ -765,7 +765,7 @@
         "description": "Update page"
       }
     },
-    "/api/v1/docs/{projectId}/pages/{id}/gpt": {
+    "/api/v1/docs/{baseId}/pages/{id}/gpt": {
       "post": {
         "summary": "Returns ai suggested page content. Does not update page content.",
         "operationId": "docs-page-gpt",
@@ -821,9 +821,9 @@
       },
       "parameters": []
     },
-    "/api/v1/docs/{projectId}/pages/gpt": {
+    "/api/v1/docs/{baseId}/pages/gpt": {
       "post": {
-        "summary": "Create nested pages using AI with project title. Will create and insert pages in the project",
+        "summary": "Create nested pages using AI with base title. Will create and insert pages in the base",
         "operationId": "docs-gpt",
         "responses": {
           "200": {
@@ -853,7 +853,7 @@
       },
       "parameters": []
     },
-    "/api/v1/docs/{projectId}/pages/import": {
+    "/api/v1/docs/{baseId}/pages/import": {
       "post": {
         "summary": "Import pages",
         "operationId": "import-pages",
@@ -909,7 +909,7 @@
       },
       "parameters": []
     },
-    "/api/v1/docs/{projectId}/pages/{pageId}/history/sync": {
+    "/api/v1/docs/{baseId}/pages/{pageId}/history/sync": {
       "post": {
         "summary": "When called will snapshot the page if there is any page change needed to be snapshoted",
         "operationId": "sync-page-history",
@@ -933,7 +933,7 @@
         "description": "Sync page history"
       }
     },
-    "/api/v1/docs/{projectId}/pages/{pageId}/history": {
+    "/api/v1/docs/{baseId}/pages/{pageId}/history": {
       "get": {
         "summary": "List snapshots of the page (paginated)",
         "operationId": "list-page-history",
@@ -982,7 +982,7 @@
         ]
       }
     },
-    "/api/v1/docs/{projectId}/pages/{pageId}/history/{snapshotId}/restore": {
+    "/api/v1/docs/{baseId}/pages/{pageId}/history/{snapshotId}/restore": {
       "post": {
         "summary": "Restore page to a given snapshot",
         "operationId": "restore-page-history",
@@ -1208,10 +1208,10 @@
         }
       ]
     },
-    "/api/v1/workspaces/{workspaceId}/projects": {
+    "/api/v1/workspaces/{workspaceId}/bases": {
       "get": {
-        "summary": "Workspace projects list",
-        "operationId": "workspace-project-list",
+        "summary": "Workspace bases list",
+        "operationId": "workspace-base-list",
         "responses": {
           "200": {
             "description": "OK",
@@ -1225,9 +1225,9 @@
           }
         },
         "tags": [
-          "Workspace project"
+          "Workspace base"
         ],
-        "description": "Workspace projects list"
+        "description": "Workspace bases list"
       },
       "parameters": [
         {
@@ -1240,10 +1240,10 @@
         }
       ]
     },
-    "/api/v1/workspaces/{toWorkspaceId}/projects/{projectId}/move": {
+    "/api/v1/workspaces/{toWorkspaceId}/bases/{baseId}/move": {
       "post": {
-        "summary": "Workspace project move",
-        "operationId": "workspace-project-move",
+        "summary": "Workspace base move",
+        "operationId": "workspace-base-move",
         "responses": {
           "200": {
             "description": "OK",
@@ -1253,9 +1253,9 @@
           }
         },
         "tags": [
-          "Workspace project"
+          "Workspace base"
         ],
-        "description": "Workspace projects list"
+        "description": "Workspace bases list"
       },
       "parameters": [
         {
@@ -1270,7 +1270,7 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true
         }
@@ -1395,7 +1395,7 @@
         }
       ]
     },
-    "/api/v1/db/meta/filters/{filterId}": {
+    "/api/v1/meta/filters/{filterId}": {
       "parameters": [
         {
           "schema": {
@@ -1422,7 +1422,7 @@
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "source_id": "ds_g4ccx6e77h1dmi",
                       "comparison_op": "eq",
                       "comparison_sub_op": null,
                       "created_at": "2023-03-02 18:18:05",
@@ -1435,7 +1435,7 @@
                       "is_group": null,
                       "logical_op": "and",
                       "order": 1,
-                      "project_id": "p_xm3thidrblw4n7",
+                      "base_id": "p_xm3thidrblw4n7",
                       "updated_at": "2023-03-02 18:18:05",
                       "value": "foo"
                     }
@@ -1546,7 +1546,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/filters/{filterGroupId}/children": {
+    "/api/v1/meta/filters/{filterGroupId}/children": {
       "parameters": [
         {
           "schema": {
@@ -1575,7 +1575,7 @@
                     "value": {
                       "list": [
                         {
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "comparison_op": "eq",
                           "comparison_sub_op": null,
                           "created_at": "2023-03-02 18:18:05",
@@ -1587,7 +1587,7 @@
                           "is_group": null,
                           "logical_op": "and",
                           "order": 1,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "updated_at": "2023-03-02 18:18:05",
                           "value": "foo"
                         }
@@ -1620,7 +1620,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/magic": {
+    "/api/v1/meta/magic": {
       "parameters": [],
       "post": {
         "summary": "Get generic response using NocoAI",
@@ -1696,13 +1696,13 @@
         "description": "Get dynamic command palette suggestions based on scope"
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/{baseId}/tables/magic": {
+    "/api/v1/meta/bases/{baseId}/{sourceId}/tables/magic": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true
         },
@@ -1710,7 +1710,7 @@
           "schema": {
             "type": "string"
           },
-          "name": "baseId",
+          "name": "sourceId",
           "in": "path",
           "required": true
         }
@@ -1753,17 +1753,17 @@
           }
         },
         "tags": [
-          "Base"
+          "Source"
         ]
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/{baseId}/schema/magic": {
+    "/api/v1/meta/bases/{baseId}/{sourceId}/schema/magic": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true
         },
@@ -1771,7 +1771,7 @@
           "schema": {
             "type": "string"
           },
-          "name": "baseId",
+          "name": "sourceId",
           "in": "path",
           "required": true
         }
@@ -1814,7 +1814,7 @@
           }
         },
         "tags": [
-          "Base"
+          "Source"
         ]
       }
     },
@@ -2157,7 +2157,7 @@
           "parent_page_id": {
             "type": "string"
           },
-          "project_id": {
+          "base_id": {
             "type": "string"
           },
           "published_content": {
@@ -2374,12 +2374,12 @@
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
           },
-          "base_id": {
-            "description": "Unique Base ID",
+          "source_id": {
+            "description": "Unique Source ID",
             "type": "string"
           },
-          "project_id": {
-            "description": "Unique Project ID",
+          "base_id": {
+            "description": "Unique Base ID",
             "type": "string"
           },
           "title": {
@@ -2419,12 +2419,12 @@
         "title": "Layout Request Model",
         "type": "object",
         "properties": {
-          "base_id": {
-            "description": "Unique Base ID",
+          "source_id": {
+            "description": "Unique Source ID",
             "type": "string"
           },
-          "project_id": {
-            "description": "Unique Project ID",
+          "base_id": {
+            "description": "Unique Base ID",
             "type": "string"
           },
           "title": {
@@ -2438,7 +2438,7 @@
           }
         },
         "required": [
-          "project_id",
+          "base_id",
           "title"
         ]
       },
@@ -2660,15 +2660,15 @@
         "description": "Model for Map",
         "examples": [
           {
-            "base_id": "ds_g4ccx6e77h1dmi",
+            "source_id": "ds_g4ccx6e77h1dmi",
             "columns": [
               {
-                "base_id": "ds_g4ccx6e77h1dmi",
+                "source_id": "ds_g4ccx6e77h1dmi",
                 "fk_column_id": "cl_8iw2o4ejzvdyna",
                 "fk_view_id": "vw_qjt7klod1p9kyv",
                 "id": "nc_46xcacqn4rc9xf",
                 "order": 1,
-                "project_id": "p_xm3thidrblw4n7",
+                "base_id": "p_xm3thidrblw4n7",
                 "show": 1
               }
             ],
@@ -2676,14 +2676,14 @@
             "fk_view_id": "vw_qjt7klod1p9kyv",
             "meta": {},
             "order": 0,
-            "project_id": "p_xm3thidrblw4n7",
+            "base_id": "p_xm3thidrblw4n7",
             "show": true,
             "title": "My Map"
           }
         ],
         "properties": {
-          "base_id": {
-            "description": "The ID of the base that this view belongs to",
+          "source_id": {
+            "description": "The ID of the source that this view belongs to",
             "example": "ds_g4ccx6e77h1dmi",
             "type": "string"
           },
@@ -2712,8 +2712,8 @@
             "description": "The order of the map list",
             "type": "number"
           },
-          "project_id": {
-            "description": "The ID of the project that this view belongs to",
+          "base_id": {
+            "description": "The ID of the base that this view belongs to",
             "example": "p_xm3thidrblw4n7",
             "type": "string"
           },
@@ -2762,18 +2762,18 @@
         "description": "Model for Map Column",
         "examples": [
           {
-            "base_id": "ds_g4ccx6e77h1dmi",
+            "source_id": "ds_g4ccx6e77h1dmi",
             "fk_column_id": "cl_8iw2o4ejzvdyna",
             "fk_view_id": "vw_qjt7klod1p9kyv",
             "id": "nc_46xcacqn4rc9xf",
             "order": 1,
-            "project_id": "p_xm3thidrblw4n7",
+            "base_id": "p_xm3thidrblw4n7",
             "show": 1
           }
         ],
         "properties": {
-          "base_id": {
-            "description": "The ID of the base that this map column belongs to",
+          "source_id": {
+            "description": "The ID of the source that this map column belongs to",
             "example": "ds_g4ccx6e77h1dmi",
             "type": "string"
           },
@@ -2797,8 +2797,8 @@
             "example": 1,
             "type": "number"
           },
-          "project_id": {
-            "description": "The ID of the project that this map column belongs to",
+          "base_id": {
+            "description": "The ID of the base that this map column belongs to",
             "example": "p_xm3thidrblw4n7",
             "type": "string"
           },
@@ -2931,7 +2931,7 @@
         "properties": {
           "fk_user_id": {
             "type": "string",
-            "description": "The ID of the user who receives the project invite"
+            "description": "The ID of the user who receives the base invite"
           },
           "type": {
             "type": "string",
@@ -2942,15 +2942,15 @@
             "properties": {
               "id": {
                 "type": "string",
-                "description": "The ID of the project being invited to"
+                "description": "The ID of the base being invited to"
               },
               "title": {
                 "type": "string",
-                "description": "The title of the project being invited to"
+                "description": "The title of the base being invited to"
               },
               "type": {
                 "type": "string",
-                "description": "The type of the project being invited to"
+                "description": "The type of the base being invited to"
               },
               "invited_by": {
                 "type": "string",
@@ -2958,7 +2958,7 @@
               },
               "workspace_id": {
                 "type": "string",
-                "description": "The ID of the workspace that the project being invited to belongs to"
+                "description": "The ID of the workspace that the base being invited to belongs to"
               }
             },
             "required": [
@@ -2991,19 +2991,19 @@
             "properties": {
               "id": {
                 "type": "string",
-                "description": "The ID of the project"
+                "description": "The ID of the base"
               },
               "title": {
                 "type": "string",
-                "description": "The title of the project"
+                "description": "The title of the base"
               },
               "type": {
                 "type": "string",
-                "description": "The type of the project"
+                "description": "The type of the base"
               },
               "workspace_id": {
                 "type": "string",
-                "description": "The ID of the workspace that the project belongs to"
+                "description": "The ID of the workspace that the base belongs to"
               }
             },
             "required": [
@@ -3064,7 +3064,7 @@
         "description": "Model for Filter",
         "examples": [
           {
-            "base_id": "ds_g4ccx6e77h1dmi",
+            "source_id": "ds_g4ccx6e77h1dmi",
             "comparison_op": "eq",
             "comparison_sub_op": null,
             "created_at": "2023-03-02 18:18:05",
@@ -3077,14 +3077,14 @@
             "is_group": null,
             "logical_op": "and",
             "order": 1,
-            "project_id": "p_xm3thidrblw4n7",
+            "base_id": "p_xm3thidrblw4n7",
             "updated_at": "2023-03-02 18:18:05",
             "value": "foo"
           }
         ],
         "properties": {
-          "base_id": {
-            "description": "Unqiue Base ID",
+          "source_id": {
+            "description": "Unqiue Source ID",
             "readOnly": true,
             "type": "string"
           },
@@ -3219,8 +3219,8 @@
             ],
             "type": "string"
           },
-          "project_id": {
-            "description": "Unique Project ID",
+          "base_id": {
+            "description": "Unique Base ID",
             "readOnly": true,
             "type": "string"
           },
@@ -3241,7 +3241,7 @@
           {
             "list": [
               {
-                "base_id": "ds_g4ccx6e77h1dmi",
+                "source_id": "ds_g4ccx6e77h1dmi",
                 "comparison_op": "eq",
                 "comparison_sub_op": null,
                 "created_at": "2023-03-02 18:18:05",
@@ -3254,7 +3254,7 @@
                 "is_group": null,
                 "logical_op": "and",
                 "order": 1,
-                "project_id": "p_xm3thidrblw4n7",
+                "base_id": "p_xm3thidrblw4n7",
                 "updated_at": "2023-03-02 18:18:05",
                 "value": "foo"
               }
@@ -3272,7 +3272,7 @@
         "type": "object",
         "x-examples": {
           "example-1": {
-            "bases": {
+            "sources": {
               "list": [
                 {
                   "alias": "string",
@@ -3282,7 +3282,7 @@
                   "params": "string",
                   "password": "string",
                   "port": 0,
-                  "project_id": "string",
+                  "base_id": "string",
                   "ssl": "string",
                   "type": "string",
                   "url": "string",

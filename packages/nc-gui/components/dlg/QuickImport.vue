@@ -30,7 +30,7 @@ import {
   storeToRefs,
   useGlobal,
   useI18n,
-  useProject,
+  useBase,
   useVModel,
 } from '#imports'
 
@@ -41,11 +41,11 @@ import { useNuxtApp } from '#app'
 interface Props {
   modelValue: boolean
   importType: 'csv' | 'json' | 'excel'
-  baseId: string
+  sourceId: string
   importDataOnly?: boolean
 }
 
-const { importType, importDataOnly = false, baseId, ...rest } = defineProps<Props>()
+const { importType, importDataOnly = false, sourceId, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -63,7 +63,7 @@ const { t } = useI18n()
 
 const progressMsg = ref('Parsing Data ...')
 
-const { tables } = storeToRefs(useProject())
+const { tables } = storeToRefs(useBase())
 
 const activeKey = ref('uploadTab')
 
@@ -546,13 +546,13 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
           <LazyTemplateEditor
             v-if="templateEditorModal"
             ref="templateEditorRef"
-            :project-template="templateData"
+            :base-template="templateData"
             :import-data="importData"
             :import-columns="importColumns"
             :import-data-only="importDataOnly"
             :quick-import-type="importType"
             :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
-            :base-id="baseId"
+            :source-id="sourceId"
             :import-worker="importWorker"
             class="nc-quick-import-template-editor"
             @import="handleImport"

@@ -511,7 +511,7 @@ export const useCommandList = ({
       converter.setOption('noHeaderId', true)
 
       const response: any = await magicOutline({
-        projectId: openedProjectId.value,
+        baseId: openedProjectId.value,
         pageId: openedPage.value?.id,
       })
 

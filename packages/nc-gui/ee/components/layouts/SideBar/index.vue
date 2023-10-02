@@ -4,10 +4,10 @@ import type { NcProject } from '#imports'
 import { useDashboardStore } from '#imports'
 
 const props = defineProps<{
-  project: NcProject
+  base: NcProject
 }>()
 
-const project = toRef(props, 'project')
+const base = toRef(props, 'base')
 
 const dashboardStore = useDashboardStore()
 
@@ -15,7 +15,7 @@ const { layoutsOfProjects } = storeToRefs(dashboardStore)
 
 const { openLayout } = dashboardStore
 
-const layouts = computed(() => layoutsOfProjects.value[project.value.id!])
+const layouts = computed(() => layoutsOfProjects.value[base.value.id!])
 </script>
 
 <template>
@@ -29,11 +29,11 @@ const layouts = computed(() => layoutsOfProjects.value[project.value.id!])
       :data-id="layout.id"
       :data-testid="`tree-view-layout-${layout.title}`"
       :layout="layout"
-      :project="project"
+      :base="base"
       @click="
         openLayout({
           layout,
-          projectId: project.id!,
+          baseId: base.id!,
         })
       "
     >

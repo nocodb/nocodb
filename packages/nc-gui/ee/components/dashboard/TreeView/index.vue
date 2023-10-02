@@ -15,8 +15,8 @@ import {
   storeToRefs,
   useDialog,
   useNuxtApp,
-  useProject,
-  useProjects,
+  useBase,
+  useBases,
   useRoles,
   useTablesStore,
   useTabs,
@@ -38,19 +38,19 @@ const route = router.currentRoute
 
 const { isWorkspaceLoading } = storeToRefs(useWorkspace())
 
-const projectsStore = useProjects()
+const basesStore = useBases()
 
-const { createProject: _createProject } = projectsStore
+const { createProject: _createProject } = basesStore
 
-const { projects, projectsList, activeProjectId, openedProject } = storeToRefs(projectsStore)
+const { bases, basesList, activeProjectId, openedProject } = storeToRefs(basesStore)
 
 const { openTable } = useTablesStore()
 
-const projectStore = useProject()
+const baseStore = useBase()
 
-const { loadTables } = projectStore
+const { loadTables } = baseStore
 
-const { tables, isSharedBase } = storeToRefs(projectStore)
+const { tables, isSharedBase } = storeToRefs(baseStore)
 
 const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
@@ -58,22 +58,22 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { workspaceRoles } = useRoles()
 
-const projectType = ref(NcProjectType.DB)
-const projectCreateDlg = ref(false)
+const baseType = ref(NcProjectType.DB)
+const baseCreateDlg = ref(false)
 const dashboardProjectCreateDlg = ref(false)
 
-const starredProjectList = computed(() => projectsList.value.filter((project) => project.starred))
-const nonStarredProjectList = computed(() => projectsList.value.filter((project) => !project.starred))
+const starredProjectList = computed(() => basesList.value.filter((base) => base.starred))
+const nonStarredProjectList = computed(() => basesList.value.filter((base) => !base.starred))
 
-const contextMenuTarget = reactive<{ type?: 'project' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
+const contextMenuTarget = reactive<{ type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 
-const setMenuContext = (type: 'project' | 'base' | 'table' | 'main' | 'layout', value?: any) => {
+const setMenuContext = (type: 'base' | 'base' | 'table' | 'main' | 'layout', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
 }
 
 function openRenameTableDialog(table: TableType, rightClick = false) {
-  if (!table || !table.base_id) return
+  if (!table || !table.source_id) return
 
   $e('c:table:rename')
 
@@ -82,7 +82,7 @@ function openRenameTableDialog(table: TableType, rightClick = false) {
   const { close } = useDialog(resolveComponent('DlgTableRename'), {
     'modelValue': isOpen,
     'tableMeta': table,
-    'baseId': table.base_id, // || bases.value[0].id,
+    'sourceId': table.source_id, // || sources.value[0].id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -93,8 +93,8 @@ function openRenameTableDialog(table: TableType, rightClick = false) {
   }
 }
 
-function openTableCreateDialog(baseId?: string, projectId?: string) {
-  if (!baseId && !(projectId || projectsList.value[0].id)) return
+function openTableCreateDialog(sourceId?: string, baseId?: string) {
+  if (!sourceId && !(baseId || basesList.value[0].id)) return
 
   $e('c:table:create:navdraw')
 
@@ -102,8 +102,8 @@ function openTableCreateDialog(baseId?: string, projectId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
-    'baseId': baseId, // || bases.value[0].id,
-    'projectId': projectId || projectsList.value[0].id,
+    'sourceId': sourceId, // || sources.value[0].id,
+    'baseId': baseId || basesList.value[0].id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -115,7 +115,7 @@ function openTableCreateDialog(baseId?: string, projectId?: string) {
 }
 
 const duplicateTable = async (table: TableType) => {
-  if (!table || !table.id || !table.project_id) return
+  if (!table || !table.id || !table.base_id) return
 
   const isOpen = ref(true)
 
@@ -185,17 +185,17 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           // prevent the key `T` is inputted to table title input
           e.preventDefault()
           $e('c:shortcut', { key: 'ALT + T' })
-          const projectId = activeProjectId.value
-          const project = projectId ? projects.value.get(projectId) : undefined
-          if (!project) return
+          const baseId = activeProjectId.value
+          const base = baseId ? bases.value.get(baseId) : undefined
+          if (!base) return
 
-          if (projectId) openTableCreateDialog(project.bases?.[0].id, projectId)
+          if (baseId) openTableCreateDialog(base.sources?.[0].id, baseId)
         }
         break
       }
-      // ALT + L - only show active project
+      // ALT + L - only show active base
       case 76: {
-        if (route.value.params.projectId) {
+        if (route.value.params.baseId) {
           router.push({
             query: {
               ...route.value.query,
@@ -208,15 +208,15 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       // ALT + D
       case 68: {
         e.stopPropagation()
-        projectType.value = NcProjectType.DB
-        projectCreateDlg.value = true
+        baseType.value = NcProjectType.DB
+        baseCreateDlg.value = true
         break
       }
       // ALT + B
       case 66: {
         e.stopPropagation()
-        projectType.value = NcProjectType.DOCS
-        projectCreateDlg.value = true
+        baseType.value = NcProjectType.DOCS
+        baseCreateDlg.value = true
         break
       }
     }
@@ -247,10 +247,10 @@ useEventListener(document, 'contextmenu', handleContext, true)
           <div class="text-gray-500 font-medium">Starred</div>
         </div>
         <ProjectWrapper
-          v-for="project of starredProjectList"
-          :key="project.id"
-          :project-role="project.project_role || project.workspace_role"
-          :project="project"
+          v-for="base of starredProjectList"
+          :key="base.id"
+          :base-role="base.project_role || base.workspace_role"
+          :base="base"
         >
           <DashboardTreeViewProjectNode />
         </ProjectWrapper>
@@ -260,19 +260,19 @@ useEventListener(document, 'contextmenu', handleContext, true)
       </div>
       <template v-if="nonStarredProjectList?.length">
         <ProjectWrapper
-          v-for="project of nonStarredProjectList"
-          :key="project.id"
-          :project-role="project.project_role || stringifyRolesObj(workspaceRoles)"
-          :project="project"
+          v-for="base of nonStarredProjectList"
+          :key="base.id"
+          :base-role="base.project_role || stringifyRolesObj(workspaceRoles)"
+          :base="base"
         >
           <DashboardTreeViewProjectNode />
         </ProjectWrapper>
       </template>
 
-      <WorkspaceEmptyPlaceholder v-else-if="!projectsList.length && !isWorkspaceLoading" />
+      <WorkspaceEmptyPlaceholder v-else-if="!basesList.length && !isWorkspaceLoading" />
     </div>
 
-    <WorkspaceCreateProjectDlg v-model="projectCreateDlg" :type="projectType" />
+    <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
     <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
   </div>
 </template>

@@ -30,9 +30,11 @@ export const useCommandPalette = createSharedComposable(() => {
 
   const cmdPlaceholder = ref('Search...')
 
+  const { token } = useGlobal()
+
   const commands = ref({
     homeCommands,
-    projectCommands: [],
+    baseCommands: [],
   } as Record<string, CmdAction[]>)
 
   const staticData = computed(() => {
@@ -41,7 +43,7 @@ export const useCommandPalette = createSharedComposable(() => {
     if (activeScope.value.scope === 'root') return rtData
 
     if (activeScope.value.scope.startsWith('ws-')) {
-      rtData.push(...commands.value.projectCommands)
+      rtData.push(...commands.value.baseCommands)
     }
 
     return rtData
@@ -126,6 +128,9 @@ export const useCommandPalette = createSharedComposable(() => {
   watch(
     () => route.value.params,
     () => {
+      // if user is not authenticated, don't load scope
+      if (!token.value) return
+
       if (route.value.params.typeOrId && typeof route.value.params.typeOrId === 'string') {
         if (route.value.params.typeOrId === 'base') {
           if (activeScope.value.scope === 'disabled') return

@@ -10,7 +10,7 @@ const { title: propTitle } = props
 
 const MAX_TITLE_LENGTH = 150
 
-const { project } = useProject()
+const { base } = useBase()
 
 const docStore = useDocStore()
 const { updatePage } = docStore
@@ -91,7 +91,7 @@ const onTitleInput = (e: Event) => {
 const setIcon = async (icon: string) => {
   try {
     openedPage.value!.icon = icon
-    await updatePage({ pageId: openedPage.value!.id!, page: { icon }, projectId: project.id! })
+    await updatePage({ pageId: openedPage.value!.id!, page: { icon }, baseId: base.id! })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -109,7 +109,7 @@ watch(computedTitle, async (newTitle, oldTitle) => {
   if (oldTitle === undefined) return
   if (newTitle === oldTitle) return
 
-  await updatePage({ pageId: openedPage.value!.id!, page: { title: openedPage.value?.title } as any, projectId: project.id! })
+  await updatePage({ pageId: openedPage.value!.id!, page: { title: openedPage.value?.title } as any, baseId: base.id! })
 })
 
 // TODO: Hack. Due to some rerendering issues, we need to focus title after some time

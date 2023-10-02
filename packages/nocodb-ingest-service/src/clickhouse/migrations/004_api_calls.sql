@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS usage_api_calls (
     created_at DateTime,
     workspace_id String(20),
   	user_id String(20),
-    project_id String(120),
+    base_id String(120),
     url String,
     method String(10),
     status UInt16,

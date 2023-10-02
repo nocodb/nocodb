@@ -17,30 +17,29 @@ export class DocsPagesUpdateService {
 
   async process({
     workspaceId,
-    projectId,
+    baseId,
     pageId,
     attributes,
     user,
     snapshotDisabled,
   }: {
     workspaceId: string;
-    projectId: string;
+    baseId: string;
     pageId: string;
     attributes: Partial<DocsPageType>;
     user: UserType;
     snapshotDisabled?: boolean;
   }) {
-    const oldPage = await this.pageDao.get({ id: pageId, projectId });
+    const oldPage = await this.pageDao.get({ id: pageId, baseId });
     if (!oldPage) throw new Error('Page not found');
 
-    if (oldPage.project_id !== projectId) throw new Error('Page not found');
+    if (oldPage.base_id !== baseId) throw new Error('Page not found');
 
     attributes.last_updated_by_id = user.id;
 
     this.sanitizeAttributes(attributes, oldPage);
 
-    if (attributes.title)
-      await this.generateSlug(projectId, attributes, oldPage);
+    if (attributes.title) await this.generateSlug(baseId, attributes, oldPage);
 
     if ('is_published' in attributes) {
       attributes.last_published_date = this.meta.knex.fn.now();
@@ -53,7 +52,7 @@ export class DocsPagesUpdateService {
 
       await this.updateChildPagesIsPublish({
         pageId,
-        projectId,
+        baseId,
         nestedParentPageId: pageId,
         isPublished: true,
       });
@@ -64,7 +63,7 @@ export class DocsPagesUpdateService {
 
       await this.updateChildPagesIsPublish({
         pageId,
-        projectId,
+        baseId,
         nestedParentPageId: pageId,
         isPublished: false,
       });
@@ -72,7 +71,7 @@ export class DocsPagesUpdateService {
 
     await this.pageDao.updatePage({
       pageId,
-      projectId,
+      baseId,
       attributes,
     });
 
@@ -80,7 +79,7 @@ export class DocsPagesUpdateService {
 
     if (attributes.order) {
       await this.reorderPage({
-        projectId,
+        baseId,
         parent_page_id: attributes.parent_page_id,
         keepPageId: pageId,
       });
@@ -92,13 +91,13 @@ export class DocsPagesUpdateService {
       attributes.parent_page_id !== oldPage.parent_page_id
     ) {
       if (oldPage.parent_page_id) {
-        await this.updateOldParentPagesIsParentFlag(projectId, oldPage);
+        await this.updateOldParentPagesIsParentFlag(baseId, oldPage);
       }
 
-      await this.updateParentAndSlugOnCollision(pageId, attributes, projectId);
+      await this.updateParentAndSlugOnCollision(pageId, attributes, baseId);
 
       if (attributes.parent_page_id) {
-        await this.handlePagePublishWithNewParent(oldPage.id, projectId);
+        await this.handlePagePublishWithNewParent(oldPage.id, baseId);
       }
 
       // If parent page is changed to null, unpublish the page
@@ -107,11 +106,11 @@ export class DocsPagesUpdateService {
         !attributes.parent_page_id &&
         oldPage.id !== oldPage.nested_published_parent_id
       ) {
-        await this.unpublishPage(oldPage.id, projectId);
+        await this.unpublishPage(oldPage.id, baseId);
       }
     }
 
-    const updatedPage = await this.pageDao.get({ id: pageId, projectId });
+    const updatedPage = await this.pageDao.get({ id: pageId, baseId });
 
     if (!snapshotDisabled) {
       this.pagesHistoryService
@@ -135,10 +134,10 @@ export class DocsPagesUpdateService {
    *
    * */
 
-  async unpublishPage(pageId: string, projectId: string) {
+  async unpublishPage(pageId: string, baseId: string) {
     await this.pageDao.updatePage({
       pageId: pageId,
-      projectId,
+      baseId,
       attributes: {
         nested_published_parent_id: null,
         is_published: false,
@@ -147,7 +146,7 @@ export class DocsPagesUpdateService {
 
     await this.updateChildPagesIsPublish({
       pageId,
-      projectId,
+      baseId,
       nestedParentPageId: pageId,
       isPublished: false,
     });
@@ -155,24 +154,24 @@ export class DocsPagesUpdateService {
 
   async updateChildPagesIsPublish({
     pageId,
-    projectId,
+    baseId,
     nestedParentPageId,
     isPublished,
   }: {
     pageId: string;
-    projectId: string;
+    baseId: string;
     nestedParentPageId: string;
     isPublished: boolean;
   }) {
     const childPages = await this.pageDao.getChildPages({
       parent_page_id: pageId,
-      projectId,
+      baseId,
     });
 
     for (const childPage of childPages) {
       await this.pageDao.updatePage({
         pageId: childPage.id,
-        projectId,
+        baseId,
         attributes: {
           is_published: isPublished,
           nested_published_parent_id: isPublished ? nestedParentPageId : null,
@@ -183,7 +182,7 @@ export class DocsPagesUpdateService {
       await this.updateChildPagesIsPublish({
         pageId: childPage.id,
         nestedParentPageId: nestedParentPageId,
-        projectId,
+        baseId,
         isPublished,
       });
     }
@@ -199,7 +198,7 @@ export class DocsPagesUpdateService {
 
     if (attributes.title === oldPage.title) delete attributes.title;
 
-    if ('project_id' in attributes) delete attributes.project_id;
+    if ('base_id' in attributes) delete attributes.base_id;
 
     if ('content' in attributes) {
       if (typeof attributes.content !== 'string') {
@@ -219,12 +218,12 @@ export class DocsPagesUpdateService {
   }
 
   async generateSlug(
-    projectId: string,
+    baseId: string,
     attributes: Partial<DocsPageType>,
     oldPage: DocsPageType,
   ) {
     const uniqueSlug = await this.pageDao.uniqueSlug({
-      projectId,
+      baseId,
       parent_page_id: oldPage.parent_page_id,
       title: attributes.title,
     });
@@ -232,19 +231,19 @@ export class DocsPagesUpdateService {
     attributes.slug = uniqueSlug;
   }
 
-  async handlePagePublishWithNewParent(pageId: string, projectId: string) {
-    const page = await this.pageDao.get({ id: pageId, projectId });
+  async handlePagePublishWithNewParent(pageId: string, baseId: string) {
+    const page = await this.pageDao.get({ id: pageId, baseId });
     if (!page.parent_page_id) return;
 
     const parentPage = await this.pageDao.get({
       id: page.parent_page_id,
-      projectId,
+      baseId,
     });
 
     if (parentPage.is_published) {
       await this.pageDao.updatePage({
         pageId,
-        projectId,
+        baseId,
         attributes: {
           is_published: true,
           nested_published_parent_id: parentPage.nested_published_parent_id,
@@ -255,14 +254,14 @@ export class DocsPagesUpdateService {
 
       await this.updateChildPagesIsPublish({
         pageId,
-        projectId,
+        baseId,
         nestedParentPageId: parentPage.nested_published_parent_id,
         isPublished: true,
       });
     } else {
       await this.pageDao.updatePage({
         pageId,
-        projectId,
+        baseId,
         attributes: {
           is_published: false,
           nested_published_parent_id: null,
@@ -271,7 +270,7 @@ export class DocsPagesUpdateService {
 
       await this.updateChildPagesIsPublish({
         pageId,
-        projectId,
+        baseId,
         nestedParentPageId: pageId,
         isPublished: false,
       });
@@ -279,17 +278,17 @@ export class DocsPagesUpdateService {
   }
 
   async updateOldParentPagesIsParentFlag(
-    projectId: string,
+    baseId: string,
     oldPage: DocsPageType,
   ) {
     const previousParentChildren = await this.pageDao.getChildPages({
       parent_page_id: oldPage.parent_page_id,
-      projectId,
+      baseId,
     });
     if (previousParentChildren.length === 0) {
       await this.pageDao.updatePage({
         pageId: oldPage.parent_page_id,
-        projectId,
+        baseId,
         attributes: {
           is_parent: false,
         },
@@ -300,30 +299,30 @@ export class DocsPagesUpdateService {
   async updateParentAndSlugOnCollision(
     pageId: string,
     attributes: Partial<DocsPageType>,
-    projectId: string,
+    baseId: string,
   ) {
     if (attributes.parent_page_id) {
       await this.pageDao.updatePage({
         pageId: attributes.parent_page_id,
-        projectId,
+        baseId,
         attributes: {
           is_parent: true,
         },
       });
     }
 
-    const currentPage = await this.pageDao.get({ id: pageId, projectId });
+    const currentPage = await this.pageDao.get({ id: pageId, baseId });
 
     // Since there can be slug collision, when page is moved to a new parent
     const uniqueSlug = await this.pageDao.uniqueSlug({
-      projectId,
+      baseId,
       parent_page_id: attributes.parent_page_id,
       title: currentPage.title,
     });
     if (uniqueSlug !== currentPage.slug) {
       await this.pageDao.updatePage({
         pageId,
-        projectId,
+        baseId,
         attributes: {
           slug: uniqueSlug,
         },
@@ -334,13 +333,13 @@ export class DocsPagesUpdateService {
   async reorderPage({
     parent_page_id,
     keepPageId,
-    projectId,
+    baseId,
   }: {
-    projectId: string;
+    baseId: string;
     parent_page_id?: string;
     keepPageId?: string;
   }) {
-    const pages = await this.pageDao.list({ parent_page_id, projectId });
+    const pages = await this.pageDao.list({ parent_page_id, baseId });
 
     if (keepPageId) {
       const kpPage = pages.splice(
@@ -358,7 +357,7 @@ export class DocsPagesUpdateService {
 
       await this.pageDao.updatePage({
         pageId: b.id,
-        projectId,
+        baseId,
         attributes: {
           order: b.order,
         },

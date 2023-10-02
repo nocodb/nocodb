@@ -1,23 +1,23 @@
 import { test } from '@playwright/test';
-import { ProjectType, ProjectTypes } from 'nocodb-sdk';
+import { BaseType, ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../pages/Dashboard';
 import setup, { NcContext } from '../../setup';
 
 test.describe('Tiptap:Divider and Image', () => {
   let dashboard: DashboardPage;
   let context: NcContext;
-  let project: ProjectType;
+  let base: BaseType;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, projectType: ProjectTypes.DOCUMENTATION });
-    project = context.project;
-    dashboard = new DashboardPage(page, context.project);
+    context = await setup({ page, baseType: ProjectTypes.DOCUMENTATION });
+    base = context.base;
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test('Tiptap:Divider', async ({ page }) => {
     const openedPage = await dashboard.docs.openedPage;
     await dashboard.sidebar.docsSidebar.createPage({
-      projectTitle: project.title as any,
+      baseTitle: base.title as any,
       title: 'page',
     });
 
@@ -84,7 +84,7 @@ test.describe('Tiptap:Divider and Image', () => {
 
     const openedPage = await dashboard.docs.openedPage;
     await dashboard.sidebar.docsSidebar.createPage({
-      projectTitle: project.title as any,
+      baseTitle: base.title as any,
       title: 'page',
     });
 

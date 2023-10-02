@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Base, Model, View } from '~/models';
+import type { Model, Source, View } from '~/models';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { singleQueryList, singleQueryRead } from '~/services/data-opt/helpers';
 import {
@@ -12,7 +12,7 @@ export class DataOptService {
   async list(ctx: {
     model: Model;
     view: View;
-    base: Base;
+    source: Source;
     params;
   }): Promise<PagedResponseImpl<Record<string, any>>> {
     const params = { ...(ctx.params || {}) };
@@ -29,7 +29,7 @@ export class DataOptService {
           params.sortArr = JSON.parse(params.sortArrJson);
         } catch (e) {}
     }
-    if (['mysql', 'mysql2'].includes(ctx.base.type)) {
+    if (['mysql', 'mysql2'].includes(ctx.source.type)) {
       return mysqlSingleQueryList({ ...ctx, params });
     }
     return singleQueryList({ ...ctx, params });
@@ -38,11 +38,11 @@ export class DataOptService {
   async read(ctx: {
     model: Model;
     view: View;
-    base: Base;
+    source: Source;
     params;
     id: string;
   }): Promise<PagedResponseImpl<Record<string, any>>> {
-    if (['mysql', 'mysql2'].includes(ctx.base.type)) {
+    if (['mysql', 'mysql2'].includes(ctx.source.type)) {
       return mysqlSingleQueryRead(ctx);
     }
     return singleQueryRead(ctx);

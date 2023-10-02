@@ -1,4 +1,4 @@
-import Project from './Project';
+import Base from './Base';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 
@@ -19,32 +19,32 @@ export default class Page {
   }
 
   public static async tableName({
-    projectId,
+    baseId,
     workspaceId,
   }: {
-    projectId: string;
+    baseId: string;
     workspaceId?: string;
   }) {
     const prefix = 'nc_d_page_';
     if (workspaceId) return `${prefix}${workspaceId}`;
 
-    const project = await Project.get(projectId);
-    return `${prefix}${(project as Project).fk_workspace_id}`;
+    const base = await Base.get(baseId);
+    return `${prefix}${(base as Base).fk_workspace_id}`;
   }
 
   static async createPageTable(
-    { projectId, workspaceId }: { projectId: string; workspaceId?: string },
+    { baseId, workspaceId }: { baseId: string; workspaceId?: string },
     ncMeta = Noco.ncMeta,
   ) {
     const knex = ncMeta.knex;
-    const pageTableName = await Page.tableName({ projectId, workspaceId });
+    const pageTableName = await Page.tableName({ baseId, workspaceId });
 
     await knex.schema.createTable(pageTableName, (table) => {
       table.string('id', 20).primary().notNullable();
 
-      table.string('project_id', 20).notNullable();
+      table.string('base_id', 20).notNullable();
       table
-        .foreign('project_id')
+        .foreign('base_id')
         .references(`${MetaTable.PROJECT}.id`)
         .withKeyName(`nc_page_fk_project_id_${uuidv4()}`);
 

@@ -7,7 +7,7 @@ import { computed } from '@vue/reactivity'
 import type { ComputedRef } from 'nuxt/dist/app/compat/capi'
 import Fuse from 'fuse.js'
 import type { IdAndTitle } from '#imports'
-import { NcProjectType, extractSdkResponseErrorMsg, projectTitleValidator, ref, useVModel, useWorkspace } from '#imports'
+import { NcProjectType, extractSdkResponseErrorMsg, baseTitleValidator, ref, useVModel, useWorkspace } from '#imports'
 import { navigateTo } from '#app'
 
 const props = defineProps<{
@@ -24,31 +24,31 @@ const workspaceStore = useWorkspace()
 const { loadWorkspaces } = workspaceStore
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
-const projectsStore = useProjects()
-const { loadProjects } = projectsStore
-const { projects } = storeToRefs(projectsStore)
+const basesStore = useBases()
+const { loadProjects } = basesStore
+const { bases } = storeToRefs(basesStore)
 
 const input: VNodeRef = ref<typeof Input>()
 
 type TabKey = '1' | '2'
 
-const { createProject: _createProject } = projectsStore
+const { createProject: _createProject } = basesStore
 
 const nameValidationRules = [
   {
     required: true,
-    message: 'Project name is required',
+    message: 'Base name is required',
   },
-  projectTitleValidator,
+  baseTitleValidator,
 ] as RuleObject[]
 
 const availableDbProjects: ComputedRef<Array<IdAndTitle>> = computed(() => {
   return (
-    Array.from(projects.value)
-      ?.filter(([_, project]) => project.type === 'database')
-      .map(([_, project]) => ({
-        id: project.id!,
-        title: project.title || 'unknown',
+    Array.from(bases.value)
+      ?.filter(([_, base]) => base.type === 'database')
+      .map(([_, base]) => ({
+        id: base.id!,
+        title: base.title || 'unknown',
       })) || []
   )
 })
@@ -91,9 +91,9 @@ const fuse = ref<Fuse<{
 
 watch(
   availableDbProjects,
-  (projects) => {
-    dbProjectsWithToggleStatus.value = projects.map((project) => ({
-      ...project,
+  (bases) => {
+    dbProjectsWithToggleStatus.value = bases.map((base) => ({
+      ...base,
       isToggle: false,
     }))
     fuse.value = new Fuse(dbProjectsWithToggleStatus.value, {
@@ -129,7 +129,7 @@ const createDashboardProject = async () => {
   }
   creating.value = true
   try {
-    const project = await _createProject({
+    const base = await _createProject({
       type: NcProjectType.DASHBOARD,
       title: formState.title,
       workspaceId: activeWorkspace.value!.id!,
@@ -137,7 +137,7 @@ const createDashboardProject = async () => {
     })
     await loadProjects()
 
-    navigateTo(`/${activeWorkspace.value!.id!}/${project.id!}/layout`)
+    navigateTo(`/${activeWorkspace.value!.id!}/${base.id!}/layout`)
 
     dialogShow.value = false
   } catch (e: any) {
@@ -179,7 +179,7 @@ const showSearchIcon = computed(() => {
     :class="{ active: dialogShow }"
     width="max(30vw, 600px)"
     centered
-    wrap-class-name="nc-modal-project-create"
+    wrap-class-name="nc-modal-base-create"
     @keydown.esc="dialogShow = false"
   >
     <div>
@@ -210,7 +210,7 @@ const showSearchIcon = computed(() => {
               ref="input"
               v-model:value="formState.title"
               name="title"
-              class="nc-metadb-project-name !rounded-md !py-2"
+              class="nc-metadb-base-name !rounded-md !py-2"
               data-testid="create-layouts-page-title-input"
               @finish="gotoStepTwo"
             />
@@ -248,7 +248,7 @@ const showSearchIcon = computed(() => {
             <a-list
               item-layout="horizontal"
               :data-source="filteredDbProjects"
-              class="nc-create-dashboard-project-modal-db-list max-h-52 overflow-y-auto"
+              class="nc-create-dashboard-base-modal-db-list max-h-52 overflow-y-auto"
             >
               <template #header>
                 <div class="flex items-center justify-between text-gray-400">
@@ -307,7 +307,7 @@ const showSearchIcon = computed(() => {
 </template>
 
 <style scoped lang="scss">
-.nc-create-dashboard-project-modal-db-list {
+.nc-create-dashboard-base-modal-db-list {
   min-height: 180px;
 }
 </style>

@@ -93,7 +93,7 @@ export default class NcConfigFactory {
     ncConfig.env = '_noco'; // process.env?.NODE_ENV || 'dev';
     ncConfig.workingEnv = '_noco'; // process.env?.NODE_ENV || 'dev';
     // ncConfig.toolDir = this.getToolDir();
-    ncConfig.projectType =
+    ncConfig.baseType =
       ncConfig?.envs?.[ncConfig.workingEnv]?.db?.[0]?.meta?.api?.type || 'rest';
 
     if (ncConfig.meta?.db?.connection?.filename) {
@@ -471,7 +471,7 @@ export default class NcConfigFactory {
     config.env = '_noco';
     config.workingEnv = '_noco';
     config.toolDir = this.getToolDir();
-    config.projectType =
+    config.baseType =
       type ||
       config?.envs?.[config.workingEnv]?.db?.[0]?.meta?.api?.type ||
       'rest';
@@ -571,7 +571,7 @@ export default class NcConfigFactory {
     config.env = '_noco';
     config.workingEnv = '_noco';
     config.toolDir = process.env.NC_TOOL_DIR || process.cwd();
-    config.projectType =
+    config.baseType =
       type ||
       config?.envs?.[config.workingEnv]?.db?.[0]?.meta?.api?.type ||
       'rest';
@@ -588,12 +588,12 @@ export default class NcConfigFactory {
   public envs: {
     [p: string]: { db: DbConfig[]; api?: any; publicUrl?: string };
   };
-  // public projectType: "rest" | "graphql" | "grpc";
+  // public baseType: "rest" | "graphql" | "grpc";
   public queriesFolder: string | string[] = '';
   public seedsFolder: string | string[];
   public title: string;
   public publicUrl: string;
-  public projectType;
+  public baseType;
   public meta = {
     db: {
       client: 'sqlite3',

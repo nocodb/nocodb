@@ -3,7 +3,7 @@ import path from 'path';
 import axios from 'axios';
 import { knex } from 'knex';
 import type { Knex } from 'knex';
-import type Project from '~/models/Project';
+import type Base from '~/models/Base';
 import Audit from '~/models/Audit';
 
 const config = {
@@ -21,7 +21,7 @@ const config = {
 
 const extMysqlProject = (title, parallelId) => ({
   title,
-  bases: [
+  sources: [
     {
       type: 'mysql2',
       config: {
@@ -44,7 +44,7 @@ const extMysqlProject = (title, parallelId) => ({
 const isSakilaMysqlToBeReset = async (
   knex: Knex,
   parallelId: string,
-  project?: Project,
+  base?: Base,
 ) => {
   const tablesInDbInfo: Array<any> = await knex.raw(
     `SELECT table_name FROM information_schema.tables WHERE table_schema = 'test_sakila_${parallelId}'`,
@@ -72,9 +72,9 @@ const isSakilaMysqlToBeReset = async (
     return true;
   }
 
-  if (!project) return true;
+  if (!base) return true;
 
-  const audits = await Audit.projectAuditList(project.id, {});
+  const audits = await Audit.baseAuditList(base.id, {});
 
   // todo: Will be fixed in the data resetting revamp
   console.log(`audits:resetMysqlSakilaProject:${parallelId}`, audits?.length);
@@ -133,7 +133,7 @@ const resetMysqlSakilaProject = async ({
   token: string;
   title: string;
   parallelId: string;
-  oldProject?: Project | undefined;
+  oldProject?: Base | undefined;
   isEmptyProject: boolean;
 }) => {
   const nc_knex = knex(config);
@@ -153,7 +153,7 @@ const resetMysqlSakilaProject = async ({
   }
 
   const response = await axios.post(
-    'http://localhost:8080/api/v1/db/meta/projects/',
+    'http://localhost:8080/api/v1/meta/bases/',
     extMysqlProject(title, parallelId),
     {
       headers: {
@@ -162,7 +162,7 @@ const resetMysqlSakilaProject = async ({
     },
   );
   if (response.status !== 200) {
-    console.error('Error creating project', response.data);
+    console.error('Error creating base', response.data);
   }
 
   await nc_knex.destroy();

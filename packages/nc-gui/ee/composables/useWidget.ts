@@ -19,7 +19,7 @@ export const useWidget = (widgetConfig: Ref<Widget>) => {
       }
     }
 
-    if (!data_source || !data_source.projectId || !data_source.tableId || !data_source.viewId) {
+    if (!data_source || !data_source.baseId || !data_source.tableId || !data_source.viewId) {
       return true
     }
 

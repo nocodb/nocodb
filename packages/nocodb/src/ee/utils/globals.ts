@@ -1,8 +1,8 @@
 export * from 'src/utils/globals';
 
 export enum MetaTable {
-  PROJECT = 'nc_projects_v2',
-  BASES = 'nc_bases_v2',
+  PROJECT = 'nc_bases_v2',
+  BASES = 'nc_source_v2',
   MODELS = 'nc_models_v2',
   COLUMNS = 'nc_columns_v2',
   COLUMN_VALIDATIONS = 'nc_columns_validations_v2',
@@ -36,7 +36,7 @@ export enum MetaTable {
   HOOKS = 'nc_hooks_v2',
   HOOK_LOGS = 'nc_hook_logs_v2',
   PLUGIN = 'nc_plugins_v2',
-  PROJECT_USERS = 'nc_project_users_v2',
+  PROJECT_USERS = 'nc_base_users_v2',
   MODEL_ROLE_VISIBILITY = 'nc_disabled_models_for_role_v2',
   API_TOKENS = 'nc_api_tokens',
   SYNC_SOURCE = 'nc_sync_source_v2',
@@ -104,8 +104,8 @@ export const orderedMetaTables = [
 ];
 
 export enum CacheScope {
-  PROJECT = 'project',
-  BASE = 'base',
+  PROJECT = 'base',
+  BASE = 'source',
   MODEL = 'model',
   COLUMN = 'column',
   COL_PROP = 'colProp',
@@ -139,7 +139,7 @@ export enum CacheScope {
   AUDIT = 'audit',
   HOOK = 'hook',
   PLUGIN = 'plugin',
-  PROJECT_USER = 'projectUser',
+  PROJECT_USER = 'baseUser',
   MODEL_ROLE_VISIBILITY = 'modelRoleVisibility',
   API_TOKEN = 'apiToken',
   INSTANCE_META = 'instanceMeta',

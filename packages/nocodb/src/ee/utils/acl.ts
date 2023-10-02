@@ -9,7 +9,7 @@ const roleScopes = {
     WorkspaceUserRoles.CREATOR,
     WorkspaceUserRoles.OWNER,
   ],
-  project: [
+  base: [
     ProjectRoles.VIEWER,
     ProjectRoles.COMMENTER,
     ProjectRoles.EDITOR,
@@ -44,12 +44,12 @@ const permissionScopes = {
     'testConnection',
     'genericGPT',
 
-    // TODO: add ACL with project scope
+    // TODO: add ACL with base scope
     'upload',
     'uploadViaURL',
   ],
   workspace: [
-    'workspaceProjectList',
+    'workspaceBaseList',
     'workspaceGet',
     'workspaceUpdate',
     'workspaceDelete',
@@ -65,9 +65,9 @@ const permissionScopes = {
     'workspaceInvitationReject',
     'workspaceInvitationTokenRead',
   ],
-  project: [
+  base: [
     'formViewGet',
-    'projectGet',
+    'baseGet',
     'tableGet',
     'dataList',
     'dataRead',
@@ -78,8 +78,8 @@ const permissionScopes = {
     'exportExcel',
     'sortList',
     'filterList',
-    'projectInfoGet',
-    'projectUserMetaUpdate',
+    'baseInfoGet',
+    'baseUserMetaUpdate',
     'galleryViewGet',
     'kanbanViewGet',
     'gridViewUpdate',
@@ -87,8 +87,8 @@ const permissionScopes = {
     'mmList',
     'hmList',
     'commentRow',
-    'projectList',
-    'projectCost',
+    'baseList',
+    'baseCost',
     'tableList',
     'viewList',
     'functionList',
@@ -131,13 +131,13 @@ const permissionScopes = {
     'relationDataRemove',
     'relationDataAdd',
 
-    // Project API Tokens
-    'projectApiTokenList',
-    'projectApiTokenCreate',
-    'projectApiTokenDelete',
+    // Base API Tokens
+    'baseApiTokenList',
+    'baseApiTokenCreate',
+    'baseApiTokenDelete',
 
     'createBase',
-    'projectDelete',
+    'baseDelete',
 
     'pageGet',
     'pageList',
@@ -202,7 +202,7 @@ const rolePermissions:
 
   [WorkspaceUserRoles.VIEWER]: {
     include: {
-      workspaceProjectList: true,
+      workspaceBaseList: true,
       workspaceGet: true,
     },
   },
@@ -225,8 +225,8 @@ const rolePermissions:
     include: {
       formViewGet: true,
 
-      // project
-      projectGet: true,
+      // base
+      baseGet: true,
       //table
       tableGet: true,
       // data
@@ -242,8 +242,8 @@ const rolePermissions:
       // sort & filter
       sortList: true,
       filterList: true,
-      projectInfoGet: true,
-      projectUserMetaUpdate: true,
+      baseInfoGet: true,
+      baseUserMetaUpdate: true,
 
       galleryViewGet: true,
       kanbanViewGet: true,
@@ -252,8 +252,8 @@ const rolePermissions:
       mmList: true,
       hmList: true,
 
-      projectList: true,
-      projectCost: true,
+      baseList: true,
+      baseCost: true,
 
       tableList: true,
       viewList: true,
@@ -346,7 +346,7 @@ const rolePermissions:
   },
   [ProjectRoles.CREATOR]: {
     exclude: {
-      projectDelete: true,
+      baseDelete: true,
       createBase: true,
     },
   },
@@ -502,9 +502,9 @@ Object.values(roleScopes).forEach((roles) => {
 });
 
 // exclude out of scope permissions
-// - org roles exclude project and workspace permissions
-// - workspace roles exclude org permissions (we don't exclude project permissions as we inherit project permissions to workspace)
-// - project roles exclude workspace and org permissions
+// - org roles exclude base and workspace permissions
+// - workspace roles exclude org permissions (we don't exclude base permissions as we inherit base permissions to workspace)
+// - base roles exclude workspace and org permissions
 Object.entries(roleScopes).forEach(([scope, roles]) => {
   const outOfScopePermissions = Object.keys(permissionScopes).reduce(
     (acc, curr) => {

@@ -193,7 +193,7 @@ a {
   }
 }
 
-.nc-project-menu-item {
+.nc-base-menu-item {
   @apply cursor-pointer flex items-center gap-2 py-2 after:(content-[''] absolute top-0 left-0 bottom-0 right-0 w-full h-full bg-current opacity-0 transition transition-opacity duration-100) hover:(after:(opacity-5));
 
   // &:hover {

@@ -5,7 +5,7 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
-import { ProjectUser, WorkspaceUser } from '~/models';
+import { BaseUser, WorkspaceUser } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { mapWorkspaceRolesObjToProjectRolesObj } from '~/utils/roleHelper';
 
@@ -108,7 +108,7 @@ export default class User extends UserCE implements UserType {
     // delete the email-based cache to avoid unexpected behaviour since we can update email as well
     await NocoCache.del(`${CacheScope.USER}:${existingUser.email}`);
 
-    // as <projectId> is unknown, delete user:<email>___<projectId> in cache
+    // as <baseId> is unknown, delete user:<email>___<baseId> in cache
     await NocoCache.delAll(CacheScope.USER, `${existingUser.email}___*`);
 
     // get existing cache
@@ -374,7 +374,7 @@ export default class User extends UserCE implements UserType {
     userId: string,
     args: {
       user?: User;
-      projectId?: string;
+      baseId?: string;
       workspaceId?: string;
     },
     ncMeta = Noco.ncMeta,
@@ -383,7 +383,7 @@ export default class User extends UserCE implements UserType {
 
     if (!user) NcError.badRequest('User not found');
 
-    const [workspaceRoles, projectRoles] = await Promise.all([
+    const [workspaceRoles, baseRoles] = await Promise.all([
       // extract workspace evel roles
       new Promise((resolve) => {
         if (args.workspaceId) {
@@ -402,11 +402,11 @@ export default class User extends UserCE implements UserType {
           resolve(null);
         }
       }) as Promise<ReturnType<typeof extractRolesObj> | null>,
-      // extract project level roles
+      // extract base level roles
       new Promise((resolve) => {
-        if (args.projectId) {
-          ProjectUser.get(args.projectId, user.id).then(async (projectUser) => {
-            const roles = projectUser?.roles;
+        if (args.baseId) {
+          BaseUser.get(args.baseId, user.id).then(async (baseUser) => {
+            const roles = baseUser?.roles;
             // + (user.roles ? `,${user.roles}` : '');
             if (roles) {
               resolve(extractRolesObj(roles));
@@ -425,8 +425,8 @@ export default class User extends UserCE implements UserType {
       ...sanitiseUserObj(user),
       roles: user.roles ? extractRolesObj(user.roles) : null,
       workspace_roles: workspaceRoles ? workspaceRoles : null,
-      project_roles: projectRoles
-        ? projectRoles
+      base_roles: baseRoles
+        ? baseRoles
         : mapWorkspaceRolesObjToProjectRolesObj(workspaceRoles),
     } as any;
   }

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { Form, computed, nextTick, onMounted, ref, useProject, useTable, useVModel, validateTableName } from '#imports'
+import { Form, computed, nextTick, onMounted, ref, useBase, useTable, useVModel, validateTableName } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
-  baseId: string
+  sourceId: string
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -12,12 +12,12 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const inputEl = ref<HTMLInputElement>()
 
-const { loadTables, isMysql, isMssql, isPg } = useProject()
+const { loadTables, isMysql, isMssql, isPg } = useBase()
 
-const { table, createSchemaMagic, generateUniqueTitle, tables, project } = useTable(async () => {
+const { table, createSchemaMagic, generateUniqueTitle, tables, base } = useTable(async () => {
   await loadTables()
   dialogShow.value = false
-}, props.baseId)
+}, props.sourceId)
 
 const useForm = Form.useForm
 
@@ -42,15 +42,15 @@ const validators = computed(() => {
         validator: (rule: any, value: any) => {
           return new Promise<void>((resolve, reject) => {
             let tableNameLengthLimit = 255
-            if (isMysql(props.baseId)) {
+            if (isMysql(props.sourceId)) {
               tableNameLengthLimit = 64
-            } else if (isPg(props.baseId)) {
+            } else if (isPg(props.sourceId)) {
               tableNameLengthLimit = 63
-            } else if (isMssql(props.baseId)) {
+            } else if (isMssql(props.sourceId)) {
               tableNameLengthLimit = 128
             }
-            const projectPrefix = project?.value?.prefix || ''
-            if ((projectPrefix + value).length > tableNameLengthLimit) {
+            const basePrefix = base?.value?.prefix || ''
+            if ((basePrefix + value).length > tableNameLengthLimit) {
               return reject(new Error(`Table name exceeds ${tableNameLengthLimit} characters`))
             }
             resolve()

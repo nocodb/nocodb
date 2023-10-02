@@ -18,7 +18,7 @@ import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import { NcError } from '~/helpers/catchError';
 import NcHelp from '~/utils/NcHelp';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { Base, Column, Model, Project } from '~/models';
+import { Base, Column, Model, Source } from '~/models';
 
 // todo:move enum and types
 export enum MetaDiffType {
@@ -46,7 +46,7 @@ const applyChangesPriorityOrder = [
 type MetaDiff = {
   title?: string;
   table_name: string;
-  base_id: string;
+  source_id: string;
   type: ModelTypes;
   meta?: any;
   detectedChanges: Array<MetaDiffChange>;
@@ -130,11 +130,11 @@ export class MetaDiffsService {
 
   async getMetaDiff(
     sqlClient,
-    project: Project,
     base: Base,
+    source: Source,
   ): Promise<Array<MetaDiff>> {
     // if meta base then return empty array
-    if (base.is_meta) {
+    if (source.is_meta) {
       return [];
     }
 
@@ -143,16 +143,16 @@ export class MetaDiffsService {
 
     // @ts-ignore
     const tableList: Array<{ tn: string }> = (
-      await sqlClient.tableList({ schema: base.getConfig()?.schema })
+      await sqlClient.tableList({ schema: source.getConfig()?.schema })
     )?.data?.list?.filter((t) => {
-      if (project?.prefix && base.is_meta) {
-        return t.tn?.startsWith(project?.prefix);
+      if (base?.prefix && source.is_meta) {
+        return t.tn?.startsWith(base?.prefix);
       }
       return true;
     });
 
     const colListRef = {};
-    const oldMetas = await base.getModels();
+    const oldMetas = await source.getModels();
     // @ts-ignore
     const oldTableMetas: Model[] = [];
     const oldViewMetas: Model[] = [];
@@ -170,8 +170,9 @@ export class MetaDiffsService {
       rcn: string;
       found?: any;
       cstn?: string;
-    }> = (await sqlClient.relationListAll({ schema: base.getConfig()?.schema }))
-      ?.data?.list;
+    }> = (
+      await sqlClient.relationListAll({ schema: source.getConfig()?.schema })
+    )?.data?.list;
 
     for (const table of tableList) {
       if (table.tn === 'nc_evolutions') continue;
@@ -184,7 +185,7 @@ export class MetaDiffsService {
       if (oldMetaIdx === -1) {
         changes.push({
           table_name: table.tn,
-          base_id: base.id,
+          source_id: source.id,
           type: ModelTypes.TABLE,
           detectedChanges: [
             {
@@ -204,7 +205,7 @@ export class MetaDiffsService {
         title: oldMeta.title,
         meta: oldMeta.meta,
         table_name: table.tn,
-        base_id: base.id,
+        source_id: source.id,
         type: ModelTypes.TABLE,
         detectedChanges: [],
       };
@@ -214,7 +215,7 @@ export class MetaDiffsService {
       colListRef[table.tn] = (
         await sqlClient.columnList({
           tn: table.tn,
-          schema: base.getConfig()?.schema,
+          schema: source.getConfig()?.schema,
         })
       )?.data?.list;
 
@@ -295,7 +296,7 @@ export class MetaDiffsService {
       changes.push({
         table_name: model.table_name,
         meta: model.meta,
-        base_id: base.id,
+        source_id: source.id,
         type: ModelTypes.TABLE,
         detectedChanges: [
           {
@@ -356,7 +357,7 @@ export class MetaDiffsService {
           (
             await sqlClient.columnList({
               tn: childModel.table_name,
-              schema: base.getConfig()?.schema,
+              schema: source.getConfig()?.schema,
             })
           )?.data?.list);
 
@@ -365,7 +366,7 @@ export class MetaDiffsService {
           (
             await sqlClient.columnList({
               tn: parentModel.table_name,
-              schema: base.getConfig()?.schema,
+              schema: source.getConfig()?.schema,
             })
           )?.data?.list);
 
@@ -374,7 +375,7 @@ export class MetaDiffsService {
           (
             await sqlClient.columnList({
               tn: m2mTable.tn,
-              schema: base.getConfig()?.schema,
+              schema: source.getConfig()?.schema,
             })
           )?.data?.list);
 
@@ -477,7 +478,7 @@ export class MetaDiffsService {
       tn: string;
       type: 'view';
     }> = (
-      await sqlClient.viewList({ schema: base.getConfig()?.schema })
+      await sqlClient.viewList({ schema: source.getConfig()?.schema })
     )?.data?.list
       ?.map((v) => {
         v.type = 'view';
@@ -485,8 +486,8 @@ export class MetaDiffsService {
         return v;
       })
       .filter((t) => {
-        if (project?.prefix && base.is_meta) {
-          return t.tn?.startsWith(project?.prefix);
+        if (base?.prefix && source.is_meta) {
+          return t.tn?.startsWith(base?.prefix);
         }
         return true;
       }); // @ts-ignore
@@ -500,7 +501,7 @@ export class MetaDiffsService {
       if (oldMetaIdx === -1) {
         changes.push({
           table_name: view.tn,
-          base_id: base.id,
+          source_id: source.id,
           type: ModelTypes.VIEW,
           detectedChanges: [
             {
@@ -520,7 +521,7 @@ export class MetaDiffsService {
         title: oldMeta.title,
         meta: oldMeta.meta,
         table_name: view.tn,
-        base_id: base.id,
+        source_id: source.id,
         type: ModelTypes.VIEW,
         detectedChanges: [],
       };
@@ -530,7 +531,7 @@ export class MetaDiffsService {
       colListRef[view.tn] = (
         await sqlClient.columnList({
           tn: view.tn,
-          schema: base.getConfig()?.schema,
+          schema: source.getConfig()?.schema,
         })
       )?.data?.list;
 
@@ -592,7 +593,7 @@ export class MetaDiffsService {
       changes.push({
         table_name: model.table_name,
         meta: model.meta,
-        base_id: base.id,
+        source_id: source.id,
         type: ModelTypes.TABLE,
         detectedChanges: [
           {
@@ -609,18 +610,18 @@ export class MetaDiffsService {
     return changes;
   }
 
-  async metaDiff(param: { projectId: string }) {
-    const project = await Project.getWithInfo(param.projectId);
+  async metaDiff(param: { baseId: string }) {
+    const base = await Base.getWithInfo(param.baseId);
     let changes = [];
-    for (const base of project.bases) {
+    for (const source of base.sources) {
       try {
         // skip meta base
-        if (base.is_meta) continue;
+        if (source.is_meta) continue;
 
         // @ts-ignore
-        const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+        const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
         changes = changes.concat(
-          await this.getMetaDiff(sqlClient, project, base),
+          await this.getMetaDiff(sqlClient, base, source),
         );
       } catch (e) {
         console.log(e);
@@ -630,29 +631,29 @@ export class MetaDiffsService {
     return changes;
   }
 
-  async baseMetaDiff(param: { projectId: string; baseId: string }) {
-    const project = await Project.getWithInfo(param.projectId);
-    const base = await Base.get(param.baseId);
+  async baseMetaDiff(param: { baseId: string; sourceId: string }) {
+    const base = await Base.getWithInfo(param.baseId);
+    const source = await Source.get(param.sourceId);
 
     let changes = [];
 
-    const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
-    changes = await this.getMetaDiff(sqlClient, project, base);
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
+    changes = await this.getMetaDiff(sqlClient, base, source);
 
     return changes;
   }
 
-  async syncBaseMeta(project: Project, base: Base, throwOnFail = false) {
-    if (base.is_meta) {
-      if (throwOnFail) NcError.badRequest('Cannot sync meta base');
+  async syncBaseMeta(base: Base, source: Source, throwOnFail = false) {
+    if (source.is_meta) {
+      if (throwOnFail) NcError.badRequest('Cannot sync meta source');
       return;
     }
 
     const virtualColumnInsert: Array<() => Promise<void>> = [];
 
     // @ts-ignore
-    const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
-    const changes = await this.getMetaDiff(sqlClient, project, base);
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
+    const changes = await this.getMetaDiff(sqlClient, base, source);
 
     /* Get all relations */
     // const relations = (await sqlClient.relationListAll())?.data?.list;
@@ -674,28 +675,28 @@ export class MetaDiffsService {
               const columns = (
                 await sqlClient.columnList({
                   tn: table_name,
-                  schema: base.getConfig()?.schema,
+                  schema: source.getConfig()?.schema,
                 })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
               mapDefaultDisplayValue(columns);
 
-              const model = await Model.insert(project.id, base.id, {
+              const model = await Model.insert(base.id, source.id, {
                 table_name: table_name,
                 title: getTableNameAlias(
                   table_name,
-                  base.is_meta ? project.prefix : '',
-                  base,
+                  source.is_meta ? base.prefix : '',
+                  source,
                 ),
                 type: ModelTypes.TABLE,
               });
 
               for (const column of columns) {
                 await Column.insert({
-                  uidt: getColumnUiType(base, column),
+                  uidt: getColumnUiType(source, column),
                   fk_model_id: model.id,
                   ...column,
-                  title: getColumnNameAlias(column.column_name, base),
+                  title: getColumnNameAlias(column.column_name, source),
                 });
               }
             }
@@ -705,24 +706,24 @@ export class MetaDiffsService {
               const columns = (
                 await sqlClient.columnList({
                   tn: table_name,
-                  schema: base.getConfig()?.schema,
+                  schema: source.getConfig()?.schema,
                 })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
               mapDefaultDisplayValue(columns);
 
-              const model = await Model.insert(project.id, base.id, {
+              const model = await Model.insert(base.id, source.id, {
                 table_name: table_name,
-                title: getTableNameAlias(table_name, project.prefix, base),
+                title: getTableNameAlias(table_name, base.prefix, source),
                 type: ModelTypes.VIEW,
               });
 
               for (const column of columns) {
                 await Column.insert({
-                  uidt: getColumnUiType(base, column),
+                  uidt: getColumnUiType(source, column),
                   fk_model_id: model.id,
                   ...column,
-                  title: getColumnNameAlias(column.column_name, base),
+                  title: getColumnNameAlias(column.column_name, source),
                 });
               }
             }
@@ -739,13 +740,13 @@ export class MetaDiffsService {
               const columns = (
                 await sqlClient.columnList({
                   tn: table_name,
-                  schema: base.getConfig()?.schema,
+                  schema: source.getConfig()?.schema,
                 })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
               const column = columns.find((c) => c.cn === change.cn);
-              column.uidt = getColumnUiType(base, column);
+              column.uidt = getColumnUiType(source, column);
               //todo: inflection
-              column.title = getColumnNameAlias(column.cn, base);
+              column.title = getColumnNameAlias(column.cn, source);
               await Column.insert({ fk_model_id: change.id, ...column });
             }
             // update old
@@ -759,12 +760,12 @@ export class MetaDiffsService {
               const columns = (
                 await sqlClient.columnList({
                   tn: table_name,
-                  schema: base.getConfig()?.schema,
+                  schema: source.getConfig()?.schema,
                 })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
               const column = columns.find((c) => c.cn === change.cn);
               const metaFact = ModelXcMetaFactory.create(
-                { client: base.type },
+                { client: source.type },
                 {},
               );
               column.uidt = metaFact.getUIDataType(column);
@@ -801,13 +802,13 @@ export class MetaDiffsService {
             {
               virtualColumnInsert.push(async () => {
                 const parentModel = await Model.getByIdOrName({
-                  project_id: base.project_id,
-                  base_id: base.id,
+                  base_id: source.base_id,
+                  source_id: source.id,
                   table_name: change.rtn,
                 });
                 const childModel = await Model.getByIdOrName({
-                  project_id: base.project_id,
-                  base_id: base.id,
+                  base_id: source.base_id,
+                  source_id: source.id,
                   table_name: change.tn,
                 });
                 const parentCol = await parentModel
@@ -871,34 +872,34 @@ export class MetaDiffsService {
       }
     }
 
-    await NcHelp.executeOperations(virtualColumnInsert, base.type);
+    await NcHelp.executeOperations(virtualColumnInsert, source.type);
 
     // populate m2m relations
-    await this.extractAndGenerateManyToManyRelations(await base.getModels());
+    await this.extractAndGenerateManyToManyRelations(await source.getModels());
   }
 
-  async metaDiffSync(param: { projectId: string }) {
-    const project = await Project.getWithInfo(param.projectId);
-    for (const base of project.bases) {
-      await this.syncBaseMeta(project, base);
+  async metaDiffSync(param: { baseId: string }) {
+    const base = await Base.getWithInfo(param.baseId);
+    for (const source of base.sources) {
+      await this.syncBaseMeta(base, source);
     }
 
     this.appHooksService.emit(AppEvents.META_DIFF_SYNC, {
-      project,
+      base,
     });
 
     return true;
   }
 
-  async baseMetaDiffSync(param: { projectId: string; baseId: string }) {
-    const project = await Project.getWithInfo(param.projectId);
-    const base = await Base.get(param.baseId);
+  async baseMetaDiffSync(param: { baseId: string; sourceId: string }) {
+    const base = await Base.getWithInfo(param.baseId);
+    const source = await Source.get(param.sourceId);
 
-    await this.syncBaseMeta(project, base, true);
+    await this.syncBaseMeta(base, source, true);
 
     this.appHooksService.emit(AppEvents.META_DIFF_SYNC, {
-      project,
       base,
+      source,
     });
 
     return true;

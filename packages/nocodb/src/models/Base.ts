@@ -1,559 +1,458 @@
-import { UITypes } from 'nocodb-sdk';
-import CryptoJS from 'crypto-js';
-import { v4 as uuidv4 } from 'uuid';
-import type { BaseType, BoolType } from 'nocodb-sdk';
-import Model from '~/models/Model';
-import Project from '~/models/Project';
-import SyncSource from '~/models/SyncSource';
-import NocoCache from '~/cache/NocoCache';
+import type { BaseType, BoolType, MetaType } from 'nocodb-sdk';
+import type { DB_TYPES } from '~/utils/globals';
+import Source from '~/models/Source';
+import { BaseUser } from '~/models';
+import Noco from '~/Noco';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
-  type DB_TYPES,
   MetaTable,
 } from '~/utils/globals';
-import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
-import { NcError } from '~/helpers/catchError';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import NocoCache from '~/cache/NocoCache';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
-// todo: hide credentials
 export default class Base implements BaseType {
-  id?: string;
-  project_id?: string;
-  alias?: string;
-  type?: (typeof DB_TYPES)[number];
-  is_meta?: BoolType;
-  config?: string;
-  inflection_column?: string;
-  inflection_table?: string;
-  order?: number;
-  erd_uuid?: string;
-  enabled?: BoolType;
-  meta?: any;
+  public id: string;
+  public title: string;
+  public prefix: string;
+  public status: string;
+  public description: string;
+  public meta: MetaType;
+  public color: string;
+  public deleted: BoolType;
+  public order: number;
+  public is_meta = false;
+  public sources?: Source[];
+  public linked_db_projects?: Base[];
+
+  // shared base props
+  uuid?: string;
+  password?: string;
+  roles?: string;
 
   constructor(base: Partial<Base>) {
     Object.assign(this, base);
   }
 
-  protected static castType(base: Base): Base {
+  public static castType(base: Base): Base {
     return base && new Base(base);
   }
 
-  public static async createBase(
-    base: BaseType & {
-      projectId: string;
-      created_at?;
-      updated_at?;
-      meta?: any;
-    },
+  public static async createProject(
+    base: Partial<BaseType>,
     ncMeta = Noco.ncMeta,
-  ) {
+  ): Promise<Base> {
     const insertObj = extractProps(base, [
       'id',
-      'alias',
-      'config',
-      'type',
+      'title',
+      'prefix',
+      'description',
       'is_meta',
-      'inflection_column',
-      'inflection_table',
-      'order',
-      'enabled',
+      'status',
       'meta',
+      'color',
     ]);
 
-    insertObj.config = CryptoJS.AES.encrypt(
-      JSON.stringify(base.config),
-      Noco.getConfig()?.auth?.jwt?.secret,
-    ).toString();
-
-    if ('meta' in insertObj) {
-      insertObj.meta = stringifyMetaProp(insertObj);
-    }
-
-    const { id } = await ncMeta.metaInsert2(
-      base.projectId,
+    const { id: baseId } = await ncMeta.metaInsert2(
       null,
-      MetaTable.BASES,
+      null,
+      MetaTable.PROJECT,
       insertObj,
     );
 
     await NocoCache.appendToList(
-      CacheScope.BASE,
-      [base.projectId],
-      `${CacheScope.BASE}:${id}`,
+      CacheScope.PROJECT,
+      [],
+      `${CacheScope.PROJECT}:${baseId}`,
     );
 
-    // call before reorder to update cache
-    const returnBase = await this.get(id, false, ncMeta);
-
-    await this.reorderBases(base.projectId);
-
-    return returnBase;
-  }
-
-  public static async updateBase(
-    baseId: string,
-    base: BaseType & {
-      projectId: string;
-      skipReorder?: boolean;
-      meta?: any;
-      deleted?: boolean;
-    },
-    ncMeta = Noco.ncMeta,
-  ) {
-    const oldBase = await Base.get(baseId, false, ncMeta);
-
-    if (!oldBase) NcError.badRequest('Wrong base id!');
-
-    await NocoCache.deepDel(
-      CacheScope.BASE,
-      `${CacheScope.BASE}:${baseId}`,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
-
-    const updateObj = extractProps(base, [
-      'alias',
-      'config',
-      'type',
-      'is_meta',
-      'inflection_column',
-      'inflection_table',
-      'order',
-      'enabled',
-      'meta',
-      'deleted',
-    ]);
-
-    if (updateObj.config) {
-      updateObj.config = CryptoJS.AES.encrypt(
-        JSON.stringify(base.config),
-        Noco.getConfig()?.auth?.jwt?.secret,
-      ).toString();
+    for (const source of base.sources) {
+      await Source.createBase(
+        {
+          type: source.config?.client as (typeof DB_TYPES)[number],
+          ...source,
+          baseId,
+        },
+        ncMeta,
+      );
     }
 
-    if ('meta' in updateObj) {
-      updateObj.meta = stringifyMetaProp(updateObj);
-    }
-
-    // type property is undefined even if not provided
-    if (!updateObj.type) {
-      updateObj.type = oldBase.type;
-    }
-
-    await ncMeta.metaUpdate(
-      base.projectId,
-      null,
-      MetaTable.BASES,
-      updateObj,
-      oldBase.id,
-    );
-
-    await NocoCache.appendToList(
-      CacheScope.BASE,
-      [base.projectId],
-      `${CacheScope.BASE}:${oldBase.id}`,
-    );
-
-    // call before reorder to update cache
-    const returnBase = await this.get(oldBase.id, false, ncMeta);
-
-    if (!base.skipReorder)
-      await this.reorderBases(base.projectId, returnBase.id, ncMeta);
-
-    return returnBase;
+    await NocoCache.del(CacheScope.INSTANCE_META);
+    return this.getWithInfo(baseId, ncMeta);
   }
 
   static async list(
-    args: { projectId: string },
+    // @ts-ignore
+    param,
     ncMeta = Noco.ncMeta,
   ): Promise<Base[]> {
-    const cachedList = await NocoCache.getList(CacheScope.BASE, [
-      args.projectId,
-    ]);
-    let { list: baseDataList } = cachedList;
+    // todo: pagination
+    const cachedList = await NocoCache.getList(CacheScope.PROJECT, []);
+    let { list: baseList } = cachedList;
     const { isNoneList } = cachedList;
-    if (!isNoneList && !baseDataList.length) {
-      baseDataList = await ncMeta.metaList2(
-        args.projectId,
-        null,
-        MetaTable.BASES,
-        {
-          xcCondition: {
-            _or: [
-              {
-                deleted: {
-                  neq: true,
-                },
+    if (!isNoneList && !baseList.length) {
+      baseList = await ncMeta.metaList2(null, null, MetaTable.PROJECT, {
+        xcCondition: {
+          _or: [
+            {
+              deleted: {
+                eq: false,
               },
-              {
-                deleted: {
-                  eq: null,
-                },
+            },
+            {
+              deleted: {
+                eq: null,
               },
-            ],
-          },
-          orderBy: {
-            order: 'asc',
-          },
+            },
+          ],
         },
-      );
-
-      // parse JSON metadata
-      for (const base of baseDataList) {
-        base.meta = parseMetaProp(base, 'meta');
-      }
-
-      await NocoCache.setList(CacheScope.BASE, [args.projectId], baseDataList);
+      });
+      await NocoCache.setList(CacheScope.PROJECT, [], baseList);
     }
-
-    baseDataList.sort(
-      (a, b) => (a?.order ?? Infinity) - (b?.order ?? Infinity),
+    baseList = baseList.filter(
+      (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
     );
+    const castedProjectList = baseList.map((m) => this.castType(m));
 
-    return baseDataList?.map((baseData) => {
-      return this.castType(baseData);
-    });
+    await Promise.all(castedProjectList.map((base) => base.getBases(ncMeta)));
+
+    return castedProjectList;
   }
 
-  static async get(
-    id: string,
-    force = false,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Base> {
+  // @ts-ignore
+  static async get(baseId: string, ncMeta = Noco.ncMeta): Promise<Base> {
     let baseData =
-      id &&
+      baseId &&
       (await NocoCache.get(
-        `${CacheScope.BASE}:${id}`,
+        `${CacheScope.PROJECT}:${baseId}`,
         CacheGetType.TYPE_OBJECT,
       ));
     if (!baseData) {
-      baseData = await ncMeta.metaGet2(
-        null,
-        null,
-        MetaTable.BASES,
-        id,
-        null,
-        force
-          ? {}
-          : {
-              _or: [
-                {
-                  deleted: {
-                    neq: true,
-                  },
-                },
-                {
-                  deleted: {
-                    eq: null,
-                  },
-                },
-              ],
-            },
-      );
-
+      baseData = await ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
+        id: baseId,
+        deleted: false,
+      });
       if (baseData) {
-        baseData.meta = parseMetaProp(baseData, 'meta');
+        baseData.meta = parseMetaProp(baseData);
+        await NocoCache.set(`${CacheScope.PROJECT}:${baseId}`, baseData);
       }
-
-      await NocoCache.set(`${CacheScope.BASE}:${id}`, baseData);
+    } else {
+      if (baseData.deleted) {
+        baseData = null;
+      }
     }
     return this.castType(baseData);
   }
 
-  static async getByUUID(uuid: string, ncMeta = Noco.ncMeta) {
-    const base = await ncMeta.metaGet2(
-      null,
-      null,
-      MetaTable.BASES,
-      {
-        erd_uuid: uuid,
-      },
-      null,
-      {
-        _or: [
-          {
-            deleted: {
-              neq: true,
-            },
-          },
-          {
-            deleted: {
-              eq: null,
-            },
-          },
-        ],
-      },
-    );
-
-    if (!base) return null;
-
-    delete base.config;
-
-    return this.castType(base);
+  async getBases(ncMeta = Noco.ncMeta): Promise<Source[]> {
+    return (this.sources = await Source.list({ baseId: this.id }, ncMeta));
   }
 
-  static async reorderBases(
-    projectId: string,
-    keepBase?: string,
+  // todo: hide credentials
+  // @ts-ignore
+  static async getWithInfo(
+    baseId: string,
     ncMeta = Noco.ncMeta,
-  ) {
-    const bases = await this.list({ projectId: projectId }, ncMeta);
+  ): Promise<Base> {
+    let baseData =
+      baseId &&
+      (await NocoCache.get(
+        `${CacheScope.PROJECT}:${baseId}`,
+        CacheGetType.TYPE_OBJECT,
+      ));
 
-    if (keepBase) {
-      const kpBase = bases.splice(
-        bases.indexOf(bases.find((base) => base.id === keepBase)),
-        1,
-      );
-      if (kpBase.length) {
-        bases.splice(kpBase[0].order - 1, 0, kpBase[0]);
+    if (!baseData) {
+      baseData = await ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
+        id: baseId,
+        deleted: false,
+      });
+      if (baseData) {
+        baseData.meta = parseMetaProp(baseData);
+        await NocoCache.set(`${CacheScope.PROJECT}:${baseId}`, baseData);
+      }
+      if (baseData?.uuid) {
+        await NocoCache.set(`${CacheScope.PROJECT}:${baseData.uuid}`, baseId);
+      }
+    } else {
+      if (baseData?.deleted) {
+        baseData = null;
       }
     }
+    if (baseData) {
+      const base = new Base(baseData);
+      await base.getBases(ncMeta);
 
-    // update order for bases
-    for (const [i, b] of Object.entries(bases)) {
-      await NocoCache.deepDel(
-        CacheScope.BASE,
-        `${CacheScope.BASE}:${b.id}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
-
-      b.order = parseInt(i) + 1;
-
-      await ncMeta.metaUpdate(
-        b.project_id,
-        null,
-        MetaTable.BASES,
-        {
-          order: b.order,
-        },
-        b.id,
-      );
-
-      await NocoCache.appendToList(
-        CacheScope.BASE,
-        [b.project_id],
-        `${CacheScope.BASE}:${b.id}`,
-      );
-
-      await NocoCache.set(`${CacheScope.BASE}:${b.id}`, b);
+      return this.castType(base);
     }
+    return null;
   }
 
-  public async getConnectionConfig(): Promise<any> {
-    const config = this.getConfig();
+  // @ts-ignore
+  static async softDelete(baseId: string, ncMeta = Noco.ncMeta): Promise<any> {
+    await this.clearConnectionPool(baseId, ncMeta);
 
-    // todo: update sql-client args
-    if (config?.client === 'sqlite3') {
-      config.connection.filename =
-        config.connection.filename || config.connection?.connection.filename;
+    // get existing cache
+    const key = `${CacheScope.PROJECT}:${baseId}`;
+    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    if (o) {
+      // delete <scope>:<id>
+      await NocoCache.del(`${CacheScope.PROJECT}:${baseId}`);
+      // delete <scope>:<title>
+      await NocoCache.del(`${CacheScope.PROJECT}:${o.title}`);
+      // delete <scope>:<uuid>
+      await NocoCache.del(`${CacheScope.PROJECT}:${o.uuid}`);
+      // delete <scope>:ref:<titleOfId>
+      await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.title}`);
+      await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.id}`);
     }
 
-    return config;
-  }
+    await NocoCache.delAll(CacheScope.USER_PROJECT, '*');
 
-  public getConfig(): any {
-    if (this.is_meta) {
-      const metaConfig = Noco.getConfig()?.meta?.db;
-      const config = { ...metaConfig };
-      if (config.client === 'sqlite3') {
-        config.connection = metaConfig;
-      }
-      return config;
-    }
+    await NocoCache.del(CacheScope.INSTANCE_META);
 
-    const config = JSON.parse(
-      CryptoJS.AES.decrypt(
-        this.config,
-        Noco.getConfig()?.auth?.jwt?.secret,
-      ).toString(CryptoJS.enc.Utf8),
+    // remove item in cache list
+    await NocoCache.deepDel(
+      CacheScope.PROJECT,
+      `${CacheScope.PROJECT}:${baseId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
     );
 
-    return config;
-  }
-
-  getProject(ncMeta = Noco.ncMeta): Promise<Project> {
-    return Project.get(this.project_id, ncMeta);
-  }
-
-  async delete(ncMeta = Noco.ncMeta, { force }: { force?: boolean } = {}) {
-    const bases = await Base.list({ projectId: this.project_id }, ncMeta);
-
-    if (bases[0].id === this.id && !force) {
-      NcError.badRequest('Cannot delete first base');
-    }
-
-    const models = await Model.list(
-      {
-        base_id: this.id,
-        project_id: this.project_id,
-      },
-      ncMeta,
+    // set meta
+    return await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.PROJECT,
+      { deleted: true },
+      baseId,
     );
+  }
 
-    const relColumns = [];
-    const relRank = {
-      [UITypes.Lookup]: 1,
-      [UITypes.Rollup]: 2,
-      [UITypes.ForeignKey]: 3,
-      [UITypes.LinkToAnotherRecord]: 4,
-    };
-
-    for (const model of models) {
-      for (const col of await model.getColumns(ncMeta)) {
-        let colOptionTableName = null;
-        let cacheScopeName = null;
-        switch (col.uidt) {
-          case UITypes.Rollup:
-            colOptionTableName = MetaTable.COL_ROLLUP;
-            cacheScopeName = CacheScope.COL_ROLLUP;
-            break;
-          case UITypes.Lookup:
-            colOptionTableName = MetaTable.COL_LOOKUP;
-            cacheScopeName = CacheScope.COL_LOOKUP;
-            break;
-          case UITypes.ForeignKey:
-          case UITypes.LinkToAnotherRecord:
-            colOptionTableName = MetaTable.COL_RELATIONS;
-            cacheScopeName = CacheScope.COL_RELATION;
-            break;
-        }
-        if (colOptionTableName && cacheScopeName) {
-          relColumns.push({ col, colOptionTableName, cacheScopeName });
-        }
+  // @ts-ignore
+  static async update(
+    baseId: string,
+    base: Partial<Base>,
+    ncMeta = Noco.ncMeta,
+  ): Promise<any> {
+    const updateObj = extractProps(base, [
+      'title',
+      'prefix',
+      'status',
+      'description',
+      'meta',
+      'color',
+      'deleted',
+      'order',
+      'sources',
+      'uuid',
+      'password',
+      'roles',
+    ]);
+    // get existing cache
+    const key = `${CacheScope.PROJECT}:${baseId}`;
+    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    if (o) {
+      // update data
+      // new uuid is generated
+      if (o.uuid && updateObj.uuid && o.uuid !== updateObj.uuid) {
+        await NocoCache.del(`${CacheScope.PROJECT}:${o.uuid}`);
+        await NocoCache.set(`${CacheScope.PROJECT}:${updateObj.uuid}`, baseId);
       }
+      // disable shared base
+      if (o.uuid && updateObj.uuid === null) {
+        await NocoCache.del(`${CacheScope.PROJECT}:${o.uuid}`);
+      }
+      if (o.title && updateObj.title && o.title !== updateObj.title) {
+        await NocoCache.del(`${CacheScope.PROJECT}:${o.title}`);
+        await NocoCache.set(`${CacheScope.PROJECT}:${updateObj.title}`, baseId);
+      }
+      o = { ...o, ...updateObj };
+
+      await NocoCache.del(CacheScope.INSTANCE_META);
+
+      // set cache
+      await NocoCache.set(key, o);
     }
 
-    relColumns.sort((a, b) => {
-      return relRank[a.col.uidt] - relRank[b.col.uidt];
+    // stringify meta
+    if (updateObj.meta) {
+      updateObj.meta = stringifyMetaProp(updateObj);
+    }
+
+    // set meta
+    return await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.PROJECT,
+      updateObj,
+      baseId,
+    );
+  }
+
+  // Todo: Remove the base entry from the connection pool in NcConnectionMgrv2
+  static async delete(baseId, ncMeta = Noco.ncMeta): Promise<any> {
+    let base = await this.get(baseId);
+    const users = await BaseUser.getUsersList({
+      base_id: baseId,
+      offset: 0,
+      limit: 1000,
     });
 
-    for (const relCol of relColumns) {
-      await ncMeta.metaDelete(null, null, relCol.colOptionTableName, {
-        fk_column_id: relCol.col.id,
+    for (const user of users) {
+      await BaseUser.delete(baseId, user.id);
+    }
+
+    const sources = await Source.list({ baseId });
+    for (const source of sources) {
+      await source.delete(ncMeta);
+    }
+    base = await this.get(baseId);
+
+    if (base) {
+      // delete <scope>:<uuid>
+      await NocoCache.del(`${CacheScope.PROJECT}:${base.uuid}`);
+      // delete <scope>:<title>
+      await NocoCache.del(`${CacheScope.PROJECT}:${base.title}`);
+      // delete <scope>:ref:<titleOfId>
+      await NocoCache.del(`${CacheScope.PROJECT}:ref:${base.title}`);
+      await NocoCache.del(`${CacheScope.PROJECT}:ref:${base.id}`);
+    }
+
+    await NocoCache.delAll(CacheScope.USER_PROJECT, '*');
+
+    await NocoCache.deepDel(
+      CacheScope.PROJECT,
+      `${CacheScope.PROJECT}:${baseId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+
+    await ncMeta.metaDelete(null, null, MetaTable.AUDIT, {
+      base_id: baseId,
+    });
+
+    return await ncMeta.metaDelete(null, null, MetaTable.PROJECT, baseId);
+  }
+
+  static async getByUuid(uuid, ncMeta = Noco.ncMeta) {
+    const baseId =
+      uuid &&
+      (await NocoCache.get(
+        `${CacheScope.PROJECT}:${uuid}`,
+        CacheGetType.TYPE_OBJECT,
+      ));
+    let baseData = null;
+    if (!baseId) {
+      baseData = await Noco.ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
+        uuid,
       });
-      await NocoCache.deepDel(
-        relCol.cacheScopeName,
-        `${relCol.cacheScopeName}:${relCol.col.id}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
-    }
-
-    for (const model of models) {
-      await model.delete(ncMeta, true);
-    }
-    await NocoCache.deepDel(
-      CacheScope.BASE,
-      `${CacheScope.BASE}:${this.id}`,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
-
-    const syncSources = await SyncSource.list(this.project_id, this.id, ncMeta);
-    for (const syncSource of syncSources) {
-      await SyncSource.delete(syncSource.id, ncMeta);
-    }
-
-    await NcConnectionMgrv2.deleteAwait(this);
-
-    return await ncMeta.metaDelete(null, null, MetaTable.BASES, this.id);
-  }
-
-  async softDelete(ncMeta = Noco.ncMeta, { force }: { force?: boolean } = {}) {
-    const bases = await Base.list({ projectId: this.project_id }, ncMeta);
-
-    if (bases[0].id === this.id && !force) {
-      NcError.badRequest('Cannot delete first base');
-    }
-
-    await ncMeta.metaUpdate(
-      this.project_id,
-      null,
-      MetaTable.BASES,
-      {
-        deleted: true,
-      },
-      this.id,
-    );
-
-    await NocoCache.deepDel(
-      CacheScope.BASE,
-      `${CacheScope.BASE}:${this.id}`,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
-
-    await NocoCache.del(`${CacheScope.BASE}:${this.id}`);
-  }
-
-  async getModels(ncMeta = Noco.ncMeta) {
-    return await Model.list(
-      { project_id: this.project_id, base_id: this.id },
-      ncMeta,
-    );
-  }
-
-  async shareErd(ncMeta = Noco.ncMeta) {
-    if (!this.erd_uuid) {
-      const uuid = uuidv4();
-      this.erd_uuid = uuid;
-      // get existing cache
-      const key = `${CacheScope.BASE}:${this.id}`;
-      const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-      if (o) {
-        // update data
-        o.erd_uuid = uuid;
-        // set cache
-        await NocoCache.set(key, o);
+      if (baseData) {
+        baseData.meta = parseMetaProp(baseData);
+        await NocoCache.set(`${CacheScope.PROJECT}:${uuid}`, baseData?.id);
       }
-      // set meta
-      await ncMeta.metaUpdate(
-        null,
-        null,
-        MetaTable.BASES,
-        {
-          erd_uuid: this.erd_uuid,
-        },
-        this.id,
-      );
-    }
-    return this;
-  }
-
-  async disableShareErd(ncMeta = Noco.ncMeta) {
-    if (this.erd_uuid) {
-      this.erd_uuid = null;
-      // get existing cache
-      const key = `${CacheScope.BASE}:${this.id}`;
-      const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-      if (o) {
-        // update data
-        o.erd_uuid = null;
-        // set cache
-        await NocoCache.set(key, o);
-      }
-      // set meta
-      await ncMeta.metaUpdate(
-        null,
-        null,
-        MetaTable.BASES,
-        {
-          erd_uuid: this.erd_uuid,
-        },
-        this.id,
-      );
-    }
-    return this;
-  }
-
-  isMeta(_only = false, _mode = 0) {
-    if (_only) {
-      if (_mode === 0) {
-        return this.is_meta;
-      }
-      return false;
     } else {
-      return this.is_meta;
+      return this.get(baseId);
+    }
+    return baseData?.id && this.get(baseData?.id, ncMeta);
+  }
+
+  static async getWithInfoByTitle(title: string, ncMeta = Noco.ncMeta) {
+    const base = await this.getByTitle(title, ncMeta);
+    if (base) await base.getBases(ncMeta);
+
+    return base;
+  }
+
+  static async getByTitle(title: string, ncMeta = Noco.ncMeta) {
+    const baseId =
+      title &&
+      (await NocoCache.get(
+        `${CacheScope.PROJECT}:${title}`,
+        CacheGetType.TYPE_OBJECT,
+      ));
+    let baseData = null;
+    if (!baseId) {
+      baseData = await Noco.ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
+        title,
+        deleted: false,
+      });
+      if (baseData) {
+        baseData.meta = parseMetaProp(baseData);
+        await NocoCache.set(`${CacheScope.PROJECT}:${title}`, baseData?.id);
+      }
+    } else {
+      return this.get(baseId);
+    }
+    return baseData?.id && this.get(baseData?.id, ncMeta);
+  }
+
+  static async getByTitleOrId(titleOrId: string, ncMeta = Noco.ncMeta) {
+    const baseId =
+      titleOrId &&
+      (await NocoCache.get(
+        `${CacheScope.PROJECT}:ref:${titleOrId}`,
+        CacheGetType.TYPE_OBJECT,
+      ));
+    let baseData = null;
+    if (!baseId) {
+      baseData = await Noco.ncMeta.metaGet2(
+        null,
+        null,
+        MetaTable.PROJECT,
+        {
+          deleted: false,
+        },
+        null,
+        {
+          _or: [
+            {
+              id: {
+                eq: titleOrId,
+              },
+            },
+            {
+              title: {
+                eq: titleOrId,
+              },
+            },
+          ],
+        },
+      );
+
+      if (baseData) {
+        // parse meta
+        baseData.meta = parseMetaProp(baseData);
+
+        await NocoCache.set(
+          `${CacheScope.PROJECT}:ref:${titleOrId}`,
+          baseData?.id,
+        );
+      }
+    } else {
+      return this.get(baseId);
+    }
+    return baseData?.id && this.get(baseData?.id, ncMeta);
+  }
+
+  static async getWithInfoByTitleOrId(titleOrId: string, ncMeta = Noco.ncMeta) {
+    const base = await this.getByTitleOrId(titleOrId, ncMeta);
+
+    // parse meta
+    base.meta = parseMetaProp(base);
+
+    if (base) await base.getBases(ncMeta);
+
+    return base;
+  }
+
+  static async clearConnectionPool(baseId: string, ncMeta = Noco.ncMeta) {
+    const base = await this.get(baseId, ncMeta);
+    if (base) {
+      const sources = await base.getBases(ncMeta);
+      for (const source of sources) {
+        await NcConnectionMgrv2.deleteAwait(source);
+      }
     }
   }
 }

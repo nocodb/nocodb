@@ -10,7 +10,7 @@ test.describe('DashboardBasicTests', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     wsPage = new WorkspacePage(page);
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test.afterEach(async () => {
@@ -29,7 +29,7 @@ test.describe('DashboardBasicTests', () => {
 
     // first row
     await wsPage.container.verifyDynamicElements({
-      title: context.project.title,
+      title: context.base.title,
       lastAccessed: 'a few seconds ago',
       role: 'Workspace Owner',
     });
@@ -86,12 +86,12 @@ test.describe('DashboardBasicTests', () => {
     });
   });
 
-  test.skip('Project CRUD + Move', async ({ page }) => {
+  test.skip('Base CRUD + Move', async ({ page }) => {
     const container = await wsPage.container;
 
-    // create a db project
-    // go back to dashboard; verify project creation
-    await wsPage.projectCreate({ title: 'db-created-using-ui', type: 'db' });
+    // create a db base
+    // go back to dashboard; verify base creation
+    await wsPage.baseCreate({ title: 'db-created-using-ui', type: 'db' });
     await dashboard.clickHome();
 
     expect(await container.getProjectRowData({ index: 1, skipWs: false })).toEqual({
@@ -101,9 +101,9 @@ test.describe('DashboardBasicTests', () => {
       role: 'Workspace Owner',
     });
 
-    // create a docs project
-    // go back to dashboard; verify project creation
-    await wsPage.projectCreate({ title: 'docs-created-using-ui', type: 'docs' });
+    // create a docs base
+    // go back to dashboard; verify base creation
+    await wsPage.baseCreate({ title: 'docs-created-using-ui', type: 'docs' });
     await dashboard.clickHome();
 
     expect(await container.getProjectRowData({ index: 2, skipWs: false })).toEqual({
@@ -113,18 +113,18 @@ test.describe('DashboardBasicTests', () => {
       role: 'Workspace Owner',
     });
 
-    // rename db project
-    await wsPage.projectRename({ title: 'db-created-using-ui', newTitle: 'db-renamed-using-ui' });
+    // rename db base
+    await wsPage.baseRename({ title: 'db-created-using-ui', newTitle: 'db-renamed-using-ui' });
 
-    // move db project to another workspace
-    // create another workspace to verify project move
+    // move db base to another workspace
+    // create another workspace to verify base move
     await wsPage.workspaceCreate({ title: 'test' });
     // go back to ws_pgExtREST0 workspace
     await wsPage.workspaceOpen({ title: context.workspace.title });
     // trigger move
-    await wsPage.projectMove({ title: 'db-renamed-using-ui', newWorkspace: 'test' });
+    await wsPage.baseMove({ title: 'db-renamed-using-ui', newWorkspace: 'test' });
 
-    // post move, project list in 'test' workspace
+    // post move, base list in 'test' workspace
     expect(await container.getProjectRowData({ index: 0, skipWs: false })).toEqual({
       icon: 'database',
       title: 'db-renamed-using-ui',
@@ -134,13 +134,13 @@ test.describe('DashboardBasicTests', () => {
     // await (await leftPanel.workspaceGetLocator('test')).click();
     expect(await container.getProjectRowCount()).toEqual(1);
 
-    // delete project
-    await wsPage.projectDelete({ title: 'db-renamed-using-ui' });
+    // delete base
+    await wsPage.baseDelete({ title: 'db-renamed-using-ui' });
     expect(await container.getProjectRowCount()).toEqual(0);
 
-    // in ws_pgExtREST0 workspace, project count is still 2
+    // in ws_pgExtREST0 workspace, base count is still 2
     await wsPage.workspaceOpen({ title: context.workspace.title });
-    // add delay to wait for project list to load
+    // add delay to wait for base list to load
     await page.waitForTimeout(1000);
     expect(await container.getProjectRowCount()).toEqual(2);
   });
@@ -148,7 +148,7 @@ test.describe('DashboardBasicTests', () => {
   test.skip('WS Quick access: Recent, Shared, Favourites', async () => {
     const dbInfo = {
       icon: 'database',
-      title: context.project.title,
+      title: context.base.title,
       lastAccessed: 'a few seconds ago',
       role: 'Workspace Owner',
     };
@@ -164,8 +164,8 @@ test.describe('DashboardBasicTests', () => {
     expect(await wsPage.container.getProjectRowCount()).toEqual(0);
 
     await wsPage.workspaceOpen({ title: context.workspace.title });
-    // mark current project as favourite
-    await wsPage.projectAddToFavourites({ title: context.project.title });
+    // mark current base as favourite
+    await wsPage.baseAddToFavourites({ title: context.base.title });
 
     await wsPage.openQuickAccess('Favourites');
     expect(await wsPage.container.getProjectRowData({ index: 0, skipWs: true })).toEqual(dbInfo);

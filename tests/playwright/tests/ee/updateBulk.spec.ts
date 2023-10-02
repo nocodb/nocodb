@@ -24,7 +24,7 @@ async function updateBulkFields(bulkUpdateForm: BulkUpdatePage, fields) {
 
 async function beforeEachInit({ page, tableType }: { page: any; tableType: string }) {
   const context = await setup({ page, isEmptyProject: true, isSuperUser: true });
-  const dashboard = new DashboardPage(page, context.project);
+  const dashboard = new DashboardPage(page, context.base);
   const bulkUpdateForm = dashboard.bulkUpdateForm;
 
   const api = new Api({
@@ -127,7 +127,7 @@ test.describe('Bulk update 0', () => {
     }
 
     // verify api response
-    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
+    const updatedRecords = (await api.dbTableRow.list('noco', context.base.id, table.id, { limit: 50 })).list;
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         expect(updatedRecords[i][fields[j].title]).toEqual(fields[j].value);
@@ -186,7 +186,7 @@ test.describe('Bulk update 1', () => {
     // verify api response
     // duration in seconds
     const APIResponse = [1, 1.1, 1.1, 10, 60000, 3, 2024, '10:10:00'];
-    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
+    const updatedRecords = (await api.dbTableRow.list('noco', context.base.id, table.id, { limit: 50 })).list;
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         if (fields[j].title === 'Time') {
@@ -246,7 +246,7 @@ test.describe('Bulk update 2', () => {
     }
 
     // verify api response
-    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
+    const updatedRecords = (await api.dbTableRow.list('noco', context.base.id, table.id, { limit: 50 })).list;
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         expect(updatedRecords[i][fields[j].title]).toContain(fields[j].value);
@@ -300,7 +300,7 @@ test.describe('Bulk update 3', () => {
     }
 
     // verify api response
-    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
+    const updatedRecords = (await api.dbTableRow.list('noco', context.base.id, table.id, { limit: 50 })).list;
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         expect(+updatedRecords[i]['Checkbox']).toBe(1);
@@ -346,7 +346,7 @@ test.describe('Bulk update 4', () => {
     }
 
     // verify api response
-    const updatedRecords = (await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 50 })).list;
+    const updatedRecords = (await api.dbTableRow.list('noco', context.base.id, table.id, { limit: 50 })).list;
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         expect(updatedRecords[i]['Date']).toBe(fields[j].value);

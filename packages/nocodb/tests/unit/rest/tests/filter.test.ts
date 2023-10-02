@@ -3,8 +3,8 @@ import { UITypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import request from 'supertest';
 import init from '../../init';
-import { createProject } from '../../factory/project';
-import Project from '../../../../src/models/Project';
+import { createProject } from '../../factory/base';
+import Base from '~/models/Base';
 import { createTable } from '../../factory/table';
 import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
 import Model from '../../../../src/models/Model';
@@ -147,7 +147,7 @@ async function retrieveRecordsAndValidate(
 
   // retrieve filtered records
   const response = await request(context.app)
-    .get(`/api/v1/db/data/noco/${project.id}/${table.id}`)
+    .get(`/api/v1/data/noco/${base.id}/${table.id}`)
     .set('xc-auth', context.token)
     .query({
       filterArrJson: JSON.stringify([filter]),
@@ -179,7 +179,7 @@ async function retrieveRecordsAndValidate(
 }
 
 let context;
-let project: Project;
+let base: Base;
 let table: Model;
 let columns: any[];
 let unfilteredRecords: any[] = [];
@@ -205,8 +205,8 @@ function filterTextBased() {
   beforeEach(async function () {
     console.time('#### filterTextBased');
     context = await init();
-    project = await createProject(context);
-    table = await createTable(context, project, {
+    base = await createProject(context);
+    table = await createTable(context, base, {
       table_name: 'textBased',
       title: 'TextBased',
       columns: [
@@ -258,11 +258,11 @@ function filterTextBased() {
     }
 
     await createBulkRows(context, {
-      project,
+      base,
       table,
       values: rowAttributes,
     });
-    unfilteredRecords = await listRow({ project, table });
+    unfilteredRecords = await listRow({ base, table });
 
     // verify length of unfiltered records to be 400
     expect(unfilteredRecords.length).to.equal(400);
@@ -345,8 +345,8 @@ function filterNumberBased() {
   beforeEach(async function () {
     console.time('#### filterNumberBased');
     context = await init();
-    project = await createProject(context);
-    table = await createTable(context, project, {
+    base = await createProject(context);
+    table = await createTable(context, base, {
       table_name: 'numberBased',
       title: 'numberBased',
       columns: [
@@ -404,11 +404,11 @@ function filterNumberBased() {
     }
 
     await createBulkRows(context, {
-      project,
+      base,
       table,
       values: rowAttributes,
     });
-    unfilteredRecords = await listRow({ project, table });
+    unfilteredRecords = await listRow({ base, table });
 
     // verify length of unfiltered records to be 400
     expect(unfilteredRecords.length).to.equal(400);
@@ -505,8 +505,8 @@ function filterSelectBased() {
   beforeEach(async function () {
     console.time('#### filterSelectBased');
     context = await init();
-    project = await createProject(context);
-    table = await createTable(context, project, {
+    base = await createProject(context);
+    table = await createTable(context, base, {
       table_name: 'selectBased',
       title: 'selectBased',
       columns: [
@@ -542,11 +542,11 @@ function filterSelectBased() {
     }
 
     await createBulkRows(context, {
-      project,
+      base,
       table,
       values: rowAttributes,
     });
-    unfilteredRecords = await listRow({ project, table });
+    unfilteredRecords = await listRow({ base, table });
 
     // verify length of unfiltered records to be 400
     expect(unfilteredRecords.length).to.equal(400);
@@ -586,7 +586,7 @@ function filterSelectBased() {
 
 async function applyDateFilter(filterParams, expectedRecords) {
   const response = await request(context.app)
-    .get(`/api/v1/db/data/noco/${project.id}/${table.id}`)
+    .get(`/api/v1/data/noco/${base.id}/${table.id}`)
     .set('xc-auth', context.token)
     .query({
       filterArrJson: JSON.stringify([filterParams]),
@@ -609,8 +609,8 @@ function filterDateBased() {
   beforeEach(async function () {
     console.time('#### filterDateBased');
     context = await init();
-    project = await createProject(context);
-    table = await createTable(context, project, {
+    base = await createProject(context);
+    table = await createTable(context, base, {
       table_name: 'dateBased',
       title: 'dateBased',
       columns: [
@@ -638,11 +638,11 @@ function filterDateBased() {
     }
 
     await createBulkRows(context, {
-      project,
+      base,
       table,
       values: rowAttributes,
     });
-    unfilteredRecords = await listRow({ project, table });
+    unfilteredRecords = await listRow({ base, table });
 
     // verify length of unfiltered records to be 800
     expect(unfilteredRecords.length).to.equal(800);

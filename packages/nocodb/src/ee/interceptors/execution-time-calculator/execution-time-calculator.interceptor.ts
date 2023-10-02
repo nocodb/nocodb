@@ -43,7 +43,7 @@ export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
 
         const workspace_id = req.ncWorkspaceId || 'default';
         const user_id = req.user?.id;
-        const project_id = req.ncProjectId;
+        const base_id = req.ncProjectId;
 
         // const token = req.headers['xc-token'] || req.headers['xc-auth'];
 
@@ -60,7 +60,7 @@ export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
             created_at: timestamp,
             workspace_id,
             user_id,
-            project_id,
+            base_id,
             // token,
             url,
             method,

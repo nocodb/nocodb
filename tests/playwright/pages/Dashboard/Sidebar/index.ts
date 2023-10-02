@@ -12,7 +12,7 @@ export class SidebarPage extends BasePage {
   readonly docsSidebar: DocsSidebarPage;
   readonly createProjectBtn: Locator;
   readonly userMenu: SidebarUserMenuObject;
-  readonly projectNode: SidebarProjectNodeObject;
+  readonly baseNode: SidebarProjectNodeObject;
   readonly tableNode: SidebarTableNodeObject;
 
   constructor(dashboard: DashboardPage) {
@@ -20,8 +20,8 @@ export class SidebarPage extends BasePage {
     this.dashboard = dashboard;
     this.docsSidebar = new DocsSidebarPage(this);
     this.userMenu = new SidebarUserMenuObject(this);
-    this.createProjectBtn = dashboard.get().getByTestId('nc-sidebar-create-project-btn');
-    this.projectNode = new SidebarProjectNodeObject(this);
+    this.createProjectBtn = dashboard.get().getByTestId('nc-sidebar-create-base-btn');
+    this.baseNode = new SidebarProjectNodeObject(this);
     this.tableNode = new SidebarTableNodeObject(this);
   }
 
@@ -57,7 +57,7 @@ export class SidebarPage extends BasePage {
   }
 
   async openProject({ title }: { title: string }) {
-    await this.get().locator(`.project-title-node`).getByText(title).click();
+    await this.get().locator(`.base-title-node`).getByText(title).click();
 
     // TODO: Fix this
     await this.rootPage.waitForTimeout(1000);
@@ -66,15 +66,15 @@ export class SidebarPage extends BasePage {
   async createProject({ title, type }: { title: string; type: ProjectTypes }) {
     await this.createProjectBtn.click();
     if (type === ProjectTypes.DOCUMENTATION) {
-      await this.dashboard.get().locator('.nc-create-project-btn-docs').click();
+      await this.dashboard.get().locator('.nc-create-base-btn-docs').click();
     }
-    await this.dashboard.get().locator('.nc-metadb-project-name').clear();
-    await this.dashboard.get().locator('.nc-metadb-project-name').fill(title);
+    await this.dashboard.get().locator('.nc-metadb-base-name').clear();
+    await this.dashboard.get().locator('.nc-metadb-base-name').fill(title);
 
     await this.waitForResponse({
       uiAction: () => this.dashboard.get().getByTestId('docs-create-proj-dlg-create-btn').click(),
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `api/v1/db/meta/projects/`,
+      requestUrlPathToMatch: `api/v1/meta/bases/`,
     });
 
     if (type === ProjectTypes.DOCUMENTATION) {
@@ -121,7 +121,7 @@ export class SidebarPage extends BasePage {
       this.rootPage.locator('.ant-modal-content').locator('button.ant-btn.ant-btn-primary').click();
     await this.waitForResponse({
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: '/api/v1/db/meta/tables/',
+      requestUrlPathToMatch: '/api/v1/meta/tables/',
       uiAction: submitAction,
       responseJsonMatcher: json => json.title === title,
     });

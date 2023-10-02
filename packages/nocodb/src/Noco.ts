@@ -40,7 +40,7 @@ export default class Noco {
   public static config: any;
   public static eventEmitter: IEventEmitter;
   public readonly router: express.Router;
-  public readonly projectRouter: express.Router;
+  public readonly baseRouter: express.Router;
   public static _ncMeta: any;
   public readonly metaMgr: any;
   public readonly metaMgrv2: any;
@@ -52,13 +52,13 @@ export default class Noco {
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
     // todo: move
-    // if env variable NC_MINIMAL_DBS is set, then disable project creation with external sources
+    // if env variable NC_MINIMAL_DBS is set, then disable base creation with external sources
     if (process.env.NC_MINIMAL_DBS === 'true') {
       process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED = 'true';
     }
 
     this.router = express.Router();
-    this.projectRouter = express.Router();
+    this.baseRouter = express.Router();
 
     clear();
     /******************* prints : end *******************/

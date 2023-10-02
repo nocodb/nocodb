@@ -7,8 +7,8 @@ import Widget from '~/models/Widget';
 export default class Layout implements LayoutType {
   id?: string;
   title?: string;
-  project_id?: string;
   base_id?: string;
+  source_id?: string;
   show: boolean;
   order: number;
 
@@ -44,8 +44,8 @@ export default class Layout implements LayoutType {
       [
         'id',
         'title',
-        'project_id',
         'base_id',
+        'source_id',
         'show',
         'order',
         'grid_gap',
@@ -80,8 +80,8 @@ export default class Layout implements LayoutType {
   public static async insert(layout: Partial<Layout>, ncMeta = Noco.ncMeta) {
     const insertObj = extractProps(layout, [
       'title',
-      'project_id',
       'base_id',
+      'source_id',
       'show',
       'order',
       'grid_gap',
@@ -105,8 +105,8 @@ export default class Layout implements LayoutType {
   ) {
     const updateObj = extractProps(layout, [
       'title',
-      'project_id',
       'base_id',
+      'source_id',
       'show',
       'order',
       'grid_gap',
@@ -115,7 +115,7 @@ export default class Layout implements LayoutType {
     ]);
 
     await ncMeta.metaUpdate(
-      layout.project_id,
+      layout.base_id,
       null,
       MetaTable.LAYOUT,
       updateObj,

@@ -11,7 +11,7 @@ import type {
   DataSourceInternal,
   LayoutType,
   NumberWidget,
-  ProjectType,
+  BaseType,
   ScreenDimensions,
   ScreenPosition,
   StaticTextWidget,
@@ -83,7 +83,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   const { t } = useI18n()
   const reloadWidgetDataEventBus = useEventBus('ReloadWidgetData')
 
-  const projectsStore = useProjects()
+  const basesStore = useBases()
 
   /***
    *
@@ -99,11 +99,11 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
 
   const openedLayoutSidebarNode = ref<LayoutSidebarNode | undefined>(undefined)
 
-  const projectStore = useProject()
-  const { project } = storeToRefs(projectStore)
+  const baseStore = useBase()
+  const { base } = storeToRefs(baseStore)
 
   const { loadProjectTables } = useTablesStore()
-  const { projectTables } = storeToRefs(useTablesStore())
+  const { baseTables } = storeToRefs(useTablesStore())
 
   const focusedWidgetId = ref<string | undefined>(undefined)
   // NOTE: Instead of using stop propagation on the click handler on the Layout View level
@@ -123,7 +123,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
 
   const availableViewsOfSelectedTable = ref<IdAndTitle[] | undefined>()
 
-  const dashboardProject = ref<ProjectType | undefined>(undefined)
+  const dashboardProject = ref<BaseType | undefined>(undefined)
 
   /***
    *
@@ -137,13 +137,13 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
 
   const availableDbProjects = computed(
     () =>
-      dashboardProject.value?.linked_db_projects?.map((project) => ({
-        id: project.id!,
-        title: project.title || 'unknown',
+      dashboardProject.value?.linked_db_projects?.map((base) => ({
+        id: base.id!,
+        title: base.title || 'unknown',
       })) || [],
   )
 
-  const openedProjectId = computed<string>(() => route.value.params.projectId as string)
+  const openedProjectId = computed<string>(() => route.value.params.baseId as string)
   const openedLayoutId = computed<string | null>(() => route.value.params.layoutId as string)
   const _openedWorkspaceId = computed<string>(() => route.value.params.typeOrId as string)
   const availableNumericColumnsOfSelectedView = computed(() => {
@@ -156,16 +156,16 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   })
 
   const availableTablesOfAllDBProjectsLinkedWithDashboardProject = computed(() =>
-    Array.from(projectTables.value)
+    Array.from(baseTables.value)
       .map(([_, tables]) => tables)
       .flat()
-      .filter((t) => t != null && availableDbProjects.value?.map((dbP) => dbP.id).includes(t.project_id!))
+      .filter((t) => t != null && availableDbProjects.value?.map((dbP) => dbP.id).includes(t.base_id!))
       .map((table) => ({
         id: table.id!,
         title: table.title || 'unknown',
-        project: {
-          id: table.project_id!,
-          title: availableDbProjects.value.find((p) => p.id === table.project_id)?.title || 'unknown',
+        base: {
+          id: table.base_id!,
+          title: availableDbProjects.value.find((p) => p.id === table.base_id)?.title || 'unknown',
         },
       })),
   )
@@ -207,12 +207,12 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     return layouts.find((p) => p.id === layoutId)
   }
 
-  async function _fetchSingleLayout({ layoutId: layoutIdParam }: { layoutId?: string; projectId: string }) {
+  async function _fetchSingleLayout({ layoutId: layoutIdParam }: { layoutId?: string; baseId: string }) {
     const layoutId = layoutIdParam || openedLayoutId.value
     if (!layoutId) throw new Error('No Layout id or slug provided')
 
     try {
-      return await $api.dashboard.layoutGet(project.value!.id!, layoutId)
+      return await $api.dashboard.layoutGet(base.value!.id!, layoutId)
     } catch (e) {
       console.error(e)
       return undefined
@@ -239,20 +239,20 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     }
   }
 
-  function _getLayoutUrl({ projectId, id, completeUrl }: { projectId: string; id: string; completeUrl?: boolean }) {
-    projectId = projectId || openedProjectId.value
+  function _getLayoutUrl({ baseId, id, completeUrl }: { baseId: string; id: string; completeUrl?: boolean }) {
+    baseId = baseId || openedProjectId.value
 
-    const url = `/${_openedWorkspaceId.value}/${projectId}/layout/${id}`
+    const url = `/${_openedWorkspaceId.value}/${baseId}/layout/${id}`
 
     return completeUrl ? `${window.location.origin}/#${url}` : url
   }
 
-  async function _createLayout({ layoutTitle, projectId }: { layoutTitle: string; projectId: string }) {
-    const layouts = layoutsOfProjects.value[projectId]
+  async function _createLayout({ layoutTitle, baseId }: { layoutTitle: string; baseId: string }) {
+    const layouts = layoutsOfProjects.value[baseId]
     try {
-      const createdLayoutData = await $api.dashboard.layoutCreate(projectId, {
+      const createdLayoutData = await $api.dashboard.layoutCreate(baseId, {
         title: layoutTitle,
-        project_id: projectId,
+        base_id: baseId,
       })
 
       layouts.push({
@@ -265,9 +265,9 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
 
       // TODO: Check this - looks like nonsense, to find the just created layout again
       openedLayoutSidebarNode.value = _findSingleLayout(layouts, createdLayoutData.id!)
-      await navigateTo(_getLayoutUrl({ id: createdLayoutData.id!, projectId: projectId! }))
+      await navigateTo(_getLayoutUrl({ id: createdLayoutData.id!, baseId: baseId! }))
 
-      const openedTabs = layoutsOfProjects.value[projectId].map((p: any) => p.id)
+      const openedTabs = layoutsOfProjects.value[baseId].map((p: any) => p.id)
       if (!openedTabs.includes(createdLayoutData.id!)) {
         openedTabs.push(createdLayoutData.id!)
       }
@@ -324,19 +324,19 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
    *
    */
   watch(
-    () => projectsStore.openedProject,
+    () => basesStore.openedProject,
     async () => {
       if (openedProjectId.value == null) {
         return
       }
-      dashboardProject.value = projectsStore.openedProject as ProjectType
+      dashboardProject.value = basesStore.openedProject as BaseType
     },
     {
       immediate: true,
     },
   )
   watch([() => availableDbProjects.value], async () => {
-    await Promise.all(availableDbProjects.value.map(async (project) => await loadProjectTables(project.id)))
+    await Promise.all(availableDbProjects.value.map(async (base) => await loadProjectTables(base.id)))
   })
   watch(
     () => (focusedWidget.value?.data_source as DataSourceInternal)?.tableId,
@@ -394,7 +394,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
 
       const fetchedLayout: LayoutType | undefined = await _fetchSingleLayout({
         layoutId: newLayoutId,
-        projectId: openedProjectId.value,
+        baseId: openedProjectId.value,
       })
 
       if (fetchedLayout == null) {
@@ -439,25 +439,25 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
    * Public functions
    *
    */
-  function getDashboardProjectUrl(projectId: string, { completeUrl }: { completeUrl?: boolean; publicMode?: boolean } = {}) {
-    const path = `/${_openedWorkspaceId.value}/${projectId}/layout`
+  function getDashboardProjectUrl(baseId: string, { completeUrl }: { completeUrl?: boolean; publicMode?: boolean } = {}) {
+    const path = `/${_openedWorkspaceId.value}/${baseId}/layout`
     if (completeUrl) return `${window.location.origin}/#${path}`
 
     return path
   }
 
-  async function populateLayouts({ projectId }: { projectId: string }) {
-    if (layoutsOfProjects.value[projectId]) return
+  async function populateLayouts({ baseId }: { baseId: string }) {
+    if (layoutsOfProjects.value[baseId]) return
 
-    await fetchLayouts({ projectId })
+    await fetchLayouts({ baseId })
   }
 
-  async function fetchLayouts({ withoutLoading, projectId }: { projectId: string; withoutLoading?: boolean }) {
-    if (!withoutLoading) isLayoutFetching.value[projectId] = true
+  async function fetchLayouts({ withoutLoading, baseId }: { baseId: string; withoutLoading?: boolean }) {
+    if (!withoutLoading) isLayoutFetching.value[baseId] = true
     try {
-      const fetchedLayouts = (await $api.dashboard.layoutList(projectId)).list
+      const fetchedLayouts = (await $api.dashboard.layoutList(baseId)).list
 
-      layoutsOfProjects.value[projectId] = fetchedLayouts.map((layout) => {
+      layoutsOfProjects.value[baseId] = fetchedLayouts.map((layout) => {
         return {
           ...layout,
           isLeaf: true,
@@ -468,7 +468,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
     } finally {
-      if (!withoutLoading) isLayoutFetching.value[projectId] = false
+      if (!withoutLoading) isLayoutFetching.value[baseId] = false
     }
   }
   const resetFocus = () => {
@@ -480,8 +480,8 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     }
   }
 
-  const addNewLayout = async ({ projectId }: { projectId: string }) => {
-    const layouts = layoutsOfProjects.value[projectId]
+  const addNewLayout = async ({ baseId }: { baseId: string }) => {
+    const layouts = layoutsOfProjects.value[baseId]
     if (!Array.isArray(layouts)) {
       console.error('Layouts not defined or not an array')
       message.error('Error while creating Layout')
@@ -495,12 +495,12 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     }
 
     await _createLayout({
-      projectId,
+      baseId,
       layoutTitle: dummyTitle,
     })
   }
 
-  const deleteLayout = async (dashboard: ProjectType, layout: LayoutType) => {
+  const deleteLayout = async (dashboard: BaseType, layout: LayoutType) => {
     $e('c:layout:delete')
     Modal.confirm({
       title: `${t('msg.info.deleteLayoutConfirmation')} (${layout.title})?`,
@@ -512,7 +512,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       async onOk() {
         try {
           await $api.dashboard.layoutDelete(dashboard.id!, layout.id!)
-          await fetchLayouts({ projectId: dashboard.id! })
+          await fetchLayouts({ baseId: dashboard.id! })
           message.info(t('msg.info.layoutDeleted'))
           $e('a:layout:delete')
         } catch (e) {
@@ -536,8 +536,8 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     openedWidgets.value = parsedWidgets
   }
 
-  const openLayout = async ({ layout, projectId }: { layout: LayoutType; projectId: string }) => {
-    const url = _getLayoutUrl({ id: layout.id!, projectId })
+  const openLayout = async ({ layout, baseId }: { layout: LayoutType; baseId: string }) => {
+    const url = _getLayoutUrl({ id: layout.id!, baseId })
 
     await navigateTo(url)
   }
@@ -740,7 +740,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
           data_source: reactive({
             ...focusedWidget.value.data_source,
             tableId: newTableId,
-            projectId: newProjectId,
+            baseId: newProjectId,
           }),
         })
         _updateWidgetInAPIAndLocally(updatedWidget)

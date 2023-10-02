@@ -11,7 +11,7 @@ const sqliteFilePath = (parallelId: string) => {
 
 const sakilaProjectConfig = (title: string, parallelId: string) => ({
   title,
-  bases: [
+  sources: [
     {
       type: 'sqlite3',
       config: {
@@ -59,7 +59,7 @@ const createProject = async (
   let response: AxiosResponse;
   if (isEmptyProject) {
     response = await axios.post(
-      'http://localhost:8080/api/v1/db/meta/projects/',
+      'http://localhost:8080/api/v1/meta/bases/',
       { title },
       {
         headers: {
@@ -69,7 +69,7 @@ const createProject = async (
     );
   } else {
     response = await axios.post(
-      'http://localhost:8080/api/v1/db/meta/projects/',
+      'http://localhost:8080/api/v1/meta/bases/',
       sakilaProjectConfig(title, parallelId),
       {
         headers: {
@@ -79,7 +79,7 @@ const createProject = async (
     );
   }
   if (response.status !== 200) {
-    console.error('Error creating project', response.data);
+    console.error('Error creating base', response.data);
   }
   return response.data;
 };

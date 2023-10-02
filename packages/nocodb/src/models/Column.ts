@@ -31,8 +31,8 @@ import { stringifyMetaProp } from '~/utils/modelUtils';
 
 export default class Column<T = any> implements ColumnType {
   public fk_model_id: string;
-  public project_id: string;
   public base_id: string;
+  public source_id: string;
 
   public column_name: string;
   public title: string;
@@ -82,7 +82,7 @@ export default class Column<T = any> implements ColumnType {
 
   public static async insert<T>(
     column: Partial<T> & {
-      base_id?: string;
+      source_id?: string;
       [key: string]: any;
       fk_model_id: string;
       uidt: UITypes | string;
@@ -118,8 +118,8 @@ export default class Column<T = any> implements ColumnType {
       'au',
       'pv',
       'order',
-      'project_id',
       'base_id',
+      'source_id',
       'system',
       'meta',
     ]);
@@ -141,18 +141,18 @@ export default class Column<T = any> implements ColumnType {
       else insertObj.validate = JSON.stringify(column.validate);
     }
 
-    if (!(column.project_id && column.base_id)) {
+    if (!(column.base_id && column.source_id)) {
       const model = await Model.getByIdOrName(
         { id: column.fk_model_id },
         ncMeta,
       );
-      insertObj.project_id = model.project_id;
       insertObj.base_id = model.base_id;
+      insertObj.source_id = model.source_id;
     }
 
     if (!column.uidt) throw new Error('UI Datatype not found');
     const row = await ncMeta.metaInsert2(
-      null, //column.project_id || column.base_id,
+      null, //column.base_id || column.source_id,
       null, //column.db_alias,
       MetaTable.COLUMNS,
       insertObj,
@@ -182,7 +182,7 @@ export default class Column<T = any> implements ColumnType {
   }
 
   private static async insertColOption<T>(
-    column: Partial<T> & { base_id?: string; [p: string]: any },
+    column: Partial<T> & { source_id?: string; [p: string]: any },
     colId,
     ncMeta = Noco.ncMeta,
   ) {
@@ -364,7 +364,7 @@ export default class Column<T = any> implements ColumnType {
       /*  default:
         {
           await ncMeta.metaInsert2(
-            model.project_id,
+            model.base_id,
             model.db_alias,
             'nc_col_props_v2',
             {
@@ -399,7 +399,7 @@ export default class Column<T = any> implements ColumnType {
           ) {
             for (const option of model.dtxp.split(','))
               await ncMeta.metaInsert2(
-                model.project_id,
+                model.base_id,
                 model.db_alias,
                 MetaTable.COL_SELECT_OPTIONS',
                 {
@@ -455,7 +455,7 @@ export default class Column<T = any> implements ColumnType {
   async loadModel(force = false): Promise<Model> {
     if (!this.model || force) {
       this.model = await Model.getByIdOrName({
-        // base_id: this.project_id,
+        // source_id: this.base_id,
         // db_alias: this.db_alias,
         id: this.fk_model_id,
       });
@@ -554,7 +554,7 @@ export default class Column<T = any> implements ColumnType {
       )
       .condition(condition)
       .where({
-        'tab.base_id': base_id,
+        'tab.source_id': source_id,
         'tab.db_alias': db_alias
       });
 
@@ -563,11 +563,11 @@ export default class Column<T = any> implements ColumnType {
 
   public static async get(
     {
-      base_id,
+      source_id,
       db_alias,
       colId,
     }: {
-      base_id?: string;
+      source_id?: string;
       db_alias?: string;
       colId: string;
     },
@@ -581,7 +581,7 @@ export default class Column<T = any> implements ColumnType {
       ));
     if (!colData) {
       colData = await ncMeta.metaGet2(
-        base_id,
+        source_id,
         db_alias,
         MetaTable.COLUMNS,
         colId,
@@ -1160,7 +1160,7 @@ export default class Column<T = any> implements ColumnType {
     }
     // set meta
     await ncMeta.metaUpdate(
-      null, //column.project_id || column.base_id,
+      null, //column.base_id || column.source_id,
       null, //column.db_alias,
       MetaTable.COLUMNS,
       {

@@ -10,7 +10,7 @@ const emit = defineEmits(['close'])
 dayjs.extend(utc)
 
 const { $api } = useNuxtApp()
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 const { openedPage } = storeToRefs(useDocStore())
 const { history, currentSnapshot } = storeToRefs(useDocHistoryStore())
 const { setCurrentSnapshotIndex, setHistory } = useDocHistoryStore()
@@ -23,8 +23,8 @@ const close = () => {
 const pageNumber = ref(0)
 
 onMounted(async () => {
-  await $api.nocoDocs.syncPageHistory(project.value!.id!, openedPage.value!.id!)
-  const response = await $api.nocoDocs.listPageHistory(project.value!.id!, openedPage.value!.id!, {
+  await $api.nocoDocs.syncPageHistory(base.value!.id!, openedPage.value!.id!)
+  const response = await $api.nocoDocs.listPageHistory(base.value!.id!, openedPage.value!.id!, {
     pageNumber: 0,
     pageSize: 10,
   })
@@ -39,7 +39,7 @@ const clearCurrentSnapshot = () => {
 const loadListData = async ($state: any) => {
   $state.loading()
   pageNumber.value += 1
-  const response = await $api.nocoDocs.listPageHistory(project.value!.id!, openedPage.value!.id!, {
+  const response = await $api.nocoDocs.listPageHistory(base.value!.id!, openedPage.value!.id!, {
     pageNumber: pageNumber.value,
     pageSize: 10,
   })

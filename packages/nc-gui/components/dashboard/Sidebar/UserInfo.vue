@@ -142,7 +142,7 @@ onMounted(() => {
               <template v-if="isAuthTokenCopied"> {{ $t('title.copiedAuthToken') }} </template>
               <template v-else> {{ $t('title.copyAuthToken') }} </template>
             </NcMenuItem>
-            <nuxt-link v-e="['c:user:settings']" v-e="['c:navbar:user:email']" class="!no-underline" to="/account/profile">
+            <nuxt-link v-e="['c:user:settings']" class="!no-underline" to="/account/profile">
               <NcMenuItem> <GeneralIcon icon="settings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
             </nuxt-link>
           </template>

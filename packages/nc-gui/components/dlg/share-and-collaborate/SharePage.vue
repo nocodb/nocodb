@@ -333,7 +333,7 @@ const isPublicShareDisabled = computed(() => {
               <!-- todo i18n -->
             </a-switch>
           </div>
-          <div v-if="activeView?.type === ViewTypes.FORM" class="flex flex-row justify-between">
+          <div v-if="activeView?.type === ViewTypes.FORM && isEeUI" class="flex flex-row justify-between">
             <!-- use RTL orientation in form - todo: i18n -->
             <div class="text-black">{{ $t('activity.rtlOrientation') }}</div>
             <a-switch v-model:checked="withRTL" data-testid="nc-modal-share-view__RTL">

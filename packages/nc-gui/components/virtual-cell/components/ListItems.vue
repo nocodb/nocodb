@@ -25,6 +25,8 @@ const injectedColumn = inject(ColumnInj)
 
 const filterQueryRef = ref()
 
+const { $e } = useNuxtApp()
+
 const {
   childrenExcludedList,
   isChildrenExcludedListLinked,
@@ -58,6 +60,8 @@ const linkRow = async (row: Record<string, any>, id: number) => {
     addLTARRef(row, injectedColumn?.value as ColumnType)
     isChildrenExcludedListLinked.value[id] = true
     saveRow!()
+
+    $e('a:links:link')
   } else {
     await link(row, {}, false, id)
   }
@@ -68,6 +72,7 @@ const unlinkRow = async (row: Record<string, any>, id: number) => {
     removeLTARRef(row, injectedColumn?.value as ColumnType)
     isChildrenExcludedListLinked.value[id] = false
     saveRow!()
+    $e('a:links:unlink')
   } else {
     await unlink(row, {}, false, id)
   }
@@ -193,6 +198,7 @@ onKeyStroke('Escape', () => {
       <!-- Add new record -->
       <NcButton
         v-if="!isPublic"
+        v-e="['c:row-expand:open']"
         type="secondary"
         size="xl"
         class="!text-brand-500"

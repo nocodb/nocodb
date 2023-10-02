@@ -124,6 +124,26 @@ onKeyStroke('Escape', () => {
   vModel.value = false
 })
 
+const skeltonAmountToShow = ref(childrenListCount.value === 0 ? 10 : childrenListCount.value)
+
+/* 
+   to render same number of skelton as the number of cards
+   displayed
+ */
+watch(childrenListPagination, () => {
+  if (childrenListCount.value < 10 && childrenListPagination.page === 1) {
+    skeltonAmountToShow.value = childrenListCount.value === 0 ? 10 : childrenListCount.value
+  }
+
+  const totlaRows = Math.ceil(childrenListCount.value / 10)
+
+  if (totlaRows === childrenListPagination.page) {
+    skeltonAmountToShow.value = childrenListCount.value % 10
+  } else {
+    skeltonAmountToShow.value = 10
+  }
+})
+
 const isDataExist = computed<boolean>(() => {
   return childrenList.value?.pageInfo?.totalRows || (isNew.value && state.value?.[colTitle.value]?.length)
 })
@@ -189,7 +209,7 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
       >
         <template v-if="isChildrenLoading">
           <div
-            v-for="(x, i) in Array.from({ length: 10 })"
+            v-for="(x, i) in Array.from({ length: skeltonAmountToShow })"
             :key="i"
             class="border-2 flex flex-row gap-2 mb-2 transition-all rounded-xl relative border-gray-200 hover:bg-gray-50"
           >

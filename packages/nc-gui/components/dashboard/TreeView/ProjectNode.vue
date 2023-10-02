@@ -29,6 +29,9 @@ const indicator = h(LoadingOutlined, {
 const router = useRouter()
 const route = router.currentRoute
 
+const { isSharedBase } = storeToRefs(useProject())
+const { projectUrl } = useProject()
+
 const { setMenuContext, openRenameTableDialog, duplicateTable, contextMenuTarget } = inject(TreeViewInj)!
 
 const project = inject(ProjectInj)!
@@ -64,8 +67,6 @@ const input = ref<HTMLInputElement>()
 const projectRole = inject(ProjectRoleInj)
 
 const { activeProjectId } = storeToRefs(useProjects())
-
-const { projectUrl } = useProject()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
@@ -228,9 +229,6 @@ const addNewProjectChildEntity = async () => {
   }
 }
 
-// todo: temp
-const isSharedBase = ref(false)
-
 const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
   if (!project) {
     return
@@ -247,12 +245,6 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
 
   const isProjectPopulated = projectsStore.isProjectPopulated(project.id!)
 
-  let isSharedBase = false
-  // if shared base ignore navigation
-  if (route.value.params.typeOrId === 'base') {
-    isSharedBase = true
-  }
-
   if (!isProjectPopulated) project.isLoading = true
 
   if (!ignoreNavigation) {
@@ -260,7 +252,7 @@ const onProjectClick = async (project: NcProject, ignoreNavigation?: boolean, to
       projectUrl({
         id: project.id!,
         type: 'database',
-        isSharedBase,
+        isSharedBase: isSharedBase.value,
       }),
     )
   }

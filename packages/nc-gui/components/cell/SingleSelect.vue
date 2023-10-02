@@ -214,6 +214,10 @@ const onKeydown = (e: KeyboardEvent) => {
   if (isOpen.value && active.value) {
     e.stopPropagation()
   }
+  if (e.key === ' ') {
+    e.preventDefault()
+    isOpen.value = true
+  }
   if (e.key === 'Enter') {
     e.stopPropagation()
   }

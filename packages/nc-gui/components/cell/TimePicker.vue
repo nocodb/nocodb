@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { onKeyDown } from '@vueuse/core'
 import {
   ActiveCellInj,
   EditColumnInj,
@@ -116,6 +117,12 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
       }
       break
   }
+})
+
+onKeyDown('Escape', (e) => {
+  if (!isForm.value && !isExpandedForm.value) return
+  if (!e.target.closest('.nc-picker-time')) return
+  open.value = false
 })
 </script>
 

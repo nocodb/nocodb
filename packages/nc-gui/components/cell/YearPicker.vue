@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { onKeyDown } from '@vueuse/core'
 import {
   ActiveCellInj,
   EditColumnInj,
@@ -87,6 +88,12 @@ const placeholder = computed(() => {
     return t('msg.invalidTime')
   } else {
     return ''
+  }
+})
+
+onKeyDown((e) => {
+  if (e.key === 'Escape' && !e.target.closest('.nc-picker-year')) {
+    open.value = false
   }
 })
 

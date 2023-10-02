@@ -35,7 +35,11 @@ watch(
       } else {
         projectPageTab.value = 'allTable'
       }
+
+      return
     }
+
+    projectPageTab.value = 'allTable'
   },
   { immediate: true },
 )

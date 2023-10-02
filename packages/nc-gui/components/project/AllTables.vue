@@ -72,16 +72,26 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
 <template>
   <div class="nc-all-tables-view">
-    <div v-if="isUIAllowed('tableCreate')" class="flex flex-row gap-x-6 pb-3 pt-6">
-      <div class="nc-project-view-all-table-btn" data-testid="proj-view-btn__add-new-table" @click="openTableCreateDialog()">
+    <div class="flex flex-row gap-x-6 pb-3 pt-6">
+      <div
+        v-if="isUIAllowed('tableCreate')"
+        class="nc-project-view-all-table-btn"
+        data-testid="proj-view-btn__add-new-table"
+        @click="openTableCreateDialog()"
+      >
         <GeneralIcon icon="addOutlineBox" />
         <div class="label">{{ $t('general.new') }} {{ $t('objects.table') }}</div>
       </div>
-      <div class="nc-project-view-all-table-btn" data-testid="proj-view-btn__import-data" @click="isImportModalOpen = true">
+      <div
+        v-if="isUIAllowed('tableCreate')"
+        class="nc-project-view-all-table-btn"
+        data-testid="proj-view-btn__import-data"
+        @click="isImportModalOpen = true"
+      >
         <GeneralIcon icon="download" />
         <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
       </div>
-      <component :is="isDataSourceLimitReached ? NcTooltip : 'div'">
+      <component :is="isDataSourceLimitReached ? NcTooltip : 'div'" v-if="isUIAllowed('baseCreate')">
         <template #title>
           <div>
             {{ $t('tooltip.reachedSourceLimit') }}

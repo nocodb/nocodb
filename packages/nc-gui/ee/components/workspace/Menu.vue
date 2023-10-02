@@ -108,6 +108,7 @@ onBeforeUnmount(() => {
   >
     <NcDropdown
       v-model:visible="isWorkspaceDropdownOpen"
+      v-e="['c:workspace:menu']"
       class="h-full min-w-0 rounded-lg"
       :trigger="['click']"
       placement="bottom"
@@ -161,6 +162,7 @@ onBeforeUnmount(() => {
               <NcMenuItem
                 v-for="workspace of otherWorkspaces"
                 :key="workspace.id!"
+                v-e="['a:workspace:switch']"
                 class="!h-10"
                 @click="switchWorkspace(workspace.id!)"
               >
@@ -173,7 +175,7 @@ onBeforeUnmount(() => {
               </NcMenuItem>
             </div>
             <NcDivider v-if="otherWorkspaces.length && !isMobileMode" class="!mt-0" />
-            <NcMenuItem v-if="!isMobileMode" @click="createDlg = true">
+            <NcMenuItem v-if="!isMobileMode" v-e="['c:workspace:create']" @click="createDlg = true">
               <div class="nc-workspace-menu-item group">
                 <GeneralIcon icon="plusSquare" class="!text-inherit" />
 

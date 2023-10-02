@@ -161,6 +161,7 @@ const isTableOpened = computed(() => {
     >
       <template #title>{{ table.table_name }}</template>
       <div
+        v-e="['c:table:open']"
         class="table-context flex items-center gap-1 h-full"
         :data-testid="`nc-tbl-side-node-${table.title}`"
         @contextmenu="setMenuContext('table', table)"
@@ -169,6 +170,7 @@ const isTableOpened = computed(() => {
         <div class="flex flex-row h-full items-center">
           <NcButton
             v-if="(table.meta as any)?.hasNonDefaultViews"
+            v-e="['c:table:toggle-expand']"
             type="text"
             size="xxsmall"
             class="nc-sidebar-node-btn nc-sidebar-expand"
@@ -191,6 +193,7 @@ const isTableOpened = computed(() => {
             >
               <LazyGeneralEmojiPicker
                 :key="table.meta?.icon"
+                v-e="['c:table:emoji-picker']"
                 :emoji="table.meta?.icon"
                 size="small"
                 :readonly="!canUserEditEmote || isMobileMode"
@@ -242,6 +245,7 @@ const isTableOpened = computed(() => {
               !isSharedBase &&
               (isUIAllowed('tableRename', { roles: projectRole }) || isUIAllowed('tableDelete', { roles: projectRole }))
             "
+            v-e="['c:table:option']"
             :trigger="['click']"
             class="nc-sidebar-node-btn"
             @click.stop
@@ -255,6 +259,7 @@ const isTableOpened = computed(() => {
               <NcMenu>
                 <NcMenuItem
                   v-if="isUIAllowed('tableRename', { roles: projectRole })"
+                  v-e="['c:table:rename']"
                   :data-testid="`sidebar-table-rename-${table.title}`"
                   @click="openRenameTableDialog(table, project.bases[baseIndex].id)"
                 >
@@ -268,6 +273,7 @@ const isTableOpened = computed(() => {
                     project.bases?.[baseIndex] &&
                     (project.bases[baseIndex].is_meta || project.bases[baseIndex].is_local)
                   "
+                  v-e="['c:table:duplicate']"
                   :data-testid="`sidebar-table-duplicate-${table.title}`"
                   @click="duplicateTable(table)"
                 >
@@ -277,6 +283,7 @@ const isTableOpened = computed(() => {
 
                 <NcMenuItem
                   v-if="isUIAllowed('tableDelete', { roles: projectRole })"
+                  v-e="['c:table:delete']"
                   :data-testid="`sidebar-table-delete-${table.title}`"
                   class="!text-red-500 !hover:bg-red-50"
                   @click="isTableDeleteDialogVisible = true"
@@ -289,6 +296,7 @@ const isTableOpened = computed(() => {
           </NcDropdown>
           <DashboardTreeViewCreateViewBtn v-if="isUIAllowed('viewCreateOrEdit')">
             <NcButton
+              v-e="['c:view:create']"
               type="text"
               size="xxsmall"
               class="nc-create-view-btn nc-sidebar-node-btn"

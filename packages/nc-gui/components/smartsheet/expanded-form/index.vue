@@ -459,13 +459,25 @@ export default {
         </template>
         <template v-else>
           <div class="flex flex-row w-full">
-            <NcButton v-if="props.showNextPrevIcons" type="secondary" class="nc-prev-arrow !w-10" @click="$emit('prev')">
+            <NcButton
+              v-if="props.showNextPrevIcons"
+              v-e="['c:row-expand:prev']"
+              type="secondary"
+              class="nc-prev-arrow !w-10"
+              @click="$emit('prev')"
+            >
               <GeneralIcon icon="arrowLeft" class="text-lg text-gray-700" />
             </NcButton>
             <div class="flex flex-grow justify-center items-center font-semibold text-lg">
               <div>{{ meta.title }}</div>
             </div>
-            <NcButton v-if="!props.lastRow" type="secondary" class="nc-next-arrow !w-10" @click="onNext">
+            <NcButton
+              v-if="!props.lastRow"
+              v-e="['c:row-expand:next']"
+              type="secondary"
+              class="nc-next-arrow !w-10"
+              @click="onNext"
+            >
               <GeneralIcon icon="arrowRight" class="text-lg text-gray-700" />
             </NcButton>
           </div>
@@ -638,7 +650,8 @@ export default {
     </div>
     <div class="flex flex-row gap-x-2 mt-4 pt-1.5 justify-end pt-4 gap-x-3">
       <NcButton v-if="isMobileMode" type="secondary" @click="showDeleteRowModal = false">{{ $t('general.cancel') }} </NcButton>
-      <NcButton @click="onConfirmDeleteRowClick">{{ $t('general.confirm') }} </NcButton>
+
+      <NcButton v-e="['a:row-expand:delete']" @click="onConfirmDeleteRowClick">{{ $t('general.confirm') }} </NcButton>
     </div>
   </NcModal>
 </template>

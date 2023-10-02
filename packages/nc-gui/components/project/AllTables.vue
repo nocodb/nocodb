@@ -91,6 +91,7 @@ const onCreateBaseClick = () => {
       </div>
       <div
         v-if="isUIAllowed('tableCreate')"
+        v-e="['c:table:import']"
         role="button"
         class="nc-project-view-all-table-btn"
         data-testid="proj-view-btn__import-data"
@@ -106,6 +107,7 @@ const onCreateBaseClick = () => {
           </div>
         </template>
         <div
+          v-e="['c:table:create-source']"
           role="button"
           class="nc-project-view-all-table-btn"
           data-testid="proj-view-btn__create-source"

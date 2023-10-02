@@ -10,6 +10,8 @@ const { navigateToProjectPage } = useProject()
 const router = useRouter()
 const route = router.currentRoute
 
+const { $e } = useNuxtApp()
+
 /* const defaultBase = computed(() => {
   return openedProject.value?.bases?.[0]
 }) */
@@ -45,6 +47,8 @@ watch(
 )
 
 watch(projectPageTab, () => {
+  $e(`a:project:view:tab-change:${projectPageTab.value}`)
+
   if (projectPageTab.value) {
     navigateToProjectPage({
       page: projectPageTab.value as any,

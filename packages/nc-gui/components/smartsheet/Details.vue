@@ -4,6 +4,8 @@ const { onViewsTabChange } = useViewsStore()
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
+const { $e } = useNuxtApp()
+
 const { isUIAllowed } = useRoles()
 
 const openedSubTab = computed({
@@ -24,6 +26,8 @@ watch(
     if (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) {
       onViewsTabChange('relation')
     }
+
+    $e(`c:table:tab-open:${openedSubTab.value}`)
   },
   {
     immediate: true,

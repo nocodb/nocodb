@@ -205,7 +205,7 @@ provide(IsFormInj, ref(true))
   />
   <div
     v-else
-    class="bg-white border-1 flex flex-grow min-h-32px h-full items-center"
+    class="bg-white border-1 flex flex-grow min-h-4 h-full items-center nc-filter-input-wrapper !rounded-lg"
     :class="{ 'px-2': hasExtraPadding, 'border-brand-500': isInputBoxOnFocus }"
     @mouseup.stop
   >
@@ -223,3 +223,9 @@ provide(IsFormInj, ref(true))
     />
   </div>
 </template>
+
+<style lang="scss" scoped>
+:deep(input) {
+  @apply py-1.5;
+}
+</style>

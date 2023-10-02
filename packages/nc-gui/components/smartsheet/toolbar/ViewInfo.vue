@@ -104,7 +104,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
           {{ activeView?.is_default ? $t('title.defaultView') : activeView?.title }}
         </template>
         <span
-          class="truncate pl-1.25"
+          class="truncate xs:pl-1.25"
           :class="{
             'max-w-28/100': !isMobileMode,
             'text-gray-500': activeView?.is_default,

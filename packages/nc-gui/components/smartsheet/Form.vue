@@ -428,27 +428,27 @@ watch(view, (nextView) => {
           </div>
 
           <div class="flex flex-wrap gap-2 mb-4">
-            <button
+            <NcButton
               v-if="hiddenColumns.length"
-              type="button"
-              class="nc-form-add-all color-transition bg-white transform hover:(text-primary ring ring-accent ring-opacity-100) active:translate-y-[1px] px-2 py-1 shadow-md rounded"
+              type="secondary"
+              class="nc-form-add-all"
               data-testid="nc-form-add-all"
               @click="addAllColumns"
             >
               <!-- Add all -->
               {{ $t('general.addAll') }}
-            </button>
+            </NcButton>
 
-            <button
+            <NcButton
               v-if="localColumns.length"
-              type="button"
-              class="nc-form-remove-all color-transition bg-white transform hover:(text-primary ring ring-accent ring-opacity-100) active:translate-y-[1px] px-2 py-1 shadow-md rounded"
+              type="secondary"
+              class="nc-form-remove-all"
               data-testid="nc-form-remove-all"
               @click="removeAllColumns"
             >
               <!-- Remove all -->
               {{ $t('general.removeAll') }}
-            </button>
+            </NcButton>
           </div>
         </div>
 
@@ -785,15 +785,16 @@ watch(view, (nextView) => {
               </Draggable>
 
               <div class="justify-center flex mt-6">
-                <button
-                  type="submit"
+                <NcButton
+                  html-type="submit"
+                  type="primary"
                   :disabled="!isUIAllowed('dataInsert')"
-                  class="uppercase scaling-btn nc-form-submit"
+                  class="nc-form-submit"
                   data-testid="nc-form-submit"
                   @click="submitForm"
                 >
                   {{ $t('general.submit') }}
-                </button>
+                </NcButton>
               </div>
             </a-card>
           </a-form>

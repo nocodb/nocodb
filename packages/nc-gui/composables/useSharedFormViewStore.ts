@@ -213,8 +213,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       submitted.value = true
       progress.value = false
-
-      await message.success(sharedFormView.value?.success_msg || 'Saved successfully.')
     } catch (e: any) {
       console.log(e)
       await message.error(await extractSdkResponseErrorMsg(e))

@@ -49,6 +49,8 @@ const {
   displayValueProp,
 } = useLTARStoreOrThrow()
 
+isChildrenLoading.value = true
+
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
 
 watch(
@@ -121,6 +123,13 @@ watch(expandedFormDlg, () => {
 onKeyStroke('Escape', () => {
   vModel.value = false
 })
+
+const isDataExist = computed(() => {
+  if (childrenList.value?.pageInfo?.totalRows || (isNew.value && state.value?.[colTitle.value]?.length)) {
+    return true
+  }
+  return false
+})
 </script>
 
 <template>
@@ -142,7 +151,7 @@ onKeyStroke('Escape', () => {
       :related-table-title="relatedTableMeta?.title"
       :display-value="row.row[displayValueProp]"
     />
-    <div v-if="!isForm" class="m-4 bg-gray-50 border-gray-50 border-b-2"></div>
+    <div v-if="!isForm" class="m-4 bg-gray-50 border-gray-50 border-b-2">></div>
 
     <div v-if="!isForm" class="flex mt-2 mb-2 items-center gap-2">
       <div
@@ -166,7 +175,7 @@ onKeyStroke('Escape', () => {
       </div>
     </div>
 
-    <template v-if="(isNew && state?.[colTitle]?.length) || childrenList?.pageInfo?.totalRows">
+    <template v-if="isDataExist">
       <div class="mt-2 mb-2">
         <div
           :class="{
@@ -233,7 +242,7 @@ onKeyStroke('Escape', () => {
       </div>
     </template>
     <div
-      v-else
+      v-if="!isDataExist && !isChildrenLoading"
       :class="{
         'h-[420px]': !isForm,
         'h-[250px]': isForm,

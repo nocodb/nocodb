@@ -95,12 +95,12 @@ watch(columns, () => {
       @click="isDropdownOpen = !isDropdownOpen"
     >
       <GeneralIcon icon="search" class="ml-1 mr-2 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
-      <div v-if="!isMobileMode" class="w-16 group-hover:w-12 text-[0.75rem] font-medium text-gray-400 truncate">
+      <div v-if="!isMobileMode" class="w-16 text-[0.75rem] font-medium text-gray-400 truncate">
         {{ displayColumnLabel }}
       </div>
       <div
         :class="{
-          'invisible group-hover:visible': !isMobileMode,
+          'opacity-0 group-hover:opacity-100': !isMobileMode,
           'text-gray-700': isMobileMode,
         }"
       >

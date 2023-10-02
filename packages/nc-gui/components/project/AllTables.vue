@@ -68,6 +68,12 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
     close(1000)
   }
 }
+
+const onCreateBaseClick = () => {
+  if (isDataSourceLimitReached.value) return
+
+  isNewBaseModalOpen.value = true
+}
 </script>
 
 <template>
@@ -75,6 +81,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
     <div class="flex flex-row gap-x-6 pb-3 pt-6">
       <div
         v-if="isUIAllowed('tableCreate')"
+        role="button"
         class="nc-project-view-all-table-btn"
         data-testid="proj-view-btn__add-new-table"
         @click="openTableCreateDialog()"
@@ -84,6 +91,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
       </div>
       <div
         v-if="isUIAllowed('tableCreate')"
+        role="button"
         class="nc-project-view-all-table-btn"
         data-testid="proj-view-btn__import-data"
         @click="isImportModalOpen = true"
@@ -98,12 +106,13 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
           </div>
         </template>
         <div
+          role="button"
           class="nc-project-view-all-table-btn"
-          data-testid="proj-view-btn__import-data"
+          data-testid="proj-view-btn__create-source"
           :class="{
             disabled: isDataSourceLimitReached,
           }"
-          @click="isNewBaseModalOpen = true"
+          @click="onCreateBaseClick"
         >
           <GeneralIcon icon="dataSource" />
           <div class="label">{{ $t('labels.connectDataSource') }}</div>

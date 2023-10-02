@@ -151,7 +151,6 @@ const availableTables = computed(() => {
         <TableNode
           v-for="table of availableTables"
           :key="table.id"
-          v-e="['a:table:open']"
           class="nc-tree-item text-sm"
           :data-order="table.order"
           :data-id="table.id"

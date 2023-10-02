@@ -161,7 +161,7 @@ const isTableOpened = computed(() => {
     >
       <template #title>{{ table.table_name }}</template>
       <div
-        v-e="['c:table:open']"
+        v-e="['a:table:open']"
         class="table-context flex items-center gap-1 h-full"
         :data-testid="`nc-tbl-side-node-${table.title}`"
         @contextmenu="setMenuContext('table', table)"

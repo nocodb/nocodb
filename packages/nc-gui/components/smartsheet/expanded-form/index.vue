@@ -66,6 +66,9 @@ const router = useRouter()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+// to check if a expanded form which is not yet saved exist or not
+const isUnsavedFormExist = ref(false)
+
 const { isUIAllowed } = useRoles()
 
 const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
@@ -151,6 +154,7 @@ const onClose = () => {
 
 const onDuplicateRow = () => {
   duplicatingRowInProgress.value = true
+  isUnsavedFormExist.value = true
   const oldRow = { ...row.value.row }
   delete oldRow.ncRecordId
   const newRow = Object.assign(
@@ -177,6 +181,7 @@ const save = async () => {
     await _save()
     reloadTrigger?.trigger()
   }
+  isUnsavedFormExist.value = false
 }
 
 const isPreventChangeModalOpen = ref(false)
@@ -195,6 +200,7 @@ const onNext = async () => {
 }
 
 const saveChanges = async () => {
+  isUnsavedFormExist.value = false
   await save()
   emits('next')
 }
@@ -218,6 +224,10 @@ if (isKanban.value) {
     }
   }
 }
+
+watch(isUnsavedFormExist, () => {
+  console.log(isUnsavedFormExist.value, 'HEHEH')
+})
 
 provide(IsExpandedFormOpenInj, isExpanded)
 
@@ -614,7 +624,7 @@ export default {
                 type="primary"
                 size="medium"
                 class="nc-expand-form-save-btn !xs:(text-base)"
-                :disabled="changedColumns.size === 0"
+                :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
                 @click="save"
               >
                 <div class="xs:px-1">Save</div>

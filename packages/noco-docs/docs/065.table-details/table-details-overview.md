@@ -12,7 +12,7 @@ keywords: ['table details', 'table overview', 'table']
 This section is divided into 4 parts:
 
 ## Fields
-Fields is a multi-field table schema editor that allows you to add, edit, delete and reorder fields quickly & easily from one place. Additional details about multi-field editor can be found [here](/fields/fields-editor)
+Fields is a multi-field table schema editor that allows you to add, edit, delete and reorder fields quickly & easily from one place. Additional details about multi-field editor can be found [here](/fields/multi-fields-editor)
 
 ![image](/img/v2/table-details/details-field-editor.png)
 

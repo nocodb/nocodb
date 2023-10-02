@@ -1,5 +1,5 @@
-import type { BaseType } from 'nocodb-sdk'
+import type { SourceType } from 'nocodb-sdk'
 
-const isDefaultBase = (base: BaseType) => base.is_meta
+const isDefaultBase = (source: SourceType) => source.is_meta
 
 export { isDefaultBase }

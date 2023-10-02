@@ -371,7 +371,7 @@ const isPublicShareDisabled = computed(() => {
                   data-testid="nc-modal-share-view__theme-picker"
                   class="!p-0 !bg-inherit"
                   :model-value="activeView?.meta?.theme?.primaryColor"
-                  :colors="projectThemeColors"
+                  :colors="baseThemeColors"
                   :row-size="9"
                   :advanced="false"
                   @input="onChangeTheme"

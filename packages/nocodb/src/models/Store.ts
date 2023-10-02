@@ -11,7 +11,7 @@ export default class Store {
   type?: string;
   env?: string;
   tag?: string;
-  project_id?: string;
+  base_id?: string;
   db_alias?: string;
 
   constructor(data: Partial<SortType>) {

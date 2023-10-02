@@ -59,9 +59,7 @@ const relationMeta = computed(() => {
       <div class="flex justify-end">
         <div class="flex flex-shrink-0 rounded-md gap-1 text-brand-500 items-center bg-gray-100 px-2 py-1">
           <FileIcon class="w-4 h-4" />
-          <GeneralTruncateText placement="top" length="25">
-            {{ displayValue }}
-          </GeneralTruncateText>
+          {{ displayValue }}
         </div>
       </div>
       <NcTooltip class="flex-shrink-0">

@@ -8,7 +8,7 @@ import {
   getMdiIcon,
   inject,
   parseProp,
-  useProject,
+  useBase,
   useSelectedCellKeyupListener,
 } from '#imports'
 
@@ -28,7 +28,7 @@ const emits = defineEmits<Emits>()
 
 const active = inject(ActiveCellInj, ref(false))
 
-const { isMssql } = useProject()
+const { isMssql } = useBase()
 
 const column = inject(ColumnInj)
 
@@ -53,7 +53,7 @@ const checkboxMeta = computed(() => {
 
 const vModel = computed<boolean | number>({
   get: () => !!props.modelValue && props.modelValue !== '0' && props.modelValue !== 0 && props.modelValue !== 'false',
-  set: (val: any) => emits('update:modelValue', isMssql(column?.value?.base_id) ? +val : val),
+  set: (val: any) => emits('update:modelValue', isMssql(column?.value?.source_id) ? +val : val),
 })
 
 function onClick(force?: boolean, event?: MouseEvent) {

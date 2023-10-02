@@ -25,7 +25,7 @@ export class MiscSettingsPage extends BasePage {
   async clickShowNullEmptyFilters() {
     await this.waitForResponse({
       uiAction: () => this.get().locator('input[type="checkbox"]').last().click(),
-      requestUrlPathToMatch: 'api/v1/db/meta/projects',
+      requestUrlPathToMatch: 'api/v1/meta/bases',
       httpMethodsToMatch: ['PATCH'],
     });
   }

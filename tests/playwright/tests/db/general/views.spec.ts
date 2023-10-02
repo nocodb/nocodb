@@ -10,7 +10,7 @@ test.describe('Views CRUD Operations', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
   });
 

@@ -1,6 +1,6 @@
 import { Page, selectors } from '@playwright/test';
 import axios, { AxiosResponse } from 'axios';
-import { Api, ProjectListType, ProjectType, ProjectTypes, UserType, WorkspaceType } from 'nocodb-sdk';
+import { Api, BaseType, ProjectListType, ProjectTypes, UserType, WorkspaceType } from 'nocodb-sdk';
 import { getDefaultPwd } from '../tests/utils/general';
 import { Knex, knex } from 'knex';
 import { promises as fs } from 'fs';
@@ -24,7 +24,7 @@ const mysqlConfig = {
 
 const extMysqlProject = (title, parallelId) => ({
   title,
-  bases: [
+  sources: [
     {
       type: 'mysql2',
       config: {
@@ -71,13 +71,13 @@ const sakilaKnexConfig = (parallelId: string) => ({
   pool: { min: 0, max: 1 },
 });
 
-// External PG Project create payload
+// External PG Base create payload
 //
-const extPgProject = (workspaceId, title, parallelId, projectType) => ({
+const extPgProject = (workspaceId, title, parallelId, baseType) => ({
   fk_workspace_id: workspaceId,
   title,
-  type: projectType,
-  bases: [
+  type: baseType,
+  sources: [
     {
       type: 'pg',
       config: {
@@ -100,7 +100,7 @@ const extPgProject = (workspaceId, title, parallelId, projectType) => ({
 
 const extPgProjectCE = (title, parallelId) => ({
   title,
-  bases: [
+  sources: [
     {
       type: 'pg',
       config: {
@@ -123,7 +123,7 @@ const extPgProjectCE = (title, parallelId) => ({
 
 const extSQLiteProjectCE = (title: string, workerId: string) => ({
   title,
-  bases: [
+  sources: [
     {
       type: 'sqlite3',
       config: {
@@ -147,7 +147,7 @@ const extSQLiteProjectCE = (title: string, workerId: string) => ({
 const workerCount = [0, 0, 0, 0, 0, 0, 0, 0];
 
 export interface NcContext {
-  project: ProjectType;
+  base: BaseType;
   token: string;
   dbType?: string;
   workerId?: string;
@@ -166,13 +166,13 @@ const sqliteFilePath = (workerId: string) => {
 async function localInit({
   workerId,
   isEmptyProject = false,
-  projectType = ProjectTypes.DATABASE,
+  baseType = ProjectTypes.DATABASE,
   isSuperUser = false,
   dbType,
 }: {
   workerId: string;
   isEmptyProject?: boolean;
-  projectType?: ProjectTypes;
+  baseType?: ProjectTypes;
   isSuperUser?: boolean;
   dbType?: string;
 }) {
@@ -205,7 +205,7 @@ async function localInit({
 
     // const workspaceTitle_old = `ws_pgExtREST${+workerId - 1}`;
     const workspaceTitle = `ws_pgExtREST${workerId}`;
-    const projectTitle = `pgExtREST${workerId}`;
+    const baseTitle = `pgExtREST${workerId}`;
 
     // console.log(process.env.TEST_WORKER_INDEX, process.env.TEST_PARALLEL_INDEX);
 
@@ -218,13 +218,13 @@ async function localInit({
         // check if w.title starts with workspaceTitle
         if (w.title.startsWith(`ws_pgExtREST${process.env.TEST_PARALLEL_INDEX}`)) {
           try {
-            const projects = await api.workspaceProject.list(w.id);
+            const bases = await api.workspaceBase.list(w.id);
 
-            for (const project of projects.list) {
+            for (const base of bases.list) {
               try {
-                await api.project.delete(project.id);
+                await api.base.delete(base.id);
               } catch (e) {
-                console.log(`Error deleting project: ws delete`, project);
+                console.log(`Error deleting base: ws delete`, base);
               }
             }
 
@@ -235,24 +235,24 @@ async function localInit({
         }
       }
     } else {
-      let projects: ProjectListType;
+      let bases: ProjectListType;
       try {
-        projects = await api.project.list();
+        bases = await api.base.list();
       } catch (e) {
-        console.log('Error fetching projects', e);
+        console.log('Error fetching bases', e);
       }
 
-      if (projects) {
-        for (const p of projects.list) {
-          // check if p.title starts with projectTitle
+      if (bases) {
+        for (const p of bases.list) {
+          // check if p.title starts with baseTitle
           if (
             p.title.startsWith(`pgExtREST${process.env.TEST_PARALLEL_INDEX}`) ||
             p.title.startsWith(`xcdb_p${process.env.TEST_PARALLEL_INDEX}`)
           ) {
             try {
-              await api.project.delete(p.id);
+              await api.base.delete(p.id);
             } catch (e) {
-              console.log(`Error deleting project: ${p.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
+              console.log(`Error deleting base: ${p.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
             }
           }
         }
@@ -292,59 +292,59 @@ async function localInit({
       });
     }
 
-    let project;
+    let base;
     if (isEE()) {
       if (isEmptyProject) {
-        // create a new project under the workspace we just created
-        project = await api.project.create({
-          title: projectTitle,
+        // create a new base under the workspace we just created
+        base = await api.base.create({
+          title: baseTitle,
           fk_workspace_id: workspace.id,
-          type: projectType,
+          type: baseType,
         });
       } else {
         if ('id' in workspace) {
           // @ts-ignore
-          project = await api.project.create(extPgProject(workspace.id, projectTitle, workerId, projectType));
+          base = await api.base.create(extPgProject(workspace.id, baseTitle, workerId, baseType));
         }
       }
     } else {
       if (isEmptyProject) {
-        // create a new project
-        project = await api.project.create({
-          title: projectTitle,
+        // create a new base
+        base = await api.base.create({
+          title: baseTitle,
         });
       } else {
         try {
-          project = await api.project.create(
+          base = await api.base.create(
             dbType === 'pg'
-              ? extPgProjectCE(projectTitle, workerId)
+              ? extPgProjectCE(baseTitle, workerId)
               : dbType === 'sqlite'
-              ? extSQLiteProjectCE(projectTitle, parallelId)
-              : extMysqlProject(projectTitle, parallelId)
+              ? extSQLiteProjectCE(baseTitle, parallelId)
+              : extMysqlProject(baseTitle, parallelId)
           );
         } catch (e) {
-          console.log(`Error creating project: ${projectTitle}`);
+          console.log(`Error creating base: ${baseTitle}`);
         }
       }
     }
 
     // get current user information
     const user = await api.auth.me();
-    return { data: { project, user, workspace, token }, status: 200 };
+    return { data: { base, user, workspace, token }, status: 200 };
   } catch (e) {
-    console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);
+    console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
     return { data: {}, status: 500 };
   }
 }
 
 const setup = async ({
-  projectType = ProjectTypes.DATABASE,
+  baseType = ProjectTypes.DATABASE,
   page,
   isEmptyProject = false,
   isSuperUser = false,
   url,
 }: {
-  projectType?: ProjectTypes;
+  baseType?: ProjectTypes;
   page: Page;
   isEmptyProject?: boolean;
   isSuperUser?: boolean;
@@ -367,15 +367,15 @@ const setup = async ({
     response = await localInit({
       workerId: parallelIndex,
       isEmptyProject,
-      projectType,
+      baseType,
       isSuperUser,
       dbType,
     });
   } catch (e) {
-    console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);
+    console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
   }
 
-  if (response.status !== 200 || !response.data?.token || !response.data?.project) {
+  if (response.status !== 200 || !response.data?.token || !response.data?.base) {
     console.error('Failed to reset test data', response.data, response.status, dbType);
     throw new Error('Failed to reset test data');
   }
@@ -394,7 +394,7 @@ const setup = async ({
       );
   } catch (e) {
     // ignore error: some roles will not have permission for license reset
-    // console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);
+    // console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
   }
 
   await page.addInitScript(
@@ -420,31 +420,31 @@ const setup = async ({
     { token: token }
   );
 
-  const project = response.data.project;
+  const base = response.data.base;
   const rootUser = { ...response.data.user, password: getDefaultPwd() };
   const workspace = response.data.workspace;
 
   // default landing page for tests
-  let projectUrl;
+  let baseUrl;
   if (isEE()) {
-    switch (project.type) {
+    switch (base.type) {
       case ProjectTypes.DOCUMENTATION:
-        projectUrl = url ? url : `/#/${project.fk_workspace_id}/${project.id}/doc`;
+        baseUrl = url ? url : `/#/${base.fk_workspace_id}/${base.id}/doc`;
         break;
       case ProjectTypes.DATABASE:
-        projectUrl = url ? url : `/#/${project.fk_workspace_id}/${project.id}`;
+        baseUrl = url ? url : `/#/${base.fk_workspace_id}/${base.id}`;
         break;
       default:
-        throw new Error(`Unknown project type: ${project.type}`);
+        throw new Error(`Unknown base type: ${base.type}`);
     }
   } else {
-    // sample: http://localhost:3000/#/ws/default/project/pdknlfoc5e7bx4w
-    projectUrl = url ? url : `/#/nc/${project.id}`;
+    // sample: http://localhost:3000/#/ws/default/base/pdknlfoc5e7bx4w
+    baseUrl = url ? url : `/#/nc/${base.id}`;
   }
 
-  await page.goto(projectUrl, { waitUntil: 'networkidle' });
+  await page.goto(baseUrl, { waitUntil: 'networkidle' });
   return {
-    project,
+    base,
     token,
     dbType,
     workerId,

@@ -30,7 +30,7 @@ import { parseMetaProp } from '~/utils/modelUtils';
 
 export default class Model implements TableType {
   copy_enabled: BoolType;
-  base_id: 'db' | string;
+  source_id: 'db' | string;
   deleted: BoolType;
   enabled: BoolType;
   export_enabled: BoolType;
@@ -39,7 +39,7 @@ export default class Model implements TableType {
   parent_id: string;
   password: string;
   pin: BoolType;
-  project_id: string;
+  base_id: string;
   schema: any;
   show_all_fields: boolean;
   tags: string;
@@ -106,8 +106,8 @@ export default class Model implements TableType {
   }
 
   public static async insert(
-    projectId,
     baseId,
+    sourceId,
     model: Partial<TableReqType> & {
       mm?: BoolType;
       type?: ModelTypes;
@@ -129,8 +129,8 @@ export default class Model implements TableType {
       insertObj.order = await ncMeta.metaGetNextOrder(
         MetaTable.FORM_VIEW_COLUMNS,
         {
-          project_id: projectId,
           base_id: baseId,
+          source_id: sourceId,
         },
       );
     }
@@ -140,23 +140,23 @@ export default class Model implements TableType {
     }
 
     const { id } = await ncMeta.metaInsert2(
-      projectId,
       baseId,
+      sourceId,
       MetaTable.MODELS,
       insertObj,
     );
-    if (baseId) {
+    if (sourceId) {
       await NocoCache.appendToList(
         CacheScope.MODEL,
-        [projectId, baseId],
+        [baseId, sourceId],
         `${CacheScope.MODEL}:${id}`,
       );
     }
-    // cater cases where baseId is not required
+    // cater cases where sourceId is not required
     // e.g. xcVisibilityMetaGet
     await NocoCache.appendToList(
       CacheScope.MODEL,
-      [projectId],
+      [baseId],
       `${CacheScope.MODEL}:${id}`,
     );
 
@@ -179,31 +179,26 @@ export default class Model implements TableType {
 
   public static async list(
     {
-      project_id,
       base_id,
+      source_id,
     }: {
-      project_id: string;
       base_id: string;
+      source_id: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Model[]> {
     const cachedList = await NocoCache.getList(CacheScope.MODEL, [
-      project_id,
       base_id,
+      source_id,
     ]);
     let { list: modelList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !modelList.length) {
-      modelList = await ncMeta.metaList2(
-        project_id,
-        base_id,
-        MetaTable.MODELS,
-        {
-          orderBy: {
-            order: 'asc',
-          },
+      modelList = await ncMeta.metaList2(base_id, source_id, MetaTable.MODELS, {
+        orderBy: {
+          order: 'asc',
         },
-      );
+      });
 
       // parse meta of each model
       for (const model of modelList) {
@@ -212,7 +207,7 @@ export default class Model implements TableType {
 
       await NocoCache.setList(
         CacheScope.MODEL,
-        [project_id, base_id],
+        [base_id, source_id],
         modelList,
       );
     }
@@ -239,33 +234,29 @@ export default class Model implements TableType {
 
   public static async listWithInfo(
     {
-      project_id,
+      base_id,
       db_alias,
     }: {
-      project_id: string;
+      base_id: string;
       db_alias: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Model[]> {
     const cachedList = await NocoCache.getList(CacheScope.MODEL, [
-      project_id,
+      base_id,
       db_alias,
     ]);
     let { list: modelList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !modelList.length) {
-      modelList = await ncMeta.metaList2(
-        project_id,
-        db_alias,
-        MetaTable.MODELS,
-      );
+      modelList = await ncMeta.metaList2(base_id, db_alias, MetaTable.MODELS);
 
       // parse meta of each model
       for (const model of modelList) {
         model.meta = parseMetaProp(model);
       }
 
-      await NocoCache.setList(CacheScope.MODEL, [project_id], modelList);
+      await NocoCache.setList(CacheScope.MODEL, [base_id], modelList);
     }
 
     for (const model of modelList) {
@@ -309,8 +300,8 @@ export default class Model implements TableType {
   public static async getByIdOrName(
     args:
       | {
-          project_id: string;
           base_id: string;
+          source_id: string;
           table_name: string;
         }
       | {
@@ -506,8 +497,8 @@ export default class Model implements TableType {
     );
     await ncMeta.metaDelete(null, null, MetaTable.MODELS, this.id);
 
-    await NocoCache.del(`${CacheScope.MODEL}:${this.project_id}:${this.id}`);
-    await NocoCache.del(`${CacheScope.MODEL}:${this.project_id}:${this.title}`);
+    await NocoCache.del(`${CacheScope.MODEL}:${this.base_id}:${this.id}`);
+    await NocoCache.del(`${CacheScope.MODEL}:${this.base_id}:${this.title}`);
     return true;
   }
 
@@ -646,10 +637,10 @@ export default class Model implements TableType {
 
     // delete alias cache
     await NocoCache.del(
-      `${CacheScope.MODEL}:${oldModel.project_id}:${oldModel.base_id}:${oldModel.title}`,
+      `${CacheScope.MODEL}:${oldModel.base_id}:${oldModel.source_id}:${oldModel.title}`,
     );
     await NocoCache.del(
-      `${CacheScope.MODEL}:${oldModel.project_id}:${oldModel.title}`,
+      `${CacheScope.MODEL}:${oldModel.base_id}:${oldModel.title}`,
     );
 
     // set meta
@@ -843,30 +834,30 @@ export default class Model implements TableType {
 
   static async getByAliasOrId(
     {
-      project_id,
       base_id,
+      source_id,
       aliasOrId,
     }: {
-      project_id: string;
-      base_id?: string;
+      base_id: string;
+      source_id?: string;
       aliasOrId: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const cacheKey = base_id
-      ? `${CacheScope.MODEL}:${project_id}:${base_id}:${aliasOrId}`
-      : `${CacheScope.MODEL}:${project_id}:${aliasOrId}`;
+    const cacheKey = source_id
+      ? `${CacheScope.MODEL}:${base_id}:${source_id}:${aliasOrId}`
+      : `${CacheScope.MODEL}:${base_id}:${aliasOrId}`;
     const modelId =
-      project_id &&
+      base_id &&
       aliasOrId &&
       (await NocoCache.get(cacheKey, CacheGetType.TYPE_OBJECT));
     if (!modelId) {
-      const model = base_id
+      const model = source_id
         ? await ncMeta.metaGet2(
             null,
             null,
             MetaTable.MODELS,
-            { project_id, base_id },
+            { base_id, source_id },
             null,
             {
               _or: [
@@ -887,7 +878,7 @@ export default class Model implements TableType {
             null,
             null,
             MetaTable.MODELS,
-            { project_id },
+            { base_id },
             null,
             {
               _or: [
@@ -916,15 +907,15 @@ export default class Model implements TableType {
   static async checkTitleAvailable(
     {
       table_name,
-      project_id,
       base_id,
+      source_id,
       exclude_id,
-    }: { table_name; project_id; base_id; exclude_id? },
+    }: { table_name; base_id; source_id; exclude_id? },
     ncMeta = Noco.ncMeta,
   ) {
     return !(await ncMeta.metaGet2(
-      project_id,
       base_id,
+      source_id,
       MetaTable.MODELS,
       {
         table_name,
@@ -937,15 +928,15 @@ export default class Model implements TableType {
   static async checkAliasAvailable(
     {
       title,
-      project_id,
       base_id,
+      source_id,
       exclude_id,
-    }: { title; project_id; base_id; exclude_id? },
+    }: { title; base_id; source_id; exclude_id? },
     ncMeta = Noco.ncMeta,
   ) {
     return !(await ncMeta.metaGet2(
-      project_id,
       base_id,
+      source_id,
       MetaTable.MODELS,
       {
         title,

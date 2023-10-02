@@ -12,11 +12,11 @@ import { Model, ModelRoleVisibility, View } from '~/models';
 
 // todo: move
 async function xcVisibilityMetaGet(param: {
-  projectId: string;
+  baseId: string;
   includeM2M?: boolean;
   models?: Model[];
 }) {
-  const { includeM2M = true, projectId, models: _models } = param ?? {};
+  const { includeM2M = true, baseId, models: _models } = param ?? {};
 
   // todo: move to
   const roles = ['owner', 'creator', 'viewer', 'editor', 'commenter', 'guest'];
@@ -26,8 +26,8 @@ async function xcVisibilityMetaGet(param: {
   let models =
     _models ||
     (await Model.list({
-      project_id: projectId,
-      base_id: undefined,
+      base_id: baseId,
+      source_id: undefined,
     }));
 
   models = includeM2M ? models : (models.filter((t) => !t.mm) as Model[]);
@@ -52,7 +52,7 @@ async function xcVisibilityMetaGet(param: {
     return obj;
   }, Promise.resolve({}));
 
-  const disabledList = await ModelRoleVisibility.list(projectId);
+  const disabledList = await ModelRoleVisibility.list(baseId);
 
   for (const d of disabledList) {
     if (result[d.fk_view_id])
@@ -70,13 +70,13 @@ export class ViewsService {
     tableId: string;
     user: {
       roles: Record<string, boolean>;
-      project_roles: Record<string, boolean>;
+      base_roles: Record<string, boolean>;
     };
   }) {
     const model = await Model.get(param.tableId);
 
     const viewList = await xcVisibilityMetaGet({
-      projectId: model.project_id,
+      baseId: model.base_id,
       models: [model],
     });
 
@@ -84,8 +84,7 @@ export class ViewsService {
     //await View.list(param.tableId)
     const filteredViewList = viewList.filter((view: any) => {
       return Object.values(ProjectRoles).some(
-        (role) =>
-          param?.user?.['project_roles']?.[role] && !view.disabled[role],
+        (role) => param?.user?.['base_roles']?.[role] && !view.disabled[role],
       );
     });
 

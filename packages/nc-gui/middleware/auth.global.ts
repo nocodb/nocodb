@@ -90,12 +90,12 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       return navigateTo('/')
     }
 
-    /** if users are accessing the projects without having enough permissions, redirect to My Projects page */
-    if (to.params.projectId && from.params.projectId !== to.params.projectId) {
+    /** if users are accessing the bases without having enough permissions, redirect to My Projects page */
+    if (to.params.baseId && from.params.baseId !== to.params.baseId) {
       await loadRoles()
 
       if (state.user.value?.roles?.guest) {
-        message.error("You don't have enough permission to access the project.")
+        message.error("You don't have enough permission to access the base.")
 
         return navigateTo('/')
       }

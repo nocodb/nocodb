@@ -47,7 +47,7 @@ export class ExpandedFormPage extends BasePage {
 
   async clickDeleteRow() {
     await this.click3DotsMenu('Delete Record');
-    await this.rootPage.locator('.ant-btn-danger:has-text("Delete Record")').click();
+    await this.rootPage.locator('.ant-btn-primary:has-text("Confirm")').click();
   }
 
   async isDisabledDuplicateRow() {
@@ -113,34 +113,30 @@ export class ExpandedFormPage extends BasePage {
     if (waitForRowsData) {
       await this.waitForResponse({
         uiAction: saveRowAction,
-        requestUrlPathToMatch: 'api/v1/db/data/noco/',
+        requestUrlPathToMatch: 'api/v1/data/noco/',
         httpMethodsToMatch: ['GET'],
         responseJsonMatcher: json => json['pageInfo'],
       });
     } else {
       await this.waitForResponse({
         uiAction: saveRowAction,
-        requestUrlPathToMatch: 'api/v1/db/data/noco/',
+        requestUrlPathToMatch: 'api/v1/data/noco/',
         httpMethodsToMatch: ['POST'],
       });
     }
 
-    await this.verifyToast({ message: `updated successfully.` });
-    await this.rootPage.locator('[data-testid="grid-load-spinner"]').waitFor({ state: 'hidden' });
-    // removing focus from toast
-    await this.rootPage.locator('.nc-modal').click();
     await this.get().press('Escape');
     await this.get().waitFor({ state: 'hidden' });
+    await this.verifyToast({ message: `updated successfully.` });
+    await this.rootPage.locator('[data-testid="grid-load-spinner"]').waitFor({ state: 'hidden' });
   }
 
-  // check for the expanded form header table name
-
-  // async verify({ header, url }: { header: string; url?: string }) {
-  //   await expect(this.get().locator(`.nc-expanded-form-header`).last()).toContainText(header);
-  //   if (url) {
-  //     await expect.poll(() => this.rootPage.url()).toContain(url);
-  //   }
-  // }
+  async verify({ header, url }: { header: string; url?: string }) {
+    await expect(this.get().locator(`.nc-expanded-form-header`).last()).toContainText(header);
+    if (url) {
+      await expect.poll(() => this.rootPage.url()).toContain(url);
+    }
+  }
 
   async escape() {
     await this.rootPage.keyboard.press('Escape');

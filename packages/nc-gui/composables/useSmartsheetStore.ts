@@ -10,7 +10,7 @@ import {
   useFieldQuery,
   useInjectionState,
   useNuxtApp,
-  useProject,
+  useBase,
 } from '#imports'
 import type { SmartsheetStoreEvents } from '#imports'
 
@@ -27,12 +27,12 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const { activeView: view } = storeToRefs(useViewsStore())
 
-    const projectStore = useProject()
+    const baseStore = useBase()
 
-    const { sqlUis } = storeToRefs(projectStore)
+    const { sqlUis } = storeToRefs(baseStore)
 
     const sqlUi = ref(
-      (meta.value as TableType)?.base_id ? sqlUis.value[(meta.value as TableType).base_id!] : Object.values(sqlUis.value)[0],
+      (meta.value as TableType)?.source_id ? sqlUis.value[(meta.value as TableType).source_id!] : Object.values(sqlUis.value)[0],
     )
 
     const { search } = useFieldQuery()

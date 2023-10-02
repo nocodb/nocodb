@@ -4,8 +4,8 @@ import Emittery from 'emittery';
 import { DuplicateProcessor } from '../jobs/export-import/duplicate.processor';
 import { AtImportProcessor } from '../jobs/at-import/at-import.processor';
 import { MetaSyncProcessor } from '../jobs/meta-sync/meta-sync.processor';
-import { BaseCreateProcessor } from '../jobs/base-create/base-create.processor';
-import { BaseDeleteProcessor } from '../jobs/base-delete/base-delete.processor';
+import { SourceCreateProcessor } from '../jobs/source-create/source-create.processor';
+import { SourceDeleteProcessor } from '../jobs/source-delete/source-delete.processor';
 import { JobsEventService } from './jobs-event.service';
 import { JobStatus, JobTypes } from '~/interface/Jobs';
 
@@ -29,8 +29,8 @@ export class QueueService {
     private readonly duplicateProcessor: DuplicateProcessor,
     private readonly atImportProcessor: AtImportProcessor,
     private readonly metaSyncProcessor: MetaSyncProcessor,
-    private readonly baseCreateProcessor: BaseCreateProcessor,
-    private readonly baseDeleteProcessor: BaseDeleteProcessor,
+    private readonly sourceCreateProcessor: SourceCreateProcessor,
+    private readonly sourceDeleteProcessor: SourceDeleteProcessor,
   ) {
     this.emitter.on(JobStatus.ACTIVE, (data: { job: Job }) => {
       const job = this.queueMemory.find((job) => job.id === data.job.id);
@@ -77,12 +77,12 @@ export class QueueService {
       fn: this.metaSyncProcessor.job,
     },
     [JobTypes.BaseCreate]: {
-      this: this.baseCreateProcessor,
-      fn: this.baseCreateProcessor.job,
+      this: this.sourceCreateProcessor,
+      fn: this.sourceCreateProcessor.job,
     },
     [JobTypes.BaseDelete]: {
-      this: this.baseDeleteProcessor,
-      fn: this.baseDeleteProcessor.job,
+      this: this.sourceDeleteProcessor,
+      fn: this.sourceDeleteProcessor.job,
     },
   };
 

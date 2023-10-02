@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
 import NcLayout from '~icons/nc-icons/layout'
-const { openedProject } = storeToRefs(useProjects())
+const { openedProject } = storeToRefs(useBases())
 const { activeTables } = storeToRefs(useTablesStore())
 const { activeWorkspace } = storeToRefs(useWorkspace())
 
-const { navigateToProjectPage } = useProject()
+const { navigateToProjectPage } = useBase()
 
 const router = useRouter()
 const route = router.currentRoute
@@ -13,12 +13,12 @@ const route = router.currentRoute
 const { $e } = useNuxtApp()
 
 /* const defaultBase = computed(() => {
-  return openedProject.value?.bases?.[0]
+  return openedProject.value?.sources?.[0]
 }) */
 
 const { isUIAllowed } = useRoles()
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
 const { projectPageTab } = storeToRefs(useConfigStore())
 
@@ -65,7 +65,7 @@ watch(
 </script>
 
 <template>
-  <div class="h-full nc-project-view">
+  <div class="h-full nc-base-view">
     <div
       class="flex flex-row pl-2 pr-2 border-b-1 border-gray-200 justify-between w-full"
       :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
@@ -80,7 +80,7 @@ watch(
       <LazyGeneralShareProject />
     </div>
     <div
-      class="flex mx-12 my-8 nc-project-view-tab"
+      class="flex mx-12 my-8 nc-base-view-tab"
       :style="{
         height: 'calc(100% - var(--topbar-height))',
       }"
@@ -104,8 +104,8 @@ watch(
           </template>
           <ProjectAllTables />
         </a-tab-pane>
-        <!-- <a-tab-pane v-if="defaultBase" key="erd" tab="Project ERD" force-render class="pt-4 pb-12">
-          <ErdView :base-id="defaultBase!.id" class="!h-full" />
+        <!-- <a-tab-pane v-if="defaultBase" key="erd" tab="Base ERD" force-render class="pt-4 pb-12">
+          <ErdView :source-id="defaultBase!.id" class="!h-full" />
         </a-tab-pane> -->
         <a-tab-pane v-if="isUIAllowed('newUser')" key="collaborator">
           <template #tab>
@@ -122,14 +122,14 @@ watch(
               <GeneralIcon icon="database" />
               <div>{{ $t('labels.dataSources') }}</div>
               <div
-                v-if="project.bases?.length"
+                v-if="base.sources?.length"
                 class="tab-info"
                 :class="{
                   'bg-primary-selected': projectPageTab === 'data-source',
                   'bg-gray-50': projectPageTab !== 'data-source',
                 }"
               >
-                {{ project.bases.length - 1 }}
+                {{ base.sources.length - 1 }}
               </div>
             </div>
           </template>

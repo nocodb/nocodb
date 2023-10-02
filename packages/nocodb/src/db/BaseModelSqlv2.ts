@@ -1,4 +1,5 @@
 import autoBind from 'auto-bind';
+
 import groupBy from 'lodash/groupBy';
 import DataLoader from 'dataloader';
 import dayjs from 'dayjs';
@@ -44,7 +45,7 @@ import { customValidators } from '~/db/util/customValidators';
 import { extractLimitAndOffset } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
-import { Audit, Base, Column, Filter, Model, Sort, View } from '~/models';
+import { Audit, Column, Filter, Model, Sort, Source, View } from '~/models';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
@@ -340,6 +341,7 @@ class BaseModelSqlv2 {
     const proto = await this.getProto();
 
     let data;
+
     try {
       data = await this.execAndParse(qb);
     } catch (e) {
@@ -3042,7 +3044,7 @@ class BaseModelSqlv2 {
         ids: any[],
       ) => Promise<any>)[] = [];
 
-      const base = await Base.get(this.model.base_id);
+      const base = await Source.get(this.model.source_id);
 
       for (const column of this.model.columns) {
         if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
@@ -3226,12 +3228,12 @@ class BaseModelSqlv2 {
         }
       }
 
-      const base = await Base.get(this.model.base_id);
+      const source = await Source.get(this.model.source_id);
 
       trx = await this.dbDriver.transaction();
 
       // unlink LTAR data
-      if (base.isMeta()) {
+      if (source.isMeta()) {
         for (const execQuery of execQueries) {
           await execQuery(trx, qb.clone());
         }

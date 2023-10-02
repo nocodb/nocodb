@@ -19,7 +19,7 @@
         </div>
       </a-timeline-item>
       <a-timeline-item>
-        <div>Answered 2 discussions in 1 project</div>
+        <div>Answered 2 discussions in 1 base</div>
         <div class="text-primary">slair.xyz / project_8</div>
         <div class="prose-xs">
           <div class="flex items-center mr-4">
@@ -49,7 +49,7 @@
         </div>
       </a-timeline-item>
       <a-timeline-item>
-        <div>Answered 2 discussions in 1 project</div>
+        <div>Answered 2 discussions in 1 base</div>
         <div class="text-primary">slair.xyz / project_8</div>
         <div class="prose-xs">
           <div class="flex items-center mr-4">

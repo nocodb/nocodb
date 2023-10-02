@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ProjectType } from 'nocodb-sdk'
+import type { BaseType } from 'nocodb-sdk'
 import { storeToRefs } from 'pinia'
 import { toRef } from '@vue/reactivity'
 import { resolveComponent } from '@vue/runtime-core'
@@ -8,11 +8,11 @@ import { ProjectRoleInj, useDialog, useRoles } from '#imports'
 
 const props = withDefaults(
   defineProps<{
-    project: ProjectType
-    baseIndex?: number
+    base: BaseType
+    sourceIndex?: number
   }>(),
   {
-    baseIndex: 0,
+    sourceIndex: 0,
   },
 )
 
@@ -22,18 +22,18 @@ const emit = defineEmits<{
 
 const { isUIAllowed } = useRoles()
 
-const project = toRef(props, 'project')
+const base = toRef(props, 'base')
 
 const { $e } = useNuxtApp()
 
-const projectStore = useProject()
+const baseStore = useBase()
 
-const { isSharedBase } = storeToRefs(projectStore)
+const { isSharedBase } = storeToRefs(baseStore)
 
-const projectRole = inject(ProjectRoleInj)
+const baseRole = inject(ProjectRoleInj)
 
-function openSchemaMagicDialog(baseId?: string) {
-  if (!baseId) return
+function openSchemaMagicDialog(sourceId?: string) {
+  if (!sourceId) return
 
   $e('c:table:create:navdraw')
 
@@ -41,7 +41,7 @@ function openSchemaMagicDialog(baseId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgSchemaMagic'), {
     'modelValue': isOpen,
-    'baseId': baseId,
+    'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -52,8 +52,8 @@ function openSchemaMagicDialog(baseId?: string) {
   }
 }
 
-function openQuickImportDialog(type: string, baseId?: string) {
-  if (!baseId) return
+function openQuickImportDialog(type: string, sourceId?: string) {
+  if (!sourceId) return
 
   $e(`a:actions:import-${type}`)
 
@@ -62,7 +62,7 @@ function openQuickImportDialog(type: string, baseId?: string) {
   const { close } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
     'importType': type,
-    'baseId': baseId,
+    'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -73,8 +73,8 @@ function openQuickImportDialog(type: string, baseId?: string) {
   }
 }
 
-function openAirtableImportDialog(baseId?: string) {
-  if (!baseId) return
+function openAirtableImportDialog(sourceId?: string) {
+  if (!sourceId) return
 
   $e('a:actions:import-airtable')
 
@@ -82,7 +82,7 @@ function openAirtableImportDialog(baseId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
     'modelValue': isOpen,
-    'baseId': baseId,
+    'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -93,8 +93,8 @@ function openAirtableImportDialog(baseId?: string) {
   }
 }
 
-function openTableCreateMagicDialog(baseId?: string) {
-  if (!baseId) return
+function openTableCreateMagicDialog(sourceId?: string) {
+  if (!sourceId) return
 
   $e('c:table:create:navdraw')
 
@@ -102,7 +102,7 @@ function openTableCreateMagicDialog(baseId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgTableMagic'), {
     'modelValue': isOpen,
-    'baseId': baseId,
+    'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -116,7 +116,7 @@ function openTableCreateMagicDialog(baseId?: string) {
 
 <template>
   <div
-    v-if="isUIAllowed('tableCreate', { roles: projectRole })"
+    v-if="isUIAllowed('tableCreate', { roles: baseRole })"
     class="group flex items-center gap-2 pl-2 pr-4.75 py-1 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
     @click="emit('openTableCreateDialog')"
   >
@@ -139,14 +139,14 @@ function openTableCreateMagicDialog(baseId?: string) {
                 <GeneralIcon icon="magic" class="ml-1 text-orange-400" />
               </div>
             </template>
-            <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(project.bases[baseIndex].id)">
-              <div class="color-transition nc-project-menu-item group">
+            <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(base.sources[sourceIndex].id)">
+              <div class="color-transition nc-base-menu-item group">
                 <GeneralIcon icon="magic1" class="group-hover:text-accent" />
                 Create table
               </div>
             </a-menu-item>
-            <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(project.bases[baseIndex].id)">
-              <div class="color-transition nc-project-menu-item group">
+            <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(base.sources[sourceIndex].id)">
+              <div class="color-transition nc-base-menu-item group">
                 <GeneralIcon icon="magic1" class="group-hover:text-accent" />
                 Create schema
               </div>
@@ -158,44 +158,44 @@ function openTableCreateMagicDialog(baseId?: string) {
           <!-- Quick Import From -->
           <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
             <a-menu-item
-              v-if="isUIAllowed('airtableImport', { roles: projectRole })"
+              v-if="isUIAllowed('airtableImport', { roles: baseRole })"
               key="quick-import-airtable"
-              @click="openAirtableImportDialog(project.bases[baseIndex].id)"
+              @click="openAirtableImportDialog(base.sources[sourceIndex].id)"
             >
-              <div class="color-transition nc-project-menu-item group">
+              <div class="color-transition nc-base-menu-item group">
                 <GeneralIcon icon="airtable" class="group-hover:text-accent" />
                 Airtable
               </div>
             </a-menu-item>
 
             <a-menu-item
-              v-if="isUIAllowed('csvImport', { roles: projectRole })"
+              v-if="isUIAllowed('csvImport', { roles: baseRole })"
               key="quick-import-csv"
-              @click="openQuickImportDialog('csv', project.bases[baseIndex].id)"
+              @click="openQuickImportDialog('csv', base.sources[sourceIndex].id)"
             >
-              <div class="color-transition nc-project-menu-item group">
+              <div class="color-transition nc-base-menu-item group">
                 <GeneralIcon icon="csv" class="group-hover:text-accent" />
                 CSV file
               </div>
             </a-menu-item>
 
             <a-menu-item
-              v-if="isUIAllowed('jsonImport', { roles: projectRole })"
+              v-if="isUIAllowed('jsonImport', { roles: baseRole })"
               key="quick-import-json"
-              @click="openQuickImportDialog('json', project.bases[baseIndex].id)"
+              @click="openQuickImportDialog('json', base.sources[sourceIndex].id)"
             >
-              <div class="color-transition nc-project-menu-item group">
+              <div class="color-transition nc-base-menu-item group">
                 <GeneralIcon icon="json" class="group-hover:text-accent" />
                 JSON file
               </div>
             </a-menu-item>
 
             <a-menu-item
-              v-if="isUIAllowed('excelImport', { roles: projectRole })"
+              v-if="isUIAllowed('excelImport', { roles: baseRole })"
               key="quick-import-excel"
-              @click="openQuickImportDialog('excel', project.bases[baseIndex].id)"
+              @click="openQuickImportDialog('excel', base.sources[sourceIndex].id)"
             >
-              <div class="color-transition nc-project-menu-item group">
+              <div class="color-transition nc-base-menu-item group">
                 <GeneralIcon icon="excel" class="group-hover:text-accent" />
                 Microsoft Excel
               </div>
@@ -205,26 +205,26 @@ function openTableCreateMagicDialog(baseId?: string) {
           <a-menu-divider class="my-0" />
 
           <!-- <a-menu-item-group title="Connect to new datasource" class="!px-0 !mx-0">
-            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MYSQL, project.id)">
-              <div class="color-transition nc-project-menu-item group">
+            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MYSQL, base.id)">
+              <div class="color-transition nc-base-menu-item group">
                 <LogosMysqlIcon class="group-hover:text-accent" />
                 MySQL
               </div>
             </a-menu-item>
-            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.PG, project.id)">
-              <div class="color-transition nc-project-menu-item group">
+            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.PG, base.id)">
+              <div class="color-transition nc-base-menu-item group">
                 <LogosPostgresql class="group-hover:text-accent" />
                 Postgres
               </div>
             </a-menu-item>
-            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SQLITE, project.id)">
-              <div class="color-transition nc-project-menu-item group">
+            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SQLITE, base.id)">
+              <div class="color-transition nc-base-menu-item group">
                 <VscodeIconsFileTypeSqlite class="group-hover:text-accent" />
                 SQLite
               </div>
             </a-menu-item>
-            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MSSQL, project.id)">
-              <div class="color-transition nc-project-menu-item group">
+            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MSSQL, base.id)">
+              <div class="color-transition nc-base-menu-item group">
                 <SimpleIconsMicrosoftsqlserver class="group-hover:text-accent" />
                 MSSQL
               </div>
@@ -232,9 +232,9 @@ function openTableCreateMagicDialog(baseId?: string) {
             <a-menu-item
               v-if="appInfo.ee"
               key="connect-new-source"
-              @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE, project.id)"
+              @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE, base.id)"
             >
-              <div class="color-transition nc-project-menu-item group">
+              <div class="color-transition nc-base-menu-item group">
                 <LogosSnowflakeIcon class="group-hover:text-accent" />
                 Snowflake
               </div>
@@ -243,12 +243,12 @@ function openTableCreateMagicDialog(baseId?: string) {
 
           <a-menu-divider class="my-0" /> -->
 
-          <a-menu-item v-if="isUIAllowed('importRequest', { roles: projectRole })" key="add-new-table" class="py-1 rounded-b">
+          <a-menu-item v-if="isUIAllowed('importRequest', { roles: baseRole })" key="add-new-table" class="py-1 rounded-b">
             <a
               v-e="['e:datasource:import-request']"
               href="https://github.com/nocodb/nocodb/issues/2052"
               target="_blank"
-              class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
+              class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-base-menu-item group after:(!rounded-b)"
             >
               <GeneralIcon icon="openInNew" class="group-hover:text-accent" />
               <!-- Request a data source you need? -->

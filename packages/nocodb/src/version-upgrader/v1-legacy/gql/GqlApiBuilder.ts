@@ -14,12 +14,12 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
   constructor(
     app: Noco,
-    projectBuilder: NcProjectBuilder,
+    baseBuilder: NcProjectBuilder,
     config: NcConfig,
     connectionConfig: DbConfig,
     xcMeta?: MetaService,
   ) {
-    super(app, projectBuilder, config, connectionConfig);
+    super(app, baseBuilder, config, connectionConfig);
     this.config = config;
     this.connectionConfig = connectionConfig;
     this.gqlRouter = Router();
@@ -32,7 +32,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
   protected async ncUpAddNestedResolverArgs(_ctx: any): Promise<any> {
     const models = await this.xcMeta.metaList(
-      this.projectId,
+      this.baseId,
       this.dbAlias,
       'nc_models',
       {
@@ -70,7 +70,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
       /* update schema in metadb */
       await this.xcMeta.metaUpdate(
-        this.projectId,
+        this.baseId,
         this.dbAlias,
         'nc_models',
         {
@@ -113,7 +113,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
       /* update schema in metadb */
       await this.xcMeta.metaUpdate(
-        this.projectId,
+        this.baseId,
         this.dbAlias,
         'nc_models',
         {
@@ -130,7 +130,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       if (meta.manyToMany) {
         for (const mm of meta.manyToMany) {
           await this.xcMeta.metaInsert(
-            this.projectId,
+            this.baseId,
             this.dbAlias,
             'nc_loaders',
             {

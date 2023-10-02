@@ -1,7 +1,7 @@
 import 'mocha';
 import authTests from './tests/auth.test';
 import orgTests from './tests/org.test';
-import projectTests from './tests/project.test';
+import baseTests from './tests/base.test';
 import columnTypeSpecificTests from './tests/columnTypeSpecific.test';
 import tableTests from './tests/table.test';
 import tableRowTests from './tests/tableRow.test';
@@ -21,7 +21,7 @@ if (process.env.EE === 'true') {
 function restTests() {
   authTests();
   orgTests();
-  projectTests();
+  baseTests();
   tableTests();
   tableRowTests();
   viewRowTests();

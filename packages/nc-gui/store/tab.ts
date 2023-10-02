@@ -1,4 +1,4 @@
-import type { BaseType, ProjectType } from 'nocodb-sdk'
+import type { SourceType, BaseType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { defineStore } from 'pinia'
 import { TabType, computed, ref } from '#imports'
@@ -18,23 +18,23 @@ export const useTabs = defineStore('tabStore', () => {
 
   const addTab = async (_tabMeta: TabItem) => {}
 
-  const addErdTab = async (base: BaseType, fallback_title?: string) => {
+  const addErdTab = async (source: SourceType, fallback_title?: string) => {
     return addTab({
-      id: `${TabType.ERD}-${base?.id}`,
+      id: `${TabType.ERD}-${source?.id}`,
       type: TabType.ERD,
-      title: `ERD${base?.alias ? ` (${base.alias})` : `(${fallback_title})`}`,
-      tabMeta: { base },
-      projectId: base.project_id as string,
+      title: `ERD${source?.alias ? ` (${source.alias})` : `(${fallback_title})`}`,
+      tabMeta: { source },
+      baseId: source.base_id as string,
     })
   }
 
-  const addSqlEditorTab = async (project: ProjectType) => {
+  const addSqlEditorTab = async (base: BaseType) => {
     return addTab({
-      id: `${TabType.SQL}-${project.id}`,
+      id: `${TabType.SQL}-${base.id}`,
       type: TabType.SQL,
-      title: `SQL Editor (${project.title})`,
-      tabMeta: { project },
-      projectId: project.id as string,
+      title: `SQL Editor (${base.title})`,
+      tabMeta: { base },
+      baseId: base.id as string,
     })
   }
 

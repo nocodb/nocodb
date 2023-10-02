@@ -10,10 +10,10 @@ import { DuplicateController } from './jobs/export-import/duplicate.controller';
 import { DuplicateProcessor } from './jobs/export-import/duplicate.processor';
 import { MetaSyncController } from './jobs/meta-sync/meta-sync.controller';
 import { MetaSyncProcessor } from './jobs/meta-sync/meta-sync.processor';
-import { BaseCreateController } from './jobs/base-create/base-create.controller';
-import { BaseCreateProcessor } from './jobs/base-create/base-create.processor';
-import { BaseDeleteController } from './jobs/base-delete/base-delete.controller';
-import { BaseDeleteProcessor } from './jobs/base-delete/base-delete.processor';
+import { SourceCreateController } from './jobs/source-create/source-create.controller';
+import { SourceCreateProcessor } from './jobs/source-create/source-create.processor';
+import { SourceDeleteController } from './jobs/source-delete/source-delete.controller';
+import { SourceDeleteProcessor } from './jobs/source-delete/source-delete.processor';
 
 // Jobs Module Related
 import { JobsLogService } from './jobs/jobs-log.service';
@@ -55,8 +55,8 @@ import { GlobalModule } from '~/modules/global/global.module';
           DuplicateController,
           AtImportController,
           MetaSyncController,
-          BaseCreateController,
-          BaseDeleteController,
+          SourceCreateController,
+          SourceDeleteController,
         ]
       : []),
   ],
@@ -77,8 +77,8 @@ import { GlobalModule } from '~/modules/global/global.module';
     DuplicateProcessor,
     AtImportProcessor,
     MetaSyncProcessor,
-    BaseCreateProcessor,
-    BaseDeleteProcessor,
+    SourceCreateProcessor,
+    SourceDeleteProcessor,
   ],
 })
 export class JobsModule {}

@@ -622,7 +622,7 @@ class KnexClient extends SqlClient {
       }
       if (!KnexClient.___ext) {
         T.emit('evt', {
-          evt_type: 'project:external',
+          evt_type: 'base:external',
           payload: null,
           check: true,
         });

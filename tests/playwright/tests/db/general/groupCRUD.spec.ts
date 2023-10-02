@@ -14,7 +14,7 @@ async function undo({ page, dashboard }: { page: Page; dashboard: DashboardPage 
     await dashboard.grid.waitForResponse({
       uiAction: () => page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+      requestUrlPathToMatch: `/api/v1/data/noco/`,
       responseJsonMatcher: json => json.pageInfo,
     });
   } else {
@@ -31,7 +31,7 @@ test.describe('GroupBy CRUD Operations', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
     topbar = dashboard.grid.topbar;
 

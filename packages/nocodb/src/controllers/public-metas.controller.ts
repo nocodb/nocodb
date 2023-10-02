@@ -5,7 +5,10 @@ import { PublicMetasService } from '~/services/public-metas.service';
 export class PublicMetasController {
   constructor(private readonly publicMetasService: PublicMetasService) {}
 
-  @Get('/api/v1/db/public/shared-view/:sharedViewUuid/meta')
+  @Get([
+    '/api/v1/db/public/shared-view/:sharedViewUuid/meta',
+    '/api/v1/public/shared-view/:sharedViewUuid/meta',
+  ])
   async viewMetaGet(
     @Request() req,
     @Param('sharedViewUuid') sharedViewUuid: string,
@@ -16,7 +19,10 @@ export class PublicMetasController {
     });
   }
 
-  @Get('/api/v1/db/public/shared-base/:sharedBaseUuid/meta')
+  @Get([
+    '/api/v1/db/public/shared-base/:sharedBaseUuid/meta',
+    '/api/v1/public/shared-base/:sharedBaseUuid/meta',
+  ])
   async publicSharedBaseGet(
     @Param('sharedBaseUuid') sharedBaseUuid: string,
   ): Promise<any> {

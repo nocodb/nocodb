@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { extractSdkResponseErrorMsg, message, onMounted, storeToRefs, useDashboard, useNuxtApp, useProject } from '#imports'
+import { extractSdkResponseErrorMsg, message, onMounted, storeToRefs, useDashboard, useNuxtApp, useBase } from '#imports'
 
 interface ShareBase {
   uuid?: string
@@ -16,19 +16,19 @@ const { dashboardUrl } = useDashboard()
 
 const { $api, $e } = useNuxtApp()
 
-const base = ref<null | ShareBase>(null)
+const sharedBase = ref<null | ShareBase>(null)
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
-const url = computed(() => (base.value && base.value.uuid ? `${dashboardUrl.value}#/base/${base.value.uuid}` : ''))
+const url = computed(() => (sharedBase.value && sharedBase.value.uuid ? `${dashboardUrl.value}#/base/${sharedBase.value.uuid}` : ''))
 
 const loadBase = async () => {
   try {
-    if (!project.value.id) return
+    if (!base.value.id) return
 
-    const res = await $api.project.sharedBaseGet(project.value.id)
+    const res = await $api.base.sharedBaseGet(base.value.id)
 
-    base.value = {
+    sharedBase.value = {
       uuid: res.uuid,
       url: res.url,
       role: res.roles,
@@ -40,14 +40,14 @@ const loadBase = async () => {
 
 const createShareBase = async (role = ShareBaseRole.Viewer) => {
   try {
-    if (!project.value.id) return
+    if (!base.value.id) return
 
-    const res = await $api.project.sharedBaseUpdate(project.value.id, {
+    const res = await $api.base.sharedBaseUpdate(base.value.id, {
       roles: role,
     })
 
-    base.value = res ?? {}
-    base.value!.role = role
+    sharedBase.value = res ?? {}
+    sharedBase.value!.role = role
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -57,10 +57,10 @@ const createShareBase = async (role = ShareBaseRole.Viewer) => {
 
 const disableSharedBase = async () => {
   try {
-    if (!project.value.id) return
+    if (!base.value.id) return
 
-    await $api.project.sharedBaseDisable(project.value.id)
-    base.value = null
+    await $api.base.sharedBaseDisable(base.value.id)
+    sharedBase.value = null
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -69,12 +69,12 @@ const disableSharedBase = async () => {
 }
 
 onMounted(() => {
-  if (!base.value) {
+  if (!sharedBase.value) {
     loadBase()
   }
 })
 
-const isSharedBaseEnabled = computed(() => !!base.value?.uuid)
+const isSharedBaseEnabled = computed(() => !!sharedBase.value?.uuid)
 const isToggleBaseLoading = ref(false)
 const isRoleToggleLoading = ref(false)
 
@@ -96,12 +96,12 @@ const toggleSharedBase = async () => {
 }
 
 const onRoleToggle = async () => {
-  if (!base.value) return
+  if (!sharedBase.value) return
   if (isRoleToggleLoading.value) return
 
   isRoleToggleLoading.value = true
   try {
-    if (base.value.role === ShareBaseRole.Viewer) {
+    if (sharedBase.value.role === ShareBaseRole.Viewer) {
       await createShareBase(ShareBaseRole.Editor)
     } else {
       await createShareBase(ShareBaseRole.Viewer)
@@ -134,7 +134,7 @@ const onRoleToggle = async () => {
           <a-switch
             v-e="['c:share:base:role:toggle']"
             :loading="isRoleToggleLoading"
-            :checked="base?.role === ShareBaseRole.Editor"
+            :checked="sharedBase?.role === ShareBaseRole.Editor"
             class="ml-2"
             @click="onRoleToggle"
           />

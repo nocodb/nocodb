@@ -49,8 +49,6 @@ const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowSt
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-isChildrenExcludedLoading.value = true
-
 const isForm = inject(IsFormInj, ref(false))
 
 const saveRow = inject(SaveRowInj, () => {})
@@ -215,7 +213,7 @@ onKeyStroke('Escape', () => {
       </NcButton>
     </div>
 
-    <template v-if="childrenExcludedList?.pageInfo?.totalRows || isChildrenExcludedLoading">
+    <template v-if="childrenExcludedList?.pageInfo?.totalRows">
       <div class="pb-2 pt-1">
         <div class="h-[420px] overflow-scroll nc-scrollbar-md pr-1 cursor-pointer">
           <template v-if="isChildrenExcludedLoading">
@@ -276,10 +274,7 @@ onKeyStroke('Escape', () => {
         </div>
       </div>
     </template>
-    <div
-      v-if="!isChildrenExcludedLoading && !childrenExcludedList?.pageInfo?.totalRows"
-      class="py-2 h-105 flex flex-col gap-3 items-center justify-center text-gray-500"
-    >
+    <div v-else class="py-2 h-[420px] flex flex-col gap-3 items-center justify-center text-gray-500">
       <InboxIcon class="w-16 h-16 mx-auto" />
       <p>
         {{ $t('msg.thereAreNoRecordsInTable') }}

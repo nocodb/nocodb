@@ -136,7 +136,7 @@ export class BulkUpdatePage extends BasePage {
         break;
       case 'checkbox':
         if (value === 'true') {
-          await field.click();
+          await field.locator('.nc-checkbox').click();
         }
         break;
       case 'attachment':

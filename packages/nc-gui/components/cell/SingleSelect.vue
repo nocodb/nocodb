@@ -217,6 +217,7 @@ const onKeydown = (e: KeyboardEvent) => {
 
 const onSelect = () => {
   isOpen.value = false
+  isEditable.value = false
 }
 
 const cellClickHook = inject(CellClickHookInj, null)

@@ -98,7 +98,7 @@ const typeLabel = computed(() => {
     case NcProjectType.DOCS:
       return 'Book'
     case NcProjectType.DB:
-      return 'Database'
+      return 'Base'
     default:
       return ''
   }

@@ -228,4 +228,8 @@ provide(IsFormInj, ref(true))
 :deep(input) {
   @apply py-1.5;
 }
+
+:deep(.ant-picker) {
+  @apply !py-0;
+}
 </style>

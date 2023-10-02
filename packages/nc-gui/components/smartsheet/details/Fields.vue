@@ -257,8 +257,8 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
     ops.value = ops.value.filter((op) => op.op === 'add' || !compareCols(op.column, state))
   } else {
     const field = ops.value.find((op) => compareCols(op.column, state))
-    const movField = moveOps.value.find((op) => compareCols(op.column, state))
-    const isNewField = newFields.value.find((op) => compareCols(op, state))
+    const moveField = moveOps.value.find((op) => compareCols(op.column, state))
+    const isNewField = newFields.value.find((nField) => compareCols(nField, state))
 
     if (isNewField) {
       newFields.value = newFields.value.map((op) => {
@@ -275,7 +275,7 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
       return
     }
 
-    if (field && !movField) {
+    if (field && !moveField) {
       field.column = state
     } else {
       ops.value.push({

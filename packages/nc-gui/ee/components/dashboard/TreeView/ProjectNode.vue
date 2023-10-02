@@ -87,8 +87,6 @@ const { isUIAllowed } = useRoles()
 
 const baseRole = inject(ProjectRoleInj)
 
-const { baseUrl } = useBase()
-
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
 const { refreshCommandPalette } = useCommandPalette()
@@ -286,7 +284,6 @@ const addNewProjectChildEntity = async () => {
 }
 
 // todo: temp
-const isSharedBase = ref(false)
 
 const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
   if (!base) {

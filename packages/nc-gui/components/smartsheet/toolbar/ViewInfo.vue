@@ -5,7 +5,7 @@ const { isMobileMode } = useGlobal()
 
 const { openedViewsTab, activeView } = storeToRefs(useViewsStore())
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
 const { activeTable } = storeToRefs(useTablesStore())
 
@@ -25,11 +25,11 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
     <template v-if="!isMobileMode">
       <NcTooltip class="ml-0.75 max-w-1/4">
         <template #title>
-          {{ project?.title }}
+          {{ base?.title }}
         </template>
         <div class="flex flex-row items-center gap-x-1.5">
           <GeneralProjectIcon
-            :meta="{ type: project?.type }"
+            :meta="{ type: base?.type }"
             class="!grayscale"
             :style="{
               filter: 'grayscale(100%) brightness(115%)',
@@ -37,7 +37,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
           />
           <div class="hidden !2xl:(flex truncate ml-1)">
             <span class="truncate text-gray-700">
-              {{ project?.title }}
+              {{ base?.title }}
             </span>
           </div>
         </div>

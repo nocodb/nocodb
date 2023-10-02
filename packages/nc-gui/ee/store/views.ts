@@ -192,10 +192,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
   }) => {
     const routeName = 'index-typeOrId-baseId-index-index-viewId-viewTitle'
 
-    let projectIdOrBaseId = projectId
+    let projectIdOrBaseId = baseId
 
     if (['base'].includes(route.value.params.typeOrId as string)) {
-      projectIdOrBaseId = route.value.params.projectId as string
+      projectIdOrBaseId = route.value.params.baseId as string
     }
 
     if (

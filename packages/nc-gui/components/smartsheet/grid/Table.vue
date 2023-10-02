@@ -1530,7 +1530,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
             <NcMenuItem
               v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
               v-e="['a:row:delete-bulk']"
-              class="nc-project-menu-item !text-red-600 !hover:bg-red-50"
+              class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
               data-testid="nc-delete-row"
               @click="deleteSelectedRows"
             >
@@ -1542,7 +1542,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
             <!-- <NcMenuItem -->
             <!-- v-if="contextMenuTarget && selectedRange.isSingleCell()" -->
             <!-- v-e="['a:row:insert']" -->
-            <!-- class="nc-project-menu-item" -->
+            <!-- class="nc-base-menu-item" -->
             <!-- @click="addEmptyRow(contextMenuTarget.row + 1)" -->
             <!-- > -->
             <!-- <GeneralIcon icon="plus" /> -->
@@ -1553,7 +1553,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
             <NcMenuItem
               v-if="contextMenuTarget"
               v-e="['a:row:copy']"
-              class="nc-project-menu-item"
+              class="nc-base-menu-item"
               data-testid="context-menu-item-copy"
               @click="copyValue(contextMenuTarget)"
             >
@@ -1570,7 +1570,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                 (isLinksOrLTAR(fields[contextMenuTarget.col]) || !isVirtualCol(fields[contextMenuTarget.col]))
               "
               v-e="['a:row:clear']"
-              class="nc-project-menu-item"
+              class="nc-base-menu-item"
               @click="clearCell(contextMenuTarget)"
             >
               <GeneralIcon icon="close" />
@@ -1581,7 +1581,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
             <NcMenuItem
               v-else-if="contextMenuTarget"
               v-e="['a:row:clear-range']"
-              class="nc-project-menu-item"
+              class="nc-base-menu-item"
               @click="clearSelectedRangeOfCells()"
             >
               <GeneralIcon icon="closeBox" class="text-gray-500" />

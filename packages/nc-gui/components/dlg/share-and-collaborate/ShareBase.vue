@@ -20,7 +20,7 @@ const sharedBase = ref<null | ShareBase>(null)
 
 const { base } = storeToRefs(useBase())
 
-const url = computed(() => (base.value && base.value.uuid ? `${dashboardUrl.value}#/base/${base.value.uuid}` : ''))
+const url = computed(() => (sharedBase.value && sharedBase.value.uuid ? `${dashboardUrl.value}#/base/${sharedBase.value.uuid}` : ''))
 
 const loadBase = async () => {
   try {
@@ -74,7 +74,7 @@ onMounted(() => {
   }
 })
 
-const isSharedBaseEnabled = computed(() => !!base.value?.uuid)
+const isSharedBaseEnabled = computed(() => !!sharedBase.value?.uuid)
 const isToggleBaseLoading = ref(false)
 const isRoleToggleLoading = ref(false)
 
@@ -134,7 +134,7 @@ const onRoleToggle = async () => {
           <a-switch
             v-e="['c:share:base:role:toggle']"
             :loading="isRoleToggleLoading"
-            :checked="base?.role === ShareBaseRole.Editor"
+            :checked="sharedBase?.role === ShareBaseRole.Editor"
             class="ml-2"
             @click="onRoleToggle"
           />

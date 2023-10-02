@@ -18,7 +18,7 @@ const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
 const { projectPageTab } = storeToRefs(useConfigStore())
 
@@ -122,14 +122,14 @@ watch(
               <GeneralIcon icon="database" />
               <div>{{ $t('labels.dataSources') }}</div>
               <div
-                v-if="project.bases?.length"
+                v-if="base.sources?.length"
                 class="tab-info"
                 :class="{
                   'bg-primary-selected': projectPageTab === 'data-source',
                   'bg-gray-50': projectPageTab !== 'data-source',
                 }"
               >
-                {{ project.bases.length - 1 }}
+                {{ base.sources.length - 1 }}
               </div>
             </div>
           </template>

@@ -5,7 +5,7 @@ import makeServer from '../../../setup/server';
 import { WebhookFormPage } from '../../../pages/Dashboard/WebhookForm';
 import { isSubset } from '../../../tests/utils/general';
 import { Api, UITypes } from 'nocodb-sdk';
-import { isEE, isMysql, isSqlite } from '../../../setup/db';
+import { enableQuickRun, isEE, isMysql, isSqlite } from '../../../setup/db';
 
 const hookPath = 'http://localhost:9090/hook';
 
@@ -103,6 +103,7 @@ async function buildExpectedResponseData(type, value, oldValue?) {
 }
 
 test.describe.serial('Webhook', () => {
+  if (enableQuickRun()) test.skip();
   let api: Api<any>;
 
   // start a server locally for webhook tests

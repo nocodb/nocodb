@@ -7,10 +7,12 @@ import { Api, UITypes } from 'nocodb-sdk';
 import { LoginPage } from '../../../pages/LoginPage';
 import { getDefaultPwd } from '../../../tests/utils/general';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
-import { isEE } from '../../../setup/db';
+import { enableQuickRun, isEE } from '../../../setup/db';
 
 // todo: Move most of the ui actions to page object and await on the api response
 test.describe('Form view', () => {
+  if (enableQuickRun()) test.skip();
+
   let dashboard: DashboardPage;
   let form: FormPage;
   let context: any;
@@ -248,6 +250,8 @@ test.describe('Form view', () => {
 });
 
 test.describe('Form view with LTAR', () => {
+  if (enableQuickRun()) test.skip();
+
   let dashboard: DashboardPage;
   let loginPage: LoginPage;
   let wsPage: WorkspacePage;
@@ -402,6 +406,8 @@ test.describe('Form view with LTAR', () => {
 });
 
 test.describe('Form view', () => {
+  if (enableQuickRun()) test.skip();
+
   let dashboard: DashboardPage;
   let context: any;
   let api: Api<any>;

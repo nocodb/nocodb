@@ -18,7 +18,14 @@ import {
   useVModel,
 } from '#imports'
 
-const props = defineProps<{ modelValue?: boolean; cellValue: any; column: any }>()
+interface Prop {
+  modelValue?: boolean
+  cellValue: any
+  column: any
+  items: number
+}
+
+const props = defineProps<Prop>()
 
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
 
@@ -48,6 +55,8 @@ const {
   meta,
   displayValueProp,
 } = useLTARStoreOrThrow()
+
+isChildrenLoading.value = true
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
 
@@ -121,6 +130,46 @@ watch(expandedFormDlg, () => {
 onKeyStroke('Escape', () => {
   vModel.value = false
 })
+
+/*
+   to render same number of skelton as the number of cards
+   displayed
+ */
+const skeltonCount = computed(() => {
+  if (props.items < 10 && childrenListPagination.page === 1) {
+    return props.items
+  }
+
+  if (childrenListCount.value < 10 && childrenListPagination.page === 1) {
+    return childrenListCount.value || 10
+  }
+  const totalRows = Math.ceil(childrenListCount.value / 10)
+
+  if (totalRows === childrenListPagination.page) {
+    return childrenListCount.value % 10
+  }
+  return 10
+})
+
+const totalItemsToShow = computed(() => {
+  if (isChildrenLoading) {
+    return props.items
+  }
+  return childrenListCount.value
+})
+
+const isDataExist = computed<boolean>(() => {
+  return childrenList.value?.pageInfo?.totalRows || (isNew.value && state.value?.[colTitle.value]?.length)
+})
+
+const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
+  if (isPublic.value && !isForm.value) return
+  if (isNew.value || isChildrenListLinked.value[parseInt(id)]) {
+    unlinkRow(rowRef, parseInt(id))
+  } else {
+    linkRow(rowRef, parseInt(id))
+  }
+}
 </script>
 
 <template>
@@ -142,8 +191,6 @@ onKeyStroke('Escape', () => {
       :related-table-title="relatedTableMeta?.title"
       :display-value="row.row[displayValueProp]"
     />
-    <div v-if="!isForm" class="m-4 bg-gray-50 border-gray-50 border-b-2"></div>
-
     <div v-if="!isForm" class="flex mt-2 mb-2 items-center gap-2">
       <div
         class="flex items-center border-1 p-1 rounded-md w-full border-gray-200"
@@ -166,72 +213,61 @@ onKeyStroke('Escape', () => {
       </div>
     </div>
 
-    <template v-if="(isNew && state?.[colTitle]?.length) || childrenList?.pageInfo?.totalRows">
-      <div class="mt-2 mb-2">
-        <div
-          :class="{
-            'h-[420px]': !isForm,
-            'h-[250px]': isForm,
-          }"
-          class="overflow-scroll nc-scrollbar-md cursor-pointer pr-1"
-        >
-          <template v-if="isChildrenLoading">
-            <div
-              v-for="(x, i) in Array.from({ length: 10 })"
-              :key="i"
-              class="!border-2 flex flex-row gap-2 mb-2 transition-all !rounded-xl relative !border-gray-200 hover:bg-gray-50"
-            >
-              <a-skeleton-image class="h-24 w-24 !rounded-xl" />
-              <div class="flex flex-col m-[.5rem] gap-2 flex-grow justify-center">
-                <a-skeleton-input class="!w-48 !rounded-xl" active size="small" />
-                <div class="flex flex-row gap-6 w-10/12">
-                  <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
-                  </div>
+    <div v-if="isDataExist || isChildrenLoading" class="mt-2 mb-2">
+      <div
+        :class="{
+          'h-105': !isForm,
+          'h-62.5': isForm,
+        }"
+        class="overflow-scroll nc-scrollbar-md cursor-pointer pr-1"
+      >
+        <template v-if="isChildrenLoading">
+          <div
+            v-for="(_, i) in Array.from({ length: skeltonCount })"
+            :key="i"
+            class="border-2 flex flex-row gap-2 mb-2 transition-all rounded-xl relative border-gray-200 hover:bg-gray-50"
+          >
+            <a-skeleton-image class="h-24 w-24 !rounded-xl" />
+            <div class="flex flex-col m-2 gap-2 flex-grow justify-center">
+              <a-skeleton-input class="!w-48 !rounded-xl" active size="small" />
+              <div class="flex flex-row gap-6 w-10/12">
+                <div class="flex flex-col gap-0.5">
+                  <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                  <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                  <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                  <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                  <a-skeleton-input class="!h-4 !w-24" active size="small" />
                 </div>
               </div>
             </div>
-          </template>
-          <template v-else>
-            <LazyVirtualCellComponentsListItem
-              v-for="(refRow, id) in childrenList?.list ?? state?.[colTitle] ?? []"
-              :key="id"
-              :row="refRow"
-              :fields="fields"
-              data-testid="nc-child-list-item"
-              :attachment="attachmentCol"
-              :related-table-display-value-prop="relatedTableDisplayValueProp"
-              :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
-              :is-loading="isChildrenListLoading[Number.parseInt(id)]"
-              @expand="onClick(refRow)"
-              @click="
-                () => {
-                  if (isPublic && !isForm) return
-                  isNew
-                    ? unlinkRow(refRow, Number.parseInt(id))
-                    : isChildrenListLinked[Number.parseInt(id)]
-                    ? unlinkRow(refRow, Number.parseInt(id))
-                    : linkRow(refRow, Number.parseInt(id))
-                }
-              "
-            />
-          </template>
-        </div>
+          </div>
+        </template>
+        <template v-else>
+          <LazyVirtualCellComponentsListItem
+            v-for="(refRow, id) in childrenList?.list ?? state?.[colTitle] ?? []"
+            :key="id"
+            :row="refRow"
+            :fields="fields"
+            data-testid="nc-child-list-item"
+            :attachment="attachmentCol"
+            :related-table-display-value-prop="relatedTableDisplayValueProp"
+            :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
+            :is-loading="isChildrenListLoading[Number.parseInt(id)]"
+            @expand="onClick(refRow)"
+            @click="linkOrUnLink(refRow, id)"
+          />
+        </template>
       </div>
-    </template>
+    </div>
     <div
       v-else
       :class="{
@@ -259,7 +295,7 @@ onKeyStroke('Escape', () => {
 
     <div class="flex flex-row justify-between bg-white relative pt-1">
       <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50">
-        {{ childrenListCount || 0 }} {{ $t('objects.records') }} {{ childrenListCount !== 0 ? $t('general.are') : '' }}
+        {{ totalItemsToShow || 0 }} {{ $t('objects.records') }} {{ totalItemsToShow !== 0 ? $t('general.are') : '' }}
         {{ $t('general.linked') }}
       </div>
       <div v-else class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50">

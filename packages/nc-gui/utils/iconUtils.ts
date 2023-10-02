@@ -13,7 +13,6 @@ import MdiThumbUp from '~icons/mdi/thumb-up'
 import MdiThumbUpOutline from '~icons/mdi/thumb-up-outline'
 import MdiFlag from '~icons/mdi/flag'
 import MdiFlagOutline from '~icons/mdi/flag-outline'
-import MdiTable from '~icons/mdi/table'
 import MsMove from '~icons/material-symbols/drive-file-move-outline'
 import MSCloseRounded from '~icons/material-symbols/close-rounded'
 import MdiTableLarge from '~icons/mdi/table-large'
@@ -81,7 +80,9 @@ import LcSend from '~icons/lucide/send'
 import NcCommentHere from '~icons/nc-icons/comment-here'
 import NcAddDataSource from '~icons/nc-icons/add-data-source'
 import NcDatabaseIcon from '~icons/nc-icons/database'
-
+import Project from '~icons/nc-icons/project'
+import TableIcon from '~icons/nc-icons/table'
+import RecordIcon from '~icons/nc-icons/record'
 // Roles
 import MaterialSymbolsManageAccountsOutline from '~icons/material-symbols/manage-accounts-outline'
 // account
@@ -237,6 +238,7 @@ import MaterialSymbolsBlock from '~icons/material-symbols/block'
 } as const */
 
 export const iconMap = {
+  record: RecordIcon,
   workspaceDefault: MsGroup,
   search: NcSearch,
   error: h('span', { class: 'material-symbols' }, 'error'),
@@ -245,6 +247,7 @@ export const iconMap = {
   addOutlineBox: MsAddBoxOutline,
   loading: h('span', { class: 'material-symbols' }, 'autorenew'),
   arrowCollapse: Up,
+  project: Project,
   markerAlert: h('span', { class: 'material-symbols' }, 'warning'),
   appStore: h('span', { class: 'material-symbols' }, 'apps'),
   chevronLeft: h('span', { class: 'material-symbols' }, 'chevron_left'),
@@ -322,7 +325,7 @@ export const iconMap = {
   // threeDotHorizontal: h('span', { class: 'material-symbols' }, 'more_horiz'),
   threeDotVertical: MdiDotsVertical,
   threeDotHorizontal: MdiDotsHorizontal,
-  table: MdiTable,
+  table: TableIcon,
   excel: PhExcelThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   csv: PhCsvThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   code: Code,

@@ -39,6 +39,7 @@
     }
   },
   "general": {
+    "quit": "Quit",
     "home": "Home",
     "load": "Load",
     "open": "Open",
@@ -400,6 +401,7 @@
     "addHeader": "Add Header",
     "enterDefaultUrlOptional": "Enter default URL (Optional)",
     "negative": "Negative",
+    "discard": "Discard",
     "default": "Default",
     "defaultNumberPercent": "Default Number (%)",
     "durationFormat": "Duration Format",
@@ -624,6 +626,7 @@
     "deleteProject": "Delete Project",
     "refreshProject": "Refresh projects",
     "saveProject": "Save Project",
+    "saveAndQuit": "Save & Quit",
     "deleteKanbanStack": "Delete stack?",
     "createProjectExtended": {
       "extDB": "Create By Connecting <br>To An External Database",

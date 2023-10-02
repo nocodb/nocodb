@@ -607,6 +607,7 @@ export default {
                 <div class="px-1">Close</div>
               </NcButton>
               <NcButton
+                v-e="['a:row-expand:save']"
                 data-testid="nc-expanded-form-save"
                 type="primary"
                 size="medium"

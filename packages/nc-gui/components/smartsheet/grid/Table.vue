@@ -1402,7 +1402,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                                 <component
                                   :is="iconMap.expand"
                                   v-if="expandForm"
-                                  v-e="['c:expanded-form:open']"
+                                  v-e="['c:row-expand:open']"
                                   class="select-none transform hover:(text-black scale-120) nc-row-expand"
                                   @click="expandAndLooseFocus(row, state)"
                                 />

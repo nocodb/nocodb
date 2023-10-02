@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunknoco_docs=self.webpackChunknoco_docs||[]).push([[5017],{40108:e=>{e.exports=JSON.parse('{"label":"Rating","permalink":"/tags/rating","allTagsPath":"/tags","count":1,"items":[{"id":"fields/field-types/custom-types/rating","title":"Rating","description":"The","permalink":"/fields/field-types/custom-types/rating"}]}')}}]);

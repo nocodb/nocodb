@@ -3,10 +3,10 @@
 
 # Production
 /build
-/dist
+# /dist
 
 # Generated files
-#.docusaurus
+.docusaurus
 .cache-loader
 
 # Misc

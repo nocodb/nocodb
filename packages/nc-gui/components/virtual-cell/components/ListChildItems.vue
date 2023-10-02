@@ -22,6 +22,7 @@ interface Prop {
   modelValue?: boolean
   cellValue: any
   column: any
+  items: number
 }
 
 const props = defineProps<Prop>()
@@ -135,6 +136,10 @@ onKeyStroke('Escape', () => {
    displayed
  */
 const skeltonCount = computed(() => {
+  if (props.items < 10 && childrenListPagination.page === 1) {
+    return props.items
+  }
+
   if (childrenListCount.value < 10 && childrenListPagination.page === 1) {
     return childrenListCount.value || 10
   }
@@ -144,6 +149,13 @@ const skeltonCount = computed(() => {
     return childrenListCount.value % 10
   }
   return 10
+})
+
+const totalItemsToShow = computed(() => {
+  if (isChildrenLoading) {
+    return props.items
+  }
+  return childrenListCount.value
 })
 
 const isDataExist = computed<boolean>(() => {
@@ -283,7 +295,7 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
 
     <div class="flex flex-row justify-between bg-white relative pt-1">
       <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50">
-        {{ childrenListCount || 0 }} {{ $t('objects.records') }} {{ childrenListCount !== 0 ? $t('general.are') : '' }}
+        {{ totalItemsToShow || 0 }} {{ $t('objects.records') }} {{ totalItemsToShow !== 0 ? $t('general.are') : '' }}
         {{ $t('general.linked') }}
       </div>
       <div v-else class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50">

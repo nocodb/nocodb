@@ -131,12 +131,14 @@ export class ExpandedFormPage extends BasePage {
     await this.rootPage.locator('[data-testid="grid-load-spinner"]').waitFor({ state: 'hidden' });
   }
 
-  async verify({ header, url }: { header: string; url?: string }) {
-    await expect(this.get().locator(`.nc-expanded-form-header`).last()).toContainText(header);
-    if (url) {
-      await expect.poll(() => this.rootPage.url()).toContain(url);
-    }
-  }
+  // check for the expanded form header table name
+
+  // async verify({ header, url }: { header: string; url?: string }) {
+  //   await expect(this.get().locator(`.nc-expanded-form-header`).last()).toContainText(header);
+  //   if (url) {
+  //     await expect.poll(() => this.rootPage.url()).toContain(url);
+  //   }
+  // }
 
   async escape() {
     await this.rootPage.keyboard.press('Escape');

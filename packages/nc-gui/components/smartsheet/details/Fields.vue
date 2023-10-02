@@ -391,8 +391,8 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
 }
 
 const isColumnValid = (column: TableExplorerColumn) => {
-  const isNewField = newFields.value.find((op) => compareCols(op, column))
-  if (!isNewField) return true
+  const isDeleteOp = ops.value.find((op) => compareCols(column, op.column) && op.op === 'delete')
+  if (isDeleteOp) return true
   if (!column.title) {
     return false
   }
@@ -558,6 +558,8 @@ const toggleVisibility = async (checked: boolean, field: Field) => {
   })
 }
 
+const isColumnsValid = computed(() => fields.value.every((f) => isColumnValid(f)))
+
 onMounted(async () => {
   if (!meta.value?.id) return
   columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
@@ -566,7 +568,7 @@ onMounted(async () => {
 
 <template>
   <div class="w-full h-full p-4">
-    <div class="max-w-250 w-full mx-auto">
+    <div class="max-w-250 h-full w-full mx-auto">
       <div class="flex w-full justify-between py-2">
         <a-input v-model:value="searchQuery" class="!h-8 !px-1 !rounded-lg !w-72" placeholder="Search field">
           <template #prefix>
@@ -600,7 +602,7 @@ onMounted(async () => {
             type="primary"
             size="small"
             :loading="loading"
-            :disabled="!loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1"
+            :disabled="isColumnsValid ? !loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1 : true"
             @click="saveChanges()"
           >
             Save changes
@@ -608,185 +610,192 @@ onMounted(async () => {
         </div>
       </div>
       <div class="flex flex-row h-full rounded-lg border-1 border-gray-200">
-        <Draggable v-model="fields" item-key="id" class="w-full h-full flex-grow-1" @change="onMove($event)">
-          <template #item="{ element: field }">
-            <div
-              v-if="field.title && field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"
-              class="flex px-2 bg-white hover:bg-gray-100 first:rounded-t-lg border-b-1 border-gray-200 pl-5 group"
-              :class="` ${compareCols(field, activeField) ? 'selected' : ''}`"
-              @click="changeField(field, $event)"
-            >
-              <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
-                <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
-                <NcCheckbox
-                  v-if="field.id && viewFieldsMap[field.id]"
-                  :checked="
-                    visibilityOps.find((op) => op.column.fk_column_id === field.id)?.visible ?? viewFieldsMap[field.id].show
-                  "
-                  @change="
-                    (event) => {
-                      toggleVisibility(event.target.checked, viewFieldsMap[field.id])
-                    }
-                  "
-                />
-                <NcCheckbox v-else :disabled="true" class="opacity-0" :checked="true" />
-                <SmartsheetHeaderCellIcon
-                  v-if="field"
-                  :column-meta="fieldState(field) || field"
-                  :class="{
-                    'text-brand-500': compareCols(field, activeField),
-                  }"
-                />
-                <span
-                  :class="{
-                    'text-brand-500': compareCols(field, activeField),
-                  }"
-                  class="truncate max-w-64"
-                >
-                  {{ fieldState(field)?.title || field.title }}
-                </span>
-              </div>
-              <div class="flex items-center justify-end gap-1">
-                <div class="flex items-center">
-                  <NcBadge v-if="fieldStatus(field) === 'delete'" color="red" :border="false" class="bg-red-50 text-red-700">
-                    Deleted field
-                  </NcBadge>
-                  <NcBadge
-                    v-else-if="fieldStatus(field) === 'add'"
-                    color="orange"
-                    :border="false"
-                    class="bg-green-50 text-green-700"
+        <div class="nc-scrollbar-md w-full h-full flex-grow-1">
+          <Draggable v-model="fields" item-key="id" @change="onMove($event)">
+            <template #item="{ element: field }">
+              <div
+                v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"
+                class="flex px-2 bg-white hover:bg-gray-100 first:rounded-t-lg border-b-1 border-gray-200 pl-5 group"
+                :class="` ${compareCols(field, activeField) ? 'selected' : ''}`"
+                @click="changeField(field, $event)"
+              >
+                <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
+                  <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
+                  <NcCheckbox
+                    v-if="field.id && viewFieldsMap[field.id]"
+                    :checked="
+                      visibilityOps.find((op) => op.column.fk_column_id === field.id)?.visible ?? viewFieldsMap[field.id].show
+                    "
+                    @change="
+                      (event) => {
+                        toggleVisibility(event.target.checked, viewFieldsMap[field.id])
+                      }
+                    "
+                  />
+                  <NcCheckbox v-else :disabled="true" class="opacity-0" :checked="true" />
+                  <SmartsheetHeaderCellIcon
+                    v-if="field"
+                    :column-meta="fieldState(field) || field"
+                    :class="{
+                      'text-brand-500': compareCols(field, activeField),
+                    }"
+                  />
+                  <span
+                    :class="{
+                      'text-brand-500': compareCols(field, activeField),
+                    }"
+                    class="truncate max-w-64"
                   >
-                    New field
-                  </NcBadge>
-
-                  <NcBadge
-                    v-else-if="fieldStatus(field) === 'update'"
-                    color="orange"
-                    :border="false"
-                    class="bg-orange-50 text-orange-700"
-                  >
-                    Updated field
-                  </NcBadge>
-                  <NcBadge v-if="!isColumnValid(field)" color="yellow" :border="false" class="ml-1 bg-yellow-50 text-yellow-700">
-                    Incomplete configuration
-                  </NcBadge>
+                    {{ fieldState(field)?.title || field.title }}
+                  </span>
                 </div>
-                <NcButton
-                  v-if="fieldStatus(field) === 'delete' || fieldStatus(field) === 'update'"
-                  type="secondary"
-                  size="small"
-                  class="no-action mr-2"
-                  :disabled="loading"
-                  @click="recoverField(field)"
-                >
-                  <div class="flex items-center text-xs gap-1">
-                    <GeneralIcon icon="reload" />
-                    Restore
+                <div class="flex items-center justify-end gap-1">
+                  <div class="flex items-center">
+                    <NcBadge v-if="fieldStatus(field) === 'delete'" color="red" :border="false" class="bg-red-50 text-red-700">
+                      Deleted field
+                    </NcBadge>
+                    <NcBadge
+                      v-else-if="fieldStatus(field) === 'add'"
+                      color="orange"
+                      :border="false"
+                      class="bg-green-50 text-green-700"
+                    >
+                      New field
+                    </NcBadge>
+
+                    <NcBadge
+                      v-else-if="fieldStatus(field) === 'update'"
+                      color="orange"
+                      :border="false"
+                      class="bg-orange-50 text-orange-700"
+                    >
+                      Updated field
+                    </NcBadge>
+                    <NcBadge
+                      v-if="!isColumnValid(field)"
+                      color="yellow"
+                      :border="false"
+                      class="ml-1 bg-yellow-50 text-yellow-700"
+                    >
+                      Incomplete configuration
+                    </NcBadge>
                   </div>
-                </NcButton>
-                <NcDropdown v-else :trigger="['click']" overlay-class-name="nc-dropdown-table-explorer" @click.stop>
-                  <GeneralIcon icon="threeDotVertical" class="no-action opacity-0 group-hover:(opacity-100) text-gray-500" />
-
-                  <template #overlay>
-                    <NcMenu>
-                      <NcMenuItem key="table-explorer-duplicate" @click="duplicateField(field)">
-                        <Icon class="iconify text-gray-800" icon="lucide:copy" /><span>Duplicate</span>
-                      </NcMenuItem>
-                      <NcMenuItem v-if="!field.pv" key="table-explorer-insert-above" @click="addField(field, true)">
-                        <Icon class="iconify text-gray-800" icon="lucide:arrow-up" /><span>Insert above</span>
-                      </NcMenuItem>
-                      <NcMenuItem key="table-explorer-insert-below" @click="addField(field)">
-                        <Icon class="iconify text-gray-800" icon="lucide:arrow-down" /><span>Insert below</span>
-                      </NcMenuItem>
-
-                      <a-menu-divider class="my-1" />
-
-                      <NcMenuItem key="table-explorer-delete" @click="onFieldDelete(field)">
-                        <div class="text-red-500">
-                          <GeneralIcon icon="delete" class="group-hover:text-accent" />
-                          Delete
-                        </div>
-                      </NcMenuItem>
-                    </NcMenu>
-                  </template>
-                </NcDropdown>
-                <MdiChevronRight
-                  class="text-brand-500 opacity-0"
-                  :class="{
-                    'opacity-100': compareCols(field, activeField),
-                  }"
-                />
-              </div>
-            </div>
-          </template>
-          <template v-if="displayColumn && displayColumn.title.toLowerCase().includes(searchQuery.toLowerCase())" #header>
-            <div
-              class="flex px-2 bg-white hover:bg-gray-100 border-b-1 border-gray-200 first:rounded-tl-lg last:border-b-1 pl-5 group"
-              :class="` ${compareCols(displayColumn, activeField) ? 'selected' : ''}`"
-              @click="changeField(displayColumn, $event)"
-            >
-              <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
-                <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-200 mr-1" />
-                <NcCheckbox :disabled="true" :checked="true" />
-                <SmartsheetHeaderCellIcon
-                  v-if="displayColumn"
-                  :column-meta="fieldState(displayColumn) || displayColumn"
-                  :class="{
-                    'text-brand-500': compareCols(displayColumn, activeField),
-                  }"
-                />
-                <span
-                  :class="{
-                    'text-brand-500': compareCols(displayColumn, activeField),
-                  }"
-                >
-                  {{ fieldState(displayColumn)?.title || displayColumn.title }}
-                </span>
-              </div>
-              <div class="flex items-center justify-end gap-1">
-                <div class="flex items-center">
-                  <NcBadge
-                    v-if="fieldStatus(displayColumn) === 'delete'"
-                    color="red"
-                    :border="false"
-                    class="bg-red-50 text-red-700"
+                  <NcButton
+                    v-if="fieldStatus(field) === 'delete' || fieldStatus(field) === 'update'"
+                    type="secondary"
+                    size="small"
+                    class="no-action mr-2"
+                    :disabled="loading"
+                    @click="recoverField(field)"
                   >
-                    Deleted field
-                  </NcBadge>
+                    <div class="flex items-center text-xs gap-1">
+                      <GeneralIcon icon="reload" />
+                      Restore
+                    </div>
+                  </NcButton>
+                  <NcDropdown v-else :trigger="['click']" overlay-class-name="nc-dropdown-table-explorer" @click.stop>
+                    <GeneralIcon icon="threeDotVertical" class="no-action opacity-0 group-hover:(opacity-100) text-gray-500" />
 
-                  <NcBadge
-                    v-else-if="fieldStatus(displayColumn) === 'update'"
-                    color="orange"
-                    :border="false"
-                    class="bg-orange-50 text-orange-700"
-                  >
-                    Updated field
-                  </NcBadge>
+                    <template #overlay>
+                      <NcMenu>
+                        <NcMenuItem key="table-explorer-duplicate" @click="duplicateField(field)">
+                          <Icon class="iconify text-gray-800" icon="lucide:copy" /><span>Duplicate</span>
+                        </NcMenuItem>
+                        <NcMenuItem v-if="!field.pv" key="table-explorer-insert-above" @click="addField(field, true)">
+                          <Icon class="iconify text-gray-800" icon="lucide:arrow-up" /><span>Insert above</span>
+                        </NcMenuItem>
+                        <NcMenuItem key="table-explorer-insert-below" @click="addField(field)">
+                          <Icon class="iconify text-gray-800" icon="lucide:arrow-down" /><span>Insert below</span>
+                        </NcMenuItem>
+
+                        <a-menu-divider class="my-1" />
+
+                        <NcMenuItem key="table-explorer-delete" @click="onFieldDelete(field)">
+                          <div class="text-red-500">
+                            <GeneralIcon icon="delete" class="group-hover:text-accent" />
+                            Delete
+                          </div>
+                        </NcMenuItem>
+                      </NcMenu>
+                    </template>
+                  </NcDropdown>
+                  <MdiChevronRight
+                    class="text-brand-500 opacity-0"
+                    :class="{
+                      'opacity-100': compareCols(field, activeField),
+                    }"
+                  />
                 </div>
-                <NcButton
-                  v-if="fieldStatus(displayColumn) === 'delete' || fieldStatus(displayColumn) === 'update'"
-                  type="secondary"
-                  size="small"
-                  class="no-action mr-2"
-                  :disabled="loading"
-                  @click="recoverField(displayColumn)"
-                >
-                  <div class="flex items-center text-xs gap-1">
-                    <GeneralIcon icon="reload" />
-                    Restore
-                  </div>
-                </NcButton>
-                <MdiChevronRight
-                  class="text-brand-500 opacity-0"
-                  :class="{
-                    'opacity-100': compareCols(displayColumn, activeField),
-                  }"
-                />
               </div>
-            </div>
-          </template>
-        </Draggable>
+            </template>
+            <template v-if="displayColumn && displayColumn.title.toLowerCase().includes(searchQuery.toLowerCase())" #header>
+              <div
+                class="flex px-2 bg-white hover:bg-gray-100 border-b-1 border-gray-200 first:rounded-tl-lg last:border-b-1 pl-5 group"
+                :class="` ${compareCols(displayColumn, activeField) ? 'selected' : ''}`"
+                @click="changeField(displayColumn, $event)"
+              >
+                <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
+                  <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-200 mr-1" />
+                  <NcCheckbox :disabled="true" :checked="true" />
+                  <SmartsheetHeaderCellIcon
+                    v-if="displayColumn"
+                    :column-meta="fieldState(displayColumn) || displayColumn"
+                    :class="{
+                      'text-brand-500': compareCols(displayColumn, activeField),
+                    }"
+                  />
+                  <span
+                    :class="{
+                      'text-brand-500': compareCols(displayColumn, activeField),
+                    }"
+                  >
+                    {{ fieldState(displayColumn)?.title || displayColumn.title }}
+                  </span>
+                </div>
+                <div class="flex items-center justify-end gap-1">
+                  <div class="flex items-center">
+                    <NcBadge
+                      v-if="fieldStatus(displayColumn) === 'delete'"
+                      color="red"
+                      :border="false"
+                      class="bg-red-50 text-red-700"
+                    >
+                      Deleted field
+                    </NcBadge>
+
+                    <NcBadge
+                      v-else-if="fieldStatus(displayColumn) === 'update'"
+                      color="orange"
+                      :border="false"
+                      class="bg-orange-50 text-orange-700"
+                    >
+                      Updated field
+                    </NcBadge>
+                  </div>
+                  <NcButton
+                    v-if="fieldStatus(displayColumn) === 'delete' || fieldStatus(displayColumn) === 'update'"
+                    type="secondary"
+                    size="small"
+                    class="no-action mr-2"
+                    :disabled="loading"
+                    @click="recoverField(displayColumn)"
+                  >
+                    <div class="flex items-center text-xs gap-1">
+                      <GeneralIcon icon="reload" />
+                      Restore
+                    </div>
+                  </NcButton>
+                  <MdiChevronRight
+                    class="text-brand-500 opacity-0"
+                    :class="{
+                      'opacity-100': compareCols(displayColumn, activeField),
+                    }"
+                  />
+                </div>
+              </div>
+            </template>
+          </Draggable>
+        </div>
         <Transition v-if="!changingField" name="slide-fade">
           <div class="border-gray-200 border-l-1 rounded-r-xl h-full">
             <SmartsheetColumnEditOrAddProvider

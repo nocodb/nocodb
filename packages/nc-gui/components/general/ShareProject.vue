@@ -44,6 +44,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     :data-sharetype="visibility"
   >
     <NcButton
+      v-e="['c:share:open']"
       :size="isMobileMode ? 'medium' : 'small'"
       class="z-10 !rounded-lg"
       :class="{

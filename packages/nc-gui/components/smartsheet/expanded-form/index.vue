@@ -353,7 +353,7 @@ watch(
 )
 
 const showRightSections = computed(() => {
-  return !isNew && commentsDrawer && isUIAllowed('commentList')
+  return !isNew.value && commentsDrawer.value && isUIAllowed('commentList')
 })
 </script>
 

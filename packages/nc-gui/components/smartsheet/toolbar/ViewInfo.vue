@@ -8,13 +8,16 @@ const { openedViewsTab, activeView } = storeToRefs(useViewsStore())
 const { project } = storeToRefs(useProject())
 
 const { activeTable } = storeToRefs(useTablesStore())
+
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 </script>
 
 <template>
   <div
-    class="flex flex-row font-medium items-center border-gray-50 mt-0.5"
+    class="flex flex-row font-medium items-center border-gray-50 mt-0.5 transition-all duration-100"
     :class="{
-      'min-w-37/100 max-w-37/100': !isMobileMode && activeView?.type !== ViewTypes.KANBAN,
+      'min-w-36/100 max-w-36/100': !isMobileMode && activeView?.type !== ViewTypes.KANBAN && isLeftSidebarOpen,
+      'min-w-39/100 max-w-39/100': !isMobileMode && activeView?.type !== ViewTypes.KANBAN && !isLeftSidebarOpen,
       'min-w-1/4 max-w-1/4': !isMobileMode && activeView?.type === ViewTypes.KANBAN,
       'w-2/3 text-base ml-1.5': isMobileMode,
     }"

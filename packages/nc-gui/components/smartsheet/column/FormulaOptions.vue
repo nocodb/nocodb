@@ -14,7 +14,6 @@ import {
   getWordUntilCaret,
   iconMap,
   insertAtCursor,
-  isEeUI,
   onMounted,
   useColumnCreateStoreOrThrow,
   useDebounceFn,
@@ -32,11 +31,11 @@ const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode]
 
 const vModel = useVModel(props, 'value', emit)
 
-const { formState, setAdditionalValidations, validateInfos, sqlUi, column } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, sqlUi, column } = useColumnCreateStoreOrThrow()
 
 const { t } = useI18n()
 
-const { loadMagic, predictFunction: _predictFunction } = useNocoEe()
+const { predictFunction: _predictFunction } = useNocoEe()
 
 enum JSEPNode {
   COMPOUND = 'Compound',
@@ -714,21 +713,21 @@ onMounted(() => {
   jsep.plugins.register(jsepCurlyHook)
 })
 
-const predictFunction = async () => {
-  await _predictFunction(formState, meta, supportedColumns, suggestionsList, vModel)
-}
+// const predictFunction = async () => {
+//   await _predictFunction(formState, meta, supportedColumns, suggestionsList, vModel)
+// }
 </script>
 
 <template>
   <div class="formula-wrapper">
     <a-form-item v-bind="validateInfos.formula_raw" :label="$t('datatype.Formula')">
-      <GeneralIcon
+      <!-- <GeneralIcon
         v-if="isEeUI"
         icon="magic"
         :class="{ 'nc-animation-pulse': loadMagic }"
         class="text-orange-400 cursor-pointer absolute right-1 top-1 z-10"
         @click="predictFunction()"
-      />
+      /> -->
       <a-textarea
         ref="formulaRef"
         v-model:value="vModel.formula_raw"

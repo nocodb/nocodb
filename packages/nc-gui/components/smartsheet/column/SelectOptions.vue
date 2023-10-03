@@ -1,17 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
-import {
-  IsKanbanInj,
-  enumColor,
-  iconMap,
-  isEeUI,
-  onMounted,
-  storeToRefs,
-  useColumnCreateStoreOrThrow,
-  useVModel,
-  watch,
-} from '#imports'
+import { IsKanbanInj, enumColor, iconMap, onMounted, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
 
 interface Option {
   color: string
@@ -29,11 +19,11 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-const { formState, setAdditionalValidations, validateInfos, isMysql } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, isMysql } = useColumnCreateStoreOrThrow()
 
-const { base } = storeToRefs(useBase())
+// const { base } = storeToRefs(useBase())
 
-const { loadMagic, optionsMagic: _optionsMagic } = useNocoEe()
+const { optionsMagic: _optionsMagic } = useNocoEe()
 
 const options = ref<(Option & { status?: 'remove' })[]>([])
 const renderedOptions = ref<(Option & { status?: 'remove' })[]>([])
@@ -139,9 +129,9 @@ const addNewOption = () => {
   options.value.push(tempOption)
 }
 
-const optionsMagic = async () => {
-  await _optionsMagic(base, formState, getNextColor, options.value, renderedOptions.value)
-}
+// const optionsMagic = async () => {
+//   await _optionsMagic(base, formState, getNextColor, options.value, renderedOptions.value)
+// }
 
 const syncOptions = () => {
   vModel.value.colOptions.options = renderedOptions.value.filter((op) => op.status !== 'remove')
@@ -271,9 +261,9 @@ watch(vModel.value, (next) => {
         <span class="flex-auto">Add option</span>
       </div>
     </a-button>
-    <div v-if="isEeUI" class="w-full cursor-pointer" @click="optionsMagic()">
+    <!-- <div v-if="isEeUI" class="w-full cursor-pointer" @click="optionsMagic()">
       <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
-    </div>
+    </div> -->
   </div>
 </template>
 

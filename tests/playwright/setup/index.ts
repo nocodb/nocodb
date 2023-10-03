@@ -454,7 +454,7 @@ const setup = async ({
     baseUrl = url ? url : `/#/nc/${base.id}`;
   }
 
-  // await page.goto(baseUrl, { waitUntil: 'networkidle' });
+  await page.goto(baseUrl);
   console.timeEnd('Setup');
   return {
     base,

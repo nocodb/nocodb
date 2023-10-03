@@ -2,7 +2,7 @@
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { MetaInj, inject, ref, storeToRefs, useColumnCreateStoreOrThrow, useMetas, useBase, useVModel } from '#imports'
+import { MetaInj, inject, ref, storeToRefs, useBase, useColumnCreateStoreOrThrow, useMetas, useVModel } from '#imports'
 
 const props = defineProps<{
   value: any

@@ -8,6 +8,7 @@ import {
   ProjectIdInj,
   SSLUsage,
   clientTypes as _clientTypes,
+  baseTitleValidator,
   computed,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
@@ -17,7 +18,6 @@ import {
   iconMap,
   nextTick,
   onMounted,
-  baseTitleValidator,
   readFile,
   ref,
   storeToRefs,
@@ -410,14 +410,7 @@ watch(
       <span class="flex-grow"></span>
     </h1>
 
-    <a-form
-      ref="form"
-      :model="formState"
-      name="external-base-create-form"
-      layout="horizontal"
-      no-style
-      :label-col="{ span: 8 }"
-    >
+    <a-form ref="form" :model="formState" name="external-base-create-form" layout="horizontal" no-style :label-col="{ span: 8 }">
       <div
         class="nc-scrollbar-md"
         :style="{
@@ -631,7 +624,7 @@ watch(
             size="small"
             type="primary"
             :disabled="!testSuccess"
-            :loading="creatingBase"
+            :loading="creatingSource"
             class="nc-extdb-btn-submit !rounded-md"
             @click="createSource"
           >

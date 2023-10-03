@@ -30,9 +30,9 @@ import {
   reactive,
   ref,
   storeToRefs,
+  useBase,
   useI18n,
   useNuxtApp,
-  useBase,
   useTabs,
 } from '#imports'
 
@@ -397,9 +397,7 @@ function fieldsValidation(record: Record<string, any>, tn: string) {
 }
 
 function updateImportTips(baseName: string, tableName: string, progress: number, total: number) {
-  importingTips.value[
-    `${baseName}-${tableName}`
-  ] = `Importing data to ${baseName} - ${tableName}: ${progress}/${total} records`
+  importingTips.value[`${baseName}-${tableName}`] = `Importing data to ${baseName} - ${tableName}: ${progress}/${total} records`
 }
 
 async function importTemplate() {

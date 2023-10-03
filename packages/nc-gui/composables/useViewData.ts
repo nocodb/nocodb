@@ -12,10 +12,10 @@ import {
   ref,
   storeToRefs,
   useApi,
+  useBase,
   useGlobal,
   useI18n,
   useNuxtApp,
-  useBase,
   useRoles,
   useRouter,
   useSharedView,
@@ -77,7 +77,7 @@ export function useViewData(
 
   const { sharedView, fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
 
-  const { $api, $e } = useNuxtApp()
+  const { $api } = useNuxtApp()
 
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 

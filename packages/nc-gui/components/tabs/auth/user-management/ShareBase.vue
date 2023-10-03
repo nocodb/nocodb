@@ -5,11 +5,11 @@ import {
   message,
   onMounted,
   storeToRefs,
+  useBase,
   useCopy,
   useDashboard,
   useI18n,
   useNuxtApp,
-  useBase,
 } from '#imports'
 
 interface ShareBase {
@@ -37,7 +37,9 @@ const { base } = storeToRefs(useBase())
 
 const { copy } = useCopy()
 
-const url = computed(() => (sharedBase.value && sharedBase.value.uuid ? `${dashboardUrl.value}#/base/${sharedBase.value.uuid}` : null))
+const url = computed(() =>
+  sharedBase.value && sharedBase.value.uuid ? `${dashboardUrl.value}#/base/${sharedBase.value.uuid}` : null,
+)
 
 const loadBase = async () => {
   try {
@@ -89,11 +91,11 @@ const recreate = async () => {
   try {
     if (!base.value.id) return
 
-    const sharedBase = await $api.base.sharedBaseCreate(base.value.id, {
+    const createdShareBase = await $api.base.sharedBaseCreate(base.value.id, {
       roles: sharedBase.value?.role || ShareBaseRole.Viewer,
     })
 
-    const newBase = sharedBase || {}
+    const newBase = createdShareBase || {}
 
     sharedBase.value = { ...newBase, role: sharedBase.value?.role }
   } catch (e: any) {
@@ -201,7 +203,10 @@ onMounted(() => {
         </a-select-option>
       </a-select>
     </div>
-    <div v-if="sharedBase?.uuid" class="flex flex-row mt-2 bg-red-50 py-4 mx-1 px-2 items-center rounded-sm w-full justify-between">
+    <div
+      v-if="sharedBase?.uuid"
+      class="flex flex-row mt-2 bg-red-50 py-4 mx-1 px-2 items-center rounded-sm w-full justify-between"
+    >
       <span class="flex text-xs overflow-x-hidden overflow-ellipsis text-gray-700 pl-2 nc-url">{{ url }}</span>
 
       <div class="flex border-l-1 pt-1 pl-1">

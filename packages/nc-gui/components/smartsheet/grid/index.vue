@@ -241,7 +241,6 @@ onMounted(() => {
 
     <SmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg"
-      :key="routeQuery.rowId"
       v-model="expandedFormOnRowIdDlg"
       :row="{ row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"

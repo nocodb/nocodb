@@ -339,10 +339,8 @@ const onConfirmDeleteRowClick = async () => {
 }
 
 watch(rowId, async (nRow) => {
-  if (nRow.value) {
-    await _loadRow(nRow)
-    await loadCommentsAndLogs()
-  }
+  await _loadRow(nRow)
+  await loadCommentsAndLogs()
 })
 
 const showRightSections = computed(() => {

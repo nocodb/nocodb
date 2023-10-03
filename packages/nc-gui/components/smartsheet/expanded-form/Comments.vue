@@ -4,9 +4,13 @@ import type { AuditType } from 'nocodb-sdk'
 import { Icon } from '@iconify/vue'
 import { ref, timeAgo, useExpandedFormStoreOrThrow, useGlobal, useRoles, watch } from '#imports'
 
-const { loadCommentsAndLogs, commentsAndLogs, saveComment, comment, updateComment } = useExpandedFormStoreOrThrow()
+const { loadCommentsAndLogs, commentsAndLogs, saveComment: _saveComment, comment, updateComment } = useExpandedFormStoreOrThrow()
 
 const commentsWrapperEl = ref<HTMLDivElement>()
+
+const auditTabDomRef = (e: HTMLElement) => {
+  e.scrollTop = e.scrollHeight
+}
 
 onMounted(async () => {
   await loadCommentsAndLogs()
@@ -92,15 +96,18 @@ const value = computed({
   },
 })
 
-watch(
-  commentsAndLogs,
-  () => {
-    setTimeout(() => {
-      if (commentsWrapperEl.value) commentsWrapperEl.value.scrollTop = commentsWrapperEl.value?.scrollHeight
-    }, 200)
-  },
-  { immediate: true },
-)
+function scrollComments() {
+  if (commentsWrapperEl.value) commentsWrapperEl.value.scrollTop = commentsWrapperEl.value?.scrollHeight
+}
+
+const saveComment = async () => {
+  await _saveComment()
+  scrollComments()
+}
+
+watch(commentsWrapperEl, () => {
+  scrollComments()
+})
 
 // Ignore first line if its the only one
 const processedAudit = (log: string) => {
@@ -150,14 +157,14 @@ const processedAudit = (log: string) => {
         'pb-2': tab !== 'comments',
       }"
     >
-      <div v-if="tab === 'comments'" ref="commentsWrapperEl" class="flex flex-col h-full">
+      <div v-if="tab === 'comments'" class="flex flex-col h-full">
         <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full">
           <div class="text-center text-3xl text-gray-700">
             <GeneralIcon icon="commentHere" />
           </div>
           <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
         </div>
-        <div v-else class="flex flex-col h-full py-2 pl-2 pr-1 space-y-2 nc-scrollbar-md">
+        <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-2 pl-2 pr-1 space-y-2 nc-scrollbar-md">
           <div v-for="log of comments" :key="log.id">
             <div class="bg-white rounded-xl group border-1 gap-2 border-gray-200">
               <div class="flex flex-col p-4 gap-3">
@@ -227,7 +234,7 @@ const processedAudit = (log: string) => {
           </div>
         </div>
       </div>
-      <div v-else ref="commentsWrapperEl" class="flex flex-col h-full pl-2 pr-1 pt-2 nc-scrollbar-md space-y-2">
+      <div v-if="tab === 'audits'" :ref="auditTabDomRef" class="flex flex-col h-full pl-2 pr-1 pt-2 nc-scrollbar-md space-y-2">
         <template v-if="audits.length === 0">
           <div class="flex flex-col text-center justify-center h-full">
             <div class="text-center text-3xl text-gray-600">

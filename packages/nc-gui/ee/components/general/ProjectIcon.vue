@@ -40,7 +40,7 @@ const { type, hoverable } = defineProps<{
   />
   <img
     v-else
-    src="~/assets/nc-icons/database.svg"
+    src="~/assets/nc-icons/project.svg"
     class="text-[#2824FB] nc-base-icon"
     :class="{
       'nc-base-icon-hoverable': hoverable,

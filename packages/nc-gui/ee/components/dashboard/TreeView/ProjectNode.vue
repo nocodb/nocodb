@@ -701,7 +701,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; base_id: string })
                               {{ source.alias || '' }}
                             </div>
                             <a-tooltip class="xs:(hidden)">
-                              <template #title>External DB</template>
+                              <template #title>External DB - {{ source.type?.toLocaleUpperCase() }}</template>
                               <div>
                                 <GeneralIcon icon="info" class="text-gray-400 -mt-0.5 hover:text-gray-700 mr-1" />
                               </div>

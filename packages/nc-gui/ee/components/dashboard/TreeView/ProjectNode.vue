@@ -205,6 +205,24 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
   }
 }
 
+function openErdView(source: SourceType) {
+  $e('c:project:relation')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgProjectErd'), {
+    'modelValue': isOpen,
+    'sourceId': source!.id,
+    'onUpdate:modelValue': () => closeDialog(),
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
 const isAddNewProjectChildEntityLoading = ref(false)
 const addNewProjectChildEntity = async () => {
   if (isAddNewProjectChildEntityLoading.value) return
@@ -335,24 +353,6 @@ async function openProjectSqlEditor(_project: BaseType) {
   navigateTo(`/ws/${route.params.typeOrId}/nc/${source.base_id}/sql/${source.id}`)
 }
 */
-
-function openErdView(source: SourceType) {
-  navigateTo(`/${route.value.params.typeOrId}/${source.base_id}/erd/${source.id}`)
-}
-
-async function openProjectErdView(_base: BaseType) {
-  if (!_base.id) return
-
-  if (!basesStore.isProjectPopulated(_base.id)) {
-    await loadProject(_base.id)
-  }
-
-  const base = bases.value.get(_base.id)
-
-  const source = base?.sources?.[0]
-  if (!source) return
-  navigateTo(`/${route.value.params.typeOrId}/${source.base_id}/erd/${source.id}`)
-}
 
 const contextMenuBase = computed(() => {
   if (contextMenuTarget.type === 'base') {
@@ -563,7 +563,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; base_id: string })
                   <NcDivider />
 
                   <!-- ERD View -->
-                  <NcMenuItem key="erd" data-testid="nc-sidebar-base-relations" @click="openProjectErdView(base)">
+                  <NcMenuItem key="erd" data-testid="nc-sidebar-base-relations" @click="openErdView(base?.sources?.[0]!)">
                     <GeneralIcon icon="erd" />
                     Relations
                   </NcMenuItem>

@@ -167,7 +167,7 @@ const processedAudit = (log: string) => {
                       <span class="truncate font-bold max-w-42">
                         {{ log.display_name ?? log.user.split('@')[0] ?? 'Shared source' }}
                       </span>
-                      <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
+                      <div v-if="log.id !== editLog?.id" class="text-xs font-medium text-gray-500">
                         {{ log.created_at !== log.updated_at ? `Edited ${timeAgo(log.updated_at)}` : timeAgo(log.created_at) }}
                       </div>
                     </div>
@@ -238,14 +238,14 @@ const processedAudit = (log: string) => {
           <div class="bg-white rounded-xl border-1 gap-3 border-gray-200">
             <div class="flex flex-col p-4 gap-3">
               <div class="flex justify-between">
-                <div class="flex font-bold items-center gap-2">
+                <div class="flex items-center gap-2">
                   <GeneralUserIcon size="base" :name="log.display_name ?? log.user" />
 
                   <div class="flex flex-col">
-                    <span class="truncate max-w-50">
+                    <span class="truncate font-bold max-w-50">
                       {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared source' }}
                     </span>
-                    <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
+                    <div v-if="log.id !== editLog?.id" class="text-xs font-medium text-gray-500">
                       {{ timeAgo(log.created_at) }}
                     </div>
                   </div>

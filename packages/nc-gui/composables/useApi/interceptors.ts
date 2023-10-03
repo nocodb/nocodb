@@ -23,8 +23,10 @@ export function addAxiosInterceptors(api: Api<any>) {
     if (!config.url?.endsWith('/user/me') && !config.url?.endsWith('/admin/roles')) {
       if (route.value && route.value.params && route.value.params.typeOrId === 'base') {
         config.headers['xc-shared-base-id'] = route.value.params.baseId
+        delete config.headers['xc-auth']
       } else if (route.value && route.value.params && route.value.params.typeOrId === 'ERD') {
         config.headers['xc-shared-erd-id'] = route.value.params.erdUuid
+        delete config.headers['xc-auth']
       }
     }
 

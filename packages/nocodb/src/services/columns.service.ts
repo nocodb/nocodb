@@ -118,7 +118,10 @@ export class ColumnsService {
 
     const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
-    if (param.column.column_name.length > mxColumnLength) {
+    if (
+      !isVirtualCol(param.column) &&
+      param.column.column_name.length > mxColumnLength
+    ) {
       NcError.badRequest(
         `Column name ${param.column.column_name} exceeds ${mxColumnLength} characters`,
       );

@@ -258,8 +258,8 @@ const isTableOpened = computed(() => {
             <template #overlay>
               <NcMenu>
                 <NcMenuItem
-                  v-e="['c:table:rename']"
                   v-if="isUIAllowed('tableRename', { roles: baseRole })"
+                  v-e="['c:table:rename']"
                   :data-testid="`sidebar-table-rename-${table.title}`"
                   @click="openRenameTableDialog(table, base.sources[sourceIndex].id)"
                 >

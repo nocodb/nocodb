@@ -10,10 +10,10 @@ import {
   message,
   onMounted,
   storeToRefs,
+  useBase,
   useGlobal,
   useI18n,
   useNuxtApp,
-  useBase,
 } from '#imports'
 
 const props = defineProps<{

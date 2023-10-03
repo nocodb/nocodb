@@ -11,10 +11,10 @@ import {
   message,
   ref,
   storeToRefs,
+  useBase,
   useI18n,
   useMetas,
   useNuxtApp,
-  useBase,
   watch,
 } from '#imports'
 
@@ -56,7 +56,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const isMssql = computed(() => isMssqlFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
 
-    const isXcdbBase = computed(() => isXcdbBaseFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
+    const isXcdbBase = computed(() =>
+      isXcdbBaseFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]),
+    )
 
     const baseType = computed(() => getBaseType(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
 

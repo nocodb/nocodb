@@ -5,7 +5,6 @@ import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
 import {
-  isDefaultBase as _isDefaultBase,
   extractSdkResponseErrorMsg,
   message,
   onMounted,
@@ -36,14 +35,8 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 const { isMobileMode } = useGlobal()
 
 const { $e } = useNuxtApp()
+
 const { t } = useI18n()
-
-const isDefaultBase = computed(() => {
-  const source = base.value?.sources?.find((b) => b.id === table.value.source_id)
-  if (!source) return false
-
-  return _isDefaultBase(source)
-})
 
 const { viewsByTable, activeView, recentViews } = storeToRefs(useViewsStore())
 

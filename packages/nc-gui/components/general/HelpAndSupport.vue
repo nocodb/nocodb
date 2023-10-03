@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { iconMap, ref, storeToRefs, useGlobal, useBase, useRoute } from '#imports'
+import { iconMap, ref, storeToRefs, useBase, useGlobal, useRoute } from '#imports'
 
 const showDrawer = ref(false)
 

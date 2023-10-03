@@ -1,11 +1,22 @@
 <script lang="ts" setup>
 import GithubButton from 'vue-github-button'
+import {
+  computed,
+  message,
+  navigateTo,
+  onMounted,
+  ref,
+  storeToRefs,
+  useCopy,
+  useGlobal,
+  useSidebarStore,
+  useUsers,
+  watch,
+} from '#imports'
 
 const { user, signOut, token, appInfo } = useGlobal()
 // So watcher in users store is triggered
 useUsers()
-
-const { clearWorkspaces } = useWorkspace()
 
 const { leftSidebarState } = storeToRefs(useSidebarStore())
 

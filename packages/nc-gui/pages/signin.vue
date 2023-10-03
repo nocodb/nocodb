@@ -26,8 +26,6 @@ const { t } = useI18n()
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
-const { clearWorkspaces } = useWorkspace()
-
 const formValidator = ref()
 
 const form = reactive({

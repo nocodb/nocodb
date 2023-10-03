@@ -1,7 +1,7 @@
 import { ViewTypes, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { IsPublicInj, computed, inject, ref, storeToRefs, useNuxtApp, useBase, useRoles, useUndoRedo, watch } from '#imports'
+import { IsPublicInj, computed, inject, ref, storeToRefs, useBase, useNuxtApp, useRoles, useUndoRedo, watch } from '#imports'
 import type { Field } from '#imports'
 
 export function useViewColumns(

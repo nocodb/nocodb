@@ -209,6 +209,8 @@ async function localInit({
 
     // console.log(process.env.TEST_WORKER_INDEX, process.env.TEST_PARALLEL_INDEX);
 
+    console.timeLog('Setup', '2');
+
     if (isEE() && api['workspace']) {
       // Delete associated workspace
       // Note that: on worker error, entire thread is reset & worker ID numbering is reset too
@@ -259,7 +261,7 @@ async function localInit({
       }
     }
 
-    console.time('Reset Sakila DB');
+    console.timeLog('Setup', '3');
 
     // DB reset
     if (dbType === 'pg' && !isEmptyProject) {
@@ -285,7 +287,8 @@ async function localInit({
         await resetSakilaMysql(nc_knex, parallelId, isEmptyProject);
       }
     }
-    console.timeEnd('Reset Sakila DB');
+
+    console.log('Setup', '4');
 
     let workspace;
     if (isEE() && api['workspace']) {
@@ -331,6 +334,8 @@ async function localInit({
       }
     }
 
+    console.log('Setup', '5');
+
     // get current user information
     const user = await api.auth.me();
     return { data: { base, user, workspace, token }, status: 200 };
@@ -353,6 +358,8 @@ const setup = async ({
   isSuperUser?: boolean;
   url?: string;
 }): Promise<NcContext> => {
+  console.time('Setup');
+
   let dbType = process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE;
   dbType = dbType || (isEE() ? 'pg' : 'sqlite');
 
@@ -377,6 +384,8 @@ const setup = async ({
   } catch (e) {
     console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
   }
+
+  console.timeLog('Setup', 'Reset DB');
 
   if (response.status !== 200 || !response.data?.token || !response.data?.base) {
     console.error('Failed to reset test data', response.data, response.status, dbType);
@@ -446,6 +455,7 @@ const setup = async ({
   }
 
   await page.goto(baseUrl, { waitUntil: 'networkidle' });
+  console.timeEnd('Setup');
   return {
     base,
     token,

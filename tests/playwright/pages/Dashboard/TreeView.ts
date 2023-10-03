@@ -124,11 +124,13 @@ export class TreeViewPage extends BasePage {
     skipOpeningModal,
     mode,
     baseTitle,
+    wait = true,
   }: {
     title: string;
     skipOpeningModal?: boolean;
     mode?: string;
     baseTitle: string;
+    wait?: boolean;
   }) {
     if (!skipOpeningModal) {
       await this.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`).hover();
@@ -140,12 +142,17 @@ export class TreeViewPage extends BasePage {
 
     await this.dashboard.get().getByPlaceholder('Enter table name').fill(title);
 
-    await this.waitForResponse({
-      uiAction: () => this.dashboard.get().locator('button:has-text("Create Table")').click(),
-      httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `/api/v1/meta/bases/`,
-      responseJsonMatcher: json => json.title === title && json.type === 'table',
-    });
+    if (wait) {
+      await this.waitForResponse({
+        uiAction: () => this.dashboard.get().locator('button:has-text("Create Table")').click(),
+        httpMethodsToMatch: ['POST'],
+        requestUrlPathToMatch: `/api/v1/meta/bases/`,
+        responseJsonMatcher: json => json.title === title && json.type === 'table',
+      });
+    } else {
+      await this.dashboard.get().locator('button:has-text("Create Table")').click();
+      await this.rootPage.waitForTimeout(1000);
+    }
 
     // Tab render is slow for playwright
     await this.dashboard.waitForTabRender({ title, mode });

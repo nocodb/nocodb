@@ -22,7 +22,7 @@ test.describe('LTAR create & update', () => {
     await dashboard.treeView.createTable({ title: 'Sheet1', baseTitle: context.base.title });
     // subsequent table creation fails; hence delay
     await dashboard.rootPage.waitForTimeout(1000);
-    await dashboard.treeView.createTable({ title: 'Sheet2', baseTitle: context.base.title });
+    await dashboard.treeView.createTable({ title: 'Sheet2', baseTitle: context.base.title, wait: false });
 
     await dashboard.treeView.openTable({ title: 'Sheet1' });
     await dashboard.grid.addNewRow({ index: 0, value: '1a' });

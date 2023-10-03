@@ -16,6 +16,8 @@ const meta = inject(MetaInj, ref())
 
 const { t } = useI18n()
 
+const { appInfo } = useGlobal()
+
 const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit } = useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
@@ -37,7 +39,13 @@ const refTables = computed(() => {
   }
 
   const _refTables = meta.value.columns
-    .filter((column) => isLinksOrLTAR(column) && !column.system && column.source_id === meta.value?.source_id)
+    .filter(
+      (column) =>
+        isLinksOrLTAR(column) &&
+        !column.system &&
+        column.source_id === meta.value?.source_id &&
+        (!appInfo.value.ee || (column?.colOptions as any)?.type === 'bt'),
+    )
     .map((column) => ({
       col: column.colOptions,
       column,

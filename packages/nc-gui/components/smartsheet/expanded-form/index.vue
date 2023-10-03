@@ -389,13 +389,15 @@ export default {
                 <MdiChevronDown class="text-md" />
               </NcButton>
             </div>
-            <div v-if="displayValue" class="flex items-center truncate font-bold text-gray-800 text-xl">
-              {{ displayValue }}
+            <div
+              v-if="displayValue && !row.rowMeta?.new"
+              class="flex items-center truncate w-32 hover:w-64 transition-all font-bold text-gray-800 text-xl"
+            >
+              <span class="truncate">
+                {{ displayValue }}
+              </span>
             </div>
-            <div class="bg-gray-100 px-2 gap-1 flex my-1 items-center rounded-lg text-gray-800 font-medium">
-              <TableIcon class="w-6 h-6 text-sm" />
-              All {{ meta.title }}
-            </div>
+            <div v-if="row.rowMeta?.new" class="flex items-center truncate font-bold text-gray-800 text-xl">New Record</div>
           </div>
           <div class="flex gap-2">
             <NcDropdown v-if="!isNew">
@@ -494,16 +496,20 @@ export default {
               :data-testid="`nc-expand-col-${col.title}`"
             >
               <div class="flex items-start flex-row xs:(flex-col w-full) nc-expanded-cell">
-                <div class="w-[12rem] xs:(w-full) mt-1.5">
-                  <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" class="nc-expanded-cell-header" :column="col" />
+                <div class="w-[12rem] xs:(w-full) mt-1.5 !h-[35px]">
+                  <LazySmartsheetHeaderVirtualCell
+                    v-if="isVirtualCol(col)"
+                    class="nc-expanded-cell-header !text-gray-600"
+                    :column="col"
+                  />
 
-                  <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header" :column="col" />
+                  <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header !text-gray-600" :column="col" />
                 </div>
 
                 <LazySmartsheetDivDataCell
                   v-if="col.title"
                   :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                  class="!bg-white rounded-lg !w-[20rem] !xs:w-full border-1 border-gray-200 px-1 min-h-[35px] flex items-center relative"
+                  class="!bg-white rounded-lg !w-[20rem] !xs:w-full border-1 overflow-hidden border-gray-200 px-1 min-h-[35px] flex items-center relative"
                 >
                   <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="_row.row[col.title]" :row="_row" :column="col" />
 
@@ -538,16 +544,16 @@ export default {
                 :data-testid="`nc-expand-col-${col.title}`"
               >
                 <div class="flex flex-row items-start">
-                  <div class="w-[12rem] scale-110 mt-2.5">
-                    <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+                  <div class="w-[12rem] scale-110 !h-[35px] mt-2.5">
+                    <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" class="!text-gray-600" :column="col" />
 
-                    <LazySmartsheetHeaderCell v-else :column="col" />
+                    <LazySmartsheetHeaderCell v-else class="!text-gray-600" :column="col" />
                   </div>
 
                   <LazySmartsheetDivDataCell
                     v-if="col.title"
                     :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                    class="!bg-white rounded-lg !w-[20rem] border-1 border-gray-200 px-1 min-h-[35px] flex items-center relative"
+                    class="!bg-white rounded-lg !w-[20rem] border-1 overflow-hidden border-gray-200 px-1 min-h-[35px] flex items-center relative"
                   >
                     <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="_row.row[col.title]" :row="_row" :column="col" />
 

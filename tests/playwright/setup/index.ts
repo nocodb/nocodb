@@ -209,8 +209,6 @@ async function localInit({
 
     // console.log(process.env.TEST_WORKER_INDEX, process.env.TEST_PARALLEL_INDEX);
 
-    console.timeLog('Setup', '2');
-
     if (isEE() && api['workspace']) {
       // Delete associated workspace
       // Note that: on worker error, entire thread is reset & worker ID numbering is reset too
@@ -261,8 +259,6 @@ async function localInit({
       }
     }
 
-    console.timeLog('Setup', '3');
-
     // DB reset
     if (dbType === 'pg' && !isEmptyProject) {
       await resetSakilaPg(`sakila${workerId}`);
@@ -287,8 +283,6 @@ async function localInit({
         await resetSakilaMysql(nc_knex, parallelId, isEmptyProject);
       }
     }
-
-    console.timeLog('Setup', '4');
 
     let workspace;
     if (isEE() && api['workspace']) {
@@ -333,8 +327,6 @@ async function localInit({
         }
       }
     }
-
-    console.timeLog('Setup', '5');
 
     // get current user information
     const user = await api.auth.me();
@@ -384,8 +376,6 @@ const setup = async ({
   } catch (e) {
     console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
   }
-
-  console.timeLog('Setup', '6');
 
   if (response.status !== 200 || !response.data?.token || !response.data?.base) {
     console.error('Failed to reset test data', response.data, response.status, dbType);

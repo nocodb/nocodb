@@ -15,13 +15,13 @@ export class AccountTokenPage extends BasePage {
   }
 
   async goto() {
-    // return this.waitForResponse({
-    //   uiAction: async () => await this.rootPage.goto('/#/account/tokens'),
-    //   httpMethodsToMatch: ['GET'],
-    //   requestUrlPathToMatch: `api/v1/tokens`,
-    // });
-    await this.rootPage.goto('/#/account/tokens');
-    await this.rootPage.waitForTimeout(1000);
+    return this.waitForResponse({
+      uiAction: async () => await this.rootPage.goto('/#/account/tokens'),
+      httpMethodsToMatch: ['GET'],
+      requestUrlPathToMatch: `api/v1/tokens`,
+    });
+    // await this.rootPage.goto('/#/account/tokens');
+    // await this.rootPage.waitForTimeout(1000);
   }
 
   get() {

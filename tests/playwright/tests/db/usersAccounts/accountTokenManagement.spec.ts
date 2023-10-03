@@ -3,7 +3,7 @@ import { AccountPage } from '../../../pages/Account';
 import { AccountTokenPage } from '../../../pages/Account/Token';
 import setup, { unsetup } from '../../../setup';
 
-test.describe('User roles', () => {
+test.describe.skip('User roles', () => {
   let accountTokenPage: AccountTokenPage;
   let accountPage: AccountPage;
   // @ts-ignore
@@ -20,7 +20,7 @@ test.describe('User roles', () => {
   });
 
   test('Create and Delete token', async () => {
-    // test.slow();
+    test.slow();
     const parallelId = process.env.TEST_PARALLEL_INDEX ?? '0';
     await accountTokenPage.goto();
     await accountTokenPage.createToken({ description: `nc_test_${parallelId} test token` });

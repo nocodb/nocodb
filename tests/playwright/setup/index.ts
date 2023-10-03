@@ -288,7 +288,7 @@ async function localInit({
       }
     }
 
-    console.log('Setup', '4');
+    console.timeLog('Setup', '4');
 
     let workspace;
     if (isEE() && api['workspace']) {
@@ -334,7 +334,7 @@ async function localInit({
       }
     }
 
-    console.log('Setup', '5');
+    console.timeLog('Setup', '5');
 
     // get current user information
     const user = await api.auth.me();
@@ -385,7 +385,7 @@ const setup = async ({
     console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
   }
 
-  console.timeLog('Setup', 'Reset DB');
+  console.timeLog('Setup', '6');
 
   if (response.status !== 200 || !response.data?.token || !response.data?.base) {
     console.error('Failed to reset test data', response.data, response.status, dbType);

@@ -3,19 +3,19 @@ import { ViewTypes } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import tinycolor from 'tinycolor2'
 import {
+  baseThemeColors,
   computed,
   extractSdkResponseErrorMsg,
   iconMap,
   isRtlLang,
   message,
-  baseThemeColors,
   ref,
   storeToRefs,
+  useBase,
   useCopy,
   useDashboard,
   useI18n,
   useNuxtApp,
-  useBase,
   useRoles,
   useSmartsheetStoreOrThrow,
   watch,

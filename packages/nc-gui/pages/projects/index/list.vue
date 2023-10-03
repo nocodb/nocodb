@@ -36,11 +36,7 @@ const openProject = async (base: BaseType) => {
         <div class="font-semibold capitalize">{{ base.title || 'Untitled' }}</div>
         <div>{{ base.updated_at }}</div>
         <div class="flex justify-center">
-          <component
-            :is="iconMap.delete"
-            class="text-gray-500 hover:text-red-500 mr-2"
-            @click.stop="emit('delete-base', base)"
-          />
+          <component :is="iconMap.delete" class="text-gray-500 hover:text-red-500 mr-2" @click.stop="emit('delete-base', base)" />
           <component
             :is="iconMap.edit"
             class="text-gray-500 hover:text-primary mr-2"

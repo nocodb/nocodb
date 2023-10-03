@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { SourceType, BaseType } from 'nocodb-sdk'
+import type { BaseType, SourceType } from 'nocodb-sdk'
 
 const props = defineProps<{
   source: SourceType

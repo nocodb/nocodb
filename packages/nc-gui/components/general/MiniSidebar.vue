@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, iconMap, navigateTo, storeToRefs, useGlobal, useBase, useRoute, useSidebar } from '#imports'
+import { computed, iconMap, navigateTo, storeToRefs, useBase, useGlobal, useRoute, useSidebar } from '#imports'
 
 const { signOut, signedIn, user, currentVersion } = useGlobal()
 

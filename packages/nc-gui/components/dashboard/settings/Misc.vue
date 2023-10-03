@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { onMounted } from '@vue/runtime-core'
-import { ProjectIdInj, storeToRefs, useGlobal, useBase, watch } from '#imports'
+import { ProjectIdInj, storeToRefs, useBase, useGlobal, watch } from '#imports'
 
 const { includeM2M, showNull } = useGlobal()
 

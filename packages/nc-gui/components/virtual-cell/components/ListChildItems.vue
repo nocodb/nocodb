@@ -90,7 +90,7 @@ const isFocused = ref(false)
 const fields = computedInject(FieldsInj, (_fields) => {
   return (relatedTableMeta.value.columns ?? [])
     .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
-    .slice(0, 4)
+    .slice(0, isMobileMode.value ? 0 : 4)
 })
 
 const expandedFormDlg = ref(false)

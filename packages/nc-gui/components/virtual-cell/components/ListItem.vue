@@ -109,8 +109,11 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
           />
         </div>
 
-        <div v-if="fields.length > 0 && !isPublic && !isForm" class="flex ml-[-0.25rem] flex-row gap-4 w-10/12">
-          <div v-for="field in fields" :key="field.id" :class="attachment ? 'w-1/3' : 'w-1/4'">
+        <div
+          v-if="fields.length > 0 && !isPublic && !isForm"
+          class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 w-10/12"
+        >
+          <div v-for="field in fields" :key="field.id" :class="attachment ? 'sm:w-1/3' : 'sm:w-1/4'">
             <div class="flex flex-col gap-[-1] max-w-72">
               <LazySmartsheetHeaderVirtualCell
                 v-if="isVirtualCol(field)"

@@ -41,16 +41,6 @@ watch(
     isZooming.value = true
   },
 )
-
-watch(
-  () => data,
-  () => {
-    console.log('data changed', data)
-  },
-  {
-    immediate: true,
-  },
-)
 </script>
 
 <template>

@@ -214,6 +214,7 @@ function openErdView(source: SourceType) {
     'modelValue': isOpen,
     'sourceId': source!.id,
     'onUpdate:modelValue': () => closeDialog(),
+    'baseId': base.value!.id,
   })
 
   function closeDialog() {

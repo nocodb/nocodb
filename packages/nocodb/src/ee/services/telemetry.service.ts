@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { packageInfo } from 'nc-help';
-import { Producer } from './producer/producer';
 import { PostHog } from 'posthog-node';
+import { Producer } from './producer/producer';
 
 @Injectable()
 export class TelemetryService {
@@ -45,13 +45,15 @@ export class TelemetryService {
       return;
     }
 
-    this.phClient?.capture({
-      distinctId: payload['userId'] ?? payload['user_id'] ?? 'default',
-      event,
-      properties: {
-        ...payload,
-      },
-    });
+    // skip if user id is not present
+    if (payload['userId'] ?? payload['user_id'])
+      this.phClient?.capture({
+        distinctId: payload['userId'] ?? payload['user_id'],
+        event,
+        properties: {
+          ...payload,
+        },
+      });
   }
 
   async trackEvents(param: {

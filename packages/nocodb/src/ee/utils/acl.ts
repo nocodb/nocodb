@@ -64,6 +64,7 @@ const permissionScopes = {
     'workspaceInvitationAccept',
     'workspaceInvitationReject',
     'workspaceInvitationTokenRead',
+    'duplicateSharedBase',
   ],
   base: [
     'formViewGet',

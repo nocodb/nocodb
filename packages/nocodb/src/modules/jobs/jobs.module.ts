@@ -2,31 +2,31 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 
 // Jobs
-import { ExportService } from './jobs/export-import/export.service';
-import { ImportService } from './jobs/export-import/import.service';
-import { AtImportController } from './jobs/at-import/at-import.controller';
-import { AtImportProcessor } from './jobs/at-import/at-import.processor';
-import { DuplicateController } from './jobs/export-import/duplicate.controller';
-import { DuplicateProcessor } from './jobs/export-import/duplicate.processor';
-import { MetaSyncController } from './jobs/meta-sync/meta-sync.controller';
-import { MetaSyncProcessor } from './jobs/meta-sync/meta-sync.processor';
-import { SourceCreateController } from './jobs/source-create/source-create.controller';
-import { SourceCreateProcessor } from './jobs/source-create/source-create.processor';
-import { SourceDeleteController } from './jobs/source-delete/source-delete.controller';
-import { SourceDeleteProcessor } from './jobs/source-delete/source-delete.processor';
+import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
+import { ImportService } from '~/modules/jobs/jobs/export-import/import.service';
+import { AtImportController } from '~/modules/jobs/jobs/at-import/at-import.controller';
+import { AtImportProcessor } from '~/modules/jobs/jobs/at-import/at-import.processor';
+import { DuplicateController } from '~/modules/jobs/jobs/export-import/duplicate.controller';
+import { DuplicateProcessor } from '~/modules/jobs/jobs/export-import/duplicate.processor';
+import { MetaSyncController } from '~/modules/jobs/jobs/meta-sync/meta-sync.controller';
+import { MetaSyncProcessor } from '~/modules/jobs/jobs/meta-sync/meta-sync.processor';
+import { SourceCreateController } from '~/modules/jobs/jobs/source-create/source-create.controller';
+import { SourceCreateProcessor } from '~/modules/jobs/jobs/source-create/source-create.processor';
+import { SourceDeleteController } from '~/modules/jobs/jobs/source-delete/source-delete.controller';
+import { SourceDeleteProcessor } from '~/modules/jobs/jobs/source-delete/source-delete.processor';
 
 // Jobs Module Related
-import { JobsLogService } from './jobs/jobs-log.service';
-// import { JobsGateway } from './jobs.gateway';
-import { JobsController } from './jobs.controller';
-import { JobsService } from './redis/jobs.service';
-import { JobsRedisService } from './redis/jobs-redis.service';
-import { JobsEventService } from './redis/jobs-event.service';
+import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
+// import { JobsGateway } from '~/modules/jobs/jobs.gateway';
+import { JobsController } from '~/modules/jobs/jobs.controller';
+import { JobsService } from '~/modules/jobs/redis/jobs.service';
+import { JobsRedisService } from '~/modules/jobs/redis/jobs-redis.service';
+import { JobsEventService } from '~/modules/jobs/redis/jobs-event.service';
 
 // Fallback
-import { JobsService as FallbackJobsService } from './fallback/jobs.service';
-import { QueueService as FallbackQueueService } from './fallback/fallback-queue.service';
-import { JobsEventService as FallbackJobsEventService } from './fallback/jobs-event.service';
+import { JobsService as FallbackJobsService } from '~/modules/jobs/fallback/jobs.service';
+import { QueueService as FallbackQueueService } from '~/modules/jobs/fallback/fallback-queue.service';
+import { JobsEventService as FallbackJobsEventService } from '~/modules/jobs/fallback/jobs-event.service';
 import { JOBS_QUEUE } from '~/interface/Jobs';
 import { MetasModule } from '~/modules/metas/metas.module';
 import { DatasModule } from '~/modules/datas/datas.module';

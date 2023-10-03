@@ -87,6 +87,10 @@ const { deleteWorkspace: _deleteWorkspace, loadWorkspaces } = workspaceStore
 // create a new sidebar state
 const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
+const { sharedBaseId } = useCopySharedBase()
+
+const isDuplicateDlgOpen = ref(false)
+
 let timerRef: any
 
 onUnmounted(() => {
@@ -119,7 +123,53 @@ onMounted(async () => {
       await autoNavigateToProject()
     }
   }
+
+  if (sharedBaseId.value) isDuplicateDlgOpen.value = true
 })
+
+const { bases } = storeToRefs(basesStore)
+
+const { $e, $poller } = useNuxtApp()
+
+const DlgSharedBaseDuplicateOnOk = async (jobData: { id: string; base_id: string }) => {
+  await populateWorkspace()
+
+  $poller.subscribe(
+    { id: jobData.id },
+    async (data: {
+      id: string
+      status?: string
+      data?: {
+        error?: {
+          message: string
+        }
+        message?: string
+        result?: any
+      }
+    }) => {
+      if (data.status !== 'close') {
+        if (data.status === JobStatus.COMPLETED) {
+          await populateWorkspace()
+
+          const base = bases.value.get(jobData.base_id)
+
+          // open project after duplication
+          if (base) {
+            await basesStore.navigateToProject({
+              workspaceId: base.fk_workspace_id!,
+              baseId: base.id!,
+            })
+          }
+        } else if (data.status === JobStatus.FAILED) {
+          message.error('Failed to duplicate project')
+          await populateWorkspace()
+        }
+      }
+    },
+  )
+
+  $e('a:base:duplicate-shared-base')
+}
 </script>
 
 <template>
@@ -138,6 +188,7 @@ onMounted(async () => {
       v-model:data-sources-state="dataSourcesState"
       :base-id="dialogProjectId"
     />
+    <DlgSharedBaseDuplicate v-model="isDuplicateDlgOpen" :shared-base-id="sharedBaseId" :on-ok="DlgSharedBaseDuplicateOnOk" />
   </div>
 </template>
 

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { SourceType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import type { LinkToAnotherRecordType, SourceType, TableType } from 'nocodb-sdk'
 import { isLinksOrLTAR } from 'nocodb-sdk'
 import type { ERDConfig } from './utils'
-import { reactive, ref, storeToRefs, useMetas, useBase, watch } from '#imports'
+import { reactive, ref, storeToRefs, useBase, useMetas, watch } from '#imports'
 
 const props = defineProps({
   sourceId: {
@@ -93,7 +93,9 @@ watch(config, populateTables, {
 
 const filteredTables = computed(() =>
   tables.value.filter((t) =>
-    props?.sourceId ? t.source_id === props.sourceId : t.source_id === sources.value?.filter((source: SourceType) => source.enabled)[0].id,
+    props?.sourceId
+      ? t.source_id === props.sourceId
+      : t.source_id === sources.value?.filter((source: SourceType) => source.enabled)[0].id,
   ),
 )
 

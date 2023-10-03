@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import type { SourceType } from 'nocodb-sdk'
-import { ClientType, DataSourcesSubTab, storeToRefs, useCommandPalette, useNuxtApp, useBase } from '#imports'
+import { ClientType, DataSourcesSubTab, storeToRefs, useBase, useCommandPalette, useNuxtApp } from '#imports'
 
 interface Props {
   state: string
@@ -416,7 +416,7 @@ const isEditBaseModalOpen = computed({
                   <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
                   <div v-if="source.is_meta || source.is_local">-</div>
                   <div v-else class="flex items-center gap-1">
-                    {{ source.is_meta || source.is_local ?  $t('general.base') : source.alias }}
+                    {{ source.is_meta || source.is_local ? $t('general.base') : source.alias }}
                   </div>
                 </div>
 

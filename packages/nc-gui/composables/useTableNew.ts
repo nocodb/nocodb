@@ -10,11 +10,11 @@ import {
   message,
   reactive,
   storeToRefs,
+  useBase,
   useCommandPalette,
   useI18n,
   useMetas,
   useNuxtApp,
-  useBase,
   useTabs,
   watch,
 } from '#imports'

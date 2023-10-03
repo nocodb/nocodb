@@ -12,8 +12,8 @@ import {
   onMounted,
   ref,
   storeToRefs,
-  useNuxtApp,
   useBase,
+  useNuxtApp,
   watch,
 } from '#imports'
 

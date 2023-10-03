@@ -10,8 +10,6 @@ const props = withDefaults(
   },
 )
 
-const { user } = useGlobal()
-
 const emailProp = toRef(props, 'email')
 
 const backgroundColor = computed(() => {
@@ -20,14 +18,14 @@ const backgroundColor = computed(() => {
     return stringToColour(emailProp.value)
   }
 
-  return user.value?.email ? stringToColour(user.value?.email) : '#FFFFFF'
+  return props.email ? stringToColour(props.email) : '#FFFFFF'
 })
 
 const size = computed(() => props.size || 'medium')
 
-const displayName = computed(() => props.name ?? user.value?.display_name ?? '')
+const displayName = computed(() => props.email ?? '')
 
-const email = computed(() => props.name ?? user.value?.email ?? '')
+const email = computed(() => props.name ?? props?.email ?? '')
 
 const usernameInitials = computed(() => {
   const displayNameSplit = displayName.value?.split(' ').filter((name) => name) ?? []

@@ -2,7 +2,7 @@
 import type { OrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import { OrderedProjectRoles, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
-import { isEeUI, storeToRefs, stringToColour, timeAgo } from '#imports'
+import { isEeUI, storeToRefs, timeAgo } from '#imports'
 
 const basesStore = useBases()
 const { getProjectUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
@@ -182,17 +182,17 @@ onMounted(async () => {
       </div>
       <div v-else class="nc-collaborators-list !mt-10 rounded-md">
         <div class="h-200 overflow-y-auto nc-scrollbar-md">
-          <table>
-            <thead class="bg-gray-50 border-1 h-10">
-              <th class="text-start w-1/4 text-gray-700">{{ $t('objects.users') }}</th>
-              <th class="text-start w-1/4 text-gray-700">{{ $t('title.dateJoined') }}</th>
-              <th class="text-start w-1/4 text-gray-700">{{ $t('general.access') }}</th>
-              <th class="text-start w-1/4 text-gray-700">Actions</th>
+          <table class="border-1">
+            <thead class="bg-gray-50 border-1 h-10 sticky top-0">
+              <th class="text-start w-1/4 text-gray-700 sticky top-0">{{ $t('objects.users') }}</th>
+              <th class="text-start w-1/4 text-gray-700 sticky top-0">{{ $t('title.dateJoined') }}</th>
+              <th class="text-start w-1/4 text-gray-700 sticky top-0">{{ $t('general.access') }}</th>
+              <th class="text-start w-1/4 text-gray-700 sticky top-0">Actions</th>
             </thead>
             <tbody>
               <tr v-for="(collab, i) of collaborators" :key="i" class="border-b-1 py-1 h-14">
                 <td class="flex gap-3 justify-start items-center h-14 pl-8">
-                  <GeneralUserIcon size="base" :email="collab.email" />
+                  <GeneralUserIcon size="base" :name="collab.email" :email="collab.email" />
                   <span class="truncate">
                     {{ collab.email }}
                   </span>
@@ -217,7 +217,9 @@ onMounted(async () => {
                     </div>
                   </template>
                   <template v-else>
-                    <RolesBadge class="!bg-white" :role="collab.roles" />
+                    <div class="flex justify-center">
+                      <RolesBadge class="!bg-white !w-25" :role="collab.roles" />
+                    </div>
                   </template>
                 </td>
                 <td class="w-1/4">

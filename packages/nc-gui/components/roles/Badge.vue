@@ -67,7 +67,6 @@ const roleProperties = computed(() => {
         <GeneralIcon v-if="clickableRef" icon="arrowDown" />
       </div>
     </NcBadge>
-    <div class="flex-1"></div>
     <!--
     <a-tooltip v-if="inheritRef" placement="bottom">
       <div class="text-gray-400 text-xs p-1 rounded-md">Workspace Role</div>

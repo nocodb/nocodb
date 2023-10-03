@@ -205,7 +205,8 @@ const isTableOpened = computed(() => {
                       {{ $t('general.changeIcon') }}
                     </template>
 
-                    <MdiTable
+                    <component
+                      :is="iconMap.table"
                       v-if="table.type === 'table'"
                       class="flex w-5 !text-gray-500 text-sm"
                       :class="{
@@ -213,6 +214,7 @@ const isTableOpened = computed(() => {
                         '!text-black': openedTableId === table.id,
                       }"
                     />
+
                     <MdiEye
                       v-else
                       class="flex w-5 !text-gray-500 text-sm"

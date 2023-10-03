@@ -49,7 +49,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
   const { loadTables, baseUrl, isXcdbBase } = useBase()
 
-  const { openedViewsTab } = storeToRefs(useViewsStore())
+  const { openedViewsTab, viewsByTable } = storeToRefs(useViewsStore())
 
   const workspaceId = computed(() => route.value.params.typeOrId as string)
 
@@ -86,11 +86,11 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
       tableId: table.id,
     })
 
-    const meta = await getMeta(table.id as string)
+    const views = viewsByTable.value.get(table.id as string) ?? []
 
-    if (openedViewsTab.value !== 'view' && meta?.views[0].id) {
+    if (openedViewsTab.value !== 'view' && views[0].id) {
       await navigateTo({
-        path: `/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${meta?.views[0].id}/${openedViewsTab.value}`,
+        path: `/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${views[0].id}/${openedViewsTab.value}`,
         query: route.value.query,
       })
     } else

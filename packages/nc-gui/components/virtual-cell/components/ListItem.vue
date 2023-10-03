@@ -87,9 +87,11 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
       <div v-else-if="attachment" class="h-24 w-24 w-full !flex flex-row items-center !rounded-l-xl justify-center">
         <img class="object-contain h-24 w-24" src="~assets/icons/FileIconImageBox.png" />
       </div>
-      <div class="flex flex-col m-[.75rem] gap-1 flex-grow justify-center">
-        <div class="flex justify-between">
-          <span class="font-semibold text-gray-800 nc-display-value"> {{ row[relatedTableDisplayValueProp] }} </span>
+      <div class="flex flex-col m-[.75rem] gap-1 flex-grow justify-center overflow-hidden">
+        <div class="flex justify-between xs:gap-x-2">
+          <span class="font-semibold text-gray-800 nc-display-value xs:(truncate)">
+            {{ row[relatedTableDisplayValueProp] }}
+          </span>
           <div
             v-if="isLinked && !isLoading"
             class="text-brand-500 text-0.875"

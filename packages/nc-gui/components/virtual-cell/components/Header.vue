@@ -58,7 +58,9 @@ const relationMeta = computed(() => {
     </div>
     <div class="flex flex-row sm:w-[calc(100%-16rem)] xs:w-full items-center justify-center gap-2 xs:(h-full)">
       <div class="flex sm:justify-end w-[calc(50%-1.5rem)] xs:(w-[calc(50%-1.5rem)] h-full)">
-        <div class="flex w-full flex-shrink-0 xs:(h-full) rounded-md gap-1 text-brand-500 items-center bg-gray-100 px-2 py-1">
+        <div
+          class="flex max-w-full xs:w-full flex-shrink-0 xs:(h-full) rounded-md gap-1 text-brand-500 items-center bg-gray-100 px-2 py-1"
+        >
           <FileIcon class="w-4 h-4 min-w-4" />
           <span class="truncate">
             {{ displayValue }}
@@ -79,7 +81,7 @@ const relationMeta = computed(() => {
       </NcTooltip>
       <div class="flex justify-start xs:w-[calc(50%-1.5rem)] w-[calc(50%-1.5rem)] xs:justify-start">
         <div
-          class="flex rounded-md flex-shrink-0 gap-1 items-center px-2 py-1 w-full overflow-hidden"
+          class="flex rounded-md max-w-full flex-shrink-0 gap-1 items-center px-2 py-1 xs:w-full overflow-hidden"
           :class="{
             '!bg-orange-50 !text-orange-500': relation === 'hm',
             '!bg-pink-50 !text-pink-500': relation === 'mm',

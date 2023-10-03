@@ -99,6 +99,8 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 provide(MetaInj, meta)
 
+const isLoading = ref(true)
+
 const {
   commentsDrawer,
   changedColumns,
@@ -116,22 +118,6 @@ const {
 } = useProvideExpandedFormStore(meta, row)
 
 const duplicatingRowInProgress = ref(false)
-
-if (props.loadRow) {
-  await _loadRow(rowId.value)
-}
-
-if (rowId.value) {
-  try {
-    await _loadRow(rowId.value)
-  } catch (e: any) {
-    if (e.response?.status === 404) {
-      // todo: i18n
-      message.error('Record not found')
-      router.replace({ query: {} })
-    } else throw e
-  }
-}
 
 useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
 
@@ -232,7 +218,26 @@ provide(IsExpandedFormOpenInj, isExpanded)
 
 const cellWrapperEl = ref()
 
-onMounted(() => {
+onMounted(async () => {
+  isLoading.value = true
+  if (props.loadRow) {
+    await _loadRow()
+  }
+
+  if (props.rowId) {
+    try {
+      await _loadRow(props.rowId)
+    } catch (e: any) {
+      if (e.response?.status === 404) {
+        // todo: i18n
+        message.error('Record not found')
+        router.replace({ query: {} })
+      } else throw e
+    }
+  }
+
+  isLoading.value = false
+
   setTimeout(() => {
     cellWrapperEl.value?.$el?.querySelector('input,select,textarea')?.focus()
   }, 300)
@@ -389,10 +394,10 @@ export default {
                 <MdiChevronDown class="text-md" />
               </NcButton>
             </div>
-            <div
-              v-if="displayValue && !row.rowMeta?.new"
-              class="flex items-center truncate w-32 hover:w-64 transition-all font-bold text-gray-800 text-xl"
-            >
+            <div v-if="isLoading">
+              <a-skeleton-input class="!h-8 !sm:mr-14 !w-52 mt-1 !rounded-md !overflow-hidden" active size="small" />
+            </div>
+            <div v-else-if="displayValue && !row.rowMeta?.new" class="flex items-center font-bold text-gray-800 text-xl w-64">
               <span class="truncate">
                 {{ displayValue }}
               </span>
@@ -495,7 +500,7 @@ export default {
               :col-id="col.id"
               :data-testid="`nc-expand-col-${col.title}`"
             >
-              <div class="flex items-start flex-row xs:(flex-col w-full) nc-expanded-cell">
+              <div class="flex items-start flex-row xs:(flex-col w-full) nc-expanded-cell min-h-10">
                 <div class="w-[12rem] xs:(w-full) mt-1.5 !h-[35px]">
                   <LazySmartsheetHeaderVirtualCell
                     v-if="isVirtualCol(col)"
@@ -506,23 +511,28 @@ export default {
                   <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header !text-gray-600" :column="col" />
                 </div>
 
-                <LazySmartsheetDivDataCell
-                  v-if="col.title"
-                  :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                  class="!bg-white rounded-lg !w-[20rem] !xs:w-full border-1 overflow-hidden border-gray-200 px-1 min-h-[35px] flex items-center relative"
-                >
-                  <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="_row.row[col.title]" :row="_row" :column="col" />
+                <template v-if="isLoading">
+                  <a-skeleton-input class="!h-8.5 !sm:mr-21 !w-60 mt-0.75 !rounded-lg !overflow-hidden" active size="small" />
+                </template>
+                <template v-else>
+                  <SmartsheetDivDataCell
+                    v-if="col.title"
+                    :ref="i ? null : (el: any) => (cellWrapperEl = el)"
+                    class="!bg-white rounded-lg !w-[20rem] !xs:w-full border-1 border-gray-200 overflow-hidden px-1 min-h-[35px] flex items-center relative"
+                  >
+                    <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="_row.row[col.title]" :row="_row" :column="col" />
 
-                  <LazySmartsheetCell
-                    v-else
-                    v-model="_row.row[col.title]"
-                    :column="col"
-                    :edit-enabled="true"
-                    :active="true"
-                    :read-only="isPublic"
-                    @update:model-value="changedColumns.add(col.title)"
-                  />
-                </LazySmartsheetDivDataCell>
+                    <LazySmartsheetCell
+                      v-else
+                      v-model="_row.row[col.title]"
+                      :column="col"
+                      :edit-enabled="true"
+                      :active="true"
+                      :read-only="isPublic"
+                      @update:model-value="changedColumns.add(col.title)"
+                    />
+                  </SmartsheetDivDataCell>
+                </template>
               </div>
             </div>
             <div v-if="hiddenFields.length > 0" class="flex w-full px-12 items-center py-3">
@@ -543,34 +553,45 @@ export default {
                 :class="`nc-expand-col-${col.title}`"
                 :data-testid="`nc-expand-col-${col.title}`"
               >
-                <div class="flex flex-row items-start">
+                <div class="flex flex-row items-start min-h-10">
                   <div class="w-[12rem] scale-110 !h-[35px] mt-2.5">
-                    <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" class="!text-gray-600" :column="col" />
+                    <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" class="!text-gray-600" />
 
                     <LazySmartsheetHeaderCell v-else class="!text-gray-600" :column="col" />
                   </div>
 
-                  <LazySmartsheetDivDataCell
-                    v-if="col.title"
-                    :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                    class="!bg-white rounded-lg !w-[20rem] border-1 overflow-hidden border-gray-200 px-1 min-h-[35px] flex items-center relative"
-                  >
-                    <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="_row.row[col.title]" :row="_row" :column="col" />
+                  <template v-if="isLoading">
+                    <a-skeleton-input class="!h-8.5 !sm:mr-21 !w-60 mt-0.75 !rounded-lg !overflow-hidden" active size="small" />
+                  </template>
+                  <template v-else>
+                    <LazySmartsheetDivDataCell
+                      v-if="col.title"
+                      :ref="i ? null : (el: any) => (cellWrapperEl = el)"
+                      class="!bg-white rounded-lg !w-[20rem] border-1 overflow-hidden border-gray-200 px-1 min-h-[35px] flex items-center relative"
+                    >
+                      <LazySmartsheetVirtualCell
+                        v-if="isVirtualCol(col)"
+                        v-model="_row.row[col.title]"
+                        :row="_row"
+                        :column="col"
+                      />
 
-                    <LazySmartsheetCell
-                      v-else
-                      v-model="_row.row[col.title]"
-                      :column="col"
-                      :edit-enabled="true"
-                      :active="true"
-                      :read-only="isPublic"
-                      @update:model-value="changedColumns.add(col.title)"
-                    />
-                  </LazySmartsheetDivDataCell>
+                      <LazySmartsheetCell
+                        v-else
+                        v-model="_row.row[col.title]"
+                        :column="col"
+                        :edit-enabled="true"
+                        :active="true"
+                        :read-only="isPublic"
+                        @update:model-value="changedColumns.add(col.title)"
+                      />
+                    </LazySmartsheetDivDataCell>
+                  </template>
                 </div>
               </div>
             </div>
           </div>
+
           <div
             v-if="isUIAllowed('dataEdit')"
             class="w-full h-16 border-t-1 border-gray-200 bg-white flex items-center justify-end p-3 xs:(p-0 mt-4 border-t-0 gap-x-4 justify-between)"
@@ -633,7 +654,7 @@ export default {
           class="nc-comments-drawer border-1 relative border-gray-200 w-1/3 max-w-125 bg-gray-50 rounded-xl min-w-0 overflow-hidden h-full xs:hidden"
           :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
         >
-          <LazySmartsheetExpandedFormComments />
+          <SmartsheetExpandedFormComments />
         </div>
       </div>
     </div>

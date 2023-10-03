@@ -17,6 +17,7 @@ import type {
   NestMiddleware,
 } from '@nestjs/common';
 import {
+  Audit,
   Base,
   Column,
   Filter,
@@ -165,6 +166,16 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         id: req.query?.fk_model_id,
       });
       req.ncProjectId = model?.base_id;
+    } else if (
+      [
+        '/api/v1/db/meta/audits/:auditId/comment',
+        '/api/v1/meta/audits/:auditId/comment',
+      ].some((auditPatchPath) => req.route.path === auditPatchPath) &&
+      req.method === 'PATCH' &&
+      req.params.auditId
+    ) {
+      const audit = await Audit.get(params.auditId);
+      req.ncProjectId = audit?.base_id;
     }
     // extract base id from query params only if it's userMe endpoint
     else if (

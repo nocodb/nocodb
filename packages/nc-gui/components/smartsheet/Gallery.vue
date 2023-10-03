@@ -126,7 +126,7 @@ const attachments = (record: any): Attachment[] => {
 const expandForm = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
-  if (rowId && !isPublic.value) {
+  if (rowId) {
     router.push({
       query: {
         ...route.query,
@@ -347,9 +347,7 @@ watch(
                       :read-only="true"
                     />
                   </div>
-                  <div v-else class="flex flex-row w-full h-[1.375rem] pl-1 items-center justify-start">
-                    <span class="bg-gray-200 h-2 w-16 rounded-md"></span>
-                  </div>
+                  <div v-else class="flex flex-row w-full h-[1.375rem] pl-1 items-center justify-start">-</div>
                 </div>
               </div>
             </a-card>
@@ -374,7 +372,6 @@ watch(
   <Suspense>
     <LazySmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg"
-      :key="route.query.rowId"
       v-model="expandedFormOnRowIdDlg"
       :row="{ row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"

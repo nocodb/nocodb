@@ -171,10 +171,7 @@ const columns = [
             <div v-if="column.name === 'table_name'">
               <div class="flex items-center gap-1">
                 <div class="min-w-5 flex items-center justify-center">
-                  <GeneralTableIcon
-                    :meta="{ meta: record.table_meta, type: record.ptype }"
-                    class="text-gray-500"
-                  ></GeneralTableIcon>
+                  <GeneralTableIcon :meta="{ meta: record.table_meta, type: record.ptype }" class="text-gray-500" />
                 </div>
                 <GeneralTruncateText>
                   <span class="overflow-ellipsis min-w-0 shrink-1">{{ record._ptn }}</span>

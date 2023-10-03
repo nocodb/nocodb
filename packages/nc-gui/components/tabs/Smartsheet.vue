@@ -190,7 +190,6 @@ watch([activeViewTitleOrId, activeTableId], () => {
       </div>
       <SmartsheetDetails v-else />
     </div>
-
     <LazySmartsheetExpandedFormDetached />
   </div>
 </template>

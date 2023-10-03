@@ -82,6 +82,15 @@ import NcCommentHere from '~icons/nc-icons/comment-here'
 import NcAddDataSource from '~icons/nc-icons/add-data-source'
 import NcDatabaseIcon from '~icons/nc-icons/database'
 
+import HasManyIcon from '~icons/nc-icons/hasmany'
+import ManytoManyIcon from '~icons/nc-icons/manytomany'
+import BelongsToIcon from '~icons/nc-icons/belongsto'
+import HasManySolidIcon from '~icons/nc-icons/hm-solid'
+import ManytoManySolidIcon from '~icons/nc-icons/mm-solid'
+import BelongsToSolidIcon from '~icons/nc-icons/bt-solid'
+import Record from '~icons/nc-icons/record'
+import Project from '~icons/nc-icons/project'
+
 // Roles
 import MaterialSymbolsManageAccountsOutline from '~icons/material-symbols/manage-accounts-outline'
 // account
@@ -237,7 +246,14 @@ import MaterialSymbolsBlock from '~icons/material-symbols/block'
 } as const */
 
 export const iconMap = {
+  mm: ManytoManyIcon,
+  hm: HasManyIcon,
+  bt: BelongsToIcon,
+  mm_solid: ManytoManySolidIcon,
+  hm_solid: HasManySolidIcon,
+  bt_solid: BelongsToSolidIcon,
   workspaceDefault: MsGroup,
+  project: Project,
   search: NcSearch,
   error: h('span', { class: 'material-symbols' }, 'error'),
   info: h(MsInfo, {}, () => 'info'),
@@ -322,7 +338,7 @@ export const iconMap = {
   // threeDotHorizontal: h('span', { class: 'material-symbols' }, 'more_horiz'),
   threeDotVertical: MdiDotsVertical,
   threeDotHorizontal: MdiDotsHorizontal,
-  table: MdiTable,
+  table: Record,
   excel: PhExcelThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   csv: PhCsvThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   code: Code,
@@ -393,9 +409,6 @@ export const iconMap = {
   closeBox: h('span', { class: 'material-symbols' }, 'close'),
   close: MSCloseRounded,
   openInNew: h('span', { class: 'material-symbols' }, 'open_in_new'),
-  mm: h('span', { class: 'material-symbols' }, 'table_rows'),
-  hm: h('span', { class: 'material-symbols' }, 'table_rows'),
-  bt: h('span', { class: 'material-symbols' }, 'subdirectory_arrow_right'),
   passwordChange: h('span', { class: 'material-symbols' }, 'vpn_key'),
   mapMarker: h('span', { class: 'material-symbols' }, 'room'),
   currentLocation: h('span', { class: 'material-symbols' }, 'my_location'),

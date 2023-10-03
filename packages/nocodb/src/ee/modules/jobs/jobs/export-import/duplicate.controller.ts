@@ -1,0 +1,98 @@
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Inject,
+  Param,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
+import { ProjectStatus } from 'nocodb-sdk';
+import { DuplicateController as DuplicateControllerCE } from 'src/modules/jobs/jobs/export-import/duplicate.controller';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { BasesService } from '~/services/bases.service';
+import { Base } from '~/models';
+import { generateUniqueName } from '~/helpers/exportImportHelpers';
+import { JobTypes } from '~/interface/Jobs';
+
+@Controller()
+@UseGuards(GlobalGuard)
+export class DuplicateController extends DuplicateControllerCE {
+  constructor(
+    @Inject('JobsService') protected readonly jobsService,
+    protected readonly basesService: BasesService,
+  ) {
+    super(jobsService, basesService);
+  }
+
+  // const project = await Project.getByUuid(sharedBaseId);
+
+  @Post([
+    '/api/v1/db/meta/duplicate/:workspaceId/shared/:sharedBaseId',
+    '/api/v1/meta/duplicate/:workspaceId/shared/:sharedBaseId',
+  ])
+  @HttpCode(200)
+  @Acl('duplicateSharedBase', {
+    scope: 'workspace',
+  })
+  async duplicateSharedBase(
+    @Request() req,
+    @Param('sharedBaseId') sharedBaseId: string,
+    @Body()
+    body?: {
+      options?: {
+        excludeData?: boolean;
+        excludeViews?: boolean;
+      };
+      // override duplicated base
+      base?: any;
+    },
+  ) {
+    const base = await Base.getByUuid(sharedBaseId);
+
+    if (!base) {
+      throw new Error(`Base not found for id '${sharedBaseId}'`);
+    }
+
+    const source = (await base.getBases())[0];
+
+    if (!source) {
+      throw new Error(`Source not found!`);
+    }
+
+    const bases = await Base.list({});
+
+    const uniqueTitle = generateUniqueName(
+      `${base.title} copy`,
+      bases.map((p) => p.title),
+    );
+
+    const dupProject = await this.basesService.baseCreate({
+      base: {
+        title: uniqueTitle,
+        status: ProjectStatus.JOB,
+        ...(body.base || {}),
+      },
+      user: { id: req.user.id },
+    });
+
+    const job = await this.jobsService.add(JobTypes.DuplicateBase, {
+      baseId: base.id,
+      sourceId: source.id,
+      dupProjectId: dupProject.id,
+      options:
+        {
+          ...body.options,
+          excludeHooks: true,
+        } || {},
+      req: {
+        user: req.user,
+        clientIp: req.clientIp,
+      },
+    });
+
+    return { id: job.id, base_id: dupProject.id };
+  }
+}

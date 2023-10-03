@@ -26,34 +26,41 @@ export class TelemetryService {
     evt_type: string;
     [key: string]: any;
   }) {
-    this.producer
-      .sendMessage(
-        'cloud-telemetry',
-        JSON.stringify({
-          timestamp: Date.now(),
-          event,
-          ...this.defaultPayload,
-          ...payload,
-        }),
-      )
-      .catch((err) => {
-        this.logger.error(err);
-      });
+    // commented out for now since we are not using kafka for now
+    // this.producer
+    //   .sendMessage(
+    //     'cloud-telemetry',
+    //     JSON.stringify({
+    //       timestamp: Date.now(),
+    //       event,
+    //       ...this.defaultPayload,
+    //       ...payload,
+    //     }),
+    //   )
+    //   .catch((err) => {
+    //     this.logger.error(err);
+    //   });
 
-    this.phClient?.capture({
-      distinctId: payload.userId,
-      event,
-      properties: {
-        ...payload,
-      },
-    });
+    if (!process.env.NC_CLOUD_POSTHOG_API_KEY) {
+      return;
+    }
+
+    // skip if user id is not present
+    if (payload['userId'] ?? payload['user_id'])
+      this.phClient?.capture({
+        distinctId: payload['userId'] ?? payload['user_id'],
+        event,
+        properties: {
+          ...payload,
+        },
+      });
   }
 
   async trackEvents(param: {
     body: { clientId: string; events: any[] };
     req: any;
   }) {
-    const messages = [];
+    if (!process.env.NC_CLOUD_POSTHOG_API_KEY) return;
 
     for (const event of param.body.events) {
       const payload = {
@@ -67,7 +74,8 @@ export class TelemetryService {
         ...this.defaultPayload,
       };
 
-      messages.push(JSON.stringify(payload));
+      // commented out for now since we are not using kafka for now
+      // messages.push(JSON.stringify(payload));
 
       this.phClient?.capture({
         distinctId: payload.client_id || payload.userId,
@@ -78,6 +86,7 @@ export class TelemetryService {
       });
     }
 
-    await this.producer.sendMessages('cloud-telemetry', messages);
+    // commented out for now since we are not using kafka for now
+    // await this.producer.sendMessages('cloud-telemetry', messages);
   }
 }

@@ -350,6 +350,8 @@ const setup = async ({
   isSuperUser?: boolean;
   url?: string;
 }): Promise<NcContext> => {
+  console.time('Setup');
+
   let dbType = process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE;
   dbType = dbType || (isEE() ? 'pg' : 'sqlite');
 
@@ -443,6 +445,9 @@ const setup = async ({
   }
 
   await page.goto(baseUrl, { waitUntil: 'networkidle' });
+
+  console.timeEnd('Setup');
+
   return {
     base,
     token,

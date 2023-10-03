@@ -64,6 +64,7 @@ const permissionScopes = {
     'workspaceInvitationAccept',
     'workspaceInvitationReject',
     'workspaceInvitationTokenRead',
+    'duplicateSharedBase',
   ],
   base: [
     'formViewGet',
@@ -104,6 +105,7 @@ const permissionScopes = {
     'swaggerJson',
     'commentList',
     'commentsCount',
+    'commentUpdate',
     'hideAllColumns',
     'showAllColumns',
     'auditRowUpdate',
@@ -290,6 +292,7 @@ const rolePermissions:
       commentRow: true,
       commentList: true,
       commentsCount: true,
+      commentUpdate: true,
     },
   },
   [ProjectRoles.EDITOR]: {

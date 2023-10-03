@@ -184,19 +184,23 @@ export const useViewsStore = defineStore('viewsStore', () => {
     baseId,
     tableId,
     hardReload,
+    doNotSwitchTab,
   }: {
     view: ViewType
     baseId: string
     tableId: string
     hardReload?: boolean
+    doNotSwitchTab?: boolean
   }) => {
-    const routeName = 'index-typeOrId-baseId-index-index-viewId-viewTitle'
+    const routeName = 'index-typeOrId-baseId-index-index-viewId-viewTitle-slugs'
 
-    let projectIdOrBaseId = baseId
+    let baseIdOrBaseId = baseId
 
     if (['base'].includes(route.value.params.typeOrId as string)) {
-      projectIdOrBaseId = route.value.params.baseId as string
+      baseIdOrBaseId = route.value.params.baseId as string
     }
+
+    const slugs = doNotSwitchTab ? router.currentRoute.value.params.slugs : undefined
 
     if (
       router.currentRoute.value.query &&
@@ -205,11 +209,24 @@ export const useViewsStore = defineStore('viewsStore', () => {
     ) {
       await router.push({
         name: routeName,
-        params: { viewTitle: view.id || '', viewId: tableId, baseId: projectIdOrBaseId },
+        params: {
+          viewTitle: view.id || '',
+          viewId: tableId,
+          baseId: baseIdOrBaseId,
+          slugs,
+        },
         query: router.currentRoute.value.query,
       })
     } else {
-      await router.push({ name: routeName, params: { viewTitle: view.id || '', viewId: tableId, baseId: projectIdOrBaseId } })
+      await router.push({
+        name: routeName,
+        params: {
+          viewTitle: view.id || '',
+          viewId: tableId,
+          baseId: baseIdOrBaseId,
+          slugs,
+        },
+      })
     }
 
     if (hardReload) {
@@ -217,13 +234,23 @@ export const useViewsStore = defineStore('viewsStore', () => {
         .replace({
           name: routeName,
           query: { reload: 'true' },
-          params: { viewId: tableId, baseId: projectIdOrBaseId, viewTitle: view.id || '' },
+          params: {
+            viewId: tableId,
+            baseId: baseIdOrBaseId,
+            viewTitle: view.id || '',
+            slugs,
+          },
         })
         .then(() => {
           router.replace({
             name: routeName,
             query: {},
-            params: { viewId: tableId, viewTitle: view.id || '', baseId: projectIdOrBaseId },
+            params: {
+              viewId: tableId,
+              viewTitle: view.id || '',
+              baseId: baseIdOrBaseId,
+              slugs,
+            },
           })
         })
     }

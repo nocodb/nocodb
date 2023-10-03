@@ -29,15 +29,14 @@ import {
   useVModel,
   watch,
 } from '#imports'
-import type { Row } from '#imports'
 
 interface Props {
   modelValue?: boolean
-  row: Row
   state?: Record<string, any> | null
   meta: TableType
   loadRow?: boolean
   useMetaFields?: boolean
+  row?: Row
   rowId?: string
   view?: ViewType
   showNextPrevIcons?: boolean
@@ -57,7 +56,9 @@ const { isMobileMode } = useGlobal()
 
 const { t } = useI18n()
 
-const row = ref(props.row)
+const rowId = toRef(props, 'rowId')
+
+const row = toRef(props, 'row')
 
 const state = toRef(props, 'state')
 
@@ -108,19 +109,21 @@ const {
   loadRow: _loadRow,
   primaryKey,
   saveRowAndStay,
+  row: _row,
   syncLTARRefs,
   save: _save,
+  loadCommentsAndLogs,
 } = useProvideExpandedFormStore(meta, row)
 
 const duplicatingRowInProgress = ref(false)
 
 if (props.loadRow) {
-  await _loadRow()
+  await _loadRow(rowId.value)
 }
 
-if (props.rowId) {
+if (rowId.value) {
   try {
-    await _loadRow(props.rowId)
+    await _loadRow(rowId.value)
   } catch (e: any) {
     if (e.response?.status === 404) {
       // todo: i18n
@@ -149,14 +152,14 @@ const isExpanded = useVModel(props, 'modelValue', emits, {
 })
 
 const onClose = () => {
-  if (row.value?.rowMeta?.new) emits('cancel')
+  if (_row.value?.rowMeta?.new) emits('cancel')
   isExpanded.value = false
 }
 
 const onDuplicateRow = () => {
   duplicatingRowInProgress.value = true
   isUnsavedFormExist.value = true
-  const oldRow = { ...row.value.row }
+  const oldRow = { ..._row.value.row }
   delete oldRow.ncRecordId
   const newRow = Object.assign(
     {},
@@ -167,7 +170,7 @@ const onDuplicateRow = () => {
     },
   )
   setTimeout(async () => {
-    row.value = newRow
+    _row.value = newRow
     duplicatingRowInProgress.value = false
     message.success(t('msg.success.rowDuplicatedWithoutSavedYet'))
   }, 500)
@@ -219,17 +222,12 @@ provide(ReloadRowDataHookInj, reloadHook)
 
 if (isKanban.value) {
   // adding column titles to changedColumns if they are preset
-  for (const [k, v] of Object.entries(row.value.row)) {
+  for (const [k, v] of Object.entries(_row.value.row)) {
     if (v) {
       changedColumns.value.add(k)
     }
   }
 }
-
-watch(isUnsavedFormExist, () => {
-  console.log(isUnsavedFormExist.value, 'HEHEH')
-})
-
 provide(IsExpandedFormOpenInj, isExpanded)
 
 const cellWrapperEl = ref()
@@ -242,7 +240,7 @@ onMounted(() => {
 
 const addNewRow = () => {
   setTimeout(async () => {
-    row.value = {
+    _row.value = {
       row: {},
       oldRow: {},
       rowMeta: { new: true },
@@ -340,22 +338,10 @@ const onConfirmDeleteRowClick = async () => {
   showDeleteRowModal.value = false
 }
 
-watch(
-  state,
-  () => {
-    if (!state.value?.id) return
-
-    setTimeout(() => {
-      const rowDom = wrapper.value?.querySelector(`.nc-expanded-form-row[col-id="${state.value?.id}"]`)
-      if (rowDom) {
-        rowDom.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }
-    }, 650)
-  },
-  {
-    immediate: true,
-  },
-)
+watch(rowId, async (nRow) => {
+  await _loadRow(nRow)
+  await loadCommentsAndLogs()
+})
 
 const showRightSections = computed(() => {
   return !isNew.value && commentsDrawer.value && isUIAllowed('commentList')
@@ -370,7 +356,6 @@ export default {
 
 <template>
   <NcModal
-    :key="key"
     v-model:visible="isExpanded"
     :footer="null"
     :width="commentsDrawer && isUIAllowed('commentList') ? 'min(80vw,1280px)' : 'min(80vw,1280px)'"
@@ -404,13 +389,15 @@ export default {
                 <MdiChevronDown class="text-md" />
               </NcButton>
             </div>
-            <div v-if="displayValue" class="flex items-center truncate font-bold text-gray-800 text-xl">
-              {{ displayValue }}
+            <div
+              v-if="displayValue && !row.rowMeta?.new"
+              class="flex items-center truncate w-32 hover:w-64 transition-all font-bold text-gray-800 text-xl"
+            >
+              <span class="truncate">
+                {{ displayValue }}
+              </span>
             </div>
-            <div class="bg-gray-100 px-2 gap-1 flex my-1 items-center rounded-lg text-gray-800 font-medium">
-              <TableIcon class="w-6 h-6 text-sm" />
-              All {{ meta.title }}
-            </div>
+            <div v-if="row.rowMeta?.new" class="flex items-center truncate font-bold text-gray-800 text-xl">New Record</div>
           </div>
           <div class="flex gap-2">
             <NcDropdown v-if="!isNew">
@@ -477,7 +464,7 @@ export default {
               <div>{{ meta.title }}</div>
             </div>
             <NcButton
-              v-if="!props.lastRow"
+              v-if="props.showNextPrevIcons && !props.lastRow"
               v-e="['c:row-expand:next']"
               type="secondary"
               class="nc-next-arrow !w-10"
@@ -509,22 +496,26 @@ export default {
               :data-testid="`nc-expand-col-${col.title}`"
             >
               <div class="flex items-start flex-row xs:(flex-col w-full) nc-expanded-cell">
-                <div class="w-[12rem] xs:(w-full) mt-1.5">
-                  <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" class="nc-expanded-cell-header" :column="col" />
+                <div class="w-[12rem] xs:(w-full) mt-1.5 !h-[35px]">
+                  <LazySmartsheetHeaderVirtualCell
+                    v-if="isVirtualCol(col)"
+                    class="nc-expanded-cell-header !text-gray-600"
+                    :column="col"
+                  />
 
-                  <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header" :column="col" />
+                  <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header !text-gray-600" :column="col" />
                 </div>
 
                 <LazySmartsheetDivDataCell
                   v-if="col.title"
                   :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                  class="!bg-white rounded-lg !w-[20rem] !xs:w-full border-1 border-gray-200 px-1 min-h-[35px] flex items-center relative"
+                  class="!bg-white rounded-lg !w-[20rem] !xs:w-full border-1 overflow-hidden border-gray-200 px-1 min-h-[35px] flex items-center relative"
                 >
-                  <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
+                  <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="_row.row[col.title]" :row="_row" :column="col" />
 
                   <LazySmartsheetCell
                     v-else
-                    v-model="row.row[col.title]"
+                    v-model="_row.row[col.title]"
                     :column="col"
                     :edit-enabled="true"
                     :active="true"
@@ -553,22 +544,22 @@ export default {
                 :data-testid="`nc-expand-col-${col.title}`"
               >
                 <div class="flex flex-row items-start">
-                  <div class="w-[12rem] scale-110 mt-2.5">
-                    <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+                  <div class="w-[12rem] scale-110 !h-[35px] mt-2.5">
+                    <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" class="!text-gray-600" :column="col" />
 
-                    <LazySmartsheetHeaderCell v-else :column="col" />
+                    <LazySmartsheetHeaderCell v-else class="!text-gray-600" :column="col" />
                   </div>
 
                   <LazySmartsheetDivDataCell
                     v-if="col.title"
                     :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                    class="!bg-white rounded-lg !w-[20rem] border-1 border-gray-200 px-1 min-h-[35px] flex items-center relative"
+                    class="!bg-white rounded-lg !w-[20rem] border-1 overflow-hidden border-gray-200 px-1 min-h-[35px] flex items-center relative"
                   >
-                    <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
+                    <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="_row.row[col.title]" :row="_row" :column="col" />
 
                     <LazySmartsheetCell
                       v-else
-                      v-model="row.row[col.title]"
+                      v-model="_row.row[col.title]"
                       :column="col"
                       :edit-enabled="true"
                       :active="true"

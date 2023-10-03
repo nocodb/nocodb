@@ -192,6 +192,7 @@ async function changeView(view: ViewType) {
     tableId: table.value.id!,
     baseId: base.value.id!,
     hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
+    doNotSwitchTab: true,
   })
 
   if (isMobileMode.value) {

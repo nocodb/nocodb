@@ -117,9 +117,10 @@ const localCellValue = computed<any[]>(() => {
       />
     </div>
 
-    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" :column="relatedTableDisplayColumn" />
+    <LazyVirtualCellComponentsListItems v-if="listItemsDlg" v-model="listItemsDlg" :column="relatedTableDisplayColumn" />
 
     <LazyVirtualCellComponentsListChildItems
+      v-if="childListDlg"
       v-model="childListDlg"
       :column="relatedTableDisplayColumn"
       :cell-value="localCellValue"

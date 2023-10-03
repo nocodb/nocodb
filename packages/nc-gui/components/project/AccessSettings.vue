@@ -176,14 +176,14 @@ onMounted(async () => {
       >
         <Empty description="$t('title.noMembersFound')" />
       </div>
-      <div v-else class="nc-collaborators-list !mt-10 rounded-md">
-        <div class="h-200 overflow-y-auto nc-scrollbar-md">
-          <table class="border-1">
-            <thead class="bg-gray-50 border-1 h-10 sticky top-0">
-              <th class="text-start w-1/4 text-gray-700 sticky top-0">{{ $t('objects.users') }}</th>
-              <th class="text-start w-1/4 text-gray-700 sticky top-0">{{ $t('title.dateJoined') }}</th>
-              <th class="text-start w-1/4 text-gray-700 sticky top-0">{{ $t('general.access') }}</th>
-              <th class="text-start w-1/4 text-gray-700 sticky top-0">Actions</th>
+      <div v-else class="nc-collaborators-list !mt-10">
+        <div class="h-160 nc-scrollbar-md rounded-lg border-1 w-250">
+          <table>
+            <thead class="bg-gray-50 h-10 sticky top-0">
+              <th class="text-start w-1/4 text-gray-700 sticky top-0 pr-40">{{ $t('objects.users') }}</th>
+              <th class="text-start w-1/4 text-gray-700 sticky top-0 pl-20">{{ $t('title.dateJoined') }}</th>
+              <th class="text-start w-2/4 text-gray-700 sticky top-0">{{ $t('general.access') }}</th>
+              <th class="pr-8 text-gray-700 sticky top-0">Actions</th>
             </thead>
             <tbody>
               <tr v-for="(collab, i) of collaborators" :key="i" class="border-b-1 py-1 h-14">
@@ -193,7 +193,7 @@ onMounted(async () => {
                     {{ collab.email }}
                   </span>
                 </td>
-                <td class="w-1/4 text-center">
+                <td class="w-1/4 text-center pl-20">
                   {{ timeAgo(collab.created_at) }}
                 </td>
                 <td class="w-1/4">
@@ -218,7 +218,7 @@ onMounted(async () => {
                     </div>
                   </template>
                 </td>
-                <td class="w-1/4">
+                <td class="w-1/4 pr-8">
                   <div class="flex justify-center items-center">
                     <NcDropdown v-if="collab.roles !== ProjectRoles.OWNER" :trigger="['click']">
                       <MdiDotsVertical
@@ -257,24 +257,6 @@ onMounted(async () => {
 </template>
 
 <style scoped lang="scss">
-.badge-text {
-  @apply text-[14px] flex items-center justify-center gap-1 pt-0.5;
-}
-
-.nc-collaborators-list {
-  @apply border-1 shadow-sm border-gray-100 mt-1 flex flex-col w-full;
-  // todo: replace/remove 120px with proper value while updating invite ui
-  height: calc(100vh - calc(var(--topbar-height) + 9rem + 120px));
-}
-
-.nc-collaborators-list-header {
-  @apply flex flex-row justify-between items-center min-h-10 border-b-1  border-gray-100 pl-4;
-}
-
-.nc-collaborators-list-row {
-  @apply flex flex-row justify-between items-center min-h-16 border-b-1  border-gray-100 pl-4;
-}
-
 .color-band {
   @apply w-6 h-6 left-0 top-2.5 rounded-full flex justify-center uppercase text-white font-weight-bold text-xs items-center;
 }

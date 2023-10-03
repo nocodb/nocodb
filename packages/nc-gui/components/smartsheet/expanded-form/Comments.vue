@@ -18,8 +18,6 @@ const tab = ref<'comments' | 'audits'>('comments')
 
 const { isUIAllowed } = useRoles()
 
-const { appInfo } = useGlobal()
-
 const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
 
 const editLog = ref<AuditType>()

@@ -61,7 +61,6 @@ export class AuditsController {
     @Request() req,
     @Body() body: any,
   ) {
-    console.log('heeeeeeeee')
     return await this.auditsService.commentUpdate({
       auditId,
       userEmail: req.user?.email,

@@ -307,6 +307,7 @@
     "hasMany": "Has Many",
     "manyToMany": "Many to Many",
     "virtualRelation": "Virtual Relation",
+    "linkMore": "Link More",
     "linkMoreRecords": "Link more records",
     "downloadFile": "Download File",
     "renameTable": "Rename Table",

@@ -47,6 +47,13 @@ interface Attachment {
   mimetype: string
 }
 
+const isRowEmpty = (row: any, col: any) => {
+  const val = row[col.title]
+  if (!val) return true
+
+  return Array.isArray(val) && val.length === 0
+}
+
 const attachments: ComputedRef<Attachment[]> = computed(() => {
   try {
     if (props.attachment && row.value[props.attachment.title]) {
@@ -87,9 +94,11 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
       <div v-else-if="attachment" class="h-24 w-24 w-full !flex flex-row items-center !rounded-l-xl justify-center">
         <img class="object-contain h-24 w-24" src="~assets/icons/FileIconImageBox.png" />
       </div>
-      <div class="flex flex-col m-[.75rem] gap-1 flex-grow justify-center">
-        <div class="flex justify-between">
-          <span class="font-semibold text-gray-800 nc-display-value"> {{ row[relatedTableDisplayValueProp] }} </span>
+      <div class="flex flex-col m-[.75rem] gap-1 flex-grow justify-center overflow-hidden">
+        <div class="flex justify-between xs:gap-x-2">
+          <span class="font-semibold text-gray-800 nc-display-value xs:(truncate)">
+            {{ row[relatedTableDisplayValueProp] }}
+          </span>
           <div
             v-if="isLinked && !isLoading"
             class="text-brand-500 text-0.875"
@@ -109,8 +118,11 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
           />
         </div>
 
-        <div v-if="fields.length > 0 && !isPublic && !isForm" class="flex ml-[-0.25rem] flex-row gap-4 w-10/12">
-          <div v-for="field in fields" :key="field.id" :class="attachment ? 'w-1/3' : 'w-1/4'">
+        <div
+          v-if="fields.length > 0 && !isPublic && !isForm"
+          class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 w-10/12"
+        >
+          <div v-for="field in fields" :key="field.id" :class="attachment ? 'sm:w-1/3' : 'sm:w-1/4'">
             <div class="flex flex-col gap-[-1] max-w-72">
               <LazySmartsheetHeaderVirtualCell
                 v-if="isVirtualCol(field)"
@@ -121,15 +133,18 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
               />
               <LazySmartsheetHeaderCell v-else class="!scale-70" :column="field" :hide-menu="true" :hide-icon="true" />
 
-              <LazySmartsheetVirtualCell v-if="isVirtualCol(field)" v-model="row[field.title]" :row="row" :column="field" />
-              <LazySmartsheetCell
-                v-else
-                v-model="row[field.title]"
-                class="!text-gray-600 ml-1"
-                :column="field"
-                :edit-enabled="false"
-                :read-only="true"
-              />
+              <div v-if="!isRowEmpty(row, field)">
+                <LazySmartsheetVirtualCell v-if="isVirtualCol(field)" v-model="row[field.title]" :row="row" :column="field" />
+                <LazySmartsheetCell
+                  v-else
+                  v-model="row[field.title]"
+                  class="!text-gray-600 ml-1"
+                  :column="field"
+                  :edit-enabled="false"
+                  :read-only="true"
+                />
+              </div>
+              <div v-else class="flex flex-row w-full h-[1.375rem] pl-1 items-center justify-start">-</div>
             </div>
           </div>
         </div>

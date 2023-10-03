@@ -99,6 +99,11 @@ onUnmounted(() => {
 
 onMounted(async () => {
   if (route.value.meta.public) return
+
+  if (route.value.query?.continueAfterSignIn) {
+    return await navigateTo(route.value.query.continueAfterSignIn as string)
+  }
+
   toggle(true)
   toggleHasSidebar(true)
 

@@ -73,9 +73,15 @@ const copySharedBase = async () => {
   <template v-else-if="isSharedBase">
     <div class="flex-1"></div>
     <div class="flex flex-col justify-center h-full">
-      <div class="flex flex-row items-center w-full gap-x-1">
-        <NcButton class="z-10 !rounded-lg !px-2" size="small" type="primary" :disabled="disabled" @click="copySharedBase">
-          <GeneralIcon icon="duplicate" />
+      <div class="flex flex-row items-center w-full">
+        <NcButton
+          class="z-10 !rounded-lg !px-2 !bg-[#ff133e]"
+          size="small"
+          type="primary"
+          :disabled="disabled"
+          @click="copySharedBase"
+        >
+          <GeneralIcon class="mr-1" icon="duplicate" />
           Copy Base
         </NcButton>
       </div>

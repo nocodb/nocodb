@@ -34,9 +34,13 @@ export class AuthController extends AuthControllerCE {
   @UseGuards(AuthGuard('openid'))
   async oidcSignin(@Request() req, @Response() res) {
     await this.setRefreshToken({ req, res });
-    res.json(
-      await this.usersService.login({ ...req.user, provider: 'openid' }),
-    );
+    res.json({
+      ...(await this.usersService.login({
+        ...req.user,
+        provider: 'openid',
+      })),
+      extra: { ...req.extra },
+    });
   }
 
   @Get('/auth/oidc')
@@ -56,7 +60,11 @@ export class AuthController extends AuthControllerCE {
     res.redirect(
       `https://${state.host}${this.config.get('dashboardPath', {
         infer: true,
-      })}?code=${req.query.code}&state=${req.query.state}`,
+      })}?code=${req.query.code}&state=${req.query.state}${
+        state.continueAfterSignIn
+          ? `&continueAfterSignIn=${state.continueAfterSignIn}`
+          : ''
+      }}`,
     );
   }
 

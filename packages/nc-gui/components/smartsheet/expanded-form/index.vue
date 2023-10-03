@@ -46,7 +46,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'update:row'])
+const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
 
 const key = ref(0)
 
@@ -339,8 +339,10 @@ const onConfirmDeleteRowClick = async () => {
 }
 
 watch(rowId, async (nRow) => {
-  await _loadRow(nRow)
-  await loadCommentsAndLogs()
+  if (nRow.value) {
+    await _loadRow(nRow)
+    await loadCommentsAndLogs()
+  }
 })
 
 const showRightSections = computed(() => {

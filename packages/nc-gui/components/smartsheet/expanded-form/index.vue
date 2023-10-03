@@ -47,7 +47,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
+const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'update:row'])
 
 const key = ref(0)
 
@@ -57,7 +57,9 @@ const { isMobileMode } = useGlobal()
 
 const { t } = useI18n()
 
-const row = ref(props.row)
+const rowId = toRef(props, 'rowId')
+
+const row = useVModel(props, 'row', emits)
 
 const state = toRef(props, 'state')
 
@@ -108,6 +110,7 @@ const {
   loadRow: _loadRow,
   primaryKey,
   saveRowAndStay,
+  row: _row,
   syncLTARRefs,
   save: _save,
 } = useProvideExpandedFormStore(meta, row)
@@ -115,12 +118,12 @@ const {
 const duplicatingRowInProgress = ref(false)
 
 if (props.loadRow) {
-  await _loadRow()
+  await _loadRow(rowId.value)
 }
 
-if (props.rowId) {
+if (rowId.value) {
   try {
-    await _loadRow(props.rowId)
+    await _loadRow(rowId.value)
   } catch (e: any) {
     if (e.response?.status === 404) {
       // todo: i18n
@@ -225,11 +228,6 @@ if (isKanban.value) {
     }
   }
 }
-
-watch(isUnsavedFormExist, () => {
-  console.log(isUnsavedFormExist.value, 'HEHEH')
-})
-
 provide(IsExpandedFormOpenInj, isExpanded)
 
 const cellWrapperEl = ref()
@@ -340,22 +338,16 @@ const onConfirmDeleteRowClick = async () => {
   showDeleteRowModal.value = false
 }
 
-watch(
-  state,
-  () => {
-    if (!state.value?.id) return
+watch(rowId, (nRow) => {
+  console.log('Loooding', _row.value)
+  _loadRow(nRow)
+  console.log('Loooding', nRow)
+})
 
-    setTimeout(() => {
-      const rowDom = wrapper.value?.querySelector(`.nc-expanded-form-row[col-id="${state.value?.id}"]`)
-      if (rowDom) {
-        rowDom.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }
-    }, 650)
-  },
-  {
-    immediate: true,
-  },
-)
+watch(_row, (nRow) => {
+  console.log('Loooding', nRow)
+  row.value = nRow.value
+})
 
 const showRightSections = computed(() => {
   return !isNew.value && commentsDrawer.value && isUIAllowed('commentList')
@@ -370,17 +362,17 @@ export default {
 
 <template>
   <NcModal
-    :key="key"
     v-model:visible="isExpanded"
     :footer="null"
     :width="commentsDrawer && isUIAllowed('commentList') ? 'min(80vw,1280px)' : 'min(80vw,1280px)'"
     :body-style="{ padding: 0 }"
     :closable="false"
     size="small"
+    transition=""
     class="nc-drawer-expanded-form"
     :class="{ active: isExpanded }"
   >
-    <div class="h-[85vh] xs:(max-h-full) max-h-215 flex flex-col p-6">
+    <div :key="row.row" class="h-[85vh] xs:(max-h-full) max-h-215 flex flex-col p-6">
       <div class="flex h-8 flex-shrink-0 w-full items-center nc-expanded-form-header relative mb-4 justify-between">
         <template v-if="!isMobileMode">
           <div class="flex gap-3 w-100">
@@ -496,6 +488,7 @@ export default {
             'w-2/3': showRightSections,
           }"
         >
+          {{ rowId }}{{ _row }}
           <div
             class="flex flex-col flex-grow mt-2 h-full max-h-full nc-scrollbar-md !pb-2 items-center w-full bg-white p-4 xs:p-0"
           >

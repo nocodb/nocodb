@@ -47,6 +47,13 @@ interface Attachment {
   mimetype: string
 }
 
+const isRowEmpty = (row: any, col: any) => {
+  const val = row[col.title]
+  if (!val) return true
+
+  return Array.isArray(val) && val.length === 0
+}
+
 const attachments: ComputedRef<Attachment[]> = computed(() => {
   try {
     if (props.attachment && row.value[props.attachment.title]) {
@@ -126,15 +133,18 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
               />
               <LazySmartsheetHeaderCell v-else class="!scale-70" :column="field" :hide-menu="true" :hide-icon="true" />
 
-              <LazySmartsheetVirtualCell v-if="isVirtualCol(field)" v-model="row[field.title]" :row="row" :column="field" />
-              <LazySmartsheetCell
-                v-else
-                v-model="row[field.title]"
-                class="!text-gray-600 ml-1"
-                :column="field"
-                :edit-enabled="false"
-                :read-only="true"
-              />
+              <div v-if="!isRowEmpty(row, field)">
+                <LazySmartsheetVirtualCell v-if="isVirtualCol(field)" v-model="row[field.title]" :row="row" :column="field" />
+                <LazySmartsheetCell
+                  v-else
+                  v-model="row[field.title]"
+                  class="!text-gray-600 ml-1"
+                  :column="field"
+                  :edit-enabled="false"
+                  :read-only="true"
+                />
+              </div>
+              <div v-else class="flex flex-row w-full h-[1.375rem] pl-1 items-center justify-start">-</div>
             </div>
           </div>
         </div>

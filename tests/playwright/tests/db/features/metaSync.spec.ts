@@ -1,10 +1,11 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
-import { isMysql, isPg, isSqlite, mysqlExec, pgExec, sqliteExec } from '../../../setup/db';
+import { enableQuickRun, isMysql, isPg, isSqlite, mysqlExec, pgExec, sqliteExec } from '../../../setup/db';
 import { MetaDataPage } from '../../../pages/Dashboard/ProjectView/Metadata';
 
 test.describe('Meta sync', () => {
+  if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage;
   let context: NcContext;
   let dbExec;

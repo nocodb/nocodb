@@ -3,8 +3,10 @@ import { airtableApiBase, airtableApiKey } from '../../../constants';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { quickVerify } from '../../../quickTests/commonTest';
 import setup, { NcContext, unsetup } from '../../../setup';
+import { enableQuickRun } from '../../../setup/db';
 
 test.describe('Import', () => {
+  if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage;
   let context: NcContext;
 

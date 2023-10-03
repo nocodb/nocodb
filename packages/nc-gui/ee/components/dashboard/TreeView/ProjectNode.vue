@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
-import type { SourceType, BaseType, TableType } from 'nocodb-sdk'
+import type { BaseType, SourceType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import { useTitle } from '@vueuse/core'
 import type { NcProject } from '#imports'
@@ -9,14 +9,11 @@ import {
   NcProjectType,
   ProjectInj,
   ProjectRoleInj,
-  ProjectStarredModeInj,
   ToggleDialogInj,
   extractSdkResponseErrorMsg,
-  isElementInvisible,
   openLink,
   storeToRefs,
   useBases,
-  useWorkspace,
 } from '#imports'
 import { useNuxtApp } from '#app'
 
@@ -52,19 +49,8 @@ const isExpanded = computed<boolean>({
 
 const basesStore = useBases()
 
-const workspaceStore = useWorkspace()
-
-const {
-  loadProject,
-  loadProjects,
-  createProject: _createProject,
-  updateProject,
-  getProjectMetaInfo,
-  toggleStarred,
-} = basesStore
+const { loadProject, loadProjects, createProject: _createProject, updateProject, toggleStarred } = basesStore
 const { bases, activeProjectId } = storeToRefs(basesStore)
-
-const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const { loadProjectTables } = useTablesStore()
 const { activeTable } = storeToRefs(useTablesStore())
@@ -79,7 +65,7 @@ const editMode = ref(false)
 
 const tempTitle = ref('')
 
-const { t } = useI18n()
+// const { t } = useI18n()
 
 const input = ref<HTMLInputElement>()
 
@@ -154,33 +140,6 @@ const updateProjectTitle = async () => {
     useTitle(`${base.value?.title}`)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-/*
-const closeEditMode = () => {
-  editMode.value = false
-  tempTitle.value = ''
-}
-*/
-
-const { copy } = useCopy(true)
-
-const copyProjectInfo = async () => {
-  try {
-    if (
-      await copy(
-        Object.entries(await getProjectMetaInfo(base.value.id!)!)
-          .map(([k, v]) => `${k}: **${v}**`)
-          .join('\n'),
-      )
-    ) {
-      // Copied to clipboard
-      message.info(t('msg.info.copiedToClipboard'))
-    }
-  } catch (e: any) {
-    console.error(e)
-    message.error(e.message)
   }
 }
 
@@ -395,12 +354,6 @@ async function openProjectErdView(_base: BaseType) {
   navigateTo(`/${route.value.params.typeOrId}/${source.base_id}/erd/${source.id}`)
 }
 
-const reloadTables = async () => {
-  $e('a:table:refresh:navdraw')
-
-  // await loadTables()
-}
-
 const contextMenuBase = computed(() => {
   if (contextMenuTarget.type === 'base') {
     return contextMenuTarget.value
@@ -520,11 +473,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; base_id: string })
           </NcButton>
           <div class="flex items-center mr-1" @click="onProjectClick(base)">
             <div class="flex items-center select-none w-6 h-full">
-              <a-spin
-                v-if="base.isLoading"
-                class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8"
-                :indicator="indicator"
-              />
+              <a-spin v-if="base.isLoading" class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8" :indicator="indicator" />
 
               <LazyGeneralEmojiPicker
                 v-else

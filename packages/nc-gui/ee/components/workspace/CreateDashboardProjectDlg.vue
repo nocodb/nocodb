@@ -7,7 +7,7 @@ import { computed } from '@vue/reactivity'
 import type { ComputedRef } from 'nuxt/dist/app/compat/capi'
 import Fuse from 'fuse.js'
 import type { IdAndTitle } from '#imports'
-import { NcProjectType, extractSdkResponseErrorMsg, baseTitleValidator, ref, useVModel, useWorkspace } from '#imports'
+import { NcProjectType, baseTitleValidator, extractSdkResponseErrorMsg, ref, useVModel, useWorkspace } from '#imports'
 import { navigateTo } from '#app'
 
 const props = defineProps<{
@@ -21,7 +21,6 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const workspaceStore = useWorkspace()
-const { loadWorkspaces } = workspaceStore
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()

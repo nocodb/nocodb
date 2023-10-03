@@ -5,7 +5,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
 import MdiHammer from '~icons/mdi/hammer'
-import { useNuxtApp, useBase, useRoles, useSqlEditor } from '#imports'
+import { useBase, useNuxtApp, useRoles, useSqlEditor } from '#imports'
 
 const { sources, tables } = storeToRefs(useBase())
 
@@ -21,7 +21,9 @@ const { $api } = useNuxtApp()
 
 const { sqlEditors, promptHistory } = useSqlEditor()
 
-const source = computed(() => sources.value.find((el) => el.id === route.params?.sourceId) || sources.value.filter((el) => el.enabled)[0])
+const source = computed(
+  () => sources.value.find((el) => el.id === route.params?.sourceId) || sources.value.filter((el) => el.enabled)[0],
+)
 
 const activeSqlEditor = computed(() => {
   if (!source.value?.id) return { sqlPrompt: '', rawSql: '' }
@@ -43,7 +45,9 @@ const loadMagic = ref(false)
 
 const loadSQL = ref(false)
 
-const baseOptions = computed((): SelectProps['options'] => sources.value.map((b) => ({ label: b.alias || 'Default', value: b.id })))
+const baseOptions = computed((): SelectProps['options'] =>
+  sources.value.map((b) => ({ label: b.alias || 'Default', value: b.id })),
+)
 
 const dataQuery: Ref<string> = ref('')
 

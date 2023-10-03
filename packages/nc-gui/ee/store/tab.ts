@@ -1,4 +1,4 @@
-import type { SourceType, BaseType } from 'nocodb-sdk'
+import type { BaseType, SourceType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { defineStore, storeToRefs } from 'pinia'
 import { TabType, computed, navigateTo, ref, useBase, useBases, useRouter, watch } from '#imports'
@@ -31,8 +31,6 @@ export const useTabs = defineStore('tabStore', () => {
   const baseStore = useBase()
   const { baseUrl } = baseStore
   const { base, tables } = storeToRefs(baseStore)
-
-  const baseType = computed(() => (route.value.params.baseType as string) || 'nc')
 
   // todo: new-layout
   const workspaceId = computed(() => route.value.params.typeOrId as string)

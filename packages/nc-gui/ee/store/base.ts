@@ -1,4 +1,4 @@
-import type { SourceType, OracleUi, BaseType, TableType } from 'nocodb-sdk'
+import type { BaseType, OracleUi, SourceType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { acceptHMRUpdate, defineStore } from 'pinia'
@@ -8,10 +8,10 @@ import {
   createEventHook,
   ref,
   useApi,
+  useBases,
   useCommandPalette,
   useGlobal,
   useNuxtApp,
-  useBases,
   useRoles,
   useRouter,
   useTablesStore,

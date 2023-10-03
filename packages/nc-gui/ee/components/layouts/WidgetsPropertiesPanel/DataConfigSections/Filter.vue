@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { SourceType, DataSourceInternal, FilterType } from 'nocodb-sdk'
+import type { DataSourceInternal, FilterType, SourceType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import useWidgetFilters from './useWidgetFilters'
 import type { Filter } from '#imports'

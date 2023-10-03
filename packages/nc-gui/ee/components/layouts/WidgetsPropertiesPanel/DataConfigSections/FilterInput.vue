@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SourceType, ColumnType } from 'nocodb-sdk'
+import type { ColumnType, SourceType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import {
   ColumnInj,

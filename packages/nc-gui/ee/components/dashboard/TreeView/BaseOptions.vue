@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { SourceType, BaseType } from 'nocodb-sdk'
+import type { BaseType, SourceType } from 'nocodb-sdk'
 
 const props = defineProps<{
   source: SourceType
@@ -17,6 +17,8 @@ const { isUIAllowed } = useRoles()
 const baseRole = inject(ProjectRoleInj)
 
 const { $e } = useNuxtApp()
+
+const TODOMagic = ref(false)
 
 function openTableCreateMagicDialog(sourceId?: string) {
   if (!sourceId) return
@@ -102,8 +104,8 @@ function openQuickImportDialog(type: string) {
 </script>
 
 <template>
-  <!-- NocoAI -->
-  <a-sub-menu v-if="false">
+  <!-- TODO NocoAI -->
+  <a-sub-menu v-if="TODOMagic">
     <template #title>
       <div class="nc-base-menu-item group">
         <GeneralIcon icon="magic" class="group-hover:text-black" />
@@ -133,9 +135,7 @@ function openQuickImportDialog(type: string) {
   <!-- Quick Import From -->
   <NcSubMenu
     v-if="
-      ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
-        isUIAllowed(permission, false, baseRole),
-      )
+      ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, false, baseRole))
     "
     class="py-0"
     data-testid="nc-sidebar-base-import"

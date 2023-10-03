@@ -1,4 +1,4 @@
-import type { ColumnType, BaseType, TableType } from 'nocodb-sdk'
+import type { BaseType, ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 
 export const useNocoEe = () => {

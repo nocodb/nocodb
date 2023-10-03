@@ -175,7 +175,7 @@ onKeyStroke('Escape', () => {
       :related-table-title="relatedTableMeta?.title"
       :display-value="row.row[displayValueProp]"
     />
-    <div class="my-3 bg-gray-50 border-gray-50 border-b-2"></div>
+    <div class="!xs:hidden my-3 bg-gray-50 border-gray-50 border-b-2"></div>
     <div class="flex mt-2 mb-2 items-center gap-2">
       <div
         class="flex items-center border-1 p-1 rounded-md w-full border-gray-200"

@@ -17,22 +17,18 @@ const openedSubTab = computed({
   },
 })
 
-watch(
-  openedSubTab,
-  () => {
-    if (openedSubTab.value === 'field' && !isUIAllowed('hookList')) {
-      onViewsTabChange('relation')
-    }
-    if (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) {
-      onViewsTabChange('relation')
-    }
+watch(openedSubTab, () => {
+  // TODO: Find a good way to know when the roles are populated and check
+  // Re-enable this check for first render
+  if (openedSubTab.value === 'field' && !isUIAllowed('hookList')) {
+    onViewsTabChange('relation')
+  }
+  if (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) {
+    onViewsTabChange('relation')
+  }
 
-    $e(`c:table:tab-open:${openedSubTab.value}`)
-  },
-  {
-    immediate: true,
-  },
-)
+  $e(`c:table:tab-open:${openedSubTab.value}`)
+})
 </script>
 
 <template>

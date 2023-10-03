@@ -140,7 +140,7 @@ const attachmentCol = computedInject(FieldsInj, (_fields) => {
 const fields = computedInject(FieldsInj, (_fields) => {
   return (relatedTableMeta.value.columns ?? [])
     .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
-    .slice(0, isMobileMode.value ? 0 : 4)
+    .slice(0, isMobileMode.value ? 1 : 4)
 })
 
 const relation = computed(() => {
@@ -204,6 +204,7 @@ onKeyStroke('Escape', () => {
         v-if="!isPublic"
         v-e="['c:row-expand:open']"
         type="secondary"
+        :size="isMobileMode ? 'medium' : 'small'"
         class="!text-brand-500"
         @click="
           () => {
@@ -212,7 +213,7 @@ onKeyStroke('Escape', () => {
           }
         "
       >
-        <div class="flex items-center gap-1 xs:px-4"><MdiPlus v-if="!isMobileMode" /> {{ $t('activity.newRecord') }}</div>
+        <div class="flex items-center gap-1 px-4"><MdiPlus v-if="!isMobileMode" /> {{ $t('activity.newRecord') }}</div>
       </NcButton>
     </div>
 
@@ -282,25 +283,33 @@ onKeyStroke('Escape', () => {
         {{ relatedTableMeta?.title }}
       </p>
     </div>
+
+    <div v-if="isMobileMode" class="flex flex-row justify-center items-center w-full mt-2">
+      <NcPagination
+        v-if="childrenExcludedList?.pageInfo"
+        v-model:current="childrenExcludedListPagination.page"
+        v-model:page-size="childrenExcludedListPagination.size"
+        :total="+childrenExcludedList.pageInfo.totalRows"
+        entity-name="links-excluded-list"
+      />
+    </div>
+
     <div class="mb-2 bg-gray-50 border-gray-50 border-b-2"></div>
 
-    <div class="flex flex-row justify-between bg-white relative pt-1">
-      <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50">
+    <div class="flex flex-row justify-between items-center bg-white relative pt-1">
+      <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50 h-9.5">
         {{ relation === 'bt' ? (row.row[relatedTableMeta?.title] ? '1' : 0) : childrenListCount ?? 'No' }}
         {{ !isMobileMode ? $t('objects.records') : '' }} {{ !isMobileMode && childrenListCount !== 0 ? 'are' : '' }}
         {{ $t('general.linked') }}
       </div>
-      <div class="flex absolute items-center py-2 justify-center w-full">
-        <a-pagination
+      <div class="!xs:hidden flex absolute -mt-0.75 items-center py-2 justify-center w-full">
+        <NcPagination
           v-if="childrenExcludedList?.pageInfo"
           v-model:current="childrenExcludedListPagination.page"
           v-model:page-size="childrenExcludedListPagination.size"
           :total="+childrenExcludedList.pageInfo.totalRows"
-          :show-size-changer="false"
-          class="mt-2 mx-auto"
-          size="small"
-          hide-on-single-page
-          show-less-items
+          entity-name="links-excluded-list"
+          mode="simple"
         />
       </div>
       <NcButton class="nc-close-btn ml-auto" type="ghost" @click="vModel = false"> {{ $t('general.finish') }} </NcButton>

@@ -71,7 +71,12 @@ const openDropDown = () => {
         'self-start': isForm || isSurveyForm,
       }"
     />
-    <div v-if="column" class="name pl-1" :class="{ 'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu }">
+    <div
+      v-if="column"
+      class="name pl-1"
+      :class="{ 'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu }"
+      :data-test-id="column.title"
+    >
       {{ column.title }}
     </div>
 

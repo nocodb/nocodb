@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import tinycolor from 'tinycolor2'
-import { ProjectTypes, type BaseType } from 'nocodb-sdk'
+import { ProjectTypes } from 'nocodb-sdk'
 import { useApi, useVModel, useWorkspace } from '#imports'
 
 const props = defineProps<{
@@ -62,7 +61,8 @@ const _duplicate = async () => {
         }), */
       },
     })
-    props.onOk(jobData as any)
+
+    props.onOk({ ...jobData, workspace_id: selectedWorkspace.value } as any)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

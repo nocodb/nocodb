@@ -10,6 +10,8 @@ const router = useRouter()
 
 const route = router.currentRoute
 
+const { ncNavigateTo } = useGlobal()
+
 const dialogOpen = ref(false)
 
 const openDialogKey = ref<string>('')
@@ -136,7 +138,7 @@ const { bases } = storeToRefs(basesStore)
 
 const { $e, $poller } = useNuxtApp()
 
-const DlgSharedBaseDuplicateOnOk = async (jobData: { id: string; base_id: string }) => {
+const DlgSharedBaseDuplicateOnOk = async (jobData: { id: string; base_id: string; workspace_id: string }) => {
   await populateWorkspace()
 
   $poller.subscribe(
@@ -154,17 +156,10 @@ const DlgSharedBaseDuplicateOnOk = async (jobData: { id: string; base_id: string
     }) => {
       if (data.status !== 'close') {
         if (data.status === JobStatus.COMPLETED) {
-          await populateWorkspace()
-
-          const base = bases.value.get(jobData.base_id)
-
-          // open project after duplication
-          if (base) {
-            await basesStore.navigateToProject({
-              workspaceId: base.fk_workspace_id!,
-              baseId: base.id!,
-            })
-          }
+          await ncNavigateTo({
+            workspaceId: jobData.workspace_id,
+            baseId: jobData.base_id,
+          })
         } else if (data.status === JobStatus.FAILED) {
           message.error('Failed to duplicate project')
           await populateWorkspace()

@@ -21,6 +21,8 @@ const emit = defineEmits(['update:modelValue', 'addNewRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
+const { isMobileMode } = useGlobal()
+
 const injectedColumn = inject(ColumnInj)
 
 const filterQueryRef = ref()
@@ -138,7 +140,7 @@ const attachmentCol = computedInject(FieldsInj, (_fields) => {
 const fields = computedInject(FieldsInj, (_fields) => {
   return (relatedTableMeta.value.columns ?? [])
     .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
-    .slice(0, 4)
+    .slice(0, isMobileMode.value ? 1 : 4)
 })
 
 const relation = computed(() => {
@@ -157,13 +159,13 @@ onKeyStroke('Escape', () => {
 </script>
 
 <template>
-  <a-modal
+  <NcModal
     v-model:visible="vModel"
     :class="{ active: vModel }"
     :footer="null"
     :width="isForm ? 600 : 800"
     :closable="false"
-    :body-style="{ 'padding': 0, 'margin': 0, 'min-height': '500px' }"
+    :body-style="{ 'max-height': '640px', 'height': '85vh' }"
     wrap-class-name="nc-modal-link-record"
   >
     <LazyVirtualCellComponentsHeader
@@ -173,7 +175,7 @@ onKeyStroke('Escape', () => {
       :related-table-title="relatedTableMeta?.title"
       :display-value="row.row[displayValueProp]"
     />
-    <div class="m-4 bg-gray-50 border-gray-50 border-b-2"></div>
+    <div class="!xs:hidden my-3 bg-gray-50 border-gray-50 border-b-2"></div>
     <div class="flex mt-2 mb-2 items-center gap-2">
       <div
         class="flex items-center border-1 p-1 rounded-md w-full border-gray-200"
@@ -184,7 +186,7 @@ onKeyStroke('Escape', () => {
           ref="filterQueryRef"
           v-model:value="childrenExcludedListPagination.query"
           :placeholder="`${$t('general.searchIn')} ${relatedTableMeta?.title}`"
-          class="w-full !rounded-md nc-excluded-search"
+          class="w-full !rounded-md nc-excluded-search xs:min-h-8"
           size="small"
           :bordered="false"
           @focus="isFocused = true"
@@ -202,7 +204,7 @@ onKeyStroke('Escape', () => {
         v-if="!isPublic"
         v-e="['c:row-expand:open']"
         type="secondary"
-        size="xl"
+        :size="isMobileMode ? 'medium' : 'small'"
         class="!text-brand-500"
         @click="
           () => {
@@ -211,99 +213,103 @@ onKeyStroke('Escape', () => {
           }
         "
       >
-        <div class="flex items-center gap-1"><MdiPlus /> {{ $t('activity.newRecord') }}</div>
+        <div class="flex items-center gap-1 px-4"><MdiPlus v-if="!isMobileMode" /> {{ $t('activity.newRecord') }}</div>
       </NcButton>
     </div>
 
-    <template v-if="childrenExcludedList?.pageInfo?.totalRows || isChildrenExcludedLoading">
-      <div class="pb-2 pt-1">
-        <div class="h-[420px] overflow-scroll nc-scrollbar-md pr-1 cursor-pointer">
-          <template v-if="isChildrenExcludedLoading">
-            <div
-              v-for="(x, i) in Array.from({ length: 10 })"
-              :key="i"
-              class="!border-2 flex flex-row gap-2 mb-2 transition-all !rounded-xl relative !border-gray-200 hover:bg-gray-50"
-            >
-              <a-skeleton-image class="h-24 w-24 !rounded-xl" />
-              <div class="flex flex-col m-[.5rem] gap-2 flex-grow justify-center">
-                <a-skeleton-input class="!w-48 !rounded-xl" active size="small" />
-                <div class="flex flex-row gap-6 w-10/12">
-                  <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
-                  </div>
+    <template v-if="childrenExcludedList?.pageInfo?.totalRows">
+      <div class="overflow-scroll nc-scrollbar-md pr-1 cursor-pointer flex flex-col flex-grow">
+        <template v-if="isChildrenExcludedLoading">
+          <div
+            v-for="(x, i) in Array.from({ length: 10 })"
+            :key="i"
+            class="!border-2 flex flex-row gap-2 mb-2 transition-all !rounded-xl relative !border-gray-200 hover:bg-gray-50"
+          >
+            <a-skeleton-image class="h-24 w-24 !rounded-xl" />
+            <div class="flex flex-col m-[.5rem] gap-2 flex-grow justify-center">
+              <a-skeleton-input class="!xs:w-30 !w-48 !rounded-xl" active size="small" />
+              <div class="flex flex-row gap-6 w-10/12">
+                <div class="flex flex-col gap-0.5">
+                  <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                  <a-skeleton-input class="!xs:hidden !h-4 !w-24" active size="small" />
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                  <a-skeleton-input class="!xs:hidden !h-4 !w-24" active size="small" />
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                  <a-skeleton-input class="!xs:hidden !h-4 !w-24" active size="small" />
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <a-skeleton-input class="!h-4 !w-12" active size="small" />
+                  <a-skeleton-input class="!xs:hidden !h-4 !w-24" active size="small" />
                 </div>
               </div>
             </div>
-          </template>
-          <template v-else>
-            <LazyVirtualCellComponentsListItem
-              v-for="(refRow, id) in childrenExcludedList?.list ?? []"
-              :key="id"
-              data-testid="nc-excluded-list-item"
-              :row="refRow"
-              :fields="fields"
-              :attachment="attachmentCol"
-              :related-table-display-value-prop="relatedTableDisplayValueProp"
-              :is-loading="isChildrenExcludedListLoading[Number.parseInt(id)]"
-              :is-linked="isChildrenExcludedListLinked[Number.parseInt(id)]"
-              @expand="
-                () => {
-                  expandedFormRow = refRow
-                  expandedFormDlg = true
-                }
-              "
-              @click="
-                () => {
-                  if (isChildrenExcludedListLinked[Number.parseInt(id)]) unlinkRow(refRow, Number.parseInt(id))
-                  else linkRow(refRow, Number.parseInt(id))
-                }
-              "
-            />
-          </template>
-        </div>
+          </div>
+        </template>
+        <template v-else>
+          <LazyVirtualCellComponentsListItem
+            v-for="(refRow, id) in childrenExcludedList?.list ?? []"
+            :key="id"
+            data-testid="nc-excluded-list-item"
+            :row="refRow"
+            :fields="fields"
+            :attachment="attachmentCol"
+            :related-table-display-value-prop="relatedTableDisplayValueProp"
+            :is-loading="isChildrenExcludedListLoading[Number.parseInt(id)]"
+            :is-linked="isChildrenExcludedListLinked[Number.parseInt(id)]"
+            @expand="
+              () => {
+                expandedFormRow = refRow
+                expandedFormDlg = true
+              }
+            "
+            @click="
+              () => {
+                if (isChildrenExcludedListLinked[Number.parseInt(id)]) unlinkRow(refRow, Number.parseInt(id))
+                else linkRow(refRow, Number.parseInt(id))
+              }
+            "
+          />
+        </template>
       </div>
     </template>
-    <div
-      v-if="!isChildrenExcludedLoading && !childrenExcludedList?.pageInfo?.totalRows"
-      class="py-2 h-[420px] flex flex-col gap-3 items-center justify-center text-gray-500"
-    >
+    <div v-else class="my-auto py-2 flex flex-col gap-3 items-center justify-center text-gray-500">
       <InboxIcon class="w-16 h-16 mx-auto" />
       <p>
         {{ $t('msg.thereAreNoRecordsInTable') }}
         {{ relatedTableMeta?.title }}
       </p>
     </div>
-    <div class="my-2 bg-gray-50 border-gray-50 border-b-2"></div>
 
-    <div class="flex flex-row justify-between bg-white relative pt-1">
-      <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50">
+    <div v-if="isMobileMode" class="flex flex-row justify-center items-center w-full my-2">
+      <NcPagination
+        v-if="childrenExcludedList?.pageInfo"
+        v-model:current="childrenExcludedListPagination.page"
+        v-model:page-size="childrenExcludedListPagination.size"
+        :total="+childrenExcludedList.pageInfo.totalRows"
+        entity-name="links-excluded-list"
+      />
+    </div>
+
+    <div class="mb-2 bg-gray-50 border-gray-50 border-b-2"></div>
+
+    <div class="flex flex-row justify-between items-center bg-white relative pt-1">
+      <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50 h-9.5">
         {{ relation === 'bt' ? (row.row[relatedTableMeta?.title] ? '1' : 0) : childrenListCount ?? 'No' }}
-        {{ $t('objects.records') }} {{ childrenListCount !== 0 ? 'are' : '' }} {{ $t('general.linked') }}
+        {{ !isMobileMode ? $t('objects.records') : '' }} {{ !isMobileMode && childrenListCount !== 0 ? 'are' : '' }}
+        {{ $t('general.linked') }}
       </div>
-      <div class="flex absolute items-center py-2 justify-center w-full">
-        <a-pagination
+      <div class="!xs:hidden flex absolute -mt-0.75 items-center py-2 justify-center w-full">
+        <NcPagination
           v-if="childrenExcludedList?.pageInfo"
           v-model:current="childrenExcludedListPagination.page"
           v-model:page-size="childrenExcludedListPagination.size"
           :total="+childrenExcludedList.pageInfo.totalRows"
-          :show-size-changer="false"
-          class="mt-2 mx-auto"
-          size="small"
-          hide-on-single-page
-          show-less-items
+          entity-name="links-excluded-list"
+          mode="simple"
         />
       </div>
       <NcButton class="nc-close-btn ml-auto" type="ghost" @click="vModel = false"> {{ $t('general.finish') }} </NcButton>
@@ -327,5 +333,11 @@ onKeyStroke('Escape', () => {
         use-meta-fields
       />
     </Suspense>
-  </a-modal>
+  </NcModal>
 </template>
+
+<style lang="scss">
+.nc-modal-link-record > .ant-modal > .ant-modal-content {
+  @apply !p-0;
+}
+</style>

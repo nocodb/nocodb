@@ -1,45 +1,21 @@
 import { useDebounceFn } from '@vueuse/core'
 import posthog, { PostHog } from 'posthog-js'
+import { init } from 'nc-analytics'
 import { defineNuxtPlugin, until, useGlobal, useRouter } from '#imports'
 import type { NuxtApp } from '#app'
 
 // todo: generate client id and keep it in cookie(share across sub-domains)
-let clientId: string | null = window.localStorage.getItem('nc_id')
-let phClient: PostHog = null
+let clientId = null
 let isTeleEnabled = false
 
-if (clientId) {
-  initPostHog(clientId)
-}
-
-// todo: move to a separate library to reuse in other packages
-const iframe = document.createElement('iframe')
-iframe.style.display = 'none'
-iframe.style.height = '1px'
-iframe.style.width = '1px'
-
-iframe.setAttribute('src', 'https://nocodb.com/client.html')
-
-window.onmessage = function (e) {
-  if (e.origin === 'https://nocodb.com' || e.origin === 'https://www.nocodb.com') {
-    if (e.data) {
-      clientId = e.data
-      window.localStorage.setItem('nc_id', e.data)
-      document.body.removeChild(iframe)
-      initPostHog(e.data)
-    }
-  }
-}
-
-iframe.onloadeddata = function () {
-  iframe.contentWindow?.postMessage('client_id', 'https://nocodb.com')
-}
-
-iframe.onload = function () {
-  iframe.contentWindow?.postMessage('client_id', 'https://nocodb.com')
-}
-
-document.body.appendChild(iframe)
+try {
+  init({
+    clientIdCb: (id) => {
+      clientId = id
+      initPostHog(id)
+    },
+  })
+} catch (e) {}
 
 function initPostHog(clientId: string) {
   try {
@@ -117,16 +93,18 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   const route = router.currentRoute
   const tele = {
     emit(evt: string, data: Record<string, any>) {
-      eventBatcher.enqueueEvent({
-        event: evt,
-        ...(data || {}),
-        $current_url: route.value?.path,
-        path: sanitisePath(route.value?.matched?.[route.value?.matched?.length - 1]?.path),
-        base_id: route.value?.params?.baseId,
-        workspace_id: route.value?.params?.typeOrId ?? undefined,
-        table_id: route.value?.params?.viewId ?? undefined,
-        view_id: route.value?.params?.viewTitle ?? undefined,
-      })
+      try {
+        eventBatcher.enqueueEvent({
+          event: evt,
+          ...(data || {}),
+          $current_url: route.value?.path,
+          path: sanitisePath(route.value?.matched?.[route.value?.matched?.length - 1]?.path),
+          base_id: route.value?.params?.baseId,
+          workspace_id: route.value?.params?.typeOrId ?? undefined,
+          table_id: route.value?.params?.viewId ?? undefined,
+          view_id: route.value?.params?.viewTitle ?? undefined,
+        })
+      } catch {}
     },
   }
 

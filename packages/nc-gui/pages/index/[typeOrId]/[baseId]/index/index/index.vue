@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import type { SourceType } from 'nocodb-sdk'
-import { message, ref, resolveComponent, storeToRefs, useDialog, useFileDialog, useNuxtApp, useBase, watch } from '#imports'
+import { message, ref, resolveComponent, storeToRefs, useBase, useDialog, useFileDialog, useNuxtApp, watch } from '#imports'
 
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)

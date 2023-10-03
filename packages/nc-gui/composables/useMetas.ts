@@ -1,7 +1,7 @@
 import { message } from 'ant-design-vue'
 import type { WatchStopHandle } from 'vue'
 import type { TableType } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, storeToRefs, useNuxtApp, useBase, useState, watch } from '#imports'
+import { extractSdkResponseErrorMsg, storeToRefs, useBase, useNuxtApp, useState, watch } from '#imports'
 
 export function useMetas() {
   const { $api } = useNuxtApp()

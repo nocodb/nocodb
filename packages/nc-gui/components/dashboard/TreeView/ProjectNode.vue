@@ -2,7 +2,7 @@
 import { nextTick } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import { stringifyRolesObj } from 'nocodb-sdk'
-import type { SourceType, BaseType, TableType } from 'nocodb-sdk'
+import type { BaseType, SourceType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import { useTitle } from '@vueuse/core'
 import {
@@ -424,17 +424,13 @@ const projectDelete = () => {
 
           <div class="flex items-center mr-1" @click="onProjectClick(base)">
             <div class="flex items-center select-none w-6 h-full">
-              <a-spin
-                v-if="base.isLoading"
-                class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8"
-                :indicator="indicator"
-              />
+              <a-spin v-if="base.isLoading" class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8" :indicator="indicator" />
 
               <LazyGeneralEmojiPicker
                 v-else
                 :key="base.meta?.icon"
-                :emoji="base.meta?.icon"
                 v-e="['c:base:emojiSelect']"
+                :emoji="base.meta?.icon"
                 :readonly="true"
                 size="small"
                 @emoji-selected="setIcon($event, base)"
@@ -517,8 +513,8 @@ const projectDelete = () => {
                   <NcMenuItem
                     v-if="!isEeUI"
                     key="copy"
-                    data-testid="nc-sidebar-base-copy-base-info"
                     v-e="['c:base:copy-proj-info']"
+                    data-testid="nc-sidebar-base-copy-base-info"
                     @click.stop="copyProjectInfo"
                   >
                     <GeneralIcon icon="copy" class="group-hover:text-black" />
@@ -622,8 +618,8 @@ const projectDelete = () => {
                   <a-collapse
                     v-else-if="source && source.enabled"
                     v-model:activeKey="activeKey"
-                    class="!mx-0 !px-0 nc-sidebar-source-node"
                     v-e="['c:source:toggle-expand']"
+                    class="!mx-0 !px-0 nc-sidebar-source-node"
                     :class="[{ hidden: searchActive && !!filterQuery }]"
                     expand-icon-position="left"
                     :bordered="false"
@@ -743,7 +739,11 @@ const projectDelete = () => {
         <template v-else-if="contextMenuTarget.type === 'source'"></template>
 
         <template v-else-if="contextMenuTarget.type === 'table'">
-          <NcMenuItem v-if="isUIAllowed('tableRename')" v-e="['c:table:rename']" @click="openRenameTableDialog(contextMenuTarget.value, true)">
+          <NcMenuItem
+            v-if="isUIAllowed('tableRename')"
+            v-e="['c:table:rename']"
+            @click="openRenameTableDialog(contextMenuTarget.value, true)"
+          >
             <div class="nc-base-option-item">
               <GeneralIcon icon="edit" class="text-gray-700" />
               {{ $t('general.rename') }}

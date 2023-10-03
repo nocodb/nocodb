@@ -8,6 +8,7 @@ import {
   ClientType,
   ProjectIdInj,
   SSLUsage,
+  baseTitleValidator,
   clientTypes,
   computed,
   extractSdkResponseErrorMsg,
@@ -16,7 +17,6 @@ import {
   getTestDatabaseName,
   iconMap,
   onMounted,
-  baseTitleValidator,
   readFile,
   ref,
   storeToRefs,
@@ -345,14 +345,7 @@ onMounted(async () => {
   <div class="edit-source bg-white relative flex flex-col justify-start gap-2 w-full p-2">
     <h1 class="prose-2xl font-bold self-start">{{ $t('activity.editSource') }}</h1>
 
-    <a-form
-      ref="form"
-      :model="formState"
-      name="external-base-create-form"
-      layout="horizontal"
-      no-style
-      :label-col="{ span: 8 }"
-    >
+    <a-form ref="form" :model="formState" name="external-base-create-form" layout="horizontal" no-style :label-col="{ span: 8 }">
       <div
         class="nc-scrollbar-md"
         :style="{

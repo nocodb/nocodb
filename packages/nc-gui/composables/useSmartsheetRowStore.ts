@@ -15,11 +15,11 @@ import {
   ref,
   storeToRefs,
   unref,
+  useBase,
   useI18n,
   useInjectionState,
   useMetas,
   useNuxtApp,
-  useBase,
 } from '#imports'
 import type { Row } from '#imports'
 

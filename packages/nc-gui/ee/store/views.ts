@@ -11,16 +11,23 @@ export const useViewsStore = defineStore('viewsStore', () => {
     viewType: ViewTypes
     tableID: string
     baseName: string
+    workspaceId: string
     baseId: string
   }
 
   const router = useRouter()
-  const recentViews = ref<RecentView[]>([])
+  const _recentViews = ref<RecentView[]>([])
   const route = router.currentRoute
 
   const bases = useBases()
 
   const tablesStore = useTablesStore()
+
+  const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
+  const recentViews = computed<RecentView[]>(() =>
+    _recentViews.value.filter((f) => f.workspaceId === activeWorkspaceId.value).splice(0, 10),
+  )
 
   const viewsByTable = ref<Map<string, ViewType[]>>(new Map())
   const views = computed({
@@ -146,11 +153,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
     baseId?: string
   }) => {
     if (baseId && !viewId && !tableId) {
-      recentViews.value = recentViews.value.filter((f) => f.baseId !== baseId)
+      _recentViews.value = _recentViews.value.filter((f) => f.baseId !== baseId)
     } else if (baseId && tableId && !viewId) {
-      recentViews.value = recentViews.value.filter((f) => f.baseId !== baseId || f.tableID !== tableId)
+      _recentViews.value = _recentViews.value.filter((f) => f.baseId !== baseId || f.tableID !== tableId)
     } else if (tableId && viewId) {
-      recentViews.value = recentViews.value.filter((f) => f.viewId !== viewId || f.tableID !== tableId)
+      _recentViews.value = _recentViews.value.filter((f) => f.viewId !== viewId || f.tableID !== tableId)
     }
   }
 
@@ -265,16 +272,17 @@ export const useViewsStore = defineStore('viewsStore', () => {
     if (!view.base_id) return
 
     const baseName = bases.basesList.find((p) => p.id === view.base_id)?.title
-    recentViews.value = [
+    _recentViews.value = [
       {
         viewId: view.id,
         baseId: view.base_id as string,
         tableID: view.fk_model_id,
         viewName: view.title as string,
         viewType: view.type,
+        workspaceId: activeWorkspaceId.value,
         baseName: baseName as string,
       },
-      ...recentViews.value.filter((f) => f.viewId !== view.id || f.tableID !== view.fk_model_id),
+      ..._recentViews.value.filter((f) => f.viewId !== view.id || f.tableID !== view.fk_model_id),
     ].splice(0, 10)
   })
 
@@ -285,6 +293,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     isPaginationLoading,
     loadViews,
     recentViews,
+    _recentViews,
     views,
     activeView,
     openedViewsTab,

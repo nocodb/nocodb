@@ -259,6 +259,8 @@ async function localInit({
       }
     }
 
+    console.time('Reset Sakila DB');
+
     // DB reset
     if (dbType === 'pg' && !isEmptyProject) {
       await resetSakilaPg(`sakila${workerId}`);
@@ -283,6 +285,7 @@ async function localInit({
         await resetSakilaMysql(nc_knex, parallelId, isEmptyProject);
       }
     }
+    console.timeEnd('Reset Sakila DB');
 
     let workspace;
     if (isEE() && api['workspace']) {

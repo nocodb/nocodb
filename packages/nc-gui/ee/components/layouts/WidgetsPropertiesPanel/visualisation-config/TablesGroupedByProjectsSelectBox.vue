@@ -67,11 +67,7 @@ const allDataIsReady = computed(() => {
             {{ baseWithTables.baseTitle }}
           </span>
         </template>
-        <a-select-option
-          v-for="table of baseWithTables.tables"
-          :key="table.baseIdAndTableId"
-          :value="table.baseIdAndTableId"
-        >
+        <a-select-option v-for="table of baseWithTables.tables" :key="table.baseIdAndTableId" :value="table.baseIdAndTableId">
           <div class="flex gap-1 items-center">
             {{ table.tableName }}
           </div>

@@ -5,7 +5,9 @@ const route = useRoute()
 
 const { sources } = storeToRefs(useBase())
 
-const source = computed(() => sources.value.find((el) => el.id === route.params?.sourceId) || sources.value.filter((el) => el.enabled)[0])
+const source = computed(
+  () => sources.value.find((el) => el.id === route.params?.sourceId) || sources.value.filter((el) => el.enabled)[0],
+)
 
 useMetas()
 </script>

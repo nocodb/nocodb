@@ -5,7 +5,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
 import MdiHammer from '~icons/mdi/hammer'
-import { useNuxtApp, useBase, useRoles, useSqlEditor } from '#imports'
+import { useBase, useNuxtApp, useRoles, useSqlEditor } from '#imports'
 
 const { base, sources, tables } = storeToRefs(useBase())
 
@@ -44,7 +44,9 @@ const loadMagic = ref(false)
 
 const loadSQL = ref(false)
 
-const baseOptions = computed((): SelectProps['options'] => sources.value.map((b) => ({ label: b.alias || 'Default', value: b.id })))
+const baseOptions = computed((): SelectProps['options'] =>
+  sources.value.map((b) => ({ label: b.alias || 'Default', value: b.id })),
+)
 
 const dataQuery: Ref<string> = ref('')
 

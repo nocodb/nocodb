@@ -1,4 +1,4 @@
-import type { ColumnType, CowriterType, BaseType, TableReqType, TableType, ViewType } from 'nocodb-sdk'
+import type { BaseType, ColumnType, CowriterType, TableReqType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isSystemColumn } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, useCopy, useNuxtApp } from '#imports'
 

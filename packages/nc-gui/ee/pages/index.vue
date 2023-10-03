@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { Menu } from 'ant-design-vue'
 import { onUnmounted } from '@vue/runtime-core'
 
 definePageMeta({
@@ -27,22 +26,6 @@ function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: str
 }
 
 provide(ToggleDialogInj, toggleDialog)
-
-// onMounted(async () => {
-//   isLoading.value = true
-//   try {
-//     await loadWorkspace(route.params.typeOrId as string)
-//     await loadProjects()
-//   } finally {
-//     isLoading.value = false
-//   }
-// })
-
-// TODO
-// const isSharedBase = ref(false)
-// const currentVersion = ref('')
-
-const baseId = computed(() => route.value.params.baseId)
 
 const workspaceStore = useWorkspace()
 const { populateWorkspace } = workspaceStore

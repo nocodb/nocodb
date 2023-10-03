@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import type { Ref } from 'vue'
 import type {
   AppearanceConfig,
+  BaseType,
   ButtonWidget,
   ColumnType,
   DataConfig,
@@ -11,7 +12,6 @@ import type {
   DataSourceInternal,
   LayoutType,
   NumberWidget,
-  BaseType,
   ScreenDimensions,
   ScreenPosition,
   StaticTextWidget,

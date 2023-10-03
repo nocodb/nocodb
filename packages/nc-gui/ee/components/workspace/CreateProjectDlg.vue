@@ -1,17 +1,8 @@
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
-import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
-import {
-  NcProjectType,
-  extractSdkResponseErrorMsg,
-  baseTitleValidator,
-  ref,
-  useGlobal,
-  useVModel,
-  useWorkspace,
-} from '#imports'
+import { NcProjectType, baseTitleValidator, extractSdkResponseErrorMsg, ref, useGlobal, useVModel, useWorkspace } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean

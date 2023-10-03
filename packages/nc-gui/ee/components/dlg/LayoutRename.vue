@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LayoutType, BaseType } from 'nocodb-sdk'
+import type { BaseType, LayoutType } from 'nocodb-sdk'
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import {
   Form,

@@ -7,16 +7,15 @@ import {
   TreeViewInj,
   computed,
   isDrawerOrModalExist,
-  isElementInvisible,
   isMac,
   reactive,
   ref,
   resolveComponent,
   storeToRefs,
-  useDialog,
-  useNuxtApp,
   useBase,
   useBases,
+  useDialog,
+  useNuxtApp,
   useRoles,
   useTablesStore,
   useTabs,
@@ -32,8 +31,6 @@ const { $e, $poller } = useNuxtApp()
 
 const router = useRouter()
 
-const { isMobileMode } = useGlobal()
-
 const route = router.currentRoute
 
 const { isWorkspaceLoading } = storeToRefs(useWorkspace())
@@ -42,7 +39,7 @@ const basesStore = useBases()
 
 const { createProject: _createProject } = basesStore
 
-const { bases, basesList, activeProjectId, openedProject } = storeToRefs(basesStore)
+const { bases, basesList, activeProjectId } = storeToRefs(basesStore)
 
 const { openTable } = useTablesStore()
 
@@ -72,7 +69,7 @@ const setMenuContext = (type: 'base' | 'base' | 'table' | 'main' | 'layout', val
   contextMenuTarget.value = value
 }
 
-function openRenameTableDialog(table: TableType, rightClick = false) {
+function openRenameTableDialog(table: TableType, _rightClick = false) {
   if (!table || !table.source_id) return
 
   $e('c:table:rename')

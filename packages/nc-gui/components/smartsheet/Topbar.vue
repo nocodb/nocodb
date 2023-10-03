@@ -10,8 +10,6 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { isViewsLoading } = storeToRefs(useViewsStore())
 
-const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
-
 const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { appInfo } = useGlobal()

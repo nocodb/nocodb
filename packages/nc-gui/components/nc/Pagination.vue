@@ -4,6 +4,7 @@ const props = defineProps<{
   total: number
   pageSize: number
   entityName?: string
+  mode: 'simple' | 'full'
 }>()
 
 const emits = defineEmits(['update:current', 'update:pageSize'])
@@ -19,6 +20,8 @@ const entityName = computed(() => props.entityName || 'item')
 const totalPages = computed(() => Math.max(Math.ceil(total.value / pageSize.value), 1))
 
 const { isMobileMode } = useGlobal()
+
+const mode = computed(() => props.mode || (isMobileMode.value ? 'simple' : 'full'))
 
 const changePage = ({ increase }: { increase: boolean }) => {
   if (increase && current.value < totalPages.value) {
@@ -40,7 +43,7 @@ const goToFirstPage = () => {
 <template>
   <div class="nc-pagination flex flex-row items-center gap-x-2">
     <NcButton
-      v-if="!isMobileMode"
+      v-if="mode === 'full'"
       v-e="[`a:pagination:${entityName}:first-page`]"
       class="first-page"
       type="secondary"
@@ -63,7 +66,7 @@ const goToFirstPage = () => {
     </NcButton>
     <div class="text-gray-600">
       <span class="active"> {{ current }} </span>
-      <span class="mx-1"> {{ isMobileMode ? '/' : 'of' }} </span>
+      <span class="mx-1"> {{ mode !== 'full' ? '/' : 'of' }} </span>
       <span class="total">
         {{ totalPages }}
       </span>
@@ -81,7 +84,7 @@ const goToFirstPage = () => {
     </NcButton>
 
     <NcButton
-      v-if="!isMobileMode"
+      v-if="mode === 'full'"
       v-e="[`a:pagination:${entityName}:last-page`]"
       class="last-page"
       type="secondary"

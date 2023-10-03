@@ -90,7 +90,7 @@ const isFocused = ref(false)
 const fields = computedInject(FieldsInj, (_fields) => {
   return (relatedTableMeta.value.columns ?? [])
     .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
-    .slice(0, isMobileMode.value ? 0 : 4)
+    .slice(0, isMobileMode.value ? 1 : 4)
 })
 
 const expandedFormDlg = ref(false)
@@ -278,6 +278,15 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
       </div>
     </div>
 
+    <div v-if="isMobileMode" class="flex flex-row justify-center items-center w-full mt-2">
+      <NcPagination
+        v-if="!isNew && childrenList?.pageInfo"
+        v-model:current="childrenListPagination.page"
+        v-model:page-size="childrenListPagination.size"
+        :total="+childrenList.pageInfo.totalRows!"
+      />
+    </div>
+
     <div class="my-2 bg-gray-50 border-gray-50 border-b-2"></div>
 
     <div class="flex flex-row justify-between bg-white relative pt-1">
@@ -293,17 +302,13 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
           {{ $t('general.linked') }}
         </span>
       </div>
-      <div class="flex absolute items-center py-2 justify-center w-full">
-        <a-pagination
+      <div class="!xs:hidden flex absolute -mt-0.75 items-center py-2 justify-center w-full">
+        <NcPagination
           v-if="!isNew && childrenList?.pageInfo"
           v-model:current="childrenListPagination.page"
           v-model:page-size="childrenListPagination.size"
           :total="+childrenList.pageInfo.totalRows!"
-          :show-size-changer="false"
-          class="mt-2 mx-auto"
-          size="small"
-          hide-on-single-page
-          show-less-items
+          mode="simple"
         />
       </div>
       <div class="flex flex-row gap-2">

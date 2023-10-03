@@ -1,10 +1,9 @@
 <script lang="ts" setup>
-import HasManyIcon from '~icons/nc-icons/hasmany'
-import ManytoManyIcon from '~icons/nc-icons/manytomany'
 import OnetoOneIcon from '~icons/nc-icons/onetoone'
-import BelongsToIcon from '~icons/nc-icons/belongsto'
 import InfoIcon from '~icons/nc-icons/info'
 import FileIcon from '~icons/nc-icons/file'
+
+import { iconMap } from '#imports'
 
 const { relation, relatedTableTitle, displayValue, showHeader, tableTitle } = defineProps<{
   relation: string
@@ -20,14 +19,14 @@ const relationMeta = computed(() => {
   if (relation === 'hm') {
     return {
       title: t('msg.hm.title'),
-      icon: HasManyIcon,
+      icon: iconMap.hm,
       tooltip_desc: t('msg.hm.tooltip_desc'),
       tooltip_desc2: t('msg.hm.tooltip_desc2'),
     }
   } else if (relation === 'mm') {
     return {
       title: t('msg.mm.title'),
-      icon: ManytoManyIcon,
+      icon: iconMap.mm,
 
       tooltip_desc: t('msg.mm.tooltip_desc'),
       tooltip_desc2: t('msg.mm.tooltip_desc2'),
@@ -35,7 +34,7 @@ const relationMeta = computed(() => {
   } else if (relation === 'bt') {
     return {
       title: t('msg.bt.title'),
-      icon: BelongsToIcon,
+      icon: iconMap.bt,
       tooltip_desc: t('msg.bt.tooltip_desc'),
       tooltip_desc2: t('msg.bt.tooltip_desc2'),
     }

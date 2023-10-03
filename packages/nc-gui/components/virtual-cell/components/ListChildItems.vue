@@ -278,7 +278,7 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
       </div>
     </div>
 
-    <div v-if="isMobileMode" class="flex flex-row justify-center items-center w-full mt-2">
+    <div v-if="isMobileMode" class="flex flex-row justify-center items-center w-full my-2">
       <NcPagination
         v-if="!isNew && childrenList?.pageInfo"
         v-model:current="childrenListPagination.page"
@@ -320,7 +320,7 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
           @click="emit('attachRecord')"
         >
           <div class="flex items-center gap-1">
-            <MdiPlus class="!xs:hidden" /> {{ isMobileMode ? 'Link More' : $t('title.linkMoreRecords') }}
+            <MdiPlus class="!xs:hidden" /> {{ isMobileMode ? $t('title.linkMore') : $t('title.linkMoreRecords') }}
           </div>
         </NcButton>
       </div>

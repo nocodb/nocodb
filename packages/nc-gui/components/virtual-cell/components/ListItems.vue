@@ -284,7 +284,7 @@ onKeyStroke('Escape', () => {
       </p>
     </div>
 
-    <div v-if="isMobileMode" class="flex flex-row justify-center items-center w-full mt-2">
+    <div v-if="isMobileMode" class="flex flex-row justify-center items-center w-full my-2">
       <NcPagination
         v-if="childrenExcludedList?.pageInfo"
         v-model:current="childrenExcludedListPagination.page"

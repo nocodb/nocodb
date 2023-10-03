@@ -29,15 +29,14 @@ import {
   useVModel,
   watch,
 } from '#imports'
-import type { Row } from '#imports'
 
 interface Props {
   modelValue?: boolean
-  row: Row
   state?: Record<string, any> | null
   meta: TableType
   loadRow?: boolean
   useMetaFields?: boolean
+  row?: Row
   rowId?: string
   view?: ViewType
   showNextPrevIcons?: boolean
@@ -153,14 +152,14 @@ const isExpanded = useVModel(props, 'modelValue', emits, {
 })
 
 const onClose = () => {
-  if (row.value?.rowMeta?.new) emits('cancel')
+  if (_row.value?.rowMeta?.new) emits('cancel')
   isExpanded.value = false
 }
 
 const onDuplicateRow = () => {
   duplicatingRowInProgress.value = true
   isUnsavedFormExist.value = true
-  const oldRow = { ...row.value.row }
+  const oldRow = { ..._row.value.row }
   delete oldRow.ncRecordId
   const newRow = Object.assign(
     {},
@@ -171,7 +170,7 @@ const onDuplicateRow = () => {
     },
   )
   setTimeout(async () => {
-    row.value = newRow
+    _row.value = newRow
     duplicatingRowInProgress.value = false
     message.success(t('msg.success.rowDuplicatedWithoutSavedYet'))
   }, 500)
@@ -223,7 +222,7 @@ provide(ReloadRowDataHookInj, reloadHook)
 
 if (isKanban.value) {
   // adding column titles to changedColumns if they are preset
-  for (const [k, v] of Object.entries(row.value.row)) {
+  for (const [k, v] of Object.entries(_row.value.row)) {
     if (v) {
       changedColumns.value.add(k)
     }
@@ -241,7 +240,7 @@ onMounted(() => {
 
 const addNewRow = () => {
   setTimeout(async () => {
-    row.value = {
+    _row.value = {
       row: {},
       oldRow: {},
       rowMeta: { new: true },
@@ -363,11 +362,10 @@ export default {
     :body-style="{ padding: 0 }"
     :closable="false"
     size="small"
-    transition=""
     class="nc-drawer-expanded-form"
     :class="{ active: isExpanded }"
   >
-    <div :key="rowId" class="h-[85vh] xs:(max-h-full) max-h-215 flex flex-col p-6">
+    <div class="h-[85vh] xs:(max-h-full) max-h-215 flex flex-col p-6">
       <div class="flex h-8 flex-shrink-0 w-full items-center nc-expanded-form-header relative mb-4 justify-between">
         <template v-if="!isMobileMode">
           <div class="flex gap-3 w-100">
@@ -507,11 +505,11 @@ export default {
                   :ref="i ? null : (el: any) => (cellWrapperEl = el)"
                   class="!bg-white rounded-lg !w-[20rem] !xs:w-full border-1 border-gray-200 px-1 min-h-[35px] flex items-center relative"
                 >
-                  <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
+                  <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="_row.row[col.title]" :row="_row" :column="col" />
 
                   <LazySmartsheetCell
                     v-else
-                    v-model="row.row[col.title]"
+                    v-model="_row.row[col.title]"
                     :column="col"
                     :edit-enabled="true"
                     :active="true"
@@ -551,11 +549,11 @@ export default {
                     :ref="i ? null : (el: any) => (cellWrapperEl = el)"
                     class="!bg-white rounded-lg !w-[20rem] border-1 border-gray-200 px-1 min-h-[35px] flex items-center relative"
                   >
-                    <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
+                    <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="_row.row[col.title]" :row="_row" :column="col" />
 
                     <LazySmartsheetCell
                       v-else
-                      v-model="row.row[col.title]"
+                      v-model="_row.row[col.title]"
                       :column="col"
                       :edit-enabled="true"
                       :active="true"

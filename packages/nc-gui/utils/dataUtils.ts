@@ -4,13 +4,11 @@ import type { Row } from 'lib'
 import { isColumnRequiredAndNull } from './columnUtils'
 
 export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]) => {
-  return (
-    row &&
-    columns
-      ?.filter((c) => c.pk)
-      .map((c) => row?.[c.title as string])
-      .join('___')
-  )
+  if (!row || !columns) return null
+  return columns
+    .filter((c) => c.pk)
+    .map((c) => row?.[c.title as string])
+    .join('___')
 }
 
 export const rowPkData = (row: Record<string, any>, columns: ColumnType[]) => {

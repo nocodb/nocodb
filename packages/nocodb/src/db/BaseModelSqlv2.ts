@@ -2884,17 +2884,32 @@ class BaseModelSqlv2 {
       const newData = [];
       const updatePkValues = [];
       const toBeUpdated = [];
-      const res = [];
       for (const d of updateDatas) {
         if (!raw) await this.validate(d);
         const pkValues = await this._extractPksValues(d);
         if (!pkValues) {
-          // pk not specified - bypass
+          // throw or skip if no pk provided
+          if (throwExceptionIfNotExist) {
+            NcError.unprocessableEntity(
+              `Record with pk ${JSON.stringify(pkValues)} not found`,
+            );
+          }
           continue;
         }
-        if (!raw) prevData.push(await this.readByPk(pkValues));
+        if (!raw) {
+          const oldRecord = await this.readByPk(pkValues);
+          if (!oldRecord) {
+            // throw or skip if no record found
+            if (throwExceptionIfNotExist) {
+              NcError.unprocessableEntity(
+                `Record with pk ${JSON.stringify(pkValues)} not found`,
+              );
+            }
+            continue;
+          }
+          prevData.push(oldRecord);
+        }
         const wherePk = await this._wherePk(pkValues);
-        res.push(wherePk);
         toBeUpdated.push({ d, wherePk });
         updatePkValues.push(pkValues);
       }
@@ -2909,12 +2924,8 @@ class BaseModelSqlv2 {
 
       if (!raw) {
         for (const pkValues of updatePkValues) {
-          const oldRecord = await this.readByPk(pkValues);
-          if (!oldRecord && throwExceptionIfNotExist)
-            NcError.unprocessableEntity(
-              `Record with pk ${JSON.stringify(pkValues)} not found`,
-            );
-          newData.push(oldRecord);
+          const updatedRecord = await this.readByPk(pkValues);
+          newData.push(updatedRecord);
         }
       }
 
@@ -2932,7 +2943,7 @@ class BaseModelSqlv2 {
         }
       }
 
-      return res;
+      return newData;
     } catch (e) {
       if (transaction) await transaction.rollback();
       throw e;
@@ -3025,16 +3036,26 @@ class BaseModelSqlv2 {
       for (const d of deleteIds) {
         const pkValues = await this._extractPksValues(d);
         if (!pkValues) {
-          // pk not specified - bypass
+          // throw or skip if no pk provided
+          if (throwExceptionIfNotExist) {
+            NcError.unprocessableEntity(
+              `Record with pk ${JSON.stringify(pkValues)} not found`,
+            );
+          }
           continue;
         }
 
-        const oldRecord = await this.readByPk(pkValues);
-        if (!oldRecord && throwExceptionIfNotExist)
-          NcError.unprocessableEntity(
-            `Record with pk ${JSON.stringify(pkValues)} not found`,
-          );
-        deleted.push(oldRecord);
+        const deletedRecord = await this.readByPk(pkValues);
+        if (!deletedRecord) {
+          // throw or skip if no record found
+          if (throwExceptionIfNotExist) {
+            NcError.unprocessableEntity(
+              `Record with pk ${JSON.stringify(pkValues)} not found`,
+            );
+          }
+          continue;
+        }
+        deleted.push(deletedRecord);
 
         res.push(d);
       }

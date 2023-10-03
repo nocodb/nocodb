@@ -175,7 +175,7 @@ const processedAudit = (log: string) => {
                     </div>
                   </div>
                   <NcButton
-                    v-if="log.user === user!.email && !editLog && !appInfo.ee"
+                    v-if="log.user === user!.email && !editLog"
                     v-e="['c:row-expand:comment:edit']"
                     type="secondary"
                     class="!px-2 opacity-0 group-hover:opacity-100 transition-all"

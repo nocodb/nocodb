@@ -488,7 +488,6 @@ export default {
             'w-2/3': showRightSections,
           }"
         >
-          {{ rowId }}{{ _row }}
           <div
             class="flex flex-col flex-grow mt-2 h-full max-h-full nc-scrollbar-md !pb-2 items-center w-full bg-white p-4 xs:p-0"
           >

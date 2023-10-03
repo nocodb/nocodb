@@ -74,12 +74,6 @@ const loadListData = async ($state: any) => {
   $state.loaded()
 }
 
-const reloadCollabs = async () => {
-  currentPage.value = 0
-  collaborators.value = []
-  await loadCollaborators()
-}
-
 const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
   try {
     if (
@@ -106,8 +100,7 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    reloadCollabs()
+    loadCollaborators()
   }
 }
 
@@ -180,36 +173,39 @@ onMounted(async () => {
         <div class="h-160 nc-scrollbar-md rounded-lg border-1 w-250">
           <table>
             <thead class="bg-gray-50 h-10 sticky top-0">
-              <th class="text-start w-1/4 text-gray-700 sticky top-0 pr-40">{{ $t('objects.users') }}</th>
-              <th class="text-start w-1/4 text-gray-700 sticky top-0 pl-20">{{ $t('title.dateJoined') }}</th>
-              <th class="text-start w-2/4 text-gray-700 sticky top-0">{{ $t('general.access') }}</th>
-              <th class="pr-8 text-gray-700 sticky top-0">Actions</th>
+              <th class="text-start w-80 text-gray-700 sticky top-0 pr-50">{{ $t('objects.users') }}</th>
+              <th class="text-start w-80 text-gray-700 sticky top-0 pl-6">{{ $t('title.dateJoined') }}</th>
+              <th class="text-start w-80 text-gray-700 sticky top-0 pr-13">{{ $t('general.access') }}</th>
             </thead>
             <tbody>
               <tr v-for="(collab, i) of collaborators" :key="i" class="border-b-1 py-1 h-14">
-                <td class="flex gap-3 justify-start items-center h-14 pl-8">
+                <td class="flex gap-3 justify-start items-center h-14 w-75 ml-15">
                   <GeneralUserIcon size="base" :name="collab.email" :email="collab.email" />
                   <span class="truncate">
                     {{ collab.email }}
                   </span>
                 </td>
-                <td class="w-1/4 text-center pl-20">
-                  {{ timeAgo(collab.created_at) }}
+                <td class="w-75 text-center pl-18">
+                  <div class="flex justify-start w-35 ml-15">
+                    {{ timeAgo(collab.created_at) }}
+                  </div>
                 </td>
-                <td class="w-1/4">
+                <td class="w-75">
                   <template v-if="accessibleRoles.includes(collab.roles)">
                     <div class="flex justify-center items-center">
-                      <RolesSelector
-                        :role="collab.roles"
-                        :roles="accessibleRoles"
-                        :inherit="
-                          isEeUI && collab.workspace_roles && WorkspaceRolesToProjectRoles[collab.workspace_roles]
-                            ? WorkspaceRolesToProjectRoles[collab.workspace_roles]
-                            : null
-                        "
-                        :description="false"
-                        :on-role-change="(role: ProjectRoles) => updateCollaborator(collab, role)"
-                      />
+                      <div class="w-25.5">
+                        <RolesSelector
+                          :role="collab.roles"
+                          :roles="accessibleRoles"
+                          :inherit="
+                            isEeUI && collab.workspace_roles && WorkspaceRolesToProjectRoles[collab.workspace_roles]
+                              ? WorkspaceRolesToProjectRoles[collab.workspace_roles]
+                              : null
+                          "
+                          :description="false"
+                          :on-role-change="(role: ProjectRoles) => updateCollaborator(collab, role)"
+                        />
+                      </div>
                     </div>
                   </template>
                   <template v-else>
@@ -217,23 +213,6 @@ onMounted(async () => {
                       <RolesBadge class="!bg-white !w-25" :role="collab.roles" />
                     </div>
                   </template>
-                </td>
-                <td class="w-1/4 pr-8">
-                  <div class="flex justify-center items-center">
-                    <NcDropdown v-if="collab.roles !== ProjectRoles.OWNER" :trigger="['click']">
-                      <MdiDotsVertical
-                        class="border-1 !text-gray-600 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
-                      />
-                      <template #overlay>
-                        <NcMenu>
-                          <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="removeProjectUser(activeProjectId!, collab)">
-                            <MaterialSymbolsDeleteOutlineRounded />
-                            Remove user
-                          </NcMenuItem>
-                        </NcMenu>
-                      </template>
-                    </NcDropdown>
-                  </div>
                 </td>
               </tr>
             </tbody>

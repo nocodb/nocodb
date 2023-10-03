@@ -10,6 +10,8 @@ const router = useRouter()
 
 const route = router.currentRoute
 
+const { ncNavigateTo } = useGlobal()
+
 const dialogOpen = ref(false)
 
 const openDialogKey = ref<string>('')
@@ -87,6 +89,10 @@ const { deleteWorkspace: _deleteWorkspace, loadWorkspaces } = workspaceStore
 // create a new sidebar state
 const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
+const { sharedBaseId } = useCopySharedBase()
+
+const isDuplicateDlgOpen = ref(false)
+
 let timerRef: any
 
 onUnmounted(() => {
@@ -95,6 +101,11 @@ onUnmounted(() => {
 
 onMounted(async () => {
   if (route.value.meta.public) return
+
+  if (route.value.query?.continueAfterSignIn) {
+    return await navigateTo(route.value.query.continueAfterSignIn as string)
+  }
+
   toggle(true)
   toggleHasSidebar(true)
 
@@ -119,7 +130,46 @@ onMounted(async () => {
       await autoNavigateToProject()
     }
   }
+
+  if (sharedBaseId.value) isDuplicateDlgOpen.value = true
 })
+
+const { bases } = storeToRefs(basesStore)
+
+const { $e, $poller } = useNuxtApp()
+
+const DlgSharedBaseDuplicateOnOk = async (jobData: { id: string; base_id: string; workspace_id: string }) => {
+  await populateWorkspace()
+
+  $poller.subscribe(
+    { id: jobData.id },
+    async (data: {
+      id: string
+      status?: string
+      data?: {
+        error?: {
+          message: string
+        }
+        message?: string
+        result?: any
+      }
+    }) => {
+      if (data.status !== 'close') {
+        if (data.status === JobStatus.COMPLETED) {
+          await ncNavigateTo({
+            workspaceId: jobData.workspace_id,
+            baseId: jobData.base_id,
+          })
+        } else if (data.status === JobStatus.FAILED) {
+          message.error('Failed to duplicate project')
+          await populateWorkspace()
+        }
+      }
+    },
+  )
+
+  $e('a:base:duplicate-shared-base')
+}
 </script>
 
 <template>
@@ -138,6 +188,7 @@ onMounted(async () => {
       v-model:data-sources-state="dataSourcesState"
       :base-id="dialogProjectId"
     />
+    <DlgSharedBaseDuplicate v-model="isDuplicateDlgOpen" :shared-base-id="sharedBaseId" :on-ok="DlgSharedBaseDuplicateOnOk" />
   </div>
 </template>
 

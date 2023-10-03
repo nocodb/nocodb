@@ -126,6 +126,7 @@ export const OpenidStrategyProvider: FactoryProvider = {
           store: async (req, meta, callback) => {
             const handle = `oidc_${uuidv4()}`;
             let host: string;
+            let continueAfterSignIn: string;
 
             // extract workspace id from query params if available
             // and ignore if it's main sub-domain
@@ -140,7 +141,12 @@ export const OpenidStrategyProvider: FactoryProvider = {
               const url = new URL(req.ncSiteUrl);
               host = url.host;
             }
-            const state = { handle, host };
+
+            if (req.query.continueAfterSignIn) {
+              continueAfterSignIn = req.query.continueAfterSignIn;
+            }
+
+            const state = { handle, host, continueAfterSignIn };
             for (const key in meta) {
               state[key] = meta[key];
             }
@@ -159,6 +165,9 @@ export const OpenidStrategyProvider: FactoryProvider = {
                   });
                 }
 
+                req.extra = {
+                  continueAfterSignIn: state.continueAfterSignIn,
+                };
                 req.ncRedirectHost = state.host;
 
                 await NocoCache.del(key);

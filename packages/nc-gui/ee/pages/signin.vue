@@ -18,6 +18,8 @@ definePageMeta({
   title: 'title.headLogin',
 })
 
+const route = useRoute()
+
 const { signIn: _signIn, appInfo } = useGlobal()
 
 const { api, isLoading, error } = useApi({ useGlobalInstance: true })
@@ -63,7 +65,10 @@ async function signIn() {
   api.auth.signin(form).then(async ({ token }) => {
     _signIn(token!)
 
-    await navigateTo('/')
+    await navigateTo({
+      path: '/',
+      query: route.query,
+    })
   })
 }
 
@@ -71,9 +76,28 @@ function resetError() {
   if (error.value) error.value = null
 }
 
-// todo: move to utils
-// extract workspace id from url
-const subDomain = location.host?.split('.')[0]
+function navigateSignUp() {
+  navigateTo({
+    path: '/signup',
+    query: route.query,
+  })
+}
+
+function navigateForgotPassword() {
+  navigateTo({
+    path: '/forgot-password',
+    query: route.query,
+  })
+}
+
+const queryToPass = computed(() =>
+  new URLSearchParams({
+    ...route.query,
+    // todo: move to utils
+    // extract workspace id from url
+    workspaceId: location.host?.split('.')[0],
+  }).toString(),
+)
 </script>
 
 <template>
@@ -125,7 +149,7 @@ const subDomain = location.host?.split('.')[0]
             </a-form-item>
 
             <div class="hidden md:block text-right">
-              <nuxt-link class="prose-sm" to="/forgot-password">
+              <nuxt-link class="prose-sm" @click="navigateForgotPassword">
                 {{ $t('msg.info.signUp.forgotPassword') }}
               </nuxt-link>
             </div>
@@ -156,7 +180,7 @@ const subDomain = location.host?.split('.')[0]
               v-if="appInfo.oidcAuthEnabled"
               class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
             >
-              <a :href="`${appInfo.ncSiteUrl}/auth/oidc?workspaceId=${subDomain}`" class="!text-primary !no-underline">
+              <a :href="`${appInfo.ncSiteUrl}/auth/oidc?${queryToPass}`" class="!text-primary !no-underline">
                 <button type="button" class="scaling-btn bg-opacity-100">
                   <span class="flex items-center gap-2">
                     <MdiLogin />
@@ -174,11 +198,11 @@ const subDomain = location.host?.split('.')[0]
 
             <div class="text-end prose-sm">
               {{ $t('msg.info.signUp.dontHaveAccount') }}
-              <nuxt-link to="/signup">{{ $t('general.signUp') }}</nuxt-link>
+              <nuxt-link @click="navigateSignUp">{{ $t('general.signUp') }}</nuxt-link>
             </div>
             <template v-if="!appInfo.disableEmailAuth">
               <div class="md:hidden">
-                <nuxt-link class="prose-sm" to="/forgot-password">
+                <nuxt-link class="prose-sm" @click="navigateForgotPassword">
                   {{ $t('msg.info.signUp.forgotPassword') }}
                 </nuxt-link>
               </div>

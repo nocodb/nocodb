@@ -320,6 +320,7 @@ export const useBase = defineStore('baseStore', () => {
     baseUrl,
     getBaseType,
     navigateToProjectPage,
+    forcedProjectId,
   }
 })
 

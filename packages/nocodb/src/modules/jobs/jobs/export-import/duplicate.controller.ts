@@ -20,8 +20,8 @@ import { JobTypes } from '~/interface/Jobs';
 @UseGuards(GlobalGuard)
 export class DuplicateController {
   constructor(
-    @Inject('JobsService') private readonly jobsService,
-    private readonly basesService: BasesService,
+    @Inject('JobsService') protected readonly jobsService,
+    protected readonly basesService: BasesService,
   ) {}
 
   @Post([

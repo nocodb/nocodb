@@ -102,12 +102,22 @@ async function signUp() {
       console.error(e)
     }
 
-    await navigateTo('/')
+    await navigateTo({
+      path: '/',
+      query: route.query,
+    })
   })
 }
 
 function resetError() {
   if (error.value) error.value = null
+}
+
+function navigateSignIn() {
+  navigateTo({
+    path: '/signin',
+    query: route.query,
+  })
 }
 
 onMounted(async () => {
@@ -220,7 +230,7 @@ onMounted(async () => {
             <div class="text-end prose-sm">
               {{ $t('msg.info.signUp.alreadyHaveAccount') }}
 
-              <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
+              <nuxt-link @click="navigateSignIn">{{ $t('general.signIn') }}</nuxt-link>
             </div>
           </div>
         </a-form>

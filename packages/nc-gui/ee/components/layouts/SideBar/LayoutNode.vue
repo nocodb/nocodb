@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { LayoutType, BaseType } from 'nocodb-sdk'
+import type { BaseType, LayoutType } from 'nocodb-sdk'
 import { toRef } from '@vue/reactivity'
 
 import { useNuxtApp } from '#app'

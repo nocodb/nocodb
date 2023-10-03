@@ -140,6 +140,8 @@ const workspaceMoveProjectOnSuccess = async (workspaceId: string) => {
   })
 }
 
+const TODOMoveProject = ref(false)
+
 const moveProject = (base: BaseType) => {
   selectedProjectToMove.value = base
   isMoveDlgOpen.value = true
@@ -376,8 +378,11 @@ const setIcon = async (icon: string, base: BaseType) => {
                     {{ $t('general.duplicate') }} {{ $t('objects.project') }}
                   </div>
                 </a-menu-item>
+                <!-- TODO Move Project -->
                 <a-menu-item
-                  v-if="false && isUIAllowed('baseMove', { roles: [record.workspace_role, record.project_role].join() })"
+                  v-if="
+                    TODOMoveProject && isUIAllowed('baseMove', { roles: [record.workspace_role, record.project_role].join() })
+                  "
                   @click="moveProject(record)"
                 >
                   <div class="nc-menu-item-wrapper">
@@ -385,6 +390,7 @@ const setIcon = async (icon: string, base: BaseType) => {
                     {{ $t('general.move') }} {{ $t('objects.project') }}
                   </div>
                 </a-menu-item>
+
                 <a-menu-item
                   v-if="isUIAllowed('baseDelete', { roles: [record.workspace_role, record.project_role].join() })"
                   @click="deleteProject(record)"

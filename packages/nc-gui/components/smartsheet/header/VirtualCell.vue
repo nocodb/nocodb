@@ -137,7 +137,7 @@ const closeAddColumnDropdown = () => {
       <span
         class="name pl-1"
         :class="{ 'truncate': !isForm || !isExpandedForm, 'whitespace-pre-line': isForm || isExpandedForm }"
-        :title="column.title"
+        :data-test-id="column.title"
       >
         {{ column.title }}
       </span>

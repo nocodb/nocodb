@@ -27,6 +27,8 @@ export class PageSnapshotDao {
     diffHtml;
     type: DocsPageSnapshotType['type'];
   }): Promise<DocsPageSnapshotType> {
+    // TODO implement
+    console.log(workspaceId, baseId, pageId, _page, type, diffHtml);
     //   const id = this.meta.genNanoid('');
     //
     //   const page = { ..._page };
@@ -64,6 +66,8 @@ export class PageSnapshotDao {
   }
 
   deserializeSnapshot(snapshot: DocsPageSnapshotType) {
+    // TODO implement
+    console.log(snapshot);
     // snapshot.page_json = Buffer.from(snapshot.page_json, 'base64').toString(
     //   'utf-8',
     // );
@@ -81,6 +85,8 @@ export class PageSnapshotDao {
   }
 
   async get({ id }: { id: string }): Promise<DocsPageSnapshotType | undefined> {
+    // TODO implement
+    console.log(id);
     // let snapshot = (
     //   await this.clickhouseService.execute(
     //     `SELECT * FROM ${ClickhouseTables.PAGE_SNAPSHOT} WHERE id = '${id}'`,
@@ -106,6 +112,8 @@ export class PageSnapshotDao {
     pageNumber?: number | undefined;
     pageSize?: number | undefined;
   }) {
+    // TODO implement
+    console.log(baseId, pageId, pageNumber, pageSize);
     //     let query = `
     //   SELECT
     //     id,

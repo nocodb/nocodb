@@ -24,8 +24,6 @@ const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 
-const { clearWorkspaces } = useWorkspace()
-
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const formValidator = ref()

@@ -75,7 +75,7 @@ const openDropDown = () => {
       v-if="column"
       class="name pl-1"
       :class="{ 'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu }"
-      :title="column.title"
+      :data-test-id="column.title"
     >
       {{ column.title }}
     </div>

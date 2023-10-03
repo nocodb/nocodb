@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { SourceType, OracleUi, ProjectUserReqType, RequestParams } from 'nocodb-sdk'
+import type { OracleUi, ProjectUserReqType, RequestParams, SourceType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import type { NcProject, User } from '#imports'
@@ -14,9 +14,7 @@ export const useBases = defineStore('basesStore', () => {
 
   const bases = ref<Map<string, NcProject>>(new Map())
 
-  const basesList = computed<NcProject[]>(() =>
-    Array.from(bases.value.values()).sort((a, b) => a.updated_at - b.updated_at),
-  )
+  const basesList = computed<NcProject[]>(() => Array.from(bases.value.values()).sort((a, b) => a.updated_at - b.updated_at))
 
   const router = useRouter()
   const route = router.currentRoute

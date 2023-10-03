@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { definePageMeta, navigateTo, onMounted, ref, useGlobal, useMetas, useNuxtApp, useBase, useRoute } from '#imports'
+import { definePageMeta, navigateTo, onMounted, ref, useBase, useGlobal, useMetas, useNuxtApp, useRoute } from '#imports'
 
 definePageMeta({
   public: true,

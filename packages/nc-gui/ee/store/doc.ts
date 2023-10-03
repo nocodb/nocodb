@@ -51,11 +51,7 @@ export const useDocStore = defineStore('docStore', () => {
   const isEditAllowed = computed<boolean>(() => {
     return (
       !isPublic.value &&
-      !!(
-        baseRoles.value[ProjectRoles.CREATOR] ||
-        baseRoles.value[ProjectRoles.OWNER] ||
-        baseRoles.value[ProjectRoles.EDITOR]
-      )
+      !!(baseRoles.value[ProjectRoles.CREATOR] || baseRoles.value[ProjectRoles.OWNER] || baseRoles.value[ProjectRoles.EDITOR])
     )
   })
 

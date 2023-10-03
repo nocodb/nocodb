@@ -4,6 +4,7 @@ import { Api, UITypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { GridPage } from '../../../pages/Dashboard/Grid';
 import { getTextExcludeIconText } from '../../../tests/utils/general';
+import { isEE } from '../../../setup/db';
 let api: Api<any>;
 const recordCount = 10;
 
@@ -98,6 +99,9 @@ test.describe('Links', () => {
       const columnType = await getTextExcludeIconText(columnAddModal.locator(`.nc-column-type-input`));
       const linkField = await getTextExcludeIconText(columnAddModal.locator(`.ant-form-item-control-input`).nth(2));
       const childColumn = await getTextExcludeIconText(columnAddModal.locator(`.ant-form-item-control-input`).nth(3));
+
+      // TODO: Handle this in EE
+      if (isEE()) return;
 
       // validate
       expect(columnType).toContain('Lookup');

@@ -53,7 +53,7 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const editingBase = ref(false)
+const editingSource = ref(false)
 
 const formState = ref<ProjectCreateForm>({
   title: '',
@@ -559,7 +559,7 @@ onMounted(async () => {
             size="small"
             type="primary"
             :disabled="!testSuccess"
-            :loading="editingBase"
+            :loading="editingSource"
             @click="editBase"
           >
             {{ $t('general.submit') }}

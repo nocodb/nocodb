@@ -624,7 +624,7 @@ watch(
             size="small"
             type="primary"
             :disabled="!testSuccess"
-            :loading="creatingBase"
+            :loading="creatingSource"
             class="nc-extdb-btn-submit !rounded-md"
             @click="createSource"
           >

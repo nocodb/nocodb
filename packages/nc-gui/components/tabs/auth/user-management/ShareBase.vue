@@ -91,11 +91,11 @@ const recreate = async () => {
   try {
     if (!base.value.id) return
 
-    const sharedBase = await $api.base.sharedBaseCreate(base.value.id, {
+    const createdShareBase = await $api.base.sharedBaseCreate(base.value.id, {
       roles: sharedBase.value?.role || ShareBaseRole.Viewer,
     })
 
-    const newBase = sharedBase || {}
+    const newBase = createdShareBase || {}
 
     sharedBase.value = { ...newBase, role: sharedBase.value?.role }
   } catch (e: any) {

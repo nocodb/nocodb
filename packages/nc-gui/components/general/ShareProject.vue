@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isDrawerOrModalExist, isMac, useNuxtApp, useRoles } from '#imports'
+import { isDrawerOrModalExist, isEeUI, isMac, useNuxtApp, useRoles } from '#imports'
 
 interface Props {
   disabled?: boolean
@@ -70,7 +70,7 @@ const copySharedBase = async () => {
     </NcButton>
   </div>
 
-  <template v-else-if="isSharedBase">
+  <template v-else-if="isSharedBase && isEeUI">
     <div class="flex-1"></div>
     <div class="flex flex-col justify-center h-full">
       <div class="flex flex-row items-center w-full">

@@ -512,7 +512,16 @@ export default {
                 </div>
 
                 <template v-if="isLoading">
-                  <a-skeleton-input class="!h-8.5 !sm:mr-21 !w-60 mt-0.75 !rounded-lg !overflow-hidden" active size="small" />
+                  <div
+                    v-if="isMobileMode"
+                    class="!h-8.5 !xs:h-12 !xs:bg-white !sm:mr-21 !w-60 mt-0.75 !rounded-lg !overflow-hidden"
+                  ></div>
+                  <a-skeleton-input
+                    v-else
+                    class="!h-8.5 !xs:h-9.5 !xs:bg-white !sm:mr-21 !w-60 mt-0.75 !rounded-lg !overflow-hidden"
+                    active
+                    size="small"
+                  />
                 </template>
                 <template v-else>
                   <SmartsheetDivDataCell
@@ -561,7 +570,16 @@ export default {
                   </div>
 
                   <template v-if="isLoading">
-                    <a-skeleton-input class="!h-8.5 !sm:mr-21 !w-60 mt-0.75 !rounded-lg !overflow-hidden" active size="small" />
+                    <div
+                      v-if="isMobileMode"
+                      class="!h-8.5 !xs:h-9.5 !xs:bg-white !sm:mr-21 !w-60 mt-0.75 !rounded-lg !overflow-hidden"
+                    ></div>
+                    <a-skeleton-input
+                      v-else
+                      class="!h-8.5 !xs:h-12 !xs:bg-white !sm:mr-21 !w-60 mt-0.75 !rounded-lg !overflow-hidden"
+                      active
+                      size="small"
+                    />
                   </template>
                   <template v-else>
                     <LazySmartsheetDivDataCell

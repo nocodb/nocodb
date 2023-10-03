@@ -59,7 +59,7 @@ const { t } = useI18n()
 
 const rowId = toRef(props, 'rowId')
 
-const row = useVModel(props, 'row', emits)
+const row = toRef(props, 'row')
 
 const state = toRef(props, 'state')
 
@@ -113,6 +113,7 @@ const {
   row: _row,
   syncLTARRefs,
   save: _save,
+  loadCommentsAndLogs,
 } = useProvideExpandedFormStore(meta, row)
 
 const duplicatingRowInProgress = ref(false)
@@ -338,15 +339,9 @@ const onConfirmDeleteRowClick = async () => {
   showDeleteRowModal.value = false
 }
 
-watch(rowId, (nRow) => {
-  console.log('Loooding', _row.value)
-  _loadRow(nRow)
-  console.log('Loooding', nRow)
-})
-
-watch(_row, (nRow) => {
-  console.log('Loooding', nRow)
-  row.value = nRow.value
+watch(rowId, async (nRow) => {
+  await _loadRow(nRow)
+  await loadCommentsAndLogs()
 })
 
 const showRightSections = computed(() => {
@@ -372,7 +367,7 @@ export default {
     class="nc-drawer-expanded-form"
     :class="{ active: isExpanded }"
   >
-    <div :key="row.row" class="h-[85vh] xs:(max-h-full) max-h-215 flex flex-col p-6">
+    <div :key="rowId" class="h-[85vh] xs:(max-h-full) max-h-215 flex flex-col p-6">
       <div class="flex h-8 flex-shrink-0 w-full items-center nc-expanded-form-header relative mb-4 justify-between">
         <template v-if="!isMobileMode">
           <div class="flex gap-3 w-100">

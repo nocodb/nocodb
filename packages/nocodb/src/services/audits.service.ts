@@ -93,6 +93,9 @@ export class AuditsService {
     );
 
     const log = await Audit.get(param.auditId);
+    if (log.op_type !== AuditOperationTypes.COMMENT) {
+      NcError.forbidden('Only comments can be updated');
+    }
 
     if (log.user !== param.userEmail) {
       NcError.unauthorized('Unauthorized access');

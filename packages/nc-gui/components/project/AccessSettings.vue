@@ -10,16 +10,15 @@ const { activeProjectId } = storeToRefs(basesStore)
 
 const { baseRoles } = useRoles()
 
-const collaborators = ref<
-  {
-    id: string
-    email: string
-    main_roles: OrgUserRoles
-    roles: ProjectRoles
-    workspace_roles: WorkspaceUserRoles
-    created_at: string
-  }[]
->([])
+interface Collaborators {
+  id: string
+  email: string
+  main_roles: OrgUserRoles
+  roles: ProjectRoles
+  workspace_roles: WorkspaceUserRoles
+  created_at: string
+}
+const collaborators = ref<Collaborators[]>([])
 const totalCollaborators = ref(0)
 const userSearchText = ref('')
 const currentPage = ref(0)
@@ -66,10 +65,7 @@ const loadListData = async ($state: any) => {
   $state.loading()
   // const oldPagesCount = currentPage.value || 0
 
-  onMounted(async () => {
-    await loadCollaborators()
-    console.log(collaborators)
-  })
+  await loadCollaborators()
 
   if (prevUsersCount === collaborators.value?.length) {
     $state.complete()

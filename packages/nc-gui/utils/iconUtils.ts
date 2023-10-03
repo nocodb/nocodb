@@ -13,7 +13,6 @@ import MdiThumbUp from '~icons/mdi/thumb-up'
 import MdiThumbUpOutline from '~icons/mdi/thumb-up-outline'
 import MdiFlag from '~icons/mdi/flag'
 import MdiFlagOutline from '~icons/mdi/flag-outline'
-import MdiTable from '~icons/mdi/table'
 import MsMove from '~icons/material-symbols/drive-file-move-outline'
 import MSCloseRounded from '~icons/material-symbols/close-rounded'
 import MdiTableLarge from '~icons/mdi/table-large'
@@ -92,11 +91,12 @@ import Record from '~icons/nc-icons/record'
 import Project from '~icons/nc-icons/project'
 
 // Roles
-import MaterialSymbolsManageAccountsOutline from '~icons/material-symbols/manage-accounts-outline'
-// account
-import MdiCommentAccountOutline from '~icons/mdi/comment-account-outline'
-import MaterialSymbolsPersonSearchOutline from '~icons/material-symbols/person-search-outline'
-import MaterialSymbolsBlock from '~icons/material-symbols/block'
+import Owner from '~icons/nc-icons/owner'
+import Creator from '~icons/nc-icons/creator'
+import Editor from '~icons/nc-icons/editor'
+import Commentor from '~icons/nc-icons/commentor'
+import Viewer from '~icons/nc-icons/viewer'
+import NoAccess from '~icons/nc-icons/no-access'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -433,12 +433,12 @@ export const iconMap = {
   magic1: MdiMagicStaff,
   workspace: h('span', { class: 'material-symbols' }, 'dataset'),
   notification: NcNotification,
-  role_owner: MaterialSymbolsManageAccountsOutline,
-  role_creator: MaterialSymbolsManageAccountsOutline,
-  role_editor: h('span', { class: 'material-symbols' }, 'person'),
-  role_commenter: MdiCommentAccountOutline,
-  role_viewer: MaterialSymbolsPersonSearchOutline,
-  role_no_access: MaterialSymbolsBlock,
+  role_owner: Owner,
+  role_creator: Creator,
+  role_editor: Editor,
+  role_commenter: Commentor,
+  role_viewer: Viewer,
+  role_no_access: NoAccess,
   commentHere: NcCommentHere,
 }
 

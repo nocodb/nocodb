@@ -50,12 +50,12 @@ const roleProperties = computed(() => {
       <div
         class="badge-text flex items-center gap-2"
         :class="{
-          'text-purple-500': roleProperties.color === 'purple',
-          'text-blue-500': roleProperties.color === 'blue',
-          'text-green-500': roleProperties.color === 'green',
-          'text-orange-500': roleProperties.color === 'orange',
-          'text-yellow-500': roleProperties.color === 'yellow',
-          'text-red-500': roleProperties.color === 'red',
+          'text-purple-700': roleProperties.color === 'purple',
+          'text-blue-700': roleProperties.color === 'blue',
+          'text-green-700': roleProperties.color === 'green',
+          'text-orange-700': roleProperties.color === 'orange',
+          'text-yellow-700': roleProperties.color === 'yellow',
+          'text-red-700': roleProperties.color === 'red',
           'text-gray-300': !roleProperties.color,
           sizeSelect,
         }"

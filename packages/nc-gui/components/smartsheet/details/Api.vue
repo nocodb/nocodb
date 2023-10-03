@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import HTTPSnippet from 'httpsnippet'
+import { LoadingOutlined } from '@ant-design/icons-vue'
+
 import {
   ActiveViewInj,
   MetaInj,
@@ -30,6 +32,13 @@ const view = inject(ActiveViewInj, ref())
 const { xWhere } = useSmartsheetStoreOrThrow()
 
 const { queryParams } = useViewData(meta, view, xWhere)
+
+const indicator = h(LoadingOutlined, {
+  style: {
+    fontSize: '2rem',
+  },
+  spin: true,
+})
 
 const { copy } = useCopy()
 
@@ -75,7 +84,7 @@ const selectedLangName = ref(langs[0].name)
 const apiUrl = computed(
   () =>
     new URL(
-      `/api/v1/data/noco/${base.value.id}/${meta.value?.title}/views/${view.value?.title}`,
+      `/api/v1/data/noco/${base.value?.id}/${meta.value?.title}/views/${view.value?.title}`,
       (appInfo.value && appInfo.value.ncSiteUrl) || '/',
     ).href,
 )
@@ -109,7 +118,7 @@ const api = new Api({
 
 api.dbViewRow.list(
   "noco",
-  ${JSON.stringify(base.value.title)},
+  ${JSON.stringify(base.value?.title)},
   ${JSON.stringify(meta.value?.title)},
   ${JSON.stringify(view.value?.title)}, ${JSON.stringify(queryParams.value, null, 4)}).then(function (data) {
   console.log(data);
@@ -180,16 +189,23 @@ watch(activeLang, (newLang) => {
           </NcButton>
         </div>
 
-        <LazyMonacoEditor
-          class="border-1 border-gray-200 py-4 rounded-lg"
-          style="height: calc(100vh - (var(--topbar-height) * 2) - 8rem)"
-          :model-value="code"
-          :read-only="true"
-          lang="typescript"
-          :validate="false"
-          :disable-deep-compare="true"
-          hide-minimap
-        />
+        <Suspense>
+          <MonacoEditor
+            class="border-1 border-gray-200 py-4 rounded-lg"
+            style="height: calc(100vh - (var(--topbar-height) * 2) - 8rem)"
+            :model-value="code"
+            :read-only="true"
+            lang="typescript"
+            :validate="false"
+            :disable-deep-compare="true"
+            hide-minimap
+          />
+          <template #fallback>
+            <div class="h-full w-full flex flex-col justify-center items-center mt-28">
+              <a-spin size="large" :indicator="indicator" />
+            </div>
+          </template>
+        </Suspense>
       </a-tab-pane>
     </NcTabs>
   </div>

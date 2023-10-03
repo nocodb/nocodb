@@ -21,6 +21,8 @@ export function useViewColumns(
 
   const { isSharedBase } = storeToRefs(useBase())
 
+  const isViewColumnsLoading = ref(false)
+
   const { addUndo, defineViewScope } = useUndoRedo()
 
   const isLocalMode = computed(
@@ -265,7 +267,13 @@ export function useViewColumns(
     async ([newViewId]) => {
       // reload only if view belongs to current table
       if (newViewId && view.value?.fk_model_id === meta.value?.id) {
-        await loadViewColumns()
+        isViewColumnsLoading.value = true
+        try {
+          await loadViewColumns()
+        } catch (e) {
+          console.error(e)
+        }
+        isViewColumnsLoading.value = false
       }
     },
     { immediate: true },
@@ -283,5 +291,6 @@ export function useViewColumns(
     showSystemFields,
     metaColumnById,
     toggleFieldVisibility,
+    isViewColumnsLoading,
   }
 }

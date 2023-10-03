@@ -59,6 +59,24 @@ if (ExecutionEnvironment.canUseDOM) {
   document.body.removeEventListener('keydown', keydownListener, true);
   document.body.addEventListener('click', clickListener, true);
   document.body.addEventListener('keydown', keydownListener, true);
+
+  const  url = new URL(location.href);
+
+  const origin = url.searchParams.get('origin');
+  const search = url.searchParams.get('search');
+
+  if(origin && search) {
+    push({
+      event: 'cloud/search',
+      $current_url: location.href,
+      path: location.pathname,
+      hash: location.hash,
+      search_query: search
+    });
+    url.searchParams.delete('origin');
+    url.searchParams.delete('search');
+    window.history.replaceState({}, document.title, url.toString());
+  }
 }
 
 export function onRouteDidUpdate({ location, previousLocation }) {
@@ -75,5 +93,3 @@ export function onRouteDidUpdate({ location, previousLocation }) {
     });
   }
 }
-
-

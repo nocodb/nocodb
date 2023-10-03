@@ -10,10 +10,27 @@ import {
   ProjectInj,
   ProjectRoleInj,
   ToggleDialogInj,
+  TreeViewInj,
+  computed,
   extractSdkResponseErrorMsg,
+  h,
+  inject,
+  navigateTo,
   openLink,
+  ref,
+  resolveComponent,
   storeToRefs,
+  useBase,
   useBases,
+  useCopy,
+  useDialog,
+  useGlobal,
+  useI18n,
+  useRoles,
+  useRouter,
+  useTablesStore,
+  useTabs,
+  useToggle,
 } from '#imports'
 import type { NcProject } from '#imports'
 import { useNuxtApp } from '#app'
@@ -27,10 +44,10 @@ const indicator = h(LoadingOutlined, {
 })
 
 const router = useRouter()
+
 const route = router.currentRoute
 
 const { isSharedBase } = storeToRefs(useBase())
-const { projectUrl } = useBase()
 
 const { setMenuContext, openRenameTableDialog, duplicateTable, contextMenuTarget } = inject(TreeViewInj)!
 
@@ -41,9 +58,11 @@ const basesStore = useBases()
 const { isMobileMode } = useGlobal()
 
 const { loadProject, loadProjects, createProject: _createProject, updateProject, getProjectMetaInfo } = basesStore
+
 const { bases } = storeToRefs(basesStore)
 
 const { loadProjectTables } = useTablesStore()
+
 const { activeTable } = storeToRefs(useTablesStore())
 
 const { appInfo, navigateToProject } = useGlobal()

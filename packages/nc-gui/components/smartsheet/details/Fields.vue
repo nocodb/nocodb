@@ -43,8 +43,6 @@ const moveOps = ref<moveOp[]>([])
 
 const visibilityOps = ref<fieldsVisibilityOps[]>([])
 
-const selectedView = inject(ActiveViewInj)
-
 const { fields: viewFields, toggleFieldVisibility, loadViewColumns } = useViewColumns(view, meta as Ref<TableType | undefined>)
 
 const loading = ref(false)

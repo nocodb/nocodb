@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunknoco_docs=self.webpackChunknoco_docs||[]).push([[4493],{75085:e=>{e.exports=JSON.parse('{"label":"Form","permalink":"/tags/form","allTagsPath":"/tags","count":1,"items":[{"id":"views/view-types/form","title":"Form","description":"Learn how to create, import, and manage forms in NocoDB.","permalink":"/views/view-types/form"}]}')}}]);

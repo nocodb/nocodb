@@ -66,7 +66,10 @@ const loadListData = async ($state: any) => {
   $state.loading()
   // const oldPagesCount = currentPage.value || 0
 
-  await loadCollaborators()
+  onMounted(async () => {
+    await loadCollaborators()
+    console.log(collaborators)
+  })
 
   if (prevUsersCount === collaborators.value?.length) {
     $state.complete()
@@ -177,82 +180,80 @@ onMounted(async () => {
       >
         <Empty description="$t('title.noMembersFound')" />
       </div>
-      <div v-else class="nc-collaborators-list !mt-10 nc-scrollbar-md rounded-md">
-        <div class="nc-collaborators-list-header bg-gray-50 rounded-t-md">
-          <div class="flex w-2/5 text-gray-600">{{ $t('objects.users') }}</div>
-          <div class="flex w-2/5 text-gray-600">{{ $t('title.dateJoined') }}</div>
-          <div class="flex w-2/5 text-gray-600">{{ $t('general.access') }}</div>
-          <div class="flex w-2/5 text-gray-600">Added By</div>
-          <div class="flex w-1/5 text-gray-600">Action</div>
+      <div v-else class="nc-collaborators-list !mt-10 rounded-md">
+        <div class="h-200 overflow-y-auto nc-scrollbar-md">
+          <table>
+            <thead class="bg-gray-50 border-1 h-10">
+              <th class="text-start w-1/4 text-gray-700">{{ $t('objects.users') }}</th>
+              <th class="text-start w-1/4 text-gray-700">{{ $t('title.dateJoined') }}</th>
+              <th class="text-start w-1/4 text-gray-700">{{ $t('general.access') }}</th>
+              <th class="text-start w-1/4 text-gray-700">Actions</th>
+            </thead>
+            <tbody>
+              <tr v-for="(collab, i) of collaborators" :key="i" class="border-b-1 py-1 h-14">
+                <td class="flex gap-3 justify-start items-center h-14 pl-8">
+                  <GeneralUserIcon size="base" :email="collab.email" />
+                  <span class="truncate">
+                    {{ collab.email }}
+                  </span>
+                </td>
+                <td class="w-1/4 text-center">
+                  {{ timeAgo(collab.created_at) }}
+                </td>
+                <td class="w-1/4">
+                  <template v-if="accessibleRoles.includes(collab.roles)">
+                    <div class="flex justify-center items-center">
+                      <RolesSelector
+                        :role="collab.roles"
+                        :roles="accessibleRoles"
+                        :inherit="
+                          isEeUI && collab.workspace_roles && WorkspaceRolesToProjectRoles[collab.workspace_roles]
+                            ? WorkspaceRolesToProjectRoles[collab.workspace_roles]
+                            : null
+                        "
+                        :description="false"
+                        :on-role-change="(role: ProjectRoles) => updateCollaborator(collab, role)"
+                      />
+                    </div>
+                  </template>
+                  <template v-else>
+                    <RolesBadge class="!bg-white" :role="collab.roles" />
+                  </template>
+                </td>
+                <td class="w-1/4">
+                  <div class="flex justify-center items-center">
+                    <NcDropdown v-if="collab.roles !== ProjectRoles.OWNER" :trigger="['click']">
+                      <MdiDotsVertical
+                        class="border-1 !text-gray-600 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
+                      />
+                      <template #overlay>
+                        <NcMenu>
+                          <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="removeProjectUser(activeProjectId!, collab)">
+                            <MaterialSymbolsDeleteOutlineRounded />
+                            Remove user
+                          </NcMenuItem>
+                        </NcMenu>
+                      </template>
+                    </NcDropdown>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <div class="flex flex-col nc-scrollbar-md">
-          <div v-for="(collab, i) of collaborators" :key="i" class="relative w-full nc-collaborators nc-collaborators-list-row">
-            <div class="!py-0 w-2/5 email truncate">
-              <div class="flex items-center gap-2">
-                <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
-                  collab?.email?.slice(0, 2)
-                }}</span>
-                <!--                <GeneralTruncateText> -->
-                <span class="truncate">
-                  {{ collab.email }}
-                </span>
-                <!--                </GeneralTruncateText> -->
-              </div>
+        <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
+          <template #spinner>
+            <div class="flex flex-row w-full justify-center mt-2">
+              <GeneralLoader />
             </div>
-            <div class="text-gray-500 text-xs w-2/5 created-at truncate">
-              {{ timeAgo(collab.created_at) }}
-            </div>
-            <div class="w-2/5 roles">
-              <div class="nc-collaborator-role-select p-2">
-                <template v-if="accessibleRoles.includes(collab.roles)">
-                  <RolesSelector
-                    :role="collab.roles"
-                    :roles="accessibleRoles"
-                    :inherit="
-                      isEeUI && collab.workspace_roles && WorkspaceRolesToProjectRoles[collab.workspace_roles]
-                        ? WorkspaceRolesToProjectRoles[collab.workspace_roles]
-                        : null
-                    "
-                    :description="false"
-                    :on-role-change="(role: ProjectRoles) => updateCollaborator(collab, role)"
-                  />
-                </template>
-                <template v-else>
-                  <RolesBadge class="!bg-white" :role="collab.roles" />
-                </template>
-              </div>
-            </div>
-            <!-- TODO: add option to view added-by when API is ready -->
-            <!-- <div class="w-2/5"></div> -->
-            <div class="w-2/5 pl-5">
-              <NcDropdown v-if="collab.roles !== ProjectRoles.OWNER" :trigger="['click']">
-                <MdiDotsVertical
-                  class="border-1 !text-gray-600 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
-                />
-                <template #overlay>
-                  <NcMenu>
-                    <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="removeProjectUser(activeProjectId!, collab)">
-                      <MaterialSymbolsDeleteOutlineRounded />
-                      Remove user
-                    </NcMenuItem>
-                  </NcMenu>
-                </template>
-              </NcDropdown>
-            </div>
-          </div>
-          <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
-            <template #spinner>
-              <div class="flex flex-row w-full justify-center mt-2">
-                <GeneralLoader />
-              </div>
-            </template>
-            <template #complete>
-              <span></span>
-            </template>
-          </InfiniteLoading>
-        </div>
+          </template>
+          <template #complete>
+            <span></span>
+          </template>
+        </InfiniteLoading>
       </div>
+      <!-- </div> -->
     </template>
   </div>
 </template>
@@ -263,21 +264,21 @@ onMounted(async () => {
 }
 
 .nc-collaborators-list {
-  @apply border-2 shadow-sm border-gray-100 mt-1 flex flex-col w-full;
+  @apply border-1 shadow-sm border-gray-100 mt-1 flex flex-col w-full;
   // todo: replace/remove 120px with proper value while updating invite ui
   height: calc(100vh - calc(var(--topbar-height) + 9rem + 120px));
 }
 
 .nc-collaborators-list-header {
-  @apply flex flex-row justify-between items-center min-h-10 border-b-2 shadow-sm border-gray-100 pl-4;
+  @apply flex flex-row justify-between items-center min-h-10 border-b-1  border-gray-100 pl-4;
 }
 
 .nc-collaborators-list-row {
-  @apply flex flex-row justify-between items-center min-h-16 border-b-2 shadow-sm border-gray-100 pl-4;
+  @apply flex flex-row justify-between items-center min-h-16 border-b-1  border-gray-100 pl-4;
 }
 
 .color-band {
-  @apply w-6 h-6 left-0 top-[10px] rounded-full flex justify-center uppercase text-white font-weight-bold text-xs items-center;
+  @apply w-6 h-6 left-0 top-2.5 rounded-full flex justify-center uppercase text-white font-weight-bold text-xs items-center;
 }
 
 :deep(.nc-collaborator-role-select .ant-select-selector) {

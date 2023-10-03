@@ -140,7 +140,7 @@ const attachmentCol = computedInject(FieldsInj, (_fields) => {
 const fields = computedInject(FieldsInj, (_fields) => {
   return (relatedTableMeta.value.columns ?? [])
     .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
-    .slice(0, 4)
+    .slice(0, isMobileMode.value ? 0 : 4)
 })
 
 const relation = computed(() => {
@@ -226,23 +226,23 @@ onKeyStroke('Escape', () => {
           >
             <a-skeleton-image class="h-24 w-24 !rounded-xl" />
             <div class="flex flex-col m-[.5rem] gap-2 flex-grow justify-center">
-              <a-skeleton-input class="!w-48 !rounded-xl" active size="small" />
+              <a-skeleton-input class="!xs:w-30 !w-48 !rounded-xl" active size="small" />
               <div class="flex flex-row gap-6 w-10/12">
                 <div class="flex flex-col gap-0.5">
                   <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                  <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                  <a-skeleton-input class="!xs:hidden !h-4 !w-24" active size="small" />
                 </div>
                 <div class="flex flex-col gap-0.5">
                   <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                  <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                  <a-skeleton-input class="!xs:hidden !h-4 !w-24" active size="small" />
                 </div>
                 <div class="flex flex-col gap-0.5">
                   <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                  <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                  <a-skeleton-input class="!xs:hidden !h-4 !w-24" active size="small" />
                 </div>
                 <div class="flex flex-col gap-0.5">
                   <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                  <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                  <a-skeleton-input class="!xs:hidden !h-4 !w-24" active size="small" />
                 </div>
               </div>
             </div>
@@ -275,7 +275,7 @@ onKeyStroke('Escape', () => {
         </template>
       </div>
     </template>
-    <div v-else class="py-2 flex flex-col gap-3 items-center justify-center text-gray-500">
+    <div v-else class="my-auto py-2 flex flex-col gap-3 items-center justify-center text-gray-500">
       <InboxIcon class="w-16 h-16 mx-auto" />
       <p>
         {{ $t('msg.thereAreNoRecordsInTable') }}

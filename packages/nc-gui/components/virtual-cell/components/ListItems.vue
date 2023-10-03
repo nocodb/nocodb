@@ -186,7 +186,7 @@ onKeyStroke('Escape', () => {
           ref="filterQueryRef"
           v-model:value="childrenExcludedListPagination.query"
           :placeholder="`${$t('general.searchIn')} ${relatedTableMeta?.title}`"
-          class="w-full !rounded-md nc-excluded-search"
+          class="w-full !rounded-md nc-excluded-search xs:min-h-8"
           size="small"
           :bordered="false"
           @focus="isFocused = true"
@@ -204,7 +204,6 @@ onKeyStroke('Escape', () => {
         v-if="!isPublic"
         v-e="['c:row-expand:open']"
         type="secondary"
-        size="xl"
         class="!text-brand-500"
         @click="
           () => {
@@ -213,7 +212,7 @@ onKeyStroke('Escape', () => {
           }
         "
       >
-        <div class="flex items-center gap-1"><MdiPlus /> {{ $t('activity.newRecord') }}</div>
+        <div class="flex items-center gap-1 xs:px-4"><MdiPlus v-if="!isMobileMode" /> {{ $t('activity.newRecord') }}</div>
       </NcButton>
     </div>
 

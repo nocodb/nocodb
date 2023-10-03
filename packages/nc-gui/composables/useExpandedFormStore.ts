@@ -24,7 +24,7 @@ import {
 } from '#imports'
 import type { Row } from '#imports'
 
-const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
+const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, _row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()
 
   const { api, isLoading: isCommentsLoading, error: commentsError } = useApi()
@@ -44,6 +44,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const changedColumns = ref(new Set<string>())
 
   const { base } = storeToRefs(useBase())
+  const row = ref<Row>(_row.value.rowMeta.new ? _row.value : ({ row: {}, oldRow: {}, rowMeta: {} } as Row))
 
   const rowStore = useProvideSmartsheetRowStore(meta, row)
 

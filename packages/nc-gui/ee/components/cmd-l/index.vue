@@ -219,7 +219,7 @@ onMounted(() => {
                   {{ cmdOption.viewName }}
                 </div>
                 <div class="flex gap-2 bg-gray-100 px-2 py-1 rounded-md text-gray-600 items-center">
-                  <ProjectIcon class="w-4 h-4" />
+                  <component :is="iconMap.project" class="w-4 h-4 text-transparent" />
                   {{ cmdOption.baseName }}
                 </div>
               </div>

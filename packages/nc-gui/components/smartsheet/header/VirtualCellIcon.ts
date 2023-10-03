@@ -25,11 +25,11 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
     case UITypes.Links:
       switch ((column.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
-          return { icon: iconMap.mm_solid }
+          return { icon: iconMap.mm, color: 'text-accent' }
         case RelationTypes.HAS_MANY:
-          return { icon: iconMap.hm_solid }
+          return { icon: iconMap.hm, color: 'text-yellow-500' }
         case RelationTypes.BELONGS_TO:
-          return { icon: iconMap.bt_solid }
+          return { icon: iconMap.bt, color: 'text-sky-500' }
       }
       break
     case UITypes.SpecificDBType:
@@ -43,21 +43,21 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
     case UITypes.Lookup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
-          return { icon: iconMap.lookup, color: 'text-pink-500' }
+          return { icon: iconMap.lookup, color: 'text-accent' }
         case RelationTypes.HAS_MANY:
-          return { icon: iconMap.lookup, color: 'text-orange-500' }
+          return { icon: iconMap.lookup, color: 'text-yellow-500' }
         case RelationTypes.BELONGS_TO:
-          return { icon: iconMap.lookup, color: 'text-blue-500' }
+          return { icon: iconMap.lookup, color: 'text-sky-500' }
       }
       return { icon: iconMap.lookup, color: 'text-grey' }
     case UITypes.Rollup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
-          return { icon: iconMap.rollup, color: 'text-pink-500' }
+          return { icon: iconMap.rollup, color: 'text-accent' }
         case RelationTypes.HAS_MANY:
-          return { icon: iconMap.rollup, color: 'text-orange-500' }
+          return { icon: iconMap.rollup, color: 'text-yellow-500' }
         case RelationTypes.BELONGS_TO:
-          return { icon: iconMap.rollup, color: 'text-blue-500' }
+          return { icon: iconMap.rollup, color: 'text-sky-500' }
       }
       return { icon: iconMap.rollup, color: 'text-grey' }
     case UITypes.Count:

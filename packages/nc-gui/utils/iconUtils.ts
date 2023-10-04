@@ -92,11 +92,12 @@ import Project from '~icons/nc-icons/project'
 import LookupIcon from '~icons/nc-icons/lookup'
 
 // Roles
-import MaterialSymbolsManageAccountsOutline from '~icons/material-symbols/manage-accounts-outline'
-// account
-import MdiCommentAccountOutline from '~icons/mdi/comment-account-outline'
-import MaterialSymbolsPersonSearchOutline from '~icons/material-symbols/person-search-outline'
-import MaterialSymbolsBlock from '~icons/material-symbols/block'
+import Owner from '~icons/nc-icons/owner'
+import Creator from '~icons/nc-icons/creator'
+import Editor from '~icons/nc-icons/editor'
+import Commentor from '~icons/nc-icons/commentor'
+import Viewer from '~icons/nc-icons/viewer'
+import NoAccess from '~icons/nc-icons/no-access'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -433,12 +434,12 @@ export const iconMap = {
   magic1: MdiMagicStaff,
   workspace: h('span', { class: 'material-symbols' }, 'dataset'),
   notification: NcNotification,
-  role_owner: MaterialSymbolsManageAccountsOutline,
-  role_creator: MaterialSymbolsManageAccountsOutline,
-  role_editor: h('span', { class: 'material-symbols' }, 'person'),
-  role_commenter: MdiCommentAccountOutline,
-  role_viewer: MaterialSymbolsPersonSearchOutline,
-  role_no_access: MaterialSymbolsBlock,
+  role_owner: Owner,
+  role_creator: Creator,
+  role_editor: Editor,
+  role_commenter: Commentor,
+  role_viewer: Viewer,
+  role_no_access: NoAccess,
   commentHere: NcCommentHere,
 }
 

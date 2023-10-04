@@ -198,7 +198,7 @@ const onNext = async () => {
 const copyRecordUrl = () => {
   copy(
     encodeURI(
-      `${dashboardUrl?.value}#/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}${
+      `${dashboardUrl?.value}#/${route.params.typeOrId}/${route.params.projectId}/${meta.value?.id}${
         props.view ? `/${props.view.title}` : ''
       }?rowId=${primaryKey.value}`,
     ),
@@ -707,9 +707,9 @@ export default {
     <template #entity-preview>
       <span>
         <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
-          <component :is="iconMap.table" class="nc-view-icon" />
+          <component :is="iconMap.record" class="nc-view-icon" />
           <div class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75 break-keep whitespace-nowrap">
-            {{ meta.title }}
+            {{ displayValue }}
           </div>
         </div>
       </span>

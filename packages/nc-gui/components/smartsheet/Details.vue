@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { LoadingOutlined } from '@ant-design/icons-vue'
+
 const { openedViewsTab } = storeToRefs(useViewsStore())
 const { onViewsTabChange } = useViewsStore()
 
@@ -7,6 +9,17 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
+
+const { base } = storeToRefs(useBase())
+const meta = inject(MetaInj, ref())
+const view = inject(ActiveViewInj, ref())
+
+const indicator = h(LoadingOutlined, {
+  style: {
+    fontSize: '2rem',
+  },
+  spin: true,
+})
 
 const openedSubTab = computed({
   get() {
@@ -17,22 +30,18 @@ const openedSubTab = computed({
   },
 })
 
-watch(
-  openedSubTab,
-  () => {
-    if (openedSubTab.value === 'field' && !isUIAllowed('hookList')) {
-      onViewsTabChange('relation')
-    }
-    if (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) {
-      onViewsTabChange('relation')
-    }
+watch(openedSubTab, () => {
+  // TODO: Find a good way to know when the roles are populated and check
+  // Re-enable this check for first render
+  if (openedSubTab.value === 'field' && !isUIAllowed('hookList')) {
+    onViewsTabChange('relation')
+  }
+  if (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) {
+    onViewsTabChange('relation')
+  }
 
-    $e(`c:table:tab-open:${openedSubTab.value}`)
-  },
-  {
-    immediate: true,
-  },
-)
+  $e(`c:table:tab-open:${openedSubTab.value}`)
+})
 </script>
 
 <template>
@@ -70,7 +79,10 @@ watch(
             <div>{{ $t('labels.apis') }}</div>
           </div>
         </template>
-        <SmartsheetDetailsApi />
+        <SmartsheetDetailsApi v-if="base && meta && view" />
+        <div v-else class="h-full w-full flex flex-col justify-center items-center mt-28 mb-4">
+          <a-spin size="large" :indicator="indicator" />
+        </div>
       </a-tab-pane>
 
       <a-tab-pane v-if="isUIAllowed('hookList')" key="webhook">

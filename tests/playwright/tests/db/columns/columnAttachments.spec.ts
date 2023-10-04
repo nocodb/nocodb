@@ -109,6 +109,6 @@ test.describe('Attachment column', () => {
     // PR8504
     // await expect(cells[1]).toBe('al-Manama');
     expect(cells[1]).toBe('1');
-    expect(cells[2].includes('5.json(http://localhost:8080/download/')).toBe(true);
+    expect(cells[2].includes('5.json(http://localhost:8080/dltemp/')).toBe(true);
   });
 });

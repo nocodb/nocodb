@@ -146,12 +146,12 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="nc-collaborator-table-container mt-4 nc-access-settings-view">
+  <div class="nc-collaborator-table-container mt-4 nc-access-settings-view h-[calc(100vh-8rem)]">
     <div v-if="isLoading" class="nc-collaborators-list items-center justify-center">
       <GeneralLoader size="xlarge" />
     </div>
     <template v-else>
-      <div class="w-full flex flex-row justify-between items-baseline mt-6.5 mb-2 pr-0.25 ml-2">
+      <div class="w-full flex flex-row justify-between items-baseline mt-6.5 mb-2 pr-0.25">
         <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md" :placeholder="$t('title.searchMembers')">
           <template #prefix>
             <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
@@ -169,54 +169,47 @@ onMounted(async () => {
       >
         <Empty description="$t('title.noMembersFound')" />
       </div>
-      <div v-else class="nc-collaborators-list !mt-10">
-        <div class="h-160 nc-scrollbar-md rounded-lg border-1 w-250">
-          <table>
-            <thead class="bg-gray-50 h-10 sticky top-0">
-              <th class="text-start w-80 text-gray-700 sticky top-0 pr-50">{{ $t('objects.users') }}</th>
-              <th class="text-start w-80 text-gray-700 sticky top-0 pl-6">{{ $t('title.dateJoined') }}</th>
-              <th class="text-start w-80 text-gray-700 sticky top-0 pr-13">{{ $t('general.access') }}</th>
-            </thead>
-            <tbody>
-              <tr v-for="(collab, i) of collaborators" :key="i" class="border-b-1 py-1 h-14">
-                <td class="flex gap-3 justify-start items-center h-14 w-75 ml-15">
-                  <GeneralUserIcon size="base" :name="collab.email" :email="collab.email" />
-                  <span class="truncate">
-                    {{ collab.email }}
-                  </span>
-                </td>
-                <td class="w-75 text-center pl-18">
-                  <div class="flex justify-start w-35 ml-15">
-                    {{ timeAgo(collab.created_at) }}
-                  </div>
-                </td>
-                <td class="w-75">
-                  <template v-if="accessibleRoles.includes(collab.roles)">
-                    <div class="flex justify-center items-center">
-                      <div class="w-25.5">
-                        <RolesSelector
-                          :role="collab.roles"
-                          :roles="accessibleRoles"
-                          :inherit="
-                            isEeUI && collab.workspace_roles && WorkspaceRolesToProjectRoles[collab.workspace_roles]
-                              ? WorkspaceRolesToProjectRoles[collab.workspace_roles]
-                              : null
-                          "
-                          :description="false"
-                          :on-role-change="(role: ProjectRoles) => updateCollaborator(collab, role)"
-                        />
-                      </div>
-                    </div>
-                  </template>
-                  <template v-else>
-                    <div class="flex justify-center">
-                      <RolesBadge class="!bg-white !w-25" :role="collab.roles" />
-                    </div>
-                  </template>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <div v-else class="nc-collaborators-list mt-6 h-full">
+        <div class="flex flex-col rounded-lg overflow-hidden border-1 w-250 max-h-[calc(100%-8rem)]">
+          <div class="flex flex-row bg-gray-50 min-h-12 items-center">
+            <div class="text-gray-700 users">{{ $t('objects.users') }}</div>
+            <div class="text-gray-700 data-joined">{{ $t('title.dateJoined') }}</div>
+            <div class="text-gray-700 access">{{ $t('general.access') }}</div>
+          </div>
+
+          <div class="flex flex-col nc-scrollbar-md">
+            <div
+              v-for="(collab, i) of collaborators"
+              :key="i"
+              class="user-row flex flex-row border-b-1 py-1 min-h-14 items-center"
+            >
+              <div class="flex gap-3 items-center users">
+                <GeneralUserIcon size="base" :name="collab.email" :email="collab.email" />
+                <span class="truncate">
+                  {{ collab.email }}
+                </span>
+              </div>
+              <div class="data-joined">{{ timeAgo(collab.created_at) }}</div>
+              <div class="access">
+                <template v-if="accessibleRoles.includes(collab.roles)">
+                  <RolesSelector
+                    :role="collab.roles"
+                    :roles="accessibleRoles"
+                    :inherit="
+                      isEeUI && collab.workspace_roles && WorkspaceRolesToProjectRoles[collab.workspace_roles]
+                        ? WorkspaceRolesToProjectRoles[collab.workspace_roles]
+                        : null
+                    "
+                    :description="false"
+                    :on-role-change="(role: ProjectRoles) => updateCollaborator(collab, role)"
+                  />
+                </template>
+                <template v-else>
+                  <RolesBadge :role="collab.roles" />
+                </template>
+              </div>
+            </div>
+          </div>
         </div>
 
         <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
@@ -246,5 +239,22 @@ onMounted(async () => {
 
 :deep(.ant-select-selection-item) {
   @apply mt-0.75;
+}
+
+.users {
+  @apply flex-grow ml-4 w-1/2;
+}
+
+.data-joined {
+  @apply flex items-start;
+  width: calc(50% - 10rem);
+}
+
+.access {
+  @apply w-40;
+}
+
+.user-row:last-child {
+  @apply border-b-0;
 }
 </style>

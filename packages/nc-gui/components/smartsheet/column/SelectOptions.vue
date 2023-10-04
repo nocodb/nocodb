@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
+import InfiniteLoading from 'v3-infinite-loading'
+
 import { IsKanbanInj, enumColor, iconMap, onMounted, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
 
 interface Option {
@@ -26,6 +28,10 @@ const { setAdditionalValidations, validateInfos, isMysql } = useColumnCreateStor
 const { optionsMagic: _optionsMagic } = useNocoEe()
 
 const options = ref<(Option & { status?: 'remove' })[]>([])
+
+const OPTIONS_PAGE_COUNT = 20
+const loadedOptionCount = ref(OPTIONS_PAGE_COUNT)
+
 const renderedOptions = ref<(Option & { status?: 'remove' })[]>([])
 const savedDefaultOption = ref<Option | null>(null)
 const savedCdf = ref<string | null>(null)
@@ -85,7 +91,9 @@ onMounted(() => {
 
   options.value = vModel.value.colOptions.options
 
-  renderedOptions.value = [...options.value]
+  loadedOptionCount.value = Math.min(loadedOptionCount.value, options.value.length)
+
+  renderedOptions.value = [...options.value].slice(0, loadedOptionCount.value)
 
   // Support for older options
   for (const op of options.value.filter((el) => el.order === null)) {
@@ -125,8 +133,16 @@ const addNewOption = () => {
     title: '',
     color: getNextColor(),
   }
-  renderedOptions.value.push(tempOption)
   options.value.push(tempOption)
+
+  loadedOptionCount.value = options.value.length
+  renderedOptions.value = [...options.value]
+
+  nextTick(() => {
+    if (inputs.value?.$el) {
+      inputs.value.$el.focus()
+    }
+  })
 }
 
 // const optionsMagic = async () => {
@@ -166,11 +182,11 @@ const undoRemoveRenderedOption = (index: number) => {
 }
 
 // focus last created input
-watch(inputs, () => {
-  if (inputs.value?.$el) {
-    inputs.value.$el.focus()
-  }
-})
+// watch(inputs, () => {
+//   if (inputs.value?.$el) {
+//     inputs.value.$el.focus()
+//   }
+// })
 
 // Removes the Select Option from cdf if the option is removed
 watch(vModel.value, (next) => {
@@ -181,11 +197,35 @@ watch(vModel.value, (next) => {
   const newCdf = cdfs.filter((c: string) => values.includes(c)).join(',')
   next.cdf = newCdf.length === 0 ? null : newCdf
 })
+
+const loadListData = async ($state: any) => {
+  if (loadedOptionCount.value === options.value.length) {
+    $state.complete()
+    return
+  }
+  $state.loading()
+
+  loadedOptionCount.value += OPTIONS_PAGE_COUNT
+  loadedOptionCount.value = Math.min(loadedOptionCount.value, options.value.length)
+
+  renderedOptions.value = options.value.slice(0, loadedOptionCount.value)
+
+  if (loadedOptionCount.value === options.value.length) {
+    $state.complete()
+    return
+  }
+  $state.loaded()
+}
 </script>
 
 <template>
   <div class="w-full">
-    <div class="max-h-[250px] overflow-x-auto scrollbar-thin-dull">
+    <div
+      class="overflow-x-auto scrollbar-thin-dull"
+      :style="{
+        maxHeight: 'calc(min(30vh, 250px))',
+      }"
+    >
       <Draggable :list="renderedOptions" item-key="id" handle=".nc-child-draggable-icon" @change="syncOptions">
         <template #item="{ element, index }">
           <div class="flex py-1 items-center nc-select-option">
@@ -250,6 +290,16 @@ watch(vModel.value, (next) => {
           </div>
         </template>
       </Draggable>
+      <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
+        <template #spinner>
+          <div class="flex flex-row w-full justify-center mt-2">
+            <GeneralLoader />
+          </div>
+        </template>
+        <template #complete>
+          <span></span>
+        </template>
+      </InfiniteLoading>
     </div>
 
     <div v-if="validateInfos?.colOptions?.help?.[0]?.[0]" class="text-error text-[10px] mb-1 mt-2">

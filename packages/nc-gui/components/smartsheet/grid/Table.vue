@@ -140,7 +140,6 @@ const { getMeta } = useMetas()
 
 const { addUndo, clone, defineViewScope } = useUndoRedo()
 
-
 const {
   predictingNextColumn,
   predictedNextColumn,
@@ -1730,7 +1729,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
     @apply bg-gray-50;
   }
   .nc-grid-add-new-cell:hover td {
-    @apply text-black bg-gray-50;
+    @apply text-black !bg-gray-50;
   }
 
   td,

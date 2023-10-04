@@ -1,4 +1,5 @@
-import NcPluginMgrv2 from 'src/helpers/NcPluginMgrv2';
+import { nanoid } from 'nanoid';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
@@ -137,7 +138,7 @@ export default class PresignedUrl {
       });
     } else {
       // if not present, create a new url
-      tempUrl = `dltemp/${expireAt.getTime()}/${path}`;
+      tempUrl = `dltemp/${nanoid(16)}/${expireAt.getTime()}/${path}`;
       await this.add({
         path: path,
         url: tempUrl,

@@ -17,9 +17,18 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  baseId: {
+    type: String,
+    default: undefined,
+  },
 })
 
-const { sources, tables: baseTables } = storeToRefs(useBase())
+const { baseTables: _baseTables } = storeToRefs(useTablesStore())
+const { sources, base } = storeToRefs(useBase())
+
+const baseId = computed(() => props.baseId ?? base.value!.id)
+
+const baseTables = computed(() => _baseTables.value.get(baseId.value) ?? [])
 
 const { metas, getMeta } = useMetas()
 

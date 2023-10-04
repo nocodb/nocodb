@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { WorkspaceType } from 'nocodb-sdk'
+import { stringToColor } from '~/utils/colorsUtils'
 
 const props = defineProps<{
   workspace: WorkspaceType | undefined
@@ -8,7 +9,7 @@ const props = defineProps<{
 }>()
 
 const workspaceColor = computed(() =>
-  props.workspace ? props.workspace.meta?.color || stringToColour(props.workspace.id!) : undefined,
+  props.workspace ? props.workspace.meta?.color || stringToColor(props.workspace.id!) : undefined,
 )
 
 const size = computed(() => props.size || 'medium')

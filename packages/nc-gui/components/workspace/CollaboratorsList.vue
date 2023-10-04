@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { OrderedWorkspaceRoles, WorkspaceUserRoles } from 'nocodb-sdk'
-import { storeToRefs, stringToColour, timeAgo, useWorkspace } from '#imports'
+import { storeToRefs, timeAgo, useWorkspace } from '#imports'
 
 const { workspaceRoles, loadRoles } = useRoles()
 
@@ -71,7 +71,7 @@ onMounted(async () => {
         >
           <div class="!py-0 w-2/5 email truncate">
             <div class="flex items-center gap-2">
-              <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
+              <span class="color-band" :style="{ backgroundColor: stringToColor(collab.email) }">{{
                 collab.email.slice(0, 2)
               }}</span>
               <span class="truncate">

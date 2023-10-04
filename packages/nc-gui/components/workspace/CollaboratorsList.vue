@@ -80,12 +80,15 @@ onMounted(async () => {
             <div class="date-joined-grid w-2/8">{{ timeAgo(collab.created_at) }}</div>
             <div class="user-access-grid w-2/8">
               <template v-if="accessibleRoles.includes(collab.roles)">
-                <RolesSelector
-                  :role="collab.roles"
-                  :roles="accessibleRoles"
-                  :description="false"
-                  :on-role-change="(role: WorkspaceUserRoles) => updateCollaborator(collab, role)"
-                />
+                <div class="w-[30px]">
+                  <RolesSelector
+                    :role="collab.roles"
+                    :roles="accessibleRoles"
+                    :description="false"
+                    class="bg-[red]"
+                    :on-role-change="(role: WorkspaceUserRoles) => updateCollaborator(collab, role)"
+                  />
+                </div>
               </template>
               <template v-else>
                 <RolesBadge :role="collab.roles" />

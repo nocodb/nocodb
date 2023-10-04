@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import axios from 'axios'
 import type { PaginatedType } from 'nocodb-sdk'
 import { IsGroupByInj, computed, iconMap, inject, isRtlLang, useI18n } from '#imports'
 import type { Language } from '#imports'
@@ -47,9 +48,11 @@ const page = computed({
     isViewDataLoading.value = true
     try {
       await changePage?.(p)
+      isViewDataLoading.value = false
     } catch (e) {
-      console.error(e)
-    } finally {
+      if (axios.isCancel(e)) {
+        return
+      }
       isViewDataLoading.value = false
     }
   },

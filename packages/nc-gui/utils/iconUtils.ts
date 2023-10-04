@@ -89,6 +89,7 @@ import ManytoManySolidIcon from '~icons/nc-icons/mm-solid'
 import BelongsToSolidIcon from '~icons/nc-icons/bt-solid'
 import Record from '~icons/nc-icons/record'
 import Project from '~icons/nc-icons/project'
+import LookupIcon from '~icons/nc-icons/lookup'
 
 // Roles
 import Owner from '~icons/nc-icons/owner'
@@ -347,7 +348,7 @@ export const iconMap = {
   deleteListItem: h('span', { class: 'material-symbols' }, 'delete'),
   import: h('span', { class: 'material-symbols' }, 'system_update_alt'),
   edit: MaterialSymbolsEdit,
-  lookup: h('span', { class: 'material-symbols' }, 'search'),
+  lookup: LookupIcon,
   text: h('span', { class: 'material-symbols' }, 'text_fields'),
   longText: h('span', { class: 'material-symbols' }, 'view_headline'),
   clock: h('span', { class: 'material-symbols' }, 'access_time'),

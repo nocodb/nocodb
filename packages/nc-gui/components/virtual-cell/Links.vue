@@ -109,7 +109,7 @@ const localCellValue = computed<any[]>(() => {
     </div>
     <div class="flex-grow" />
 
-    <div v-if="!isLocked && !isUnderLookup" class="flex justify-end hidden group-hover:flex items-center">
+    <div v-if="!isLocked && !isUnderLookup" class="!xs:hidden flex justify-end hidden group-hover:flex items-center">
       <MdiPlus
         v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
         class="select-none !text-md text-gray-700 nc-action-icon nc-plus"

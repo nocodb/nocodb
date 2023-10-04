@@ -133,8 +133,16 @@ const addNewOption = () => {
     title: '',
     color: getNextColor(),
   }
-  renderedOptions.value.push(tempOption)
   options.value.push(tempOption)
+
+  loadedOptionCount.value = options.value.length
+  renderedOptions.value = [...options.value]
+
+  nextTick(() => {
+    if (inputs.value?.$el) {
+      inputs.value.$el.focus()
+    }
+  })
 }
 
 // const optionsMagic = async () => {
@@ -174,11 +182,11 @@ const undoRemoveRenderedOption = (index: number) => {
 }
 
 // focus last created input
-watch(inputs, () => {
-  if (inputs.value?.$el) {
-    inputs.value.$el.focus()
-  }
-})
+// watch(inputs, () => {
+//   if (inputs.value?.$el) {
+//     inputs.value.$el.focus()
+//   }
+// })
 
 // Removes the Select Option from cdf if the option is removed
 watch(vModel.value, (next) => {

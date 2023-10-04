@@ -34,6 +34,7 @@ export default class BaseUser extends BaseUserCE {
         `${MetaTable.USERS}.email`,
         `${MetaTable.USERS}.invite_token`,
         `${MetaTable.USERS}.roles as main_roles`,
+        `${MetaTable.USERS}.created_at as created_at`,
         `${MetaTable.PROJECT_USERS}.base_id`,
         `${MetaTable.PROJECT_USERS}.roles as roles`,
         `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,

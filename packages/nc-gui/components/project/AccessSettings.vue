@@ -96,6 +96,7 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
       await updateProjectUser(activeProjectId.value!, collab)
     } else {
       collab.roles = roles
+      collab.base_roles = roles
       await createProjectUser(activeProjectId.value!, collab)
     }
   } catch (e: any) {

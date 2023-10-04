@@ -71,7 +71,8 @@ if (ExecutionEnvironment.canUseDOM) {
       $current_url: location.href,
       path: location.pathname,
       hash: location.hash,
-      search_query: search
+      search_query: search,
+      origin
     });
     url.searchParams.delete('origin');
     url.searchParams.delete('search');

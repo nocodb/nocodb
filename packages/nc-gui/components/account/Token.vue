@@ -181,9 +181,9 @@ const handleCancel = () => {
         </NcButton>
       </div>
       <span>{{ $t('msg.apiTokenCreate') }}</span>
-      <div class="w-full mt-5 border-1 rounded-md min-h-133 overflow-y-scroll">
+      <div class="w-full mt-5 rounded-md h-136 overflow-y-scroll">
         <div>
-          <div class="flex w-full pl-5 bg-gray-50 border-b-1">
+          <div class="flex w-full pl-5 bg-gray-50 border-1">
             <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9">{{ $t('title.tokenName') }}</span>
             <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9 text-start">{{ $t('title.creator') }}</span>
             <span class="py-3.5 text-gray-500 font-medium text-3.5 w-3/9 text-start">{{ $t('labels.token') }}</span>
@@ -230,7 +230,7 @@ const handleCancel = () => {
               v-for="el of tokens"
               :key="el.id"
               data-testid="nc-token-list"
-              class="flex border-b-1 pl-5 py-3 justify-between token"
+              class="flex border-1 pl-5 py-3 justify-between token"
             >
               <span class="text-black font-bold text-3.5 text-start w-2/9">
                 <GeneralTruncateText placement="top" length="20">
@@ -309,9 +309,3 @@ const handleCancel = () => {
     </GeneralDeleteModal>
   </div>
 </template>
-
-<style scoped lang="scss">
-.token:nth-child(10) {
-  border-bottom: none;
-}
-</style>

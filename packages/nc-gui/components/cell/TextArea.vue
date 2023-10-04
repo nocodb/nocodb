@@ -113,7 +113,7 @@ onClickOutside(inputWrapperRef, (e) => {
       <span v-else>{{ vModel }}</span>
 
       <div
-        v-if="active"
+        v-if="active && !isExpandedFormOpen"
         class="!absolute right-0 bottom-0 h-6 w-5 group cursor-pointer flex justify-end gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none p-1 hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
         :class="{ 'right-2 bottom-2': editEnabled }"
         data-testid="attachment-cell-file-picker-button"

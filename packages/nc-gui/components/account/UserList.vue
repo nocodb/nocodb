@@ -172,7 +172,7 @@ const openDeleteModal = (user: UserType) => {
           </NcButton>
         </div>
       </div>
-      <div class="w-[780px] mt-5 border-1 rounded-md h-[613px]">
+      <div class="w-full mt-5 border-1 rounded-md h-[613px] max-w-250">
         <div class="flex w-full bg-gray-50 border-b-1">
           <span class="py-3.5 text-gray-500 font-medium text-3.5 w-1/3 text-start pl-10">{{ $t('labels.email') }}</span>
           <span class="py-3.5 text-gray-500 font-medium text-3.5 w-1/3 text-start pl-20">{{ $t('objects.role') }}</span>

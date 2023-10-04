@@ -12,10 +12,6 @@ const auditTabDomRef = (e: HTMLElement) => {
   e.scrollTop = e.scrollHeight
 }
 
-onMounted(async () => {
-  await loadCommentsAndLogs()
-})
-
 const { user } = useGlobal()
 
 const tab = ref<'comments' | 'audits'>('comments')

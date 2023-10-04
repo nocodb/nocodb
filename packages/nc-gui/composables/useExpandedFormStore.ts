@@ -143,6 +143,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       comment.value = ''
 
+      reloadTrigger?.trigger()
+
       await loadCommentsAndLogs()
     } catch (e: any) {
       message.error(e.message)
@@ -268,12 +270,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
         addOrEditStackRow(row.value, isNewRow)
       }
-
-      // trim the display value if greater than 20chars
-      const trimmedDisplayValue =
-        displayValue.value && displayValue.value?.length > 20 ? `${displayValue.value?.substring(0, 20)}...` : displayValue.value
-
-      message.success(`${trimmedDisplayValue || 'Row'} updated successfully.`)
 
       changedColumns.value = new Set()
     } catch (e: any) {

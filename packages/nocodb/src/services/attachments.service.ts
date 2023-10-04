@@ -7,7 +7,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Local from '~/plugins/storage/Local';
 import mimetypes, { mimeIcons } from '~/utils/mimeTypes';
-import { TemporaryUrl } from '~/models';
+import { PresignedUrl } from '~/models';
 
 @Injectable()
 export class AttachmentsService {
@@ -61,7 +61,7 @@ export class AttachmentsService {
           attachment.path = `download/${filePath.join('/')}/${fileName}`;
 
           promises.push(
-            TemporaryUrl.getTemporaryUrl({
+            PresignedUrl.getSignedUrl({
               path: attachment.path.replace(/^download\//, ''),
             }).then((r) => (attachment.signedPath = r)),
           );
@@ -69,7 +69,7 @@ export class AttachmentsService {
           if (attachment.url.includes('.amazonaws.com/')) {
             const relativePath = attachment.url.split('.amazonaws.com/')[1];
             promises.push(
-              TemporaryUrl.getTemporaryUrl({
+              PresignedUrl.getSignedUrl({
                 path: relativePath,
                 s3: true,
               }).then((r) => (attachment.signedUrl = r)),

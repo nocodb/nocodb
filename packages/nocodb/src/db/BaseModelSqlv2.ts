@@ -50,9 +50,9 @@ import {
   Column,
   Filter,
   Model,
+  PresignedUrl,
   Sort,
   Source,
-  TemporaryUrl,
   View,
 } from '~/models';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
@@ -4067,7 +4067,7 @@ class BaseModelSqlv2 {
             for (const attachment of d[col.title]) {
               if (attachment?.path) {
                 promises.push(
-                  TemporaryUrl.getTemporaryUrl({
+                  PresignedUrl.getSignedUrl({
                     path: attachment.path.replace(/^download\//, ''),
                   }).then((r) => (attachment.signedPath = r)),
                 );
@@ -4076,7 +4076,7 @@ class BaseModelSqlv2 {
                   const relativePath =
                     attachment.url.split('.amazonaws.com/')[1];
                   promises.push(
-                    TemporaryUrl.getTemporaryUrl({
+                    PresignedUrl.getSignedUrl({
                       path: relativePath,
                       s3: true,
                     }).then((r) => (attachment.signedUrl = r)),

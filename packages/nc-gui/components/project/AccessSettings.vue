@@ -170,11 +170,11 @@ onMounted(async () => {
         <Empty description="$t('title.noMembersFound')" />
       </div>
       <div v-else class="nc-collaborators-list mt-6 h-full">
-        <div class="flex flex-col rounded-lg overflow-hidden border-1 w-250 max-h-[calc(100%-8rem)]">
+        <div class="flex flex-col rounded-lg overflow-hidden border-1 max-w-350 max-h-[calc(100%-8rem)]">
           <div class="flex flex-row bg-gray-50 min-h-12 items-center">
-            <div class="text-gray-700 users">{{ $t('objects.users') }}</div>
-            <div class="text-gray-700 data-joined">{{ $t('title.dateJoined') }}</div>
-            <div class="text-gray-700 access">{{ $t('general.access') }}</div>
+            <div class="text-gray-700 users-email-grid">{{ $t('objects.users') }}</div>
+            <div class="text-gray-700 date-joined-grid">{{ $t('title.dateJoined') }}</div>
+            <div class="text-gray-700 user-access-grid">{{ $t('general.access') }}</div>
           </div>
 
           <div class="flex flex-col nc-scrollbar-md">
@@ -183,14 +183,14 @@ onMounted(async () => {
               :key="i"
               class="user-row flex flex-row border-b-1 py-1 min-h-14 items-center"
             >
-              <div class="flex gap-3 items-center users">
+              <div class="flex gap-3 items-center users-email-grid">
                 <GeneralUserIcon size="base" :name="collab.email" :email="collab.email" />
                 <span class="truncate">
                   {{ collab.email }}
                 </span>
               </div>
-              <div class="data-joined">{{ timeAgo(collab.created_at) }}</div>
-              <div class="access">
+              <div class="date-joined-grid">{{ timeAgo(collab.created_at) }}</div>
+              <div class="user-access-grid">
                 <template v-if="accessibleRoles.includes(collab.roles)">
                   <RolesSelector
                     :role="collab.roles"
@@ -223,7 +223,6 @@ onMounted(async () => {
           </template>
         </InfiniteLoading>
       </div>
-      <!-- </div> -->
     </template>
   </div>
 </template>
@@ -241,19 +240,22 @@ onMounted(async () => {
   @apply mt-0.75;
 }
 
-.users {
+.users-email-grid {
   @apply flex-grow ml-4 w-1/2;
 }
 
-.data-joined {
+.date-joined-grid {
   @apply flex items-start;
   width: calc(50% - 10rem);
 }
 
-.access {
+.user-access-grid {
   @apply w-40;
 }
 
+.user-row {
+  @apply w-full;
+}
 .user-row:last-child {
   @apply border-b-0;
 }

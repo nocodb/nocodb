@@ -61,12 +61,14 @@ onMounted(async () => {
         <div class="flex w-2/5 text-gray-600">Users</div>
         <div class="flex w-2/5 text-gray-600">Date Joined</div>
         <div class="flex w-2/5 text-gray-600">Access</div>
-        <!-- <div class="flex w-2/5 text-gray-600">Added By</div> -->
         <div class="flex w-2/5 text-gray-600">Action</div>
       </div>
       <div class="flex flex-col nc-scrollbar-md">
-        <div v-for="(collab, i) of filterCollaborators" :key="i"
-          class="relative w-full nc-collaborators nc-collaborators-list-row">
+        <div
+          v-for="(collab, i) of filterCollaborators"
+          :key="i"
+          class="relative w-full nc-collaborators nc-collaborators-list-row"
+        >
           <div class="!py-0 w-2/5 email truncate">
             <div class="flex items-center gap-2">
               <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
@@ -83,19 +85,23 @@ onMounted(async () => {
           <div class="w-2/5 roles">
             <div class="nc-collaborator-role-select">
               <template v-if="accessibleRoles.includes(collab.roles)">
-                <RolesSelector :role="collab.roles" :roles="accessibleRoles" :description="false"
-                  :on-role-change="(role: WorkspaceUserRoles) => updateCollaborator(collab, role)" />
+                <RolesSelector
+                  :role="collab.roles"
+                  :roles="accessibleRoles"
+                  :description="false"
+                  :on-role-change="(role: WorkspaceUserRoles) => updateCollaborator(collab, role)"
+                />
               </template>
               <template v-else>
                 <RolesBadge class="!bg-white" :role="collab.roles" />
               </template>
             </div>
           </div>
-          <!-- <div class="w-2/5"></div> -->
           <div class="w-2/5 pl-5">
             <NcDropdown v-if="collab.roles !== WorkspaceUserRoles.OWNER" :trigger="['click']">
               <MdiDotsVertical
-                class="border-1 !text-gray-600 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)" />
+                class="border-1 !text-gray-600 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
+              />
               <template #overlay>
                 <NcMenu>
                   <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="removeCollaborator(collab.id)">

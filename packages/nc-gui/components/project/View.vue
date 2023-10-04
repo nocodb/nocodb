@@ -29,6 +29,7 @@ const baseSettingsState = ref('')
 watch(
   () => route.value.query?.page,
   (newVal, oldVal) => {
+    if (route.value.name !== 'index-typeOrId-baseId-index-index') return
     if (newVal && newVal !== oldVal) {
       if (newVal === 'collaborator') {
         projectPageTab.value = 'collaborator'

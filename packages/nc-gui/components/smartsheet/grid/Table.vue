@@ -140,6 +140,7 @@ const { getMeta } = useMetas()
 
 const { addUndo, clone, defineViewScope } = useUndoRedo()
 
+
 const {
   predictingNextColumn,
   predictedNextColumn,
@@ -1357,7 +1358,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                       >
                         <div class="items-center flex gap-1 min-w-[60px]">
                           <div
-                            v-if="!readOnly || !isLocked"
+                            v-if="!readOnly || !isLocked || isMobileMode"
                             class="nc-row-no text-xs text-gray-500"
                             :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
                           >
@@ -1864,7 +1865,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
 
 .nc-grid-row {
   .nc-row-expand-and-checkbox {
-    @apply w-full items-center justify-between;
+    @apply !xs:hidden w-full items-center justify-between;
   }
 
   .nc-expand {
@@ -1887,7 +1888,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
     }
 
     .nc-row-expand-and-checkbox {
-      @apply flex;
+      @apply !xs:hidden flex;
     }
   }
 }

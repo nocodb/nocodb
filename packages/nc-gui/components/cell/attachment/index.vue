@@ -50,7 +50,9 @@ const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()!
 
-const { getPossibleAttachmentSrc, openAttachment } = useAttachment()
+const { isMobileMode } = useGlobal()
+
+const { getPossibleAttachmentSrc, openAttachment: _openAttachment } = useAttachment()
 
 const {
   isPublic,
@@ -61,7 +63,7 @@ const {
   visibleItems,
   onDrop,
   isLoading,
-  open,
+  open: _open,
   FileIcon,
   selectedImage,
   isReadonly: _isReadonly,
@@ -136,7 +138,7 @@ watch(
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
   if (e.key === 'Enter' && !isReadonly.value) {
     e.stopPropagation()
-    if (!modalVisible.value) {
+    if (!modalVisible.value && !isMobileMode.value) {
       modalVisible.value = true
     } else {
       // click Attach File button
@@ -146,6 +148,24 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
 })
 
 const rowHeight = inject(RowHeightInj, ref())
+
+const open = () => {
+  if (isMobileMode.value) return (isExpandedForm.value = true)
+
+  _open()
+}
+
+const openAttachment = (item: any) => {
+  if (isMobileMode.value) return
+
+  _openAttachment(item)
+}
+
+const onExpand = () => {
+  if (isMobileMode.value) return
+
+  modalVisible.value = true
+}
 </script>
 
 <template>
@@ -220,7 +240,7 @@ const rowHeight = inject(RowHeightInj, ref())
                 :class="{ 'ml-2': active }"
                 @click="
                   () => {
-                    if (isGallery) return
+                    if (isGallery || isMobileMode) return
                     selectedImage = item
                   }
                 "
@@ -264,7 +284,7 @@ const rowHeight = inject(RowHeightInj, ref())
           <component
             :is="iconMap.expand"
             class="transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-[0.75rem]"
-            @click.stop="modalVisible = true"
+            @click.stop="onExpand"
           />
         </NcTooltip>
       </div>

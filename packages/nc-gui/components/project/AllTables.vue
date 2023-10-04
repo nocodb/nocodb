@@ -9,7 +9,7 @@ const { openedProject } = storeToRefs(useBases())
 
 const isNewBaseModalOpen = ref(false)
 
-const isDataSourceLimitReached = computed(() => Number(openedProject.value?.bases?.length) > 1)
+const isDataSourceLimitReached = computed(() => Number(openedProject.value?.sources?.length) > 1)
 
 const { isUIAllowed } = useRoles()
 

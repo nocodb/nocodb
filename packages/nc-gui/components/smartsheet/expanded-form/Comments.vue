@@ -8,9 +8,9 @@ const { loadCommentsAndLogs, commentsAndLogs, saveComment: _saveComment, comment
 
 const commentsWrapperEl = ref<HTMLDivElement>()
 
-onMounted(async () => {
-  await loadCommentsAndLogs()
-})
+const auditTabDomRef = (e: HTMLElement) => {
+  e.scrollTop = e.scrollHeight
+}
 
 const { user } = useGlobal()
 

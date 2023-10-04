@@ -7,7 +7,6 @@ import {
   IsFormInj,
   IsGalleryInj,
   IsGridInj,
-  IsPublicInj,
   MetaInj,
   NavigateDir,
   OpenNewRecordFormHookInj,
@@ -60,8 +59,6 @@ provide(IsGalleryInj, ref(true))
 provide(IsGridInj, ref(false))
 
 provide(RowHeightInj, ref(1 as const))
-
-const isPublic = inject(IsPublicInj, ref(false))
 
 const fields = inject(FieldsInj, ref([]))
 

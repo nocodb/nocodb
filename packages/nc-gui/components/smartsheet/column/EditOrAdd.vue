@@ -58,7 +58,7 @@ const { betaFeatureToggleState } = useBetaFeatureToggle()
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
 
-const { loadMagic, predictColumnType: _predictColumnType } = useNocoEe()
+const { predictColumnType: _predictColumnType } = useNocoEe()
 
 const meta = inject(MetaInj, ref())
 
@@ -144,10 +144,6 @@ watchEffect(() => {
   }
   advancedOptions.value = false
 })
-
-const predictColumnType = async () => {
-  _predictColumnType(formState, onUidtOrIdTypeChange)
-}
 
 onMounted(() => {
   if (!isEdit.value) {

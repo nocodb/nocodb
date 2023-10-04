@@ -3,7 +3,6 @@ import type { TableType, ViewType } from 'nocodb-sdk'
 import { isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import MdiChevronDown from '~icons/mdi/chevron-down'
-import TableIcon from '~icons/nc-icons/table'
 
 import {
   CellClickHookInj,

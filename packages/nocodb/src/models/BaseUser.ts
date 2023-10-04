@@ -95,9 +95,9 @@ export default class BaseUser {
         `${MetaTable.USERS}.email`,
         `${MetaTable.USERS}.invite_token`,
         `${MetaTable.USERS}.roles as main_roles`,
+        `${MetaTable.USERS}.created_at as created_at`,
         `${MetaTable.PROJECT_USERS}.base_id`,
         `${MetaTable.PROJECT_USERS}.roles as roles`,
-        `${MetaTable.PROJECT_USERS}.created_at as created_at`,
       )
       .offset(offset)
       .limit(limit);

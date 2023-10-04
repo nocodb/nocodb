@@ -53,7 +53,7 @@ const baseStore = useBase()
 
 const { loadTables } = baseStore
 
-const { tables } = storeToRefs(baseStore)
+const { tables, isSharedBase } = storeToRefs(baseStore)
 
 const { t } = useI18n()
 
@@ -269,7 +269,7 @@ watch(
 
 <template>
   <div class="nc-treeview-container flex flex-col justify-between select-none">
-    <div class="text-gray-500 font-medium pl-3.5 mb-1">{{ $t('objects.projects') }}</div>
+    <div v-if="!isSharedBase" class="text-gray-500 font-medium pl-3.5 mb-1">{{ $t('objects.projects') }}</div>
     <div mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
       <template v-if="basesList?.length">
         <ProjectWrapper v-for="base of basesList" :key="base.id" :base-role="base.project_role" :base="base">

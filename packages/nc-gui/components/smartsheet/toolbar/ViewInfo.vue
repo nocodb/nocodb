@@ -5,7 +5,7 @@ const { isMobileMode } = useGlobal()
 
 const { openedViewsTab, activeView } = storeToRefs(useViewsStore())
 
-const { base } = storeToRefs(useBase())
+const { base, isSharedBase } = storeToRefs(useBase())
 
 const { activeTable } = storeToRefs(useTablesStore())
 
@@ -14,16 +14,22 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 <template>
   <div
-    class="flex flex-row font-medium items-center border-gray-50 mt-0.5 transition-all duration-100"
+    class="ml-0.25 flex flex-row font-medium items-center border-gray-50 transition-all duration-100"
     :class="{
       'min-w-36/100 max-w-36/100': !isMobileMode && activeView?.type !== ViewTypes.KANBAN && isLeftSidebarOpen,
       'min-w-39/100 max-w-39/100': !isMobileMode && activeView?.type !== ViewTypes.KANBAN && !isLeftSidebarOpen,
       'min-w-1/4 max-w-1/4': !isMobileMode && activeView?.type === ViewTypes.KANBAN,
       'w-2/3 text-base ml-1.5': isMobileMode,
+      '!max-w-3/4': isSharedBase && !isMobileMode,
     }"
   >
     <template v-if="!isMobileMode">
-      <NcTooltip class="ml-0.75 max-w-1/4">
+      <NcTooltip
+        class="ml-0.75 max-w-1/4 max-w-"
+        :class="{
+          '!max-w-none': isSharedBase && !isMobileMode,
+        }"
+      >
         <template #title>
           {{ base?.title }}
         </template>
@@ -35,7 +41,12 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
               filter: 'grayscale(100%) brightness(115%)',
             }"
           />
-          <div class="hidden !2xl:(flex truncate ml-1)">
+          <div
+            class="hidden !2xl:(flex truncate ml-1)"
+            :class="{
+              '!flex': isSharedBase && !isMobileMode,
+            }"
+          >
             <span class="truncate text-gray-700">
               {{ base?.title }}
             </span>
@@ -60,7 +71,8 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
         class="truncate nc-active-table-title"
         :class="{
           'max-w-1/2': isMobileMode || activeView?.is_default,
-          'max-w-20/100': !isMobileMode && !activeView?.is_default,
+          'max-w-20/100': !isSharedBase && !isMobileMode && !activeView?.is_default,
+          'max-w-none': isSharedBase && !isMobileMode,
         }"
       >
         <template #title>
@@ -95,8 +107,8 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
       <NcTooltip
         class="truncate nc-active-view-title"
         :class="{
-          'max-w-2/5': !isMobileMode && activeView?.is_default,
-          'max-w-3/5': !isMobileMode && !activeView?.is_default,
+          'max-w-2/5': !isSharedBase && !isMobileMode && activeView?.is_default,
+          'max-w-3/5': !isSharedBase && !isMobileMode && !activeView?.is_default,
           'max-w-1/2': isMobileMode,
         }"
       >

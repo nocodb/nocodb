@@ -52,6 +52,10 @@ const key = ref(0)
 
 const wrapper = ref()
 
+const { dashboardUrl } = useDashboard()
+
+const { copy } = useClipboard()
+
 const { isMobileMode } = useGlobal()
 
 const { t } = useI18n()
@@ -63,6 +67,8 @@ const row = toRef(props, 'row')
 const state = toRef(props, 'state')
 
 const meta = toRef(props, 'meta')
+
+const route = useRoute()
 
 const router = useRouter()
 
@@ -187,6 +193,17 @@ const onNext = async () => {
   } else {
     emits('next')
   }
+}
+
+const copyRecordUrl = () => {
+  copy(
+    encodeURI(
+      `${dashboardUrl?.value}#/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}${
+        props.view ? `/${props.view.title}` : ''
+      }?rowId=${primaryKey.value}`,
+    ),
+  )
+  message.success('Copied to clipboard')
 }
 
 const saveChanges = async () => {
@@ -417,6 +434,12 @@ export default {
                     <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
                       <component :is="iconMap.reload" class="cursor-pointer" />
                       {{ $t('general.reload') }}
+                    </div>
+                  </NcMenuItem>
+                  <NcMenuItem v-if="!isNew" class="text-gray-700" @click="!isNew ? copyRecordUrl() : () => {}">
+                    <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
+                      <component :is="iconMap.link" class="cursor-pointer nc-duplicate-row" />
+                      Copy record URL
                     </div>
                   </NcMenuItem>
                   <NcMenuItem

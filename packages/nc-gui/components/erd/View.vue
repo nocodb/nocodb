@@ -19,7 +19,7 @@ const props = defineProps({
   },
   baseId: {
     type: String,
-    default: '',
+    default: undefined,
   },
 })
 

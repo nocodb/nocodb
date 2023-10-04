@@ -98,7 +98,7 @@ export default class RedisCacheMgr extends CacheMgr {
   async setExpiring(key: string, value: any, seconds: number): Promise<any> {
     if (typeof value !== 'undefined' && value) {
       log(
-        `RedisCacheMgr::set: setting key ${key} with value ${value} for ${seconds} seconds`,
+        `RedisCacheMgr::setExpiring: setting key ${key} with value ${value} for ${seconds} seconds`,
       );
       if (typeof value === 'object') {
         if (Array.isArray(value) && value.length) {

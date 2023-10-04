@@ -173,7 +173,7 @@ const onExpand = () => {
     ref="attachmentCellRef"
     tabindex="0"
     :style="{
-      height: isForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
+      height: isForm || isExpandedForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
     }"
     class="nc-attachment-cell relative flex color-transition flex items-center w-full"
     :class="{ 'justify-center': !active, 'justify-between': active }"
@@ -226,7 +226,7 @@ const onExpand = () => {
         :class="{ 'justify-center': !isExpandedForm && !isGallery }"
         class="flex cursor-pointer w-full items-center flex-wrap gap-2 py-1.5 scrollbar-thin-dull overflow-hidden mt-0 items-start"
         :style="{
-          maxHeight: isForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
+          maxHeight: isForm || isExpandedForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
         }"
       >
         <template v-for="(item, i) of visibleItems" :key="item.url || item.title">

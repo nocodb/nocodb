@@ -289,22 +289,21 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
 }
 
 function openErdView(source: SourceType) {
-  activeBaseId.value = source.id
-  isErdModalOpen.value = !isErdModalOpen.value
-}
+  $e('c:project:relation')
 
-async function openProjectErdView(_project: BaseType) {
-  if (!_project.id) return
+  const isOpen = ref(true)
 
-  if (!basesStore.isProjectPopulated(_project.id)) {
-    await loadProject(_project.id)
+  const { close } = useDialog(resolveComponent('DlgProjectErd'), {
+    'modelValue': isOpen,
+    'sourceId': source!.id,
+    'onUpdate:modelValue': () => closeDialog(),
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
   }
-
-  const base = bases.value.get(_project.id)
-
-  const source = base?.sources?.[0]
-  if (!source) return
-  openErdView(source)
 }
 
 const reloadTables = async () => {
@@ -545,7 +544,7 @@ const projectDelete = () => {
                     key="erd"
                     v-e="['c:base:erd']"
                     data-testid="nc-sidebar-base-relations"
-                    @click="openProjectErdView(base)"
+                    @click="openErdView(base?.sources?.[0]!)"
                   >
                     <GeneralIcon icon="erd" />
                     {{ $t('title.relations') }}

@@ -44,7 +44,7 @@ const insertOrUpdateString = (str: string) => {
 const emailInputValidation = (input: string): boolean => {
   if (!input.length) {
     emailValidation.isError = true
-    emailValidation.message = 'Email Should Not Be Empty'
+    emailValidation.message = 'Email should not be empty'
     return false
   }
   if (!validateEmail(input.trim())) {

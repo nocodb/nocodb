@@ -45,7 +45,16 @@ import { customValidators } from '~/db/util/customValidators';
 import { extractLimitAndOffset } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
-import { Audit, Column, Filter, Model, Sort, Source, View } from '~/models';
+import {
+  Audit,
+  Column,
+  Filter,
+  Model,
+  Sort,
+  Source,
+  TemporaryUrl,
+  View,
+} from '~/models';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
@@ -54,6 +63,7 @@ import {
   COMPARISON_SUB_OPS,
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from '~/utils/globals';
+import { extractProps } from '~/helpers/extractProps';
 
 dayjs.extend(utc);
 
@@ -2162,6 +2172,9 @@ class BaseModelSqlv2 {
       }
 
       await this.model.getColumns();
+
+      await this.prepareAttachmentData(insertObj);
+
       let response;
       // const driver = trx ? trx : this.dbDriver;
 
@@ -2386,6 +2399,8 @@ class BaseModelSqlv2 {
       await this.validate(data);
 
       await this.beforeUpdate(data, trx, cookie);
+
+      await this.prepareAttachmentData(updateObj);
 
       const prevData = await this.readByPk(
         id,
@@ -2783,6 +2798,8 @@ class BaseModelSqlv2 {
             }
           }
 
+          await this.prepareAttachmentData(insertObj);
+
           insertDatas.push(insertObj);
         }
       }
@@ -2897,6 +2914,8 @@ class BaseModelSqlv2 {
           continue;
         }
         if (!raw) {
+          await this.prepareAttachmentData(d);
+
           const oldRecord = await this.readByPk(pkValues);
           if (!oldRecord) {
             // throw or skip if no record found
@@ -4032,17 +4051,42 @@ class BaseModelSqlv2 {
     return data;
   }
 
-  protected _convertAttachmentType(
+  protected async _convertAttachmentType(
     attachmentColumns: Record<string, any>[],
     d: Record<string, any>,
   ) {
     try {
       if (d) {
-        attachmentColumns.forEach((col) => {
+        const promises = [];
+        for (const col of attachmentColumns) {
           if (d[col.title] && typeof d[col.title] === 'string') {
             d[col.title] = JSON.parse(d[col.title]);
           }
-        });
+
+          if (d[col.title]?.length) {
+            for (const attachment of d[col.title]) {
+              if (attachment?.path) {
+                promises.push(
+                  TemporaryUrl.getTemporaryUrl({
+                    path: attachment.path.replace(/^download\//, ''),
+                  }).then((r) => (attachment.signedPath = r)),
+                );
+              } else if (attachment?.url) {
+                if (attachment.url.includes('.amazonaws.com/')) {
+                  const relativePath =
+                    attachment.url.split('.amazonaws.com/')[1];
+                  promises.push(
+                    TemporaryUrl.getTemporaryUrl({
+                      path: relativePath,
+                      s3: true,
+                    }).then((r) => (attachment.signedUrl = r)),
+                  );
+                }
+              }
+            }
+          }
+        }
+        await Promise.all(promises);
       }
     } catch {}
     return d;
@@ -4052,25 +4096,25 @@ class BaseModelSqlv2 {
     data: Record<string, any>,
     childTable?: Model,
   ) {
-    if (childTable && !childTable?.columns) {
-      await childTable.getColumns();
-    } else if (!this.model?.columns) {
-      await this.model.getColumns();
-    }
-
     // attachment is stored in text and parse in UI
     // convertAttachmentType is used to convert the response in string to array of object in API response
     if (data) {
+      if (childTable && !childTable?.columns) {
+        await childTable.getColumns();
+      } else if (!this.model?.columns) {
+        await this.model.getColumns();
+      }
+
       const attachmentColumns = (
         childTable ? childTable.columns : this.model.columns
       ).filter((c) => c.uidt === UITypes.Attachment);
       if (attachmentColumns.length) {
         if (Array.isArray(data)) {
-          data = data.map((d) =>
-            this._convertAttachmentType(attachmentColumns, d),
+          data = await Promise.all(
+            data.map((d) => this._convertAttachmentType(attachmentColumns, d)),
           );
         } else {
-          data = this._convertAttachmentType(attachmentColumns, data);
+          data = await this._convertAttachmentType(attachmentColumns, data);
         }
       }
     }
@@ -4680,6 +4724,29 @@ class BaseModelSqlv2 {
       throw e;
     }
   }
+
+  prepareAttachmentData(data) {
+    if (this.model.columns.some((c) => c.uidt === UITypes.Attachment)) {
+      for (const column of this.model.columns) {
+        if (column.uidt === UITypes.Attachment) {
+          if (data[column.column_name]) {
+            if (Array.isArray(data[column.column_name])) {
+              for (let attachment of data[column.column_name]) {
+                attachment = extractProps(attachment, [
+                  'url',
+                  'path',
+                  'title',
+                  'mimetype',
+                  'size',
+                  'icon',
+                ]);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 export function extractSortsObject(
@@ -4868,7 +4935,6 @@ export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
           [primaryKeys[i].column_name, ids[i]],
         );
       };
-      continue;
     }
 
     // Cast the id to string.

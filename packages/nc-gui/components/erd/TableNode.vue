@@ -32,7 +32,7 @@ const hasColumns = computed(() => data.pkAndFkColumns.length || data.nonPkColumn
 const nonPkColumns = computed(() =>
   data.nonPkColumns
     // Removed MM system column from the table node
-    .filter((col) => !(col.system && isLinksOrLTAR(col))),
+    .filter((col) => !(col.system && isLinksOrLTAR(col) && /nc_.*___nc_m2m_.*/.test(col.title!))),
 )
 
 watch(

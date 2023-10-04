@@ -62,15 +62,15 @@ const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(
 })
 
 const nestedScope = computed(() => {
-  if (activeScope.value === 'root') return [{ id: 'root', label: 'Home' }]
+  // if (activeScope.value === 'root') return [{ id: 'root', label: 'Home' }]
   const rt = []
   let parent = activeScope.value
   while (parent !== 'root') {
     const parentEl = formattedData.value.find((el) => el.id === parent)
-    rt.push({ id: parent, label: parentEl?.title || 'Home' })
+    rt.push({ id: parent, label: parentEl?.title })
     parent = parentEl?.parent || 'root'
   }
-  rt.push({ id: 'root', label: 'Home' })
+  // rt.push({ id: 'root', label: 'Home' })
   return rt.reverse()
 })
 
@@ -341,7 +341,7 @@ defineExpose({
             <div
               v-for="[title, section] of Object.entries(actionListGroupedBySection)"
               :key="`cmdk-section-${title}`"
-              class="cmdk-action-section"
+              class="cmdk-action-section border-t-1 border-gray-200"
             >
               <div v-if="title !== 'default'" class="cmdk-action-section-header">{{ title }}</div>
               <div class="cmdk-action-section-body">
@@ -366,15 +366,15 @@ defineExpose({
                         '!text-pink-500': act.icon === 'gallery',
                       }"
                     />
-                    <component :is="act.icon" v-else-if="act.icon" class="cmdk-action-icon" />
-                    <div class="flex-grow-1 w-full">
+                    <component :is="act.icon" v-else-if="act.icon" class="cmdk-action-icon text-gray-800" />
+                    <div class="flex-grow-1 w-full text-gray-800">
                       {{ act.title }}
                     </div>
                     <div
                       v-if="act.projectName"
                       class="flex items-center gap-2 text-gray-600 font-medium bg-gray-100 px-1 rounded py-1"
                     >
-                      <ProjectIcon class="w-4 h-4" />
+                      <component :is="iconMap.project" class="w-4 h-4 text-transparent" />
 
                       {{ act.projectName }}
                     </div>
@@ -467,7 +467,6 @@ defineExpose({
 
   .cmdk-input-wrapper {
     @apply py-2 px-4 flex items-center gap-2;
-    border-bottom: 1px solid rgb(230, 230, 230);
   }
 
   .cmdk-input {
@@ -529,7 +528,7 @@ defineExpose({
 
       &.selected {
         cursor: pointer;
-        background-color: rgb(248, 249, 251);
+        background-color: #f4f4f5;
         border-left: 4px solid var(--ant-primary-color);
         outline: none;
       }
@@ -559,9 +558,9 @@ defineExpose({
       .cmdk-action-section-header {
         display: flex;
         align-items: center;
-        padding: 0.2em 1em;
-        font-size: 0.8em;
-        color: rgb(144, 149, 157);
+        padding: 8px 16px;
+        font-size: 14px;
+        color: #6a7184;
       }
     }
   }

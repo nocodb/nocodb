@@ -1,57 +1,70 @@
 import { navigateTo, shallowRef } from '#imports'
-import MdiHome from '~icons/mdi/home'
 import MdiFileOutline from '~icons/mdi/file-outline'
 
 export const homeCommands = [
-  {
-    id: 'account_settings',
-    title: 'Account Settings',
-    icon: 'account',
-    section: 'Account',
-  },
-  {
-    id: 'account_settings-users',
-    title: 'Users',
-    parent: 'account_settings',
-    icon: 'users',
-  },
-  {
-    id: 'account_settings-users-reset_password',
-    title: 'Reset Password',
-    parent: 'account_settings-users',
-    icon: 'key',
-    handler: () => {
-      navigateTo('/account/users/password-reset')
-    },
-  },
-  {
-    id: 'account_settings-tokens',
-    title: 'Tokens',
-    parent: 'account_settings',
-    icon: 'acl',
-    handler: () => {
-      navigateTo('/account/tokens')
-    },
-  },
-  {
-    id: 'home',
-    title: 'Navigate Home',
-    hotkey: 'cmd+h',
-    icon: shallowRef(MdiHome),
-    section: 'Misc',
-    handler: () => {
-      navigateTo('/')
-    },
-  },
-  {
+  /*   {
     id: 'workspaces',
     title: 'Workspaces',
     icon: 'workspace',
   },
   {
     id: 'bases',
-    title: 'Projects',
+    title: 'Bases',
     icon: shallowRef(MdiFileOutline),
+  }, */
+  {
+    id: 'user',
+    title: 'Account',
+    icon: 'account',
+    section: 'Accounts',
+  },
+  {
+    id: 'user_account-settings',
+    title: 'Account Settings',
+    icon: 'settings',
+    parent: 'user',
+    section: 'Account',
+    handler: () => {
+      navigateTo('/account/profile')
+    },
+  },
+  {
+    id: 'user_account-logout',
+    title: 'Logout',
+    icon: 'signout',
+    parent: 'user',
+    section: 'Account',
+    handler: () => {},
+  },
+  {
+    id: 'user_account-discord',
+    title: 'Discord',
+    icon: 'discord',
+    parent: 'user',
+    section: 'Community',
+    handler: () => {
+      window.open('https://discord.gg/8jX2GQn', '_blank')
+    },
+  },
+  {
+    id: 'user_account-twitter',
+    title: '(formerly Twitter)',
+    icon: 'twitter',
+    parent: 'user',
+    section: 'Community',
+    handler: () => {
+      window.open('https://twitter.com/NocoDB', '_blank')
+    },
+  },
+  {
+    id: 'user_account-reddit',
+    title: 'Reddit',
+    icon: 'reddit',
+    parent: 'user',
+    section: 'Community',
+    handler: () => {
+      window.open('https://www.reddit.com/r/NocoDB/', '_blank')
+    },
   },
 ]
 

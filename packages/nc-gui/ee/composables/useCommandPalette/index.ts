@@ -30,7 +30,7 @@ export const useCommandPalette = createSharedComposable(() => {
 
   const cmdPlaceholder = ref('Search...')
 
-  const { token } = useGlobal()
+  const { token, user, signOut } = useGlobal()
 
   const commands = ref({
     homeCommands,
@@ -39,6 +39,18 @@ export const useCommandPalette = createSharedComposable(() => {
 
   const staticData = computed(() => {
     const rtData = commands.value.homeCommands
+
+    rtData.map((rt) => {
+      if (rt.id === 'user') {
+        rt.title = user.value?.display_name ?? user?.value?.email.split('@')[0] ?? 'User'
+      } else if (rt.id === 'user_account-logout') {
+        rt.handler = async () => {
+          await signOut()
+          window.location.reload()
+        }
+      }
+      return rt
+    })
 
     if (activeScope.value.scope === 'root') return rtData
 

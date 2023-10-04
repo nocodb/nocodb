@@ -8,7 +8,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const router = useRouter()
   const recentViews = computed(() => [])
 
-  const _recentViews = ref<any>([])
+  const allRecentViews = ref<any>([])
   const route = router.currentRoute
 
   const tablesStore = useTablesStore()
@@ -239,7 +239,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     isPaginationLoading,
     loadViews,
     recentViews,
-    _recentViews,
+    allRecentViews,
     views,
     activeView,
     openedViewsTab,

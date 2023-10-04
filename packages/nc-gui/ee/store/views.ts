@@ -16,7 +16,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
   }
 
   const router = useRouter()
-  const _recentViews = ref<RecentView[]>([])
+  // Store recent views from all Workspaces
+  const allRecentViews = ref<RecentView[]>([])
   const route = router.currentRoute
 
   const bases = useBases()
@@ -25,8 +26,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
+  // Store recent views from active Workspace.
   const recentViews = computed<RecentView[]>(() =>
-    _recentViews.value.filter((f) => f.workspaceId === activeWorkspaceId.value).splice(0, 10),
+    allRecentViews.value.filter((f) => f.workspaceId === activeWorkspaceId.value).splice(0, 10),
   )
 
   const viewsByTable = ref<Map<string, ViewType[]>>(new Map())
@@ -153,11 +155,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
     baseId?: string
   }) => {
     if (baseId && !viewId && !tableId) {
-      _recentViews.value = _recentViews.value.filter((f) => f.baseId !== baseId)
+      allRecentViews.value = allRecentViews.value.filter((f) => f.baseId !== baseId)
     } else if (baseId && tableId && !viewId) {
-      _recentViews.value = _recentViews.value.filter((f) => f.baseId !== baseId || f.tableID !== tableId)
+      allRecentViews.value = allRecentViews.value.filter((f) => f.baseId !== baseId || f.tableID !== tableId)
     } else if (tableId && viewId) {
-      _recentViews.value = _recentViews.value.filter((f) => f.viewId !== viewId || f.tableID !== tableId)
+      allRecentViews.value = allRecentViews.value.filter((f) => f.viewId !== viewId || f.tableID !== tableId)
     }
   }
 
@@ -272,7 +274,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     if (!view.base_id) return
 
     const baseName = bases.basesList.find((p) => p.id === view.base_id)?.title
-    _recentViews.value = [
+    allRecentViews.value = [
       {
         viewId: view.id,
         baseId: view.base_id as string,
@@ -282,7 +284,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
         workspaceId: activeWorkspaceId.value,
         baseName: baseName as string,
       },
-      ..._recentViews.value.filter((f) => f.viewId !== view.id || f.tableID !== view.fk_model_id),
+      ...allRecentViews.value.filter((f) => f.viewId !== view.id || f.tableID !== view.fk_model_id),
     ].splice(0, 10)
   })
 
@@ -293,7 +295,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     isPaginationLoading,
     loadViews,
     recentViews,
-    _recentViews,
+    allRecentViews,
     views,
     activeView,
     openedViewsTab,

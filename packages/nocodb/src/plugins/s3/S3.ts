@@ -106,12 +106,14 @@ export default class S3 implements IStorageAdapterV2 {
     });
   }
 
-  public async getSignedUrl(key, expires = 7200) {
+  public async getSignedUrl(key, expiresInSeconds = 7200) {
     const command = new GetObjectCommand({
       Key: key,
       Bucket: this.input.bucket,
     });
-    return getSignedUrl(this.s3Client, command, { expiresIn: expires });
+    return getSignedUrl(this.s3Client, command, {
+      expiresIn: expiresInSeconds,
+    });
   }
 
   public async init(): Promise<any> {

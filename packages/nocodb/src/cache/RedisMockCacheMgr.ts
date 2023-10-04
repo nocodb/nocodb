@@ -93,7 +93,7 @@ export default class RedisMockCacheMgr extends CacheMgr {
   async setExpiring(key: string, value: any, seconds: number): Promise<any> {
     if (typeof value !== 'undefined' && value) {
       log(
-        `RedisMockCacheMgr::set: setting key ${key} with value ${value} for ${seconds} seconds`,
+        `RedisMockCacheMgr::setExpiring: setting key ${key} with value ${value} for ${seconds} seconds`,
       );
 
       // TODO: better way to handle expiration in mock redis

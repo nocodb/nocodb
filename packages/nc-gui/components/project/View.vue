@@ -70,10 +70,10 @@ watch(
       class="flex flex-row pl-2 pr-2 border-b-1 border-gray-200 justify-between w-full"
       :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     >
-      <div class="flex flex-row items-center gap-x-4">
+      <div class="flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />
         <GeneralProjectIcon :type="openedProject?.type" />
-        <div class="flex font-medium text-base capitalize">
+        <div class="flex font-medium text-sm capitalize">
           {{ openedProject?.title }}
         </div>
       </div>

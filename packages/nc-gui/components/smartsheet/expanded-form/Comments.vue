@@ -102,15 +102,6 @@ const saveComment = async () => {
 watch(commentsWrapperEl, () => {
   scrollComments()
 })
-
-// Ignore first line if its the only one
-const processedAudit = (log: string) => {
-  const dotSplit = log.split('.')
-
-  if (dotSplit.length === 1) return log
-
-  return log.substring(log.indexOf('.') + 1)
-}
 </script>
 
 <template>
@@ -238,7 +229,7 @@ const processedAudit = (log: string) => {
           </div>
         </template>
         <div v-for="log of audits" :key="log.id">
-          <div class="bg-white rounded-xl border-1 gap-3 border-gray-200">
+          <div v-if="log.details" class="bg-white rounded-xl border-1 gap-3 border-gray-200">
             <div class="flex flex-col p-4 gap-3">
               <div class="flex justify-between">
                 <div class="flex items-center gap-2">
@@ -253,9 +244,7 @@ const processedAudit = (log: string) => {
                   </div>
                 </div>
               </div>
-              <div class="text-sm font-medium text-gray-700">
-                {{ processedAudit(log.description) }}
-              </div>
+              <div v-dompurify-html="log.details" class="text-sm font-medium"></div>
             </div>
           </div>
         </div>
@@ -270,5 +259,17 @@ const processedAudit = (log: string) => {
   word-break: 'keep-all';
   white-space: 'nowrap';
   display: 'inline';
+}
+
+.text-decoration-line-through {
+  text-decoration: line-through;
+}
+
+:deep(.red.lighten-4) {
+  @apply bg-red-100 rounded-md line-through;
+}
+
+:deep(.green.lighten-4) {
+  @apply bg-green-100 rounded-md !mr-3 !leading-6;
 }
 </style>

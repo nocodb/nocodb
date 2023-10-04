@@ -27,17 +27,17 @@ export class CommandPaletteService {
           fk_user_id: param.user?.id,
         });
 
-        // const allProjects = [];
+        const allProjects = [];
 
         for (const workspace of workspaces) {
           cmdData.push({
             id: `ws-nav-${workspace.id}`,
             title: workspace.title,
-            parent: 'workspaces',
             icon: 'workspace',
+            section: 'Workspaces',
             handler: {
               type: 'navigate',
-              payload: `/${workspace.id}`,
+              payload: `/${workspace.id}/settings`,
             },
             scopePayload: {
               scope: `ws-${workspace.id}`,
@@ -47,26 +47,26 @@ export class CommandPaletteService {
             },
           });
 
-          /* const bases = await Base.listByWorkspaceAndUser(
+          const bases = await Base.listByWorkspaceAndUser(
             workspace.id,
             param.user?.id,
           );
 
-          allProjects.push(...bases); */
+          allProjects.push(...bases);
         }
 
-        /* for (const base of allProjects) {
+        for (const base of allProjects) {
           cmdData.push({
             id: `p-${base.id}`,
             title: base.title,
-            parent: 'bases',
-            icon: 'database',
+            parent: `ws-nav-${base.fk_workspace_id}`,
+            icon: 'project',
             handler: {
               type: 'navigate',
               payload: `/${base.fk_workspace_id}/${base.id}`,
             },
           });
-        } */
+        }
       } else if (scope.startsWith('ws-')) {
         const workspaces = await WorkspaceUser.workspaceList({
           fk_user_id: param.user?.id,
@@ -77,11 +77,14 @@ export class CommandPaletteService {
         if (!workspace) {
           NcError.notFound('Workspace not found!');
         }
+        const allBases = [];
 
         const bases = await Base.listByWorkspaceAndUser(
           data.workspace_id,
           param.user?.id,
         );
+
+        allBases.push(...bases);
 
         const viewList = [];
 
@@ -104,12 +107,26 @@ export class CommandPaletteService {
         const tableList = [];
         const vwList = [];
 
+        for (const b of allBases) {
+          cmdData.push({
+            id: `p-${b.id}`,
+            title: b.title,
+            parent: `ws-${workspace.id}`,
+            icon: 'project',
+            section: 'Bases',
+            handler: {
+              type: 'navigate',
+              payload: `/${data.workspace_id}/${b.id}`,
+            },
+          });
+        }
+
         for (const v of viewList) {
           if (!tableList.find((el) => el.id === `tbl-${v.fk_model_id}`)) {
             tableList.push({
               id: `tbl-${v.fk_model_id}`,
               title: v._ptn,
-              parent: `ws-${workspace.id}-tables`,
+              parent: `p-${v.base_id}`,
               icon: 'table',
               projectName: bases.find((el) => el.id === v.base_id)?.title,
               section: bases.find((el) => el.id === v.base_id)?.title,
@@ -122,7 +139,7 @@ export class CommandPaletteService {
           vwList.push({
             id: `vw-${v.id}`,
             title: `${v.title}`,
-            parent: `ws-${workspace.id}-views`,
+            parent: `tbl-${v.fk_model_id}`,
             icon: viewTypeAlias[v.type] || 'table',
             projectName: bases.find((el) => el.id === v.base_id)?.title,
             section: `${bases.find((el) => el.id === v.base_id)?.title} / ${
@@ -139,7 +156,7 @@ export class CommandPaletteService {
 
         cmdData.push(...tableList);
         cmdData.push(...vwList);
-        cmdData.push({
+cmdData.push({
           id: `ws-${workspace.id}`,
           title: `Workspace: ${workspace.title}`,
           icon: 'workspace',

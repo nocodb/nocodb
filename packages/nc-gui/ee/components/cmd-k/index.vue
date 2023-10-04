@@ -62,7 +62,7 @@ const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(
 })
 
 const nestedScope = computed(() => {
-  // if (activeScope.value === 'root') return [{ id: 'root', label: 'Home' }]
+  if (activeScope.value === 'root') return [{ id: 'root', label: 'Home' }]
   const rt = []
   let parent = activeScope.value
   while (parent !== 'root') {
@@ -70,7 +70,7 @@ const nestedScope = computed(() => {
     rt.push({ id: parent, label: parentEl?.title })
     parent = parentEl?.parent || 'root'
   }
-  // rt.push({ id: 'root', label: 'Home' })
+  rt.push({ id: 'root', label: 'Home' })
   return rt.reverse()
 })
 

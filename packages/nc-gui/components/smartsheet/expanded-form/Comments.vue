@@ -8,10 +8,6 @@ const { loadCommentsAndLogs, commentsAndLogs, saveComment: _saveComment, comment
 
 const commentsWrapperEl = ref<HTMLDivElement>()
 
-const auditTabDomRef = (e: HTMLElement) => {
-  e.scrollTop = e.scrollHeight
-}
-
 onMounted(async () => {
   await loadCommentsAndLogs()
 })
@@ -232,7 +228,7 @@ const processedAudit = (log: string) => {
           </div>
         </div>
       </div>
-      <div v-if="tab === 'audits'" :ref="auditTabDomRef" class="flex flex-col h-full pl-2 pr-1 pt-2 nc-scrollbar-md space-y-2">
+      <div v-if="tab === 'audits'" ref="commentsWrapperEl" class="flex flex-col h-full pl-2 pr-1 pt-2 nc-scrollbar-md space-y-2">
         <template v-if="audits.length === 0">
           <div class="flex flex-col text-center justify-center h-full">
             <div class="text-center text-3xl text-gray-600">
@@ -246,8 +242,7 @@ const processedAudit = (log: string) => {
             <div class="flex flex-col p-4 gap-3">
               <div class="flex justify-between">
                 <div class="flex items-center gap-2">
-                  <GeneralUserIcon size="base" :name="log.display_name ?? log.user" />
-
+                  <GeneralUserIcon size="base" :email="log.user" />
                   <div class="flex flex-col">
                     <span class="truncate font-bold max-w-50">
                       {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared source' }}

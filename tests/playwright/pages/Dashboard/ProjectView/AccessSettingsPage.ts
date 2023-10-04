@@ -14,15 +14,17 @@ export class AccessSettingsPage extends BasePage {
   }
 
   async setRole(email: string, role: string, networkValidation = true) {
-    await this.get().locator('.nc-collaborators-list-row').nth(0).waitFor({ state: 'visible' });
-    const userCount = await this.get().locator('.nc-collaborators-list-row').count();
-    for (let i = 0; i < userCount; i++) {
-      const user = this.get().locator('.nc-collaborators-list-row').nth(i);
-      const userEmail = (await user.locator('.email').innerText()).split('\n')[1];
-      if (userEmail === email) {
-        const roleDropdown = user.locator('.nc-collaborator-role-select');
+    await this.get().locator('.user-row').nth(0).waitFor({ state: 'visible' });
+    const userCount = await this.get().locator('.user-row').count();
 
-        const selectedRole = await user.locator('.nc-collaborator-role-select .badge-text').innerText();
+    for (let i = 0; i < userCount; i++) {
+      const user = this.get().locator('.user-row').nth(i);
+      const userEmail = (await user.locator('.users-email-grid').innerText()).split('\n')[1];
+
+      if (userEmail === email) {
+        const roleDropdown = user.locator('.nc-roles-selector');
+
+        const selectedRole = await user.locator('.nc-roles-selector .badge-text').innerText();
 
         await roleDropdown.click();
         const menu = this.rootPage.locator('.nc-role-select-dropdown:visible');

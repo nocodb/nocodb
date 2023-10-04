@@ -221,11 +221,13 @@ onMounted(async () => {
   isLoading.value = true
   if (props.loadRow) {
     await _loadRow()
+    await loadCommentsAndLogs()
   }
 
   if (props.rowId) {
     try {
       await _loadRow(props.rowId)
+      await loadCommentsAndLogs()
     } catch (e: any) {
       if (e.response?.status === 404) {
         // todo: i18n

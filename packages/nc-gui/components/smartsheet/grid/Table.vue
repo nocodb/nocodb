@@ -1358,7 +1358,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                         <div class="items-center flex gap-1 min-w-[60px]">
                           <div
                             v-if="!readOnly || !isLocked || isMobileMode"
-                            class="nc-row-no text-xs text-gray-500"
+                            class="nc-row-no sm:min-w-4 text-xs text-gray-500"
                             :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
                           >
                             {{ ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 }}

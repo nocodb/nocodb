@@ -43,7 +43,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="nc-collaborator-table-container mt-4 mx-6">
+  <div class="nc-collaborator-table-container mt-4 mx-6 h-[calc(100vh-12rem)]">
     <div class="w-full flex justify-between items-baseline mt-6.5 mb-2 pr-0.25 ml-2">
       <div class="text-xl">Invite Members By Email</div>
       <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md mr-4" placeholder="Search members">
@@ -56,61 +56,55 @@ onMounted(async () => {
     <div v-if="!filterCollaborators?.length" class="w-full h-full flex flex-col items-center justify-center mt-36">
       <Empty description="No members found" />
     </div>
-    <div v-else class="nc-collaborators-list !mt-10 nc-scrollbar-md rounded-md">
-      <div class="nc-collaborators-list-header bg-gray-50 rounded-t-md">
-        <div class="flex w-2/5 text-gray-600">Users</div>
-        <div class="flex w-2/5 text-gray-600">Date Joined</div>
-        <div class="flex w-2/5 text-gray-600">Access</div>
-        <div class="flex w-2/5 text-gray-600">Action</div>
-      </div>
-      <div class="flex flex-col nc-scrollbar-md">
-        <div
-          v-for="(collab, i) of filterCollaborators"
-          :key="i"
-          class="relative w-full nc-collaborators nc-collaborators-list-row"
-        >
-          <div class="!py-0 w-2/5 email truncate">
-            <div class="flex items-center gap-2">
-              <span class="color-band" :style="{ backgroundColor: stringToColor(collab.email) }">{{
-                collab.email.slice(0, 2)
-              }}</span>
+    <div v-else class="nc-collaborators-list mt-6 h-full">
+      <div class="flex flex-col rounded-lg overflow-hidden border-1 max-w-350 max-h-[calc(100%-8rem)]">
+        <div class="flex flex-row bg-gray-50 min-h-12 items-center">
+          <div class="text-gray-700 users-email-grid w-3/8 ml-10">{{ $t('objects.users') }}</div>
+          <div class="text-gray-700 date-joined-grid w-2/8 mr-3 pl-1">{{ $t('title.dateJoined') }}</div>
+          <div class="text-gray-700 user-access-grid w-2/8 mr-3">{{ $t('general.access') }}</div>
+          <div class="text-gray-700 user-access-grid w-1/8">Actions</div>
+        </div>
+
+        <div class="flex flex-col nc-scrollbar-md">
+          <div
+            v-for="(collab, i) of filterCollaborators"
+            :key="i"
+            class="flex flex-row border-b-1 py-1 min-h-14 items-center justify-around last"
+          >
+            <div class="flex gap-3 items-center users-email-grid w-3/8 ml-10">
+              <GeneralUserIcon size="base" :name="collab.email" :email="collab.email" />
               <span class="truncate">
                 {{ collab.email }}
               </span>
             </div>
-          </div>
-          <div class="text-gray-500 text-xs w-2/5 created-at truncate">
-            {{ timeAgo(collab.created_at) }}
-          </div>
-          <div class="w-2/5 roles">
-            <div class="nc-collaborator-role-select">
+            <div class="date-joined-grid w-2/8">{{ timeAgo(collab.created_at) }}</div>
+            <div class="user-access-grid w-2/8">
               <template v-if="accessibleRoles.includes(collab.roles)">
                 <RolesSelector
                   :role="collab.roles"
                   :roles="accessibleRoles"
-                  :description="false"
                   :on-role-change="(role: WorkspaceUserRoles) => updateCollaborator(collab, role)"
                 />
               </template>
               <template v-else>
-                <RolesBadge class="!bg-white" :role="collab.roles" />
+                <RolesBadge :role="collab.roles" />
               </template>
             </div>
-          </div>
-          <div class="w-2/5 pl-5">
-            <NcDropdown v-if="collab.roles !== WorkspaceUserRoles.OWNER" :trigger="['click']">
-              <MdiDotsVertical
-                class="border-1 !text-gray-600 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
-              />
-              <template #overlay>
-                <NcMenu>
-                  <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="removeCollaborator(collab.id)">
-                    <MaterialSymbolsDeleteOutlineRounded />
-                    Remove user
-                  </NcMenuItem>
-                </NcMenu>
-              </template>
-            </NcDropdown>
+            <div class="w-1/8 pl-6">
+              <NcDropdown v-if="collab.roles !== WorkspaceUserRoles.OWNER" :trigger="['click']">
+                <MdiDotsVertical
+                  class="border-1 !text-gray-600 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
+                />
+                <template #overlay>
+                  <NcMenu>
+                    <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="removeCollaborator(collab.id)">
+                      <MaterialSymbolsDeleteOutlineRounded />
+                      Remove user
+                    </NcMenuItem>
+                  </NcMenu>
+                </template>
+              </NcDropdown>
+            </div>
           </div>
         </div>
       </div>
@@ -123,114 +117,11 @@ onMounted(async () => {
   @apply text-[14px] pt-1 text-center;
 }
 
-.nc-collaborators-list {
-  @apply border-2 shadow-sm border-gray-100 mt-1 flex flex-col w-full;
-  // todo: replace/remove 120px with proper value while updating invite ui
-  height: calc(100vh - calc(var(--topbar-height) + 9rem + 120px));
-}
-
-.nc-collaborators-list-header {
-  @apply flex flex-row justify-between items-center min-h-10 border-b-2 shadow-sm border-gray-100 pl-4;
-}
-
-.nc-collaborators-list-row {
-  @apply flex flex-row justify-between items-center min-h-16 border-b-2 shadow-sm border-gray-100 pl-4;
-}
-
-.color-band {
-  @apply w-6 h-6 left-0 top-[10px] rounded-full flex justify-center uppercase text-white font-weight-bold text-xs items-center;
-}
-
-:deep(.nc-collaborator-role-select .ant-select-selector) {
-  @apply !rounded;
-}
-
-:deep(.ant-select-selection-item) {
-  @apply mt-0.75;
-}
-
 .nc-collaborators-list-table {
   @apply min-w-[700px] !w-full border-gray-100 mt-1;
-
-  th {
-    @apply .font-normal !text-gray-400 pb-4;
-    border-bottom: 1px solid #e3e3e3;
-  }
-
-  td {
-    @apply .font-normal pb-4;
-    border-bottom: 1px solid #f5f5f5;
-  }
-
-  th,
-  td {
-    @apply text-left p-4;
-  }
-
-  th:first-child,
-  td:first-child {
-    @apply pl-6;
-  }
-
-  th:last-child,
-  td:last-child {
-    @apply pr-1 w-5;
-  }
 }
 
-table {
-  display: block;
-  width: 100%;
-}
-
-thead {
-  display: block;
-  width: 100%;
-}
-
-tr {
-  display: block;
-  width: 100%;
-}
-
-tbody {
-  display: block;
-  width: 100%;
-  height: calc(100vh - calc(var(--topbar-height) + 25rem));
-  overflow-y: overlay;
-
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #f6f6f600 !important;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #f6f6f600;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: #f6f6f600;
-  }
-}
-
-tbody {
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #f6f6f600 !important;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: rgb(215, 215, 215);
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: rgb(203, 203, 203);
-  }
+.last:last-child {
+  border-bottom: none;
 }
 </style>

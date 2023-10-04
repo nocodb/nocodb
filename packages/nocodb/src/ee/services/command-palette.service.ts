@@ -35,10 +35,6 @@ export class CommandPaletteService {
             title: workspace.title,
             icon: 'workspace',
             section: 'Workspaces',
-            handler: {
-              type: 'navigate',
-              payload: `/${workspace.id}/settings`,
-            },
             scopePayload: {
               scope: `ws-${workspace.id}`,
               data: {
@@ -61,9 +57,12 @@ export class CommandPaletteService {
             title: base.title,
             parent: `ws-nav-${base.fk_workspace_id}`,
             icon: 'project',
-            handler: {
-              type: 'navigate',
-              payload: `/${base.fk_workspace_id}/${base.id}`,
+            scopePayload: {
+              scope: `p-${base.id}`,
+              data: {
+                workspace_id: base.fk_workspace_id,
+                base_id: base.id,
+              },
             },
           });
         }
@@ -114,10 +113,6 @@ export class CommandPaletteService {
             parent: `ws-${workspace.id}`,
             icon: 'project',
             section: 'Bases',
-            handler: {
-              type: 'navigate',
-              payload: `/${data.workspace_id}/${b.id}`,
-            },
           });
         }
 
@@ -130,10 +125,6 @@ export class CommandPaletteService {
               icon: 'table',
               projectName: bases.find((el) => el.id === v.base_id)?.title,
               section: bases.find((el) => el.id === v.base_id)?.title,
-              handler: {
-                type: 'navigate',
-                payload: `/${data.workspace_id}/${v.base_id}/${v.fk_model_id}`,
-              },
             });
           }
           vwList.push({
@@ -156,29 +147,14 @@ export class CommandPaletteService {
 
         cmdData.push(...tableList);
         cmdData.push(...vwList);
-cmdData.push({
+        cmdData.push({
           id: `ws-${workspace.id}`,
-          title: `Workspace: ${workspace.title}`,
+          title: `${workspace.title}`,
+          section: 'hidden',
           icon: 'workspace',
         });
-        cmdData.push(
-          ...[
-            {
-              id: `ws-${workspace.id}-tables`,
-              title: 'Tables',
-              parent: `ws-${workspace.id}`,
-              section: 'Workspace',
-              icon: 'table',
-            },
-            {
-              id: `ws-${workspace.id}-views`,
-              title: 'Views',
-              parent: `ws-${workspace.id}`,
-              section: 'Workspace',
-              icon: 'view',
-            },
-          ],
-        );
+      } else if (scope.startsWith('p-')) {
+        return [];
       }
     } catch (e) {
       console.log(e);

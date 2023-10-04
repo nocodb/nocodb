@@ -54,8 +54,6 @@ export const useCommandPalette = createSharedComposable(() => {
 
     if (activeScope.value.scope === 'root') return rtData
 
-    if (activeScope.value.scope.startsWith('ws-')) {
-    }
     rtData.push(...commands.value.baseCommands)
 
     return rtData

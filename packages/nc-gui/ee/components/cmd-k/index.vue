@@ -4,7 +4,6 @@ import { useMagicKeys, whenever } from '@vueuse/core'
 import { commandScore } from './command-score'
 import type { ComputedRef, VNode } from '#imports'
 import { iconMap, onClickOutside } from '#imports'
-import ProjectIcon from '~icons/nc-icons/project'
 
 interface CmdAction {
   id: string
@@ -62,7 +61,7 @@ const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(
 })
 
 const nestedScope = computed(() => {
-  if (activeScope.value === 'root') return [{ id: 'root', label: 'Home' }]
+  if (activeScope.value === 'root') return []
   const rt = []
   let parent = activeScope.value
   while (parent !== 'root') {
@@ -70,7 +69,6 @@ const nestedScope = computed(() => {
     rt.push({ id: parent, label: parentEl?.title })
     parent = parentEl?.parent || 'root'
   }
-  rt.push({ id: 'root', label: 'Home' })
   return rt.reverse()
 })
 
@@ -144,6 +142,7 @@ const searchedActionList = computed(() => {
 const actionListGroupedBySection = computed(() => {
   const rt: { [key: string]: CmdAction[] } = {}
   searchedActionList.value.forEach((el) => {
+    if (el.section === 'hidden') return
     if (el.section) {
       if (!rt[el.section]) rt[el.section] = []
       rt[el.section].push(el)
@@ -343,7 +342,7 @@ defineExpose({
               :key="`cmdk-section-${title}`"
               class="cmdk-action-section border-t-1 border-gray-200"
             >
-              <div v-if="title !== 'default'" class="cmdk-action-section-header">{{ title }}</div>
+              <div v-if="title !== 'default'" class="cmdk-action-section-header">{{ title }} {{ hidden }}</div>
               <div class="cmdk-action-section-body">
                 <div
                   v-for="act of section"

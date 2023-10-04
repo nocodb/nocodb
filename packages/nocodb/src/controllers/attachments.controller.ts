@@ -17,7 +17,7 @@ import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { UploadAllowedInterceptor } from '~/interceptors/is-upload-allowed/is-upload-allowed.interceptor';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { AttachmentsService } from '~/services/attachments.service';
-import { TemporaryUrl } from '~/models';
+import { PresignedUrl } from '~/models';
 
 @Controller()
 export class AttachmentsController {
@@ -101,7 +101,7 @@ export class AttachmentsController {
   @Get('/dltemp/:param(*)')
   async fileReadv3(@Param('param') param: string, @Response() res) {
     try {
-      const fpath = await TemporaryUrl.getPath(`dltemp/${param}`);
+      const fpath = await PresignedUrl.getPath(`dltemp/${param}`);
 
       const { img } = await this.attachmentsService.fileRead({
         path: path.join('nc', 'uploads', fpath),

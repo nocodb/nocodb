@@ -157,7 +157,7 @@ export enum CacheScope {
   DASHBOARD_PROJECT_DB_PROJECT_LINKING = 'dashboardProjectDBProjectLinking',
   SINGLE_QUERY = 'singleQuery',
   JOBS = 'nc_jobs',
-  TEMPORARY_URL = 'temporaryUrl',
+  PRESIGNED_URL = 'presignedUrl',
 }
 
 export enum CacheGetType {

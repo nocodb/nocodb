@@ -14,12 +14,12 @@ const DEFAULT_EXPIRE_SECONDS = isNaN(
   ? 2 * 60 * 60
   : parseInt(process.env.NC_ATTACHMENT_EXPIRE_SECONDS);
 
-export default class TemporaryUrl {
+export default class PresignedUrl {
   path: string;
   url: string;
   expires_at: string;
 
-  constructor(data: Partial<TemporaryUrl>) {
+  constructor(data: Partial<PresignedUrl>) {
     Object.assign(this, data);
   }
 
@@ -36,7 +36,7 @@ export default class TemporaryUrl {
       expiresInSeconds = DEFAULT_EXPIRE_SECONDS,
     } = param;
     await NocoCache.setExpiring(
-      `${CacheScope.TEMPORARY_URL}:path:${path}`,
+      `${CacheScope.PRESIGNED_URL}:path:${path}`,
       {
         path,
         url,
@@ -45,7 +45,7 @@ export default class TemporaryUrl {
       expiresInSeconds,
     );
     await NocoCache.setExpiring(
-      `${CacheScope.TEMPORARY_URL}:url:${decodeURIComponent(url)}`,
+      `${CacheScope.PRESIGNED_URL}:url:${decodeURIComponent(url)}`,
       {
         path,
         url,
@@ -57,15 +57,15 @@ export default class TemporaryUrl {
 
   private static async delete(param: { path: string; url: string }) {
     const { path, url } = param;
-    await NocoCache.del(`${CacheScope.TEMPORARY_URL}:path:${path}`);
-    await NocoCache.del(`${CacheScope.TEMPORARY_URL}:url:${url}`);
+    await NocoCache.del(`${CacheScope.PRESIGNED_URL}:path:${path}`);
+    await NocoCache.del(`${CacheScope.PRESIGNED_URL}:url:${url}`);
   }
 
   public static async getPath(url: string, _ncMeta = Noco.ncMeta) {
     const urlData =
       url &&
       (await NocoCache.get(
-        `${CacheScope.TEMPORARY_URL}:url:${url}`,
+        `${CacheScope.PRESIGNED_URL}:url:${url}`,
         CacheGetType.TYPE_OBJECT,
       ));
     if (!urlData) {
@@ -85,7 +85,7 @@ export default class TemporaryUrl {
     return urlData?.path;
   }
 
-  public static async getTemporaryUrl(
+  public static async getSignedUrl(
     param: {
       path: string;
       expireSeconds?: number;
@@ -106,7 +106,7 @@ export default class TemporaryUrl {
     let tempUrl;
 
     const url = await NocoCache.get(
-      `${CacheScope.TEMPORARY_URL}:path:${path}`,
+      `${CacheScope.PRESIGNED_URL}:path:${path}`,
       CacheGetType.TYPE_OBJECT,
     );
 

@@ -30,7 +30,7 @@ const updateCdfValue = (cdf: string | null) => {
 }
 
 onMounted(() => {
-  updateCdfValue(vModel.value.cdf.replace(/^'/, '').replace(/'$/, ''))
+  updateCdfValue(vModel.value?.cdf ? vModel.value.cdf.replace(/^'/, '').replace(/'$/, '') : null)
 })
 </script>
 

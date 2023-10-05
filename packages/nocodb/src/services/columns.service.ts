@@ -358,7 +358,8 @@ export class ColumnsService {
           if (
             driverType === 'mysql' ||
             driverType === 'mysql2' ||
-            driverType === 'pg'
+            driverType === 'pg' ||
+            driverType === 'sqlite3'
           ) {
             colBody.cdf = colBody.cdf.replace(/'/g, "'");
           } else {
@@ -1153,7 +1154,8 @@ export class ColumnsService {
               if (
                 driverType === 'mysql' ||
                 driverType === 'mysql2' ||
-                driverType === 'pg'
+                driverType === 'pg' ||
+                driverType === 'sqlite3'
               ) {
                 colBody.cdf = colBody.cdf.replace(/'/g, "'");
               } else {

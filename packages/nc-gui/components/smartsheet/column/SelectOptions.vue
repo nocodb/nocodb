@@ -101,9 +101,9 @@ onMounted(() => {
   }
 
   if (vModel.value.cdf) {
-    // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
-    if (!isMysql.value && !isPg.value) {
-      vModel.value.cdf = vModel.value.cdf.replace(/''/g, "'")
+    const fndDefaultOption = options.value.find((el) => el.title === vModel.value.cdf)
+    if (!fndDefaultOption) {
+      vModel.value.cdf = vModel.value.cdf.replace(/^'/, '').replace(/'$/, '')
     }
   }
 

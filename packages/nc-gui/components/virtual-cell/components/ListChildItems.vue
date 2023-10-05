@@ -145,19 +145,6 @@ watch(childrenListPagination, () => {
     skeltonAmountToShow.value = 10
   }
 })
-
-const isDataExist = computed<boolean>(() => {
-  return childrenList.value?.pageInfo?.totalRows || (isNew.value && state.value?.[colTitle.value]?.length)
-})
-
-const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
-  if (isPublic.value && !isForm.value) return
-  isNew.value
-    ? unlinkRow(rowRef, parseInt(id))
-    : isChildrenListLinked.value[parseInt(id)]
-    ? unlinkRow(rowRef, parseInt(id))
-    : linkRow(rowRef, parseInt(id))
-}
 </script>
 
 <template>

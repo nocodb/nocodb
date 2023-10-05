@@ -57,7 +57,7 @@ const basesStore = useBases()
 
 const { isMobileMode } = useGlobal()
 
-const { loadProject, loadProjects, createProject: _createProject, updateProject, getProjectMetaInfo } = basesStore
+const { loadProjects, createProject: _createProject, updateProject, getProjectMetaInfo } = basesStore
 
 const { bases } = storeToRefs(basesStore)
 

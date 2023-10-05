@@ -61,12 +61,11 @@ const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(
 })
 
 const nestedScope = computed(() => {
-  if (activeScope.value === 'root') return []
   const rt = []
   let parent = activeScope.value
   while (parent !== 'root') {
     const parentEl = formattedData.value.find((el) => el.id === parent)
-    rt.push({ id: parent, label: parentEl?.title })
+    rt.push({ id: parent, label: parentEl?.title, icon: parentEl?.icon })
     parent = parentEl?.parent || 'root'
   }
   return rt.reverse()
@@ -313,9 +312,20 @@ defineExpose({
             v-for="el of nestedScope"
             :key="`cmdk-breadcrumb-${el.id}`"
             v-e="['a:cmdk:setScope']"
-            class="text-gray-600 text-sm cursor-pointer font-medium capitalize"
+            class="text-gray-600 text-sm cursor-pointer flex gap-1 items-center font-medium capitalize"
             @click="setScope(el.id)"
           >
+            <component
+              :is="(iconMap as any)[el.icon]"
+              v-if="el.icon && typeof el.icon === 'string' && (iconMap as any)[el.icon]"
+              class="cmdk-action-icon"
+              :class="{
+                '!text-blue-500': el.icon === 'grid',
+                '!text-purple-500': el.icon === 'form',
+                '!text-[#FF9052]': el.icon === 'kanban',
+                '!text-pink-500': el.icon === 'gallery',
+              }"
+            />
             {{ el.label }}
 
             <span class="text-gray-400 text-sm font-medium pl-1">/</span>

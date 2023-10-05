@@ -51,6 +51,8 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
 function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
   emit('navigate', dir)
 
@@ -99,7 +101,7 @@ onUnmounted(() => {
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
   >
     <template v-if="intersected">
-      <LazyVirtualCellLinks v-if="isLink(column)" />
+      <LazyVirtualCellLinks v-if="isLink(column)" :readonly="isUnderLookup" />
       <LazyVirtualCellHasMany v-else-if="isHm(column)" />
       <LazyVirtualCellManyToMany v-else-if="isMm(column)" />
       <LazyVirtualCellBelongsTo v-else-if="isBt(column)" />

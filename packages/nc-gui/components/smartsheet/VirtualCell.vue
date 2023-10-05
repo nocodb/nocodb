@@ -101,7 +101,7 @@ onUnmounted(() => {
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
   >
     <template v-if="intersected">
-      <LazyVirtualCellLinks v-if="isLink(column)" :readonly="isUnderLookup" />
+      <LazyVirtualCellLinks v-if="isLink(column)" />
       <LazyVirtualCellHasMany v-else-if="isHm(column)" />
       <LazyVirtualCellManyToMany v-else-if="isMm(column)" />
       <LazyVirtualCellBelongsTo v-else-if="isBt(column)" />

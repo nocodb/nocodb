@@ -38,25 +38,26 @@ export const useCommandPalette = createSharedComposable(() => {
   } as Record<string, CmdAction[]>)
 
   const staticData = computed(() => {
-    const rtData = commands.value.homeCommands
+    const staticCmd = commands.value.homeCommands
 
-    rtData.map((rt) => {
-      if (rt.id === 'user') {
-        rt.title = user.value?.display_name ?? user?.value?.email.split('@')[0] ?? 'User'
-      } else if (rt.id === 'user_account-logout') {
-        rt.handler = async () => {
+    // Static Commands
+    staticCmd.map((st) => {
+      if (st.id === 'user') {
+        st.title = user.value?.display_name ?? user?.value?.email.split('@')[0] ?? 'User'
+      } else if (st.id === 'user_account-logout') {
+        st.handler = async () => {
           await signOut()
           window.location.reload()
         }
       }
-      return rt
+      return st
     })
 
-    if (activeScope.value.scope === 'root') return rtData
+    if (activeScope.value.scope === 'root') return staticCmd
 
-    rtData.push(...commands.value.baseCommands)
+    staticCmd.push(...commands.value.baseCommands)
 
-    return rtData
+    return staticCmd
   })
 
   const dynamicData = ref<any>([])

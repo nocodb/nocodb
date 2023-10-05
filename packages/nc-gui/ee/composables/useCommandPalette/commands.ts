@@ -1,17 +1,6 @@
-import { navigateTo, shallowRef } from '#imports'
-import MdiFileOutline from '~icons/mdi/file-outline'
+import { navigateTo } from '#imports'
 
 export const homeCommands = [
-  /*   {
-    id: 'workspaces',
-    title: 'Workspaces',
-    icon: 'workspace',
-  },
-  {
-    id: 'bases',
-    title: 'Bases',
-    icon: shallowRef(MdiFileOutline),
-  }, */
   {
     id: 'user',
     title: 'Account',
@@ -43,7 +32,7 @@ export const homeCommands = [
     parent: 'user',
     section: 'Community',
     handler: () => {
-      window.open('https://discord.gg/8jX2GQn', '_blank')
+      navigateTo('https://discord.gg/8jX2GQn', { external: true })
     },
   },
   {
@@ -53,7 +42,7 @@ export const homeCommands = [
     parent: 'user',
     section: 'Community',
     handler: () => {
-      window.open('https://twitter.com/NocoDB', '_blank')
+      navigateTo('https://twitter.com/NocoDB', { external: true })
     },
   },
   {
@@ -63,7 +52,7 @@ export const homeCommands = [
     parent: 'user',
     section: 'Community',
     handler: () => {
-      window.open('https://www.reddit.com/r/NocoDB/', '_blank')
+      navigateTo('https://www.reddit.com/r/NocoDB/', { external: true })
     },
   },
 ]

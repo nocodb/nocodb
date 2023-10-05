@@ -278,6 +278,7 @@ whenever(keys.arrowdown, () => {
 whenever(keys.Enter, () => {
   if (vOpen.value) {
     const selectedEl = formattedData.value.find((el) => el.id === selected.value)
+    cmdInput.value = ''
     if (selectedEl) {
       fireAction(selectedEl, keys.shift.value)
     }
@@ -312,7 +313,7 @@ defineExpose({
             v-for="el of nestedScope"
             :key="`cmdk-breadcrumb-${el.id}`"
             v-e="['a:cmdk:setScope']"
-            class="text-gray-600 text-sm cursor-pointer font-medium"
+            class="text-gray-600 text-sm cursor-pointer font-medium capitalize"
             @click="setScope(el.id)"
           >
             {{ el.label }}
@@ -342,13 +343,13 @@ defineExpose({
               :key="`cmdk-section-${title}`"
               class="cmdk-action-section border-t-1 border-gray-200"
             >
-              <div v-if="title !== 'default'" class="cmdk-action-section-header">{{ title }} {{ hidden }}</div>
+              <div v-if="title !== 'default'" class="cmdk-action-section-header capitalize">{{ title }}</div>
               <div class="cmdk-action-section-body">
                 <div
                   v-for="act of section"
                   :key="act.id"
                   v-e="['a:cmdk:action']"
-                  class="cmdk-action"
+                  class="cmdk-action group"
                   :class="{ selected: selected === act.id }"
                   @mouseenter="setAction(act.id)"
                   @click="fireAction(act)"
@@ -366,16 +367,18 @@ defineExpose({
                       }"
                     />
                     <component :is="act.icon" v-else-if="act.icon" class="cmdk-action-icon text-gray-800" />
-                    <div class="flex-grow-1 w-full text-gray-800">
+                    <div class="flex-grow-1 w-full capitalize text-gray-800">
                       {{ act.title }}
                     </div>
                     <div
-                      v-if="act.projectName"
-                      class="flex items-center gap-2 text-gray-600 font-medium bg-gray-100 px-1 rounded py-1"
+                      class="bg-gray-200 text-gray-600 cmdk-keyboard hidden text-xs gap-2 p-0.5 items-center justify-center rounded-md pl-2"
                     >
-                      <component :is="iconMap.project" class="w-4 h-4 text-transparent" />
-
-                      {{ act.projectName }}
+                      Enter
+                      <div
+                        class="bg-white border-1 items-center flex justify-center border-gray-300 text-gray-700 rounded h-5 w-5 px-0.25"
+                      >
+                        ↩
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -525,11 +528,19 @@ defineExpose({
       font-size: 0.9em;
       border-left: 4px solid transparent;
 
+      .cmdk-keyboard {
+        display: hidden;
+      }
+
       &.selected {
         cursor: pointer;
         background-color: #f4f4f5;
         border-left: 4px solid var(--ant-primary-color);
         outline: none;
+
+        .cmdk-keyboard {
+          display: flex;
+        }
       }
 
       .cmdk-action-content {

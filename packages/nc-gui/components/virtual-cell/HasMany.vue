@@ -136,10 +136,10 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
       />
     </div>
 
-    <LazyVirtualCellComponentsListItems v-if="listItemsDlg" v-model="listItemsDlg" :column="hasManyColumn" />
+    <LazyVirtualCellComponentsListItems v-if="listItemsDlg || childListDlg" v-model="listItemsDlg" :column="hasManyColumn" />
 
     <LazyVirtualCellComponentsListChildItems
-      v-if="childListDlg"
+      v-if="listItemsDlg || childListDlg"
       v-model="childListDlg"
       :cell-value="localCellValue"
       :column="hasManyColumn"

@@ -1145,11 +1145,32 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
 
   _handleCellClick(event, row, col)
 }
+
+const loaderText = computed(() => {
+  if (isViewDataLoading.value) {
+    if (paginationDataRef.value?.totalRows && paginationDataRef.value?.pageSize) {
+      return `Loading page<br/>${paginationDataRef.value.page} of ${Math.ceil(
+        paginationDataRef.value?.totalRows / paginationDataRef.value?.pageSize,
+      )}`
+    } else {
+      return t('general.loading')
+    }
+  }
+})
 </script>
 
 <template>
   <div class="flex flex-col" :class="`${headerOnly !== true ? 'h-full w-full' : ''}`">
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative" :class="gridWrapperClass">
+      <div
+        v-show="showSkeleton && !isPaginationLoading"
+        class="flex items-center justify-center absolute l-0 t-0 w-full h-full z-10 pb-10"
+      >
+        <div class="flex flex-col justify-center gap-2">
+          <GeneralLoader size="xlarge" />
+          <span class="text-center" v-html="loaderText"></span>
+        </div>
+      </div>
       <NcDropdown
         v-model:visible="contextMenu"
         :trigger="isSqlView ? [] : ['contextmenu']"

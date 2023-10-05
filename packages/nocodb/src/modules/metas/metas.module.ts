@@ -6,6 +6,7 @@ import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import { ApiDocsController } from '~/controllers/api-docs/api-docs.controller';
 import { ApiTokensController } from '~/controllers/api-tokens.controller';
 import { AttachmentsController } from '~/controllers/attachments.controller';
+import { AttachmentsSecureController } from '~/controllers/attachments-secure.controller';
 import { AuditsController } from '~/controllers/audits.controller';
 import { SourcesController } from '~/controllers/sources.controller';
 import { CachesController } from '~/controllers/caches.controller';
@@ -88,7 +89,9 @@ export const metaModuleMetadata = {
       ? [
           ApiDocsController,
           ApiTokensController,
-          AttachmentsController,
+          ...(process.env.NC_SECURE_ATTACHMENTS === 'true'
+            ? [AttachmentsSecureController]
+            : [AttachmentsController]),
           AuditsController,
           SourcesController,
           CachesController,

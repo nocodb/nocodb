@@ -195,8 +195,6 @@ const isAddNewRecordGridMode = ref(true)
 
 const switchingTab = ref(false)
 
-const showLoading = ref(true)
-
 const isView = false
 
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
@@ -973,7 +971,9 @@ eventBus.on(async (event, payload) => {
   }
 })
 
-async function reloadViewDataHandler(shouldShowLoading: boolean | void) {
+async function reloadViewDataHandler(_shouldShowLoading: boolean | void) {
+  isViewDataLoading.value = true
+
   if (predictedNextColumn.value?.length) {
     const fieldsAvailable = meta.value?.columns?.map((c) => c.title)
     predictedNextColumn.value = predictedNextColumn.value.filter((c) => !fieldsAvailable?.includes(c.title))
@@ -981,11 +981,9 @@ async function reloadViewDataHandler(shouldShowLoading: boolean | void) {
   // save any unsaved data before reload
   await saveOrUpdateRecords()
 
-  // set value if spinner should be hidden
-  showLoading.value = !!shouldShowLoading
   await loadData?.()
-  // reset to default (showing spinner on load)
-  showLoading.value = true
+
+  isViewDataLoading.value = false
 }
 
 useEventListener(scrollWrapper, 'scroll', () => {
@@ -1147,11 +1145,32 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
 
   _handleCellClick(event, row, col)
 }
+
+const loaderText = computed(() => {
+  if (isViewDataLoading.value) {
+    if (paginationDataRef.value?.totalRows && paginationDataRef.value?.pageSize) {
+      return `Loading page<br/>${paginationDataRef.value.page} of ${Math.ceil(
+        paginationDataRef.value?.totalRows / paginationDataRef.value?.pageSize,
+      )}`
+    } else {
+      return t('general.loading')
+    }
+  }
+})
 </script>
 
 <template>
   <div class="flex flex-col" :class="`${headerOnly !== true ? 'h-full w-full' : ''}`">
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative" :class="gridWrapperClass">
+      <div
+        v-show="showSkeleton && !isPaginationLoading"
+        class="flex items-center justify-center absolute l-0 t-0 w-full h-full z-10 pb-10"
+      >
+        <div class="flex flex-col justify-center gap-2">
+          <GeneralLoader size="xlarge" />
+          <span class="text-center" v-html="loaderText"></span>
+        </div>
+      </div>
       <NcDropdown
         v-model:visible="contextMenu"
         :trigger="isSqlView ? [] : ['contextmenu']"
@@ -1168,7 +1187,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
             @contextmenu="showContextMenu"
           >
             <thead v-show="hideHeader !== true" ref="tableHeadEl">
-              <tr v-if="showSkeleton">
+              <tr v-if="showSkeleton && isPaginationLoading">
                 <td
                   v-for="(col, colIndex) of dummyDataForLoading"
                   :key="colIndex"
@@ -1184,7 +1203,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                   />
                 </td>
               </tr>
-              <tr v-else class="nc-grid-header">
+              <tr v-show="!isPaginationLoading" class="nc-grid-header">
                 <th class="w-[85px] min-w-[85px]" data-testid="grid-id-column" @dblclick="() => {}">
                   <div class="w-full h-full flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                     <template v-if="!readOnly">
@@ -1341,142 +1360,146 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
                   ></td>
                 </tr>
               </template>
-              <template v-else>
-                <LazySmartsheetRow v-for="(row, rowIndex) of dataRef" ref="rowRefs" :key="rowIndex" :row="row">
-                  <template #default="{ state }">
-                    <tr
-                      class="nc-grid-row !xs:h-14"
-                      :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
-                      :data-testid="`grid-row-${rowIndex}`"
+              <LazySmartsheetRow
+                v-for="(row, rowIndex) of dataRef"
+                v-show="!showSkeleton"
+                ref="rowRefs"
+                :key="rowIndex"
+                :row="row"
+              >
+                <template #default="{ state }">
+                  <tr
+                    class="nc-grid-row !xs:h-14"
+                    :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
+                    :data-testid="`grid-row-${rowIndex}`"
+                  >
+                    <td
+                      key="row-index"
+                      class="caption nc-grid-cell pl-5 pr-1"
+                      :data-testid="`cell-Id-${rowIndex}`"
+                      @contextmenu="contextMenuTarget = null"
                     >
-                      <td
-                        key="row-index"
-                        class="caption nc-grid-cell pl-5 pr-1"
-                        :data-testid="`cell-Id-${rowIndex}`"
-                        @contextmenu="contextMenuTarget = null"
-                      >
-                        <div class="items-center flex gap-1 min-w-[60px]">
-                          <div
-                            v-if="!readOnly || !isLocked || isMobileMode"
-                            class="nc-row-no sm:min-w-4 text-xs text-gray-500"
-                            :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
-                          >
-                            {{ ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 }}
-                          </div>
-                          <div
-                            v-if="!readOnly"
-                            :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
-                            class="nc-row-expand-and-checkbox"
-                          >
-                            <a-checkbox v-model:checked="row.rowMeta.selected" />
-                          </div>
-                          <span class="flex-1" />
+                      <div class="items-center flex gap-1 min-w-[60px]">
+                        <div
+                          v-if="!readOnly || !isLocked || isMobileMode"
+                          class="nc-row-no sm:min-w-4 text-xs text-gray-500"
+                          :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
+                        >
+                          {{ ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 }}
+                        </div>
+                        <div
+                          v-if="!readOnly"
+                          :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
+                          class="nc-row-expand-and-checkbox"
+                        >
+                          <a-checkbox v-model:checked="row.rowMeta.selected" />
+                        </div>
+                        <span class="flex-1" />
 
-                          <div
-                            v-if="isUIAllowed('expandedForm')"
-                            class="nc-expand"
-                            :data-testid="`nc-expand-${rowIndex}`"
-                            :class="{ 'nc-comment': row.rowMeta?.commentCount }"
-                          >
-                            <a-spin
-                              v-if="row.rowMeta.saving"
-                              class="!flex items-center"
-                              :data-testid="`row-save-spinner-${rowIndex}`"
-                            />
-                            <template v-else-if="!isLocked">
-                              <span
-                                v-if="row.rowMeta?.commentCount && expandForm"
-                                v-e="['c:expanded-form:open']"
-                                class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
-                                :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
+                        <div
+                          v-if="isUIAllowed('expandedForm')"
+                          class="nc-expand"
+                          :data-testid="`nc-expand-${rowIndex}`"
+                          :class="{ 'nc-comment': row.rowMeta?.commentCount }"
+                        >
+                          <a-spin
+                            v-if="row.rowMeta.saving"
+                            class="!flex items-center"
+                            :data-testid="`row-save-spinner-${rowIndex}`"
+                          />
+                          <template v-else-if="!isLocked">
+                            <span
+                              v-if="row.rowMeta?.commentCount && expandForm"
+                              v-e="['c:expanded-form:open']"
+                              class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
+                              :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
+                              @click="expandAndLooseFocus(row, state)"
+                            >
+                              {{ row.rowMeta.commentCount }}
+                            </span>
+                            <div
+                              v-else
+                              class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
+                            >
+                              <component
+                                :is="iconMap.expand"
+                                v-if="expandForm"
+                                v-e="['c:row-expand:open']"
+                                class="select-none transform hover:(text-black scale-120) nc-row-expand"
                                 @click="expandAndLooseFocus(row, state)"
-                              >
-                                {{ row.rowMeta.commentCount }}
-                              </span>
-                              <div
-                                v-else
-                                class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
-                              >
-                                <component
-                                  :is="iconMap.expand"
-                                  v-if="expandForm"
-                                  v-e="['c:row-expand:open']"
-                                  class="select-none transform hover:(text-black scale-120) nc-row-expand"
-                                  @click="expandAndLooseFocus(row, state)"
-                                />
-                              </div>
-                            </template>
-                          </div>
+                              />
+                            </div>
+                          </template>
                         </div>
-                      </td>
-                      <SmartsheetTableDataCell
-                        v-for="(columnObj, colIndex) of fields"
-                        :key="columnObj.id"
-                        class="cell relative nc-grid-cell"
-                        :class="{
-                          'cursor-pointer': hasEditPermission,
-                          'active': hasEditPermission && isCellSelected(rowIndex, colIndex),
-                          'active-cell':
-                            hasEditPermission &&
-                            ((activeCell.row === rowIndex && activeCell.col === colIndex) ||
-                              (selectedRange._start?.row === rowIndex && selectedRange._start?.col === colIndex)),
-                          'last-cell':
-                            rowIndex === (isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) &&
-                            colIndex === (isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col),
-                          'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row) && !isPublicView,
-                          'align-middle': !rowHeight || rowHeight === 1,
-                          'align-top': rowHeight && rowHeight !== 1,
-                          'filling': isCellInFillRange(rowIndex, colIndex),
-                          'readonly':
-                            (isLookup(columnObj) || isRollup(columnObj) || isFormula(columnObj)) &&
-                            hasEditPermission &&
-                            isCellSelected(rowIndex, colIndex),
-                        }"
-                        :data-testid="`cell-${columnObj.title}-${rowIndex}`"
-                        :data-key="`data-key-${rowIndex}-${columnObj.id}`"
-                        :data-col="columnObj.id"
-                        :data-title="columnObj.title"
-                        :data-row-index="rowIndex"
-                        :data-col-index="colIndex"
-                        @mousedown="handleMouseDown($event, rowIndex, colIndex)"
-                        @mouseover="handleMouseOver($event, rowIndex, colIndex)"
-                        @click="handleCellClick($event, rowIndex, colIndex)"
-                        @dblclick="makeEditable(row, columnObj)"
-                        @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
-                      >
-                        <div v-if="!switchingTab" class="w-full h-full">
-                          <LazySmartsheetVirtualCell
-                            v-if="isVirtualCol(columnObj) && columnObj.title"
-                            v-model="row.row[columnObj.title]"
-                            :column="columnObj"
-                            :active="activeCell.col === colIndex && activeCell.row === rowIndex"
-                            :row="row"
-                            :read-only="readOnly"
-                            @navigate="onNavigate"
-                            @save="updateOrSaveRow?.(row, '', state)"
-                          />
+                      </div>
+                    </td>
+                    <SmartsheetTableDataCell
+                      v-for="(columnObj, colIndex) of fields"
+                      :key="columnObj.id"
+                      class="cell relative nc-grid-cell"
+                      :class="{
+                        'cursor-pointer': hasEditPermission,
+                        'active': hasEditPermission && isCellSelected(rowIndex, colIndex),
+                        'active-cell':
+                          hasEditPermission &&
+                          ((activeCell.row === rowIndex && activeCell.col === colIndex) ||
+                            (selectedRange._start?.row === rowIndex && selectedRange._start?.col === colIndex)),
+                        'last-cell':
+                          rowIndex === (isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) &&
+                          colIndex === (isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col),
+                        'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row) && !isPublicView,
+                        'align-middle': !rowHeight || rowHeight === 1,
+                        'align-top': rowHeight && rowHeight !== 1,
+                        'filling': isCellInFillRange(rowIndex, colIndex),
+                        'readonly':
+                          (isLookup(columnObj) || isRollup(columnObj) || isFormula(columnObj)) &&
+                          hasEditPermission &&
+                          isCellSelected(rowIndex, colIndex),
+                      }"
+                      :data-testid="`cell-${columnObj.title}-${rowIndex}`"
+                      :data-key="`data-key-${rowIndex}-${columnObj.id}`"
+                      :data-col="columnObj.id"
+                      :data-title="columnObj.title"
+                      :data-row-index="rowIndex"
+                      :data-col-index="colIndex"
+                      @mousedown="handleMouseDown($event, rowIndex, colIndex)"
+                      @mouseover="handleMouseOver($event, rowIndex, colIndex)"
+                      @click="handleCellClick($event, rowIndex, colIndex)"
+                      @dblclick="makeEditable(row, columnObj)"
+                      @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
+                    >
+                      <div v-if="!switchingTab" class="w-full h-full">
+                        <LazySmartsheetVirtualCell
+                          v-if="isVirtualCol(columnObj) && columnObj.title"
+                          v-model="row.row[columnObj.title]"
+                          :column="columnObj"
+                          :active="activeCell.col === colIndex && activeCell.row === rowIndex"
+                          :row="row"
+                          :read-only="readOnly"
+                          @navigate="onNavigate"
+                          @save="updateOrSaveRow?.(row, '', state)"
+                        />
 
-                          <LazySmartsheetCell
-                            v-else-if="columnObj.title"
-                            v-model="row.row[columnObj.title]"
-                            :column="columnObj"
-                            :edit-enabled="
-                              !!hasEditPermission && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
-                            "
-                            :row-index="rowIndex"
-                            :active="activeCell.col === colIndex && activeCell.row === rowIndex"
-                            :read-only="readOnly"
-                            @update:edit-enabled="editEnabled = $event"
-                            @save="updateOrSaveRow?.(row, columnObj.title, state)"
-                            @navigate="onNavigate"
-                            @cancel="editEnabled = false"
-                          />
-                        </div>
-                      </SmartsheetTableDataCell>
-                    </tr>
-                  </template>
-                </LazySmartsheetRow>
-              </template>
+                        <LazySmartsheetCell
+                          v-else-if="columnObj.title"
+                          v-model="row.row[columnObj.title]"
+                          :column="columnObj"
+                          :edit-enabled="
+                            !!hasEditPermission && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
+                          "
+                          :row-index="rowIndex"
+                          :active="activeCell.col === colIndex && activeCell.row === rowIndex"
+                          :read-only="readOnly"
+                          @update:edit-enabled="editEnabled = $event"
+                          @save="updateOrSaveRow?.(row, columnObj.title, state)"
+                          @navigate="onNavigate"
+                          @cancel="editEnabled = false"
+                        />
+                      </div>
+                    </SmartsheetTableDataCell>
+                  </tr>
+                </template>
+              </LazySmartsheetRow>
 
               <tr
                 v-if="isAddingEmptyRowAllowed && !isGroupBy"

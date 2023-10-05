@@ -23,8 +23,10 @@ const { isMobileMode } = useGlobal()
 
 const mode = computed(() => props.mode || (isMobileMode.value ? 'simple' : 'full'))
 
-const changePage = ({ increase }: { increase: boolean }) => {
-  if (increase && current.value < totalPages.value) {
+const changePage = ({ increase, set }: { increase?: boolean; set?: number }) => {
+  if (set) {
+    current.value = set
+  } else if (increase && current.value < totalPages.value) {
     current.value = current.value + 1
   } else if (current.value > 0) {
     current.value = current.value - 1
@@ -38,6 +40,10 @@ const goToLastPage = () => {
 const goToFirstPage = () => {
   current.value = 1
 }
+
+const pagesList = computed(() => {
+  return Array.from({ length: totalPages.value }, (_, i) => i + 1)
+})
 </script>
 
 <template>
@@ -65,7 +71,9 @@ const goToFirstPage = () => {
       <GeneralIcon icon="arrowLeft" />
     </NcButton>
     <div class="text-gray-600">
-      <span class="active"> {{ current }} </span>
+      <a-select v-model:value="current" class="!mr-[2px]" virtual>
+        <a-select-option v-for="p of pagesList" :key="`p-${p}`" @click="changePage({ set: p })">{{ p }}</a-select-option>
+      </a-select>
       <span class="mx-1"> {{ mode !== 'full' ? '/' : 'of' }} </span>
       <span class="total">
         {{ totalPages }}

@@ -138,9 +138,10 @@ const m2mColumn = computed(
       />
     </div>
 
-    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" :column="m2mColumn" />
+    <LazyVirtualCellComponentsListItems v-if="listItemsDlg || childListDlg" v-model="listItemsDlg" :column="m2mColumn" />
 
     <LazyVirtualCellComponentsListChildItems
+      v-if="listItemsDlg || childListDlg"
       v-model="childListDlg"
       :cell-value="localCellValue"
       :column="m2mColumn"

@@ -59,5 +59,3 @@ useProvideSmartsheetRowStore(vModel, rowRef)
     </div>
   </div>
 </template>
-
-<style scoped></style>

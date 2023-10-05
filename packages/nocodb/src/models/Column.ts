@@ -29,6 +29,19 @@ import {
 import NocoCache from '~/cache/NocoCache';
 import { stringifyMetaProp } from '~/utils/modelUtils';
 
+const selectColors = [
+  '#cfdffe',
+  '#d0f1fd',
+  '#c2f5e8',
+  '#ffdaf6',
+  '#ffdce5',
+  '#fee2d5',
+  '#ffeab6',
+  '#d1f7c4',
+  '#ede2fe',
+  '#eeeeee',
+];
+
 export default class Column<T = any> implements ColumnType {
   public fk_model_id: string;
   public base_id: string;
@@ -275,18 +288,6 @@ export default class Column<T = any> implements ColumnType {
       }
       case UITypes.MultiSelect: {
         if (!column.colOptions?.options) {
-          const selectColors = [
-            '#cfdffe',
-            '#d0f1fd',
-            '#c2f5e8',
-            '#ffdaf6',
-            '#ffdce5',
-            '#fee2d5',
-            '#ffeab6',
-            '#d1f7c4',
-            '#ede2fe',
-            '#eeeeee',
-          ];
           const bulkOptions = [];
           for (const [i, option] of column.dtxp?.split(',').entries() ||
             [].entries()) {
@@ -307,6 +308,7 @@ export default class Column<T = any> implements ColumnType {
               option.title = option.title.trimEnd();
             }
             bulkOptions.push({
+              color: selectColors[i % selectColors.length], // in case color is not provided
               ...option,
               fk_column_id: colId,
               order: i + 1,
@@ -319,18 +321,6 @@ export default class Column<T = any> implements ColumnType {
       }
       case UITypes.SingleSelect: {
         if (!column.colOptions?.options) {
-          const selectColors = [
-            '#cfdffe',
-            '#d0f1fd',
-            '#c2f5e8',
-            '#ffdaf6',
-            '#ffdce5',
-            '#fee2d5',
-            '#ffeab6',
-            '#d1f7c4',
-            '#ede2fe',
-            '#eeeeee',
-          ];
           const bulkOptions = [];
           for (const [i, option] of column.dtxp?.split(',').entries() ||
             [].entries()) {
@@ -351,6 +341,7 @@ export default class Column<T = any> implements ColumnType {
               option.title = option.title.trimEnd();
             }
             bulkOptions.push({
+              color: selectColors[i % selectColors.length], // in case color is not provided
               ...option,
               fk_column_id: colId,
               order: i + 1,

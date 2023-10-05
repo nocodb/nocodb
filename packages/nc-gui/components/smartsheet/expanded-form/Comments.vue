@@ -8,10 +8,6 @@ const { loadCommentsAndLogs, commentsAndLogs, saveComment: _saveComment, comment
 
 const commentsWrapperEl = ref<HTMLDivElement>()
 
-const auditTabDomRef = (e: HTMLElement) => {
-  e.scrollTop = e.scrollHeight
-}
-
 const { user } = useGlobal()
 
 const tab = ref<'comments' | 'audits'>('comments')

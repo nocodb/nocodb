@@ -327,7 +327,7 @@ export class GridPage extends BasePage {
   }
 
   async verifyActivePage({ pageNumber }: { pageNumber: string }) {
-    await expect(this.get().locator(`.nc-pagination .active`)).toHaveText(pageNumber);
+    await expect(this.get().locator(`.nc-pagination .ant-select-selection-item`)).toHaveText(pageNumber);
   }
 
   async waitLoading() {

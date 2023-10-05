@@ -10,7 +10,7 @@ import { ApiToken } from '~/models';
 
 @Injectable()
 export class OrgTokensService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async apiTokenList(param: { user: User; query: any }) {
     const fk_user_id = param.user.id;

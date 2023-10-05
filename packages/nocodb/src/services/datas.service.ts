@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { isSystemColumn } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
@@ -14,6 +14,8 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class DatasService {
+  protected logger = new Logger(DatasService.name);
+
   constructor() {}
 
   async dataList(
@@ -166,7 +168,7 @@ export class DatasService {
             listArgs,
           );
         } catch (e) {
-          console.log(e);
+          this.logger.log(e);
           NcError.internalServerError(
             'Please check server log for more details',
           );
@@ -689,7 +691,7 @@ export class DatasService {
         dependencyFields,
       );
     } catch (e) {
-      console.log(e);
+      this.logger.error(e);
       NcError.internalServerError('Please check server log for more details');
     }
   }

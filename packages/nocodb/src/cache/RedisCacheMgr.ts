@@ -95,6 +95,30 @@ export default class RedisCacheMgr extends CacheMgr {
   }
 
   // @ts-ignore
+  async setExpiring(key: string, value: any, seconds: number): Promise<any> {
+    if (typeof value !== 'undefined' && value) {
+      log(
+        `RedisCacheMgr::setExpiring: setting key ${key} with value ${value} for ${seconds} seconds`,
+      );
+      if (typeof value === 'object') {
+        if (Array.isArray(value) && value.length) {
+          return this.client.sadd(key, value);
+        }
+        return this.client.set(
+          key,
+          JSON.stringify(value, this.getCircularReplacer()),
+          'EX',
+          seconds,
+        );
+      }
+      return this.client.set(key, value, 'EX', seconds);
+    } else {
+      log(`RedisCacheMgr::set: value is empty for ${key}. Skipping ...`);
+      return Promise.resolve(true);
+    }
+  }
+
+  // @ts-ignore
   async getAll(pattern: string): Promise<any> {
     return this.client.hgetall(pattern);
   }

@@ -83,17 +83,23 @@ const unlinkRow = async (row: Record<string, any>, id: number) => {
 }
 
 /** reload list on modal open */
-watch(vModel, (nextVal, prevVal) => {
-  if (nextVal && !prevVal) {
-    /** reset query and limit */
-    childrenExcludedListPagination.query = ''
-    childrenExcludedListPagination.page = 1
-    if (!isForm.value) {
-      loadChildrenList()
+watch(
+  vModel,
+  (nextVal, prevVal) => {
+    if (nextVal && !prevVal) {
+      /** reset query and limit */
+      childrenExcludedListPagination.query = ''
+      childrenExcludedListPagination.page = 1
+      if (!isForm.value) {
+        loadChildrenList()
+      }
+      loadChildrenExcludedList(rowState.value)
     }
-    loadChildrenExcludedList(rowState.value)
-  }
-})
+  },
+  {
+    immediate: true,
+  },
+)
 
 const expandedFormDlg = ref(false)
 

@@ -191,7 +191,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       try {
         const data = await api.storage.upload(
           {
-            path: [NOCO, base.value.title, meta.value?.title, column.value?.title].join('/'),
+            path: [NOCO, base.value.id, meta.value?.id, column.value?.id].join('/'),
           },
           {
             files,

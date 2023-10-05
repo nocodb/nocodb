@@ -1,4 +1,4 @@
-import { Locator } from '@playwright/test';
+import { expect, Locator } from '@playwright/test';
 import { DashboardPage } from '../../index';
 import BasePage from '../../../Base';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
@@ -6,7 +6,7 @@ import { isEE } from '../../../../setup/db';
 import { NcContext } from '../../../../setup';
 
 export class LeftSidebarPage extends BasePage {
-  readonly project: any;
+  readonly base: any;
   readonly dashboard: DashboardPage;
 
   readonly btn_workspace: Locator;
@@ -20,8 +20,8 @@ export class LeftSidebarPage extends BasePage {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
 
-    this.btn_workspace = this.get().locator('.nc-sidebar-header');
-    this.btn_newProject = this.get().locator('[data-testid="nc-sidebar-create-project-btn"]');
+    this.btn_workspace = this.get().locator('.nc-workspace-menu');
+    this.btn_newProject = this.get().locator('[data-testid="nc-sidebar-create-base-btn"]');
     this.btn_cmdK = this.get().locator('[data-testid="nc-sidebar-search-btn"]');
     this.btn_teamAndSettings = this.get().locator('[data-testid="nc-sidebar-team-settings-btn"]');
 
@@ -35,10 +35,10 @@ export class LeftSidebarPage extends BasePage {
   async createProject({ title, context }: { title: string; context: NcContext }) {
     title = isEE() ? title : `nc-${context.workerId}-${title}`;
     await this.btn_newProject.click();
-    await this.rootPage.locator('.ant-modal-content:has-text(" Create Database")').waitFor();
-    await this.rootPage.locator('.ant-modal-content:has-text(" Create Database")').locator('input').fill(title);
+    await this.rootPage.locator('.ant-modal-content:has-text(" Create Base")').waitFor();
+    await this.rootPage.locator('.ant-modal-content:has-text(" Create Base")').locator('input').fill(title);
     await this.rootPage
-      .locator('.ant-modal-content:has-text(" Create Database")')
+      .locator('.ant-modal-content:has-text(" Create Base")')
       .locator('button.ant-btn-primary')
       .click();
   }
@@ -57,6 +57,10 @@ export class LeftSidebarPage extends BasePage {
     return await this.btn_workspace.getAttribute('data-workspace-title');
   }
 
+  async verifyWorkspaceName({ title }: { title: string }) {
+    await expect(this.btn_workspace.locator('.nc-workspace-title')).toHaveText(title);
+  }
+
   async createWorkspace({ title }: { title: string }) {
     await this.clickWorkspace();
     await this.modal_workspace.locator('.ant-dropdown-menu-item:has-text("Create New Workspace")').waitFor();
@@ -67,6 +71,13 @@ export class LeftSidebarPage extends BasePage {
     await inputModal.locator('input').clear();
     await inputModal.locator('input').fill(title);
     await inputModal.locator('button.ant-btn-primary').click();
+  }
+
+  async verifyWorkspaceCount({ count }: { count: number }) {
+    await this.clickWorkspace();
+
+    // TODO: THere is one extra html attribute
+    await expect(this.rootPage.getByTestId('nc-workspace-list')).toHaveCount(count + 1);
   }
 
   async getWorkspaceList() {
@@ -88,6 +99,8 @@ export class LeftSidebarPage extends BasePage {
     await this.clickWorkspace();
     const nodes = this.modal_workspace.locator('[data-testid="nc-workspace-list"]');
 
+    await this.rootPage.waitForTimeout(2000);
+
     for (let i = 0; i < (await nodes.count()); i++) {
       const text = await getTextExcludeIconText(nodes.nth(i));
       if (text.toLowerCase() === param.title.toLowerCase()) {
@@ -96,5 +109,7 @@ export class LeftSidebarPage extends BasePage {
       }
     }
     await this.rootPage.keyboard.press('Escape');
+
+    await this.rootPage.waitForTimeout(3500);
   }
 }

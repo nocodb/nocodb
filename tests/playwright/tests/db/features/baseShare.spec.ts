@@ -1,15 +1,16 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import setup, { unsetup } from '../../../setup';
+import setup, { NcContext, unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { LoginPage } from '../../../pages/LoginPage';
 import { getDefaultPwd } from '../../../tests/utils/general';
+import { isEE } from '../../../setup/db';
 
 // To be enabled after shared base is implemented
 test.describe('Shared base', () => {
   let dashboard: DashboardPage;
   let toolbar: ToolbarPage;
-  let context: any;
+  let context: NcContext;
   let loginPage: LoginPage;
 
   async function roleTest(role: string) {
@@ -50,7 +51,7 @@ test.describe('Shared base', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
     loginPage = new LoginPage(page);
   });
@@ -83,8 +84,17 @@ test.describe('Shared base', () => {
       withoutPrefix: true,
     });
 
-    // await dashboard.treeView.openProject({ title: context.project.title });
+    await dashboard.rootPage.waitForTimeout(1000);
+
+    if (isEE()) {
+      await dashboard.grid.workspaceMenu.switchWorkspace({
+        workspaceTitle: context.workspace.title,
+      });
+    }
+
+    await dashboard.treeView.openProject({ title: context.base.title, context });
     await dashboard.treeView.openTable({ title: 'Country' });
+
     url = await dashboard.grid.topbar.getSharedBaseUrl({ role: 'viewer', enableSharedBase: false });
 
     await dashboard.rootPage.waitForTimeout(2000);

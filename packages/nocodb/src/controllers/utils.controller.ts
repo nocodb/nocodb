@@ -36,7 +36,7 @@ export class UtilsController {
   }
 
   @UseGuards(GlobalGuard)
-  @Post('/api/v1/db/meta/connection/test')
+  @Post(['/api/v1/db/meta/connection/test', '/api/v1/meta/connection/test'])
   @Acl('testConnection', {
     scope: 'org',
   })
@@ -45,7 +45,7 @@ export class UtilsController {
     return await this.utilsService.testConnection({ body });
   }
 
-  @Get('/api/v1/db/meta/nocodb/info')
+  @Get(['/api/v1/db/meta/nocodb/info', '/api/v1/meta/nocodb/info'])
   async appInfo(@Request() req) {
     return await this.utilsService.appInfo({
       req: {
@@ -59,7 +59,7 @@ export class UtilsController {
     return await this.utilsService.appHealth();
   }
 
-  @Post('/api/v1/db/meta/axiosRequestMake')
+  @Post(['/api/v1/db/meta/axiosRequestMake', '/api/v1/meta/axiosRequestMake'])
   @HttpCode(200)
   async axiosRequestMake(@Body() body: any) {
     return await this.utilsService.axiosRequestMake({ body });

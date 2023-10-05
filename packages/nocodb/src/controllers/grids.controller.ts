@@ -16,12 +16,12 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 @Controller()
 @UseGuards(GlobalGuard)
 export class GridsController {
-  get '/api/v1/db/meta/tables/:tableId/grids/'() {
-    return this['_/api/v1/db/meta/tables/:tableId/grids/'];
-  }
   constructor(private readonly gridsService: GridsService) {}
 
-  @Post('/api/v1/db/meta/tables/:tableId/grids/')
+  @Post([
+    '/api/v1/db/meta/tables/:tableId/grids/',
+    '/api/v1/meta/tables/:tableId/grids/',
+  ])
   @HttpCode(200)
   @Acl('gridViewCreate')
   async gridViewCreate(
@@ -35,7 +35,7 @@ export class GridsController {
     });
     return view;
   }
-  @Patch('/api/v1/db/meta/grids/:viewId')
+  @Patch(['/api/v1/db/meta/grids/:viewId', '/api/v1/meta/grids/:viewId'])
   @Acl('gridViewUpdate')
   async gridViewUpdate(@Param('viewId') viewId: string, @Body() body) {
     return await this.gridsService.gridViewUpdate({

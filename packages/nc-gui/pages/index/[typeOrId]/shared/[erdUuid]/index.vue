@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { definePageMeta, navigateTo, onMounted, ref, useGlobal, useMetas, useNuxtApp, useProject, useRoute } from '#imports'
+import { definePageMeta, navigateTo, onMounted, ref, useBase, useGlobal, useMetas, useNuxtApp, useRoute } from '#imports'
 
 definePageMeta({
   public: true,
@@ -11,9 +11,9 @@ const route = useRoute()
 
 const { appInfo } = useGlobal()
 
-const projectStore = useProject()
-const { loadProject } = projectStore
-const { project } = storeToRefs(projectStore)
+const baseStore = useBase()
+const { loadProject } = baseStore
+const { base } = storeToRefs(baseStore)
 
 useMetas()
 
@@ -30,7 +30,7 @@ onMounted(async () => {
     return
   }
 
-  await loadProject(false, baseData.value.project_id)
+  await loadProject(false, baseData.value.base_id)
 })
 </script>
 
@@ -45,10 +45,10 @@ onMounted(async () => {
       </template>
       <img width="50" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
     </a-tooltip>
-    <div class="ml-2 font-bold text-gray-500 uppercase">{{ project.title }}</div>
+    <div class="ml-2 font-bold text-gray-500 uppercase">{{ base.title }}</div>
   </div>
   <div class="w-full h-full !p-0">
-    <ErdView :base-id="baseData.id" />
+    <ErdView :source-id="baseData.id" />
   </div>
 </template>
 

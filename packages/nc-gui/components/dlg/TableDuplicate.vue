@@ -34,7 +34,7 @@ const isLoading = ref(false)
 const _duplicate = async () => {
   try {
     isLoading.value = true
-    const jobData = await api.dbTable.duplicate(props.table.project_id!, props.table.id!, { options: optionsToExclude.value })
+    const jobData = await api.dbTable.duplicate(props.table.base_id!, props.table.id!, { options: optionsToExclude.value })
     props.onOk(jobData as any)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -70,21 +70,23 @@ const isEaster = ref(false)
         {{ $t('general.duplicate') }} {{ $t('objects.table') }}
       </div>
 
-      <div class="mt-4">Are you sure you want to duplicate the `{{ table.title }}` table?</div>
+      <div class="mt-4">{{ $t('msg.warning.duplicateProject') }}</div>
 
       <div class="prose-md self-center text-gray-500 mt-4">{{ $t('title.advancedSettings') }}</div>
 
       <a-divider class="!m-0 !p-0 !my-2" />
 
       <div class="text-xs p-2">
-        <a-checkbox v-model:checked="options.includeData">Include data</a-checkbox>
-        <a-checkbox v-model:checked="options.includeViews">Include views</a-checkbox>
-        <a-checkbox v-show="isEaster" v-model:checked="options.includeHooks">Include webhooks</a-checkbox>
+        <a-checkbox v-model:checked="options.includeData">{{ $t('labels.includeData') }}a</a-checkbox>
+        <a-checkbox v-model:checked="options.includeViews">{{ $t('labels.includeView') }}</a-checkbox>
+        <a-checkbox v-show="isEaster" v-model:checked="options.includeHooks">{{ $t('labels.includeWebhook') }}</a-checkbox>
       </div>
     </div>
     <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
       <NcButton key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
-      <NcButton key="submit" type="primary" :loading="isLoading" @click="_duplicate">{{ $t('general.confirm') }} </NcButton>
+      <NcButton key="submit" v-e="['a:table:duplicate']" type="primary" :loading="isLoading" @click="_duplicate"
+        >{{ $t('general.confirm') }}
+      </NcButton>
     </div>
   </GeneralModal>
 </template>

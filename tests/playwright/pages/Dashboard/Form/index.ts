@@ -105,6 +105,9 @@ export class FormPage extends BasePage {
   }
 
   async reorderFields({ sourceField, destinationField }: { sourceField: string; destinationField: string }) {
+    // TODO: Otherwise form input boxes are not visible sometimes
+    await this.rootPage.waitForTimeout(650);
+
     await expect(this.get().locator(`.nc-form-drag-${sourceField}`)).toBeVisible();
     await expect(this.get().locator(`.nc-form-drag-${destinationField}`)).toBeVisible();
     const src = this.get().locator(`.nc-form-drag-${sourceField.replace(' ', '')}`);
@@ -113,6 +116,9 @@ export class FormPage extends BasePage {
   }
 
   async removeField({ field, mode }: { mode: string; field: string }) {
+    // TODO: Otherwise form input boxes are not visible sometimes
+    await this.rootPage.waitForTimeout(650);
+
     if (mode === 'dragDrop') {
       const src = this.get().locator(`.nc-form-drag-${field.replace(' ', '')}`);
       const dst = this.get().locator(`[data-testid="nc-drag-n-drop-to-hide"]`);
@@ -124,6 +130,9 @@ export class FormPage extends BasePage {
   }
 
   async addField({ field, mode }: { mode: string; field: string }) {
+    // TODO: Otherwise form input boxes are not visible sometimes
+    await this.rootPage.waitForTimeout(650);
+
     if (mode === 'dragDrop') {
       const src = this.get().locator(`[data-testid="nc-form-hidden-column-${field}"] > div.ant-card-body`);
       const dst = this.get().locator(`[data-testid="nc-form-input-Country"]`);
@@ -138,6 +147,9 @@ export class FormPage extends BasePage {
   }
 
   async removeAllFields() {
+    // TODO: Otherwise form input boxes are not visible sometimes
+    await this.rootPage.waitForTimeout(1000);
+
     await this.removeAllButton.click();
   }
 
@@ -146,8 +158,24 @@ export class FormPage extends BasePage {
   }
 
   async configureHeader(param: { subtitle: string; title: string }) {
-    await this.formHeading.fill(param.title);
-    await this.formSubHeading.fill(param.subtitle);
+    await this.waitForResponse({
+      uiAction: async () => {
+        await this.formHeading.click();
+        await this.formHeading.fill(param.title);
+        await this.formSubHeading.click();
+      },
+      requestUrlPathToMatch: 'api/v1/meta/forms',
+      httpMethodsToMatch: ['PATCH'],
+    });
+    await this.waitForResponse({
+      uiAction: async () => {
+        await this.formSubHeading.click();
+        await this.formSubHeading.fill(param.subtitle);
+        await this.formHeading.click();
+      },
+      requestUrlPathToMatch: 'api/v1/meta/forms',
+      httpMethodsToMatch: ['PATCH'],
+    });
   }
 
   async verifyHeader(param: { subtitle: string; title: string }) {
@@ -177,14 +205,21 @@ export class FormPage extends BasePage {
     label: string;
     helpText: string;
   }) {
+    const waitForResponse = async (action: () => Promise<any>) =>
+      await this.waitForResponse({
+        uiAction: action,
+        requestUrlPathToMatch: 'api/v1/meta/form-columns',
+        httpMethodsToMatch: ['PATCH'],
+      });
+
     await this.get()
       .locator(`.nc-form-drag-${field.replace(' ', '')}`)
       .locator('div[data-testid="nc-form-input-label"]')
       .click();
-    await this.getFormFieldsInputLabel().fill(label);
-    await this.getFormFieldsInputHelpText().fill(helpText);
+    await waitForResponse(() => this.getFormFieldsInputLabel().fill(label));
+    await waitForResponse(() => this.getFormFieldsInputHelpText().fill(helpText));
     if (required) {
-      await this.getFormFieldsRequired().click();
+      await waitForResponse(() => this.getFormFieldsRequired().click());
     }
     await this.formHeading.click();
   }
@@ -221,15 +256,6 @@ export class FormPage extends BasePage {
 
   async verifyStatePostSubmit(param: { message?: string; submitAnotherForm?: boolean; showBlankForm?: boolean }) {
     if (undefined !== param.message) {
-      let retryCounter = 0;
-      while (retryCounter <= 5) {
-        const msg = await this.getFormAfterSubmit().innerText();
-        if (msg.includes('Form submitted successfully')) {
-          break;
-        }
-        await this.rootPage.waitForTimeout(100 * retryCounter);
-        retryCounter++;
-      }
       await expect(this.getFormAfterSubmit()).toContainText(param.message);
     }
     if (true === param.submitAnotherForm) {
@@ -241,7 +267,14 @@ export class FormPage extends BasePage {
   }
 
   async configureSubmitMessage(param: { message: string }) {
-    await this.afterSubmitMsg.fill(param.message);
+    await this.waitForResponse({
+      uiAction: async () => {
+        await this.afterSubmitMsg.click();
+        await this.afterSubmitMsg.fill(param.message);
+      },
+      requestUrlPathToMatch: 'api/v1/meta/forms',
+      httpMethodsToMatch: ['PATCH'],
+    });
   }
 
   submitAnotherForm() {

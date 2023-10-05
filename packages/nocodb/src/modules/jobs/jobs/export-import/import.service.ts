@@ -16,7 +16,7 @@ import {
   withoutNull,
 } from '~/helpers/exportImportHelpers';
 import { NcError } from '~/helpers/catchError';
-import { Base, Column, Model, Project } from '~/models';
+import { Base, Column, Model, Source } from '~/models';
 import { TablesService } from '~/services/tables.service';
 import { ColumnsService } from '~/services/columns.service';
 import { FiltersService } from '~/services/filters.service';
@@ -57,8 +57,8 @@ export class ImportService {
 
   async importModels(param: {
     user: User;
-    projectId: string;
     baseId: string;
+    sourceId: string;
     data:
       | { models: { model: any; views: any[]; hooks?: any[] }[] }
       | { model: any; views: any[]; hooks?: any[] }[];
@@ -75,17 +75,15 @@ export class ImportService {
       return idMap.get(k) || externalIdMap.get(k);
     };
 
-    const project = await Project.get(param.projectId);
-
-    if (!project)
-      return NcError.badRequest(
-        `Project not found for id '${param.projectId}'`,
-      );
-
     const base = await Base.get(param.baseId);
 
     if (!base)
       return NcError.badRequest(`Base not found for id '${param.baseId}'`);
+
+    const source = await Source.get(param.sourceId);
+
+    if (!source)
+      return NcError.badRequest(`Source not found for id '${param.sourceId}'`);
 
     const tableReferences = new Map<string, Model>();
     const linkMap = new Map<string, string>();
@@ -96,7 +94,7 @@ export class ImportService {
     if (param.externalModels) {
       for (const model of param.externalModels) {
         externalIdMap.set(
-          `${model.project_id}::${model.base_id}::${model.id}`,
+          `${model.base_id}::${model.source_id}::${model.id}`,
           model.id,
         );
 
@@ -105,14 +103,14 @@ export class ImportService {
         const primaryKey = model.primaryKey;
         if (primaryKey) {
           idMap.set(
-            `${model.project_id}::${model.base_id}::${model.id}::${primaryKey.id}`,
+            `${model.base_id}::${model.source_id}::${model.id}::${primaryKey.id}`,
             primaryKey.id,
           );
         }
 
         for (const col of model.columns) {
           externalIdMap.set(
-            `${model.project_id}::${model.base_id}::${model.id}::${col.id}`,
+            `${model.base_id}::${model.source_id}::${model.id}::${col.id}`,
             col.id,
           );
         }
@@ -136,8 +134,8 @@ export class ImportService {
 
       // create table with static columns
       const table = await this.tablesService.tableCreate({
-        projectId: project.id,
         baseId: base.id,
+        sourceId: source.id,
         user: param.user,
         table: withoutId({
           ...modelData,
@@ -155,10 +153,10 @@ export class ImportService {
         idMap.set(colRef.id, col.id);
 
         // setval for auto increment column in pg
-        if (base.type === 'pg') {
+        if (source.type === 'pg') {
           if (modelData.pgSerialLastVal) {
             if (col.ai) {
-              const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+              const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
               await sqlClient.knex.raw(
                 `SELECT setval(pg_get_serial_sequence('??', ?), ?);`,
                 [table.table_name, col.column_name, modelData.pgSerialLastVal],
@@ -447,7 +445,7 @@ export class ImportService {
                       idMap.set(childColumn.id, nColumn.id);
                     } else {
                       idMap.set(
-                        `${childColumn.project_id}::${childColumn.base_id}::${childColumn.fk_model_id}::${childColumn.id}`,
+                        `${childColumn.base_id}::${childColumn.source_id}::${childColumn.fk_model_id}::${childColumn.id}`,
                         nColumn.id,
                       );
                     }
@@ -569,7 +567,7 @@ export class ImportService {
                       idMap.set(childColumn.id, nColumn.id);
                     } else {
                       idMap.set(
-                        `${childColumn.project_id}::${childColumn.base_id}::${childColumn.fk_model_id}::${childColumn.id}`,
+                        `${childColumn.base_id}::${childColumn.source_id}::${childColumn.fk_model_id}::${childColumn.id}`,
                         nColumn.id,
                       );
                     }
@@ -691,7 +689,7 @@ export class ImportService {
                       idMap.set(childColumn.id, nColumn.id);
                     } else {
                       idMap.set(
-                        `${childColumn.project_id}::${childColumn.base_id}::${childColumn.fk_model_id}::${childColumn.id}`,
+                        `${childColumn.base_id}::${childColumn.source_id}::${childColumn.fk_model_id}::${childColumn.id}`,
                         nColumn.id,
                       );
                     }
@@ -1109,7 +1107,7 @@ export class ImportService {
         const kanbanData = withoutNull(vw.view);
         if (kanbanData) {
           const grpCol = await Column.get({
-            base_id: md.base_id,
+            source_id: md.source_id,
             colId: idMap.get(kanbanData['fk_grp_col_id']),
           });
           for (const [k, v] of Object.entries(kanbanData)) {
@@ -1161,8 +1159,8 @@ export class ImportService {
 
   async importBase(param: {
     user: User;
-    projectId: string;
     baseId: string;
+    sourceId: string;
     src: {
       type: 'local' | 'url' | 'file';
       path?: string;
@@ -1173,13 +1171,13 @@ export class ImportService {
   }) {
     const hrTime = initTime();
 
-    const { user, projectId, baseId, src, req } = param;
+    const { user, baseId, sourceId, src, req } = param;
 
-    const destProject = await Project.get(projectId);
-    const destBase = await Base.get(baseId);
+    const destProject = await Base.get(baseId);
+    const destBase = await Source.get(sourceId);
 
     if (!destProject || !destBase) {
-      throw NcError.badRequest('Project or Base not found');
+      throw NcError.badRequest('Base or Source not found');
     }
 
     switch (src.type) {
@@ -1200,8 +1198,8 @@ export class ImportService {
 
           const idMap = await this.importModels({
             user,
-            projectId,
             baseId,
+            sourceId,
             data: schema,
             req,
           });
@@ -1279,8 +1277,8 @@ export class ImportService {
   importDataFromCsvStream(param: {
     idMap: Map<string, string>;
     dataStream: Readable;
-    destProject: Project;
-    destBase: Base;
+    destProject: Base;
+    destBase: Source;
     destModel: Model;
   }): Promise<void> {
     const { idMap, dataStream, destBase, destProject, destModel } = param;
@@ -1298,13 +1296,13 @@ export class ImportService {
               const id = idMap.get(header);
               if (id) {
                 const col = await Column.get({
-                  base_id: destBase.id,
+                  source_id: destBase.id,
                   colId: id,
                 });
                 if (col) {
                   if (col.colOptions?.type === 'bt') {
                     const childCol = await Column.get({
-                      base_id: destBase.id,
+                      source_id: destBase.id,
                       colId: col.colOptions.fk_child_column_id,
                     });
                     if (childCol) {
@@ -1343,7 +1341,7 @@ export class ImportService {
                 parser.pause();
                 try {
                   await this.bulkDataService.bulkDataInsert({
-                    projectName: destProject.id,
+                    baseName: destProject.id,
                     tableName: destModel.id,
                     body: chunk,
                     cookie: null,
@@ -1364,7 +1362,7 @@ export class ImportService {
           if (chunk.length > 0) {
             try {
               await this.bulkDataService.bulkDataInsert({
-                projectName: destProject.id,
+                baseName: destProject.id,
                 tableName: destModel.id,
                 body: chunk,
                 cookie: null,
@@ -1387,8 +1385,8 @@ export class ImportService {
   async importLinkFromCsvStream(param: {
     idMap: Map<string, string>;
     linkStream: Readable;
-    destProject: Project;
-    destBase: Base;
+    destProject: Base;
+    destBase: Source;
     handledLinks: string[];
   }): Promise<string[]> {
     const { idMap, linkStream, destBase, destProject, handledLinks } = param;
@@ -1400,7 +1398,7 @@ export class ImportService {
         try {
           if (v.length === 0) continue;
           await this.bulkDataService.bulkDataInsert({
-            projectName: destProject.id,
+            baseName: destProject.id,
             tableName: k,
             body: v,
             cookie: null,
@@ -1461,7 +1459,7 @@ export class ImportService {
                   await insertChunks();
 
                   const col = await Column.get({
-                    base_id: destBase.id,
+                    source_id: destBase.id,
                     colId: findWithIdentifier(idMap, columnId),
                   });
 

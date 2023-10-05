@@ -20,8 +20,8 @@ import {
   inject,
   isDrawerOrModalExist,
   ref,
+  useBase,
   useEventListener,
-  useProject,
   useRoles,
   useSelectedCellKeyupListener,
   watch,
@@ -71,7 +71,7 @@ const { getMeta } = useMetas()
 
 const { isUIAllowed } = useRoles()
 
-const { isPg, isMysql } = useProject()
+const { isPg, isMysql } = useBase()
 
 // a variable to keep newly created option value
 // temporary until it's add the option to column meta
@@ -175,7 +175,7 @@ async function addIfMissingAndSave() {
       // todo: refactor and avoid repetition
       if (updatedColMeta.cdf) {
         // Postgres returns default value wrapped with single quotes & casted with type so we have to get value between single quotes to keep it unified for all databases
-        if (isPg(column.value.base_id)) {
+        if (isPg(column.value.source_id)) {
           updatedColMeta.cdf = updatedColMeta.cdf.substring(
             updatedColMeta.cdf.indexOf(`'`) + 1,
             updatedColMeta.cdf.lastIndexOf(`'`),
@@ -183,7 +183,7 @@ async function addIfMissingAndSave() {
         }
 
         // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
-        if (!isMysql(column.value.base_id)) {
+        if (!isMysql(column.value.source_id)) {
           updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
         }
       }
@@ -217,6 +217,7 @@ const onKeydown = (e: KeyboardEvent) => {
 
 const onSelect = () => {
   isOpen.value = false
+  isEditable.value = false
 }
 
 const cellClickHook = inject(CellClickHookInj, null)
@@ -286,7 +287,7 @@ const selectedOpt = computed(() => {
       v-model:value="vModel"
       class="w-full overflow-hidden"
       :class="{ 'caret-transparent': !hasEditRoles }"
-      :placeholder="isEditColumn ? '(Optional)' : ''"
+      :placeholder="isEditColumn ? $t('labels.optional') : ''"
       :allow-clear="!column.rqd && editAllowed"
       :bordered="false"
       :open="isOpen && editAllowed"
@@ -324,7 +325,7 @@ const selectedOpt = computed(() => {
         <div class="flex gap-2 text-gray-500 items-center h-full">
           <component :is="iconMap.plusThick" class="min-w-4" />
           <div class="text-xs whitespace-normal">
-            Create new option named <strong>{{ searchVal }}</strong>
+            {{ $t('msg.selectOption.createNewOptionNamed') }} <strong>{{ searchVal }}</strong>
           </div>
         </div>
       </a-select-option>

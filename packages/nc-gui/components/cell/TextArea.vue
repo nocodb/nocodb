@@ -28,6 +28,8 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref(1 as const))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const { showNull } = useGlobal()
 
 const vModel = useVModel(props, 'modelValue', emits, { defaultValue: '' })
@@ -68,10 +70,11 @@ onClickOutside(inputWrapperRef, (e) => {
 <template>
   <NcDropdown v-model:visible="isVisible" class="overflow-visible" :trigger="[]" placement="bottomLeft">
     <div
-      class="flex flex-row pt-0.5"
+      class="flex flex-row pt-0.5 w-full"
       :class="{
         'min-h-10': rowHeight !== 1,
         'min-h-6.5': rowHeight === 1,
+        'h-full': isForm,
       }"
     >
       <textarea
@@ -80,11 +83,15 @@ onClickOutside(inputWrapperRef, (e) => {
         v-model="vModel"
         rows="4"
         class="h-full w-full outline-none border-none"
-        :class="`${editEnabled ? 'p-2' : ''}`"
+        :class="{
+          'p-2': editEnabled,
+          'py-1 h-full': isForm,
+          'px-1': isExpandedFormOpen,
+        }"
         :style="{
           minHeight: `${height}px`,
         }"
-        :placeholder="isEditColumn ? '(Optional)' : ''"
+        :placeholder="isEditColumn ? $t('labels.optional') : ''"
         @blur="editEnabled = false"
         @keydown.alt.enter.stop
         @keydown.shift.enter.stop
@@ -99,21 +106,21 @@ onClickOutside(inputWrapperRef, (e) => {
         @mousedown.stop
       />
 
-      <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
+      <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
       <LazyCellClampedText v-else-if="rowHeight" :value="vModel" :lines="rowHeight" class="mr-7" />
 
       <span v-else>{{ vModel }}</span>
 
       <div
-        v-if="active"
+        v-if="active && !isExpandedFormOpen"
         class="!absolute right-0 bottom-0 h-6 w-5 group cursor-pointer flex justify-end gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none p-1 hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
         :class="{ 'right-2 bottom-2': editEnabled }"
         data-testid="attachment-cell-file-picker-button"
         @click.stop="isVisible = !isVisible"
       >
         <NcTooltip placement="bottom">
-          <template #title>Expand</template>
+          <template #title>{{ $t('title.expand') }}</template>
           <component
             :is="iconMap.expand"
             class="transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-xs"
@@ -135,8 +142,8 @@ onClickOutside(inputWrapperRef, (e) => {
         <a-textarea
           ref="inputRef"
           v-model:value="vModel"
-          placeholder="Enter text"
           class="p-1 !pt-1 !pr-3 !border-0 !border-r-0 !focus:outline-transparent nc-scrollbar-md !text-black"
+          :placeholder="$t('activity.enterText')"
           :bordered="false"
           :auto-size="{ minRows: 20, maxRows: 20 }"
           :disabled="readOnly"

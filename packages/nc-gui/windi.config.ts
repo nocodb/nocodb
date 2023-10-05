@@ -55,6 +55,20 @@ export default defineConfig({
       mono: ['Inter', 'mono'],
     },
     extend: {
+      screens: {
+        'xs': {
+          max: '480px',
+        },
+        'sm': {
+          min: '480px',
+        },
+        'md': {
+          min: '820px',
+        },
+        '2xl': {
+          min: '1780px',
+        },
+      },
       textColor: {
         primary: 'rgba(var(--color-primary), var(--tw-text-opacity))',
         accent: 'rgba(var(--color-accent), var(--tw-text-opacity))',
@@ -81,7 +95,7 @@ export default defineConfig({
           200: '#ADC2FF',
           300: '#85A3FF',
           400: '#5C85FF',
-          500: '#36F',
+          500: '#3366FF',
           600: '#2952CC',
           700: '#1F3D99',
           800: '#142966',
@@ -160,6 +174,19 @@ export default defineConfig({
           800: '#164C66',
           900: '#0B2633',
         },
+        yellow: {
+          50: '#fffbf2',
+          100: '#fff0d1',
+          200: '#fee5b0',
+          300: '#fdd889',
+          400: '#fdcb61',
+          500: '#fcbe3a',
+          600: '#ca982e',
+          700: '#977223',
+          800: '#654c17',
+          900: '#32260c',
+        },
+
         primary: 'rgba(var(--color-primary), var(--tw-bg-opacity))',
         accent: 'rgba(var(--color-accent), var(--tw-bg-opacity))',
         dark: colors.dark,

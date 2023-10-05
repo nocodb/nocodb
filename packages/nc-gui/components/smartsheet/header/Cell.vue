@@ -11,9 +11,13 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { isMobileMode } = useGlobal()
+
 const hideMenu = toRef(props, 'hideMenu')
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
@@ -42,13 +46,13 @@ const closeAddColumnDropdown = () => {
 }
 
 const openHeaderMenu = () => {
-  if (!isForm.value && !isExpandedForm.value && isUIAllowed('fieldEdit')) {
+  if (!isForm.value && !isExpandedForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value) {
     editColumnDropdown.value = true
   }
 }
 
 const openDropDown = () => {
-  if (isForm.value || isExpandedForm.value || !isUIAllowed('fieldEdit')) return
+  if (isForm.value || isExpandedForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value)) return
   isDropDownOpen.value = !isDropDownOpen.value
 }
 </script>
@@ -61,13 +65,21 @@ const openDropDown = () => {
     @click.right="openDropDown"
     @click="isDropDownOpen = false"
   >
-    <SmartsheetHeaderCellIcon v-if="column && !props.hideIcon" />
+    <SmartsheetHeaderCellIcon
+      v-if="column && !props.hideIcon"
+      :class="{
+        'self-start': isForm || isSurveyForm,
+      }"
+    />
     <div
       v-if="column"
-      class="name pl-1 !truncate"
-      :class="{ 'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu }"
-      style="white-space: pre-line"
-      :title="column.title"
+      class="name pl-1"
+      :class="{
+        'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu && !isExpandedForm,
+        'cursor-default': isForm || !isUIAllowed('fieldEdit') || hideMenu,
+        '!truncate': !isForm,
+      }"
+      :data-test-id="column.title"
     >
       {{ column.title }}
     </div>
@@ -112,6 +124,7 @@ const openDropDown = () => {
 <style scoped>
 .name {
   max-width: calc(100% - 10px);
-  word-break: break-all;
+  word-break: break-word;
+  white-space: pre-line;
 }
 </style>

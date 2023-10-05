@@ -1,13 +1,18 @@
+import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
-import { createProject, createSakilaProject } from '../../factory/project';
+import { assert, expect } from 'chai';
+import { createColumn, createLookupColumn } from '../../factory/column';
+import { createProject, createSakilaProject } from '../../factory/base';
+import { listRow } from '../../factory/row';
 import { getTable } from '../../factory/table';
 import { getView, updateView } from '../../factory/view';
 import init from '../../init';
-import type { Column, Model, Project, View } from '../../../../src/models';
+import type { Column, Model, Base, View } from '../../../../src/models';
+import 'mocha';
 
 function groupByTests() {
   let context;
-  let sakilaProject: Project;
+  let sakilaProject: Base;
   let filmTable: Model;
   let filmColumns: Array<Column>;
   let filmView: View;
@@ -21,7 +26,7 @@ function groupByTests() {
     await createProject(context);
 
     filmTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'film',
     });
     filmView = await getView(context, { table: filmTable, name: 'Film' });
@@ -29,7 +34,7 @@ function groupByTests() {
 
     const columns = (
       await request(context.app)
-        .get(`/api/v1/db/meta/views/${filmView.id}/columns`)
+        .get(`/api/v1/meta/views/${filmView.id}/columns`)
         .set('xc-auth', context.token)
         .expect(200)
     ).body.list;
@@ -40,7 +45,7 @@ function groupByTests() {
   it('Check One GroupBy Column Ascending', async function () {
     const lengthColumn = filmColumns.find((c) => c.column_name === 'length');
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: lengthColumn.column_name,
@@ -60,7 +65,7 @@ function groupByTests() {
     );
     const filterCondition = '(Length,eq,46)';
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: rentalDurationColumn.column_name,
@@ -79,7 +84,7 @@ function groupByTests() {
     const titleColumn = filmColumns.find((c) => c.column_name === 'title');
     const filterCondition = '(Length,eq,46)~and(RentalDuration,eq,5)';
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: titleColumn.column_name,
@@ -97,7 +102,7 @@ function groupByTests() {
   it('Check One GroupBy Column With Descending', async function () {
     const lengthColumn = filmColumns.find((c) => c.column_name === 'length');
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: lengthColumn.column_name,
@@ -117,7 +122,7 @@ function groupByTests() {
     );
     const filterCondition = '(Length,eq,46)';
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: rentalDurationColumn.column_name,
@@ -136,7 +141,7 @@ function groupByTests() {
     const titleColumn = filmColumns.find((c) => c.column_name === 'title');
     const filterCondition = '(Length,eq,46)~and(RentalDuration,eq,5)';
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: titleColumn.column_name,
@@ -167,7 +172,7 @@ function groupByTests() {
 
     // Group By Length Column Ascending Order
     await request(context.app)
-      .patch(`/api/v1/db/meta/grid-columns/${lengthColumn.id}`)
+      .patch(`/api/v1/meta/grid-columns/${lengthColumn.id}`)
       .set('xc-auth', context.token)
       .send({
         group_by: true,
@@ -177,7 +182,7 @@ function groupByTests() {
       .expect(200);
     // Group By RentalDuration Column Descending
     await request(context.app)
-      .patch(`/api/v1/db/meta/grid-columns/${rentalColumn.id}`)
+      .patch(`/api/v1/meta/grid-columns/${rentalColumn.id}`)
       .set('xc-auth', context.token)
       .send({
         group_by: true,
@@ -187,7 +192,7 @@ function groupByTests() {
       .expect(200);
     const columns = (
       await request(context.app)
-        .get(`/api/v1/db/meta/views/${filmView.id}/columns`)
+        .get(`/api/v1/meta/views/${filmView.id}/columns`)
         .set('xc-auth', context.token)
         .expect(200)
     ).body.list;
@@ -221,7 +226,7 @@ function groupByTests() {
       ],
     });
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: _lengthColumn.column_name,
@@ -233,6 +238,133 @@ function groupByTests() {
       parseInt(response.body.list[0]['count']) !== 5
     )
       throw new Error('Invalid GroupBy With Filters');
+  });
+
+  it('Check One GroupBy Column with Links/Rollup', async function () {
+    const actorsColumn = filmColumns.find((c) => c.title === 'Actors');
+    const response = await request(context.app)
+      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .set('xc-auth', context.token)
+      .query({
+        column_name: actorsColumn.title,
+        sort: `-${actorsColumn.title}`,
+      })
+      .expect(200);
+    expect(response.body.list[0]['Actors']).not.equal('0');
+    expect(response.body.list[0]['count']).not.equal('10');
+    expect(+response.body.list[0]['Actors']).to.be.gte(
+      +response.body.list[1]['Actors'],
+    );
+  });
+
+  it('Check One GroupBy Column with BT Lookup', async function () {
+    // get the row list and extract the correct language column name which have the values
+    // this is to avoid issue since there is 2 language column
+    const rows = await listRow({
+      table: filmTable,
+      base: sakilaProject,
+      options: {
+        limit: 1,
+        offset: 0,
+      },
+    });
+
+    const language = await rows[0]['Language']();
+
+    const ltarColumn = filmColumns.find(
+      (c) => c.title === (language ? 'Language' : 'Language1'),
+    );
+
+    await createLookupColumn(context, {
+      base: sakilaProject,
+      title: 'LanguageName',
+      table: filmTable,
+      relatedTableName: 'language',
+      relatedTableColumnTitle: 'Name',
+      relationColumnId: ltarColumn.id,
+    });
+
+    const response = await request(context.app)
+      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .set('xc-auth', context.token)
+      .query({
+        column_name: 'LanguageName',
+        sort: `-LanguageName`,
+      })
+      .expect(200);
+    assert.match(response.body.list[0]['LanguageName'], /^English/);
+    expect(+response.body.list[0]['count']).to.gt(0);
+    expect(response.body.list.length).to.equal(1);
+  });
+
+  it('Check One GroupBy Column with MM Lookup which is not supported', async function () {
+    await createLookupColumn(context, {
+      base: sakilaProject,
+      title: 'ActorNames',
+      table: filmTable,
+      relatedTableName: 'actor',
+      relatedTableColumnTitle: 'FirstName',
+    });
+
+    const res = await request(context.app)
+      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .set('xc-auth', context.token)
+      .query({
+        column_name: 'ActorNames',
+      })
+      .expect(400);
+
+    assert.match(res.body.msg, /not supported/);
+  });
+
+  it('Check One GroupBy Column with Formula and Formula referring another formula', async function () {
+    const formulaColumnTitle = 'Formula';
+    await createColumn(context, filmTable, {
+      uidt: UITypes.Formula,
+      title: formulaColumnTitle,
+      formula: `ADD({RentalDuration}, 10)`,
+    });
+
+    const res = await request(context.app)
+      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .set('xc-auth', context.token)
+      .query({
+        column_name: formulaColumnTitle,
+        sort: `-${formulaColumnTitle}`,
+      })
+      .expect(200);
+
+    expect(res.body.list[0][formulaColumnTitle]).to.be.gte(
+      res.body.list[0][formulaColumnTitle],
+    );
+    expect(+res.body.list[0].count).to.gte(1);
+
+    // generate a formula column which refers to another formula column
+    const nestedFormulaColumnTitle = 'FormulaNested';
+
+    await createColumn(context, filmTable, {
+      uidt: UITypes.Formula,
+      title: nestedFormulaColumnTitle,
+      formula: `ADD(1000,{${formulaColumnTitle}})`,
+    });
+
+    const res1 = await request(context.app)
+      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .set('xc-auth', context.token)
+      .query({
+        column_name: nestedFormulaColumnTitle,
+        sort: `-${nestedFormulaColumnTitle}`,
+      })
+      .expect(200);
+
+    expect(res1.body.list[0][nestedFormulaColumnTitle]).to.be.gte(
+      res1.body.list[0][nestedFormulaColumnTitle],
+    );
+    expect(res1.body.list[0][nestedFormulaColumnTitle]).to.be.gte(1000);
+    expect(+res1.body.list[0][nestedFormulaColumnTitle]).to.equal(
+      1000 + +res.body.list[0][formulaColumnTitle],
+    );
+    expect(+res1.body.list[res1.body.list.length - 1].count).to.gte(0);
   });
 }
 

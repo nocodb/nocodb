@@ -48,8 +48,17 @@ main {
   @apply m-0 h-full w-full bg-white;
 }
 
+
 .nc-input-md {
   @apply !rounded-lg !py-2 !px-3 mb-1;
+}
+
+.mobile {
+  .nc-scrollbar-md, nc-scrollbar-dark-md, nc-scrollbar-dark-md, nc-scrollbar-sm-dark, nc-scrollbar-x-md {
+    &::-webkit-scrollbar {
+      width: 0px;
+    }
+  }
 }
 
 .nc-scrollbar-md {
@@ -177,14 +186,14 @@ a {
 
 // menu item styling
 .nc-menu-item {
-  @apply cursor-pointer text-xs flex items-center gap-2 px-4 py-3 relative after:(content-[''] absolute top-0 left-0 bottom-0 w-full h-full right-0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
+  @apply cursor-pointer text-sm flex items-center gap-2 px-4 py-3 relative after:(content-[''] absolute top-0 left-0 bottom-0 w-full h-full right-0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
 
   &.disabled {
     @apply text-black text-opacity-25 bg-[#f5f5f5] cursor-not-allowed text-shadow-none box-shadow-none border-[#d9d9d9];
   }
 }
 
-.nc-project-menu-item {
+.nc-base-menu-item {
   @apply cursor-pointer flex items-center gap-2 py-2 after:(content-[''] absolute top-0 left-0 bottom-0 right-0 w-full h-full bg-current opacity-0 transition transition-opacity duration-100) hover:(after:(opacity-5));
 
   // &:hover {
@@ -433,9 +442,6 @@ a {
   @apply !shadow-none rounded ring-1 ring-red-600;
 }
 
-.ant-modal {
-  @apply !top-[50px];
-}
 .ant-modal-content {
   @apply !p-6;
   border-radius: 1rem;
@@ -596,6 +602,34 @@ input[type='number'] {
   @apply !block !py-1.5;
 }
 
+.nc-sidebar-node {
+  @apply !xs:(min-h-12 max-h-12 hover:bg-gray-50 ml-1.5);
+
+  .nc-emoji {
+    @apply xs:(text-lg);
+  }
+  .material-symbols, .nc-icon {
+    @apply !xs:(text-xl -mt-0.25);
+  }
+
+  .nc-sidebar-node-title {
+    @apply xs:(text-base);
+  }
+
+  .nc-sidebar-node-btn:not(.nc-sidebar-expand) {
+    @apply !xs:(hidden)
+  }
+}
+
 .nc-button.ant-btn.nc-sidebar-node-btn {
   @apply opacity-0 group-hover:(opacity-100) text-gray-600 hover:(bg-gray-400 bg-opacity-20 text-gray-900) duration-100;
+}
+
+
+.nc-button.ant-btn.nc-sidebar-node-btn.nc-sidebar-expand {
+  @apply xs:(opacity-100 hover:bg-gray-50);
+
+  .nc-icon {
+    @apply xs:(visible opacity-100 !text-gray-500)
+  }
 }

@@ -33,7 +33,7 @@ const logout = async () => {
       <div class="h-full overflow-y-auto flex">
         <!-- Side tabs -->
 
-        <div class="h-full bg-white nc-user-sidebar">
+        <div class="h-full bg-white nc-user-sidebar fixed">
           <NcMenu
             v-model:openKeys="openKeys"
             v-model:selectedKeys="selectedKeys"
@@ -42,7 +42,7 @@ const logout = async () => {
             mode="inline"
           >
             <div
-              v-if="!$route.params.projectType"
+              v-if="!$route.params.baseType"
               v-e="['c:navbar:home']"
               data-testid="nc-noco-brand-icon"
               class="transition-all duration-200 px-2 mx-2 mt-1.5 cursor-pointer transform hover:bg-gray-100 my-1 nc-noco-brand-icon h-8 rounded-md min-w-60"
@@ -50,11 +50,11 @@ const logout = async () => {
             >
               <div class="flex flex-row gap-x-2 items-center h-8.5">
                 <GeneralIcon icon="arrowLeft" class="-mt-0.1" />
-                <div class="flex text-xs text-gray-800">Back to Workspace</div>
+                <div class="flex text-sm font-medium text-gray-800">{{ $t('labels.backToWorkspace') }}</div>
               </div>
             </div>
 
-            <div class="text-xs text-gray-600 ml-4 py-1.5 mt-3">{{ $t('labels.account') }}</div>
+            <div class="text-sm text-gray-600 ml-4 p-2 mt-3 gray-600 font-medium">{{ $t('labels.account') }}</div>
 
             <NcMenuItem
               key="profile"
@@ -80,9 +80,9 @@ const logout = async () => {
               @click="navigateTo('/account/tokens')"
             >
               <div class="flex items-center space-x-2">
-                <MdiShieldKeyOutline />
+                <component :is="iconMap.code" />
 
-                <div class="select-none">{{ $t('title.tokens') }}</div>
+                <div class="select-none">API {{ $t('title.tokens') }}</div>
               </div>
             </NcMenuItem>
             <NcMenuItem
@@ -144,14 +144,14 @@ const logout = async () => {
 
         <!-- Sub Tabs -->
 
-        <div class="flex flex-col w-full">
+        <div class="flex flex-col w-full ml-65">
           <div class="flex flex-row p-3 items-center">
             <div class="flex-1" />
 
             <LazyGeneralReleaseInfo />
 
             <a-tooltip v-if="!appInfo.ee" placement="bottom" :mouse-enter-delay="1">
-              <template #title> Switch language</template>
+              <template #title>{{ $t('title.switchLanguage') }}</template>
 
               <div class="flex pr-4 items-center">
                 <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-gray-800" />

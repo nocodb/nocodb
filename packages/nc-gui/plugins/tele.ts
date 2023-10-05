@@ -41,7 +41,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
       socket.emit('page', {
         path: to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : ''),
-        pid: route.value?.params?.projectId,
+        pid: route.value?.params?.baseId,
       })
     })
 
@@ -52,7 +52,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
             event: evt,
             ...(data || {}),
             path: route.value?.matched?.[0]?.path,
-            pid: route.value?.params?.projectId,
+            pid: route.value?.params?.baseId,
           })
         }
       },
@@ -84,8 +84,12 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     }
 
     watch((nuxtApp.$state as ReturnType<typeof useGlobal>).token, (newToken, oldToken) => {
-      if (newToken && newToken !== oldToken) init(newToken)
-      else if (!newToken) socket.disconnect()
+      try {
+        if (newToken && newToken !== oldToken) init(newToken)
+        else if (!newToken) socket?.disconnect()
+      } catch (e) {
+        console.error(e)
+      }
     })
 
     nuxtApp.provide('tele', tele)

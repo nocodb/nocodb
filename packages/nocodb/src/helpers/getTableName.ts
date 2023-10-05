@@ -1,25 +1,26 @@
 import inflection from 'inflection';
-import type Base from '~/models/Base';
+import type Source from '~/models/Source';
 
 export default function getTableNameAlias(
   tableName: string,
   prefix,
-  base: Base,
+  source: Source,
 ): string {
   let tn = tableName;
-  if (base.isMeta(true) && !base.isMeta(true, 1) && prefix) {
+  if (source.isMeta(true) && !source.isMeta(true, 1) && prefix) {
     tn = tn.replace(prefix, '');
   }
 
   return (
-    (base?.inflection_table && inflection[base?.inflection_table]?.(tn)) || tn
+    (source?.inflection_table && inflection[source?.inflection_table]?.(tn)) ||
+    tn
   );
 }
 
-export function getColumnNameAlias(columnName: string, base: Base): string {
+export function getColumnNameAlias(columnName: string, source: Source): string {
   return (
-    (base?.inflection_column &&
-      inflection[base?.inflection_column]?.(columnName)) ||
+    (source?.inflection_column &&
+      inflection[source?.inflection_column]?.(columnName)) ||
     columnName
   );
 }

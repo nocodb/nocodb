@@ -11,22 +11,22 @@ async function createXcdb(context: NcContext) {
     },
   });
 
-  let projectList;
+  let baseList;
 
   if (isEE() && context.workspace?.id) {
-    projectList = await api['workspaceProject'].list(context.workspace.id);
+    baseList = await api['workspaceBase'].list(context.workspace.id);
   } else {
-    projectList = await api.project.list();
+    baseList = await api.base.list();
   }
 
-  for (const project of projectList.list) {
-    // delete project with title 'xcdb' if it exists
-    if (project.title === 'xcdb') {
-      await api.project.delete(project.id);
+  for (const base of baseList.list) {
+    // delete base with title 'xcdb' if it exists
+    if (base.title === 'xcdb') {
+      await api.base.delete(base.id);
     }
   }
 
-  const project = await api.project.create({
+  const base = await api.base.create({
     title: 'xcdb',
     type: 'database',
     ...(isEE()
@@ -35,7 +35,7 @@ async function createXcdb(context: NcContext) {
         }
       : {}),
   });
-  return project;
+  return base;
 }
 
 async function deleteXcdb(context: NcContext) {
@@ -46,18 +46,18 @@ async function deleteXcdb(context: NcContext) {
     },
   });
 
-  let projectList;
+  let baseList;
 
   if (isEE() && context.workspace?.id) {
-    projectList = await api['workspaceProject'].list(context.workspace.id);
+    baseList = await api['workspaceBase'].list(context.workspace.id);
   } else {
-    projectList = await api.project.list();
+    baseList = await api.base.list();
   }
 
-  for (const project of projectList.list) {
-    // delete project with title 'xcdb' if it exists
-    if (project.title === 'xcdb') {
-      await api.project.delete(project.id);
+  for (const base of baseList.list) {
+    // delete base with title 'xcdb' if it exists
+    if (base.title === 'xcdb') {
+      await api.base.delete(base.id);
     }
   }
 }

@@ -16,7 +16,7 @@ export interface AppInfo {
   oidcProviderName: string | null
   ncMin: boolean
   oneClick: boolean
-  projectHasAdmin: boolean
+  baseHasAdmin: boolean
   teleEnabled: boolean
   auditEnabled: boolean
   type: string
@@ -68,10 +68,10 @@ export interface Actions {
   refreshToken: () => void
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
-  navigateToProject: (params: { workspaceId?: string; projectId?: string; type?: NcProjectType; query?: any }) => void
+  navigateToProject: (params: { workspaceId?: string; baseId?: string; type?: NcProjectType; query?: any }) => void
   ncNavigateTo: (params: {
     workspaceId?: string
-    projectId?: string
+    baseId?: string
     type?: NcProjectType
     query?: any
     tableId?: string

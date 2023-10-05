@@ -50,7 +50,9 @@ const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()!
 
-const { getPossibleAttachmentSrc, openAttachment } = useAttachment()
+const { isMobileMode } = useGlobal()
+
+const { getPossibleAttachmentSrc, openAttachment: _openAttachment } = useAttachment()
 
 const {
   isPublic,
@@ -61,7 +63,7 @@ const {
   visibleItems,
   onDrop,
   isLoading,
-  open,
+  open: _open,
   FileIcon,
   selectedImage,
   isReadonly: _isReadonly,
@@ -136,7 +138,7 @@ watch(
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
   if (e.key === 'Enter' && !isReadonly.value) {
     e.stopPropagation()
-    if (!modalVisible.value) {
+    if (!modalVisible.value && !isMobileMode.value) {
       modalVisible.value = true
     } else {
       // click Attach File button
@@ -146,6 +148,24 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
 })
 
 const rowHeight = inject(RowHeightInj, ref())
+
+const open = () => {
+  if (isMobileMode.value) return (isExpandedForm.value = true)
+
+  _open()
+}
+
+const openAttachment = (item: any) => {
+  if (isMobileMode.value) return
+
+  _openAttachment(item)
+}
+
+const onExpand = () => {
+  if (isMobileMode.value) return
+
+  modalVisible.value = true
+}
 </script>
 
 <template>
@@ -153,9 +173,9 @@ const rowHeight = inject(RowHeightInj, ref())
     ref="attachmentCellRef"
     tabindex="0"
     :style="{
-      height: isForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
+      height: isForm || isExpandedForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
     }"
-    class="nc-attachment-cell relative flex color-transition flex items-center"
+    class="nc-attachment-cell relative flex color-transition flex items-center w-full"
     :class="{ 'justify-center': !active, 'justify-between': active }"
   >
     <LazyCellAttachmentCarousel />
@@ -168,7 +188,7 @@ const rowHeight = inject(RowHeightInj, ref())
         class="nc-attachment-cell-dropzone text-white text-lg ring ring-accent ring-opacity-100 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
       >
         <MaterialSymbolsFileCopyOutline class="text-accent" />
-        Drop here
+        {{ $t('labels.dropHere') }}
       </general-overlay>
     </template>
 
@@ -182,9 +202,9 @@ const rowHeight = inject(RowHeightInj, ref())
       <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
       <NcTooltip placement="bottom">
-        <template #title> Click or drop a file into cell</template>
+        <template #title>{{ $t('activity.attachmentDrop') }} </template>
 
-        <div v-if="active || !visibleItems.length" class="flex items-center gap-1">
+        <div v-if="active || !visibleItems.length || (isForm && visibleItems.length)" class="flex items-center gap-1">
           <MaterialSymbolsAttachFile
             class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
           />
@@ -192,7 +212,7 @@ const rowHeight = inject(RowHeightInj, ref())
             v-if="!visibleItems.length"
             class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-xs"
           >
-            Add file(s)
+            {{ $t('activity.addFiles') }}
           </div>
         </div>
       </NcTooltip>
@@ -206,7 +226,7 @@ const rowHeight = inject(RowHeightInj, ref())
         :class="{ 'justify-center': !isExpandedForm && !isGallery }"
         class="flex cursor-pointer w-full items-center flex-wrap gap-2 py-1.5 scrollbar-thin-dull overflow-hidden mt-0 items-start"
         :style="{
-          maxHeight: isForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
+          maxHeight: isForm || isExpandedForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
         }"
       >
         <template v-for="(item, i) of visibleItems" :key="item.url || item.title">
@@ -220,18 +240,19 @@ const rowHeight = inject(RowHeightInj, ref())
                 :class="{ 'ml-2': active }"
                 @click="
                   () => {
-                    if (isGallery) return
+                    if (isGallery || isMobileMode) return
                     selectedImage = item
                   }
                 "
               >
                 <LazyCellAttachmentImage
                   :alt="item.title || `#${i}`"
+                  class="rounded"
                   :class="{
                     'h-7.5 w-8.8': rowHeight === 1,
                     'h-11.5 w-12.8': rowHeight === 2,
                     'h-16.8 w-20.8': rowHeight === 4,
-                    'h-20.8 !w-30': isExpandedForm || rowHeight === 6,
+                    'h-20.8 !w-30': isForm || isExpandedForm || rowHeight === 6,
                   }"
                   :srcs="getPossibleAttachmentSrc(item)"
                 />
@@ -252,18 +273,18 @@ const rowHeight = inject(RowHeightInj, ref())
       </div>
 
       <div
-        v-if="active"
+        v-if="active || (isForm && visibleItems.length)"
         class="h-6 w-5 group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none p-1 hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
       >
         <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
         <NcTooltip v-else placement="bottom">
-          <template #title> View attachments</template>
+          <template #title> {{ $t('activity.viewAttachment') }}</template>
 
           <component
             :is="iconMap.expand"
             class="transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-[0.75rem]"
-            @click.stop="modalVisible = true"
+            @click.stop="onExpand"
           />
         </NcTooltip>
       </div>

@@ -2,7 +2,7 @@
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import type { Form as AntForm, SelectProps } from 'ant-design-vue'
 import { capitalize } from '@vue/runtime-core'
-import type { FormType, GalleryType, GridType, KanbanType, MapType, TableType, ViewType } from 'nocodb-sdk'
+import type { FormType, GalleryType, GridType, KanbanType, MapType, TableType } from 'nocodb-sdk'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
 import { computed, message, nextTick, onBeforeMount, reactive, ref, useApi, useI18n, useVModel, watch } from '#imports'
 
@@ -13,7 +13,6 @@ interface Props {
   selectedViewId?: string
   groupingFieldColumnId?: string
   geoDataFieldColumnId?: string
-  views: ViewType[]
   tableId: string
 }
 
@@ -41,7 +40,9 @@ const emits = defineEmits<Emits>()
 
 const { getMeta } = useMetas()
 
-const { views, selectedViewId, groupingFieldColumnId, geoDataFieldColumnId, tableId } = toRefs(props)
+const { viewsByTable } = storeToRefs(useViewsStore())
+
+const { selectedViewId, groupingFieldColumnId, geoDataFieldColumnId, tableId } = toRefs(props)
 
 const meta = ref<TableType | undefined>()
 
@@ -56,6 +57,8 @@ const { t } = useI18n()
 const { api } = useApi()
 
 const isViewCreating = ref(false)
+
+const views = computed(() => viewsByTable.value.get(tableId.value) ?? [])
 
 const form = reactive<Form>({
   title: props.title || '',
@@ -238,8 +241,46 @@ onMounted(async () => {
     <template #header>
       <div class="flex flex-row items-center gap-x-1.5">
         <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon !text-xl" />
-        {{ $t(`general.${selectedViewId ? 'duplicate' : 'create'}`) }} <span class="capitalize">{{ typeAlias }}</span>
-        {{ $t('objects.view') }}
+        <template v-if="form.type === ViewTypes.GRID">
+          <template v-if="form.copy_from_id">
+            {{ $t('labels.duplicateGridView') }}
+          </template>
+          <template v-else>
+            {{ $t('labels.createGridView') }}
+          </template>
+        </template>
+        <template v-else-if="form.type === ViewTypes.GALLERY">
+          <template v-if="form.copy_from_id">
+            {{ $t('labels.duplicateGalleryView') }}
+          </template>
+          <template v-else>
+            {{ $t('labels.createGalleryView') }}
+          </template>
+        </template>
+        <template v-else-if="form.type === ViewTypes.FORM">
+          <template v-if="form.copy_from_id">
+            {{ $t('labels.duplicateFormView') }}
+          </template>
+          <template v-else>
+            {{ $t('labels.createFormView') }}
+          </template>
+        </template>
+        <template v-else-if="form.type === ViewTypes.KANBAN">
+          <template v-if="form.copy_from_id">
+            {{ $t('labels.duplicateKanbanView') }}
+          </template>
+          <template v-else>
+            {{ $t('labels.createKanbanView') }}
+          </template>
+        </template>
+        <template v-else>
+          <template v-if="form.copy_from_id">
+            {{ $t('labels.duplicateMapView') }}
+          </template>
+          <template v-else>
+            {{ $t('labels.duplicateView') }}
+          </template>
+        </template>
       </div>
     </template>
     <div class="mt-2">
@@ -264,9 +305,10 @@ onMounted(async () => {
             v-model:value="form.fk_grp_col_id"
             class="w-full nc-kanban-grouping-field-select"
             :disabled="groupingFieldColumnId || isMetaLoading"
-            :loading="true"
-            placeholder="Select a Grouping Field"
-            not-found-content="No Single Select Field can be found. Please create one first."
+            :loading="isMetaLoading"
+            :options="viewSelectFieldOptions"
+            :placeholder="$t('placeholder.selectGroupField')"
+            :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
           />
         </a-form-item>
         <a-form-item
@@ -281,8 +323,8 @@ onMounted(async () => {
             :options="viewSelectFieldOptions"
             :disabled="groupingFieldColumnId || isMetaLoading"
             :loading="isMetaLoading"
-            placeholder="Select a GeoData Field"
-            not-found-content="No GeoData Field can be found. Please create one first."
+            :placeholder="$t('placeholder.selectGeoField')"
+            :not-found-content="$t('placeholder.selectGeoFieldNotFound')"
           />
         </a-form-item>
       </a-form>
@@ -292,9 +334,14 @@ onMounted(async () => {
           {{ $t('general.cancel') }}
         </NcButton>
 
-        <NcButton type="primary" :loading="isViewCreating" @click="onSubmit">
-          Create View
-          <template #loading> Creating View </template>
+        <NcButton
+          v-e="[form.copy_from_id ? 'a:view:duplicate' : 'a:view:create']"
+          type="primary"
+          :loading="isViewCreating"
+          @click="onSubmit"
+        >
+          {{ $t('labels.createView') }}
+          <template #loading> {{ $t('labels.creatingView') }}</template>
         </NcButton>
       </div>
     </div>

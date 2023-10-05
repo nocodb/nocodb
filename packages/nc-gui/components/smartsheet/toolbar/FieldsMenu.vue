@@ -286,7 +286,12 @@ useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <NcDropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown">
+  <NcDropdown
+    v-model:visible="open"
+    :trigger="['click']"
+    overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown"
+    class="!xs:hidden"
+  >
     <div :class="{ 'nc-active-btn': numberOfHiddenFields }">
       <a-button v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-2">
@@ -300,7 +305,7 @@ useMenuCloseOnEsc(open)
           <!-- Fields -->
           <span v-if="!isMobileMode" class="text-capitalize text-sm font-medium">
             <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY">
-              Edit Cards
+              {{ $t('title.editCards') }}
             </template>
             <template v-else>
               {{ $t('objects.fields') }}
@@ -347,7 +352,7 @@ useMenuCloseOnEsc(open)
               v-if="!fields?.filter((el) => el.title.toLowerCase().includes(filterQuery.toLowerCase())).length"
               class="px-0.5 py-2 text-gray-500"
             >
-              No fields found
+              {{ $t('title.noFieldsFound') }}
             </div>
             <Draggable v-model="fields" item-key="id" @change="onMove($event)">
               <template #item="{ element: field }">
@@ -358,7 +363,7 @@ useMenuCloseOnEsc(open)
                       .includes(field)
                   "
                   :key="field.id"
-                  class="px-2 py-2 flex flex-row items-center first:border-t-1 border-b-1 border-x-1 first:rounded-t-md last:rounded-b-md border-gray-200"
+                  class="px-2 py-2 flex flex-row items-center first:border-t-1 border-b-1 border-x-1 first:rounded-t-lg last:rounded-b-lg border-gray-200"
                   :data-testid="`nc-fields-menu-${field.title}`"
                   @click.stop
                 >
@@ -388,7 +393,11 @@ useMenuCloseOnEsc(open)
                 <div
                   v-if="gridDisplayValueField && filteredFieldList[0].title.toLowerCase().includes(filterQuery.toLowerCase())"
                   :key="`pv-${gridDisplayValueField.id}`"
-                  class="pl-7.5 pr-2.1 py-1.9 flex flex-row items-center border-1 rounded-t-lg border-gray-200"
+                  class="pl-7.5 pr-2.1 py-2 flex flex-row items-center border-1 border-gray-200"
+                  :class="{
+                    'rounded-t-lg': filteredFieldList.length > 1,
+                    'rounded-lg': filteredFieldList.length === 1,
+                  }"
                   :data-testid="`nc-fields-menu-${gridDisplayValueField.title}`"
                   @click.stop
                 >
@@ -396,7 +405,7 @@ useMenuCloseOnEsc(open)
                     <div class="flex items">
                       <a-tooltip placement="bottom">
                         <template #title>
-                          <span class="text-sm">Display Value</span>
+                          <span class="text-sm">$t('title.displayValue') </span>
                         </template>
                       </a-tooltip>
 
@@ -421,7 +430,7 @@ useMenuCloseOnEsc(open)
             class="nc-fields-show-all-fields !text-gray-500 !w-1/2"
             @click="showAllColumns = !showAllColumns"
           >
-            {{ showAllColumns ? 'Hide all' : $t('general.showAll') }} {{ $t('objects.fields').toLowerCase() }}
+            {{ showAllColumns ? $t('title.hideAll') : $t('general.showAll') }} {{ $t('objects.fields').toLowerCase() }}
           </NcButton>
           <NcButton
             v-if="!isPublic && !filterQuery"
@@ -430,7 +439,7 @@ useMenuCloseOnEsc(open)
             class="nc-fields-show-system-fields !text-gray-500 !w-1/2"
             @click="showSystemField = !showSystemField"
           >
-            {{ showSystemField ? 'Hide system fields' : $t('activity.showSystemFields') }}
+            {{ showSystemField ? $t('title.hideSystemFields') : $t('activity.showSystemFields') }}
           </NcButton>
         </div>
       </div>

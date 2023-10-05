@@ -47,7 +47,10 @@ const meta = computed<TableType | undefined>(() => {
   return viewId && metas.value[viewId]
 })
 
-const { activeView, openedViewsTab } = storeToRefs(useViewsStore())
+const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
+const { activeTableId } = storeToRefs(useTablesStore())
+
+const { activeView, openedViewsTab, activeViewTitleOrId } = storeToRefs(useViewsStore())
 const { isGallery, isGrid, isForm, isKanban, isLocked, isMap } = useProvideSmartsheetStore(activeView, meta)
 
 useSqlEditor()
@@ -86,8 +89,8 @@ const onDrop = async (event: DragEvent) => {
     const data = JSON.parse(event.dataTransfer!.getData('text/json'))
     // Do something with the received data
 
-    // if dragged item is not from the same base, return
-    if (data.baseId !== meta.value?.base_id) return
+    // if dragged item is not from the same source, return
+    if (data.sourceId !== meta.value?.source_id) return
 
     // if dragged item or opened view is not a table, return
     if (data.type !== 'table' || meta.value?.type !== 'table') return
@@ -153,6 +156,10 @@ const onDrop = async (event: DragEvent) => {
     console.log('error', e)
   }
 }
+
+watch([activeViewTitleOrId, activeTableId], () => {
+  handleSidebarOpenOnMobileForNonViews()
+})
 </script>
 
 <template>
@@ -183,7 +190,6 @@ const onDrop = async (event: DragEvent) => {
       </div>
       <SmartsheetDetails v-else />
     </div>
-
     <LazySmartsheetExpandedFormDetached />
   </div>
 </template>

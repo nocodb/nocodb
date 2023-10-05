@@ -29,6 +29,8 @@ const childListDlg = ref(false)
 
 const { isUIAllowed } = useRoles()
 
+const { t } = useI18n()
+
 const { state, isNew } = useSmartsheetRowStoreOrThrow()
 
 const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp } = useProvideLTARStore(
@@ -47,18 +49,18 @@ loadRelatedTableMeta()
 const textVal = computed(() => {
   if (isForm?.value) {
     return state.value?.[colTitle.value]?.length
-      ? `${+state.value?.[colTitle.value]?.length} records Linked`
-      : 'No records linked'
+      ? `${+state.value?.[colTitle.value]?.length} ${t('msg.recordsLinked')}`
+      : t('msg.noRecordsLinked')
   }
 
   const parsedValue = +value?.value || 0
 
   if (!parsedValue) {
-    return 'No records linked'
+    return t('msg.noRecordsLinked')
   } else if (parsedValue === 1) {
-    return `1 ${column.value?.meta?.singular || 'Link'}`
+    return `1 ${column.value?.meta?.singular || t('general.link')}`
   } else {
-    return `${parsedValue} ${column.value?.meta?.plural || 'Links'}`
+    return `${parsedValue} ${column.value?.meta?.plural || t('general.links')}`
   }
 })
 
@@ -96,6 +98,7 @@ const localCellValue = computed<any[]>(() => {
     <div class="block flex-shrink truncate">
       <component
         :is="isLocked || isUnderLookup ? 'span' : 'a'"
+        v-e="['c:cell:links:modal:open']"
         :title="textVal"
         class="text-center nc-datatype-link underline-transparent"
         :class="{ '!text-gray-300': !textVal }"
@@ -106,7 +109,7 @@ const localCellValue = computed<any[]>(() => {
     </div>
     <div class="flex-grow" />
 
-    <div v-if="!isLocked && !isUnderLookup" class="flex justify-end hidden group-hover:flex items-center">
+    <div v-if="!isLocked && !isUnderLookup" class="!xs:hidden flex justify-end hidden group-hover:flex items-center">
       <MdiPlus
         v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
         class="select-none !text-md text-gray-700 nc-action-icon nc-plus"
@@ -114,9 +117,14 @@ const localCellValue = computed<any[]>(() => {
       />
     </div>
 
-    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" :column="relatedTableDisplayColumn" />
+    <LazyVirtualCellComponentsListItems
+      v-if="listItemsDlg || childListDlg"
+      v-model="listItemsDlg"
+      :column="relatedTableDisplayColumn"
+    />
 
     <LazyVirtualCellComponentsListChildItems
+      v-if="listItemsDlg || childListDlg"
       v-model="childListDlg"
       :column="relatedTableDisplayColumn"
       :cell-value="localCellValue"

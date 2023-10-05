@@ -67,12 +67,12 @@ export class AuditsService {
     return await Audit.commentsList(param.query);
   }
 
-  async auditList(param: { query: any; projectId: string }) {
-    return await Audit.projectAuditList(param.projectId, param.query);
+  async auditList(param: { query: any; baseId: string }) {
+    return await Audit.baseAuditList(param.baseId, param.query);
   }
 
-  async auditCount(param: { query?: any; projectId: string }) {
-    return await Audit.projectAuditCount(param.projectId, param.query?.baseId);
+  async auditCount(param: { query?: any; baseId: string }) {
+    return await Audit.baseAuditCount(param.baseId, param.query?.sourceId);
   }
 
   async commentsCount(param: { fk_model_id: string; ids: string[] }) {
@@ -93,6 +93,9 @@ export class AuditsService {
     );
 
     const log = await Audit.get(param.auditId);
+    if (log.op_type !== AuditOperationTypes.COMMENT) {
+      NcError.forbidden('Only comments can be updated');
+    }
 
     if (log.user !== param.userEmail) {
       NcError.unauthorized('Unauthorized access');
@@ -100,11 +103,11 @@ export class AuditsService {
     return await Audit.commentUpdate(param.auditId, param.body);
   }
 
-  async baseAuditList(param: { query: any; baseId: any }) {
-    return await Audit.baseAuditList(param.baseId, param.query);
+  async baseAuditList(param: { query: any; sourceId: any }) {
+    return await Audit.baseAuditList(param.sourceId, param.query);
   }
 
-  async baseAuditCount(param: { baseId: string }) {
-    return await Audit.baseAuditCount(param.baseId);
+  async baseAuditCount(param: { sourceId: string }) {
+    return await Audit.baseAuditCount(param.sourceId);
   }
 }

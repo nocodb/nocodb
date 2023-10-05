@@ -9,6 +9,7 @@ const { onViewsTabChange } = useViewsStore()
 <template>
   <div class="flex flex-row p-1 mx-3 mt-3 mb-3 bg-gray-100 rounded-lg gap-x-0.5 nc-view-sidebar-tab">
     <div
+      v-e="['c:project:mode:data']"
       class="tab"
       :class="{
         active: openedViewsTab === 'view',
@@ -17,14 +18,15 @@ const { onViewsTabChange } = useViewsStore()
     >
       <GeneralViewIcon v-if="activeView?.type" class="tab-icon" :meta="{ type: activeView?.type }" ignore-color />
       <GeneralLoader v-else class="tab-icon" />
-      <div class="tab-title nc-tab">Data</div>
+      <div class="tab-title nc-tab">{{ $t('general.data') }}</div>
     </div>
     <div
+      v-e="['c:project:mode:details']"
       class="tab"
       :class="{
         active: openedViewsTab !== 'view',
       }"
-      @click="onViewsTabChange(isEeUI ? 'field' : 'relation')"
+      @click="onViewsTabChange('field')"
     >
       <GeneralIcon
         icon="erd"
@@ -34,7 +36,7 @@ const { onViewsTabChange } = useViewsStore()
           fontWeight: 500,
         }"
       />
-      <div class="tab-title nc-tab">Details</div>
+      <div class="tab-title nc-tab">{{ $t('general.details') }}</div>
     </div>
   </div>
 </template>

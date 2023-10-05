@@ -4,17 +4,17 @@ import getPaths from './getPaths';
 import getSchemas from './getSchemas';
 import getSwaggerColumnMetas from './getSwaggerColumnMetas';
 import type {
+  Base,
   FormViewColumn,
   GalleryViewColumn,
   GridViewColumn,
   Model,
-  Project,
   View,
 } from '~/models';
 import Noco from '~/Noco';
 
 export default async function getSwaggerJSON(
-  project: Project,
+  base: Base,
   models: Model[],
   ncMeta = Noco.ncMeta,
 ) {
@@ -34,7 +34,7 @@ export default async function getSwaggerJSON(
 
     const columns = await getSwaggerColumnMetas(
       await model.getColumns(ncMeta),
-      project,
+      base,
       ncMeta,
     );
 
@@ -50,12 +50,9 @@ export default async function getSwaggerJSON(
 
     // skip mm tables
     if (!model.mm)
-      paths = await getPaths({ project, model, columns, views }, ncMeta);
+      paths = await getPaths({ base, model, columns, views }, ncMeta);
 
-    const schemas = await getSchemas(
-      { project, model, columns, views },
-      ncMeta,
-    );
+    const schemas = await getSchemas({ base, model, columns, views }, ncMeta);
 
     Object.assign(swaggerObj.paths, paths);
     Object.assign(swaggerObj.components.schemas, schemas);

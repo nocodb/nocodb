@@ -2,7 +2,7 @@ import 'mocha';
 import request from 'supertest';
 import { expect } from 'chai';
 import { Exception } from 'handlebars';
-import { createProject } from '../../factory/project';
+import { createProject } from '../../factory/base';
 import { createLayout } from '../../factory/layout';
 import init from '../../init';
 import { Layout } from '../../../../src/models';
@@ -28,7 +28,7 @@ function layoutTests() {
     });
     layout = await createLayout(context, dashboard, {
       title: 'Layout1',
-      project_id: dashboard.id,
+      base_id: dashboard.id,
     });
     console.timeEnd('#### layoutTests');
   });
@@ -40,7 +40,7 @@ function layoutTests() {
         .set('xc-auth', context.token)
         .send({
           title: 'Layout2',
-          project_id: dashboard.id,
+          base_id: dashboard.id,
         })
         .expect(200);
 
@@ -54,7 +54,7 @@ function layoutTests() {
         .set('xc-auth', context.token)
         .send({
           title: 'NewTitle',
-          project_id: dashboard.id,
+          base_id: dashboard.id,
         })
         .expect(200);
 
@@ -98,7 +98,7 @@ function layoutTests() {
 //       .set('xc-auth', context.token)
 //       .send({
 //         title: 'Layout1',
-//         project_id: dashboard.id,
+//         base_id: dashboard.id,
 //       })
 //       .expect(400);
 
@@ -107,7 +107,7 @@ function layoutTests() {
 //   return new Error('Wrong api response');
 // }
 
-// const tables = await getAllTables({ project });
+// const tables = await getAllTables({ base });
 // if (tables.length !== 1) {
 //   return new Error('Tables should not be created');
 // }

@@ -10,6 +10,7 @@ import {
   computed,
   iconMap,
   inject,
+  onMounted,
   ref,
   useNuxtApp,
   useViewFilters,
@@ -42,9 +43,11 @@ const { nestedLevel, parentId, autoSave, hookId, modelValue, showLoading, webHoo
 
 const nested = computed(() => nestedLevel.value > 0)
 
+const { t } = useI18n()
+
 const logicalOps = [
-  { value: 'and', text: 'AND' },
-  { value: 'or', text: 'OR' },
+  { value: 'and', text: t('general.and') },
+  { value: 'or', text: t('general.or') },
 ]
 
 const meta = inject(MetaInj, ref())
@@ -68,6 +71,8 @@ const {
   saveOrUpdateDebounced,
   isComparisonOpAllowed,
   isComparisonSubOpAllowed,
+  loadBtLookupTypes,
+  btLookupTypesMap,
 } = useViewFilters(
   activeView,
   parentId?.value,
@@ -86,7 +91,8 @@ const addFiltersRowDomRef = ref<HTMLElement>()
 const columns = computed(() => meta.value?.columns)
 
 const getColumn = (filter: Filter) => {
-  return columns.value?.find((col: ColumnType) => col.id === filter.fk_column_id)
+  // extract looked up column if available
+  return btLookupTypesMap.value[filter.fk_column_id] || columns.value?.find((col: ColumnType) => col.id === filter.fk_column_id)
 }
 
 const filterPrevComparisonOp = ref<Record<string, string>>({})
@@ -289,6 +295,10 @@ const showFilterInput = (filter: Filter) => {
 onMounted(() => {
   loadFilters(hookId?.value)
 })
+
+onMounted(async () => {
+  await loadBtLookupTypes()
+})
 </script>
 
 <template>
@@ -315,6 +325,7 @@ onMounted(() => {
                 <div v-else :key="`${i}nested`" class="flex nc-filter-logical-op">
                   <NcSelect
                     v-model:value="filter.logical_op"
+                    v-e="['c:filter:logical-op:select']"
                     :dropdown-match-select-width="false"
                     class="min-w-20 capitalize"
                     placeholder="Group op"
@@ -332,6 +343,7 @@ onMounted(() => {
                 <NcButton
                   v-if="!filter.readOnly"
                   :key="i"
+                  v-e="['c:filter:delete']"
                   type="text"
                   size="small"
                   class="nc-filter-item-remove-btn cursor-pointer"
@@ -360,6 +372,7 @@ onMounted(() => {
             <NcSelect
               v-else
               v-model:value="filter.logical_op"
+              v-e="['c:filter:logical-op:select']"
               :dropdown-match-select-width="false"
               class="h-full !min-w-20 !max-w-20 capitalize"
               hide-details
@@ -385,6 +398,7 @@ onMounted(() => {
             />
             <NcSelect
               v-model:value="filter.comparison_op"
+              v-e="['c:filter:comparison-op:select']"
               :dropdown-match-select-width="false"
               class="caption nc-filter-operation-select !min-w-26.75 !max-w-26.75 max-h-8"
               :placeholder="$t('labels.operation')"
@@ -406,6 +420,7 @@ onMounted(() => {
             <NcSelect
               v-else-if="[UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt)"
               v-model:value="filter.comparison_sub_op"
+              v-e="['c:filter:sub-comparison-op:select']"
               :dropdown-match-select-width="false"
               class="caption nc-filter-sub_operation-select min-w-28"
               :class="{ 'flex-grow w-full': !showFilterInput(filter), 'max-w-28': showFilterInput(filter) }"
@@ -443,6 +458,7 @@ onMounted(() => {
 
             <NcButton
               v-if="!filter.readOnly"
+              v-e="['c:filter:delete']"
               type="text"
               size="small"
               class="nc-filter-item-remove-btn self-center"
@@ -480,7 +496,7 @@ onMounted(() => {
         'ml-0.5': !nested,
       }"
     >
-      No filters added
+      {{ $t('title.noFiltersAdded') }}
     </div>
 
     <slot />
@@ -497,5 +513,9 @@ onMounted(() => {
 
 :deep(.ant-select-item-option) {
   @apply "!min-w-full";
+}
+
+:deep(.ant-select-selector) {
+  @apply !min-h-8.25;
 }
 </style>

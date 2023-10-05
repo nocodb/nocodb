@@ -106,7 +106,12 @@ watch(open, () => {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-sort-menu nc-toolbar-dropdown">
+  <NcDropdown
+    v-model:visible="open"
+    :trigger="['click']"
+    class="!xs:hidden"
+    overlay-class-name="nc-dropdown-sort-menu nc-toolbar-dropdown"
+  >
     <div :class="{ 'nc-active-btn': sorts?.length }">
       <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-2">
@@ -123,7 +128,7 @@ watch(open, () => {
       <SmartsheetToolbarCreateSort v-if="!sorts.length" :is-parent-open="open" @created="addSort" />
       <div
         v-else
-        :class="{ ' min-w-102': sorts.length }"
+        :class="{ 'min-w-102': sorts.length }"
         class="py-6 pl-6 nc-filter-list max-h-[max(80vh,30rem)]"
         data-testid="nc-sorts-menu"
       >
@@ -153,13 +158,20 @@ watch(open, () => {
               <a-select-option
                 v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(sort.fk_column_id))"
                 :key="j"
+                v-e="['c:sort:operation:select']"
                 :value="option.value"
               >
                 <span>{{ option.text }}</span>
               </a-select-option>
             </NcSelect>
 
-            <NcButton type="text" size="small" class="nc-sort-item-remove-btn !max-w-8" @click.stop="deleteSort(sort, i)">
+            <NcButton
+              v-e="['c:sort:delete']"
+              type="text"
+              size="small"
+              class="nc-sort-item-remove-btn !max-w-8"
+              @click.stop="deleteSort(sort, i)"
+            >
               <component :is="iconMap.deleteListItem" />
             </NcButton>
           </template>
@@ -171,7 +183,7 @@ watch(open, () => {
           :trigger="['click']"
           overlay-class-name="nc-toolbar-dropdown"
         >
-          <NcButton class="!text-brand-500" type="text" size="small" @click.stop="showCreateSort = true">
+          <NcButton v-e="['c:sort:add']" class="!text-brand-500" type="text" size="small" @click.stop="showCreateSort = true">
             <div class="flex gap-1 items-center">
               <component :is="iconMap.plus" />
               <!-- Add Sort Option -->

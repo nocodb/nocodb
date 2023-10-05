@@ -21,7 +21,7 @@ const tab = computed({
   },
 })
 
-const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color || stringToColour(workspace.id!)
+const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color || stringToColor(workspace.id!)
 
 watch(
   () => activeWorkspace.value?.title,

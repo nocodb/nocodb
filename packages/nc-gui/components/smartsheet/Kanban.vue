@@ -679,7 +679,7 @@ watch(
         <template v-if="!isLocked && !isPublic && hasEditPermission" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
             <a-menu-item v-if="contextMenuTarget" @click="expandForm(contextMenuTarget)">
-              <div v-e="['a:kanban:expand-record']" class="nc-project-menu-item nc-kanban-context-menu-item">
+              <div v-e="['a:kanban:expand-record']" class="nc-base-menu-item nc-kanban-context-menu-item">
                 <component :is="iconMap.expand" class="flex" />
                 <!-- Expand Record -->
                 {{ $t('activity.expandRecord') }}
@@ -687,7 +687,7 @@ watch(
             </a-menu-item>
             <a-divider class="!m-0 !p-0" />
             <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget)">
-              <div v-e="['a:kanban:delete-record']" class="nc-project-menu-item nc-kanban-context-menu-item">
+              <div v-e="['a:kanban:delete-record']" class="nc-base-menu-item nc-kanban-context-menu-item">
                 <component :is="iconMap.delete" class="flex" />
                 <!-- Delete Record -->
                 {{ $t('activity.deleteRecord') }}

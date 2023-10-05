@@ -4,7 +4,7 @@ import BasePage from '../../Base';
 import { ViewTypes } from 'nocodb-sdk';
 
 export class ViewSidebarPage extends BasePage {
-  readonly project: any;
+  readonly base: any;
 
   readonly dashboard: DashboardPage;
   readonly createGalleryButton: Locator;
@@ -127,14 +127,16 @@ export class ViewSidebarPage extends BasePage {
       .locator('.nc-sidebar-view-node-context-btn')
       .click();
 
+    await this.rootPage.waitForTimeout(750);
+
     await this.rootPage
       .locator(`[data-testid="view-sidebar-view-actions-${title}"]`)
-      .locator('.nc-view-delete-icon')
+      .locator('.ant-dropdown-menu-title-content:has-text("Delete")')
       .click({
         force: true,
       });
 
-    await this.rootPage.locator('button:has-text("Delete View"):visible').click();
+    await this.rootPage.getByTestId('nc-delete-modal-delete-btn').click();
   }
 
   async renameView({ title, newTitle }: { title: string; newTitle: string }) {
@@ -158,10 +160,10 @@ export class ViewSidebarPage extends BasePage {
         force: true,
       });
     const submitAction = () =>
-      this.rootPage.locator('.ant-modal-content').locator('button:has-text("Create View"):visible').click();
+      this.rootPage.locator('.ant-modal-content').locator('button:has-text("Create a View"):visible').click();
     await this.waitForResponse({
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: '/api/v1/db/meta/tables/',
+      requestUrlPathToMatch: '/api/v1/meta/tables/',
       uiAction: submitAction,
     });
     // await this.verifyToast({ message: 'View created successfully' });

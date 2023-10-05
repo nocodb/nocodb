@@ -5,14 +5,14 @@ import { MetaDataPage } from './Metadata';
 import { AuditPage } from './Audit';
 
 export class DataSourcePage extends BasePage {
-  readonly projectView: ProjectViewPage;
+  readonly baseView: ProjectViewPage;
   readonly databaseType: Locator;
   readonly metaData: MetaDataPage;
   readonly audit: AuditPage;
 
-  constructor(projectView: ProjectViewPage) {
-    super(projectView.rootPage);
-    this.projectView = projectView;
+  constructor(baseView: ProjectViewPage) {
+    super(baseView.rootPage);
+    this.baseView = baseView;
     this.databaseType = this.get().locator('.nc-extdb-db-type');
     this.metaData = new MetaDataPage(this);
     this.audit = new AuditPage(this);

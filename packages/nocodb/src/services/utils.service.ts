@@ -7,7 +7,7 @@ import type { AppConfig } from '~/interface/config';
 import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
-import { Project, User } from '~/models';
+import { Base, User } from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
@@ -40,8 +40,8 @@ interface ViewCount {
 }
 
 interface AllMeta {
-  projectCount: number;
-  projects: (
+  baseCount: number;
+  bases: (
     | {
         external?: boolean | null;
         tableCount: {
@@ -200,23 +200,23 @@ export class UtilsService {
   }
 
   async aggregatedMetaInfo() {
-    const [projects, userCount] = await Promise.all([
-      Project.list({}),
+    const [bases, userCount] = await Promise.all([
+      Base.list({}),
       Noco.ncMeta.metaCount(null, null, MetaTable.USERS),
     ]);
 
     const result: AllMeta = {
-      projectCount: projects.length,
-      projects: [],
+      baseCount: bases.length,
+      bases: [],
       userCount,
       sharedBaseCount: 0,
     };
 
-    result.projects.push(
+    result.bases.push(
       ...this.extractResultOrNull(
         await Promise.allSettled(
-          projects.map(async (project) => {
-            if (project.uuid) result.sharedBaseCount++;
+          bases.map(async (base) => {
+            if (base.uuid) result.sharedBaseCount++;
             const [
               tableCount,
               dbViewCount,
@@ -229,13 +229,13 @@ export class UtilsService {
             ] = this.extractResultOrNull(
               await Promise.allSettled([
                 // db tables  count
-                Noco.ncMeta.metaCount(project.id, null, MetaTable.MODELS, {
+                Noco.ncMeta.metaCount(base.id, null, MetaTable.MODELS, {
                   condition: {
                     type: 'table',
                   },
                 }),
                 // db views count
-                Noco.ncMeta.metaCount(project.id, null, MetaTable.MODELS, {
+                Noco.ncMeta.metaCount(base.id, null, MetaTable.MODELS, {
                   condition: {
                     type: 'view',
                   },
@@ -243,7 +243,7 @@ export class UtilsService {
                 // views count
                 (async () => {
                   const views = await Noco.ncMeta.metaList2(
-                    project.id,
+                    base.id,
                     null,
                     MetaTable.VIEWS,
                   );
@@ -293,27 +293,27 @@ export class UtilsService {
                   );
                 })(),
                 // webhooks count
-                Noco.ncMeta.metaCount(project.id, null, MetaTable.HOOKS),
+                Noco.ncMeta.metaCount(base.id, null, MetaTable.HOOKS),
                 // filters count
-                Noco.ncMeta.metaCount(project.id, null, MetaTable.FILTER_EXP),
+                Noco.ncMeta.metaCount(base.id, null, MetaTable.FILTER_EXP),
                 // sorts count
-                Noco.ncMeta.metaCount(project.id, null, MetaTable.SORT),
+                Noco.ncMeta.metaCount(base.id, null, MetaTable.SORT),
                 // row count per base
-                project.getBases().then(async (bases) => {
+                base.getBases().then(async (sources) => {
                   return this.extractResultOrNull(
                     await Promise.allSettled(
-                      bases.map(async (base) =>
-                        (await NcConnectionMgrv2.getSqlClient(base))
+                      sources.map(async (source) =>
+                        (await NcConnectionMgrv2.getSqlClient(source))
                           .totalRecords?.()
                           ?.then((result) => result?.data),
                       ),
                     ),
                   );
                 }),
-                // project users count
+                // base users count
                 Noco.ncMeta.metaCount(null, null, MetaTable.PROJECT_USERS, {
                   condition: {
-                    project_id: project.id,
+                    base_id: base.id,
                   },
                   aggField: '*',
                 }),
@@ -322,7 +322,7 @@ export class UtilsService {
 
             return {
               tableCount: { table: tableCount, view: dbViewCount },
-              external: !project.is_meta,
+              external: !base.is_meta,
               viewCount,
               webhookCount,
               filterCount,
@@ -353,7 +353,7 @@ export class UtilsService {
   }
 
   async appInfo(param: { req: { ncSiteUrl: string } }) {
-    const projectHasAdmin = !(await User.isFirst());
+    const baseHasAdmin = !(await User.isFirst());
     const oidcAuthEnabled = !!(
       process.env.NC_OIDC_ISSUER &&
       process.env.NC_OIDC_AUTHORIZATION_URL &&
@@ -368,8 +368,8 @@ export class UtilsService {
 
     const result = {
       authType: 'jwt',
-      projectHasAdmin,
-      firstUser: !projectHasAdmin,
+      baseHasAdmin,
+      firstUser: !baseHasAdmin,
       type: 'rest',
       env: process.env.NODE_ENV,
       googleAuthEnabled: !!(

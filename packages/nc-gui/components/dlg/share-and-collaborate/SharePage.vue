@@ -268,8 +268,9 @@ const isPublicShareDisabled = computed(() => {
   <div class="flex flex-col py-2 px-3 mb-1">
     <div class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-gray-200 border-1 rounded-md gap-y-2">
       <div class="flex flex-row w-full justify-between py-0.5">
-        <div class="flex" :style="{ fontWeight: 500 }">Enable public viewing</div>
+        <div class="flex" :style="{ fontWeight: 500 }">{{ $t('activity.enabledPublicViewing') }}</div>
         <a-switch
+          v-e="['c:share:view:enable:toggle']"
           data-testid="share-view-toggle"
           :checked="isPublicShared"
           :loading="isUpdating.public"
@@ -284,8 +285,9 @@ const isPublicShareDisabled = computed(() => {
         </div>
         <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
           <div class="flex flex-row justify-between">
-            <div class="flex text-black">Restrict access with password</div>
+            <div class="flex text-black">{{ $t('activity.restrictAccessWithPassword') }}</div>
             <a-switch
+              v-e="['c:share:view:password:toggle']"
               data-testid="share-password-toggle"
               :checked="passwordProtected"
               :loading="isUpdating.password"
@@ -317,9 +319,10 @@ const isPublicShareDisabled = computed(() => {
             "
             class="flex flex-row justify-between"
           >
-            <div class="flex text-black">Allow Download</div>
+            <div class="flex text-black">{{ $t('activity.allowDownload') }}</div>
             <a-switch
               v-model:checked="allowCSVDownload"
+              v-e="['c:share:view:allow-csv-download:toggle']"
               data-testid="share-download-toggle"
               :loading="isUpdating.download"
               class="public-password-toggle !mt-0.25"
@@ -328,23 +331,32 @@ const isPublicShareDisabled = computed(() => {
 
           <div v-if="activeView?.type === ViewTypes.FORM" class="flex flex-row justify-between">
             <!-- use RTL orientation in form - todo: i18n -->
-            <div class="text-black">Survey Mode</div>
-            <a-switch v-model:checked="surveyMode" data-testid="nc-modal-share-view__surveyMode">
+            <div class="text-black">{{ $t('activity.surveyMode') }}</div>
+            <a-switch
+              v-model:checked="surveyMode"
+              v-e="['c:share:view:surver-mode:toggle']"
+              data-testid="nc-modal-share-view__surveyMode"
+            >
               <!-- todo i18n -->
             </a-switch>
           </div>
-          <div v-if="activeView?.type === ViewTypes.FORM" class="flex flex-row justify-between">
+          <div v-if="activeView?.type === ViewTypes.FORM && isEeUI" class="flex flex-row justify-between">
             <!-- use RTL orientation in form - todo: i18n -->
-            <div class="text-black">RTL Orientation</div>
-            <a-switch v-model:checked="withRTL" data-testid="nc-modal-share-view__RTL">
+            <div class="text-black">{{ $t('activity.rtlOrientation') }}</div>
+            <a-switch
+              v-model:checked="withRTL"
+              v-e="['c:share:view:rtl-orientation:toggle']"
+              data-testid="nc-modal-share-view__RTL"
+            >
               <!-- todo i18n -->
             </a-switch>
           </div>
           <div v-if="activeView?.type === ViewTypes.FORM" class="flex flex-col justify-between gap-y-1 bg-gray-50 rounded-md">
             <!-- todo: i18n -->
             <div class="flex flex-row justify-between">
-              <div class="text-black">Use Theme</div>
+              <div class="text-black">{{ $t('activity.useTheme') }}</div>
               <a-switch
+                v-e="['c:share:view:theme:toggle']"
                 data-testid="share-theme-toggle"
                 :checked="viewTheme"
                 :loading="isUpdating.password"
@@ -359,7 +371,7 @@ const isPublicShareDisabled = computed(() => {
                   data-testid="nc-modal-share-view__theme-picker"
                   class="!p-0 !bg-inherit"
                   :model-value="activeView?.meta?.theme?.primaryColor"
-                  :colors="projectThemeColors"
+                  :colors="baseThemeColors"
                   :row-size="9"
                   :advanced="false"
                   @input="onChangeTheme"

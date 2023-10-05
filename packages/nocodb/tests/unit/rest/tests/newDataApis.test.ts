@@ -86,7 +86,7 @@ import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import request from 'supertest';
 import init from '../../init';
-import { createProject, createSakilaProject } from '../../factory/project';
+import { createProject, createSakilaProject } from '../../factory/base';
 import { createTable, getTable } from '../../factory/table';
 import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
 import {
@@ -99,18 +99,18 @@ import { createView, updateView } from '../../factory/view';
 
 import { isPg } from '../../init/db';
 import type { ColumnType } from 'nocodb-sdk';
-import type Project from '../../../../src/models/Project';
+import type Base from '~/models/Base';
 import type Model from '../../../../src/models/Model';
 
 const debugMode = false;
 
 let context;
-let project: Project;
+let base: Base;
 let table: Model;
 let columns: any[];
 let insertedRecords: any[] = [];
 
-let sakilaProject: Project;
+let sakilaProject: Base;
 let customerTable: Model;
 let customerColumns;
 let actorTable: Model;
@@ -151,6 +151,7 @@ async function ncAxiosGet({
   expect(response.status).to.equal(status);
   return response;
 }
+
 async function ncAxiosPost({
   url = `/api/v1/tables/${table.id}/rows`,
   body = {},
@@ -163,6 +164,7 @@ async function ncAxiosPost({
   expect(response.status).to.equal(status);
   return response;
 }
+
 async function ncAxiosPatch({
   url = `/api/v1/tables/${table.id}/rows`,
   body = {},
@@ -175,6 +177,7 @@ async function ncAxiosPatch({
   expect(response.status).to.equal(status);
   return response;
 }
+
 async function ncAxiosDelete({
   url = `/api/v1/tables/${table.id}/rows`,
   body = {},
@@ -215,6 +218,7 @@ async function ncAxiosLinkGet({
 
   return response;
 }
+
 async function ncAxiosLinkAdd({
   urlParams: { tableId, linkId, rowId },
   body = {},
@@ -241,6 +245,7 @@ async function ncAxiosLinkAdd({
 
   return response;
 }
+
 async function ncAxiosLinkRemove({
   urlParams: { tableId, linkId, rowId },
   body = {},
@@ -273,28 +278,28 @@ function generalDb() {
     context = await init();
 
     sakilaProject = await createSakilaProject(context);
-    project = await createProject(context);
+    base = await createProject(context);
 
     customerTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'customer',
     });
     customerColumns = await customerTable.getColumns();
 
     actorTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'actor',
     });
     actorColumns = await actorTable.getColumns();
 
     countryTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'country',
     });
     countryColumns = await countryTable.getColumns();
 
     cityTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'city',
     });
     cityColumns = await cityTable.getColumns();
@@ -302,7 +307,6 @@ function generalDb() {
 
   it('Nested List - Link to another record', async function () {
     const expectedRecords = [1, 3, 1, 2];
-    const expectedRecordsPg = ['1', '3', '1', '2'];
 
     // read first 4 records
     const records = await ncAxiosGet({
@@ -315,13 +319,12 @@ function generalDb() {
 
     // extract LTAR column "City List"
     const cityList = records.body.list.map((r) => r['Cities']);
-    if (isPg(context)) expect(cityList).to.deep.equal(expectedRecordsPg);
-    else expect(cityList).to.deep.equal(expectedRecords);
+    expect(cityList).to.deep.equal(expectedRecords);
   });
 
   it('Nested List - Lookup', async function () {
     const lookupColumn = await createLookupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'Lookup',
       table: countryTable,
       relatedTableName: cityTable.table_name,
@@ -351,7 +354,7 @@ function generalDb() {
 
   it('Nested List - Rollup', async function () {
     const rollupColumn = await createRollupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'Rollup',
       table: countryTable,
       relatedTableName: cityTable.table_name,
@@ -360,7 +363,6 @@ function generalDb() {
     });
 
     const expectedRecords = [1, 3, 1, 2];
-    const expectedRecordsPg = ['1', '3', '1', '2'];
 
     // read first 4 records
     const records = await ncAxiosGet({
@@ -373,11 +375,8 @@ function generalDb() {
 
     // extract Lookup column
     const rollupData = records.body.list.map((record) => record.Rollup);
-    if (isPg(context)) {
-      expect(rollupData).to.deep.equal(expectedRecordsPg);
-    } else {
-      expect(rollupData).to.deep.equal(expectedRecords);
-    }
+
+    expect(rollupData).to.deep.equal(expectedRecords);
   });
 
   it('Nested Read - Link to another record', async function () {
@@ -391,7 +390,7 @@ function generalDb() {
 
   it('Nested Read - Lookup', async function () {
     const lookupColumn = await createLookupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'Lookup',
       table: countryTable,
       relatedTableName: cityTable.table_name,
@@ -406,7 +405,7 @@ function generalDb() {
 
   it('Nested Read - Rollup', async function () {
     const rollupColumn = await createRollupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'Rollup',
       table: countryTable,
       relatedTableName: cityTable.table_name,
@@ -417,11 +416,8 @@ function generalDb() {
     const records = await ncAxiosGet({
       url: `/api/v1/tables/${countryTable.id}/rows/1`,
     });
-    if (isPg(context)) {
-      expect(records.body.Rollup).to.equal('1');
-    } else {
-      expect(records.body.Rollup).to.equal(1);
-    }
+
+    expect(records.body.Rollup).to.equal(1);
   });
 }
 
@@ -429,8 +425,8 @@ function textBased() {
   // prepare data for test cases
   beforeEach(async function () {
     context = await init(false);
-    project = await createProject(context);
-    table = await createTable(context, project, {
+    base = await createProject(context);
+    table = await createTable(context, base, {
       table_name: 'textBased',
       title: 'TextBased',
       columns: customColumns('textBased'),
@@ -455,13 +451,13 @@ function textBased() {
     // insert records
     // creating bulk records using older set of APIs
     await createBulkRows(context, {
-      project,
+      base,
       table,
       values: rowAttributes,
     });
 
     // retrieve inserted records
-    insertedRecords = await listRow({ project, table });
+    insertedRecords = await listRow({ base, table });
 
     // verify length of unfiltered records to be 400
     expect(insertedRecords.length).to.equal(400);
@@ -1097,8 +1093,8 @@ function numberBased() {
   // prepare data for test cases
   beforeEach(async function () {
     context = await init();
-    project = await createProject(context);
-    table = await createTable(context, project, {
+    base = await createProject(context);
+    table = await createTable(context, base, {
       table_name: 'numberBased',
       title: 'numberBased',
       columns: customColumns('numberBased'),
@@ -1123,13 +1119,13 @@ function numberBased() {
 
     // insert records
     await createBulkRows(context, {
-      project,
+      base,
       table,
       values: rowAttributes,
     });
 
     // retrieve inserted records
-    insertedRecords = await listRow({ project, table });
+    insertedRecords = await listRow({ base, table });
 
     // verify length of unfiltered records to be 400
     expect(insertedRecords.length).to.equal(400);
@@ -1228,99 +1224,6 @@ function numberBased() {
     },
   ];
 
-  const recordsPg = [
-    {
-      Id: 1,
-      Number: '33',
-      Decimal: '33.3',
-      Currency: '33.3',
-      Percent: 33,
-      Duration: '10',
-      Rating: 0,
-    },
-    {
-      Id: 2,
-      Number: null,
-      Decimal: '456.34',
-      Currency: '456.34',
-      Percent: null,
-      Duration: '20',
-      Rating: 1,
-    },
-    {
-      Id: 3,
-      Number: '456',
-      Decimal: '333.3',
-      Currency: '333.3',
-      Percent: 456,
-      Duration: '30',
-      Rating: 2,
-    },
-    {
-      Id: 4,
-      Number: '333',
-      Decimal: null,
-      Currency: null,
-      Percent: 333,
-      Duration: '40',
-      Rating: 3,
-    },
-    {
-      Id: 5,
-      Number: '267',
-      Decimal: '267.5674',
-      Currency: '267.5674',
-      Percent: 267,
-      Duration: '50',
-      Rating: null,
-    },
-    {
-      Id: 6,
-      Number: '34',
-      Decimal: '34',
-      Currency: '34',
-      Percent: 34,
-      Duration: '60',
-      Rating: 0,
-    },
-    {
-      Id: 7,
-      Number: '8754',
-      Decimal: '8754',
-      Currency: '8754',
-      Percent: 8754,
-      Duration: null,
-      Rating: 4,
-    },
-    {
-      Id: 8,
-      Number: '3234',
-      Decimal: '3234.547',
-      Currency: '3234.547',
-      Percent: 3234,
-      Duration: '70',
-      Rating: 5,
-    },
-    {
-      Id: 9,
-      Number: '44',
-      Decimal: '44.2647',
-      Currency: '44.2647',
-      Percent: 44,
-      Duration: '80',
-      Rating: 0,
-    },
-    {
-      Id: 10,
-      Number: '33',
-      Decimal: '33.98',
-      Currency: '33.98',
-      Percent: 33,
-      Duration: '90',
-      Rating: 1,
-    },
-  ];
-
   it('Number based- List & CRUD', async function () {
     // list 10 records
     let rsp = await ncAxiosGet({
@@ -1336,11 +1239,7 @@ function numberBased() {
       isLastPage: false,
     };
     expect(rsp.body.pageInfo).to.deep.equal(pageInfo);
-    if (isPg(context)) {
-      expect(rsp.body.list).to.deep.equal(recordsPg);
-    } else {
-      expect(rsp.body.list).to.deep.equal(records);
-    }
+    expect(rsp.body.list).to.deep.equal(records);
 
     ///////////////////////////////////////////////////////////////////////////
 
@@ -1364,11 +1263,7 @@ function numberBased() {
     rsp = await ncAxiosGet({
       url: `/api/v1/tables/${table.id}/rows/401`,
     });
-    if (isPg(context)) {
-      expect(rsp.body).to.deep.equal({ ...recordsPg[0], Id: 401 });
-    } else {
-      expect(rsp.body).to.deep.equal({ ...records[0], Id: 401 });
-    }
+    expect(rsp.body).to.deep.equal({ ...records[0], Id: 401 });
 
     ///////////////////////////////////////////////////////////////////////////
 
@@ -1379,14 +1274,6 @@ function numberBased() {
       Currency: 55.5,
       Percent: 55,
       Duration: 55,
-      Rating: 5,
-    };
-    const updatedRecordPg = {
-      Number: '55',
-      Decimal: '55.5',
-      Currency: '55.5',
-      Percent: 55,
-      Duration: '55',
       Rating: 5,
     };
 
@@ -1408,25 +1295,6 @@ function numberBased() {
         ...updatedRecord,
       },
     ];
-    const updatedRecordsPg = [
-      {
-        Id: 401,
-        ...updatedRecordPg,
-      },
-      {
-        Id: 402,
-        ...updatedRecordPg,
-      },
-      {
-        Id: 403,
-        ...updatedRecordPg,
-      },
-      {
-        Id: 404,
-        ...updatedRecordPg,
-      },
-    ];
-
     rsp = await ncAxiosPatch({
       body: updatedRecords,
     });
@@ -1441,11 +1309,8 @@ function numberBased() {
         offset: 400,
       },
     });
-    if (isPg(context)) {
-      expect(rsp.body.list).to.deep.equal(updatedRecordsPg);
-    } else {
-      expect(rsp.body.list).to.deep.equal(updatedRecords);
-    }
+
+    expect(rsp.body.list).to.deep.equal(updatedRecords);
 
     ///////////////////////////////////////////////////////////////////////////
 
@@ -1463,8 +1328,8 @@ function selectBased() {
   // prepare data for test cases
   beforeEach(async function () {
     context = await init();
-    project = await createProject(context);
-    table = await createTable(context, project, {
+    base = await createProject(context);
+    table = await createTable(context, base, {
       table_name: 'selectBased',
       title: 'selectBased',
       columns: customColumns('selectBased'),
@@ -1485,13 +1350,13 @@ function selectBased() {
 
     // insert records
     await createBulkRows(context, {
-      project,
+      base,
       table,
       values: rowAttributes,
     });
 
     // retrieve inserted records
-    insertedRecords = await listRow({ project, table });
+    insertedRecords = await listRow({ base, table });
 
     // verify length of unfiltered records to be 400
     expect(insertedRecords.length).to.equal(400);
@@ -1648,8 +1513,8 @@ function dateBased() {
   // prepare data for test cases
   beforeEach(async function () {
     context = await init();
-    project = await createProject(context);
-    table = await createTable(context, project, {
+    base = await createProject(context);
+    table = await createTable(context, base, {
       table_name: 'dateBased',
       title: 'dateBased',
       columns: customColumns('dateBased'),
@@ -1671,13 +1536,13 @@ function dateBased() {
 
     // insert records
     await createBulkRows(context, {
-      project,
+      base,
       table,
       values: rowAttributes,
     });
 
     // retrieve inserted records
-    insertedRecords = await listRow({ project, table });
+    insertedRecords = await listRow({ base, table });
 
     // verify length of unfiltered records to be 800
     expect(insertedRecords.length).to.equal(800);
@@ -1808,7 +1673,7 @@ function linkBased() {
   // prepare data for test cases
   beforeEach(async function () {
     context = await init();
-    project = await createProject(context);
+    base = await createProject(context);
 
     const columns = [
       {
@@ -1823,7 +1688,7 @@ function linkBased() {
       // Prepare City table
       columns[0].title = 'City';
       columns[0].column_name = 'City';
-      tblCity = await createTable(context, project, {
+      tblCity = await createTable(context, base, {
         title: 'City',
         table_name: 'City',
         columns: customColumns('custom', columns),
@@ -1832,17 +1697,17 @@ function linkBased() {
 
       // insert records
       await createBulkRows(context, {
-        project,
+        base,
         table: tblCity,
         values: cityRecords,
       });
 
-      insertedRecords = await listRow({ project, table: tblCity });
+      insertedRecords = await listRow({ base, table: tblCity });
 
       // Prepare Country table
       columns[0].title = 'Country';
       columns[0].column_name = 'Country';
-      tblCountry = await createTable(context, project, {
+      tblCountry = await createTable(context, base, {
         title: 'Country',
         table_name: 'Country',
         columns: customColumns('custom', columns),
@@ -1850,7 +1715,7 @@ function linkBased() {
       const countryRecords = await prepareRecords('Country', 100);
       // insert records
       await createBulkRows(context, {
-        project,
+        base,
         table: tblCountry,
         values: countryRecords,
       });
@@ -1858,14 +1723,14 @@ function linkBased() {
       // Prepare Actor table
       columns[0].title = 'Actor';
       columns[0].column_name = 'Actor';
-      tblActor = await createTable(context, project, {
+      tblActor = await createTable(context, base, {
         title: 'Actor',
         table_name: 'Actor',
         columns: customColumns('custom', columns),
       });
       const actorRecords = await prepareRecords('Actor', 100);
       await createBulkRows(context, {
-        project,
+        base,
         table: tblActor,
         values: actorRecords,
       });
@@ -1873,14 +1738,14 @@ function linkBased() {
       // Prepare Movie table
       columns[0].title = 'Film';
       columns[0].column_name = 'Film';
-      tblFilm = await createTable(context, project, {
+      tblFilm = await createTable(context, base, {
         title: 'Film',
         table_name: 'Film',
         columns: customColumns('custom', columns),
       });
       const filmRecords = await prepareRecords('Film', 100);
       await createBulkRows(context, {
-        project,
+        base,
         table: tblFilm,
         values: filmRecords,
       });

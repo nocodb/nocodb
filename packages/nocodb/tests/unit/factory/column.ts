@@ -6,7 +6,7 @@ import type Column from '../../../src/models/Column';
 import type FormViewColumn from '../../../src/models/FormViewColumn';
 import type GalleryViewColumn from '../../../src/models/GalleryViewColumn';
 import type GridViewColumn from '../../../src/models/GridViewColumn';
-import type Project from '../../../src/models/Project';
+import type Base from '~/models/Base';
 import type View from '../../../src/models/View';
 
 const defaultColumns = function (context) {
@@ -164,7 +164,7 @@ const customColumns = function (type: string, options: any = {}) {
 
 const createColumn = async (context, table, columnAttr) => {
   await request(context.app)
-    .post(`/api/v1/db/meta/tables/${table.id}/columns`)
+    .post(`/api/v1/meta/tables/${table.id}/columns`)
     .set('xc-auth', context.token)
     .send({
       ...columnAttr,
@@ -179,14 +179,14 @@ const createColumn = async (context, table, columnAttr) => {
 const createRollupColumn = async (
   context,
   {
-    project,
+    base,
     title,
     rollupFunction,
     table,
     relatedTableName,
     relatedTableColumnTitle,
   }: {
-    project: Project;
+    base: Base;
     title: string;
     rollupFunction: string;
     table: Model;
@@ -194,10 +194,10 @@ const createRollupColumn = async (
     relatedTableColumnTitle: string;
   },
 ) => {
-  const childBases = await project.getBases();
+  const childBases = await base.getBases();
   const childTable = await Model.getByIdOrName({
-    project_id: project.id,
-    base_id: childBases[0].id!,
+    base_id: base.id,
+    source_id: childBases[0].id!,
     table_name: relatedTableName,
   });
   const childTableColumns = await childTable.getColumns();
@@ -228,23 +228,25 @@ const createRollupColumn = async (
 const createLookupColumn = async (
   context,
   {
-    project,
+    base,
     title,
     table,
     relatedTableName,
     relatedTableColumnTitle,
+    relationColumnId,
   }: {
-    project: Project;
+    base: Base;
     title: string;
     table: Model;
     relatedTableName: string;
     relatedTableColumnTitle: string;
+    relationColumnId?: string;
   },
 ) => {
-  const childBases = await project.getBases();
+  const childBases = await base.getBases();
   const childTable = await Model.getByIdOrName({
-    project_id: project.id,
-    base_id: childBases[0].id!,
+    base_id: base.id,
+    source_id: childBases[0].id!,
     table_name: relatedTableName,
   });
   const childTableColumns = await childTable.getColumns();
@@ -258,12 +260,20 @@ const createLookupColumn = async (
     );
   }
 
-  const ltarColumn = (await table.getColumns()).find(
-    (column) =>
-      (column.uidt === UITypes.Links ||
-        column.uidt === UITypes.LinkToAnotherRecord) &&
-      column.colOptions?.fk_related_model_id === childTable.id,
-  );
+  let ltarColumn;
+  if (relationColumnId)
+    ltarColumn = (await table.getColumns()).find(
+      (column) => column.id === relationColumnId,
+    );
+  else {
+    ltarColumn = (await table.getColumns()).find(
+      (column) =>
+        (column.uidt === UITypes.Links ||
+          column.uidt === UITypes.LinkToAnotherRecord) &&
+        column.colOptions?.fk_related_model_id === childTable.id,
+    );
+  }
+
   const lookupColumn = await createColumn(context, table, {
     title: title,
     uidt: UITypes.Lookup,
@@ -363,7 +373,7 @@ const updateViewColumn = async (
   { view, column, attr }: { column: Column; view: View; attr: any },
 ) => {
   const res = await request(context.app)
-    .patch(`/api/v1/db/meta/views/${view.id}/columns/${column.id}`)
+    .patch(`/api/v1/meta/views/${view.id}/columns/${column.id}`)
     .set('xc-auth', context.token)
     .send({
       ...attr,

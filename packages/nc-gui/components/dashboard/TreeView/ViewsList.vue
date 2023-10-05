@@ -5,7 +5,6 @@ import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
 import {
-  isDefaultBase as _isDefaultBase,
   extractSdkResponseErrorMsg,
   message,
   onMounted,
@@ -16,7 +15,6 @@ import {
   useCommandPalette,
   useDialog,
   useNuxtApp,
-  useRouter,
   useUndoRedo,
   viewTypeAlias,
   watch,
@@ -29,21 +27,18 @@ interface Emits {
 }
 
 const emits = defineEmits<Emits>()
-const project = inject(ProjectInj)!
+const base = inject(ProjectInj)!
 const table = inject(SidebarTableInj)!
 
-const { isUIAllowed } = useRoles()
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
+const { isMobileMode } = useGlobal()
 
 const { $e } = useNuxtApp()
 
-const isDefaultBase = computed(() => {
-  const base = project.value?.bases?.find((b) => b.id === table.value.base_id)
-  if (!base) return false
+const { t } = useI18n()
 
-  return _isDefaultBase(base)
-})
-
-const { viewsByTable, activeView } = storeToRefs(useViewsStore())
+const { viewsByTable, activeView, recentViews } = storeToRefs(useViewsStore())
 
 const { navigateToTable } = useTablesStore()
 
@@ -55,7 +50,7 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineModelScope } = useUndoRedo()
 
-const { navigateToView, loadViews } = useViewsStore()
+const { navigateToView, loadViews, removeFromRecentViews } = useViewsStore()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -85,11 +80,11 @@ function markItem(id: string) {
 /** validate view title */
 function validate(view: ViewType) {
   if (!view.title || view.title.trim().length < 0) {
-    return 'View name is required'
+    return t('msg.error.viewNameRequired')
   }
 
   if (views.value.some((v) => v.title === view.title && v.id !== view.id)) {
-    return 'View name should be unique'
+    return t('msg.error.viewNameDuplicate')
   }
 
   return true
@@ -178,6 +173,7 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
 
 const initSortable = (el: HTMLElement) => {
   if (sortable) sortable.destroy()
+  if (isMobileMode.value) return
 
   sortable = new Sortable(el, {
     // handle: '.nc-drag-icon',
@@ -190,13 +186,18 @@ const initSortable = (el: HTMLElement) => {
 onMounted(() => menuRef.value && initSortable(menuRef.value.$el))
 
 /** Navigate to view by changing url param */
-function changeView(view: ViewType) {
-  navigateToView({
+async function changeView(view: ViewType) {
+  await navigateToView({
     view,
     tableId: table.value.id!,
-    projectId: project.value.id!,
+    baseId: base.value.id!,
     hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
+    doNotSwitchTab: true,
   })
+
+  if (isMobileMode.value) {
+    isLeftSidebarOpen.value = false
+  }
 }
 
 /** Rename a view */
@@ -210,7 +211,7 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
     navigateToView({
       view,
       tableId: table.value.id!,
-      projectId: project.value.id!,
+      baseId: base.value.id!,
       hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
     })
 
@@ -237,6 +238,13 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
         scope: defineModelScope({ view: activeView.value }),
       })
     }
+    // update view name in recent views
+    recentViews.value = recentViews.value.map((rv) => {
+      if (rv.viewId === view.id && rv.tableID === view.fk_model_id) {
+        rv.viewName = view.title
+      }
+      return rv
+    })
 
     // View renamed successfully
     // message.success(t('msg.success.viewRenamed'))
@@ -258,17 +266,26 @@ function openDeleteDialog(view: ViewType) {
 
       emits('deleted')
 
+      removeFromRecentViews({ viewId: view.id, tableId: view.fk_model_id, baseId: base.value.id })
       refreshCommandPalette()
       if (activeView.value?.id === view.id) {
         navigateToTable({
           tableId: table.value.id!,
-          projectId: project.value.id!,
+          baseId: base.value.id!,
         })
       }
 
       await loadViews({
         tableId: table.value.id!,
+        force: true,
       })
+
+      const activeNonDefaultViews = viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? []
+
+      table.value.meta = {
+        ...(table.value.meta as object),
+        hasNonDefaultViews: activeNonDefaultViews.length > 1,
+      }
     },
   })
 
@@ -324,12 +341,15 @@ function onOpenModal({
 
       refreshCommandPalette()
 
-      await loadViews()
+      await loadViews({
+        force: true,
+        tableId: table.value.id!,
+      })
 
       navigateToView({
         view,
         tableId: table.value.id!,
-        projectId: project.value.id!,
+        baseId: base.value.id!,
         hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
       })
 
@@ -346,29 +366,8 @@ function onOpenModal({
 </script>
 
 <template>
-  <DashboardTreeViewCreateViewBtn
-    v-if="isUIAllowed('viewCreateOrEdit')"
-    :overlay-class-name="isDefaultBase ? '!left-18 !min-w-42' : '!left-25 !min-w-42'"
-  >
-    <NcButton
-      type="text"
-      size="xsmall"
-      class="!w-full !py-0 !h-7 !text-gray-500 !hover:(bg-transparent font-normal text-brand-500) !font-normal !text-sm"
-      :centered="false"
-    >
-      <GeneralIcon
-        icon="plus"
-        class="mr-2"
-        :class="{
-          'ml-18.75': isDefaultBase,
-          'ml-24.25': !isDefaultBase,
-        }"
-      />
-      <span class="text-sm">New View</span>
-    </NcButton>
-  </DashboardTreeViewCreateViewBtn>
-
   <a-menu
+    v-if="views.length"
     ref="menuRef"
     :class="{ dragging }"
     class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"

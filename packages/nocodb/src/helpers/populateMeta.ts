@@ -5,8 +5,8 @@ import { isLinksOrLTAR } from 'nocodb-sdk';
 import { getUniqueColumnAliasName } from './getUniqueName';
 import type { RollupColumn } from '~/models';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
+import type Source from '~/models/Source';
 import type Base from '~/models/Base';
-import type Project from '~/models/Project';
 import type PGClient from '~/db/sql-client/lib/pg/PgClient';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import getColumnUiType from '~/helpers/getColumnUiType';
@@ -187,19 +187,19 @@ export async function extractAndGenerateManyToManyRelations(
   }
 }
 
-export async function populateMeta(base: Base, project: Project): Promise<any> {
+export async function populateMeta(source: Source, base: Base): Promise<any> {
   const info = {
     type: 'rest',
     apiCount: 0,
     tablesCount: 0,
     relationsCount: 0,
     viewsCount: 0,
-    client: (await base?.getConnectionConfig())?.client,
+    client: (await source?.getConnectionConfig())?.client,
     timeTaken: 0,
   };
 
   const t = process.hrtime();
-  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
   let order = 1;
   const models2: { [tableName: string]: Model } = {};
 
@@ -207,43 +207,43 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
 
   /* Get all relations */
   const relations = (
-    await sqlClient.relationListAll({ schema: base.getConfig()?.schema })
+    await sqlClient.relationListAll({ schema: source.getConfig()?.schema })
   )?.data?.list;
 
   info.relationsCount = relations.length;
 
   let tables = (
-    await sqlClient.tableList({ schema: base.getConfig()?.schema })
+    await sqlClient.tableList({ schema: source.getConfig()?.schema })
   )?.data?.list
     ?.filter(({ tn }) => !IGNORE_TABLES.includes(tn))
     ?.map((t) => {
       t.order = ++order;
-      t.title = getTableNameAlias(t.tn, project.prefix, base);
+      t.title = getTableNameAlias(t.tn, base.prefix, source);
       t.table_name = t.tn;
       return t;
     });
 
   /* filter based on prefix */
-  if (base.is_meta && project?.prefix) {
+  if (source.is_meta && base?.prefix) {
     tables = tables.filter((t) => {
-      return t?.tn?.startsWith(project?.prefix);
+      return t?.tn?.startsWith(base?.prefix);
     });
   }
 
   info.tablesCount = tables.length;
 
   tables.forEach((t) => {
-    t.title = getTableNameAlias(t.tn, project.prefix, base);
+    t.title = getTableNameAlias(t.tn, base.prefix, source);
   });
 
   relations.forEach((r) => {
-    r.title = getTableNameAlias(r.tn, project.prefix, base);
-    r.rtitle = getTableNameAlias(r.rtn, project.prefix, base);
+    r.title = getTableNameAlias(r.tn, base.prefix, source);
+    r.rtitle = getTableNameAlias(r.rtn, base.prefix, source);
   });
 
   let colMeta = null;
 
-  if (base.type === 'pg') {
+  if (source.type === 'pg') {
     colMeta = {
       format: (await (sqlClient as PGClient).getDefaultByteaOutputFormat())
         .data,
@@ -267,7 +267,7 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
       > = (
         await sqlClient.columnList({
           tn: table.tn,
-          schema: base.getConfig()?.schema,
+          schema: source.getConfig()?.schema,
         })
       )?.data?.list;
 
@@ -313,10 +313,10 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
         }),
       ];
 
-      // await Model.insert(project.id, base.id, meta);
+      // await Model.insert(base.id, base.id, meta);
 
       /* create nc_models and its rows if it doesn't exists  */
-      models2[table.table_name] = await Model.insert(project.id, base.id, {
+      models2[table.table_name] = await Model.insert(base.id, source.id, {
         table_name: table.tn || table.table_name,
         title: table.title,
         type: table.type || 'table',
@@ -330,10 +330,10 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
 
       for (const column of columns) {
         await Column.insert({
-          uidt: column.uidt || getColumnUiType(base, column),
+          uidt: column.uidt || getColumnUiType(source, column),
           fk_model_id: models2[table.tn].id,
           ...column,
-          title: getColumnNameAlias(column.cn, base),
+          title: getColumnNameAlias(column.cn, source),
           column_name: column.cn,
           order: colOrder++,
           // if postgres and bytea then add format to meta
@@ -367,8 +367,8 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
 
           try {
             await Column.insert<LinkToAnotherRecordColumn>({
-              project_id: project.id,
-              db_alias: base.id,
+              base_id: base.id,
+              db_alias: source.id,
               fk_model_id: models2[table.tn].id,
               cn: column.cn,
               title: column.title,
@@ -397,27 +397,27 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
   });
 
   /* handle xc_tables update in parallel */
-  await NcHelp.executeOperations(tableMetasInsert, base.type);
-  await NcHelp.executeOperations(virtualColumnsInsert, base.type);
+  await NcHelp.executeOperations(tableMetasInsert, source.type);
+  await NcHelp.executeOperations(virtualColumnsInsert, source.type);
   await extractAndGenerateManyToManyRelations(Object.values(models2));
 
   let views: Array<{ order: number; table_name: string; title: string }> = (
     await sqlClient.viewList({
-      schema: base.getConfig()?.schema,
+      schema: source.getConfig()?.schema,
     })
   )?.data?.list
     // ?.filter(({ tn }) => !IGNORE_TABLES.includes(tn))
     ?.map((v) => {
       v.order = ++order;
       v.table_name = v.view_name;
-      v.title = getTableNameAlias(v.view_name, project.prefix, base);
+      v.title = getTableNameAlias(v.view_name, base.prefix, source);
       return v;
     });
 
   /* filter based on prefix */
-  if (base.is_meta && project?.prefix) {
+  if (source.is_meta && base?.prefix) {
     views = tables.filter((t) => {
-      return t?.tn?.startsWith(project?.prefix);
+      return t?.tn?.startsWith(base?.prefix);
     });
   }
 
@@ -428,16 +428,16 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
       const columns = (
         await sqlClient.columnList({
           tn: table.table_name,
-          schema: base.getConfig()?.schema,
+          schema: source.getConfig()?.schema,
         })
       )?.data?.list;
 
       mapDefaultDisplayValue(columns);
 
       /* create nc_models and its rows if it doesn't exists  */
-      models2[table.table_name] = await Model.insert(project.id, base.id, {
+      models2[table.table_name] = await Model.insert(base.id, source.id, {
         table_name: table.table_name,
-        title: getTableNameAlias(table.table_name, project.prefix, base),
+        title: getTableNameAlias(table.table_name, base.prefix, source),
         // todo: sanitize
         type: ModelTypes.VIEW,
         order: table.order,
@@ -452,18 +452,18 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
         await Column.insert({
           fk_model_id: models2[table.table_name].id,
           ...column,
-          title: getColumnNameAlias(column.cn, base),
+          title: getColumnNameAlias(column.cn, source),
           order: colOrder++,
-          uidt: getColumnUiType(base, column),
+          uidt: getColumnUiType(source, column),
         });
       }
     };
   });
 
-  await NcHelp.executeOperations(viewMetasInsert, base.type);
+  await NcHelp.executeOperations(viewMetasInsert, source.type);
 
   // fix pv column for created grid views
-  const models = await Model.list({ project_id: project.id, base_id: base.id });
+  const models = await Model.list({ base_id: base.id, source_id: source.id });
 
   for (const model of models) {
     const views = await model.getViews();
@@ -483,12 +483,12 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
 }
 
 export async function populateRollupColumnAndHideLTAR(
+  source: Source,
   base: Base,
-  project: Project,
 ) {
   for (const model of await Model.list({
-    project_id: project.id,
     base_id: base.id,
+    source_id: source.id,
   })) {
     const columns = await model.getColumns();
     const hmAndMmLTARColumns = columns.filter(

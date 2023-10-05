@@ -31,7 +31,7 @@ const createView = async (
   };
 
   const response = await request(context.app)
-    .post(`/api/v1/db/meta/tables/${table.id}/${viewTypeStr(type)}`)
+    .post(`/api/v1/meta/tables/${table.id}/${viewTypeStr(type)}`)
     .set('xc-auth', context.token)
     .send({
       title,
@@ -53,7 +53,7 @@ const getView = async (
   { table, name }: { table: Model; name: string },
 ) => {
   const response = await request(context.app)
-    .get(`/api/v1/db/meta/tables/${table.id}/views`)
+    .get(`/api/v1/meta/tables/${table.id}/views`)
     .set('xc-auth', context.token);
   if (response.status !== 200) {
     throw new Error('List Views', response.body.message);
@@ -85,7 +85,7 @@ const updateView = async (
   if (filter.length) {
     for (let i = 0; i < filter.length; i++) {
       await request(context.app)
-        .post(`/api/v1/db/meta/views/${view.id}/filters`)
+        .post(`/api/v1/meta/views/${view.id}/filters`)
         .set('xc-auth', context.token)
         .send(filter[i])
         .expect(200);
@@ -95,7 +95,7 @@ const updateView = async (
   if (sort.length) {
     for (let i = 0; i < sort.length; i++) {
       await request(context.app)
-        .post(`/api/v1/db/meta/views/${view.id}/sorts`)
+        .post(`/api/v1/meta/views/${view.id}/sorts`)
         .set('xc-auth', context.token)
         .send(sort[i])
         .expect(200);
@@ -113,7 +113,7 @@ const updateView = async (
       ).id;
       // configure view to hide selected fields
       await request(context.app)
-        .patch(`/api/v1/db/meta/views/${view.id}/columns/${viewColumnId}`)
+        .patch(`/api/v1/meta/views/${view.id}/columns/${viewColumnId}`)
         .set('xc-auth', context.token)
         .send({ show: false })
         .expect(200);
@@ -121,4 +121,18 @@ const updateView = async (
   }
 };
 
-export { createView, updateView, getView };
+const deleteView = async (
+  context,
+  {
+    viewId,
+  }: {
+    viewId: string;
+  },
+) => {
+  await request(context.app)
+    .delete(`/api/v1/db/meta/views/${viewId}`)
+    .set('xc-auth', context.token)
+    .expect(200);
+};
+
+export { createView, updateView, getView, deleteView };

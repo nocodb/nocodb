@@ -73,8 +73,8 @@ function openQuickImportDialog(type: string, sourceId?: string) {
   }
 }
 
-function openAirtableImportDialog(sourceId?: string) {
-  if (!sourceId) return
+function openAirtableImportDialog(baseId?: string, sourceId?: string) {
+  if (!baseId || !sourceId) return
 
   $e('a:actions:import-airtable')
 
@@ -82,6 +82,7 @@ function openAirtableImportDialog(sourceId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
     'modelValue': isOpen,
+    'baseId': baseId,
     'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
   })
@@ -160,7 +161,7 @@ function openTableCreateMagicDialog(sourceId?: string) {
             <a-menu-item
               v-if="isUIAllowed('airtableImport', { roles: baseRole })"
               key="quick-import-airtable"
-              @click="openAirtableImportDialog(base.sources[sourceIndex].id)"
+              @click="openAirtableImportDialog(base.id, base.sources[sourceIndex].id)"
             >
               <div class="color-transition nc-base-menu-item group">
                 <GeneralIcon icon="airtable" class="group-hover:text-accent" />

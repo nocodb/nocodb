@@ -14,8 +14,8 @@ const visible = useVModel(props, 'visible', emits)
 
 const { $e } = useNuxtApp()
 
-function openAirtableImportDialog(sourceId?: string) {
-  if (!sourceId) return
+function openAirtableImportDialog(baseId?: string, sourceId?: string) {
+  if (!baseId || !sourceId) return
 
   $e('a:actions:import-airtable')
 
@@ -23,6 +23,7 @@ function openAirtableImportDialog(sourceId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
     'modelValue': isOpen,
+    'baseId': baseId,
     'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
   })
@@ -59,7 +60,7 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
   visible.value = false
 
   if (type === 'airtable') {
-    openAirtableImportDialog(source.value.id)
+    openAirtableImportDialog(source.value.base_id, source.value.id)
   } else {
     openQuickImportDialog(type)
   }

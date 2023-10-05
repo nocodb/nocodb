@@ -1,7 +1,7 @@
 import type { Api } from 'nocodb-sdk'
 import { addAxiosInterceptors as addAxiosInterceptorsCE } from '../../../composables/useApi/interceptors'
 import { useApiTiming } from '#imports'
-const dataApiRegex = /\/api\/v1\/db\/data\/\w+\/\w+\/\w+\/views\/\w+/i
+const dataApiRegex = /\/api\/v1\/data\/\w+\/\w+\/\w+\/views\/\w+/i
 const reqLatencyKey = Symbol('reqLatencyKey')
 
 export function addAxiosInterceptors(api: Api<any>) {

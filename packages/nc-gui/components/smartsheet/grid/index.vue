@@ -69,6 +69,7 @@ const {
   bulkUpdateView,
   optimisedQuery,
   islastRow,
+  isFirstRow,
 } = useViewData(meta, view, xWhere)
 
 const rowHeight = computed(() => {
@@ -195,6 +196,19 @@ const goToNextRow = () => {
 
   navigateToSiblingRow(NavigateDir.NEXT)
 }
+
+const goToPreviousRow = () => {
+  const currentIndex = getExpandedRowIndex()
+  /* when first index of current page is reached and then clicked back 
+    previos page should be loaded
+  */
+  if (!paginationData.value.isFirstPage && currentIndex === 1) {
+    const nextPage = paginationData.value?.page ? paginationData.value?.page - 1 : 1
+    changePage(nextPage)
+  }
+
+  navigateToSiblingRow(NavigateDir.PREV)
+}
 </script>
 
 <template>
@@ -258,10 +272,10 @@ const goToNextRow = () => {
       :row-id="routeQuery.rowId"
       :view="view"
       show-next-prev-icons
-      :first-row="getExpandedRowIndex() === 0"
+      :first-row="isFirstRow"
       :last-row="islastRow"
       @next="goToNextRow()"
-      @prev="navigateToSiblingRow(NavigateDir.PREV)"
+      @prev="goToPreviousRow()"
     />
 
     <Suspense>

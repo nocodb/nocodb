@@ -69,6 +69,8 @@ const meta = toRef(props, 'meta')
 
 const islastRow = toRef(props, 'lastRow')
 
+const isFirstRow = toRef(props,'firstRow')
+
 const route = useRoute()
 
 const router = useRouter()
@@ -122,6 +124,7 @@ const {
   syncLTARRefs,
   save: _save,
   loadCommentsAndLogs,
+  clearColumns,
 } = useProvideExpandedFormStore(meta, row)
 
 const duplicatingRowInProgress = ref(false)
@@ -189,15 +192,20 @@ const isPreventChangeModalOpen = ref(false)
 const isCloseModalOpen = ref(false)
 
 const discardPreventModal = () => {
+  // when user click on next or previous button
   if (isPreventChangeModalOpen.value) {
     emits('next')
+    if (_row.value?.rowMeta?.new) emits('cancel')
     isPreventChangeModalOpen.value = false
   }
+  // when user click on close button
   if (isCloseModalOpen.value) {
     isCloseModalOpen.value = false
     if (_row.value?.rowMeta?.new) emits('cancel')
     isExpanded.value = false
   }
+  // clearing all new modifed change on close
+  clearColumns()
 }
 
 const onNext = async () => {
@@ -419,7 +427,7 @@ export default {
             <div class="flex gap-2">
               <NcButton
                 v-if="props.showNextPrevIcons"
-                :disabled="props.firstRow"
+                :disabled="isFirstRow"
                 type="secondary"
                 class="nc-prev-arrow !w-10"
                 @click="$emit('prev')"

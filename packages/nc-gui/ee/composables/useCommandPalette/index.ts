@@ -41,16 +41,16 @@ export const useCommandPalette = createSharedComposable(() => {
     const staticCmd = commands.value.homeCommands
 
     // Static Commands
-    staticCmd.map((st) => {
-      if (st.id === 'user') {
-        st.title = user.value?.display_name ?? user?.value?.email.split('@')[0] ?? 'User'
-      } else if (st.id === 'user_account-logout') {
-        st.handler = async () => {
+    staticCmd.map((cmd) => {
+      if (cmd.id === 'user') {
+        cmd.title = user.value?.display_name ?? user?.value?.email.split('@')[0] ?? 'User'
+      } else if (cmd.id === 'user_account-logout') {
+        cmd.handler = async () => {
           await signOut()
           window.location.reload()
         }
       }
-      return st
+      return cmd
     })
 
     if (activeScope.value.scope === 'root') return staticCmd

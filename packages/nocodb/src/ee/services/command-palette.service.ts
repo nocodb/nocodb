@@ -27,7 +27,7 @@ export class CommandPaletteService {
           fk_user_id: param.user?.id,
         });
 
-        const allProjects = [];
+        const allBases = [];
 
         for (const workspace of workspaces) {
           cmdData.push({
@@ -48,10 +48,10 @@ export class CommandPaletteService {
             param.user?.id,
           );
 
-          allProjects.push(...bases);
+          allBases.push(...bases);
         }
 
-        for (const base of allProjects) {
+        for (const base of allBases) {
           cmdData.push({
             id: `p-${base.id}`,
             title: base.title,

@@ -335,7 +335,11 @@ export class ColumnsService {
           }
 
           // handle single quote for default value
-          if (driverType === 'mysql' || driverType === 'mysql2') {
+          if (
+            driverType === 'mysql' ||
+            driverType === 'mysql2' ||
+            driverType === 'pg'
+          ) {
             colBody.cdf = colBody.cdf.replace(/'/g, "'");
           } else {
             colBody.cdf = colBody.cdf.replace(/'/g, "''");
@@ -1106,7 +1110,11 @@ export class ColumnsService {
               }
 
               // handle single quote for default value
-              if (driverType === 'mysql' || driverType === 'mysql2') {
+              if (
+                driverType === 'mysql' ||
+                driverType === 'mysql2' ||
+                driverType === 'pg'
+              ) {
                 colBody.cdf = colBody.cdf.replace(/'/g, "'");
               } else {
                 colBody.cdf = colBody.cdf.replace(/'/g, "''");

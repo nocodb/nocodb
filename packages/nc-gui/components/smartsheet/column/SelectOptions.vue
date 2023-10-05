@@ -21,7 +21,7 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-const { setAdditionalValidations, validateInfos, isMysql } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, isMysql, isPg } = useColumnCreateStoreOrThrow()
 
 // const { base } = storeToRefs(useBase())
 
@@ -102,7 +102,7 @@ onMounted(() => {
 
   if (vModel.value.cdf) {
     // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
-    if (!isMysql.value) {
+    if (!isMysql.value && !isPg.value) {
       vModel.value.cdf = vModel.value.cdf.replace(/''/g, "'")
     }
   }
@@ -180,23 +180,6 @@ const undoRemoveRenderedOption = (index: number) => {
     savedCdf.value = null
   }
 }
-
-// focus last created input
-// watch(inputs, () => {
-//   if (inputs.value?.$el) {
-//     inputs.value.$el.focus()
-//   }
-// })
-
-// Removes the Select Option from cdf if the option is removed
-watch(vModel.value, (next) => {
-  const cdfs = (next.cdf ?? '').split(',')
-  const values = (next.colOptions.options ?? []).map((col) => {
-    return col.title.replace(/^'/, '').replace(/'$/, '')
-  })
-  const newCdf = cdfs.filter((c: string) => values.includes(c)).join(',')
-  next.cdf = newCdf.length === 0 ? null : newCdf
-})
 
 const loadListData = async ($state: any) => {
   if (loadedOptionCount.value === options.value.length) {

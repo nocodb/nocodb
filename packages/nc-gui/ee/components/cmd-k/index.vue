@@ -472,7 +472,7 @@ defineExpose({
     margin: auto;
     box-shadow: rgb(0 0 0 / 50%) 0px 16px 70px;
     top: 20%;
-    border-radius: 0.5em;
+    border-radius: 16px;
     max-width: 640px;
     background: var(--cmdk-modal-background);
   }

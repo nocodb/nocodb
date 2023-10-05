@@ -319,17 +319,37 @@ export class ColumnsService {
         );
         if (colBody.cdf) {
           if (colBody.uidt === UITypes.SingleSelect) {
-            if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
-              NcError.badRequest(
-                `Default value '${colBody.cdf}' is not a select option.`,
-              );
+            try {
+              if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
+                NcError.badRequest(
+                  `Default value '${colBody.cdf}' is not a select option.`,
+                );
+              }
+            } catch (e) {
+              colBody.cdf = colBody.cdf.replace(/^'/, '').replace(/'$/, '');
+              if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
+                NcError.badRequest(
+                  `Default value '${colBody.cdf}' is not a select option.`,
+                );
+              }
             }
           } else {
-            for (const cdf of colBody.cdf.split(',')) {
-              if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
-                NcError.badRequest(
-                  `Default value '${cdf}' is not a select option.`,
-                );
+            try {
+              for (const cdf of colBody.cdf.split(',')) {
+                if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
+                  NcError.badRequest(
+                    `Default value '${cdf}' is not a select option.`,
+                  );
+                }
+              }
+            } catch (e) {
+              colBody.cdf = colBody.cdf.replace(/^'/, '').replace(/'$/, '');
+              for (const cdf of colBody.cdf.split(',')) {
+                if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
+                  NcError.badRequest(
+                    `Default value '${cdf}' is not a select option.`,
+                  );
+                }
               }
             }
           }
@@ -1094,17 +1114,37 @@ export class ColumnsService {
             // Handle default values
             if (colBody.cdf) {
               if (colBody.uidt === UITypes.SingleSelect) {
-                if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
-                  NcError.badRequest(
-                    `Default value '${colBody.cdf}' is not a select option.`,
-                  );
+                try {
+                  if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
+                    NcError.badRequest(
+                      `Default value '${colBody.cdf}' is not a select option.`,
+                    );
+                  }
+                } catch (e) {
+                  colBody.cdf = colBody.cdf.replace(/^'/, '').replace(/'$/, '');
+                  if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
+                    NcError.badRequest(
+                      `Default value '${colBody.cdf}' is not a select option.`,
+                    );
+                  }
                 }
               } else {
-                for (const cdf of colBody.cdf.split(',')) {
-                  if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
-                    NcError.badRequest(
-                      `Default value '${cdf}' is not a select option.`,
-                    );
+                try {
+                  for (const cdf of colBody.cdf.split(',')) {
+                    if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
+                      NcError.badRequest(
+                        `Default value '${cdf}' is not a select option.`,
+                      );
+                    }
+                  }
+                } catch (e) {
+                  colBody.cdf = colBody.cdf.replace(/^'/, '').replace(/'$/, '');
+                  for (const cdf of colBody.cdf.split(',')) {
+                    if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
+                      NcError.badRequest(
+                        `Default value '${cdf}' is not a select option.`,
+                      );
+                    }
                   }
                 }
               }

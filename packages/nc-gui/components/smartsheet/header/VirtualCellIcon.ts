@@ -39,7 +39,7 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
     case UITypes.QrCode:
       return { icon: iconMap.qrCode, color: 'text-grey' }
     case UITypes.Barcode:
-      return { icon: iconMap.qrCode, color: 'text-grey' }
+      return { icon: iconMap.barCode, color: 'text-grey' }
     case UITypes.Lookup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:

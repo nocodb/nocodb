@@ -40,6 +40,8 @@ const isGallery = inject(IsGalleryInj, ref(false))
 
 const readOnly = inject(ReadonlyInj)
 
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
+
 const checkboxMeta = computed(() => {
   return {
     icon: {
@@ -82,8 +84,8 @@ useSelectedCellKeyupListener(active, (e) => {
   <div
     class="flex cursor-pointer w-full h-full items-center"
     :class="{
-      'justify-center': !isForm || !isGallery,
-      'w-full flex-start': isForm || isGallery,
+      'w-full flex-start pl-2': isForm || isGallery || isExpandedFormOpen,
+      'w-full justify-center': !isForm && !isGallery && !isExpandedFormOpen,
       'nc-cell-hover-show': !vModel && !readOnly,
       'opacity-0': readOnly && !vModel,
     }"

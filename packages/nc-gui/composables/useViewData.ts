@@ -106,7 +106,7 @@ export function useViewData(
 
   const isFirstRow = computed(() => {
     const currentIndex = getExpandedRowIndex()
-    return paginationData.value?.isFirstPage && currentIndex === 1
+    return paginationData.value?.isFirstPage && currentIndex === 0
   })
 
   const queryParams = computed(() => ({

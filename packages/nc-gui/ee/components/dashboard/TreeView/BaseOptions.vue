@@ -61,8 +61,8 @@ function openSchemaMagicDialog(sourceId?: string) {
   }
 }
 
-function openAirtableImportDialog(sourceId?: string) {
-  if (!sourceId) return
+function openAirtableImportDialog(baseId?: string, sourceId?: string) {
+  if (!baseId || !sourceId) return
 
   $e('a:actions:import-airtable')
 
@@ -70,6 +70,7 @@ function openAirtableImportDialog(sourceId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
     'modelValue': isOpen,
+    'baseId': baseId,
     'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
   })
@@ -150,7 +151,7 @@ function openQuickImportDialog(type: string) {
       v-if="isUIAllowed('airtableImport', { roles: baseRole })"
       key="quick-import-airtable"
       v-e="['c:import:airtable']"
-      @click="openAirtableImportDialog(source.id)"
+      @click="openAirtableImportDialog(source.base_id, source.id)"
     >
       <GeneralIcon icon="airtable" class="max-w-3.75 group-hover:text-black" />
       <div class="ml-0.5">Airtable</div>

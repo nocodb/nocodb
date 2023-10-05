@@ -258,11 +258,11 @@ export class ColumnsService {
         );
         const driverType = dbDriver.clientType();
 
-        // MultiSelect to SingleSelect
         if (
           column.uidt === UITypes.MultiSelect &&
           colBody.uidt === UITypes.SingleSelect
         ) {
+          // MultiSelect to SingleSelect
           if (driverType === 'mysql' || driverType === 'mysql2') {
             await dbDriver.raw(
               `UPDATE ?? SET ?? = SUBSTRING_INDEX(??, ',', 1) WHERE ?? LIKE '%,%';`,
@@ -301,6 +301,58 @@ export class ColumnsService {
                 column.column_name,
               ],
             );
+          }
+        } else if (
+          [UITypes.SingleLineText, UITypes.LongText].includes(column.uidt)
+        ) {
+          // SingleLineText/LongText to SingleSelect/MultiSelect
+          const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
+            NcConnectionMgrv2.get(source),
+          );
+
+          const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+            Model.getBaseModelSQL({
+              id: table.id,
+              dbDriver: dbDriver,
+            }),
+          );
+
+          const data = await baseModel.execAndParse(
+            dbDriver.raw('SELECT DISTINCT ?? FROM ??', [
+              column.column_name,
+              table.table_name,
+            ]),
+          );
+
+          if (data.length) {
+            const existingOptions = colBody.colOptions.options.map(
+              (el) => el.title,
+            );
+            const options = data.reduce((acc, el) => {
+              if (el[column.column_name]) {
+                const values = el[column.column_name].split(',');
+                if (values.length > 1) {
+                  if (colBody.uidt === UITypes.SingleSelect) {
+                    NcError.badRequest(
+                      'SingleSelect cannot have comma separated values, please use MultiSelect instead.',
+                    );
+                  }
+                }
+                for (const v of values) {
+                  if (!existingOptions.includes(v.trim())) {
+                    acc.push({
+                      title: v.trim(),
+                    });
+                    existingOptions.push(v.trim());
+                  }
+                }
+              }
+              return acc;
+            }, []);
+            colBody.colOptions.options = [
+              ...colBody.colOptions.options,
+              ...options,
+            ];
           }
         }
 

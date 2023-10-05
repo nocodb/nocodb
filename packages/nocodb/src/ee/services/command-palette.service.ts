@@ -73,6 +73,26 @@ export class CommandPaletteService {
 
         const workspace = workspaces.find((el) => el.id === data.workspace_id);
 
+        for (const _workspace of workspaces) {
+          if (_workspace.id === data.workspace_id) continue;
+          cmdData.push({
+            id: `ws-nav-${_workspace.id}`,
+            title: _workspace.title,
+            icon: 'workspace',
+            section: 'Workspaces',
+            scopePayload: {
+              scope: `ws-${_workspace.id}`,
+              data: {
+                workspace_id: _workspace.id,
+              },
+            },
+            handler: {
+              type: 'navigate',
+              payload: `/${_workspace.id}/settings`,
+            },
+          });
+        }
+
         if (!workspace) {
           NcError.notFound('Workspace not found!');
         }
@@ -122,9 +142,9 @@ export class CommandPaletteService {
               id: `tbl-${v.fk_model_id}`,
               title: v._ptn,
               parent: `p-${v.base_id}`,
-              icon: 'table',
+              icon: v.ptype,
               projectName: bases.find((el) => el.id === v.base_id)?.title,
-              section: bases.find((el) => el.id === v.base_id)?.title,
+              section: 'Tables',
             });
           }
           vwList.push({
@@ -133,9 +153,7 @@ export class CommandPaletteService {
             parent: `tbl-${v.fk_model_id}`,
             icon: viewTypeAlias[v.type] || 'table',
             projectName: bases.find((el) => el.id === v.base_id)?.title,
-            section: `${bases.find((el) => el.id === v.base_id)?.title} / ${
-              v._ptn
-            }`,
+            section: 'Views',
             handler: {
               type: 'navigate',
               payload: `/${data.workspace_id}/${v.base_id}/${
@@ -147,12 +165,6 @@ export class CommandPaletteService {
 
         cmdData.push(...tableList);
         cmdData.push(...vwList);
-        cmdData.push({
-          id: `ws-${workspace.id}`,
-          title: `${workspace.title}`,
-          section: 'hidden',
-          icon: 'workspace',
-        });
       } else if (scope.startsWith('p-')) {
         return [];
       }

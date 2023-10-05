@@ -1,3 +1,4 @@
+import { UITypes } from 'nocodb-sdk';
 import {
   _wherePk,
   BaseModelSqlv2 as BaseModelSqlv2CE,
@@ -11,6 +12,7 @@ import type { Column, Model } from '~/models';
 import { Source, View } from '~/models';
 import { getSingleQueryReadFn } from '~/services/data-opt/helpers';
 import { canUseOptimisedQuery } from '~/utils';
+import { extractProps } from '~/helpers/extractProps';
 
 /**
  * Base class for models
@@ -73,6 +75,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       if ('beforeInsert' in this) {
         await this.beforeInsert(insertObj, trx, cookie);
       }
+
+      await this.prepareAttachmentData(insertObj);
 
       await this.model.getColumns();
       let response;
@@ -251,6 +255,29 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       console.log(e);
       await this.errorUpdate(e, data, trx, cookie);
       throw e;
+    }
+  }
+
+  prepareAttachmentData(data) {
+    if (this.model.columns.some((c) => c.uidt === UITypes.Attachment)) {
+      for (const column of this.model.columns) {
+        if (column.uidt === UITypes.Attachment) {
+          if (data[column.column_name]) {
+            if (Array.isArray(data[column.column_name])) {
+              for (let attachment of data[column.column_name]) {
+                attachment = extractProps(attachment, [
+                  'url',
+                  'path',
+                  'title',
+                  'mimetype',
+                  'size',
+                  'icon',
+                ]);
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

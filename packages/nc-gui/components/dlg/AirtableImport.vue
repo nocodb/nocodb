@@ -11,14 +11,13 @@ import {
   nextTick,
   onMounted,
   ref,
-  storeToRefs,
-  useBase,
   useNuxtApp,
   watch,
 } from '#imports'
 
-const { modelValue, sourceId } = defineProps<{
+const { modelValue, baseId, sourceId } = defineProps<{
   modelValue: boolean
+  baseId: string
   sourceId: string
 }>()
 
@@ -35,8 +34,6 @@ const baseStore = useBase()
 const { refreshCommandPalette } = useCommandPalette()
 
 const { loadTables } = baseStore
-
-const { base } = storeToRefs(baseStore)
 
 const showGoToDashboardButton = ref(false)
 
@@ -135,7 +132,7 @@ async function createOrUpdate() {
         body: payload,
       })
     } else {
-      syncSource.value = await $fetch(`/api/v1/meta/bases/${base.value.id}/syncs/${sourceId}`, {
+      syncSource.value = await $fetch(`/api/v1/meta/bases/${baseId}/syncs/${sourceId}`, {
         baseURL,
         method: 'POST',
         headers: { 'xc-auth': $state.token.value as string },
@@ -187,7 +184,7 @@ async function listenForUpdates() {
 }
 
 async function loadSyncSrc() {
-  const data: any = await $fetch(`/api/v1/meta/bases/${base.value.id}/syncs/${sourceId}`, {
+  const data: any = await $fetch(`/api/v1/meta/bases/${baseId}/syncs/${sourceId}`, {
     baseURL,
     method: 'GET',
     headers: { 'xc-auth': $state.token.value as string },

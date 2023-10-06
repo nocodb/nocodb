@@ -104,6 +104,11 @@ export function useViewData(
     return paginationData.value?.isLastPage && currentIndex === formattedData.value.length - 1
   })
 
+  const isFirstRow = computed(() => {
+    const currentIndex = getExpandedRowIndex()
+    return paginationData.value?.isFirstPage && currentIndex === 1
+  })
+
   const queryParams = computed(() => ({
     offset: ((paginationData.value.page ?? 0) - 1) * (paginationData.value.pageSize ?? appInfoDefaultLimit),
     limit: paginationData.value.pageSize ?? appInfoDefaultLimit,
@@ -386,5 +391,6 @@ export function useViewData(
     getExpandedRowIndex,
     optimisedQuery,
     islastRow,
+    isFirstRow,
   }
 }

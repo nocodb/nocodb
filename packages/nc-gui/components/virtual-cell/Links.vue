@@ -71,8 +71,6 @@ const toatlRecordsLinked = computed(() => {
   const parsedValue = +value?.value || 0
   if (!parsedValue) {
     return 0
-  } else if (parsedValue === 1) {
-    return 1
   } else {
     return parsedValue
   }

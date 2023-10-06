@@ -40,7 +40,6 @@ import PlusSquare from '~icons/nc-icons/plus-square'
 import MobileShare from '~icons/nc-icons/share'
 import PhLayout from '~icons/ph/layout'
 import Delete from '~icons/material-symbols/delete-outline-rounded'
-import CiFilter from '~icons/mdi/filter-outline'
 import Minus from '~icons/material-symbols/remove-rounded'
 import Code from '~icons/material-symbols/code-rounded'
 import Palette from '~icons/material-symbols/palette-outline'
@@ -92,12 +91,19 @@ import Project from '~icons/nc-icons/project'
 import LookupIcon from '~icons/nc-icons/lookup'
 
 // Roles
+import SuperAdmin from '~icons/nc-icons/super-admin'
 import Owner from '~icons/nc-icons/owner'
 import Creator from '~icons/nc-icons/creator'
 import Editor from '~icons/nc-icons/editor'
 import Commentor from '~icons/nc-icons/commentor'
 import Viewer from '~icons/nc-icons/viewer'
 import NoAccess from '~icons/nc-icons/no-access'
+
+// toolbar
+import Fields from '~icons/nc-icons/fields'
+import Filter from '~icons/nc-icons/filter'
+import Group from '~icons/nc-icons/group'
+import Sort from '~icons/nc-icons/sort'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -247,6 +253,10 @@ import NoAccess from '~icons/nc-icons/no-access'
 } as const */
 
 export const iconMap = {
+  sort: Sort,
+  group: Group,
+  filter: Filter,
+  fields: Fields,
   mm: ManytoManyIcon,
   hm: HasManyIcon,
   bt: BelongsToIcon,
@@ -289,7 +299,6 @@ export const iconMap = {
   viewList: h('span', { class: 'material-symbols' }, 'view_list'),
   cloud: h('span', { class: 'material-symbols' }, 'cloud'),
   apiAndSupport: h('span', { class: 'material-symbols' }, 'api'),
-  sort: h('span', { class: 'material-symbols', style: { transform: 'scaleY(-1)' } }, 'sort'),
   translate: h('span', { class: 'material-symbols' }, 'translate'),
   preview: h('span', { class: 'material-symbols' }, 'visibility'),
   link: h('span', { class: 'material-symbols' }, 'link'),
@@ -405,7 +414,6 @@ export const iconMap = {
   view: h('span', { class: 'material-symbols' }, 'visibility'),
   // rowHeight: h('span', { class: 'material-symbols' }, 'height'),
   rowHeight: h(PhSplitVerticalThin, { style: { fontSize: '14px' } }),
-  filter: CiFilter,
   closeCircle: h('span', { class: 'material-symbols' }, 'cancel'),
   closeBox: h('span', { class: 'material-symbols' }, 'close'),
   close: MSCloseRounded,
@@ -439,6 +447,7 @@ export const iconMap = {
   role_editor: Editor,
   role_commenter: Commentor,
   role_viewer: Viewer,
+  role_super: SuperAdmin,
   role_no_access: NoAccess,
   commentHere: NcCommentHere,
 }

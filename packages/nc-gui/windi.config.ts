@@ -186,6 +186,18 @@ export default defineConfig({
           800: '#654c17',
           900: '#32260c',
         },
+        maroon: {
+          50: '#FFF0F7',
+          100: '#FFCFE6',
+          200: '#FFABD2',
+          300: '#EC7DB1',
+          400: '#D45892',
+          500: '#B33771',
+          600: '#9D255D',
+          700: '#801044',
+          800: '#690735',
+          900: '#42001F',
+        },
 
         primary: 'rgba(var(--color-primary), var(--tw-bg-opacity))',
         accent: 'rgba(var(--color-accent), var(--tw-bg-opacity))',

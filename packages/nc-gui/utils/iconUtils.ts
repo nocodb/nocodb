@@ -40,7 +40,6 @@ import PlusSquare from '~icons/nc-icons/plus-square'
 import MobileShare from '~icons/nc-icons/share'
 import PhLayout from '~icons/ph/layout'
 import Delete from '~icons/material-symbols/delete-outline-rounded'
-import CiFilter from '~icons/mdi/filter-outline'
 import Minus from '~icons/material-symbols/remove-rounded'
 import Code from '~icons/material-symbols/code-rounded'
 import Palette from '~icons/material-symbols/palette-outline'
@@ -300,7 +299,6 @@ export const iconMap = {
   viewList: h('span', { class: 'material-symbols' }, 'view_list'),
   cloud: h('span', { class: 'material-symbols' }, 'cloud'),
   apiAndSupport: h('span', { class: 'material-symbols' }, 'api'),
-  sort: h('span', { class: 'material-symbols', style: { transform: 'scaleY(-1)' } }, 'sort'),
   translate: h('span', { class: 'material-symbols' }, 'translate'),
   preview: h('span', { class: 'material-symbols' }, 'visibility'),
   link: h('span', { class: 'material-symbols' }, 'link'),
@@ -416,7 +414,6 @@ export const iconMap = {
   view: h('span', { class: 'material-symbols' }, 'visibility'),
   // rowHeight: h('span', { class: 'material-symbols' }, 'height'),
   rowHeight: h(PhSplitVerticalThin, { style: { fontSize: '14px' } }),
-  filter: CiFilter,
   closeCircle: h('span', { class: 'material-symbols' }, 'cancel'),
   closeBox: h('span', { class: 'material-symbols' }, 'close'),
   close: MSCloseRounded,

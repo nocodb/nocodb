@@ -188,7 +188,7 @@ export const RoleColors = {
   [ProjectRoles.EDITOR]: 'green',
   [ProjectRoles.COMMENTER]: 'orange',
   [ProjectRoles.VIEWER]: 'yellow',
-  [OrgUserRoles.SUPER_ADMIN]: 'purple',
+  [OrgUserRoles.SUPER_ADMIN]: 'maroon',
   [ProjectRoles.NO_ACCESS]: 'red',
   [OrgUserRoles.CREATOR]: 'blue',
   [OrgUserRoles.VIEWER]: 'yellow',

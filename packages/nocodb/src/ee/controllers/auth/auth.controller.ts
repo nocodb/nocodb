@@ -43,6 +43,7 @@ export class AuthController extends AuthControllerCE {
     });
   }
 
+
   @Get('/auth/oidc')
   @UseGuards(AuthGuard('openid'))
   openidAuth() {
@@ -122,4 +123,56 @@ export class AuthController extends AuthControllerCE {
 
     res.json(result);
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  /* OpenID Connect auth apis */
+  /* OpenID Connect APIs */
+  @Post('/auth/cognito')
+  @UseGuards(AuthGuard('cognito'))
+  async cognitoSignin(@Request() req, @Response() res) {
+    await this.setRefreshToken({ req, res });
+    res.json({
+      ...(await this.usersService.login({
+        ...req.user,
+        provider: 'cognito',
+      })),
+      extra: { ...req.extra },
+    });
+
+  }
+
 }

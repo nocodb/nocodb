@@ -255,7 +255,7 @@ async function addIfMissingAndSave() {
         }
 
         // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
-        if (!isMysql(column.value.source_id)) {
+        if (!isMysql(column.value.source_id) && !isPg(column.value.source_id)) {
           updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
         }
       }

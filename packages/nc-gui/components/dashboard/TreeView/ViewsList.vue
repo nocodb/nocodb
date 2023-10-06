@@ -38,7 +38,7 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { viewsByTable, activeView, recentViews } = storeToRefs(useViewsStore())
+const { viewsByTable, activeView, allRecentViews } = storeToRefs(useViewsStore())
 
 const { navigateToTable } = useTablesStore()
 
@@ -239,7 +239,7 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
       })
     }
     // update view name in recent views
-    recentViews.value = recentViews.value.map((rv) => {
+    allRecentViews.value = allRecentViews.value.map((rv) => {
       if (rv.viewId === view.id && rv.tableID === view.fk_model_id) {
         rv.viewName = view.title
       }

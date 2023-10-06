@@ -6,7 +6,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const { $api } = useNuxtApp()
 
   const router = useRouter()
-  const recentViews = ref<any>([])
+  const recentViews = computed(() => [])
+
+  const allRecentViews = ref<any>([])
   const route = router.currentRoute
 
   const tablesStore = useTablesStore()
@@ -237,6 +239,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     isPaginationLoading,
     loadViews,
     recentViews,
+    allRecentViews,
     views,
     activeView,
     openedViewsTab,

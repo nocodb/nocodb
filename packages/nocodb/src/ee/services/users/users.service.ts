@@ -164,7 +164,22 @@ export class UsersService extends UsersServiceCE {
         email_verification_token,
       });
 
-      createdWorkspace = await this.createDefaultWorkspace(user);
+      const prepopulatedWorkspace =
+        await this.workspaceService.getRandomPrepopulatedWorkspace();
+
+      let transferred = false;
+
+      if (prepopulatedWorkspace) {
+        transferred = await this.workspaceService.transferOwnership({
+          user,
+          workspace: prepopulatedWorkspace,
+        });
+        createdWorkspace = prepopulatedWorkspace;
+      }
+
+      if (!transferred) {
+        createdWorkspace = await this.createDefaultWorkspace(user);
+      }
     }
     user = await User.getByEmail(email);
 
@@ -229,7 +244,21 @@ export class UsersService extends UsersServiceCE {
     });
 
     if (workspaces.length === 0) {
-      await this.createDefaultWorkspace(user);
+      const prepopulatedWorkspace =
+        await this.workspaceService.getRandomPrepopulatedWorkspace();
+
+      let transferred = false;
+
+      if (prepopulatedWorkspace) {
+        transferred = await this.workspaceService.transferOwnership({
+          user,
+          workspace: prepopulatedWorkspace,
+        });
+      }
+
+      if (!transferred) {
+        await this.createDefaultWorkspace(user);
+      }
     }
 
     return await super.login(user);

@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   ProjectRoles,
+  ProjectStatus,
   SqlUiFactory,
   WorkspacePlan,
   WorkspaceStatus,
@@ -9,6 +10,7 @@ import {
 } from 'nocodb-sdk';
 import AWS from 'aws-sdk';
 import { ConfigService } from '@nestjs/config';
+import type { OnApplicationBootstrap } from '@nestjs/common';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
 import WorkspaceUser from '~/models/WorkspaceUser';
@@ -16,22 +18,96 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import Workspace from '~/models/Workspace';
 import validateParams from '~/helpers/validateParams';
 import { NcError } from '~/helpers/catchError';
-import { Base, BaseUser } from '~/models';
+import { Base, BaseUser, User } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { extractProps } from '~/helpers/extractProps';
 import { BasesService } from '~/services/bases.service';
 import { TablesService } from '~/services/tables.service';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
+import { JobTypes } from '~/interface/Jobs';
+
+const mockUser = {
+  id: '1',
+  roles: [ProjectRoles.OWNER],
+};
 
 @Injectable()
-export class WorkspacesService {
+export class WorkspacesService implements OnApplicationBootstrap {
   private logger = new Logger(WorkspacesService.name);
 
   constructor(
     private appHooksService: AppHooksService,
     private configService: ConfigService<AppConfig>,
-    private projectsService: BasesService,
+    private basesService: BasesService,
     private tablesService: TablesService,
+    @Inject('JobsService') private jobsService,
   ) {}
+
+  async onApplicationBootstrap() {
+    await this.prepopulateWorkspaces();
+  }
+
+  async prepopulateWorkspaces() {
+    if (process.env.NC_SEED_WORKSPACE === 'true') {
+      const templateBase = await Base.get(process.env.NC_SEED_BASE_ID_SOURCE);
+
+      if (!templateBase) {
+        return new Error('Template base not found');
+      }
+
+      const preCount = +process.env.NC_SEED_WORKSPACES_COUNT || 10;
+
+      let preWorkspacesCount = await Workspace.count({
+        fk_user_id: mockUser.id,
+      });
+
+      while (preWorkspacesCount < preCount) {
+        await this.createPrepopulatedWorkspace(templateBase);
+        preWorkspacesCount = await Workspace.count({
+          fk_user_id: mockUser.id,
+        });
+      }
+    }
+  }
+
+  async createPrepopulatedWorkspace(templateBase: Base) {
+    const workspace = await Workspace.insert({
+      title: 'Untitled Workspace',
+      fk_user_id: mockUser.id,
+      status: WorkspaceStatus.CREATED,
+      plan: WorkspacePlan.FREE,
+    });
+
+    await WorkspaceUser.insert({
+      fk_workspace_id: workspace.id,
+      fk_user_id: mockUser.id,
+      roles: WorkspaceUserRoles.OWNER,
+    });
+
+    const source = (await templateBase.getBases())[0];
+
+    const dupBase = await this.basesService.baseCreate({
+      base: {
+        title: 'Getting Started',
+        status: ProjectStatus.JOB,
+        fk_workspace_id: workspace.id,
+        type: 'database',
+      } as any,
+      user: mockUser,
+    });
+
+    await this.jobsService.add(JobTypes.DuplicateBase, {
+      baseId: templateBase.id,
+      sourceId: source.id,
+      dupProjectId: dupBase.id,
+      options: {},
+      req: {
+        user: mockUser,
+        clientIp: 'system',
+      },
+    });
+  }
 
   async list(param: {
     user: {
@@ -66,6 +142,25 @@ export class WorkspacesService {
     const workspaces = [];
 
     for (const workspacePayload of workspacePayloads) {
+      const prepopulatedWorkspace = await this.getRandomPrepopulatedWorkspace();
+
+      if (prepopulatedWorkspace) {
+        const transferred = await this.transferOwnership({
+          user: param.user,
+          workspace: prepopulatedWorkspace,
+        });
+        if (transferred) {
+          await Workspace.update(prepopulatedWorkspace.id, {
+            ...workspacePayload,
+            title: workspacePayload.title.trim(),
+            status: WorkspaceStatus.CREATED,
+            plan: WorkspacePlan.FREE,
+          });
+          workspaces.push(prepopulatedWorkspace);
+          continue;
+        }
+      }
+
       const workspace = await Workspace.insert({
         ...workspacePayload,
         title: workspacePayload.title.trim(),
@@ -91,7 +186,7 @@ export class WorkspacesService {
 
       // Create a default base for single workspace creation
       if (!isBulkMode) {
-        const base = await this.projectsService.baseCreate({
+        const base = await this.basesService.baseCreate({
           base: {
             title: 'Getting Started',
             fk_workspace_id: workspace.id,
@@ -121,6 +216,107 @@ export class WorkspacesService {
       workspaces.push(workspace);
     }
     return isBulkMode ? workspaces : workspaces[0];
+  }
+
+  async transferOwnership(param: { user: UserType; workspace: WorkspaceType }) {
+    const user = await User.get(param.user.id);
+
+    if (!user) NcError.notFound('User not found');
+
+    const workspace = await Workspace.get(param.workspace.id);
+
+    if (!workspace) NcError.notFound('Workspace not found');
+
+    const oldWorkspaceOwnerId = workspace.fk_user_id;
+
+    const ncMeta = await Noco.ncMeta.startTransaction();
+
+    try {
+      // update workspace owner
+      await ncMeta.metaUpdate(
+        null,
+        null,
+        MetaTable.WORKSPACE,
+        {
+          fk_user_id: user.id,
+        },
+        workspace.id,
+      );
+
+      // update workspace user
+      await ncMeta.metaUpdate(
+        null,
+        null,
+        MetaTable.WORKSPACE_USER,
+        {
+          fk_user_id: user.id,
+        },
+        {
+          fk_workspace_id: workspace.id,
+          roles: WorkspaceUserRoles.OWNER,
+        },
+      );
+
+      // get all bases
+      const bases = await ncMeta.metaList2(null, null, MetaTable.PROJECT, {
+        condition: { fk_workspace_id: workspace.id },
+      });
+
+      // update base owners
+      for (const base of bases) {
+        await ncMeta.metaUpdate(
+          null,
+          null,
+          MetaTable.PROJECT_USERS,
+          {
+            fk_user_id: user.id,
+          },
+          {
+            base_id: base.id,
+            roles: ProjectRoles.OWNER,
+            fk_user_id: oldWorkspaceOwnerId,
+          },
+        );
+      }
+
+      await ncMeta.commit();
+
+      if (workspace.fk_user_id === mockUser.id) {
+        // prepopulate more workspaces if required
+        this.prepopulateWorkspaces();
+      }
+    } catch (e) {
+      await ncMeta.rollback();
+      this.logger.error(e);
+      return false;
+    }
+
+    return true;
+  }
+
+  async getRandomPrepopulatedWorkspace() {
+    if (process.env.NC_SEED_WORKSPACE !== 'true') return null;
+
+    const workspaces = await Noco.ncMeta.metaList2(
+      null,
+      null,
+      MetaTable.WORKSPACE,
+      {
+        condition: {
+          fk_user_id: mockUser.id,
+          plan: WorkspacePlan.FREE,
+        },
+      },
+    );
+
+    if (!workspaces?.length) {
+      return null;
+    }
+
+    const randomWorkspace =
+      workspaces[Math.floor(Math.random() * workspaces.length)];
+
+    return randomWorkspace;
   }
 
   async get(param: {

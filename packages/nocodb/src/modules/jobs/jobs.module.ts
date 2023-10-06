@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 
 // Jobs
@@ -34,7 +34,7 @@ import { GlobalModule } from '~/modules/global/global.module';
 
 @Module({
   imports: [
-    GlobalModule,
+    forwardRef(() => GlobalModule),
     DatasModule,
     MetasModule,
     ...(process.env.NC_REDIS_JOB_URL
@@ -80,5 +80,6 @@ import { GlobalModule } from '~/modules/global/global.module';
     SourceCreateProcessor,
     SourceDeleteProcessor,
   ],
+  exports: ['JobsService'],
 })
 export class JobsModule {}

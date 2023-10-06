@@ -35,24 +35,52 @@ const { collaborators, lastPopulatedWorkspaceId } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
 
-const autoNavigateToProject = async () => {
+const tableStore = useTablesStore()
+
+const navigating = ref(false)
+
+const autoNavigateToProject = async (initial = false) => {
   const routeName = route.value.name as string
 
   if (routeName !== 'index-typeOrId' && routeName !== 'index') {
     return
   }
 
+  if (navigating.value) return
+
+  navigating.value = true
+
   // open first base if base list is not empty
-  if (basesStore.basesList?.length)
-    await basesStore.navigateToProject({
-      workspaceId: basesStore.basesList[0].fk_workspace_id!,
-      baseId: basesStore.basesList[0].id!,
-    })
+  if (basesStore.basesList?.length) {
+    const firstBase = basesStore.basesList[0]
+    if (firstBase && firstBase.id) {
+      if (initial) {
+        await tableStore.loadProjectTables(firstBase.id)
+        const firstTable = tableStore.baseTables.get(firstBase.id)?.[0]
+
+        if (firstTable) {
+          ncNavigateTo({
+            workspaceId: firstBase.fk_workspace_id!,
+            baseId: basesStore.basesList[0].id!,
+            tableId: firstTable.id,
+          })
+        }
+      } else {
+        await basesStore.navigateToProject({
+          workspaceId: firstBase.fk_workspace_id!,
+          baseId: basesStore.basesList[0].id!,
+        })
+      }
+    }
+  }
+
+  navigating.value = false
 }
 
 watch(
   () => workspaceStore.activeWorkspaceId,
   async (newId, oldId) => {
+    console.log('hit')
     if (newId === 'nc') {
       workspaceStore.setLoadingState(false)
       workspaceStore.isWorkspaceLoading = false
@@ -75,7 +103,7 @@ watch(
       await populateWorkspace()
 
       if (!route.value.params.baseId && basesStore.basesList.length) {
-        await autoNavigateToProject()
+        await autoNavigateToProject(oldId === undefined)
       }
     }
   },
@@ -112,23 +140,6 @@ onMounted(async () => {
   // skip loading workspace and command palette for shared source
   if (!['base'].includes(route.value.params.typeOrId as string)) {
     await loadWorkspaces()
-  }
-
-  if (!workspaceStore?.activeWorkspace?.value && !route.value.params.typeOrId) {
-    // if workspace list is empty update loading state and return
-    if (!workspaceStore.workspacesList?.length) {
-      workspaceStore.setLoadingState(false)
-      return
-    }
-
-    await populateWorkspace({
-      workspaceId: workspaceStore.workspacesList[0].id!,
-      force: true,
-    })
-
-    if (!route.value.params.baseId && basesStore.basesList.length) {
-      await autoNavigateToProject()
-    }
   }
 
   if (sharedBaseId.value) isDuplicateDlgOpen.value = true

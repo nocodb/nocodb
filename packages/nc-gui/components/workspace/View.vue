@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import type { WorkspaceType } from 'nocodb-sdk'
 
 const router = useRouter()
 const route = router.currentRoute
@@ -20,8 +19,6 @@ const tab = computed({
     router.push({ query: { ...route.value.query, tab } })
   },
 })
-
-const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color || stringToColor(workspace.id!)
 
 watch(
   () => activeWorkspace.value?.title,

@@ -137,7 +137,7 @@ const searchedActionList = computed(() => {
   })
   return actionList.value
     .filter((el) => el.weight > 0)
-    .sort((a, b) => a.section?.toLowerCase().localeCompare(b.section?.toLowerCase() as string) || 0)
+    .sort((a, b) => b.section?.toLowerCase().localeCompare(a.section?.toLowerCase() as string) || 0)
 })
 
 const actionListGroupedBySection = computed(() => {

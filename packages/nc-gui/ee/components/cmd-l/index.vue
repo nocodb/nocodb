@@ -198,7 +198,7 @@ onMounted(() => {
   <div v-show="vOpen" class="cmdk-modal cmdl-modal" :class="{ 'cmdk-modal-active cmdl-modal-active': vOpen }">
     <div ref="modalEl" class="cmdk-modal-content cmdl-modal-content relative h-[25.25rem]">
       <div class="flex items-center bg-white w-full z-[50]">
-        <div class="text-sm p-2 text-gray-500">Recent Views</div>
+        <div class="text-sm p-4 text-gray-500">Recent Views</div>
       </div>
       <div class="flex flex-col shrink grow overflow-hidden shadow-[rgb(0_0_0_/_50%)_0px_16px_70px] max-w-[650px] p-0">
         <div class="scroll-smooth actions overflow-auto nc-scrollbar-md relative m-0 px-0 py-2">
@@ -206,7 +206,7 @@ onMounted(() => {
           <div v-else class="flex mb-10 flex-col cmdOpt-list w-full">
             <div
               v-for="cmdOption of recentViews"
-              :key="cmdOption.tableID + cmdOption.viewName"
+              :key="cmdOption.tableID + cmdOpPtion.viewName"
               v-e="['a:cmdL:changeView']"
               :class="{
                 selected: selected === cmdOption.tableID + cmdOption.viewName,

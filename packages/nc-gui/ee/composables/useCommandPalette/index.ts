@@ -30,7 +30,7 @@ export const useCommandPalette = createSharedComposable(() => {
 
   const cmdPlaceholder = ref('Search...')
 
-  const { token } = useGlobal()
+  const { token, user, signOut } = useGlobal()
 
   const commands = ref({
     homeCommands,
@@ -38,15 +38,28 @@ export const useCommandPalette = createSharedComposable(() => {
   } as Record<string, CmdAction[]>)
 
   const staticData = computed(() => {
-    const rtData = commands.value.homeCommands
+    const staticCmd = commands.value.homeCommands
 
-    if (activeScope.value.scope === 'root') return rtData
+    // Static Commands
+    staticCmd.map((cmd) => {
+      if (cmd.id === 'user') {
+        if (user.value && user.value.display_name && user.value.email) {
+          cmd.title = user.value.display_name ?? user.value.email.split('@')[0] ?? 'User'
+        }
+      } else if (cmd.id === 'user_account-logout') {
+        cmd.handler = async () => {
+          await signOut()
+          window.location.reload()
+        }
+      }
+      return cmd
+    })
 
-    if (activeScope.value.scope.startsWith('ws-')) {
-      rtData.push(...commands.value.baseCommands)
-    }
+    if (activeScope.value.scope === 'root') return staticCmd
 
-    return rtData
+    staticCmd.push(...commands.value.baseCommands)
+
+    return staticCmd
   })
 
   const dynamicData = ref<any>([])

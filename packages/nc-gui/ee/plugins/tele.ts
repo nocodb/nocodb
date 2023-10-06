@@ -196,7 +196,7 @@ function clickListener(e) {
     url.searchParams.append('search', searchInput.value)
     url.searchParams.append('origin', location.hostname)
 
-    location.href = url.toString()
+    window.open(url.toString(), '_blank')
   }
 }
 
@@ -220,7 +220,7 @@ function keydownListener(e) {
       e.preventDefault()
       e.stopPropagation()
 
-      location.href = url.toString()
+      window.open(url.toString(), '_blank')
     }
   }
 }

@@ -46,6 +46,8 @@ const baseStore = useBase()
 const { loadTables, isMysql, isMssql, isPg } = baseStore
 const { tables, base } = storeToRefs(baseStore)
 
+const { allRecentViews } = storeToRefs(useViewsStore())
+
 const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineProjectScope } = useUndoRedo()
@@ -157,6 +159,14 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
     }
 
     await loadTables()
+
+    // update recent views if default view is renamed
+    allRecentViews.value = allRecentViews.value.map((v) => {
+      if (v.tableID === tableMeta.id && v.isDefault) {
+        v.viewName = formState.title
+      }
+      return v
+    })
 
     // update metas
     const newMeta = await $api.dbTable.read(tableMeta.id as string)

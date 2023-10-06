@@ -55,7 +55,7 @@ const { bases, activeProjectId } = storeToRefs(basesStore)
 const { loadProjectTables } = useTablesStore()
 const { activeTable } = storeToRefs(useTablesStore())
 
-const { recentViews } = storeToRefs(useViewsStore())
+const { allRecentViews } = storeToRefs(useViewsStore())
 
 const { appInfo, navigateToProject } = useGlobal()
 
@@ -126,9 +126,9 @@ const updateProjectTitle = async () => {
       title: tempTitle.value,
     })
     // update base title in recent views
-    recentViews.value = recentViews.value.map((view) => {
-      if (view.base_id === base.value.id) {
-        view.Base_title = tempTitle.value
+    allRecentViews.value = allRecentViews.value.map((view) => {
+      if (view.baseId === base.value.id) {
+        view.baseName = tempTitle.value
       }
       return view
     })
@@ -140,6 +140,8 @@ const updateProjectTitle = async () => {
     useTitle(`${base.value?.title}`)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    refreshCommandPalette()
   }
 }
 

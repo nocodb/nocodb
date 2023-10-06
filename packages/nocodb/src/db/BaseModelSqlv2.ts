@@ -3458,7 +3458,7 @@ class BaseModelSqlv2 {
   }
 
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
-    const id = req?.params.rowId;
+    const id = this._extractPksValues(data);
     await Audit.insert({
       fk_model_id: this.model.id,
       row_id: id,

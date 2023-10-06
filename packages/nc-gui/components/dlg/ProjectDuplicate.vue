@@ -11,6 +11,8 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
+const { refreshCommandPalette } = useCommandPalette()
+
 const { api } = useApi()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
@@ -60,6 +62,7 @@ const _duplicate = async () => {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isLoading.value = false
+    refreshCommandPalette()
     dialogShow.value = false
   }
 }

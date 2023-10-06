@@ -56,6 +56,7 @@ const roleProperties = computed(() => {
           'text-orange-700': roleProperties.color === 'orange',
           'text-yellow-700': roleProperties.color === 'yellow',
           'text-red-700': roleProperties.color === 'red',
+          'text-maroon-700': roleProperties.color === 'maroon',
           'text-gray-300': !roleProperties.color,
           sizeSelect,
         }"

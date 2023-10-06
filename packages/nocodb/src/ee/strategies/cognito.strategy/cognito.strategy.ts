@@ -1,16 +1,15 @@
+import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 import { Strategy } from 'passport-custom';
 import { ConfigService } from '@nestjs/config';
+import bcrypt from 'bcryptjs';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 import type { AppConfig } from '~/interface/config';
 import { sanitiseUserObj } from '~/utils';
 import { UsersService } from '~/services/users/users.service';
 import { User } from '~/models';
-import bcrypt from 'bcryptjs';
-import {promisify} from "util";
-
 
 @Injectable()
 export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
@@ -35,43 +34,40 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
         console.log('Token is valid. Payload:', payload);
         const email = (payload as any)['email'];
         // get user by email
-        await User.getByEmail(email)
-          .then(async (user) => {
-            if (user) {
+        await User.getByEmail(email).then(async (user) => {
+          if (user) {
+            return callback(null, {
+              ...sanitiseUserObj(user),
+              provider: 'cognito',
+              // display_name: profile._json?.name,
+              display_name: '',
+            });
+          } else {
+            try {
+              // if user not found create new user
+              const salt = await promisify(bcrypt.genSalt)(10);
+              const user = await this.usersService.registerNewUserIfAllowed({
+                email,
+                password: '',
+                email_verification_token: null,
+                avatar: null,
+                user_name: null,
+                display_name: '',
+                // display_name: profile._json?.name,
+                salt,
+              });
+
               return callback(null, {
                 ...sanitiseUserObj(user),
-                provider: 'cognito',
-                // display_name: profile._json?.name,
-                display_name: '',
+                provider: 'openid',
               });
-            } else {
-              try {
-                // if user not found create new user
-                const salt = await promisify(bcrypt.genSalt)(10);
-                const user = await this.usersService
-                  .registerNewUserIfAllowed({
-                    email,
-                    password: '',
-                    email_verification_token: null,
-                    avatar: null,
-                    user_name: null,
-                    display_name: '',
-                    // display_name: profile._json?.name,
-                    salt,
-                  });
-
-                return callback(null, {
-                  ...sanitiseUserObj(user),
-                  provider: 'openid',
-                });
-
-              } catch (err) {
-                return callback(err);
-              }
+            } catch (err) {
+              return callback(err);
             }
-          })
+          }
+        });
       } else {
-        return callback(new Error('No token found')));
+        return callback(new Error('No token found'));
       }
     } catch (error) {
       return callback(error);

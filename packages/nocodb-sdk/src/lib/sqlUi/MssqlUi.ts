@@ -138,9 +138,9 @@ export class MssqlUi {
     ];
   }
 
-  static getNewColumn(columnNameSuffix: string, uidt: UITypes) {
+  static getNewColumn(uidt: UITypes, columnNameSuffix: string = '') {
     return {
-      column_name: `Untitled ${uidt} ${columnNameSuffix}`,
+      column_name: `Untitled ${uidt}${columnNameSuffix}`,
       dt: 'varchar',
       dtx: 'specificType',
       ct: 'varchar(45)',
@@ -620,16 +620,17 @@ export class MssqlUi {
   } {
     const colProp: any = {};
     switch (col.uidt) {
-      case 'ID': {
-        const isAutoIncId = idType === 'AI';
-        const isAutoGenId = idType === 'AG';
-        colProp.dt = isAutoGenId ? 'varchar' : 'int';
-        colProp.pk = true;
-        colProp.un = isAutoIncId;
-        colProp.ai = isAutoIncId;
-        colProp.rqd = true;
-        colProp.meta = isAutoGenId ? {ag: 'nc'} : undefined;
-      }
+      case 'ID':
+        {
+          const isAutoIncId = idType === 'AI';
+          const isAutoGenId = idType === 'AG';
+          colProp.dt = isAutoGenId ? 'varchar' : 'int';
+          colProp.pk = true;
+          colProp.un = isAutoIncId;
+          colProp.ai = isAutoIncId;
+          colProp.rqd = true;
+          colProp.meta = isAutoGenId ? { ag: 'nc' } : undefined;
+        }
         break;
       case 'ForeignKey':
         colProp.dt = 'varchar';

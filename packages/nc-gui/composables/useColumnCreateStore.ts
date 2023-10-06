@@ -90,7 +90,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         columnNameSuffix++
         columnName = `Untitled ${formState.value.uidt} ${columnNameSuffix}`
       }
-      return columnNameSuffix || ''
+
+      if (columnNameSuffix === 0) return ''
+
+      return ` ${columnNameSuffix}` || ''
     }
 
     // actions
@@ -98,7 +101,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       setAdditionalValidations({})
       formState.value = {
         meta: {},
-        ...sqlUi.value.getNewColumn(generateUniqueColumnSuffix(), formState.value.uidt),
+        ...sqlUi.value.getNewColumn(formState.value.uidt, generateUniqueColumnSuffix()),
       }
       formState.value.title = formState.value.column_name
     }
@@ -150,7 +153,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           // only take title, column_name and uidt when creating a column
           // to avoid the extra props from being taken (e.g. SingleLineText -> LTAR -> SingleLineText)
           // to mess up the column creation
-          ...sqlUi.value.getNewColumn(generateUniqueColumnSuffix(), formState.value.uidt),
+          ...sqlUi.value.getNewColumn(formState.value.uidt, generateUniqueColumnSuffix()),
           uidt: formState.value.uidt,
         }),
         ...(isEdit.value && {

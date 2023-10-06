@@ -201,9 +201,9 @@ export class PgUi {
     ];
   }
 
-  static getNewColumn(columnNameSuffix: string, uidt: UITypes) {
+  static getNewColumn(uidt: UITypes, columnNameSuffix: string = '') {
     return {
-      column_name: `Untitled ${uidt} ${columnNameSuffix}`,
+      column_name: `Untitled ${uidt}${columnNameSuffix}`,
       dt: 'character varying',
       dtx: 'specificType',
       ct: 'varchar(45)',
@@ -1159,7 +1159,7 @@ export class PgUi {
   static columnEditable(colObj) {
     return colObj.tn !== '_evolutions' || colObj.tn !== 'nc_evolutions';
   }
-/*
+  /*
 
   static extractFunctionName(query) {
     const reg =

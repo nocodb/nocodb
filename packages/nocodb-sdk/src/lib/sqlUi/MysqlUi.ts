@@ -141,9 +141,9 @@ export class MysqlUi {
     ];
   }
 
-  static getNewColumn(columnNameSuffix: string, uidt: UITypes) {
+  static getNewColumn(uidt: UITypes, columnNameSuffix: string = '') {
     return {
-      column_name: `Untitled ${uidt} ${columnNameSuffix}`,
+      column_name: `Untitled ${uidt}${columnNameSuffix}`,
       dt: 'varchar',
       dtx: 'specificType',
       ct: 'varchar(45)',

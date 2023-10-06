@@ -137,9 +137,9 @@ export class SnowflakeUi {
     ];
   }
 
-  static getNewColumn(columnNameSuffix: string, uidt: UITypes) {
+  static getNewColumn(uidt: UITypes, columnNameSuffix: string = '') {
     return {
-      column_name: `Untitled ${uidt} ${columnNameSuffix}`,
+      column_name: `Untitled ${uidt}${columnNameSuffix}`,
       dt: 'varchar',
       dtx: 'specificType',
       ct: 'varchar(45)',
@@ -374,7 +374,7 @@ export class SnowflakeUi {
   static columnEditable(colObj) {
     return colObj.tn !== '_evolutions' || colObj.tn !== 'nc_evolutions';
   }
-/*
+  /*
 
   static extractFunctionName(query) {
     const reg =

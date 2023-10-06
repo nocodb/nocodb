@@ -144,6 +144,7 @@ export class UtilsService extends UtilsServiceCE {
       return null;
     });
   };
+
   async selectOptionsMagic(param: {
     table: string;
     schema: string;
@@ -483,6 +484,19 @@ export class UtilsService extends UtilsServiceCE {
 
     // in cloud decide telemetry enabled or not based on PostHog API key presence
     result.teleEnabled = !!process.env.NC_CLOUD_POSTHOG_API_KEY;
+
+    result.aws_project_region = 'us-east-2';
+    result.aws_cognito_identity_pool_id =
+      'us-east-2:f4cd8643-8c9b-4fda-b949-eedcc39a0c5d';
+    result.aws_cognito_region = 'us-east-2';
+    result.aws_user_pools_id = 'us-east-2_MNegyNf5T';
+    result.aws_user_pools_web_client_id = '5lo3lv5kj4t4nukutsvmbbq5s7';
+
+    result.oauth = {
+      domain: 'ncguiaf56d838-af56d838-dev.auth.us-east-2.amazoncognito.com',
+      redirectSignIn: 'http://localhost:3000',
+      redirectSignOut: 'http://localhost:3000',
+    };
 
     return result;
   }

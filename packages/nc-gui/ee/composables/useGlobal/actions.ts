@@ -1,4 +1,5 @@
 import { getActivePinia } from 'pinia'
+import { Auth } from 'aws-amplify'
 import type { Actions, AppInfo, State } from '../../../composables/useGlobal/types'
 import { NcProjectType, message, useNuxtApp } from '#imports'
 import { navigateTo } from '#app'
@@ -11,28 +12,39 @@ export function useGlobalActions(state: State): Actions {
   /** Sign out by deleting the token from localStorage */
   const signOut: Actions['signOut'] = async (skipRedirect = true) => {
     let signoutRes
-    try {
-      const nuxtApp = useNuxtApp()
-      signoutRes = await nuxtApp.$api.auth.signout()
-    } catch {
-    } finally {
-      state.token.value = null
-      state.user.value = null
+    await Promise.all([
+      (async () => {
+        try {
+          await Auth.signOut()
+        } catch (error) {
+          console.log('error signing out: ', error)
+        }
+      })(),
+      (async () => {
+        try {
+          const nuxtApp = useNuxtApp()
+          signoutRes = await nuxtApp.$api.auth.signout()
+        } catch {
+        } finally {
+          state.token.value = null
+          state.user.value = null
 
-      // clear all stores data on logout
-      const pn = getActivePinia()
-      if (pn) {
-        pn._s.forEach((store) => {
-          store.$dispose()
-          delete pn.state.value[store.$id]
-        })
-      }
+          // clear all stores data on logout
+          const pn = getActivePinia()
+          if (pn) {
+            pn._s.forEach((store) => {
+              store.$dispose()
+              delete pn.state.value[store.$id]
+            })
+          }
 
-      // todo: update type in swagger.json
-      if (!skipRedirect && (signoutRes as any).redirect_url) {
-        location.href = (signoutRes as any).redirect_url
-      }
-    }
+          // todo: update type in swagger.json
+          if (!skipRedirect && (signoutRes as any).redirect_url) {
+            location.href = (signoutRes as any).redirect_url
+          }
+        }
+      })(),
+    ])
   }
 
   /** Sign in by setting the token in localStorage */

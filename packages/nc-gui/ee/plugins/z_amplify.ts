@@ -1,39 +1,40 @@
 import { Amplify } from '@aws-amplify/core'
 import { Auth } from '@aws-amplify/auth'
 import { Hub } from 'aws-amplify'
-import type { Api as BaseAPI } from 'nocodb-sdk'
-import { defineNuxtPlugin, useNuxtApp } from '#app'
-import { useApi } from '#imports'
+import { defineNuxtPlugin, navigateTo } from '#app'
+import { useGlobal } from '#imports'
 
 export default defineNuxtPlugin(async (nuxtApp) => {
-  Amplify.configure({
-    aws_project_region: 'us-east-2',
-    aws_cognito_identity_pool_id: 'us-east-2:f4cd8643-8c9b-4fda-b949-eedcc39a0c5d',
-    aws_cognito_region: 'us-east-2',
-    aws_user_pools_id: 'us-east-2_MNegyNf5T',
-    aws_user_pools_web_client_id: '5lo3lv5kj4t4nukutsvmbbq5s7',
-    oauth: {
-      domain: 'ncguiaf56d838-af56d838-dev.auth.us-east-2.amazoncognito.com',
-      scope: ['openid', 'profile', 'email'],
-      redirectSignIn: 'http://localhost:3000',
-      redirectSignOut: 'http://localhost:3000',
-      responseType: 'code',
-    },
-    federationTarget: 'COGNITO_USER_POOLS',
-    aws_cognito_username_attributes: ['EMAIL'],
-    aws_cognito_social_providers: [],
-    aws_cognito_signup_attributes: ['EMAIL'],
-    aws_cognito_mfa_configuration: 'OFF',
-    aws_cognito_mfa_types: ['SMS'],
-    aws_cognito_password_protection_settings: {
-      passwordPolicyMinLength: 8,
-      passwordPolicyCharacters: [],
-    },
-    aws_cognito_verification_mechanisms: ['EMAIL'],
-  });
+  const state = useGlobal()
   nuxtApp.hook('app:mounted', (...args) => {
-    const { $api: api } = useNuxtApp()
-    const {signIn} = useGlobal()
+    console.log('appState', state)
+    Amplify.configure({
+      aws_project_region: 'us-east-2',
+      aws_cognito_identity_pool_id: 'us-east-2:f4cd8643-8c9b-4fda-b949-eedcc39a0c5d',
+      aws_cognito_region: 'us-east-2',
+      aws_user_pools_id: 'us-east-2_MNegyNf5T',
+      aws_user_pools_web_client_id: '5lo3lv5kj4t4nukutsvmbbq5s7',
+      oauth: {
+        domain: 'ncguiaf56d838-af56d838-dev.auth.us-east-2.amazoncognito.com',
+        scope: ['openid', 'profile', 'email'],
+        redirectSignIn: 'https://staging.noco.to',
+        redirectSignOut: 'https://staging.noco.to',
+        responseType: 'code',
+      },
+      federationTarget: 'COGNITO_USER_POOLS',
+      aws_cognito_username_attributes: ['EMAIL'],
+      aws_cognito_social_providers: [],
+      aws_cognito_signup_attributes: ['EMAIL'],
+      aws_cognito_mfa_configuration: 'OFF',
+      aws_cognito_mfa_types: ['SMS'],
+      aws_cognito_password_protection_settings: {
+        passwordPolicyMinLength: 8,
+        passwordPolicyCharacters: [],
+      },
+      aws_cognito_verification_mechanisms: ['EMAIL'],
+    })
+
+    const { signIn } = useGlobal()
 
     const listener = (data) => {
       switch (data?.payload?.event) {
@@ -129,6 +130,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         const idToken = res.getIdToken()
         const jwt = idToken.getJwtToken()
 
+        const { api } = useApi()
         // You can print them to see the full objects
         console.log(`myAccessToken: ${JSON.stringify(idToken)}`)
         console.log(`myJwt: ${jwt}`)
@@ -142,13 +144,14 @@ export default defineNuxtPlugin(async (nuxtApp) => {
             },
           },
         )
-        if((await res1).data.token){
+        if ((await res1).data.token) {
           signIn((await res1).data.token)
+          navigateTo('/')
         }
-
       })
       Auth.currentAuthenticatedUser().then(
         async (currentAuthenticatedUser) => {
+          const { api } = useApi()
           console.log('Yes, user is logged in.', currentAuthenticatedUser)
           const res2 = api.instance.post(
             '/auth/cognito',
@@ -159,8 +162,9 @@ export default defineNuxtPlugin(async (nuxtApp) => {
               },
             },
           )
-          if((await res2).data.token){
+          if ((await res2).data.token) {
             signIn((await res2).data.token)
+            navigateTo('/')
           }
         },
         (error) => {

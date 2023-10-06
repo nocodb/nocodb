@@ -92,12 +92,14 @@ import Project from '~icons/nc-icons/project'
 import LookupIcon from '~icons/nc-icons/lookup'
 
 // Roles
+import SuperAdmin from '~icons/nc-icons/super-admin'
 import Owner from '~icons/nc-icons/owner'
 import Creator from '~icons/nc-icons/creator'
 import Editor from '~icons/nc-icons/editor'
 import Commentor from '~icons/nc-icons/commentor'
 import Viewer from '~icons/nc-icons/viewer'
 import NoAccess from '~icons/nc-icons/no-access'
+import Fields from '~icons/nc-icons/fields'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -247,6 +249,7 @@ import NoAccess from '~icons/nc-icons/no-access'
 } as const */
 
 export const iconMap = {
+  fields: Fields,
   mm: ManytoManyIcon,
   hm: HasManyIcon,
   bt: BelongsToIcon,
@@ -439,6 +442,7 @@ export const iconMap = {
   role_editor: Editor,
   role_commenter: Commentor,
   role_viewer: Viewer,
+  role_super: SuperAdmin,
   role_no_access: NoAccess,
   commentHere: NcCommentHere,
 }

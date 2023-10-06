@@ -2,8 +2,8 @@
 import type { ColumnType, GalleryType, KanbanType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
+
 import type { SelectProps } from 'ant-design-vue'
-import FieldsIcon from '~icons/nc-icons/fields'
 
 import {
   ActiveViewInj,
@@ -300,7 +300,7 @@ useMenuCloseOnEsc(open)
             icon="creditCard"
             class="h-4 w-4"
           />
-          <FieldsIcon v-else class="h-4 w-4" />
+          <component :is="iconMap.fields" v-else class="h-4 w-4" />
 
           <!-- Fields -->
           <span v-if="!isMobileMode" class="text-capitalize text-sm font-medium">

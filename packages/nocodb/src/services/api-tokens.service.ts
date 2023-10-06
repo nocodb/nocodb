@@ -9,7 +9,7 @@ import { ApiToken } from '~/models';
 
 @Injectable()
 export class ApiTokensService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async apiTokenList(param: { userId: string }) {
     return await ApiToken.list(param.userId);

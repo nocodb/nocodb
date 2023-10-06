@@ -10,7 +10,7 @@ import {
 } from 'nocodb-sdk';
 import AWS from 'aws-sdk';
 import { ConfigService } from '@nestjs/config';
-import type { OnModuleInit } from '@nestjs/common';
+import type { OnApplicationBootstrap } from '@nestjs/common';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
 import WorkspaceUser from '~/models/WorkspaceUser';
@@ -33,7 +33,7 @@ const mockUser = {
 };
 
 @Injectable()
-export class WorkspacesService implements OnModuleInit {
+export class WorkspacesService implements OnApplicationBootstrap {
   private logger = new Logger(WorkspacesService.name);
 
   constructor(
@@ -44,7 +44,7 @@ export class WorkspacesService implements OnModuleInit {
     @Inject('JobsService') private jobsService,
   ) {}
 
-  async onModuleInit() {
+  async onApplicationBootstrap() {
     if (process.env.NC_PREPOPULATED_WORKSPACES === 'true') {
       const templateBase = await Base.get(process.env.NC_TEMPLATE_BASE_ID);
 

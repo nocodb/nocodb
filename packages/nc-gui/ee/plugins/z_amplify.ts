@@ -6,7 +6,7 @@ import { useGlobal } from '#imports'
 
 export default defineNuxtPlugin(async (nuxtApp) => {
   const state = useGlobal()
-  nuxtApp.hook('app:mounted', (...args) => {
+  nuxtApp.hook('app:mounted', () => {
     console.log('appState', state)
     Amplify.configure({
       aws_project_region: 'us-east-2',
@@ -18,7 +18,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         domain: 'ncguiaf56d838-af56d838-dev.auth.us-east-2.amazoncognito.com',
         scope: ['openid', 'profile', 'email'],
         redirectSignIn: 'https://staging.noco.to',
-        redirectSignOut: 'https://staging.noco.to',
+        redirectSignOut: 'https://staging.noco.to?logout=true',
         responseType: 'code',
       },
       federationTarget: 'COGNITO_USER_POOLS',
@@ -34,7 +34,16 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       aws_cognito_verification_mechanisms: ['EMAIL'],
     })
 
-    const { signIn } = useGlobal()
+    const { signIn, signOut } = useGlobal()
+
+    const url = new URL(location.href)
+
+    if (url.searchParams.has('logout')) {
+      signOut().then(() => {
+        url.searchParams.delete('logout')
+        history.pushState({}, '', url.toString())
+      })
+    }
 
     const listener = (data) => {
       switch (data?.payload?.event) {

@@ -141,6 +141,25 @@ export class WorkspacesService implements OnApplicationBootstrap {
     const workspaces = [];
 
     for (const workspacePayload of workspacePayloads) {
+      const prepopulatedWorkspace = await this.getRandomPrepopulatedWorkspace();
+
+      if (prepopulatedWorkspace) {
+        const transferred = await this.transferOwnership({
+          user: param.user,
+          workspace: prepopulatedWorkspace,
+        });
+        if (transferred) {
+          await Workspace.update(prepopulatedWorkspace.id, {
+            ...workspacePayload,
+            title: workspacePayload.title.trim(),
+            status: WorkspaceStatus.CREATED,
+            plan: WorkspacePlan.FREE,
+          });
+          workspaces.push(prepopulatedWorkspace);
+          continue;
+        }
+      }
+
       const workspace = await Workspace.insert({
         ...workspacePayload,
         title: workspacePayload.title.trim(),

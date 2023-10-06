@@ -245,4 +245,10 @@ export default class Workspace implements WorkspaceType {
       new Workspace(workspace);
     });
   }
+
+  static async count(condition: any, ncMeta = Noco.ncMeta) {
+    return await ncMeta.metaCount(null, null, MetaTable.WORKSPACE, {
+      condition,
+    });
+  }
 }

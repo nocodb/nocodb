@@ -58,14 +58,15 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
       const preCount = +process.env.NC_SEED_WORKSPACES_COUNT || 10;
 
-      const preWorkspaces = await this.list({
-        user: { id: mockUser.id, roles: [] },
+      let preWorkspacesCount = await Workspace.count({
+        fk_user_id: mockUser.id,
       });
 
-      if (preWorkspaces.list.length < preCount) {
-        for (let i = 0; i < preCount - preWorkspaces.list.length; i++) {
-          await this.createPrepopulatedWorkspace(templateBase);
-        }
+      while (preWorkspacesCount < preCount) {
+        await this.createPrepopulatedWorkspace(templateBase);
+        preWorkspacesCount = await Workspace.count({
+          fk_user_id: mockUser.id,
+        });
       }
     }
   }

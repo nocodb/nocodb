@@ -2,6 +2,7 @@ import fs from 'fs';
 import { promisify } from 'util';
 import AWS from 'aws-sdk';
 import axios from 'axios';
+import { useAgent } from 'request-filtering-agent';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import type { Readable } from 'stream';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
@@ -50,7 +51,10 @@ export default class Backblaze implements IStorageAdapterV2 {
 
     return new Promise((resolve, reject) => {
       axios
-        .get(url)
+        .get(url, {
+          httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+          httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+        })
         .then((response) => {
           uploadParams.Body = response.data;
           uploadParams.Key = key;

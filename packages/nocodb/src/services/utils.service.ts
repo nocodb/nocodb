@@ -3,6 +3,7 @@ import axios from 'axios';
 import { compareVersions, validate } from 'compare-versions';
 import { ViewTypes } from 'nocodb-sdk';
 import { ConfigService } from '@nestjs/config';
+import { useAgent } from 'request-filtering-agent';
 import type { AppConfig } from '~/interface/config';
 import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
@@ -152,6 +153,12 @@ export class UtilsService {
         : {},
       responseType: apiMeta.responseType || 'json',
       withCredentials: true,
+      httpAgent: useAgent(apiMeta.url, {
+        stopPortScanningByUrlRedirection: true,
+      }),
+      httpsAgent: useAgent(apiMeta.url, {
+        stopPortScanningByUrlRedirection: true,
+      }),
     };
     const data = await axios(_req);
     return data?.data;

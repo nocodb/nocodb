@@ -68,12 +68,7 @@ const toatlRecordsLinked = computed(() => {
   if (isForm?.value) {
     return state.value?.[colTitle.value]?.length
   }
-  const parsedValue = +value?.value || 0
-  if (!parsedValue) {
-    return 0
-  } else {
-    return parsedValue
-  }
+  return +value?.value || 0
 })
 
 const onAttachRecord = () => {

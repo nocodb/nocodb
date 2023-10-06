@@ -2,6 +2,7 @@ import fs from 'fs';
 import { promisify } from 'util';
 import { Storage } from '@google-cloud/storage';
 import axios from 'axios';
+import { useAgent } from 'request-filtering-agent';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import type { Readable } from 'stream';
 import type { StorageOptions } from '@google-cloud/storage';
@@ -106,7 +107,10 @@ export default class Gcs implements IStorageAdapterV2 {
   fileCreateByUrl(destPath: string, url: string): Promise<any> {
     return new Promise((resolve, reject) => {
       axios
-        .get(url)
+        .get(url, {
+          httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+          httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+        })
         .then((response) => {
           this.storageClient
             .bucket(this.bucketName)

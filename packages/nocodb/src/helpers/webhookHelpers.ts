@@ -178,7 +178,7 @@ export async function handleHttpWebHook(
   user,
   prevData,
   newData,
-) {
+): Promise<any> {
   const req = axiosRequestMake(
     apiMeta,
     user,
@@ -244,12 +244,16 @@ export function axiosRequestMake(_apiMeta, _user, data) {
         }, {})
       : {},
     withCredentials: true,
-    httpAgent: useAgent(url, {
-      stopPortScanningByUrlRedirection: true,
-    }),
-    httpsAgent: useAgent(url, {
-      stopPortScanningByUrlRedirection: true,
-    }),
+    ...(process.env.NC_ALLOW_LOCAL_HOOKS !== 'true'
+      ? {
+          httpAgent: useAgent(url, {
+            stopPortScanningByUrlRedirection: true,
+          }),
+          httpsAgent: useAgent(url, {
+            stopPortScanningByUrlRedirection: true,
+          }),
+        }
+      : {}),
   };
   return req;
 }

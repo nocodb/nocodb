@@ -748,15 +748,18 @@ export default {
 
   <!-- Prevent unsaved change modal -->
   <NcModal v-model:visible="preventModalStatus" size="small">
-    <template #header>
-      <div class="flex flex-row items-center gap-x-2">Do you want to save the changes ?</div>
-    </template>
-    <div class="mt-2">
-      <div class="flex flex-row justify-end gap-x-2 mt-6">
+    <div class="">
+      <div class="flex flex-row items-center gap-x-2 text-base font-bold">
+        {{ $t('tooltip.saveChanges') }}
+      </div>
+      <div class="flex font-medium mt-2">
+        {{ $t('activity.doYouWantToSaveTheChanges') }}
+      </div>
+      <div class="flex flex-row justify-end gap-x-2 mt-5">
         <NcButton type="secondary" @click="discardPreventModal">{{ $t('labels.discard') }}</NcButton>
 
         <NcButton key="submit" type="primary" label="Rename Table" loading-label="Renaming Table" @click="saveChanges">
-          {{ $t('general.save') }}
+          {{ $t('tooltip.saveChanges') }}
         </NcButton>
       </div>
     </div>

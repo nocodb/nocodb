@@ -184,7 +184,7 @@ export function useMultiSelect(
     }
 
     if (columnObj.uidt === UITypes.LongText) {
-      textToCopy = `"${textToCopy.replace(/\"/g, '""')}"`
+      textToCopy = `"${textToCopy.replace(/"/g, '\\"')}"`
     }
 
     return textToCopy
@@ -202,7 +202,7 @@ export function useMultiSelect(
         const value = valueToCopy(row, col)
         copyRow += `<td>${value}</td>`
         text = `${text}${value}${cols.length - 1 !== i ? '\t' : ''}`
-        jsonRow.push(col.uidt === UITypes.LongText ? value.replace(/^"/, '').replace(/"$/, '').replace(/""/g, '"') : value)
+        jsonRow.push(value)
       })
       html += `${copyRow}</tr>`
       if (rows.length - 1 !== i) {

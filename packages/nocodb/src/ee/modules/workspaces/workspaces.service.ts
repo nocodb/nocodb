@@ -49,14 +49,14 @@ export class WorkspacesService implements OnApplicationBootstrap {
   }
 
   async prepopulateWorkspaces() {
-    if (process.env.NC_PREPOPULATED_WORKSPACES === 'true') {
-      const templateBase = await Base.get(process.env.NC_TEMPLATE_BASE_ID);
+    if (process.env.NC_SEED_WORKSPACE === 'true') {
+      const templateBase = await Base.get(process.env.NC_SEED_BASE_ID_SOURCE);
 
       if (!templateBase) {
         return new Error('Template base not found');
       }
 
-      const preCount = +process.env.NC_PREPOPULATED_WORKSPACES_COUNT || 10;
+      const preCount = +process.env.NC_SEED_WORKSPACES_COUNT || 10;
 
       const preWorkspaces = await this.list({
         user: { id: mockUser.id, roles: [] },
@@ -275,7 +275,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
   }
 
   async getRandomPrepopulatedWorkspace() {
-    if (process.env.NC_PREPOPULATED_WORKSPACES !== 'true') return null;
+    if (process.env.NC_SEED_WORKSPACE !== 'true') return null;
 
     const workspaces = await Noco.ncMeta.metaList2(
       null,

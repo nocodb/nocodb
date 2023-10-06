@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveCellInj,
@@ -41,12 +42,13 @@ const isLocked = inject(IsLockedInj, ref(false))
 const { open } = useExpandedFormDetached()
 
 function openExpandedForm() {
-  if (!readOnly.value && !isLocked.value && !readonlyProp) {
+  const rowId = extractPkFromRow(item, relatedTableMeta.value.columns as ColumnType[])
+  if (!readOnly.value && !isLocked.value && !readonlyProp && rowId) {
     open({
       isOpen: true,
       row: { row: item, rowMeta: {}, oldRow: { ...item } },
       meta: relatedTableMeta.value,
-      loadRow: true,
+      rowId,
       useMetaFields: true,
     })
   }

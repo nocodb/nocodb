@@ -67,6 +67,10 @@ const state = toRef(props, 'state')
 
 const meta = toRef(props, 'meta')
 
+const islastRow = toRef(props, 'lastRow')
+
+const isFirstRow = toRef(props, 'firstRow')
+
 const route = useRoute()
 
 const router = useRouter()
@@ -75,6 +79,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 // to check if a expanded form which is not yet saved exist or not
 const isUnsavedFormExist = ref(false)
+
+const isRecordLinkCopied = ref(false)
 
 const { isUIAllowed } = useRoles()
 
@@ -120,6 +126,7 @@ const {
   syncLTARRefs,
   save: _save,
   loadCommentsAndLogs,
+  clearColumns,
 } = useProvideExpandedFormStore(meta, row)
 
 const duplicatingRowInProgress = ref(false)
@@ -143,8 +150,12 @@ const isExpanded = useVModel(props, 'modelValue', emits, {
 })
 
 const onClose = () => {
-  if (_row.value?.rowMeta?.new) emits('cancel')
-  isExpanded.value = false
+  if (changedColumns.value.size > 0) {
+    isCloseModalOpen.value = true
+  } else {
+    if (_row.value?.rowMeta?.new) emits('cancel')
+    isExpanded.value = false
+  }
 }
 
 const onDuplicateRow = () => {
@@ -180,35 +191,57 @@ const save = async () => {
 }
 
 const isPreventChangeModalOpen = ref(false)
+const isCloseModalOpen = ref(false)
 
 const discardPreventModal = () => {
-  emits('next')
-  isPreventChangeModalOpen.value = false
+  // when user click on next or previous button
+  if (isPreventChangeModalOpen.value) {
+    emits('next')
+    if (_row.value?.rowMeta?.new) emits('cancel')
+    isPreventChangeModalOpen.value = false
+  }
+  // when user click on close button
+  if (isCloseModalOpen.value) {
+    isCloseModalOpen.value = false
+    if (_row.value?.rowMeta?.new) emits('cancel')
+    isExpanded.value = false
+  }
+  // clearing all new modifed change on close
+  clearColumns()
 }
 
 const onNext = async () => {
   if (changedColumns.value.size > 0) {
     isPreventChangeModalOpen.value = true
-  } else {
-    emits('next')
+    return
   }
+  emits('next')
 }
 
-const copyRecordUrl = () => {
-  copy(
+const copyRecordUrl = async () => {
+  await copy(
     encodeURI(
-      `${dashboardUrl?.value}#/${route.params.typeOrId}/${route.params.projectId}/${meta.value?.id}${
+      `${dashboardUrl?.value}#/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}${
         props.view ? `/${props.view.title}` : ''
       }?rowId=${primaryKey.value}`,
     ),
   )
-  message.success('Copied to clipboard')
+
+  isRecordLinkCopied.value = true
 }
 
 const saveChanges = async () => {
-  isUnsavedFormExist.value = false
-  await save()
-  emits('next')
+  if (isPreventChangeModalOpen.value) {
+    isUnsavedFormExist.value = false
+    await save()
+    emits('next')
+    isPreventChangeModalOpen.value = false
+  }
+  if (isCloseModalOpen.value) {
+    isCloseModalOpen.value = false
+    await save()
+    isExpanded.value = false
+  }
 }
 const reloadParentRowHook = inject(ReloadRowDataHookInj, createEventHook())
 
@@ -235,6 +268,7 @@ provide(IsExpandedFormOpenInj, isExpanded)
 const cellWrapperEl = ref()
 
 onMounted(async () => {
+  isRecordLinkCopied.value = false
   isLoading.value = true
   if (props.loadRow) {
     await _loadRow()
@@ -369,6 +403,8 @@ watch(rowId, async (nRow) => {
 const showRightSections = computed(() => {
   return !isNew.value && commentsDrawer.value && isUIAllowed('commentList')
 })
+
+const preventModalStatus = computed(() => isCloseModalOpen.value || isPreventChangeModalOpen.value)
 </script>
 
 <script lang="ts">
@@ -395,7 +431,7 @@ export default {
             <div class="flex gap-2">
               <NcButton
                 v-if="props.showNextPrevIcons"
-                :disabled="props.firstRow"
+                :disabled="isFirstRow"
                 type="secondary"
                 class="nc-prev-arrow !w-10"
                 @click="$emit('prev')"
@@ -404,7 +440,7 @@ export default {
               </NcButton>
               <NcButton
                 v-if="props.showNextPrevIcons"
-                :disabled="props.lastRow"
+                :disabled="islastRow"
                 type="secondary"
                 class="nc-next-arrow !w-10"
                 @click="onNext"
@@ -423,6 +459,18 @@ export default {
             <div v-if="row.rowMeta?.new" class="flex items-center truncate font-bold text-gray-800 text-xl">New Record</div>
           </div>
           <div class="flex gap-2">
+            <NcButton
+              v-if="!isNew"
+              type="secondary"
+              class="!xs:hidden text-gray-700"
+              @click="!isNew ? copyRecordUrl() : () => {}"
+            >
+              <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
+                <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row" />
+                <component :is="iconMap.link" v-else class="cursor-pointer nc-duplicate-row" />
+                {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
+              </div>
+            </NcButton>
             <NcDropdown v-if="!isNew">
               <NcButton type="secondary" class="nc-expand-form-more-actions w-10">
                 <GeneralIcon icon="threeDotVertical" class="text-md text-gray-700" />
@@ -435,10 +483,10 @@ export default {
                       {{ $t('general.reload') }}
                     </div>
                   </NcMenuItem>
-                  <NcMenuItem v-if="!isNew" class="text-gray-700" @click="!isNew ? copyRecordUrl() : () => {}">
+                  <NcMenuItem v-if="!isNew && isMobileMode" class="text-gray-700" @click="!isNew ? copyRecordUrl() : () => {}">
                     <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
                       <component :is="iconMap.link" class="cursor-pointer nc-duplicate-row" />
-                      Copy record URL
+                      {{ $t('labels.copyRecordURL') }}
                     </div>
                   </NcMenuItem>
                   <NcMenuItem
@@ -452,7 +500,9 @@ export default {
                       class="flex gap-2 items-center"
                     >
                       <component :is="iconMap.copy" class="cursor-pointer nc-duplicate-row" />
-                      Duplicate record
+                      <span class="-ml-0.25">
+                        {{ $t('labels.duplicateRecord') }}
+                      </span>
                     </div>
                   </NcMenuItem>
                   <NcDivider v-if="isUIAllowed('dataEdit') && !isNew" />
@@ -463,7 +513,9 @@ export default {
                     @click="!isNew && onDeleteRowClick()"
                   >
                     <component :is="iconMap.delete" data-testid="nc-expanded-form-delete" class="cursor-pointer nc-delete-row" />
-                    Delete record
+                    <span class="-ml-0.5">
+                      {{ $t('activity.deleteRecord') }}
+                    </span>
                   </NcMenuItem>
                 </NcMenu>
               </template>
@@ -524,15 +576,15 @@ export default {
               :col-id="col.id"
               :data-testid="`nc-expand-col-${col.title}`"
             >
-              <div class="flex items-start flex-row xs:(flex-col w-full) nc-expanded-cell min-h-10">
-                <div class="w-[12rem] xs:(w-full) mt-1.5 !h-[35px]">
+              <div class="flex items-start flex-row sm:(gap-x-6) xs:(flex-col w-full) nc-expanded-cell min-h-10">
+                <div class="w-[12rem] xs:(w-full) mt-0.25 !h-[35px]">
                   <LazySmartsheetHeaderVirtualCell
                     v-if="isVirtualCol(col)"
-                    class="nc-expanded-cell-header !text-gray-600"
+                    class="nc-expanded-cell-header h-full !text-gray-500"
                     :column="col"
                   />
 
-                  <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header !text-gray-600" :column="col" />
+                  <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header !text-gray-500" :column="col" />
                 </div>
 
                 <template v-if="isLoading">
@@ -706,7 +758,6 @@ export default {
     <template #entity-preview>
       <span>
         <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
-          <component :is="iconMap.record" class="nc-view-icon" />
           <div class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75 break-keep whitespace-nowrap">
             {{ displayValue }}
           </div>
@@ -716,16 +767,19 @@ export default {
   </GeneralDeleteModal>
 
   <!-- Prevent unsaved change modal -->
-  <NcModal v-model:visible="isPreventChangeModalOpen" size="small">
-    <template #header>
-      <div class="flex flex-row items-center gap-x-2">Do you want to save the changes ?</div>
-    </template>
-    <div class="mt-2">
-      <div class="flex flex-row justify-end gap-x-2 mt-6">
-        <NcButton type="secondary" @click="discardPreventModal">{{ $t('general.quit') }}</NcButton>
+  <NcModal v-model:visible="preventModalStatus" size="small">
+    <div class="">
+      <div class="flex flex-row items-center gap-x-2 text-base font-bold">
+        {{ $t('tooltip.saveChanges') }}
+      </div>
+      <div class="flex font-medium mt-2">
+        {{ $t('activity.doYouWantToSaveTheChanges') }}
+      </div>
+      <div class="flex flex-row justify-end gap-x-2 mt-5">
+        <NcButton type="secondary" @click="discardPreventModal">{{ $t('labels.discard') }}</NcButton>
 
         <NcButton key="submit" type="primary" label="Rename Table" loading-label="Renaming Table" @click="saveChanges">
-          {{ $t('activity.saveAndQuit') }}
+          {{ $t('tooltip.saveChanges') }}
         </NcButton>
       </div>
     </div>

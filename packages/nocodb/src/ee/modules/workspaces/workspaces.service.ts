@@ -13,6 +13,7 @@ import { ConfigService } from '@nestjs/config';
 import type { OnApplicationBootstrap } from '@nestjs/common';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
+import { getLimit, PlanLimitTypes } from '~/plan-limits';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import Workspace from '~/models/Workspace';
@@ -129,6 +130,18 @@ export class WorkspacesService implements OnApplicationBootstrap {
     user: UserType;
     workspaces: WorkspaceType | WorkspaceType[];
   }) {
+    const userFreeWorkspacesCount = await Workspace.count({
+      fk_user_id: param.user.id,
+      plan: WorkspacePlan.FREE,
+    });
+
+    if (
+      userFreeWorkspacesCount >=
+      (await getLimit(PlanLimitTypes.FREE_WORKSPACE_LIMIT))
+    ) {
+      NcError.badRequest('You have reached the limit of free workspaces');
+    }
+
     const workspacePayloads = Array.isArray(param.workspaces)
       ? param.workspaces
       : [param.workspaces];

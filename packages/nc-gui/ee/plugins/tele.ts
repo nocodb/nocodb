@@ -27,21 +27,18 @@ function initPostHog(clientId: string) {
       phClient = posthog.init('phc_eI1Je4IwepOvg7jPW5jbokqYY5VGxkldwgkw7Y6KAPb', {
         api_host: 'https://app.posthog.com',
         session_recording: {
-          enabled: true,
           maskAllInputs: true,
-          maskTextSelector: ':not([data-rec]) *',
-          maskTextFn: (text: string, element) => {
-            if (!text.trim()) return text;
+          maskTextSelector: ":not([data-rec='true'] *)",
+          maskTextFn: (text: string) => {
+            if (!text?.trim()) return text
             if (text.length <= 2) return text.replace(/./g, '*')
-            return text.replace(/^(.{2})([\s\S]*)/g, (_, m1, m2) => {
-              return m1 + '*'.repeat(m2.length - 2)
+            return text.replace(/^(.{3})([\s\S]*)/g, (_, m1, m2) => {
+              return m1 + (m2 ? '*'.repeat(m2.length) : '')
             })
           },
         },
         autocapture: false,
         capture_pageview: false,
-        capture_links: false,
-        capture_form_submits: false,
       })
     }
     posthog.identify(clientId)

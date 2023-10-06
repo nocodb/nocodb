@@ -223,8 +223,8 @@ importers:
         specifier: ^2.1.4
         version: 2.1.4(vue@3.3.4)
       posthog-js:
-        specifier: ^1.77.2
-        version: 1.78.4
+        specifier: ^1.82.2
+        version: 1.82.2
       qrcode:
         specifier: ^1.5.1
         version: 1.5.1
@@ -20567,8 +20567,8 @@ packages:
     dependencies:
       xtend: 4.0.2
 
-  /posthog-js@1.78.4:
-    resolution: {integrity: sha512-+ao0/qoP8fUErrF6Y2Yugilkh4ooh8MX6n6ckYsn3yV610YrpXGR165fbq8X1ukimV4YmkWbMHOACtkOuZ/+8w==}
+  /posthog-js@1.82.2:
+    resolution: {integrity: sha512-Tiry1zFEmcSi5o4Czgo3fX9m3tIjd0i+ap3tpoxS5Nl++Sh1KgrNAVPgi5mLa0Xyi4Vh1+fuxyIc8rq16gvpHQ==}
     dependencies:
       fflate: 0.4.8
     dev: false

@@ -8,11 +8,11 @@ import { getTextExcludeIconText } from '../../tests/utils/general';
   nc-workspace-settings
     nc-workspace-avatar
     nc-workspace-title
-    button:has-text("New Project")
+    button:has-text("New Base")
       |> .ant-dropdown-menu-vertical
-          |> .ant-dropdown-menu-item : Database           nc-create-project-btn-db
+          |> .ant-dropdown-menu-item : Database           nc-create-base-btn-db
               nc-shortcut-label-wrapper.nc-shortcut-label
-          |> .ant-dropdown-menu-item : Documentation      nc-create-project-btn-docs
+          |> .ant-dropdown-menu-item : Documentation      nc-create-base-btn-docs
               nc-shortcut-label-wrapper.nc-shortcut-label
 
     ant-tabs-nav-list
@@ -21,18 +21,18 @@ import { getTextExcludeIconText } from '../../tests/utils/general';
 
     thead.ant-table-thead
       tr.ant-table-row
-        td.ant-table-cell (nc-project-title)
+        td.ant-table-cell (nc-base-title)
           material-symbols : database
-          span : project title
+          span : base title
           nc-icon : favourites icon
         td.ant-table-cell (color)
         td.ant-table-cell (last accessed)
         td.ant-table-cell (my role)
         td.ant-table-cell (actions)
           nc-icon (...) : click
-            |> .ant-dropdown-menu-item : Rename Project
-            |> .ant-dropdown-menu-item : Move Project
-            |> .ant-dropdown-menu-item : Delete Project
+            |> .ant-dropdown-menu-item : Rename Base
+            |> .ant-dropdown-menu-item : Move Base
+            |> .ant-dropdown-menu-item : Delete Base
  */
 
 export class ContainerPage extends BasePage {
@@ -40,7 +40,7 @@ export class ContainerPage extends BasePage {
   readonly newProjectButton: Locator;
 
   // tabs
-  readonly projects: Locator;
+  readonly bases: Locator;
   readonly collaborators: Locator;
   readonly billing: Locator;
   readonly settings: Locator;
@@ -51,10 +51,10 @@ export class ContainerPage extends BasePage {
   constructor(workspace: WorkspacePage) {
     super(workspace.rootPage);
     this.workspace = workspace;
-    this.newProjectButton = this.get().locator('button:has-text("New Project")');
+    this.newProjectButton = this.get().locator('button:has-text("New Base")');
 
     // tabs
-    this.projects = this.get().locator('.ant-tabs-tab:has-text("Projects")');
+    this.bases = this.get().locator('.ant-tabs-tab:has-text("Projects")');
     this.collaborators = this.get().locator('.ant-tabs-tab:has-text("Members")');
     this.billing = this.get().locator('.ant-tabs-tab:has-text("Billing")');
     this.settings = this.get().locator('.ant-tabs-tab:has-text("Settings")');
@@ -74,7 +74,7 @@ export class ContainerPage extends BasePage {
   async verifyStaticElements() {
     const tableHeaderCells = this.get().locator('.ant-table-thead > tr > th.ant-table-cell');
     expect(await tableHeaderCells.count()).toBe(5);
-    expect(await tableHeaderCells.nth(0).innerText()).toBe('Project Name');
+    expect(await tableHeaderCells.nth(0).innerText()).toBe('Base Name');
     expect(await tableHeaderCells.nth(1).innerText()).toBe('Role');
     expect(await tableHeaderCells.nth(2).innerText()).toBe('Last Opened');
     // actions column
@@ -82,7 +82,7 @@ export class ContainerPage extends BasePage {
 
     const tabs = this.get().locator('.ant-tabs-tab-btn');
     expect(await tabs.count()).toBe(3);
-    await expect(this.projects).toBeVisible();
+    await expect(this.bases).toBeVisible();
     await expect(this.collaborators).toBeVisible();
     await expect(this.billing).toBeVisible();
 
@@ -91,7 +91,7 @@ export class ContainerPage extends BasePage {
 
   async getProjectRowData({ index, skipWs = false }: { index: number; skipWs: boolean }) {
     const rows = this.get().locator('.ant-table-tbody > tr.ant-table-row');
-    const title = await getTextExcludeIconText(rows.nth(index).locator('.nc-project-title'));
+    const title = await getTextExcludeIconText(rows.nth(index).locator('.nc-base-title'));
     const role = await rows
       .nth(index)
       .locator('.ant-table-cell')
@@ -105,7 +105,7 @@ export class ContainerPage extends BasePage {
     return { title, lastAccessed, role };
   }
 
-  // returns row locator based on project title
+  // returns row locator based on base title
   //
   async getProjectRow({ title }: { title: string }) {
     const titles = [];
@@ -113,13 +113,13 @@ export class ContainerPage extends BasePage {
     const count = await rows.count();
 
     for (let i = 0; i < count; i++) {
-      titles.push(await getTextExcludeIconText(rows.nth(i).locator('.nc-project-title')));
+      titles.push(await getTextExcludeIconText(rows.nth(i).locator('.nc-base-title')));
     }
 
     return rows.nth(titles.indexOf(title));
   }
 
-  // returns number of project rows
+  // returns number of base rows
   //
   async getProjectRowCount() {
     const rows = this.get().locator('.ant-table-tbody > tr.ant-table-row');
@@ -131,39 +131,39 @@ export class ContainerPage extends BasePage {
     expect(await this.getProjectRowData({ index: 0, skipWs: false })).toEqual({ title, lastAccessed, role });
   }
 
-  // create project
+  // create base
   //
-  async projectCreate({ title, type }: { title: string; type: 'db' | 'docs' }) {
+  async baseCreate({ title, type }: { title: string; type: 'db' | 'docs' }) {
     await this.newProjectButton.click();
-    await this.rootPage.locator(`.nc-create-project-btn-${type}`).click();
-    await this.rootPage.locator('.nc-metadb-project-name').fill(title);
+    await this.rootPage.locator(`.nc-create-base-btn-${type}`).click();
+    await this.rootPage.locator('.nc-metadb-base-name').fill(title);
     await this.waitForResponse({
-      uiAction: () => this.rootPage.locator('.nc-metadb-project-name').press('Enter'),
+      uiAction: () => this.rootPage.locator('.nc-metadb-base-name').press('Enter'),
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `api/v1/db/meta/projects`,
+      requestUrlPathToMatch: `api/v1/meta/bases`,
     });
   }
 
-  // rename project
+  // rename base
   //
-  async projectRename({ title, newTitle }: { title: string; newTitle: string }) {
+  async baseRename({ title, newTitle }: { title: string; newTitle: string }) {
     const row = await this.getProjectRow({ title });
     await row.locator('td.ant-table-cell').nth(4).locator('.nc-icon').click();
-    await this.rootPage.locator('.ant-dropdown-menu-item:has-text("Rename Project")').click();
+    await this.rootPage.locator('.ant-dropdown-menu-item:has-text("Rename Base")').click();
     await row.locator('td.ant-table-cell').nth(0).locator('input').fill(newTitle);
     await this.waitForResponse({
       uiAction: () => row.locator('td.ant-table-cell').nth(0).locator('input').press('Enter'),
       httpMethodsToMatch: ['PATCH'],
-      requestUrlPathToMatch: `api/v1/db/meta/projects/`,
+      requestUrlPathToMatch: `api/v1/meta/bases/`,
     });
   }
 
-  // move project
+  // move base
   //
-  async projectMove({ title, newWorkspace }: { title: string; newWorkspace: string }) {
+  async baseMove({ title, newWorkspace }: { title: string; newWorkspace: string }) {
     const row = await this.getProjectRow({ title });
     await row.locator('td.ant-table-cell').nth(4).locator('.nc-icon').click();
-    await this.rootPage.locator('.ant-dropdown-menu-item:has-text("Move Project")').click();
+    await this.rootPage.locator('.ant-dropdown-menu-item:has-text("Move Base")').click();
 
     await this.rootPage.locator('.ant-modal.active').locator('input').click();
     await this.rootPage.locator('.ant-select-dropdown').locator(`.ant-select-item:has-text("${newWorkspace}")`).click();
@@ -175,9 +175,9 @@ export class ContainerPage extends BasePage {
     });
   }
 
-  // delete project
+  // delete base
   //
-  async projectDelete({ title }: { title: string }) {
+  async baseDelete({ title }: { title: string }) {
     await this.rootPage.waitForTimeout(1000);
     const row = await this.getProjectRow({ title });
     await row.locator('td.ant-table-cell').nth(3).locator('.nc-icon').click();
@@ -185,11 +185,11 @@ export class ContainerPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.rootPage.locator('.ant-modal-content').locator('button:has-text("Delete")').click(),
       httpMethodsToMatch: ['DELETE'],
-      requestUrlPathToMatch: `api/v1/db/meta/projects/`,
+      requestUrlPathToMatch: `api/v1/meta/bases/`,
     });
   }
 
-  async projectOpen(param: { title: any }) {
+  async baseOpen(param: { title: any }) {
     const row = await this.getProjectRow({ title: param.title });
 
     // use index 1, as 0 contains icon to mark favourite
@@ -197,7 +197,7 @@ export class ContainerPage extends BasePage {
     await row.locator('td.ant-table-cell').nth(1).click();
   }
 
-  async projectAddToFavourites({ title }: { title: string }) {
+  async baseAddToFavourites({ title }: { title: string }) {
     const row = await this.getProjectRow({ title });
     await row.locator('td.ant-table-cell').nth(0).locator('.nc-icon').click({ force: true });
   }

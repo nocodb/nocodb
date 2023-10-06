@@ -6,7 +6,7 @@ import {
   ReadonlyInj,
   inject,
   onClickOutside,
-  useProject,
+  useBase,
   useSelectedCellKeyupListener,
   watch,
 } from '#imports'
@@ -20,7 +20,7 @@ const { modelValue, isPk } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { isMysql } = useProject()
+const { isMysql } = useBase()
 
 const { showNull } = useGlobal()
 
@@ -36,7 +36,7 @@ const column = inject(ColumnInj)!
 
 const isTimeInvalid = ref(false)
 
-const dateFormat = isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
+const dateFormat = isMysql(column.value.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
 const { t } = useI18n()
 

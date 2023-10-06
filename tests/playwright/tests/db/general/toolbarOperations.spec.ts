@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import setup, { unsetup } from '../../../setup';
-import { isMysql } from '../../../setup/db';
+import { enableQuickRun, isMysql } from '../../../setup/db';
 import { UITypes } from 'nocodb-sdk';
 
 test.describe('Toolbar operations (GRID)', () => {
@@ -19,7 +19,7 @@ test.describe('Toolbar operations (GRID)', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
   });
 
@@ -28,6 +28,7 @@ test.describe('Toolbar operations (GRID)', () => {
   });
 
   test('Create a GroupBy and Verify With Sort, Filter, Hide', async () => {
+    if (enableQuickRun()) test.skip();
     // Open Table
     await dashboard.treeView.openTable({ title: 'Film' });
 
@@ -160,6 +161,7 @@ test.describe('Toolbar operations (GRID)', () => {
   });
 
   test('Create Two GroupBy and Verify With Sort, Filter, Hide', async () => {
+    if (enableQuickRun()) test.skip();
     // Open Table
     await dashboard.treeView.openTable({ title: 'Film' });
 
@@ -302,6 +304,7 @@ test.describe('Toolbar operations (GRID)', () => {
   });
 
   test('Create Three GroupBy and Verify With Sort, Filter, Hide', async () => {
+    if (enableQuickRun()) test.skip();
     // Open Table
     await dashboard.treeView.openTable({ title: 'Film' });
 
@@ -451,6 +454,7 @@ test.describe('Toolbar operations (GRID)', () => {
   });
 
   test('Update GroupBy and Verify', async () => {
+    if (enableQuickRun()) test.skip();
     await dashboard.treeView.openTable({ title: 'Film' });
 
     if (isMysql(context)) {
@@ -504,6 +508,7 @@ test.describe('Toolbar operations (GRID)', () => {
   });
 
   test('Change View and Verify GroupBy', async () => {
+    if (enableQuickRun()) test.skip();
     await dashboard.treeView.openTable({ title: 'Film' });
 
     // Open GroupBy Menu
@@ -529,6 +534,7 @@ test.describe('Toolbar operations (GRID)', () => {
   });
 
   test('Duplicate View and Verify GroupBy', async () => {
+    if (enableQuickRun()) test.skip();
     await dashboard.treeView.openTable({ title: 'Film' });
     await dashboard.viewSidebar.createGridView({ title: 'Film Grid' });
 
@@ -552,6 +558,7 @@ test.describe('Toolbar operations (GRID)', () => {
   });
 
   test('Delete GroupBy and Verify', async () => {
+    if (enableQuickRun()) test.skip();
     await dashboard.treeView.openTable({ title: 'Film' });
 
     // Open GroupBy Menu

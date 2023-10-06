@@ -8,7 +8,7 @@ import {
   getMdiIcon,
   inject,
   parseProp,
-  useProject,
+  useBase,
   useSelectedCellKeyupListener,
 } from '#imports'
 
@@ -28,7 +28,7 @@ const emits = defineEmits<Emits>()
 
 const active = inject(ActiveCellInj, ref(false))
 
-const { isMssql } = useProject()
+const { isMssql } = useBase()
 
 const column = inject(ColumnInj)
 
@@ -53,7 +53,7 @@ const checkboxMeta = computed(() => {
 
 const vModel = computed<boolean | number>({
   get: () => !!props.modelValue && props.modelValue !== '0' && props.modelValue !== 0 && props.modelValue !== 'false',
-  set: (val: any) => emits('update:modelValue', isMssql(column?.value?.base_id) ? +val : val),
+  set: (val: any) => emits('update:modelValue', isMssql(column?.value?.source_id) ? +val : val),
 })
 
 function onClick(force?: boolean, event?: MouseEvent) {
@@ -80,7 +80,7 @@ useSelectedCellKeyupListener(active, (e) => {
 
 <template>
   <div
-    class="flex cursor-pointer w-full h-full"
+    class="flex cursor-pointer w-full h-full items-center"
     :class="{
       'justify-center': !isForm || !isGallery,
       'w-full flex-start': isForm || isGallery,
@@ -89,7 +89,7 @@ useSelectedCellKeyupListener(active, (e) => {
     }"
     @click="onClick(false, $event)"
   >
-    <div class="items-center py-2" :class="{ 'w-full justify-start': isEditColumnMenu || isGallery }" @click="onClick(true)">
+    <div class="items-center" :class="{ 'w-full justify-start': isEditColumnMenu || isGallery || isForm }" @click="onClick(true)">
       <Transition name="layout" mode="out-in" :duration="100">
         <component
           :is="getMdiIcon(vModel ? checkboxMeta.icon.checked : checkboxMeta.icon.unchecked)"

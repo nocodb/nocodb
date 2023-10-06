@@ -1,4 +1,4 @@
-import { type ViewType } from 'nocodb-sdk'
+import type { ViewType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { ViewPageType } from '~/lib'
 
@@ -6,6 +6,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const { $api } = useNuxtApp()
 
   const router = useRouter()
+  const recentViews = ref<any>([])
   const route = router.currentRoute
 
   const tablesStore = useTablesStore()
@@ -20,6 +21,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       viewsByTable.value.set(tablesStore.activeTableId, value)
     },
   })
+
   const isViewsLoading = ref(true)
   const isViewDataLoading = ref(true)
   const isPublic = computed(() => route.value.meta?.public)
@@ -107,16 +109,20 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const onViewsTabChange = (page: ViewPageType) => {
     router.push({
-      name: 'index-typeOrId-projectId-index-index-viewId-viewTitle-slugs',
+      name: 'index-typeOrId-baseId-index-index-viewId-viewTitle-slugs',
       params: {
         typeOrId: route.value.params.typeOrId,
-        projectId: route.value.params.projectId,
+        baseId: route.value.params.baseId,
         viewId: route.value.params.viewId,
         viewTitle: activeViewTitleOrId.value,
         slugs: [page],
       },
     })
   }
+
+  const changeView = async (..._args: any) => {}
+
+  const removeFromRecentViews = (..._args: any) => {}
 
   watch(
     () => tablesStore.activeTableId,
@@ -145,22 +151,26 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const navigateToView = async ({
     view,
-    projectId,
+    baseId,
     tableId,
     hardReload,
+    doNotSwitchTab,
   }: {
     view: ViewType
-    projectId: string
+    baseId: string
     tableId: string
     hardReload?: boolean
+    doNotSwitchTab?: boolean
   }) => {
-    const routeName = 'index-typeOrId-projectId-index-index-viewId-viewTitle'
+    const routeName = 'index-typeOrId-baseId-index-index-viewId-viewTitle-slugs'
 
-    let projectIdOrBaseId = projectId
+    let baseIdOrBaseId = baseId
 
     if (['base'].includes(route.value.params.typeOrId as string)) {
-      projectIdOrBaseId = route.value.params.projectId as string
+      baseIdOrBaseId = route.value.params.baseId as string
     }
+
+    const slugs = doNotSwitchTab ? router.currentRoute.value.params.slugs : undefined
 
     if (
       router.currentRoute.value.query &&
@@ -169,11 +179,24 @@ export const useViewsStore = defineStore('viewsStore', () => {
     ) {
       await router.push({
         name: routeName,
-        params: { viewTitle: view.id || '', viewId: tableId, projectId: projectIdOrBaseId },
+        params: {
+          viewTitle: view.id || '',
+          viewId: tableId,
+          baseId: baseIdOrBaseId,
+          slugs,
+        },
         query: router.currentRoute.value.query,
       })
     } else {
-      await router.push({ name: routeName, params: { viewTitle: view.id || '', viewId: tableId, projectId: projectIdOrBaseId } })
+      await router.push({
+        name: routeName,
+        params: {
+          viewTitle: view.id || '',
+          viewId: tableId,
+          baseId: baseIdOrBaseId,
+          slugs,
+        },
+      })
     }
 
     if (hardReload) {
@@ -181,13 +204,23 @@ export const useViewsStore = defineStore('viewsStore', () => {
         .replace({
           name: routeName,
           query: { reload: 'true' },
-          params: { viewId: tableId, projectId: projectIdOrBaseId, viewTitle: view.id || '' },
+          params: {
+            viewId: tableId,
+            baseId: baseIdOrBaseId,
+            viewTitle: view.id || '',
+            slugs,
+          },
         })
         .then(() => {
           router.replace({
             name: routeName,
             query: {},
-            params: { viewId: tableId, viewTitle: view.id || '', projectId: projectIdOrBaseId },
+            params: {
+              viewId: tableId,
+              viewTitle: view.id || '',
+              baseId: baseIdOrBaseId,
+              slugs,
+            },
           })
         })
     }
@@ -203,6 +236,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     isViewDataLoading,
     isPaginationLoading,
     loadViews,
+    recentViews,
     views,
     activeView,
     openedViewsTab,
@@ -211,6 +245,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     viewsByTable,
     activeViewTitleOrId,
     navigateToView,
+    changeView,
+    removeFromRecentViews,
   }
 })
 

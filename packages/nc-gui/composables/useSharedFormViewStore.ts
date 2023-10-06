@@ -22,10 +22,10 @@ import {
   ref,
   storeToRefs,
   useApi,
+  useBase,
   useI18n,
   useInjectionState,
   useMetas,
-  useProject,
   useProvideSmartsheetRowStore,
   useViewsStore,
   watch,
@@ -56,8 +56,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { metas, setMeta } = useMetas()
 
-  const projectStore = useProject()
-  const { project } = storeToRefs(projectStore)
+  const baseStore = useBase()
+  const { base } = storeToRefs(baseStore)
 
   const { t } = useI18n()
 
@@ -112,12 +112,12 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       await setMeta(viewMeta.model)
 
-      // if project is not defined then set it with an object containing base
-      if (!project.value?.bases)
-        projectStore.setProject({
-          bases: [
+      // if base is not defined then set it with an object containing source
+      if (!base.value?.sources)
+        baseStore.setProject({
+          sources: [
             {
-              id: viewMeta.base_id,
+              id: viewMeta.source_id,
               type: viewMeta.client,
             },
           ],
@@ -213,8 +213,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       submitted.value = true
       progress.value = false
-
-      await message.success(sharedFormView.value?.success_msg || 'Saved successfully.')
     } catch (e: any) {
       console.log(e)
       await message.error(await extractSdkResponseErrorMsg(e))

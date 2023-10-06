@@ -19,29 +19,35 @@ export class ModelVisibilitiesController {
     private readonly modelVisibilitiesService: ModelVisibilitiesService,
   ) {}
 
-  @Post('/api/v1/db/meta/projects/:projectId/visibility-rules')
+  @Post([
+    '/api/v1/db/meta/projects/:baseId/visibility-rules',
+    '/api/v1/meta/bases/:baseId/visibility-rules',
+  ])
   @HttpCode(200)
   @Acl('modelVisibilitySet')
   async xcVisibilityMetaSetAll(
-    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
     @Body() body: any,
   ) {
     await this.modelVisibilitiesService.xcVisibilityMetaSetAll({
       visibilityRule: body,
-      projectId,
+      baseId,
     });
 
     return { msg: 'UI ACL has been created successfully' };
   }
 
-  @Get('/api/v1/db/meta/projects/:projectId/visibility-rules')
+  @Get([
+    '/api/v1/db/meta/projects/:baseId/visibility-rules',
+    '/api/v1/meta/bases/:baseId/visibility-rules',
+  ])
   @Acl('modelVisibilityList')
   async modelVisibilityList(
-    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
     @Query('includeM2M') includeM2M: boolean | string,
   ) {
     return await this.modelVisibilitiesService.xcVisibilityMetaGet({
-      projectId,
+      baseId,
       includeM2M: includeM2M === true || includeM2M === 'true',
     });
   }

@@ -5,7 +5,7 @@ import { Exception } from 'handlebars';
 import { createWidget } from '../../factory/widget';
 import init from '../../init';
 import { createLayout } from '../../factory/layout';
-import { createProject } from '../../factory/project';
+import { createProject } from '../../factory/base';
 import { createTable } from '../../factory/table';
 import { Widget } from '../../../../src/models';
 
@@ -37,7 +37,7 @@ function widgetTests() {
 
     layout = await createLayout(context, dashboardProject, {
       title: 'Layout1',
-      project_id: dashboardProject.id,
+      base_id: dashboardProject.id,
     });
 
     table = await createTable(context, dbProject);
@@ -110,14 +110,14 @@ function widgetTests() {
 }
 
 // describe('Widget config update edge cases', async function () {
-//   it('trying to connect to a table of a DB project that exists, but is not linked to the Dashboard Project results in a "FORBIDDEN"/403', async function () {
+//   it('trying to connect to a table of a DB base that exists, but is not linked to the Dashboard Base results in a "FORBIDDEN"/403', async function () {
 //     const req: WidgetReqType = {
 //       layout_id: layout.id,
 //       schema_version: 'v0.2',
 //       widget_type: 'line_chart' as WidgetTypeType,
 //       data_source: {
 //         dataSourceType: DataSourceType.INTERNAL,
-//         projectId: dbProject.id,
+//         baseId: dbProject.id,
 //         tableId: table.id,
 //       } as DataSource,
 //     };
@@ -135,7 +135,7 @@ function widgetTests() {
 //     widget_type: 'line_chart' as WidgetTypeType,
 //     data_source: {
 //       dataSourceType: DataSourceType.INTERNAL,
-//       projectId: dbProject.id,
+//       baseId: dbProject.id,
 //       tableId: table.id,
 //     } as DataSource,
 //   };

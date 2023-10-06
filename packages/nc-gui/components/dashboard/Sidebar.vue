@@ -3,7 +3,7 @@ const workspaceStore = useWorkspace()
 
 const { isWorkspaceLoading } = storeToRefs(workspaceStore)
 
-const { isSharedBase } = storeToRefs(useProject())
+const { isSharedBase } = storeToRefs(useBase())
 
 const { isMobileMode } = useGlobal()
 

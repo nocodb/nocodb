@@ -1,22 +1,22 @@
 import { test } from '@playwright/test';
-import { ProjectType, ProjectTypes } from 'nocodb-sdk';
+import { BaseType, ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../pages/Dashboard';
 import setup, { NcContext } from '../../setup';
 
 test.describe('Tiptap:History and trailing node', () => {
   let dashboard: DashboardPage;
   let context: NcContext;
-  let project: ProjectType;
+  let base: BaseType;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, projectType: ProjectTypes.DOCUMENTATION });
-    project = context.project;
-    dashboard = new DashboardPage(page, context.project);
+    context = await setup({ page, baseType: ProjectTypes.DOCUMENTATION });
+    base = context.base;
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test('Tiptap:History, trailing node, and first line delete', async ({ page }) => {
     // root page
-    await dashboard.sidebar.docsSidebar.createPage({ projectTitle: project.title as any, title: 'test-page' });
+    await dashboard.sidebar.docsSidebar.createPage({ baseTitle: base.title as any, title: 'test-page' });
     await dashboard.docs.openedPage.verifyOpenedPageVisible();
 
     const openedPage = await dashboard.docs.openedPage;

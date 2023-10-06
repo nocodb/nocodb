@@ -15,7 +15,7 @@ import {
   reactive,
   ref,
   useApi,
-  useGlobal,
+  // useGlobal,
   useI18n,
   useNuxtApp,
   watch,
@@ -35,11 +35,11 @@ const { $e } = useNuxtApp()
 
 const { api, isLoading: loading } = useApi()
 
-const { appInfo } = useGlobal()
+// const { appInfo } = useGlobal()
 
 const { hooks } = storeToRefs(useWebhooksStore())
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
 const meta = inject(MetaInj, ref())
 
@@ -72,7 +72,7 @@ let hookRef = reactive<
   version: 'v2',
 })
 
-const isBodyShown = ref(hookRef.version === 'v1' || (hookRef.version === 'v2' && appInfo.value.ee))
+const isBodyShown = ref(hookRef.version === 'v1')
 
 const urlTabKey = ref(isBodyShown.value ? 'body' : 'params')
 
@@ -377,7 +377,7 @@ async function loadPluginList() {
     const plugins = (
       await api.plugin.webhookList({
         query: {
-          project_id: project.value.id,
+          base_id: base.value.id,
         },
       })
     ).list!

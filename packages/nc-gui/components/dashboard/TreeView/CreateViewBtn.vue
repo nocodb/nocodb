@@ -6,15 +6,17 @@ const { $e } = useNuxtApp()
 
 const { refreshCommandPalette } = useCommandPalette()
 const viewsStore = useViewsStore()
-const { views } = storeToRefs(viewsStore)
 const { loadViews, navigateToView } = viewsStore
 
 const table = inject(SidebarTableInj)!
-const project = inject(ProjectInj)!
+const base = inject(ProjectInj)!
+
+const isViewListLoading = ref(false)
+const toBeCreateType = ref<ViewTypes>()
 
 const isOpen = ref(false)
 
-function onOpenModal({
+async function onOpenModal({
   title = '',
   type,
   copyViewId,
@@ -25,7 +27,17 @@ function onOpenModal({
   copyViewId?: string
   groupingFieldColumnId?: string
 }) {
+  if (isViewListLoading.value) return
+
+  toBeCreateType.value = type
+
+  isViewListLoading.value = true
+  await loadViews({
+    tableId: table.value.id!,
+  })
+
   isOpen.value = false
+  isViewListLoading.value = false
 
   const isDlgOpen = ref(true)
 
@@ -36,7 +48,6 @@ function onOpenModal({
     'tableId': table.value.id,
     'selectedViewId': copyViewId,
     groupingFieldColumnId,
-    'views': views,
     'onUpdate:modelValue': closeDialog,
     'onCreated': async (view: ViewType) => {
       closeDialog()
@@ -44,13 +55,19 @@ function onOpenModal({
       refreshCommandPalette()
 
       await loadViews({
+        tableId: table.value.id!,
         force: true,
       })
+
+      table.value.meta = {
+        ...(table.value.meta as object),
+        hasNonDefaultViews: true,
+      }
 
       navigateToView({
         view,
         tableId: table.value.id!,
-        projectId: project.value.id!,
+        baseId: base.value.id!,
       })
 
       $e('a:view:create', { view: view.type })
@@ -59,6 +76,7 @@ function onOpenModal({
 
   function closeDialog() {
     isOpen.value = false
+    isDlgOpen.value = false
 
     close(1000)
   }
@@ -66,18 +84,19 @@ function onOpenModal({
 </script>
 
 <template>
-  <NcDropdown v-model:isOpen="isOpen" destroy-popup-on-hide @click.stop="isOpen = !isOpen">
+  <NcDropdown v-model:visible="isOpen" destroy-popup-on-hide @click.stop="isOpen = true">
     <slot />
     <template #overlay>
       <NcMenu class="max-w-48">
-        <NcMenuItem @click="onOpenModal({ type: ViewTypes.GRID })">
+        <NcMenuItem @click.stop="onOpenModal({ type: ViewTypes.GRID })">
           <div class="item" data-testid="sidebar-view-create-grid">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.GRID }" />
               <div>Grid</div>
             </div>
 
-            <GeneralIcon class="plus" icon="plus" />
+            <GeneralLoader v-if="toBeCreateType === ViewTypes.GRID && isViewListLoading" />
+            <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
 
@@ -88,7 +107,8 @@ function onOpenModal({
               <div>Form</div>
             </div>
 
-            <GeneralIcon class="plus" icon="plus" />
+            <GeneralLoader v-if="toBeCreateType === ViewTypes.FORM && isViewListLoading" />
+            <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
         <NcMenuItem @click="onOpenModal({ type: ViewTypes.GALLERY })">
@@ -98,7 +118,8 @@ function onOpenModal({
               <div>Gallery</div>
             </div>
 
-            <GeneralIcon class="plus" icon="plus" />
+            <GeneralLoader v-if="toBeCreateType === ViewTypes.GALLERY && isViewListLoading" />
+            <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
         <NcMenuItem data-testid="sidebar-view-create-kanban" @click="onOpenModal({ type: ViewTypes.KANBAN })">
@@ -108,7 +129,8 @@ function onOpenModal({
               <div>Kanban</div>
             </div>
 
-            <GeneralIcon class="plus" icon="plus" />
+            <GeneralLoader v-if="toBeCreateType === ViewTypes.KANBAN && isViewListLoading" />
+            <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
       </NcMenu>

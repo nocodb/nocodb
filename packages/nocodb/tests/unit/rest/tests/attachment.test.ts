@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
 import 'mocha';
 import request from 'supertest';
-import { createProject } from '../../factory/project';
+import { createProject } from '../../factory/base';
 import init from '../../init';
 
 const FILE_PATH = path.join(__dirname, 'test.txt');
@@ -14,7 +14,6 @@ function attachmentTests() {
 
   beforeEach(async function () {
     console.time('#### attachmentTests');
-    context = await init();
     fs.writeFileSync(FILE_PATH, 'test', `utf-8`);
     context = await init();
     console.timeEnd('#### attachmentTests');
@@ -26,7 +25,7 @@ function attachmentTests() {
 
   it('Upload file - Super admin', async () => {
     const response = await request(context.app)
-      .post('/api/v1/db/storage/upload')
+      .post('/api/v1/storage/upload')
       .attach('files', FILE_PATH)
       .set('xc-auth', context.token)
       .expect(200);
@@ -38,7 +37,7 @@ function attachmentTests() {
 
   it('Upload file - Without token', async () => {
     const response = await request(context.app)
-      .post('/api/v1/db/storage/upload')
+      .post('/api/v1/storage/upload')
       .attach('files', FILE_PATH)
       .expect(401);
 
@@ -59,7 +58,7 @@ function attachmentTests() {
       .expect(200);
 
     const response = await request(context.app)
-      .post('/api/v1/db/storage/upload')
+      .post('/api/v1/storage/upload')
       .attach('files', FILE_PATH)
       .set('xc-auth', signupResponse.body.token)
       .expect(400);
@@ -105,7 +104,7 @@ function attachmentTests() {
       .expect(200);
 
     const response = await request(context.app)
-      .post('/api/v1/db/storage/upload')
+      .post('/api/v1/storage/upload')
       .attach('files', FILE_PATH)
       .set('xc-auth', signinResponse.body.token)
       .expect(200);
@@ -115,7 +114,7 @@ function attachmentTests() {
     expect(attachments[0].title).to.be.eq(path.basename(FILE_PATH));
   });
 
-  it('Upload file - Org level viewer with editor role in a project', async () => {
+  it('Upload file - Org level viewer with editor role in a base', async () => {
     // skip this test for enterprise edition
     if (!process.env.EE) {
       // signup a new user
@@ -133,15 +132,15 @@ function attachmentTests() {
         title: 'NewTitle1',
       });
 
-      // invite user to project with editor role
+      // invite user to base with editor role
       await request(context.app)
-        .post(`/api/v1/db/meta/projects/${newProject.id}/users`)
+        .post(`/api/v1/meta/bases/${newProject.id}/users`)
         .set('xc-auth', context.token)
         .send({
           roles: ProjectRoles.EDITOR,
           email: args.email,
-          project_id: newProject.id,
-          projectName: newProject.title,
+          base_id: newProject.id,
+          baseName: newProject.title,
         })
         .expect(200);
 
@@ -153,7 +152,7 @@ function attachmentTests() {
         .expect(200);
 
       const response = await request(context.app)
-        .post('/api/v1/db/storage/upload')
+        .post('/api/v1/storage/upload')
         .attach('files', FILE_PATH)
         .set('xc-auth', signinResponse.body.token)
         .expect(200);

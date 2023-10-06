@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const workspaceStore = useWorkspace()
-const projectStore = useProject()
+const baseStore = useBase()
 
 const { isUIAllowed } = useRoles()
 
@@ -10,7 +10,7 @@ const { isWorkspaceLoading, isWorkspaceSettingsPageOpened } = storeToRefs(worksp
 
 const { navigateToWorkspaceSettings } = workspaceStore
 
-const { isSharedBase } = storeToRefs(projectStore)
+const { isSharedBase } = storeToRefs(baseStore)
 
 const isCreateProjectOpen = ref(false)
 
@@ -48,6 +48,7 @@ const navigateToSettings = () => {
 
       <NcButton
         v-if="isUIAllowed('workspaceSettings')"
+        v-e="['c:team:settings']"
         type="text"
         size="small"
         class="nc-sidebar-top-button !xs:hidden"
@@ -69,7 +70,7 @@ const navigateToSettings = () => {
         modal
         type="text"
         class="nc-sidebar-top-button !hover:bg-gray-200 !xs:hidden"
-        data-testid="nc-sidebar-create-project-btn"
+        data-testid="nc-sidebar-create-base-btn"
       >
         <div class="gap-x-2 flex flex-row w-full items-center !font-normal">
           <GeneralIcon icon="plus" />

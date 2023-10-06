@@ -13,6 +13,8 @@ export const useConfigStore = defineStore('configStore', () => {
 
   const isMobileMode = ref(isViewPortMobile())
 
+  const projectPageTab = ref<'allTable' | 'collaborator' | 'data-source'>('allTable')
+
   const onViewPortResize = () => {
     isMobileMode.value = isViewPortMobile()
   }
@@ -62,6 +64,7 @@ export const useConfigStore = defineStore('configStore', () => {
     isMobileMode,
     isViewPortMobile,
     handleSidebarOpenOnMobileForNonViews,
+    projectPageTab,
   }
 })
 

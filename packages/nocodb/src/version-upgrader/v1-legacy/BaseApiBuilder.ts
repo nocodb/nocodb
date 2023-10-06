@@ -14,7 +14,7 @@ import type { DbConfig, NcConfig } from '~/interface/config';
 import ModelXcMetaFactory from '~/db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import NcConnectionMgr from '~/utils/common/NcConnectionMgr';
 
-const log = debug('nc:api:base');
+const log = debug('nc:api:source');
 
 export default abstract class BaseApiBuilder<T extends Noco> {
   public abstract readonly type: string;
@@ -24,7 +24,7 @@ export default abstract class BaseApiBuilder<T extends Noco> {
   }
 
   public get prefix() {
-    return this.projectBuilder?.prefix;
+    return this.baseBuilder?.prefix;
   }
 
   public get apiType(): string {
@@ -44,7 +44,7 @@ export default abstract class BaseApiBuilder<T extends Noco> {
       this.baseLog(`router : Initializing builder router`);
       this.apiRouter = Router();
       // (this.app as any).router.use('/', this.apiRouter)
-      (this.projectBuilder as any).router.use('/', this.apiRouter);
+      (this.baseBuilder as any).router.use('/', this.apiRouter);
     }
     return this.apiRouter;
   }
@@ -53,8 +53,8 @@ export default abstract class BaseApiBuilder<T extends Noco> {
     return this.connectionConfig?.meta?.api?.prefix || 'v1';
   }
 
-  protected get projectId(): string {
-    return this.projectBuilder?.id;
+  protected get baseId(): string {
+    return this.baseBuilder?.id;
   }
 
   public get xcModels() {
@@ -87,7 +87,7 @@ export default abstract class BaseApiBuilder<T extends Noco> {
   protected functionsCount = 0;
   protected proceduresCount = 0;
 
-  protected projectBuilder: NcProjectBuilder;
+  protected baseBuilder: NcProjectBuilder;
 
   protected models: { [key: string]: BaseModelSql };
 
@@ -108,7 +108,7 @@ export default abstract class BaseApiBuilder<T extends Noco> {
 
   constructor(
     app: T,
-    projectBuilder: NcProjectBuilder,
+    baseBuilder: NcProjectBuilder,
     config: NcConfig,
     connectionConfig: DbConfig,
   ) {
@@ -120,7 +120,7 @@ export default abstract class BaseApiBuilder<T extends Noco> {
     this.procedureOrFunctionAcls = {};
     this.hooks = {};
     this.formViews = {};
-    this.projectBuilder = projectBuilder;
+    this.baseBuilder = baseBuilder;
   }
 
   public getDbType(): any {
@@ -140,7 +140,7 @@ export default abstract class BaseApiBuilder<T extends Noco> {
       dbAlias: this.dbAlias,
       env: this.config.env,
       config: this.config,
-      projectId: this.projectId,
+      baseId: this.baseId,
     });
   }
 
@@ -159,7 +159,7 @@ export default abstract class BaseApiBuilder<T extends Noco> {
     this.baseLog(`xcUpgrade : Getting configuration from meta database`);
 
     const config = await this.xcMeta.metaGet(
-      this.projectId,
+      this.baseId,
       this.dbAlias,
       'nc_store',
       { key: 'NC_CONFIG' },
@@ -180,13 +180,13 @@ export default abstract class BaseApiBuilder<T extends Noco> {
               xcMeta: this.xcMeta,
               builder: this,
               dbAlias: this.dbAlias,
-              projectId: this.projectId,
+              baseId: this.baseId,
             });
 
             // update version in meta after each upgrade
             configObj.version = version.name;
             await this.xcMeta.metaUpdate(
-              this.projectId,
+              this.baseId,
               this.dbAlias,
               'nc_store',
               {
@@ -205,7 +205,7 @@ export default abstract class BaseApiBuilder<T extends Noco> {
         }
         configObj.version = process.env.NC_VERSION;
         await this.xcMeta.metaUpdate(
-          this.projectId,
+          this.baseId,
           this.dbAlias,
           'nc_store',
           {
@@ -221,10 +221,10 @@ export default abstract class BaseApiBuilder<T extends Noco> {
       const configObj: NcConfig = JSON.parse(JSON.stringify(this.config));
       delete configObj.envs;
       const isOld = (
-        await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_models')
+        await this.xcMeta.metaList(this.baseId, this.dbAlias, 'nc_models')
       )?.length;
       configObj.version = isOld ? '0009000' : process.env.NC_VERSION;
-      await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_store', {
+      await this.xcMeta.metaInsert(this.baseId, this.dbAlias, 'nc_store', {
         key: 'NC_CONFIG',
         value: JSON.stringify(configObj),
       });
@@ -235,7 +235,7 @@ export default abstract class BaseApiBuilder<T extends Noco> {
   }
 
   public getProjectId(): string {
-    return this.projectId;
+    return this.baseId;
   }
 
   public async init(): Promise<void> {
@@ -247,13 +247,13 @@ export default abstract class BaseApiBuilder<T extends Noco> {
       dbAlias: this.dbAlias,
       env: this.config.env,
       config: this.config,
-      projectId: this.projectId,
+      baseId: this.baseId,
     });
     this.sqlClient = await NcConnectionMgr.getSqlClient({
       dbAlias: this.dbAlias,
       env: this.config.env,
       config: this.config,
-      projectId: this.projectId,
+      baseId: this.baseId,
     });
   }
 
@@ -292,7 +292,7 @@ export default abstract class BaseApiBuilder<T extends Noco> {
       dbAlias: '',
       routeVersionLetter: this.routeVersionLetter,
       type,
-      project_id: this.projectId,
+      base_id: this.baseId,
     };
     return ctx;
   }
@@ -328,8 +328,8 @@ export default abstract class BaseApiBuilder<T extends Noco> {
       return this.metas?.[tn]?._tn;
     }
 
-    if (this.projectBuilder?.prefix) {
-      tn = tn.replace(this.projectBuilder?.prefix, '');
+    if (this.baseBuilder?.prefix) {
+      tn = tn.replace(this.baseBuilder?.prefix, '');
     }
 
     const modifiedTableName = tn?.replace(/^(?=\d+)/, 'ISN___');
@@ -341,7 +341,7 @@ export default abstract class BaseApiBuilder<T extends Noco> {
 
   protected async ncUpManyToMany(_ctx: any): Promise<any> {
     const models = await this.xcMeta.metaList(
-      this.projectId,
+      this.baseId,
       this.dbAlias,
       'nc_models',
       {
@@ -381,7 +381,7 @@ export default abstract class BaseApiBuilder<T extends Noco> {
       ).mapDefaultDisplayValue(meta.columns);
       // update meta
       await this.xcMeta.metaUpdate(
-        this.projectId,
+        this.baseId,
         this.dbAlias,
         'nc_models',
         {
@@ -485,7 +485,7 @@ export default abstract class BaseApiBuilder<T extends Noco> {
           queryParams = JSON.parse(
             (
               await this.xcMeta.metaGet(
-                this.projectId,
+                this.baseId,
                 this.dbAlias,
                 'nc_models',
                 { title: meta.tn },
@@ -537,7 +537,7 @@ export default abstract class BaseApiBuilder<T extends Noco> {
           }),
       ];
       await this.xcMeta.metaUpdate(
-        this.projectId,
+        this.baseId,
         this.dbAlias,
         'nc_models',
         {
@@ -546,7 +546,7 @@ export default abstract class BaseApiBuilder<T extends Noco> {
         },
         { title: meta.tn },
       );
-      // XcCache.del([this.projectId, this.dbAlias, 'table', meta.tn].join('::'));
+      // XcCache.del([this.baseId, this.dbAlias, 'table', meta.tn].join('::'));
       // if (!localMetas) {
       //   this.models[meta.tn] = this.getBaseModel(meta);
       // }
@@ -555,7 +555,7 @@ export default abstract class BaseApiBuilder<T extends Noco> {
     // Update metadata of associative table
     for (const meta of assocMetas) {
       await this.xcMeta.metaUpdate(
-        this.projectId,
+        this.baseId,
         this.dbAlias,
         'nc_models',
         {
@@ -572,7 +572,7 @@ export default abstract class BaseApiBuilder<T extends Noco> {
 interface NcBuilderUpgraderCtx {
   xcMeta: MetaService;
   builder: BaseApiBuilder<any>;
-  projectId: string;
+  baseId: string;
   dbAlias: string;
 }
 

@@ -151,7 +151,7 @@ export class ToolbarFilterPage extends BasePage {
               .locator(`div[label="${title}"]:visible`)
               .click(),
           httpMethodsToMatch: ['GET'],
-          requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+          requestUrlPathToMatch: locallySaved ? `/api/v1/public/` : `/api/v1/data/noco/`,
         });
       }
     }
@@ -178,7 +178,7 @@ export class ToolbarFilterPage extends BasePage {
               .first()
               .click(),
           httpMethodsToMatch: ['GET'],
-          requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+          requestUrlPathToMatch: locallySaved ? `/api/v1/public/` : `/api/v1/data/noco/`,
         });
       }
     }
@@ -206,7 +206,7 @@ export class ToolbarFilterPage extends BasePage {
                 .first()
                 .click(),
             httpMethodsToMatch: ['GET'],
-            requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+            requestUrlPathToMatch: locallySaved ? `/api/v1/public/` : `/api/v1/data/noco/`,
           });
         }
       }
@@ -249,7 +249,7 @@ export class ToolbarFilterPage extends BasePage {
                 uiAction: async () =>
                   await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click(),
                 httpMethodsToMatch: ['GET'],
-                requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+                requestUrlPathToMatch: locallySaved ? `/api/v1/public/` : `/api/v1/data/noco/`,
               });
             }
           } else {
@@ -261,7 +261,7 @@ export class ToolbarFilterPage extends BasePage {
               await this.waitForResponse({
                 uiAction: fillFilter,
                 httpMethodsToMatch: ['GET'],
-                requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+                requestUrlPathToMatch: locallySaved ? `/api/v1/public/` : `/api/v1/data/noco/`,
               });
             }
             await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
@@ -277,7 +277,7 @@ export class ToolbarFilterPage extends BasePage {
             await this.waitForResponse({
               uiAction: async () => await this.get().locator('.nc-filter-value-select').locator('input').fill(value),
               httpMethodsToMatch: ['GET'],
-              requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+              requestUrlPathToMatch: locallySaved ? `/api/v1/public/` : `/api/v1/data/noco/`,
             });
           }
           break;
@@ -336,7 +336,7 @@ export class ToolbarFilterPage extends BasePage {
           await this.waitForResponse({
             uiAction: fillFilter,
             httpMethodsToMatch: ['GET'],
-            requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+            requestUrlPathToMatch: locallySaved ? `/api/v1/public/` : `/api/v1/data/noco/`,
           });
           await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
           await this.toolbar.parent.waitLoading();
@@ -351,7 +351,7 @@ export class ToolbarFilterPage extends BasePage {
       await this.waitForResponse({
         uiAction: async () => await this.get().locator('.nc-filter-item-remove-btn').click(),
         httpMethodsToMatch: ['DELETE'],
-        requestUrlPathToMatch: '/api/v1/db/meta/filters/',
+        requestUrlPathToMatch: '/api/v1/meta/filters/',
       });
     } else {
       await this.get().locator('.nc-filter-item-remove-btn').click();
@@ -367,7 +367,7 @@ export class ToolbarFilterPage extends BasePage {
       await this.waitForResponse({
         uiAction: async () => await this.get().locator('.nc-filter-item-remove-btn').click(),
         httpMethodsToMatch: ['DELETE'],
-        requestUrlPathToMatch: '/api/v1/db/meta/filters/',
+        requestUrlPathToMatch: '/api/v1/meta/filters/',
       });
     } else {
       await this.get().locator('.nc-filter-item-remove-btn').click();

@@ -200,7 +200,7 @@ export interface NcConfig {
   seedsFolder?: string | string[];
   queriesFolder?: string | string[];
   apisFolder?: string | string[];
-  projectType?: 'rest' | 'graphql' | 'grpc';
+  baseType?: 'rest' | 'graphql' | 'grpc';
   type?: 'mvc' | 'package' | 'docker';
   language?: 'ts' | 'js';
   meta?: {

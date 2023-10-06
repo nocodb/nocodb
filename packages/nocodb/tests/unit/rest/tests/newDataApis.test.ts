@@ -86,7 +86,7 @@ import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import request from 'supertest';
 import init from '../../init';
-import { createProject, createSakilaProject } from '../../factory/project';
+import { createProject, createSakilaProject } from '../../factory/base';
 import { createTable, getTable } from '../../factory/table';
 import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
 import {
@@ -99,18 +99,18 @@ import { createView, updateView } from '../../factory/view';
 
 import { isPg } from '../../init/db';
 import type { ColumnType } from 'nocodb-sdk';
-import type Project from '../../../../src/models/Project';
+import type Base from '~/models/Base';
 import type Model from '../../../../src/models/Model';
 
 const debugMode = false;
 
 let context;
-let project: Project;
+let base: Base;
 let table: Model;
 let columns: any[];
 let insertedRecords: any[] = [];
 
-let sakilaProject: Project;
+let sakilaProject: Base;
 let customerTable: Model;
 let customerColumns;
 let actorTable: Model;
@@ -278,28 +278,28 @@ function generalDb() {
     context = await init();
 
     sakilaProject = await createSakilaProject(context);
-    project = await createProject(context);
+    base = await createProject(context);
 
     customerTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'customer',
     });
     customerColumns = await customerTable.getColumns();
 
     actorTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'actor',
     });
     actorColumns = await actorTable.getColumns();
 
     countryTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'country',
     });
     countryColumns = await countryTable.getColumns();
 
     cityTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'city',
     });
     cityColumns = await cityTable.getColumns();
@@ -324,7 +324,7 @@ function generalDb() {
 
   it('Nested List - Lookup', async function () {
     const lookupColumn = await createLookupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'Lookup',
       table: countryTable,
       relatedTableName: cityTable.table_name,
@@ -354,7 +354,7 @@ function generalDb() {
 
   it('Nested List - Rollup', async function () {
     const rollupColumn = await createRollupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'Rollup',
       table: countryTable,
       relatedTableName: cityTable.table_name,
@@ -390,7 +390,7 @@ function generalDb() {
 
   it('Nested Read - Lookup', async function () {
     const lookupColumn = await createLookupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'Lookup',
       table: countryTable,
       relatedTableName: cityTable.table_name,
@@ -405,7 +405,7 @@ function generalDb() {
 
   it('Nested Read - Rollup', async function () {
     const rollupColumn = await createRollupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'Rollup',
       table: countryTable,
       relatedTableName: cityTable.table_name,
@@ -425,8 +425,8 @@ function textBased() {
   // prepare data for test cases
   beforeEach(async function () {
     context = await init(false);
-    project = await createProject(context);
-    table = await createTable(context, project, {
+    base = await createProject(context);
+    table = await createTable(context, base, {
       table_name: 'textBased',
       title: 'TextBased',
       columns: customColumns('textBased'),
@@ -451,13 +451,13 @@ function textBased() {
     // insert records
     // creating bulk records using older set of APIs
     await createBulkRows(context, {
-      project,
+      base,
       table,
       values: rowAttributes,
     });
 
     // retrieve inserted records
-    insertedRecords = await listRow({ project, table });
+    insertedRecords = await listRow({ base, table });
 
     // verify length of unfiltered records to be 400
     expect(insertedRecords.length).to.equal(400);
@@ -1093,8 +1093,8 @@ function numberBased() {
   // prepare data for test cases
   beforeEach(async function () {
     context = await init();
-    project = await createProject(context);
-    table = await createTable(context, project, {
+    base = await createProject(context);
+    table = await createTable(context, base, {
       table_name: 'numberBased',
       title: 'numberBased',
       columns: customColumns('numberBased'),
@@ -1119,13 +1119,13 @@ function numberBased() {
 
     // insert records
     await createBulkRows(context, {
-      project,
+      base,
       table,
       values: rowAttributes,
     });
 
     // retrieve inserted records
-    insertedRecords = await listRow({ project, table });
+    insertedRecords = await listRow({ base, table });
 
     // verify length of unfiltered records to be 400
     expect(insertedRecords.length).to.equal(400);
@@ -1328,8 +1328,8 @@ function selectBased() {
   // prepare data for test cases
   beforeEach(async function () {
     context = await init();
-    project = await createProject(context);
-    table = await createTable(context, project, {
+    base = await createProject(context);
+    table = await createTable(context, base, {
       table_name: 'selectBased',
       title: 'selectBased',
       columns: customColumns('selectBased'),
@@ -1350,13 +1350,13 @@ function selectBased() {
 
     // insert records
     await createBulkRows(context, {
-      project,
+      base,
       table,
       values: rowAttributes,
     });
 
     // retrieve inserted records
-    insertedRecords = await listRow({ project, table });
+    insertedRecords = await listRow({ base, table });
 
     // verify length of unfiltered records to be 400
     expect(insertedRecords.length).to.equal(400);
@@ -1513,8 +1513,8 @@ function dateBased() {
   // prepare data for test cases
   beforeEach(async function () {
     context = await init();
-    project = await createProject(context);
-    table = await createTable(context, project, {
+    base = await createProject(context);
+    table = await createTable(context, base, {
       table_name: 'dateBased',
       title: 'dateBased',
       columns: customColumns('dateBased'),
@@ -1536,13 +1536,13 @@ function dateBased() {
 
     // insert records
     await createBulkRows(context, {
-      project,
+      base,
       table,
       values: rowAttributes,
     });
 
     // retrieve inserted records
-    insertedRecords = await listRow({ project, table });
+    insertedRecords = await listRow({ base, table });
 
     // verify length of unfiltered records to be 800
     expect(insertedRecords.length).to.equal(800);
@@ -1673,7 +1673,7 @@ function linkBased() {
   // prepare data for test cases
   beforeEach(async function () {
     context = await init();
-    project = await createProject(context);
+    base = await createProject(context);
 
     const columns = [
       {
@@ -1688,7 +1688,7 @@ function linkBased() {
       // Prepare City table
       columns[0].title = 'City';
       columns[0].column_name = 'City';
-      tblCity = await createTable(context, project, {
+      tblCity = await createTable(context, base, {
         title: 'City',
         table_name: 'City',
         columns: customColumns('custom', columns),
@@ -1697,17 +1697,17 @@ function linkBased() {
 
       // insert records
       await createBulkRows(context, {
-        project,
+        base,
         table: tblCity,
         values: cityRecords,
       });
 
-      insertedRecords = await listRow({ project, table: tblCity });
+      insertedRecords = await listRow({ base, table: tblCity });
 
       // Prepare Country table
       columns[0].title = 'Country';
       columns[0].column_name = 'Country';
-      tblCountry = await createTable(context, project, {
+      tblCountry = await createTable(context, base, {
         title: 'Country',
         table_name: 'Country',
         columns: customColumns('custom', columns),
@@ -1715,7 +1715,7 @@ function linkBased() {
       const countryRecords = await prepareRecords('Country', 100);
       // insert records
       await createBulkRows(context, {
-        project,
+        base,
         table: tblCountry,
         values: countryRecords,
       });
@@ -1723,14 +1723,14 @@ function linkBased() {
       // Prepare Actor table
       columns[0].title = 'Actor';
       columns[0].column_name = 'Actor';
-      tblActor = await createTable(context, project, {
+      tblActor = await createTable(context, base, {
         title: 'Actor',
         table_name: 'Actor',
         columns: customColumns('custom', columns),
       });
       const actorRecords = await prepareRecords('Actor', 100);
       await createBulkRows(context, {
-        project,
+        base,
         table: tblActor,
         values: actorRecords,
       });
@@ -1738,14 +1738,14 @@ function linkBased() {
       // Prepare Movie table
       columns[0].title = 'Film';
       columns[0].column_name = 'Film';
-      tblFilm = await createTable(context, project, {
+      tblFilm = await createTable(context, base, {
         title: 'Film',
         table_name: 'Film',
         columns: customColumns('custom', columns),
       });
       const filmRecords = await prepareRecords('Film', 100);
       await createBulkRows(context, {
-        project,
+        base,
         table: tblFilm,
         values: filmRecords,
       });

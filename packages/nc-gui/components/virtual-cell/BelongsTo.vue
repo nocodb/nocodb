@@ -113,7 +113,12 @@ const belongsToColumn = computed(
       />
     </div>
 
-    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" :column="belongsToColumn" @attach-record="listItemsDlg = true" />
+    <LazyVirtualCellComponentsListItems
+      v-if="listItemsDlg"
+      v-model="listItemsDlg"
+      :column="belongsToColumn"
+      @attach-record="listItemsDlg = true"
+    />
   </div>
 </template>
 

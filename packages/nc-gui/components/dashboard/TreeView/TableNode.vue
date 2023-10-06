@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ProjectType, TableType } from 'nocodb-sdk'
+import type { BaseType, TableType } from 'nocodb-sdk'
 import { toRef } from '@vue/reactivity'
 import { message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
@@ -9,19 +9,19 @@ import { ProjectRoleInj, TreeViewInj, useRoles, useTabs } from '#imports'
 
 const props = withDefaults(
   defineProps<{
-    project: ProjectType
+    base: BaseType
     table: TableType
-    baseIndex: number
+    sourceIndex: number
   }>(),
-  { baseIndex: 0 },
+  { sourceIndex: 0 },
 )
 
-const project = toRef(props, 'project')
+const base = toRef(props, 'base')
 const table = toRef(props, 'table')
-const baseIndex = toRef(props, 'baseIndex')
+const sourceIndex = toRef(props, 'sourceIndex')
 
 const { openTable: _openTable } = useTableNew({
-  projectId: project.value.id!,
+  baseId: base.value.id!,
 })
 
 const route = useRoute()
@@ -36,10 +36,10 @@ const { updateTab } = tabStore
 const { $e, $api } = useNuxtApp()
 
 useTableNew({
-  projectId: project.value.id!,
+  baseId: base.value.id!,
 })
 
-const projectRole = inject(ProjectRoleInj)
+const baseRole = inject(ProjectRoleInj)
 provide(SidebarTableInj, table)
 
 const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeViewInj)!
@@ -49,8 +49,8 @@ const { activeView } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 // todo: temp
-const { projectTables } = storeToRefs(useTablesStore())
-const tables = computed(() => projectTables.value.get(project.value.id!) ?? [])
+const { baseTables } = storeToRefs(useTablesStore())
+const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
 
 const openedTableId = computed(() => route.params.viewId)
 
@@ -78,11 +78,11 @@ const setIcon = async (icon: string, table: TableType) => {
 
 // Todo: temp
 
-const { isSharedBase } = useProject()
-// const isMultiBase = computed(() => project.bases && project.bases.length > 1)
+const { isSharedBase } = useBase()
+// const isMultiBase = computed(() => base.sources && base.sources.length > 1)
 
 const canUserEditEmote = computed(() => {
-  return isUIAllowed('tableIconEdit', { roles: projectRole?.value })
+  return isUIAllowed('tableIconEdit', { roles: baseRole?.value })
 })
 
 const isExpanded = ref(false)
@@ -146,34 +146,43 @@ const isTableOpened = computed(() => {
     :data-order="table.order"
     :data-id="table.id"
     :data-table-id="table.id"
-    :class="[`nc-project-tree-tbl nc-project-tree-tbl-${table.title}`]"
+    :class="[`nc-base-tree-tbl nc-base-tree-tbl-${table.title}`]"
     :data-active="openedTableId === table.id"
   >
     <GeneralTooltip
       class="nc-tree-item-inner nc-sidebar-node pl-11 pr-0.75 mb-0.25 rounded-md h-7.1 w-full group cursor-pointer hover:bg-gray-200"
       :class="{
         'hover:bg-gray-200': openedTableId !== table.id,
-        'pl-12 xs:(pl-14)': baseIndex !== 0,
-        'pl-6.5': baseIndex === 0,
+        'pl-12 xs:(pl-14)': sourceIndex !== 0,
+        'pl-6.5': sourceIndex === 0,
         '!bg-primary-selected': isTableOpened,
       }"
       modifier-key="Alt"
     >
       <template #title>{{ table.table_name }}</template>
       <div
+        v-e="['a:table:open']"
         class="table-context flex items-center gap-1 h-full"
         :data-testid="`nc-tbl-side-node-${table.title}`"
         @contextmenu="setMenuContext('table', table)"
         @click="onOpenTable"
       >
         <div class="flex flex-row h-full items-center">
-          <NcButton type="text" size="xxsmall" class="nc-sidebar-node-btn nc-sidebar-expand" @click.stop="onExpand">
+          <NcButton
+            v-if="(table.meta as any)?.hasNonDefaultViews"
+            v-e="['c:table:toggle-expand']"
+            type="text"
+            size="xxsmall"
+            class="nc-sidebar-node-btn nc-sidebar-expand"
+            @click.stop="onExpand"
+          >
             <GeneralIcon
               icon="triangleFill"
-              class="nc-sidebar-base-node-btns group-hover:visible invisible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.5 !text-gray-600 rotate-90"
+              class="nc-sidebar-source-node-btns group-hover:visible invisible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.5 !text-gray-600 rotate-90"
               :class="{ '!rotate-180': isExpanded }"
             />
           </NcButton>
+          <div v-else class="min-w-5.75"></div>
           <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
             <div
               class="flex items-center nc-table-icon"
@@ -184,6 +193,7 @@ const isTableOpened = computed(() => {
             >
               <LazyGeneralEmojiPicker
                 :key="table.meta?.icon"
+                v-e="['c:table:emoji-picker']"
                 :emoji="table.meta?.icon"
                 size="small"
                 :readonly="!canUserEditEmote || isMobileMode"
@@ -195,19 +205,21 @@ const isTableOpened = computed(() => {
                       {{ $t('general.changeIcon') }}
                     </template>
 
-                    <MdiTable
+                    <component
+                      :is="iconMap.table"
                       v-if="table.type === 'table'"
                       class="flex w-5 !text-gray-500 text-sm"
                       :class="{
-                        'group-hover:text-gray-500': isUIAllowed('tableSort', { roles: projectRole }),
+                        'group-hover:text-gray-500': isUIAllowed('tableSort', { roles: baseRole }),
                         '!text-black': openedTableId === table.id,
                       }"
                     />
+
                     <MdiEye
                       v-else
                       class="flex w-5 !text-gray-500 text-sm"
                       :class="{
-                        'group-hover:text-gray-500': isUIAllowed('tableSort', { roles: projectRole }),
+                        'group-hover:text-gray-500': isUIAllowed('tableSort', { roles: baseRole }),
                         '!text-black': openedTableId === table.id,
                       }"
                     />
@@ -233,8 +245,9 @@ const isTableOpened = computed(() => {
           <NcDropdown
             v-if="
               !isSharedBase &&
-              (isUIAllowed('tableRename', { roles: projectRole }) || isUIAllowed('tableDelete', { roles: projectRole }))
+              (isUIAllowed('tableRename', { roles: baseRole }) || isUIAllowed('tableDelete', { roles: baseRole }))
             "
+            v-e="['c:table:option']"
             :trigger="['click']"
             class="nc-sidebar-node-btn"
             @click.stop
@@ -247,9 +260,10 @@ const isTableOpened = computed(() => {
             <template #overlay>
               <NcMenu>
                 <NcMenuItem
-                  v-if="isUIAllowed('tableRename', { roles: projectRole })"
+                  v-if="isUIAllowed('tableRename', { roles: baseRole })"
+                  v-e="['c:table:rename']"
                   :data-testid="`sidebar-table-rename-${table.title}`"
-                  @click="openRenameTableDialog(table, project.bases[baseIndex].id)"
+                  @click="openRenameTableDialog(table, base.sources[sourceIndex].id)"
                 >
                   <GeneralIcon icon="edit" class="text-gray-700" />
                   {{ $t('general.rename') }}
@@ -258,9 +272,10 @@ const isTableOpened = computed(() => {
                 <NcMenuItem
                   v-if="
                     isUIAllowed('tableDuplicate') &&
-                    project.bases?.[baseIndex] &&
-                    (project.bases[baseIndex].is_meta || project.bases[baseIndex].is_local)
+                    base.sources?.[sourceIndex] &&
+                    (base.sources[sourceIndex].is_meta || base.sources[sourceIndex].is_local)
                   "
+                  v-e="['c:table:duplicate']"
                   :data-testid="`sidebar-table-duplicate-${table.title}`"
                   @click="duplicateTable(table)"
                 >
@@ -269,7 +284,8 @@ const isTableOpened = computed(() => {
                 </NcMenuItem>
 
                 <NcMenuItem
-                  v-if="isUIAllowed('tableDelete', { roles: projectRole })"
+                  v-if="isUIAllowed('tableDelete', { roles: baseRole })"
+                  v-e="['c:table:delete']"
                   :data-testid="`sidebar-table-delete-${table.title}`"
                   class="!text-red-500 !hover:bg-red-50"
                   @click="isTableDeleteDialogVisible = true"
@@ -282,6 +298,7 @@ const isTableOpened = computed(() => {
           </NcDropdown>
           <DashboardTreeViewCreateViewBtn v-if="isUIAllowed('viewCreateOrEdit')">
             <NcButton
+              v-e="['c:view:create']"
               type="text"
               size="xxsmall"
               class="nc-create-view-btn nc-sidebar-node-btn"
@@ -295,13 +312,13 @@ const isTableOpened = computed(() => {
         </div>
       </div>
       <DlgTableDelete
-        v-if="table.id && project?.id"
+        v-if="table.id && base?.id"
         v-model:visible="isTableDeleteDialogVisible"
         :table-id="table.id"
-        :project-id="project.id"
+        :base-id="base.id"
       />
     </GeneralTooltip>
-    <DashboardTreeViewViewsList v-if="isExpanded" :table-id="table.id" :project-id="project.id" />
+    <DashboardTreeViewViewsList v-if="isExpanded" :table-id="table.id" :base-id="base.id" />
   </div>
 </template>
 

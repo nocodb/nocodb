@@ -10,5 +10,5 @@ export default class XcAudit {
 
   // @ts-ignore
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public static async log(data: { project }) {}
+  public static async log(data: { base }) {}
 }

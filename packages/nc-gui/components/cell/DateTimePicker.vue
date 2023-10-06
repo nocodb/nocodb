@@ -13,7 +13,7 @@ import {
   parseProp,
   ref,
   timeFormats,
-  useProject,
+  useBase,
   useSelectedCellKeyupListener,
   watch,
 } from '#imports'
@@ -28,7 +28,7 @@ const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { isMssql, isXcdbBase } = useProject()
+const { isMssql, isXcdbBase } = useBase()
 
 const { showNull } = useGlobal()
 
@@ -67,7 +67,7 @@ const localState = computed({
       return undefined
     }
 
-    const isXcDB = isXcdbBase(column.value.base_id)
+    const isXcDB = isXcdbBase(column.value.source_id)
 
     // cater copy and paste
     // when copying a datetime cell, the copied value would be local time
@@ -83,7 +83,7 @@ const localState = computed({
       return /^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)
     }
 
-    if (isMssql(column.value.base_id)) {
+    if (isMssql(column.value.source_id)) {
       // e.g. 2023-04-29T11:41:53.000Z
       return dayjs(modelValue)
     }

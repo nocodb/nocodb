@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import axios from 'axios'
 import type { PaginatedType } from 'nocodb-sdk'
 import { IsGroupByInj, computed, iconMap, inject, isRtlLang, useI18n } from '#imports'
 import type { Language } from '#imports'
@@ -47,9 +48,11 @@ const page = computed({
     isViewDataLoading.value = true
     try {
       await changePage?.(p)
+      isViewDataLoading.value = false
     } catch (e) {
-      console.error(e)
-    } finally {
+      if (axios.isCancel(e)) {
+        return
+      }
       isViewDataLoading.value = false
     }
   },
@@ -94,6 +97,7 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
         class="xs:(mr-2)"
         :class="{ 'rtl-pagination': isRTLLanguage }"
         :total="+count"
+        entity-name="grid"
       />
       <div v-else class="mx-auto flex items-center mt-n1" style="max-width: 250px">
         <span class="text-xs" style="white-space: nowrap"> Change page:</span>

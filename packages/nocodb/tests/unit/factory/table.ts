@@ -1,7 +1,7 @@
 import request from 'supertest';
 import { Model } from '../../../src/models';
 import { defaultColumns } from './column';
-import type { Project } from '../../../src/models';
+import type { Base } from '../../../src/models';
 
 const defaultTableValue = (context) => ({
   table_name: 'Table1',
@@ -9,10 +9,10 @@ const defaultTableValue = (context) => ({
   columns: defaultColumns(context),
 });
 
-const createTable = async (context, project, args = {}) => {
+const createTable = async (context, base, args = {}) => {
   const defaultValue = defaultTableValue(context);
   const response = await request(context.app)
-    .post(`/api/v1/db/meta/projects/${project.id}/tables`)
+    .post(`/api/v1/meta/bases/${base.id}/tables`)
     .set('xc-auth', context.token)
     .send({ ...defaultValue, ...args });
 
@@ -21,28 +21,40 @@ const createTable = async (context, project, args = {}) => {
 };
 
 const getTable = async ({
-  project,
+  base,
   name,
 }: {
-  project: Project;
+  base: Base;
   name: string;
 }) => {
-  const bases = await project.getBases();
+  const sources = await base.getBases();
   return await Model.getByIdOrName({
-    project_id: project.id,
-    base_id: bases[0].id!,
+    base_id: base.id,
+    source_id: sources[0].id!,
     table_name: name,
   });
 };
 
-const getAllTables = async ({ project }: { project: Project }) => {
-  const bases = await project.getBases();
+const getAllTables = async ({ base }: { base: Base }) => {
+  const sources = await base.getBases();
   const tables = await Model.list({
-    project_id: project.id,
-    base_id: bases[0].id!,
+    base_id: base.id,
+    source_id: sources[0].id!,
   });
 
   return tables;
 };
 
-export { createTable, getTable, getAllTables };
+const updateTable = async (
+  context,
+  { table, args }: { table: Model; args: any },
+) => {
+  const response = await request(context.app)
+    .patch(`/api/v1/db/meta/tables/${table.id}`)
+    .set('xc-auth', context.token)
+    .send(args);
+
+  return response.body;
+};
+
+export { createTable, getTable, getAllTables, updateTable };

@@ -71,7 +71,7 @@ export const layoutTitleValidator = {
   },
 }
 
-export const projectTitleValidator = {
+export const baseTitleValidator = {
   validator: (rule: any, value: any) => {
     const { t } = getI18n().global
 

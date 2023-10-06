@@ -40,7 +40,7 @@ export default class Noco {
   public static config: any;
   public static eventEmitter: IEventEmitter;
   public readonly router: express.Router;
-  public readonly projectRouter: express.Router;
+  public readonly baseRouter: express.Router;
   public static _ncMeta: any;
   public readonly metaMgr: any;
   public readonly metaMgrv2: any;
@@ -52,13 +52,13 @@ export default class Noco {
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
     // todo: move
-    // if env variable NC_MINIMAL_DBS is set, then disable project creation with external sources
+    // if env variable NC_MINIMAL_DBS is set, then disable base creation with external sources
     if (process.env.NC_MINIMAL_DBS === 'true') {
       process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED = 'true';
     }
 
     this.router = express.Router();
-    this.projectRouter = express.Router();
+    this.baseRouter = express.Router();
 
     clear();
     /******************* prints : end *******************/
@@ -105,35 +105,44 @@ export default class Noco {
       // new ExpressAdapter(server),
     );
 
-    nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
+    if (process.env.NC_WORKER_CONTAINER === 'true') {
+      if (!process.env.NC_REDIS_URL) {
+        throw new Error('NC_REDIS_URL is required');
+      }
+      process.env.NC_DISABLE_TELE = 'true';
 
-    this._httpServer = nestApp.getHttpAdapter().getInstance();
-    this._server = server;
+      nestApp.init();
+    } else {
+      nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
 
-    nestApp.use(requestIp.mw());
-    nestApp.use(cookieParser());
+      this._httpServer = nestApp.getHttpAdapter().getInstance();
+      this._server = server;
 
-    this.initSentry(nestApp);
+      nestApp.use(requestIp.mw());
+      nestApp.use(cookieParser());
 
-    nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
+      this.initSentry(nestApp);
 
-    nestApp.use(
-      express.json({ limit: process.env.NC_REQUEST_BODY_SIZE || '50mb' }),
-    );
+      nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
 
-    await nestApp.init();
+      nestApp.use(
+        express.json({ limit: process.env.NC_REQUEST_BODY_SIZE || '50mb' }),
+      );
 
-    const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
-    server.use(NcToolGui.expressMiddleware(dashboardPath));
-    server.use(express.static(path.join(__dirname, 'public')));
+      await nestApp.init();
 
-    if (dashboardPath !== '/' && dashboardPath !== '') {
-      server.get('/', (_req, res) => res.redirect(dashboardPath));
+      const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
+      server.use(NcToolGui.expressMiddleware(dashboardPath));
+      server.use(express.static(path.join(__dirname, 'public')));
+
+      if (dashboardPath !== '/' && dashboardPath !== '') {
+        server.get('/', (_req, res) => res.redirect(dashboardPath));
+      }
+
+      this.initSentryErrorHandler(server);
+
+      return nestApp.getHttpAdapter().getInstance();
     }
-
-    this.initSentryErrorHandler(server);
-
-    return nestApp.getHttpAdapter().getInstance();
   }
 
   public static get httpServer(): http.Server {

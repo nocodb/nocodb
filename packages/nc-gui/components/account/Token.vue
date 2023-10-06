@@ -2,7 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import type { ApiTokenType, RequestParams } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, ref, useApi, useCopy, useNuxtApp } from '#imports'
+import { extractSdkResponseErrorMsg, isEeUI, ref, useApi, useCopy, useNuxtApp } from '#imports'
 
 const { api, isLoading } = useApi()
 
@@ -164,26 +164,30 @@ const handleCancel = () => {
     <div class="max-w-[810px] mx-auto p-4" data-testid="nc-token-list">
       <div class="py-2 flex gap-4 items-center justify-between">
         <h6 class="text-2xl my-4 text-left font-bold">{{ $t('title.apiTokens') }}</h6>
-        <NcButton
-          :disabled="showNewTokenModal"
-          class="!rounded-md"
-          data-testid="nc-token-create"
-          size="middle"
-          type="primary"
-          @click="showNewTokenModal = true"
-        >
-          <span class="hidden md:block">
-            {{ $t('title.addNewToken') }}
-          </span>
-          <span class="flex items-center justify-center md:hidden">
-            <component :is="iconMap.plus" />
-          </span>
-        </NcButton>
+        <NcTooltip :disabled="!(isEeUI && tokens.length)">
+          <template #title>{{ $t('labels.tokenLimit') }}</template>
+          <NcButton
+            :disabled="showNewTokenModal || (isEeUI && tokens.length)"
+            class="!rounded-md"
+            data-testid="nc-token-create"
+            size="middle"
+            type="primary"
+            tooltip="bottom"
+            @click="showNewTokenModal = true"
+          >
+            <span class="hidden md:block">
+              {{ $t('title.addNewToken') }}
+            </span>
+            <span class="flex items-center justify-center md:hidden">
+              <component :is="iconMap.plus" />
+            </span>
+          </NcButton>
+        </NcTooltip>
       </div>
       <span>{{ $t('msg.apiTokenCreate') }}</span>
-      <div class="w-[780px] mt-5 border-1 rounded-md h-[530px] overflow-y-scroll">
+      <div class="w-full mt-5 rounded-md h-136 overflow-y-scroll">
         <div>
-          <div class="flex w-full pl-5 bg-gray-50 border-b-1">
+          <div class="flex w-full pl-5 bg-gray-50 border-1">
             <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9">{{ $t('title.tokenName') }}</span>
             <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9 text-start">{{ $t('title.creator') }}</span>
             <span class="py-3.5 text-gray-500 font-medium text-3.5 w-3/9 text-start">{{ $t('labels.token') }}</span>
@@ -226,7 +230,12 @@ const handleCancel = () => {
               <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('title.noLabels')" />
             </div>
 
-            <div v-for="el of tokens" :key="el.id" data-testid="nc-token-list" class="flex border-b-1 pl-5 py-3 justify-between">
+            <div
+              v-for="el of tokens"
+              :key="el.id"
+              data-testid="nc-token-list"
+              class="flex border-1 pl-5 py-3 justify-between token"
+            >
               <span class="text-black font-bold text-3.5 text-start w-2/9">
                 <GeneralTruncateText placement="top" length="20">
                   {{ el.description }}

@@ -58,14 +58,22 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !state.signedIn.value) {
     /** If this is the first usern navigate to signup page directly */
     if (state.appInfo.value.firstUser) {
-      return navigateTo('/signup')
+      return navigateTo({
+        path: '/signup',
+        query: to.fullPath !== '/' && to.fullPath.match(/^\/(?!\?)/) ? { continueAfterSignIn: to.fullPath } : {},
+      })
     }
 
     /** try generating access token using refresh token */
     await state.refreshToken()
 
     /** if user is still not signed in, redirect to signin page */
-    if (!state.signedIn.value) return navigateTo('/signin')
+    if (!state.signedIn.value) {
+      return navigateTo({
+        path: '/signin',
+        query: to.fullPath !== '/' && to.fullPath.match(/^\/(?!\?)/) ? { continueAfterSignIn: to.fullPath } : {},
+      })
+    }
   } else if (to.meta.requiresAuth === false && state.signedIn.value) {
     if (to.query?.logout) {
       await state.signOut(true)
@@ -90,12 +98,12 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       return navigateTo('/')
     }
 
-    /** if users are accessing the projects without having enough permissions, redirect to My Projects page */
-    if (to.params.projectId && from.params.projectId !== to.params.projectId) {
+    /** if users are accessing the bases without having enough permissions, redirect to My Projects page */
+    if (to.params.baseId && from.params.baseId !== to.params.baseId) {
       await loadRoles()
 
       if (state.user.value?.roles?.guest) {
-        message.error("You don't have enough permission to access the project.")
+        message.error("You don't have enough permission to access the base.")
 
         return navigateTo('/')
       }
@@ -108,6 +116,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
  */
 async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
   if (window.location.search && /\bscope=|\bstate=/.test(window.location.search) && /\bcode=/.test(window.location.search)) {
+    let extraProps: any = {}
     try {
       let authProvider = 'google'
       if (window.location.search.includes('state=github')) {
@@ -115,9 +124,12 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
       } else if (window.location.search.includes('state=oidc')) {
         authProvider = 'oidc'
       }
+
       const {
-        data: { token },
+        data: { token, extra },
       } = await api.instance.post(`/auth/${authProvider}/genTokenByCode${window.location.search}`)
+
+      extraProps = extra
 
       signIn(token)
     } catch (e: any) {
@@ -125,6 +137,11 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
     }
 
     const newURL = window.location.href.split('?')[0]
-    window.history.pushState('object', document.title, newURL)
+    window.history.pushState(
+      'object',
+      document.title,
+      `${extraProps.continueAfterSignIn ? `${newURL}#/?continueAfterSignIn=${extraProps.continueAfterSignIn}` : newURL}`,
+    )
+    window.location.reload()
   }
 }

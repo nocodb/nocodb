@@ -179,8 +179,8 @@ async function createDemoTable({
     },
   });
 
-  const project = await api.project.read(context.project.id);
-  const table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+  const base = await api.base.read(context.base.id);
+  const table = await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
     table_name: type,
     title: type,
     columns: columns[type],
@@ -268,7 +268,7 @@ async function createDemoTable({
       break;
   }
 
-  await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributes);
+  await api.dbTableRow.bulkCreate('noco', context.base.id, table.id, rowAttributes);
   return table;
 }
 

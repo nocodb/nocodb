@@ -1,7 +1,7 @@
 import { ViewTypes, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { IsPublicInj, computed, inject, ref, storeToRefs, useNuxtApp, useProject, useRoles, useUndoRedo, watch } from '#imports'
+import { IsPublicInj, computed, inject, ref, storeToRefs, useBase, useNuxtApp, useRoles, useUndoRedo, watch } from '#imports'
 import type { Field } from '#imports'
 
 export function useViewColumns(
@@ -19,7 +19,9 @@ export function useViewColumns(
 
   const { isUIAllowed } = useRoles()
 
-  const { isSharedBase } = storeToRefs(useProject())
+  const { isSharedBase } = storeToRefs(useBase())
+
+  const isViewColumnsLoading = ref(false)
 
   const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -265,7 +267,13 @@ export function useViewColumns(
     async ([newViewId]) => {
       // reload only if view belongs to current table
       if (newViewId && view.value?.fk_model_id === meta.value?.id) {
-        await loadViewColumns()
+        isViewColumnsLoading.value = true
+        try {
+          await loadViewColumns()
+        } catch (e) {
+          console.error(e)
+        }
+        isViewColumnsLoading.value = false
       }
     },
     { immediate: true },
@@ -283,5 +291,6 @@ export function useViewColumns(
     showSystemFields,
     metaColumnById,
     toggleFieldVisibility,
+    isViewColumnsLoading,
   }
 }

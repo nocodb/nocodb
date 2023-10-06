@@ -28,6 +28,8 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref(1 as const))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const { showNull } = useGlobal()
 
 const vModel = useVModel(props, 'modelValue', emits, { defaultValue: '' })
@@ -68,10 +70,11 @@ onClickOutside(inputWrapperRef, (e) => {
 <template>
   <NcDropdown v-model:visible="isVisible" class="overflow-visible" :trigger="[]" placement="bottomLeft">
     <div
-      class="flex flex-row pt-0.5"
+      class="flex flex-row pt-0.5 w-full"
       :class="{
         'min-h-10': rowHeight !== 1,
         'min-h-6.5': rowHeight === 1,
+        'h-full': isForm,
       }"
     >
       <textarea
@@ -80,7 +83,11 @@ onClickOutside(inputWrapperRef, (e) => {
         v-model="vModel"
         rows="4"
         class="h-full w-full outline-none border-none"
-        :class="`${editEnabled ? 'p-2' : ''}`"
+        :class="{
+          'p-2': editEnabled,
+          'py-1 h-full': isForm,
+          'px-1': isExpandedFormOpen,
+        }"
         :style="{
           minHeight: `${height}px`,
         }"
@@ -106,7 +113,7 @@ onClickOutside(inputWrapperRef, (e) => {
       <span v-else>{{ vModel }}</span>
 
       <div
-        v-if="active"
+        v-if="active && !isExpandedFormOpen"
         class="!absolute right-0 bottom-0 h-6 w-5 group cursor-pointer flex justify-end gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none p-1 hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
         :class="{ 'right-2 bottom-2': editEnabled }"
         data-testid="attachment-cell-file-picker-button"

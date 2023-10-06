@@ -55,7 +55,7 @@
     "emoji-mart-vue-fast": "^15.0.0",
     "file-saver": "^2.0.5",
     "fuse.js": "^6.6.2",
-    "httpsnippet": "^3.0.1",
+    "httpsnippet": "^2.0.0",
     "jsbarcode": "^3.11.5",
     "jsep": "^1.3.6",
     "jwt-decode": "^3.1.2",

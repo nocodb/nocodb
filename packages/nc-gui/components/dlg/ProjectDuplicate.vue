@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
-import type { ProjectType } from 'nocodb-sdk'
+import type { BaseType } from 'nocodb-sdk'
 import { useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
-  project: ProjectType
+  base: BaseType
   onOk: (jobData: { name: string; id: string }) => Promise<void>
 }>()
 
@@ -35,17 +35,17 @@ const isLoading = ref(false)
 const _duplicate = async () => {
   try {
     isLoading.value = true
-    // pick a random color from array and assign to project
-    const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
+    // pick a random color from array and assign to base
+    const color = baseThemeColors[Math.floor(Math.random() * 1000) % baseThemeColors.length]
     const tcolor = tinycolor(color)
 
     const complement = tcolor.complement()
 
-    const jobData = await api.project.duplicate(props.project.id as string, {
+    const jobData = await api.base.duplicate(props.base.id as string, {
       options: optionsToExclude.value,
-      project: {
-        fk_workspace_id: props.project.fk_workspace_id,
-        type: props.project.type,
+      base: {
+        fk_workspace_id: props.base.fk_workspace_id,
+        type: props.base.type,
         color,
         meta: JSON.stringify({
           theme: {
@@ -75,7 +75,7 @@ const isEaster = ref(false)
 </script>
 
 <template>
-  <GeneralModal v-if="project" v-model:visible="dialogShow" class="!w-[30rem]" wrap-class-name="nc-modal-project-duplicate">
+  <GeneralModal v-if="base" v-model:visible="dialogShow" class="!w-[30rem]" wrap-class-name="nc-modal-base-duplicate">
     <div>
       <div class="prose-xl font-bold self-center" @dblclick="isEaster = !isEaster">
         {{ $t('general.duplicate') }} {{ $t('objects.project') }}
@@ -95,7 +95,9 @@ const isEaster = ref(false)
     </div>
     <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
       <NcButton key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
-      <NcButton key="submit" :loading="isLoading" @click="_duplicate">{{ $t('general.confirm') }} </NcButton>
+      <NcButton key="submit" v-e="['a:base:duplicate']" :loading="isLoading" @click="_duplicate"
+        >{{ $t('general.confirm') }}
+      </NcButton>
     </div>
   </GeneralModal>
 </template>

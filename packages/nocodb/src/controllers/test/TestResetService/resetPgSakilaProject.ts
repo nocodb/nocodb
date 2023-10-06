@@ -2,7 +2,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import axios from 'axios';
 import { knex } from 'knex';
-import type Project from '~/models/Project';
+import type Base from '~/models/Base';
 import Audit from '~/models/Audit';
 
 const config = {
@@ -21,7 +21,7 @@ const config = {
 
 const extMysqlProject = (title, parallelId) => ({
   title,
-  bases: [
+  sources: [
     {
       type: 'pg',
       config: {
@@ -42,7 +42,7 @@ const extMysqlProject = (title, parallelId) => ({
   external: true,
 });
 
-const isSakilaPgToBeReset = async (parallelId: string, project?: Project) => {
+const isSakilaPgToBeReset = async (parallelId: string, base?: Base) => {
   const sakilaKnex = knex(sakilaKnexConfig(parallelId));
 
   const tablesInDb: Array<string> = (
@@ -71,9 +71,9 @@ const isSakilaPgToBeReset = async (parallelId: string, project?: Project) => {
     return true;
   }
 
-  if (!project) return false;
+  if (!base) return false;
 
-  const audits = await Audit.projectAuditList(project.id, {});
+  const audits = await Audit.baseAuditList(base.id, {});
 
   return audits?.length > 0;
 };
@@ -122,7 +122,7 @@ const resetPgSakilaProject = async ({
   token: string;
   title: string;
   parallelId: string;
-  oldProject?: Project | undefined;
+  oldProject?: Base | undefined;
   isEmptyProject: boolean;
 }) => {
   const pgknex = knex(config);
@@ -140,7 +140,7 @@ const resetPgSakilaProject = async ({
   }
 
   const response = await axios.post(
-    'http://localhost:8080/api/v1/db/meta/projects/',
+    'http://localhost:8080/api/v1/meta/bases/',
     extMysqlProject(title, parallelId),
     {
       headers: {
@@ -149,7 +149,7 @@ const resetPgSakilaProject = async ({
     },
   );
   if (response.status !== 200) {
-    console.error('Error creating project', response.data);
+    console.error('Error creating base', response.data);
     throw new Error(response.data);
   }
 };

@@ -35,7 +35,7 @@ export class ToolbarFieldsPage extends BasePage {
     if (validateResponse) {
       await this.waitForResponse({
         uiAction: toggleColumn,
-        requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
+        requestUrlPathToMatch: isLocallySaved ? '/api/v1/public/' : '/api/v1/data/noco/',
         httpMethodsToMatch: ['GET'],
       });
     } else {
@@ -59,7 +59,7 @@ export class ToolbarFieldsPage extends BasePage {
   async click({ title, isLocallySaved }: { title: string; isLocallySaved?: boolean }) {
     await this.waitForResponse({
       uiAction: () => this.get().locator(`[data-testid="nc-fields-menu-${title}"]`).locator('.nc-switch').click(),
-      requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
+      requestUrlPathToMatch: isLocallySaved ? '/api/v1/public/' : '/api/v1/data/noco/',
       httpMethodsToMatch: ['GET'],
     });
     await this.toolbar.parent.waitLoading();
@@ -69,7 +69,7 @@ export class ToolbarFieldsPage extends BasePage {
     await this.toolbar.clickFields();
     await this.waitForResponse({
       uiAction: () => this.get().locator(`.nc-fields-show-all-fields`).click(),
-      requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
+      requestUrlPathToMatch: isLocallySaved ? '/api/v1/public/' : '/api/v1/data/noco/',
       httpMethodsToMatch: ['GET'],
       timeout: 10000,
     });
@@ -80,7 +80,7 @@ export class ToolbarFieldsPage extends BasePage {
   //   await this.toolbar.clickFields();
   //   await this.waitForResponse({
   //     uiAction: () => this.get().locator(`button.nc-switch`).first().click(),
-  //     requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
+  //     requestUrlPathToMatch: isLocallySaved ? '/api/v1/public/' : '/api/v1/data/noco/',
   //     httpMethodsToMatch: ['GET'],
   //   });
   //   await this.toolbar.clickFields();
@@ -90,7 +90,7 @@ export class ToolbarFieldsPage extends BasePage {
     await this.toolbar.clickFields();
     await this.waitForResponse({
       uiAction: async () => await this.get().locator(`.nc-fields-show-system-fields`).click(),
-      requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
+      requestUrlPathToMatch: isLocallySaved ? '/api/v1/public/' : '/api/v1/data/noco/',
       httpMethodsToMatch: ['GET'],
     });
     await this.toolbar.clickFields();

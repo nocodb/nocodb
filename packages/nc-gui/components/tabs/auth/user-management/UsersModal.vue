@@ -13,11 +13,11 @@ import {
   ref,
   storeToRefs,
   useActiveKeyupListener,
+  useBase,
   useCopy,
   useDashboard,
   useI18n,
   useNuxtApp,
-  useProject,
 } from '#imports'
 import type { User, Users } from '#imports'
 
@@ -32,7 +32,7 @@ const emit = defineEmits(['closed', 'reload'])
 
 const { t } = useI18n()
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
 const { isMobileMode } = useGlobal()
 
@@ -72,21 +72,21 @@ const close = () => {
 const saveUser = async () => {
   $e('a:user:invite', { role: usersData.value.role })
 
-  if (!project.value.id) return
+  if (!base.value.id) return
 
   await formRef.value?.validateFields()
 
   try {
     if (selectedUser?.id) {
-      await $api.auth.projectUserUpdate(project.value.id, selectedUser.id, {
+      await $api.auth.baseUserUpdate(base.value.id, selectedUser.id, {
         roles: usersData.value.role as ProjectRoles,
         email: selectedUser.email,
-        project_id: project.value.id,
-        projectName: project.value.title,
+        base_id: base.value.id,
+        baseName: base.value.title,
       })
       close()
     } else {
-      const res = await $api.auth.projectUserAdd(project.value.id, {
+      const res = await $api.auth.baseUserAdd(base.value.id, {
         roles: usersData.value.role,
         email: usersData.value.emails,
       } as ProjectUserReqType)
@@ -114,7 +114,7 @@ const copyUrl = async () => {
   try {
     await copy(inviteUrl.value)
 
-    // Copied shareable base url to clipboard!
+    // Copied shareable source url to clipboard!
     message.success(t('msg.success.shareableURLCopied'))
   } catch (e: any) {
     message.error(e.message)
@@ -275,7 +275,7 @@ watch(
 
       <div class="flex flex-row justify-end gap-x-2 border-t-1 border-gray-100 pt-3">
         <a-button key="back" class="!rounded-md" @click="cancel">Cancel</a-button>
-        <a-button class="!rounded-md">Manage project access</a-button>
+        <a-button class="!rounded-md">Manage base access</a-button>
         <a-button key="submit" class="!rounded-md" type="primary" :loading="loading">Share</a-button>
       </div>
     </div>

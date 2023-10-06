@@ -11,9 +11,10 @@ import { AuthGuard } from '@nestjs/passport';
 import { PageDao } from '~/daos/page.dao';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DocsPageHistoryService } from '~/services/docs/history/docs-page-history.service';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(MetaApiLimiterGuard, AuthGuard('jwt'))
 export class DocsPagesHistoryController {
   constructor(
     private readonly pageDao: PageDao,

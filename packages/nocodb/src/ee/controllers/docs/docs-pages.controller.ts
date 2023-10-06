@@ -15,9 +15,10 @@ import { AuthGuard } from '@nestjs/passport';
 import { DocsPageHistoryService } from '~/services/docs/history/docs-page-history.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DocsPagesService } from '~/services/docs/docs-pages.service';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(MetaApiLimiterGuard, AuthGuard('jwt'))
 export class DocsPagesController {
   private logger = new Logger(DocsPagesController.name);
 

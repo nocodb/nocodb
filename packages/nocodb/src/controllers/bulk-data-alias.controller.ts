@@ -10,12 +10,15 @@ import {
   Response,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@Throttle({ meta: {} })
+@UseGuards(GlobalGuard, DataApiLimiterGuard)
 export class BulkDataAliasController {
   constructor(private bulkDataAliasService: BulkDataAliasService) {}
 

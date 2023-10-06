@@ -10,12 +10,15 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { DatasService } from '~/services/datas.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@Throttle({ meta: {} })
+@UseGuards(GlobalGuard, DataApiLimiterGuard)
 export class DatasController {
   constructor(private readonly datasService: DatasService) {}
 

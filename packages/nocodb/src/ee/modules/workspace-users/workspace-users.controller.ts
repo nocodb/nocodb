@@ -12,9 +12,10 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { WorkspaceUsersService } from './workspace-users.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(MetaApiLimiterGuard, AuthGuard('jwt'))
 export class WorkspaceUsersController {
   constructor(private readonly workspaceUsersService: WorkspaceUsersService) {}
 

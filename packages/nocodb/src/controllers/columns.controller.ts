@@ -11,13 +11,16 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ColumnReqType } from 'nocodb-sdk';
+import { Throttle } from '@nestjs/throttler';
 import type { Column } from '~/models';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { ColumnsService } from '~/services/columns.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
+@Throttle({ data: {} })
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class ColumnsController {
   constructor(private readonly columnsService: ColumnsService) {}
 

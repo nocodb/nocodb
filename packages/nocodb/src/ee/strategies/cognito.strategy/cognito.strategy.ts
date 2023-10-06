@@ -40,36 +40,38 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
             if (user) {
               return callback(null, {
                 ...sanitiseUserObj(user),
-                provider: 'openid',
+                provider: 'cognito',
                 // display_name: profile._json?.name,
                 display_name: '',
               });
             } else {
-              // if user not found create new user
-              const salt = await promisify(bcrypt.genSalt)(10);
-              await this.usersService
-                .registerNewUserIfAllowed({
-                  email,
-                  password: '',
-                  email_verification_token: null,
-                  avatar: null,
-                  user_name: null,
-                  display_name: '',
-                  // display_name: profile._json?.name,
-                  salt,
-                })
-                .then((user) => {
-                  callback(null, {
-                    ...sanitiseUserObj(user),
-                    provider: 'openid',
+              try {
+                // if user not found create new user
+                const salt = await promisify(bcrypt.genSalt)(10);
+                const user = await this.usersService
+                  .registerNewUserIfAllowed({
+                    email,
+                    password: '',
+                    email_verification_token: null,
+                    avatar: null,
+                    user_name: null,
+                    display_name: '',
+                    // display_name: profile._json?.name,
+                    salt,
                   });
-                })
-                .catch((e) => callback(e));
+
+                return callback(null, {
+                  ...sanitiseUserObj(user),
+                  provider: 'openid',
+                });
+
+              } catch (err) {
+                return callback(err);
+              }
             }
           })
-          .catch((err) => {
-            return callback(err);
-          });
+      } else {
+        return callback(new Error('No token found')));
       }
     } catch (error) {
       return callback(error);

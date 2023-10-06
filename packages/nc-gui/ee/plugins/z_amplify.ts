@@ -6,7 +6,7 @@ import { useGlobal } from '#imports'
 
 export default defineNuxtPlugin(async (nuxtApp) => {
   const state = useGlobal()
-  nuxtApp.hook('app:mounted', () => {
+  const init = async () => {
     console.log('appState', state)
     Amplify.configure({
       aws_project_region: 'us-east-2',
@@ -39,7 +39,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     const url = new URL(location.href)
 
     if (url.searchParams.has('logout')) {
-      signOut().then(() => {
+      await signOut().then(() => {
         url.searchParams.delete('logout')
         history.pushState({}, '', url.toString())
       })
@@ -181,7 +181,9 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         },
       )
     }
-  })
+  }
+
+  nuxtApp.hook('app:mounted', init)
 
   return {
     provide: {

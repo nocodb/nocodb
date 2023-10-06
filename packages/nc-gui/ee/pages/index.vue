@@ -80,7 +80,6 @@ const autoNavigateToProject = async (initial = false) => {
 watch(
   () => workspaceStore.activeWorkspaceId,
   async (newId, oldId) => {
-    console.log('hit')
     if (newId === 'nc') {
       workspaceStore.setLoadingState(false)
       workspaceStore.isWorkspaceLoading = false

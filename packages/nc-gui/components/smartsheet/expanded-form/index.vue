@@ -455,6 +455,17 @@ export default {
             <div v-if="row.rowMeta?.new" class="flex items-center truncate font-bold text-gray-800 text-xl">New Record</div>
           </div>
           <div class="flex gap-2">
+            <NcButton
+              v-if="!isNew"
+              type="secondary"
+              class="!xs:hidden text-gray-700"
+              @click="!isNew ? copyRecordUrl() : () => {}"
+            >
+              <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
+                <component :is="iconMap.link" class="cursor-pointer nc-duplicate-row" />
+                {{ $t('labels.copyRecordURL') }}
+              </div>
+            </NcButton>
             <NcDropdown v-if="!isNew">
               <NcButton type="secondary" class="nc-expand-form-more-actions w-10">
                 <GeneralIcon icon="threeDotVertical" class="text-md text-gray-700" />
@@ -467,10 +478,10 @@ export default {
                       {{ $t('general.reload') }}
                     </div>
                   </NcMenuItem>
-                  <NcMenuItem v-if="!isNew" class="text-gray-700" @click="!isNew ? copyRecordUrl() : () => {}">
+                  <NcMenuItem v-if="!isNew && isMobileMode" class="text-gray-700" @click="!isNew ? copyRecordUrl() : () => {}">
                     <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
                       <component :is="iconMap.link" class="cursor-pointer nc-duplicate-row" />
-                      Copy record URL
+                      {{ $t('labels.copyRecordURL') }}
                     </div>
                   </NcMenuItem>
                   <NcMenuItem
@@ -484,7 +495,9 @@ export default {
                       class="flex gap-2 items-center"
                     >
                       <component :is="iconMap.copy" class="cursor-pointer nc-duplicate-row" />
-                      Duplicate record
+                      <span class="-ml-0.25">
+                        {{ $t('labels.duplicateRecord') }}
+                      </span>
                     </div>
                   </NcMenuItem>
                   <NcDivider v-if="isUIAllowed('dataEdit') && !isNew" />
@@ -495,7 +508,9 @@ export default {
                     @click="!isNew && onDeleteRowClick()"
                   >
                     <component :is="iconMap.delete" data-testid="nc-expanded-form-delete" class="cursor-pointer nc-delete-row" />
-                    Delete record
+                    <span class="-ml-0.5">
+                      {{ $t('activity.deleteRecord') }}
+                    </span>
                   </NcMenuItem>
                 </NcMenu>
               </template>
@@ -560,11 +575,11 @@ export default {
                 <div class="w-[12rem] xs:(w-full) mt-0.25 !h-[35px]">
                   <LazySmartsheetHeaderVirtualCell
                     v-if="isVirtualCol(col)"
-                    class="nc-expanded-cell-header h-full !text-gray-600"
+                    class="nc-expanded-cell-header h-full !text-gray-500"
                     :column="col"
                   />
 
-                  <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header !text-gray-600" :column="col" />
+                  <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header !text-gray-500" :column="col" />
                 </div>
 
                 <template v-if="isLoading">

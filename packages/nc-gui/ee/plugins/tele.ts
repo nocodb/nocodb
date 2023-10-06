@@ -1,5 +1,6 @@
 import { useDebounceFn } from '@vueuse/core'
-import posthog, { PostHog } from 'posthog-js'
+import type { PostHog } from 'posthog-js'
+import posthog from 'posthog-js'
 import { init } from 'nc-analytics'
 import { defineNuxtPlugin, until, useGlobal, useRouter } from '#imports'
 import type { NuxtApp } from '#app'
@@ -7,6 +8,7 @@ import type { NuxtApp } from '#app'
 // todo: generate client id and keep it in cookie(share across sub-domains)
 let clientId = null
 let isTeleEnabled = false
+let phClient: PostHog | void
 
 try {
   init({
@@ -19,13 +21,22 @@ try {
 
 function initPostHog(clientId: string) {
   try {
-    if (!isTeleEnabled) return
-
+    // todo: enable later
+    // if (!isTeleEnabled) return
     if (!phClient) {
-      phClient = posthog.init('phc_XIYhmt76mLGNt1iByEFoTEbsyuYeZ0o7Q5Ang4G7msr', {
+      phClient = posthog.init('phc_eI1Je4IwepOvg7jPW5jbokqYY5VGxkldwgkw7Y6KAPb', {
         api_host: 'https://app.posthog.com',
         session_recording: {
           enabled: true,
+          maskAllInputs: true,
+          maskTextSelector: ':not([data-rec]) *',
+          maskTextFn: (text: string, element) => {
+            if (!text.trim()) return text;
+            if (text.length <= 2) return text.replace(/./g, '*')
+            return text.replace(/^(.{2})([\s\S]*)/g, (_, m1, m2) => {
+              return m1 + '*'.repeat(m2.length - 2)
+            })
+          },
         },
         autocapture: false,
         capture_pageview: false,
@@ -33,8 +44,9 @@ function initPostHog(clientId: string) {
         capture_form_submits: false,
       })
     }
-    PostHog.identify(clientId)
+    posthog.identify(clientId)
   } catch (e) {
+    console.log(e)
     // ignore error
   }
 }
@@ -196,7 +208,7 @@ function clickListener(e) {
     url.searchParams.append('search', searchInput.value)
     url.searchParams.append('origin', location.hostname)
 
-    location.href = url.toString()
+    window.open(url.toString(), '_blank')
   }
 }
 
@@ -220,7 +232,7 @@ function keydownListener(e) {
       e.preventDefault()
       e.stopPropagation()
 
-      location.href = url.toString()
+      window.open(url.toString(), '_blank')
     }
   }
 }

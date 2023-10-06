@@ -345,8 +345,10 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     if (!workspace) NcError.notFound('Workspace not found');
 
-    if (workspace.plan !== WorkspacePlan.FREE)
+    /*
+    if (workspace.plan !== WorkspacePlan.FREE) {
       NcError.notFound('Workspace is already upgraded');
+    }
 
     await this.createWorkspaceSubdomain({
       titleOrId: workspace.id,
@@ -354,9 +356,10 @@ export class WorkspacesService implements OnApplicationBootstrap {
     });
 
     await Workspace.updateStatusAndPlan(param.workspaceId, {
-      plan: WorkspacePlan.PAID,
+      plan: WorkspacePlan.BUSINESS_PRO,
       status: WorkspaceStatus.CREATING,
     });
+    */
 
     return workspace;
   }

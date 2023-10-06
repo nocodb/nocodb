@@ -23,14 +23,14 @@ test.describe('Command Shortcuts', () => {
 
     await dashboard.cmdJ.searchText('Column');
     await page.keyboard.press('Escape');
-    await expect(dashboard.cmdJ.get()).toHaveCount(0);
+    await expect(dashboard.cmdJ.get()).toBeHidden();
 
     await dashboard.signOut();
 
     await page.waitForTimeout(1000);
 
     await dashboard.cmdJ.openCmdJ();
-    await expect(dashboard.cmdJ.get()).toHaveCount(0);
+    await expect(dashboard.cmdJ.get()).toBeHidden();
   });
 
   test('Verify Command K', async ({ page }) => {
@@ -40,22 +40,20 @@ test.describe('Command Shortcuts', () => {
     await expect(dashboard.cmdK.get()).toBeVisible();
 
     await page.keyboard.press('Escape');
-    await expect(dashboard.cmdK.get()).toHaveCount(0);
+    await expect(dashboard.cmdK.get()).toBeHidden();
 
     await dashboard.cmdK.openCmdK();
 
     await dashboard.cmdK.searchText('CustomerList');
 
-    const text = await dashboard.get().locator('.nc-active-view-title').innerText();
-
-    expect(text).toBe('Default View');
+    await expect(dashboard.get().locator('.nc-active-view-title')).toContainText('Default View');
 
     await dashboard.signOut();
 
     await page.waitForTimeout(1000);
 
     await dashboard.cmdK.openCmdK();
-    await expect(dashboard.cmdK.get()).toHaveCount(0);
+    await expect(dashboard.cmdK.get()).toBeHidden();
   });
 
   test('Verify Command L Recent Switch', async ({ page }) => {
@@ -65,7 +63,7 @@ test.describe('Command Shortcuts', () => {
     await expect(dashboard.cmdL.get()).toBeVisible();
 
     await page.keyboard.press('Escape');
-    await expect(dashboard.cmdL.get()).toHaveCount(0);
+    await expect(dashboard.cmdL.get()).toBeHidden();
 
     await dashboard.treeView.openTable({ title: 'Actor' });
     await dashboard.treeView.openTable({ title: 'Address' });
@@ -93,6 +91,6 @@ test.describe('Command Shortcuts', () => {
     await dashboard.signOut();
 
     await dashboard.cmdL.openCmdL();
-    await expect(dashboard.cmdL.get()).toHaveCount(0);
+    await expect(dashboard.cmdL.get()).toBeHidden();
   });
 });

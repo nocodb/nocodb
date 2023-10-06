@@ -68,6 +68,7 @@ const {
   bulkUpdateRows,
   bulkUpdateView,
   optimisedQuery,
+  islastRow,
 } = useViewData(meta, view, xWhere)
 
 const rowHeight = computed(() => {
@@ -183,6 +184,17 @@ onMounted(() => {
       if (coreWrapperRef.value) resizeObserver.observe(coreWrapperRef.value)
     })
 })
+
+const goToNextRow = () => {
+  const currentIndex = getExpandedRowIndex()
+  /* when last index of current page is reached we should move to next page */
+  if (!paginationData.value.isLastPage && currentIndex === paginationData.value.pageSize) {
+    const nextPage = paginationData.value?.page ? paginationData.value?.page + 1 : 1
+    changePage(nextPage)
+  }
+
+  navigateToSiblingRow(NavigateDir.NEXT)
+}
 </script>
 
 <template>
@@ -226,7 +238,6 @@ onMounted(() => {
       :expand-form="expandForm"
       :view-width="viewWidth"
     />
-
     <Suspense>
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
@@ -238,7 +249,6 @@ onMounted(() => {
         @update:model-value="addRowExpandOnClose(expandedFormRow)"
       />
     </Suspense>
-
     <SmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg"
       v-model="expandedFormOnRowIdDlg"
@@ -249,8 +259,8 @@ onMounted(() => {
       :view="view"
       show-next-prev-icons
       :first-row="getExpandedRowIndex() === 0"
-      :last-row="getExpandedRowIndex() === data.length - 1"
-      @next="navigateToSiblingRow(NavigateDir.NEXT)"
+      :last-row="islastRow"
+      @next="goToNextRow()"
       @prev="navigateToSiblingRow(NavigateDir.PREV)"
     />
 

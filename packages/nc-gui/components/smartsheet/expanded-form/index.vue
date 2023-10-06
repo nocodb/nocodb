@@ -67,6 +67,8 @@ const state = toRef(props, 'state')
 
 const meta = toRef(props, 'meta')
 
+const islastRow = toRef(props, 'lastRow')
+
 const route = useRoute()
 
 const router = useRouter()
@@ -143,8 +145,12 @@ const isExpanded = useVModel(props, 'modelValue', emits, {
 })
 
 const onClose = () => {
-  if (_row.value?.rowMeta?.new) emits('cancel')
-  isExpanded.value = false
+  if (changedColumns.value.size > 0) {
+    isCloseModalOpen.value = true
+  } else {
+    if (_row.value?.rowMeta?.new) emits('cancel')
+    isExpanded.value = false
+  }
 }
 
 const onDuplicateRow = () => {
@@ -180,18 +186,26 @@ const save = async () => {
 }
 
 const isPreventChangeModalOpen = ref(false)
+const isCloseModalOpen = ref(false)
 
 const discardPreventModal = () => {
-  emits('next')
-  isPreventChangeModalOpen.value = false
+  if (isPreventChangeModalOpen.value) {
+    emits('next')
+    isPreventChangeModalOpen.value = false
+  }
+  if (isCloseModalOpen.value) {
+    isCloseModalOpen.value = false
+    if (_row.value?.rowMeta?.new) emits('cancel')
+    isExpanded.value = false
+  }
 }
 
 const onNext = async () => {
   if (changedColumns.value.size > 0) {
     isPreventChangeModalOpen.value = true
-  } else {
-    emits('next')
+    return
   }
+  emits('next')
 }
 
 const copyRecordUrl = () => {
@@ -206,9 +220,17 @@ const copyRecordUrl = () => {
 }
 
 const saveChanges = async () => {
-  isUnsavedFormExist.value = false
-  await save()
-  emits('next')
+  if (isPreventChangeModalOpen.value) {
+    isUnsavedFormExist.value = false
+    await save()
+    emits('next')
+    isPreventChangeModalOpen.value = false
+  }
+  if (isCloseModalOpen.value) {
+    isCloseModalOpen.value = false
+    await save()
+    isExpanded.value = false
+  }
 }
 const reloadParentRowHook = inject(ReloadRowDataHookInj, createEventHook())
 
@@ -369,6 +391,8 @@ watch(rowId, async (nRow) => {
 const showRightSections = computed(() => {
   return !isNew.value && commentsDrawer.value && isUIAllowed('commentList')
 })
+
+const preventModalStatus = computed(() => isCloseModalOpen.value || isPreventChangeModalOpen.value)
 </script>
 
 <script lang="ts">
@@ -404,7 +428,7 @@ export default {
               </NcButton>
               <NcButton
                 v-if="props.showNextPrevIcons"
-                :disabled="props.lastRow"
+                :disabled="islastRow"
                 type="secondary"
                 class="nc-next-arrow !w-10"
                 @click="onNext"
@@ -706,7 +730,6 @@ export default {
     <template #entity-preview>
       <span>
         <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
-          <component :is="iconMap.record" class="nc-view-icon" />
           <div class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75 break-keep whitespace-nowrap">
             {{ displayValue }}
           </div>
@@ -716,16 +739,16 @@ export default {
   </GeneralDeleteModal>
 
   <!-- Prevent unsaved change modal -->
-  <NcModal v-model:visible="isPreventChangeModalOpen" size="small">
+  <NcModal v-model:visible="preventModalStatus" size="small">
     <template #header>
       <div class="flex flex-row items-center gap-x-2">Do you want to save the changes ?</div>
     </template>
     <div class="mt-2">
       <div class="flex flex-row justify-end gap-x-2 mt-6">
-        <NcButton type="secondary" @click="discardPreventModal">{{ $t('general.quit') }}</NcButton>
+        <NcButton type="secondary" @click="discardPreventModal">{{ $t('labels.discard') }}</NcButton>
 
         <NcButton key="submit" type="primary" label="Rename Table" loading-label="Renaming Table" @click="saveChanges">
-          {{ $t('activity.saveAndQuit') }}
+          {{ $t('general.save') }}
         </NcButton>
       </div>
     </div>

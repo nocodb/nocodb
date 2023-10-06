@@ -63,7 +63,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editEnabled', 'update:value'])
+const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editEnabled', 'update:cdf'])
 
 const column = toRef(props, 'column')
 
@@ -118,8 +118,7 @@ const vModel = computed({
   },
   set: (val) => {
     if (isEditColumnMenu.value) {
-      column.value.cdf = val
-      emit('update:value', val)
+      emit('update:cdf', val)
     } else if (val !== props.modelValue) {
       currentRow.value.rowMeta.changed = true
       emit('update:modelValue', val)

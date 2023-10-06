@@ -80,6 +80,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 // to check if a expanded form which is not yet saved exist or not
 const isUnsavedFormExist = ref(false)
 
+const isRecordLinkCopied = ref(false)
+
 const { isUIAllowed } = useRoles()
 
 const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
@@ -216,15 +218,16 @@ const onNext = async () => {
   emits('next')
 }
 
-const copyRecordUrl = () => {
-  copy(
+const copyRecordUrl = async () => {
+  await copy(
     encodeURI(
-      `${dashboardUrl?.value}#/${route.params.typeOrId}/${route.params.projectId}/${meta.value?.id}${
+      `${dashboardUrl?.value}#/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}${
         props.view ? `/${props.view.title}` : ''
       }?rowId=${primaryKey.value}`,
     ),
   )
-  message.success('Copied to clipboard')
+
+  isRecordLinkCopied.value = true
 }
 
 const saveChanges = async () => {
@@ -265,6 +268,7 @@ provide(IsExpandedFormOpenInj, isExpanded)
 const cellWrapperEl = ref()
 
 onMounted(async () => {
+  isRecordLinkCopied.value = false
   isLoading.value = true
   if (props.loadRow) {
     await _loadRow()
@@ -462,8 +466,9 @@ export default {
               @click="!isNew ? copyRecordUrl() : () => {}"
             >
               <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
-                <component :is="iconMap.link" class="cursor-pointer nc-duplicate-row" />
-                {{ $t('labels.copyRecordURL') }}
+                <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row" />
+                <component :is="iconMap.link" v-else class="cursor-pointer nc-duplicate-row" />
+                {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
               </div>
             </NcButton>
             <NcDropdown v-if="!isNew">

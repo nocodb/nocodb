@@ -397,6 +397,7 @@
     "headerName": "Header Name",
     "icon": "Icon",
     "max": "Max",
+    "copiedRecordURL": "Copied Record URL",
     "copyRecordURL": "Copy Record URL",
     "duplicateRecord": "Duplicate record",
     "binaryEncodingFormat": "Binary encoding format",

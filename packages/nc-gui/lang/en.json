@@ -388,6 +388,7 @@
     }
   },
   "labels": {
+    "tokenLimit": "Only one token per user is allowed",
     "duplicateAttachment": "File with name {filename} already attached",
     "toAddress": "To Address",
     "subject": "Subject",

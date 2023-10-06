@@ -2,7 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import type { ApiTokenType, RequestParams } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, ref, useApi, useCopy, useNuxtApp } from '#imports'
+import { extractSdkResponseErrorMsg, isEeUI, ref, useApi, useCopy, useNuxtApp } from '#imports'
 
 const { api, isLoading } = useApi()
 
@@ -164,21 +164,25 @@ const handleCancel = () => {
     <div class="max-w-[810px] mx-auto p-4" data-testid="nc-token-list">
       <div class="py-2 flex gap-4 items-center justify-between">
         <h6 class="text-2xl my-4 text-left font-bold">{{ $t('title.apiTokens') }}</h6>
-        <NcButton
-          :disabled="showNewTokenModal"
-          class="!rounded-md"
-          data-testid="nc-token-create"
-          size="middle"
-          type="primary"
-          @click="showNewTokenModal = true"
-        >
-          <span class="hidden md:block">
-            {{ $t('title.addNewToken') }}
-          </span>
-          <span class="flex items-center justify-center md:hidden">
-            <component :is="iconMap.plus" />
-          </span>
-        </NcButton>
+        <NcTooltip :disabled="!(isEeUI && tokens.length)">
+          <template #title>{{ $t('labels.tokenLimit') }}</template>
+          <NcButton
+            :disabled="showNewTokenModal || (isEeUI && tokens.length)"
+            class="!rounded-md"
+            data-testid="nc-token-create"
+            size="middle"
+            type="primary"
+            tooltip="bottom"
+            @click="showNewTokenModal = true"
+          >
+            <span class="hidden md:block">
+              {{ $t('title.addNewToken') }}
+            </span>
+            <span class="flex items-center justify-center md:hidden">
+              <component :is="iconMap.plus" />
+            </span>
+          </NcButton>
+        </NcTooltip>
       </div>
       <span>{{ $t('msg.apiTokenCreate') }}</span>
       <div class="w-full mt-5 rounded-md h-136 overflow-y-scroll">

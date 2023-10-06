@@ -415,6 +415,8 @@ export default function (
         return res.status(400).json({ msg: e.message, errors: e.errors });
       } else if (e instanceof UnprocessableEntity) {
         return res.status(422).json({ msg: e.message });
+      } else if (e instanceof NotAllowed) {
+        return res.status(405).json({ msg: e.message });
       }
       next(e);
     }
@@ -422,6 +424,8 @@ export default function (
 }
 
 export class BadRequest extends Error {}
+
+export class NotAllowed extends Error {}
 
 export class Unauthorized extends Error {}
 
@@ -475,5 +479,9 @@ export class NcError {
 
   static unprocessableEntity(message = 'Unprocessable entity') {
     throw new UnprocessableEntity(message);
+  }
+
+  static notAllowed(message = 'Not allowed') {
+    throw new NotAllowed(message);
   }
 }

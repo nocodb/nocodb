@@ -2,7 +2,6 @@
 import { onKeyUp, useDebounceFn, useMagicKeys, useVModel, whenever } from '@vueuse/core'
 import { defineEmits, defineProps, ref } from 'vue'
 import { onClickOutside } from '#imports'
-import ProjectIcon from '~icons/nc-icons/project'
 
 const props = defineProps<{
   open: boolean
@@ -216,15 +215,25 @@ onMounted(() => {
               <div class="cmdk-action-content !flex w-full">
                 <div class="flex gap-2 w-full flex-grow-1 items-center">
                   <GeneralViewIcon :meta="{ type: cmdOption.viewType }" />
-                  <span class="max-w-64 truncate capitalize">
-                    {{ cmdOption.viewName }}
-                  </span>
+                  <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
+                    <template #title>
+                      {{ cmdOption.viewName }}
+                    </template>
+                    <span class="max-w- truncate capitalize">
+                      {{ cmdOption.viewName }}
+                    </span>
+                  </a-tooltip>
                 </div>
                 <div class="flex gap-2 bg-gray-100 px-2 py-1 rounded-md text-gray-600 items-center">
                   <component :is="iconMap.project" class="w-4 h-4 text-transparent" />
-                  <span class="max-w-32 truncate capitalize">
-                    {{ cmdOption.baseName }}
-                  </span>
+                  <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
+                    <template #title>
+                      {{ cmdOption.baseName }}
+                    </template>
+                    <span class="max-w-32 truncate capitalize">
+                      {{ cmdOption.baseName }}
+                    </span>
+                  </a-tooltip>
                 </div>
               </div>
             </div>

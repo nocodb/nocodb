@@ -326,9 +326,14 @@ defineExpose({
                 '!text-pink-500': el.icon === 'gallery',
               }"
             />
-            <span class="max-w-28 truncate capitalize">
-              {{ el.label }}
-            </span>
+            <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
+              <template #title>
+                {{ el.label }}
+              </template>
+              <span class="max-w-28 truncate capitalize">
+                {{ el.label }}
+              </span>
+            </a-tooltip>
 
             <span class="text-gray-400 text-sm font-medium pl-1">/</span>
           </div>
@@ -379,9 +384,14 @@ defineExpose({
                       }"
                     />
                     <component :is="act.icon" v-else-if="act.icon" class="cmdk-action-icon text-gray-800" />
-                    <span class="truncate capitalize max-w-64">
-                      {{ act.title }}
-                    </span>
+                    <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
+                      <template #title>
+                        {{ act.title }}
+                      </template>
+                      <span class="max-w-28 truncate capitalize">
+                        {{ act.title }}
+                      </span>
+                    </a-tooltip>
                     <div
                       class="bg-gray-200 text-gray-600 cmdk-keyboard hidden text-xs gap-2 p-0.5 items-center justify-center rounded-md ml-auto pl-2"
                     >

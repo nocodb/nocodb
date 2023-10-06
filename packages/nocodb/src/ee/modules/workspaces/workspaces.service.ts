@@ -45,6 +45,10 @@ export class WorkspacesService implements OnApplicationBootstrap {
   ) {}
 
   async onApplicationBootstrap() {
+    await this.prepopulateWorkspaces();
+  }
+
+  async prepopulateWorkspaces() {
     if (process.env.NC_PREPOPULATED_WORKSPACES === 'true') {
       const templateBase = await Base.get(process.env.NC_TEMPLATE_BASE_ID);
 
@@ -258,9 +262,8 @@ export class WorkspacesService implements OnApplicationBootstrap {
       await ncMeta.commit();
 
       if (workspace.fk_user_id === mockUser.id) {
-        Base.get(process.env.NC_TEMPLATE_BASE_ID).then((templateBase) => {
-          this.createPrepopulatedWorkspace(templateBase);
-        });
+        // prepopulate more workspaces if required
+        this.prepopulateWorkspaces();
       }
     } catch (e) {
       await ncMeta.rollback();

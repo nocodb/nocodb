@@ -88,7 +88,7 @@ const deleteBase = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    // 
+    // TODO @mertmit
     refreshCommandPalette()
   }
 }

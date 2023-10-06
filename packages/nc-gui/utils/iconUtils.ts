@@ -99,7 +99,12 @@ import Editor from '~icons/nc-icons/editor'
 import Commentor from '~icons/nc-icons/commentor'
 import Viewer from '~icons/nc-icons/viewer'
 import NoAccess from '~icons/nc-icons/no-access'
+
+// toolbar
 import Fields from '~icons/nc-icons/fields'
+import Filter from '~icons/nc-icons/filter'
+import Group from '~icons/nc-icons/group'
+import Sort from '~icons/nc-icons/sort'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -249,6 +254,9 @@ import Fields from '~icons/nc-icons/fields'
 } as const */
 
 export const iconMap = {
+  sort: Sort,
+  group: Group,
+  filter: Filter,
   fields: Fields,
   mm: ManytoManyIcon,
   hm: HasManyIcon,

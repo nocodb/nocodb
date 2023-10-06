@@ -69,7 +69,7 @@ const meta = toRef(props, 'meta')
 
 const islastRow = toRef(props, 'lastRow')
 
-const isFirstRow = toRef(props,'firstRow')
+const isFirstRow = toRef(props, 'firstRow')
 
 const route = useRoute()
 
@@ -556,6 +556,7 @@ export default {
               :col-id="col.id"
               :data-testid="`nc-expand-col-${col.title}`"
             >
+              <pre>{{ col }}</pre>
               <div class="flex items-start flex-row xs:(flex-col w-full) nc-expanded-cell min-h-10">
                 <div class="w-[12rem] xs:(w-full) mt-1.5 !h-[35px]">
                   <LazySmartsheetHeaderVirtualCell

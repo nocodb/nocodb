@@ -145,8 +145,6 @@ onMounted(async () => {
   if (sharedBaseId.value) isDuplicateDlgOpen.value = true
 })
 
-const { bases } = storeToRefs(basesStore)
-
 const { $e, $poller } = useNuxtApp()
 
 const DlgSharedBaseDuplicateOnOk = async (jobData: { id: string; base_id: string; workspace_id: string }) => {

@@ -49,7 +49,7 @@ const isExpanded = computed<boolean>({
 
 const basesStore = useBases()
 
-const { loadProject, loadProjects, createProject: _createProject, updateProject, toggleStarred } = basesStore
+const { loadProjects, createProject: _createProject, updateProject, toggleStarred } = basesStore
 const { bases, activeProjectId } = storeToRefs(basesStore)
 
 const { loadProjectTables } = useTablesStore()

@@ -279,6 +279,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     return data
   }
 
+  const clearColumns = () => {
+    changedColumns.value = new Set()
+  }
+
   const loadRow = async (rowId?: string) => {
     const record = await $api.dbTableRow.read(
       NOCO,
@@ -344,6 +348,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     primaryKey,
     saveRowAndStay,
     updateComment,
+    clearColumns,
   }
 }, 'expanded-form-store')
 

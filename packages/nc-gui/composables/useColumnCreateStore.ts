@@ -77,6 +77,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     })
 
     const generateUniqueColumnSuffix = () => {
+      // Trial auto column names to avoid duplicate column names
       let columnName = `Untitled ${formState.value.uidt}`
       // Gets the no of columns in meta where meta.column_name === `Untitled${formState.value.uidt}`
       // Allows to count suffix differently for different UIDTs
@@ -87,7 +88,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         )
       ) {
         columnNameSuffix++
-        columnName = `Untitled${columnNameSuffix}`
+        columnName = `Untitled ${formState.value.uidt} ${columnNameSuffix}`
       }
       return columnNameSuffix || ''
     }

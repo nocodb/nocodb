@@ -88,10 +88,10 @@ const deleteBase = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
+    // 
     refreshCommandPalette()
   }
 }
-
 const toggleBase = async (source: BaseType, state: boolean) => {
   try {
     if (!state && sources.value.filter((src) => src.enabled).length < 2) {
@@ -138,7 +138,7 @@ const moveBase = async (e: any) => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    refreshCommandPalette()
+    await refreshCommandPalette()
   }
 }
 
@@ -216,6 +216,7 @@ watch(
         }
         break
     }
+    refreshCommandPalette()
   },
   { immediate: true },
 )

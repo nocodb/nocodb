@@ -65,6 +65,7 @@ const renderCmdOrCtrlKey = () => {
 }
 
 const moveUp = () => {
+  if (!recentViews.value.length) return
   const index = recentViews.value.findIndex((v) => v.tableID + v.viewName === selected.value)
   if (index === 0) {
     selected.value =
@@ -91,6 +92,7 @@ const moveUp = () => {
 }
 
 const moveDown = () => {
+  if (!recentViews.value.length) return
   const index = recentViews.value.findIndex((v) => v.tableID + v.viewName === selected.value)
   if (index === recentViews.value.length - 1) {
     selected.value = recentViews.value[0].tableID + recentViews.value[0].viewName

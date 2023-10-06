@@ -85,7 +85,7 @@ const cellIcon = (column: ColumnType) =>
 
 <template>
   <div class="p-6 w-full flex flex-col border-2 mb-2 mt-4">
-    <div class="w-full flex flex-row space-x-2">
+    <div v-if="refTables.length" class="w-full flex flex-row space-x-2">
       <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.links')" v-bind="validateInfos.fk_relation_column_id">
         <a-select
           v-model:value="vModel.fk_relation_column_id"
@@ -120,6 +120,7 @@ const cellIcon = (column: ColumnType) =>
         </a-select>
       </a-form-item>
     </div>
+    <div v-else>{{ $t('msg.linkColumnClearNotSupportedYet') }}</div>
   </div>
 </template>
 

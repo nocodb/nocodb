@@ -216,11 +216,15 @@ onMounted(() => {
               <div class="cmdk-action-content !flex w-full">
                 <div class="flex gap-2 w-full flex-grow-1 items-center">
                   <GeneralViewIcon :meta="{ type: cmdOption.viewType }" />
-                  {{ cmdOption.viewName }}
+                  <span class="max-w-64 truncate capitalize">
+                    {{ cmdOption.viewName }}
+                  </span>
                 </div>
                 <div class="flex gap-2 bg-gray-100 px-2 py-1 rounded-md text-gray-600 items-center">
                   <component :is="iconMap.project" class="w-4 h-4 text-transparent" />
-                  {{ cmdOption.baseName }}
+                  <span class="max-w-32 truncate capitalize">
+                    {{ cmdOption.baseName }}
+                  </span>
                 </div>
               </div>
             </div>

@@ -326,7 +326,9 @@ defineExpose({
                 '!text-pink-500': el.icon === 'gallery',
               }"
             />
-            {{ el.label }}
+            <span class="max-w-28 truncate capitalize">
+              {{ el.label }}
+            </span>
 
             <span class="text-gray-400 text-sm font-medium pl-1">/</span>
           </div>
@@ -377,11 +379,11 @@ defineExpose({
                       }"
                     />
                     <component :is="act.icon" v-else-if="act.icon" class="cmdk-action-icon text-gray-800" />
-                    <div class="flex-grow-1 w-full capitalize text-gray-800">
+                    <span class="truncate capitalize max-w-64">
                       {{ act.title }}
-                    </div>
+                    </span>
                     <div
-                      class="bg-gray-200 text-gray-600 cmdk-keyboard hidden text-xs gap-2 p-0.5 items-center justify-center rounded-md pl-2"
+                      class="bg-gray-200 text-gray-600 cmdk-keyboard hidden text-xs gap-2 p-0.5 items-center justify-center rounded-md ml-auto pl-2"
                     >
                       Enter
                       <div

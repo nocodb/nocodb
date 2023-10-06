@@ -87,6 +87,8 @@ const deleteBase = async () => {
     await loadProject(base.value.id as string, true)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    refreshCommandPalette()
   }
 }
 
@@ -105,6 +107,8 @@ const toggleBase = async (source: BaseType, state: boolean) => {
     await loadProject(base.value.id as string, true)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    refreshCommandPalette()
   }
 }
 
@@ -133,6 +137,8 @@ const moveBase = async (e: any) => {
     await loadBases()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    refreshCommandPalette()
   }
 }
 

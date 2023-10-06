@@ -220,7 +220,7 @@ function keydownListener(e) {
       e.preventDefault()
       e.stopPropagation()
 
-      location.href = url.toString()
+      window.open(url.toString(), '_blank')
     }
   }
 }

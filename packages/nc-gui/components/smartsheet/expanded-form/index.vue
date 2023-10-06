@@ -557,10 +557,10 @@ export default {
               :data-testid="`nc-expand-col-${col.title}`"
             >
               <div class="flex items-start flex-row xs:(flex-col w-full) nc-expanded-cell min-h-10">
-                <div class="w-[12rem] xs:(w-full) mt-1.5 !h-[35px]">
+                <div class="w-[12rem] xs:(w-full) mt-0.25 !h-[35px]">
                   <LazySmartsheetHeaderVirtualCell
                     v-if="isVirtualCol(col)"
-                    class="nc-expanded-cell-header !text-gray-600"
+                    class="nc-expanded-cell-header h-full !text-gray-600"
                     :column="col"
                   />
 

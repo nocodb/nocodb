@@ -21,8 +21,7 @@ try {
 
 function initPostHog(clientId: string) {
   try {
-    // todo: enable later
-    // if (!isTeleEnabled) return
+    if (!isTeleEnabled) return
     if (!phClient) {
       phClient = posthog.init('phc_eI1Je4IwepOvg7jPW5jbokqYY5VGxkldwgkw7Y6KAPb', {
         api_host: 'https://app.posthog.com',

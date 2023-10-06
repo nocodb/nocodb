@@ -3,7 +3,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import { ThrottlerStorage } from '@nestjs/throttler/dist/throttler-storage.interface';
 import { Reflector } from '@nestjs/core';
 import type { ExecutionContext } from '@nestjs/common';
-import { DataApiLimiterGuard as DataApiLimiterGuardCE } from '~/guards/data-api-limiter.guard';
+import { DataApiLimiterGuard as DataApiLimiterGuardCE } from 'src/guards/data-api-limiter.guard';
 
 const HEADER_NAME = 'xc-token';
 
@@ -43,4 +43,5 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
 const AuthGuard = enableThrottler
   ? DataApiLimiterGuardEE
   : DataApiLimiterGuardCE;
+
 export { AuthGuard as DataApiLimiterGuard };

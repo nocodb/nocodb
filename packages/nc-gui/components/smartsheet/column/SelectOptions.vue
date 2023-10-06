@@ -146,7 +146,7 @@ const addNewOption = () => {
 
   isReverseLazyLoad.value = true
 
-  loadedOptionAnchor.value = options.value.length - OPTIONS_PAGE_COUNT * 2
+  loadedOptionAnchor.value = options.value.length - OPTIONS_PAGE_COUNT
   loadedOptionAnchor.value = Math.max(loadedOptionAnchor.value, 0)
 
   renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)

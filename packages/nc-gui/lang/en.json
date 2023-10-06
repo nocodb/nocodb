@@ -605,6 +605,7 @@
     "newSource": "New Data Source",
     "newWebhook": "New Webhook",
     "enablePublicAccess": "Enable Public Access",
+    "doYouWantToSaveTheChanges": "Do you want to save the changes ?",
     "editingAccess": "Editing access",
     "enabledPublicViewing": "Enable public viewing",
     "restrictAccessWithPassword": "Restrict access with password",

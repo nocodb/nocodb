@@ -142,8 +142,8 @@ const selectedTitles = computed(() =>
             }
             return 0
           })
-        : modelValue.split(',')
-      : modelValue
+        : modelValue.split(',').map((el) => el.trim())
+      : modelValue.map((el) => el.trim())
     : [],
 )
 

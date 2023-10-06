@@ -303,9 +303,14 @@ export class ColumnsService {
             );
           }
         } else if (
-          [UITypes.SingleLineText, UITypes.LongText].includes(column.uidt)
+          [
+            UITypes.SingleLineText,
+            UITypes.Email,
+            UITypes.PhoneNumber,
+            UITypes.URL,
+          ].includes(column.uidt)
         ) {
-          // SingleLineText/LongText to SingleSelect/MultiSelect
+          // Text to SingleSelect/MultiSelect
           const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
             NcConnectionMgrv2.get(source),
           );

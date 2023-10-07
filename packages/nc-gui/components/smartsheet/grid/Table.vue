@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import axios from 'axios'
 import { nextTick } from '@vue/runtime-core'
 import type { ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
@@ -1099,8 +1100,10 @@ watch(
         try {
           await loadData?.()
         } catch (e) {
-          console.log(e)
-          message.error(t('msg.errorLoadingData'))
+          if (!axios.isCancel(e)) {
+            console.log(e)
+            message.error(t('msg.errorLoadingData'))
+          }
         } finally {
           isViewDataLoading.value = false
         }

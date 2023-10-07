@@ -144,6 +144,7 @@ export class UtilsService extends UtilsServiceCE {
       return null;
     });
   };
+
   async selectOptionsMagic(param: {
     table: string;
     schema: string;
@@ -479,10 +480,16 @@ export class UtilsService extends UtilsServiceCE {
   }
 
   async appInfo(param: { req: { ncSiteUrl: string } }) {
-    const result = await super.appInfo(param);
+    const result: any = await super.appInfo(param);
 
     // in cloud decide telemetry enabled or not based on PostHog API key presence
     result.teleEnabled = !!process.env.NC_CLOUD_POSTHOG_API_KEY;
+
+    const cognitoConfig = this.configService.get('cognito', {
+      infer: true,
+    });
+
+    result.cognito = cognitoConfig;
 
     return result;
   }

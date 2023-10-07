@@ -108,7 +108,7 @@ export default defineNuxtConfig({
       commonjsOptions: {
         ignoreTryCatch: true,
       },
-      minify: true,
+      minify: false,
       rollupOptions: {},
     },
     plugins: [

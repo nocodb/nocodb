@@ -44,7 +44,7 @@ const refTables = computed(() => {
         isLinksOrLTAR(column) &&
         !column.system &&
         column.source_id === meta.value?.source_id &&
-        (!appInfo.value.ee || (column?.colOptions as any)?.type === 'bt'),
+        (!appInfo.value.ee || vModel.value.fk_relation_column_id === column.id || (column?.colOptions as any)?.type === 'bt'),
     )
     .map((column) => ({
       col: column.colOptions,
@@ -61,7 +61,8 @@ const columns = computed<ColumnType[]>(() => {
     return []
   }
   return metas.value[selectedTable.id].columns.filter(
-    (c: ColumnType) => !isSystemColumn(c) && c.id !== vModel.value.id && c.uidt !== UITypes.Links,
+    (c: ColumnType) =>
+      vModel.value.fk_lookup_column_id === c.id || (!isSystemColumn(c) && c.id !== vModel.value.id && c.uidt !== UITypes.Links),
   )
 })
 

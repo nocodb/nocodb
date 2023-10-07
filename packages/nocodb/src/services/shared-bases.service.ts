@@ -122,7 +122,7 @@ export class SharedBasesService {
       uuid: null,
     };
 
-    await Base.update(base.id, data, base);
+    await Base.update(base.id, data);
 
     this.appHooksService.emit(AppEvents.SHARED_BASE_DELETE_LINK, {
       base,

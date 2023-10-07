@@ -18,7 +18,10 @@ import { Audit, Source, View } from '~/models';
 import { getSingleQueryReadFn } from '~/services/data-opt/helpers';
 import { canUseOptimisedQuery } from '~/utils';
 import { extractProps } from '~/helpers/extractProps';
-import { HANDLE_STATS } from '~/services/update-stats.service';
+import {
+  UPDATE_MODEL_STAT,
+  UPDATE_WORKSPACE_COUNTER,
+} from '~/services/update-stats.service';
 import Noco from '~/Noco';
 
 /**
@@ -304,8 +307,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       user: req?.user?.email,
     });
 
-    Noco.eventEmitter.emit(HANDLE_STATS, {
+    Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
+      base_id: this.model.base_id,
       fk_model_id: this.model.id,
+      count: 1,
     });
   }
 
@@ -326,9 +331,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       user: req?.user?.email,
     });
 
-    Noco.eventEmitter.emit(HANDLE_STATS, {
-      fk_model_id: this.model.id,
-    });
+    // TODO env
+    if (data.length > 500) {
+      Noco.eventEmitter.emit(UPDATE_MODEL_STAT, {
+        base_id: this.model.base_id,
+        fk_model_id: this.model.id,
+      });
+    } else {
+      Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
+        base_id: this.model.base_id,
+        fk_model_id: this.model.id,
+        count: data.length,
+      });
+    }
   }
 
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
@@ -346,8 +361,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       user: req?.user?.email,
     });
     await this.handleHooks('after.delete', null, data, req);
-    Noco.eventEmitter.emit(HANDLE_STATS, {
+    Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
+      base_id: this.model.base_id,
       fk_model_id: this.model.id,
+      count: 1,
     });
   }
 
@@ -376,9 +393,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       ip: req?.clientIp,
       user: req?.user?.email,
     });
-    Noco.eventEmitter.emit(HANDLE_STATS, {
-      fk_model_id: this.model.id,
-    });
+    // TODO env
+    if (noOfDeletedRecords > 500) {
+      Noco.eventEmitter.emit(UPDATE_MODEL_STAT, {
+        base_id: this.model.base_id,
+        fk_model_id: this.model.id,
+      });
+    } else {
+      Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
+        base_id: this.model.base_id,
+        fk_model_id: this.model.id,
+        count: noOfDeletedRecords,
+      });
+    }
   }
 }
 

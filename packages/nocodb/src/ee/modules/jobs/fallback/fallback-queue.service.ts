@@ -39,9 +39,13 @@ export class QueueService extends QueueServiceCE {
 
   jobMap = {
     ...this.jobMap,
-    [JobTypes.UpdateStats]: {
+    [JobTypes.UpdateModelStat]: {
       this: this.updateStatsProcessor,
-      fn: this.updateStatsProcessor.job,
+      fn: this.updateStatsProcessor.updateModelStat,
+    },
+    [JobTypes.UpdateWsStat]: {
+      this: this.updateStatsProcessor,
+      fn: this.updateStatsProcessor.updateWorkspaceStat,
     },
   };
 }

@@ -155,4 +155,7 @@ export enum CacheScope {
   PRESIGNED_URL = 'presignedUrl',
   JOBS = 'nc_jobs',
   MODEL_STAT = 'nc_model_stat',
+  BASE_TO_WORKSPACE = 'baseToWorkspace',
+  WORKSPACE_CREATE_DELETE_COUNTER = 'workspace_cd_counter',
+  WORKSPACE_UPDATED_MODELS = 'workspace_updated_models',
 }

@@ -7,7 +7,8 @@ export enum JobTypes {
   MetaSync = 'meta-sync',
   BaseCreate = 'base-create',
   BaseDelete = 'base-delete',
-  UpdateStats = 'update-stats',
+  UpdateModelStat = 'update-model-stat',
+  UpdateWsStat = 'update-ws-stats',
 }
 
 export enum JobStatus {

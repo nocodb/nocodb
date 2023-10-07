@@ -221,11 +221,55 @@ export default class Base extends BaseCE {
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
+    await NocoCache.del(`${CacheScope.BASE_TO_WORKSPACE}:${baseId}`);
+
     await ncMeta.metaDelete(null, null, MetaTable.AUDIT, {
       base_id: baseId,
     });
 
     return await ncMeta.metaDelete(null, null, MetaTable.PROJECT, baseId);
+  }
+
+  // @ts-ignore
+  static async softDelete(baseId: string, ncMeta = Noco.ncMeta): Promise<any> {
+    await this.clearConnectionPool(baseId, ncMeta);
+
+    // get existing cache
+    const key = `${CacheScope.PROJECT}:${baseId}`;
+    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    if (o) {
+      // delete <scope>:<id>
+      await NocoCache.del(`${CacheScope.PROJECT}:${baseId}`);
+      // delete <scope>:<title>
+      await NocoCache.del(`${CacheScope.PROJECT}:${o.title}`);
+      // delete <scope>:<uuid>
+      await NocoCache.del(`${CacheScope.PROJECT}:${o.uuid}`);
+      // delete <scope>:ref:<titleOfId>
+      await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.title}`);
+      await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.id}`);
+    }
+
+    await NocoCache.delAll(CacheScope.USER_PROJECT, '*');
+
+    await NocoCache.del(CacheScope.INSTANCE_META);
+
+    // remove item in cache list
+    await NocoCache.deepDel(
+      CacheScope.PROJECT,
+      `${CacheScope.PROJECT}:${baseId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+
+    await NocoCache.del(`${CacheScope.BASE_TO_WORKSPACE}:${baseId}`);
+
+    // set meta
+    return await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.PROJECT,
+      { deleted: true },
+      baseId,
+    );
   }
 
   // EXTRA METHODS
@@ -301,6 +345,27 @@ export default class Base extends BaseCE {
 
     return castedProjectList;
   };
+
+  static async listByWorkspace(fk_workspace_id: string, ncMeta = Noco.ncMeta) {
+    const baseListQb = ncMeta
+      .knex(MetaTable.PROJECT)
+      .select(`${MetaTable.PROJECT}.*`)
+      .where(`${MetaTable.PROJECT}.fk_workspace_id`, fk_workspace_id)
+      .where(`${MetaTable.PROJECT}.deleted`, false);
+
+    const bases = await baseListQb;
+
+    // parse meta
+    for (const base of bases) {
+      base.meta = parseMetaProp(base);
+    }
+
+    const castedProjectList = bases.map((m) => this.castType(m));
+
+    await Promise.all(castedProjectList.map((base) => base.getBases(ncMeta)));
+
+    return castedProjectList;
+  }
 
   getLinkedDbProjects? = async (ncMeta = Noco.ncMeta) => {
     const dbProjects = DashboardProjectDBProject.getDbProjectsList(

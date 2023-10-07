@@ -7,7 +7,7 @@ export default class ModelStat {
   fk_workspace_id?: string;
   fk_model_id?: string;
   row_count?: number;
-  
+
   created_at?: string;
   updated_at?: string;
 
@@ -72,6 +72,7 @@ export default class ModelStat {
     }
 
     await NocoCache.del(`${CacheScope.MODEL_STAT}:${workspaceId}:${modelId}`);
+    await NocoCache.del(`${CacheScope.MODEL_STAT}:${workspaceId}:sum`);
 
     return this.get(workspaceId, modelId, ncMeta);
   }
@@ -88,6 +89,7 @@ export default class ModelStat {
       });
 
       await NocoCache.del(`${CacheScope.MODEL_STAT}:${workspaceId}:${modelId}`);
+      await NocoCache.del(`${CacheScope.MODEL_STAT}:${workspaceId}:sum`);
 
       return true;
     } catch (error) {

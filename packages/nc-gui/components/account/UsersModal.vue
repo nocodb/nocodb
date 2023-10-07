@@ -80,7 +80,7 @@ const copyUrl = async () => {
     await copy(inviteUrl.value)
 
     // Copied shareable source url to clipboard!
-    message.success(t('msg.success.shareableURLCopied'))
+    message.success(t('msg.toast.inviteUrlCopy'))
   } catch (e: any) {
     message.error(e.message)
   }
@@ -124,7 +124,7 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
           <div class="flex flex-col mt-1 pb-5">
             <div class="flex flex-row items-center pl-1.5 pb-1 h-[1.1rem]">
               <component :is="iconMap.account" />
-              <div class="text-xs ml-0.5 mt-0.5">{{ $t('activity.copyInviteToken') }}</div>
+              <div class="text-xs ml-0.5 mt-0.5">{{ $t('activity.copyInviteURL') }}</div>
             </div>
 
             <a-alert class="!mt-2" type="success" show-icon>

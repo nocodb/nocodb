@@ -520,11 +520,11 @@ const isEditBaseModalOpen = computed({
                     <NcButton
                       v-if="!source.is_meta && !source.is_local"
                       size="small"
-                      class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg mt-0.5"
+                      class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
                       type="text"
                       @click="baseAction(source.id, DataSourcesSubTab.Edit)"
                     >
-                      <GeneralIcon icon="edit" class="text-gray-600 -mt-0.5" />
+                      <GeneralIcon icon="edit" class="text-gray-600" />
                     </NcButton>
                   </NcTooltip>
                   <NcTooltip>
@@ -534,11 +534,11 @@ const isEditBaseModalOpen = computed({
                     <NcButton
                       v-if="!source.is_meta && !source.is_local"
                       size="small"
-                      class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg mt-0.5"
+                      class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
                       type="text"
                       @click="openDeleteBase(source)"
                     >
-                      <GeneralIcon icon="delete" class="text-red-500 -mt-0.5" />
+                      <GeneralIcon icon="delete" class="text-red-500" />
                     </NcButton>
                   </NcTooltip>
                 </div>

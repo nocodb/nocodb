@@ -63,7 +63,6 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       }
 
       Hub.listen('auth', listener)
-      checkForToken()
 
       function checkForToken() {
         Auth.currentSession().then(async (res) => {

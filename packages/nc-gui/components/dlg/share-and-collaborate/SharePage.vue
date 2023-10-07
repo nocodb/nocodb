@@ -165,9 +165,15 @@ function sharedViewUrl() {
       viewType = 'view'
   }
 
-  return encodeURI(
-    `${getBaseUrl(workspaceStore.activeWorkspaceId)}${appInfo.value?.dashboardPath}#/nc/${viewType}/${activeView.value.uuid}`,
-  )
+  // get base url for workspace
+  const baseUrl = getBaseUrl(workspaceStore.activeWorkspaceId)
+
+  let dashboardUrl1 = dashboardUrl.value
+  if (baseUrl) {
+    dashboardUrl1 = `${baseUrl}${appInfo.value?.dashboardPath}`
+  }
+
+  return encodeURI(`${dashboardUrl1}#/nc/${viewType}/${activeView.value.uuid}`)
 }
 
 const toggleViewShare = async () => {

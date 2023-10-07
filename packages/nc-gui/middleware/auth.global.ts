@@ -1,6 +1,6 @@
 import type { Api } from 'nocodb-sdk'
 import type { Actions } from '~/composables/useGlobal/types'
-import { defineNuxtRouteMiddleware, extractSdkResponseErrorMsg, message, navigateTo, useApi, useGlobal, useRoles } from '#imports'
+import { defineNuxtRouteMiddleware, message, navigateTo, useApi, useGlobal, useRoles } from '#imports'
 
 /**
  * Global auth middleware

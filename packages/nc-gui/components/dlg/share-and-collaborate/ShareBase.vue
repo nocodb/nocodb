@@ -37,9 +37,11 @@ const workspaceStore = useWorkspace()
 const url = computed(() => {
   if (!sharedBase.value || !sharedBase.value.uuid) return ''
 
+  // get base url for workspace
   const baseUrl = getBaseUrl(workspaceStore.activeWorkspaceId)
 
   let dashboardUrl1 = dashboardUrl.value
+
   if (baseUrl) {
     dashboardUrl1 = `${baseUrl}${appInfo.value?.dashboardPath}`
   }

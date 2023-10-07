@@ -172,8 +172,10 @@ export function useGlobalActions(state: State): Actions {
 
   const getBaseUrl = (workspaceId: string) => {
     if (
-      !['base', 'nc' , 'view', 'erd', 'doc', 'api', 'app'].includes(workspaceId) &&
-      state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
+      !['base', 'nc', 'view', 'erd', 'doc', 'api', 'app'].includes(workspaceId) &&
+      state.appInfo.value.baseHostName &&
+      location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`
+    ) {
       return `https://${workspaceId}.${state.appInfo.value.baseHostName}`
     }
     return undefined

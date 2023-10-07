@@ -1,6 +1,7 @@
 import type { Api } from 'nocodb-sdk'
 import type { Actions } from '~/composables/useGlobal/types'
-import { defineNuxtRouteMiddleware, extractSdkResponseErrorMsg, message, navigateTo, useApi, useGlobal, useRoles } from '#imports'
+import { defineNuxtRouteMiddleware, message, navigateTo, useApi, useGlobal, useRoles } from '#imports'
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 /**
  * Global auth middleware
@@ -46,7 +47,9 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   }
 
   /** if user isn't signed in and google auth is enabled, try to check if sign-in data is present */
-  if (!state.signedIn.value && state.appInfo.value.googleAuthEnabled) await tryGoogleAuth(api, state.signIn)
+  if (!state.signedIn.value && state.appInfo.value.googleAuthEnabled) {
+    await tryGoogleAuth(api, state.signIn)
+  }
 
   /** if public allow all visitors */
   if (to.meta.public) return

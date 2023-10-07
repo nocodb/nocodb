@@ -43,7 +43,6 @@ export class AuthController extends AuthControllerCE {
     });
   }
 
-
   @Get('/auth/oidc')
   @UseGuards(AuthGuard('openid'))
   openidAuth() {
@@ -124,41 +123,6 @@ export class AuthController extends AuthControllerCE {
     res.json(result);
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   /* OpenID Connect auth apis */
   /* OpenID Connect APIs */
   @Post('/auth/cognito')
@@ -172,7 +136,5 @@ export class AuthController extends AuthControllerCE {
       })),
       extra: { ...req.extra },
     });
-
   }
-
 }

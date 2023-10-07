@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import '@aws-amplify/ui-vue/styles.css'
 import { Authenticator } from '@aws-amplify/ui-vue'
-import {useState} from "#imports";
+import { useState } from '#imports'
 
-const isAmplifyConfigured = useState('is-amplify-configured', () => false);
+const isAmplifyConfigured = useState('is-amplify-configured', () => false)
 
 const formFields = {
   signIn: {
@@ -70,7 +70,7 @@ const formFields = {
         <div class="mt-2 text-center px-2">
           By using NocoDB, you agree to our
           <a class="amplify-button--link !cursor-pointer" href="https://www.nocodb.com/terms-of-service" target="_blank"
-          >Terms of Service</a
+            >Terms of Service</a
           >
           and
           <a class="amplify-button--link !cursor-pointer" href="https://www.nocodb.com/policy" target="_blank">Privacy Policy</a>

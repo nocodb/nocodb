@@ -23,7 +23,6 @@ process.env[`DEBUG`] = 'xc*';
 //   });
 // })().catch((e) => console.log(e));
 
-
 (async () => {
   if (process.env.NC_WORKER_CONTAINER === 'true') {
     await Noco.init({}, null, null);

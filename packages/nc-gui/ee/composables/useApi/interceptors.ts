@@ -9,12 +9,12 @@ const reqLatencyKey = Symbol('reqLatencyKey')
 export function addAxiosInterceptors(api: Api<any>) {
   const { setTiming } = useApiTiming()
   const { getBaseUrl } = useGlobal()
-  const router = useRouter();
+  const router = useRouter()
 
   addAxiosInterceptorsCE(api)
 
   api.instance.interceptors.request.use((config) => {
-    const typeOrWorkspaceId = router.currentRoute.value.params.typeOrId;
+    const typeOrWorkspaceId = router.currentRoute.value.params.typeOrId
     const baseUrl = typeOrWorkspaceId && getBaseUrl(typeOrWorkspaceId)
     if (baseUrl) {
       config.baseURL = baseUrl

@@ -1,27 +1,16 @@
 <script setup lang="ts">
-import type {RuleObject} from 'ant-design-vue/es/form'
-import {
-  iconMap,
-  navigateTo,
-  reactive,
-  ref,
-  useApi,
-  useGlobal,
-  useI18n,
-  useSidebar,
-  validateEmail,
-} from '#imports'
-
+import type { RuleObject } from 'ant-design-vue/es/form'
+import { iconMap, navigateTo, reactive, ref, useApi, useGlobal, useI18n, useSidebar, validateEmail } from '#imports'
 
 const route = useRoute()
 
-const {signIn: _signIn, appInfo} = useGlobal()
+const { signIn: _signIn, appInfo } = useGlobal()
 
-const {api, isLoading, error} = useApi({useGlobalInstance: true})
+const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
-const {t} = useI18n()
+const { t } = useI18n()
 
-useSidebar('nc-left-sidebar', {hasSidebar: false})
+useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const formValidator = ref()
 
@@ -33,7 +22,7 @@ const form = reactive({
 const formRules: Record<string, RuleObject[]> = {
   email: [
     // E-mail is required
-    {required: true, message: t('msg.error.signUpRules.emailReqd')},
+    { required: true, message: t('msg.error.signUpRules.emailReqd') },
     // E-mail must be valid format
     {
       validator: (_: unknown, v: string) => {
@@ -48,7 +37,7 @@ const formRules: Record<string, RuleObject[]> = {
   ],
   password: [
     // Password is required
-    {required: true, message: t('msg.error.signUpRules.passwdRequired')},
+    { required: true, message: t('msg.error.signUpRules.passwdRequired') },
   ],
 }
 
@@ -57,7 +46,7 @@ async function signIn() {
 
   resetError()
 
-  api.auth.signin(form).then(async ({token}) => {
+  api.auth.signin(form).then(async ({ token }) => {
     _signIn(token!)
 
     await navigateTo({
@@ -86,24 +75,24 @@ function navigateForgotPassword() {
 }
 
 const queryToPass = computed(() =>
-    new URLSearchParams({
-      ...route.query,
-      // todo: move to utils
-      // extract workspace id from url
-      workspaceId: location.host?.split('.')[0],
-    }).toString(),
+  new URLSearchParams({
+    ...route.query,
+    // todo: move to utils
+    // extract workspace id from url
+    workspaceId: location.host?.split('.')[0],
+  }).toString(),
 )
 </script>
 
 <template>
   <div
-      data-testid="nc-form-signin"
-      class="md:bg-primary bg-opacity-5 signin h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin"
+    data-testid="nc-form-signin"
+    class="md:bg-primary bg-opacity-5 signin h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin"
   >
     <div
-        class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+      class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
     >
-      <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading"/>
+      <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
 
       <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signIn') }}</h1>
 
@@ -112,7 +101,7 @@ const queryToPass = computed(() =>
           <Transition name="layout">
             <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
               <div class="flex items-center gap-2 justify-center">
-                <MaterialSymbolsWarning/>
+                <MaterialSymbolsWarning />
                 <div class="break-words">{{ error }}</div>
               </div>
             </div>
@@ -120,25 +109,25 @@ const queryToPass = computed(() =>
 
           <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
             <a-input
-                v-model:value="form.email"
-                type="email"
-                autocomplete="email"
-                data-testid="nc-form-signin__email"
-                size="large"
-                :placeholder="$t('msg.info.signUp.workEmail')"
-                @focus="resetError"
+              v-model:value="form.email"
+              type="email"
+              autocomplete="email"
+              data-testid="nc-form-signin__email"
+              size="large"
+              :placeholder="$t('msg.info.signUp.workEmail')"
+              @focus="resetError"
             />
           </a-form-item>
 
           <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
             <a-input-password
-                v-model:value="form.password"
-                autocomplete="current-password"
-                data-testid="nc-form-signin__password"
-                size="large"
-                class="password"
-                :placeholder="$t('msg.info.signUp.enterPassword')"
-                @focus="resetError"
+              v-model:value="form.password"
+              autocomplete="current-password"
+              data-testid="nc-form-signin__password"
+              size="large"
+              class="password"
+              :placeholder="$t('msg.info.signUp.enterPassword')"
+              @focus="resetError"
             />
           </a-form-item>
 
@@ -152,40 +141,37 @@ const queryToPass = computed(() =>
         <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
           <template v-if="!appInfo.disableEmailAuth">
             <button data-testid="nc-form-signin__submit" class="scaling-btn bg-opacity-100" type="submit">
-                <span class="flex items-center gap-2">
-                  <component :is="iconMap.signin"/>
-                  {{ $t('general.signIn') }}
-                </span>
+              <span class="flex items-center gap-2">
+                <component :is="iconMap.signin" />
+                {{ $t('general.signIn') }}
+              </span>
             </button>
           </template>
           <a
-              v-if="appInfo.googleAuthEnabled"
-              :href="`${appInfo.ncSiteUrl}/auth/google`"
-              class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
+            v-if="appInfo.googleAuthEnabled"
+            :href="`${appInfo.ncSiteUrl}/auth/google`"
+            class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
           >
-              <span class="flex items-center gap-2">
-                <LogosGoogleGmail/>
+            <span class="flex items-center gap-2">
+              <LogosGoogleGmail />
 
-                {{ $t('labels.signInWithProvider', {provider: 'Google'}) }}
-              </span>
+              {{ $t('labels.signInWithProvider', { provider: 'Google' }) }}
+            </span>
           </a>
 
-          <div
-              v-if="appInfo.oidcAuthEnabled"
-              class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
-          >
+          <div v-if="appInfo.oidcAuthEnabled" class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
             <a :href="`${appInfo.ncSiteUrl}/auth/oidc?${queryToPass}`" class="!text-primary !no-underline">
               <button type="button" class="scaling-btn bg-opacity-100">
-                  <span class="flex items-center gap-2">
-                    <MdiLogin/>
+                <span class="flex items-center gap-2">
+                  <MdiLogin />
 
-                    <template v-if="!appInfo.disableEmailAuth">
-                      {{ $t('labels.signUpWithProvider', {provider: appInfo.oidcProviderName || 'OpenID Connect'}) }}
-                    </template>
-                    <template v-else>
-                      {{ $t('general.signIn') }}
-                    </template>
-                  </span>
+                  <template v-if="!appInfo.disableEmailAuth">
+                    {{ $t('labels.signUpWithProvider', { provider: appInfo.oidcProviderName || 'OpenID Connect' }) }}
+                  </template>
+                  <template v-else>
+                    {{ $t('general.signIn') }}
+                  </template>
+                </span>
               </button>
             </a>
           </div>

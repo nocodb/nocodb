@@ -1,5 +1,4 @@
 export interface AppConfig {
-
   cognito: {
     aws_project_region: string;
     aws_cognito_identity_pool_id: string;

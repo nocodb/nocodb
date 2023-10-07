@@ -1,15 +1,15 @@
-import {promisify} from 'util';
-import {Injectable} from '@nestjs/common';
-import {PassportStrategy} from '@nestjs/passport';
-import {CognitoJwtVerifier} from 'aws-jwt-verify';
-import {Strategy} from 'passport-custom';
-import {ConfigService} from '@nestjs/config';
+import { promisify } from 'util';
+import { Injectable } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { CognitoJwtVerifier } from 'aws-jwt-verify';
+import { Strategy } from 'passport-custom';
+import { ConfigService } from '@nestjs/config';
 import bcrypt from 'bcryptjs';
-import type {FactoryProvider} from '@nestjs/common/interfaces/modules/provider.interface';
-import type {AppConfig} from '~/interface/config';
-import {sanitiseUserObj} from '~/utils';
-import {UsersService} from '~/services/users/users.service';
-import {User} from '~/models';
+import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
+import type { AppConfig } from '~/interface/config';
+import { sanitiseUserObj } from '~/utils';
+import { UsersService } from '~/services/users/users.service';
+import { User } from '~/models';
 
 @Injectable()
 export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
@@ -22,17 +22,23 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
 
   async validate(req: any, callback) {
     try {
-
-      if(!this.configService.get('cognito.aws_user_pools_id', {infer: true})){
+      if (
+        !this.configService.get('cognito.aws_user_pools_id', { infer: true })
+      ) {
         return callback(new Error('Cognito is not configured'));
       }
 
       if (req.headers['xc-cognito']) {
         // todo: replace with env/config
         const verifier = CognitoJwtVerifier.create({
-          userPoolId: this.configService.get('cognito.aws_user_pools_id', {infer: true}),
+          userPoolId: this.configService.get('cognito.aws_user_pools_id', {
+            infer: true,
+          }),
           tokenUse: 'id',
-          clientId: this.configService.get('cognito.aws_user_pools_web_client_id', {infer: true}),
+          clientId: this.configService.get(
+            'cognito.aws_user_pools_web_client_id',
+            { infer: true },
+          ),
         });
 
         const payload = await verifier.verify(req.headers['xc-cognito']);

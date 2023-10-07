@@ -11,7 +11,7 @@ definePageMeta({
 const formFields = {
   signIn: {
     username: {
-      placeholder: 'xxxx@gmail.com',
+      placeholder: 'Enter your work email',
     },
     password: {
       placeholder: 'xxxxxxxxxxxxxx',
@@ -20,7 +20,7 @@ const formFields = {
   signUp: {
     email: {
       label: 'Email',
-      placeholder: 'xxxx@gmail.com',
+      placeholder: 'Enter your work email',
       isRequired: true,
       order: 1,
     },
@@ -43,7 +43,7 @@ const formFields = {
   },
   resetPassword: {
     username: {
-      placeholder: 'xxxx@gmail.com',
+      placeholder: 'Enter your work email',
     },
   },
   confirmResetPassword: {

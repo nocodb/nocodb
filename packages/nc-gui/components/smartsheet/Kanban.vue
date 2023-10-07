@@ -56,6 +56,8 @@ const expandedFormRow = ref<RowType>()
 
 const expandedFormRowState = ref<Record<string, any>>()
 
+provide(RowHeightInj, ref(1 as const))
+
 const deleteStackVModel = ref(false)
 
 const stackToBeDeleted = ref('')
@@ -211,6 +213,8 @@ const expandedFormOnRowIdDlg = computed({
 })
 
 const expandFormClick = async (e: MouseEvent, row: RowType) => {
+  const target = e.target as HTMLElement
+  if (target.closest('.arrow') || target.closest('.slick-dots')) return
   if (e.target as HTMLElement) {
     expandForm(row)
   }
@@ -564,7 +568,7 @@ watch(
                                     </template>
 
                                     <template v-for="(attachment, index) in attachments(record)">
-                                     <LazyCellAttachmentImage
+                                      <LazyCellAttachmentImage
                                         v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                                         :key="`carousel-${record.row.id}-${index}`"
                                         class="h-52 object-cover"
@@ -783,5 +787,35 @@ watch(
   transform: rotate(-90deg) translateX(-100%);
   transform-origin: left top 0px;
   transition: left 0.2s ease-in-out 0s;
+}
+
+
+:deep(.slick-dots li button) {
+  @apply !bg-black;
+}
+
+.ant-carousel.gallery-carousel :deep(.slick-dots) {
+  @apply !w-auto absolute h-auto bottom-[-15px] absolute h-auto;
+  height: auto;
+}
+
+.ant-carousel.gallery-carousel :deep(.slick-dots li div > div) {
+  @apply rounded-full border-0 cursor-pointer block opacity-100 p-0 outline-none transition-all duration-500 text-transparent h-2 w-2 bg-[#d9d9d9];
+  font-size: 0;
+}
+
+.ant-carousel.gallery-carousel :deep(.slick-dots li.slick-active div > div) {
+  @apply bg-brand-500 opacity-100;
+}
+
+.ant-carousel.gallery-carousel :deep(.slick-dots li) {
+  @apply !w-auto;
+}
+.ant-carousel.gallery-carousel :deep(.slick-prev) {
+  @apply left-0;
+}
+
+.ant-carousel.gallery-carousel :deep(.slick-next) {
+  @apply right-0;
 }
 </style>

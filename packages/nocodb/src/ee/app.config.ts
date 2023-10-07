@@ -2,15 +2,15 @@ import type { AppConfig } from '~/interface/config';
 
 const config: AppConfig = {
   cognito: {
-    aws_project_region: process.env.NC_AWS_PROJECT_REGION,
-    aws_cognito_identity_pool_id: process.env.NC_AWS_COGNITO_IDENTITY_POOL_ID,
-    aws_cognito_region: process.env.NC_AWS_COGNITO_REGION,
-    aws_user_pools_id: process.env.NC_AWS_USER_POOLS_ID,
-    aws_user_pools_web_client_id: process.env.NC_AWS_USER_POOLS_WEB_CLIENT_ID,
+    aws_project_region: process.env.NC_COGNITO_AWS_PROJECT_REGION,
+    aws_cognito_identity_pool_id: process.env.NC_COGNITO_AWS_COGNITO_IDENTITY_POOL_ID,
+    aws_cognito_region: process.env.NC_COGNITO_AWS_COGNITO_REGION,
+    aws_user_pools_id: process.env.NC_COGNITO_AWS_USER_POOLS_ID,
+    aws_user_pools_web_client_id: process.env.NC_COGNITO_AWS_USER_POOLS_WEB_CLIENT_ID,
     oauth: {
-      domain: process.env.NC_DOMAIN,
-      redirectSignIn: process.env.NC_REDIRECTSIGNIN,
-      redirectSignOut: process.env.NC_REDIRECTSIGNOUT,
+      domain: process.env.NC_COGNITO_OAUTH_DOMAIN,
+      redirectSignIn: process.env.NC_COGNITO_OAUTH_REDIRECTSIGNIN,
+      redirectSignOut: process.env.NC_COGNITO_OAUTH_REDIRECTSIGNOUT,
     },
   },
 

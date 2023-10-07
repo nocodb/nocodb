@@ -2,14 +2,18 @@ import { Amplify } from '@aws-amplify/core'
 import { Auth } from '@aws-amplify/auth'
 import { Hub } from 'aws-amplify'
 import { defineNuxtPlugin, navigateTo } from '#app'
-import { useGlobal, useApi } from '#imports'
+import { useGlobal, useApi, useState } from '#imports'
 
 export default defineNuxtPlugin(async (nuxtApp) => {
   const state = useGlobal()
-  const init = async () => {
-    if(state.value.appInfo?.cognito?.aws_user_pools_id) {
 
-      const cognitoConfig = state.value.appInfo.cognito;
+  const isAmplifyConfigured = useState('is-amplify-configured', () => false);
+
+  const init = async () => {
+
+    // check if cognito is configured and initialize Amplify
+    if(state.appInfo?.value?.cognito?.aws_user_pools_id) {
+      const cognitoConfig = state.appInfo.value.cognito;
 
       // initialize Amplify
       Amplify.configure({
@@ -37,6 +41,8 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         },
         aws_cognito_verification_mechanisms: ['EMAIL'],
       })
+
+      isAmplifyConfigured.value = true;
 
       const {signIn} = useGlobal()
 

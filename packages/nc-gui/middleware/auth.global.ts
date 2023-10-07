@@ -115,7 +115,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
  * If present, try using google auth data to sign user in before navigating to the next page
  */
 async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
-  if (window.location.search && /\bscope=|\bstate=/.test(window.location.search) && /\bcode=/.test(window.location.search)) {
+  /*if (window.location.search && /\bscope=|\bstate=/.test(window.location.search) && /\bcode=/.test(window.location.search)) {
     let extraProps: any = {}
     try {
       let authProvider = 'google'
@@ -143,5 +143,5 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
       `${extraProps.continueAfterSignIn ? `${newURL}#/?continueAfterSignIn=${extraProps.continueAfterSignIn}` : newURL}`,
     )
     window.location.reload()
-  }
+  }*/
 }

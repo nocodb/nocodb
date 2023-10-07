@@ -18,7 +18,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         domain: 'ncguiaf56d838-af56d838-dev.auth.us-east-2.amazoncognito.com',
         scope: ['openid', 'profile', 'email'],
         redirectSignIn: 'https://staging.noco.to',
-        redirectSignOut: 'https://staging.noco.to?logout=true',
+        redirectSignOut: 'https://staging.noco.to',
         // redirectSignIn: 'http://localhost:3000',
         // redirectSignOut: 'http://localhost:3000',
         responseType: 'code',
@@ -162,7 +162,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       })
       Auth.currentAuthenticatedUser().then(
         async (currentAuthenticatedUser) => {
-          const { api } = useApi()
+          const { api,  } = useApi()
           console.log('Yes, user is logged in.', currentAuthenticatedUser)
           const res2 = api.instance.post(
             '/auth/cognito',

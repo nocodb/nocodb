@@ -351,59 +351,78 @@ const isEditBaseModalOpen = computed({
 
                 <div class="ds-table-col ds-table-actions">
                   <div class="flex items-center gap-2">
-                    <NcButton
-                      v-if="!sources[0].is_meta && !sources[0].is_local"
-                      class="nc-action-btn cursor-pointer outline-0"
-                      type="text"
-                      size="small"
-                      @click="baseAction(sources[0].id, DataSourcesSubTab.Metadata)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600">
-                        <GeneralIcon icon="sync" class="group-hover:text-accent" />
-                        <div class="nc-action-btn-label">
-                          {{ $t('tooltip.metaSync') }}
+                    <NcTooltip v-if="!sources[0].is_meta && !sources[0].is_local" overlay-class-name="!xl:hidden">
+                      <template #title>
+                        {{ $t('tooltip.metaSync') }}
+                      </template>
+                      <NcButton
+                        class="nc-action-btn cursor-pointer outline-0"
+                        type="text"
+                        size="small"
+                        @click="baseAction(sources[0].id, DataSourcesSubTab.Metadata)"
+                      >
+                        <div class="flex items-center gap-2 text-gray-600">
+                          <GeneralIcon icon="sync" class="group-hover:text-accent" />
+                          <div class="nc-action-btn-label">
+                            {{ $t('tooltip.metaSync') }}
+                          </div>
                         </div>
-                      </div>
-                    </NcButton>
-                    <NcButton
-                      size="small"
-                      class="nc-action-btn cursor-pointer outline-0"
-                      type="text"
-                      @click="baseAction(sources[0].id, DataSourcesSubTab.ERD)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600">
-                        <GeneralIcon icon="erd" class="group-hover:text-accent" />
-                        <div class="nc-action-btn-label">
-                          {{ $t('title.relations') }}
+                      </NcButton>
+                    </NcTooltip>
+                    <NcTooltip overlay-class-name="!xl:hidden">
+                      <template #title>
+                        {{ $t('title.relations') }}
+                      </template>
+                      <NcButton
+                        size="small"
+                        class="nc-action-btn cursor-pointer outline-0"
+                        type="text"
+                        @click="baseAction(sources[0].id, DataSourcesSubTab.ERD)"
+                      >
+                        <div class="flex items-center gap-2 text-gray-600">
+                          <GeneralIcon icon="erd" class="group-hover:text-accent" />
+                          <div class="nc-action-btn-label">
+                            {{ $t('title.relations') }}
+                          </div>
                         </div>
-                      </div>
-                    </NcButton>
-                    <NcButton
-                      size="small"
-                      class="nc-action-btn cursor-pointer outline-0"
-                      type="text"
-                      @click="baseAction(sources[0].id, DataSourcesSubTab.UIAcl)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600">
-                        <GeneralIcon icon="acl" class="group-hover:text-accent" />
-                        <div class="nc-action-btn-label">
-                          {{ $t('labels.uiAcl') }}
+                      </NcButton>
+                    </NcTooltip>
+                    <NcTooltip overlay-class-name="!xl:hidden">
+                      <template #title>
+                        {{ $t('labels.uiAcl') }}
+                      </template>
+                      <NcButton
+                        size="small"
+                        class="nc-action-btn cursor-pointer outline-0"
+                        type="text"
+                        @click="baseAction(sources[0].id, DataSourcesSubTab.UIAcl)"
+                      >
+                        <div class="flex items-center gap-2 text-gray-600">
+                          <GeneralIcon icon="acl" class="group-hover:text-accent" />
+                          <div class="nc-action-btn-label">
+                            {{ $t('labels.uiAcl') }}
+                          </div>
                         </div>
-                      </div>
-                    </NcButton>
-                    <NcButton
-                      size="small"
-                      class="nc-action-btn cursor-pointer outline-0"
-                      type="text"
-                      @click="baseAction(sources[0].id, DataSourcesSubTab.Audit)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600">
-                        <GeneralIcon icon="book" class="group-hover:text-accent" />
-                        <div class="nc-action-btn-label">
-                          {{ $t('title.audit') }}
+                      </NcButton>
+                    </NcTooltip>
+                    <NcTooltip overlay-class-name="!xl:hidden">
+                      <template #title>
+                        {{ $t('title.audit') }}
+                      </template>
+                      <NcButton
+                        size="small"
+                        class="nc-action-btn cursor-pointer outline-0"
+                        type="text"
+                        @click="baseAction(sources[0].id, DataSourcesSubTab.Audit)"
+                      >
+                        <div class="flex items-center gap-2 text-gray-600">
+                          <GeneralIcon icon="book" class="group-hover:text-accent" />
+                          <div class="nc-action-btn-label">
+                            {{ $t('title.audit') }}
+                          </div>
                         </div>
-                      </div>
-                    </NcButton>
+                      </NcButton>
+                    </NcTooltip>
                   </div>
                 </div>
                 <div class="ds-table-col ds-table-crud">
@@ -450,67 +469,92 @@ const isEditBaseModalOpen = computed({
 
                 <div class="ds-table-col ds-table-actions">
                   <div class="flex items-center gap-2">
-                    <NcButton
-                      size="small"
-                      class="nc-action-btn cursor-pointer outline-0"
-                      type="text"
-                      @click="baseAction(source.id, DataSourcesSubTab.ERD)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600">
-                        <GeneralIcon icon="erd" class="group-hover:text-accent" />
-                        <div class="nc-action-btn-label">
-                          {{ $t('title.relations') }}
+                    <NcTooltip overlay-class-name="!xl:hidden">
+                      <template #title>
+                        {{ $t('title.relations') }}
+                      </template>
+                      <NcButton
+                        size="small"
+                        class="nc-action-btn cursor-pointer outline-0"
+                        type="text"
+                        @click="baseAction(source.id, DataSourcesSubTab.ERD)"
+                      >
+                        <div class="flex items-center gap-2 text-gray-600">
+                          <GeneralIcon icon="erd" class="group-hover:text-accent" />
+                          <div class="nc-action-btn-label">
+                            {{ $t('title.relations') }}
+                          </div>
                         </div>
-                      </div>
-                    </NcButton>
-                    <NcButton
-                      size="small"
-                      type="text"
-                      class="nc-action-btn cursor-pointer outline-0"
-                      @click="baseAction(source.id, DataSourcesSubTab.UIAcl)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600">
-                        <GeneralIcon icon="acl" class="group-hover:text-accent" />
-                        <div class="nc-action-btn-label">
-                          {{ $t('labels.uiAcl') }}
+                      </NcButton>
+                    </NcTooltip>
+                    <NcTooltip overlay-class-name="!xl:hidden">
+                      <template #title>
+                        {{ $t('labels.uiAcl') }}
+                      </template>
+                      <NcButton
+                        size="small"
+                        type="text"
+                        class="nc-action-btn cursor-pointer outline-0"
+                        @click="baseAction(source.id, DataSourcesSubTab.UIAcl)"
+                      >
+                        <div class="flex items-center gap-2 text-gray-600">
+                          <GeneralIcon icon="acl" class="group-hover:text-accent" />
+                          <div class="nc-action-btn-label">
+                            {{ $t('labels.uiAcl') }}
+                          </div>
                         </div>
-                      </div>
-                    </NcButton>
-                    <NcButton
-                      v-if="!source.is_meta && !source.is_local"
-                      size="small"
-                      type="text"
-                      class="nc-action-btn cursor-pointer outline-0"
-                      @click="baseAction(source.id, DataSourcesSubTab.Metadata)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600">
-                        <GeneralIcon icon="sync" class="group-hover:text-accent" />
-                        <div class="nc-action-btn-label">
-                          {{ $t('tooltip.metaSync') }}
+                      </NcButton>
+                    </NcTooltip>
+                    <NcTooltip overlay-class-name="!xl:hidden">
+                      <template #title>
+                        {{ $t('tooltip.metaSync') }}
+                      </template>
+                      <NcButton
+                        v-if="!source.is_meta && !source.is_local"
+                        size="small"
+                        type="text"
+                        class="nc-action-btn cursor-pointer outline-0"
+                        @click="baseAction(source.id, DataSourcesSubTab.Metadata)"
+                      >
+                        <div class="flex items-center gap-2 text-gray-600">
+                          <GeneralIcon icon="sync" class="group-hover:text-accent" />
+                          <div class="nc-action-btn-label">
+                            {{ $t('tooltip.metaSync') }}
+                          </div>
                         </div>
-                      </div>
-                    </NcButton>
+                      </NcButton>
+                    </NcTooltip>
                   </div>
                 </div>
                 <div class="ds-table-col ds-table-crud justify-end gap-x-1">
-                  <NcButton
-                    v-if="!source.is_meta && !source.is_local"
-                    size="small"
-                    class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg mt-0.5"
-                    type="text"
-                    @click="baseAction(source.id, DataSourcesSubTab.Edit)"
-                  >
-                    <GeneralIcon icon="edit" class="text-gray-600 -mt-0.5" />
-                  </NcButton>
-                  <NcButton
-                    v-if="!source.is_meta && !source.is_local"
-                    size="small"
-                    class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg mt-0.5"
-                    type="text"
-                    @click="openDeleteBase(source)"
-                  >
-                    <GeneralIcon icon="delete" class="text-red-500 -mt-0.5" />
-                  </NcButton>
+                  <NcTooltip>
+                    <template #title>
+                      {{ $t('general.edit') }}
+                    </template>
+                    <NcButton
+                      v-if="!source.is_meta && !source.is_local"
+                      size="small"
+                      class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg mt-0.5"
+                      type="text"
+                      @click="baseAction(source.id, DataSourcesSubTab.Edit)"
+                    >
+                      <GeneralIcon icon="edit" class="text-gray-600 -mt-0.5" />
+                    </NcButton>
+                  </NcTooltip>
+                  <NcTooltip>
+                    <template #title>
+                      {{ $t('general.delete') }}
+                    </template>
+                    <NcButton
+                      v-if="!source.is_meta && !source.is_local"
+                      size="small"
+                      class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg mt-0.5"
+                      type="text"
+                      @click="openDeleteBase(source)"
+                    >
+                      <GeneralIcon icon="delete" class="text-red-500 -mt-0.5" />
+                    </NcButton>
+                  </NcTooltip>
                 </div>
               </div>
             </template>

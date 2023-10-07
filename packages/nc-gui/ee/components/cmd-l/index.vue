@@ -195,7 +195,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-show="vOpen" class="cmdk-modal cmdl-modal" :class="{ 'cmdk-modal-active cmdl-modal-active': vOpen }">
+  <div v-if="vOpen" class="cmdk-modal cmdl-modal" :class="{ 'cmdk-modal-active cmdl-modal-active': vOpen }">
     <div ref="modalEl" class="cmdk-modal-content cmdl-modal-content relative h-[25.25rem]">
       <div class="flex items-center bg-white w-full z-[50]">
         <div class="text-sm p-4 text-gray-500">Recent Views</div>
@@ -206,7 +206,7 @@ onMounted(() => {
           <div v-else class="flex mb-10 flex-col cmdOpt-list w-full">
             <div
               v-for="cmdOption of recentViews"
-              :key="cmdOption.tableID + cmdOpPtion.viewName"
+              :key="cmdOption.tableID + cmdOption.viewName"
               v-e="['a:cmdL:changeView']"
               :class="{
                 selected: selected === cmdOption.tableID + cmdOption.viewName,

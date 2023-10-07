@@ -6,12 +6,15 @@ import { useMetas } from '#imports'
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()
+const { getBaseUrl, appInfo } = useGlobal()
 
 const { dashboardUrl } = useDashboard()
 
 const viewStore = useViewsStore()
 
 const { metas } = useMetas()
+
+const workspaceStore = useWorkspace()
 
 const isUpdating = ref({
   public: false,
@@ -162,7 +165,9 @@ function sharedViewUrl() {
       viewType = 'view'
   }
 
-  return encodeURI(`${dashboardUrl?.value}#/nc/${viewType}/${activeView.value.uuid}`)
+  return encodeURI(
+    `${getBaseUrl(workspaceStore.activeWorkspaceId)}${appInfo.value?.dashboardPath}#/nc/${viewType}/${activeView.value.uuid}`,
+  )
 }
 
 const toggleViewShare = async () => {

@@ -315,7 +315,7 @@ const isEditBaseModalOpen = computed({
             <div class="ds-table-col ds-table-enabled cursor-pointer" @dblclick="forceAwaken">{{ $t('general.visibility') }}</div>
             <div class="ds-table-col ds-table-name">{{ $t('general.name') }}</div>
             <div class="ds-table-col ds-table-type">{{ $t('general.type') }}</div>
-            <div class="ds-table-col ds-table-actions pl-2">{{ $t('labels.actions') }}</div>
+            <div class="ds-table-col ds-table-actions -ml-13">{{ $t('labels.actions') }}</div>
             <div class="ds-table-col ds-table-crud"></div>
           </div>
         </div>
@@ -358,14 +358,12 @@ const isEditBaseModalOpen = computed({
                       <NcButton
                         class="nc-action-btn cursor-pointer outline-0"
                         type="text"
+                        data-testid="nc-data-sources-view-meta-sync"
                         size="small"
                         @click="baseAction(sources[0].id, DataSourcesSubTab.Metadata)"
                       >
                         <div class="flex items-center gap-2 text-gray-600">
                           <GeneralIcon icon="sync" class="group-hover:text-accent" />
-                          <div class="nc-action-btn-label">
-                            {{ $t('tooltip.metaSync') }}
-                          </div>
                         </div>
                       </NcButton>
                     </NcTooltip>
@@ -377,6 +375,7 @@ const isEditBaseModalOpen = computed({
                         size="small"
                         class="nc-action-btn cursor-pointer outline-0"
                         type="text"
+                        data-testid="nc-data-sources-view-erd"
                         @click="baseAction(sources[0].id, DataSourcesSubTab.ERD)"
                       >
                         <div class="flex items-center gap-2 text-gray-600">
@@ -392,6 +391,7 @@ const isEditBaseModalOpen = computed({
                         size="small"
                         class="nc-action-btn cursor-pointer outline-0"
                         type="text"
+                        data-testid="nc-data-sources-view-ui-acl"
                         @click="baseAction(sources[0].id, DataSourcesSubTab.UIAcl)"
                       >
                         <div class="flex items-center gap-2 text-gray-600">
@@ -407,6 +407,7 @@ const isEditBaseModalOpen = computed({
                         size="small"
                         class="nc-action-btn cursor-pointer outline-0"
                         type="text"
+                        data-testid="nc-data-sources-view-audit"
                         @click="baseAction(sources[0].id, DataSourcesSubTab.Audit)"
                       >
                         <div class="flex items-center gap-2 text-gray-600">
@@ -468,6 +469,7 @@ const isEditBaseModalOpen = computed({
                         size="small"
                         class="nc-action-btn cursor-pointer outline-0"
                         type="text"
+                        data-testid="nc-data-sources-view-erd"
                         @click="baseAction(source.id, DataSourcesSubTab.ERD)"
                       >
                         <div class="flex items-center gap-2 text-gray-600">
@@ -483,6 +485,7 @@ const isEditBaseModalOpen = computed({
                         size="small"
                         type="text"
                         class="nc-action-btn cursor-pointer outline-0"
+                        data-testid="nc-data-sources-view-ui-acl"
                         @click="baseAction(source.id, DataSourcesSubTab.UIAcl)"
                       >
                         <div class="flex items-center gap-2 text-gray-600">
@@ -498,6 +501,7 @@ const isEditBaseModalOpen = computed({
                         v-if="!source.is_meta && !source.is_local"
                         size="small"
                         type="text"
+                        data-testid="nc-data-sources-view-meta-sync"
                         class="nc-action-btn cursor-pointer outline-0"
                         @click="baseAction(source.id, DataSourcesSubTab.Metadata)"
                       >
@@ -620,15 +624,15 @@ const isEditBaseModalOpen = computed({
 }
 
 .ds-table-name {
-  @apply col-span-11 items-center capitalize;
+  @apply col-span-9 items-center capitalize;
 }
 
 .ds-table-type {
-  @apply col-span-3 items-center;
+  @apply col-span-2 items-center;
 }
 
 .ds-table-actions {
-  @apply col-span-2;
+  @apply col-span-5 flex w-full justify-end;
 }
 
 .ds-table-crud {

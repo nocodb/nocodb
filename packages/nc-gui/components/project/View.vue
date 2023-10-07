@@ -130,7 +130,7 @@ watch(
                   'bg-gray-50': projectPageTab !== 'data-source',
                 }"
               >
-                {{ base.sources.length - 1 }}
+                {{ base.sources.length }}
               </div>
             </div>
           </template>

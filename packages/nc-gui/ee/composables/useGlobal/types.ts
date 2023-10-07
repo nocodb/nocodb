@@ -1,3 +1,3 @@
 export interface ActionsEE {
-  getMainAppUrl: () => string | undefined
+  getMainUrl: () => string | undefined
 }

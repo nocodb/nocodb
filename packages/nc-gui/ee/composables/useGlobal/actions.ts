@@ -1,10 +1,11 @@
 import { getActivePinia } from 'pinia'
 import { Auth } from 'aws-amplify'
 import type { Actions, AppInfo, State } from '../../../composables/useGlobal/types'
+import type { ActionsEE } from './types'
 import { NcProjectType, message, useNuxtApp } from '#imports'
 import { navigateTo } from '#app'
 
-export function useGlobalActions(state: State): Actions {
+export function useGlobalActions(state: State): Actions & ActionsEE {
   const setIsMobileMode = (isMobileMode: boolean) => {
     state.isMobileMode.value = isMobileMode
   }
@@ -181,5 +182,14 @@ export function useGlobalActions(state: State): Actions {
     return undefined
   }
 
-  return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode, navigateToProject, getBaseUrl, ncNavigateTo }
+  // get the base url of the app id base subdomain is used
+  // eg: https://app.nocodb.com
+  const getMainAppUrl = () => {
+    if (state.appInfo.value.mainSubDomain) {
+      return `https://${state.appInfo.value.mainSubDomain}.${state.appInfo.value.baseHostName}`
+    }
+    return undefined
+  }
+
+  return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode, navigateToProject, getBaseUrl, ncNavigateTo, getMainUrl }
 }

@@ -30,16 +30,18 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
 
       if (req.headers['xc-cognito']) {
         // todo: replace with env/config
-        const verifier = CognitoJwtVerifier.create({
-          userPoolId: this.configService.get('cognito.aws_user_pools_id', {
-            infer: true,
-          }),
-          tokenUse: 'id',
-          clientId: this.configService.get(
-            'cognito.aws_user_pools_web_client_id',
-            { infer: true },
-          ),
-        });
+        const verifier = CognitoJwtVerifier.create(
+          {
+            userPoolId: this.configService.get('cognito.aws_user_pools_id', {
+              infer: true,
+            }),
+            tokenUse: 'id',
+            clientId: this.configService.get(
+              'cognito.aws_user_pools_web_client_id',
+              { infer: true },
+            ),
+          },
+        );
 
         const payload = await verifier.verify(req.headers['xc-cognito']);
         const email = (payload as any)['email'];

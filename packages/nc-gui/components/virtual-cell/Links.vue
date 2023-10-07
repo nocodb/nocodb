@@ -77,6 +77,8 @@ const onAttachRecord = () => {
 }
 
 const openChildList = () => {
+  if (isUnderLookup.value) return
+
   if (!isLocked.value) {
     childListDlg.value = true
   }
@@ -98,6 +100,12 @@ const localCellValue = computed<any[]>(() => {
   }
   return []
 })
+
+const openListDlg = () => {
+  if (isUnderLookup.value) return
+
+  listItemsDlg.value = true
+}
 </script>
 
 <template>
@@ -120,7 +128,7 @@ const localCellValue = computed<any[]>(() => {
       <MdiPlus
         v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
         class="select-none !text-md text-gray-700 nc-action-icon nc-plus"
-        @click.stop="listItemsDlg = true"
+        @click.stop="openListDlg"
       />
     </div>
 

@@ -351,7 +351,7 @@ const isEditBaseModalOpen = computed({
 
                 <div class="ds-table-col ds-table-actions">
                   <div class="flex items-center gap-2">
-                    <NcTooltip v-if="!sources[0].is_meta && !sources[0].is_local" overlay-class-name="!xl:hidden">
+                    <NcTooltip v-if="!sources[0].is_meta && !sources[0].is_local">
                       <template #title>
                         {{ $t('tooltip.metaSync') }}
                       </template>
@@ -369,7 +369,7 @@ const isEditBaseModalOpen = computed({
                         </div>
                       </NcButton>
                     </NcTooltip>
-                    <NcTooltip overlay-class-name="!xl:hidden">
+                    <NcTooltip>
                       <template #title>
                         {{ $t('title.relations') }}
                       </template>
@@ -381,13 +381,10 @@ const isEditBaseModalOpen = computed({
                       >
                         <div class="flex items-center gap-2 text-gray-600">
                           <GeneralIcon icon="erd" class="group-hover:text-accent" />
-                          <div class="nc-action-btn-label">
-                            {{ $t('title.relations') }}
-                          </div>
                         </div>
                       </NcButton>
                     </NcTooltip>
-                    <NcTooltip overlay-class-name="!xl:hidden">
+                    <NcTooltip>
                       <template #title>
                         {{ $t('labels.uiAcl') }}
                       </template>
@@ -399,13 +396,10 @@ const isEditBaseModalOpen = computed({
                       >
                         <div class="flex items-center gap-2 text-gray-600">
                           <GeneralIcon icon="acl" class="group-hover:text-accent" />
-                          <div class="nc-action-btn-label">
-                            {{ $t('labels.uiAcl') }}
-                          </div>
                         </div>
                       </NcButton>
                     </NcTooltip>
-                    <NcTooltip overlay-class-name="!xl:hidden">
+                    <NcTooltip>
                       <template #title>
                         {{ $t('title.audit') }}
                       </template>
@@ -417,9 +411,6 @@ const isEditBaseModalOpen = computed({
                       >
                         <div class="flex items-center gap-2 text-gray-600">
                           <GeneralIcon icon="book" class="group-hover:text-accent" />
-                          <div class="nc-action-btn-label">
-                            {{ $t('title.audit') }}
-                          </div>
                         </div>
                       </NcButton>
                     </NcTooltip>
@@ -469,7 +460,7 @@ const isEditBaseModalOpen = computed({
 
                 <div class="ds-table-col ds-table-actions">
                   <div class="flex items-center gap-2">
-                    <NcTooltip overlay-class-name="!xl:hidden">
+                    <NcTooltip>
                       <template #title>
                         {{ $t('title.relations') }}
                       </template>
@@ -481,13 +472,10 @@ const isEditBaseModalOpen = computed({
                       >
                         <div class="flex items-center gap-2 text-gray-600">
                           <GeneralIcon icon="erd" class="group-hover:text-accent" />
-                          <div class="nc-action-btn-label">
-                            {{ $t('title.relations') }}
-                          </div>
                         </div>
                       </NcButton>
                     </NcTooltip>
-                    <NcTooltip overlay-class-name="!xl:hidden">
+                    <NcTooltip>
                       <template #title>
                         {{ $t('labels.uiAcl') }}
                       </template>
@@ -499,13 +487,10 @@ const isEditBaseModalOpen = computed({
                       >
                         <div class="flex items-center gap-2 text-gray-600">
                           <GeneralIcon icon="acl" class="group-hover:text-accent" />
-                          <div class="nc-action-btn-label">
-                            {{ $t('labels.uiAcl') }}
-                          </div>
                         </div>
                       </NcButton>
                     </NcTooltip>
-                    <NcTooltip overlay-class-name="!xl:hidden">
+                    <NcTooltip>
                       <template #title>
                         {{ $t('tooltip.metaSync') }}
                       </template>
@@ -518,9 +503,6 @@ const isEditBaseModalOpen = computed({
                       >
                         <div class="flex items-center gap-2 text-gray-600">
                           <GeneralIcon icon="sync" class="group-hover:text-accent" />
-                          <div class="nc-action-btn-label">
-                            {{ $t('tooltip.metaSync') }}
-                          </div>
                         </div>
                       </NcButton>
                     </NcTooltip>
@@ -638,7 +620,7 @@ const isEditBaseModalOpen = computed({
 }
 
 .ds-table-name {
-  @apply col-span-6 items-center capitalize;
+  @apply col-span-11 items-center capitalize;
 }
 
 .ds-table-type {
@@ -646,7 +628,7 @@ const isEditBaseModalOpen = computed({
 }
 
 .ds-table-actions {
-  @apply sm:col-span-6 xl:col-span-7;
+  @apply col-span-2;
 }
 
 .ds-table-crud {
@@ -659,9 +641,5 @@ const isEditBaseModalOpen = computed({
 
 .ds-table-handle {
   @apply cursor-pointer justify-self-start mr-2;
-}
-
-.nc-action-btn-label {
-  @apply sm:hidden xl:flex;
 }
 </style>

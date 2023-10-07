@@ -191,6 +191,11 @@ export default class Column<T = any> implements ColumnType {
       ncMeta,
     );
 
+    await NocoCache.delAll(
+      CacheScope.SINGLE_QUERY,
+      `${column.fk_model_id}:default:*`,
+    );
+
     return col;
   }
 
@@ -1159,6 +1164,9 @@ export default class Column<T = any> implements ColumnType {
       },
       colId,
     );
+
+    const column = await Column.get({ colId }, ncMeta);
+    await NocoCache.delAll(CacheScope.SINGLE_QUERY, `${column.fk_model_id}:*`);
   }
 
   public getValidators(): any {

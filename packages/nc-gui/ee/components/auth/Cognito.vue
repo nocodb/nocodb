@@ -78,13 +78,13 @@ onMounted(async () => {
         <div class="pb-4 text-center text-xs tos mx-2">
           By signing up, you agree to our
           <a
-            class="amplify-button--link !cursor-pointer !text-gray-400"
+            class="!cursor-pointer !text-gray-400 !hover:text-brand-500"
             href="https://www.nocodb.com/terms-of-service"
             target="_blank"
             >Terms of Service</a
           >
           &
-          <a class="amplify-button--link !cursor-pointer !text-gray-400" href="https://www.nocodb.com/policy" target="_blank">Privacy Policy</a>
+          <a class="!cursor-pointer !text-gray-400 !hover:text-brand-500" href="https://www.nocodb.com/policy" target="_blank">Privacy Policy</a>
         </div>
       </template>
     </Authenticator>
@@ -154,7 +154,7 @@ onMounted(async () => {
 }
 
 .amplify-button--link {
-  @apply text-gray-700 !hover:text-brand-500;
+  @apply !text-gray-800 !hover:text-brand-500;
 }
 
 .amplify-tabs-item {

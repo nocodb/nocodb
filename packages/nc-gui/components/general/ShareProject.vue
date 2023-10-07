@@ -8,7 +8,7 @@ interface Props {
 
 const { disabled, isViewToolbar } = defineProps<Props>()
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, getMainUrl } = useGlobal()
 
 const { visibility, showShareModal } = storeToRefs(useShare())
 

@@ -13,7 +13,7 @@ const formFields = {
       placeholder: 'Enter your work email',
     },
     password: {
-      placeholder: 'xxxxxxxxxxxxxx',
+      placeholder: '**********',
     },
   },
   signUp: {
@@ -25,19 +25,19 @@ const formFields = {
     },
     password: {
       label: 'Password',
-      placeholder: 'xxxxxxxxxxxxxx',
+      placeholder: '**********',
       isRequired: false,
       order: 2,
     },
     confirm_password: {
       label: 'Confirm Password',
-      placeholder: 'xxxxxxxxxxxxxx',
+      placeholder: '**********',
       order: 3,
     },
   },
   forceNewPassword: {
     password: {
-      placeholder: 'xxxxxxxxxxxxxx',
+      placeholder: '**********',
     },
   },
   resetPassword: {
@@ -47,22 +47,20 @@ const formFields = {
   },
   confirmResetPassword: {
     confirmation_code: {
-      placeholder: 'xxxxxx',
+      placeholder: '******',
       label: 'Confirmation Code',
       isRequired: false,
     },
     new_password: {
-      placeholder: 'xxxxxxxxxxxxxx',
+      placeholder: '**********',
       label: 'New Password',
       isRequired: true,
     },
   },
 }
 
-
-
 onMounted(async () => {
-  if(isAmplifyConfigured.value){
+  if (isAmplifyConfigured.value) {
     await $amplify.checkForAmplifyToken()
   }
 })
@@ -76,13 +74,13 @@ onMounted(async () => {
           <img class="amplify-image" alt="NocoDB Logo" src="~assets/img/brand/nocodb.png" />
         </div>
       </template>
-      <template #footer>
-        <div class="mt-2 text-center px-2">
-          By using NocoDB, you agree to our
+      <template #sign-up-footer>
+        <div class="pb-4 text-center text-xs !text-gray-400 mx-2">
+          By signing up, you agree to our
           <a class="amplify-button--link !cursor-pointer" href="https://www.nocodb.com/terms-of-service" target="_blank"
             >Terms of Service</a
           >
-          and
+          &
           <a class="amplify-button--link !cursor-pointer" href="https://www.nocodb.com/policy" target="_blank">Privacy Policy</a>
         </div>
       </template>
@@ -123,6 +121,10 @@ onMounted(async () => {
   @apply border-1 border-brand-500 rounded-lg ring-0;
 }
 
+[data-amplify-container] {
+  @apply !h-[34rem] !min-w-[23.5rem];
+}
+
 .amplify-field-group :not(:first-child) .amplify-input {
   @apply !rounded-lg;
 }
@@ -145,7 +147,7 @@ onMounted(async () => {
 }
 
 .amplify-button--link {
-  @apply !text-gray-800 !hover:text-brand-500;
+  @apply !text-gray-400 !hover:text-brand-500;
 }
 
 .amplify-tabs-item {

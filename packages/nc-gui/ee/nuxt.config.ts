@@ -78,6 +78,7 @@ export default defineNuxtConfig({
       script: [
         {
           src: '/js/typesense-docsearch.js',
+          async: true,
         },
       ],
     },
@@ -209,8 +210,5 @@ export default defineNuxtConfig({
 
   imports: {
     dirs: ['./context', './utils/**', './lib/**', './composables/**', './store/**'],
-  },
-  sourcemap:{
-    client: true
   }
 })

@@ -351,58 +351,71 @@ const isEditBaseModalOpen = computed({
 
                 <div class="ds-table-col ds-table-actions">
                   <div class="flex items-center gap-2">
-                    <a-button
+                    <NcButton
                       v-if="!sources[0].is_meta && !sources[0].is_local"
                       class="nc-action-btn cursor-pointer outline-0"
                       type="text"
+                      size="small"
                       @click="baseAction(sources[0].id, DataSourcesSubTab.Metadata)"
                     >
                       <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="sync" class="group-hover:text-accent" />
-                        {{ $t('tooltip.metaSync') }}
+                        <div class="nc-action-btn-label">
+                          {{ $t('tooltip.metaSync') }}
+                        </div>
                       </div>
-                    </a-button>
-                    <a-button
+                    </NcButton>
+                    <NcButton
+                      size="small"
                       class="nc-action-btn cursor-pointer outline-0"
                       type="text"
                       @click="baseAction(sources[0].id, DataSourcesSubTab.ERD)"
                     >
                       <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="erd" class="group-hover:text-accent" />
-                        {{ $t('title.relations') }}
+                        <div class="nc-action-btn-label">
+                          {{ $t('title.relations') }}
+                        </div>
                       </div>
-                    </a-button>
-                    <a-button
+                    </NcButton>
+                    <NcButton
+                      size="small"
                       class="nc-action-btn cursor-pointer outline-0"
                       type="text"
                       @click="baseAction(sources[0].id, DataSourcesSubTab.UIAcl)"
                     >
                       <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="acl" class="group-hover:text-accent" />
-                        {{ $t('labels.uiAcl') }}
+                        <div class="nc-action-btn-label">
+                          {{ $t('labels.uiAcl') }}
+                        </div>
                       </div>
-                    </a-button>
-                    <a-button
+                    </NcButton>
+                    <NcButton
+                      size="small"
                       class="nc-action-btn cursor-pointer outline-0"
                       type="text"
                       @click="baseAction(sources[0].id, DataSourcesSubTab.Audit)"
                     >
                       <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="book" class="group-hover:text-accent" />
-                        {{ $t('title.audit') }}
+                        <div class="nc-action-btn-label">
+                          {{ $t('title.audit') }}
+                        </div>
                       </div>
-                    </a-button>
+                    </NcButton>
                   </div>
                 </div>
                 <div class="ds-table-col ds-table-crud">
-                  <a-button
+                  <NcButton
                     v-if="!sources[0].is_meta && !sources[0].is_local"
+                    size="small"
                     class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
                     type="text"
                     @click="baseAction(sources[0].id, DataSourcesSubTab.Edit)"
                   >
                     <GeneralIcon icon="edit" class="text-gray-600" />
-                  </a-button>
+                  </NcButton>
                 </div>
               </div>
             </template>
@@ -419,12 +432,12 @@ const isEditBaseModalOpen = computed({
                     </a-tooltip>
                   </div>
                 </div>
-                <div class="ds-table-col ds-table-name font-medium">
+                <div class="ds-table-col ds-table-name font-medium w-full">
                   <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
                   <div v-if="source.is_meta || source.is_local">-</div>
-                  <div v-else class="flex items-center gap-1">
+                  <span v-else class="truncate">
                     {{ source.is_meta || source.is_local ? $t('general.base') : source.alias }}
-                  </div>
+                  </span>
                 </div>
 
                 <div class="ds-table-col ds-table-type">
@@ -437,56 +450,67 @@ const isEditBaseModalOpen = computed({
 
                 <div class="ds-table-col ds-table-actions">
                   <div class="flex items-center gap-2">
-                    <a-button
+                    <NcButton
+                      size="small"
                       class="nc-action-btn cursor-pointer outline-0"
                       type="text"
                       @click="baseAction(source.id, DataSourcesSubTab.ERD)"
                     >
                       <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="erd" class="group-hover:text-accent" />
-                        {{ $t('title.relations') }}
+                        <div class="nc-action-btn-label">
+                          {{ $t('title.relations') }}
+                        </div>
                       </div>
-                    </a-button>
-                    <a-button
+                    </NcButton>
+                    <NcButton
+                      size="small"
                       type="text"
                       class="nc-action-btn cursor-pointer outline-0"
                       @click="baseAction(source.id, DataSourcesSubTab.UIAcl)"
                     >
                       <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="acl" class="group-hover:text-accent" />
-                        {{ $t('labels.uiAcl') }}
+                        <div class="nc-action-btn-label">
+                          {{ $t('labels.uiAcl') }}
+                        </div>
                       </div>
-                    </a-button>
-                    <a-button
+                    </NcButton>
+                    <NcButton
                       v-if="!source.is_meta && !source.is_local"
+                      size="small"
                       type="text"
                       class="nc-action-btn cursor-pointer outline-0"
                       @click="baseAction(source.id, DataSourcesSubTab.Metadata)"
                     >
                       <div class="flex items-center gap-2 text-gray-600">
                         <GeneralIcon icon="sync" class="group-hover:text-accent" />
-                        {{ $t('tooltip.metaSync') }}
+                        <div class="nc-action-btn-label">
+                          {{ $t('tooltip.metaSync') }}
+                        </div>
                       </div>
-                    </a-button>
+                    </NcButton>
                   </div>
                 </div>
                 <div class="ds-table-col ds-table-crud justify-end gap-x-1">
-                  <a-button
+                  <NcButton
                     v-if="!source.is_meta && !source.is_local"
+                    size="small"
                     class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg mt-0.5"
                     type="text"
                     @click="baseAction(source.id, DataSourcesSubTab.Edit)"
                   >
                     <GeneralIcon icon="edit" class="text-gray-600 -mt-0.5" />
-                  </a-button>
-                  <a-button
+                  </NcButton>
+                  <NcButton
                     v-if="!source.is_meta && !source.is_local"
+                    size="small"
                     class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg mt-0.5"
                     type="text"
                     @click="openDeleteBase(source)"
                   >
                     <GeneralIcon icon="delete" class="text-red-500 -mt-0.5" />
-                  </a-button>
+                  </NcButton>
                 </div>
               </div>
             </template>
@@ -550,7 +574,7 @@ const isEditBaseModalOpen = computed({
 
 <style>
 .ds-table-head {
-  @apply flex items-center border-0 text-gray-400;
+  @apply flex items-center border-0 text-gray-500;
 }
 
 .ds-table-body {
@@ -578,7 +602,7 @@ const isEditBaseModalOpen = computed({
 }
 
 .ds-table-actions {
-  @apply col-span-7;
+  @apply sm:col-span-6 xl:col-span-7;
 }
 
 .ds-table-crud {
@@ -591,5 +615,9 @@ const isEditBaseModalOpen = computed({
 
 .ds-table-handle {
   @apply cursor-pointer justify-self-start mr-2;
+}
+
+.nc-action-btn-label {
+  @apply sm:hidden xl:flex;
 }
 </style>

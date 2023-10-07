@@ -36,16 +36,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       aws_cognito_verification_mechanisms: ['EMAIL'],
     })
 
-    const { signIn, signOut } = useGlobal()
-
-    const url = new URL(location.href)
-
-    if (url.searchParams.has('logout')) {
-      await signOut().then(() => {
-        url.searchParams.delete('logout')
-        history.pushState({}, '', url.toString())
-      })
-    }
+    const { signIn, use } = useGlobal()
 
     const listener = (data) => {
       switch (data?.payload?.event) {
@@ -162,7 +153,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       })
       Auth.currentAuthenticatedUser().then(
         async (currentAuthenticatedUser) => {
-          const { api,  } = useApi()
+          const { api } = useApi()
           console.log('Yes, user is logged in.', currentAuthenticatedUser)
           const res2 = api.instance.post(
             '/auth/cognito',

@@ -564,7 +564,7 @@ watch(
                                     </template>
 
                                     <template v-for="(attachment, index) in attachments(record)">
-                                      <LazyCellAttachmentImage
+                                     <LazyCellAttachmentImage
                                         v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                                         :key="`carousel-${record.row.id}-${index}`"
                                         class="h-52 object-cover"

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import '@aws-amplify/ui-vue/styles.css'
 import { Authenticator } from '@aws-amplify/ui-vue'
-import { useState } from '#imports'
+import { isFirstTimeUser, useState } from '#imports'
 
 const isAmplifyConfigured = useState('is-amplify-configured', () => false)
 
 const { $amplify } = useNuxtApp()
+
+const initialState = isFirstTimeUser() ? 'signUp' : 'signIn';
 
 const formFields = {
   signIn: {
@@ -68,7 +70,11 @@ onMounted(async () => {
 
 <template>
   <div class="py-10 flex justify-center">
-    <Authenticator v-if="isAmplifyConfigured" initial-state="signUp" :form-fields="formFields" :social-providers="['google']">
+    <Authenticator
+      :initial-state="initialState"
+      :form-fields="formFields"
+      :social-providers="['google']"
+    >
       <template #header>
         <div style="padding: var(--amplify-space-large); text-align: center">
           <img class="amplify-image" alt="NocoDB Logo" src="~assets/img/brand/nocodb.png" />

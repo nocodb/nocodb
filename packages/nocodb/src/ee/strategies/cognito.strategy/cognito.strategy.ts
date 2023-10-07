@@ -42,7 +42,6 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
         });
 
         const payload = await verifier.verify(req.headers['xc-cognito']);
-        console.log('Token is valid. Payload:', payload);
         const email = (payload as any)['email'];
         // get user by email
         await User.getByEmail(email).then(async (user) => {
@@ -73,7 +72,7 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
                 provider: 'openid',
               });
             } catch (err) {
-              return callback(err);
+              return callback('Token validation failed');
             }
           }
         });

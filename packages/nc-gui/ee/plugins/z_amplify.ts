@@ -2,16 +2,14 @@ import { Amplify } from '@aws-amplify/core'
 import { Auth } from '@aws-amplify/auth'
 import { Hub } from 'aws-amplify'
 import { defineNuxtPlugin, navigateTo } from '#app'
-import { useApi, useGlobal, useState } from '#imports'
+import { useApi, useGlobal, useState, updateFirstTimeUser } from '#imports'
 
 export default defineNuxtPlugin(async (nuxtApp) => {
-
   const isAmplifyConfigured = useState('is-amplify-configured', () => false)
 
-  const amplify: {checkForAmplifyToken?:() => Promise<void>} = {};
+  const amplify: { checkForAmplifyToken?: () => Promise<void> } = {}
 
   const init = async () => {
-
     const state = useGlobal()
 
     // check if cognito is configured and initialize Amplify
@@ -68,6 +66,8 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       Hub.listen('auth', listener)
 
       function checkForToken() {
+        const continueAfterSignIn = sessionStorage.getItem('continueAfterSignIn')
+        sessionStorage.removeItem('continueAfterSignIn')
         Auth.currentSession().then(async (res) => {
           const idToken = res.getIdToken()
           const jwt = idToken.getJwtToken()
@@ -84,8 +84,9 @@ export default defineNuxtPlugin(async (nuxtApp) => {
             },
           )
           if ((await res1).data.token) {
+            updateFirstTimeUser();
             signIn((await res1).data.token)
-            navigateTo('/')
+            navigateTo(continueAfterSignIn || '/')
           }
         })
         Auth.currentAuthenticatedUser().then(
@@ -101,8 +102,9 @@ export default defineNuxtPlugin(async (nuxtApp) => {
               },
             )
             if ((await res2).data.token) {
+              updateFirstTimeUser();
               signIn((await res2).data.token)
-              navigateTo('/')
+              navigateTo(continueAfterSignIn || '/')
             }
           },
           (error) => {
@@ -120,7 +122,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   return {
     provide: {
       auth: Auth,
-      amplify
+      amplify,
     },
   }
 })

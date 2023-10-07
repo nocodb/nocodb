@@ -3,6 +3,7 @@ import {
   ActiveViewInj,
   IsLockedInj,
   computed,
+  iconMap,
   inject,
   ref,
   useGlobal,
@@ -10,7 +11,6 @@ import {
   useSmartsheetStoreOrThrow,
   useViewFilters,
   watch,
-  iconMap,
 } from '#imports'
 
 const isLocked = inject(IsLockedInj, ref(false))

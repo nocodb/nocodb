@@ -248,6 +248,9 @@ export class WorkspaceUsersService {
         siteUrl: getWorkspaceSiteUrl({
           siteUrl: param.siteUrl,
           workspaceId: workspace.id,
+          mainSubDomain: this.config.get('mainSubDomain', {
+            infer: true,
+          }),
         }),
       })
         .then(() => {

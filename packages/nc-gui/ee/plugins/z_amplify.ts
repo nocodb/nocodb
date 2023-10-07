@@ -2,7 +2,7 @@ import { Amplify } from '@aws-amplify/core'
 import { Auth } from '@aws-amplify/auth'
 import { Hub } from 'aws-amplify'
 import { defineNuxtPlugin, navigateTo } from '#app'
-import { useApi, useGlobal, useState, updateFirstTimeUser } from '#imports'
+import { updateFirstTimeUser, useApi, useGlobal, useState } from '#imports'
 
 export default defineNuxtPlugin(async (nuxtApp) => {
   const isAmplifyConfigured = useState('is-amplify-configured', () => false)
@@ -50,14 +50,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       const listener = (data) => {
         switch (data?.payload?.event) {
           case 'signIn':
-            checkForToken()
-            break
-          case 'confirmSignUp':
-            checkForToken()
-            console.info('user confirmation successful')
-            break
-          case 'autoSignIn':
-            console.info('auto sign in successful')
+          case 'signedUp':
             checkForToken()
             break
         }
@@ -67,51 +60,30 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
       function checkForToken() {
         const continueAfterSignIn = sessionStorage.getItem('continueAfterSignIn')
-        Auth.currentSession().then(async (res) => {
-          const idToken = res.getIdToken()
-          const jwt = idToken.getJwtToken()
+        Auth.currentSession()
+          .then(async (res) => {
+            const idToken = res.getIdToken()
+            const jwt = idToken.getJwtToken()
 
-          const { api } = useApi()
-
-          const res1 = await api.instance.post(
-            '/auth/cognito',
-            {},
-            {
-              headers: {
-                'xc-cognito': jwt,
-              },
-            },
-          )
-          if ((await res1).data.token) {
-            updateFirstTimeUser();
-            sessionStorage.removeItem('continueAfterSignIn')
-            signIn((await res1).data.token)
-            navigateTo(continueAfterSignIn || '/')
-          }
-        })
-        Auth.currentAuthenticatedUser().then(
-          async (currentAuthenticatedUser) => {
             const { api } = useApi()
-            const res2 = api.instance.post(
+
+            const res1 = await api.instance.post(
               '/auth/cognito',
               {},
               {
                 headers: {
-                  'xc-cognito': currentAuthenticatedUser.signInUserSession.idToken.jwtToken,
+                  'xc-cognito': jwt,
                 },
               },
             )
-            if ((await res2).data.token) {
-              updateFirstTimeUser();
+            if ((await res1).data.token) {
+              updateFirstTimeUser()
               sessionStorage.removeItem('continueAfterSignIn')
-              signIn((await res2).data.token)
+              signIn((await res1).data.token)
               navigateTo(continueAfterSignIn || '/')
             }
-          },
-          (error) => {
-            console.log(error)
-          },
-        )
+          })
+          .catch((_err) => {})
       }
 
       amplify.checkForAmplifyToken = checkForToken

@@ -55,6 +55,6 @@ export class DataSourcePage extends BasePage {
     const row = this.get()
       .locator('.ds-table-row')
       .nth(rowIndex + 1);
-    await row.locator('button.nc-action-btn:has-text("Audit")').click();
+    await row.getByTestId('nc-data-sources-view-audit').click();
   }
 }

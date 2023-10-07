@@ -307,12 +307,6 @@ function openErdView(source: SourceType) {
   }
 }
 
-const reloadTables = async () => {
-  $e('a:table:refresh:navdraw')
-
-  // await loadTables()
-}
-
 const contextMenuBase = computed(() => {
   if (contextMenuTarget.type === 'source') {
     return contextMenuTarget.value
@@ -784,14 +778,6 @@ const projectDelete = () => {
             <div class="nc-base-option-item text-red-600">
               <GeneralIcon icon="delete" />
               {{ $t('general.delete') }}
-            </div>
-          </NcMenuItem>
-        </template>
-
-        <template v-else>
-          <NcMenuItem @click="reloadTables">
-            <div class="nc-base-option-item">
-              {{ $t('general.reload') }}
             </div>
           </NcMenuItem>
         </template>

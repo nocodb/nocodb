@@ -162,8 +162,8 @@ const handleCancel = () => {
 <template>
   <div class="h-full pt-2">
     <div class="max-w-202 mx-auto px-4 h-full" data-testid="nc-token-list">
-      <div class="py-2 flex gap-4 items-center justify-between">
-        <h6 class="text-2xl my-4 text-left font-bold">{{ $t('title.apiTokens') }}</h6>
+      <div class="py-2 flex gap-4 items-baseline justify-between">
+        <h6 class="text-2xl text-left font-bold">{{ $t('title.apiTokens') }}</h6>
         <NcTooltip :disabled="!(isEeUI && tokens.length)">
           <template #title>{{ $t('labels.tokenLimit') }}</template>
           <NcButton
@@ -185,98 +185,113 @@ const handleCancel = () => {
         </NcTooltip>
       </div>
       <span>{{ $t('msg.apiTokenCreate') }}</span>
-      <div class="w-full mt-5 !overflow-hidden rounded-md h-[calc(100%-17.5rem)]">
-        <div class="flex w-full pl-5 bg-gray-50 border-1 border-b-0">
-          <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9">{{ $t('title.tokenName') }}</span>
-          <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9 text-start">{{ $t('title.creator') }}</span>
-          <span class="py-3.5 text-gray-500 font-medium text-3.5 w-3/9 text-start">{{ $t('labels.token') }}</span>
-          <span class="py-3.5 pl-19 text-gray-500 font-medium text-3.5 w-2/9 text-start">{{ $t('labels.actions') }}</span>
-        </div>
-        <div class="nc-scrollbar-md !overflow-y-auto h-[calc(100%-3rem)] border-b-1">
-          <div v-if="showNewTokenModal">
-            <div
-              class="flex gap-5 px-3 py-3.5 text-gray-500 font-medium text-3.5 w-full nc-token-generate border-1"
-              :class="{
-                'border-b-1': !tokens.length,
-                'border-b-0': tokens.length,
-              }"
-            >
-              <div class="flex flex-col w-full">
-                <a-input
-                  :ref="selectInputOnMount"
-                  v-model:value="selectedTokenData.description"
-                  :default-value="defaultTokenName"
-                  type="text"
-                  class="!rounded-lg !py-1"
-                  placeholder="Token Name"
-                  data-testid="nc-token-input"
-                  @press-enter="generateToken"
-                />
-                <span v-if="!isValidTokenName" class="text-red-500 text-xs font-light mt-1.5 ml-1">{{ errorMessage }} </span>
-              </div>
-              <div class="flex gap-2 justify-start">
-                <NcButton v-if="!isLoading" type="secondary" size="small" @click="handleCancel">
-                  {{ $t('general.cancel') }}
-                </NcButton>
-                <NcButton type="primary" size="sm" :is-loading="isLoading" data-testid="nc-token-save-btn" @click="generateToken">
-                  {{ $t('general.save') }}
-                </NcButton>
+      <div class="mt-5 h-[calc(100%-13rem)]">
+        <div class="h-full w-full !overflow-hidden rounded-md">
+          <div class="flex w-full pl-5 bg-gray-50 border-1 rounded-t-md">
+            <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9">{{ $t('title.tokenName') }}</span>
+            <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9 text-start">{{ $t('title.creator') }}</span>
+            <span class="py-3.5 text-gray-500 font-medium text-3.5 w-3/9 text-start">{{ $t('labels.token') }}</span>
+            <span class="py-3.5 pl-19 text-gray-500 font-medium text-3.5 w-2/9 text-start">{{ $t('labels.actions') }}</span>
+          </div>
+          <div class="nc-scrollbar-md !overflow-y-auto flex flex-col h-[calc(100%-5rem)]">
+            <div v-if="showNewTokenModal">
+              <div
+                class="flex gap-5 px-3 py-2.5 text-gray-500 font-medium text-3.5 w-full nc-token-generate border-b-1 border-l-1 border-r-1"
+                :class="{
+                  'rounded-b-md': !tokens.length,
+                }"
+              >
+                <div class="flex w-full">
+                  <a-input
+                    :ref="selectInputOnMount"
+                    v-model:value="selectedTokenData.description"
+                    :default-value="defaultTokenName"
+                    type="text"
+                    class="!rounded-lg !py-1"
+                    placeholder="Token Name"
+                    data-testid="nc-token-input"
+                    @press-enter="generateToken"
+                  />
+                  <span v-if="!isValidTokenName" class="text-red-500 text-xs font-light mt-1.5 ml-1">{{ errorMessage }} </span>
+                </div>
+                <div class="flex gap-2 justify-start">
+                  <NcButton v-if="!isLoading" type="secondary" size="small" @click="handleCancel">
+                    {{ $t('general.cancel') }}
+                  </NcButton>
+                  <NcButton
+                    type="primary"
+                    size="sm"
+                    :is-loading="isLoading"
+                    data-testid="nc-token-save-btn"
+                    @click="generateToken"
+                  >
+                    {{ $t('general.save') }}
+                  </NcButton>
+                </div>
               </div>
             </div>
-          </div>
-          <div v-if="!tokens.length && !showNewTokenModal" class="justify-center flex items-center border-1">
-            <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noToken')" />
-          </div>
+            <div
+              v-if="!tokens.length && !showNewTokenModal"
+              class="border-l-1 border-r-1 border-b-1 rounded-b-md justify-center flex items-center"
+            >
+              <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noToken')" />
+            </div>
 
-          <div
-            v-for="el of tokens"
-            :key="el.id"
-            data-testid="nc-token-list"
-            class="flex border-1 pl-5 py-3 justify-between token"
-          >
-            <span class="text-black font-bold text-3.5 text-start w-2/9">
-              <GeneralTruncateText placement="top" length="20">
-                {{ el.description }}
-              </GeneralTruncateText>
-            </span>
-            <span class="text-gray-500 font-medium text-3.5 text-start w-2/9">
-              <GeneralTruncateText placement="top" length="20">
-                {{ el.created_by }}
-              </GeneralTruncateText>
-            </span>
-            <span class="text-gray-500 font-medium text-3.5 text-start w-3/9">
-              <GeneralTruncateText v-if="el.token === selectedToken.id && selectedToken.isShow" placement="top" length="29">
-                {{ el.token }}
-              </GeneralTruncateText>
-              <span v-else>************************************</span>
-            </span>
-            <!-- ACTIONS -->
-            <div class="flex justify-end items-center gap-3 pr-5 text-gray-500 font-medium text-3.5 w-2/9">
-              <NcTooltip placement="top">
-                <template #title>{{ $t('labels.showOrHide') }}</template>
-                <component
-                  :is="iconMap.eye"
-                  class="nc-toggle-token-visibility hover::cursor-pointer w-h-4 mb-[1.8px]"
-                  @click="hideOrShowToken(el.token as string)"
-                />
-              </NcTooltip>
-              <NcTooltip placement="top" class="h-4">
-                <template #title>{{ $t('general.copy') }}</template>
-                <component :is="iconMap.copy" class="hover::cursor-pointer w-4 h-4" @click="copyToken(el.token)" />
-              </NcTooltip>
-              <NcTooltip placement="top" class="mb-0.5">
-                <template #title>{{ $t('general.delete') }}</template>
-                <component
-                  :is="iconMap.delete"
-                  data-testid="nc-token-row-action-icon"
-                  class="nc-delete-icon hover::cursor-pointer w-4 h-4"
-                  @click="triggerDeleteModal(el.token as string, el.description as string)"
-                />
-              </NcTooltip>
+            <div
+              v-for="el of tokens"
+              :key="el.id"
+              data-testid="nc-token-list"
+              class="flex pl-5 py-3 justify-between token items-center border-l-1 border-r-1 border-b-1"
+            >
+              <span class="text-black font-bold text-3.5 text-start w-2/9">
+                <GeneralTruncateText placement="top" length="20">
+                  {{ el.description }}
+                </GeneralTruncateText>
+              </span>
+              <span class="text-gray-500 font-medium text-3.5 text-start w-2/9">
+                <GeneralTruncateText placement="top" length="20">
+                  {{ el.created_by }}
+                </GeneralTruncateText>
+              </span>
+              <span class="text-gray-500 font-medium text-3.5 text-start w-3/9">
+                <GeneralTruncateText v-if="el.token === selectedToken.id && selectedToken.isShow" placement="top" length="29">
+                  {{ el.token }}
+                </GeneralTruncateText>
+                <span v-else>************************************</span>
+              </span>
+              <!-- ACTIONS -->
+              <div class="flex justify-end items-center gap-3 pr-5 text-gray-500 font-medium text-3.5 w-2/9">
+                <NcTooltip placement="top">
+                  <template #title>{{ $t('labels.showOrHide') }}</template>
+                  <component
+                    :is="iconMap.eye"
+                    class="nc-toggle-token-visibility hover::cursor-pointer w-h-4 mb-[1.8px]"
+                    @click="hideOrShowToken(el.token as string)"
+                  />
+                </NcTooltip>
+                <NcTooltip placement="top" class="h-4">
+                  <template #title>{{ $t('general.copy') }}</template>
+                  <component
+                    :is="iconMap.copy"
+                    class="hover::cursor-pointer w-4 h-4 text-gray-600 mt-0.25"
+                    @click="copyToken(el.token)"
+                  />
+                </NcTooltip>
+                <NcTooltip placement="top" class="mb-0.5">
+                  <template #title>{{ $t('general.delete') }}</template>
+                  <component
+                    :is="iconMap.delete"
+                    data-testid="nc-token-row-action-icon"
+                    class="nc-delete-icon hover::cursor-pointer w-4 h-4"
+                    @click="triggerDeleteModal(el.token as string, el.description as string)"
+                  />
+                </NcTooltip>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
       <div v-if="pagination.total > 10" class="flex items-center justify-center mt-5">
         <a-pagination
           v-model:current="currentPage"
@@ -311,6 +326,6 @@ const handleCancel = () => {
 
 <style>
 .token:last-child {
-  @apply rounded-b-md;
+  @apply border-b-1 rounded-b-md;
 }
 </style>

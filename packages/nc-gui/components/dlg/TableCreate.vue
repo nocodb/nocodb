@@ -34,6 +34,8 @@ const { isMysql, isMssql, isPg } = useBase()
 
 const { loadProjectTables, addTable } = useTablesStore()
 
+const { refreshCommandPalette } = useCommandPalette()
+
 const { table, createTable, generateUniqueTitle, tables, base } = useTableNew({
   async onTableCreate(table) {
     // await loadProject(props.baseId)
@@ -120,6 +122,7 @@ const _createTable = async () => {
     setTimeout(() => {
       creating.value = false
     }, 500)
+    refreshCommandPalette()
   }
 }
 

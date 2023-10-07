@@ -64,6 +64,13 @@ const textVal = computed(() => {
   }
 })
 
+const toatlRecordsLinked = computed(() => {
+  if (isForm?.value) {
+    return state.value?.[colTitle.value]?.length
+  }
+  return +value?.value || 0
+})
+
 const onAttachRecord = () => {
   childListDlg.value = false
   listItemsDlg.value = true
@@ -126,6 +133,7 @@ const localCellValue = computed<any[]>(() => {
     <LazyVirtualCellComponentsListChildItems
       v-if="listItemsDlg || childListDlg"
       v-model="childListDlg"
+      :items="toatlRecordsLinked"
       :column="relatedTableDisplayColumn"
       :cell-value="localCellValue"
       @attach-record="onAttachRecord"

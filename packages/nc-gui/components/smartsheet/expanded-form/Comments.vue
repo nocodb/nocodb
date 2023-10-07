@@ -194,7 +194,7 @@ watch(commentsWrapperEl, () => {
         </div>
         <div v-if="hasEditPermission" class="p-2 bg-gray-50 gap-2 flex">
           <div class="h-14 flex flex-row w-full bg-white py-2.75 px-1.5 items-center rounded-xl border-1 border-gray-200">
-            <GeneralUserIcon size="base" class="!w-10" />
+            <GeneralUserIcon size="base" class="!w-10" :email="user?.email" />
             <a-input
               v-model:value="comment"
               class="!rounded-lg border-1 bg-white !px-2.5 !py-2 !border-gray-200 nc-comment-box !outline-none"
@@ -230,6 +230,7 @@ watch(commentsWrapperEl, () => {
               <div class="flex justify-between">
                 <div class="flex items-center gap-2">
                   <GeneralUserIcon size="base" :email="log.user" />
+
                   <div class="flex flex-col">
                     <span class="truncate font-bold max-w-50">
                       {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared source' }}

@@ -14,6 +14,8 @@ const { api } = useApi()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
+const { refreshCommandPalette } = useCommandPalette()
+
 const options = ref({
   includeData: true,
   includeViews: true,
@@ -41,6 +43,7 @@ const _duplicate = async () => {
   } finally {
     isLoading.value = false
     dialogShow.value = false
+    refreshCommandPalette()
   }
 }
 

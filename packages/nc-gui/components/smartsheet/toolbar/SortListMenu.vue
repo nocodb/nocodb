@@ -17,8 +17,6 @@ import {
   watch,
 } from '#imports'
 
-import SortIcon from '~icons/nc-icons/sort'
-
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
@@ -115,7 +113,7 @@ watch(open, () => {
     <div :class="{ 'nc-active-btn': sorts?.length }">
       <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-2">
-          <SortIcon class="h-4 w-4" />
+          <component :is="iconMap.sort" class="h-4 w-4" />
 
           <!-- Sort -->
           <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.sort') }}</span>

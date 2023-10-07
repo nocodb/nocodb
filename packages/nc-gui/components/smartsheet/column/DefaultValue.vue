@@ -5,59 +5,52 @@ import { iconMap } from '#imports'
 const props = defineProps<{
   value: any
 }>()
-const emit = defineEmits(['update:value'])
+const emits = defineEmits(['update:value'])
+
+const meta = inject(MetaInj, ref())
 
 provide(EditColumnInj, ref(true))
 
-const vModel = useVModel(props, 'value', emit)
+const vModel = useVModel(props, 'value', emits)
 const rowRef = ref({
   row: {},
   oldRow: {},
   rowMeta: {
-    isUpdatedFromCopyNPaste: [vModel?.value.title],
+    isUpdatedFromCopyNPaste: [vModel.value?.title],
   },
 })
 
-const cdfValue = computed({
-  get: () => {
-    if (vModel.value.uidt === UITypes.MultiSelect || vModel.value.uidt === UITypes.SingleSelect) {
-      return (vModel.value.cdf ?? '').replaceAll("'", '')
-    } else if (
-      vModel.value.uidt === UITypes.SingleLineText ||
-      vModel.value.uidt === UITypes.LongText ||
-      vModel.value.uidt === UITypes.Email ||
-      vModel.value.uidt === UITypes.URL ||
-      vModel.value.uidt === UITypes.JSON ||
-      vModel.value.uidt === UITypes.DateTime ||
-      vModel.value.uidt === UITypes.Time ||
-      vModel.value.uidt === UITypes.Year ||
-      vModel.value.uidt === UITypes.Date
-    ) {
-      return (vModel.value.cdf ?? '').replace(/^'/, '').replace(/'$/, '')
-    }
-    return vModel.value.cdf
-  },
-  set: (value) => {
-    vModel.value.cdf = value
-  },
-})
+useProvideSmartsheetRowStore(meta, rowRef)
 
-useProvideSmartsheetRowStore(vModel, rowRef)
+const cdfValue = ref<string | null>(null)
+
+const updateCdfValue = (cdf: string | null) => {
+  vModel.value.cdf = cdf
+  cdfValue.value = vModel.value.cdf
+}
+
+onMounted(() => {
+  updateCdfValue(vModel.value?.cdf ? vModel.value.cdf : null)
+})
 </script>
 
 <template>
   <div class="!my-3 text-xs">{{ $t('placeholder.defaultValue') }}</div>
   <div class="flex flex-row gap-2">
     <div class="border-1 flex items-center w-full px-3 my-[-4px] border-gray-300 rounded-md">
-      <LazySmartsheetCell :column="vModel" :model-value="cdfValue" :edit-enabled="true" class="!border-none" />
+      <LazySmartsheetCell
+        :model-value="cdfValue"
+        :column="vModel"
+        :edit-enabled="true"
+        class="!border-none"
+        @update:cdf="updateCdfValue"
+      />
       <component
         :is="iconMap.close"
-        v-if="vModel.uidt !== UITypes.Year"
+        v-if="![UITypes.Year, UITypes.SingleSelect, UITypes.MultiSelect].includes(vModel.uidt)"
         class="w-4 h-4 cursor-pointer rounded-full !text-black-500 text-gray-500 cursor-pointer hover:bg-gray-50"
         @click="cdfValue = null"
       />
     </div>
   </div>
 </template>
-
-<style scoped></style>

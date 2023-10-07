@@ -5,11 +5,15 @@ import { defineNuxtPlugin, navigateTo } from '#app'
 import { useApi, useGlobal, useState } from '#imports'
 
 export default defineNuxtPlugin(async (nuxtApp) => {
-  const state = useGlobal()
 
   const isAmplifyConfigured = useState('is-amplify-configured', () => false)
 
+  const amplify: {checkForAmplifyToken?:() => Promise<void>} = {};
+
   const init = async () => {
+
+    const state = useGlobal()
+
     // check if cognito is configured and initialize Amplify
     if (state.appInfo?.value?.cognito?.aws_user_pools_id) {
       const cognitoConfig = state.appInfo.value.cognito
@@ -106,6 +110,8 @@ export default defineNuxtPlugin(async (nuxtApp) => {
           },
         )
       }
+
+      amplify.checkForAmplifyToken = checkForToken
     }
   }
 
@@ -114,6 +120,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   return {
     provide: {
       auth: Auth,
+      amplify
     },
   }
 })

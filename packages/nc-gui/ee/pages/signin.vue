@@ -7,6 +7,7 @@ definePageMeta({
   requiresAuth: false,
   title: 'title.headLogin',
 })
+
 </script>
 
 <template>

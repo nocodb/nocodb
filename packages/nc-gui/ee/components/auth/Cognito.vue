@@ -5,6 +5,8 @@ import { useState } from '#imports'
 
 const isAmplifyConfigured = useState('is-amplify-configured', () => false)
 
+const { $amplify } = useNuxtApp()
+
 const formFields = {
   signIn: {
     username: {
@@ -56,6 +58,14 @@ const formFields = {
     },
   },
 }
+
+
+
+onMounted(async () => {
+  if(isAmplifyConfigured.value){
+    await $amplify.checkForAmplifyToken()
+  }
+})
 </script>
 
 <template>

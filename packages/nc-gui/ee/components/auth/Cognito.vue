@@ -75,13 +75,16 @@ onMounted(async () => {
         </div>
       </template>
       <template #sign-up-footer>
-        <div class="pb-4 text-center text-xs !text-gray-400 mx-2">
+        <div class="pb-4 text-center text-xs tos mx-2">
           By signing up, you agree to our
-          <a class="amplify-button--link !cursor-pointer" href="https://www.nocodb.com/terms-of-service" target="_blank"
+          <a
+            class="amplify-button--link !cursor-pointer !text-gray-400"
+            href="https://www.nocodb.com/terms-of-service"
+            target="_blank"
             >Terms of Service</a
           >
           &
-          <a class="amplify-button--link !cursor-pointer" href="https://www.nocodb.com/policy" target="_blank">Privacy Policy</a>
+          <a class="amplify-button--link !cursor-pointer !text-gray-400" href="https://www.nocodb.com/policy" target="_blank">Privacy Policy</a>
         </div>
       </template>
     </Authenticator>
@@ -100,6 +103,10 @@ onMounted(async () => {
   --amplify-components-authenticator-router-border-color: #f4f4f5;
   --amplify-components-authenticator-router-box-shadow: 0 0 0 1px #f4f4f5;
   --amplify-components-authenticator-form-padding: 1.5rem;
+}
+
+.tos {
+  @apply text-gray-400;
 }
 
 .amplify-image {
@@ -147,7 +154,7 @@ onMounted(async () => {
 }
 
 .amplify-button--link {
-  @apply !text-gray-400 !hover:text-brand-500;
+  @apply text-gray-700 !hover:text-brand-500;
 }
 
 .amplify-tabs-item {

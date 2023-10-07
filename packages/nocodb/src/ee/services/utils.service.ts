@@ -480,7 +480,7 @@ export class UtilsService extends UtilsServiceCE {
   }
 
   async appInfo(param: { req: { ncSiteUrl: string } }) {
-    const result: Record<string, any> = await super.appInfo(param);
+    const result: any = await super.appInfo(param);
 
     // in cloud decide telemetry enabled or not based on PostHog API key presence
     result.teleEnabled = !!process.env.NC_CLOUD_POSTHOG_API_KEY;

@@ -4,8 +4,7 @@ import { ThrottlerStorage } from '@nestjs/throttler/dist/throttler-storage.inter
 import { Reflector } from '@nestjs/core';
 import { PublicApiLimiterGuard as PublicApiLimiterGuardCE } from 'src/guards/public-api-limiter.guard';
 import type { ExecutionContext } from '@nestjs/common';
-
-const HEADER_NAME = 'xc-auth';
+import  requestIp from 'request-ip';
 
 @Injectable()
 class PublicApiLimiterGuardEE extends ThrottlerGuard {
@@ -25,12 +24,12 @@ class PublicApiLimiterGuardEE extends ThrottlerGuard {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const req = context.switchToHttp().getRequest();
-    return req.headers[HEADER_NAME] ? super.canActivate(context) : true;
+    // const req = context.switchToHttp().getRequest();
+    return super.canActivate(context);
   }
 
   protected async getTracker(req: Record<string, any>): Promise<string> {
-    return `meta|${req.headers[HEADER_NAME]}` as string;
+    return `public|${requestIp.getClientIp(req)}` as string;
   }
 
   generateKey(context, suffix) {

@@ -6,7 +6,9 @@
       <script value="watch:run:ee" />
     </scripts>
     <node-interpreter value="project" />
-    <envs />
+    <envs>
+      <env name="NC_THROTTLER_REDIS" value="redis://localhost:6379" />
+    </envs>
     <method v="2" />
   </configuration>
 </component>

@@ -1,4 +1,8 @@
-import { UITypes } from 'nocodb-sdk';
+import {
+  AuditOperationSubTypes,
+  AuditOperationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import {
   _wherePk,
   BaseModelSqlv2 as BaseModelSqlv2CE,
@@ -8,11 +12,14 @@ import {
   getListArgs,
   populatePk,
 } from 'src/db/BaseModelSqlv2';
+import DOMPurify from 'isomorphic-dompurify';
 import type { Column, Model } from '~/models';
-import { Source, View } from '~/models';
+import { Audit, Source, View } from '~/models';
 import { getSingleQueryReadFn } from '~/services/data-opt/helpers';
 import { canUseOptimisedQuery } from '~/utils';
 import { extractProps } from '~/helpers/extractProps';
+import { HANDLE_STATS } from '~/services/update-stats.service';
+import Noco from '~/Noco';
 
 /**
  * Base class for models
@@ -279,6 +286,99 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
     }
+  }
+
+  public async afterInsert(data: any, _trx: any, req): Promise<void> {
+    await this.handleHooks('after.insert', null, data, req);
+    const id = this._extractPksValues(data);
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      row_id: id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.INSERT,
+      description: DOMPurify.sanitize(
+        `Record with ID ${id} has been inserted into Table ${this.model.title}`,
+      ),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
+
+    Noco.eventEmitter.emit(HANDLE_STATS, {
+      fk_model_id: this.model.id,
+    });
+  }
+
+  public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
+    await this.handleHooks('after.bulkInsert', null, data, req);
+
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.BULK_INSERT,
+      description: DOMPurify.sanitize(
+        `${data.length} ${
+          data.length > 1 ? 'records have' : 'record has'
+        } been bulk inserted in ${this.model.title}`,
+      ),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
+
+    Noco.eventEmitter.emit(HANDLE_STATS, {
+      fk_model_id: this.model.id,
+    });
+  }
+
+  public async afterDelete(data: any, _trx: any, req): Promise<void> {
+    const id = req?.params?.id;
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      row_id: id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.DELETE,
+      description: DOMPurify.sanitize(
+        `Record with ID ${id} has been deleted in Table ${this.model.title}`,
+      ),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
+    await this.handleHooks('after.delete', null, data, req);
+    Noco.eventEmitter.emit(HANDLE_STATS, {
+      fk_model_id: this.model.id,
+    });
+  }
+
+  public async afterBulkDelete(
+    data: any,
+    _trx: any,
+    req,
+    isBulkAllOperation = false,
+  ): Promise<void> {
+    let noOfDeletedRecords = data;
+    if (!isBulkAllOperation) {
+      noOfDeletedRecords = data.length;
+      await this.handleHooks('after.bulkDelete', null, data, req);
+    }
+
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.BULK_DELETE,
+      description: DOMPurify.sanitize(
+        `${noOfDeletedRecords} ${
+          noOfDeletedRecords > 1 ? 'records have' : 'record has'
+        } been bulk deleted in ${this.model.title}`,
+      ),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
+    Noco.eventEmitter.emit(HANDLE_STATS, {
+      fk_model_id: this.model.id,
+    });
   }
 }
 

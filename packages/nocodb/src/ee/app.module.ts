@@ -9,6 +9,7 @@ import { ThrottlerConfigService } from '~/services/throttler/throttler-config.se
 import appConfig from '~/app.config';
 import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { ExecutionTimeCalculatorInterceptor } from '~/interceptors/execution-time-calculator/execution-time-calculator.interceptor';
+import { UpdateStatsService } from '~/services/update-stats.service';
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
@@ -51,6 +52,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
       provide: APP_INTERCEPTOR,
       useClass: ExecutionTimeCalculatorInterceptor,
     },
+    UpdateStatsService,
   ],
 })
 export class AppModule extends AppCeModule {

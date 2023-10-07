@@ -13,3 +13,4 @@ export { default as User } from './User';
 export { default as Source } from './Source';
 export { default as Filter } from './Filter';
 export { default as Model } from './Model';
+export { default as ModelStat } from './ModelStat';

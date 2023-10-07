@@ -113,7 +113,7 @@ export class SharedBasesService {
       siteUrl = `https://${base['fk_workspace_id']}.${baseDomain}${dashboardPath}`;
     }
 
-    return `${siteUrl}${config.dashboardPath}#/nc/base/${base.uuid}`;
+    return `${siteUrl}${config.dashboardPath}#/base/${base.uuid}`;
   }
 
   async disableSharedBaseLink(param: { baseId: string }): Promise<any> {
@@ -148,7 +148,7 @@ export class SharedBasesService {
       roles: base.roles,
     };
     if (data.uuid)
-      data.url = `${param.siteUrl}${config.dashboardPath}#/nc/base/${data.shared_base_id}`;
+      data.url = `${param.siteUrl}${config.dashboardPath}#/base/${data.shared_base_id}`;
 
     return data;
   }

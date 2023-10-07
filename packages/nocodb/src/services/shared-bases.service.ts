@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
+import { ConfigService } from '@nestjs/config';
+import type { AppConfig } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -13,7 +15,10 @@ const config = {
 
 @Injectable()
 export class SharedBasesService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(
+    private readonly appHooksService: AppHooksService,
+    private configService: ConfigService<AppConfig>,
+  ) {}
 
   async createSharedBaseLink(param: {
     baseId: string;
@@ -79,13 +84,32 @@ export class SharedBasesService {
 
     await Base.update(base.id, data);
 
-    data.url = `${param.siteUrl}${config.dashboardPath}#/nc/base/${data.uuid}`;
+    data.url = this.getUrl({
+      base,
+      siteUrl: param.siteUrl,
+    });
+
     delete data.password;
     this.appHooksService.emit(AppEvents.SHARED_BASE_GENERATE_LINK, {
       link: data.url,
       base,
     });
     return data;
+  }
+
+  private getUrl({ base, siteUrl }: { base: Base; siteUrl: string }) {
+    let siteUrl = param.siteUrl;
+
+    const baseDomain = process.env.NC_BASE_HOST_NAME;
+    const dashboardPath = this.configService.get('dashboardPath', {
+      infer: true,
+    });
+
+    if (baseDomain) {
+      siteUrl = `https://${base['fk_workspace_id']}.${baseDomain}${dashboardPath}`;
+    }
+
+    return `${siteUrl}${config.dashboardPath}#/nc/base/${base.uuid}`;
   }
 
   async disableSharedBaseLink(param: { baseId: string }): Promise<any> {
@@ -98,7 +122,7 @@ export class SharedBasesService {
       uuid: null,
     };
 
-    await Base.update(base.id, data);
+    await Base.update(base.id, data, base);
 
     this.appHooksService.emit(AppEvents.SHARED_BASE_DELETE_LINK, {
       base,

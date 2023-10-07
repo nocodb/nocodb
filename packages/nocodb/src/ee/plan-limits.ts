@@ -81,6 +81,10 @@ const PlanLimits = {
   },
 };
 
+function getLimitsForPlan(plan: WorkspacePlan) {
+  return PlanLimits[plan];
+}
+
 async function getLimit(type: PlanLimitTypes, workspaceId?: string) {
   if (!workspaceId) {
     if (!PlanLimits.generic[type]) {
@@ -101,4 +105,4 @@ async function getLimit(type: PlanLimitTypes, workspaceId?: string) {
   return PlanLimits[plan][type];
 }
 
-export { PlanLimitTypes, getLimit };
+export { PlanLimitTypes, getLimit, getLimitsForPlan };

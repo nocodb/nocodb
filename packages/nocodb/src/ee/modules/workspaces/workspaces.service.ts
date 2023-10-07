@@ -13,13 +13,13 @@ import { ConfigService } from '@nestjs/config';
 import type { OnApplicationBootstrap } from '@nestjs/common';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
-import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { getLimit, getLimitsForPlan, PlanLimitTypes } from '~/plan-limits';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import Workspace from '~/models/Workspace';
 import validateParams from '~/helpers/validateParams';
 import { NcError } from '~/helpers/catchError';
-import { Base, BaseUser, User } from '~/models';
+import { Base, BaseUser, ModelStat, User } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { extractProps } from '~/helpers/extractProps';
 import { BasesService } from '~/services/bases.service';
@@ -343,7 +343,15 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     if (!workspace) NcError.notFound('Workspace not found');
 
-    return workspace;
+    const limits = getLimitsForPlan(workspace.plan);
+
+    const stats = await ModelStat.getWorkspaceSum(workspace.id);
+
+    return {
+      ...workspace,
+      limits,
+      stats,
+    } as Workspace;
   }
 
   async upgrade(param: {

@@ -78,7 +78,6 @@ export default defineNuxtConfig({
       script: [
         {
           src: '/js/typesense-docsearch.js',
-          async: true,
         },
       ],
     },

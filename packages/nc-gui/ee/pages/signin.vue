@@ -12,6 +12,8 @@ definePageMeta({
   title: 'title.headLogin',
 })
 
+// If the user is redirected to the login page from a page that requires authentication,
+// save the page's URL in sessionStorage so that we can redirect the user back to that page
 onMounted(() => {
   if (route.query.continueAfterSignIn) {
     sessionStorage.setItem('continueAfterSignIn', route.query.continueAfterSignIn)

@@ -67,7 +67,6 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
       function checkForToken() {
         const continueAfterSignIn = sessionStorage.getItem('continueAfterSignIn')
-        sessionStorage.removeItem('continueAfterSignIn')
         Auth.currentSession().then(async (res) => {
           const idToken = res.getIdToken()
           const jwt = idToken.getJwtToken()
@@ -85,6 +84,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
           )
           if ((await res1).data.token) {
             updateFirstTimeUser();
+            sessionStorage.removeItem('continueAfterSignIn')
             signIn((await res1).data.token)
             navigateTo(continueAfterSignIn || '/')
           }
@@ -103,6 +103,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
             )
             if ((await res2).data.token) {
               updateFirstTimeUser();
+              sessionStorage.removeItem('continueAfterSignIn')
               signIn((await res2).data.token)
               navigateTo(continueAfterSignIn || '/')
             }

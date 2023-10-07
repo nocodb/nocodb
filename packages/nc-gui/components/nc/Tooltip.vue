@@ -12,6 +12,7 @@ interface Props {
   disabled?: boolean
   placement?: TooltipPlacement | undefined
   hideOnClick?: boolean
+  overlayClassName?: string
 }
 
 const props = defineProps<Props>()
@@ -35,6 +36,8 @@ const isHovering = useElementHover(() => el.value)
 const attrs = useAttrs()
 
 const isKeyPressed = ref(false)
+
+const overlayClassName = computed(() => props.overlayClassName)
 
 onKeyStroke(
   (e) => e.key === modifierKey.value,
@@ -100,7 +103,7 @@ const onClick = () => {
 <template>
   <a-tooltip
     v-model:visible="showTooltip"
-    :overlay-class-name="`nc-tooltip ${showTooltip ? 'visible' : 'hidden'}`"
+    :overlay-class-name="`nc-tooltip ${showTooltip ? 'visible' : 'hidden'} ${overlayClassName}`"
     :overlay-style="tooltipStyle"
     arrow-point-at-center
     :trigger="[]"

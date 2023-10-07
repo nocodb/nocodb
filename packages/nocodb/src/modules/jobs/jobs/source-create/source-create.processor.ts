@@ -6,12 +6,14 @@ import { SourcesService } from '~/services/sources.service';
 
 @Processor(JOBS_QUEUE)
 export class SourceCreateProcessor {
-  private readonly debugLog = debug('nc:meta-sync:processor');
+  private readonly debugLog = debug('nc:jobs:source-create');
 
   constructor(private readonly sourcesService: SourcesService) {}
 
   @Process(JobTypes.BaseCreate)
   async job(job: Job) {
+    this.debugLog(`job started for ${job.id}`);
+
     const { baseId, source } = job.data;
 
     const createdBase = await this.sourcesService.baseCreate({
@@ -22,6 +24,8 @@ export class SourceCreateProcessor {
     if (createdBase.isMeta()) {
       delete createdBase.config;
     }
+
+    this.debugLog(`job completed for ${job.id}`);
 
     return createdBase;
   }

@@ -7,7 +7,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Processor(JOBS_QUEUE)
 export class UpdateStatsProcessor {
-  private readonly debugLog = debug('nc:update-stats:processor');
+  private readonly debugLog = debug('nc:jobs:update-stats');
 
   constructor() {}
 

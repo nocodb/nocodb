@@ -108,7 +108,7 @@ export default defineNuxtConfig({
       commonjsOptions: {
         ignoreTryCatch: true,
       },
-      minify: true,
+      minify: false,
       rollupOptions: {},
     },
     plugins: [
@@ -210,4 +210,7 @@ export default defineNuxtConfig({
   imports: {
     dirs: ['./context', './utils/**', './lib/**', './composables/**', './store/**'],
   },
+  sourcemap:{
+    client: true
+  }
 })

@@ -5,10 +5,6 @@ import { ref } from 'vue'
 import type { Ref } from 'vue'
 import { ActiveCellInj, CellValueInj, ColumnInj, IsUnderLookupInj, inject, useSelectedCellKeyupListener } from '#imports'
 
-const props = defineProps<{
-  readonly: boolean
-}>()
-
 const value = inject(CellValueInj, ref(0))
 
 const column = inject(ColumnInj)!
@@ -19,9 +15,7 @@ const reloadRowTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const isForm = inject(IsFormInj)
 
-const _readOnly = inject(ReadonlyInj, ref(false))
-
-const readOnly = computed(() => props.readonly || _readOnly.value)
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -83,7 +77,7 @@ const onAttachRecord = () => {
 }
 
 const openChildList = () => {
-  if (readOnly.value) return
+  if (isUnderLookup.value) return
 
   if (!isLocked.value) {
     childListDlg.value = true
@@ -108,7 +102,8 @@ const localCellValue = computed<any[]>(() => {
 })
 
 const openListDlg = () => {
-  if (readOnly.value) return
+  if (isUnderLookup.value) return
+
   listItemsDlg.value = true
 }
 </script>

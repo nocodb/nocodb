@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { extractSdkResponseErrorMsg, message, onMounted, storeToRefs, useBase, useDashboard, useNuxtApp } from '#imports'
+import { extractSdkResponseErrorMsg, message, onMounted, storeToRefs, useBase, useDashboard, useNuxtApp, useWorkspace, useGlobal } from '#imports'
 
 interface ShareBase {
   uuid?: string
@@ -20,9 +20,13 @@ const sharedBase = ref<null | ShareBase>(null)
 
 const { base } = storeToRefs(useBase())
 
-const url = computed(() =>
-  sharedBase.value && sharedBase.value.uuid ? `${dashboardUrl.value}#/base/${sharedBase.value.uuid}` : '',
-)
+const { getBaseUrl, appInfo } = useGlobal()
+
+const workspaceStore = useWorkspace()
+
+const url = computed(() => sharedBase.value && sharedBase.value.uuid ?  encodeURI(
+    `${getBaseUrl(workspaceStore.activeWorkspaceId)}${appInfo.value?.dashboardPath}#/base/${sharedBase.value.uuid}`,
+) : '')
 
 const loadBase = async () => {
   try {

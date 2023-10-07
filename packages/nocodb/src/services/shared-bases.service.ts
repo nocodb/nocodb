@@ -47,7 +47,11 @@ export class SharedBasesService {
 
     await Base.update(base.id, data);
 
-    data.url = `${param.siteUrl}${config.dashboardPath}#/nc/base/${data.uuid}`;
+    data.url = this.getUrl({
+      base,
+      siteUrl: param.siteUrl,
+    });
+
     delete data.password;
 
     this.appHooksService.emit(AppEvents.SHARED_BASE_GENERATE_LINK, {

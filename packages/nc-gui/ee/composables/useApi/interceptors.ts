@@ -1,15 +1,24 @@
 import type { Api } from 'nocodb-sdk'
 import { addAxiosInterceptors as addAxiosInterceptorsCE } from '../../../composables/useApi/interceptors'
-import { useApiTiming } from '#imports'
+import { useApiTiming, useGlobal, useRouter } from '#imports'
+import {} from '~/ee/store/workspace'
+
 const dataApiRegex = /\/api\/v1\/data\/\w+\/\w+\/\w+\/views\/\w+/i
 const reqLatencyKey = Symbol('reqLatencyKey')
 
 export function addAxiosInterceptors(api: Api<any>) {
   const { setTiming } = useApiTiming()
+  const { getBaseUrl } = useGlobal()
+  const router = useRouter();
 
   addAxiosInterceptorsCE(api)
 
   api.instance.interceptors.request.use((config) => {
+    const typeOrWorkspaceId = router.currentRoute.value.params.typeOrId;
+    const baseUrl = typeOrWorkspaceId && getBaseUrl(typeOrWorkspaceId)
+    if (baseUrl) {
+      config.baseURL = baseUrl
+    }
     // add current time to calculate the latency for data api
     if (dataApiRegex.test(config.url || '')) {
       // reset timing if data api is invoking

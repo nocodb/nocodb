@@ -3,7 +3,7 @@ import { useTitle } from '@vueuse/core'
 import NcLayout from '~icons/nc-icons/layout'
 const { openedProject } = storeToRefs(useBases())
 const { activeTables } = storeToRefs(useTablesStore())
-const { activeWorkspace } = storeToRefs(useWorkspace())
+const { activeWorkspace, workspaceUserCount } = storeToRefs(useWorkspace())
 
 const { navigateToProjectPage } = useBase()
 
@@ -113,6 +113,16 @@ watch(
             <div class="tab-title" data-testid="proj-view-tab__access-settings">
               <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
               <div>{{ $t('labels.members') }}</div>
+              <div
+                v-if="workspaceUserCount"
+                class="tab-info"
+                :class="{
+                  'bg-primary-selected': projectPageTab === 'data-source',
+                  'bg-gray-50': projectPageTab !== 'data-source',
+                }"
+              >
+                {{ workspaceUserCount }}
+              </div>
             </div>
           </template>
           <ProjectAccessSettings />
@@ -130,7 +140,7 @@ watch(
                   'bg-gray-50': projectPageTab !== 'data-source',
                 }"
               >
-                {{ base.sources.length - 1 }}
+                {{ base.sources.length }}
               </div>
             </div>
           </template>

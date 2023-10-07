@@ -97,8 +97,8 @@ export class SharedBasesService {
     return data;
   }
 
-  private getUrl({ base, siteUrl }: { base: Base; siteUrl: string }) {
-    let siteUrl = param.siteUrl;
+  private getUrl({ base, siteUrl: _siteUrl }: { base: Base; siteUrl: string }) {
+    let siteUrl = _siteUrl;
 
     const baseDomain = process.env.NC_BASE_HOST_NAME;
     const dashboardPath = this.configService.get('dashboardPath', {

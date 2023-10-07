@@ -33,9 +33,9 @@ import { validatePayload } from '~/helpers';
 @Injectable()
 export class TablesService {
   constructor(
-    private metaDiffService: MetaDiffsService,
-    private appHooksService: AppHooksService,
-    private readonly columnsService: ColumnsService,
+    protected readonly metaDiffService: MetaDiffsService,
+    protected readonly appHooksService: AppHooksService,
+    protected readonly columnsService: ColumnsService,
   ) {}
 
   async tableUpdate(param: {

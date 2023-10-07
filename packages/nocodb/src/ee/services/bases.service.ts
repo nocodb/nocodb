@@ -13,6 +13,7 @@ import {
   Base,
   BaseUser,
   DashboardProjectDBProject,
+  Workspace,
   WorkspaceUser,
 } from '~/models';
 import Noco from '~/Noco';
@@ -22,6 +23,7 @@ import { MetaService } from '~/meta/meta.service';
 import { MetaTable } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { TablesService } from '~/services/tables.service';
+import { getLimit, PlanLimitTypes } from '~/plan-limits';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -90,6 +92,32 @@ export class BasesService extends BasesServiceCE {
 
   async baseCreate(param: { base: ProjectReqType; user: any }) {
     validatePayload('swagger.json#/components/schemas/ProjectReq', param.base);
+
+    if (process.env.NC_TEST_EE !== 'true') {
+      const fk_workspace_id = (param.base as any)?.fk_workspace_id;
+
+      if (!fk_workspace_id) {
+        NcError.badRequest('fk_workspace_id is required');
+      }
+
+      const workspace = await Workspace.get(fk_workspace_id);
+
+      if (!workspace) {
+        NcError.badRequest('Workspace not found');
+      }
+
+      const basesInWorkspace = await Base.countByWorkspace(fk_workspace_id);
+      const baseLimitForWorkspace = await getLimit(
+        PlanLimitTypes.BASE_LIMIT,
+        fk_workspace_id,
+      );
+
+      if (basesInWorkspace >= baseLimitForWorkspace) {
+        NcError.badRequest(
+          `Only ${baseLimitForWorkspace} bases are allowed, for more please upgrade your plan`,
+        );
+      }
+    }
 
     const baseId = await this.metaService.genNanoid(MetaTable.PROJECT);
 

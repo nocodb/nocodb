@@ -367,6 +367,17 @@ export default class Base extends BaseCE {
     return castedProjectList;
   }
 
+  static async countByWorkspace(fk_workspace_id: string, ncMeta = Noco.ncMeta) {
+    const count = await ncMeta.metaCount(null, null, MetaTable.PROJECT, {
+      condition: {
+        fk_workspace_id,
+        deleted: false,
+      },
+    });
+
+    return count;
+  }
+
   getLinkedDbProjects? = async (ncMeta = Noco.ncMeta) => {
     const dbProjects = DashboardProjectDBProject.getDbProjectsList(
       {

@@ -21,6 +21,9 @@ import { getWorkspaceSiteUrl } from '~/utils';
 import { rolesLabel } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { UsersService } from '~/services/users/users.service';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
+import { MetaTable } from '~/utils/globals';
+import Noco from '~/Noco';
+import { getLimit, PlanLimitTypes } from '~/plan-limits';
 
 @Injectable()
 export class WorkspaceUsersService {
@@ -209,6 +212,28 @@ export class WorkspaceUsersService {
     }
     if (invalidEmails.length) {
       NcError.badRequest('Invalid email address : ' + invalidEmails.join(', '));
+    }
+
+    const usersInWorkspace = await Noco.ncMeta.metaCount(
+      null,
+      null,
+      MetaTable.WORKSPACE_USER,
+      {
+        condition: {
+          fk_workspace_id: workspaceId,
+        },
+      },
+    );
+
+    const userLimitForWorkspace = await getLimit(
+      PlanLimitTypes.WORKSPACE_USER_LIMIT,
+      workspaceId,
+    );
+
+    if (usersInWorkspace >= userLimitForWorkspace) {
+      NcError.badRequest(
+        `Only ${userLimitForWorkspace} users are allowed, for more please upgrade your plan`,
+      );
     }
 
     const invite_token = uuidv4();

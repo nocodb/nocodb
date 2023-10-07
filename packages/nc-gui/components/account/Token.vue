@@ -161,7 +161,7 @@ const handleCancel = () => {
 
 <template>
   <div class="h-full overflow-y-scroll scrollbar-thin-dull pt-2">
-    <div class="max-w-[810px] mx-auto p-4" data-testid="nc-token-list">
+    <div class="max-w-202 mx-auto px-4" data-testid="nc-token-list">
       <div class="py-2 flex gap-4 items-center justify-between">
         <h6 class="text-2xl my-4 text-left font-bold">{{ $t('title.apiTokens') }}</h6>
         <NcTooltip :disabled="!(isEeUI && tokens.length)">
@@ -195,7 +195,12 @@ const handleCancel = () => {
           </div>
           <main>
             <div v-if="showNewTokenModal">
-              <div class="flex gap-5 px-3 py-3.5 text-gray-500 font-medium text-3.5 w-full nc-token-generate">
+              <div
+                class="flex gap-5 px-3 py-3.5 text-gray-500 font-medium text-3.5 w-full nc-token-generate border-x-1"
+                :class="{
+                  'border-b-1': !tokens.length,
+                }"
+              >
                 <div class="flex flex-col w-full">
                   <a-input
                     :ref="selectInputOnMount"
@@ -224,9 +229,8 @@ const handleCancel = () => {
                   </NcButton>
                 </div>
               </div>
-              <NcDivider />
             </div>
-            <div v-if="!tokens.length" class="h-118 justify-center flex items-center">
+            <div v-if="showNewTokenModal && !tokens.length" class="h-118 justify-center flex items-center">
               <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('title.noLabels')" />
             </div>
 
@@ -282,7 +286,7 @@ const handleCancel = () => {
           </main>
         </div>
       </div>
-      <div v-if="pagination.total > 10" class="flex items-center justify-center mt-15">
+      <div v-if="pagination.total > 10" class="flex items-center justify-center mt-5">
         <a-pagination
           v-model:current="currentPage"
           :total="pagination.total"

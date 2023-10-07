@@ -185,16 +185,22 @@ const handleCancel = () => {
         </NcTooltip>
       </div>
       <span>{{ $t('msg.apiTokenCreate') }}</span>
-      <div class="w-full mt-5 overflow-hidden rounded-md h-[calc(100%-18.5rem)] border-1">
-        <div class="flex w-full pl-5 bg-gray-50">
+      <div class="w-full mt-5 !overflow-hidden rounded-md h-[calc(100%-17.5rem)]">
+        <div class="flex w-full pl-5 bg-gray-50 border-1 border-b-0">
           <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9">{{ $t('title.tokenName') }}</span>
           <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9 text-start">{{ $t('title.creator') }}</span>
           <span class="py-3.5 text-gray-500 font-medium text-3.5 w-3/9 text-start">{{ $t('labels.token') }}</span>
           <span class="py-3.5 pl-19 text-gray-500 font-medium text-3.5 w-2/9 text-start">{{ $t('labels.actions') }}</span>
         </div>
-        <div class="nc-scrollbar-md !overflow-y-auto h-[calc(100%-3rem)]">
+        <div class="nc-scrollbar-md !overflow-y-auto h-[calc(100%-3rem)] border-b-1">
           <div v-if="showNewTokenModal">
-            <div class="flex gap-5 px-3 py-3.5 text-gray-500 font-medium text-3.5 w-full nc-token-generate border-t-1">
+            <div
+              class="flex gap-5 px-3 py-3.5 text-gray-500 font-medium text-3.5 w-full nc-token-generate border-1"
+              :class="{
+                'border-b-1': !tokens.length,
+                'border-b-0': tokens.length,
+              }"
+            >
               <div class="flex flex-col w-full">
                 <a-input
                   :ref="selectInputOnMount"
@@ -218,15 +224,15 @@ const handleCancel = () => {
               </div>
             </div>
           </div>
-          <div v-if="showNewTokenModal && !tokens.length" class="h-118 justify-center flex items-center">
-            <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('title.noLabels')" />
+          <div v-if="!tokens.length && !showNewTokenModal" class="justify-center flex items-center border-1">
+            <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noToken')" />
           </div>
 
           <div
             v-for="el of tokens"
             :key="el.id"
             data-testid="nc-token-list"
-            class="flex border-t-1 pl-5 py-3 justify-between token"
+            class="flex border-1 pl-5 py-3 justify-between token"
           >
             <span class="text-black font-bold text-3.5 text-start w-2/9">
               <GeneralTruncateText placement="top" length="20">
@@ -242,34 +248,32 @@ const handleCancel = () => {
               <GeneralTruncateText v-if="el.token === selectedToken.id && selectedToken.isShow" placement="top" length="29">
                 {{ el.token }}
               </GeneralTruncateText>
-              <span v-else>**************************************</span>
+              <span v-else>************************************</span>
             </span>
             <!-- ACTIONS -->
-            <span class="text-gray-500 font-medium text-3.5 w-2/9">
-              <div class="flex justify-end items-center gap-3 pr-5">
-                <NcTooltip placement="top">
-                  <template #title>{{ $t('labels.showOrHide') }}</template>
-                  <component
-                    :is="iconMap.eye"
-                    class="nc-toggle-token-visibility hover::cursor-pointer"
-                    @click="hideOrShowToken(el.token as string)"
-                  />
-                </NcTooltip>
-                <NcTooltip placement="top" class="h-4">
-                  <template #title>{{ $t('general.copy') }}</template>
-                  <component :is="iconMap.copy" class="hover::cursor-pointer" @click="copyToken(el.token)" />
-                </NcTooltip>
-                <NcTooltip placement="top" class="mb-0.5">
-                  <template #title>{{ $t('general.delete') }}</template>
-                  <component
-                    :is="iconMap.delete"
-                    data-testid="nc-token-row-action-icon"
-                    class="nc-delete-icon hover::cursor-pointer"
-                    @click="triggerDeleteModal(el.token as string, el.description as string)"
-                  />
-                </NcTooltip>
-              </div>
-            </span>
+            <div class="flex justify-end items-center gap-3 pr-5 text-gray-500 font-medium text-3.5 w-2/9">
+              <NcTooltip placement="top">
+                <template #title>{{ $t('labels.showOrHide') }}</template>
+                <component
+                  :is="iconMap.eye"
+                  class="nc-toggle-token-visibility hover::cursor-pointer w-h-4 mb-[1.8px]"
+                  @click="hideOrShowToken(el.token as string)"
+                />
+              </NcTooltip>
+              <NcTooltip placement="top" class="h-4">
+                <template #title>{{ $t('general.copy') }}</template>
+                <component :is="iconMap.copy" class="hover::cursor-pointer w-4 h-4" @click="copyToken(el.token)" />
+              </NcTooltip>
+              <NcTooltip placement="top" class="mb-0.5">
+                <template #title>{{ $t('general.delete') }}</template>
+                <component
+                  :is="iconMap.delete"
+                  data-testid="nc-token-row-action-icon"
+                  class="nc-delete-icon hover::cursor-pointer w-4 h-4"
+                  @click="triggerDeleteModal(el.token as string, el.description as string)"
+                />
+              </NcTooltip>
+            </div>
           </div>
         </div>
       </div>
@@ -304,8 +308,9 @@ const handleCancel = () => {
     </GeneralDeleteModal>
   </div>
 </template>
-<style lang="scss" scoped>
+
+<style>
 .token:last-child {
-  @apply border-b-1;
+  @apply rounded-b-md;
 }
 </style>

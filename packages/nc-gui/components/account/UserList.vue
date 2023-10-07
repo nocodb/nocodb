@@ -185,7 +185,7 @@ const openDeleteModal = (user: UserType) => {
         <div v-else-if="!users.length" class="flex items-center justify-center text-center h-full">
           <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
         </div>
-        <section v-else class="tbody h-[calc(100%-3.3rem)] nc-scrollbar-md border-t-0">
+        <section v-else class="tbody h-[calc(100%-3rem)] nc-scrollbar-md border-t-0 !overflow-auto">
           <div
             v-for="el of users"
             :key="el.id"
@@ -195,12 +195,14 @@ const openDeleteModal = (user: UserType) => {
               'py-4': el.roles?.includes('super'),
             }"
           >
-            <span class="text-3.5 text-start w-1/3 pl-5">
-              {{ el.email }}
+            <span class="text-3.5 text-start w-1/3 pl-5 flex items-center">
+              <GeneralTruncateText length="29">
+                {{ el.email }}
+              </GeneralTruncateText>
             </span>
             <span class="text-3.5 text-start w-1/3 pl-18">
               <div v-if="el?.roles?.includes('super')" class="font-weight-bold">{{ $t('labels.superAdmin') }}</div>
-              <a-select
+              <NcSelect
                 v-else
                 v-model:value="el.roles"
                 class="w-55 nc-user-roles"
@@ -228,9 +230,9 @@ const openDeleteModal = (user: UserType) => {
                     {{ $t('msg.info.roles.orgViewer') }}
                   </span>
                 </a-select-option>
-              </a-select>
+              </NcSelect>
             </span>
-            <span class="w-1/3 pl-43">
+            <span class="w-1/3 pl-43 flex items-center">
               <div
                 class="flex items-center gap-2"
                 :class="{
@@ -238,23 +240,26 @@ const openDeleteModal = (user: UserType) => {
                 }"
               >
                 <NcDropdown :trigger="['click']">
-                  <MdiDotsVertical
-                    class="border-1 !text-gray-600 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
-                  />
+                  <NcButton size="xsmall" type="ghost">
+                    <MdiDotsVertical
+                      class="text-gray-600 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
+                    />
+                  </NcButton>
+
                   <template #overlay>
                     <NcMenu>
                       <template v-if="!el.roles?.includes('super')">
                         <!-- Resend invite Email -->
                         <NcMenuItem @click="resendInvite(el)">
-                          <component :is="iconMap.email" class="flex text-gray-500" />
+                          <component :is="iconMap.email" class="flex text-gray-600" />
                           <div>{{ $t('activity.resendInvite') }}</div>
                         </NcMenuItem>
                         <NcMenuItem @click="copyInviteUrl(el)">
-                          <component :is="iconMap.copy" class="flex text-gray-500" />
+                          <component :is="iconMap.copy" class="flex text-gray-600" />
                           <div>{{ $t('activity.copyInviteURL') }}</div>
                         </NcMenuItem>
                         <NcMenuItem @click="copyPasswordResetUrl(el)">
-                          <component :is="iconMap.copy" class="flex text-gray-500" />
+                          <component :is="iconMap.copy" class="flex text-gray-600" />
                           <div>{{ $t('activity.copyPasswordResetURL') }}</div>
                         </NcMenuItem>
                       </template>

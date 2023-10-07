@@ -120,28 +120,28 @@ const moveDown = () => {
 
 whenever(keys['Ctrl+Shift+L'], async () => {
   if (!user.value) return
-  if (vOpen.value) moveUp()
-  else vOpen.value = true
+  vOpen.value = true
+  moveUp()
 })
 
 whenever(keys['Meta+Shift+L'], async () => {
   if (!user.value) return
-  if (vOpen.value) moveUp()
-  else vOpen.value = true
+  vOpen.value = true
+  moveUp()
 })
 
 whenever(keys.ctrl_l, async () => {
   if (!user.value) return
   if (current.has('shift')) return
-  if (vOpen.value) moveDown()
-  else vOpen.value = true
+  vOpen.value = true
+  moveDown()
 })
 
 whenever(keys.meta_l, async () => {
   if (!user.value) return
   if (current.has('shift')) return
-  if (vOpen.value) moveDown()
-  else vOpen.value = true
+  vOpen.value = true
+  moveDown()
 })
 
 whenever(keys.arrowup, () => {

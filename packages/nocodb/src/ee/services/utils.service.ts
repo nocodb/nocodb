@@ -4,6 +4,7 @@ import { Configuration, OpenAIApi } from 'openai';
 import JSON5 from 'json5';
 import { identify } from 'sql-query-identifier';
 import { ConfigService } from '@nestjs/config';
+import { useAgent } from 'request-filtering-agent';
 import { UtilsService as UtilsServiceCE } from 'src/services/utils.service';
 import type { AppConfig } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
@@ -104,6 +105,12 @@ export class UtilsService extends UtilsServiceCE {
         : {},
       responseType: apiMeta.responseType || 'json',
       withCredentials: true,
+      httpAgent: useAgent(apiMeta.url, {
+        stopPortScanningByUrlRedirection: true,
+      }),
+      httpsAgent: useAgent(apiMeta.url, {
+        stopPortScanningByUrlRedirection: true,
+      }),
     };
     const data = await axios(_req);
     return data?.data;

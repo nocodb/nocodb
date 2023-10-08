@@ -885,7 +885,7 @@ const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?
 }
 
 // #Grid Resize
-const { updateGridViewColumn, gridViewCols } = useGridViewColumnOrThrow()
+const { updateGridViewColumn, gridViewCols, resizingColOldWith } = useGridViewColumnOrThrow()
 
 const onresize = (colID: string | undefined, event: any) => {
   if (!colID) return
@@ -895,6 +895,11 @@ const onresize = (colID: string | undefined, event: any) => {
 const onXcResizing = (cn: string | undefined, event: any) => {
   if (!cn) return
   gridViewCols.value[cn].width = `${event.detail}`
+}
+
+const onXcStartResizing = (cn: string | undefined, event: any) => {
+  if (!cn) return
+  resizingColOldWith.value = event.detail
 }
 
 const loadColumn = (title: string, tp: string, colOptions?: any) => {
@@ -1235,6 +1240,7 @@ const loaderText = computed(() => {
                     'max-width': gridViewCols[col.id]?.width || '200px',
                     'width': gridViewCols[col.id]?.width || '200px',
                   }"
+                  @xcstartresizing="onXcStartResizing(col.id, $event)"
                   @xcresize="onresize(col.id, $event)"
                   @xcresizing="onXcResizing(col.id, $event)"
                 >

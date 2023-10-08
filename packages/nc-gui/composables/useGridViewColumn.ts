@@ -13,8 +13,7 @@ const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
     const { addUndo, defineViewScope } = useUndoRedo()
 
     const gridViewCols = ref<Record<string, GridColumnType>>({})
-    const resizingCol = ref<string | null>('')
-    const resizingColWidth = ref('200px')
+    const resizingColOldWith = ref('200px')
     const isPublic = inject(IsPublicInj, ref(statePublic))
 
     const columns = computed<ColumnType[]>(() => metas.value?.[view.value?.fk_model_id as string]?.columns || [])
@@ -48,7 +47,8 @@ const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
       if (!undo) {
         const oldProps = Object.keys(props).reduce<Partial<GridColumnReqType>>((o: any, k) => {
           if (gridViewCols.value[id][k as keyof GridColumnType]) {
-            o[k] = gridViewCols.value[id][k as keyof GridColumnType]
+            if (k === 'width') o[k] = `${resizingColOldWith.value}px`
+            else o[k] = gridViewCols.value[id][k as keyof GridColumnType]
           }
           return o
         }, {})
@@ -83,7 +83,7 @@ const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
       }
     }
 
-    return { loadGridViewColumns, updateGridViewColumn, resizingCol, resizingColWidth, gridViewCols }
+    return { loadGridViewColumns, updateGridViewColumn, gridViewCols, resizingColOldWith }
   },
   'useGridViewColumn',
 )

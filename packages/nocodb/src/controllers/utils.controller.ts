@@ -12,6 +12,8 @@ import {
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { UtilsService } from '~/services/utils.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 
 @Controller()
 export class UtilsController {
@@ -19,6 +21,7 @@ export class UtilsController {
 
   constructor(protected readonly utilsService: UtilsService) {}
 
+  @UseGuards(PublicApiLimiterGuard)
   @Get('/api/v1/version')
   async getVersion() {
     if (process.env.NC_CLOUD !== 'true') {
@@ -35,7 +38,7 @@ export class UtilsController {
     return this.version;
   }
 
-  @UseGuards(GlobalGuard)
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Post(['/api/v1/db/meta/connection/test', '/api/v1/meta/connection/test'])
   @Acl('testConnection', {
     scope: 'org',
@@ -45,6 +48,7 @@ export class UtilsController {
     return await this.utilsService.testConnection({ body });
   }
 
+  @UseGuards(PublicApiLimiterGuard)
   @Get(['/api/v1/db/meta/nocodb/info', '/api/v1/meta/nocodb/info'])
   async appInfo(@Request() req) {
     return await this.utilsService.appInfo({
@@ -54,17 +58,20 @@ export class UtilsController {
     });
   }
 
+  @UseGuards(PublicApiLimiterGuard)
   @Get('/api/v1/health')
   async appHealth() {
     return await this.utilsService.appHealth();
   }
 
+  @UseGuards(PublicApiLimiterGuard)
   @Post(['/api/v1/db/meta/axiosRequestMake', '/api/v1/meta/axiosRequestMake'])
   @HttpCode(200)
   async axiosRequestMake(@Body() body: any) {
     return await this.utilsService.axiosRequestMake({ body });
   }
 
+  @UseGuards(PublicApiLimiterGuard)
   @Post('/api/v1/url_to_config')
   @HttpCode(200)
   async urlToDbConfig(@Body() body: any) {
@@ -73,6 +80,7 @@ export class UtilsController {
     });
   }
 
+  @UseGuards(PublicApiLimiterGuard)
   @Get('/api/v1/aggregated-meta-info')
   async aggregatedMetaInfo() {
     // todo: refactor

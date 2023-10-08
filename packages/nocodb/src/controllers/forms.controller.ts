@@ -13,9 +13,10 @@ import { ViewCreateReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { FormsService } from '~/services/forms.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class FormsController {
   constructor(private readonly formsService: FormsService) {}
 

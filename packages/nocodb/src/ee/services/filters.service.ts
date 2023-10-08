@@ -36,8 +36,19 @@ export class FiltersService extends FiltersServiceCE {
       null,
       MetaTable.FILTER_EXP,
       {
-        condition: {
-          fk_view_id: view.id,
+        xcCondition: {
+          _and: [
+            {
+              fk_view_id: {
+                eq: view.id,
+              },
+            },
+            {
+              is_group: {
+                eq: null,
+              },
+            },
+          ],
         },
       },
     );

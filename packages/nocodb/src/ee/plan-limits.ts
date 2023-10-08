@@ -1,32 +1,6 @@
-import { WorkspacePlan } from 'nocodb-sdk';
+import { PlanLimitTypes, WorkspacePlan } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import Workspace from '~/models/Workspace';
-
-enum PlanLimitTypes {
-  // PER USER
-  FREE_WORKSPACE_LIMIT = 'FREE_WORKSPACE_LIMIT',
-
-  // PER WORKSPACE
-  WORKSPACE_USER_LIMIT = 'WORKSPACE_USER_LIMIT',
-  WORKSPACE_ROW_LIMIT = 'WORKSPACE_ROW_LIMIT',
-  BASE_LIMIT = 'BASE_LIMIT',
-
-  // PER BASE
-  SOURCE_LIMIT = 'SOURCE_LIMIT',
-
-  // PER BASE
-  TABLE_LIMIT = 'TABLE_LIMIT',
-
-  // PER TABLE
-  COLUMN_LIMIT = 'COLUMN_LIMIT',
-  TABLE_ROW_LIMIT = 'TABLE_ROW_LIMIT',
-  WEBHOOK_LIMIT = 'WEBHOOK_LIMIT',
-  VIEW_LIMIT = 'VIEW_LIMIT',
-
-  // PER VIEW
-  FILTER_LIMIT = 'FILTER_LIMIT',
-  SORT_LIMIT = 'SORT_LIMIT',
-}
 
 const PlanLimits = {
   generic: {
@@ -34,60 +8,63 @@ const PlanLimits = {
   },
   [WorkspacePlan.FREE]: {
     [PlanLimitTypes.WORKSPACE_USER_LIMIT]: 2,
-    [PlanLimitTypes.WORKSPACE_ROW_LIMIT]: 10000,
+    [PlanLimitTypes.WORKSPACE_ROW_LIMIT]: 10 * 1000,
     [PlanLimitTypes.BASE_LIMIT]: 20,
-    [PlanLimitTypes.SOURCE_LIMIT]: 2,
+    [PlanLimitTypes.SOURCE_LIMIT]: 1,
     [PlanLimitTypes.TABLE_LIMIT]: 100,
-    [PlanLimitTypes.COLUMN_LIMIT]: 150,
+    [PlanLimitTypes.COLUMN_LIMIT]: 100,
     [PlanLimitTypes.TABLE_ROW_LIMIT]: 1000,
     [PlanLimitTypes.WEBHOOK_LIMIT]: 5,
-    [PlanLimitTypes.VIEW_LIMIT]: 50,
-    [PlanLimitTypes.FILTER_LIMIT]: 6,
-    [PlanLimitTypes.SORT_LIMIT]: 4,
+    [PlanLimitTypes.VIEW_LIMIT]: 3,
+    [PlanLimitTypes.FILTER_LIMIT]: 10,
+    [PlanLimitTypes.SORT_LIMIT]: 5,
   },
   [WorkspacePlan.STANDARD]: {
     [PlanLimitTypes.WORKSPACE_USER_LIMIT]: 10,
-    [PlanLimitTypes.WORKSPACE_ROW_LIMIT]: 5 * 10000,
+    [PlanLimitTypes.WORKSPACE_ROW_LIMIT]: 50 * 1000,
     [PlanLimitTypes.BASE_LIMIT]: 20,
     [PlanLimitTypes.SOURCE_LIMIT]: 2,
     [PlanLimitTypes.TABLE_LIMIT]: 100,
-    [PlanLimitTypes.COLUMN_LIMIT]: 150,
-    [PlanLimitTypes.TABLE_ROW_LIMIT]: 10000,
+    [PlanLimitTypes.COLUMN_LIMIT]: 100,
+    [PlanLimitTypes.TABLE_ROW_LIMIT]: 10 * 1000,
     [PlanLimitTypes.WEBHOOK_LIMIT]: 5,
     [PlanLimitTypes.VIEW_LIMIT]: 50,
-    [PlanLimitTypes.FILTER_LIMIT]: 6,
-    [PlanLimitTypes.SORT_LIMIT]: 4,
+    [PlanLimitTypes.FILTER_LIMIT]: 10,
+    [PlanLimitTypes.SORT_LIMIT]: 5,
   },
   [WorkspacePlan.BUSINESS]: {
     [PlanLimitTypes.WORKSPACE_USER_LIMIT]: 20,
-    [PlanLimitTypes.WORKSPACE_ROW_LIMIT]: 100 * 10000,
+    [PlanLimitTypes.WORKSPACE_ROW_LIMIT]: 1 * 1000 * 1000,
     [PlanLimitTypes.BASE_LIMIT]: 20,
     [PlanLimitTypes.SOURCE_LIMIT]: 2,
     [PlanLimitTypes.TABLE_LIMIT]: 100,
-    [PlanLimitTypes.COLUMN_LIMIT]: 150,
-    [PlanLimitTypes.TABLE_ROW_LIMIT]: 25 * 10000,
+    [PlanLimitTypes.COLUMN_LIMIT]: 100,
+    [PlanLimitTypes.TABLE_ROW_LIMIT]: 250 * 1000,
     [PlanLimitTypes.WEBHOOK_LIMIT]: 5,
     [PlanLimitTypes.VIEW_LIMIT]: 50,
-    [PlanLimitTypes.FILTER_LIMIT]: 6,
-    [PlanLimitTypes.SORT_LIMIT]: 4,
+    [PlanLimitTypes.FILTER_LIMIT]: 10,
+    [PlanLimitTypes.SORT_LIMIT]: 5,
   },
   [WorkspacePlan.BUSINESS_PRO]: {
     [PlanLimitTypes.WORKSPACE_USER_LIMIT]: 50,
-    [PlanLimitTypes.WORKSPACE_ROW_LIMIT]: 1000 * 10000,
+    [PlanLimitTypes.WORKSPACE_ROW_LIMIT]: 10 * 1000 * 1000,
     [PlanLimitTypes.BASE_LIMIT]: 20,
     [PlanLimitTypes.SOURCE_LIMIT]: 2,
     [PlanLimitTypes.TABLE_LIMIT]: 100,
-    [PlanLimitTypes.COLUMN_LIMIT]: 150,
-    [PlanLimitTypes.TABLE_ROW_LIMIT]: 100 * 10000,
+    [PlanLimitTypes.COLUMN_LIMIT]: 100,
+    [PlanLimitTypes.TABLE_ROW_LIMIT]: 1 * 1000 * 1000,
     [PlanLimitTypes.WEBHOOK_LIMIT]: 5,
     [PlanLimitTypes.VIEW_LIMIT]: 50,
-    [PlanLimitTypes.FILTER_LIMIT]: 6,
-    [PlanLimitTypes.SORT_LIMIT]: 4,
+    [PlanLimitTypes.FILTER_LIMIT]: 10,
+    [PlanLimitTypes.SORT_LIMIT]: 5,
   },
 };
 
 function getLimitsForPlan(plan: WorkspacePlan) {
-  return PlanLimits[plan];
+  return {
+    ...PlanLimits.generic,
+    ...PlanLimits[plan],
+  };
 }
 
 async function getLimit(type: PlanLimitTypes, workspaceId?: string) {

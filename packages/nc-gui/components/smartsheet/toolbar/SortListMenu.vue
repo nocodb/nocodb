@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -10,6 +10,7 @@ import {
   getSortDirectionOptions,
   iconMap,
   inject,
+  isEeUI,
   ref,
   useMenuCloseOnEsc,
   useSmartsheetStoreOrThrow,
@@ -31,6 +32,8 @@ const { showSystemFields, metaColumnById } = useViewColumns(view, meta)
 const showCreateSort = ref(false)
 
 const { isMobileMode } = useGlobal()
+
+const { getPlanLimit } = useWorkspace()
 
 eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.SORT_RELOAD) {
@@ -181,13 +184,31 @@ watch(open, () => {
           :trigger="['click']"
           overlay-class-name="nc-toolbar-dropdown"
         >
-          <NcButton v-e="['c:sort:add']" class="!text-brand-500" type="text" size="small" @click.stop="showCreateSort = true">
-            <div class="flex gap-1 items-center">
-              <component :is="iconMap.plus" />
-              <!-- Add Sort Option -->
-              {{ $t('activity.addSort') }}
-            </div>
-          </NcButton>
+          <template v-if="isEeUI">
+            <NcButton
+              v-if="sorts.length < getPlanLimit(PlanLimitTypes.SORT_LIMIT)"
+              v-e="['c:sort:add']"
+              class="!text-brand-500"
+              type="text"
+              size="small"
+              @click.stop="showCreateSort = true"
+            >
+              <div class="flex gap-1 items-center">
+                <component :is="iconMap.plus" />
+                <!-- Add Sort Option -->
+                {{ $t('activity.addSort') }}
+              </div>
+            </NcButton>
+          </template>
+          <template v-else>
+            <NcButton v-e="['c:sort:add']" class="!text-brand-500" type="text" size="small" @click.stop="showCreateSort = true">
+              <div class="flex gap-1 items-center">
+                <component :is="iconMap.plus" />
+                <!-- Add Sort Option -->
+                {{ $t('activity.addSort') }}
+              </div>
+            </NcButton>
+          </template>
           <template #overlay>
             <SmartsheetToolbarCreateSort :is-parent-open="showCreateSort" @created="addSort" />
           </template>

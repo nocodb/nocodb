@@ -346,7 +346,7 @@ useActiveKeyupListener(
         await Modal.confirm({
           title: t('msg.saveChanges'),
           okText: t('general.save'),
-          cancelText: t('label.discard'),
+          cancelText: t('labels.discard'),
           onOk: async () => {
             await save()
             reloadHook?.trigger(null)
@@ -360,7 +360,7 @@ useActiveKeyupListener(
         await Modal.confirm({
           title: 'Do you want to save the record?',
           okText: t('general.save'),
-          cancelText: t('label.discard'),
+          cancelText: t('labels.discard'),
           onOk: async () => {
             const data = await _save(rowState.value)
             await syncLTARRefs(data)

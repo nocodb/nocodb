@@ -319,6 +319,10 @@
     "downloadFile": "Download File",
     "renameTable": "Rename Table",
     "renamingTable": "Renaming Table",
+    "renamingWs": "Renaming Workspace",
+    "renameWs": "Rename Workspace",
+    "deleteWs": "Delete Workspace",
+    "deletingWs": "Deleting Workspace",
     "copyAuthToken": "Copy Auth Token",
     "copiedAuthToken": "Copied Auth Token",
     "copyInviteToken": "Copy Invite Token",
@@ -598,7 +602,8 @@
     "zoomInToViewColumns": "Zoom in to view columns",
     "embedInSite": "Embed this view in your site",
     "titleRequired": "title is required.",
-    "sourceNameRequired":"Source name is required"
+    "sourceNameRequired":"Source name is required",
+    "changeWsName":"Change Workspace Name",
   },
   "activity": {
     "onCondition": "On Condition",
@@ -1141,7 +1146,13 @@
       "noMoreRecords": "No more records",
       "tokenNameNotEmpty": "Token name should not be empty",
       "tokenNameMaxLength": "Token name should not be more than 255 characters",
-      "dbNamerequired": "Database name is required"
+      "dbNamerequired": "Database name is required",
+      "wsNameRequired":"Workspace name required",
+      "wsNameMinLength":"Workspace name must be at least 3 characters long",
+      "wsNameMaxLength":"Workspace name must be at most 50 characters long",
+      "wsDeleteDlg": "Delete this workspace and all it’s contents.",
+      "userConfirmation": "I understand that this action is irreversible",
+      "pageNotFound":"Page Not Found"
     },
     "error": {
       "nameRequired": "Name Required",

@@ -18,7 +18,7 @@ import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 
 @Controller()
 @Throttle({ meta: {} })
-@UseGuards(GlobalGuard, DataApiLimiterGuard)
+@UseGuards(DataApiLimiterGuard, GlobalGuard)
 export class BulkDataAliasController {
   constructor(private bulkDataAliasService: BulkDataAliasService) {}
 

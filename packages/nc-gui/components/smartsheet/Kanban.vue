@@ -386,6 +386,11 @@ watch(
     immediate: true,
   },
 )
+
+const getRowId = (row: RowType) => {
+  const pk = extractPkFromRow(row.row, meta.value!.columns!)
+  return pk ? `row-${pk}` : ''
+}
 </script>
 
 <template>
@@ -431,7 +436,7 @@ watch(
               <!-- Non Collapsed Stacks -->
               <a-card
                 v-if="!stack.collapsed"
-                :key="stack.id"
+                :key="`${stack.id}-${stackIdx}`"
                 class="mx-4 !bg-gray-100 flex flex-col w-80 h-full !rounded-xl overflow-y-hidden"
                 :class="{
                   'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
@@ -522,10 +527,11 @@ watch(
                         @end="(e) => e.target.classList.remove('grabbing')"
                         @change="onMove($event, stack.title)"
                       >
-                        <template #item="{ element: record }">
+                        <template #item="{ element: record, index }">
                           <div class="nc-kanban-item py-2 pl-3 pr-2">
                             <LazySmartsheetRow :row="record">
                               <a-card
+                                :key="`${getRowId(record)}-${index}`"
                                 class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] shadow-sm hover:shadow-md cursor-pointer"
                                 :body-style="{ padding: '0px' }"
                                 :data-stack="stack.title"
@@ -538,44 +544,42 @@ watch(
                                 @contextmenu="showContextMenu($event, record)"
                               >
                                 <template v-if="kanbanMetaData?.fk_cover_image_col_id" #cover>
-                                  <a-carousel
-                                    v-if="!reloadAttachments && attachments(record).length"
-                                    class="gallery-carousel !border-b-1 !border-gray-200"
-                                    arrows
-                                  >
-                                    <template #customPaging>
-                                      <a>
-                                        <div class="pt-[12px]">
-                                          <div></div>
+                                  <template v-if="!reloadAttachments && attachments(record).length">
+                                    <a-carousel class="gallery-carousel !border-b-1 !border-gray-200">
+                                      <template #customPaging>
+                                        <a>
+                                          <div class="pt-[12px]">
+                                            <div></div>
+                                          </div>
+                                        </a>
+                                      </template>
+
+                                      <template #prevArrow>
+                                        <div class="z-10 arrow">
+                                          <MdiChevronLeft
+                                            class="text-gray-700 w-6 h-6 absolute left-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
+                                          />
                                         </div>
-                                      </a>
-                                    </template>
+                                      </template>
 
-                                    <template #prevArrow>
-                                      <div class="z-10 arrow">
-                                        <MdiChevronLeft
-                                          class="text-gray-700 w-6 h-6 absolute left-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
+                                      <template #nextArrow>
+                                        <div class="z-10 arrow">
+                                          <MdiChevronRight
+                                            class="text-gray-700 w-6 h-6 absolute right-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
+                                          />
+                                        </div>
+                                      </template>
+
+                                      <template v-for="(attachment, index) in attachments(record)">
+                                        <LazyCellAttachmentImage
+                                          v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
+                                          :key="`carousel-${record.row.id}-${index}`"
+                                          class="h-52 object-cover"
+                                          :srcs="getPossibleAttachmentSrc(attachment)"
                                         />
-                                      </div>
-                                    </template>
-
-                                    <template #nextArrow>
-                                      <div class="z-10 arrow">
-                                        <MdiChevronRight
-                                          class="text-gray-700 w-6 h-6 absolute right-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
-                                        />
-                                      </div>
-                                    </template>
-
-                                    <template v-for="(attachment, index) in attachments(record)">
-                                      <LazyCellAttachmentImage
-                                        v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
-                                        :key="`carousel-${record.row.id}-${index}`"
-                                        class="h-52 object-cover"
-                                        :srcs="getPossibleAttachmentSrc(attachment)"
-                                      />
-                                    </template>
-                                  </a-carousel>
+                                      </template>
+                                    </a-carousel>
+                                  </template>
                                   <div
                                     v-else
                                     class="h-52 w-full !flex flex-row !border-b-1 !border-gray-200 items-center justify-center"
@@ -788,7 +792,6 @@ watch(
   transition: left 0.2s ease-in-out 0s;
 }
 
-
 :deep(.slick-dots li button) {
   @apply !bg-black;
 }
@@ -816,5 +819,9 @@ watch(
 
 .ant-carousel.gallery-carousel :deep(.slick-next) {
   @apply right-0;
+}
+
+:deep(.slick-slide) {
+  @apply !pointer-events-none;
 }
 </style>

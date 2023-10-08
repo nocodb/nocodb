@@ -67,7 +67,9 @@ export class AttachmentsService {
           );
         } else {
           if (attachment.url.includes('.amazonaws.com/')) {
-            const relativePath = attachment.url.split('.amazonaws.com/')[1];
+            const relativePath = decodeURI(
+              attachment.url.split('.amazonaws.com/')[1],
+            );
             promises.push(
               PresignedUrl.getSignedUrl({
                 path: relativePath,

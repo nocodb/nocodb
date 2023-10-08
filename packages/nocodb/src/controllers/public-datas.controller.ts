@@ -5,11 +5,14 @@ import {
   Param,
   Post,
   Request,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { PublicDatasService } from '~/services/public-datas.service';
+import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 
+@UseGuards(PublicApiLimiterGuard)
 @Controller()
 export class PublicDatasController {
   constructor(private readonly publicDatasService: PublicDatasService) {}

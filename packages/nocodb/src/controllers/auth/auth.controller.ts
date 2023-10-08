@@ -23,6 +23,8 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { NcError } from '~/helpers/catchError';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { User } from '~/models';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 
 @Controller()
 export class AuthController {
@@ -37,6 +39,7 @@ export class AuthController {
     '/api/v1/db/auth/user/signup',
     '/api/v1/auth/user/signup',
   ])
+  @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
   async signup(@Request() req: any, @Response() res: any): Promise<any> {
     if (this.config.get('auth', { infer: true }).disableEmailAuth) {
@@ -56,6 +59,7 @@ export class AuthController {
     '/api/v1/db/auth/token/refresh',
     '/api/v1/auth/token/refresh',
   ])
+  @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
   async refreshToken(@Request() req: any, @Response() res: any): Promise<any> {
     res.json(
@@ -72,7 +76,7 @@ export class AuthController {
     '/api/v1/db/auth/user/signin',
     '/api/v1/auth/user/signin',
   ])
-  @UseGuards(AuthGuard('local'))
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('local'))
   @HttpCode(200)
   async signin(@Request() req, @Response() res) {
     if (this.config.get('auth', { infer: true }).disableEmailAuth) {
@@ -99,20 +103,20 @@ export class AuthController {
 
   @Post(`/auth/google/genTokenByCode`)
   @HttpCode(200)
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('google'))
   async googleSignin(@Request() req, @Response() res) {
     await this.setRefreshToken({ req, res });
     res.json(await this.usersService.login(req.user));
   }
 
   @Get('/auth/google')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('google'))
   googleAuthenticate() {
     // google strategy will take care the request
   }
 
   @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'])
-  @UseGuards(GlobalGuard)
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   async me(@Request() req) {
     const user = {
       ...req.user,
@@ -128,7 +132,7 @@ export class AuthController {
     '/api/v1/db/auth/password/change',
     '/api/v1/auth/password/change',
   ])
-  @UseGuards(GlobalGuard)
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Acl('passwordChange', {
     scope: 'org',
   })
@@ -152,6 +156,7 @@ export class AuthController {
     '/api/v1/db/auth/password/forgot',
     '/api/v1/auth/password/forgot',
   ])
+  @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
   async passwordForgot(@Request() req: any): Promise<any> {
     await this.usersService.passwordForgot({
@@ -168,6 +173,7 @@ export class AuthController {
     '/api/v1/db/auth/token/validate/:tokenId',
     '/api/v1/auth/token/validate/:tokenId',
   ])
+  @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
   async tokenValidate(@Param('tokenId') tokenId: string): Promise<any> {
     await this.usersService.tokenValidate({
@@ -181,6 +187,7 @@ export class AuthController {
     '/api/v1/db/auth/password/reset/:tokenId',
     '/api/v1/auth/password/reset/:tokenId',
   ])
+  @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
   async passwordReset(
     @Request() req: any,
@@ -200,6 +207,7 @@ export class AuthController {
     '/api/v1/db/auth/email/validate/:tokenId',
     '/api/v1/auth/email/validate/:tokenId',
   ])
+  @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
   async emailVerification(
     @Request() req: any,
@@ -217,6 +225,7 @@ export class AuthController {
     '/api/v1/db/auth/password/reset/:tokenId',
     '/auth/password/reset/:tokenId',
   ])
+  @UseGuards(PublicApiLimiterGuard)
   async renderPasswordReset(
     @Request() req: any,
     @Response() res: any,

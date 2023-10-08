@@ -5,9 +5,10 @@ import { DatasService } from '~/services/datas.service';
 import { extractCsvData, extractXlsxData } from '~/modules/datas/helpers';
 import { View } from '~/models';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(DataApiLimiterGuard, GlobalGuard)
 export class DataAliasExportController {
   constructor(private datasService: DatasService) {}
 
@@ -39,6 +40,7 @@ export class DataAliasExportController {
     });
     res.end(buf);
   }
+
   @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/export/csv',
     '/api/v1/db/data/:orgs/:baseName/:tableName/export/csv',

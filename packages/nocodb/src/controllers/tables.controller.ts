@@ -16,9 +16,10 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { TablesService } from '~/services/tables.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class TablesController {
   constructor(private readonly tablesService: TablesService) {}
 

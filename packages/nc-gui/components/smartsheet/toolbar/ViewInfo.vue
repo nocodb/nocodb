@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ViewTypes } from 'nocodb-sdk'
-
 const { isMobileMode } = useGlobal()
 
 const { openedViewsTab, activeView } = storeToRefs(useViewsStore())
@@ -16,9 +14,8 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
   <div
     class="ml-0.25 flex flex-row font-medium items-center border-gray-50 transition-all duration-100"
     :class="{
-      'min-w-36/100 max-w-36/100': !isMobileMode && activeView?.type !== ViewTypes.KANBAN && isLeftSidebarOpen,
-      'min-w-39/100 max-w-39/100': !isMobileMode && activeView?.type !== ViewTypes.KANBAN && !isLeftSidebarOpen,
-      'min-w-1/4 max-w-1/4': !isMobileMode && activeView?.type === ViewTypes.KANBAN,
+      'min-w-36/100 max-w-36/100': !isMobileMode && isLeftSidebarOpen,
+      'min-w-39/100 max-w-39/100': !isMobileMode && !isLeftSidebarOpen,
       'w-2/3 text-base ml-1.5': isMobileMode,
       '!max-w-3/4': isSharedBase && !isMobileMode,
     }"

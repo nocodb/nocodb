@@ -1,10 +1,11 @@
-import {Amplify} from '@aws-amplify/core'
-import {Auth} from '@aws-amplify/auth'
-import {Hub} from 'aws-amplify'
-import {defineNuxtPlugin, navigateTo} from '#app'
-import {updateFirstTimeUser, useApi, useGlobal, useState} from '#imports'
+import { Amplify } from '@aws-amplify/core'
+import { Auth } from '@aws-amplify/auth'
+import { useAuthenticator } from '@aws-amplify/ui-vue'
+import { defineNuxtPlugin, navigateTo } from '#app'
+import { toRefs, useGlobal, useState, watch } from '#imports'
 
 export default defineNuxtPlugin(async (nuxtApp) => {
+  // use a Pinia store
   const isAmplifyConfigured = useState('is-amplify-configured', () => false)
 
   const amplify: { checkForCognitoToken?: () => Promise<void> } = {}
@@ -43,51 +44,21 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
     isAmplifyConfigured.value = true
 
-    const {signIn} = useGlobal()
+    const { checkForCognitoToken, signedIn } = useGlobal()
+    const { authStatus } = toRefs(useAuthenticator())
 
-    const listener = (data) => {
-      switch (data?.payload?.event) {
-        case 'signIn':
-        case 'signedUp':
-          checkForToken()
-          break
-      }
-    }
-
-    Hub.listen('auth', listener)
-
-    function checkForToken() {
-      const continueAfterSignIn = sessionStorage.getItem('continueAfterSignIn')
-      Auth.currentSession()
-        .then(async (res) => {
-          const idToken = res.getIdToken()
-          const jwt = idToken.getJwtToken()
-
-          const {api} = useApi()
-
-          const res1 = await api.instance.post(
-            '/auth/cognito',
-            {},
-            {
-              headers: {
-                'xc-cognito': jwt,
-              },
-            },
-          )
-          if ((await res1).data.token) {
-            updateFirstTimeUser()
-            sessionStorage.removeItem('continueAfterSignIn')
-            signIn((await res1).data.token)
-            navigateTo(continueAfterSignIn || '/')
-          }
-        })
-        .catch((_err) => {
-        })
-    }
-
-    amplify.checkForCognitoToken = checkForToken
+    watch(
+      [authStatus],
+      async ([status]) => {
+        if (status === 'authenticated' && !signedIn.value) {
+          await checkForCognitoToken()
+        }
+      },
+      {
+        immediate: true,
+      },
+    )
   }
-
 
   return {
     provide: {

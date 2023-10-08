@@ -390,8 +390,19 @@ export default function (
     try {
       return await requestHandler(req, res, next);
     } catch (e) {
-      // todo: error log
-      console.log(requestHandler.name ? `${requestHandler.name} ::` : '', e);
+      // skip unnecessary error logging
+      if (
+        process.env.NC_ENABLE_ALL_API_ERROR_LOGGING === 'true' ||
+        !(
+          e instanceof BadRequest ||
+          e instanceof AjvError ||
+          e instanceof Unauthorized ||
+          e instanceof Forbidden ||
+          e instanceof NotFound ||
+          e instanceof NotImplemented
+        )
+      )
+        console.log(requestHandler.name ? `${requestHandler.name} ::` : '', e);
 
       const dbError = extractDBError(e);
 

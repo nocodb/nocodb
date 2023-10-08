@@ -14,7 +14,7 @@ import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BasesService } from '~/services/bases.service';
-import { Store, User, WorkspaceUser } from '~/models';
+import { Store, User, Workspace, WorkspaceUser } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -164,22 +164,7 @@ export class UsersService extends UsersServiceCE {
         email_verification_token,
       });
 
-      const prepopulatedWorkspace =
-        await this.workspaceService.getRandomPrepopulatedWorkspace();
-
-      let transferred = false;
-
-      if (prepopulatedWorkspace) {
-        transferred = await this.workspaceService.transferOwnership({
-          user,
-          workspace: prepopulatedWorkspace,
-        });
-        createdWorkspace = prepopulatedWorkspace;
-      }
-
-      if (!transferred) {
-        createdWorkspace = await this.createDefaultWorkspace(user);
-      }
+      createdWorkspace = await this.createDefaultWorkspace(user);
     }
     user = await User.getByEmail(email);
 
@@ -227,15 +212,38 @@ export class UsersService extends UsersServiceCE {
 
   private async createDefaultWorkspace(user: User) {
     const title = `${user.email?.split('@')?.[0]}`;
-    // create new workspace for user
-    const workspace = await this.workspaceService.create({
-      user,
-      workspaces: {
-        title,
-      },
-    });
 
-    return workspace;
+    let createdWorkspace;
+
+    const prepopulatedWorkspace =
+      await this.workspaceService.getRandomPrepopulatedWorkspace();
+
+    let transferred = false;
+
+    if (prepopulatedWorkspace) {
+      transferred = await this.workspaceService.transferOwnership({
+        user,
+        workspace: prepopulatedWorkspace,
+      });
+      if (transferred) {
+        await Workspace.update(prepopulatedWorkspace.id, {
+          title,
+        });
+        createdWorkspace = prepopulatedWorkspace;
+      }
+    }
+
+    if (!transferred) {
+      // create new workspace for user
+      createdWorkspace = await this.workspaceService.create({
+        user,
+        workspaces: {
+          title,
+        },
+      });
+    }
+
+    return createdWorkspace;
   }
 
   async login(user: UserType) {
@@ -244,21 +252,7 @@ export class UsersService extends UsersServiceCE {
     });
 
     if (workspaces.length === 0) {
-      const prepopulatedWorkspace =
-        await this.workspaceService.getRandomPrepopulatedWorkspace();
-
-      let transferred = false;
-
-      if (prepopulatedWorkspace) {
-        transferred = await this.workspaceService.transferOwnership({
-          user,
-          workspace: prepopulatedWorkspace,
-        });
-      }
-
-      if (!transferred) {
-        await this.createDefaultWorkspace(user);
-      }
+      await this.createDefaultWorkspace(user);
     }
 
     return await super.login(user);

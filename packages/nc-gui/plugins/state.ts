@@ -1,4 +1,4 @@
-import { Language, LanguageAlias, defineNuxtPlugin, useApi, useGlobal } from '#imports'
+import { Language, LanguageAlias, defineNuxtPlugin, isEeUI, useApi, useGlobal } from '#imports'
 import { loadLocaleMessages, setI18nLanguage } from '~/plugins/a.i18n'
 
 /**
@@ -35,3 +35,9 @@ export default defineNuxtPlugin(async () => {
     console.error(e)
   }
 })
+
+const defaultExport = isEeUI ? defineNuxtPlugin(async () => {}) : statePlugin
+
+export { statePlugin }
+
+export default defaultExport

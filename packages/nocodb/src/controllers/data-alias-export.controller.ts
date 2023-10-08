@@ -1,6 +1,5 @@
 import { Controller, Get, Request, Response, UseGuards } from '@nestjs/common';
 import * as XLSX from 'xlsx';
-import { Throttle } from '@nestjs/throttler';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { DatasService } from '~/services/datas.service';
 import { extractCsvData, extractXlsxData } from '~/modules/datas/helpers';
@@ -10,7 +9,6 @@ import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 
 @Controller()
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
-@Throttle({ data: {} })
 export class DataAliasExportController {
   constructor(private datasService: DatasService) {}
 

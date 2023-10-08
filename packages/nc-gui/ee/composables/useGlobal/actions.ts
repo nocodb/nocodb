@@ -1,9 +1,9 @@
-import { getActivePinia } from 'pinia'
-import { Auth } from 'aws-amplify'
-import type { Actions, AppInfo, State } from '../../../composables/useGlobal/types'
-import type { ActionsEE } from './types'
-import { NcProjectType, message, updateFirstTimeUser, useNuxtApp, useState } from '#imports'
-import { navigateTo } from '#app'
+import {getActivePinia} from 'pinia'
+import {Auth} from 'aws-amplify'
+import type {Actions, AppInfo, State} from '../../../composables/useGlobal/types'
+import type {ActionsEE} from './types'
+import {NcProjectType, message, updateFirstTimeUser, useNuxtApp, useState} from '#imports'
+import {navigateTo} from '#app'
 
 export function useGlobalActions(state: State): Actions & ActionsEE {
   const setIsMobileMode = (isMobileMode: boolean) => {
@@ -17,11 +17,18 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
   const signOut: Actions['signOut'] = async (skipRedirect = true) => {
     let signoutRes
     const nuxtApp = useNuxtApp()
-    // clear cache, invalidate token
     try {
+      // invalidate token and refresh token on server
       signoutRes = await nuxtApp.$api.auth.signout()
-    } catch {
+
+      // clear amplify session if configured
+      try {
+        if (isAmplifyConfigured.value) await Auth.signOut()
+      } catch {
+        // ignore error
+      }
     } finally {
+      // clear token and user data
       state.token.value = null
       state.user.value = null
 
@@ -33,13 +40,6 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
           delete pn.state.value[store.$id]
         })
       }
-    }
-
-    // clear amplify session if configured
-    try {
-      if (isAmplifyConfigured.value) await Auth.signOut()
-    } catch (error) {
-      console.log('error signing out: ', error)
     }
 
     // todo: update type in swagger.json
@@ -63,7 +63,7 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
     }
   }
 
-  const checkForCognitoToken = async ({ skipRedirect = false } = {}) => {
+  const checkForCognitoToken = async ({skipRedirect = false} = {}) => {
     try {
       const continueAfterSignIn = sessionStorage.getItem('continueAfterSignIn')
       const cognitoUserSession = await Auth.currentSession()
@@ -89,7 +89,8 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
           navigateTo(continueAfterSignIn)
         }
       }
-    } catch (err) {}
+    } catch (err) {
+    }
   }
 
   /** manually try to refresh token */
@@ -109,7 +110,7 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
         })
         .catch(async () => {
           if (isAmplifyConfigured.value) {
-            await checkForCognitoToken();
+            await checkForCognitoToken()
           } else if (state.token.value && state.user.value) {
             await signOut()
             message.error(t('msg.error.youHaveBeenSignedOut'))
@@ -130,11 +131,11 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
 
   // todo: remove and use navigateToProject
   const navigateToProject = ({
-    workspaceId: _workspaceId,
-    type,
-    baseId,
-    query,
-  }: {
+                               workspaceId: _workspaceId,
+                               type,
+                               baseId,
+                               query,
+                             }: {
     workspaceId?: string
     baseId?: string
     type?: NcProjectType
@@ -164,13 +165,13 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
   }
 
   const ncNavigateTo = ({
-    workspaceId: _workspaceId,
-    type,
-    baseId,
-    tableId,
-    viewId,
-    query,
-  }: {
+                          workspaceId: _workspaceId,
+                          type,
+                          baseId,
+                          tableId,
+                          viewId,
+                          query,
+                        }: {
     workspaceId?: string
     baseId?: string
     type?: NcProjectType

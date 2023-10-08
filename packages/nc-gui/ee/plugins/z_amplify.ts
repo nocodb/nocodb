@@ -47,17 +47,11 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     const { checkForCognitoToken, signedIn } = useGlobal()
     const { authStatus } = toRefs(useAuthenticator())
 
-    watch(
-      [authStatus],
-      async ([status]) => {
-        if (status === 'authenticated' && !signedIn.value) {
-          await checkForCognitoToken()
-        }
-      },
-      {
-        immediate: true,
-      },
-    )
+    watch([authStatus, signedIn], async ([status, signedIn]) => {
+      if (status === 'authenticated' && !signedIn) {
+        await checkForCognitoToken()
+      }
+    })
   }
 
   return {

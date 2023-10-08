@@ -17,7 +17,7 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard, DataApiLimiterGuard)
+@UseGuards(DataApiLimiterGuard, GlobalGuard)
 export class OldDatasController {
   constructor(private readonly oldDatasService: OldDatasService) {}
 

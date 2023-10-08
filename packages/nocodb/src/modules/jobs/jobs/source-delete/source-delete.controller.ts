@@ -4,9 +4,10 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
 import { SourcesService } from '~/services/sources.service';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class SourceDeleteController {
   constructor(
     @Inject('JobsService') private readonly jobsService,

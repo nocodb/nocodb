@@ -13,6 +13,9 @@ import { UsersService } from '~/services/users/users.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
 import { UsersModule } from '~/modules/users/users.module';
+import {DataApiLimiterGuard} from "~/guards/data-api-limiter.guard";
+import {MetaApiLimiterGuard} from "~/guards/meta-api-limiter.guard";
+import {PublicApiLimiterGuard} from "~/guards/public-api-limiter.guard";
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,

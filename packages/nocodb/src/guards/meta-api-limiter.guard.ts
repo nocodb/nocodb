@@ -1,9 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { ThrottlerGuard } from '@nestjs/throttler';
+import {CanActivate, Injectable} from '@nestjs/common';
 import type { ExecutionContext } from '@nestjs/common';
 
 @Injectable()
-export class MetaApiLimiterGuard extends ThrottlerGuard {
+export class MetaApiLimiterGuard implements CanActivate {
   async canActivate(_context: ExecutionContext): Promise<boolean> {
     return true;
   }

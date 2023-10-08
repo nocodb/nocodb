@@ -63,7 +63,7 @@ const formFields = {
 
 onMounted(async () => {
   if (isAmplifyConfigured.value) {
-    await $amplify.checkForAmplifyToken()
+    await $amplify.checkForCognitoToken()
   }
 })
 </script>

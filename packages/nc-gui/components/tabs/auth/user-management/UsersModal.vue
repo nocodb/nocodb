@@ -217,7 +217,7 @@ watch(
                     v-bind="validateInfos.emails"
                     validate-trigger="onBlur"
                     name="emails"
-                    :rules="[{ required: true, message: 'Please input email' }]"
+                    :rules="[{ required: true, message: t('msg.plsInputEmail') }]"
                   >
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('datatype.Email') }}:</div>
 
@@ -233,7 +233,7 @@ watch(
                 </div>
 
                 <div class="flex flex-col w-1/4">
-                  <a-form-item name="role" :rules="[{ required: true, message: 'Role required' }]">
+                  <a-form-item name="role" :rules="[{ required: true, message: t('msg.roleRequired') }]">
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
 
                     <a-select
@@ -274,9 +274,9 @@ watch(
       </div>
 
       <div class="flex flex-row justify-end gap-x-2 border-t-1 border-gray-100 pt-3">
-        <a-button key="back" class="!rounded-md" @click="cancel">Cancel</a-button>
+        <a-button key="back" class="!rounded-md" @click="cancel">{{$t('general.cancel')}}</a-button>
         <a-button class="!rounded-md">Manage base access</a-button>
-        <a-button key="submit" class="!rounded-md" type="primary" :loading="loading">Share</a-button>
+        <a-button key="submit" class="!rounded-md" type="primary" :loading="loading">{{$t('activity.share')}}</a-button>
       </div>
     </div>
   </GeneralModal>

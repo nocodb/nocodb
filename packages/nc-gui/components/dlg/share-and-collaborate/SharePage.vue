@@ -330,29 +330,24 @@ const isPublicShareDisabled = computed(() => {
           </div>
 
           <div v-if="activeView?.type === ViewTypes.FORM" class="flex flex-row justify-between">
-            <!-- use RTL orientation in form - todo: i18n -->
             <div class="text-black">{{ $t('activity.surveyMode') }}</div>
             <a-switch
               v-model:checked="surveyMode"
               v-e="['c:share:view:surver-mode:toggle']"
               data-testid="nc-modal-share-view__surveyMode"
             >
-              <!-- todo i18n -->
             </a-switch>
           </div>
           <div v-if="activeView?.type === ViewTypes.FORM && isEeUI" class="flex flex-row justify-between">
-            <!-- use RTL orientation in form - todo: i18n -->
             <div class="text-black">{{ $t('activity.rtlOrientation') }}</div>
             <a-switch
               v-model:checked="withRTL"
               v-e="['c:share:view:rtl-orientation:toggle']"
               data-testid="nc-modal-share-view__RTL"
             >
-              <!-- todo i18n -->
             </a-switch>
           </div>
           <div v-if="activeView?.type === ViewTypes.FORM" class="flex flex-col justify-between gap-y-1 bg-gray-50 rounded-md">
-            <!-- todo: i18n -->
             <div class="flex flex-row justify-between">
               <div class="text-black">{{ $t('activity.useTheme') }}</div>
               <a-switch

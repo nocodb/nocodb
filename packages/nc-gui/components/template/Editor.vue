@@ -706,8 +706,7 @@ function handleUIDTChange(column, table) {
           <template #extra>
             <a-tooltip bottom>
               <template #title>
-                <!-- TODO: i18n -->
-                <span>Delete Table</span>
+                <span>{{ $t('activity.deleteTable') }}</span>
               </template>
               <component
                 :is="iconMap.delete"
@@ -808,8 +807,7 @@ function handleUIDTChange(column, table) {
             <template #extra>
               <a-tooltip bottom>
                 <template #title>
-                  <!-- TODO: i18n -->
-                  <span>Delete Table</span>
+                  <span>{{ $t('activity.deleteTable') }}</span>
                 </template>
                 <component
                   :is="iconMap.delete"
@@ -846,8 +844,7 @@ function handleUIDTChange(column, table) {
 
                 <template v-else-if="column.key === 'dtxp' && hasSelectColumn[tableIdx]">
                   <span>
-                    <!-- TODO: i18n -->
-                    Options
+                    {{ $t('general.options')}}
                   </span>
                 </template>
               </template>
@@ -872,7 +869,7 @@ function handleUIDTChange(column, table) {
                       <a-select-option v-for="(option, i) of uiTypeOptions" :key="i" :value="option.value">
                         <a-tooltip placement="right">
                           <template v-if="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)" #title>
-                            The field is too large to be converted to {{ option.label }}
+                            {{ $t('msg.tooLargeField') }} {{ option.label }}
                           </template>
                           {{ option.label }}
                         </a-tooltip>
@@ -890,8 +887,7 @@ function handleUIDTChange(column, table) {
                 <template v-if="column.key === 'action'">
                   <a-tooltip v-if="record.key === 0">
                     <template #title>
-                      <!-- TODO: i18n -->
-                      <span>Primary Value</span>
+                      <span>{{ $t('general.primaryValue')}}</span>
                     </template>
 
                     <div class="flex items-center float-right mr-4">
@@ -901,8 +897,7 @@ function handleUIDTChange(column, table) {
 
                   <a-tooltip v-else>
                     <template #title>
-                      <!-- TODO: i18n -->
-                      <span>Delete Column</span>
+                      <span>{{  $t('activity.deleteColumn') }}</span>
                     </template>
 
                     <a-button type="text" @click="deleteTableColumn(tableIdx, record.key)">
@@ -918,8 +913,7 @@ function handleUIDTChange(column, table) {
             <div class="mt-5 flex gap-2 justify-center">
               <a-tooltip bottom>
                 <template #title>
-                  <!-- TODO: i18n -->
-                  <span>Add Number Column</span>
+                  <span>{{  $t('activity.column.addNumberColumn') }}</span>
                 </template>
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'Number')">
@@ -931,8 +925,7 @@ function handleUIDTChange(column, table) {
 
               <a-tooltip bottom>
                 <template #title>
-                  <!-- TODO: i18n -->
-                  <span>Add SingleLineText Column</span>
+                  <span>{{  $t('activity.column.addSingleLineText') }}</span>
                 </template>
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">
@@ -944,8 +937,7 @@ function handleUIDTChange(column, table) {
 
               <a-tooltip bottom>
                 <template #title>
-                  <!-- TODO: i18n -->
-                  <span>Add LongText Column</span>
+                  <span>{{  $t('activity.column.addLongText') }}</span>
                 </template>
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'LongText')">
@@ -957,8 +949,7 @@ function handleUIDTChange(column, table) {
 
               <a-tooltip bottom>
                 <template #title>
-                  <!-- TODO: i18n -->
-                  <span>Add Other Column</span>
+                  <span>{{  $t('activity.column.addOther') }}</span>
                 </template>
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">

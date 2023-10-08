@@ -58,7 +58,7 @@ watch(
               v-bind="validateInfos.emails"
               validate-trigger="onBlur"
               name="emails"
-              :rules="[{ required: true, message: 'Please input email' }]"
+              :rules="[{ required: true, message: t('msg.plsInputEmail') }]"
             >
               <a-input
                 v-model:value="invitationUsersData.emails"
@@ -72,7 +72,7 @@ watch(
           </div>
 
           <div class="flex flex-col w-1/5">
-            <a-form-item name="role" :rules="[{ required: true, message: 'Role required' }]">
+            <a-form-item name="role" :rules="[{ required: true, message: t('msg.roleRequired') }]">
               <a-select
                 v-model:value="invitationUsersData.role"
                 class="!rounded-md !bg-white"

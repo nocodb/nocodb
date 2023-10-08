@@ -399,7 +399,8 @@ export default function (
           e instanceof Unauthorized ||
           e instanceof Forbidden ||
           e instanceof NotFound ||
-          e instanceof NotImplemented
+          e instanceof NotImplemented ||
+          e instanceof UnprocessableEntity
         )
       )
         console.log(requestHandler.name ? `${requestHandler.name} ::` : '', e);
@@ -429,7 +430,8 @@ export default function (
       } else if (e instanceof NotAllowed) {
         return res.status(405).json({ msg: e.message });
       }
-      next(e);
+      // if some other error occurs then send 500 and a generic message
+      res.status(500).json({ msg: 'Internal server error' });
     }
   };
 }

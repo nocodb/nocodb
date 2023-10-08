@@ -43,6 +43,8 @@ const moveOps = ref<moveOp[]>([])
 
 const visibilityOps = ref<fieldsVisibilityOps[]>([])
 
+const fieldsListWrapperDomRef = ref<HTMLElement>()
+
 const {
   fields: viewFields,
   toggleFieldVisibility,
@@ -192,6 +194,13 @@ const addField = (field?: TableExplorerColumn, before = false) => {
     setFieldMoveHook(field, before)
   }
   changeField({})
+
+  // Scroll to the bottom of the list for new field add
+  setTimeout(() => {
+    if (!field && !before && fieldsListWrapperDomRef.value) {
+      fieldsListWrapperDomRef.value.scrollTop = fieldsListWrapperDomRef.value.scrollHeight
+    }
+  }, 100)
 }
 
 const displayColumn = computed(() => {
@@ -626,7 +635,7 @@ onMounted(async () => {
           </div>
         </div>
         <div class="flex flex-row rounded-lg border-1 border-gray-200">
-          <div class="nc-scrollbar-md !overflow-auto w-full flex-grow-1 nc-fields-height">
+          <div ref="fieldsListWrapperDomRef" class="nc-scrollbar-md !overflow-auto w-full flex-grow-1 nc-fields-height">
             <Draggable v-model="fields" item-key="id" @change="onMove($event)">
               <template #item="{ element: field }">
                 <div

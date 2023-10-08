@@ -1,7 +1,7 @@
 import { Amplify } from '@aws-amplify/core'
 import { Auth } from '@aws-amplify/auth'
 import { useAuthenticator } from '@aws-amplify/ui-vue'
-import { defineNuxtPlugin, navigateTo } from '#app'
+import { defineNuxtPlugin, navigateTo, useRoute } from '#app'
 import { toRefs, useGlobal, useState, watch } from '#imports'
 
 export default defineNuxtPlugin(async (nuxtApp) => {
@@ -52,6 +52,10 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       async ([status, signedIn]) => {
         if (status === 'authenticated' && !signedIn) {
           await checkForCognitoToken()
+          const route = useRoute()
+          if (/signin|signup/i.test(route.name)) {
+            navigateTo('/')
+          }
         }
       },
       {

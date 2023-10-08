@@ -603,7 +603,7 @@
     "embedInSite": "Embed this view in your site",
     "titleRequired": "title is required.",
     "sourceNameRequired":"Source name is required",
-    "changeWsName":"Change Workspace Name",
+    "changeWsName":"Change Workspace Name"
   },
   "activity": {
     "onCondition": "On Condition",

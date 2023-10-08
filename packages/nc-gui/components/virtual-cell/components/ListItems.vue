@@ -335,6 +335,7 @@ onKeyStroke('Escape', () => {
                   new: true,
                 },
         }"
+        :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         :state="newRowState"
         use-meta-fields
       />

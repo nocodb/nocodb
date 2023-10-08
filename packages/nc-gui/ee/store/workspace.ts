@@ -241,13 +241,18 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const loadWorkspace = async (workspaceId: string) => {
-    const res = await $api.workspace.read(workspaceId, {
-      baseURL: appInfo.value.baseHostName ? `https://${workspaceId}.${appInfo.value.baseHostName}` : undefined,
-    })
+    try {
+      const res = await $api.workspace.read(workspaceId, {
+        baseURL: appInfo.value.baseHostName ? `https://${workspaceId}.${appInfo.value.baseHostName}` : undefined,
+      })
 
-    workspaces.value.set(res.workspace.id!, res.workspace)
+      workspaces.value.set(res.workspace.id!, res.workspace)
 
-    workspaceUserCount.value = Number(res.workspaceUserCount)
+      workspaceUserCount.value = Number(res.workspaceUserCount)
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+      navigateTo('/')
+    }
   }
 
   async function populateWorkspace({ force, workspaceId: _workspaceId }: { force?: boolean; workspaceId?: string } = {}) {

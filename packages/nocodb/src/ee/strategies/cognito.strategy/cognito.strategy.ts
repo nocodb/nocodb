@@ -30,19 +30,20 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
 
       if (req.headers['xc-cognito']) {
         // todo: replace with env/config
-        const verifier = CognitoJwtVerifier.create({
-          userPoolId: this.configService.get('cognito.aws_user_pools_id', {
-            infer: true,
-          }),
-          tokenUse: 'id',
-          clientId: this.configService.get(
-            'cognito.aws_user_pools_web_client_id',
-            { infer: true },
-          ),
-        });
+        const verifier = CognitoJwtVerifier.create(
+          {
+            userPoolId: this.configService.get('cognito.aws_user_pools_id', {
+              infer: true,
+            }),
+            tokenUse: 'id',
+            clientId: this.configService.get(
+              'cognito.aws_user_pools_web_client_id',
+              { infer: true },
+            ),
+          },
+        );
 
         const payload = await verifier.verify(req.headers['xc-cognito']);
-        console.log('Token is valid. Payload:', payload);
         const email = (payload as any)['email'];
         // get user by email
         await User.getByEmail(email).then(async (user) => {
@@ -73,7 +74,7 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
                 provider: 'openid',
               });
             } catch (err) {
-              return callback(err);
+              return callback('Token validation failed');
             }
           }
         });

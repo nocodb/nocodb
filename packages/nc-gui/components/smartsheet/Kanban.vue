@@ -573,7 +573,6 @@ watch(
                                         :key="`carousel-${record.row.id}-${index}`"
                                         class="h-52 object-cover"
                                         :srcs="getPossibleAttachmentSrc(attachment)"
-                                        @click="expandFormClick($event, record)"
                                       />
                                     </template>
                                   </a-carousel>

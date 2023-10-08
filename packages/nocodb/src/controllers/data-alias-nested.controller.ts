@@ -8,14 +8,12 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
 import { DataAliasNestedService } from '~/services/data-alias-nested.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 
 @Controller()
-@Throttle({ meta: {} })
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
 export class DataAliasNestedController {
   constructor(private dataAliasNestedService: DataAliasNestedService) {}

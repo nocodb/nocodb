@@ -545,7 +545,10 @@ const getRowId = (row: RowType) => {
                               >
                                 <template v-if="kanbanMetaData?.fk_cover_image_col_id" #cover>
                                   <template v-if="!reloadAttachments && attachments(record).length">
-                                    <a-carousel class="gallery-carousel !border-b-1 !border-gray-200">
+                                    <a-carousel
+                                      :key="attachments(record).reduce((acc, curr) => acc + curr?.path, '')"
+                                      class="gallery-carousel !border-b-1 !border-gray-200"
+                                    >
                                       <template #customPaging>
                                         <a>
                                           <div class="pt-[12px]">
@@ -573,7 +576,7 @@ const getRowId = (row: RowType) => {
                                       <template v-for="(attachment, index) in attachments(record)">
                                         <LazyCellAttachmentImage
                                           v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
-                                          :key="`carousel-${record.row.id}-${index}`"
+                                          :key="attachment.path"
                                           class="h-52 object-cover"
                                           :srcs="getPossibleAttachmentSrc(attachment)"
                                         />

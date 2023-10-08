@@ -33,10 +33,10 @@ const getAst = async ({
   dependencyFields.fieldsSet = dependencyFields.fieldsSet || new Set();
 
   let coverImageId;
-  if (view.type === ViewTypes.GALLERY) {
+  if (view && view.type === ViewTypes.GALLERY) {
     const gallery = await GalleryView.get(view.id);
     coverImageId = gallery.fk_cover_image_col_id;
-  } else if (view.type === ViewTypes.KANBAN) {
+  } else if (view && view.type === ViewTypes.KANBAN) {
     const kanban = await KanbanView.get(view.id);
     coverImageId = kanban.fk_cover_image_col_id;
   }

@@ -885,7 +885,7 @@ const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?
 }
 
 // #Grid Resize
-const { updateGridViewColumn, resizingColWidth, resizingCol } = useGridViewColumnOrThrow()
+const { updateGridViewColumn, gridViewCols, resizingColOldWith } = useGridViewColumnOrThrow()
 
 const onresize = (colID: string | undefined, event: any) => {
   if (!colID) return
@@ -894,8 +894,12 @@ const onresize = (colID: string | undefined, event: any) => {
 
 const onXcResizing = (cn: string | undefined, event: any) => {
   if (!cn) return
-  resizingCol.value = cn
-  resizingColWidth.value = event.detail
+  gridViewCols.value[cn].width = `${event.detail}`
+}
+
+const onXcStartResizing = (cn: string | undefined, event: any) => {
+  if (!cn) return
+  resizingColOldWith.value = event.detail
 }
 
 const loadColumn = (title: string, tp: string, colOptions?: any) => {
@@ -1231,9 +1235,14 @@ const loaderText = computed(() => {
                   v-xc-ver-resize
                   :data-col="col.id"
                   :data-title="col.title"
+                  :style="{
+                    'min-width': gridViewCols[col.id]?.width || '200px',
+                    'max-width': gridViewCols[col.id]?.width || '200px',
+                    'width': gridViewCols[col.id]?.width || '200px',
+                  }"
+                  @xcstartresizing="onXcStartResizing(col.id, $event)"
                   @xcresize="onresize(col.id, $event)"
-                  @xcresizing="onXcResizing(col.title, $event)"
-                  @xcresized="resizingCol = null"
+                  @xcresizing="onXcResizing(col.id, $event)"
                 >
                   <div class="w-full h-full flex items-center">
                     <LazySmartsheetHeaderVirtualCell
@@ -1458,6 +1467,11 @@ const loaderText = computed(() => {
                           (isLookup(columnObj) || isRollup(columnObj) || isFormula(columnObj)) &&
                           hasEditPermission &&
                           isCellSelected(rowIndex, colIndex),
+                      }"
+                      :style="{
+                        'min-width': gridViewCols[columnObj.id]?.width || '200px',
+                        'max-width': gridViewCols[columnObj.id]?.width || '200px',
+                        'width': gridViewCols[columnObj.id]?.width || '200px',
                       }"
                       :data-testid="`cell-${columnObj.title}-${rowIndex}`"
                       :data-key="`data-key-${rowIndex}-${columnObj.id}`"

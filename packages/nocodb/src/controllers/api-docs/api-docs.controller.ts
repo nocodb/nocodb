@@ -11,30 +11,43 @@ import getRedocHtml from './template/redocHtml';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { ApiDocsService } from '~/services/api-docs/api-docs.service';
+import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
 export class ApiDocsController {
   constructor(private readonly apiDocsService: ApiDocsService) {}
 
-  @Get('/api/v1/db/meta/projects/:projectId/swagger.json')
-  @UseGuards(GlobalGuard)
+  @Get([
+    '/api/v1/db/meta/projects/:baseId/swagger.json',
+    '/api/v1/meta/bases/:baseId/swagger.json',
+  ])
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Acl('swaggerJson')
-  async swaggerJson(@Param('projectId') projectId: string, @Request() req) {
+  async swaggerJson(@Param('baseId') baseId: string, @Request() req) {
     const swagger = await this.apiDocsService.swaggerJson({
-      projectId: projectId,
+      baseId: baseId,
       siteUrl: req.ncSiteUrl,
     });
 
     return swagger;
   }
 
-  @Get('/api/v1/db/meta/projects/:projectId/swagger')
-  swaggerHtml(@Param('projectId') projectId: string, @Response() res) {
+  @Get([
+    '/api/v1/meta/bases/:baseId/swagger',
+    '/api/v1/db/meta/projects/:baseId/swagger',
+  ])
+  @UseGuards(PublicApiLimiterGuard)
+  swaggerHtml(@Param('baseId') baseId: string, @Response() res) {
     res.send(getSwaggerHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));
   }
 
-  @Get('/api/v1/db/meta/projects/:projectId/redoc')
-  redocHtml(@Param('projectId') projectId: string, @Response() res) {
+  @UseGuards(PublicApiLimiterGuard)
+  @Get([
+    '/api/v1/db/meta/projects/:baseId/redoc',
+    '/api/v1/meta/bases/:baseId/redoc',
+  ])
+  redocHtml(@Param('baseId') baseId: string, @Response() res) {
     res.send(getRedocHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));
   }
 }

@@ -13,13 +13,17 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class ViewColumnsController {
   constructor(private readonly viewColumnsService: ViewColumnsService) {}
 
-  @Get('/api/v1/db/meta/views/:viewId/columns/')
+  @Get([
+    '/api/v1/db/meta/views/:viewId/columns/',
+    '/api/v1/meta/views/:viewId/columns/',
+  ])
   @Acl('columnList')
   async columnList(@Param('viewId') viewId: string) {
     return new PagedResponseImpl(
@@ -29,7 +33,10 @@ export class ViewColumnsController {
     );
   }
 
-  @Post('/api/v1/db/meta/views/:viewId/columns/')
+  @Post([
+    '/api/v1/db/meta/views/:viewId/columns/',
+    '/api/v1/meta/views/:viewId/columns/',
+  ])
   @HttpCode(200)
   @Acl('columnAdd')
   async columnAdd(
@@ -43,7 +50,10 @@ export class ViewColumnsController {
     return viewColumn;
   }
 
-  @Patch('/api/v1/db/meta/views/:viewId/columns/:columnId')
+  @Patch([
+    '/api/v1/db/meta/views/:viewId/columns/:columnId',
+    '/api/v1/meta/views/:viewId/columns/:columnId',
+  ])
   @Acl('columnUpdate')
   async columnUpdate(
     @Param('viewId') viewId: string,

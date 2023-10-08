@@ -4,19 +4,15 @@ import type { AuditType } from 'nocodb-sdk'
 import { Icon } from '@iconify/vue'
 import { ref, timeAgo, useExpandedFormStoreOrThrow, useGlobal, useRoles, watch } from '#imports'
 
-const { loadCommentsAndLogs, commentsAndLogs, saveComment, comment, updateComment } = useExpandedFormStoreOrThrow()
+const { loadCommentsAndLogs, commentsAndLogs, saveComment: _saveComment, comment, updateComment } = useExpandedFormStoreOrThrow()
 
 const commentsWrapperEl = ref<HTMLDivElement>()
-
-await loadCommentsAndLogs()
 
 const { user } = useGlobal()
 
 const tab = ref<'comments' | 'audits'>('comments')
 
 const { isUIAllowed } = useRoles()
-
-const { appInfo } = useGlobal()
 
 const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
 
@@ -90,24 +86,18 @@ const value = computed({
   },
 })
 
-watch(
-  commentsAndLogs,
-  () => {
-    setTimeout(() => {
-      if (commentsWrapperEl.value) commentsWrapperEl.value.scrollTop = commentsWrapperEl.value?.scrollHeight
-    }, 200)
-  },
-  { immediate: true },
-)
-
-// Ignore first line if its the only one
-const processedAudit = (log: string) => {
-  const dotSplit = log.split('.')
-
-  if (dotSplit.length === 1) return log
-
-  return log.substring(log.indexOf('.') + 1)
+function scrollComments() {
+  if (commentsWrapperEl.value) commentsWrapperEl.value.scrollTop = commentsWrapperEl.value?.scrollHeight
 }
+
+const saveComment = async () => {
+  await _saveComment()
+  scrollComments()
+}
+
+watch(commentsWrapperEl, () => {
+  scrollComments()
+})
 </script>
 
 <template>
@@ -115,6 +105,7 @@ const processedAudit = (log: string) => {
     <div class="h-16 bg-white rounded-t-lg border-gray-200 border-b-1">
       <div class="flex flex-row gap-2 m-2 p-1 bg-gray-100 rounded-lg">
         <div
+          v-e="['c:row-expand:comment']"
           class="tab flex-1 px-4 py-2 transition-all text-gray-600 cursor-pointer rounded-lg"
           :class="{
             'bg-white shadow !text-brand-500 !hover:text-brand-500': tab === 'comments',
@@ -127,6 +118,7 @@ const processedAudit = (log: string) => {
           </div>
         </div>
         <div
+          v-e="['c:row-expand:audit']"
           class="tab flex-1 px-4 py-2 transition-all text-gray-600 cursor-pointer rounded-lg"
           :class="{
             'bg-white shadow !text-brand-500 !hover:text-brand-500': tab === 'audits',
@@ -146,31 +138,33 @@ const processedAudit = (log: string) => {
         'pb-2': tab !== 'comments',
       }"
     >
-      <div v-if="tab === 'comments'" ref="commentsWrapperEl" class="flex flex-col h-full">
+      <div v-if="tab === 'comments'" class="flex flex-col h-full">
         <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full">
           <div class="text-center text-3xl text-gray-700">
             <GeneralIcon icon="commentHere" />
           </div>
           <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
         </div>
-        <div v-else class="flex flex-col h-full py-2 pl-2 pr-1 space-y-2 nc-scrollbar-md">
+        <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-2 pl-2 pr-1 space-y-2 nc-scrollbar-md">
           <div v-for="log of comments" :key="log.id">
             <div class="bg-white rounded-xl group border-1 gap-2 border-gray-200">
               <div class="flex flex-col p-4 gap-3">
                 <div class="flex justify-between">
                   <div class="flex items-center gap-2">
-                    <GeneralUserIcon size="base" :name="log.display_name ?? log.user" />
+                    <GeneralUserIcon size="base" :name="log.display_name ?? log.user" :email="log.user" />
+
                     <div class="flex flex-col">
                       <span class="truncate font-bold max-w-42">
-                        {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared base' }}
+                        {{ log.display_name ?? log.user.split('@')[0] ?? 'Shared source' }}
                       </span>
-                      <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
+                      <div v-if="log.id !== editLog?.id" class="text-xs font-medium text-gray-500">
                         {{ log.created_at !== log.updated_at ? `Edited ${timeAgo(log.updated_at)}` : timeAgo(log.created_at) }}
                       </div>
                     </div>
                   </div>
                   <NcButton
-                    v-if="log.user === user!.email && !editLog && !appInfo.ee"
+                    v-if="log.user === user!.email && !editLog"
+                    v-e="['c:row-expand:comment:edit']"
                     type="secondary"
                     class="!px-2 opacity-0 group-hover:opacity-100 transition-all"
                     size="sm"
@@ -192,7 +186,7 @@ const processedAudit = (log: string) => {
                 </div>
                 <div v-if="log.id === editLog?.id" class="flex justify-end gap-1">
                   <NcButton type="secondary" size="sm" @click="onCancel"> Cancel </NcButton>
-                  <NcButton size="sm" @click="onEditComment"> Save </NcButton>
+                  <NcButton v-e="['a:row-expand:comment:save']" size="sm" @click="onEditComment"> Save </NcButton>
                 </div>
               </div>
             </div>
@@ -200,7 +194,7 @@ const processedAudit = (log: string) => {
         </div>
         <div v-if="hasEditPermission" class="p-2 bg-gray-50 gap-2 flex">
           <div class="h-14 flex flex-row w-full bg-white py-2.75 px-1.5 items-center rounded-xl border-1 border-gray-200">
-            <GeneralUserIcon size="base" class="!w-10" />
+            <GeneralUserIcon size="base" class="!w-10" :email="user?.email" />
             <a-input
               v-model:value="comment"
               class="!rounded-lg border-1 bg-white !px-2.5 !py-2 !border-gray-200 nc-comment-box !outline-none"
@@ -209,13 +203,19 @@ const processedAudit = (log: string) => {
               @keyup.enter.prevent="saveComment"
             >
             </a-input>
-            <NcButton size="medium" class="!w-8" :disabled="!comment.length" @click="saveComment">
+            <NcButton
+              v-e="['a:row-expand:comment:save']"
+              size="medium"
+              class="!w-8"
+              :disabled="!comment.length"
+              @click="saveComment"
+            >
               <GeneralIcon icon="send" />
             </NcButton>
           </div>
         </div>
       </div>
-      <div v-else ref="commentsWrapperEl" class="flex flex-col h-full pl-2 pr-1 pt-2 nc-scrollbar-md space-y-2">
+      <div v-if="tab === 'audits'" ref="commentsWrapperEl" class="flex flex-col h-full pl-2 pr-1 pt-2 nc-scrollbar-md space-y-2">
         <template v-if="audits.length === 0">
           <div class="flex flex-col text-center justify-center h-full">
             <div class="text-center text-3xl text-gray-600">
@@ -225,25 +225,23 @@ const processedAudit = (log: string) => {
           </div>
         </template>
         <div v-for="log of audits" :key="log.id">
-          <div class="bg-white rounded-xl border-1 gap-3 border-gray-200">
+          <div v-if="log.details" class="bg-white rounded-xl border-1 gap-3 border-gray-200">
             <div class="flex flex-col p-4 gap-3">
               <div class="flex justify-between">
-                <div class="flex font-bold items-center gap-2">
-                  <GeneralUserIcon size="base" :name="log.display_name ?? log.user" />
+                <div class="flex items-center gap-2">
+                  <GeneralUserIcon size="base" :email="log.user" />
 
                   <div class="flex flex-col">
-                    <span class="truncate max-w-50">
-                      {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared base' }}
+                    <span class="truncate font-bold max-w-50">
+                      {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared source' }}
                     </span>
-                    <div v-if="log.id !== editLog?.id" class="text-xs text-gray-500">
+                    <div v-if="log.id !== editLog?.id" class="text-xs font-medium text-gray-500">
                       {{ timeAgo(log.created_at) }}
                     </div>
                   </div>
                 </div>
               </div>
-              <div class="text-sm font-medium text-gray-700">
-                {{ processedAudit(log.description) }}
-              </div>
+              <div v-dompurify-html="log.details" class="text-sm font-medium"></div>
             </div>
           </div>
         </div>
@@ -258,5 +256,17 @@ const processedAudit = (log: string) => {
   word-break: 'keep-all';
   white-space: 'nowrap';
   display: 'inline';
+}
+
+.text-decoration-line-through {
+  text-decoration: line-through;
+}
+
+:deep(.red.lighten-4) {
+  @apply bg-red-100 rounded-md line-through;
+}
+
+:deep(.green.lighten-4) {
+  @apply bg-green-100 rounded-md !mr-3 !leading-6;
 }
 </style>

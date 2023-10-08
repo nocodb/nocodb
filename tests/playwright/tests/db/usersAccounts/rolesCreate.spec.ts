@@ -24,7 +24,7 @@ test.describe.skip('User roles', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     signupPage = new SignupPage(page);
     projectsPage = new ProjectsPage(page);
   });
@@ -37,7 +37,7 @@ test.describe.skip('User roles', () => {
     test.slow();
 
     for (let i = 0; i < roleDb.length; i++) {
-      await dashboard.projectView.btn_share.click();
+      await dashboard.baseView.btn_share.click();
       roleDb[i].url = await settings.teams.invite({
         email: roleDb[i].email,
         role: roleDb[i].role,
@@ -90,14 +90,14 @@ test.describe.skip('User roles', () => {
       exists: roleDb[roleIdx].role === 'creator' ? true : false,
     });
 
-    // Project page validation
+    // Base page validation
     await dashboard.clickHome();
     await projectsPage.validateRoleAccess({
       role: roleDb[roleIdx].role,
     });
 
     await projectsPage.openProject({
-      title: context.project.title,
+      title: context.base.title,
       waitForAuthTab: roleDb[roleIdx].role === 'creator',
       withoutPrefix: true,
     });
@@ -112,7 +112,7 @@ test.describe.skip('User roles', () => {
       password: getDefaultPwd(),
     });
 
-    await workspacePage.projectOpen({ title: context.project.title });
+    await workspacePage.baseOpen({ title: context.base.title });
 
     // close 'Team & Auth' tab
     if (roleDb[roleIdx].role === 'creator') {

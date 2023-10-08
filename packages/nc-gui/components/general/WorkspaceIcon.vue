@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { WorkspaceType } from 'nocodb-sdk'
+import { isColorDark, stringToColor } from '~/utils/colorsUtils'
 
 const props = defineProps<{
   workspace: WorkspaceType | undefined
@@ -8,7 +9,7 @@ const props = defineProps<{
 }>()
 
 const workspaceColor = computed(() =>
-  props.workspace ? props.workspace.meta?.color || stringToColour(props.workspace.id!) : undefined,
+  props.workspace ? props.workspace.meta?.color || stringToColor(props.workspace.id!) : undefined,
 )
 
 const size = computed(() => props.size || 'medium')
@@ -25,7 +26,13 @@ const size = computed(() => props.size || 'medium')
     :style="{ backgroundColor: workspaceColor }"
   >
     <template v-if="!props.hideLabel">
-      <div class="font-black">
+      <div
+        class="font-semibold"
+        :class="{
+          'text-white': isColorDark(workspaceColor),
+          'text-black': !isColorDark(workspaceColor),
+        }"
+      >
         {{ props.workspace?.title?.slice(0, 2) }}
       </div>
     </template>

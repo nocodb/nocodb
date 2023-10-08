@@ -5,7 +5,7 @@ import makeServer from '../../../setup/server';
 import { WebhookFormPage } from '../../../pages/Dashboard/WebhookForm';
 import { isSubset } from '../../../tests/utils/general';
 import { Api, UITypes } from 'nocodb-sdk';
-import { isEE, isMysql, isSqlite } from '../../../setup/db';
+import { enableQuickRun, isEE, isMysql, isSqlite } from '../../../setup/db';
 
 const hookPath = 'http://localhost:9090/hook';
 
@@ -103,6 +103,7 @@ async function buildExpectedResponseData(type, value, oldValue?) {
 }
 
 test.describe.serial('Webhook', () => {
+  if (enableQuickRun()) test.skip();
   let api: Api<any>;
 
   // start a server locally for webhook tests
@@ -116,7 +117,7 @@ test.describe.serial('Webhook', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     webhook = dashboard.webhookForm;
 
     api = new Api({
@@ -138,7 +139,7 @@ test.describe.serial('Webhook', () => {
     // close 'Team & Auth' tab
     await clearServerData({ request });
     await dashboard.closeTab({ title: 'Team & Auth' });
-    await dashboard.treeView.createTable({ title: 'Test', projectTitle: context.project.title });
+    await dashboard.treeView.createTable({ title: 'Test', baseTitle: context.base.title });
 
     // create
     //
@@ -313,7 +314,7 @@ test.describe.serial('Webhook', () => {
     await clearServerData({ request });
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
-    await dashboard.treeView.createTable({ title: 'Test', projectTitle: context.project.title });
+    await dashboard.treeView.createTable({ title: 'Test', baseTitle: context.base.title });
 
     // after insert hook
     await webhook.create({
@@ -484,11 +485,11 @@ test.describe.serial('Webhook', () => {
         uidt: UITypes.Number,
       },
     ];
-    let project, table;
+    let base, table;
 
     try {
-      project = await api.project.read(context.project.id);
-      table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      base = await api.base.read(context.base.id);
+      table = await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
         table_name: 'Test',
         title: 'Test',
         columns: columns,
@@ -519,7 +520,7 @@ test.describe.serial('Webhook', () => {
       Id: i + 1,
       Number: (i + 1) * 100,
     }));
-    await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributesForInsert);
+    await api.dbTableRow.bulkCreate('noco', context.base.id, table.id, rowAttributesForInsert);
     await page.reload();
     let rsp = await getWebhookResponses({ request, count: 1 });
     await verifyBulkOperationTrigger(rsp, 'records.after.bulkInsert');
@@ -532,7 +533,7 @@ test.describe.serial('Webhook', () => {
       Number: (i + 1) * 111,
     }));
 
-    await api.dbTableRow.bulkUpdate('noco', context.project.id, table.id, rowAttributesForUpdate);
+    await api.dbTableRow.bulkUpdate('noco', context.base.id, table.id, rowAttributesForUpdate);
     await page.reload();
     // 50 records updated, we expect 2 webhook responses
     rsp = await getWebhookResponses({ request, count: 1 });
@@ -542,7 +543,7 @@ test.describe.serial('Webhook', () => {
     await clearServerData({ request });
     const rowAttributesForDelete = Array.from({ length: 50 }, (_, i) => ({ Id: i + 1 }));
 
-    await api.dbTableRow.bulkDelete('noco', context.project.id, table.id, rowAttributesForDelete);
+    await api.dbTableRow.bulkDelete('noco', context.base.id, table.id, rowAttributesForDelete);
     await page.reload();
     rsp = await getWebhookResponses({ request, count: 1 });
     await verifyBulkOperationTrigger(rsp, 'records.after.bulkDelete');
@@ -588,13 +589,13 @@ test.describe.serial('Webhook', () => {
     ];
 
     try {
-      const project = await api.project.read(context.project.id);
-      cityTable = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      const base = await api.base.read(context.base.id);
+      cityTable = await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
         table_name: 'City',
         title: 'City',
         columns: cityColumns,
       });
-      countryTable = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      countryTable = await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
         table_name: 'Country',
         title: 'Country',
         columns: countryColumns,
@@ -606,7 +607,7 @@ test.describe.serial('Webhook', () => {
         { City: 'Delhi', CityCode: 43 },
         { City: 'Bangalore', CityCode: 53 },
       ];
-      await api.dbTableRow.bulkCreate('noco', context.project.id, cityTable.id, cityRowAttributes);
+      await api.dbTableRow.bulkCreate('noco', context.base.id, cityTable.id, cityRowAttributes);
     } catch (e) {
       console.error(e);
     }
@@ -618,7 +619,7 @@ test.describe.serial('Webhook', () => {
         { Country: 'UK', CountryCode: 3 },
         { Country: 'Australia', CountryCode: 4 },
       ];
-      await api.dbTableRow.bulkCreate('noco', context.project.id, countryTable.id, countryRowAttributes);
+      await api.dbTableRow.bulkCreate('noco', context.base.id, countryTable.id, countryRowAttributes);
 
       // create LTAR Country has-many City
       countryTable = await api.dbTableColumn.create(countryTable.id, {
@@ -653,10 +654,10 @@ test.describe.serial('Webhook', () => {
 
     try {
       // Create links
-      await api.dbTableRow.nestedAdd('noco', context.project.id, countryTable.title, 1, 'hm', 'CityList', '1');
-      await api.dbTableRow.nestedAdd('noco', context.project.id, countryTable.title, 1, 'hm', 'CityList', '2');
-      await api.dbTableRow.nestedAdd('noco', context.project.id, countryTable.title, 2, 'hm', 'CityList', '3');
-      await api.dbTableRow.nestedAdd('noco', context.project.id, countryTable.title, 3, 'hm', 'CityList', '4');
+      await api.dbTableRow.nestedAdd('noco', context.base.id, countryTable.title, 1, 'hm', 'CityList', '1');
+      await api.dbTableRow.nestedAdd('noco', context.base.id, countryTable.title, 1, 'hm', 'CityList', '2');
+      await api.dbTableRow.nestedAdd('noco', context.base.id, countryTable.title, 2, 'hm', 'CityList', '3');
+      await api.dbTableRow.nestedAdd('noco', context.base.id, countryTable.title, 3, 'hm', 'CityList', '4');
       //
       // create formula column
       await api.dbTableColumn.create(countryTable.id, {

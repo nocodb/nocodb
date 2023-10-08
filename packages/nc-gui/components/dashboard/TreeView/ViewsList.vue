@@ -5,7 +5,6 @@ import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
 import {
-  isDefaultBase as _isDefaultBase,
   extractSdkResponseErrorMsg,
   message,
   onMounted,
@@ -28,7 +27,7 @@ interface Emits {
 }
 
 const emits = defineEmits<Emits>()
-const project = inject(ProjectInj)!
+const base = inject(ProjectInj)!
 const table = inject(SidebarTableInj)!
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
@@ -36,16 +35,10 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 const { isMobileMode } = useGlobal()
 
 const { $e } = useNuxtApp()
+
 const { t } = useI18n()
 
-const isDefaultBase = computed(() => {
-  const base = project.value?.bases?.find((b) => b.id === table.value.base_id)
-  if (!base) return false
-
-  return _isDefaultBase(base)
-})
-
-const { viewsByTable, activeView } = storeToRefs(useViewsStore())
+const { viewsByTable, activeView, allRecentViews } = storeToRefs(useViewsStore())
 
 const { navigateToTable } = useTablesStore()
 
@@ -57,7 +50,7 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineModelScope } = useUndoRedo()
 
-const { navigateToView, loadViews } = useViewsStore()
+const { navigateToView, loadViews, removeFromRecentViews } = useViewsStore()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -197,8 +190,9 @@ async function changeView(view: ViewType) {
   await navigateToView({
     view,
     tableId: table.value.id!,
-    projectId: project.value.id!,
+    baseId: base.value.id!,
     hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
+    doNotSwitchTab: true,
   })
 
   if (isMobileMode.value) {
@@ -217,7 +211,7 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
     navigateToView({
       view,
       tableId: table.value.id!,
-      projectId: project.value.id!,
+      baseId: base.value.id!,
       hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
     })
 
@@ -244,6 +238,13 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
         scope: defineModelScope({ view: activeView.value }),
       })
     }
+    // update view name in recent views
+    allRecentViews.value = allRecentViews.value.map((rv) => {
+      if (rv.viewId === view.id && rv.tableID === view.fk_model_id) {
+        rv.viewName = view.title
+      }
+      return rv
+    })
 
     // View renamed successfully
     // message.success(t('msg.success.viewRenamed'))
@@ -265,11 +266,12 @@ function openDeleteDialog(view: ViewType) {
 
       emits('deleted')
 
+      removeFromRecentViews({ viewId: view.id, tableId: view.fk_model_id, baseId: base.value.id })
       refreshCommandPalette()
       if (activeView.value?.id === view.id) {
         navigateToTable({
           tableId: table.value.id!,
-          projectId: project.value.id!,
+          baseId: base.value.id!,
         })
       }
 
@@ -277,6 +279,13 @@ function openDeleteDialog(view: ViewType) {
         tableId: table.value.id!,
         force: true,
       })
+
+      const activeNonDefaultViews = viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? []
+
+      table.value.meta = {
+        ...(table.value.meta as object),
+        hasNonDefaultViews: activeNonDefaultViews.length > 1,
+      }
     },
   })
 
@@ -334,12 +343,13 @@ function onOpenModal({
 
       await loadViews({
         force: true,
+        tableId: table.value.id!,
       })
 
       navigateToView({
         view,
         tableId: table.value.id!,
-        projectId: project.value.id!,
+        baseId: base.value.id!,
         hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
       })
 
@@ -356,18 +366,8 @@ function onOpenModal({
 </script>
 
 <template>
-  <div
-    v-if="!views.length"
-    class="text-gray-500 my-1.75 xs:(my-2.5 text-base)"
-    :class="{
-      'ml-19.25 xs:ml-22.25': isDefaultBase,
-      'ml-24.75 xs:ml-30': !isDefaultBase,
-    }"
-  >
-    {{ $t('labels.noViews') }}
-  </div>
-
   <a-menu
+    v-if="views.length"
     ref="menuRef"
     :class="{ dragging }"
     class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"

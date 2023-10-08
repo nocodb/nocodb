@@ -13,13 +13,17 @@ import { ViewCreateReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { KanbansService } from '~/services/kanbans.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class KanbansController {
   constructor(private readonly kanbansService: KanbansService) {}
 
-  @Get('/api/v1/db/meta/kanbans/:kanbanViewId')
+  @Get([
+    '/api/v1/db/meta/kanbans/:kanbanViewId',
+    '/api/v1/meta/kanbans/:kanbanViewId',
+  ])
   @Acl('kanbanViewGet')
   async kanbanViewGet(@Param('kanbanViewId') kanbanViewId: string) {
     return await this.kanbansService.kanbanViewGet({
@@ -27,7 +31,10 @@ export class KanbansController {
     });
   }
 
-  @Post('/api/v1/db/meta/tables/:tableId/kanbans')
+  @Post([
+    '/api/v1/db/meta/tables/:tableId/kanbans',
+    '/api/v1/meta/tables/:tableId/kanbans',
+  ])
   @HttpCode(200)
   @Acl('kanbanViewCreate')
   async kanbanViewCreate(
@@ -42,7 +49,10 @@ export class KanbansController {
     });
   }
 
-  @Patch('/api/v1/db/meta/kanbans/:kanbanViewId')
+  @Patch([
+    '/api/v1/db/meta/kanbans/:kanbanViewId',
+    '/api/v1/meta/kanbans/:kanbanViewId',
+  ])
   @Acl('kanbanViewUpdate')
   async kanbanViewUpdate(
     @Param('kanbanViewId') kanbanViewId: string,

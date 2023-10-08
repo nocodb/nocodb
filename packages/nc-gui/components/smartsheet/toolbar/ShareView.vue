@@ -3,19 +3,19 @@ import { ViewTypes } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import tinycolor from 'tinycolor2'
 import {
+  baseThemeColors,
   computed,
   extractSdkResponseErrorMsg,
   iconMap,
   isRtlLang,
   message,
-  projectThemeColors,
   ref,
   storeToRefs,
+  useBase,
   useCopy,
   useDashboard,
   useI18n,
   useNuxtApp,
-  useProject,
   useRoles,
   useSmartsheetStoreOrThrow,
   watch,
@@ -34,7 +34,7 @@ const { dashboardUrl } = useDashboard()
 
 const { isUIAllowed } = useRoles()
 
-const { isSharedBase } = storeToRefs(useProject())
+const { isSharedBase } = storeToRefs(useBase())
 
 const { isMobileMode } = useGlobal()
 
@@ -390,7 +390,7 @@ watch(shared, () => {
                   data-testid="nc-modal-share-view__theme-picker"
                   class="!p-0"
                   :model-value="shared.meta.theme?.primaryColor"
-                  :colors="projectThemeColors"
+                  :colors="baseThemeColors"
                   :row-size="9"
                   :advanced="false"
                   @input="onChangeTheme"

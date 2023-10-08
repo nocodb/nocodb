@@ -123,22 +123,14 @@ const closeAddColumnDropdown = () => {
 </script>
 
 <template>
-  <div
-    class="flex items-center w-full text-xs text-gray-500 font-weight-medium"
-    :class="{ 'h-full': column }"
-    @click.right="isDropDownOpen = !isDropDownOpen"
-  >
+  <div class="flex items-center w-full text-xs text-gray-500 font-weight-medium" @click.right="isDropDownOpen = !isDropDownOpen">
     <LazySmartsheetHeaderVirtualCellIcon v-if="column && !props.hideIcon" />
 
     <a-tooltip placement="bottom">
-      <template #title>
+      <template v-if="!isForm && !isExpandedForm" #title>
         {{ tooltipMsg }}
       </template>
-      <span
-        class="name pl-1"
-        :class="{ 'truncate': !isForm || !isExpandedForm, 'whitespace-pre-line': isForm || isExpandedForm }"
-        :title="column.title"
-      >
+      <span class="name truncate pl-1" :class="{ truncate: !isForm }" :data-test-id="column.title">
         {{ column.title }}
       </span>
     </a-tooltip>

@@ -83,7 +83,7 @@ const slots = useSlots()
     @keydown.esc="visible = false"
   >
     <div
-      class="flex flex-col nc-modal p-6"
+      class="flex flex-col nc-modal p-6 h-full"
       :style="{
         maxHeight: height,
       }"

@@ -3,7 +3,7 @@ import type { SwaggerColumn } from '../getSwaggerColumnMetas';
 export const getModelSchemas = (ctx: {
   tableName: string;
   orgs: string;
-  projectName: string;
+  baseName: string;
   columns: Array<SwaggerColumn>;
 }) => ({
   [`${ctx.tableName}Response`]: {
@@ -45,7 +45,7 @@ export const getViewSchemas = (ctx: {
   tableName: string;
   viewName: string;
   orgs: string;
-  projectName: string;
+  baseName: string;
   columns: Array<SwaggerColumn>;
 }) => ({
   [`${ctx.tableName}${ctx.viewName}GridResponse`]: {

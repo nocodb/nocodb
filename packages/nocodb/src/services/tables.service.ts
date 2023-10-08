@@ -25,7 +25,7 @@ import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import getColumnUiType from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
-import { Column, Model, ModelRoleVisibility, Project } from '~/models';
+import { Base, Column, Model, ModelRoleVisibility } from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { validatePayload } from '~/helpers';
@@ -40,19 +40,17 @@ export class TablesService {
 
   async tableUpdate(param: {
     tableId: any;
-    table: TableReqType & { project_id?: string };
-    projectId?: string;
+    table: TableReqType & { base_id?: string };
+    baseId?: string;
     user: UserType;
   }) {
     const model = await Model.get(param.tableId);
 
-    const project = await Project.getWithInfo(
-      param.table.project_id || param.projectId,
-    );
-    const base = project.bases.find((b) => b.id === model.base_id);
+    const base = await Base.getWithInfo(param.table.base_id || param.baseId);
+    const source = base.sources.find((b) => b.id === model.source_id);
 
-    if (model.project_id !== project.id) {
-      NcError.badRequest('Model does not belong to project');
+    if (model.base_id !== base.id) {
+      NcError.badRequest('Model does not belong to base');
     }
 
     // if meta present update meta and return
@@ -69,9 +67,9 @@ export class TablesService {
       );
     }
 
-    if (base.isMeta(true) && project.prefix && !base.isMeta(true, 1)) {
-      if (!param.table.table_name.startsWith(project.prefix)) {
-        param.table.table_name = `${project.prefix}${param.table.table_name}`;
+    if (source.isMeta(true) && base.prefix && !source.isMeta(true, 1)) {
+      if (!param.table.table_name.startsWith(base.prefix)) {
+        param.table.table_name = `${base.prefix}${param.table.table_name}`;
       }
     }
 
@@ -87,8 +85,8 @@ export class TablesService {
     if (
       !(await Model.checkTitleAvailable({
         table_name: param.table.table_name,
-        project_id: project.id,
         base_id: base.id,
+        source_id: source.id,
       }))
     ) {
       NcError.badRequest('Duplicate table name');
@@ -97,23 +95,23 @@ export class TablesService {
     if (!param.table.title) {
       param.table.title = getTableNameAlias(
         param.table.table_name,
-        project.prefix,
-        base,
+        base.prefix,
+        source,
       );
     }
 
     if (
       !(await Model.checkAliasAvailable({
         title: param.table.title,
-        project_id: project.id,
         base_id: base.id,
+        source_id: source.id,
       }))
     ) {
       NcError.badRequest('Duplicate table alias');
     }
 
-    const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
-    const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+    const sqlMgr = await ProjectMgrv2.getSqlMgr(base);
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
 
     let tableNameLengthLimit = 255;
     const sqlClientType = sqlClient.knex.clientType();
@@ -131,11 +129,11 @@ export class TablesService {
       );
     }
 
-    await sqlMgr.sqlOpPlus(base, 'tableRename', {
+    await sqlMgr.sqlOpPlus(source, 'tableRename', {
       ...param.table,
       tn: param.table.table_name,
       tn_old: model.table_name,
-      schema: base.getConfig()?.schema,
+      schema: source.getConfig()?.schema,
     });
 
     await Model.updateAliasAndTableName(
@@ -160,12 +158,12 @@ export class TablesService {
     const table = await Model.getByIdOrName({ id: param.tableId });
     await table.getColumns();
 
-    const project = await Project.getWithInfo(table.project_id);
-    const base = project.bases.find((b) => b.id === table.base_id);
+    const base = await Base.getWithInfo(table.base_id);
+    const source = base.sources.find((b) => b.id === table.source_id);
 
     const relationColumns = table.columns.filter((c) => isLinksOrLTAR(c));
 
-    if (relationColumns?.length && !base.isMeta()) {
+    if (relationColumns?.length && !source.isMeta()) {
       const referredTables = await Promise.all(
         relationColumns.map(async (c) =>
           c
@@ -207,7 +205,7 @@ export class TablesService {
         );
       }
 
-      const sqlMgr = await ProjectMgrv2.getSqlMgr(project, ncMeta);
+      const sqlMgr = await ProjectMgrv2.getSqlMgr(base, ncMeta);
       (table as any).tn = table.table_name;
       table.columns = table.columns.filter((c) => !isVirtualCol(c));
       table.columns.forEach((c) => {
@@ -215,9 +213,9 @@ export class TablesService {
       });
 
       if (table.type === ModelTypes.TABLE) {
-        await sqlMgr.sqlOpPlus(base, 'tableDelete', table);
+        await sqlMgr.sqlOpPlus(source, 'tableDelete', table);
       } else if (table.type === ModelTypes.VIEW) {
-        await sqlMgr.sqlOpPlus(base, 'viewDelete', {
+        await sqlMgr.sqlOpPlus(source, 'viewDelete', {
           ...table,
           view_name: table.table_name,
         });
@@ -252,7 +250,7 @@ export class TablesService {
 
     // todo: optimise
     const viewList = <View[]>(
-      await this.xcVisibilityMetaGet(table.project_id, [table])
+      await this.xcVisibilityMetaGet(table.base_id, [table])
     );
 
     //await View.list(param.tableId)
@@ -266,7 +264,7 @@ export class TablesService {
   }
 
   async xcVisibilityMetaGet(
-    projectId,
+    baseId,
     _models: Model[] = null,
     includeM2M = true,
     // type: 'table' | 'tableAndViews' | 'views' = 'table'
@@ -286,8 +284,8 @@ export class TablesService {
     let models =
       _models ||
       (await Model.list({
-        project_id: projectId,
-        base_id: undefined,
+        base_id: baseId,
+        source_id: undefined,
       }));
 
     models = includeM2M ? models : (models.filter((t) => !t.mm) as Model[]);
@@ -312,7 +310,7 @@ export class TablesService {
       return obj;
     }, Promise.resolve({}));
 
-    const disabledList = await ModelRoleVisibility.list(projectId);
+    const disabledList = await ModelRoleVisibility.list(baseId);
 
     for (const d of disabledList) {
       if (result[d.fk_view_id])
@@ -323,12 +321,12 @@ export class TablesService {
   }
 
   async getAccessibleTables(param: {
-    projectId: string;
     baseId: string;
+    sourceId: string;
     includeM2M?: boolean;
     roles: Record<string, boolean>;
   }) {
-    const viewList = await this.xcVisibilityMetaGet(param.projectId);
+    const viewList = await this.xcVisibilityMetaGet(param.baseId);
 
     // todo: optimise
     const tableViewMapping = viewList.reduce((o, view: any) => {
@@ -345,8 +343,8 @@ export class TablesService {
 
     const tableList = (
       await Model.list({
-        project_id: param.projectId,
         base_id: param.baseId,
+        source_id: param.sourceId,
       })
     ).filter((t) => tableViewMapping[t.id]);
 
@@ -356,8 +354,8 @@ export class TablesService {
   }
 
   async tableCreate(param: {
-    projectId: string;
-    baseId?: string;
+    baseId: string;
+    sourceId?: string;
     table: TableReqType;
     user: User | UserType;
     req?: any;
@@ -370,25 +368,25 @@ export class TablesService {
       ...param.table,
     };
 
-    const project = await Project.getWithInfo(param.projectId);
-    let base = project.bases[0];
+    const base = await Base.getWithInfo(param.baseId);
+    let source = base.sources[0];
 
-    if (param.baseId) {
-      base = project.bases.find((b) => b.id === param.baseId);
+    if (param.sourceId) {
+      source = base.sources.find((b) => b.id === param.sourceId);
     }
 
     if (
       !tableCreatePayLoad.table_name ||
-      (project.prefix && project.prefix === tableCreatePayLoad.table_name)
+      (base.prefix && base.prefix === tableCreatePayLoad.table_name)
     ) {
       NcError.badRequest(
         'Missing table name `table_name` property in request body',
       );
     }
 
-    if (base.is_meta && project.prefix) {
-      if (!tableCreatePayLoad.table_name.startsWith(project.prefix)) {
-        tableCreatePayLoad.table_name = `${project.prefix}_${tableCreatePayLoad.table_name}`;
+    if (source.is_meta && base.prefix) {
+      if (!tableCreatePayLoad.table_name.startsWith(base.prefix)) {
+        tableCreatePayLoad.table_name = `${base.prefix}_${tableCreatePayLoad.table_name}`;
       }
     }
 
@@ -406,8 +404,8 @@ export class TablesService {
     if (
       !(await Model.checkTitleAvailable({
         table_name: tableCreatePayLoad.table_name,
-        project_id: project.id,
         base_id: base.id,
+        source_id: source.id,
       }))
     ) {
       NcError.badRequest('Duplicate table name');
@@ -416,24 +414,24 @@ export class TablesService {
     if (!tableCreatePayLoad.title) {
       tableCreatePayLoad.title = getTableNameAlias(
         tableCreatePayLoad.table_name,
-        project.prefix,
-        base,
+        base.prefix,
+        source,
       );
     }
 
     if (
       !(await Model.checkAliasAvailable({
         title: tableCreatePayLoad.title,
-        project_id: project.id,
         base_id: base.id,
+        source_id: source.id,
       }))
     ) {
       NcError.badRequest('Duplicate table alias');
     }
 
-    const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
+    const sqlMgr = await ProjectMgrv2.getSqlMgr(base);
 
-    const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
 
     let tableNameLengthLimit = 255;
     const sqlClientType = sqlClient.knex.clientType();
@@ -463,12 +461,12 @@ export class TablesService {
 
     tableCreatePayLoad.columns = await Promise.all(
       param.table.columns?.map(async (c) => ({
-        ...(await getColumnPropsFromUIDT(c as any, base)),
+        ...(await getColumnPropsFromUIDT(c as any, source)),
         cn: c.column_name,
         column_name: c.column_name,
       })),
     );
-    await sqlMgr.sqlOpPlus(base, 'tableCreate', {
+    await sqlMgr.sqlOpPlus(source, 'tableCreate', {
       ...tableCreatePayLoad,
       tn: tableCreatePayLoad.table_name,
     });
@@ -481,19 +479,19 @@ export class TablesService {
     > = (
       await sqlClient.columnList({
         tn: tableCreatePayLoad.table_name,
-        schema: base.getConfig()?.schema,
+        schema: source.getConfig()?.schema,
       })
     )?.data?.list;
 
     const tables = await Model.list({
-      project_id: project.id,
       base_id: base.id,
+      source_id: source.id,
     });
 
     mapDefaultDisplayValue(param.table.columns);
 
     // todo: type correction
-    const result = await Model.insert(project.id, base.id, {
+    const result = await Model.insert(base.id, source.id, {
       ...tableCreatePayLoad,
       columns: columns.map((c, i) => {
         const colMetaFromReq = param.table?.columns?.find(
@@ -501,14 +499,14 @@ export class TablesService {
         );
         return {
           ...colMetaFromReq,
-          uidt: colMetaFromReq?.uidt || c.uidt || getColumnUiType(base, c),
+          uidt: colMetaFromReq?.uidt || c.uidt || getColumnUiType(source, c),
           ...c,
           dtxp: [UITypes.MultiSelect, UITypes.SingleSelect].includes(
             colMetaFromReq.uidt as any,
           )
             ? colMetaFromReq.dtxp
             : c.dtxp,
-          title: colMetaFromReq?.title || getColumnNameAlias(c.cn, base),
+          title: colMetaFromReq?.title || getColumnNameAlias(c.cn, source),
           column_name: c.cn,
           order: i + 1,
         } as NormalColumnRequestType;

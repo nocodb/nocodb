@@ -10,8 +10,8 @@ import {
   message,
   ref,
   storeToRefs,
+  useBase,
   useNuxtApp,
-  useProject,
   useRoles,
   useSharedView,
   useSmartsheetStoreOrThrow,
@@ -26,7 +26,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   const { isUIAllowed } = useRoles()
 
-  const { isSharedBase } = storeToRefs(useProject())
+  const { isSharedBase } = storeToRefs(useBase())
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 

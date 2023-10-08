@@ -12,9 +12,9 @@ import {
   message,
   ref,
   storeToRefs,
+  useBase,
   useI18n,
   useNuxtApp,
-  useProject,
   useSmartsheetStoreOrThrow,
 } from '#imports'
 
@@ -24,8 +24,8 @@ const isPublicView = inject(IsPublicInj, ref(false))
 
 const fields = inject(FieldsInj, ref([]))
 
-const projectStore = useProject()
-const { project } = storeToRefs(projectStore)
+const baseStore = useBase()
+const { base } = storeToRefs(baseStore)
 
 const { $api } = useNuxtApp()
 
@@ -55,7 +55,7 @@ const exportFile = async (exportType: ExportTypes) => {
       } else {
         res = await $api.dbViewRow.export(
           'noco',
-          project.value?.id as string,
+          base.value?.id as string,
           meta.value?.id as string,
           selectedView?.value.id as string,
           exportType,
@@ -100,7 +100,7 @@ const exportFile = async (exportType: ExportTypes) => {
 
 <template>
   <a-menu-item>
-    <div v-e="['a:actions:download-csv']" class="nc-project-menu-item" @click="exportFile(ExportTypes.CSV)">
+    <div v-e="['a:download:csv']" class="nc-base-menu-item" @click="exportFile(ExportTypes.CSV)">
       <component :is="iconMap.csv" />
       <!-- Download as CSV -->
       {{ $t('activity.downloadCSV') }}
@@ -108,7 +108,7 @@ const exportFile = async (exportType: ExportTypes) => {
   </a-menu-item>
 
   <a-menu-item>
-    <div v-e="['a:actions:download-excel']" class="nc-project-menu-item" @click="exportFile(ExportTypes.EXCEL)">
+    <div v-e="['a:download:excel']" class="nc-base-menu-item" @click="exportFile(ExportTypes.EXCEL)">
       <component :is="iconMap.excel" />
       <!-- Download as XLSX -->
       {{ $t('activity.downloadExcel') }}

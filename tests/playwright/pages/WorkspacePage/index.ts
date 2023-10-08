@@ -71,30 +71,30 @@ export class WorkspacePage extends BasePage {
     return await this.leftSideBar.getWorkspaceCount();
   }
 
-  async projectCreate({ title, type }) {
+  async baseCreate({ title, type }) {
     await this.waitFor({ state: 'visible' });
-    await this.container.projectCreate({ title, type });
+    await this.container.baseCreate({ title, type });
   }
 
-  async projectDelete({ title }) {
-    await this.container.projectDelete({ title });
+  async baseDelete({ title }) {
+    await this.container.baseDelete({ title });
   }
 
-  async projectOpen({ title }) {
+  async baseOpen({ title }) {
     await this.waitFor({ state: 'visible' });
-    await this.container.projectOpen({ title });
+    await this.container.baseOpen({ title });
   }
 
-  async projectRename({ title, newTitle }) {
-    await this.container.projectRename({ title, newTitle });
+  async baseRename({ title, newTitle }) {
+    await this.container.baseRename({ title, newTitle });
   }
 
-  async projectMove({ title, newWorkspace }) {
-    await this.container.projectMove({ title, newWorkspace });
+  async baseMove({ title, newWorkspace }) {
+    await this.container.baseMove({ title, newWorkspace });
   }
 
-  async projectAddToFavourites({ title }: { title: string }) {
-    await this.container.projectAddToFavourites({ title });
+  async baseAddToFavourites({ title }: { title: string }) {
+    await this.container.baseAddToFavourites({ title });
   }
 
   async openQuickAccess(menu: 'Recent' | 'Shared with me' | 'Favourites') {
@@ -148,9 +148,9 @@ export class WorkspacePage extends BasePage {
   //
   //     const menuItems = await this.Container.getMoreActionsSubMenuDetails();
   //     if (role === 'creator') {
-  //       expect(menuItems).toEqual(['Rename Project', 'Duplicate Project']);
+  //       expect(menuItems).toEqual(['Rename Base', 'Duplicate Base']);
   //     } else {
-  //       expect(menuItems).toEqual(['Rename Project', 'Duplicate Project', 'Move Project', 'Delete Project']);
+  //       expect(menuItems).toEqual(['Rename Base', 'Duplicate Base', 'Move Base', 'Delete Base']);
   //     }
   //   } else {
   //     expect(await collaborators.isVisible()).toBeFalsy();

@@ -14,12 +14,12 @@ import {
   onMounted,
   ref,
   uiTypes,
+  useBase,
   useColumnCreateStoreOrThrow,
   useGlobal,
   useI18n,
   useMetas,
   useNuxtApp,
-  useProject,
   watchEffect,
 } from '#imports'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
@@ -58,7 +58,7 @@ const { betaFeatureToggleState } = useBetaFeatureToggle()
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
 
-const { loadMagic, predictColumnType: _predictColumnType } = useNocoEe()
+const { predictColumnType: _predictColumnType } = useNocoEe()
 
 const meta = inject(MetaInj, ref())
 
@@ -66,7 +66,7 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
-const { isMysql, isMssql } = useProject()
+const { isMysql, isMssql } = useBase()
 
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
@@ -144,10 +144,6 @@ watchEffect(() => {
   }
   advancedOptions.value = false
 })
-
-const predictColumnType = async () => {
-  _predictColumnType(formState, onUidtOrIdTypeChange)
-}
 
 onMounted(() => {
   if (!isEdit.value) {
@@ -228,7 +224,7 @@ if (props.fromTableExplorer) {
       <div class="flex flex-col gap-2">
         <a-form-item v-if="isFieldsTab" v-bind="validateInfos.title" class="flex flex-grow">
           <div
-            class="flex flex-grow px-2 py-1 items-center rounded-lg bg-white hover:bg-gray-100 focus:bg-gray-100 outline-none"
+            class="flex flex-grow px-2 py-1 items-center rounded-lg bg-gray-100 focus:bg-gray-100 outline-none"
             style="outline-style: solid; outline-width: thin"
           >
             <input
@@ -282,9 +278,9 @@ if (props.fromTableExplorer) {
               </a-select-option>
             </a-select>
           </a-form-item>
-          <div v-if="isEeUI && !props.hideType" class="mt-2 cursor-pointer" @click="predictColumnType()">
+          <!-- <div v-if="isEeUI && !props.hideType" class="mt-2 cursor-pointer" @click="predictColumnType()">
             <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
-          </div>
+          </div> -->
         </div>
 
         <LazySmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
@@ -305,7 +301,7 @@ if (props.fromTableExplorer) {
         />
         <LazySmartsheetColumnLinkOptions v-if="isEdit && formState.uidt === UITypes.Links" v-model:value="formState" />
         <LazySmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
-        <LazySmartsheetColumnSelectOptions
+        <SmartsheetColumnSelectOptions
           v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
           v-model:value="formState"
         />
@@ -321,14 +317,14 @@ if (props.fromTableExplorer) {
       </a-checkbox>
       <div class="!my-3">
         <!--
-        Default Value for JSON & LongText is not supported in MySQL 
+        Default Value for JSON & LongText is not supported in MySQL
          Default Value is Disabled for MSSQL -->
         <LazySmartsheetColumnDefaultValue
           v-if="
           !isVirtualCol(formState) &&
           !isAttachment(formState) &&
-          !isMssql(meta!.base_id) &&
-          !(isMysql(meta!.base_id) && (isJSON(formState) || isTextArea(formState)))
+          !isMssql(meta!.source_id) &&
+          !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState)))
           "
           v-model:value="formState"
         />

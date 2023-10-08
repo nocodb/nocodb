@@ -88,7 +88,7 @@ export default class NcUpgrader {
         const configObj: any = {};
         const isOld =
           process.env.NC_CLOUD !== 'true' &&
-          (await ctx.ncMeta.projectList())?.length;
+          (await ctx.ncMeta.baseList())?.length;
         configObj.version = isOld ? '0009000' : process.env.NC_VERSION;
         await ctx.ncMeta.metaInsert('', '', 'nc_store', {
           key: NcUpgrader.STORE_KEY,

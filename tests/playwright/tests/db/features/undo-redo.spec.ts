@@ -5,7 +5,7 @@ import { Api, UITypes } from 'nocodb-sdk';
 import { rowMixedValue } from '../../../setup/xcdb-records';
 import { GridPage } from '../../../pages/Dashboard/Grid';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
-import { isSqlite } from '../../../setup/db';
+import { enableQuickRun, isSqlite } from '../../../setup/db';
 
 const validateResponse = false;
 
@@ -32,7 +32,7 @@ async function undo({ page, dashboard }: { page: Page; dashboard: DashboardPage 
     await dashboard.grid.waitForResponse({
       uiAction: async () => await page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+      requestUrlPathToMatch: `/api/v1/data/noco/`,
       responseJsonMatcher: json => json.pageInfo,
     });
   } else {
@@ -44,11 +44,12 @@ async function undo({ page, dashboard }: { page: Page; dashboard: DashboardPage 
 }
 
 test.describe('Undo Redo', () => {
+  if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage, grid: GridPage, toolbar: ToolbarPage, context: any, api: Api<any>, table: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     grid = dashboard.grid;
     toolbar = dashboard.grid.toolbar;
 
@@ -84,8 +85,8 @@ test.describe('Undo Redo', () => {
     ];
 
     try {
-      const project = await api.project.read(context.project.id);
-      table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      const base = await api.base.read(context.base.id);
+      table = await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
         table_name: 'numberBased',
         title: 'numberBased',
         columns: columns,
@@ -100,7 +101,7 @@ test.describe('Undo Redo', () => {
         rowAttributes.push(row);
       }
 
-      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributes);
+      await api.dbTableRow.bulkCreate('noco', context.base.id, table.id, rowAttributes);
     } catch (e) {
       console.log(e);
     }
@@ -117,7 +118,7 @@ test.describe('Undo Redo', () => {
     // inserted values
     const expectedValues = [33, NaN, 456, 333, 267, 34, 8754, 3234, 44, 33, ...values];
 
-    const currentRecords: Record<string, any> = await api.dbTableRow.list('noco', context.project.id, table.id, {
+    const currentRecords: Record<string, any> = await api.dbTableRow.list('noco', context.base.id, table.id, {
       fields: ['Number'],
       limit: 100,
     });
@@ -232,7 +233,7 @@ test.describe('Undo Redo', () => {
       const expectedSorted = [NaN, 33, 33, 34, 44, 267, 333, 456, 3234, 8754];
       const expectedUnsorted = [33, NaN, 456, 333, 267, 34, 8754, 3234, 44, 33];
 
-      const currentRecords: Record<string, any> = await api.dbTableRow.list('noco', context.project.id, table.id, {
+      const currentRecords: Record<string, any> = await api.dbTableRow.list('noco', context.base.id, table.id, {
         fields: ['Number'],
         limit: 100,
         sort: sorted ? ['Number'] : [],
@@ -262,7 +263,7 @@ test.describe('Undo Redo', () => {
       const expectedFiltered = [33, 33];
       const expectedUnfiltered = [33, NaN, 456, 333, 267, 34, 8754, 3234, 44, 33];
 
-      const currentRecords: Record<string, any> = await api.dbTableRow.list('noco', context.project.id, table.id, {
+      const currentRecords: Record<string, any> = await api.dbTableRow.list('noco', context.base.id, table.id, {
         fields: ['Number'],
         limit: 100,
         where: filtered ? '(Number,eq,33)' : '',
@@ -351,11 +352,12 @@ test.describe('Undo Redo', () => {
 });
 
 test.describe('Undo Redo - Table & view rename operations', () => {
+  if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage, context: any, api: Api<any>, table: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -385,8 +387,8 @@ test.describe('Undo Redo - Table & view rename operations', () => {
     ];
 
     try {
-      const project = await api.project.read(context.project.id);
-      table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      const base = await api.base.read(context.base.id);
+      table = await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
         table_name: 'selectBased',
         title: 'selectBased',
         columns: columns,
@@ -400,7 +402,7 @@ test.describe('Undo Redo - Table & view rename operations', () => {
         rowAttributes.push(row);
       }
 
-      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributes);
+      await api.dbTableRow.bulkCreate('noco', context.base.id, table.id, rowAttributes);
     } catch (e) {
       console.log(e);
     }
@@ -465,10 +467,11 @@ test.describe('Undo Redo - Table & view rename operations', () => {
 });
 
 test.describe('Undo Redo - LTAR', () => {
+  if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage, grid: GridPage, context: any, api: Api<any>, cityTable: any, countryTable: any;
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     grid = dashboard.grid;
 
     api = new Api({
@@ -506,20 +509,20 @@ test.describe('Undo Redo - LTAR', () => {
     ];
 
     try {
-      const project = await api.project.read(context.project.id);
-      cityTable = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      const base = await api.base.read(context.base.id);
+      cityTable = await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
         table_name: 'City',
         title: 'City',
         columns: cityColumns,
       });
-      countryTable = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      countryTable = await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
         table_name: 'Country',
         title: 'Country',
         columns: countryColumns,
       });
 
       const cityRowAttributes = [{ City: 'Mumbai' }, { City: 'Pune' }, { City: 'Delhi' }, { City: 'Bangalore' }];
-      await api.dbTableRow.bulkCreate('noco', context.project.id, cityTable.id, cityRowAttributes);
+      await api.dbTableRow.bulkCreate('noco', context.base.id, cityTable.id, cityRowAttributes);
 
       const countryRowAttributes = [
         { Country: 'India' },
@@ -527,7 +530,7 @@ test.describe('Undo Redo - LTAR', () => {
         { Country: 'UK' },
         { Country: 'Australia' },
       ];
-      await api.dbTableRow.bulkCreate('noco', context.project.id, countryTable.id, countryRowAttributes);
+      await api.dbTableRow.bulkCreate('noco', context.base.id, countryTable.id, countryRowAttributes);
 
       // create LTAR Country has-many City
       await api.dbTableColumn.create(countryTable.id, {
@@ -539,7 +542,7 @@ test.describe('Undo Redo - LTAR', () => {
         type: 'hm',
       });
 
-      // await api.dbTableRow.nestedAdd('noco', context.project.id, countryTable.id, '1', 'hm', 'CityList', '1');
+      // await api.dbTableRow.nestedAdd('noco', context.base.id, countryTable.id, '1', 'hm', 'CityList', '1');
     } catch (e) {
       console.log(e);
     }
@@ -557,15 +560,10 @@ test.describe('Undo Redo - LTAR', () => {
     const expectedValues = [...values];
 
     try {
-      const currentRecords: Record<string, any> = await api.dbTableRow.list(
-        'noco',
-        context.project.id,
-        countryTable.id,
-        {
-          fields: ['CityList'],
-          limit: 100,
-        }
-      );
+      const currentRecords: Record<string, any> = await api.dbTableRow.list('noco', context.base.id, countryTable.id, {
+        fields: ['CityList'],
+        limit: 100,
+      });
       expect(currentRecords.list.length).toBe(4);
       expect(+currentRecords.list[0].CityList).toBe(expectedValues.length);
     } catch (e) {
@@ -576,7 +574,7 @@ test.describe('Undo Redo - LTAR', () => {
       // read nested records associated with first record
       const nestedRecords: Record<string, any> = await api.dbTableRow.nestedList(
         'noco',
-        context.project.id,
+        context.base.id,
         countryTable.id,
         1,
         'hm',
@@ -595,7 +593,7 @@ test.describe('Undo Redo - LTAR', () => {
     await dashboard.grid.waitForResponse({
       uiAction: async () => await page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+      requestUrlPathToMatch: `/api/v1/data/noco/`,
       responseJsonMatcher: json => json.pageInfo,
     });
     await verifyRecords(values);
@@ -645,10 +643,11 @@ test.describe('Undo Redo - LTAR', () => {
 });
 
 test.describe('Undo Redo - Select based', () => {
+  if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage, /*grid: GridPage,*/ context: any, api: Api<any>, table: any;
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     // grid = dashboard.grid;
 
     api = new Api({
@@ -679,8 +678,8 @@ test.describe('Undo Redo - Select based', () => {
     ];
 
     try {
-      const project = await api.project.read(context.project.id);
-      table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      const base = await api.base.read(context.base.id);
+      table = await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
         table_name: 'selectSample',
         title: 'selectSample',
         columns,
@@ -692,7 +691,7 @@ test.describe('Undo Redo - Select based', () => {
         { Title: 'Delhi', select: 'mar' },
         { Title: 'Bangalore', select: 'jan' },
       ];
-      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, RowAttributes);
+      await api.dbTableRow.bulkCreate('noco', context.base.id, table.id, RowAttributes);
     } catch (e) {
       console.log(e);
     }

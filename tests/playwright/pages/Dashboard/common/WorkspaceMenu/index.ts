@@ -20,7 +20,7 @@ export class WorkspaceMenuObject extends BasePage {
   async switchWorkspace({ workspaceTitle }: { workspaceTitle: string }) {
     await this.toggle();
     await this.rootPage.waitForTimeout(2500);
-    await this.rootPage.getByTestId('nc-workspace-list').getByText(workspaceTitle).click({
+    await this.rootPage.locator('.ant-dropdown-menu').getByTestId('nc-workspace-list').getByText(workspaceTitle).click({
       force: true,
     });
     await this.rootPage.keyboard.press('Escape');

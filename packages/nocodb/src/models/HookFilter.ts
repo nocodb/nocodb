@@ -27,8 +27,8 @@ export default class Filter {
   logical_op?: string;
   is_group?: boolean;
   children?: Filter[];
-  project_id?: string;
   base_id?: string;
+  source_id?: string;
   column?: Column;
 
   constructor(data: Filter | FilterType) {
@@ -59,14 +59,14 @@ export default class Filter {
       'fk_parent_id',
       'is_group',
       'logical_op',
-      'project_id',
       'base_id',
+      'source_id',
     ]);
 
-    if (!(filter.project_id && filter.base_id)) {
+    if (!(filter.base_id && filter.source_id)) {
       const model = await Column.get({ colId: filter.fk_column_id }, ncMeta);
-      insertObj.project_id = model.project_id;
       insertObj.base_id = model.base_id;
+      insertObj.source_id = model.source_id;
     }
 
     const row = await ncMeta.metaInsert2(

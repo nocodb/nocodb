@@ -1,23 +1,32 @@
 import fs from 'fs';
 import { promisify } from 'util';
-import AWS from 'aws-sdk';
+import { GetObjectCommand, S3 as S3Client } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import axios from 'axios';
+import { useAgent } from 'request-filtering-agent';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import type { Readable } from 'stream';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
 
 export default class S3 implements IStorageAdapterV2 {
-  private s3Client: AWS.S3;
+  private s3Client: S3Client;
   private input: any;
 
   constructor(input: any) {
     this.input = input;
   }
 
+  get defaultParams() {
+    return {
+      ACL: 'private',
+      Bucket: this.input.bucket,
+    };
+  }
+
   async fileCreate(key: string, file: XcFile): Promise<any> {
     const uploadParams: any = {
-      ACL: 'public-read',
-      ContentType: file.mimetype,
+      ...this.defaultParams,
+      // ContentType: file.mimetype,
     };
     return new Promise((resolve, reject) => {
       // Configure the file stream and obtain the upload parameters
@@ -31,38 +40,35 @@ export default class S3 implements IStorageAdapterV2 {
       uploadParams.Key = key;
 
       // call S3 to retrieve upload file to specified bucket
-      this.s3Client.upload(uploadParams, (err, data) => {
-        if (err) {
-          console.log('Error', err);
+      // call S3 to retrieve upload file to specified bucket
+      this.upload(uploadParams)
+        .then((data) => {
+          resolve(data);
+        })
+        .catch((err) => {
           reject(err);
-        }
-        if (data) {
-          resolve(data.Location);
-        }
-      });
+        });
     });
   }
+
   async fileCreateByUrl(key: string, url: string): Promise<any> {
     const uploadParams: any = {
-      ACL: 'public-read',
+      ...this.defaultParams,
     };
     return new Promise((resolve, reject) => {
       axios
-        .get(url)
+        .get(url, {
+          httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+          httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+        })
         .then((response) => {
           uploadParams.Body = response.data;
           uploadParams.Key = key;
           uploadParams.ContentType = response.headers['content-type'];
 
           // call S3 to retrieve upload file to specified bucket
-          this.s3Client.upload(uploadParams, (err1, data) => {
-            if (err1) {
-              console.log('Error', err1);
-              reject(err1);
-            }
-            if (data) {
-              resolve(data.Location);
-            }
+          this.upload(uploadParams).then((data) => {
+            resolve(data);
           });
         })
         .catch((error) => {
@@ -104,6 +110,16 @@ export default class S3 implements IStorageAdapterV2 {
     });
   }
 
+  public async getSignedUrl(key, expiresInSeconds = 7200) {
+    const command = new GetObjectCommand({
+      Key: key,
+      Bucket: this.input.bucket,
+    });
+    return getSignedUrl(this.s3Client, command, {
+      expiresIn: expiresInSeconds,
+    });
+  }
+
   public async init(): Promise<any> {
     // const s3Options: any = {
     //   params: {Bucket: process.env.NC_S3_BUCKET},
@@ -113,15 +129,15 @@ export default class S3 implements IStorageAdapterV2 {
     // s3Options.accessKeyId = process.env.NC_S3_KEY;
     // s3Options.secretAccessKey = process.env.NC_S3_SECRET;
 
-    const s3Options: any = {
-      params: { Bucket: this.input.bucket },
+    const s3Options = {
       region: this.input.region,
+      credentials: {
+        accessKeyId: this.input.access_key,
+        secretAccessKey: this.input.access_secret,
+      },
     };
 
-    s3Options.accessKeyId = this.input.access_key;
-    s3Options.secretAccessKey = this.input.access_secret;
-
-    this.s3Client = new AWS.S3(s3Options);
+    this.s3Client = new S3Client(s3Options);
   }
 
   public async test(): Promise<boolean> {
@@ -140,5 +156,24 @@ export default class S3 implements IStorageAdapterV2 {
     } catch (e) {
       throw e;
     }
+  }
+
+  private async upload(uploadParams): Promise<any> {
+    return new Promise((resolve, reject) => {
+      // call S3 to retrieve upload file to specified bucket
+      this.s3Client
+        .putObject({ ...this.defaultParams, ...uploadParams })
+        .then((data) => {
+          if (data) {
+            resolve(
+              `https://${this.input.bucket}.s3.${this.input.region}.amazonaws.com/${uploadParams.Key}`,
+            );
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          reject(err);
+        });
+    });
   }
 }

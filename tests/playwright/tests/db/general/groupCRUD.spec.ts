@@ -4,6 +4,7 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { createDemoTable } from '../../../setup/demoTable';
 import { TopbarPage } from '../../../pages/Dashboard/common/Topbar';
+import { enableQuickRun } from '../../../setup/db';
 
 const validateResponse = false;
 
@@ -14,7 +15,7 @@ async function undo({ page, dashboard }: { page: Page; dashboard: DashboardPage 
     await dashboard.grid.waitForResponse({
       uiAction: () => page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+      requestUrlPathToMatch: `/api/v1/data/noco/`,
       responseJsonMatcher: json => json.pageInfo,
     });
   } else {
@@ -26,12 +27,14 @@ async function undo({ page, dashboard }: { page: Page; dashboard: DashboardPage 
 }
 
 test.describe('GroupBy CRUD Operations', () => {
+  if (enableQuickRun()) test.skip();
+
   let dashboard: DashboardPage, toolbar: ToolbarPage, topbar: TopbarPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
     topbar = dashboard.grid.topbar;
 

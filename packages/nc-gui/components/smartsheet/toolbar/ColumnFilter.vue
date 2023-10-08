@@ -325,6 +325,7 @@ onMounted(async () => {
                 <div v-else :key="`${i}nested`" class="flex nc-filter-logical-op">
                   <NcSelect
                     v-model:value="filter.logical_op"
+                    v-e="['c:filter:logical-op:select']"
                     :dropdown-match-select-width="false"
                     class="min-w-20 capitalize"
                     placeholder="Group op"
@@ -342,6 +343,7 @@ onMounted(async () => {
                 <NcButton
                   v-if="!filter.readOnly"
                   :key="i"
+                  v-e="['c:filter:delete']"
                   type="text"
                   size="small"
                   class="nc-filter-item-remove-btn cursor-pointer"
@@ -370,6 +372,7 @@ onMounted(async () => {
             <NcSelect
               v-else
               v-model:value="filter.logical_op"
+              v-e="['c:filter:logical-op:select']"
               :dropdown-match-select-width="false"
               class="h-full !min-w-20 !max-w-20 capitalize"
               hide-details
@@ -395,6 +398,7 @@ onMounted(async () => {
             />
             <NcSelect
               v-model:value="filter.comparison_op"
+              v-e="['c:filter:comparison-op:select']"
               :dropdown-match-select-width="false"
               class="caption nc-filter-operation-select !min-w-26.75 !max-w-26.75 max-h-8"
               :placeholder="$t('labels.operation')"
@@ -416,6 +420,7 @@ onMounted(async () => {
             <NcSelect
               v-else-if="[UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt)"
               v-model:value="filter.comparison_sub_op"
+              v-e="['c:filter:sub-comparison-op:select']"
               :dropdown-match-select-width="false"
               class="caption nc-filter-sub_operation-select min-w-28"
               :class="{ 'flex-grow w-full': !showFilterInput(filter), 'max-w-28': showFilterInput(filter) }"
@@ -453,6 +458,7 @@ onMounted(async () => {
 
             <NcButton
               v-if="!filter.readOnly"
+              v-e="['c:filter:delete']"
               type="text"
               size="small"
               class="nc-filter-item-remove-btn self-center"
@@ -507,5 +513,9 @@ onMounted(async () => {
 
 :deep(.ant-select-item-option) {
   @apply "!min-w-full";
+}
+
+:deep(.ant-select-selector) {
+  @apply !min-h-8.25;
 }
 </style>

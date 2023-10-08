@@ -10,9 +10,9 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { isViewsLoading } = storeToRefs(useViewsStore())
 
-const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
-
 const { isMobileMode } = storeToRefs(useConfigStore())
+
+const { appInfo } = useGlobal()
 
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 </script>
@@ -29,18 +29,10 @@ const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
       <GeneralOpenLeftSidebarBtn />
       <LazySmartsheetToolbarViewInfo v-if="!isPublic" />
 
-      <div class="flex-1" />
-
-      <div
-        v-if="!isSharedBase && !isMobileMode"
-        class="absolute mx-auto transition-all duration-150 right-0 w-47.5"
-        :class="{
-          '-left-1/10': isLeftSidebarOpen,
-          '-left-0': !isLeftSidebarOpen,
-        }"
-      >
+      <div v-if="!isSharedBase && !isMobileMode" class="w-47.5">
         <SmartsheetTopbarSelectMode />
       </div>
+      <div class="flex-1" />
 
       <GeneralApiLoader v-if="!isMobileMode" />
 
@@ -50,7 +42,7 @@ const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
       />
 
       <LazyGeneralLanguage
-        v-if="isSharedBase"
+        v-if="isSharedBase && !appInfo.ee"
         class="cursor-pointer text-lg hover:(text-black bg-gray-200) mr-0 p-1.5 rounded-md"
       />
     </template>

@@ -11,7 +11,7 @@ export class ShareProjectButtonPage extends BasePage {
   }
 
   get() {
-    return this.dashboard.get().getByTestId('share-project-button');
+    return this.dashboard.get().getByTestId('share-base-button');
   }
 
   // Prefixing to differentiate between emails created by the tests which are deleted after the test run
@@ -34,11 +34,11 @@ export class ShareProjectButtonPage extends BasePage {
   }
 
   async clickShareProject() {
-    await this.rootPage.getByTestId('docs-share-dlg-share-project').click();
+    await this.rootPage.getByTestId('docs-share-dlg-share-base').click();
   }
 
   async clickShareProjectPublic() {
-    await this.rootPage.getByTestId('docs-share-dlg-share-project-public').click();
+    await this.rootPage.getByTestId('docs-share-dlg-share-base-public').click();
   }
 
   async clickManageAccess() {
@@ -88,11 +88,11 @@ export class ShareProjectButtonPage extends BasePage {
   }
 
   async fillInviteEmail({ email }: { email: string }) {
-    await this.rootPage.getByTestId('docs-share-dlg-share-project-collaborate-emails').fill(this.prefixEmail(email));
+    await this.rootPage.getByTestId('docs-share-dlg-share-base-collaborate-emails').fill(this.prefixEmail(email));
   }
 
   async selectInviteRole({ role }: { role: 'editor' | 'viewer' }) {
-    await this.rootPage.getByTestId('docs-share-dlg-share-project-collaborate-role').click();
+    await this.rootPage.getByTestId('docs-share-dlg-share-base-collaborate-role').click();
     await this.rootPage.getByTestId(`nc-share-invite-user-role-option-${role}`).click();
   }
 
@@ -106,9 +106,9 @@ export class ShareProjectButtonPage extends BasePage {
 
   async toggleShareProjectPublic() {
     await this.waitForResponse({
-      uiAction: () => this.rootPage.getByTestId('docs-project-share-public-toggle').click(),
+      uiAction: () => this.rootPage.getByTestId('docs-base-share-public-toggle').click(),
       httpMethodsToMatch: ['PATCH'],
-      requestUrlPathToMatch: `/api/v1/db/meta/projects`,
+      requestUrlPathToMatch: `/api/v1/meta/bases`,
     });
   }
 
@@ -125,7 +125,7 @@ export class ShareProjectButtonPage extends BasePage {
   }
 
   async verifyShareProjectToggle({ isPublic }: { isPublic: boolean }) {
-    await expect(this.rootPage.getByTestId('docs-project-share-public-toggle')).toHaveAttribute(
+    await expect(this.rootPage.getByTestId('docs-base-share-public-toggle')).toHaveAttribute(
       'aria-checked',
       `${isPublic}`
     );
@@ -145,7 +145,7 @@ export class ShareProjectButtonPage extends BasePage {
   }
 
   async getPublicProjectLink() {
-    await this.rootPage.getByTestId('docs-share-project-copy-link').click();
+    await this.rootPage.getByTestId('docs-share-base-copy-link').click();
     return await this.getClipboardText();
   }
 

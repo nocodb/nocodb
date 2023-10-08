@@ -5,15 +5,18 @@ import { DatasService } from '~/services/datas.service';
 import { extractCsvData, extractXlsxData } from '~/modules/datas/helpers';
 import { View } from '~/models';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(DataApiLimiterGuard, GlobalGuard)
 export class DataAliasExportController {
   constructor(private datasService: DatasService) {}
 
   @Get([
-    '/api/v1/db/data/:orgs/:projectName/:tableName/export/excel',
-    '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/export/excel',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/export/excel',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/export/excel',
+    '/api/v1/data/:orgs/:baseName/:tableName/export/excel',
+    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/export/excel',
   ])
   @Acl('exportExcel')
   async excelDataExport(@Request() req, @Response() res) {
@@ -37,9 +40,12 @@ export class DataAliasExportController {
     });
     res.end(buf);
   }
+
   @Get([
-    '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/export/csv',
-    '/api/v1/db/data/:orgs/:projectName/:tableName/export/csv',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/export/csv',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/export/csv',
+    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/export/csv',
+    '/api/v1/data/:orgs/:baseName/:tableName/export/csv',
   ])
   @Acl('exportCsv')
   async csvDataExport(@Request() req, @Response() res) {

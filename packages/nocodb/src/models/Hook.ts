@@ -33,8 +33,8 @@ export default class Hook implements HookType {
   timeout?: number;
   active?: BoolType;
 
-  project_id?: string;
   base_id?: string;
+  source_id?: string;
   version?: 'v1' | 'v2';
 
   constructor(hook: Partial<Hook | HookReqType>) {
@@ -63,8 +63,8 @@ export default class Hook implements HookType {
   //   const { id } = await ncMeta.metaInsert2(null, null, MetaTable.HOOKS, {
   //     // user: hook.user,
   //     // ip: hook.ip,
+  //     // source_id: hook.source_id,
   //     // base_id: hook.base_id,
-  //     // project_id: hook.project_id,
   //     // row_id: hook.row_id,
   //     // fk_model_id: hook.fk_model_id,
   //     // op_type: hook.op_type,
@@ -137,18 +137,18 @@ export default class Hook implements HookType {
       'retry_interval',
       'timeout',
       'active',
-      'project_id',
       'base_id',
+      'source_id',
     ]);
 
     if (insertObj.notification && typeof insertObj.notification === 'object') {
       insertObj.notification = JSON.stringify(insertObj.notification);
     }
 
-    if (!(hook.project_id && hook.base_id)) {
+    if (!(hook.base_id && hook.source_id)) {
       const model = await Model.getByIdOrName({ id: hook.fk_model_id }, ncMeta);
-      insertObj.project_id = model.project_id;
       insertObj.base_id = model.base_id;
+      insertObj.source_id = model.source_id;
     }
 
     // new hook will set as version 2

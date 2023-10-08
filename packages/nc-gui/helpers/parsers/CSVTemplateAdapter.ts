@@ -19,7 +19,7 @@ export default class CSVTemplateAdapter {
   distinctValues: Record<number, Set<string>>
   headers: Record<number, string[]>
   tables: Record<number, any>
-  project: {
+  base: {
     tables: Record<string, any>[]
   }
 
@@ -31,7 +31,7 @@ export default class CSVTemplateAdapter {
   constructor(source: UploadFile[] | string, parserConfig = {}, progressCallback?: (msg: string) => void) {
     this.config = parserConfig
     this.source = source
-    this.project = {
+    this.base = {
       tables: [],
     }
     this.detectedColumnTypes = {}
@@ -294,7 +294,7 @@ export default class CSVTemplateAdapter {
         },
         async complete() {
           that.updateTemplate(tableIdx)
-          that.project.tables.push(that.tables[tableIdx])
+          that.base.tables.push(that.tables[tableIdx])
           that.progress(`Processed ${tn} metadata`)
           await that._parseTableData(tableIdx, source, tn)
           resolve(true)
@@ -322,7 +322,7 @@ export default class CSVTemplateAdapter {
   }
 
   getColumns() {
-    return this.project.tables.map((t: Record<string, any>) => t.columns)
+    return this.base.tables.map((t: Record<string, any>) => t.columns)
   }
 
   getData() {
@@ -330,7 +330,7 @@ export default class CSVTemplateAdapter {
   }
 
   getTemplate() {
-    return this.project
+    return this.base
   }
 
   progress(msg: string) {

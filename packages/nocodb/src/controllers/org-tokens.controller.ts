@@ -15,8 +15,9 @@ import { getConditionalHandler } from '~/helpers/getHandler';
 import { OrgTokensEeService } from '~/services/org-tokens-ee.service';
 import { OrgTokensService } from '~/services/org-tokens.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(MetaApiLimiterGuard, AuthGuard('jwt'))
 @Controller()
 export class OrgTokensController {
   constructor(

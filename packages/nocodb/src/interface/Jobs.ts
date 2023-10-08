@@ -1,9 +1,12 @@
 export const JOBS_QUEUE = 'jobs';
 
 export enum JobTypes {
-  DuplicateBase = 'duplicate-base',
+  DuplicateBase = 'duplicate-source',
   DuplicateModel = 'duplicate-model',
   AtImport = 'at-import',
+  MetaSync = 'meta-sync',
+  BaseCreate = 'base-create',
+  BaseDelete = 'base-delete',
 }
 
 export enum JobStatus {

@@ -11,15 +11,14 @@ import {
   nextTick,
   onMounted,
   ref,
-  storeToRefs,
   useNuxtApp,
-  useProject,
   watch,
 } from '#imports'
 
-const { modelValue, baseId } = defineProps<{
+const { modelValue, baseId, sourceId } = defineProps<{
   modelValue: boolean
   baseId: string
+  sourceId: string
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -28,15 +27,13 @@ const { $api } = useNuxtApp()
 
 const baseURL = $api.instance.defaults.baseURL
 
-const { $state, $jobs } = useNuxtApp()
+const { $state, $poller } = useNuxtApp()
 
-const projectStore = useProject()
+const baseStore = useBase()
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { loadTables } = projectStore
-
-const { project } = storeToRefs(projectStore)
+const { loadTables } = baseStore
 
 const showGoToDashboardButton = ref(false)
 
@@ -47,6 +44,10 @@ const progress = ref<Record<string, any>[]>([])
 const logRef = ref<typeof AntCard>()
 
 const enableAbort = ref(false)
+
+const goBack = ref(false)
+
+const listeningForUpdates = ref(false)
 
 const syncSource = ref({
   id: '',
@@ -81,10 +82,6 @@ const pushProgress = async (message: string, status: JobStatus | 'progress') => 
   })
 }
 
-const onSubscribe = () => {
-  step.value = 2
-}
-
 const onStatus = async (status: JobStatus, data?: any) => {
   if (status === JobStatus.COMPLETED) {
     showGoToDashboardButton.value = true
@@ -93,6 +90,7 @@ const onStatus = async (status: JobStatus, data?: any) => {
     refreshCommandPalette()
     // TODO: add tab of the first table
   } else if (status === JobStatus.FAILED) {
+    goBack.value = true
     pushProgress(data.error.message, status)
   }
 }
@@ -127,14 +125,14 @@ async function createOrUpdate() {
     const { id, ...payload } = syncSource.value
 
     if (id !== '') {
-      await $fetch(`/api/v1/db/meta/syncs/${id}`, {
+      await $fetch(`/api/v1/meta/syncs/${id}`, {
         baseURL,
         method: 'PATCH',
         headers: { 'xc-auth': $state.token.value as string },
         body: payload,
       })
     } else {
-      syncSource.value = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs/${baseId}`, {
+      syncSource.value = await $fetch(`/api/v1/meta/bases/${baseId}/syncs/${sourceId}`, {
         baseURL,
         method: 'POST',
         headers: { 'xc-auth': $state.token.value as string },
@@ -146,8 +144,47 @@ async function createOrUpdate() {
   }
 }
 
+async function listenForUpdates() {
+  if (listeningForUpdates.value) return
+
+  listeningForUpdates.value = true
+
+  const job = await $api.jobs.status({ syncId: syncSource.value.id })
+
+  if (!job) {
+    listeningForUpdates.value = false
+    return
+  }
+
+  $poller.subscribe(
+    { id: job.id },
+    (data: {
+      id: string
+      status?: string
+      data?: {
+        error?: {
+          message: string
+        }
+        message?: string
+        result?: any
+      }
+    }) => {
+      if (data.status !== 'close') {
+        step.value = 2
+        if (data.status) {
+          onStatus(data.status as JobStatus, data.data)
+        } else {
+          onLog(data.data as any)
+        }
+      } else {
+        listeningForUpdates.value = false
+      }
+    },
+  )
+}
+
 async function loadSyncSrc() {
-  const data: any = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs/${baseId}`, {
+  const data: any = await $fetch(`/api/v1/meta/bases/${baseId}/syncs/${sourceId}`, {
     baseURL,
     method: 'GET',
     headers: { 'xc-auth': $state.token.value as string },
@@ -160,7 +197,7 @@ async function loadSyncSrc() {
     syncSource.value = migrateSync(srcs[0])
     syncSource.value.details.syncSourceUrlOrId =
       srcs[0].details.appId && srcs[0].details.appId.length > 0 ? srcs[0].details.syncSourceUrlOrId : srcs[0].details.shareId
-    $jobs.subscribe({ syncId: syncSource.value.id }, onSubscribe, onStatus, onLog)
+    listenForUpdates()
   } else {
     syncSource.value = {
       id: '',
@@ -189,12 +226,12 @@ async function loadSyncSrc() {
 
 async function sync() {
   try {
-    await $fetch(`/api/v1/db/meta/syncs/${syncSource.value.id}/trigger`, {
+    await $fetch(`/api/v1/meta/syncs/${syncSource.value.id}/trigger`, {
       baseURL,
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
     })
-    $jobs.subscribe({ syncId: syncSource.value.id }, onSubscribe, onStatus, onLog)
+    listenForUpdates()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -208,7 +245,7 @@ async function abort() {
       "This is a highly experimental feature and only marks job as not started, please don't abort the job unless you are sure job is stuck.",
     onOk: async () => {
       try {
-        await $fetch(`/api/v1/db/meta/syncs/${syncSource.value.id}/abort`, {
+        await $fetch(`/api/v1/meta/syncs/${syncSource.value.id}/abort`, {
           baseURL,
           method: 'POST',
           headers: { 'xc-auth': $state.token.value as string },
@@ -252,9 +289,8 @@ watch(
 
 onMounted(async () => {
   if (syncSource.value.id) {
-    $jobs.subscribe({ syncId: syncSource.value.id }, onSubscribe, onStatus, onLog)
+    listenForUpdates()
   }
-
   await loadSyncSrc()
 })
 </script>
@@ -420,6 +456,9 @@ onMounted(async () => {
           <a-button v-if="showGoToDashboardButton" class="mt-4" size="large" @click="dialogShow = false">
             {{ $t('labels.goToDashboard') }}
           </a-button>
+          <a-button v-else-if="goBack" class="mt-4 uppercase" size="large" danger @click="step = 1">{{
+            $t('general.cancel')
+          }}</a-button>
           <a-button v-else-if="enableAbort" class="mt-4 uppercase" size="large" danger @click="abort()">{{
             $t('general.abort')
           }}</a-button>

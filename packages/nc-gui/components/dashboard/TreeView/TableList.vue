@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ProjectType, TableType } from 'nocodb-sdk'
+import type { BaseType, TableType } from 'nocodb-sdk'
 import { storeToRefs } from 'pinia'
 import Sortable from 'sortablejs'
 import TableNode from './TableNode.vue'
@@ -8,23 +8,23 @@ import { toRef } from '#imports'
 
 const props = withDefaults(
   defineProps<{
-    project: ProjectType
-    baseIndex?: number
+    base: BaseType
+    sourceIndex?: number
   }>(),
   {
-    baseIndex: 0,
+    sourceIndex: 0,
   },
 )
 
-const project = toRef(props, 'project')
-const baseIndex = toRef(props, 'baseIndex')
+const base = toRef(props, 'base')
+const sourceIndex = toRef(props, 'sourceIndex')
 
-const base = computed(() => project.value?.bases?.[baseIndex.value])
+const source = computed(() => base.value?.sources?.[sourceIndex.value])
 
 const { isMobileMode } = useGlobal()
 
-const { projectTables } = storeToRefs(useTablesStore())
-const tables = computed(() => projectTables.value.get(project.value.id!) ?? [])
+const { baseTables } = storeToRefs(useTablesStore())
+const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
 
 const { $api } = useNuxtApp()
 
@@ -44,14 +44,14 @@ const sortables: Record<string, Sortable> = {}
 
 // todo: replace with vuedraggable
 const initSortable = (el: Element) => {
-  const base_id = el.getAttribute('nc-base')
-  if (!base_id) return
+  const source_id = el.getAttribute('nc-source')
+  if (!source_id) return
   if (isMobileMode.value) return
 
-  if (sortables[base_id]) sortables[base_id].destroy()
+  if (sortables[source_id]) sortables[source_id].destroy()
   Sortable.create(el as HTMLLIElement, {
     onEnd: async (evt) => {
-      const offset = tables.value.findIndex((table) => table.base_id === base_id)
+      const offset = tables.value.findIndex((table) => table.source_id === source_id)
 
       const { newIndex = 0, oldIndex = 0 } = evt
 
@@ -87,10 +87,10 @@ const initSortable = (el: Element) => {
       tables.value?.splice(newIndex + offset, 0, ...tables.value?.splice(oldIndex + offset, 1))
 
       // force re-render the list
-      if (keys.value[base_id]) {
-        keys.value[base_id] = keys.value[base_id] + 1
+      if (keys.value[source_id]) {
+        keys.value[source_id] = keys.value[source_id] + 1
       } else {
-        keys.value[base_id] = 1
+        keys.value[source_id] = 1
       }
 
       // update the item order
@@ -106,7 +106,7 @@ const initSortable = (el: Element) => {
           id: dragEl.dataset.id,
           title: dragEl.dataset.title,
           type: dragEl.dataset.type,
-          baseId: dragEl.dataset.baseId,
+          sourceId: dragEl.dataset.sourceId,
         }),
       )
     },
@@ -125,41 +125,40 @@ watchEffect(() => {
 })
 
 const availableTables = computed(() => {
-  return tables.value.filter((table) => table.base_id === project.value?.bases?.[baseIndex.value].id)
+  return tables.value.filter((table) => table.source_id === base.value?.sources?.[sourceIndex.value].id)
 })
 </script>
 
 <template>
   <div class="border-none sortable-list">
-    <template v-if="project">
+    <template v-if="base">
       <div
         v-if="availableTables.length === 0"
         class="py-0.5 text-gray-500"
         :class="{
-          'ml-13.55': baseIndex === 0,
-          'ml-19.25': baseIndex !== 0,
+          'ml-13.55': sourceIndex === 0,
+          'ml-19.25': sourceIndex !== 0,
         }"
       >
         {{ $t('general.empty') }}
       </div>
       <div
-        v-if="project.bases?.[baseIndex] && project!.bases[baseIndex].enabled"
+        v-if="base.sources?.[sourceIndex] && base!.sources[sourceIndex].enabled"
         ref="menuRefs"
-        :key="`sortable-${base?.id}-${base?.id && base?.id in keys ? keys[base?.id] : '0'}`"
-        :nc-base="base?.id"
+        :key="`sortable-${source?.id}-${source?.id && source?.id in keys ? keys[source?.id] : '0'}`"
+        :nc-source="source?.id"
       >
         <TableNode
           v-for="table of availableTables"
           :key="table.id"
-          v-e="['a:table:open']"
           class="nc-tree-item text-sm"
           :data-order="table.order"
           :data-id="table.id"
           :table="table"
-          :project="project"
-          :base-index="baseIndex"
+          :base="base"
+          :source-index="sourceIndex"
           :data-title="table.title"
-          :data-base-id="base?.id"
+          :data-source-id="source?.id"
           :data-type="table.type"
         >
         </TableNode>

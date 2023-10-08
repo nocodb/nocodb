@@ -5,12 +5,12 @@ const props = defineProps<{
   buttons?: boolean
 }>()
 
-const projectCreateDlg = ref(false)
-const projectType = ref()
+const baseCreateDlg = ref(false)
+const baseType = ref()
 
 const openCreateProjectDlg = (type: NcProjectType) => {
-  projectType.value = type
-  projectCreateDlg.value = true
+  baseType.value = type
+  baseCreateDlg.value = true
 }
 </script>
 

@@ -15,7 +15,6 @@ import {
   useNuxtApp,
   useSmartsheetStoreOrThrow,
 } from '#imports'
-import GroupIcon from '~icons/nc-icons/group'
 
 const groupingUidt = [
   UITypes.SingleSelect,
@@ -215,12 +214,12 @@ onMounted(async () => {
     offset-y
     :trigger="['click']"
     class="!xs:hidden"
-    overlay-class-name="nc-dropdown-group-by-menu nc-toolbar-dropdown"
+    overlay-class-name="nc-dropdown-group-by-menu nc-toolbar-dropdown overflow-hidden"
   >
     <div :class="{ 'nc-active-btn': groupedByColumnIds?.length }">
       <a-button v-e="['c:group-by']" class="nc-group-by-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-2">
-          <GroupIcon class="h-4 w-4" />
+          <component :is="iconMap.group" class="h-4 w-4" />
 
           <!-- Group By -->
           <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.groupBy') }}</span>
@@ -234,7 +233,7 @@ onMounted(async () => {
     <template #overlay>
       <div
         :class="{ ' min-w-[400px]': _groupBy.length }"
-        class="flex flex-col bg-white rounded-md overflow-auto menu-filter-dropdown max-h-[max(80vh,500px)] py-6 pl-6"
+        class="flex flex-col bg-white overflow-auto menu-filter-dropdown max-h-[max(80vh,500px)] py-6 pl-6"
         data-testid="nc-group-by-menu"
       >
         <div class="group-by-grid pb-1 mb-2 max-h-100 nc-scrollbar-md pr-5" @click.stop>
@@ -276,7 +275,7 @@ onMounted(async () => {
                 type="text"
                 @click.stop="removeFieldFromGroupBy(i)"
               >
-                <GeneralIcon icon="delete" class="" />
+                <component :is="iconMap.deleteListItem" />
               </NcButton>
             </a-tooltip>
           </template>

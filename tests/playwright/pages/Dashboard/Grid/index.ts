@@ -26,7 +26,7 @@ export class GridPage extends BasePage {
   readonly topbar: TopbarPage;
   readonly toolbar: ToolbarPage;
   readonly footbar: FootbarPage;
-  readonly projectMenu: ProjectMenuObject;
+  readonly baseMenu: ProjectMenuObject;
   readonly workspaceMenu: WorkspaceMenuObject;
   readonly rowPage: RowPageObject;
   readonly groupPage: GroupPageObject;
@@ -45,7 +45,7 @@ export class GridPage extends BasePage {
     this.topbar = new TopbarPage(this);
     this.toolbar = new ToolbarPage(this);
     this.footbar = new FootbarPage(this);
-    this.projectMenu = new ProjectMenuObject(this);
+    this.baseMenu = new ProjectMenuObject(this);
     this.workspaceMenu = new WorkspaceMenuObject(this);
     this.rowPage = new RowPageObject(this);
     this.groupPage = new GroupPageObject(this);
@@ -129,12 +129,12 @@ export class GridPage extends BasePage {
     await this._fillRow({ index, columnHeader, value: rowValue });
 
     const clickOnColumnHeaderToSave = () =>
-      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[title="${columnHeader}"]`).click();
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[data-test-id="${columnHeader}"]`).click();
 
     if (networkValidation) {
       await this.waitForResponse({
         uiAction: clickOnColumnHeaderToSave,
-        requestUrlPathToMatch: 'api/v1/db/data/noco',
+        requestUrlPathToMatch: 'api/v1/data/noco',
         httpMethodsToMatch: ['POST'],
         // numerical types are returned in number format from the server
         responseJsonMatcher: resJson => String(resJson?.[columnHeader]) === String(rowValue),
@@ -161,12 +161,12 @@ export class GridPage extends BasePage {
     await this._fillRow({ index, columnHeader, value });
 
     const clickOnColumnHeaderToSave = () =>
-      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[title="${columnHeader}"]`).click();
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[data-test-id="${columnHeader}"]`).click();
 
     if (networkValidation) {
       await this.waitForResponse({
         uiAction: clickOnColumnHeaderToSave,
-        requestUrlPathToMatch: 'api/v1/db/data/noco',
+        requestUrlPathToMatch: 'api/v1/data/noco',
         httpMethodsToMatch: [
           'PATCH',
           // since edit row on an empty row will emit POST request
@@ -203,7 +203,7 @@ export class GridPage extends BasePage {
 
     // todo: improve selector
     await this.rootPage
-      .locator('span.ant-dropdown-menu-title-content > nc-project-menu-item')
+      .locator('span.ant-dropdown-menu-title-content > nc-base-menu-item')
       .waitFor({ state: 'hidden' });
 
     await this.rootPage.waitForTimeout(300);
@@ -327,7 +327,7 @@ export class GridPage extends BasePage {
   }
 
   async verifyActivePage({ pageNumber }: { pageNumber: string }) {
-    await expect(this.get().locator(`.nc-pagination .active`)).toHaveText(pageNumber);
+    await expect(this.get().locator(`.nc-pagination .ant-select-selection-item`)).toHaveText(pageNumber);
   }
 
   async waitLoading() {

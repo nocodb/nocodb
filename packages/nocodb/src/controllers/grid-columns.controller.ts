@@ -3,20 +3,27 @@ import { GridColumnReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { GridColumnsService } from '~/services/grid-columns.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class GridColumnsController {
   constructor(private readonly gridColumnsService: GridColumnsService) {}
 
-  @Get('/api/v1/db/meta/grids/:gridViewId/grid-columns')
+  @Get([
+    '/api/v1/db/meta/grids/:gridViewId/grid-columns',
+    '/api/v1/meta/grids/:gridViewId/grid-columns',
+  ])
   @Acl('columnList')
   async columnList(@Param('gridViewId') gridViewId: string) {
     return await this.gridColumnsService.columnList({
       gridViewId,
     });
   }
-  @Patch('/api/v1/db/meta/grid-columns/:gridViewColumnId')
+  @Patch([
+    '/api/v1/db/meta/grid-columns/:gridViewColumnId',
+    '/api/v1/meta/grid-columns/:gridViewColumnId',
+  ])
   @Acl('gridColumnUpdate')
   async gridColumnUpdate(
     @Param('gridViewColumnId') gridViewColumnId: string,

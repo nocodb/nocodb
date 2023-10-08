@@ -17,8 +17,6 @@ import {
   watch,
 } from '#imports'
 
-import SortIcon from '~icons/nc-icons/sort'
-
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
@@ -115,7 +113,7 @@ watch(open, () => {
     <div :class="{ 'nc-active-btn': sorts?.length }">
       <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-2">
-          <SortIcon class="h-4 w-4" />
+          <component :is="iconMap.sort" class="h-4 w-4" />
 
           <!-- Sort -->
           <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.sort') }}</span>
@@ -158,13 +156,20 @@ watch(open, () => {
               <a-select-option
                 v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(sort.fk_column_id))"
                 :key="j"
+                v-e="['c:sort:operation:select']"
                 :value="option.value"
               >
                 <span>{{ option.text }}</span>
               </a-select-option>
             </NcSelect>
 
-            <NcButton type="text" size="small" class="nc-sort-item-remove-btn !max-w-8" @click.stop="deleteSort(sort, i)">
+            <NcButton
+              v-e="['c:sort:delete']"
+              type="text"
+              size="small"
+              class="nc-sort-item-remove-btn !max-w-8"
+              @click.stop="deleteSort(sort, i)"
+            >
               <component :is="iconMap.deleteListItem" />
             </NcButton>
           </template>
@@ -176,7 +181,7 @@ watch(open, () => {
           :trigger="['click']"
           overlay-class-name="nc-toolbar-dropdown"
         >
-          <NcButton class="!text-brand-500" type="text" size="small" @click.stop="showCreateSort = true">
+          <NcButton v-e="['c:sort:add']" class="!text-brand-500" type="text" size="small" @click.stop="showCreateSort = true">
             <div class="flex gap-1 items-center">
               <component :is="iconMap.plus" />
               <!-- Add Sort Option -->

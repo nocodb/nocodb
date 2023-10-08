@@ -3,8 +3,8 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import { ThrottlerStorage } from '@nestjs/throttler/dist/throttler-storage.interface';
 import { Reflector } from '@nestjs/core';
 import { PublicApiLimiterGuard as PublicApiLimiterGuardCE } from 'src/guards/public-api-limiter.guard';
+import requestIp from 'request-ip';
 import type { ExecutionContext } from '@nestjs/common';
-import  requestIp from 'request-ip';
 
 @Injectable()
 class PublicApiLimiterGuardEE extends ThrottlerGuard {

@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { ThrottlerStorage } from '@nestjs/throttler/dist/throttler-storage.interface';
 import { Reflector } from '@nestjs/core';
-import type { ExecutionContext } from '@nestjs/common';
 import { DataApiLimiterGuard as DataApiLimiterGuardCE } from 'src/guards/data-api-limiter.guard';
+import type { ExecutionContext } from '@nestjs/common';
 
 const HEADER_NAME = 'xc-token';
 

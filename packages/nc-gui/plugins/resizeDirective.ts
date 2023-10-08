@@ -36,6 +36,7 @@ export default defineNuxtPlugin((nuxtApp) => {
         startWidth = parseInt(document.defaultView?.getComputedStyle(el)?.width || '0', 10)
         document.documentElement.addEventListener('mousemove', doDrag, false)
         document.documentElement.addEventListener('mouseup', stopDrag, false)
+        emit('xcstartresizing', startWidth)
       }
 
       ;(el as any).initDrag = initDrag

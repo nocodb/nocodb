@@ -29,6 +29,7 @@ const { $api, $e } = useNuxtApp()
 const sharedBase = ref<null | ShareBase>(null)
 
 const { base } = storeToRefs(useBase())
+const { loadProject } = useBase()
 
 const { getBaseUrl, appInfo } = useGlobal()
 
@@ -74,6 +75,8 @@ const createShareBase = async (role = ShareBaseRole.Viewer) => {
 
     sharedBase.value = res ?? {}
     sharedBase.value!.role = role
+
+    base.value.uuid = res.uuid
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -87,6 +90,8 @@ const disableSharedBase = async () => {
 
     await $api.base.sharedBaseDisable(base.value.id)
     sharedBase.value = null
+
+    base.value.uuid = undefined
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

@@ -22,6 +22,7 @@ const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
 const reloadDataHook = inject(ReloadViewDataHookInj)
+const isPublic = inject(IsPublicInj, ref(false))
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
@@ -184,7 +185,7 @@ watch(open, () => {
           :trigger="['click']"
           overlay-class-name="nc-toolbar-dropdown"
         >
-          <template v-if="isEeUI">
+          <template v-if="isEeUI && !isPublic">
             <NcButton
               v-if="sorts.length < getPlanLimit(PlanLimitTypes.SORT_LIMIT)"
               v-e="['c:sort:add']"

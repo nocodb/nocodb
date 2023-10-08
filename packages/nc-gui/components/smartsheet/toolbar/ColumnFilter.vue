@@ -57,6 +57,8 @@ const activeView = inject(ActiveViewInj, ref())
 
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const { $e } = useNuxtApp()
 
 const { nestedFilters } = useSmartsheetStoreOrThrow()
@@ -487,7 +489,7 @@ onBeforeUnmount(() => {
       </template>
     </div>
 
-    <template v-if="isEeUI">
+    <template v-if="isEeUI && !isPublic">
       <div v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)" ref="addFiltersRowDomRef" class="flex gap-2">
         <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
           <div class="flex items-center gap-1">

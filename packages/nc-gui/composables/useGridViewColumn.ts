@@ -1,11 +1,9 @@
 import type { ColumnType, GridColumnReqType, GridColumnType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { IsPublicInj, computed, inject, ref, useMetas, useNuxtApp, useRoles, useStyleTag, useUndoRedo, watch } from '#imports'
+import { IsPublicInj, computed, inject, ref, useMetas, useNuxtApp, useRoles, useUndoRedo, watch } from '#imports'
 
 const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
   (view: Ref<(ViewType & { columns?: GridColumnType[] }) | undefined>, statePublic = false) => {
-    const { css, load: loadCss, unload: unloadCss } = useStyleTag('')
-
     const { isUIAllowed } = useRoles()
 
     const { $api } = useNuxtApp()
@@ -21,24 +19,6 @@ const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
 
     const columns = computed<ColumnType[]>(() => metas.value?.[view.value?.fk_model_id as string]?.columns || [])
 
-    watch(
-      [gridViewCols, resizingCol, resizingColWidth],
-      () => {
-        let style = ''
-        for (const c of columns?.value || []) {
-          const val = gridViewCols?.value?.[c?.id as string]?.width || '200px'
-
-          if (val && c.title !== resizingCol?.value) {
-            style += `[data-col="${c.id}"]{min-width:${val};max-width:${val};width: ${val};}`
-          } else {
-            style += `[data-col="${c.id}"]{min-width:${resizingColWidth?.value};max-width:${resizingColWidth?.value};width: ${resizingColWidth?.value};}`
-          }
-        }
-        css.value = style
-      },
-      { deep: true, immediate: true },
-    )
-
     const loadGridViewColumns = async () => {
       if (!view.value?.id && !isPublic.value) return
 
@@ -52,8 +32,6 @@ const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
         }),
         {},
       )
-
-      loadCss()
     }
 
     /** when columns changes(create/delete) reload grid columns
@@ -105,7 +83,7 @@ const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
       }
     }
 
-    return { loadGridViewColumns, updateGridViewColumn, resizingCol, resizingColWidth, gridViewCols, loadCss, unloadCss }
+    return { loadGridViewColumns, updateGridViewColumn, resizingCol, resizingColWidth, gridViewCols }
   },
   'useGridViewColumn',
 )

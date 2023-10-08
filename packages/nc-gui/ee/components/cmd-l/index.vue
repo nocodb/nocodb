@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onKeyUp, useDebounceFn, useMagicKeys, useVModel, whenever } from '@vueuse/core'
-import { defineEmits, defineProps, ref } from 'vue'
 import { onClickOutside } from '#imports'
 
 const props = defineProps<{

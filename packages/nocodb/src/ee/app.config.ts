@@ -27,7 +27,7 @@ const config: AppConfig = {
     },
     public: {
       ttl: +process.env.NC_PUBLIC_API_TTL || 1,
-      max_apis: +process.env.NC_PUBLIC_COUNT || 20,
+      max_apis: +process.env.NC_PUBLIC_COUNT || 10,
     },
     calc_execution_time: false,
   },

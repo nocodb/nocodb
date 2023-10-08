@@ -1,6 +1,7 @@
 import type { Api } from 'nocodb-sdk'
 import type { Actions } from '~/composables/useGlobal/types'
-import { defineNuxtRouteMiddleware, extractSdkResponseErrorMsg, message, navigateTo, useApi, useGlobal, useRoles } from '#imports'
+import { defineNuxtRouteMiddleware, message, navigateTo, useApi, useGlobal, useRoles, useState } from '#imports'
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 /**
  * Global auth middleware
@@ -75,6 +76,9 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       })
     }
   } else if (to.meta.requiresAuth === false && state.signedIn.value) {
+
+
+
     if (to.query?.logout) {
       await state.signOut(true)
       return navigateTo('/signin')

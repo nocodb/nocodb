@@ -39,7 +39,7 @@ const tableStore = useTablesStore()
 
 const navigating = ref(false)
 
-const autoNavigateToProject = async (initial = false) => {
+const autoNavigateToProject = async ({ initial = false }: { initial: boolean }) => {
   const routeName = route.value.name as string
 
   if (routeName !== 'index-typeOrId' && routeName !== 'index') {
@@ -102,8 +102,12 @@ watch(
       await populateWorkspace()
 
       if (!route.value.params.baseId && basesStore.basesList.length) {
-        await autoNavigateToProject(oldId === undefined)
+        await autoNavigateToProject({ initial: oldId === undefined })
       }
+    }
+
+    if (lastPopulatedWorkspaceId.value === newId && !route.value.params.typeOrId) {
+      await autoNavigateToProject({ initial: false })
     }
   },
   {

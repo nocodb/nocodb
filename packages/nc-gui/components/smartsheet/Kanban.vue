@@ -107,7 +107,9 @@ const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 
 const fields = inject(FieldsInj, ref([]))
 
-const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== kanbanMetaData.value?.fk_cover_image_col_id))
+const fieldsWithoutDisplay = computed(() => fields.value.filter((f) => !isPrimary(f)))
+
+const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
 
 const coverImageColumn: any = computed(() =>
   meta.value?.columnsById
@@ -520,22 +522,21 @@ watch(
                           <div class="nc-kanban-item py-2 pl-3 pr-2">
                             <LazySmartsheetRow :row="record">
                               <a-card
-                                hoverable
+                                class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] shadow-sm hover:shadow-md cursor-pointer"
+                                :body-style="{ padding: '0px' }"
                                 :data-stack="stack.title"
-                                class="!rounded-xl h-full overflow-hidden break-all max-w-[450px]"
+                                :data-testid="`nc-gallery-card-${record.row.id}`"
                                 :class="{
                                   'not-draggable': isLocked || !hasEditPermission || isPublic,
                                   '!cursor-default': isLocked || !hasEditPermission || isPublic,
                                 }"
-                                :body-style="{ padding: '10px' }"
                                 @click="expandFormClick($event, record)"
                                 @contextmenu="showContextMenu($event, record)"
                               >
                                 <template v-if="kanbanMetaData?.fk_cover_image_col_id" #cover>
                                   <a-carousel
                                     v-if="!reloadAttachments && attachments(record).length"
-                                    autoplay
-                                    class="gallery-carousel"
+                                    class="gallery-carousel !border-b-1 !border-gray-200"
                                     arrows
                                   >
                                     <template #customPaging>
@@ -547,11 +548,19 @@ watch(
                                     </template>
 
                                     <template #prevArrow>
-                                      <div style="z-index: 1"></div>
+                                      <div class="z-10 arrow">
+                                        <MdiChevronLeft
+                                          class="text-gray-700 w-6 h-6 absolute left-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
+                                        />
+                                      </div>
                                     </template>
 
                                     <template #nextArrow>
-                                      <div style="z-index: 1"></div>
+                                      <div class="z-10 arrow">
+                                        <MdiChevronRight
+                                          class="text-gray-700 w-6 h-6 absolute right-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
+                                        />
+                                      </div>
                                     </template>
 
                                     <template v-for="(attachment, index) in attachments(record)">
@@ -560,51 +569,71 @@ watch(
                                         :key="`carousel-${record.row.id}-${index}`"
                                         class="h-52 object-cover"
                                         :srcs="getPossibleAttachmentSrc(attachment)"
+                                        @click="expandFormClick($event, record)"
                                       />
                                     </template>
                                   </a-carousel>
-
-                                  <component :is="iconMap.imagePlaceholder" v-else class="w-full h-48 my-4 text-cool-gray-200" />
+                                  <div
+                                    v-else
+                                    class="h-52 w-full !flex flex-row !border-b-1 !border-gray-200 items-center justify-center"
+                                  >
+                                    <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
+                                  </div>
                                 </template>
-                                <div
-                                  v-for="col in fieldsWithoutCover"
-                                  :key="`record-${record.row.id}-${col.id}`"
-                                  class="flex flex-col rounded-lg w-full"
-                                >
-                                  <div v-if="!isRowEmpty(record, col) || isLTAR(col.uidt, col.colOptions)">
-                                    <!-- Smartsheet Header (Virtual) Cell -->
-                                    <div class="flex flex-row w-full justify-start pt-2">
-                                      <div class="w-full text-gray-400">
+                                <h2 v-if="displayField" class="text-base mt-3 mx-3 font-bold">
+                                  <LazySmartsheetVirtualCell
+                                    v-if="isVirtualCol(displayField)"
+                                    v-model="record.row[displayField.title]"
+                                    class="!text-gray-600"
+                                    :column="displayField"
+                                    :row="record"
+                                  />
+
+                                  <LazySmartsheetCell
+                                    v-else
+                                    v-model="record.row[displayField.title]"
+                                    class="!text-gray-600"
+                                    :column="displayField"
+                                    :edit-enabled="false"
+                                    :read-only="true"
+                                  />
+                                </h2>
+
+                                <div v-for="col in fieldsWithoutDisplay" :key="`record-${record.row.id}-${col.id}`">
+                                  <div class="flex flex-col first:mt-3 ml-2 !pr-3.5 !mb-[0.75rem] rounded-lg w-full">
+                                    <div class="flex flex-row w-full justify-start scale-75">
+                                      <div class="w-full pb-1 text-gray-300">
                                         <LazySmartsheetHeaderVirtualCell
                                           v-if="isVirtualCol(col)"
                                           :column="col"
                                           :hide-menu="true"
+                                          :hide-icon="true"
                                         />
-                                        <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+
+                                        <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" :hide-icon="true" />
                                       </div>
                                     </div>
 
-                                    <!--  Smartsheet (Virtual) Cell -->
                                     <div
-                                      class="flex flex-row w-full items-center justify-start"
-                                      :class="{ '!ml-[-12px] pl-3': col.uidt === UITypes.SingleSelect }"
+                                      v-if="!isRowEmpty(record, col)"
+                                      class="flex flex-row w-full text-gray-700 px-1 mt-[-0.25rem] items-center justify-start"
                                     >
                                       <LazySmartsheetVirtualCell
-                                        v-if="col.title && isVirtualCol(col)"
+                                        v-if="isVirtualCol(col)"
                                         v-model="record.row[col.title]"
-                                        class="text-sm pt-1 pl-5"
                                         :column="col"
                                         :row="record"
                                       />
+
                                       <LazySmartsheetCell
-                                        v-else-if="col.title"
+                                        v-else
                                         v-model="record.row[col.title]"
-                                        class="text-sm pt-1 pl-7.25"
                                         :column="col"
                                         :edit-enabled="false"
                                         :read-only="true"
                                       />
                                     </div>
+                                    <div v-else class="flex flex-row w-full h-[1.375rem] pl-1 items-center justify-start">-</div>
                                   </div>
                                 </div>
                               </a-card>

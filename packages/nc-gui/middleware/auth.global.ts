@@ -54,13 +54,18 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   /** if shared base allow without validating */
   if (to.params.typeOrId === 'base') return
 
-  /** if auth is required or unspecified (same as required) and user is not signed in, redirect to signin page */
+  /** if auth is required or unspecified (same `as required) and user is not signed in, redirect to signin page */
   if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !state.signedIn.value) {
     /** If this is the first usern navigate to signup page directly */
     if (state.appInfo.value.firstUser) {
+      const query = to.fullPath !== '/' && to.fullPath.match(/^\/(?!\?)/) ? { continueAfterSignIn: to.fullPath } : {}
+      if (query.continueAfterSignIn) {
+        localStorage.setItem('continueAfterSignIn', query.continueAfterSignIn)
+      }
+
       return navigateTo({
         path: '/signup',
-        query: to.fullPath !== '/' && to.fullPath.match(/^\/(?!\?)/) ? { continueAfterSignIn: to.fullPath } : {},
+        query,
       })
     }
 

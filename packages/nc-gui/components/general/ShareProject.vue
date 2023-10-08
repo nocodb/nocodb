@@ -8,7 +8,7 @@ interface Props {
 
 const { disabled, isViewToolbar } = defineProps<Props>()
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, getMainAppUrl } = useGlobal()
 
 const { visibility, showShareModal } = storeToRefs(useShare())
 
@@ -38,7 +38,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 })
 
 const copySharedBase = async () => {
-  navigateTo(`/copy-shared-base?base=${route.params.baseId}`)
+  const baseUrl = getMainAppUrl()
+  navigateTo(`${baseUrl || ''}/copy-shared-base?base=${route.params.baseId}`)
 }
 </script>
 

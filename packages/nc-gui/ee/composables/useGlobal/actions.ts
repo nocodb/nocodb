@@ -85,7 +85,7 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
         updateFirstTimeUser()
         signIn((await tokenRes).data.token)
         if (!skipRedirect && continueAfterSignIn) {
-          sessionStorage.removeItem('continueAfterSignIn')
+          localStorage.removeItem('continueAfterSignIn')
           navigateTo(continueAfterSignIn)
         }
       }

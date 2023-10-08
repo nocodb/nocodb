@@ -46,8 +46,19 @@ async function signIn() {
 
   resetError()
 
+  const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
+
   api.auth.signin(form).then(async ({ token }) => {
     _signIn(token!)
+
+    if (continueAfterSignIn) {
+      localStorage.removeItem('continueAfterSignIn')
+      await navigateTo({
+        path: continueAfterSignIn,
+        query: route.query,
+      })
+      return
+    }
 
     await navigateTo({
       path: '/',

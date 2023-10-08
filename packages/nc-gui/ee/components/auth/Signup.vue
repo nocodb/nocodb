@@ -1,17 +1,7 @@
 <script setup lang="ts">
 import { validatePassword } from 'nocodb-sdk'
 import type { RuleObject } from 'ant-design-vue/es/form'
-import {
-  navigateTo,
-  reactive,
-  ref,
-  useApi,
-  useGlobal,
-  useI18n,
-  useNuxtApp,
-  useRoute,
-  validateEmail,
-} from '#imports'
+import { navigateTo, reactive, ref, useApi, useGlobal, useI18n, useNuxtApp, useRoute, validateEmail } from '#imports'
 
 const { $e } = useNuxtApp()
 
@@ -73,6 +63,7 @@ async function signUp() {
   }
 
   data.ignore_subscribe = !subscribe.value
+  const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
 
   api.auth.signup(data).then(async (user) => {
     signIn(user.token!)
@@ -94,6 +85,15 @@ async function signUp() {
       }
     } catch (e) {
       console.error(e)
+    }
+
+    if (continueAfterSignIn) {
+      localStorage.removeItem('continueAfterSignIn')
+      await navigateTo({
+        path: continueAfterSignIn,
+        query: route.query,
+      })
+      return
     }
 
     await navigateTo({
@@ -123,7 +123,7 @@ const subDomain = location.host?.split('.')[0]
   <NuxtLayout>
     <div class="md:bg-primary bg-opacity-5 signup h-full min-h-[600px] flex flex-col justify-center items-center">
       <div
-          class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+        class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
       >
         <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
 
@@ -137,9 +137,9 @@ const subDomain = location.host?.split('.')[0]
           <template v-if="!appInfo.disableEmailAuth">
             <Transition name="layout">
               <div
-                  v-if="error"
-                  class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1"
-                  data-testid="nc-signup-error"
+                v-if="error"
+                class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1"
+                data-testid="nc-signup-error"
               >
                 <div class="flex items-center gap-2 justify-center">
                   <MaterialSymbolsWarning />
@@ -150,23 +150,23 @@ const subDomain = location.host?.split('.')[0]
 
             <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
               <a-input
-                  v-model:value="form.email"
-                  type="email"
-                  autocomplete="email"
-                  size="large"
-                  :placeholder="$t('msg.info.signUp.workEmail')"
-                  @focus="resetError"
+                v-model:value="form.email"
+                type="email"
+                autocomplete="email"
+                size="large"
+                :placeholder="$t('msg.info.signUp.workEmail')"
+                @focus="resetError"
               />
             </a-form-item>
 
             <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
               <a-input-password
-                  v-model:value="form.password"
-                  autocomplete="new-password"
-                  size="large"
-                  class="password"
-                  :placeholder="$t('msg.info.signUp.enterPassword')"
-                  @focus="resetError"
+                v-model:value="form.password"
+                autocomplete="new-password"
+                size="large"
+                class="password"
+                :placeholder="$t('msg.info.signUp.enterPassword')"
+                @focus="resetError"
               />
             </a-form-item>
           </template>
@@ -181,9 +181,9 @@ const subDomain = location.host?.split('.')[0]
               </button>
             </template>
             <a
-                v-if="appInfo.googleAuthEnabled"
-                :href="`${appInfo.ncSiteUrl}/auth/google`"
-                class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
+              v-if="appInfo.googleAuthEnabled"
+              :href="`${appInfo.ncSiteUrl}/auth/google`"
+              class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
             >
               <span class="flex items-center gap-2">
                 <LogosGoogleGmail />
@@ -193,8 +193,8 @@ const subDomain = location.host?.split('.')[0]
             </a>
 
             <div
-                v-if="appInfo.oidcAuthEnabled"
-                class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
+              v-if="appInfo.oidcAuthEnabled"
+              class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
             >
               <a :href="`${appInfo.ncSiteUrl}/auth/oidc?workspaceId=${subDomain}`" class="!text-primary !no-underline">
                 <button type="button" class="scaling-btn bg-opacity-100">
@@ -213,9 +213,9 @@ const subDomain = location.host?.split('.')[0]
 
             <div v-if="!appInfo.disableEmailAuth" class="flex items-center gap-2">
               <a-switch
-                  v-model:checked="subscribe"
-                  size="small"
-                  class="my-1 hover:(ring ring-accent ring-opacity-100) focus:(!ring !ring-accent ring-opacity-100)"
+                v-model:checked="subscribe"
+                size="small"
+                class="my-1 hover:(ring ring-accent ring-opacity-100) focus:(!ring !ring-accent ring-opacity-100)"
               />
               <div class="prose-xs text-gray-500">Subscribe to our weekly newsletter</div>
             </div>

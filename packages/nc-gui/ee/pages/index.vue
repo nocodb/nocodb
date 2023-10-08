@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { onUnmounted } from '@vue/runtime-core'
+import { navigateTo } from '#imports'
 
 definePageMeta({
   hideHeader: true,
@@ -134,7 +135,17 @@ onMounted(async () => {
   if (route.value.meta.public) return
 
   if (route.value.query?.continueAfterSignIn) {
+    localStorage.removeItem('continueAfterSignIn')
     return await navigateTo(route.value.query.continueAfterSignIn as string)
+  } else {
+    const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
+
+    if (continueAfterSignIn) {
+      return await navigateTo({
+        path: continueAfterSignIn,
+        query: route.query,
+      })
+    }
   }
 
   toggle(true)

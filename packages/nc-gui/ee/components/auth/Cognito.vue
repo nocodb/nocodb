@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import '@aws-amplify/ui-vue/styles.css'
 import { Authenticator } from '@aws-amplify/ui-vue'
-import { isFirstTimeUser} from '#imports'
+import { isFirstTimeUser } from '#imports'
 
 const initialState = isFirstTimeUser() ? 'signUp' : 'signIn'
 
@@ -71,7 +71,9 @@ const formFields = {
             >Terms of Service</a
           >
           &
-          <a class="!cursor-pointer !text-gray-400 !hover:text-brand-500" href="https://www.nocodb.com/policy" target="_blank">Privacy Policy</a>
+          <a class="!cursor-pointer !text-gray-400 !hover:text-brand-500" href="https://www.nocodb.com/policy" target="_blank"
+            >Privacy Policy</a
+          >
         </div>
       </template>
     </Authenticator>

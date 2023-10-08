@@ -1,3 +1,1 @@
-import { i18nPlugin } from '../../plugins/a.i18n'
-
-export default i18nPlugin;
+export { i18nPlugin as default } from '../../plugins/a.i18n'

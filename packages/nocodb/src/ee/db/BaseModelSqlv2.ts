@@ -14,7 +14,7 @@ import {
 } from 'src/db/BaseModelSqlv2';
 import DOMPurify from 'isomorphic-dompurify';
 import type { Column, Model } from '~/models';
-import { Audit, Source, View } from '~/models';
+import { Audit, ModelStat, Source, View } from '~/models';
 import { getSingleQueryReadFn } from '~/services/data-opt/helpers';
 import { canUseOptimisedQuery } from '~/utils';
 import { extractProps } from '~/helpers/extractProps';
@@ -23,6 +23,9 @@ import {
   UPDATE_WORKSPACE_COUNTER,
 } from '~/services/update-stats.service';
 import Noco from '~/Noco';
+import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
+import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { NcError } from '~/helpers/catchError';
 
 /**
  * Base class for models
@@ -291,6 +294,78 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
   }
 
+  public async beforeInsert(data: any, _trx: any, req): Promise<void> {
+    const workspaceId = await getWorkspaceForBase(this.model.base_id);
+
+    const modelStats = await ModelStat.get(workspaceId, this.model.id);
+
+    const workspaceStats = await ModelStat.getWorkspaceSum(workspaceId);
+
+    const rowCount = modelStats ? modelStats.row_count : 0;
+
+    const workspaceRowCount = workspaceStats ? workspaceStats.row_count : 0;
+
+    const modelRowLimit = await getLimit(
+      PlanLimitTypes.TABLE_ROW_LIMIT,
+      workspaceId,
+    );
+
+    const workspaceRowLimit = getLimit(
+      PlanLimitTypes.WORKSPACE_ROW_LIMIT,
+      workspaceId,
+    );
+
+    if (workspaceRowCount >= workspaceRowLimit) {
+      NcError.badRequest(
+        `Only ${workspaceRowLimit} records are allowed in your workspace, for more please upgrade your plan`,
+      );
+    }
+
+    if (rowCount >= modelRowLimit) {
+      NcError.badRequest(
+        `Only ${modelRowLimit} records are allowed in your table, for more please upgrade your plan`,
+      );
+    }
+
+    await this.handleHooks('before.insert', null, data, req);
+  }
+
+  public async beforeBulkInsert(data: any, _trx: any, req): Promise<void> {
+    const workspaceId = await getWorkspaceForBase(this.model.base_id);
+
+    const modelStats = await ModelStat.get(workspaceId, this.model.id);
+
+    const workspaceStats = await ModelStat.getWorkspaceSum(workspaceId);
+
+    const rowCount = modelStats ? modelStats.row_count : 0;
+
+    const workspaceRowCount = workspaceStats ? workspaceStats.row_count : 0;
+
+    const modelRowLimit = await getLimit(
+      PlanLimitTypes.TABLE_ROW_LIMIT,
+      workspaceId,
+    );
+
+    const workspaceRowLimit = getLimit(
+      PlanLimitTypes.WORKSPACE_ROW_LIMIT,
+      workspaceId,
+    );
+
+    if (workspaceRowCount >= workspaceRowLimit) {
+      NcError.badRequest(
+        `Only ${workspaceRowLimit} records are allowed in your workspace, for more please upgrade your plan`,
+      );
+    }
+
+    if (rowCount >= modelRowLimit) {
+      NcError.badRequest(
+        `Only ${modelRowLimit} records are allowed in your table, for more please upgrade your plan`,
+      );
+    }
+
+    await this.handleHooks('before.bulkInsert', null, data, req);
+  }
+
   public async afterInsert(data: any, _trx: any, req): Promise<void> {
     await this.handleHooks('after.insert', null, data, req);
     const id = this._extractPksValues(data);
@@ -306,6 +381,16 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       ip: req?.clientIp,
       user: req?.user?.email,
     });
+
+    /*
+    const workspaceId = await getWorkspaceForBase(this.model.base_id);
+    const modelStats = await ModelStat.get(workspaceId, this.model.id);
+    if (modelStats) {
+      await ModelStat.upsert(workspaceId, this.model.id, {
+        row_count: modelStats.row_count + 1,
+      });
+    }
+    */
 
     Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
       base_id: this.model.base_id,
@@ -330,6 +415,16 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       ip: req?.clientIp,
       user: req?.user?.email,
     });
+
+    /*
+    const workspaceId = await getWorkspaceForBase(this.model.base_id);
+    const modelStats = await ModelStat.get(workspaceId, this.model.id);
+    if (modelStats) {
+      await ModelStat.upsert(workspaceId, this.model.id, {
+        row_count: modelStats.row_count + data.length,
+      });
+    }
+    */
 
     // TODO env
     if (data.length > 500) {
@@ -361,6 +456,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       user: req?.user?.email,
     });
     await this.handleHooks('after.delete', null, data, req);
+
+    const workspaceId = await getWorkspaceForBase(this.model.base_id);
+    const modelStats = await ModelStat.get(workspaceId, this.model.id);
+    if (modelStats) {
+      await ModelStat.upsert(workspaceId, this.model.id, {
+        row_count: modelStats.row_count - 1,
+      });
+    }
+
     Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
       base_id: this.model.base_id,
       fk_model_id: this.model.id,
@@ -393,6 +497,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       ip: req?.clientIp,
       user: req?.user?.email,
     });
+
+    const workspaceId = await getWorkspaceForBase(this.model.base_id);
+    const modelStats = await ModelStat.get(workspaceId, this.model.id);
+    if (modelStats) {
+      await ModelStat.upsert(workspaceId, this.model.id, {
+        row_count: modelStats.row_count - noOfDeletedRecords,
+      });
+    }
+
     // TODO env
     if (noOfDeletedRecords > 500) {
       Noco.eventEmitter.emit(UPDATE_MODEL_STAT, {

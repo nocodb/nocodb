@@ -80,7 +80,7 @@ export class UpdateStatsService implements OnModuleInit, OnModuleDestroy {
     }
 
     // TODO env
-    if (+updatedCount > 2000) {
+    if (+updatedCount > 1000) {
       await NocoCache.del(
         `${CacheScope.WORKSPACE_CREATE_DELETE_COUNTER}:${fk_workspace_id}`,
       );

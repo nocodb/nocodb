@@ -76,7 +76,7 @@ export class UpdateStatsProcessor {
       return false;
     }
 
-    if (!updatedModels) {
+    if (updatedModels) {
       for (const fk_model_id of updatedModels) {
         await this.updateModelStat({
           data: {

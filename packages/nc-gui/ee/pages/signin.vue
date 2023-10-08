@@ -16,7 +16,7 @@ definePageMeta({
 // save the page's URL in sessionStorage so that we can redirect the user back to that page
 onMounted(() => {
   if (route.query.continueAfterSignIn) {
-    sessionStorage.setItem('continueAfterSignIn', route.query.continueAfterSignIn)
+    localStorage.setItem('continueAfterSignIn', route.query.continueAfterSignIn)
   }
 })
 </script>

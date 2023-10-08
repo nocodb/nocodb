@@ -73,6 +73,7 @@ async function signUp() {
   }
 
   data.ignore_subscribe = !subscribe.value
+  const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
 
   api.auth.signup(data).then(async (user) => {
     signIn(user.token!)
@@ -94,6 +95,15 @@ async function signUp() {
       }
     } catch (e) {
       console.error(e)
+    }
+
+    if(continueAfterSignIn){
+      await navigateTo({
+        path: continueAfterSignIn,
+        query: route.query,
+      })
+      localStorage.removeItem('continueAfterSignIn')
+      return
     }
 
     await navigateTo({

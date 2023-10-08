@@ -48,9 +48,9 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     const { authStatus } = toRefs(useAuthenticator())
 
     watch(
-      [authStatus, signedIn],
-      async ([status, signedIn]) => {
-        if (status === 'authenticated' && !signedIn) {
+      [authStatus],
+      async ([status]) => {
+        if (status === 'authenticated' && !signedIn.value) {
           await checkForCognitoToken()
           const route = useRoute()
           if (/signin|signup/i.test(route.name)) {

@@ -14,7 +14,7 @@ export const useShare = defineStore('share', () => {
       return meta.isPublic
     }
 
-    return (base.value?.meta as any)?.isPublic
+    return (base.value?.meta as any)?.isPublic || base.value?.uuid
   })
 
   const formStatus = ref<
@@ -38,7 +38,7 @@ export const useShare = defineStore('share', () => {
     (uuid) => {
       if (base.value?.type !== 'database') return
 
-      visibility.value = uuid ? 'public' : 'private'
+      visibility.value = uuid || base.value?.uuid ? 'public' : 'private'
     },
     {
       immediate: true,
@@ -48,11 +48,11 @@ export const useShare = defineStore('share', () => {
   watch(
     [openedPage, isEditAllowed, isProjectPublic],
     () => {
-      if (base.value?.type !== 'documentation') return
-      if (!isEditAllowed.value) {
-        visibility.value = 'hidden'
-        return
-      }
+      // TODO: Below logic is for docs
+      // if (!isEditAllowed.value) {
+      //   visibility.value = 'hidden'
+      //   return
+      // }
 
       visibility.value = openedPage.value?.is_published || isProjectPublic.value ? 'public' : 'private'
     },

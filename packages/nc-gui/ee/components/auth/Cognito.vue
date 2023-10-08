@@ -49,11 +49,6 @@ const formFields = {
       label: 'Confirmation Code',
       isRequired: false,
     },
-    new_password: {
-      placeholder: '**********',
-      label: 'New Password',
-      isRequired: true,
-    },
   },
 }
 </script>

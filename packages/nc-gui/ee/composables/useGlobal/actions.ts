@@ -216,7 +216,7 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
   // get the base url of the app id base subdomain is used
   // eg: https://app.nocodb.com
   const getMainUrl = () => {
-    if (state.appInfo.value.mainSubDomain) {
+    if (state.appInfo.value.mainSubDomain && state.appInfo.value.baseHostName) {
       return `https://${state.appInfo.value.mainSubDomain}.${state.appInfo.value.baseHostName}`
     }
     return undefined

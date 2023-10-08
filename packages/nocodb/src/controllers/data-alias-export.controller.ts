@@ -9,7 +9,7 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 
 @Controller()
-@UseGuards(DataApiLimiterGuard,GlobalGuard)
+@UseGuards(DataApiLimiterGuard, GlobalGuard)
 @Throttle({ data: {} })
 export class DataAliasExportController {
   constructor(private datasService: DatasService) {}

@@ -16,9 +16,10 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { HooksService } from '~/services/hooks.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class HooksController {
   constructor(private readonly hooksService: HooksService) {}
 

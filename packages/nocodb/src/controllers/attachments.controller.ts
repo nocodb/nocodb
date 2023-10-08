@@ -18,12 +18,13 @@ import { UploadAllowedInterceptor } from '~/interceptors/is-upload-allowed/is-up
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { AttachmentsService } from '~/services/attachments.service';
 import { PresignedUrl } from '~/models';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
 export class AttachmentsController {
   constructor(private readonly attachmentsService: AttachmentsService) {}
 
-  @UseGuards(GlobalGuard)
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Post(['/api/v1/db/storage/upload', '/api/v1/storage/upload'])
   @HttpCode(200)
   @UseInterceptors(UploadAllowedInterceptor, AnyFilesInterceptor())
@@ -43,7 +44,7 @@ export class AttachmentsController {
   @Post(['/api/v1/db/storage/upload-by-url', '/api/v1/storage/upload-by-url'])
   @HttpCode(200)
   @UseInterceptors(UploadAllowedInterceptor)
-  @UseGuards(GlobalGuard)
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   async uploadViaURL(@Body() body: any, @Query('path') path: string) {
     const attachments = await this.attachmentsService.uploadViaURL({
       urls: body,

@@ -17,9 +17,19 @@ const config: AppConfig = {
   },
 
   throttler: {
-    ttl: 60,
-    max_apis: 10000,
-    calc_execution_time: true,
+    data: {
+      ttl: +process.env.NC_DATA_API_TTL || 1,
+      max_apis: +process.env.NC_DATA_COUNT || 5,
+    },
+    meta: {
+      ttl: +process.env.NC_META_API_TTL || 1,
+      max_apis: +process.env.NC_META_COUNT || 2,
+    },
+    public: {
+      ttl: +process.env.NC_PUBLIC_API_TTL || 1,
+      max_apis: +process.env.NC_PUBLIC_COUNT || 10,
+    },
+    calc_execution_time: false,
   },
   basicAuth: {
     username: process.env.NC_HTTP_BASIC_USER ?? 'defaultusername',

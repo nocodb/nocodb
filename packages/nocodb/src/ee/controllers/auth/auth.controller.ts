@@ -17,6 +17,7 @@ import { NcError } from '~/helpers/catchError';
 import { UsersService } from '~/services/users/users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
+import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 
 @Controller()
 export class AuthController extends AuthControllerCE {
@@ -31,7 +32,7 @@ export class AuthController extends AuthControllerCE {
   /* OpenID Connect auth apis */
   /* OpenID Connect APIs */
   @Post('/auth/oidc/genTokenByCode')
-  @UseGuards(AuthGuard('openid'))
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('openid'))
   async oidcSignin(@Request() req, @Response() res) {
     await this.setRefreshToken({ req, res });
     res.json({
@@ -44,12 +45,13 @@ export class AuthController extends AuthControllerCE {
   }
 
   @Get('/auth/oidc')
-  @UseGuards(AuthGuard('openid'))
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('openid'))
   openidAuth() {
     // openid strategy will take care the request
   }
 
   @Get('/auth/oidc/redirect')
+  @UseGuards(PublicApiLimiterGuard)
   async redirect(@Request() req, @Response() res) {
     const key = `oidc:${req.query.state}`;
     const state = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -69,6 +71,7 @@ export class AuthController extends AuthControllerCE {
   }
 
   @Get('/auth/oidc/logout-redirect')
+  @UseGuards(PublicApiLimiterGuard)
   async logoutRedirect(@Request() req, @Response() res) {
     const host = req.query.state;
 
@@ -83,7 +86,7 @@ export class AuthController extends AuthControllerCE {
     res.send((await import('./templates/redirect')).default({ url }));
   }
 
-  @UseGuards(GlobalGuard)
+  @UseGuards(PublicApiLimiterGuard, GlobalGuard)
   @Post('/api/v1/auth/user/signout')
   @HttpCode(200)
   async signOut(@Request() req, @Response() res): Promise<any> {

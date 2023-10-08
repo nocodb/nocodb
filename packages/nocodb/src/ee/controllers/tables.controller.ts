@@ -11,9 +11,10 @@ import { TablesController as TablesControllerCE } from 'src/controllers/tables.c
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TablesService } from '~/services/tables.service';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class TablesController extends TablesControllerCE {
   constructor(private readonly tablesServiceEE: TablesService) {
     super(tablesServiceEE);

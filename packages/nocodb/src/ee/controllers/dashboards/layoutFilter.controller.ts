@@ -13,9 +13,10 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { LayoutFilterService } from '~/services/dashboards/layoutFilter.service';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class LayoutFilterController {
   constructor(private readonly dashboardFilterService: LayoutFilterService) {}
 

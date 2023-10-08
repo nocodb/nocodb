@@ -14,8 +14,9 @@ import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { User, WorkspaceUser } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
 export class BaseUsersController extends BaseUsersControllerCE {
   constructor(protected readonly baseUsersService: BaseUsersService) {

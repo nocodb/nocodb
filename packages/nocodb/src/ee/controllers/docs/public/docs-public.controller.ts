@@ -1,7 +1,9 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { PublicDocsService } from '../../../services/docs/public/public-docs.service';
+import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 
 @Controller()
+@UseGuards(PublicApiLimiterGuard)
 export class DocsPublicController {
   constructor(private readonly publicDocsService: PublicDocsService) {}
 

@@ -21,6 +21,7 @@ import { MetaService } from '~/meta/meta.service';
 import NocoCache from '~/cache/NocoCache';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { WorkspaceUsersService } from '~/modules/workspace-users/workspace-users.service';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
 export class WorkspacesController {
@@ -30,7 +31,7 @@ export class WorkspacesController {
     private readonly metaService: MetaService,
   ) {}
 
-  @UseGuards(GlobalGuard)
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Get('/api/v1/workspaces/')
   @Acl('workspaceList', {
     scope: 'org',
@@ -42,7 +43,7 @@ export class WorkspacesController {
     });
   }
 
-  @UseGuards(GlobalGuard)
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Get('/api/v1/workspaces/:workspaceId')
   @Acl('workspaceGet', {
     scope: 'workspace',
@@ -65,7 +66,7 @@ export class WorkspacesController {
     return { workspace, workspaceUserCount };
   }
 
-  @UseGuards(GlobalGuard)
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Post('/api/v1/workspaces/')
   @Acl('workspaceCreate', {
     scope: 'org',
@@ -78,7 +79,7 @@ export class WorkspacesController {
     });
   }
 
-  @UseGuards(GlobalGuard)
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Patch('/api/v1/workspaces/:workspaceId')
   @Acl('workspaceUpdate', {
     scope: 'workspace',
@@ -96,7 +97,7 @@ export class WorkspacesController {
     });
   }
 
-  @UseGuards(GlobalGuard)
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Post('/api/v1/workspaces/:workspaceId/upgrade')
   @Acl('workspaceUpgrade', {
     scope: 'workspace',
@@ -109,7 +110,7 @@ export class WorkspacesController {
     });
   }
 
-  @UseGuards(GlobalGuard)
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Delete('/api/v1/workspaces/:workspaceId')
   @Acl('workspaceDelete', {
     scope: 'workspace',
@@ -122,7 +123,7 @@ export class WorkspacesController {
     });
   }
 
-  @UseGuards(GlobalGuard)
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Post('/api/v1/workspaces/:workspaceId/bases/:baseId/move')
   @Acl('moveProjectToWorkspace', {
     scope: 'workspace',
@@ -140,7 +141,7 @@ export class WorkspacesController {
     });
   }
 
-  @UseGuards(GlobalGuard)
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Get('/api/v1/workspaces/:workspaceId/bases')
   @Acl('workspaceBaseList', {
     scope: 'workspace',
@@ -158,7 +159,7 @@ export class WorkspacesController {
 
   // Todo: move logic to service
   @Patch('/api/v1/workspaces/:workspaceId/status')
-  @UseGuards(AuthGuard('basic'))
+  @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
   async updateStatus(
     @Req() req,
     @Body() body,

@@ -542,8 +542,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)(express@4.18.1)
       '@nestjs/throttler':
-        specifier: ^4.2.1
-        version: 4.2.1(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)(reflect-metadata@0.1.13)
+        specifier: ^5.0.0
+        version: 5.0.0(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)(reflect-metadata@0.1.13)
       '@nestjs/websockets':
         specifier: ^10.2.1
         version: 10.2.1(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)(@nestjs/platform-socket.io@10.2.1)(reflect-metadata@0.1.13)(rxjs@7.2.0)
@@ -765,7 +765,7 @@ importers:
         version: 1.0.6(debug@4.3.4)(kafkajs@2.2.4)(reflect-metadata@0.1.13)
       nestjs-throttler-storage-redis:
         specifier: ^0.3.0
-        version: 0.3.0(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)(@nestjs/throttler@4.2.1)(ioredis@5.3.2)(reflect-metadata@0.1.13)
+        version: 0.3.0(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)(@nestjs/throttler@5.0.0)(ioredis@5.3.2)(reflect-metadata@0.1.13)
       nocodb-sdk:
         specifier: workspace:^
         version: link:../nocodb-sdk
@@ -8474,8 +8474,8 @@ packages:
       tslib: 2.6.0
     dev: true
 
-  /@nestjs/throttler@4.2.1(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)(reflect-metadata@0.1.13):
-    resolution: {integrity: sha512-wVPMuIyr0KdrK1RVVQceWVNesogCm9IgYC1V5EkaTZ+usIE4qxEyzdwU5IqQLgOO/Loiq98MLwReDxazX7i9Uw==}
+  /@nestjs/throttler@5.0.0(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)(reflect-metadata@0.1.13):
+    resolution: {integrity: sha512-TKf+bpjYpRnSOu8dqi0TmQAPxyvLoO6jFldTq3ToevYDfLtAxBXDTJs8qRRfmHv3wORaJhIbVDtW1dDQuP5wCQ==}
     peerDependencies:
       '@nestjs/common': ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
       '@nestjs/core': ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
@@ -22858,7 +22858,7 @@ packages:
       - reflect-metadata
     dev: false
 
-  /nestjs-throttler-storage-redis@0.3.0(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)(@nestjs/throttler@4.2.1)(ioredis@5.3.2)(reflect-metadata@0.1.13):
+  /nestjs-throttler-storage-redis@0.3.0(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)(@nestjs/throttler@5.0.0)(ioredis@5.3.2)(reflect-metadata@0.1.13):
     resolution: {integrity: sha512-1FlBdao730/zJhiE8skiMbAalhHSNoPnDf5m3laTNYVy5NmVr7mexyCBJ/wZJH+Ya7cu58W6vAXUTr2jJZBTOQ==}
     peerDependencies:
       '@nestjs/common': '>=7.0.0'
@@ -22869,7 +22869,7 @@ packages:
     dependencies:
       '@nestjs/common': 10.2.1(reflect-metadata@0.1.13)(rxjs@7.2.0)
       '@nestjs/core': 10.2.1(@nestjs/common@10.2.1)(@nestjs/platform-express@10.2.1)(@nestjs/websockets@10.2.1)(reflect-metadata@0.1.13)(rxjs@7.2.0)
-      '@nestjs/throttler': 4.2.1(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)(reflect-metadata@0.1.13)
+      '@nestjs/throttler': 5.0.0(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)(reflect-metadata@0.1.13)
       ioredis: 5.3.2
       reflect-metadata: 0.1.13
     dev: false

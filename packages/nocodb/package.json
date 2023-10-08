@@ -67,7 +67,7 @@
     "@nestjs/platform-express": "^10.2.1",
     "@nestjs/platform-socket.io": "^10.2.1",
     "@nestjs/serve-static": "^4.0.0",
-    "@nestjs/throttler": "^4.2.1",
+    "@nestjs/throttler": "^5.0.0",
     "@nestjs/websockets": "^10.2.1",
     "@sentry/node": "^6.3.5",
     "@techpass/passport-openidconnect": "^0.3.3",

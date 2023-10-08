@@ -51,7 +51,7 @@ const logout = async () => {
             >
               <div class="flex flex-row gap-x-2 items-center h-8.5">
                 <GeneralIcon icon="arrowLeft" class="-mt-0.1" />
-                <div class="flex text-xs text-gray-800">Back to Workspace</div>
+                <div class="flex text-xs text-gray-800">{{ $t('labels.backToWorkspace') }}</div>
               </div>
             </div>
 
@@ -151,7 +151,7 @@ const logout = async () => {
         <!-- Sub Tabs -->
 
         <div class="flex flex-col w-full">
-          <div class="flex flex-row p-3 items-center">
+          <div class="flex flex-row p-3 items-center h-14">
             <div class="flex-1" />
 
             <LazyGeneralReleaseInfo />
@@ -191,8 +191,15 @@ const logout = async () => {
               </NcDropdown>
             </template>
           </div>
-          <div class="flex flex-col container mx-auto mt-2">
-            <NuxtPage />
+          <div
+            class="flex flex-col container mx-auto"
+            :style="{
+              height: 'calc(100vh - 3.5rem)',
+            }"
+          >
+            <div class="mt-2 h-full">
+              <NuxtPage />
+            </div>
           </div>
         </div>
       </div>

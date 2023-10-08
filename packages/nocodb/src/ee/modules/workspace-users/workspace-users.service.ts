@@ -222,6 +222,7 @@ export class WorkspaceUsersService {
         condition: {
           fk_workspace_id: workspaceId,
         },
+        aggField: 'fk_user_id',
       },
     );
 

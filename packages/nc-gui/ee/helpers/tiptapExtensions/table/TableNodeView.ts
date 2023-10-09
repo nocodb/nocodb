@@ -13,7 +13,7 @@ function updateColumns(
   let fixedWidth = true
   let nextDOM = colgroup.firstChild
   const row = node.firstChild
-  if (!row) return console.warn('row is undefined', node)
+  if (!row) return console.warn('Record is undefined', node)
 
   for (let i = 0, col = 0; i < row.childCount; i += 1) {
     const { colspan, colwidth } = row.child(i).attrs

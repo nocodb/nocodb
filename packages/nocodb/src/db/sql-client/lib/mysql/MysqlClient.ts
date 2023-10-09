@@ -1936,7 +1936,7 @@ class MysqlClient extends KnexClient {
       await promisify(jsonfile.writeFile)(
         seedSettings,
         {
-          rows: { value: 8, description: 'Maximum number of rows' },
+          rows: { value: 8, description: 'Maximum number of records' },
           foreign_key_rows: {
             value: 2,
             description: '1:n - Total number foreign key per relation',

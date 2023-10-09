@@ -1,3 +1,15 @@
+process.env.NC_COGNITO_AWS_PROJECT_REGION = 'us-east-2';
+process.env.NC_COGNITO_AWS_COGNITO_IDENTITY_POOL_ID =
+  'us-east-2:16bb8711-47cf-479b-9b35-aa506f91c436';
+process.env.NC_COGNITO_AWS_COGNITO_REGION = 'us-east-2';
+process.env.NC_COGNITO_AWS_USER_POOLS_ID = 'us-east-2_STrmC0yso';
+process.env.NC_COGNITO_AWS_USER_POOLS_WEB_CLIENT_ID =
+  '3139p206qmeeh977b6k79njkla';
+process.env.NC_COGNITO_OAUTH_DOMAIN = 'auth.nocodb.com';
+
+process.env.NC_COGNITO_OAUTH_REDIRECTSIGNIN = 'http://localhost:3000';
+process.env.NC_COGNITO_OAUTH_REDIRECTSIGNOUT = 'http://localhost:3000';
+
 import cors from 'cors';
 import express from 'express';
 import Noco from '~/Noco';

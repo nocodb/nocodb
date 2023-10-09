@@ -24,7 +24,7 @@ export class DataTableController {
   constructor(private readonly dataTableService: DataTableService) {}
 
   // todo: Handle the error case where view doesnt belong to model
-  @Get('/api/v1/tables/:modelId/rows')
+  @Get('/api/v1/tables/:modelId/records')
   @Acl('dataList')
   async dataList(
     @Request() req,
@@ -43,7 +43,7 @@ export class DataTableController {
     res.json(responseData);
   }
 
-  @Get(['/api/v1/tables/:modelId/rows/count'])
+  @Get(['/api/v1/tables/:modelId/records/count'])
   @Acl('dataCount')
   async dataCount(
     @Request() req,
@@ -60,7 +60,7 @@ export class DataTableController {
     res.json(countResult);
   }
 
-  @Post(['/api/v1/tables/:modelId/rows'])
+  @Post(['/api/v1/tables/:modelId/records'])
   @HttpCode(200)
   @Acl('dataInsert')
   async dataInsert(
@@ -77,7 +77,7 @@ export class DataTableController {
     });
   }
 
-  @Patch(['/api/v1/tables/:modelId/rows'])
+  @Patch(['/api/v1/tables/:modelId/records'])
   @Acl('dataUpdate')
   async dataUpdate(
     @Request() req,
@@ -93,7 +93,7 @@ export class DataTableController {
     });
   }
 
-  @Delete(['/api/v1/tables/:modelId/rows'])
+  @Delete(['/api/v1/tables/:modelId/records'])
   @Acl('dataDelete')
   async dataDelete(
     @Request() req,
@@ -109,7 +109,7 @@ export class DataTableController {
     });
   }
 
-  @Get(['/api/v1/tables/:modelId/rows/:rowId'])
+  @Get(['/api/v1/tables/:modelId/records/:rowId'])
   @Acl('dataRead')
   async dataRead(
     @Request() req,
@@ -125,7 +125,7 @@ export class DataTableController {
     });
   }
 
-  @Get(['/api/v1/tables/:modelId/links/:columnId/rows/:rowId'])
+  @Get(['/api/v1/tables/:modelId/links/:columnId/records/:rowId'])
   @Acl('nestedDataList')
   async nestedDataList(
     @Request() req,
@@ -143,7 +143,7 @@ export class DataTableController {
     });
   }
 
-  @Post(['/api/v1/tables/:modelId/links/:columnId/rows/:rowId'])
+  @Post(['/api/v1/tables/:modelId/links/:columnId/records/:rowId'])
   @Acl('nestedDataLink')
   async nestedLink(
     @Request() req,
@@ -164,7 +164,7 @@ export class DataTableController {
     });
   }
 
-  @Delete(['/api/v1/tables/:modelId/links/:columnId/rows/:rowId'])
+  @Delete(['/api/v1/tables/:modelId/links/:columnId/records/:rowId'])
   @Acl('nestedDataUnlink')
   async nestedUnlink(
     @Request() req,

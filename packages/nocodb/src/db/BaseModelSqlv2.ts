@@ -4291,7 +4291,7 @@ class BaseModelSqlv2 {
 
     // validate rowId
     if (!row) {
-      NcError.notFound(`Row with id '${rowId}' not found`);
+      NcError.notFound(`Record with id '${rowId}' not found`);
     }
 
     if (!childIds.length) return;
@@ -4516,7 +4516,7 @@ class BaseModelSqlv2 {
 
     // validate rowId
     if (!row) {
-      NcError.notFound(`Row with id '${rowId}' not found`);
+      NcError.notFound(`Record with id '${rowId}' not found`);
     }
 
     if (!childIds.length) return;
@@ -4678,7 +4678,7 @@ class BaseModelSqlv2 {
 
       // validate rowId
       if (!row) {
-        NcError.notFound(`Row with id ${id} not found`);
+        NcError.notFound(`Record with id ${id} not found`);
       }
 
       const parentCol = await (

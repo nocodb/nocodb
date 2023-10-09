@@ -3,12 +3,16 @@ import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { SourcesService } from '~/services/sources.service';
+import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 
 @Processor(JOBS_QUEUE)
 export class SourceCreateProcessor {
   private readonly debugLog = debug('nc:jobs:source-create');
 
-  constructor(private readonly sourcesService: SourcesService) {}
+  constructor(
+    private readonly sourcesService: SourcesService,
+    private readonly jobsLogService: JobsLogService,
+  ) {}
 
   @Process(JobTypes.BaseCreate)
   async job(job: Job) {
@@ -16,9 +20,15 @@ export class SourceCreateProcessor {
 
     const { baseId, source } = job.data;
 
+    const logBasic = (log) => {
+      this.jobsLogService.sendLog(job, { message: log });
+      this.debugLog(log);
+    };
+
     const createdBase = await this.sourcesService.baseCreate({
       baseId,
       source,
+      logger: logBasic,
     });
 
     if (createdBase.isMeta()) {

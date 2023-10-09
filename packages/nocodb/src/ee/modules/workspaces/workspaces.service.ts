@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   ProjectRoles,
@@ -42,7 +42,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     private configService: ConfigService<AppConfig>,
     private basesService: BasesService,
     private tablesService: TablesService,
-    @Inject('JobsService') private jobsService,
+    @Inject(forwardRef(() => 'JobsService')) private jobsService,
   ) {}
 
   async onApplicationBootstrap() {
@@ -366,8 +366,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     if (!workspace) NcError.notFound('Workspace not found');
 
-    /*
-    if (workspace.plan !== WorkspacePlan.FREE) {
+    if (workspace.plan !== WorkspacePlan.BUSINESS_PRO) {
       NcError.notFound('Workspace is already upgraded');
     }
 
@@ -380,7 +379,6 @@ export class WorkspacesService implements OnApplicationBootstrap {
       plan: WorkspacePlan.BUSINESS_PRO,
       status: WorkspaceStatus.CREATING,
     });
-    */
 
     return workspace;
   }

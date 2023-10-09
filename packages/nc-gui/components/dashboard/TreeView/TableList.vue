@@ -42,6 +42,21 @@ const menuRefs = ref<HTMLElement[] | HTMLElement>()
 
 const sortables: Record<string, Sortable> = {}
 
+function rearrangeChildrenByClass(container: HTMLElement) {
+  const children = Array.from(container.children)
+  const rearrangedChildren = children.sort((a, b) => {
+    const aIsPinned = a.classList.contains('nc-tree-item-pinned')
+    const bIsPinned = b.classList.contains('nc-tree-item-pinned')
+    if (aIsPinned && !bIsPinned) return -1
+    if (!aIsPinned && bIsPinned) return 1
+    return 0
+  })
+  container.innerHTML = ''
+  rearrangedChildren.forEach((child) => {
+    container.appendChild(child)
+})
+}
+
 // todo: replace with vuedraggable
 const initSortable = (el: Element) => {
   const source_id = el.getAttribute('nc-source')
@@ -50,6 +65,10 @@ const initSortable = (el: Element) => {
 
   if (sortables[source_id]) sortables[source_id].destroy()
   Sortable.create(el as HTMLLIElement, {
+    onMove: (evt) => {
+      const itemEl = evt.dragged as HTMLLIElement
+      if (evt.related.classList.contains('nc-tree-item-pinned') || itemEl.classList.contains('nc-tree-item-pinned')) return false
+    },
     onEnd: async (evt) => {
       const offset = tables.value.findIndex((table) => table.source_id === source_id)
 
@@ -69,6 +88,8 @@ const initSortable = (el: Element) => {
       // get items before and after the moved item
       const itemBeforeEl = children[newIndex - 1] as HTMLLIElement
       const itemAfterEl = children[newIndex + 1] as HTMLLIElement
+
+      rearrangeChildrenByClass(evt.to)
 
       // get items meta of before and after the moved item
       const itemBefore = itemBeforeEl && tablesById.value[itemBeforeEl.dataset.id as string]
@@ -99,6 +120,7 @@ const initSortable = (el: Element) => {
       })
     },
     animation: 150,
+    filter: '.nc-tree-item-pinned',
     setData(dataTransfer, dragEl) {
       dataTransfer.setData(
         'text/json',
@@ -116,6 +138,7 @@ const initSortable = (el: Element) => {
 
 watchEffect(() => {
   if (menuRefs.value) {
+    rearrangeChildrenByClass(menuRefs.value as HTMLElement)
     if (menuRefs.value instanceof HTMLElement) {
       initSortable(menuRefs.value)
     } else {

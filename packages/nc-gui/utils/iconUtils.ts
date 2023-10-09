@@ -269,6 +269,7 @@ export const iconMap = {
   error: h('span', { class: 'material-symbols' }, 'error'),
   info: h(MsInfo, {}, () => 'info'),
   inbox: h('span', { class: 'material-symbols' }, 'inbox'),
+  pin: h('span', { class: 'material-symbols' }, 'push_pin'),
   addOutlineBox: MsAddBoxOutline,
   loading: h('span', { class: 'material-symbols' }, 'autorenew'),
   arrowCollapse: Up,

@@ -55,6 +55,21 @@ const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
 const openedTableId = computed(() => route.params.viewId)
 
 const isTableDeleteDialogVisible = ref(false)
+const projectsRefs = ref<HTMLElement>()
+const isProjectPinnedRef = ref<boolean>(false)
+
+const isProjectPinned = () => {
+  if (projectsRefs.value && projectsRefs.value.classList.contains('nc-tree-item-pinned')) {
+    isProjectPinnedRef.value = true
+    return true
+  }
+  return false
+}
+watch(projectsRefs, () => {
+  if (projectsRefs.value) {
+    isProjectPinned()
+  }
+})
 
 const setIcon = async (icon: string, table: TableType) => {
   try {
@@ -138,10 +153,19 @@ watch(
 const isTableOpened = computed(() => {
   return openedTableId.value === table.value?.id && activeView.value?.is_default
 })
+
+const pinUnPinProject = () => {
+  if (projectsRefs.value instanceof HTMLElement) {
+    if (isProjectPinnedRef.value === false) projectsRefs.value.classList.add('nc-tree-item-pinned')
+    if (isProjectPinnedRef.value === true) projectsRefs.value.classList.remove('nc-tree-item-pinned')
+    isProjectPinnedRef.value = !isProjectPinnedRef.value
+  }
+}
 </script>
 
 <template>
   <div
+    ref="projectsRefs"
     class="nc-tree-item nc-table-node-wrapper text-sm select-none w-full"
     :data-order="table.order"
     :data-id="table.id"
@@ -240,6 +264,7 @@ const isTableOpened = computed(() => {
         >
           {{ table.title }}
         </span>
+        <GeneralIcon v-if="isProjectPinnedRef" icon="pin" class="text-gray-700" />
         <div class="flex flex-grow h-full"></div>
         <div class="flex flex-row items-center">
           <NcDropdown
@@ -267,6 +292,13 @@ const isTableOpened = computed(() => {
                 >
                   <GeneralIcon icon="edit" class="text-gray-700" />
                   {{ $t('general.rename') }}
+                </NcMenuItem>
+
+                <NcMenuItem @click="pinUnPinProject">
+                  <div class="nc-project-menu-item">
+                    <GeneralIcon :icon="isProjectPinnedRef ? 'closeThick' : 'pin'" class="text-gray-700" />
+                    {{ isProjectPinnedRef ? 'Unpin' : 'Pin' }}
+                  </div>
                 </NcMenuItem>
 
                 <NcMenuItem

@@ -1,3 +1,5 @@
+import axios from 'axios';
+import { useAgent } from 'request-filtering-agent';
 import {
   Body,
   Controller,
@@ -74,6 +76,32 @@ export class SourceCreateController {
       NcError.badRequest(
         `Only ${sourceLimitForWorkspace} sources are allowed, for more please upgrade your plan`,
       );
+    }
+
+    if (process.env.NC_ALLOW_LOCAL_EXTERNAL_DBS !== 'true') {
+      if (!body.config?.connection || !body.config?.connection.host) {
+        NcError.badRequest('Connection missing host name or IP address');
+      }
+      if (body.config?.client && !body.config?.client.includes('sqlite')) {
+        const host = body.config?.connection?.host;
+        const port = body.config?.connection?.port;
+        if (host && port) {
+          const url = `${host.includes('://') ? '' : 'http://'}${host}:${port}`;
+          await axios(url, {
+            httpAgent: useAgent(url, {
+              stopPortScanningByUrlRedirection: true,
+            }),
+            httpsAgent: useAgent(url, {
+              stopPortScanningByUrlRedirection: true,
+            }),
+            timeout: 100,
+          }).catch((err) => {
+            if (err.message.includes('DNS lookup')) {
+              NcError.badRequest('Forbidden!!!');
+            }
+          });
+        }
+      }
     }
 
     const job = await this.jobsService.add(JobTypes.BaseCreate, {

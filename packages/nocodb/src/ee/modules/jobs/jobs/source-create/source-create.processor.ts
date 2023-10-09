@@ -8,6 +8,7 @@ import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import { Workspace } from '~/models';
 import { WorkspacesService } from '~/modules/workspaces/workspaces.service';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Processor(JOBS_QUEUE)
 export class SourceCreateProcessor {
@@ -59,6 +60,8 @@ export class SourceCreateProcessor {
       logBasic(
         '⏳ Please wait 1-3 minutes as we set up an instance for you. Go grab a coffee!',
       );
+
+      await NcConnectionMgrv2.deleteAwait(createdBase);
 
       await this.workspacesService.upgrade({
         workspaceId,

@@ -44,7 +44,7 @@ export class DatasService extends DatasServiceCE {
       }
     } catch (e) {
       // if not internal server error log and throw internal server error
-      if (!(e instanceof InternalServerError)) this.logger.error(e);
+      if (!(e instanceof InternalServerError)) console.error(e);
       NcError.internalServerError('Please contact server admin');
     }
 
@@ -88,7 +88,7 @@ export class DatasService extends DatasServiceCE {
       }
     } catch (e) {
       // if not internal server error log and throw internal server error
-      if (!(e instanceof InternalServerError)) this.logger.error(e);
+      if (!(e instanceof InternalServerError)) console.error(e);
       NcError.internalServerError('Please contact server admin');
     }
 

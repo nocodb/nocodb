@@ -23,11 +23,11 @@ function initPostHog(clientId: string) {
   try {
     if (!isTeleEnabled) return
     if (!phClient) {
-      phClient = posthog.init('phc_eI1Je4IwepOvg7jPW5jbokqYY5VGxkldwgkw7Y6KAPb', {
+      phClient = posthog.init('phc_XIYhmt76mLGNt1iByEFoTEbsyuYeZ0o7Q5Ang4G7msr', {
         api_host: 'https://app.posthog.com',
         session_recording: {
           maskAllInputs: true,
-          maskTextSelector: ":not([data-rec='true'] *)",
+          maskTextSelector: ":not([data-rec='true'])",
           maskTextFn: (text: string) => {
             if (!text?.trim()) return text
             if (text.length <= 2) return text.replace(/./g, '*')

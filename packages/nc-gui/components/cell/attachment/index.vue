@@ -206,7 +206,9 @@ const onExpand = () => {
       <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
       <NcTooltip placement="bottom">
-        <template data-rec="true" #title>{{ $t('activity.attachmentDrop') }} </template>
+        <template #title
+          ><span data-rec="true">{{ $t('activity.attachmentDrop') }} </span></template
+        >
 
         <div v-if="active || !visibleItems.length || (isForm && visibleItems.length)" class="flex items-center gap-1">
           <MaterialSymbolsAttachFile

@@ -29,7 +29,6 @@ const { $api, $e } = useNuxtApp()
 const sharedBase = ref<null | ShareBase>(null)
 
 const { base } = storeToRefs(useBase())
-const { loadProject } = useBase()
 
 const { getBaseUrl, appInfo } = useGlobal()
 

@@ -63,10 +63,10 @@ const onValidate = async (_: any, valid: boolean) => {
 <template>
   <div class="flex flex-col items-center">
     <div class="flex flex-col w-150">
-      <div class="flex font-bold text-xl"  data-rec="true">{{ $t('labels.profile') }}</div>
+      <div class="flex font-bold text-xl" data-rec="true">{{ $t('labels.profile') }}</div>
       <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-2">
         <div class="flex font-medium text-base" data-rec="true">{{ $t('labels.accountDetails') }}</div>
-        <div class="flex text-gray-500"  data-rec="true">{{ $t('labels.controlAppearance') }}</div>
+        <div class="flex text-gray-500" data-rec="true">{{ $t('labels.controlAppearance') }}</div>
         <div class="flex flex-row mt-4">
           <div class="flex h-20 mt-1.5">
             <GeneralUserIcon size="xlarge" :email="user?.email" />

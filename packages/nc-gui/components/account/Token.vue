@@ -189,9 +189,15 @@ const handleCancel = () => {
         <div class="h-full w-full !overflow-hidden rounded-md">
           <div class="flex w-full pl-5 bg-gray-50 border-1 rounded-t-md">
             <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9" data-rec="true">{{ $t('title.tokenName') }}</span>
-            <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9 text-start" data-rec="true">{{ $t('title.creator') }}</span>
-            <span class="py-3.5 text-gray-500 font-medium text-3.5 w-3/9 text-start" data-rec="true">{{ $t('labels.token') }}</span>
-            <span class="py-3.5 pl-19 text-gray-500 font-medium text-3.5 w-2/9 text-start" data-rec="true">{{ $t('labels.actions') }}</span>
+            <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9 text-start" data-rec="true">{{
+              $t('title.creator')
+            }}</span>
+            <span class="py-3.5 text-gray-500 font-medium text-3.5 w-3/9 text-start" data-rec="true">{{
+              $t('labels.token')
+            }}</span>
+            <span class="py-3.5 pl-19 text-gray-500 font-medium text-3.5 w-2/9 text-start" data-rec="true">{{
+              $t('labels.actions')
+            }}</span>
           </div>
           <div class="nc-scrollbar-md !overflow-y-auto flex flex-col h-[calc(100%-5rem)]">
             <div v-if="showNewTokenModal">
@@ -212,10 +218,12 @@ const handleCancel = () => {
                     data-testid="nc-token-input"
                     @press-enter="generateToken"
                   />
-                  <span v-if="!isValidTokenName" class="text-red-500 text-xs font-light mt-1.5 ml-1" data-rec="true">{{ errorMessage }} </span>
+                  <span v-if="!isValidTokenName" class="text-red-500 text-xs font-light mt-1.5 ml-1" data-rec="true"
+                    >{{ errorMessage }}
+                  </span>
                 </div>
                 <div class="flex gap-2 justify-start">
-                  <NcButton v-if="!isLoading"  type="secondary" size="small" @click="handleCancel">
+                  <NcButton v-if="!isLoading" type="secondary" size="small" @click="handleCancel">
                     {{ $t('general.cancel') }}
                   </NcButton>
                   <NcButton

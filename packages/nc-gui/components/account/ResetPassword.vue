@@ -79,7 +79,12 @@ const resetError = () => {
         </div>
       </Transition>
 
-      <a-form-item :label="$t('placeholder.password.current')" data-rec="true" name="currentPassword" :rules="formRules.currentPassword">
+      <a-form-item
+        :label="$t('placeholder.password.current')"
+        data-rec="true"
+        name="currentPassword"
+        :rules="formRules.currentPassword"
+      >
         <a-input-password
           v-model:value="form.currentPassword"
           data-testid="nc-user-settings-form__current-password"
@@ -101,7 +106,12 @@ const resetError = () => {
         />
       </a-form-item>
 
-      <a-form-item :label="$t('placeholder.password.confirm')" data-rec="true" name="passwordRepeat" :rules="formRules.passwordRepeat">
+      <a-form-item
+        :label="$t('placeholder.password.confirm')"
+        data-rec="true"
+        name="passwordRepeat"
+        :rules="formRules.passwordRepeat"
+      >
         <a-input-password
           v-model:value="form.passwordRepeat"
           data-testid="nc-user-settings-form__new-password-repeat"

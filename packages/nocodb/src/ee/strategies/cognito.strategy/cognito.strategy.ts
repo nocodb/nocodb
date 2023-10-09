@@ -48,7 +48,7 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
         }
 
         if (/\+/.test(email.split('@')[0])) {
-          return callback("Emails with '+' are not allowed");
+          return callback(new Error("Emails with '+' are not allowed"));
         }
 
         // get user by email
@@ -77,12 +77,12 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
                 provider: 'openid',
               });
             } catch (err) {
-              return callback('Token validation failed');
+              return callback(new Error('Token validation failed'));
             }
           }
         });
       } else {
-        return callback('No token found');
+        return callback(new Error('No token found'));
       }
     } catch (error) {
       return callback(error);

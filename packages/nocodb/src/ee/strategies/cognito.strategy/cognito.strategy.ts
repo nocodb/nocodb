@@ -47,6 +47,10 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
           return callback('Invalid token');
         }
 
+        if (/\+/.test(email.split('@')[0])) {
+          return callback("Emails with '+' are not allowed");
+        }
+
         // get user by email
         await User.getByEmail(email).then(async (user) => {
           if (user) {

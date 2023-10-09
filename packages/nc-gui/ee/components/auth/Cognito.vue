@@ -5,6 +5,16 @@ import { isFirstTimeUser } from '#imports'
 
 const initialState = isFirstTimeUser() ? 'signUp' : 'signIn'
 
+const services = {
+  async validateCustomSignUp(formData) {
+    if (/\+/.test(formData.email?.split('@')[0])) {
+      return {
+        email: "Email with '+' is not allowed.",
+      }
+    }
+  },
+}
+
 const formFields = {
   signIn: {
     username: {
@@ -55,7 +65,7 @@ const formFields = {
 
 <template>
   <div class="py-10 flex justify-center">
-    <Authenticator :initial-state="initialState" :form-fields="formFields" :social-providers="['google']">
+    <Authenticator :initial-state="initialState" :form-fields="formFields" :social-providers="['google']" :services="services">
       <template #header>
         <div style="padding: var(--amplify-space-large); text-align: center">
           <img class="amplify-image" alt="NocoDB Logo" src="~assets/img/brand/nocodb.png" />
@@ -68,12 +78,13 @@ const formFields = {
             class="!cursor-pointer !text-gray-400 !hover:text-brand-500"
             href="https://www.nocodb.com/terms-of-service"
             target="_blank"
-            >Terms of Service</a
           >
+            Terms of Service
+          </a>
           &
-          <a class="!cursor-pointer !text-gray-400 !hover:text-brand-500" href="https://www.nocodb.com/policy" target="_blank"
-            >Privacy Policy</a
-          >
+          <a class="!cursor-pointer !text-gray-400 !hover:text-brand-500" href="https://www.nocodb.com/policy" target="_blank">
+            Privacy Policy
+          </a>
         </div>
       </template>
     </Authenticator>

@@ -1,5 +1,6 @@
 import { useDebounceFn } from '@vueuse/core'
-import posthog, { PostHog } from 'posthog-js'
+import type { PostHog } from 'posthog-js'
+import posthog from 'posthog-js'
 import { init } from 'nc-analytics'
 import { defineNuxtPlugin, until, useGlobal, useRouter } from '#imports'
 import type { NuxtApp } from '#app'
@@ -7,6 +8,7 @@ import type { NuxtApp } from '#app'
 // todo: generate client id and keep it in cookie(share across sub-domains)
 let clientId = null
 let isTeleEnabled = false
+let phClient: PostHog | void
 
 try {
   init({
@@ -20,21 +22,27 @@ try {
 function initPostHog(clientId: string) {
   try {
     if (!isTeleEnabled) return
-
     if (!phClient) {
       phClient = posthog.init('phc_XIYhmt76mLGNt1iByEFoTEbsyuYeZ0o7Q5Ang4G7msr', {
         api_host: 'https://app.posthog.com',
         session_recording: {
-          enabled: true,
+          maskAllInputs: true,
+          maskTextSelector: ":not([data-rec='true'])",
+          maskTextFn: (text: string) => {
+            if (!text?.trim()) return text
+            if (text.length <= 2) return text.replace(/./g, '*')
+            return text.replace(/^(.{3})([\s\S]*)/g, (_, m1, m2) => {
+              return m1 + (m2 ? '*'.repeat(m2.length) : '')
+            })
+          },
         },
         autocapture: false,
         capture_pageview: false,
-        capture_links: false,
-        capture_form_submits: false,
       })
     }
-    PostHog.identify(clientId)
+    posthog.identify(clientId)
   } catch (e) {
+    // console.log(e)
     // ignore error
   }
 }

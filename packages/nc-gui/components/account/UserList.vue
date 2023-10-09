@@ -155,7 +155,7 @@ const openDeleteModal = (user: UserType) => {
 <template>
   <div data-testid="nc-super-user-list" class="h-full">
     <div class="max-w-195 mx-auto h-full">
-      <div class="text-2xl text-left font-weight-bold mb-4">{{ $t('title.userManagement') }}</div>
+      <div class="text-2xl text-left font-weight-bold mb-4" data-rec="true">{{ $t('title.userManagement') }}</div>
       <div class="py-2 flex gap-4 items-center justify-between">
         <a-input v-model:value="searchText" class="!max-w-90 !rounded-md" placeholder="Search members" @change="loadUsers()">
           <template #prefix>
@@ -165,7 +165,7 @@ const openDeleteModal = (user: UserType) => {
         <div class="flex gap-3 items-center justify-center">
           <component :is="iconMap.reload" class="cursor-pointer" @click="loadUsers(currentPage, currentLimit)" />
           <NcButton data-testid="nc-super-user-invite" size="small" type="primary" @click="openInviteModal">
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1" data-rec="true">
               <component :is="iconMap.plus" />
               {{ $t('activity.inviteUser') }}
             </div>
@@ -174,9 +174,11 @@ const openDeleteModal = (user: UserType) => {
       </div>
       <div class="w-full rounded-md max-w-250 h-[calc(100%-12rem)] rounded-md overflow-hidden mt-5">
         <div class="flex w-full bg-gray-50 border-1 rounded-t-md">
-          <div class="py-3.5 text-gray-500 font-medium text-3.5 w-2/3 text-start pl-6">{{ $t('labels.email') }}</div>
-          <div class="py-3.5 text-gray-500 font-medium text-3.5 w-1/3 text-start">{{ $t('objects.role') }}</div>
-          <div class="flex py-3.5 text-gray-500 font-medium text-3.5 w-28 justify-end mr-4">
+          <div class="py-3.5 text-gray-500 font-medium text-3.5 w-2/3 text-start pl-6" data-rec="true">
+            {{ $t('labels.email') }}
+          </div>
+          <div class="py-3.5 text-gray-500 font-medium text-3.5 w-1/3 text-start" data-rec="true">{{ $t('objects.role') }}</div>
+          <div class="flex py-3.5 text-gray-500 font-medium text-3.5 w-28 justify-end mr-4" data-rec="true">
             {{ $t('labels.action') }}
           </div>
         </div>
@@ -203,7 +205,9 @@ const openDeleteModal = (user: UserType) => {
               </GeneralTruncateText>
             </div>
             <div class="text-3.5 text-start w-1/3">
-              <div v-if="el?.roles?.includes('super')" class="font-weight-bold">{{ $t('labels.superAdmin') }}</div>
+              <div v-if="el?.roles?.includes('super')" class="font-weight-bold" data-rec="true">
+                {{ $t('labels.superAdmin') }}
+              </div>
               <NcSelect
                 v-else
                 v-model:value="el.roles"
@@ -216,8 +220,8 @@ const openDeleteModal = (user: UserType) => {
                   :value="OrgUserRoles.CREATOR"
                   :label="$t(`objects.roleType.orgLevelCreator`)"
                 >
-                  <div>{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
-                  <span class="text-gray-500 text-xs whitespace-normal">
+                  <div data-rec="true">{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
+                  <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">
                     {{ $t('msg.info.roles.orgCreator') }}
                   </span>
                 </a-select-option>
@@ -227,8 +231,8 @@ const openDeleteModal = (user: UserType) => {
                   :value="OrgUserRoles.VIEWER"
                   :label="$t(`objects.roleType.orgLevelViewer`)"
                 >
-                  <div>{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
-                  <span class="text-gray-500 text-xs whitespace-normal">
+                  <div data-rec="true">{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
+                  <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">
                     {{ $t('msg.info.roles.orgViewer') }}
                   </span>
                 </a-select-option>
@@ -254,11 +258,11 @@ const openDeleteModal = (user: UserType) => {
                         <!-- Resend invite Email -->
                         <NcMenuItem @click="resendInvite(el)">
                           <component :is="iconMap.email" class="flex text-gray-600" />
-                          <div>{{ $t('activity.resendInvite') }}</div>
+                          <div data-rec="true">{{ $t('activity.resendInvite') }}</div>
                         </NcMenuItem>
                         <NcMenuItem @click="copyInviteUrl(el)">
                           <component :is="iconMap.copy" class="flex text-gray-600" />
-                          <div>{{ $t('activity.copyInviteURL') }}</div>
+                          <div data-rec="true">{{ $t('activity.copyInviteURL') }}</div>
                         </NcMenuItem>
                         <NcMenuItem @click="copyPasswordResetUrl(el)">
                           <component :is="iconMap.copy" class="flex text-gray-600" />
@@ -266,7 +270,7 @@ const openDeleteModal = (user: UserType) => {
                         </NcMenuItem>
                       </template>
                       <NcDivider v-if="!el.roles?.includes('super')" />
-                      <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="openDeleteModal(el)">
+                      <NcMenuItem data-rec="true" class="!text-red-500 !hover:bg-red-50" @click="openDeleteModal(el)">
                         <MaterialSymbolsDeleteOutlineRounded />
                         {{ $t('general.remove') }} {{ $t('objects.user') }}
                       </NcMenuItem>

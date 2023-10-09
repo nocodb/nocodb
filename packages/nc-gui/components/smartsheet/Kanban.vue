@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import Draggable from 'vuedraggable'
-import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -16,7 +16,6 @@ import {
   iconMap,
   inject,
   isImage,
-  isLTAR,
   onBeforeUnmount,
   provide,
   useAttachment,
@@ -573,7 +572,7 @@ const getRowId = (row: RowType) => {
                                         </div>
                                       </template>
 
-                                      <template v-for="(attachment, index) in attachments(record)">
+                                      <template v-for="attachment in attachments(record)">
                                         <LazyCellAttachmentImage
                                           v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                                           :key="attachment.path"

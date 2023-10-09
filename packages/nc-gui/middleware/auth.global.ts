@@ -1,6 +1,6 @@
 import type { Api } from 'nocodb-sdk'
 import type { Actions } from '~/composables/useGlobal/types'
-import { defineNuxtRouteMiddleware, message, navigateTo, useApi, useGlobal, useRoles, useState } from '#imports'
+import { defineNuxtRouteMiddleware, message, navigateTo, useApi, useGlobal, useRoles } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 
 /**

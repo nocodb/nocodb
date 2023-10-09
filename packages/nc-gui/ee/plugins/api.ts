@@ -1,1 +1,4 @@
-export { apiPlugin as default } from '../../plugins/api'
+import { apiPlugin } from '../../plugins/api'
+import { defineNuxtPlugin } from '#app'
+
+export default defineNuxtPlugin(apiPlugin)

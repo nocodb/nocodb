@@ -3922,7 +3922,7 @@ class BaseModelSqlv2 {
 
       const proto = await this.getProto();
 
-      const data = await groupedQb;
+      const data: any[] = await this.execAndParse(groupedQb);
       const result = data?.map((d) => {
         d.__proto__ = proto;
         return d;

@@ -42,7 +42,9 @@ const localValueState = ref<string | undefined>()
 
 const error = ref<string | undefined>()
 
-const isExpanded = inject(JsonExpandInj, ref(false))
+const _isExpanded = inject(JsonExpandInj, ref(false))
+
+const isExpanded = ref(false)
 
 const localValue = computed<string | Record<string, any> | undefined>({
   get: () => localValueState.value,
@@ -136,6 +138,10 @@ useSelectedCellKeyupListener(active, (e) => {
       }
       break
   }
+})
+
+watch(isExpanded, () => {
+  _isExpanded.value = isExpanded.value
 })
 </script>
 

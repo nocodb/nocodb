@@ -80,6 +80,11 @@ async function reuseOrSave(
   return res;
 }
 
+const nc_sanitizeName = (name) => {
+  // replace all special characters by _
+  return name.replace(/\W+/g, '_').trim();
+};
+
 @Injectable()
 export class ColumnsService {
   constructor(
@@ -125,6 +130,10 @@ export class ColumnsService {
       NcError.badRequest(
         `Column name ${param.column.column_name} exceeds ${mxColumnLength} characters`,
       );
+    }
+
+    if (!isVirtualCol(param.column)) {
+      param.column.column_name = nc_sanitizeName(param.column.column_name);
     }
 
     if (
@@ -1043,6 +1052,10 @@ export class ColumnsService {
           } exceeds ${mxColumnLength} characters`,
         );
       }
+    }
+
+    if (!isVirtualCol(param.column)) {
+      param.column.column_name = nc_sanitizeName(param.column.column_name);
     }
 
     if (

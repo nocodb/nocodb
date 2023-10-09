@@ -3922,7 +3922,7 @@ class BaseModelSqlv2 {
 
       const proto = await this.getProto();
 
-      const data = await groupedQb;
+      const data: any[] = await this.execAndParse(groupedQb);
       const result = data?.map((d) => {
         d.__proto__ = proto;
         return d;
@@ -4073,8 +4073,9 @@ class BaseModelSqlv2 {
                 );
               } else if (attachment?.url) {
                 if (attachment.url.includes('.amazonaws.com/')) {
-                  const relativePath =
-                    attachment.url.split('.amazonaws.com/')[1];
+                  const relativePath = decodeURI(
+                    attachment.url.split('.amazonaws.com/')[1],
+                  );
                   promises.push(
                     PresignedUrl.getSignedUrl({
                       path: relativePath,

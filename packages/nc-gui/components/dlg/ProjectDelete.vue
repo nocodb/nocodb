@@ -52,7 +52,7 @@ const onDelete = async () => {
   <GeneralDeleteModal v-model:visible="visible" :entity-name="$t('objects.project')" :on-delete="onDelete">
     <template #entity-preview>
       <div v-if="base" class="flex flex-row items-center py-2 px-2.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
-        <GeneralProjectIcon :type="base.type" class="nc-view-icon px-1.5"></GeneralProjectIcon>
+        <GeneralProjectIcon :type="base.type" class="nc-view-icon px-1.5 w-10" />
         <div
           class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

@@ -21,8 +21,9 @@ import { packageVersion } from '~/utils/packageVersion';
 import { BasesService } from '~/services/bases.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { Filter } from '~/models';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
 export class BasesController {
   constructor(protected readonly projectsService: BasesService) {}

@@ -78,6 +78,7 @@ export interface Actions {
     viewId?: string
   }) => void
   getBaseUrl: (workspaceId: string) => string | undefined
+  getMainUrl: (workspaceId: string) => string | undefined
 }
 
 export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State, 'token' | 'user'>

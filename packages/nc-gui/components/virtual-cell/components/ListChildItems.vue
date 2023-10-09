@@ -345,6 +345,7 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
                   new: true,
                 },
         }"
+        :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         use-meta-fields
       />
     </Suspense>

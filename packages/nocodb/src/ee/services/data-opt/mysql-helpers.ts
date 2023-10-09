@@ -52,7 +52,11 @@ export function generateNestedRowSelectQuery({
   }
   const paramsString = columns.map(() => `?,??.??`).join(',');
   const pramsValueArr = [
-    ...columns.flatMap((c) => [c.title, alias, c.title]),
+    ...columns.flatMap((c) => [
+      sanitize(c.title),
+      sanitize(alias),
+      sanitize(c.title),
+    ]),
     title,
   ];
 
@@ -203,9 +207,9 @@ export async function extractColumn({
                 knex.raw('?? as ??', [baseModel.getTnPath(assocModel), alias1]),
               ).whereRaw(`??.?? = ??.??`, [
                 alias1,
-                mmChildColumn.column_name,
+                sanitize(mmChildColumn.column_name),
                 rootAlias,
-                childColumn.column_name,
+                sanitize(childColumn.column_name),
               ]);
 
               const mmQb = knex(assocQb.as(alias4))
@@ -214,9 +218,9 @@ export async function extractColumn({
                     baseModel.getTnPath(parentModel),
                     alias2,
                     alias2,
-                    parentColumn.column_name,
+                    sanitize(parentColumn.column_name),
                     alias4,
-                    mmParentColumn.column_name,
+                    sanitize(mmParentColumn.column_name),
                   ]),
                 )
                 .select(knex.raw('??.*', [alias2]))
@@ -258,7 +262,7 @@ export async function extractColumn({
                 [alias1],
               );
 
-              qb.select(knex.raw('??.??', [alias1, column.title]));
+              qb.select(knex.raw('??.??', [alias1, sanitize(column.title)]));
             }
             break;
           case RelationTypes.BELONGS_TO:
@@ -273,8 +277,11 @@ export async function extractColumn({
               const btQb = knex(baseModel.getTnPath(parentModel))
                 .select('*')
                 .where(
-                  parentColumn.column_name,
-                  knex.raw('??.??', [rootAlias, childColumn.column_name]),
+                  sanitize(parentColumn.column_name),
+                  knex.raw('??.??', [
+                    rootAlias,
+                    sanitize(childColumn.column_name),
+                  ]),
                 );
 
               // apply filters on nested query
@@ -296,8 +303,11 @@ export async function extractColumn({
               btAggQb
                 .select('*')
                 .where(
-                  parentColumn.column_name,
-                  knex.raw('??.??', [rootAlias, childColumn.column_name]),
+                  sanitize(parentColumn.column_name),
+                  knex.raw('??.??', [
+                    rootAlias,
+                    sanitize(childColumn.column_name),
+                  ]),
                 );
               qb.joinRaw(
                 `LEFT OUTER JOIN LATERAL
@@ -305,13 +315,13 @@ export async function extractColumn({
                        .from(btQb.as(alias2))
                        .select(
                          knex.raw(`json_object(?,??.??, ?, ??.??) as ??`, [
-                           pvColumn.title,
+                           sanitize(pvColumn.title),
                            alias2,
-                           pvColumn.column_name,
-                           pkColumn.title,
+                           sanitize(pvColumn.column_name),
+                           sanitize(pkColumn.title),
                            alias2,
-                           pkColumn.column_name,
-                           column.title,
+                           sanitize(pkColumn.column_name),
+                           sanitize(column.title),
                          ]),
                        )
                        .toQuery()}) as ?? ON true`,
@@ -374,7 +384,7 @@ export async function extractColumn({
                   .toQuery()}) as ?? ON true`,
                 [alias1],
               );
-              qb.select(knex.raw('??.??', [alias1, column.title]));
+              qb.select(knex.raw('??.??', [alias1, sanitize(column.title)]));
             }
             break;
         }
@@ -413,9 +423,9 @@ export async function extractColumn({
                 knex.raw('?? as ??', [baseModel.getTnPath(assocModel), alias1]),
               ).whereRaw(`??.?? = ??.??`, [
                 alias1,
-                mmChildColumn.column_name,
+                sanitize(mmChildColumn.column_name),
                 rootAlias,
-                childColumn.column_name,
+                sanitize(childColumn.column_name),
               ]);
 
               relQb = knex(assocQb.as(alias4)).leftJoin(
@@ -423,9 +433,9 @@ export async function extractColumn({
                   baseModel.getTnPath(parentModel),
                   relTableAlias,
                   relTableAlias,
-                  parentColumn.column_name,
+                  sanitize(parentColumn.column_name),
                   alias4,
-                  mmParentColumn.column_name,
+                  sanitize(mmParentColumn.column_name),
                 ]),
               );
             }
@@ -461,8 +471,11 @@ export async function extractColumn({
                   relTableAlias,
                 ]),
               ).where(
-                childColumn.column_name,
-                knex.raw('??.??', [rootAlias, parentColumn.column_name]),
+                sanitize(childColumn.column_name),
+                knex.raw('??.??', [
+                  rootAlias,
+                  sanitize(parentColumn.column_name),
+                ]),
               );
             }
 
@@ -488,8 +501,8 @@ export async function extractColumn({
                  .select(
                    knex.raw(`??.?? as ??`, [
                      alias2,
-                     lookupColumn.title,
-                     column.title,
+                     sanitize(lookupColumn.title),
+                     sanitize(column.title),
                    ]),
                  )
                  .toQuery()}) as ?? ON true`,
@@ -501,10 +514,13 @@ export async function extractColumn({
             `LEFT OUTER JOIN LATERAL (${knex
               .from(relQb.as(alias2))
               .select(
-                knex.raw(`json_arrayagg(??) as ??`, [alias, column.title]),
+                knex.raw(`json_arrayagg(??) as ??`, [
+                  alias,
+                  sanitize(column.title),
+                ]),
               )
               .toQuery()},json_array_elements(??.??) as ?? ) as ?? ON true`,
-            [alias2, lookupColumn.title, alias, lookupTableAlias],
+            [alias2, sanitize(lookupColumn.title), alias, lookupTableAlias],
           );
         } else {
           qb.joinRaw(
@@ -513,15 +529,17 @@ export async function extractColumn({
               .select(
                 knex.raw(`json_arrayagg(??.??) as ??`, [
                   alias2,
-                  lookupColumn.title,
-                  column.title,
+                  sanitize(lookupColumn.title),
+                  sanitize(column.title),
                 ]),
               )
               .toQuery()}) as ?? ON true`,
             [lookupTableAlias],
           );
         }
-        qb.select(knex.raw('??.??', [lookupTableAlias, column.title]));
+        qb.select(
+          knex.raw('??.??', [lookupTableAlias, sanitize(column.title)]),
+        );
       }
       break;
     case UITypes.Formula:
@@ -597,8 +615,8 @@ export async function extractColumn({
         qb.select(
           knex.raw(`CAST(??.?? as JSON) as ??`, [
             rootAlias,
-            column.column_name,
-            column.title,
+            sanitize(column.column_name),
+            sanitize(column.title),
           ]),
         );
       }
@@ -630,15 +648,15 @@ export async function extractColumn({
               `encode(??.??, '${
                 column.meta?.format === 'hex' ? 'hex' : 'escape'
               }') as ??`,
-              [rootAlias, column.column_name, column.title],
+              [rootAlias, sanitize(column.column_name), sanitize(column.title)],
             ),
           );
         } else {
           qb.select(
             knex.raw(`??.?? as ??`, [
               rootAlias,
-              column.column_name,
-              column.title,
+              sanitize(column.column_name),
+              sanitize(column.title),
             ]),
           );
         }

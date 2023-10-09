@@ -14,6 +14,7 @@ import * as nc_013_remove_fk_and_add_idx from './v3/nc_013_remove_fk_and_add_idx
 import * as nc_014_notification from './v3/nc_014_notification';
 import * as nc_015_filter_value from './v3/nc_015_filter_value';
 import * as nc_016_rename_project_and_base from './v3/nc_016_rename_project_and_base';
+import * as nc_017_model_stat from './v3/nc_017_model_stat';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
@@ -39,6 +40,7 @@ export default class XcMigrationSourcev3 {
       'nc_014_notification',
       'nc_015_filter_value',
       'nc_016_rename_project_and_base',
+      'nc_017_model_stat',
     ]);
   }
 
@@ -80,6 +82,8 @@ export default class XcMigrationSourcev3 {
         return nc_015_filter_value;
       case 'nc_016_rename_project_and_base':
         return nc_016_rename_project_and_base;
+      case 'nc_017_model_stat':
+        return nc_017_model_stat;
     }
   }
 }

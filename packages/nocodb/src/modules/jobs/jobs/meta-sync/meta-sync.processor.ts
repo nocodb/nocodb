@@ -6,12 +6,14 @@ import { MetaDiffsService } from '~/services/meta-diffs.service';
 
 @Processor(JOBS_QUEUE)
 export class MetaSyncProcessor {
-  private readonly debugLog = debug('nc:meta-sync:processor');
+  private readonly debugLog = debug('nc:jobs:meta-sync');
 
   constructor(private readonly metaDiffsService: MetaDiffsService) {}
 
   @Process(JobTypes.MetaSync)
   async job(job: Job) {
+    this.debugLog(`job started for ${job.id}`);
+
     const info: {
       baseId: string;
       sourceId: string;
@@ -26,5 +28,7 @@ export class MetaSyncProcessor {
         sourceId: info.sourceId,
       });
     }
+
+    this.debugLog(`job completed for ${job.id}`);
   }
 }

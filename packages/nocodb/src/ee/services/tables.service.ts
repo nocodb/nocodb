@@ -3,7 +3,8 @@ import DOMPurify from 'isomorphic-dompurify';
 import { AppEvents } from 'nocodb-sdk';
 import { Configuration, OpenAIApi } from 'openai';
 import { TablesService as TableServiceCE } from 'src/services/tables.service';
-import type { UserType } from 'nocodb-sdk';
+import type { TableReqType, UserType } from 'nocodb-sdk';
+import type { User } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getTableNameAlias from '~/helpers/getTableName';
 import { Base, Model } from '~/models';
@@ -11,6 +12,10 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { ColumnsService } from '~/services/columns.service';
+import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
+import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -21,11 +26,54 @@ const openai = new OpenAIApi(configuration);
 @Injectable()
 export class TablesService extends TableServiceCE {
   constructor(
-    private metaDiffServiceEE: MetaDiffsService,
-    private appHooksServiceEE: AppHooksService,
-    private readonly columnsServiceEE: ColumnsService,
+    protected readonly metaDiffServiceEE: MetaDiffsService,
+    protected readonly appHooksServiceEE: AppHooksService,
+    protected readonly columnsServiceEE: ColumnsService,
   ) {
     super(metaDiffServiceEE, appHooksServiceEE, columnsServiceEE);
+  }
+
+  async tableCreate(param: {
+    baseId: string;
+    sourceId?: string;
+    table: TableReqType;
+    user: User | UserType;
+    req?: any;
+  }) {
+    const base = await Base.getWithInfo(param.baseId);
+    let source = base.sources[0];
+
+    if (source.id !== param.sourceId) {
+      source = base.sources.find((b) => b.id === param.sourceId);
+    }
+
+    if (source && source.isMeta()) {
+      const workspaceId = await getWorkspaceForBase(base.id);
+
+      const tablesInSource = await Noco.ncMeta.metaCount(
+        null,
+        null,
+        MetaTable.MODELS,
+        {
+          condition: {
+            source_id: source.id,
+          },
+        },
+      );
+
+      const tableLimitForWorkspace = await getLimit(
+        PlanLimitTypes.TABLE_LIMIT,
+        workspaceId,
+      );
+
+      if (tablesInSource >= tableLimitForWorkspace) {
+        NcError.badRequest(
+          `Only ${tableLimitForWorkspace} tables are allowed, for more please upgrade your plan`,
+        );
+      }
+    }
+
+    return super.tableCreate(param);
   }
 
   async tableCreateMagic(param: {

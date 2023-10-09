@@ -97,6 +97,7 @@ export class WorkspacesController {
     });
   }
 
+  /*
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Post('/api/v1/workspaces/:workspaceId/upgrade')
   @Acl('workspaceUpgrade', {
@@ -109,6 +110,7 @@ export class WorkspacesController {
       user: req.user,
     });
   }
+  */
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Delete('/api/v1/workspaces/:workspaceId')
@@ -157,7 +159,6 @@ export class WorkspacesController {
     });
   }
 
-  // Todo: move logic to service
   @Patch('/api/v1/workspaces/:workspaceId/status')
   @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
   async updateStatus(

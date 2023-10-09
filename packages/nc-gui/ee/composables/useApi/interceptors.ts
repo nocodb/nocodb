@@ -14,10 +14,12 @@ export function addAxiosInterceptors(api: Api<any>) {
   addAxiosInterceptorsCE(api)
 
   api.instance.interceptors.request.use((config) => {
-    const typeOrWorkspaceId = router.currentRoute.value.params.typeOrId
-    const baseUrl = typeOrWorkspaceId && getBaseUrl(typeOrWorkspaceId)
-    if (baseUrl) {
-      config.baseURL = baseUrl
+    if (!config.url?.endsWith('/jobs/listen') && !config.url?.endsWith('/jobs/status')) {
+      const typeOrWorkspaceId = router.currentRoute.value.params.typeOrId
+      const baseUrl = typeOrWorkspaceId && getBaseUrl(typeOrWorkspaceId)
+      if (baseUrl) {
+        config.baseURL = baseUrl
+      }
     }
     // add current time to calculate the latency for data api
     if (dataApiRegex.test(config.url || '')) {

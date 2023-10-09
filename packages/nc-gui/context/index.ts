@@ -1,4 +1,4 @@
-import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, FilterType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { NcProject, PageSidebarNode, Row, TabItem } from '#imports'
@@ -51,3 +51,4 @@ export const TreeViewInj: InjectionKey<{
   contextMenuTarget: { type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }
 }> = Symbol('tree-view-functions-injection')
 export const JsonExpandInj: InjectionKey<Ref<boolean>> = Symbol('json-expand-injection')
+export const AllFiltersInj: InjectionKey<Ref<Record<string, FilterType[]>>> = Symbol('all-filters-injection')

@@ -54,6 +54,7 @@ export enum MetaTable {
   FOLLOWER = 'nc_follower',
   COWRITER = 'cowriter',
   NOTIFICATION = 'notification',
+  MODEL_STAT = 'nc_model_stats_v2',
 }
 
 export const orderedMetaTables = [
@@ -153,4 +154,8 @@ export enum CacheScope {
   SINGLE_QUERY = 'singleQuery',
   PRESIGNED_URL = 'presignedUrl',
   JOBS = 'nc_jobs',
+  MODEL_STAT = 'nc_model_stat',
+  BASE_TO_WORKSPACE = 'baseToWorkspace',
+  WORKSPACE_CREATE_DELETE_COUNTER = 'workspace_cd_counter',
+  WORKSPACE_UPDATED_MODELS = 'workspace_updated_models',
 }

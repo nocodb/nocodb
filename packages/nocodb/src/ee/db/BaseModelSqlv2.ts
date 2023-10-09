@@ -1,4 +1,8 @@
-import { UITypes } from 'nocodb-sdk';
+import {
+  AuditOperationSubTypes,
+  AuditOperationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import {
   _wherePk,
   BaseModelSqlv2 as BaseModelSqlv2CE,
@@ -8,11 +12,20 @@ import {
   getListArgs,
   populatePk,
 } from 'src/db/BaseModelSqlv2';
+import DOMPurify from 'isomorphic-dompurify';
 import type { Column, Model } from '~/models';
-import { Source, View } from '~/models';
+import { Audit, ModelStat, Source, View } from '~/models';
 import { getSingleQueryReadFn } from '~/services/data-opt/helpers';
 import { canUseOptimisedQuery } from '~/utils';
 import { extractProps } from '~/helpers/extractProps';
+import {
+  UPDATE_MODEL_STAT,
+  UPDATE_WORKSPACE_COUNTER,
+} from '~/services/update-stats.service';
+import Noco from '~/Noco';
+import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
+import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { NcError } from '~/helpers/catchError';
 
 /**
  * Base class for models
@@ -278,6 +291,233 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           }
         }
       }
+    }
+  }
+
+  public async beforeInsert(data: any, _trx: any, req): Promise<void> {
+    const workspaceId = await getWorkspaceForBase(this.model.base_id);
+
+    const modelStats = await ModelStat.get(workspaceId, this.model.id);
+
+    const workspaceStats = await ModelStat.getWorkspaceSum(workspaceId);
+
+    const rowCount = modelStats ? modelStats.row_count : 0;
+
+    const workspaceRowCount = workspaceStats ? workspaceStats.row_count : 0;
+
+    const modelRowLimit = await getLimit(
+      PlanLimitTypes.TABLE_ROW_LIMIT,
+      workspaceId,
+    );
+
+    const workspaceRowLimit = getLimit(
+      PlanLimitTypes.WORKSPACE_ROW_LIMIT,
+      workspaceId,
+    );
+
+    if (workspaceRowCount >= workspaceRowLimit) {
+      NcError.badRequest(
+        `Only ${workspaceRowLimit} records are allowed in your workspace, for more please upgrade your plan`,
+      );
+    }
+
+    if (rowCount >= modelRowLimit) {
+      NcError.badRequest(
+        `Only ${modelRowLimit} records are allowed in your table, for more please upgrade your plan`,
+      );
+    }
+
+    await this.handleHooks('before.insert', null, data, req);
+  }
+
+  public async beforeBulkInsert(data: any, _trx: any, req): Promise<void> {
+    const workspaceId = await getWorkspaceForBase(this.model.base_id);
+
+    const modelStats = await ModelStat.get(workspaceId, this.model.id);
+
+    const workspaceStats = await ModelStat.getWorkspaceSum(workspaceId);
+
+    const rowCount = modelStats ? modelStats.row_count : 0;
+
+    const workspaceRowCount = workspaceStats ? workspaceStats.row_count : 0;
+
+    const modelRowLimit = await getLimit(
+      PlanLimitTypes.TABLE_ROW_LIMIT,
+      workspaceId,
+    );
+
+    const workspaceRowLimit = getLimit(
+      PlanLimitTypes.WORKSPACE_ROW_LIMIT,
+      workspaceId,
+    );
+
+    if (workspaceRowCount >= workspaceRowLimit) {
+      NcError.badRequest(
+        `Only ${workspaceRowLimit} records are allowed in your workspace, for more please upgrade your plan`,
+      );
+    }
+
+    if (rowCount >= modelRowLimit) {
+      NcError.badRequest(
+        `Only ${modelRowLimit} records are allowed in your table, for more please upgrade your plan`,
+      );
+    }
+
+    await this.handleHooks('before.bulkInsert', null, data, req);
+  }
+
+  public async afterInsert(data: any, _trx: any, req): Promise<void> {
+    await this.handleHooks('after.insert', null, data, req);
+    const id = this._extractPksValues(data);
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      row_id: id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.INSERT,
+      description: DOMPurify.sanitize(
+        `Record with ID ${id} has been inserted into Table ${this.model.title}`,
+      ),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
+
+    /*
+    const workspaceId = await getWorkspaceForBase(this.model.base_id);
+    const modelStats = await ModelStat.get(workspaceId, this.model.id);
+    if (modelStats) {
+      await ModelStat.upsert(workspaceId, this.model.id, {
+        row_count: modelStats.row_count + 1,
+      });
+    }
+    */
+
+    Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
+      base_id: this.model.base_id,
+      fk_model_id: this.model.id,
+      count: 1,
+    });
+  }
+
+  public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
+    await this.handleHooks('after.bulkInsert', null, data, req);
+
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.BULK_INSERT,
+      description: DOMPurify.sanitize(
+        `${data.length} ${
+          data.length > 1 ? 'records have' : 'record has'
+        } been bulk inserted in ${this.model.title}`,
+      ),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
+
+    /*
+    const workspaceId = await getWorkspaceForBase(this.model.base_id);
+    const modelStats = await ModelStat.get(workspaceId, this.model.id);
+    if (modelStats) {
+      await ModelStat.upsert(workspaceId, this.model.id, {
+        row_count: modelStats.row_count + data.length,
+      });
+    }
+    */
+
+    // TODO env
+    if (data.length > 500) {
+      Noco.eventEmitter.emit(UPDATE_MODEL_STAT, {
+        base_id: this.model.base_id,
+        fk_model_id: this.model.id,
+      });
+    } else {
+      Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
+        base_id: this.model.base_id,
+        fk_model_id: this.model.id,
+        count: data.length,
+      });
+    }
+  }
+
+  public async afterDelete(data: any, _trx: any, req): Promise<void> {
+    const id = req?.params?.id;
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      row_id: id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.DELETE,
+      description: DOMPurify.sanitize(
+        `Record with ID ${id} has been deleted in Table ${this.model.title}`,
+      ),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
+    await this.handleHooks('after.delete', null, data, req);
+
+    const workspaceId = await getWorkspaceForBase(this.model.base_id);
+    const modelStats = await ModelStat.get(workspaceId, this.model.id);
+    if (modelStats) {
+      await ModelStat.upsert(workspaceId, this.model.id, {
+        row_count: modelStats.row_count - 1,
+      });
+    }
+
+    Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
+      base_id: this.model.base_id,
+      fk_model_id: this.model.id,
+      count: 1,
+    });
+  }
+
+  public async afterBulkDelete(
+    data: any,
+    _trx: any,
+    req,
+    isBulkAllOperation = false,
+  ): Promise<void> {
+    let noOfDeletedRecords = data;
+    if (!isBulkAllOperation) {
+      noOfDeletedRecords = data.length;
+      await this.handleHooks('after.bulkDelete', null, data, req);
+    }
+
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.BULK_DELETE,
+      description: DOMPurify.sanitize(
+        `${noOfDeletedRecords} ${
+          noOfDeletedRecords > 1 ? 'records have' : 'record has'
+        } been bulk deleted in ${this.model.title}`,
+      ),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
+
+    const workspaceId = await getWorkspaceForBase(this.model.base_id);
+    const modelStats = await ModelStat.get(workspaceId, this.model.id);
+    if (modelStats) {
+      await ModelStat.upsert(workspaceId, this.model.id, {
+        row_count: modelStats.row_count - noOfDeletedRecords,
+      });
+    }
+
+    // TODO env
+    if (noOfDeletedRecords > 500) {
+      Noco.eventEmitter.emit(UPDATE_MODEL_STAT, {
+        base_id: this.model.base_id,
+        fk_model_id: this.model.id,
+      });
+    } else {
+      Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
+        base_id: this.model.base_id,
+        fk_model_id: this.model.id,
+        count: noOfDeletedRecords,
+      });
     }
   }
 }

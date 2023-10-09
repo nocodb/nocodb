@@ -6,17 +6,21 @@ import { SourcesService } from '~/services/sources.service';
 
 @Processor(JOBS_QUEUE)
 export class SourceDeleteProcessor {
-  private readonly debugLog = debug('nc:meta-sync:processor');
+  private readonly debugLog = debug('nc:jobs:source-delete');
 
   constructor(private readonly sourcesService: SourcesService) {}
 
   @Process(JobTypes.BaseDelete)
   async job(job: Job) {
+    this.debugLog(`job started for ${job.id}`);
+
     const { sourceId } = job.data;
 
     await this.sourcesService.baseDelete({
       sourceId,
     });
+
+    this.debugLog(`job completed for ${job.id}`);
 
     return true;
   }

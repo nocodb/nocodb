@@ -21,6 +21,8 @@ server.set('view engine', 'ejs');
 process.env[`DEBUG`] = 'xc*';
 process.env[`NC_ALLOW_LOCAL_HOOKS`] = 'true';
 
+process.env[`NC_TEST_EE`] = 'true';
+
 (async () => {
   const httpServer = server.listen(process.env.PORT || 8080, async () => {
     server.use(await Noco.init({}, httpServer, server));

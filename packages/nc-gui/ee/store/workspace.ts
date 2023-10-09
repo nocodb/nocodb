@@ -1,4 +1,4 @@
-import type { BaseType, WorkspaceType, WorkspaceUserRoles, WorkspaceUserType } from 'nocodb-sdk'
+import type { BaseType, PlanLimitTypes, WorkspaceType, WorkspaceUserRoles, WorkspaceUserType } from 'nocodb-sdk'
 import { WorkspaceStatus } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
@@ -89,7 +89,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       // todo: pagination
       const { list, pageInfo: _ } = await $api.workspace.list()
       for (const workspace of list ?? []) {
-        workspaces.value.set(workspace.id!, workspace)
+        const oldData = workspaces.value.has(workspace.id!) ? workspaces.value.get(workspace.id!) : {}
+        workspaces.value.set(workspace.id!, {
+          ...oldData,
+          ...workspace,
+        })
       }
     } catch (e: any) {
       if (!ignoreError) message.error(await e)
@@ -404,6 +408,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const workspaceRole = computed(() => activeWorkspace.value?.roles)
 
+  const getPlanLimit = (limitType: PlanLimitTypes) => {
+    return activeWorkspace.value?.limits?.[limitType] ?? 0
+  }
+
   return {
     loadWorkspaces,
     workspaces,
@@ -440,6 +448,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     workspaceRole,
     isWorkspaceSettingsPageOpened,
     workspaceUserCount,
+    getPlanLimit,
   }
 })
 

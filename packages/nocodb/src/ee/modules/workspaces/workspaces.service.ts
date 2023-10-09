@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   ProjectRoles,
@@ -13,12 +13,13 @@ import { ConfigService } from '@nestjs/config';
 import type { OnApplicationBootstrap } from '@nestjs/common';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
+import { getLimit, getLimitsForPlan, PlanLimitTypes } from '~/plan-limits';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import Workspace from '~/models/Workspace';
 import validateParams from '~/helpers/validateParams';
 import { NcError } from '~/helpers/catchError';
-import { Base, BaseUser, User } from '~/models';
+import { Base, BaseUser, ModelStat, User } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { extractProps } from '~/helpers/extractProps';
 import { BasesService } from '~/services/bases.service';
@@ -41,7 +42,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     private configService: ConfigService<AppConfig>,
     private basesService: BasesService,
     private tablesService: TablesService,
-    @Inject('JobsService') private jobsService,
+    @Inject(forwardRef(() => 'JobsService')) private jobsService,
   ) {}
 
   async onApplicationBootstrap() {
@@ -129,6 +130,18 @@ export class WorkspacesService implements OnApplicationBootstrap {
     user: UserType;
     workspaces: WorkspaceType | WorkspaceType[];
   }) {
+    const userFreeWorkspacesCount = await Workspace.count({
+      fk_user_id: param.user.id,
+      plan: WorkspacePlan.FREE,
+    });
+
+    if (
+      userFreeWorkspacesCount >=
+      (await getLimit(PlanLimitTypes.FREE_WORKSPACE_LIMIT))
+    ) {
+      NcError.badRequest('You have reached the limit of free workspaces');
+    }
+
     const workspacePayloads = Array.isArray(param.workspaces)
       ? param.workspaces
       : [param.workspaces];
@@ -330,7 +343,15 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     if (!workspace) NcError.notFound('Workspace not found');
 
-    return workspace;
+    const limits = getLimitsForPlan(workspace.plan);
+
+    const stats = await ModelStat.getWorkspaceSum(workspace.id);
+
+    return {
+      ...workspace,
+      limits,
+      stats,
+    } as Workspace;
   }
 
   async upgrade(param: {
@@ -345,8 +366,9 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     if (!workspace) NcError.notFound('Workspace not found');
 
-    if (workspace.plan !== WorkspacePlan.FREE)
+    if (workspace.plan === WorkspacePlan.BUSINESS_PRO) {
       NcError.notFound('Workspace is already upgraded');
+    }
 
     await this.createWorkspaceSubdomain({
       titleOrId: workspace.id,
@@ -354,7 +376,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     });
 
     await Workspace.updateStatusAndPlan(param.workspaceId, {
-      plan: WorkspacePlan.PAID,
+      plan: WorkspacePlan.BUSINESS_PRO,
       status: WorkspaceStatus.CREATING,
     });
 

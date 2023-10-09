@@ -8,10 +8,7 @@ export class JobsRedisService {
   private unsubscribeCallbacks: { [key: string]: () => void } = {};
 
   constructor() {
-    if (process.env.NC_WORKER_CONTAINER === 'true') {
-      this.redisClient = new Redis(process.env.NC_REDIS_JOB_URL);
-      return;
-    }
+    this.redisClient = new Redis(process.env.NC_REDIS_JOB_URL);
     this.redisSubscriber = new Redis(process.env.NC_REDIS_JOB_URL);
   }
 

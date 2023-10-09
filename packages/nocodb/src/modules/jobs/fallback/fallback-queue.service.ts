@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import PQueue from 'p-queue';
 import Emittery from 'emittery';
-import { DuplicateProcessor } from '../jobs/export-import/duplicate.processor';
-import { AtImportProcessor } from '../jobs/at-import/at-import.processor';
-import { MetaSyncProcessor } from '../jobs/meta-sync/meta-sync.processor';
-import { SourceCreateProcessor } from '../jobs/source-create/source-create.processor';
-import { SourceDeleteProcessor } from '../jobs/source-delete/source-delete.processor';
-import { JobsEventService } from './jobs-event.service';
+import { DuplicateProcessor } from '~/modules/jobs/jobs/export-import/duplicate.processor';
+import { AtImportProcessor } from '~/modules/jobs/jobs/at-import/at-import.processor';
+import { MetaSyncProcessor } from '~/modules/jobs/jobs/meta-sync/meta-sync.processor';
+import { SourceCreateProcessor } from '~/modules/jobs/jobs/source-create/source-create.processor';
+import { SourceDeleteProcessor } from '~/modules/jobs/jobs/source-delete/source-delete.processor';
+import { JobsEventService } from '~/modules/jobs/fallback/jobs-event.service';
 import { JobStatus, JobTypes } from '~/interface/Jobs';
 
 export interface Job {
@@ -25,12 +25,12 @@ export class QueueService {
   static emitter = new Emittery();
 
   constructor(
-    private readonly jobsEventService: JobsEventService,
-    private readonly duplicateProcessor: DuplicateProcessor,
-    private readonly atImportProcessor: AtImportProcessor,
-    private readonly metaSyncProcessor: MetaSyncProcessor,
-    private readonly sourceCreateProcessor: SourceCreateProcessor,
-    private readonly sourceDeleteProcessor: SourceDeleteProcessor,
+    protected readonly jobsEventService: JobsEventService,
+    protected readonly duplicateProcessor: DuplicateProcessor,
+    protected readonly atImportProcessor: AtImportProcessor,
+    protected readonly metaSyncProcessor: MetaSyncProcessor,
+    protected readonly sourceCreateProcessor: SourceCreateProcessor,
+    protected readonly sourceDeleteProcessor: SourceDeleteProcessor,
   ) {
     this.emitter.on(JobStatus.ACTIVE, (data: { job: Job }) => {
       const job = this.queueMemory.find((job) => job.id === data.job.id);

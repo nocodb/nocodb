@@ -65,6 +65,7 @@ const permissionScopes = {
     'workspaceInvitationReject',
     'workspaceInvitationTokenRead',
     'duplicateSharedBase',
+    'workspaceUpgrade',
   ],
   base: [
     'formViewGet',

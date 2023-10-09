@@ -222,7 +222,7 @@ export class JobsController implements OnModuleInit {
       });
     }
 
-    if (process.env.NC_WORKER_CONTAINER === 'true' && this.jobsRedisService) {
+    if (this.jobsRedisService) {
       this.jobsRedisService.publish(jobId, {
         cmd: JobEvents.STATUS,
         ...data,
@@ -292,7 +292,7 @@ export class JobsController implements OnModuleInit {
       });
     }
 
-    if (process.env.NC_WORKER_CONTAINER === 'true' && this.jobsRedisService) {
+    if (this.jobsRedisService) {
       this.jobsRedisService.publish(jobId, {
         cmd: JobEvents.LOG,
         ...data,

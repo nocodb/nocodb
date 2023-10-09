@@ -243,7 +243,7 @@ const onExpand = () => {
                 :class="{ 'ml-2': active }"
                 @click="
                   () => {
-                    if (isGallery || isMobileMode) return
+                    if (isGallery || isMobileMode || (isKanban && !isExpandedForm)) return
                     selectedImage = item
                   }
                 "

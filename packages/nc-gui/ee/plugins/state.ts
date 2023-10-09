@@ -1,1 +1,4 @@
-export { statePlugin as default } from '../../plugins/state'
+import { statePlugin } from '../../plugins/state'
+import { defineNuxtPlugin } from '#app'
+
+export default defineNuxtPlugin(statePlugin)

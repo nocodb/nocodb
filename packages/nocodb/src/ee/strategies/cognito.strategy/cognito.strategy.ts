@@ -29,7 +29,6 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
       }
 
       if (req.headers['xc-cognito']) {
-        // todo: replace with env/config
         const verifier = CognitoJwtVerifier.create({
           userPoolId: this.configService.get('cognito.aws_user_pools_id', {
             infer: true,
@@ -42,15 +41,18 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
         });
 
         const payload = await verifier.verify(req.headers['xc-cognito']);
-        const email = (payload as any)['email'];
+        const email = (payload as any)['email']?.toLowerCase();
+
+        if (!email) {
+          return callback('Invalid token');
+        }
+
         // get user by email
         await User.getByEmail(email).then(async (user) => {
           if (user) {
             return callback(null, {
               ...sanitiseUserObj(user),
               provider: 'cognito',
-              // display_name: profile._json?.name,
-              display_name: '',
             });
           } else {
             try {
@@ -60,10 +62,9 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
                 email,
                 password: '',
                 email_verification_token: null,
-                avatar: null,
+                avatar: (payload as any)['picture'],
                 user_name: null,
-                display_name: '',
-                // display_name: profile._json?.name,
+                display_name: (payload as any)['name'],
                 salt,
               });
 
@@ -77,7 +78,7 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
           }
         });
       } else {
-        return callback(new Error('No token found'));
+        return callback('No token found');
       }
     } catch (error) {
       return callback(error);

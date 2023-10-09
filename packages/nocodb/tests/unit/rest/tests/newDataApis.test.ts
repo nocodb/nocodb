@@ -2262,7 +2262,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, rowId: 9999 },
       status: 404,
-      msg: "Row with id '9999' not found",
+      msg: "Record with id '9999' not found",
     });
 
     // Body parameter error
@@ -2334,7 +2334,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, rowId: 9999 },
       status: 404,
-      msg: "Row with id '9999' not found",
+      msg: "Record with id '9999' not found",
     });
 
     // Body parameter error
@@ -2406,7 +2406,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, rowId: 9999 },
       status: 404,
-      msg: "Row with id '9999' not found",
+      msg: "Record with id '9999' not found",
     });
 
     // Query parameter error
@@ -2432,7 +2432,9 @@ function linkBased() {
 
     // Link List: Invalid query parameter - offset > total records
     if (debugMode)
-      console.log('Link List: Invalid query parameter - offset > total records');
+      console.log(
+        'Link List: Invalid query parameter - offset > total records',
+      );
     await ncAxiosLinkGet({
       ...validParams,
       query: { ...validParams.query, offset: 9999 },

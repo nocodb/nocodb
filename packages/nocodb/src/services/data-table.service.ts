@@ -247,7 +247,7 @@ export class DataTableService {
           .join('___');
       // if duplicate then throw error
       if (keys.has(pk)) {
-        NcError.unprocessableEntity('Duplicate row with id ' + pk);
+        NcError.unprocessableEntity('Duplicate record with id ' + pk);
       }
 
       if (pk === undefined || pk === null) {
@@ -274,7 +274,7 @@ export class DataTableService {
     });
 
     if (!(await baseModel.exist(param.rowId))) {
-      NcError.notFound(`Row with id '${param.rowId}' not found`);
+      NcError.notFound(`Record with id '${param.rowId}' not found`);
     }
 
     const column = await this.getColumn(param);

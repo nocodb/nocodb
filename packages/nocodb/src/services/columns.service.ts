@@ -88,8 +88,8 @@ const nc_sanitizeName = (name) => {
 @Injectable()
 export class ColumnsService {
   constructor(
-    private readonly metaService: MetaService,
-    private readonly appHooksService: AppHooksService,
+    protected readonly metaService: MetaService,
+    protected readonly appHooksService: AppHooksService,
   ) {}
 
   async columnUpdate(param: {

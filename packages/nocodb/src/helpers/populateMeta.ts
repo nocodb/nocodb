@@ -187,7 +187,11 @@ export async function extractAndGenerateManyToManyRelations(
   }
 }
 
-export async function populateMeta(source: Source, base: Base): Promise<any> {
+export async function populateMeta(
+  source: Source,
+  base: Base,
+  logger?: (message: string) => void,
+): Promise<any> {
   const info = {
     type: 'rest',
     apiCount: 0,
@@ -253,6 +257,7 @@ export async function populateMeta(source: Source, base: Base): Promise<any> {
   // await this.syncRelations();
 
   const tableMetasInsert = tables.map((table) => {
+    logger?.(`Populating meta for table '${table.title}'`);
     return async () => {
       /* filter relation where this table is present */
       const tableRelations = relations.filter(
@@ -424,6 +429,7 @@ export async function populateMeta(source: Source, base: Base): Promise<any> {
   info.viewsCount = views.length;
 
   const viewMetasInsert = views.map((table) => {
+    logger?.(`Populating meta for view '${table.title}'`);
     return async () => {
       const columns = (
         await sqlClient.columnList({
@@ -478,6 +484,8 @@ export async function populateMeta(source: Source, base: Base): Promise<any> {
   const t2 = t1[0] + t1[1] / 1000000000;
 
   (info as any).timeTaken = t2.toFixed(1);
+
+  logger?.(`Populating meta completed in ${t2.toFixed(1)}s`);
 
   return info;
 }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   ActiveViewInj,
+  AllFiltersInj,
   IsLockedInj,
   computed,
   iconMap,
@@ -47,6 +48,10 @@ watch(
 )
 
 const open = ref(false)
+
+const allFilters = ref({})
+
+provide(AllFiltersInj, allFilters)
 
 useMenuCloseOnEsc(open)
 </script>

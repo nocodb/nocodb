@@ -86,7 +86,7 @@ const selectColors = {
 
 @Processor(JOBS_QUEUE)
 export class AtImportProcessor {
-  private readonly dubugLog = debug('nc:at-import:processor');
+  private readonly debugLog = debug('nc:jobs:at-import');
 
   constructor(
     private readonly tablesService: TablesService,
@@ -108,6 +108,8 @@ export class AtImportProcessor {
 
   @Process(JobTypes.AtImport)
   async job(job: Job) {
+    this.debugLog(`job started for ${job.id}`);
+
     const syncDB = job.data;
 
     const sMapEM = new EntityMap('aTblId', 'ncId', 'ncName', 'ncParent');
@@ -140,12 +142,12 @@ export class AtImportProcessor {
 
     const logBasic = (log) => {
       this.jobsLogService.sendLog(job, { message: log });
-      this.dubugLog(log);
+      this.debugLog(log);
     };
 
     const logDetailed = (log) => {
       if (debugMode) this.jobsLogService.sendLog(job, { message: log });
-      this.dubugLog(log);
+      this.debugLog(log);
     };
 
     const perfStats = [];
@@ -2435,6 +2437,8 @@ export class AtImportProcessor {
       }
       throw e;
     }
+
+    this.debugLog(`job completed for ${job.id}`);
   }
 }
 

@@ -179,7 +179,10 @@
     "join": "Join",
     "options": "Options",
     "primaryValue": "Primary Value",
-    "useSurveyMode": "Use Survey Mode"
+    "useSurveyMode": "Use Survey Mode",
+    "shift": "Shift",
+    "enter": "Enter",
+    "seconds": "Seconds"
   },
   "objects": {
     "workspace": "Workspace",
@@ -602,8 +605,10 @@
     "zoomInToViewColumns": "Zoom in to view columns",
     "embedInSite": "Embed this view in your site",
     "titleRequired": "title is required.",
-    "sourceNameRequired":"Source name is required",
-    "changeWsName":"Change Workspace Name"
+    "sourceNameRequired": "Source name is required",
+    "changeWsName": "Change Workspace Name",
+    "pressEnter": "Press Enter",
+    "newFormLoaded": "New form will be loaded after"
   },
   "activity": {
     "onCondition": "On Condition",
@@ -1152,7 +1157,11 @@
       "wsNameMaxLength":"Workspace name must be at most 50 characters long",
       "wsDeleteDlg": "Delete this workspace and all it’s contents.",
       "userConfirmation": "I understand that this action is irreversible",
-      "pageNotFound":"Page Not Found"
+      "pageNotFound":"Page Not Found",
+      "makeLineBreak":"to make a line break",
+      "goToNext": "Go to next",
+      "thankyou":"Thank you!",
+      "submittedFormData": "You have successfully submitted the form data."
     },
     "error": {
       "nameRequired": "Name Required",

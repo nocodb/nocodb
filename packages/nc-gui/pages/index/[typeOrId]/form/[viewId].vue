@@ -12,12 +12,12 @@ import {
   provide,
   reactive,
   ref,
+  useI18n,
   useProvideSharedFormStore,
   useProvideSmartsheetStore,
   useRoute,
   useSidebar,
   watch,
-  useI18n
 } from '#imports'
 
 definePageMeta({
@@ -77,7 +77,6 @@ watch(
       @close="passwordDlg = false"
     >
       <div class="w-full flex flex-col gap-4">
-        <!-- todo: i18n -->
         <h2 class="text-xl font-semibold">{{ $t('msg.thisSharedViewIsProtected') }}</h2>
 
         <a-form layout="vertical" no-style :model="form" @finish="loadSharedView">

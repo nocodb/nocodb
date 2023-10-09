@@ -58,7 +58,7 @@ export default {
 
         <div v-if="$route.name === 'index-index'" class="flex gap-1">
           <!-- <a-button class="!text-inherit" data-testid="nc-dash-nav-workspaces"> Projects</a-button -->
-          <!-- <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-explore"> Template</a-button>
+          <!-- <a-button ghost !text-inherit" data-testid="nc-dash-nav-explore"> Template</a-button>
           <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-help"> Help</a-button> -->
         </div>
         <div class="flex-1 min-w-0 flex justify-end gap-2">
@@ -92,7 +92,7 @@ export default {
                   <nuxt-link v-e="['c:navbar:user:email']" class="nc-base-menu-item group !no-underline" to="/account/users">
                     <MdiAccountCircleOutline class="mt-1 group-hover:text-accent" />&nbsp;
                     <div class="prose group-hover:text-primary">
-                      <div>Account</div>
+                      <div>{{ $t('labels.account') }}</div>
                       <div class="text-xs text-gray-500">{{ email }}</div>
                     </div>
                   </nuxt-link>
@@ -107,7 +107,7 @@ export default {
                   >
                     <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
 
-                    &lt;!&ndash; todo: i18n &ndash;&gt;
+                    &lt;!&ndash; &ndash;&gt;
                     <span class="prose group-hover:text-primary">Account management</span>
                   </nuxt-link>
                 </a-menu-item>

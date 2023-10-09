@@ -42,12 +42,18 @@ const validators = computed(() => {
       {
         validator: (rule: any, value: string, callback: (errMsg?: string) => void) => {
           if (!value || value.length === 0) {
-            callback('Email is required')
+            callback(t('error.signUpRules.emailReqd'))
             return
           }
           const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !validateEmail(e))
           if (invalidEmails.length > 0) {
-            callback(`${invalidEmails.length > 1 ? ' Invalid emails:' : 'Invalid email:'} ${invalidEmails.join(', ')} `)
+            callback(
+              `${
+                invalidEmails.length > 1
+                  ? `${t('error.signUpRules.invalidEmails')}: `
+                  : `${t('error.signUpRules.invalidEmails')}: `
+              } ${invalidEmails.join(', ')} `,
+            )
           } else {
             callback()
           }
@@ -119,8 +125,6 @@ const emailInput = ref((el) => {
     wrap-class-name="nc-modal-invite-user"
     @cancel="emit('closed')"
   >
-    <!-- TODO: i18n -->
-
     <div class="flex flex-col">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
         <a-typography-title class="select-none" :level="4"> {{ $t('activity.inviteUser') }}</a-typography-title>

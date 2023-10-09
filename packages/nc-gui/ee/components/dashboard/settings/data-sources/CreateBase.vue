@@ -345,6 +345,10 @@ function loadWorkspacesWithInterval() {
       await loadWorkspaces(true)
       loadWorkspacesWithInterval()
     } else {
+      if (baseId.value) {
+        await loadProject(baseId.value, true)
+        await loadProjectTables(baseId.value, true)
+      }
       pushProgress('Done!', 'progress')
       goToDashboard.value = true
     }

@@ -4,7 +4,7 @@ import Workspace from '~/models/Workspace';
 
 const PlanLimits = {
   generic: {
-    [PlanLimitTypes.FREE_WORKSPACE_LIMIT]: 5,
+    [PlanLimitTypes.FREE_WORKSPACE_LIMIT]: 3,
   },
   [WorkspacePlan.FREE]: {
     [PlanLimitTypes.WORKSPACE_USER_LIMIT]: 2,

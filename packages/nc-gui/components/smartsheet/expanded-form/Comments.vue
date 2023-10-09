@@ -8,7 +8,7 @@ const { loadCommentsAndLogs, commentsAndLogs, saveComment: _saveComment, comment
 
 const commentsWrapperEl = ref<HTMLDivElement>()
 
-const { user } = useGlobal()
+const { user, appInfo } = useGlobal()
 
 const tab = ref<'comments' | 'audits'>('comments')
 
@@ -98,6 +98,12 @@ const saveComment = async () => {
 watch(commentsWrapperEl, () => {
   scrollComments()
 })
+
+const onClickAudit = () => {
+  if (appInfo.value.ee) return
+
+  tab.value = 'audits'
+}
 </script>
 
 <template>
@@ -108,7 +114,7 @@ watch(commentsWrapperEl, () => {
           v-e="['c:row-expand:comment']"
           class="tab flex-1 px-4 py-2 transition-all text-gray-600 cursor-pointer rounded-lg"
           :class="{
-            'bg-white shadow !text-brand-500 !hover:text-brand-500': tab === 'comments',
+            'bg-white shadow !text-brand-500 !hover:text-brand-500': tab === 'comments' || appInfo.ee,
           }"
           @click="tab = 'comments'"
         >
@@ -117,13 +123,29 @@ watch(commentsWrapperEl, () => {
             Comments
           </div>
         </div>
+        <NcTooltip v-if="appInfo.ee" class="tab flex-1">
+          <template #title>
+            <span class="!text-base"> Coming soon </span>
+          </template>
+          <div
+            v-e="['c:row-expand:audit']"
+            class="flex-1 px-4 py-2 transition-all text-gray-400 cursor-not-allowed bg-gray-50 rounded-lg"
+            @click="onClickAudit"
+          >
+            <div class="tab-title nc-tab select-none">
+              <MdiFileDocumentOutline class="h-4 w-4" />
+              Audits
+            </div>
+          </div>
+        </NcTooltip>
         <div
+          v-else
           v-e="['c:row-expand:audit']"
           class="tab flex-1 px-4 py-2 transition-all text-gray-600 cursor-pointer rounded-lg"
           :class="{
             'bg-white shadow !text-brand-500 !hover:text-brand-500': tab === 'audits',
           }"
-          @click="tab = 'audits'"
+          @click="onClickAudit"
         >
           <div class="tab-title nc-tab">
             <MdiFileDocumentOutline class="h-4 w-4" />
@@ -135,7 +157,7 @@ watch(commentsWrapperEl, () => {
     <div
       class="h-[calc(100%-4rem)]"
       :class="{
-        'pb-2': tab !== 'comments',
+        'pb-2': tab !== 'comments' && !appInfo.ee,
       }"
     >
       <div v-if="tab === 'comments'" class="flex flex-col h-full">
@@ -251,6 +273,9 @@ watch(commentsWrapperEl, () => {
 </template>
 
 <style scoped>
+.tab {
+  @apply max-w-1/2;
+}
 .tab .tab-title {
   @apply min-w-0 flex justify-center gap-2 font-semibold items-center;
   word-break: 'keep-all';

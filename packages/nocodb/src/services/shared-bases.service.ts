@@ -35,6 +35,10 @@ export class SharedBasesService {
       roles = 'viewer';
     }
 
+    if (roles === 'editor' && process.env.NC_CLOUD === 'true') {
+      NcError.badRequest('Only viewer role is supported');
+    }
+
     if (!base) {
       NcError.badRequest('Invalid base id');
     }
@@ -80,6 +84,11 @@ export class SharedBasesService {
     if (!base) {
       NcError.badRequest('Invalid base id');
     }
+
+    if (roles === 'editor' && process.env.NC_CLOUD === 'true') {
+      NcError.badRequest('Only viewer role is supported');
+    }
+
     const data: any = {
       uuid: base.uuid || uuidv4(),
       password: param.password,

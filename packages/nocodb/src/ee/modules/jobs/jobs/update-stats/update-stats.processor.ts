@@ -30,6 +30,11 @@ export class UpdateStatsProcessor {
     if (row_count === undefined) {
       const model = await Model.get(fk_model_id);
       const source = await Source.get(model.source_id);
+
+      if (!source || !source.isMeta()) {
+        return false;
+      }
+
       const baseModel = await Model.getBaseModelSQL({
         id: model.id,
         dbDriver: await NcConnectionMgrv2.get(source),
@@ -78,6 +83,14 @@ export class UpdateStatsProcessor {
 
     if (updatedModels) {
       for (const fk_model_id of updatedModels) {
+        const model = await Model.get(fk_model_id);
+
+        const source = await Source.get(model.source_id);
+
+        if (!source || !source.isMeta()) {
+          continue;
+        }
+
         await this.updateModelStat({
           data: {
             fk_workspace_id,

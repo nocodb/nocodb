@@ -38,6 +38,8 @@ const row = useVModel(props, 'row')
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const readonly = inject(ReadonlyInj, ref(false))
+
 const { getPossibleAttachmentSrc } = useAttachment()
 
 interface Attachment {
@@ -151,7 +153,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
       </div>
     </div>
     <NcButton
-      v-if="!isForm && !isPublic"
+      v-if="!isForm && !isPublic && !readonly"
       v-e="['c:row-expand:open']"
       type="text"
       size="lg"

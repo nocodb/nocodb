@@ -1,4 +1,4 @@
-import { Injectable, SetMetadata, UseInterceptors } from '@nestjs/common';
+import { Injectable, Logger, SetMetadata, UseInterceptors } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import {
   OrgUserRoles,
@@ -64,6 +64,8 @@ export function getRolesLabels(
     )
     .map((role) => rolesLabel[role]);
 }
+
+const logger: Logger = new Logger('AclMiddleware');
 
 // todo: refactor name since we are using it as auth guard
 @Injectable()
@@ -237,8 +239,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
 
       if (workspace.plan && workspace.plan !== WorkspacePlan.FREE) {
-        NcError.badRequest(
-          'Requested workspace id does not match with domain name, please use your custom domain',
+        logger.error(
+          `id: ${workspace.id} - status: ${workspace.status} - plan: ${workspace.plan} request reached to multi tenant server`,
         );
       }
     }

@@ -158,11 +158,7 @@ const onCreateBaseClick = () => {
       </div>
     </div>
     <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :source="defaultBase" />
-    <GeneralModal v-model:visible="isNewBaseModalOpen" size="medium">
-      <div class="py-6 px-8">
-        <LazyDashboardSettingsDataSourcesCreateBase @close="isNewBaseModalOpen = false" />
-      </div>
-    </GeneralModal>
+    <LazyDashboardSettingsDataSourcesCreateBase v-model:open="isNewBaseModalOpen" />
   </div>
 </template>
 

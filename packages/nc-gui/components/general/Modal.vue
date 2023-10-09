@@ -7,18 +7,21 @@ const props = withDefaults(
     destroyOnClose?: boolean
     maskClosable?: boolean
     closable?: boolean
+    keyboard?: boolean
   }>(),
   {
     size: 'medium',
     destroyOnClose: true,
     maskClosable: true,
     closable: false,
+    keyboard: true,
   },
 )
 
 const emits = defineEmits(['update:visible'])
 
-const { width: propWidth, destroyOnClose, closable, maskClosable } = props
+const { width: propWidth, destroyOnClose } = props
+const { maskClosable, closable, keyboard } = toRefs(props)
 
 const width = computed(() => {
   if (propWidth) {
@@ -65,6 +68,7 @@ const visible = useVModel(props, 'visible', emits)
     :class="{ active: visible }"
     :width="width"
     :closable="closable"
+    :keyboard="keyboard"
     wrap-class-name="nc-modal-wrapper"
     :footer="null"
     :destroy-on-close="destroyOnClose"

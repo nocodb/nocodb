@@ -199,7 +199,7 @@ export class GridPage extends BasePage {
     });
 
     // Click text=Delete Row
-    await this.rootPage.locator('.ant-dropdown-menu-item:has-text("Delete row")').click();
+    await this.rootPage.locator('.ant-dropdown-menu-item:has-text("Delete record")').click();
 
     // todo: improve selector
     await this.rootPage

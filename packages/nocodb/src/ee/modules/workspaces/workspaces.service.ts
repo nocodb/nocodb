@@ -366,7 +366,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     if (!workspace) NcError.notFound('Workspace not found');
 
-    if (workspace.plan !== WorkspacePlan.BUSINESS_PRO) {
+    if (workspace.plan === WorkspacePlan.BUSINESS_PRO) {
       NcError.notFound('Workspace is already upgraded');
     }
 

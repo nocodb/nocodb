@@ -325,6 +325,8 @@ const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const goToDashboard = ref(false)
 
+const goBack = ref(false)
+
 let timerRef: any
 
 onUnmounted(() => {
@@ -395,21 +397,23 @@ const createSource = async () => {
           if (data.status === JobStatus.COMPLETED) {
             $e('a:base:create:extdb')
 
-            if (baseId.value) {
-              await loadProject(baseId.value, true)
-              await loadProjectTables(baseId.value, true)
-            }
-
             emit('sourceCreated')
             if (data.data?.result.needUpgrade) {
+              activeWorkspace.value.status = WorkspaceStatus.CREATING
               loadWorkspacesWithInterval()
             } else {
+              if (baseId.value) {
+                await loadProject(baseId.value, true)
+                await loadProjectTables(baseId.value, true)
+              }
               emit('close')
             }
             creatingSource.value = false
-          } else if (status === JobStatus.FAILED) {
-            message.error('Failed to create base')
+          } else if (data.status === JobStatus.FAILED) {
+            pushProgress('Failed to create source!', 'progress')
+            if (data.data?.error?.message) pushProgress(data.data?.error.message, data.status)
             creatingSource.value = false
+            goBack.value = true
           } else if (!data?.status && data.data?.message) {
             pushProgress(data.data.message, 'progress')
           }
@@ -828,6 +832,9 @@ watch(
       <!--        Go to Dashboard -->
       <div v-if="goToDashboard" class="flex justify-center items-center">
         <a-button class="mt-4" size="large" @click="emit('close')">🚀 Time to build & scale now 🚀</a-button>
+      </div>
+      <div v-else-if="goBack" class="flex justify-center items-center">
+        <a-button class="mt-4" size="large" @click="emit('close')">Close</a-button>
       </div>
     </template>
   </div>

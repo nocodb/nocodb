@@ -159,7 +159,6 @@ export class WorkspacesController {
     });
   }
 
-  /*
   @Patch('/api/v1/workspaces/:workspaceId/status')
   @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
   async updateStatus(
@@ -203,5 +202,4 @@ export class WorkspacesController {
 
     return true;
   }
-  */
 }

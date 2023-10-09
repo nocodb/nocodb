@@ -55,16 +55,15 @@ export class SourceCreateProcessor {
     if (needUpgrade) {
       logBasic(' ');
       logBasic('Upgrading workspace to Business Pro plan');
+      logBasic('We are upgrading your infrastructure');
+      logBasic(
+        '⏳ Please wait 1-3 minutes as we set up an instance for you. Go grab a coffee!',
+      );
 
       await this.workspacesService.upgrade({
         workspaceId,
         user,
       });
-
-      logBasic('We are upgrading your infrastructure');
-      logBasic(
-        '⏳ Please wait 1-3 minutes as we set up an instance for you. Go grab a coffee!',
-      );
     }
 
     this.debugLog(`job completed for ${job.id}`);

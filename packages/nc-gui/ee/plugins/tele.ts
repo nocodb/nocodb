@@ -42,7 +42,7 @@ function initPostHog(clientId: string) {
     }
     posthog.identify(clientId)
   } catch (e) {
-    console.log(e)
+    // console.log(e)
     // ignore error
   }
 }

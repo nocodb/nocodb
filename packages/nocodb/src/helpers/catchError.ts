@@ -215,7 +215,7 @@ export function extractDBError(error): {
       message = 'A timeout occurred while waiting for a table lock.';
       break;
     case 'ER_NO_REFERENCED_ROW':
-      message = 'The referenced row does not exist.';
+      message = 'The referenced record does not exist.';
       break;
     case 'ER_ROW_IS_REFERENCED':
       message = 'This record is being referenced by other records.';
@@ -232,7 +232,7 @@ export function extractDBError(error): {
       message = 'A value is required for this field.';
       break;
     case '23503':
-      message = 'The referenced row does not exist.';
+      message = 'The referenced record does not exist.';
       break;
     case '23514':
       message = 'A null value is not allowed for this field.';

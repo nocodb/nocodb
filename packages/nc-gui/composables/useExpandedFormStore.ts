@@ -322,7 +322,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       if (res.message) {
         message.info(
-          `Row delete failed: ${`Unable to delete row with ID ${rowId} because of the following:
+          `Record delete failed: ${`Unable to delete record with ID ${rowId} because of the following:
               \n${res.message.join('\n')}.\n
               Clear the data first & try again`})}`,
         )

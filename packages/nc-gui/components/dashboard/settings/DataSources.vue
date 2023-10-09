@@ -547,15 +547,11 @@ const isEditBaseModalOpen = computed({
           </Draggable>
         </div>
       </div>
-      <GeneralModal v-model:visible="isNewBaseModalOpen" closable :mask-closable="false" size="medium">
-        <div class="py-6 px-8">
-          <LazyDashboardSettingsDataSourcesCreateBase
-            :connection-type="clientType"
-            @source-created="loadBases(true)"
-            @close="isNewBaseModalOpen = false"
-          />
-        </div>
-      </GeneralModal>
+      <LazyDashboardSettingsDataSourcesCreateBase
+        v-model:open="isNewBaseModalOpen"
+        :connection-type="clientType"
+        @source-created="loadBases(true)"
+      />
       <GeneralModal v-model:visible="isErdModalOpen" size="large">
         <div class="h-[80vh]">
           <LazyDashboardSettingsErd :source-id="activeBaseId" />

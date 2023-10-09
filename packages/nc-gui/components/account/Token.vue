@@ -163,7 +163,7 @@ const handleCancel = () => {
   <div class="h-full pt-2">
     <div class="max-w-202 mx-auto px-4 h-full" data-testid="nc-token-list">
       <div class="py-2 flex gap-4 items-baseline justify-between">
-        <h6 class="text-2xl text-left font-bold">{{ $t('title.apiTokens') }}</h6>
+        <h6 class="text-2xl text-left font-bold" data-rec="true">{{ $t('title.apiTokens') }}</h6>
         <NcTooltip :disabled="!(isEeUI && tokens.length)">
           <template #title>{{ $t('labels.tokenLimit') }}</template>
           <NcButton
@@ -175,23 +175,29 @@ const handleCancel = () => {
             tooltip="bottom"
             @click="showNewTokenModal = true"
           >
-            <span class="hidden md:block">
+            <span class="hidden md:block" data-rec="true">
               {{ $t('title.addNewToken') }}
             </span>
-            <span class="flex items-center justify-center md:hidden">
+            <span class="flex items-center justify-center md:hidden" data-rec="true">
               <component :is="iconMap.plus" />
             </span>
           </NcButton>
         </NcTooltip>
       </div>
-      <span>{{ $t('msg.apiTokenCreate') }}</span>
+      <span data-rec="true">{{ $t('msg.apiTokenCreate') }}</span>
       <div class="mt-5 h-[calc(100%-13rem)]">
         <div class="h-full w-full !overflow-hidden rounded-md">
           <div class="flex w-full pl-5 bg-gray-50 border-1 rounded-t-md">
-            <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9">{{ $t('title.tokenName') }}</span>
-            <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9 text-start">{{ $t('title.creator') }}</span>
-            <span class="py-3.5 text-gray-500 font-medium text-3.5 w-3/9 text-start">{{ $t('labels.token') }}</span>
-            <span class="py-3.5 pl-19 text-gray-500 font-medium text-3.5 w-2/9 text-start">{{ $t('labels.actions') }}</span>
+            <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9" data-rec="true">{{ $t('title.tokenName') }}</span>
+            <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9 text-start" data-rec="true">{{
+              $t('title.creator')
+            }}</span>
+            <span class="py-3.5 text-gray-500 font-medium text-3.5 w-3/9 text-start" data-rec="true">{{
+              $t('labels.token')
+            }}</span>
+            <span class="py-3.5 pl-19 text-gray-500 font-medium text-3.5 w-2/9 text-start" data-rec="true">{{
+              $t('labels.actions')
+            }}</span>
           </div>
           <div class="nc-scrollbar-md !overflow-y-auto flex flex-col h-[calc(100%-5rem)]">
             <div v-if="showNewTokenModal">
@@ -212,7 +218,9 @@ const handleCancel = () => {
                     data-testid="nc-token-input"
                     @press-enter="generateToken"
                   />
-                  <span v-if="!isValidTokenName" class="text-red-500 text-xs font-light mt-1.5 ml-1">{{ errorMessage }} </span>
+                  <span v-if="!isValidTokenName" class="text-red-500 text-xs font-light mt-1.5 ml-1" data-rec="true"
+                    >{{ errorMessage }}
+                  </span>
                 </div>
                 <div class="flex gap-2 justify-start">
                   <NcButton v-if="!isLoading" type="secondary" size="small" @click="handleCancel">

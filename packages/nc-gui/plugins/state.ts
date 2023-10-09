@@ -13,7 +13,7 @@ import { loadLocaleMessages, setI18nLanguage } from '~/plugins/a.i18n'
  * console.log($state.lang.value) // 'en'
  * ```
  */
-export default defineNuxtPlugin(async () => {
+const statePlugin = defineNuxtPlugin(async () => {
   const state = useGlobal()
 
   const { api } = useApi({ useGlobalInstance: true })

@@ -1,11 +1,11 @@
-import { isSystemColumn, RelationTypes, UITypes } from 'nocodb-sdk';
+import { isSystemColumn, RelationTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import type {
   Column,
   LinkToAnotherRecordColumn,
   LookupColumn,
   Model,
 } from '~/models';
-import { GalleryView, View } from '~/models';
+import { GalleryView, KanbanView, View } from '~/models';
 
 const getAst = async ({
   query,
@@ -33,11 +33,12 @@ const getAst = async ({
   dependencyFields.fieldsSet = dependencyFields.fieldsSet || new Set();
 
   let coverImageId;
-  if (view) {
+  if (view && view.type === ViewTypes.GALLERY) {
     const gallery = await GalleryView.get(view.id);
-    if (gallery) {
-      coverImageId = gallery.fk_cover_image_col_id;
-    }
+    coverImageId = gallery.fk_cover_image_col_id;
+  } else if (view && view.type === ViewTypes.KANBAN) {
+    const kanban = await KanbanView.get(view.id);
+    coverImageId = kanban.fk_cover_image_col_id;
   }
 
   if (!model.columns?.length) await model.getColumns();

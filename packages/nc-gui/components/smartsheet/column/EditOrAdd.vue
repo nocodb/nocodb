@@ -48,7 +48,7 @@ const { getMeta } = useMetas()
 
 const { t } = useI18n()
 
-const columnLabel = computed(() => props.columnLabel || t('objects.column'))
+const columnLabel = computed(() => props.columnLabel || t('objects.field'))
 
 const { $e } = useNuxtApp()
 

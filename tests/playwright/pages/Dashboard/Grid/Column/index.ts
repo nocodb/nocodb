@@ -260,7 +260,7 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.locator('li[role="menuitem"]:has-text("Delete"):visible').click();
 
     // pressing on delete column button
-    await this.rootPage.locator('.ant-modal.active button:has-text("Delete Column")').click();
+    await this.rootPage.locator('.ant-modal.active button:has-text("Delete Field")').click();
 
     // wait till modal is closed
     await this.rootPage.locator('.ant-modal.active').waitFor({ state: 'hidden' });

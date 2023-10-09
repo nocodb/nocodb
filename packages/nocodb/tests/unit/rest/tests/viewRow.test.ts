@@ -672,7 +672,7 @@ function viewRowTests() {
       .expect(200);
 
     const row = response.body;
-    if (row['Title'] !== 'Test') throw new Error('Wrong row title');
+    if (row['Title'] !== 'Test') throw new Error('Wrong record title');
   };
 
   it('Create table row grid', async function () {

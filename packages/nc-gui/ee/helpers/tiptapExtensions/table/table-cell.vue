@@ -224,17 +224,17 @@ onMounted(() => {
             <div
               class="absolute flex flex-row text-sm gap-y-1 -left-6.5 -top-10 bg-gray-100 p-1 rounded-md tiptap-column-options hidden z-10"
             >
-              <a-tooltip title="Add column left" placement="top" overlay-class-name="docs-table-col-options ">
+              <a-tooltip title="Add field left" placement="top" overlay-class-name="docs-table-col-options ">
                 <div class="button" data-testid="nc-docs-table-column-insert-left" @click="insertColumnBefore">
                   <MdiArrowLeft />
                 </div>
               </a-tooltip>
-              <a-tooltip title="Delete column" placement="top" overlay-class-name="docs-table-col-options ">
+              <a-tooltip title="Delete field" placement="top" overlay-class-name="docs-table-col-options ">
                 <div class="button !hover:text-red-400" data-testid="nc-docs-table-column-delete" @click="deleteColumn">
                   <MdiDeleteOutline />
                 </div>
               </a-tooltip>
-              <a-tooltip title="Add column right" placement="top" overlay-class-name="docs-table-col-options ">
+              <a-tooltip title="Add field right" placement="top" overlay-class-name="docs-table-col-options ">
                 <div class="button" data-testid="nc-docs-table-column-insert-right" @click="insertColumnAfter">
                   <MdiArrowRight />
                 </div>

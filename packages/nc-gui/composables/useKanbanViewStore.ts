@@ -679,7 +679,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
       if (res.message) {
         message.info(
-          `Row delete failed: ${`Unable to delete row with ID ${id} because of the following:
+          `Record delete failed: ${`Unable to delete record with ID ${id} because of the following:
               \n${res.message.join('\n')}.\n
               Clear the data first & try again`})}`,
         )

@@ -1,6 +1,7 @@
 import type { Api } from 'nocodb-sdk'
 import type { Actions } from '~/composables/useGlobal/types'
-import { defineNuxtRouteMiddleware, extractSdkResponseErrorMsg, message, navigateTo, useApi, useGlobal, useRoles } from '#imports'
+import { defineNuxtRouteMiddleware, message, navigateTo, useApi, useGlobal, useRoles } from '#imports'
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 /**
  * Global auth middleware
@@ -46,7 +47,9 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   }
 
   /** if user isn't signed in and google auth is enabled, try to check if sign-in data is present */
-  if (!state.signedIn.value && state.appInfo.value.googleAuthEnabled) await tryGoogleAuth(api, state.signIn)
+  if (!state.signedIn.value && state.appInfo.value.googleAuthEnabled) {
+    await tryGoogleAuth(api, state.signIn)
+  }
 
   /** if public allow all visitors */
   if (to.meta.public) return
@@ -54,13 +57,18 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   /** if shared base allow without validating */
   if (to.params.typeOrId === 'base') return
 
-  /** if auth is required or unspecified (same as required) and user is not signed in, redirect to signin page */
+  /** if auth is required or unspecified (same `as required) and user is not signed in, redirect to signin page */
   if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !state.signedIn.value) {
     /** If this is the first usern navigate to signup page directly */
     if (state.appInfo.value.firstUser) {
+      const query = to.fullPath !== '/' && to.fullPath.match(/^\/(?!\?)/) ? { continueAfterSignIn: to.fullPath } : {}
+      if (query.continueAfterSignIn) {
+        localStorage.setItem('continueAfterSignIn', query.continueAfterSignIn)
+      }
+
       return navigateTo({
         path: '/signup',
-        query: to.fullPath !== '/' && to.fullPath.match(/^\/(?!\?)/) ? { continueAfterSignIn: to.fullPath } : {},
+        query,
       })
     }
 

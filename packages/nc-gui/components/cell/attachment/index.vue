@@ -188,6 +188,7 @@ const onExpand = () => {
         v-model="isOverDropZone"
         inline
         :target="currentCellRef"
+        data-rec="true"
         class="nc-attachment-cell-dropzone text-white text-lg ring ring-accent ring-opacity-100 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
       >
         <MaterialSymbolsFileCopyOutline class="text-accent" />
@@ -205,7 +206,9 @@ const onExpand = () => {
       <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
       <NcTooltip placement="bottom">
-        <template #title>{{ $t('activity.attachmentDrop') }} </template>
+        <template #title
+          ><span data-rec="true">{{ $t('activity.attachmentDrop') }} </span></template
+        >
 
         <div v-if="active || !visibleItems.length || (isForm && visibleItems.length)" class="flex items-center gap-1">
           <MaterialSymbolsAttachFile
@@ -213,6 +216,7 @@ const onExpand = () => {
           />
           <div
             v-if="!visibleItems.length"
+            data-rec="true"
             class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-xs"
           >
             {{ $t('activity.addFiles') }}

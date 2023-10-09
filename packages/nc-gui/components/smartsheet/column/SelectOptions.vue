@@ -3,7 +3,7 @@ import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
 
-import { IsKanbanInj, enumColor, iconMap, onMounted, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
+import { IsKanbanInj, enumColor, iconMap, onMounted, useColumnCreateStoreOrThrow, useVModel } from '#imports'
 
 interface Option {
   color: string
@@ -21,7 +21,7 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-const { setAdditionalValidations, validateInfos, isMysql, isPg } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
 
 // const { base } = storeToRefs(useBase())
 

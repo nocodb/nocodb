@@ -43,16 +43,16 @@ export async function loadLocaleMessages(
   return nextTick()
 }
 
-const i18nPlugin = defineNuxtPlugin(async (nuxtApp) => {
+const i18nPlugin = async (nuxtApp) => {
   globalI18n = await createI18nPlugin()
 
   nuxtApp.vueApp.i18n = globalI18n
 
   nuxtApp.vueApp.use(globalI18n)
+}
+
+export default defineNuxtPlugin(async function (nuxtApp) {
+  if (!isEeUI) return await i18nPlugin(nuxtApp)
 })
 
-const defaultExport = isEeUI ? defineNuxtPlugin(async () => {}) : i18nPlugin
-
 export { i18nPlugin }
-
-export default defaultExport

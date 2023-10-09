@@ -2,7 +2,7 @@ import { Readable } from 'stream';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import papaparse from 'papaparse';
-import { Logger } from '@nestjs/common';
+import debug from 'debug';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import { Base, Column, Model, Source } from '~/models';
 import { BasesService } from '~/services/bases.service';
@@ -15,9 +15,7 @@ import { ImportService } from '~/modules/jobs/jobs/export-import/import.service'
 
 @Processor(JOBS_QUEUE)
 export class DuplicateProcessor {
-  private readonly logger = new Logger(
-    `${JOBS_QUEUE}:${DuplicateProcessor.name}`,
-  );
+  private readonly debugLog = debug('nc:jobs:duplicate');
 
   constructor(
     private readonly exportService: ExportService,
@@ -28,6 +26,8 @@ export class DuplicateProcessor {
 
   @Process(JobTypes.DuplicateBase)
   async duplicateBase(job: Job) {
+    this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateBase})`);
+
     const hrTime = initTime();
 
     const { baseId, sourceId, dupProjectId, req, options } = job.data;
@@ -114,10 +114,14 @@ export class DuplicateProcessor {
       }
       throw e;
     }
+
+    this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateBase})`);
   }
 
   @Process(JobTypes.DuplicateModel)
   async duplicateModel(job: Job) {
+    this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateModel})`);
+
     const hrTime = initTime();
 
     const { baseId, sourceId, modelId, title, req, options } = job.data;
@@ -216,6 +220,8 @@ export class DuplicateProcessor {
       elapsedTime(hrTime, 'import model data', 'duplicateModel');
     }
 
+    this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateModel})`);
+
     return await Model.get(findWithIdentifier(idMap, sourceModel.id));
   }
 
@@ -264,7 +270,7 @@ export class DuplicateProcessor {
           handledMmList: handledLinks,
         })
         .catch((e) => {
-          this.logger.error(e);
+          this.debugLog(e);
           dataStream.push(null);
           linkStream.push(null);
           error = e;
@@ -324,7 +330,7 @@ export class DuplicateProcessor {
             _fieldIds: fields,
           })
           .catch((e) => {
-            this.logger.error(e);
+            this.debugLog(e);
             dataStream.push(null);
             linkStream.push(null);
             error = e;
@@ -358,18 +364,18 @@ export class DuplicateProcessor {
                           headers.push(childCol.column_name);
                         } else {
                           headers.push(null);
-                          this.logger.error(`child column not found (${id})`);
+                          this.debugLog(`child column not found (${id})`);
                         }
                       } else {
                         headers.push(col.column_name);
                       }
                     } else {
                       headers.push(null);
-                      this.logger.error(`column not found (${id})`);
+                      this.debugLog(`column not found (${id})`);
                     }
                   } else {
                     headers.push(null);
-                    this.logger.error(`id not found (${header})`);
+                    this.debugLog(`id not found (${header})`);
                   }
                 }
                 parser.resume();
@@ -395,7 +401,7 @@ export class DuplicateProcessor {
                         raw: true,
                       });
                     } catch (e) {
-                      this.logger.error(e);
+                      this.debugLog(e);
                     }
                     chunk = [];
                     parser.resume();
@@ -414,7 +420,7 @@ export class DuplicateProcessor {
                     raw: true,
                   });
                 } catch (e) {
-                  this.logger.error(e);
+                  this.debugLog(e);
                 }
                 chunk = [];
               }

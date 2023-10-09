@@ -13,7 +13,7 @@ import { Hook, HookLog, Model } from '~/models';
 
 @Injectable()
 export class HooksService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   validateHookPayload(notificationJsonOrObject: string | Record<string, any>) {
     let notification: { type?: string } = {};

@@ -295,6 +295,7 @@ const createSource = async () => {
     )
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+    creatingSource.value = false
   } finally {
     refreshCommandPalette()
   }

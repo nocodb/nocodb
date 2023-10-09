@@ -1,7 +1,8 @@
 import { Readable } from 'stream';
 import { isLinksOrLTAR, UITypes, ViewTypes } from 'nocodb-sdk';
 import { unparse } from 'papaparse';
-import { Injectable, Logger } from '@nestjs/common';
+import debug from 'debug';
+import { Injectable } from '@nestjs/common';
 import { elapsedTime, initTime } from '../../helpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { View } from '~/models';
@@ -15,7 +16,7 @@ import { Base, Hook, Model, Source } from '~/models';
 
 @Injectable()
 export class ExportService {
-  private readonly logger = new Logger(ExportService.name);
+  private readonly debugLog = debug('nc:jobs:import');
 
   constructor(private datasService: DatasService) {}
 
@@ -94,7 +95,7 @@ export class ExportService {
                   }
                 }
               } catch (e) {
-                this.logger.error(e);
+                this.debugLog(e);
               }
             }
           }
@@ -457,7 +458,7 @@ export class ExportService {
         true,
       );
     } catch (e) {
-      this.logger.error(e);
+      this.debugLog(e);
       throw e;
     }
 
@@ -525,7 +526,7 @@ export class ExportService {
             true,
           );
         } catch (e) {
-          this.logger.error(e);
+          this.debugLog(e);
           throw e;
         }
 
@@ -714,7 +715,7 @@ export class ExportService {
           });
 
           linkStream.on('error', (e) => {
-            this.logger.error(e);
+            this.debugLog(e);
             resolve(null);
           });
         });
@@ -733,7 +734,7 @@ export class ExportService {
           modelId: model.id,
           handledMmList,
         }).catch((e) => {
-          this.logger.error(e);
+          this.debugLog(e);
           dataStream.push(null);
           linkStream.push(null);
           error = e;

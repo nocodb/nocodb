@@ -8,7 +8,7 @@ import { Filter, Hook, View } from '~/models';
 
 @Injectable()
 export class FiltersService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async hookFilterCreate(param: {
     filter: FilterReqType;

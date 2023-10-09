@@ -74,12 +74,19 @@ export class SourcesService {
     return true;
   }
 
-  async baseCreate(param: { baseId: string; source: BaseReqType }) {
+  async baseCreate(param: {
+    baseId: string;
+    source: BaseReqType;
+    logger?: (message: string) => void;
+  }) {
     validatePayload('swagger.json#/components/schemas/BaseReq', param.source);
 
     // type | base | baseId
     const baseBody = param.source;
     const base = await Base.getWithInfo(param.baseId);
+
+    param.logger?.('Creating the source');
+
     const source = await Source.createBase({
       ...baseBody,
       type: baseBody.config?.client,
@@ -88,7 +95,9 @@ export class SourcesService {
 
     await syncBaseMigration(base, source);
 
-    const info = await populateMeta(source, base);
+    param.logger?.('Populating meta');
+
+    const info = await populateMeta(source, base, param.logger);
 
     await populateRollupColumnAndHideLTAR(source, base);
 

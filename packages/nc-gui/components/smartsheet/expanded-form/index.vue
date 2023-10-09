@@ -402,7 +402,7 @@ const onDeleteRowClick = () => {
 const onConfirmDeleteRowClick = async () => {
   showDeleteRowModal.value = false
   await deleteRowById(primaryKey.value)
-  message.success('Row deleted')
+  message.success('Record deleted')
   reloadTrigger.trigger()
   onClose()
   showDeleteRowModal.value = false

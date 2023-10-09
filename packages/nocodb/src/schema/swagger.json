@@ -15338,7 +15338,7 @@
         ]
       }
     },
-    "/api/v1/tables/{tableId}/rows": {
+    "/api/v2/tables/{tableId}/rows": {
       "parameters": [
         {
           "schema": {
@@ -15693,7 +15693,7 @@
         ]
       }
     },
-    "/api/v1/tables/{tableId}/rows/{rowId}": {
+    "/api/v2/tables/{tableId}/records/{rowId}": {
       "parameters": [
         {
           "schema": {
@@ -15790,7 +15790,7 @@
         }
       }
     },
-    "/api/v1/tables/{tableId}/rows/count": {
+    "/api/v2/tables/{tableId}/records/count": {
       "parameters": [
         {
           "schema": {
@@ -15929,7 +15929,7 @@
         }
       }
     },
-    "/api/v1/tables/{tableId}/links/{columnId}/rows/{rowId}": {
+    "/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}": {
       "parameters": [
         {
           "schema": {

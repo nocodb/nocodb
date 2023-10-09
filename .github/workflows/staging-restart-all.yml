@@ -1,0 +1,18 @@
+name: "Staging: Restart All"
+
+on:
+  # Triggered manually
+  workflow_dispatch:    
+ 
+jobs:
+  restart-staging:
+    runs-on: [self-hosted, docker-build]
+    env:
+      working-directory: ./packages/nocodb
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-2
+    steps:      
+      - name: restart staging
+        run: |
+           ./scripts/release/staging.sh

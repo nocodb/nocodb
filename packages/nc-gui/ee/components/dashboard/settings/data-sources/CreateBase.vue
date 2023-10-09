@@ -541,11 +541,10 @@ watch(
 <template>
   <div class="create-source bg-white relative flex flex-col justify-center gap-2 w-full">
     <template v-if="step === 1">
-      <h1 class="prose-xl font-bold self-start mb-4 flex items-center gap-2">
+      <h1 class="prose-xl font-bold self-start flex items-center m-0 p-0">
         {{ $t('title.newBase') }}
-        <DashboardSettingsDataSourcesInfo />
-        <span class="flex-grow"></span>
       </h1>
+      <DashboardSettingsDataSourcesInfo />
 
       <a-form
         ref="form"
@@ -778,7 +777,7 @@ watch(
               class="nc-extdb-btn-submit !rounded-md"
               @click="createSource"
             >
-              {{ $t('general.submit') }}
+              Connect to Data Source
             </NcButton>
           </div>
         </a-form-item>
@@ -808,8 +807,8 @@ watch(
       </a-modal>
     </template>
     <template v-else>
-      <!--        Logs -->
-      <div class="mb-4 prose-xl font-bold">{{ $t('general.logs') }}</div>
+      <!--         Inferring schema from your data source -->
+      <div class="mb-4 prose-xl font-bold">Inferring schema from your data source</div>
 
       <a-card ref="logRef" :body-style="{ backgroundColor: '#000000', height: '400px', overflow: 'auto' }">
         <div v-for="({ msg, status }, i) in progress" :key="i">

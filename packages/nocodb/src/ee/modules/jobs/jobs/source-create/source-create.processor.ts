@@ -55,11 +55,19 @@ export class SourceCreateProcessor {
 
     if (needUpgrade) {
       logBasic(' ');
-      logBasic('Upgrading workspace to Business Pro plan');
-      logBasic('We are upgrading your infrastructure');
       logBasic(
-        '⏳ Please wait 1-3 minutes as we set up an instance for you. Go grab a coffee!',
+        '***************************************************************************',
       );
+      logBasic('🌟 Setting up a dedicated instance for your first datasource.');
+      logBasic(
+        '⏳ This may take 3-5 minutes, so perfect time to grab a cup of coffee and we would be all set.',
+      );
+      logBasic('Thank you for your patience 🙏');
+      logBasic('For next data sources in your workspace this will be instant.');
+      logBasic(
+        '***************************************************************************',
+      );
+      logBasic(' ');
 
       await NcConnectionMgrv2.deleteAwait(createdBase);
 

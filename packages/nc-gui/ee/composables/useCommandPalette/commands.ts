@@ -1,57 +1,59 @@
-import { navigateTo, shallowRef } from '#imports'
-import MdiHome from '~icons/mdi/home'
-import MdiFileOutline from '~icons/mdi/file-outline'
+import { navigateTo } from '#imports'
 
 export const homeCommands = [
   {
-    id: 'account_settings',
-    title: 'Account Settings',
+    id: 'user',
+    title: 'Account',
     icon: 'account',
+    section: 'Accounts',
+  },
+  {
+    id: 'user_account-settings',
+    title: 'Account Settings',
+    icon: 'settings',
+    parent: 'user',
     section: 'Account',
-  },
-  {
-    id: 'account_settings-users',
-    title: 'Users',
-    parent: 'account_settings',
-    icon: 'users',
-  },
-  {
-    id: 'account_settings-users-reset_password',
-    title: 'Reset Password',
-    parent: 'account_settings-users',
-    icon: 'key',
     handler: () => {
-      navigateTo('/account/users/password-reset')
+      navigateTo('/account/profile')
     },
   },
   {
-    id: 'account_settings-tokens',
-    title: 'Tokens',
-    parent: 'account_settings',
-    icon: 'acl',
+    id: 'user_account-logout',
+    title: 'Logout',
+    icon: 'signout',
+    parent: 'user',
+    section: 'Account',
+    handler: () => {},
+  },
+  {
+    id: 'user_account-discord',
+    title: 'Discord',
+    icon: 'discord',
+    parent: 'user',
+    section: 'Community',
     handler: () => {
-      navigateTo('/account/tokens')
+      navigateTo('https://discord.gg/8jX2GQn', { external: true })
     },
   },
   {
-    id: 'home',
-    title: 'Navigate Home',
-    hotkey: 'cmd+h',
-    icon: shallowRef(MdiHome),
-    section: 'Misc',
+    id: 'user_account-twitter',
+    title: '(formerly Twitter)',
+    icon: 'twitter',
+    parent: 'user',
+    section: 'Community',
     handler: () => {
-      navigateTo('/')
+      navigateTo('https://twitter.com/NocoDB', { external: true })
     },
   },
   {
-    id: 'workspaces',
-    title: 'Workspaces',
-    icon: 'workspace',
-  },
-  {
-    id: 'bases',
-    title: 'Projects',
-    icon: shallowRef(MdiFileOutline),
+    id: 'user_account-reddit',
+    title: 'Reddit',
+    icon: 'reddit',
+    parent: 'user',
+    section: 'Community',
+    handler: () => {
+      navigateTo('https://www.reddit.com/r/NocoDB/', { external: true })
+    },
   },
 ]
 

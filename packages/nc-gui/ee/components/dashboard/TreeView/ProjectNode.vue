@@ -49,13 +49,13 @@ const isExpanded = computed<boolean>({
 
 const basesStore = useBases()
 
-const { loadProject, loadProjects, createProject: _createProject, updateProject, toggleStarred } = basesStore
+const { loadProjects, createProject: _createProject, updateProject, toggleStarred } = basesStore
 const { bases, activeProjectId } = storeToRefs(basesStore)
 
 const { loadProjectTables } = useTablesStore()
 const { activeTable } = storeToRefs(useTablesStore())
 
-const { recentViews } = storeToRefs(useViewsStore())
+const { allRecentViews } = storeToRefs(useViewsStore())
 
 const { appInfo, navigateToProject } = useGlobal()
 
@@ -126,9 +126,9 @@ const updateProjectTitle = async () => {
       title: tempTitle.value,
     })
     // update base title in recent views
-    recentViews.value = recentViews.value.map((view) => {
-      if (view.base_id === base.value.id) {
-        view.Base_title = tempTitle.value
+    allRecentViews.value = allRecentViews.value.map((view) => {
+      if (view.baseId === base.value.id) {
+        view.baseName = tempTitle.value
       }
       return view
     })
@@ -140,6 +140,8 @@ const updateProjectTitle = async () => {
     useTitle(`${base.value?.title}`)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    refreshCommandPalette()
   }
 }
 
@@ -685,7 +687,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; base_id: string })
                             class="source-context flex items-center gap-2 text-gray-800 nc-sidebar-node-title"
                             @contextmenu="setMenuContext('source', source)"
                           >
-                            <GeneralBaseLogo class="min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" :source-type="source.type" />
+                            <GeneralBaseLogo class="min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
                             Default
                           </div>
                           <div
@@ -693,7 +695,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; base_id: string })
                             class="source-context flex flex-grow items-center gap-1.75 text-gray-800 min-w-1/20 max-w-full"
                             @contextmenu="setMenuContext('source', source)"
                           >
-                            <GeneralBaseLogo :source-type="source.type" class="min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
+                            <GeneralBaseLogo class="min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
                             <div
                               :data-testid="`nc-sidebar-base-${source.alias}`"
                               class="nc-sidebar-node-title flex capitalize text-ellipsis overflow-hidden select-none"

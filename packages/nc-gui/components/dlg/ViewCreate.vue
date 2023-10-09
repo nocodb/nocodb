@@ -42,6 +42,8 @@ const { getMeta } = useMetas()
 
 const { viewsByTable } = storeToRefs(useViewsStore())
 
+const { refreshCommandPalette } = useCommandPalette()
+
 const { selectedViewId, groupingFieldColumnId, geoDataFieldColumnId, tableId } = toRefs(props)
 
 const meta = ref<TableType | undefined>()
@@ -171,6 +173,8 @@ async function onSubmit() {
       }
     } catch (e: any) {
       message.error(e.message)
+    } finally {
+      refreshCommandPalette()
     }
 
     vModel.value = false

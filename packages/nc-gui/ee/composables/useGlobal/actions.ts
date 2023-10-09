@@ -1,21 +1,27 @@
 import { getActivePinia } from 'pinia'
+import { Auth } from 'aws-amplify'
 import type { Actions, AppInfo, State } from '../../../composables/useGlobal/types'
-import { NcProjectType, message, useNuxtApp } from '#imports'
+import type { ActionsEE } from './types'
+import { NcProjectType, message, updateFirstTimeUser, useNuxtApp, useState } from '#imports'
 import { navigateTo } from '#app'
 
-export function useGlobalActions(state: State): Actions {
+export function useGlobalActions(state: State): Actions & ActionsEE {
   const setIsMobileMode = (isMobileMode: boolean) => {
     state.isMobileMode.value = isMobileMode
   }
 
+  // todo: move to pinia/global state
+  const isAmplifyConfigured = useState('is-amplify-configured', () => false)
+
   /** Sign out by deleting the token from localStorage */
   const signOut: Actions['signOut'] = async (skipRedirect = true) => {
     let signoutRes
+    const nuxtApp = useNuxtApp()
     try {
-      const nuxtApp = useNuxtApp()
+      // invalidate token and refresh token on server
       signoutRes = await nuxtApp.$api.auth.signout()
-    } catch {
     } finally {
+      // clear token and user data
       state.token.value = null
       state.user.value = null
 
@@ -27,11 +33,18 @@ export function useGlobalActions(state: State): Actions {
           delete pn.state.value[store.$id]
         })
       }
+    }
 
-      // todo: update type in swagger.json
-      if (!skipRedirect && (signoutRes as any).redirect_url) {
-        location.href = (signoutRes as any).redirect_url
-      }
+    // clear amplify session if configured
+    try {
+      if (isAmplifyConfigured.value) await Auth.signOut()
+    } catch {
+      // ignore error
+    }
+
+    // todo: update type in swagger.json
+    if (!skipRedirect && (signoutRes as any).redirect_url) {
+      location.href = (signoutRes as any).redirect_url
     }
   }
 
@@ -50,6 +63,35 @@ export function useGlobalActions(state: State): Actions {
     }
   }
 
+  const checkForCognitoToken = async ({ skipRedirect = false } = {}) => {
+    try {
+      const continueAfterSignIn = sessionStorage.getItem('continueAfterSignIn')
+      const cognitoUserSession = await Auth.currentSession()
+      const idToken = cognitoUserSession.getIdToken()
+      const jwt = idToken.getJwtToken()
+
+      const nuxtApp = useNuxtApp()
+
+      const tokenRes = await nuxtApp.$api.instance.post(
+        '/auth/cognito',
+        {},
+        {
+          headers: {
+            'xc-cognito': jwt,
+          },
+        },
+      )
+      if ((await tokenRes).data.token) {
+        updateFirstTimeUser()
+        signIn((await tokenRes).data.token)
+        if (!skipRedirect && continueAfterSignIn) {
+          localStorage.removeItem('continueAfterSignIn')
+          navigateTo(continueAfterSignIn)
+        }
+      }
+    } catch (err) {}
+  }
+
   /** manually try to refresh token */
   const refreshToken = async () => {
     const nuxtApp = useNuxtApp()
@@ -66,7 +108,9 @@ export function useGlobalActions(state: State): Actions {
           }
         })
         .catch(async () => {
-          if (state.token.value && state.user.value) {
+          if (isAmplifyConfigured.value) {
+            await checkForCognitoToken()
+          } else if (state.token.value && state.user.value) {
             await signOut()
             message.error(t('msg.error.youHaveBeenSignedOut'))
           }
@@ -112,11 +156,11 @@ export function useGlobalActions(state: State): Actions {
       path = _workspaceId ? `/${workspaceId}${queryParams}` : `/${queryParams}`
     }
 
-    if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
-      location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}${state.appInfo.value.dashboardPath}#${path}`
-    } else {
-      navigateTo(path)
-    }
+    // if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
+    //   location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}${state.appInfo.value.dashboardPath}#${path}`
+    // } else {
+    navigateTo(path)
+    // }
   }
 
   const ncNavigateTo = ({
@@ -151,19 +195,43 @@ export function useGlobalActions(state: State): Actions {
       path = _workspaceId ? `/${workspaceId}${queryParams}` : `/${queryParams}`
     }
 
-    if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
-      location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}${state.appInfo.value.dashboardPath}#${path}`
-    } else {
-      navigateTo(path)
-    }
+    // if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
+    //   location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}${state.appInfo.value.dashboardPath}#${path}`
+    // } else {
+    navigateTo(path)
+    // }
   }
 
   const getBaseUrl = (workspaceId: string) => {
-    if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
+    if (
+      !['base', 'nc', 'view', 'erd', 'doc', 'api', 'app'].includes(workspaceId) &&
+      state.appInfo.value.baseHostName &&
+      location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`
+    ) {
       return `https://${workspaceId}.${state.appInfo.value.baseHostName}`
     }
     return undefined
   }
 
-  return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode, navigateToProject, getBaseUrl, ncNavigateTo }
+  // get the base url of the app id base subdomain is used
+  // eg: https://app.nocodb.com
+  const getMainUrl = () => {
+    if (state.appInfo.value.mainSubDomain && state.appInfo.value.baseHostName) {
+      return `https://${state.appInfo.value.mainSubDomain}.${state.appInfo.value.baseHostName}`
+    }
+    return undefined
+  }
+
+  return {
+    signIn,
+    signOut,
+    refreshToken,
+    loadAppInfo,
+    setIsMobileMode,
+    navigateToProject,
+    getBaseUrl,
+    ncNavigateTo,
+    getMainUrl,
+    checkForCognitoToken,
+  }
 }

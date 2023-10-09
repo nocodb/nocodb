@@ -29,6 +29,11 @@ const validators = computed(() => {
             if (!value?.trim()) {
               return reject(new Error('Workspace name required'))
             }
+
+            if (value?.trim().length > 255) {
+              return reject(new Error('Workspace name should be less than 255 characters'))
+            }
+
             return resolve(true)
           })
         },

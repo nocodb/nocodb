@@ -142,16 +142,18 @@ const onWorkspaceCreateClick = () => {
           :style="`width: ${leftSidebarWidth - 4}px`"
           @click="isWorkspaceDropdownOpen = false"
         >
-          <a-menu-item-group class="!border-t-0">
-            <div class="flex gap-x-3 min-w-0 px-4 py-3 items-center">
+          <a-menu-item-group class="!border-t-0 w-full">
+            <div class="flex gap-x-3 min-w-0 px-4 w-full py-3 items-center">
               <GeneralWorkspaceIcon :workspace="activeWorkspace" size="large" />
-              <div class="flex flex-col gap-y-0">
+              <div class="flex flex-col gap-y-0 max-w-[calc(100%-3.5rem)]">
                 <div
-                  class="mt-0.5 flex capitalize mb-0 nc-workspace-title truncate min-w-10 text-sm text-black font-medium"
+                  class="mt-0.5 flex w-full capitalize mb-0 nc-workspace-title truncate min-w-10 text-sm text-black font-medium"
                   style="line-height: 1.5rem"
                   data-testid="nc-workspace-list"
                 >
-                  {{ activeWorkspace?.title }}
+                  <span class="truncate">
+                    {{ activeWorkspace?.title }}
+                  </span>
                 </div>
                 <div class="flex flex-row items-center gap-x-2">
                   <div class="nc-workspace-dropdown-active-workspace-info">Free Plan</div>
@@ -174,11 +176,15 @@ const onWorkspaceCreateClick = () => {
                 class="!h-10"
                 @click="switchWorkspace(workspace.id!)"
               >
-                <div class="nc-workspace-menu-item group capitalize max-w-300px flex" data-testid="nc-workspace-list">
+                <div
+                  class="nc-workspace-menu-item group capitalize max-w-[calc(100%-3.5rem)] flex"
+                  data-testid="nc-workspace-list"
+                  :style="`width: ${leftSidebarWidth}px`"
+                >
                   <GeneralWorkspaceIcon :workspace="workspace" hide-label size="small" />
-                  <div class="mt-0.5 flex capitalize mb-0 nc-workspace-title truncate min-w-10">
+                  <span class="mt-0.5 capitalize mb-0 nc-workspace-title truncate min-w-10">
                     {{ workspace?.title }}
-                  </div>
+                  </span>
                 </div>
               </NcMenuItem>
             </div>

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import axios from 'axios'
 import { nextTick } from '@vue/runtime-core'
 import type { ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
@@ -122,7 +123,7 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
-useViewColumns(view, meta, () => reloadViewDataHook.trigger())
+const { isViewColumnsLoading } = useViewColumns(view, meta, () => reloadViewDataHook.trigger())
 
 const { isMobileMode } = useGlobal()
 
@@ -383,11 +384,19 @@ const gridWrapperClass = computed<string>(() => {
   return classes.join(' ')
 })
 
-const dummyDataForLoading = computed(() => {
+const dummyColumnDataForLoading = computed(() => {
+  let length = fields.value?.length ?? 40
+  length = length || 40
+  return Array.from({ length: length + 1 }).map(() => ({}))
+})
+
+const dummyRowDataForLoading = computed(() => {
   return Array.from({ length: 40 }).map(() => ({}))
 })
 
-const showSkeleton = computed(() => disableSkeleton !== true && (isViewDataLoading.value || isPaginationLoading.value))
+const showSkeleton = computed(
+  () => disableSkeleton !== true && (isViewDataLoading.value || isPaginationLoading.value || isViewColumnsLoading.value),
+)
 
 // #Grid
 
@@ -884,7 +893,7 @@ const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?
 }
 
 // #Grid Resize
-const { updateGridViewColumn, resizingColWidth, resizingCol } = useGridViewColumnOrThrow()
+const { updateGridViewColumn, gridViewCols, resizingColOldWith } = useGridViewColumnOrThrow()
 
 const onresize = (colID: string | undefined, event: any) => {
   if (!colID) return
@@ -893,8 +902,12 @@ const onresize = (colID: string | undefined, event: any) => {
 
 const onXcResizing = (cn: string | undefined, event: any) => {
   if (!cn) return
-  resizingCol.value = cn
-  resizingColWidth.value = event.detail
+  gridViewCols.value[cn].width = `${event.detail}`
+}
+
+const onXcStartResizing = (cn: string | undefined, event: any) => {
+  if (!cn) return
+  resizingColOldWith.value = event.detail
 }
 
 const loadColumn = (title: string, tp: string, colOptions?: any) => {
@@ -1059,6 +1072,22 @@ onBeforeUnmount(async () => {
 reloadViewDataHook?.on(reloadViewDataHandler)
 openNewRecordFormHook?.on(openNewRecordHandler)
 
+// TODO: Use CSS animations
+const showLoaderAfterDelay = ref(false)
+watch([isViewDataLoading, showSkeleton, isPaginationLoading], () => {
+  if (!isViewDataLoading.value && !showSkeleton.value && !isPaginationLoading.value) {
+    showLoaderAfterDelay.value = false
+
+    return
+  }
+
+  showLoaderAfterDelay.value = false
+
+  setTimeout(() => {
+    showLoaderAfterDelay.value = true
+  }, 500)
+})
+
 // #Watchers
 
 // reset context menu target on hide
@@ -1099,8 +1128,10 @@ watch(
         try {
           await loadData?.()
         } catch (e) {
-          console.log(e)
-          message.error(t('msg.errorLoadingData'))
+          if (!axios.isCancel(e)) {
+            console.log(e)
+            message.error(t('msg.errorLoadingData'))
+          }
         } finally {
           isViewDataLoading.value = false
         }
@@ -1163,7 +1194,7 @@ const loaderText = computed(() => {
   <div class="flex flex-col" :class="`${headerOnly !== true ? 'h-full w-full' : ''}`">
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative" :class="gridWrapperClass">
       <div
-        v-show="showSkeleton && !isPaginationLoading"
+        v-show="showSkeleton && !isPaginationLoading && showLoaderAfterDelay"
         class="flex items-center justify-center absolute l-0 t-0 w-full h-full z-10 pb-10"
       >
         <div class="flex flex-col justify-center gap-2">
@@ -1187,11 +1218,11 @@ const loaderText = computed(() => {
             @contextmenu="showContextMenu"
           >
             <thead v-show="hideHeader !== true" ref="tableHeadEl">
-              <tr v-if="showSkeleton && isPaginationLoading">
+              <tr v-if="isViewColumnsLoading">
                 <td
-                  v-for="(col, colIndex) of dummyDataForLoading"
+                  v-for="(col, colIndex) of dummyColumnDataForLoading"
                   :key="colIndex"
-                  class="!bg-gray-50 h-full"
+                  class="!bg-gray-50 h-full border-b-1 border-r-1"
                   :class="{ 'min-w-50': colIndex !== 0, 'min-w-21.25': colIndex === 0 }"
                 >
                   <a-skeleton
@@ -1203,7 +1234,7 @@ const loaderText = computed(() => {
                   />
                 </td>
               </tr>
-              <tr v-show="!isPaginationLoading" class="nc-grid-header">
+              <tr v-show="!isViewColumnsLoading" class="nc-grid-header">
                 <th class="w-[85px] min-w-[85px]" data-testid="grid-id-column" @dblclick="() => {}">
                   <div class="w-full h-full flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                     <template v-if="!readOnly">
@@ -1228,9 +1259,14 @@ const loaderText = computed(() => {
                   v-xc-ver-resize
                   :data-col="col.id"
                   :data-title="col.title"
+                  :style="{
+                    'min-width': gridViewCols[col.id]?.width || '200px',
+                    'max-width': gridViewCols[col.id]?.width || '200px',
+                    'width': gridViewCols[col.id]?.width || '200px',
+                  }"
+                  @xcstartresizing="onXcStartResizing(col.id, $event)"
                   @xcresize="onresize(col.id, $event)"
-                  @xcresizing="onXcResizing(col.title, $event)"
-                  @xcresized="resizingCol = null"
+                  @xcresizing="onXcResizing(col.id, $event)"
                 >
                   <div class="w-full h-full flex items-center">
                     <LazySmartsheetHeaderVirtualCell
@@ -1352,10 +1388,11 @@ const loaderText = computed(() => {
             </thead>
             <tbody v-if="headerOnly !== true" ref="tableBodyEl">
               <template v-if="showSkeleton">
-                <tr v-for="(row, rowIndex) of dummyDataForLoading" :key="rowIndex">
+                <tr v-for="(row, rowIndex) of dummyRowDataForLoading" :key="rowIndex">
                   <td
-                    v-for="(col, colIndex) of dummyDataForLoading"
+                    v-for="(col, colIndex) of dummyColumnDataForLoading"
                     :key="colIndex"
+                    class="border-b-1 border-r-1"
                     :class="{ 'min-w-50': colIndex !== 0, 'min-w-21.25': colIndex === 0 }"
                   ></td>
                 </tr>
@@ -1455,6 +1492,11 @@ const loaderText = computed(() => {
                           (isLookup(columnObj) || isRollup(columnObj) || isFormula(columnObj)) &&
                           hasEditPermission &&
                           isCellSelected(rowIndex, colIndex),
+                      }"
+                      :style="{
+                        'min-width': gridViewCols[columnObj.id]?.width || '200px',
+                        'max-width': gridViewCols[columnObj.id]?.width || '200px',
+                        'width': gridViewCols[columnObj.id]?.width || '200px',
                       }"
                       :data-testid="`cell-${columnObj.title}-${rowIndex}`"
                       :data-key="`data-key-${rowIndex}-${columnObj.id}`"
@@ -1949,4 +1991,11 @@ tbody tr:hover {
 .nc-fill-handle:focus {
   @apply w-[8px] h-[8px] mt-[-5px] ml-[-5px];
 }
+
+:deep(.ant-skeleton-input) {
+  @apply rounded text-gray-100 !bg-gray-100 !bg-opacity-65;
+  animation: slow-show-1 5s ease 5s forwards;
+}
 </style>
+
+<style lang="scss"></style>

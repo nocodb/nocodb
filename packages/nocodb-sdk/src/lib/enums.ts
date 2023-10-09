@@ -188,7 +188,7 @@ export const RoleColors = {
   [ProjectRoles.EDITOR]: 'green',
   [ProjectRoles.COMMENTER]: 'orange',
   [ProjectRoles.VIEWER]: 'yellow',
-  [OrgUserRoles.SUPER_ADMIN]: 'purple',
+  [OrgUserRoles.SUPER_ADMIN]: 'maroon',
   [ProjectRoles.NO_ACCESS]: 'red',
   [OrgUserRoles.CREATOR]: 'blue',
   [OrgUserRoles.VIEWER]: 'yellow',
@@ -223,7 +223,7 @@ export const RoleIcons = {
   [ProjectRoles.COMMENTER]: 'role_commenter',
   [ProjectRoles.VIEWER]: 'role_viewer',
   [ProjectRoles.NO_ACCESS]: 'role_no_access',
-  [OrgUserRoles.SUPER_ADMIN]: 'role_owner',
+  [OrgUserRoles.SUPER_ADMIN]: 'role_super',
   [OrgUserRoles.CREATOR]: 'role_creator',
   [OrgUserRoles.VIEWER]: 'role_viewer',
 };

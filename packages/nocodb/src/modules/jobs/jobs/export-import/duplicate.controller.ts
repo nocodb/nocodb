@@ -15,9 +15,10 @@ import { BasesService } from '~/services/bases.service';
 import { Base, Model, Source } from '~/models';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
 import { JobTypes } from '~/interface/Jobs';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class DuplicateController {
   constructor(
     @Inject('JobsService') protected readonly jobsService,

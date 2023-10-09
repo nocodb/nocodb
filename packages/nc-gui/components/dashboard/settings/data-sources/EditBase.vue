@@ -39,6 +39,8 @@ const { base } = storeToRefs(baseStore)
 const _projectId = inject(ProjectIdInj, undefined)
 const baseId = computed(() => _projectId?.value ?? base.value?.id)
 
+const { refreshCommandPalette } = useCommandPalette()
+
 const useForm = Form.useForm
 
 const testSuccess = ref(false)
@@ -235,6 +237,8 @@ const editBase = async () => {
     emit('close')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    refreshCommandPalette()
   }
 }
 

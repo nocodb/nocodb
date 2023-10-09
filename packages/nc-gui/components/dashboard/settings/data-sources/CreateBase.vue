@@ -39,6 +39,8 @@ const { base } = storeToRefs(baseStore)
 
 const { loadProjectTables } = useTablesStore()
 
+const { refreshCommandPalette } = useCommandPalette()
+
 const _projectId = inject(ProjectIdInj, undefined)
 const baseId = computed(() => _projectId?.value ?? base.value?.id)
 
@@ -293,6 +295,8 @@ const createSource = async () => {
     )
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    refreshCommandPalette()
   }
 }
 

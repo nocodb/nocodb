@@ -349,7 +349,6 @@ const rolePermissions:
   },
   [ProjectRoles.CREATOR]: {
     exclude: {
-      baseDelete: true,
       createBase: true,
     },
   },

@@ -4,6 +4,8 @@ const { signOut } = useGlobal()
 const { deleteWorkspace, navigateToWorkspace, updateWorkspace } = useWorkspace()
 const { workspacesList, activeWorkspaceId, activeWorkspace, workspaces } = storeToRefs(useWorkspace())
 
+const { refreshCommandPalette } = useCommandPalette()
+
 const formValidator = ref()
 const isDeleting = ref(false)
 const isErrored = ref(false)
@@ -44,6 +46,7 @@ const onDelete = async () => {
     }
   } finally {
     isDeleting.value = false
+    refreshCommandPalette()
     toBeDeletedWorkspaceTitle.value = ''
   }
 }

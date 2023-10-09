@@ -15,7 +15,6 @@ import {
   useNuxtApp,
   useSmartsheetStoreOrThrow,
 } from '#imports'
-import GroupIcon from '~icons/nc-icons/group'
 
 const groupingUidt = [
   UITypes.SingleSelect,
@@ -220,7 +219,7 @@ onMounted(async () => {
     <div :class="{ 'nc-active-btn': groupedByColumnIds?.length }">
       <a-button v-e="['c:group-by']" class="nc-group-by-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-2">
-          <GroupIcon class="h-4 w-4" />
+          <component :is="iconMap.group" class="h-4 w-4" />
 
           <!-- Group By -->
           <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.groupBy') }}</span>
@@ -276,7 +275,7 @@ onMounted(async () => {
                 type="text"
                 @click.stop="removeFieldFromGroupBy(i)"
               >
-                <GeneralIcon icon="delete" class="" />
+                <component :is="iconMap.deleteListItem" />
               </NcButton>
             </a-tooltip>
           </template>

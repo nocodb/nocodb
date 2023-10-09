@@ -15,8 +15,9 @@ import type { BaseType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { BasesService } from '~/services/bases.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
 export class BasesController extends BasesControllerCE {
   constructor(protected readonly basesService: BasesService) {

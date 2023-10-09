@@ -40,6 +40,8 @@
     "ci:run:ee": "export NODE_OPTIONS=\"--max_old_space_size=16384\"; pnpm install; NUXT_PAGE_TRANSITION_DISABLE=true pnpm run build:ee; NUXT_PUBLIC_NC_BACKEND_URL=http://localhost:8080 pnpm run start:ee &"
   },
   "dependencies": {
+    "@aws-amplify/core": "^5.8.5",
+    "@aws-amplify/ui-vue": "^3.1.29",
     "@braks/revue-draggable": "^0.4.3",
     "@ckpack/vue-color": "^1.2.0",
     "@iconify/vue": "^4.1.1",
@@ -83,6 +85,7 @@
     "@vueuse/core": "^10.2.1",
     "@vueuse/integrations": "^10.2.1",
     "ant-design-vue": "^3.2.11",
+    "aws-amplify": "^5.3.11",
     "chart.js": "^4.3.0",
     "d3-scale": "^4.0.2",
     "dagre": "^0.8.5",

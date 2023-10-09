@@ -4,9 +4,10 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { SourcesService } from '~/services/sources.service';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class SourcesController {
   constructor(private readonly sourcesService: SourcesService) {}
 

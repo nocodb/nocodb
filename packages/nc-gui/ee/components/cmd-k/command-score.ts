@@ -5,20 +5,20 @@
 //
 // The best case, this character is a match, and either this is the start
 // of the string, or the previous character was also a match.
-const SCORE_CONTINUE_MATCH = 1
+const SCORE_CONTINUE_MATCH = 1.9
 // A new match at the start of a word scores better than a new match
 // elsewhere as it's more likely that the user will type the starts
 // of fragments.
 // NOTE: We score word jumps between spaces slightly higher than slashes, brackets
 // hyphens, etc.
-const SCORE_SPACE_WORD_JUMP = 0.9
+const SCORE_SPACE_WORD_JUMP = 1.0
 const SCORE_NON_SPACE_WORD_JUMP = 0.8
 // Any other match isn't ideal, but we include it for completeness.
-const SCORE_CHARACTER_JUMP = 0.17
+const SCORE_CHARACTER_JUMP = 0.2
 // If the user transposed two letters, it should be significantly penalized.
 //
 // i.e. "ouch" is more likely than "curtain" when "uc" is typed.
-const SCORE_TRANSPOSITION = 0.1
+const SCORE_TRANSPOSITION = 0.3
 // The goodness of a match should decay slightly with each missing
 // character.
 //
@@ -34,7 +34,7 @@ const PENALTY_SKIPPED = 0.999
 //
 // This will not change the order of suggestions based on SCORE_* until
 // 1000 characters are inserted between matches.
-const PENALTY_CASE_MISMATCH = 0.9999
+const PENALTY_CASE_MISMATCH = 0.999999
 // Match higher for letters closer to the beginning of the word
 // const PENALTY_DISTANCE_FROM_START = 0.9
 // If the word has more characters than the user typed, it should
@@ -46,7 +46,7 @@ const PENALTY_CASE_MISMATCH = 0.9999
 // ordering (like alphabetical) that it makes sense to rely on when
 // there are many prefix matches, so we don't make the penalty increase
 // with the number of tokens.
-const PENALTY_NOT_COMPLETE = 0.99
+const PENALTY_NOT_COMPLETE = 0.98
 
 const IS_GAP_REGEXP = /[\\\/_+.#"@\[\(\{&]/
 const COUNT_GAPS_REGEXP = /[\\\/_+.#"@\[\(\{&]/g

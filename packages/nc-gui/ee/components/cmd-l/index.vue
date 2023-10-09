@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { onKeyUp, useDebounceFn, useMagicKeys, useVModel, whenever } from '@vueuse/core'
-import { defineEmits, defineProps, ref } from 'vue'
 import { onClickOutside } from '#imports'
-import ProjectIcon from '~icons/nc-icons/project'
 
 const props = defineProps<{
   open: boolean
@@ -66,6 +64,7 @@ const renderCmdOrCtrlKey = () => {
 }
 
 const moveUp = () => {
+  if (!recentViews.value.length) return
   const index = recentViews.value.findIndex((v) => v.tableID + v.viewName === selected.value)
   if (index === 0) {
     selected.value =
@@ -92,6 +91,7 @@ const moveUp = () => {
 }
 
 const moveDown = () => {
+  if (!recentViews.value.length) return
   const index = recentViews.value.findIndex((v) => v.tableID + v.viewName === selected.value)
   if (index === recentViews.value.length - 1) {
     selected.value = recentViews.value[0].tableID + recentViews.value[0].viewName
@@ -194,10 +194,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-show="vOpen" class="cmdk-modal cmdl-modal" :class="{ 'cmdk-modal-active cmdl-modal-active': vOpen }">
+  <div v-if="vOpen" class="cmdk-modal cmdl-modal" :class="{ 'cmdk-modal-active cmdl-modal-active': vOpen }">
     <div ref="modalEl" class="cmdk-modal-content cmdl-modal-content relative h-[25.25rem]">
       <div class="flex items-center bg-white w-full z-[50]">
-        <div class="text-sm p-2 text-gray-500">Recent Views</div>
+        <div class="text-sm p-4 text-gray-500">Recent Views</div>
       </div>
       <div class="flex flex-col shrink grow overflow-hidden shadow-[rgb(0_0_0_/_50%)_0px_16px_70px] max-w-[650px] p-0">
         <div class="scroll-smooth actions overflow-auto nc-scrollbar-md relative m-0 px-0 py-2">
@@ -216,11 +216,25 @@ onMounted(() => {
               <div class="cmdk-action-content !flex w-full">
                 <div class="flex gap-2 w-full flex-grow-1 items-center">
                   <GeneralViewIcon :meta="{ type: cmdOption.viewType }" />
-                  {{ cmdOption.viewName }}
+                  <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
+                    <template #title>
+                      {{ cmdOption.viewName }}
+                    </template>
+                    <span class="max-w- truncate capitalize">
+                      {{ cmdOption.viewName }}
+                    </span>
+                  </a-tooltip>
                 </div>
                 <div class="flex gap-2 bg-gray-100 px-2 py-1 rounded-md text-gray-600 items-center">
-                  <ProjectIcon class="w-4 h-4" />
-                  {{ cmdOption.baseName }}
+                  <component :is="iconMap.project" class="w-4 h-4 text-transparent" />
+                  <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
+                    <template #title>
+                      {{ cmdOption.baseName }}
+                    </template>
+                    <span class="max-w-32 truncate capitalize">
+                      {{ cmdOption.baseName }}
+                    </span>
+                  </a-tooltip>
                 </div>
               </div>
             </div>

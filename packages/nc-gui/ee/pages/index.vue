@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { onUnmounted } from '@vue/runtime-core'
+import { navigateTo } from '#imports'
 
 definePageMeta({
   hideHeader: true,
@@ -39,7 +40,7 @@ const tableStore = useTablesStore()
 
 const navigating = ref(false)
 
-const autoNavigateToProject = async (initial = false) => {
+const autoNavigateToProject = async ({ initial = false }: { initial: boolean }) => {
   const routeName = route.value.name as string
 
   if (routeName !== 'index-typeOrId' && routeName !== 'index') {
@@ -80,7 +81,6 @@ const autoNavigateToProject = async (initial = false) => {
 watch(
   () => workspaceStore.activeWorkspaceId,
   async (newId, oldId) => {
-    console.log('hit')
     if (newId === 'nc') {
       workspaceStore.setLoadingState(false)
       workspaceStore.isWorkspaceLoading = false
@@ -103,8 +103,12 @@ watch(
       await populateWorkspace()
 
       if (!route.value.params.baseId && basesStore.basesList.length) {
-        await autoNavigateToProject(oldId === undefined)
+        await autoNavigateToProject({ initial: oldId === undefined })
       }
+    }
+
+    if (lastPopulatedWorkspaceId.value === newId && !route.value.params.typeOrId) {
+      await autoNavigateToProject({ initial: false })
     }
   },
   {
@@ -131,7 +135,17 @@ onMounted(async () => {
   if (route.value.meta.public) return
 
   if (route.value.query?.continueAfterSignIn) {
+    localStorage.removeItem('continueAfterSignIn')
     return await navigateTo(route.value.query.continueAfterSignIn as string)
+  } else {
+    const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
+
+    if (continueAfterSignIn) {
+      return await navigateTo({
+        path: continueAfterSignIn,
+        query: route.query,
+      })
+    }
   }
 
   toggle(true)
@@ -144,8 +158,6 @@ onMounted(async () => {
 
   if (sharedBaseId.value) isDuplicateDlgOpen.value = true
 })
-
-const { bases } = storeToRefs(basesStore)
 
 const { $e, $poller } = useNuxtApp()
 

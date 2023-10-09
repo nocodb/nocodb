@@ -4,6 +4,7 @@ import { Configuration, OpenAIApi } from 'openai';
 import JSON5 from 'json5';
 import { identify } from 'sql-query-identifier';
 import { ConfigService } from '@nestjs/config';
+import { useAgent } from 'request-filtering-agent';
 import { UtilsService as UtilsServiceCE } from 'src/services/utils.service';
 import type { AppConfig } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
@@ -104,6 +105,12 @@ export class UtilsService extends UtilsServiceCE {
         : {},
       responseType: apiMeta.responseType || 'json',
       withCredentials: true,
+      httpAgent: useAgent(apiMeta.url, {
+        stopPortScanningByUrlRedirection: true,
+      }),
+      httpsAgent: useAgent(apiMeta.url, {
+        stopPortScanningByUrlRedirection: true,
+      }),
     };
     const data = await axios(_req);
     return data?.data;
@@ -144,6 +151,7 @@ export class UtilsService extends UtilsServiceCE {
       return null;
     });
   };
+
   async selectOptionsMagic(param: {
     table: string;
     schema: string;
@@ -479,10 +487,16 @@ export class UtilsService extends UtilsServiceCE {
   }
 
   async appInfo(param: { req: { ncSiteUrl: string } }) {
-    const result = await super.appInfo(param);
+    const result: any = await super.appInfo(param);
 
     // in cloud decide telemetry enabled or not based on PostHog API key presence
     result.teleEnabled = !!process.env.NC_CLOUD_POSTHOG_API_KEY;
+
+    const cognitoConfig = this.configService.get('cognito', {
+      infer: true,
+    });
+
+    result.cognito = cognitoConfig;
 
     return result;
   }

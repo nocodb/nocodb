@@ -2,8 +2,8 @@
 import type { ColumnType, GalleryType, KanbanType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
+
 import type { SelectProps } from 'ant-design-vue'
-import FieldsIcon from '~icons/nc-icons/fields'
 
 import {
   ActiveViewInj,
@@ -300,7 +300,7 @@ useMenuCloseOnEsc(open)
             icon="creditCard"
             class="h-4 w-4"
           />
-          <FieldsIcon v-else class="h-4 w-4" />
+          <component :is="iconMap.fields" v-else class="h-4 w-4" />
 
           <!-- Fields -->
           <span v-if="!isMobileMode" class="text-capitalize text-sm font-medium">
@@ -346,7 +346,7 @@ useMenuCloseOnEsc(open)
           <div class="pt-0.25 w-full bg-gray-50"></div>
         </div>
 
-        <div class="flex flex-col py-1 nc-scrollbar-md max-h-[47.5vh] pr-5">
+        <div class="flex flex-col my-1.5 nc-scrollbar-md max-h-[47.5vh] pr-5">
           <div class="nc-fields-list">
             <div
               v-if="!fields?.filter((el) => el.title.toLowerCase().includes(filterQuery.toLowerCase())).length"

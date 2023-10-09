@@ -3,9 +3,10 @@ import { GridColumnReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { GridColumnsService } from '~/services/grid-columns.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class GridColumnsController {
   constructor(private readonly gridColumnsService: GridColumnsService) {}
 

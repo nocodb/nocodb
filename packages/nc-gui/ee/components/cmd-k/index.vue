@@ -4,7 +4,6 @@ import { useMagicKeys, whenever } from '@vueuse/core'
 import { commandScore } from './command-score'
 import type { ComputedRef, VNode } from '#imports'
 import { iconMap, onClickOutside } from '#imports'
-import ProjectIcon from '~icons/nc-icons/project'
 
 interface CmdAction {
   id: string
@@ -62,15 +61,13 @@ const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(
 })
 
 const nestedScope = computed(() => {
-  if (activeScope.value === 'root') return [{ id: 'root', label: 'Home' }]
   const rt = []
   let parent = activeScope.value
   while (parent !== 'root') {
     const parentEl = formattedData.value.find((el) => el.id === parent)
-    rt.push({ id: parent, label: parentEl?.title || 'Home' })
+    rt.push({ id: parent, label: parentEl?.title, icon: parentEl?.icon })
     parent = parentEl?.parent || 'root'
   }
-  rt.push({ id: 'root', label: 'Home' })
   return rt.reverse()
 })
 
@@ -138,12 +135,15 @@ const searchedActionList = computed(() => {
     if (a.weight < b.weight) return 1
     return 0
   })
-  return actionList.value.filter((el) => el.weight > 0)
+  return actionList.value
+    .filter((el) => el.weight > 0)
+    .sort((a, b) => b.section?.toLowerCase().localeCompare(a.section?.toLowerCase() as string) || 0)
 })
 
 const actionListGroupedBySection = computed(() => {
   const rt: { [key: string]: CmdAction[] } = {}
   searchedActionList.value.forEach((el) => {
+    if (el.section === 'hidden') return
     if (el.section) {
       if (!rt[el.section]) rt[el.section] = []
       rt[el.section].push(el)
@@ -279,6 +279,7 @@ whenever(keys.arrowdown, () => {
 whenever(keys.Enter, () => {
   if (vOpen.value) {
     const selectedEl = formattedData.value.find((el) => el.id === selected.value)
+    cmdInput.value = ''
     if (selectedEl) {
       fireAction(selectedEl, keys.shift.value)
     }
@@ -313,10 +314,28 @@ defineExpose({
             v-for="el of nestedScope"
             :key="`cmdk-breadcrumb-${el.id}`"
             v-e="['a:cmdk:setScope']"
-            class="text-gray-600 text-sm cursor-pointer font-medium"
+            class="text-gray-600 text-sm cursor-pointer flex gap-1 items-center font-medium capitalize"
             @click="setScope(el.id)"
           >
-            {{ el.label }}
+            <component
+              :is="(iconMap as any)[el.icon]"
+              v-if="el.icon && typeof el.icon === 'string' && (iconMap as any)[el.icon]"
+              class="cmdk-action-icon"
+              :class="{
+                '!text-blue-500': el.icon === 'grid',
+                '!text-purple-500': el.icon === 'form',
+                '!text-[#FF9052]': el.icon === 'kanban',
+                '!text-pink-500': el.icon === 'gallery',
+              }"
+            />
+            <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
+              <template #title>
+                {{ el.label }}
+              </template>
+              <span class="max-w-28 truncate capitalize">
+                {{ el.label }}
+              </span>
+            </a-tooltip>
 
             <span class="text-gray-400 text-sm font-medium pl-1">/</span>
           </div>
@@ -341,15 +360,15 @@ defineExpose({
             <div
               v-for="[title, section] of Object.entries(actionListGroupedBySection)"
               :key="`cmdk-section-${title}`"
-              class="cmdk-action-section"
+              class="cmdk-action-section border-t-1 border-gray-200"
             >
-              <div v-if="title !== 'default'" class="cmdk-action-section-header">{{ title }}</div>
+              <div v-if="title !== 'default'" class="cmdk-action-section-header capitalize">{{ title }}</div>
               <div class="cmdk-action-section-body">
                 <div
                   v-for="act of section"
                   :key="act.id"
                   v-e="['a:cmdk:action']"
-                  class="cmdk-action"
+                  class="cmdk-action group"
                   :class="{ selected: selected === act.id }"
                   @mouseenter="setAction(act.id)"
                   @click="fireAction(act)"
@@ -366,17 +385,24 @@ defineExpose({
                         '!text-pink-500': act.icon === 'gallery',
                       }"
                     />
-                    <component :is="act.icon" v-else-if="act.icon" class="cmdk-action-icon" />
-                    <div class="flex-grow-1 w-full">
-                      {{ act.title }}
-                    </div>
+                    <component :is="act.icon" v-else-if="act.icon" class="cmdk-action-icon text-gray-800" />
+                    <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
+                      <template #title>
+                        {{ act.title }}
+                      </template>
+                      <span class="max-w-28 truncate capitalize">
+                        {{ act.title }}
+                      </span>
+                    </a-tooltip>
                     <div
-                      v-if="act.projectName"
-                      class="flex items-center gap-2 text-gray-600 font-medium bg-gray-100 px-1 rounded py-1"
+                      class="bg-gray-200 text-gray-600 cmdk-keyboard hidden text-xs gap-2 p-0.5 items-center justify-center rounded-md ml-auto pl-2"
                     >
-                      <ProjectIcon class="w-4 h-4" />
-
-                      {{ act.projectName }}
+                      Enter
+                      <div
+                        class="bg-white border-1 items-center flex justify-center border-gray-300 text-gray-700 rounded h-5 w-5 px-0.25"
+                      >
+                        ↩
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -460,14 +486,13 @@ defineExpose({
     margin: auto;
     box-shadow: rgb(0 0 0 / 50%) 0px 16px 70px;
     top: 20%;
-    border-radius: 0.5em;
+    border-radius: 16px;
     max-width: 640px;
     background: var(--cmdk-modal-background);
   }
 
   .cmdk-input-wrapper {
     @apply py-2 px-4 flex items-center gap-2;
-    border-bottom: 1px solid rgb(230, 230, 230);
   }
 
   .cmdk-input {
@@ -527,11 +552,19 @@ defineExpose({
       font-size: 0.9em;
       border-left: 4px solid transparent;
 
+      .cmdk-keyboard {
+        display: hidden;
+      }
+
       &.selected {
         cursor: pointer;
-        background-color: rgb(248, 249, 251);
+        background-color: #f4f4f5;
         border-left: 4px solid var(--ant-primary-color);
         outline: none;
+
+        .cmdk-keyboard {
+          display: flex;
+        }
       }
 
       .cmdk-action-content {
@@ -559,9 +592,9 @@ defineExpose({
       .cmdk-action-section-header {
         display: flex;
         align-items: center;
-        padding: 0.2em 1em;
-        font-size: 0.8em;
-        color: rgb(144, 149, 157);
+        padding: 8px 16px;
+        font-size: 14px;
+        color: #6a7184;
       }
     }
   }

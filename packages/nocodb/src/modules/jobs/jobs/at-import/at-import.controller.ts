@@ -11,9 +11,10 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { SyncSource } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class AtImportController {
   constructor(@Inject('JobsService') private readonly jobsService) {}
 

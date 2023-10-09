@@ -1,15 +1,34 @@
-import type { ViewType } from 'nocodb-sdk'
+import type { ViewType, ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { ViewPageType } from '~/lib'
 
 export const useViewsStore = defineStore('viewsStore', () => {
   const { $api } = useNuxtApp()
+  interface RecentView {
+    viewName: string
+    viewId: string | undefined
+    viewType: ViewTypes
+    tableID: string
+    isDefault: boolean
+    baseName: string
+    workspaceId: string
+    baseId: string
+  }
 
   const router = useRouter()
-  const recentViews = ref<any>([])
+  // Store recent views from all Workspaces
+  const allRecentViews = ref<RecentView[]>([])
   const route = router.currentRoute
 
+  const bases = useBases()
+
   const tablesStore = useTablesStore()
+
+  const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
+  const recentViews = computed<RecentView[]>(() =>
+    allRecentViews.value.filter((f) => f.workspaceId === activeWorkspaceId.value).splice(0, 10),
+  )
 
   const viewsByTable = ref<Map<string, ViewType[]>>(new Map())
   const views = computed({
@@ -120,10 +139,28 @@ export const useViewsStore = defineStore('viewsStore', () => {
     })
   }
 
-  const changeView = async (..._args: any) => {}
+  const changeView = async ({ viewId, tableId, baseId }: { viewId: string | null; tableId: string; baseId: string }) => {
+    const routeName = 'index-typeOrId-baseId-index-index-viewId-viewTitle'
+    await router.push({ name: routeName, params: { viewTitle: viewId || '', viewId: tableId, baseId } })
+  }
 
-  const removeFromRecentViews = (..._args: any) => {}
-
+  const removeFromRecentViews = ({
+    viewId,
+    tableId,
+    baseId,
+  }: {
+    viewId?: string | undefined
+    tableId: string
+    baseId?: string
+  }) => {
+    if (baseId && !viewId && !tableId) {
+      allRecentViews.value = allRecentViews.value.filter((f) => f.baseId !== baseId)
+    } else if (baseId && tableId && !viewId) {
+      allRecentViews.value = allRecentViews.value.filter((f) => f.baseId !== baseId || f.tableID !== tableId)
+    } else if (tableId && viewId) {
+      allRecentViews.value = allRecentViews.value.filter((f) => f.viewId !== viewId || f.tableID !== tableId)
+    }
+  }
   watch(
     () => tablesStore.activeTableId,
     async (newId, oldId) => {
@@ -230,6 +267,28 @@ export const useViewsStore = defineStore('viewsStore', () => {
     isPaginationLoading.value = true
   })
 
+  watch(activeView, (view) => {
+    if (!view) return
+    if (!view.base_id) return
+
+    const tableName = tablesStore.baseTables.get(view.base_id)?.find((t) => t.id === view.fk_model_id)?.title
+
+    const baseName = bases.basesList.find((p) => p.id === view.base_id)?.title
+    allRecentViews.value = [
+      {
+        viewId: view.id,
+        baseId: view.base_id as string,
+        tableID: view.fk_model_id,
+        isDefault: !!view.is_default,
+        viewName: view.is_default ? (tableName as string) : view.title,
+        viewType: view.type,
+        workspaceId: activeWorkspaceId.value,
+        baseName: baseName as string,
+      },
+      ...allRecentViews.value.filter((f) => f.viewId !== view.id || f.tableID !== view.fk_model_id),
+    ]
+  })
+
   return {
     isLockedView,
     isViewsLoading,
@@ -237,6 +296,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     isPaginationLoading,
     loadViews,
     recentViews,
+    allRecentViews,
     views,
     activeView,
     openedViewsTab,

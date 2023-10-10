@@ -131,6 +131,7 @@ export const useRoles = createSharedComposable(() => {
         roles: res.roles,
         base_roles: res.base_roles,
         workspace_roles: res.workspace_roles,
+        display_name: res.display_name,
       } as typeof User
     } else {
       const res = await api.auth.me({ ...wsId } as any)
@@ -140,6 +141,7 @@ export const useRoles = createSharedComposable(() => {
         roles: res.roles,
         base_roles: res.base_roles,
         workspace_roles: res.workspace_roles,
+        display_name: res.display_name,
       } as typeof User
     }
   }

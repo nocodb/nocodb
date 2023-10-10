@@ -65,7 +65,7 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
 
   const checkForCognitoToken = async ({ skipRedirect = false } = {}) => {
     try {
-      const continueAfterSignIn = sessionStorage.getItem('continueAfterSignIn')
+      const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
       const cognitoUserSession = await Auth.currentSession()
       const idToken = cognitoUserSession.getIdToken()
       const jwt = idToken.getJwtToken()
@@ -89,7 +89,10 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
           navigateTo(continueAfterSignIn)
         }
       }
-    } catch (err) {}
+    } catch (err) {
+    } finally {
+      localStorage.removeItem('continueAfterSignIn')
+    }
   }
 
   /** manually try to refresh token */

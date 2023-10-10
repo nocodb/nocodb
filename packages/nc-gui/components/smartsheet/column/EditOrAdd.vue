@@ -66,7 +66,7 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
-const { isMysql, isMssql } = useBase()
+const { isMysql, isMssql, isXcdbBase } = useBase()
 
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
@@ -86,9 +86,9 @@ const showDeprecated = ref(false)
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
-    ...uiTypes.filter(
-      (t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual) && (!t.deprecated || showDeprecated.value),
-    ),
+    ...uiTypes
+      .filter((t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual) && (!t.deprecated || showDeprecated.value))
+      .filter((t) => !(t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id))),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
           {
@@ -214,7 +214,7 @@ if (props.fromTableExplorer) {
       'bg-white': !props.fromTableExplorer,
       'w-[400px]': !props.embedMode,
       '!w-[600px]': formState.uidt === UITypes.Formula && !props.embedMode,
-      '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode,
+      '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode && !appInfo.ee,
       'shadow-lg border-1 border-gray-50 shadow-gray-100 rounded-md p-6': !embedMode,
     }"
     @keydown="handleEscape"
@@ -331,7 +331,7 @@ if (props.fromTableExplorer) {
       </div>
 
       <div
-        v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt) && !appInfo.ee"
+        v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
         class="text-xs cursor-pointer text-gray-400 nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
         @click="advancedOptions = !advancedOptions"
       >

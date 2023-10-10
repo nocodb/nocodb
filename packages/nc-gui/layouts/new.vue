@@ -99,7 +99,7 @@ export default {
                 </a-menu-item>
 
                 <a-menu-divider class="!m-0" />
-                  <a-menu-item v-if="isUIAllowed('superAdminAppStore')" key="0" class="!rounded-t">
+                  <!-- <a-menu-item v-if="isUIAllowed('superAdminAppStore')" key="0" class="!rounded-t">
                   <nuxt-link
                     v-e="['c:settings:appstore', { page: true }]"
                     class="nc-base-menu-item group !no-underline"
@@ -110,7 +110,7 @@ export default {
                     &lt;!&ndash; {{`${$t('general.todo')}: i18n`}} &ndash;&gt;
                     <span class="prose group-hover:text-primary">{{ $t('title.accountManagement') }}</span>
                   </nuxt-link>
-                </a-menu-item>
+                </a-menu-item> -->
 
                 <a-menu-divider class="!m-0" />
 

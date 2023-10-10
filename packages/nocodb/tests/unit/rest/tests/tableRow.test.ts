@@ -1440,7 +1440,7 @@ function tableTest() {
   //   console.log(formulaColumn);
 
   //   const response = await request(context.app)
-  //     .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
+  //     .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
   //     .set('xc-auth', context.token)
   //     .query({
   //       sortArrJson: JSON.stringify([
@@ -1939,7 +1939,7 @@ function tableTest() {
   //   const rows = await listRow({ base, table });
 
   //   await request(context.app)
-  //     .delete(`/api/v1/data/bulk/noco/${base.id}/${table.id}/all`)
+  //     .delete(`/api/v1/db/data/bulk/noco/${base.id}/${table.id}/all`)
   //     .set('xc-auth', context.token)
   //     .query({ filterArr: [
   //       {
@@ -1976,7 +1976,7 @@ function tableTest() {
   //     (column) => column.title === 'Rentals'
   //   )!;
   //   const response = await request(context.app)
-  //     .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`)
+  //     .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`)
   //     .query({
   //       fields: visibleColumns.map((c) => c.title),
   //     })
@@ -2002,12 +2002,12 @@ function tableTest() {
   //   const refId = 1;
 
   //   await request(context.app)
-  //     .post(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
+  //     .post(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
   //     .set('xc-auth', context.token)
   //     .expect(400)
 
   //     await request(context.app)
-  //     .post(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
+  //     .post(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
   //     .set('xc-auth', context.token)
   //     .expect(400)
   // })

@@ -21,7 +21,6 @@ export class DataAliasNestedController {
   // todo: handle case where the given column is not ltar
   @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/mm/:columnName',
-    '/api/v1/data/:orgs/:baseName/:tableName/:rowId/mm/:columnName',
   ])
   @Acl('mmList')
   async mmList(
@@ -42,7 +41,6 @@ export class DataAliasNestedController {
 
   @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/mm/:columnName/exclude',
-    '/api/v1/data/:orgs/:baseName/:tableName/:rowId/mm/:columnName/exclude',
   ])
   @Acl('mmExcludedList')
   async mmExcludedList(
@@ -63,7 +61,6 @@ export class DataAliasNestedController {
 
   @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/hm/:columnName/exclude',
-    '/api/v1/data/:orgs/:baseName/:tableName/:rowId/hm/:columnName/exclude',
   ])
   @Acl('hmExcludedList')
   async hmExcludedList(
@@ -84,7 +81,6 @@ export class DataAliasNestedController {
 
   @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/bt/:columnName/exclude',
-    '/api/v1/data/:orgs/:baseName/:tableName/:rowId/bt/:columnName/exclude',
   ])
   @Acl('btExcludedList')
   async btExcludedList(
@@ -107,7 +103,6 @@ export class DataAliasNestedController {
 
   @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/hm/:columnName',
-    '/api/v1/data/:orgs/:baseName/:tableName/:rowId/hm/:columnName',
   ])
   @Acl('hmList')
   async hmList(
@@ -128,7 +123,6 @@ export class DataAliasNestedController {
 
   @Delete([
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/:relationType/:columnName/:refRowId',
-    '/api/v1/data/:orgs/:baseName/:tableName/:rowId/:relationType/:columnName/:refRowId',
   ])
   @Acl('relationDataRemove')
   async relationDataRemove(
@@ -154,7 +148,6 @@ export class DataAliasNestedController {
   // todo: Give proper error message when reference row is already related and handle duplicate ref row id in hm
   @Post([
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/:relationType/:columnName/:refRowId',
-    '/api/v1/data/:orgs/:baseName/:tableName/:rowId/:relationType/:columnName/:refRowId',
   ])
   @Acl('relationDataAdd')
   @HttpCode(200)

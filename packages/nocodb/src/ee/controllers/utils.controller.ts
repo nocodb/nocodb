@@ -14,7 +14,7 @@ export class UtilsController extends UtilsControllerCE {
     super(utilsService);
   }
 
-  @Post(['/api/v1/db/meta/magic', '/api/v1/meta/magic'])
+  @Post(['/api/v1/db/meta/magic', '/api/v2/meta/magic'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Acl('genericGPT')
   async genericGPT(@Body() body: any) {
@@ -24,7 +24,7 @@ export class UtilsController extends UtilsControllerCE {
   }
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  @Post(['/api/v1/db/meta/connection/test', '/api/v1/meta/connection/test'])
+  @Post(['/api/v1/db/meta/connection/test', '/api/v2/meta/connection/test'])
   @Acl('testConnection', {
     scope: 'org',
   })

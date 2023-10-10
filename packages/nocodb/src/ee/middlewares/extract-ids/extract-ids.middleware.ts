@@ -143,9 +143,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     else if (
       [
         '/api/v1/db/meta/audits/rows/:rowId/update',
-        '/api/v1/meta/audits/rows/:rowId/update',
+        '/api/v2/meta/audits/rows/:rowId/update',
         '/api/v1/db/meta/audits/comments',
-        '/api/v1/meta/audits/comments',
+        '/api/v2/meta/audits/comments',
       ].some(
         (auditInsertOrUpdatePath) => req.route.path === auditInsertOrUpdatePath,
       ) &&
@@ -160,8 +160,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     // extract fk_model_id from query params only if it's audit get endpoint
     else if (
       [
-        '/api/v1/meta/audits/comments/count',
-        '/api/v1/meta/audits/comments',
+        '/api/v2/meta/audits/comments/count',
+        '/api/v2/meta/audits/comments',
         '/api/v1/db/meta/audits/comments/count',
         '/api/v1/db/meta/audits/comments',
       ].some((auditReadPath) => req.route.path === auditReadPath) &&
@@ -175,7 +175,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     } else if (
       [
         '/api/v1/db/meta/audits/:auditId/comment',
-        '/api/v1/meta/audits/:auditId/comment',
+        '/api/v2/meta/audits/:auditId/comment',
       ].some((auditPatchPath) => req.route.path === auditPatchPath) &&
       req.method === 'PATCH' &&
       req.params.auditId
@@ -219,7 +219,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     }
     // extract workspace id from body only if it's base create endpoint
     else if (
-      ['/api/v1/meta/bases', '/api/v1/db/meta/bases'].some(
+      ['/api/v2/meta/bases', '/api/v1/db/meta/bases'].some(
         (baseCreatePath) => req.route.path === baseCreatePath,
       ) &&
       req.method === 'POST' &&

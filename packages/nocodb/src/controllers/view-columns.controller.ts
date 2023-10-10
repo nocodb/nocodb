@@ -22,7 +22,7 @@ export class ViewColumnsController {
 
   @Get([
     '/api/v1/db/meta/views/:viewId/columns/',
-    '/api/v1/meta/views/:viewId/columns/',
+    '/api/v2/meta/views/:viewId/columns/',
   ])
   @Acl('columnList')
   async columnList(@Param('viewId') viewId: string) {
@@ -35,7 +35,7 @@ export class ViewColumnsController {
 
   @Post([
     '/api/v1/db/meta/views/:viewId/columns/',
-    '/api/v1/meta/views/:viewId/columns/',
+    '/api/v2/meta/views/:viewId/columns/',
   ])
   @HttpCode(200)
   @Acl('columnAdd')
@@ -52,7 +52,7 @@ export class ViewColumnsController {
 
   @Patch([
     '/api/v1/db/meta/views/:viewId/columns/:columnId',
-    '/api/v1/meta/views/:viewId/columns/:columnId',
+    '/api/v2/meta/views/:viewId/columns/:columnId',
   ])
   @Acl('columnUpdate')
   async columnUpdate(

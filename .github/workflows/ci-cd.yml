@@ -37,25 +37,14 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Check node,pnpm Installation and set Path
-        shell: bash
-        working-directory: scripts/self-hosted-gh-runner
-        timeout-minutes: 1
-        run: |
-          ./node-pnpm-check.sh
-          echo "make sure below mentioned versions are expected versions"
-          echo "If you are expecting the node and pnpm versions to be updated. Please update the node-pnpm-check.sh script"
-          env
       - name: Setup Node
-        if: ${{ env.SETUP_NODE != 'false' }}
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ env.NC_REQ_NODE_V }}
+          node-version: 18.17.1
       - name: Setup pnpm
-        if: ${{ env.SETUP_PNPM != 'false' }}
         uses: pnpm/action-setup@v2
         with:
-          version: ${{ env.NC_REQ_PNPM_V }}
+          version: 8.8.0
       - name: Get pnpm store directory
         shell: bash
         timeout-minutes: 1
@@ -72,6 +61,8 @@ jobs:
         run: export CI=true
       - name: Set NC Edition
         run: export EE=true
+      - name: remove last line from .npmrc (use-node-version)
+        run: sed -i '$ d' .npmrc
       - name: install dependencies
         run: pnpm bootstrap
       - name: build nocodb-sdk

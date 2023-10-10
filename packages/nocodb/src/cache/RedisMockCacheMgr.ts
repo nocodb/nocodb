@@ -118,6 +118,11 @@ export default class RedisMockCacheMgr extends CacheMgr {
   }
 
   // @ts-ignore
+  async incrby(key: string, value = 1): Promise<any> {
+    return this.client.incrby(key, value);
+  }
+
+  // @ts-ignore
   async getAll(pattern: string): Promise<any> {
     return this.client.hgetall(pattern);
   }

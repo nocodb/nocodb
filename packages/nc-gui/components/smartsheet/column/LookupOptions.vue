@@ -105,7 +105,7 @@ const cellIcon = (column: ColumnType) =>
         </a-select>
       </a-form-item>
 
-      <a-form-item class="flex w-1/2" :label="$t('labels.childColumn')" v-bind="validateInfos.fk_lookup_column_id">
+      <a-form-item class="flex w-1/2" :label="$t('labels.childField')" v-bind="validateInfos.fk_lookup_column_id">
         <a-select
           v-model:value="vModel.fk_lookup_column_id"
           name="fk_lookup_column_id"

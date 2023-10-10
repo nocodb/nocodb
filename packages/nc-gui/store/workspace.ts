@@ -207,6 +207,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isWorkspaceLoading.value = isLoading
   }
 
+  const getPlanLimit = (_arg: any) => {
+    return 9999
+  }
+
   return {
     loadWorkspaces,
     workspaces,
@@ -241,6 +245,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     lastPopulatedWorkspaceId,
     isWorkspaceSettingsPageOpened,
     workspaceUserCount,
+    getPlanLimit,
   }
 })
 

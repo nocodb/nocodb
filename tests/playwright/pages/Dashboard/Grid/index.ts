@@ -199,7 +199,7 @@ export class GridPage extends BasePage {
     });
 
     // Click text=Delete Row
-    await this.rootPage.locator('.ant-dropdown-menu-item:has-text("Delete row")').click();
+    await this.rootPage.locator('.ant-dropdown-menu-item:has-text("Delete record")').click();
 
     // todo: improve selector
     await this.rootPage
@@ -272,7 +272,7 @@ export class GridPage extends BasePage {
     await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
       button: 'right',
     });
-    await this.rootPage.locator('.nc-menu-item:has-text("Update Selected Rows")').click();
+    await this.rootPage.locator('.nc-menu-item:has-text("Update Selected Records")').click();
     await this.dashboard.waitForLoaderToDisappear();
   }
 

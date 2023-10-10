@@ -2804,6 +2804,10 @@ class BaseModelSqlv2 {
         }
       }
 
+      if ('beforeBulkInsert' in this) {
+        await this.beforeBulkInsert(insertDatas, trx, cookie);
+      }
+
       // await this.beforeInsertb(insertDatas, null);
 
       // fallbacks to `10` if database client is sqlite
@@ -3299,6 +3303,10 @@ class BaseModelSqlv2 {
 
   public async beforeInsert(data: any, _trx: any, req): Promise<void> {
     await this.handleHooks('before.insert', null, data, req);
+  }
+
+  public async beforeBulkInsert(data: any, _trx: any, req): Promise<void> {
+    await this.handleHooks('before.bulkInsert', null, data, req);
   }
 
   public async afterInsert(data: any, _trx: any, req): Promise<void> {
@@ -4291,7 +4299,7 @@ class BaseModelSqlv2 {
 
     // validate rowId
     if (!row) {
-      NcError.notFound(`Row with id '${rowId}' not found`);
+      NcError.notFound(`Record with id '${rowId}' not found`);
     }
 
     if (!childIds.length) return;
@@ -4516,7 +4524,7 @@ class BaseModelSqlv2 {
 
     // validate rowId
     if (!row) {
-      NcError.notFound(`Row with id '${rowId}' not found`);
+      NcError.notFound(`Record with id '${rowId}' not found`);
     }
 
     if (!childIds.length) return;
@@ -4678,7 +4686,7 @@ class BaseModelSqlv2 {
 
       // validate rowId
       if (!row) {
-        NcError.notFound(`Row with id ${id} not found`);
+        NcError.notFound(`Record with id ${id} not found`);
       }
 
       const parentCol = await (

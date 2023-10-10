@@ -25,6 +25,8 @@ const { isMobileMode } = useGlobal()
 
 const injectedColumn = inject(ColumnInj)
 
+const { isSharedBase } = storeToRefs(useBase())
+
 const filterQueryRef = ref()
 
 const { $e } = useNuxtApp()
@@ -162,6 +164,15 @@ watch(expandedFormDlg, () => {
 onKeyStroke('Escape', () => {
   vModel.value = false
 })
+
+const onClick = (refRow: any, id: string) => {
+  if (isSharedBase.value) return
+  if (isChildrenExcludedListLinked.value[Number.parseInt(id)]) {
+    unlinkRow(refRow, Number.parseInt(id))
+  } else {
+    linkRow(refRow, Number.parseInt(id))
+  }
+}
 </script>
 
 <template>
@@ -272,12 +283,7 @@ onKeyStroke('Escape', () => {
                 expandedFormDlg = true
               }
             "
-            @click="
-              () => {
-                if (isChildrenExcludedListLinked[Number.parseInt(id)]) unlinkRow(refRow, Number.parseInt(id))
-                else linkRow(refRow, Number.parseInt(id))
-              }
-            "
+            @click="() => onClick(refRow, id)"
           />
         </template>
       </div>

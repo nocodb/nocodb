@@ -69,17 +69,6 @@ onMounted(() => {
         </a-tab-pane>
       </template>
 
-      <template v-if="isUIAllowed('workspaceBilling')">
-        <a-tab-pane key="billing" class="w-full">
-          <template #tab>
-            <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
-              <MaterialSymbolsCreditCardOutline />
-              Billing
-            </div>
-          </template>
-          <WorkspaceBilling />
-        </a-tab-pane>
-      </template>
       <template v-if="isUIAllowed('workspaceManage')">
         <a-tab-pane key="settings" class="w-full">
           <template #tab>

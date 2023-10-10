@@ -38,6 +38,11 @@ export default class NocoCache {
     );
   }
 
+  public static async incrby(key, value): Promise<boolean> {
+    if (this.cacheDisabled) return Promise.resolve(true);
+    return this.client.incrby(`${this.prefix}:${key}`, value);
+  }
+
   public static async get(key, type): Promise<any> {
     if (this.cacheDisabled) {
       if (type === CacheGetType.TYPE_ARRAY) return Promise.resolve([]);

@@ -3,7 +3,17 @@ import { storeToRefs, useViewsStore } from '#imports'
 
 const { openedViewsTab, activeView } = storeToRefs(useViewsStore())
 
+const { isUIAllowed } = useRoles()
+
 const { onViewsTabChange } = useViewsStore()
+
+const onClickDetails = () => {
+  if (isUIAllowed('fieldAdd')) {
+    onViewsTabChange('field')
+  } else {
+    onViewsTabChange('relation')
+  }
+}
 </script>
 
 <template>
@@ -26,7 +36,7 @@ const { onViewsTabChange } = useViewsStore()
       :class="{
         active: openedViewsTab !== 'view',
       }"
-      @click="onViewsTabChange('field')"
+      @click="onClickDetails"
     >
       <GeneralIcon
         icon="erd"

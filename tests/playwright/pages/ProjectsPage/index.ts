@@ -41,7 +41,7 @@ export class ProjectsPage extends BasePage {
     await this.waitForResponse({
       uiAction: createProjectSubmitAction,
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: '/api/v1/db/meta/bases/',
+      requestUrlPathToMatch: '/api/v1/db/meta/projects/',
     });
 
     // wait for dashboard to render
@@ -103,7 +103,7 @@ export class ProjectsPage extends BasePage {
     const reloadUiAction = () => this.get().locator('[data-testid="bases-reload-button"]').click();
     await this.waitForResponse({
       uiAction: reloadUiAction,
-      requestUrlPathToMatch: '//api/v1/db/meta/bases',
+      requestUrlPathToMatch: '//api/v1/db/meta/projects',
       httpMethodsToMatch: ['GET'],
     });
   }
@@ -145,7 +145,7 @@ export class ProjectsPage extends BasePage {
       }
 
       const isRequiredResponse =
-        res.request().url().includes('//api/v1/db/meta/bases') &&
+        res.request().url().includes('/api/v1/db/meta/projects') &&
         ['GET'].includes(res.request().method()) &&
         json?.title === title;
 
@@ -180,7 +180,7 @@ export class ProjectsPage extends BasePage {
     await this.waitForResponse({
       uiAction: deleteProjectAction,
       httpMethodsToMatch: ['DELETE'],
-      requestUrlPathToMatch: '/api/v1/db/meta/bases/',
+      requestUrlPathToMatch: '/api/v1/db/meta/projects/',
     });
 
     await this.get().locator('.ant-table-row', { hasText: title }).waitFor({ state: 'hidden' });
@@ -212,7 +212,7 @@ export class ProjectsPage extends BasePage {
     const submitAction = () => base.locator('input.nc-metadb-base-name').press('Enter');
     await this.waitForResponse({
       uiAction: submitAction,
-      requestUrlPathToMatch: '/api/v1/db/meta/bases/',
+      requestUrlPathToMatch: '/api/v1/db/meta/projects/',
       httpMethodsToMatch: ['PATCH'],
     });
   }

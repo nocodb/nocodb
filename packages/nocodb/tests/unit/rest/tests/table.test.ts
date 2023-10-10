@@ -40,7 +40,7 @@ function tableStaticTests() {
 
   it('Get table list', async function () {
     const response = await request(context.app)
-      .get(`/api/v1/db/meta/bases/${base.id}/tables`)
+      .get(`/api/v1/db/meta/projects/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200);
@@ -50,7 +50,7 @@ function tableStaticTests() {
 
   it('Create table with no table name', async function () {
     const response = await request(context.app)
-      .post(`/api/v1/db/meta/bases/${base.id}/tables`)
+      .post(`/api/v1/db/meta/projects/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({
         table_name: undefined,
@@ -79,7 +79,7 @@ function tableStaticTests() {
 
   it('Create table with same table name', async function () {
     const response = await request(context.app)
-      .post(`/api/v1/db/meta/bases/${base.id}/tables`)
+      .post(`/api/v1/db/meta/projects/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({
         table_name: table.table_name,
@@ -101,7 +101,7 @@ function tableStaticTests() {
 
   it('Create table with same title', async function () {
     const response = await request(context.app)
-      .post(`/api/v1/db/meta/bases/${base.id}/tables`)
+      .post(`/api/v1/db/meta/projects/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({
         table_name: 'New_table_name',
@@ -123,7 +123,7 @@ function tableStaticTests() {
 
   it('Create table with title length more than the limit', async function () {
     const response = await request(context.app)
-      .post(`/api/v1/db/meta/bases/${base.id}/tables`)
+      .post(`/api/v1/db/meta/projects/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({
         table_name: 'a'.repeat(256),
@@ -145,7 +145,7 @@ function tableStaticTests() {
 
   it('Create table with title having leading white space', async function () {
     const response = await request(context.app)
-      .post(`/api/v1/db/meta/bases/${base.id}/tables`)
+      .post(`/api/v1/db/meta/projects/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({
         table_name: 'table_name_with_whitespace ',
@@ -186,7 +186,7 @@ function tableTest() {
 
   it('Create table', async function () {
     const response = await request(context.app)
-      .post(`/api/v1/db/meta/bases/${base.id}/tables`)
+      .post(`/api/v1/db/meta/projects/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({
         table_name: 'table2',
@@ -282,7 +282,7 @@ function tableTest() {
 
   it('Add and delete view should update hasNonDefaultViews', async () => {
     let response = await request(context.app)
-      .get(`/api/v1/db/meta/bases/${base.id}/tables`)
+      .get(`/api/v1/db/meta/projects/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200);
@@ -296,7 +296,7 @@ function tableTest() {
     });
 
     response = await request(context.app)
-      .get(`/api/v1/db/meta/bases/${base.id}/tables`)
+      .get(`/api/v1/db/meta/projects/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200);
@@ -306,7 +306,7 @@ function tableTest() {
     await deleteView(context, { viewId: view.id });
 
     response = await request(context.app)
-      .get(`/api/v1/db/meta/bases/${base.id}/tables`)
+      .get(`/api/v1/db/meta/projects/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200);
@@ -316,7 +316,7 @@ function tableTest() {
 
   it('Project with empty meta should update hasNonDefaultViews', async () => {
     let response = await request(context.app)
-      .get(`/api/v1/db/meta/bases/${base.id}/tables`)
+      .get(`/api/v1/db/meta/projects/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200);
@@ -337,7 +337,7 @@ function tableTest() {
     });
 
     response = await request(context.app)
-      .get(`/api/v1/db/meta/bases/${base.id}/tables`)
+      .get(`/api/v1/db/meta/projects/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200);
@@ -347,7 +347,7 @@ function tableTest() {
     await deleteView(context, { viewId: view.id });
 
     response = await request(context.app)
-      .get(`/api/v1/db/meta/bases/${base.id}/tables`)
+      .get(`/api/v1/db/meta/projects/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200);

@@ -219,7 +219,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     }
     // extract workspace id from body only if it's base create endpoint
     else if (
-      ['/api/v2/meta/bases', '/api/v1/db/meta/bases'].some(
+      ['/api/v2/meta/bases', '/api/v1/db/meta/projects'].some(
         (baseCreatePath) => req.route.path === baseCreatePath,
       ) &&
       req.method === 'POST' &&

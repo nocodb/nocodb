@@ -15,12 +15,10 @@ const { $e } = useNuxtApp()
 
 const { navigateToProject, isMobileMode } = useGlobal()
 
-const _isWorkspaceDropdownOpen = ref(false)
-const isWorkspaceDropdownOpen = computed({
-  get: () => (isLeftSidebarOpen.value ? _isWorkspaceDropdownOpen.value : false),
-  set: (val: boolean) => {
-    _isWorkspaceDropdownOpen.value = val
-  },
+const isWorkspaceDropdownOpen = ref(false)
+
+watch(isLeftSidebarOpen, () => {
+  isWorkspaceDropdownOpen.value = false
 })
 
 const createDlg = ref(false)

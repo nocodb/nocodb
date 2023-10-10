@@ -111,6 +111,14 @@ watch(isMobileMode, () => {
   isLeftSidebarOpen.value = !isMobileMode.value
 })
 
+watch(sidebarState, () => {
+  if (sidebarState.value === 'peekCloseEnd') {
+    setTimeout(() => {
+      sidebarState.value = 'hiddenEnd'
+    }, animationDuration)
+  }
+})
+
 onMounted(() => {
   handleSidebarOpenOnMobileForNonViews()
 })

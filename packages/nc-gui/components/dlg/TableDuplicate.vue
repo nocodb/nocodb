@@ -115,10 +115,12 @@ const isEaster = ref(false)
   <GeneralModal
     v-model:visible="dialogShow"
     :class="{ active: dialogShow }"
+    :closable="!isLoading"
+    :mask-closable="!isLoading"
+    :keyboard="!isLoading"
     centered
     wrap-class-name="nc-modal-table-duplicate"
     :footer="null"
-    :closable="false"
     class="!w-[30rem]"
     @keydown.esc="dialogShow = false"
   >
@@ -140,7 +142,7 @@ const isEaster = ref(false)
       </div>
     </div>
     <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-      <NcButton key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
+      <NcButton v-if="!isLoading" key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
       <NcButton key="submit" v-e="['a:table:duplicate']" type="primary" :loading="isLoading" @click="_duplicate"
         >{{ $t('general.confirm') }}
       </NcButton>

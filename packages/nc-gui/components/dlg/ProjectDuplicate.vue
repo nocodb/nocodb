@@ -128,7 +128,15 @@ const isEaster = ref(false)
 </script>
 
 <template>
-  <GeneralModal v-if="base" v-model:visible="dialogShow" class="!w-[30rem]" wrap-class-name="nc-modal-base-duplicate">
+  <GeneralModal
+    v-if="base"
+    v-model:visible="dialogShow"
+    :closable="!isLoading"
+    :mask-closable="!isLoading"
+    :keyboard="!isLoading"
+    class="!w-[30rem]"
+    wrap-class-name="nc-modal-base-duplicate"
+  >
     <div>
       <div class="prose-xl font-bold self-center" @dblclick="isEaster = !isEaster">
         {{ $t('general.duplicate') }} {{ $t('objects.project') }}
@@ -147,7 +155,7 @@ const isEaster = ref(false)
       </div>
     </div>
     <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-      <NcButton key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
+      <NcButton v-if="!isLoading" key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
       <NcButton key="submit" v-e="['a:base:duplicate']" :loading="isLoading" @click="_duplicate"
         >{{ $t('general.confirm') }}
       </NcButton>

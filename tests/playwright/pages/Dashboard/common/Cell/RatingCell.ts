@@ -19,7 +19,7 @@ export class RatingCellPageObject extends BasePage {
     await this.waitForResponse({
       uiAction: async () => await this.get({ index, columnHeader }).locator('.ant-rate-star > div').nth(rating).click(),
       httpMethodsToMatch: ['POST', 'PATCH'],
-      requestUrlPathToMatch: 'api/v1/data/noco/',
+      requestUrlPathToMatch: 'api/v1/db/data/noco/',
     });
   }
 

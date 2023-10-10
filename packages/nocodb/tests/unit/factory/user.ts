@@ -9,7 +9,7 @@ const defaultUserArgs = {
 const createUser = async (context, userArgs = {}) => {
   const args = { ...defaultUserArgs, ...userArgs };
   const response = await request(context.app)
-    .post('/api/v1/auth/user/signup')
+    .post('/api/v1/db/auth/user/signup')
     .send(args);
   const user = await User.getByEmail(args.email);
   return { token: response.body.token, user };

@@ -32,7 +32,7 @@ process.env[`NC_ALLOW_LOCAL_HOOKS`] = 'true';
     let admin_response;
     if (!(await User.getByEmail('user@nocodb.com'))) {
       admin_response = await axios.post(
-        `http://localhost:${process.env.PORT || 8080}/api/v1/auth/user/signup`,
+        `http://localhost:${process.env.PORT || 8080}/api/v1/db/auth/user/signup`,
         {
           email: 'user@nocodb.com',
           password: 'Password123.',
@@ -46,7 +46,7 @@ process.env[`NC_ALLOW_LOCAL_HOOKS`] = 'true';
         const response = await axios.post(
           `http://localhost:${
             process.env.PORT || 8080
-          }/api/v1/auth/user/signup`,
+          }/api/v1/db/auth/user/signup`,
           {
             email: `user-${i}@nocodb.com`,
             password: 'Password123.',
@@ -55,7 +55,7 @@ process.env[`NC_ALLOW_LOCAL_HOOKS`] = 'true';
         console.log(response.data);
 
         const user = await axios.get(
-          `http://localhost:${process.env.PORT || 8080}/api/v1/auth/user/me`,
+          `http://localhost:${process.env.PORT || 8080}/api/v1/db/auth/user/me`,
           {
             headers: {
               'xc-auth': response.data.token,

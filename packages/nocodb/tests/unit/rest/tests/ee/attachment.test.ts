@@ -32,7 +32,7 @@ function attachmentTestsEE() {
     };
 
     await request(context.app)
-      .post('/api/v1/auth/user/signup')
+      .post('/api/v1/db/auth/user/signup')
       .send(args)
       .expect(200);
 
@@ -71,7 +71,7 @@ function attachmentTestsEE() {
 
     // signin to get user token
     const signinResponse = await request(context.app)
-      .post('/api/v1/auth/user/signin')
+      .post('/api/v1/db/auth/user/signin')
       // pass empty data in await request
       .send(args)
       .expect(200);

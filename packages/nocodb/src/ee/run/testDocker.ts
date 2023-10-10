@@ -30,7 +30,7 @@ process.env[`NC_TEST_EE`] = 'true';
 
     if (!(await User.getByEmail('user@nocodb.com'))) {
       const response = await axios.post(
-        `http://localhost:${process.env.PORT || 8080}/api/v1/auth/user/signup`,
+        `http://localhost:${process.env.PORT || 8080}/api/v1/db/auth/user/signup`,
         {
           email: 'user@nocodb.com',
           password: 'Password123.',
@@ -44,7 +44,7 @@ process.env[`NC_TEST_EE`] = 'true';
         const response = await axios.post(
           `http://localhost:${
             process.env.PORT || 8080
-          }/api/v1/auth/user/signup`,
+          }/api/v1/db/auth/user/signup`,
           {
             email: `user-${i}@nocodb.com`,
             password: 'Password123.',

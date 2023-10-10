@@ -87,7 +87,7 @@ export class AuthController extends AuthControllerCE {
   }
 
   @UseGuards(PublicApiLimiterGuard, GlobalGuard)
-  @Post('/api/v1/auth/user/signout')
+  @Post('//api/v1/db/auth/user/signout')
   @HttpCode(200)
   async signOut(@Request() req, @Response() res): Promise<any> {
     if (!(req as any).isAuthenticated()) {

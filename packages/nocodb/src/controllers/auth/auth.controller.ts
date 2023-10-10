@@ -37,7 +37,7 @@ export class AuthController {
   @Post([
     '/auth/user/signup',
     '/api/v1/db/auth/user/signup',
-    '/api/v1/auth/user/signup',
+    '/api/v2/auth/user/signup',
   ])
   @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
@@ -57,7 +57,7 @@ export class AuthController {
   @Post([
     '/auth/token/refresh',
     '/api/v1/db/auth/token/refresh',
-    '/api/v1/auth/token/refresh',
+    '/api/v2/auth/token/refresh',
   ])
   @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
@@ -74,7 +74,7 @@ export class AuthController {
   @Post([
     '/auth/user/signin',
     '/api/v1/db/auth/user/signin',
-    '/api/v1/auth/user/signin',
+    '/api/v2/auth/user/signin',
   ])
   @UseGuards(PublicApiLimiterGuard, AuthGuard('local'))
   @HttpCode(200)
@@ -87,7 +87,7 @@ export class AuthController {
   }
 
   @UseGuards(GlobalGuard)
-  @Post('/api/v1/auth/user/signout')
+  @Post('/api/v2/auth/user/signout')
   @HttpCode(200)
   async signOut(@Request() req, @Response() res): Promise<any> {
     if (!(req as any).isAuthenticated()) {
@@ -115,7 +115,7 @@ export class AuthController {
     // google strategy will take care the request
   }
 
-  @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'])
+  @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v2/auth/user/me'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   async me(@Request() req) {
     const user = {
@@ -130,7 +130,7 @@ export class AuthController {
   @Post([
     '/user/password/change',
     '/api/v1/db/auth/password/change',
-    '/api/v1/auth/password/change',
+    '/api/v2/auth/password/change',
   ])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Acl('passwordChange', {
@@ -154,7 +154,7 @@ export class AuthController {
   @Post([
     '/auth/password/forgot',
     '/api/v1/db/auth/password/forgot',
-    '/api/v1/auth/password/forgot',
+    '/api/v2/auth/password/forgot',
   ])
   @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
@@ -171,7 +171,7 @@ export class AuthController {
   @Post([
     '/auth/token/validate/:tokenId',
     '/api/v1/db/auth/token/validate/:tokenId',
-    '/api/v1/auth/token/validate/:tokenId',
+    '/api/v2/auth/token/validate/:tokenId',
   ])
   @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
@@ -185,7 +185,7 @@ export class AuthController {
   @Post([
     '/auth/password/reset/:tokenId',
     '/api/v1/db/auth/password/reset/:tokenId',
-    '/api/v1/auth/password/reset/:tokenId',
+    '/api/v2/auth/password/reset/:tokenId',
   ])
   @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
@@ -205,7 +205,7 @@ export class AuthController {
 
   @Post([
     '/api/v1/db/auth/email/validate/:tokenId',
-    '/api/v1/auth/email/validate/:tokenId',
+    '/api/v2/auth/email/validate/:tokenId',
   ])
   @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)

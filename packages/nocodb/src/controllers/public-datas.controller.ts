@@ -19,7 +19,7 @@ export class PublicDatasController {
 
   @Get([
     '/api/v1/db/public/shared-view/:sharedViewUuid/rows',
-    '/api/v1/public/shared-view/:sharedViewUuid/rows',
+    '/api/v2/public/shared-view/:sharedViewUuid/rows',
   ])
   async dataList(
     @Request() req,
@@ -35,7 +35,7 @@ export class PublicDatasController {
 
   @Get([
     '/api/v1/db/public/shared-view/:sharedViewUuid/groupby',
-    '/api/v1/public/shared-view/:sharedViewUuid/groupby',
+    '/api/v2/public/shared-view/:sharedViewUuid/groupby',
   ])
   async dataGroupBy(
     @Request() req,
@@ -50,7 +50,7 @@ export class PublicDatasController {
 
   @Get([
     '/api/v1/db/public/shared-view/:sharedViewUuid/group/:columnId',
-    '/api/v1/public/shared-view/:sharedViewUuid/group/:columnId',
+    '/api/v2/public/shared-view/:sharedViewUuid/group/:columnId',
   ])
   async groupedDataList(
     @Request() req,
@@ -68,7 +68,7 @@ export class PublicDatasController {
 
   @Post([
     '/api/v1/db/public/shared-view/:sharedViewUuid/rows',
-    '/api/v1/public/shared-view/:sharedViewUuid/rows',
+    '/api/v2/public/shared-view/:sharedViewUuid/rows',
   ])
   @HttpCode(200)
   @UseInterceptors(AnyFilesInterceptor())
@@ -89,7 +89,7 @@ export class PublicDatasController {
 
   @Get([
     '/api/v1/db/public/shared-view/:sharedViewUuid/nested/:columnId',
-    '/api/v1/public/shared-view/:sharedViewUuid/nested/:columnId',
+    '/api/v2/public/shared-view/:sharedViewUuid/nested/:columnId',
   ])
   async relDataList(
     @Request() req,
@@ -108,7 +108,7 @@ export class PublicDatasController {
 
   @Get([
     '/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/mm/:columnId',
-    '/api/v1/public/shared-view/:sharedViewUuid/rows/:rowId/mm/:columnId',
+    '/api/v2/public/shared-view/:sharedViewUuid/rows/:rowId/mm/:columnId',
   ])
   async publicMmList(
     @Request() req,
@@ -128,7 +128,7 @@ export class PublicDatasController {
 
   @Get([
     '/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/hm/:columnId',
-    '/api/v1/public/shared-view/:sharedViewUuid/rows/:rowId/hm/:columnId',
+    '/api/v2/public/shared-view/:sharedViewUuid/rows/:rowId/hm/:columnId',
   ])
   async publicHmList(
     @Request() req,

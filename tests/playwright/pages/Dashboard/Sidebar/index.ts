@@ -121,7 +121,7 @@ export class SidebarPage extends BasePage {
       this.rootPage.locator('.ant-modal-content').locator('button.ant-btn.ant-btn-primary').click();
     await this.waitForResponse({
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: '//api/v1/db/meta/tables/',
+      requestUrlPathToMatch: '/api/v1/db/meta/tables/',
       uiAction: submitAction,
       responseJsonMatcher: json => json.title === title,
     });

@@ -32,7 +32,7 @@ export class SourceCreateProcessor {
 
     let needUpgrade = false;
 
-    if (workspace.plan !== WorkspacePlan.BUSINESS_PRO) {
+    if (workspace.plan !== WorkspacePlan.BUSINESS) {
       needUpgrade = true;
     }
 

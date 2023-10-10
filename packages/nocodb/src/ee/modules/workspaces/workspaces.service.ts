@@ -366,7 +366,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     if (!workspace) NcError.notFound('Workspace not found');
 
-    if (workspace.plan === WorkspacePlan.BUSINESS_PRO) {
+    if (workspace.plan === WorkspacePlan.BUSINESS) {
       NcError.notFound('Workspace is already upgraded');
     }
 
@@ -376,7 +376,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     });
 
     await Workspace.updateStatusAndPlan(param.workspaceId, {
-      plan: WorkspacePlan.BUSINESS_PRO,
+      plan: WorkspacePlan.BUSINESS,
       status: WorkspaceStatus.CREATING,
     });
 

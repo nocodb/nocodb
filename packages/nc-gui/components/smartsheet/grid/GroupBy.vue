@@ -297,6 +297,7 @@ const onScroll = (e: Event) => {
       v-model:pagination-data="vGroup.paginationData"
       align-count-on-right
       custom-label="groups"
+      show-api-timing
       :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
       :style="`${props.depth && props.depth > 0 ? 'border-radius: 0 0 12px 12px !important;' : ''}`"
     ></LazySmartsheetPagination>
@@ -305,6 +306,7 @@ const onScroll = (e: Event) => {
       v-model:pagination-data="vGroup.paginationData"
       align-count-on-right
       custom-label="groups"
+      show-api-timing
       :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
       :hide-sidebars="true"
       :style="`${props.depth && props.depth > 0 ? 'border-radius: 0 0 12px 12px !important;' : ''}margin-left: ${scrollBump}px;`"

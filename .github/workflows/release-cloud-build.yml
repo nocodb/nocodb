@@ -25,34 +25,23 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-2
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Check node,pnpm Installation and set Path
-        shell: bash
-        working-directory: scripts/self-hosted-gh-runner
-        timeout-minutes: 1
-        run: |
-          ./node-pnpm-check.sh "/opt/nocohub/github-runner/local"
-          echo "make sure below mentioned versions are expected versions"
-          echo "If you are expecting the node and pnpm versions to be updated. Please update the node-pnpm-check.sh script"
-          env              
       - name: Setup Node
-        if: ${{ env.SETUP_NODE != 'false' }}      
         uses: actions/setup-node@v3
         with:
-          node-version: 18.17.1
+          node-version: 18.14.0
       - name: Setup pnpm
-        if: ${{ env.SETUP_PNPM != 'false' }}
         uses: pnpm/action-setup@v2
         with:
-          version: 8.8.0
+          version: 8
       - name: Get pnpm store directory
         shell: bash
         timeout-minutes: 1
         run: |
           echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: actions/cache@v3
         name: Setup pnpm cache
         with:
@@ -60,6 +49,8 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
+      - name: remove last line from .npmrc (use-node-version)
+        run: sed -i '$ d' .npmrc
       - name: install dependencies
         run: pnpm bootstrap
       - name: Set outputs

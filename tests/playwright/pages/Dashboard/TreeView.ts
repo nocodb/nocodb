@@ -267,7 +267,13 @@ export class TreeViewPage extends BasePage {
     ).toHaveCount(1);
   }
 
-  async validateRoleAccess(param: { role: string; baseTitle?: string; tableTitle?: string; context: NcContext }) {
+  async validateRoleAccess(param: {
+    role: string;
+    baseTitle?: string;
+    tableTitle?: string;
+    mode?: string;
+    context: NcContext;
+  }) {
     const context = param.context;
     param.baseTitle = param.baseTitle ?? context.base.title;
 
@@ -275,14 +281,16 @@ export class TreeViewPage extends BasePage {
     const pjtNode = await this.getProject({ title: param.baseTitle });
     await pjtNode.hover();
 
-    // add new table button & context menu is visible only for owner & creator
-    await expect(pjtNode.locator('[data-testid="nc-sidebar-add-base-entity"]')).toHaveCount(count);
-    await expect(pjtNode.locator('[data-testid="nc-sidebar-context-menu"]')).toHaveCount(1);
+    if (mode !== 'shareBase') {
+      // add new table button & context menu is visible only for owner & creator
+      await expect(pjtNode.locator('[data-testid="nc-sidebar-add-base-entity"]')).toHaveCount(count);
+      await expect(pjtNode.locator('[data-testid="nc-sidebar-context-menu"]')).toHaveCount(1);
 
-    // table context menu
-    const tblNode = await this.getTable({ index: 0, tableTitle: param.tableTitle });
-    await tblNode.hover();
-    await expect(tblNode.locator('.nc-tbl-context-menu')).toHaveCount(count);
+      // table context menu
+      const tblNode = await this.getTable({ index: 0, tableTitle: param.tableTitle });
+      await tblNode.hover();
+      await expect(tblNode.locator('.nc-tbl-context-menu')).toHaveCount(count);
+    }
   }
 
   async openProject({ title, context }: { title: string; context: NcContext }) {

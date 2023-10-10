@@ -14,6 +14,7 @@ interface Props {
   fixedSize?: number
   extraStyle?: string
   showApiTiming?: boolean
+  alignLeft?: boolean
 }
 
 const props = defineProps<Props>()
@@ -33,6 +34,8 @@ const fixedSize = toRef(props, 'fixedSize')
 const extraStyle = toRef(props, 'extraStyle')
 
 const isGroupBy = inject(IsGroupByInj, ref(false))
+
+const alignLeft = computed(() => props.alignLeft ?? false)
 
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
@@ -63,7 +66,7 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
 
 <template>
   <div
-    class="flex items-center bg-white border-gray-200 nc-grid-pagination-wrapper"
+    class="relative flex items-center bg-white border-gray-200 nc-grid-pagination-wrapper"
     :class="{ 'border-t-1': !isGroupBy, 'h-13': isMobileMode, 'h-10': !isMobileMode }"
     :style="`${fixedSize ? `width: ${fixedSize}px;` : ''}${
       isGroupBy ? 'margin-top:1px; border-radius: 0 0 12px 12px !important;' : ''
@@ -85,6 +88,7 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
       class="transition-all duration-350"
       :class="{
         '-ml-17': isLeftSidebarOpen,
+        '!absolute top-1 !left-65': alignLeft,
       }"
     >
       <div v-if="isPaginationLoading" class="flex flex-row justify-center item-center min-h-10 min-w-42">

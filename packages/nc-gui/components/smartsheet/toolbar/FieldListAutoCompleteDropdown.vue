@@ -24,7 +24,7 @@ const localValue = computed({
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { showSystemFields, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
+const { showSystemFields, metaColumnById } = useViewColumnsOrThrow()
 
 const options = computed<SelectProps['options']>(() =>
   (

@@ -28,7 +28,6 @@ import {
   provide,
   ref,
   useEventListener,
-  useGridViewColumnOrThrow,
   useI18n,
   useMultiSelect,
   useNuxtApp,
@@ -36,6 +35,7 @@ import {
   useRoute,
   useSmartsheetStoreOrThrow,
   useUndoRedo,
+  useViewColumnsOrThrow,
   useViewsStore,
   watch,
 } from '#imports'
@@ -123,8 +123,6 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
-const { isViewColumnsLoading } = useViewColumnsOrThrow(view, meta)
-
 const { isMobileMode } = useGlobal()
 
 const scrollParent = inject(ScrollParentInj, ref<undefined>())
@@ -140,6 +138,8 @@ const { t } = useI18n()
 const { getMeta } = useMetas()
 
 const { addUndo, clone, defineViewScope } = useUndoRedo()
+
+const { isViewColumnsLoading, updateGridViewColumn, gridViewCols, resizingColOldWith } = useViewColumnsOrThrow()
 
 const {
   predictingNextColumn,
@@ -894,8 +894,6 @@ const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?
 }
 
 // #Grid Resize
-const { updateGridViewColumn, gridViewCols, resizingColOldWith } = useGridViewColumnOrThrow()
-
 const onresize = (colID: string | undefined, event: any) => {
   if (!colID) return
   updateGridViewColumn(colID, { width: event.detail })

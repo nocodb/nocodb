@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunknoco_docs=self.webpackChunknoco_docs||[]).push([[2237],{61774:e=>{e.exports=JSON.parse('{"label":"Dashboard","permalink":"/tags/dashboard","allTagsPath":"/tags","count":1,"items":[{"id":"bases/base-overview","title":"Base overview","description":"This article explains the concept of bases in NocoDB.","permalink":"/bases/base-overview"}]}')}}]);

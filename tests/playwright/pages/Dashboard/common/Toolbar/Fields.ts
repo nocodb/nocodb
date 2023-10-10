@@ -80,7 +80,7 @@ export class ToolbarFieldsPage extends BasePage {
   //   await this.toolbar.clickFields();
   //   await this.waitForResponse({
   //     uiAction: () => this.get().locator(`button.nc-switch`).first().click(),
-  //     requestUrlPathToMatch: isLocallySaved ? '/api/v1/public/' : '/api/v1/data/noco/',
+  //     requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
   //     httpMethodsToMatch: ['GET'],
   //   });
   //   await this.toolbar.clickFields();

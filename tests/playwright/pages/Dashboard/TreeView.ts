@@ -281,7 +281,7 @@ export class TreeViewPage extends BasePage {
     const pjtNode = await this.getProject({ title: param.baseTitle });
     await pjtNode.hover();
 
-    if (mode !== 'shareBase') {
+    if (param.mode !== 'shareBase') {
       // add new table button & context menu is visible only for owner & creator
       await expect(pjtNode.locator('[data-testid="nc-sidebar-add-base-entity"]')).toHaveCount(count);
       await expect(pjtNode.locator('[data-testid="nc-sidebar-context-menu"]')).toHaveCount(1);

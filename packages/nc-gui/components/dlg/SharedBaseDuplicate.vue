@@ -94,6 +94,8 @@ const _duplicate = async () => {
     $e('a:base:duplicate-shared-base')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+    isLoading.value = false
+    dialogShow.value = false
   }
 }
 </script>

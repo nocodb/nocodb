@@ -97,8 +97,8 @@ hooks.hook('page:finish', () => {
                   </nuxt-link>
                 </a-menu-item>
 
-                <a-menu-divider class="!m-0" />
-                <!--                <a-menu-item v-if="isUIAllowed('superAdminAppStore')" key="0" class="!rounded-t">
+                <!-- <a-menu-divider class="!m-0" />
+                <a-menu-item v-if="isUIAllowed('superAdminAppStore')" key="0" class="!rounded-t">
                   <nuxt-link
                     v-e="['c:settings:appstore', { page: true }]"
                     class="nc-base-menu-item group !no-underline"
@@ -106,8 +106,8 @@ hooks.hook('page:finish', () => {
                   >
                     <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
 
-                    &lt;!&ndash; &ndash;&gt;
-                    <span class="prose group-hover:text-primary">Account management</span>
+                    &lt;!&ndash; {{`${$t('general.todo')}: i18n`}} &ndash;&gt;
+                    <span class="prose group-hover:text-primary">{{ $t('title.accountManagement') }}</span>
                   </nuxt-link>
                 </a-menu-item>
 

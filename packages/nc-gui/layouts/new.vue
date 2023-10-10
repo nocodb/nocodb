@@ -58,7 +58,7 @@ export default {
 
         <div v-if="$route.name === 'index-index'" class="flex gap-1">
           <!-- <a-button class="!text-inherit" data-testid="nc-dash-nav-workspaces"> Projects</a-button -->
-          <!-- <a-button ghost !text-inherit" data-testid="nc-dash-nav-explore"> Template</a-button>
+          <!-- <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-explore"> Template</a-button>
           <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-help"> Help</a-button> -->
         </div>
         <div class="flex-1 min-w-0 flex justify-end gap-2">
@@ -99,7 +99,7 @@ export default {
                 </a-menu-item>
 
                 <a-menu-divider class="!m-0" />
-                <!--                <a-menu-item v-if="isUIAllowed('superAdminAppStore')" key="0" class="!rounded-t">
+                  <a-menu-item v-if="isUIAllowed('superAdminAppStore')" key="0" class="!rounded-t">
                   <nuxt-link
                     v-e="['c:settings:appstore', { page: true }]"
                     class="nc-base-menu-item group !no-underline"
@@ -107,12 +107,12 @@ export default {
                   >
                     <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
 
-                    &lt;!&ndash; &ndash;&gt;
-                    <span class="prose group-hover:text-primary">Account management</span>
+                    &lt;!&ndash; {{`${$t('general.todo')}: i18n`}} &ndash;&gt;
+                    <span class="prose group-hover:text-primary">{{ $t('title.accountManagement') }}</span>
                   </nuxt-link>
                 </a-menu-item>
 
-                <a-menu-divider class="!m-0" /> -->
+                <a-menu-divider class="!m-0" />
 
                 <a-menu-item key="1" class="!rounded-b group" data-testid="nc-menu-accounts__sign-out">
                   <div

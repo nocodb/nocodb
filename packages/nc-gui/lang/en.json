@@ -182,7 +182,8 @@
     "useSurveyMode": "Use Survey Mode",
     "shift": "Shift",
     "enter": "Enter",
-    "seconds": "Seconds"
+    "seconds": "Seconds",
+    "todo": "todo"
   },
   "objects": {
     "workspace": "Workspace",
@@ -224,7 +225,7 @@
       "commenter": "Commenter",
       "viewer": "Viewer",
       "noaccess":"No Access",
-      "super": "Super",
+      "superAdmin": "Super Admin",
       "orgLevelCreator": "Organization Level Creator",
       "orgLevelViewer": "Organization Level Viewer"
     },
@@ -388,6 +389,7 @@
     "resetPasswordMenu": "Reset Password",
     "tokens": "Tokens",
     "userManagement": "User Management",
+    "accountManagement": "Account management",
     "licence": "Licence",
     "allowAllMimeTypes": "Allow All Mime Types",
     "defaultView": "Default View",
@@ -787,7 +789,7 @@
     "deleteRecord": "Delete Record",
     "fullWidth": "Full width",
     "exitFullWidth": "Full width",
-    "maskAllAsRead": "Mark all as read",
+    "markAllAsRead": "Mark all as read",
     "column":{
       "delete": "Delete Column",
       "addNumber": "Add Number Column",
@@ -1153,7 +1155,7 @@
       "noMoreRecords": "No more records",
       "tokenNameNotEmpty": "Token name should not be empty",
       "tokenNameMaxLength": "Token name should not be more than 255 characters",
-      "dbNamerequired": "Database name is required",
+      "dbNameRequired": "Database name is required",
       "wsNameRequired":"Workspace name required",
       "wsNameMinLength":"Workspace name must be at least 3 characters long",
       "wsNameMaxLength":"Workspace name must be at most 50 characters long",
@@ -1181,7 +1183,7 @@
       "dbConnectionFailed": "Connection Failure:",
       "nullFilterExists": "Null filter exists. Please remove them",
       "signUpRules": {
-        "emailReqd": "Email is required",
+        "emailRequired": "Email is required",
         "emailInvalid": "Email must be valid",
         "passwdRequired": "Password is required",
         "passwdLength": "You password must be atleast 8 characters",

@@ -118,11 +118,11 @@ watch(showShareModal, (val) => {
           >
             <div v-if="isInvitationLinkCopied" class="flex flex-row items-center gap-x-1">
               <MdiTick class="h-3.5" />
-              {{ $t('activity.copyInviteLink') }}
+              {{ $t('activity.copiedInviteLink') }}
             </div>
             <div v-else class="flex flex-row items-center gap-x-1">
               <MdiContentCopy class="h-3.3" />
-              {{ $t('activity.copiedInviteLink') }}
+              {{ $t('activity.copyInviteLink') }}
             </div>
           </a-button>
         </div>

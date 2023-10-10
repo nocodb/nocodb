@@ -15338,7 +15338,7 @@
         ]
       }
     },
-    "/api/v2/tables/{tableId}/rows": {
+    "/api/v2/tables/{tableId}/records": {
       "parameters": [
         {
           "schema": {

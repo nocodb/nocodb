@@ -551,6 +551,7 @@ const toggleModal = (val: boolean) => {
     :closable="!creatingSource"
     :keyboard="!creatingSource"
     :mask-closable="false"
+    :destroy-on-close="step === 2"
     size="medium"
     @update:visible="toggleModal"
   >

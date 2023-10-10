@@ -314,11 +314,11 @@ export class AtImportProcessor {
     const nc_getSanitizedColumnName = (table, name) => {
       let col_name = nc_sanitizeName(name);
 
-      // truncate to 60 chars if character if exceeds above 60
-      col_name = col_name?.slice(0, 60);
+      // truncate to 60 chars if character if exceeds above 50
+      col_name = col_name?.slice(0, 50);
 
       // for knex, replace . with _
-      const col_alias = name.trim().replace(/\./g, '_');
+      let col_alias = name.trim().replace(/\./g, '_');
 
       // check if already a column exists with same name?
       const duplicateTitle = table.columns.find(
@@ -328,13 +328,31 @@ export class AtImportProcessor {
         (x) => x.column_name?.toLowerCase() === col_name?.toLowerCase(),
       );
       if (duplicateTitle) {
-        if (enableErrorLogs) console.log(`## Duplicate title ${col_alias}`);
+        let iterator = 1;
+        while (
+          table.columns.find(
+            (x) =>
+              x.title?.toLowerCase() ===
+              `${col_alias}_${++iterator}`?.toLowerCase(),
+          )
+        ) {}
+        col_alias = `${col_alias}_${iterator}`;
+      }
+      if (duplicateColumn) {
+        let iterator = 1;
+        while (
+          table.columns.find(
+            (x) =>
+              x.column_name?.toLowerCase() ===
+              `${col_name}_${++iterator}`?.toLowerCase(),
+          )
+        ) {}
+        col_name = `${col_name}_${iterator}`;
       }
 
       return {
-        // kludge: error observed in Nc with space around column-name
-        title: col_alias + (duplicateTitle ? '_2' : ''),
-        column_name: col_name + (duplicateColumn ? '_2' : ''),
+        title: col_alias,
+        column_name: col_name,
       };
     };
 

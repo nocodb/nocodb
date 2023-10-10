@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
 import type { BaseType } from 'nocodb-sdk'
-import { useVModel } from '#imports'
+import { isEeUI, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -14,6 +14,15 @@ const emit = defineEmits(['update:modelValue'])
 const { refreshCommandPalette } = useCommandPalette()
 
 const { api } = useApi()
+
+const { $e, $poller } = useNuxtApp()
+
+const basesStore = useBases()
+
+const { loadProjects, createProject: _createProject } = basesStore
+const { bases } = storeToRefs(basesStore)
+
+const { navigateToProject } = useGlobal()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
@@ -57,12 +66,53 @@ const _duplicate = async () => {
         }),
       },
     })
-    props.onOk(jobData as any)
+
+    await loadProjects('workspace')
+
+    $poller.subscribe(
+      { id: jobData.id },
+      async (data: {
+        id: string
+        status?: string
+        data?: {
+          error?: {
+            message: string
+          }
+          message?: string
+          result?: any
+        }
+      }) => {
+        if (data.status !== 'close') {
+          if (data.status === JobStatus.COMPLETED) {
+            await loadProjects('workspace')
+            const base = bases.value.get(jobData.base_id)
+
+            // open project after duplication
+            if (base) {
+              await navigateToProject({
+                workspaceId: isEeUI ? base.fk_workspace_id : undefined,
+                baseId: base.id,
+                type: base.type,
+              })
+            }
+            refreshCommandPalette()
+            isLoading.value = false
+            dialogShow.value = false
+          } else if (data.status === JobStatus.FAILED) {
+            message.error('Failed to duplicate project')
+            await loadProjects('workspace')
+            refreshCommandPalette()
+            isLoading.value = false
+            dialogShow.value = false
+          }
+        }
+      },
+    )
+
+    $e('a:base:duplicate')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
     isLoading.value = false
-    refreshCommandPalette()
     dialogShow.value = false
   }
 }

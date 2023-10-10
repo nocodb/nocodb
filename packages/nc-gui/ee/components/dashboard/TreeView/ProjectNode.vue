@@ -401,48 +401,6 @@ const duplicateProject = (base: BaseType) => {
   selectedProjectToDuplicate.value = base
   isDuplicateDlgOpen.value = true
 }
-const { $poller } = useNuxtApp()
-
-const DlgProjectDuplicateOnOk = async (jobData: { id: string; base_id: string }) => {
-  await loadProjects('workspace')
-
-  $poller.subscribe(
-    { id: jobData.id },
-    async (data: {
-      id: string
-      status?: string
-      data?: {
-        error?: {
-          message: string
-        }
-        message?: string
-        result?: any
-      }
-    }) => {
-      if (data.status !== 'close') {
-        if (data.status === JobStatus.COMPLETED) {
-          await loadProjects('workspace')
-          const base = bases.value.get(jobData.base_id)
-
-          // open project after duplication
-          if (base) {
-            await navigateToProject({
-              workspaceId: base.fk_workspace_id,
-              baseId: base.id,
-              type: base.type,
-            })
-          }
-          refreshCommandPalette()
-        } else if (data.status === JobStatus.FAILED) {
-          message.error('Failed to duplicate project')
-          await loadProjects('workspace')
-        }
-      }
-    },
-  )
-
-  $e('a:base:duplicate')
-}
 </script>
 
 <template>
@@ -838,12 +796,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; base_id: string })
   />
   <DlgProjectDelete v-model:visible="isProjectDeleteDialogVisible" :base-id="base?.id" />
 
-  <DlgProjectDuplicate
-    v-if="selectedProjectToDuplicate"
-    v-model="isDuplicateDlgOpen"
-    :base="selectedProjectToDuplicate"
-    :on-ok="DlgProjectDuplicateOnOk"
-  />
+  <DlgProjectDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
 </template>
 
 <style lang="scss" scoped>

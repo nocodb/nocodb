@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
-import { message } from 'ant-design-vue'
 
 import ProjectWrapper from './ProjectWrapper.vue'
-
-import type { TabType } from '#imports'
 
 import {
   TreeViewInj,
@@ -22,16 +19,13 @@ import {
   useNuxtApp,
   useRoles,
   useTablesStore,
-  useTabs,
 } from '#imports'
 
 import { useRouter } from '#app'
 
 const { isUIAllowed } = useRoles()
 
-const { addTab } = useTabs()
-
-const { $e, $poller } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const router = useRouter()
 
@@ -45,21 +39,13 @@ const { bases, basesList, activeProjectId } = storeToRefs(basesStore)
 
 const { isWorkspaceLoading } = storeToRefs(useWorkspace())
 
-const { openTable } = useTablesStore()
-
 const baseCreateDlg = ref(false)
 
 const baseStore = useBase()
 
-const { loadTables } = baseStore
-
-const { tables, isSharedBase } = storeToRefs(baseStore)
-
-const { t } = useI18n()
+const { isSharedBase } = storeToRefs(baseStore)
 
 const { activeTable: _activeTable } = storeToRefs(useTablesStore())
-
-const { refreshCommandPalette } = useCommandPalette()
 
 const contextMenuTarget = reactive<{ type?: 'base' | 'source' | 'table' | 'main' | 'layout'; value?: any }>({})
 
@@ -120,38 +106,6 @@ const duplicateTable = async (table: TableType) => {
   const { close } = useDialog(resolveComponent('DlgTableDuplicate'), {
     'modelValue': isOpen,
     'table': table,
-    'onOk': async (jobData: { id: string }) => {
-      $poller.subscribe(
-        { id: jobData.id },
-        async (data: {
-          id: string
-          status?: string
-          data?: {
-            error?: {
-              message: string
-            }
-            message?: string
-            result?: any
-          }
-        }) => {
-          if (data.status !== 'close') {
-            if (data.status === JobStatus.COMPLETED) {
-              await loadTables()
-              refreshCommandPalette()
-              const newTable = tables.value.find((el) => el.id === data?.data?.result?.id)
-              if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
-
-              openTable(newTable!)
-            } else if (data.status === JobStatus.FAILED) {
-              message.error(t('msg.error.failedToDuplicateTable'))
-              await loadTables()
-            }
-          }
-        },
-      )
-
-      $e('a:table:duplicate')
-    },
     'onUpdate:modelValue': closeDialog,
   })
 

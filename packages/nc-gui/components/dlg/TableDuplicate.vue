@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
+import { message } from 'ant-design-vue'
 import { useVModel } from '#imports'
+import type { TabType } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -13,6 +15,26 @@ const emit = defineEmits(['update:modelValue'])
 const { api } = useApi()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
+
+const { addTab } = useTabs()
+
+const { $e, $poller } = useNuxtApp()
+
+const basesStore = useBases()
+
+const { createProject: _createProject } = basesStore
+
+const { openTable } = useTablesStore()
+
+const baseStore = useBase()
+
+const { loadTables } = baseStore
+
+const { tables } = storeToRefs(baseStore)
+
+const { t } = useI18n()
+
+const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -37,13 +59,45 @@ const _duplicate = async () => {
   try {
     isLoading.value = true
     const jobData = await api.dbTable.duplicate(props.table.base_id!, props.table.id!, { options: optionsToExclude.value })
-    props.onOk(jobData as any)
+
+    $poller.subscribe(
+      { id: jobData.id },
+      async (data: {
+        id: string
+        status?: string
+        data?: {
+          error?: {
+            message: string
+          }
+          message?: string
+          result?: any
+        }
+      }) => {
+        if (data.status !== 'close') {
+          if (data.status === JobStatus.COMPLETED) {
+            await loadTables()
+            refreshCommandPalette()
+            const newTable = tables.value.find((el) => el.id === data?.data?.result?.id)
+            if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
+
+            openTable(newTable!)
+            isLoading.value = false
+            dialogShow.value = false
+          } else if (data.status === JobStatus.FAILED) {
+            message.error(t('msg.error.failedToDuplicateTable'))
+            await loadTables()
+            isLoading.value = false
+            dialogShow.value = false
+          }
+        }
+      },
+    )
+
+    $e('a:table:duplicate')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
     isLoading.value = false
     dialogShow.value = false
-    refreshCommandPalette()
   }
 }
 

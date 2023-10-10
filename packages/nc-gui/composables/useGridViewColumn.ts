@@ -38,9 +38,11 @@ const [useProvideGridViewColumn, useGridViewColumn] = useInjectionState(
     watch(
       [() => columns.value?.length, () => view.value?.id],
       async (n) => {
-        if (n[1]) await loadGridViewColumns()
+        if (n[0] && n[1]) await loadGridViewColumns()
       },
-      { immediate: true },
+      {
+        immediate: true,
+      },
     )
 
     const updateGridViewColumn = async (id: string, props: Partial<GridColumnReqType>, undo = false) => {

@@ -11,18 +11,15 @@ const { updateProjectTitle } = workspaceStore
 const { activePage } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
-const { loadProjects } = basesStore
 const { basesList, isProjectsLoading } = storeToRefs(basesStore)
 
 const { navigateToProject } = useGlobal()
 
 // const filteredProjects = computed(() => bases.value?.filter((p) => !p.deleted) || [])
 
-const { $e, $poller } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
-
-const { refreshCommandPalette } = useCommandPalette()
 
 const showProjectDeleteModal = ref(false)
 const toBeDeletedProjectId = ref<string | undefined>()
@@ -141,37 +138,6 @@ const workspaceMoveProjectOnSuccess = async (workspaceId: string) => {
 
 const isDuplicateDlgOpen = ref(false)
 const selectedProjectToDuplicate = ref()
-
-const DlgProjectDuplicateOnOk = async (jobData: { id: string }) => {
-  await loadProjects('workspace')
-
-  $poller.subscribe(
-    { id: jobData.id },
-    async (data: {
-      id: string
-      status?: string
-      data?: {
-        error?: {
-          message: string
-        }
-        message?: string
-        result?: any
-      }
-    }) => {
-      if (data.status !== 'close') {
-        if (data.status === JobStatus.COMPLETED) {
-          await loadProjects('workspace')
-          refreshCommandPalette()
-        } else if (data.status === JobStatus.FAILED) {
-          message.error('Failed to duplicate base')
-          await loadProjects('workspace')
-        }
-      }
-    },
-  )
-
-  $e('a:base:duplicate')
-}
 
 const duplicateProject = (base: BaseType) => {
   selectedProjectToDuplicate.value = base
@@ -404,12 +370,7 @@ const setIcon = async (icon: string, base: BaseType) => {
       :base="selectedProjectToMove"
       @success="workspaceMoveProjectOnSuccess"
     />
-    <DlgProjectDuplicate
-      v-if="selectedProjectToDuplicate"
-      v-model="isDuplicateDlgOpen"
-      :base="selectedProjectToDuplicate"
-      :on-ok="DlgProjectDuplicateOnOk"
-    />
+    <DlgProjectDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
   </div>
 </template>
 

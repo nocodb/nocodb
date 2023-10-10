@@ -6,7 +6,6 @@ import { isEeUI, useVModel } from '#imports'
 const props = defineProps<{
   modelValue: boolean
   base: BaseType
-  onOk: (jobData: { name: string; id: string }) => Promise<void>
 }>()
 
 const emit = defineEmits(['update:modelValue'])

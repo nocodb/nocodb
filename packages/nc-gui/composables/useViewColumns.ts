@@ -1,7 +1,7 @@
 import { ViewTypes, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { IsPublicInj, computed, inject, ref, storeToRefs, useBase, useNuxtApp, useRoles, useUndoRedo, watch } from '#imports'
+import { computed, ref, storeToRefs, useBase, useNuxtApp, useRoles, useUndoRedo, watch } from '#imports'
 import type { Field } from '#imports'
 
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
@@ -9,9 +9,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     view: Ref<ViewType | undefined>,
     meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
     reloadData?: () => void,
+    isPublic = false,
   ) => {
-    const isPublic = inject(IsPublicInj, ref(false))
-
     const fields = ref<Field[]>()
 
     const filterQuery = ref('')
@@ -27,7 +26,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     const { addUndo, defineViewScope } = useUndoRedo()
 
     const isLocalMode = computed(
-      () => isPublic.value || !isUIAllowed('viewFieldEdit') || !isUIAllowed('viewFieldEdit') || isSharedBase.value,
+      () => isPublic || !isUIAllowed('viewFieldEdit') || !isUIAllowed('viewFieldEdit') || isSharedBase.value,
     )
 
     const localChanges = ref<Field[]>([])
@@ -57,7 +56,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       let order = 1
 
       if (view.value?.id) {
-        const data = (isPublic.value ? meta.value?.columns : (await $api.dbViewColumn.list(view.value.id)).list) as any[]
+        const data = (isPublic ? meta.value?.columns : (await $api.dbViewColumn.list(view.value.id)).list) as any[]
 
         const fieldById = data.reduce<Record<string, any>>((acc, curr) => {
           curr.show = !!curr.show

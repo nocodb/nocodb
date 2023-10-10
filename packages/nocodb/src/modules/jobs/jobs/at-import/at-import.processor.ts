@@ -310,11 +310,11 @@ export class AtImportProcessor {
     const nc_getSanitizedColumnName = (table, name) => {
       let col_name = sanitizeColumnName(name);
 
-      // truncate to 60 chars if character if exceeds above 60
-      col_name = col_name?.slice(0, 60);
+      // truncate to 50 chars if character if exceeds above 50
+      col_name = col_name?.slice(0, 50);
 
       // for knex, replace . with _
-      const col_alias = name.trim().replace(/\./g, '_');
+      let col_alias = name.trim().replace(/\./g, '_');
 
       // check if already a column exists with same name?
       const duplicateTitle = table.columns.find(
@@ -323,14 +323,38 @@ export class AtImportProcessor {
       const duplicateColumn = table.columns.find(
         (x) => x.column_name?.toLowerCase() === col_name?.toLowerCase(),
       );
+
       if (duplicateTitle) {
-        if (enableErrorLogs) console.log(`## Duplicate title ${col_alias}`);
+        let tempAlias = col_alias;
+        let suffix = 1;
+        while (
+          table.columns.find(
+            (x) => x.title?.toLowerCase() === tempAlias?.toLowerCase(),
+          )
+        ) {
+          tempAlias = col_alias;
+          tempAlias += `_${suffix++}`;
+        }
+        col_alias = tempAlias;
+      }
+
+      if (duplicateColumn) {
+        let tempName = col_name;
+        let suffix = 1;
+        while (
+          table.columns.find(
+            (x) => x.column_name?.toLowerCase() === tempName?.toLowerCase(),
+          )
+        ) {
+          tempName = col_name;
+          tempName += `_${suffix++}`;
+        }
+        col_name = tempName;
       }
 
       return {
-        // kludge: error observed in Nc with space around column-name
-        title: col_alias + (duplicateTitle ? '_2' : ''),
-        column_name: col_name + (duplicateColumn ? '_2' : ''),
+        title: col_alias,
+        column_name: col_name,
       };
     };
 

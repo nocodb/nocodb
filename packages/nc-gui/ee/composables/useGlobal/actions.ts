@@ -63,9 +63,30 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
     }
   }
 
+  let tokenGenerationProgress: Promise<any> | null = null
+  let resolveTokenGenerationProgress: (value: any) => void = null
+
   const checkForCognitoToken = async ({ skipRedirect = false } = {}) => {
+    if (tokenGenerationProgress) {
+      await tokenGenerationProgress
+    }
+    tokenGenerationProgress = new Promise((resolve) => {
+      resolveTokenGenerationProgress = resolve
+    })
+
+    const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
+
+    if (state.token.value) {
+      resolveTokenGenerationProgress(true)
+      tokenGenerationProgress = null
+      if (!skipRedirect && continueAfterSignIn) {
+        localStorage.removeItem('continueAfterSignIn')
+        navigateTo(continueAfterSignIn)
+      }
+      return
+    }
+
     try {
-      const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
       const cognitoUserSession = await Auth.currentSession()
       const idToken = cognitoUserSession.getIdToken()
       const jwt = idToken.getJwtToken()
@@ -83,7 +104,7 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
       )
       if ((await tokenRes).data.token) {
         updateFirstTimeUser()
-        signIn((await tokenRes).data.token)
+        await signIn((await tokenRes).data.token)
         if (!skipRedirect && continueAfterSignIn) {
           localStorage.removeItem('continueAfterSignIn')
           navigateTo(continueAfterSignIn)
@@ -91,6 +112,8 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
       }
     } catch (err) {
     } finally {
+      tokenGenerationProgress = null
+      resolveTokenGenerationProgress(true)
       localStorage.removeItem('continueAfterSignIn')
     }
   }

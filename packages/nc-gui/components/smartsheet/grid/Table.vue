@@ -1682,8 +1682,9 @@ const loaderText = computed(() => {
       v-if="headerOnly !== true"
       :key="isMobileMode"
       v-model:pagination-data="paginationDataRef"
-      show-api-timing
+      :show-api-timing="!isGroupBy"
       align-count-on-right
+      :align-left="isGroupBy"
       :change-page="changePage"
       :hide-sidebars="paginationStyleRef?.hideSidebars === true"
       :fixed-size="paginationStyleRef?.fixedSize"

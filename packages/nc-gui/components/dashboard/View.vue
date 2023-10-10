@@ -111,6 +111,14 @@ watch(isMobileMode, () => {
   isLeftSidebarOpen.value = !isMobileMode.value
 })
 
+watch(sidebarState, () => {
+  if (sidebarState.value === 'peekCloseEnd') {
+    setTimeout(() => {
+      sidebarState.value = 'hiddenEnd'
+    }, animationDuration)
+  }
+})
+
 onMounted(() => {
   handleSidebarOpenOnMobileForNonViews()
 })
@@ -132,7 +140,7 @@ onMounted(() => {
     >
       <div
         ref="wrapperRef"
-        class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !min-w-32 absolute overflow-visible"
+        class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !min-w-12 absolute overflow-visible"
         :class="{
           'mobile': isMobileMode,
           'minimized-height': !isLeftSidebarOpen,
@@ -171,6 +179,7 @@ onMounted(() => {
 
   > * {
     @apply opacity-0;
+    z-index: -1 !important;
     transform: translateX(-100%);
   }
 }

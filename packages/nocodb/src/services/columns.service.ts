@@ -124,6 +124,7 @@ export class ColumnsService {
     }
 
     if (param.column.column_name.length > mxColumnLength) {
+      // - 5 is a buffer for suffix
       let colName = param.column.column_name.slice(0, mxColumnLength - 5);
       let suffix = 1;
       while (
@@ -1065,7 +1066,11 @@ export class ColumnsService {
         param.column.column_name = sanitizeColumnName(param.column.column_name);
       }
 
-      if (param.column.column_name.length > mxColumnLength) {
+      if (
+        param.column.column_name &&
+        param.column.column_name.length > mxColumnLength
+      ) {
+        // - 5 is a buffer for suffix
         let colName = param.column.column_name.slice(0, mxColumnLength - 5);
         let suffix = 1;
         while (
@@ -1080,7 +1085,10 @@ export class ColumnsService {
         param.column.column_name = colName;
       }
 
-      if (param.column.column_name.length > mxColumnLength) {
+      if (
+        param.column.column_name &&
+        param.column.column_name.length > mxColumnLength
+      ) {
         NcError.badRequest(
           `Column name ${param.column.column_name} exceeds ${mxColumnLength} characters`,
         );

@@ -10435,7 +10435,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name List
  * @summary List Table Rows
- * @request GET:/api/v1/tables/{tableId}/rows
+ * @request GET:/api/v2/tables/{tableId}/rows
  * @response `200` `{
   \** List of data objects *\
   list: (object)[],
@@ -10489,7 +10489,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tables/${tableId}/rows`,
+        path: `/api/v2/tables/${tableId}/rows`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -10502,7 +10502,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name Create
  * @summary Create Table Rows
- * @request POST:/api/v1/tables/{tableId}/rows
+ * @request POST:/api/v2/tables/{tableId}/rows
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10526,7 +10526,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tables/${tableId}/rows`,
+        path: `/api/v2/tables/${tableId}/rows`,
         method: 'POST',
         query: query,
         body: data,
@@ -10541,7 +10541,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name Update
  * @summary Update Table Rows
- * @request PUT:/api/v1/tables/{tableId}/rows
+ * @request PUT:/api/v2/tables/{tableId}/rows
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10565,7 +10565,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tables/${tableId}/rows`,
+        path: `/api/v2/tables/${tableId}/rows`,
         method: 'PUT',
         query: query,
         body: data,
@@ -10580,7 +10580,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name Delete
  * @summary Delete Table Rows
- * @request DELETE:/api/v1/tables/{tableId}/rows
+ * @request DELETE:/api/v2/tables/{tableId}/rows
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10604,7 +10604,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tables/${tableId}/rows`,
+        path: `/api/v2/tables/${tableId}/rows`,
         method: 'DELETE',
         query: query,
         body: data,
@@ -10619,7 +10619,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name Read
  * @summary Read Table Row
- * @request GET:/api/v1/tables/{tableId}/rows/{rowId}
+ * @request GET:/api/v2/tables/{tableId}/records/{rowId}
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10650,7 +10650,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tables/${tableId}/rows/${rowId}`,
+        path: `/api/v2/tables/${tableId}/records/${rowId}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -10663,7 +10663,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name Count
  * @summary Table Rows Count
- * @request GET:/api/v1/tables/{tableId}/rows/count
+ * @request GET:/api/v2/tables/{tableId}/records/count
  * @response `200` `{
   count?: number,
 
@@ -10697,7 +10697,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tables/${tableId}/rows/count`,
+        path: `/api/v2/tables/${tableId}/records/count`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -10710,7 +10710,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name NestedList
  * @summary Get Nested Relations Rows
- * @request GET:/api/v1/tables/{tableId}/links/{columnId}/rows/{rowId}
+ * @request GET:/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}
  * @response `200` `{
   \** List of data objects *\
   list: (object)[],
@@ -10766,7 +10766,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tables/${tableId}/links/${columnId}/rows/${rowId}`,
+        path: `/api/v2/tables/${tableId}/links/${columnId}/records/${rowId}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -10779,7 +10779,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name NestedLink
  * @summary Create Nested Relations Rows
- * @request POST:/api/v1/tables/{tableId}/links/{columnId}/rows/{rowId}
+ * @request POST:/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10805,7 +10805,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tables/${tableId}/links/${columnId}/rows/${rowId}`,
+        path: `/api/v2/tables/${tableId}/links/${columnId}/records/${rowId}`,
         method: 'POST',
         query: query,
         body: data,
@@ -10820,7 +10820,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name NestedUnlink
  * @summary Delete Nested Relations Rows
- * @request DELETE:/api/v1/tables/{tableId}/links/{columnId}/rows/{rowId}
+ * @request DELETE:/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10846,7 +10846,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tables/${tableId}/links/${columnId}/rows/${rowId}`,
+        path: `/api/v2/tables/${tableId}/links/${columnId}/records/${rowId}`,
         method: 'DELETE',
         query: query,
         body: data,

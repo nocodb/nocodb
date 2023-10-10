@@ -21,7 +21,20 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
-    this.logger.error(exception.message, exception.stack);
+    // skip unnecessary error logging
+    if (
+      process.env.NC_ENABLE_ALL_API_ERROR_LOGGING === 'true' ||
+      !(
+        exception instanceof BadRequest ||
+        exception instanceof AjvError ||
+        exception instanceof Unauthorized ||
+        exception instanceof Forbidden ||
+        exception instanceof NotFound ||
+        exception instanceof NotImplemented ||
+        exception instanceof UnprocessableEntity
+      )
+    )
+      this.logger.error(exception.message, exception.stack);
 
     const dbError = extractDBError(exception);
 

@@ -32,7 +32,7 @@ import { MetasModule } from '~/modules/metas/metas.module';
 import { DatasModule } from '~/modules/datas/datas.module';
 import { GlobalModule } from '~/modules/global/global.module';
 
-@Module({
+export const JobsModuleMetadata = {
   imports: [
     forwardRef(() => GlobalModule),
     DatasModule,
@@ -81,5 +81,7 @@ import { GlobalModule } from '~/modules/global/global.module';
     SourceDeleteProcessor,
   ],
   exports: ['JobsService'],
-})
+};
+
+@Module(JobsModuleMetadata)
 export class JobsModule {}

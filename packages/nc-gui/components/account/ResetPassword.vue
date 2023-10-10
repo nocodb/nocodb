@@ -72,14 +72,19 @@ const resetError = () => {
     >
       <Transition name="layout">
         <div v-if="error" class="mx-auto mb-4 bg-red-500 text-white rounded-lg w-3/4 p-1">
-          <div data-testid="nc-user-settings-form__error" class="flex items-center gap-2 justify-center">
+          <div data-testid="nc-user-settings-form__error" class="flex items-center gap-2 justify-center" data-rec="true">
             <MaterialSymbolsWarning />
             {{ error }}
           </div>
         </div>
       </Transition>
 
-      <a-form-item :label="$t('placeholder.password.current')" name="currentPassword" :rules="formRules.currentPassword">
+      <a-form-item
+        :label="$t('placeholder.password.current')"
+        data-rec="true"
+        name="currentPassword"
+        :rules="formRules.currentPassword"
+      >
         <a-input-password
           v-model:value="form.currentPassword"
           data-testid="nc-user-settings-form__current-password"
@@ -90,7 +95,7 @@ const resetError = () => {
         />
       </a-form-item>
 
-      <a-form-item :label="$t('placeholder.password.new')" name="password" :rules="formRules.password">
+      <a-form-item :label="$t('placeholder.password.new')" data-rec="true" name="password" :rules="formRules.password">
         <a-input-password
           v-model:value="form.password"
           data-testid="nc-user-settings-form__new-password"
@@ -101,7 +106,12 @@ const resetError = () => {
         />
       </a-form-item>
 
-      <a-form-item :label="$t('placeholder.password.confirm')" name="passwordRepeat" :rules="formRules.passwordRepeat">
+      <a-form-item
+        :label="$t('placeholder.password.confirm')"
+        data-rec="true"
+        name="passwordRepeat"
+        :rules="formRules.passwordRepeat"
+      >
         <a-input-password
           v-model:value="form.passwordRepeat"
           data-testid="nc-user-settings-form__new-password-repeat"
@@ -120,7 +130,7 @@ const resetError = () => {
           type="primary"
           html-type="submit"
         >
-          <div class="flex justify-center items-center gap-2">
+          <div class="flex justify-center items-center gap-2" data-rec="true">
             <component :is="iconMap.passwordChange" />
             {{ $t('activity.changePwd') }}
           </div>

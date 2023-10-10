@@ -1,6 +1,7 @@
 import { UITypes, ViewTypes } from 'nocodb-sdk';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import papaparse from 'papaparse';
+import debug from 'debug';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import { elapsedTime, initTime } from '../../helpers';
 import type { Readable } from 'stream';
@@ -36,7 +37,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class ImportService {
-  private readonly logger = new Logger(ImportService.name);
+  private readonly debugLog = debug('nc:jobs:import');
 
   constructor(
     private tablesService: TablesService,
@@ -1227,7 +1228,7 @@ export class ImportService {
 
               const model = await Model.get(modelId);
 
-              this.logger.debug(`Importing ${model.title}...`);
+              this.debugLog(`Importing ${model.title}...`);
 
               await this.importDataFromCsvStream({
                 idMap,
@@ -1309,7 +1310,7 @@ export class ImportService {
                       headers.push(childCol.column_name);
                     } else {
                       headers.push(null);
-                      this.logger.error(
+                      this.debugLog(
                         `child column not found (${col.colOptions.fk_child_column_id})`,
                       );
                     }
@@ -1318,11 +1319,11 @@ export class ImportService {
                   }
                 } else {
                   headers.push(null);
-                  this.logger.error(`column not found (${id})`);
+                  this.debugLog(`column not found (${id})`);
                 }
               } else {
                 headers.push(null);
-                this.logger.error(`id not found (${header})`);
+                this.debugLog(`id not found (${header})`);
               }
             }
             parser.resume();
@@ -1350,7 +1351,7 @@ export class ImportService {
                     raw: true,
                   });
                 } catch (e) {
-                  this.logger.error(e);
+                  this.debugLog(e);
                 }
                 chunk = [];
                 parser.resume();
@@ -1371,7 +1372,7 @@ export class ImportService {
                 raw: true,
               });
             } catch (e) {
-              this.logger.error(e);
+              this.debugLog(e);
             }
             chunk = [];
           }
@@ -1408,7 +1409,7 @@ export class ImportService {
           });
           lChunks[k] = [];
         } catch (e) {
-          this.logger.error(e);
+          this.debugLog(e);
         }
       }
     };
@@ -1491,7 +1492,7 @@ export class ImportService {
                       [mm.child]: child,
                     });
                   } else {
-                    this.logger.error(`column not found (${columnId})`);
+                    this.debugLog(`column not found (${columnId})`);
                   }
 
                   parser.resume();

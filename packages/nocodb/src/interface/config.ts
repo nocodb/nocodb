@@ -294,8 +294,18 @@ export interface XcRoute {
 
 export interface AppConfig {
   throttler: {
-    ttl: number;
-    max_apis: number;
+    data?: {
+      ttl: number;
+      max_apis: number;
+    };
+    meta?: {
+      ttl: number;
+      max_apis: number;
+    };
+    public?: {
+      ttl: number;
+      max_apis: number;
+    };
     calc_execution_time: boolean;
   };
   basicAuth: {

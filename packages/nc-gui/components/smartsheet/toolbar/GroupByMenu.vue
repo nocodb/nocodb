@@ -275,7 +275,7 @@ onMounted(async () => {
                 type="text"
                 @click.stop="removeFieldFromGroupBy(i)"
               >
-                <GeneralIcon icon="delete" class="" />
+                <component :is="iconMap.deleteListItem" />
               </NcButton>
             </a-tooltip>
           </template>

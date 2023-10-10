@@ -2,9 +2,10 @@ import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class MetaDiffsController {
   constructor(private readonly metaDiffsService: MetaDiffsService) {}
 

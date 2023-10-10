@@ -8,6 +8,7 @@ import {
   DropZoneRef,
   IsExpandedFormOpenInj,
   IsGalleryInj,
+  IsKanbanInj,
   RowHeightInj,
   iconMap,
   inject,
@@ -45,6 +46,8 @@ const currentCellRef = inject(CurrentCellInj, dropZoneInjection.value)
 const isLockedMode = inject(IsLockedInj, ref(false))
 
 const isGallery = inject(IsGalleryInj, ref(false))
+
+const isKanban = inject(IsKanbanInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
@@ -185,6 +188,7 @@ const onExpand = () => {
         v-model="isOverDropZone"
         inline
         :target="currentCellRef"
+        data-rec="true"
         class="nc-attachment-cell-dropzone text-white text-lg ring ring-accent ring-opacity-100 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
       >
         <MaterialSymbolsFileCopyOutline class="text-accent" />
@@ -202,7 +206,9 @@ const onExpand = () => {
       <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
       <NcTooltip placement="bottom">
-        <template #title>{{ $t('activity.attachmentDrop') }} </template>
+        <template #title
+          ><span data-rec="true">{{ $t('activity.attachmentDrop') }} </span></template
+        >
 
         <div v-if="active || !visibleItems.length || (isForm && visibleItems.length)" class="flex items-center gap-1">
           <MaterialSymbolsAttachFile
@@ -210,6 +216,7 @@ const onExpand = () => {
           />
           <div
             v-if="!visibleItems.length"
+            data-rec="true"
             class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-xs"
           >
             {{ $t('activity.addFiles') }}
@@ -223,7 +230,7 @@ const onExpand = () => {
     <template v-if="visibleItems.length">
       <div
         ref="sortableRef"
-        :class="{ 'justify-center': !isExpandedForm && !isGallery }"
+        :class="{ 'justify-center': !isExpandedForm && !isGallery && !isKanban }"
         class="flex cursor-pointer w-full items-center flex-wrap gap-2 py-1.5 scrollbar-thin-dull overflow-hidden mt-0 items-start"
         :style="{
           maxHeight: isForm || isExpandedForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
@@ -240,7 +247,7 @@ const onExpand = () => {
                 :class="{ 'ml-2': active }"
                 @click="
                   () => {
-                    if (isGallery || isMobileMode) return
+                    if (isGallery || isMobileMode || (isKanban && !isExpandedForm)) return
                     selectedImage = item
                   }
                 "

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import {
   ActiveViewInj,
+  AllFiltersInj,
   IsLockedInj,
   computed,
+  iconMap,
   inject,
   ref,
   useGlobal,
@@ -10,7 +12,6 @@ import {
   useSmartsheetStoreOrThrow,
   useViewFilters,
   watch,
-  iconMap,
 } from '#imports'
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -47,6 +48,10 @@ watch(
 )
 
 const open = ref(false)
+
+const allFilters = ref({})
+
+provide(AllFiltersInj, allFilters)
 
 useMenuCloseOnEsc(open)
 </script>

@@ -13,9 +13,10 @@ import {
 import { NotificationsService } from '~/services/notifications.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { extractProps } from '~/helpers/extractProps';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 

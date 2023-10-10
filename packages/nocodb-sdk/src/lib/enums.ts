@@ -157,7 +157,9 @@ export enum WorkspaceStatus {
 
 export enum WorkspacePlan {
   FREE = 'free',
-  PAID = 'paid',
+  STANDARD = 'standard',
+  BUSINESS = 'business',
+  BUSINESS_PRO = 'business-pro',
 }
 
 export const RoleLabels = {
@@ -254,3 +256,29 @@ export const OrderedProjectRoles = [
   ProjectRoles.VIEWER,
   ProjectRoles.NO_ACCESS,
 ];
+
+export enum PlanLimitTypes {
+  // PER USER
+  FREE_WORKSPACE_LIMIT = 'FREE_WORKSPACE_LIMIT',
+
+  // PER WORKSPACE
+  WORKSPACE_USER_LIMIT = 'WORKSPACE_USER_LIMIT',
+  WORKSPACE_ROW_LIMIT = 'WORKSPACE_ROW_LIMIT',
+  BASE_LIMIT = 'BASE_LIMIT',
+
+  // PER BASE
+  SOURCE_LIMIT = 'SOURCE_LIMIT',
+
+  // PER BASE
+  TABLE_LIMIT = 'TABLE_LIMIT',
+
+  // PER TABLE
+  COLUMN_LIMIT = 'COLUMN_LIMIT',
+  TABLE_ROW_LIMIT = 'TABLE_ROW_LIMIT',
+  WEBHOOK_LIMIT = 'WEBHOOK_LIMIT',
+  VIEW_LIMIT = 'VIEW_LIMIT',
+
+  // PER VIEW
+  FILTER_LIMIT = 'FILTER_LIMIT',
+  SORT_LIMIT = 'SORT_LIMIT',
+}

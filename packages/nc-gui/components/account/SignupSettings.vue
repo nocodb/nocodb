@@ -42,7 +42,9 @@ loadSettings()
           @change="saveSettings"
         />
       </a-form-item>
-      {{ $t('labels.inviteOnlySignup') }}
+      <span data-rec="true">
+        {{ $t('labels.inviteOnlySignup') }}
+      </span>
     </div>
   </div>
 </template>

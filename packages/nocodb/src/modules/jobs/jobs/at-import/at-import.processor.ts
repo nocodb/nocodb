@@ -17,6 +17,7 @@ import { importData, importLTARData } from './helpers/readAndProcessData';
 import EntityMap from './helpers/EntityMap';
 import type { UserType } from 'nocodb-sdk';
 import type { Base } from '~/models';
+import { sanitizeColumnName } from '~/helpers';
 import { AttachmentsService } from '~/services/attachments.service';
 import { ColumnsService } from '~/services/columns.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
@@ -86,7 +87,7 @@ const selectColors = {
 
 @Processor(JOBS_QUEUE)
 export class AtImportProcessor {
-  private readonly dubugLog = debug('nc:at-import:processor');
+  private readonly debugLog = debug('nc:jobs:at-import');
 
   constructor(
     private readonly tablesService: TablesService,
@@ -108,6 +109,8 @@ export class AtImportProcessor {
 
   @Process(JobTypes.AtImport)
   async job(job: Job) {
+    this.debugLog(`job started for ${job.id}`);
+
     const syncDB = job.data;
 
     const sMapEM = new EntityMap('aTblId', 'ncId', 'ncName', 'ncParent');
@@ -140,12 +143,12 @@ export class AtImportProcessor {
 
     const logBasic = (log) => {
       this.jobsLogService.sendLog(job, { message: log });
-      this.dubugLog(log);
+      this.debugLog(log);
     };
 
     const logDetailed = (log) => {
       if (debugMode) this.jobsLogService.sendLog(job, { message: log });
-      this.dubugLog(log);
+      this.debugLog(log);
     };
 
     const perfStats = [];
@@ -304,19 +307,14 @@ export class AtImportProcessor {
     // aTbl helper routines
     //
 
-    const nc_sanitizeName = (name) => {
-      // replace all special characters by _
-      return name.replace(/\W+/g, '_').trim();
-    };
-
     const nc_getSanitizedColumnName = (table, name) => {
-      let col_name = nc_sanitizeName(name);
+      let col_name = sanitizeColumnName(name);
 
-      // truncate to 60 chars if character if exceeds above 60
-      col_name = col_name?.slice(0, 60);
+      // truncate to 50 chars if character if exceeds above 50
+      col_name = col_name?.slice(0, 50);
 
       // for knex, replace . with _
-      const col_alias = name.trim().replace(/\./g, '_');
+      let col_alias = name.trim().replace(/\./g, '_');
 
       // check if already a column exists with same name?
       const duplicateTitle = table.columns.find(
@@ -325,14 +323,38 @@ export class AtImportProcessor {
       const duplicateColumn = table.columns.find(
         (x) => x.column_name?.toLowerCase() === col_name?.toLowerCase(),
       );
+
       if (duplicateTitle) {
-        if (enableErrorLogs) console.log(`## Duplicate title ${col_alias}`);
+        let tempAlias = col_alias;
+        let suffix = 1;
+        while (
+          table.columns.find(
+            (x) => x.title?.toLowerCase() === tempAlias?.toLowerCase(),
+          )
+        ) {
+          tempAlias = col_alias;
+          tempAlias += `_${suffix++}`;
+        }
+        col_alias = tempAlias;
+      }
+
+      if (duplicateColumn) {
+        let tempName = col_name;
+        let suffix = 1;
+        while (
+          table.columns.find(
+            (x) => x.column_name?.toLowerCase() === tempName?.toLowerCase(),
+          )
+        ) {
+          tempName = col_name;
+          tempName += `_${suffix++}`;
+        }
+        col_name = tempName;
       }
 
       return {
-        // kludge: error observed in Nc with space around column-name
-        title: col_alias + (duplicateTitle ? '_2' : ''),
-        column_name: col_name + (duplicateColumn ? '_2' : ''),
+        title: col_alias,
+        column_name: col_name,
       };
     };
 
@@ -522,7 +544,7 @@ export class AtImportProcessor {
 
         // Enable to use aTbl identifiers as is: table.id = tblSchema[i].id;
         table.title = tblSchema[i].name;
-        let sanitizedName = nc_sanitizeName(tblSchema[i].name);
+        let sanitizedName = sanitizeColumnName(tblSchema[i].name);
 
         // truncate to 50 chars if character if exceeds above 50
         // upto 64 should be fine but we are keeping it to 50 since
@@ -2435,6 +2457,8 @@ export class AtImportProcessor {
       }
       throw e;
     }
+
+    this.debugLog(`job completed for ${job.id}`);
   }
 }
 

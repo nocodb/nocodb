@@ -37,7 +37,7 @@ export class PagedResponseImpl<T> {
     if (offset && offset >= +count) {
       this.errors = [
         {
-          message: 'Offset is beyond the total number of rows',
+          message: 'Offset is beyond the total number of records',
         },
       ];
     }

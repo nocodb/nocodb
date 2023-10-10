@@ -11,13 +11,13 @@ export class JobsService implements OnModuleInit {
   // pause primary instance queue
   async onModuleInit() {
     if (process.env.NC_WORKER_CONTAINER !== 'true') {
-      await this.jobsQueue.pause(true);
+      // await this.jobsQueue.pause(true);
     }
   }
 
   async add(name: string, data: any) {
     // resume primary instance queue if there is no worker
-    const workerCount = (await this.jobsQueue.getWorkers()).length;
+    /* const workerCount = (await this.jobsQueue.getWorkers()).length;
     const localWorkerPaused = await this.jobsQueue.isPaused(true);
 
     // if there is no worker and primary instance queue is paused, resume it
@@ -26,7 +26,7 @@ export class JobsService implements OnModuleInit {
       await this.jobsQueue.resume(true);
     } else if (workerCount > 1 && !localWorkerPaused) {
       await this.jobsQueue.pause(true);
-    }
+    } */
 
     const job = await this.jobsQueue.add(name, data);
 

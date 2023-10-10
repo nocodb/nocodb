@@ -307,12 +307,6 @@ function openErdView(source: SourceType) {
   }
 }
 
-const reloadTables = async () => {
-  $e('a:table:refresh:navdraw')
-
-  // await loadTables()
-}
-
 const contextMenuBase = computed(() => {
   if (contextMenuTarget.type === 'source') {
     return contextMenuTarget.value
@@ -483,7 +477,7 @@ const projectDelete = () => {
           </span>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(base)"></div>
 
-          <NcDropdown v-model:visible="isOptionsOpen" :trigger="['click']">
+          <NcDropdown v-if="!isSharedBase" v-model:visible="isOptionsOpen" :trigger="['click']">
             <NcButton
               v-e="['c:base:options']"
               class="nc-sidebar-node-btn"
@@ -663,7 +657,7 @@ const projectDelete = () => {
                             class="source-context flex items-center gap-2 text-gray-800 nc-sidebar-node-title"
                             @contextmenu="setMenuContext('source', source)"
                           >
-                            <GeneralBaseLogo :source-type="source.type" class="min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
+                            <GeneralBaseLogo class="min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
                             {{ $t('general.default') }}
                           </div>
                           <div
@@ -671,7 +665,7 @@ const projectDelete = () => {
                             class="source-context flex flex-grow items-center gap-1.75 text-gray-800 min-w-1/20 max-w-full"
                             @contextmenu="setMenuContext('source', source)"
                           >
-                            <GeneralBaseLogo :source-type="source.type" class="min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
+                            <GeneralBaseLogo class="min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
                             <div
                               :data-testid="`nc-sidebar-base-${source.alias}`"
                               class="nc-sidebar-node-title flex capitalize text-ellipsis overflow-hidden select-none"
@@ -784,14 +778,6 @@ const projectDelete = () => {
             <div class="nc-base-option-item text-red-600">
               <GeneralIcon icon="delete" />
               {{ $t('general.delete') }}
-            </div>
-          </NcMenuItem>
-        </template>
-
-        <template v-else>
-          <NcMenuItem @click="reloadTables">
-            <div class="nc-base-option-item">
-              {{ $t('general.reload') }}
             </div>
           </NcMenuItem>
         </template>

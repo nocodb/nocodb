@@ -23,6 +23,7 @@ server.use(
 server.set('view engine', 'ejs');
 
 process.env[`DEBUG`] = 'xc*';
+process.env[`NC_ALLOW_LOCAL_HOOKS`] = 'true';
 
 (async () => {
   const httpServer = server.listen(process.env.PORT || 8080, async () => {

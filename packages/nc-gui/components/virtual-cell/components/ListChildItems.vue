@@ -41,6 +41,8 @@ const injectedColumn = inject(ColumnInj, ref())
 
 const readonly = inject(ReadonlyInj, ref(false))
 
+const { isSharedBase } = storeToRefs(useBase())
+
 const {
   childrenList,
   childrenListCount,
@@ -165,6 +167,8 @@ const isDataExist = computed<boolean>(() => {
 })
 
 const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
+  if (isSharedBase.value) return
+
   if (isPublic.value && !isForm.value) return
   if (isNew.value || isChildrenListLinked.value[parseInt(id)]) {
     unlinkRow(rowRef, parseInt(id))
@@ -345,6 +349,7 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
                   new: true,
                 },
         }"
+        :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         use-meta-fields
       />
     </Suspense>

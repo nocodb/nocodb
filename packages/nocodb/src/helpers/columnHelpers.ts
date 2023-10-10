@@ -262,3 +262,7 @@ export async function populateRollupForLTAR({
   );
   await GridViewColumn.update(viewCol.id, { show: false });
 }
+
+export const sanitizeColumnName = (name: string) => {
+  return name.replace(/\W+/g, '_').trim();
+};

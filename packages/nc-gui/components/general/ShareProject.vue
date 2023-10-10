@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isDrawerOrModalExist, isEeUI, isMac, useNuxtApp, useRoles } from '#imports'
+import { isDrawerOrModalExist, isMac, useNuxtApp, useRoles } from '#imports'
 
 interface Props {
   disabled?: boolean
@@ -8,11 +8,12 @@ interface Props {
 
 const { disabled, isViewToolbar } = defineProps<Props>()
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, getMainUrl } = useGlobal()
 
 const { visibility, showShareModal } = storeToRefs(useShare())
 
 const { activeTable } = storeToRefs(useTablesStore())
+
 const { base, isSharedBase } = storeToRefs(useBase())
 
 const { $e } = useNuxtApp()
@@ -38,7 +39,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 })
 
 const copySharedBase = async () => {
-  navigateTo(`/copy-shared-base?base=${route.params.baseId}`)
+  const baseUrl = getMainUrl()
+  window.open(`${baseUrl || ''}#/copy-shared-base?base=${route.params.baseId}`, '_blank')
 }
 </script>
 
@@ -70,7 +72,7 @@ const copySharedBase = async () => {
     </NcButton>
   </div>
 
-  <template v-else-if="isSharedBase && isEeUI">
+  <template v-else-if="isSharedBase">
     <div class="flex-1"></div>
     <div class="flex flex-col justify-center h-full">
       <div class="flex flex-row items-center w-full">

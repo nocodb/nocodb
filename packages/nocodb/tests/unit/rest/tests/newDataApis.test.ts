@@ -139,7 +139,7 @@ const verifyColumnsInRsp = (row, columns: ColumnType[]) => {
 };
 
 async function ncAxiosGet({
-  url = `/api/v1/tables/${table.id}/rows`,
+  url = `/api/v2/tables/${table.id}/records`,
   query = {},
   status = 200,
 }: { url?: string; query?: any; status?: number } = {}) {
@@ -153,7 +153,7 @@ async function ncAxiosGet({
 }
 
 async function ncAxiosPost({
-  url = `/api/v1/tables/${table.id}/rows`,
+  url = `/api/v2/tables/${table.id}/records`,
   body = {},
   status = 200,
 }: { url?: string; body?: any; status?: number } = {}) {
@@ -166,7 +166,7 @@ async function ncAxiosPost({
 }
 
 async function ncAxiosPatch({
-  url = `/api/v1/tables/${table.id}/rows`,
+  url = `/api/v2/tables/${table.id}/records`,
   body = {},
   status = 200,
 }: { url?: string; body?: any; status?: number } = {}) {
@@ -179,7 +179,7 @@ async function ncAxiosPatch({
 }
 
 async function ncAxiosDelete({
-  url = `/api/v1/tables/${table.id}/rows`,
+  url = `/api/v2/tables/${table.id}/records`,
   body = {},
   status = 200,
 }: { url?: string; body?: any; status?: number } = {}) {
@@ -200,7 +200,7 @@ async function ncAxiosLinkGet({
   msg,
 }: { urlParams?: any; query?: any; status?: number; msg?: string } = {}) {
   const urlParams = { tableId, linkId, rowId };
-  const url = `/api/v1/tables/${urlParams.tableId}/links/${urlParams.linkId}/rows/${urlParams.rowId}`;
+  const url = `/api/v2/tables/${urlParams.tableId}/links/${urlParams.linkId}/records/${urlParams.rowId}`;
   const response = await request(context.app)
     .get(url)
     .set('xc-auth', context.token)
@@ -226,7 +226,7 @@ async function ncAxiosLinkAdd({
   msg,
 }: { urlParams?: any; body?: any; status?: number; msg?: string } = {}) {
   const urlParams = { tableId, linkId, rowId };
-  const url = `/api/v1/tables/${urlParams.tableId}/links/${urlParams.linkId}/rows/${urlParams.rowId}`;
+  const url = `/api/v2/tables/${urlParams.tableId}/links/${urlParams.linkId}/records/${urlParams.rowId}`;
   const response = await request(context.app)
     .post(url)
     .set('xc-auth', context.token)
@@ -253,7 +253,7 @@ async function ncAxiosLinkRemove({
   msg,
 }: { urlParams?: any; body?: any; status?: number; msg?: string } = {}) {
   const urlParams = { tableId, linkId, rowId };
-  const url = `/api/v1/tables/${urlParams.tableId}/links/${urlParams.linkId}/rows/${urlParams.rowId}`;
+  const url = `/api/v2/tables/${urlParams.tableId}/links/${urlParams.linkId}/records/${urlParams.rowId}`;
   const response = await request(context.app)
     .delete(url)
     .set('xc-auth', context.token)
@@ -310,7 +310,7 @@ function generalDb() {
 
     // read first 4 records
     const records = await ncAxiosGet({
-      url: `/api/v1/tables/${countryTable.id}/rows`,
+      url: `/api/v2/tables/${countryTable.id}/records`,
       query: {
         limit: 4,
       },
@@ -340,7 +340,7 @@ function generalDb() {
 
     // read first 4 records
     const records = await ncAxiosGet({
-      url: `/api/v1/tables/${countryTable.id}/rows`,
+      url: `/api/v2/tables/${countryTable.id}/records`,
       query: {
         limit: 4,
       },
@@ -366,7 +366,7 @@ function generalDb() {
 
     // read first 4 records
     const records = await ncAxiosGet({
-      url: `/api/v1/tables/${countryTable.id}/rows`,
+      url: `/api/v2/tables/${countryTable.id}/records`,
       query: {
         limit: 4,
       },
@@ -381,7 +381,7 @@ function generalDb() {
 
   it('Nested Read - Link to another record', async function () {
     const records = await ncAxiosGet({
-      url: `/api/v1/tables/${countryTable.id}/rows/1`,
+      url: `/api/v2/tables/${countryTable.id}/records/1`,
     });
 
     // extract LTAR column "City List"
@@ -398,7 +398,7 @@ function generalDb() {
     });
 
     const records = await ncAxiosGet({
-      url: `/api/v1/tables/${countryTable.id}/rows/1`,
+      url: `/api/v2/tables/${countryTable.id}/records/1`,
     });
     expect(records.body.Lookup).to.deep.equal(['Kabul']);
   });
@@ -414,7 +414,7 @@ function generalDb() {
     });
 
     const records = await ncAxiosGet({
-      url: `/api/v1/tables/${countryTable.id}/rows/1`,
+      url: `/api/v2/tables/${countryTable.id}/records/1`,
     });
 
     expect(records.body.Rollup).to.equal(1);
@@ -792,7 +792,7 @@ function textBased() {
   it('List: invalid ID', async function () {
     // Invalid table ID
     await ncAxiosGet({
-      url: `/api/v1/tables/123456789/rows`,
+      url: `/api/v2/tables/123456789/records`,
       status: unauthorizedResponse,
     });
 
@@ -919,7 +919,7 @@ function textBased() {
   it('Create: invalid ID', async function () {
     // Invalid table ID
     await ncAxiosPost({
-      url: `/api/v1/tables/123456789/rows`,
+      url: `/api/v2/tables/123456789/records`,
       status: unauthorizedResponse,
     });
 
@@ -946,19 +946,19 @@ function textBased() {
 
   it('Read: all fields', async function () {
     const rsp = await ncAxiosGet({
-      url: `/api/v1/tables/${table.id}/rows/100`,
+      url: `/api/v2/tables/${table.id}/records/100`,
     });
   });
 
   it('Read: invalid ID', async function () {
     // Invalid table ID
     await ncAxiosGet({
-      url: `/api/v1/tables/123456789/rows/100`,
+      url: `/api/v2/tables/123456789/records/100`,
       status: unauthorizedResponse,
     });
     // Invalid row ID
     await ncAxiosGet({
-      url: `/api/v1/tables/${table.id}/rows/1000`,
+      url: `/api/v2/tables/${table.id}/records/1000`,
       status: 404,
     });
   });
@@ -984,7 +984,7 @@ function textBased() {
 
   it('Update: partial', async function () {
     const recordBeforeUpdate = await ncAxiosGet({
-      url: `/api/v1/tables/${table.id}/rows/1`,
+      url: `/api/v2/tables/${table.id}/records/1`,
     });
 
     const rsp = await ncAxiosPatch({
@@ -999,7 +999,7 @@ function textBased() {
     expect(rsp.body).to.deep.equal([{ Id: 1 }]);
 
     const recordAfterUpdate = await ncAxiosGet({
-      url: `/api/v1/tables/${table.id}/rows/1`,
+      url: `/api/v2/tables/${table.id}/records/1`,
     });
     expect(recordAfterUpdate.body).to.deep.equal({
       ...recordBeforeUpdate.body,
@@ -1031,7 +1031,7 @@ function textBased() {
   it('Update: invalid ID', async function () {
     // Invalid table ID
     await ncAxiosPatch({
-      url: `/api/v1/tables/123456789/rows`,
+      url: `/api/v2/tables/123456789/records`,
       body: { Id: 100, SingleLineText: 'some text' },
       status: unauthorizedResponse,
     });
@@ -1055,7 +1055,7 @@ function textBased() {
 
     // check that it's gone
     await ncAxiosGet({
-      url: `/api/v1/tables/${table.id}/rows/1`,
+      url: `/api/v2/tables/${table.id}/records/1`,
       status: 404,
     });
   });
@@ -1066,11 +1066,11 @@ function textBased() {
 
     // check that it's gone
     await ncAxiosGet({
-      url: `/api/v1/tables/${table.id}/rows/1`,
+      url: `/api/v2/tables/${table.id}/records/1`,
       status: 404,
     });
     await ncAxiosGet({
-      url: `/api/v1/tables/${table.id}/rows/2`,
+      url: `/api/v2/tables/${table.id}/records/2`,
       status: 404,
     });
   });
@@ -1080,7 +1080,7 @@ function textBased() {
   it('Delete: invalid ID', async function () {
     // Invalid table ID
     await ncAxiosDelete({
-      url: `/api/v1/tables/123456789/rows`,
+      url: `/api/v2/tables/123456789/records`,
       body: { Id: 100 },
       status: unauthorizedResponse,
     });
@@ -1261,7 +1261,7 @@ function numberBased() {
 
     // read record with Id 401
     rsp = await ncAxiosGet({
-      url: `/api/v1/tables/${table.id}/rows/401`,
+      url: `/api/v2/tables/${table.id}/records/401`,
     });
     expect(rsp.body).to.deep.equal({ ...records[0], Id: 401 });
 
@@ -1452,7 +1452,7 @@ function selectBased() {
 
     // read record with Id 401
     rsp = await ncAxiosGet({
-      url: `/api/v1/tables/${table.id}/rows/401`,
+      url: `/api/v2/tables/${table.id}/records/401`,
     });
     expect(rsp.body).to.deep.equal({ Id: 401, ...records[0] });
 
@@ -1591,7 +1591,7 @@ function dateBased() {
 
     // read record with Id 801
     rsp = await ncAxiosGet({
-      url: `/api/v1/tables/${table.id}/rows/801`,
+      url: `/api/v2/tables/${table.id}/records/801`,
     });
     expect(rsp.body).to.deep.equal({ Id: 801, ...records[0] });
 
@@ -2262,7 +2262,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, rowId: 9999 },
       status: 404,
-      msg: "Row with id '9999' not found",
+      msg: "Record with id '9999' not found",
     });
 
     // Body parameter error
@@ -2334,7 +2334,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, rowId: 9999 },
       status: 404,
-      msg: "Row with id '9999' not found",
+      msg: "Record with id '9999' not found",
     });
 
     // Body parameter error
@@ -2406,7 +2406,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, rowId: 9999 },
       status: 404,
-      msg: "Row with id '9999' not found",
+      msg: "Record with id '9999' not found",
     });
 
     // Query parameter error
@@ -2430,9 +2430,11 @@ function linkBased() {
       status: 200,
     });
 
-    // Link List: Invalid query parameter - offset > total rows
+    // Link List: Invalid query parameter - offset > total records
     if (debugMode)
-      console.log('Link List: Invalid query parameter - offset > total rows');
+      console.log(
+        'Link List: Invalid query parameter - offset > total records',
+      );
     await ncAxiosLinkGet({
       ...validParams,
       query: { ...validParams.query, offset: 9999 },
@@ -2457,9 +2459,9 @@ function linkBased() {
       status: 200,
     });
 
-    // Link List: Invalid query parameter - limit > total rows
+    // Link List: Invalid query parameter - limit > total records
     if (debugMode)
-      console.log('Link List: Invalid query parameter - limit > total rows');
+      console.log('Link List: Invalid query parameter - limit > total records');
     await ncAxiosLinkGet({
       ...validParams,
       query: { ...validParams.query, limit: 9999 },

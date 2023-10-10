@@ -1,5 +1,15 @@
 <script setup lang="ts">
-import { extractSdkResponseErrorMsg, message, onMounted, storeToRefs, useBase, useDashboard, useNuxtApp } from '#imports'
+import {
+  extractSdkResponseErrorMsg,
+  message,
+  onMounted,
+  storeToRefs,
+  useBase,
+  useDashboard,
+  useGlobal,
+  useNuxtApp,
+  useWorkspace,
+} from '#imports'
 
 interface ShareBase {
   uuid?: string
@@ -20,9 +30,23 @@ const sharedBase = ref<null | ShareBase>(null)
 
 const { base } = storeToRefs(useBase())
 
-const url = computed(() =>
-  sharedBase.value && sharedBase.value.uuid ? `${dashboardUrl.value}#/base/${sharedBase.value.uuid}` : '',
-)
+const { getBaseUrl, appInfo } = useGlobal()
+
+const workspaceStore = useWorkspace()
+
+const url = computed(() => {
+  if (!sharedBase.value || !sharedBase.value.uuid) return ''
+
+  // get base url for workspace
+  const baseUrl = getBaseUrl(workspaceStore.activeWorkspaceId)
+
+  let dashboardUrl1 = dashboardUrl.value
+
+  if (baseUrl) {
+    dashboardUrl1 = `${baseUrl}${appInfo.value?.dashboardPath}`
+  }
+  return encodeURI(`${dashboardUrl1}#/base/${sharedBase.value.uuid}`)
+})
 
 const loadBase = async () => {
   try {
@@ -50,6 +74,8 @@ const createShareBase = async (role = ShareBaseRole.Viewer) => {
 
     sharedBase.value = res ?? {}
     sharedBase.value!.role = role
+
+    base.value.uuid = res.uuid
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -63,6 +89,8 @@ const disableSharedBase = async () => {
 
     await $api.base.sharedBaseDisable(base.value.id)
     sharedBase.value = null
+
+    base.value.uuid = undefined
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -131,7 +159,7 @@ const onRoleToggle = async () => {
       </div>
       <div v-if="isSharedBaseEnabled" class="flex flex-col w-full mt-3 border-t-1 pt-3 border-gray-100">
         <GeneralCopyUrl v-model:url="url" />
-        <div class="flex flex-row justify-between mt-3 bg-gray-50 px-3 py-2 rounded-md">
+        <div v-if="!appInfo.ee" class="flex flex-row justify-between mt-3 bg-gray-50 px-3 py-2 rounded-md">
           <div class="text-black">{{ $t('activity.editingAccess') }}</div>
           <a-switch
             v-e="['c:share:base:role:toggle']"

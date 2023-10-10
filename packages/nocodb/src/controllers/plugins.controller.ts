@@ -12,6 +12,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { PluginsService } from '~/services/plugins.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 // todo: move to a interceptor
 // const blockInCloudMw = (_req, res, next) => {
@@ -21,7 +22,7 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 // };
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class PluginsController {
   constructor(private readonly pluginsService: PluginsService) {}
 

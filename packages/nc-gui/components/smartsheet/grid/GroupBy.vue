@@ -18,6 +18,7 @@ const props = defineProps<{
 
   viewWidth?: number
   scrollLeft?: number
+  fullPage?: boolean
 
   depth?: number
   maxDepth?: number
@@ -39,6 +40,12 @@ const _depth = props.depth ?? 0
 const wrapper = ref<HTMLElement | undefined>()
 
 const scrollable = ref<HTMLElement | undefined>()
+
+const tableHeader = ref<HTMLElement | undefined>()
+
+const fullPage = computed<boolean>(() => {
+  return props.fullPage ?? (tableHeader.value?.offsetWidth ?? 0) > (props.viewWidth ?? 0)
+})
 
 const _activeGroupKeys = ref<string[] | string>()
 
@@ -149,7 +156,7 @@ const onScroll = (e: Event) => {
             style="background-color: #f9f9fa; border-color: #e7e7e9; border-bottom-width: 1px"
             :style="{ 'padding-left': `${(maxDepth || 1) * 13}px` }"
           ></div>
-          <Table class="mb-2" :data="[]" :header-only="true" />
+          <Table ref="tableHeader" class="mb-2" :data="[]" :header-only="true" />
         </div>
         <div :class="{ 'px-[12px]': vGroup.root === true }">
           <a-collapse
@@ -258,11 +265,12 @@ const onScroll = (e: Event) => {
                 :row-height="rowHeight"
                 :redistribute-rows="redistributeRows"
                 :expand-form="expandForm"
-                :pagination-fixed-size="props.viewWidth"
+                :pagination-fixed-size="fullPage ? props.viewWidth : undefined"
                 :pagination-hide-sidebars="true"
                 :scroll-left="props.scrollLeft || _scrollLeft"
                 :view-width="viewWidth"
                 :scrollable="scrollable"
+                :full-page="fullPage"
               />
               <GroupBy
                 v-else
@@ -277,6 +285,7 @@ const onScroll = (e: Event) => {
                 :view-width="viewWidth"
                 :depth="_depth + 1"
                 :scroll-left="scrollBump"
+                :full-page="fullPage"
               />
             </a-collapse-panel>
           </a-collapse>
@@ -288,6 +297,7 @@ const onScroll = (e: Event) => {
       v-model:pagination-data="vGroup.paginationData"
       align-count-on-right
       custom-label="groups"
+      show-api-timing
       :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
       :style="`${props.depth && props.depth > 0 ? 'border-radius: 0 0 12px 12px !important;' : ''}`"
     ></LazySmartsheetPagination>
@@ -296,10 +306,11 @@ const onScroll = (e: Event) => {
       v-model:pagination-data="vGroup.paginationData"
       align-count-on-right
       custom-label="groups"
+      show-api-timing
       :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
       :hide-sidebars="true"
       :style="`${props.depth && props.depth > 0 ? 'border-radius: 0 0 12px 12px !important;' : ''}margin-left: ${scrollBump}px;`"
-      :fixed-size="props.viewWidth"
+      :fixed-size="fullPage ? props.viewWidth : undefined"
     ></LazySmartsheetPagination>
   </div>
 </template>

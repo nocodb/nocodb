@@ -15,14 +15,82 @@ import { BasesService } from '~/services/bases.service';
 import { Base, Model, Source } from '~/models';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
 import { JobTypes } from '~/interface/Jobs';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class DuplicateController {
   constructor(
     @Inject('JobsService') protected readonly jobsService,
     protected readonly basesService: BasesService,
   ) {}
+
+  @Post([
+    '/api/v1/db/meta/duplicate/:workspaceId/shared/:sharedBaseId',
+    '/api/v1/meta/duplicate/:workspaceId/shared/:sharedBaseId',
+  ])
+  @HttpCode(200)
+  @Acl('duplicateSharedBase', {
+    scope: 'org',
+  })
+  public async duplicateSharedBase(
+    @Request() req,
+    @Param('workspaceId') _workspaceId: string,
+    @Param('sharedBaseId') sharedBaseId: string,
+    @Body()
+    body?: {
+      options?: {
+        excludeData?: boolean;
+        excludeViews?: boolean;
+      };
+      base?: any;
+    },
+  ) {
+    const base = await Base.getByUuid(sharedBaseId);
+
+    if (!base) {
+      throw new Error(`Base not found for id '${sharedBaseId}'`);
+    }
+
+    const source = (await base.getBases())[0];
+
+    if (!source) {
+      throw new Error(`Source not found!`);
+    }
+
+    const bases = await Base.list({});
+
+    const uniqueTitle = generateUniqueName(
+      `${base.title} copy`,
+      bases.map((p) => p.title),
+    );
+
+    const dupProject = await this.basesService.baseCreate({
+      base: {
+        title: uniqueTitle,
+        status: ProjectStatus.JOB,
+        ...(body.base || {}),
+      },
+      user: { id: req.user.id },
+    });
+
+    const job = await this.jobsService.add(JobTypes.DuplicateBase, {
+      baseId: base.id,
+      sourceId: source.id,
+      dupProjectId: dupProject.id,
+      options:
+        {
+          ...body.options,
+          excludeHooks: true,
+        } || {},
+      req: {
+        user: req.user,
+        clientIp: req.clientIp,
+      },
+    });
+
+    return { id: job.id, base_id: dupProject.id };
+  }
 
   @Post([
     '/api/v1/db/meta/duplicate/:baseId/:sourceId?',

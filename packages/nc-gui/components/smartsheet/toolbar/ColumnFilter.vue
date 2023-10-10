@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { ColumnType, FilterType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
+  AllFiltersInj,
   MetaInj,
   ReloadViewDataHookInj,
   comparisonOpList,
@@ -56,6 +57,8 @@ const activeView = inject(ActiveViewInj, ref())
 
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const { $e } = useNuxtApp()
 
 const { nestedFilters } = useSmartsheetStoreOrThrow()
@@ -82,6 +85,8 @@ const {
   !modelValue.value,
   webHook.value,
 )
+
+const { getPlanLimit } = useWorkspace()
 
 const localNestedFilters = ref()
 
@@ -183,12 +188,21 @@ watch(
   },
 )
 
+const allFilters: Ref<Record<string, FilterType[]>> = inject(AllFiltersInj, ref({}))
+
 watch(
   () => nonDeletedFilters.value.length,
   (length: number) => {
+    allFilters.value[parentId?.value ?? 'root'] = [...nonDeletedFilters.value]
     emit('update:filtersLength', length ?? 0)
   },
 )
+
+const filtersCount = computed(() => {
+  return Object.values(allFilters.value).reduce((acc, filters) => {
+    return acc + filters.filter((el) => !el.is_group).length
+  }, 0)
+})
 
 const applyChanges = async (hookId?: string, _nested = false) => {
   await sync(hookId, _nested)
@@ -298,6 +312,10 @@ onMounted(() => {
 
 onMounted(async () => {
   await loadBtLookupTypes()
+})
+
+onBeforeUnmount(() => {
+  if (parentId.value) delete allFilters.value[parentId.value]
 })
 </script>
 
@@ -471,23 +489,44 @@ onMounted(async () => {
       </template>
     </div>
 
-    <div ref="addFiltersRowDomRef" class="flex gap-2">
-      <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
-        <div class="flex items-center gap-1">
-          <component :is="iconMap.plus" />
-          <!-- Add Filter -->
-          {{ $t('activity.addFilter') }}
-        </div>
-      </NcButton>
+    <template v-if="isEeUI && !isPublic">
+      <div v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)" ref="addFiltersRowDomRef" class="flex gap-2">
+        <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
+          <div class="flex items-center gap-1">
+            <component :is="iconMap.plus" />
+            <!-- Add Filter -->
+            {{ $t('activity.addFilter') }}
+          </div>
+        </NcButton>
 
-      <NcButton v-if="!webHook && nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
-        <div class="flex items-center gap-1">
-          <!-- Add Filter Group -->
-          <component :is="iconMap.plus" />
-          {{ $t('activity.addFilterGroup') }}
-        </div>
-      </NcButton>
-    </div>
+        <NcButton v-if="!webHook && nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
+          <div class="flex items-center gap-1">
+            <!-- Add Filter Group -->
+            <component :is="iconMap.plus" />
+            {{ $t('activity.addFilterGroup') }}
+          </div>
+        </NcButton>
+      </div>
+    </template>
+    <template v-else>
+      <div ref="addFiltersRowDomRef" class="flex gap-2">
+        <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
+          <div class="flex items-center gap-1">
+            <component :is="iconMap.plus" />
+            <!-- Add Filter -->
+            {{ $t('activity.addFilter') }}
+          </div>
+        </NcButton>
+
+        <NcButton v-if="!webHook && nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
+          <div class="flex items-center gap-1">
+            <!-- Add Filter Group -->
+            <component :is="iconMap.plus" />
+            {{ $t('activity.addFilterGroup') }}
+          </div>
+        </NcButton>
+      </div>
+    </template>
     <div
       v-if="!filters.length"
       class="flex flex-row text-gray-400 mt-2"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableType, ViewType } from 'nocodb-sdk'
-import { isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { ViewTypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import MdiChevronDown from '~icons/mdi/chevron-down'
 
@@ -47,6 +47,8 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
 
+const { activeView } = storeToRefs(useViewsStore())
+
 const key = ref(0)
 
 const wrapper = ref()
@@ -85,6 +87,8 @@ const isRecordLinkCopied = ref(false)
 const { isUIAllowed } = useRoles()
 
 const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
+
+const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
 
 // override cell click hook to avoid unexpected behavior at form fields
 provide(CellClickHookInj, undefined)
@@ -184,7 +188,16 @@ const save = async () => {
     await syncLTARRefs(data)
     reloadTrigger?.trigger()
   } else {
-    await _save()
+    let kanbanClbk
+    if (activeView.value?.type === ViewTypes.KANBAN) {
+      kanbanClbk = (row: any, isNewRow: boolean) => {
+        addOrEditStackRow(row, isNewRow)
+      }
+    }
+
+    await _save(undefined, undefined, {
+      kanbanClbk,
+    })
     reloadTrigger?.trigger()
   }
   isUnsavedFormExist.value = false
@@ -389,7 +402,7 @@ const onDeleteRowClick = () => {
 const onConfirmDeleteRowClick = async () => {
   showDeleteRowModal.value = false
   await deleteRowById(primaryKey.value)
-  message.success('Row deleted')
+  message.success('Record deleted')
   reloadTrigger.trigger()
   onClose()
   showDeleteRowModal.value = false

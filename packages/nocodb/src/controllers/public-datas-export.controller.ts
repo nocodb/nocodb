@@ -1,4 +1,11 @@
-import { Controller, Get, Param, Request, Response } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Request,
+  Response,
+  UseGuards,
+} from '@nestjs/common';
 import { ErrorMessages, isSystemColumn, ViewTypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import { nocoExecute } from 'nc-help';
@@ -9,7 +16,9 @@ import { serializeCellValue } from '~/modules/datas/helpers';
 import { PublicDatasExportService } from '~/services/public-datas-export.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Column, Model, Source, View } from '~/models';
+import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 
+@UseGuards(PublicApiLimiterGuard)
 @Controller()
 export class PublicDatasExportController {
   constructor(

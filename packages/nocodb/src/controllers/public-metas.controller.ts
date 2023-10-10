@@ -1,6 +1,8 @@
-import { Controller, Get, Param, Request } from '@nestjs/common';
+import { Controller, Get, Param, Request, UseGuards } from '@nestjs/common';
 import { PublicMetasService } from '~/services/public-metas.service';
+import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 
+@UseGuards(PublicApiLimiterGuard)
 @Controller()
 export class PublicMetasController {
   constructor(private readonly publicMetasService: PublicMetasService) {}

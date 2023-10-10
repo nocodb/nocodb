@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
+import { ConfigService } from '@nestjs/config';
+import type { AppConfig } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -13,7 +15,10 @@ const config = {
 
 @Injectable()
 export class SharedBasesService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(
+    private readonly appHooksService: AppHooksService,
+    private configService: ConfigService<AppConfig>,
+  ) {}
 
   async createSharedBaseLink(param: {
     baseId: string;
@@ -30,6 +35,10 @@ export class SharedBasesService {
       roles = 'viewer';
     }
 
+    if (roles === 'editor' && process.env.NC_CLOUD === 'true') {
+      NcError.badRequest('Only viewer role is supported');
+    }
+
     if (!base) {
       NcError.badRequest('Invalid base id');
     }
@@ -42,7 +51,11 @@ export class SharedBasesService {
 
     await Base.update(base.id, data);
 
-    data.url = `${param.siteUrl}${config.dashboardPath}#/nc/base/${data.uuid}`;
+    data.url = this.getUrl({
+      base,
+      siteUrl: param.siteUrl,
+    });
+
     delete data.password;
 
     this.appHooksService.emit(AppEvents.SHARED_BASE_GENERATE_LINK, {
@@ -71,6 +84,11 @@ export class SharedBasesService {
     if (!base) {
       NcError.badRequest('Invalid base id');
     }
+
+    if (roles === 'editor' && process.env.NC_CLOUD === 'true') {
+      NcError.badRequest('Only viewer role is supported');
+    }
+
     const data: any = {
       uuid: base.uuid || uuidv4(),
       password: param.password,
@@ -79,13 +97,32 @@ export class SharedBasesService {
 
     await Base.update(base.id, data);
 
-    data.url = `${param.siteUrl}${config.dashboardPath}#/nc/base/${data.uuid}`;
+    data.url = this.getUrl({
+      base,
+      siteUrl: param.siteUrl,
+    });
+
     delete data.password;
     this.appHooksService.emit(AppEvents.SHARED_BASE_GENERATE_LINK, {
       link: data.url,
       base,
     });
     return data;
+  }
+
+  private getUrl({ base, siteUrl: _siteUrl }: { base: Base; siteUrl: string }) {
+    let siteUrl = _siteUrl;
+
+    const baseDomain = process.env.NC_BASE_HOST_NAME;
+    const dashboardPath = this.configService.get('dashboardPath', {
+      infer: true,
+    });
+
+    if (baseDomain) {
+      siteUrl = `https://${base['fk_workspace_id']}.${baseDomain}${dashboardPath}`;
+    }
+
+    return `${siteUrl}${config.dashboardPath}#/base/${base.uuid}`;
   }
 
   async disableSharedBaseLink(param: { baseId: string }): Promise<any> {
@@ -120,7 +157,7 @@ export class SharedBasesService {
       roles: base.roles,
     };
     if (data.uuid)
-      data.url = `${param.siteUrl}${config.dashboardPath}#/nc/base/${data.shared_base_id}`;
+      data.url = `${param.siteUrl}${config.dashboardPath}#/base/${data.shared_base_id}`;
 
     return data;
   }

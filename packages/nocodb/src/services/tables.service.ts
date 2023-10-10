@@ -28,14 +28,14 @@ import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import { Base, Column, Model, ModelRoleVisibility } from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { validatePayload } from '~/helpers';
+import { sanitizeColumnName, validatePayload } from '~/helpers';
 
 @Injectable()
 export class TablesService {
   constructor(
-    private metaDiffService: MetaDiffsService,
-    private appHooksService: AppHooksService,
-    private readonly columnsService: ColumnsService,
+    protected readonly metaDiffService: MetaDiffsService,
+    protected readonly appHooksService: AppHooksService,
+    protected readonly columnsService: ColumnsService,
   ) {}
 
   async tableUpdate(param: {
@@ -452,9 +452,19 @@ export class TablesService {
     const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
     for (const column of param.table.columns) {
+      if (!isVirtualCol(column)) {
+        column.column_name = sanitizeColumnName(column.column_name);
+      }
+
       if (column.column_name.length > mxColumnLength) {
         NcError.badRequest(
           `Column name ${column.column_name} exceeds ${mxColumnLength} characters`,
+        );
+      }
+
+      if (column.title && column.title.length > 255) {
+        NcError.badRequest(
+          `Column title ${column.title} exceeds 255 characters`,
         );
       }
     }

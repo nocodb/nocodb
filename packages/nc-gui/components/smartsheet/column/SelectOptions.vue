@@ -3,7 +3,7 @@ import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
 
-import { IsKanbanInj, enumColor, iconMap, onMounted, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
+import { IsKanbanInj, enumColor, iconMap, onMounted, useColumnCreateStoreOrThrow, useVModel } from '#imports'
 
 interface Option {
   color: string
@@ -21,16 +21,22 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-const { setAdditionalValidations, validateInfos, isMysql, isPg } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
 
 // const { base } = storeToRefs(useBase())
 
 const { optionsMagic: _optionsMagic } = useNocoEe()
 
+const optionsWrapperDomRef = ref<HTMLElement>()
+
 const options = ref<(Option & { status?: 'remove' })[]>([])
 
+const isAddingOption = ref(false)
+
+// TODO: Implement proper top and bottom virtual scrolling
 const OPTIONS_PAGE_COUNT = 20
-const loadedOptionCount = ref(OPTIONS_PAGE_COUNT)
+const loadedOptionAnchor = ref(OPTIONS_PAGE_COUNT)
+const isReverseLazyLoad = ref(false)
 
 const renderedOptions = ref<(Option & { status?: 'remove' })[]>([])
 const savedDefaultOption = ref<Option | null>(null)
@@ -40,7 +46,6 @@ const colorMenus = ref<any>({})
 
 const colors = ref(enumColor.light)
 
-const inputs = ref()
 const defaultOption = ref()
 
 const isKanban = inject(IsKanbanInj, ref(false))
@@ -89,11 +94,13 @@ onMounted(() => {
     }
   }
 
+  isReverseLazyLoad.value = false
+
   options.value = vModel.value.colOptions.options
 
-  loadedOptionCount.value = Math.min(loadedOptionCount.value, options.value.length)
+  loadedOptionAnchor.value = Math.min(loadedOptionAnchor.value, options.value.length)
 
-  renderedOptions.value = [...options.value].slice(0, loadedOptionCount.value)
+  renderedOptions.value = [...options.value].slice(0, loadedOptionAnchor.value)
 
   // Support for older options
   for (const op of options.value.filter((el) => el.order === null)) {
@@ -129,19 +136,36 @@ const getNextColor = () => {
 }
 
 const addNewOption = () => {
+  isAddingOption.value = true
+
   const tempOption = {
     title: '',
     color: getNextColor(),
   }
   options.value.push(tempOption)
 
-  loadedOptionCount.value = options.value.length
-  renderedOptions.value = [...options.value]
+  isReverseLazyLoad.value = true
+
+  loadedOptionAnchor.value = options.value.length - OPTIONS_PAGE_COUNT
+  loadedOptionAnchor.value = Math.max(loadedOptionAnchor.value, 0)
+
+  renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)
+
+  optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
 
   nextTick(() => {
-    if (inputs.value?.$el) {
-      inputs.value.$el.focus()
-    }
+    // Last child doesnt work for query selector
+    setTimeout(() => {
+      const doms = document.querySelectorAll(`.nc-col-option-select-option .nc-select-col-option-select-option`)
+      const dom = doms[doms.length - 1] as HTMLInputElement
+
+      if (dom) {
+        dom.focus()
+      }
+    }, 150)
+
+    optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
+    isAddingOption.value = false
   })
 }
 
@@ -181,22 +205,64 @@ const undoRemoveRenderedOption = (index: number) => {
   }
 }
 
-const loadListData = async ($state: any) => {
-  if (loadedOptionCount.value === options.value.length) {
+// focus last created input
+// watch(inputs, () => {
+//   if (inputs.value?.$el) {
+//     inputs.value.$el.focus()
+//   }
+// })
+
+// Removes the Select Option from cdf if the option is removed
+watch(vModel.value, (next) => {
+  const cdfs = (next.cdf ?? '').split(',')
+  const values = (next.colOptions.options ?? []).map((col) => {
+    return col.title.replace(/^'/, '').replace(/'$/, '')
+  })
+  const newCdf = cdfs.filter((c: string) => values.includes(c)).join(',')
+  next.cdf = newCdf.length === 0 ? null : newCdf
+})
+
+const loadListDataReverse = async ($state: any) => {
+  if (isAddingOption.value) return
+
+  if (loadedOptionAnchor.value === 0) {
     $state.complete()
     return
   }
   $state.loading()
 
-  loadedOptionCount.value += OPTIONS_PAGE_COUNT
-  loadedOptionCount.value = Math.min(loadedOptionCount.value, options.value.length)
+  loadedOptionAnchor.value -= OPTIONS_PAGE_COUNT
+  loadedOptionAnchor.value = Math.max(loadedOptionAnchor.value, 0)
 
-  renderedOptions.value = options.value.slice(0, loadedOptionCount.value)
+  renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)
 
-  if (loadedOptionCount.value === options.value.length) {
+  optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollTop + 100
+
+  if (loadedOptionAnchor.value === 0) {
     $state.complete()
     return
   }
+  $state.loaded()
+}
+
+const loadListData = async ($state: any) => {
+  if (isAddingOption.value) return
+
+  if (loadedOptionAnchor.value === options.value.length) {
+    return $state.complete()
+  }
+
+  $state.loading()
+
+  loadedOptionAnchor.value += OPTIONS_PAGE_COUNT
+  loadedOptionAnchor.value = Math.min(loadedOptionAnchor.value, options.value.length)
+
+  renderedOptions.value = options.value.slice(0, loadedOptionAnchor.value)
+
+  if (loadedOptionAnchor.value === options.value.length) {
+    return $state.complete()
+  }
+
   $state.loaded()
 }
 </script>
@@ -204,11 +270,22 @@ const loadListData = async ($state: any) => {
 <template>
   <div class="w-full">
     <div
-      class="overflow-x-auto scrollbar-thin-dull"
+      ref="optionsWrapperDomRef"
+      class="nc-col-option-select-option overflow-x-auto scrollbar-thin-dull"
       :style="{
         maxHeight: 'calc(min(30vh, 250px))',
       }"
     >
+      <InfiniteLoading v-if="isReverseLazyLoad" v-bind="$attrs" @infinite="loadListDataReverse">
+        <template #spinner>
+          <div class="flex flex-row w-full justify-center mt-2">
+            <GeneralLoader />
+          </div>
+        </template>
+        <template #complete>
+          <span></span>
+        </template>
+      </InfiniteLoading>
       <Draggable :list="renderedOptions" item-key="id" handle=".nc-child-draggable-icon" @change="syncOptions">
         <template #item="{ element, index }">
           <div class="flex py-1 items-center nc-select-option">
@@ -245,9 +322,8 @@ const loadListData = async ($state: any) => {
               </a-dropdown>
 
               <a-input
-                ref="inputs"
                 v-model:value="element.title"
-                class="caption !rounded-lg"
+                class="caption !rounded-lg nc-select-col-option-select-option"
                 :data-testid="`select-column-option-input-${index}`"
                 :disabled="element.status === 'remove'"
                 @keydown.enter.prevent="element.title?.trim() && addNewOption()"
@@ -273,7 +349,7 @@ const loadListData = async ($state: any) => {
           </div>
         </template>
       </Draggable>
-      <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
+      <InfiniteLoading v-if="!isReverseLazyLoad" v-bind="$attrs" @infinite="loadListData">
         <template #spinner>
           <div class="flex flex-row w-full justify-center mt-2">
             <GeneralLoader />

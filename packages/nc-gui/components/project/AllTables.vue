@@ -147,8 +147,8 @@ const onCreateBaseClick = () => {
         </div>
         <div class="w-1/5 text-gray-600" data-testid="proj-view-list__item-type">
           <div v-if="table.source_id === defaultBase?.id" class="ml-0.75">-</div>
-          <div v-else>
-            <GeneralBaseLogo :source-type="sources.get(table.source_id!)?.type" class="w-4 mr-1" />
+          <div v-else class="capitalize flex flex-row items-center gap-x-0.5">
+            <GeneralBaseLogo class="w-4 mr-1" />
             {{ sources.get(table.source_id!)?.alias }}
           </div>
         </div>
@@ -158,11 +158,7 @@ const onCreateBaseClick = () => {
       </div>
     </div>
     <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :source="defaultBase" />
-    <GeneralModal v-model:visible="isNewBaseModalOpen" size="medium">
-      <div class="py-6 px-8">
-        <LazyDashboardSettingsDataSourcesCreateBase @close="isNewBaseModalOpen = false" />
-      </div>
-    </GeneralModal>
+    <LazyDashboardSettingsDataSourcesCreateBase v-model:open="isNewBaseModalOpen" />
   </div>
 </template>
 

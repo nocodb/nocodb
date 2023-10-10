@@ -33,7 +33,7 @@ const openedSubTab = computed({
 watch(openedSubTab, () => {
   // TODO: Find a good way to know when the roles are populated and check
   // Re-enable this check for first render
-  if (openedSubTab.value === 'field' && !isUIAllowed('hookList')) {
+  if (openedSubTab.value === 'field' && !isUIAllowed('fieldAdd')) {
     onViewsTabChange('relation')
   }
   if (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) {

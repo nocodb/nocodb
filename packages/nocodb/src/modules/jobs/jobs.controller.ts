@@ -18,12 +18,13 @@ import { JobEvents } from '~/interface/Jobs';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const POLLING_INTERVAL = 30000;
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class JobsController implements OnModuleInit {
   jobsRedisService: JobsRedisService;
 
@@ -221,7 +222,7 @@ export class JobsController implements OnModuleInit {
       });
     }
 
-    if (process.env.NC_WORKER_CONTAINER === 'true' && this.jobsRedisService) {
+    if (this.jobsRedisService) {
       this.jobsRedisService.publish(jobId, {
         cmd: JobEvents.STATUS,
         ...data,
@@ -291,7 +292,7 @@ export class JobsController implements OnModuleInit {
       });
     }
 
-    if (process.env.NC_WORKER_CONTAINER === 'true' && this.jobsRedisService) {
+    if (this.jobsRedisService) {
       this.jobsRedisService.publish(jobId, {
         cmd: JobEvents.LOG,
         ...data,

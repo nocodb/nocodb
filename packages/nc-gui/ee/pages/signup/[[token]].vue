@@ -19,8 +19,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <AuthCognito v-if="appInfo.cognito.aws_user_pools_id" />
-  <NuxtLayout>
-    <AuthSignup />
-  </NuxtLayout>
+  <template v-if="appInfo.cognito">
+    <AuthCognito v-if="appInfo.cognito.aws_user_pools_id" />
+    <NuxtLayout>
+      <AuthSignup />
+    </NuxtLayout>
+  </template>
+  <span v-else />
 </template>

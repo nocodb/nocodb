@@ -1686,7 +1686,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/bases/{baseId}/users": {
+    "/api/v1/db/meta/projects/{baseId}/users": {
       "get": {
         "summary": "List Base Users",
         "operationId": "auth-base-user-list",
@@ -1897,7 +1897,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/bases/{baseId}/info": {
+    "/api/v1/db/meta/projects/{baseId}/info": {
       "parameters": [
         {
           "schema": {
@@ -1996,7 +1996,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/bases/{baseId}/users/{userId}": {
+    "/api/v1/db/meta/projects/{baseId}/users/{userId}": {
       "parameters": [
         {
           "schema": {
@@ -2128,7 +2128,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/bases/{baseId}/visibility-rules": {
+    "/api/v1/db/meta/projects/{baseId}/visibility-rules": {
       "get": {
         "summary": "Get UI ACL",
         "operationId": "base-model-visibility-list",
@@ -2282,7 +2282,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/bases/": {
+    "/api/v1/db/meta/projects/": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -2640,7 +2640,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/bases/{baseId}": {
+    "/api/v1/db/meta/projects/{baseId}": {
       "parameters": [
         {
           "schema": {
@@ -2800,7 +2800,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/bases/{baseId}/user": {
+    "/api/v1/db/meta/projects/{baseId}/user": {
       "parameters": [
         {
           "schema": {
@@ -2833,7 +2833,7 @@
         }
       }
     },
-    "/api/v1/db/meta/bases/{baseId}/sources/{sourceId}": {
+    "/api/v1/db/meta/projects/{baseId}/bases/{sourceId}": {
       "parameters": [
         {
           "schema": {
@@ -3012,7 +3012,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/bases/:baseId/sources/:sourceId/sqlView": {
+    "/api/v1/db/meta/projects/:baseId/bases/:sourceId/sqlView": {
       "parameters": [
         {
           "schema": {
@@ -3069,7 +3069,7 @@
         }
       }
     },
-    "/api/v1/db/meta/bases/{baseId}/sources/": {
+    "/api/v1/db/meta/projects/{baseId}/bases/": {
       "parameters": [
         {
           "schema": {
@@ -3208,7 +3208,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/bases/{baseId}/sources/{sourceId}/share/erd": {
+    "/api/v1/db/meta/projects/{baseId}/bases/{sourceId}/share/erd": {
       "parameters": [
         {
           "schema": {
@@ -3259,7 +3259,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/bases/{baseId}/shared": {
+    "/api/v1/db/meta/projects/{baseId}/shared": {
       "parameters": [
         {
           "schema": {
@@ -3472,7 +3472,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/bases/{baseId}/cost": {
+    "/api/v1/db/meta/projects/{baseId}/cost": {
       "parameters": [
         {
           "schema": {
@@ -3517,7 +3517,7 @@
         "x-internal": true
       }
     },
-    "/api/v1/db/meta/bases/{baseId}/tables": {
+    "/api/v1/db/meta/projects/{baseId}/tables": {
       "parameters": [
         {
           "schema": {
@@ -4589,7 +4589,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/bases/{baseId}/{sourceId}/tables": {
+    "/api/v1/db/meta/projects/{baseId}/{sourceId}/tables": {
       "parameters": [
         {
           "schema": {
@@ -8260,7 +8260,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/bases/{baseId}/meta-diff": {
+    "/api/v1/db/meta/projects/{baseId}/meta-diff": {
       "parameters": [
         {
           "schema": {
@@ -8432,7 +8432,7 @@
         "description": "Get the meta data difference between NC_DB and external data sources "
       }
     },
-    "/api/v1/db/meta/bases/{baseId}/meta-diff/{sourceId}": {
+    "/api/v1/db/meta/projects/{baseId}/meta-diff/{sourceId}": {
       "parameters": [
         {
           "schema": {
@@ -8611,7 +8611,7 @@
         "description": "Get the meta data difference between NC_DB and external data sources in a given Source"
       }
     },
-    "/api/v1/db/meta/bases/{baseId}/has-empty-or-null-filters": {
+    "/api/v1/db/meta/projects/{baseId}/has-empty-or-null-filters": {
       "parameters": [
         {
           "schema": {
@@ -12967,7 +12967,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/bases/{baseId}/audits": {
+    "/api/v1/db/meta/projects/{baseId}/audits": {
       "parameters": [
         {
           "schema": {
@@ -14749,7 +14749,7 @@
         }
       ]
     },
-    "/api/v1/db/meta/bases/{baseId}/api-tokens": {
+    "/api/v1/db/meta/projects/{baseId}/api-tokens": {
       "get": {
         "summary": "List API Tokens in Base",
         "tags": [
@@ -14868,7 +14868,7 @@
         }
       ]
     },
-    "/api/v1/db/meta/bases/{baseId}/api-tokens/{token}": {
+    "/api/v1/db/meta/projects/{baseId}/api-tokens/{token}": {
       "delete": {
         "summary": "Delete API Token",
         "operationId": "api-token-delete",
@@ -15012,7 +15012,7 @@
         "description": "Upload attachment by URL. Used in Airtable Migration."
       }
     },
-    "/api/v1/db/meta/bases/{baseId}/users/{userId}/resend-invite": {
+    "/api/v1/db/meta/projects/{baseId}/users/{userId}/resend-invite": {
       "parameters": [
         {
           "schema": {

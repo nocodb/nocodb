@@ -42,12 +42,12 @@ jobs:
         if: ${{ env.SETUP_NODE != 'false' }}      
         uses: actions/setup-node@v3
         with:
-          node-version: 18.14.0
+          node-version: 18.17.1
       - name: Setup pnpm
         if: ${{ env.SETUP_PNPM != 'false' }}
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 8.8.0
       - name: Get pnpm store directory
         shell: bash
         timeout-minutes: 1

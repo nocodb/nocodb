@@ -53,10 +53,7 @@ async function signIn() {
 
     if (continueAfterSignIn) {
       localStorage.removeItem('continueAfterSignIn')
-      await navigateTo({
-        path: continueAfterSignIn,
-        query: route.query,
-      })
+      await navigateTo(continueAfterSignIn)
       return
     }
 

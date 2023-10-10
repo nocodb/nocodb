@@ -71,7 +71,7 @@ const _duplicate = async () => {
         <NcSelect
           v-model:value="selectedWorkspace"
           class="w-full"
-          :options="workspacesList.map((w) => ({ label: w.title, value: w.id }))"
+          :options="workspacesList.map((w) => ({ label: `${w.title[0].toUpperCase()}${w.title.slice(1)}`, value: w.id }))"
           placeholder="Select Workspace"
         />
       </template>

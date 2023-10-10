@@ -515,7 +515,7 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; base_id: string })
           </span>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(base)"></div>
 
-          <NcDropdown v-model:visible="isOptionsOpen" :trigger="['click']">
+          <NcDropdown v-if="!isSharedBase" v-model:visible="isOptionsOpen" :trigger="['click']">
             <NcButton
               class="nc-sidebar-node-btn"
               :class="{ '!text-black !opacity-100': isOptionsOpen }"
@@ -537,40 +537,38 @@ const DlgProjectDuplicateOnOk = async (jobData: { id: string; base_id: string })
                 :data-testid="`nc-sidebar-base-${base.title}-options`"
                 @click="isOptionsOpen = false"
               >
-                <template v-if="!isSharedBase">
-                  <NcMenuItem v-if="isUIAllowed('baseRename')" data-testid="nc-sidebar-base-rename" @click="enableEditMode">
-                    <GeneralIcon icon="edit" class="group-hover:text-black" />
-                    {{ $t('general.rename') }}
-                  </NcMenuItem>
+                <NcMenuItem v-if="isUIAllowed('baseRename')" data-testid="nc-sidebar-base-rename" @click="enableEditMode">
+                  <GeneralIcon icon="edit" class="group-hover:text-black" />
+                  {{ $t('general.rename') }}
+                </NcMenuItem>
 
-                  <NcMenuItem data-testid="nc-sidebar-base-starred" @click="() => toggleStarred(base.id)">
-                    <GeneralIcon v-if="base.starred" icon="unStar" class="group-hover:text-black" />
-                    <GeneralIcon v-else icon="star" class="group-hover:text-black" />
-                    <div class="ml-0.25">
-                      {{ base.starred ? 'Remove from starred' : 'Add to Starred' }}
-                    </div>
-                  </NcMenuItem>
+                <NcMenuItem data-testid="nc-sidebar-base-starred" @click="() => toggleStarred(base.id)">
+                  <GeneralIcon v-if="base.starred" icon="unStar" class="group-hover:text-black" />
+                  <GeneralIcon v-else icon="star" class="group-hover:text-black" />
+                  <div class="ml-0.25">
+                    {{ base.starred ? 'Remove from starred' : 'Add to Starred' }}
+                  </div>
+                </NcMenuItem>
 
-                  <NcMenuItem
-                    v-if="
-                      base.type === NcProjectType.DB &&
-                      isUIAllowed('baseDuplicate', { roles: [base.workspace_role, base.project_role].join() })
-                    "
-                    data-testid="nc-sidebar-base-duplicate"
-                    @click="duplicateProject(base)"
-                  >
-                    <GeneralIcon icon="duplicate" class="text-gray-700" />
-                    {{ $t('general.duplicate') }}
-                  </NcMenuItem>
+                <NcMenuItem
+                  v-if="
+                    base.type === NcProjectType.DB &&
+                    isUIAllowed('baseDuplicate', { roles: [base.workspace_role, base.project_role].join() })
+                  "
+                  data-testid="nc-sidebar-base-duplicate"
+                  @click="duplicateProject(base)"
+                >
+                  <GeneralIcon icon="duplicate" class="text-gray-700" />
+                  {{ $t('general.duplicate') }}
+                </NcMenuItem>
 
-                  <NcDivider />
+                <NcDivider />
 
-                  <!-- ERD View -->
-                  <NcMenuItem key="erd" data-testid="nc-sidebar-base-relations" @click="openErdView(base?.sources?.[0]!)">
-                    <GeneralIcon icon="erd" />
-                    Relations
-                  </NcMenuItem>
-                </template>
+                <!-- ERD View -->
+                <NcMenuItem key="erd" data-testid="nc-sidebar-base-relations" @click="openErdView(base?.sources?.[0]!)">
+                  <GeneralIcon icon="erd" />
+                  Relations
+                </NcMenuItem>
 
                 <!-- Swagger: Rest APIs -->
                 <NcMenuItem

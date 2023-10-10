@@ -14,7 +14,6 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BasesService } from '~/services/bases.service';
 import { Base } from '~/models';
-import { generateUniqueName } from '~/helpers/exportImportHelpers';
 import { JobTypes } from '~/interface/Jobs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
@@ -62,16 +61,9 @@ export class DuplicateController extends DuplicateControllerCE {
       throw new Error(`Source not found!`);
     }
 
-    const bases = await Base.list({});
-
-    const uniqueTitle = generateUniqueName(
-      `${base.title} copy`,
-      bases.map((p) => p.title),
-    );
-
     const dupProject = await this.basesService.baseCreate({
       base: {
-        title: uniqueTitle,
+        title: base.title,
         status: ProjectStatus.JOB,
         ...({ ...body.base, fk_workspace_id: workspaceId } || {}),
       },

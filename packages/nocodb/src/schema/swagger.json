@@ -1686,7 +1686,7 @@
         ]
       }
     },
-    "/api/v1/meta/bases/{baseId}/users": {
+    "/api/v1/db/meta/bases/{baseId}/users": {
       "get": {
         "summary": "List Base Users",
         "operationId": "auth-base-user-list",
@@ -1897,7 +1897,7 @@
         ]
       }
     },
-    "/api/v1/meta/bases/{baseId}/info": {
+    "/api/v1/db/meta/bases/{baseId}/info": {
       "parameters": [
         {
           "schema": {
@@ -1996,7 +1996,7 @@
         ]
       }
     },
-    "/api/v1/meta/bases/{baseId}/users/{userId}": {
+    "/api/v1/db/meta/bases/{baseId}/users/{userId}": {
       "parameters": [
         {
           "schema": {
@@ -2128,7 +2128,7 @@
         ]
       }
     },
-    "/api/v1/meta/bases/{baseId}/visibility-rules": {
+    "/api/v1/db/meta/bases/{baseId}/visibility-rules": {
       "get": {
         "summary": "Get UI ACL",
         "operationId": "base-model-visibility-list",
@@ -2282,7 +2282,7 @@
         ]
       }
     },
-    "/api/v1/meta/bases/": {
+    "/api/v1/db/meta/bases/": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -2446,7 +2446,7 @@
         ]
       }
     },
-    "/api/v1/meta/duplicate/{baseId}/{sourceId}": {
+    "/api/v1/db/meta/duplicate/{baseId}/{sourceId}": {
       "post": {
         "summary": "Duplicate Base Source",
         "operationId": "base-source-duplicate",
@@ -2550,7 +2550,7 @@
         ]
       }
     },
-    "/api/v1/meta/duplicate/{baseId}": {
+    "/api/v1/db/meta/duplicate/{baseId}": {
       "post": {
         "summary": "Duplicate Base",
         "operationId": "base-duplicate",
@@ -2640,7 +2640,7 @@
         ]
       }
     },
-    "/api/v1/meta/bases/{baseId}": {
+    "/api/v1/db/meta/bases/{baseId}": {
       "parameters": [
         {
           "schema": {
@@ -2800,7 +2800,7 @@
         ]
       }
     },
-    "/api/v1/meta/bases/{baseId}/user": {
+    "/api/v1/db/meta/bases/{baseId}/user": {
       "parameters": [
         {
           "schema": {
@@ -2833,7 +2833,7 @@
         }
       }
     },
-    "/api/v1/meta/bases/{baseId}/sources/{sourceId}": {
+    "/api/v1/db/meta/bases/{baseId}/sources/{sourceId}": {
       "parameters": [
         {
           "schema": {
@@ -3012,7 +3012,7 @@
         ]
       }
     },
-    "/api/v1/meta/bases/:baseId/sources/:sourceId/sqlView": {
+    "/api/v1/db/meta/bases/:baseId/sources/:sourceId/sqlView": {
       "parameters": [
         {
           "schema": {
@@ -3069,7 +3069,7 @@
         }
       }
     },
-    "/api/v1/meta/bases/{baseId}/sources/": {
+    "/api/v1/db/meta/bases/{baseId}/sources/": {
       "parameters": [
         {
           "schema": {
@@ -3208,7 +3208,7 @@
         ]
       }
     },
-    "/api/v1/meta/bases/{baseId}/sources/{sourceId}/share/erd": {
+    "/api/v1/db/meta/bases/{baseId}/sources/{sourceId}/share/erd": {
       "parameters": [
         {
           "schema": {
@@ -3259,7 +3259,7 @@
         ]
       }
     },
-    "/api/v1/meta/bases/{baseId}/shared": {
+    "/api/v1/db/meta/bases/{baseId}/shared": {
       "parameters": [
         {
           "schema": {
@@ -3472,7 +3472,7 @@
         ]
       }
     },
-    "/api/v1/meta/bases/{baseId}/cost": {
+    "/api/v1/db/meta/bases/{baseId}/cost": {
       "parameters": [
         {
           "schema": {
@@ -3517,7 +3517,7 @@
         "x-internal": true
       }
     },
-    "/api/v1/meta/bases/{baseId}/tables": {
+    "/api/v1/db/meta/bases/{baseId}/tables": {
       "parameters": [
         {
           "schema": {
@@ -3976,7 +3976,7 @@
         "description": "List all tables in a given base"
       }
     },
-    "/api/v1/meta/tables/{tableId}": {
+    "/api/v1/db/meta/tables/{tableId}": {
       "parameters": [
         {
           "schema": {
@@ -4493,7 +4493,7 @@
         ]
       }
     },
-    "/api/v1/meta/duplicate/{baseId}/table/{tableId}": {
+    "/api/v1/db/meta/duplicate/{baseId}/table/{tableId}": {
       "post": {
         "summary": "Duplicate Table",
         "operationId": "db-table-duplicate",
@@ -4589,7 +4589,7 @@
         ]
       }
     },
-    "/api/v1/meta/bases/{baseId}/{sourceId}/tables": {
+    "/api/v1/db/meta/bases/{baseId}/{sourceId}/tables": {
       "parameters": [
         {
           "schema": {
@@ -5160,7 +5160,7 @@
         ]
       }
     },
-    "/api/v1/meta/tables/{tableId}/reorder": {
+    "/api/v1/db/meta/tables/{tableId}/reorder": {
       "parameters": [
         {
           "schema": {
@@ -5229,7 +5229,7 @@
         ]
       }
     },
-    "/api/v1/meta/tables/{tableId}/columns": {
+    "/api/v1/db/meta/tables/{tableId}/columns": {
       "parameters": [
         {
           "schema": {
@@ -5312,7 +5312,7 @@
         ]
       }
     },
-    "/api/v1/meta/columns/{columnId}": {
+    "/api/v1/db/meta/columns/{columnId}": {
       "parameters": [
         {
           "schema": {
@@ -5403,7 +5403,7 @@
         ]
       }
     },
-    "/api/v1/meta/columns/{columnId}/primary": {
+    "/api/v1/db/meta/columns/{columnId}/primary": {
       "parameters": [
         {
           "schema": {
@@ -5448,7 +5448,7 @@
         ]
       }
     },
-    "/api/v1/meta/tables/{tableId}/views": {
+    "/api/v1/db/meta/tables/{tableId}/views": {
       "parameters": [
         {
           "schema": {
@@ -5570,7 +5570,7 @@
         ]
       }
     },
-    "/api/v1/meta/views/{viewId}": {
+    "/api/v1/db/meta/views/{viewId}": {
       "parameters": [
         {
           "schema": {
@@ -5689,7 +5689,7 @@
         ]
       }
     },
-    "/api/v1/meta/views/{viewId}/show-all": {
+    "/api/v1/db/meta/views/{viewId}/show-all": {
       "parameters": [
         {
           "schema": {
@@ -5743,7 +5743,7 @@
         ]
       }
     },
-    "/api/v1/meta/views/{viewId}/hide-all": {
+    "/api/v1/db/meta/views/{viewId}/hide-all": {
       "parameters": [
         {
           "schema": {
@@ -5797,7 +5797,7 @@
         "description": "Hide All Columns in a given View"
       }
     },
-    "/api/v1/meta/tables/{tableId}/share": {
+    "/api/v1/db/meta/tables/{tableId}/share": {
       "parameters": [
         {
           "schema": {
@@ -5882,7 +5882,7 @@
         ]
       }
     },
-    "/api/v1/meta/views/{viewId}/share": {
+    "/api/v1/db/meta/views/{viewId}/share": {
       "parameters": [
         {
           "schema": {
@@ -6003,7 +6003,7 @@
         ]
       }
     },
-    "/api/v1/meta/views/{viewId}/columns": {
+    "/api/v1/db/meta/views/{viewId}/columns": {
       "parameters": [
         {
           "schema": {
@@ -6182,7 +6182,7 @@
         ]
       }
     },
-    "/api/v1/meta/views/{viewId}/columns/{columnId}": {
+    "/api/v1/db/meta/views/{viewId}/columns/{columnId}": {
       "parameters": [
         {
           "schema": {
@@ -6256,7 +6256,7 @@
         ]
       }
     },
-    "/api/v1/meta/views/{viewId}/sorts": {
+    "/api/v1/db/meta/views/{viewId}/sorts": {
       "parameters": [
         {
           "schema": {
@@ -6378,7 +6378,7 @@
         ]
       }
     },
-    "/api/v1/meta/sorts/{sortId}": {
+    "/api/v1/db/meta/sorts/{sortId}": {
       "parameters": [
         {
           "schema": {
@@ -6517,7 +6517,7 @@
         ]
       }
     },
-    "/api/v1/meta/views/{viewId}/filters": {
+    "/api/v1/db/meta/views/{viewId}/filters": {
       "parameters": [
         {
           "schema": {
@@ -6661,7 +6661,7 @@
         ]
       }
     },
-    "/api/v1/meta/hooks/{hookId}/filters": {
+    "/api/v1/db/meta/hooks/{hookId}/filters": {
       "parameters": [
         {
           "schema": {
@@ -6805,7 +6805,7 @@
         ]
       }
     },
-    "/api/v1/meta/hooks/{hookId}/logs": {
+    "/api/v1/db/meta/hooks/{hookId}/logs": {
       "parameters": [
         {
           "schema": {
@@ -6893,7 +6893,7 @@
         ]
       }
     },
-    "/api/v1/meta/filters/{filterId}": {
+    "/api/v1/db/meta/filters/{filterId}": {
       "parameters": [
         {
           "schema": {
@@ -7043,7 +7043,7 @@
         ]
       }
     },
-    "/api/v1/meta/filters/{filterGroupId}/children": {
+    "/api/v1/db/meta/filters/{filterGroupId}/children": {
       "parameters": [
         {
           "schema": {
@@ -7117,7 +7117,7 @@
         ]
       }
     },
-    "/api/v1/meta/tables/{tableId}/grids": {
+    "/api/v1/db/meta/tables/{tableId}/grids": {
       "parameters": [
         {
           "schema": {
@@ -7202,7 +7202,7 @@
         ]
       }
     },
-    "/api/v1/meta/tables/{tableId}/forms": {
+    "/api/v1/db/meta/tables/{tableId}/forms": {
       "parameters": [
         {
           "schema": {
@@ -7287,7 +7287,7 @@
         ]
       }
     },
-    "/api/v1/meta/forms/{formViewId}": {
+    "/api/v1/db/meta/forms/{formViewId}": {
       "parameters": [
         {
           "schema": {
@@ -7430,7 +7430,7 @@
         ]
       }
     },
-    "/api/v1/meta/form-columns/{formViewColumnId}": {
+    "/api/v1/db/meta/form-columns/{formViewColumnId}": {
       "parameters": [
         {
           "schema": {
@@ -7495,7 +7495,7 @@
         ]
       }
     },
-    "/api/v1/meta/grids/{viewId}": {
+    "/api/v1/db/meta/grids/{viewId}": {
       "parameters": [
         {
           "schema": {
@@ -7559,7 +7559,7 @@
         ]
       }
     },
-    "/api/v1/meta/grids/{gridId}/grid-columns": {
+    "/api/v1/db/meta/grids/{gridId}/grid-columns": {
       "parameters": [
         {
           "schema": {
@@ -7621,7 +7621,7 @@
         ]
       }
     },
-    "/api/v1/meta/grid-columns/{columnId}": {
+    "/api/v1/db/meta/grid-columns/{columnId}": {
       "parameters": [
         {
           "schema": {
@@ -7687,7 +7687,7 @@
         ]
       }
     },
-    "/api/v1/meta/tables/{tableId}/galleries": {
+    "/api/v1/db/meta/tables/{tableId}/galleries": {
       "parameters": [
         {
           "schema": {
@@ -7770,7 +7770,7 @@
         ]
       }
     },
-    "/api/v1/meta/galleries/{galleryViewId}": {
+    "/api/v1/db/meta/galleries/{galleryViewId}": {
       "parameters": [
         {
           "schema": {
@@ -7862,7 +7862,7 @@
         ]
       }
     },
-    "/api/v1/meta/tables/{tableId}/kanbans": {
+    "/api/v1/db/meta/tables/{tableId}/kanbans": {
       "parameters": [
         {
           "schema": {
@@ -7947,7 +7947,7 @@
         ]
       }
     },
-    "/api/v1/meta/kanbans/{kanbanViewId}": {
+    "/api/v1/db/meta/kanbans/{kanbanViewId}": {
       "parameters": [
         {
           "schema": {
@@ -8082,7 +8082,7 @@
         ]
       }
     },
-    "/api/v1/meta/tables/{tableId}/maps": {
+    "/api/v1/db/meta/tables/{tableId}/maps": {
       "parameters": [
         {
           "schema": {
@@ -8168,7 +8168,7 @@
         ]
       }
     },
-    "/api/v1/meta/maps/{mapViewId}": {
+    "/api/v1/db/meta/maps/{mapViewId}": {
       "parameters": [
         {
           "schema": {
@@ -8260,7 +8260,7 @@
         ]
       }
     },
-    "/api/v1/meta/bases/{baseId}/meta-diff": {
+    "/api/v1/db/meta/bases/{baseId}/meta-diff": {
       "parameters": [
         {
           "schema": {
@@ -8432,7 +8432,7 @@
         "description": "Get the meta data difference between NC_DB and external data sources "
       }
     },
-    "/api/v1/meta/bases/{baseId}/meta-diff/{sourceId}": {
+    "/api/v1/db/meta/bases/{baseId}/meta-diff/{sourceId}": {
       "parameters": [
         {
           "schema": {
@@ -8611,7 +8611,7 @@
         "description": "Get the meta data difference between NC_DB and external data sources in a given Source"
       }
     },
-    "/api/v1/meta/bases/{baseId}/has-empty-or-null-filters": {
+    "/api/v1/db/meta/bases/{baseId}/has-empty-or-null-filters": {
       "parameters": [
         {
           "schema": {
@@ -12632,7 +12632,7 @@
         "parameters": []
       }
     },
-    "/api/v1/meta/audits/comments": {
+    "/api/v1/db/meta/audits/comments": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -12814,7 +12814,7 @@
         ]
       }
     },
-    "/api/v1/meta/audits/{auditId}/comment": {
+    "/api/v1/db/meta/audits/{auditId}/comment": {
       "parameters": [
         {
           "schema": {
@@ -12879,7 +12879,7 @@
         }
       }
     },
-    "/api/v1/meta/audits/comments/count": {
+    "/api/v1/db/meta/audits/comments/count": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -12967,7 +12967,7 @@
         ]
       }
     },
-    "/api/v1/meta/bases/{baseId}/audits": {
+    "/api/v1/db/meta/bases/{baseId}/audits": {
       "parameters": [
         {
           "schema": {
@@ -13050,7 +13050,7 @@
         ]
       }
     },
-    "/api/v1/meta/audits/rows/{rowId}/update": {
+    "/api/v1/db/meta/audits/rows/{rowId}/update": {
       "parameters": [
         {
           "schema": {
@@ -13124,7 +13124,7 @@
         ]
       }
     },
-    "/api/v1/meta/tables/{tableId}/hooks": {
+    "/api/v1/db/meta/tables/{tableId}/hooks": {
       "parameters": [
         {
           "schema": {
@@ -13271,7 +13271,7 @@
         ]
       }
     },
-    "/api/v1/meta/tables/{tableId}/hooks/test": {
+    "/api/v1/db/meta/tables/{tableId}/hooks/test": {
       "parameters": [
         {
           "schema": {
@@ -13378,7 +13378,7 @@
         ]
       }
     },
-    "/api/v1/meta/tables/{tableId}/hooks/samplePayload/{operation}/{version}": {
+    "/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}/{version}": {
       "parameters": [
         {
           "schema": {
@@ -13472,7 +13472,7 @@
         ]
       }
     },
-    "/api/v1/meta/hooks/{hookId}": {
+    "/api/v1/db/meta/hooks/{hookId}": {
       "parameters": [
         {
           "schema": {
@@ -13596,7 +13596,7 @@
         ]
       }
     },
-    "/api/v1/meta/plugins": {
+    "/api/v1/db/meta/plugins": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -13644,7 +13644,7 @@
         ]
       }
     },
-    "/api/v1/meta/plugins/webhook": {
+    "/api/v1/db/meta/plugins/webhook": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -13692,7 +13692,7 @@
         ]
       }
     },
-    "/api/v1/meta/plugins/{pluginTitle}/status": {
+    "/api/v1/db/meta/plugins/{pluginTitle}/status": {
       "parameters": [
         {
           "schema": {
@@ -13734,7 +13734,7 @@
         "x-internal": false
       }
     },
-    "/api/v1/meta/plugins/test": {
+    "/api/v1/db/meta/plugins/test": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -13785,7 +13785,7 @@
         }
       }
     },
-    "/api/v1/meta/plugins/{pluginId}": {
+    "/api/v1/db/meta/plugins/{pluginId}": {
       "parameters": [
         {
           "schema": {
@@ -13858,7 +13858,7 @@
         "x-internal": false
       }
     },
-    "/api/v1/meta/connection/test": {
+    "/api/v1/db/meta/connection/test": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -13987,7 +13987,7 @@
         ]
       }
     },
-    "/api/v1/meta/connection/select": {
+    "/api/v1/db/meta/connection/select": {
       "parameters": [],
       "post": {
         "summary": "",
@@ -14142,7 +14142,7 @@
         ]
       }
     },
-    "/api/v1/meta/nocodb/info": {
+    "/api/v1/db/meta/nocodb/info": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -14294,7 +14294,7 @@
         ]
       }
     },
-    "/api/v1/meta/axiosRequestMake": {
+    "/api/v1/db/meta/axiosRequestMake": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -14695,7 +14695,7 @@
         ]
       }
     },
-    "/api/v1/meta/cache": {
+    "/api/v1/db/meta/cache": {
       "get": {
         "summary": "Get Cache",
         "tags": [
@@ -14749,7 +14749,7 @@
         }
       ]
     },
-    "/api/v1/meta/bases/{baseId}/api-tokens": {
+    "/api/v1/db/meta/bases/{baseId}/api-tokens": {
       "get": {
         "summary": "List API Tokens in Base",
         "tags": [
@@ -14868,7 +14868,7 @@
         }
       ]
     },
-    "/api/v1/meta/bases/{baseId}/api-tokens/{token}": {
+    "/api/v1/db/meta/bases/{baseId}/api-tokens/{token}": {
       "delete": {
         "summary": "Delete API Token",
         "operationId": "api-token-delete",
@@ -15012,7 +15012,7 @@
         "description": "Upload attachment by URL. Used in Airtable Migration."
       }
     },
-    "/api/v1/meta/bases/{baseId}/users/{userId}/resend-invite": {
+    "/api/v1/db/meta/bases/{baseId}/users/{userId}/resend-invite": {
       "parameters": [
         {
           "schema": {
@@ -15192,7 +15192,7 @@
         "description": "Mark all notifications as read"
       }
     },
-    "/api/v1/meta/tables/{tableId}/columns/hash": {
+    "/api/v1/db/meta/tables/{tableId}/columns/hash": {
       "parameters": [
         {
           "schema": {
@@ -15238,7 +15238,7 @@
         ]
       }
     },
-    "/api/v1/meta/tables/{tableId}/columns/bulk": {
+    "/api/v1/db/meta/tables/{tableId}/columns/bulk": {
       "parameters": [
         {
           "schema": {

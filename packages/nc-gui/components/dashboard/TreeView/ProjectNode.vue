@@ -514,7 +514,7 @@ const projectDelete = () => {
                     @click.stop="
                       () => {
                         $e('c:base:api-docs')
-                        openLink(`/api/v1/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)
+                        openLink(`/api/v1/db/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)
                       }
                     "
                   >

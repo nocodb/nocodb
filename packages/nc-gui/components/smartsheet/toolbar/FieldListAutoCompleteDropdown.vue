@@ -2,7 +2,7 @@
 import type { SelectProps } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { ActiveViewInj, MetaInj, computed, inject, ref, resolveComponent, useViewColumns } from '#imports'
+import { ActiveViewInj, MetaInj, computed, inject, ref, resolveComponent, useViewColumnsOrThrow } from '#imports'
 
 const { modelValue, isSort, allowEmpty, ...restProps } = defineProps<{
   modelValue?: string
@@ -24,7 +24,7 @@ const localValue = computed({
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { showSystemFields, metaColumnById } = useViewColumns(activeView, meta)
+const { showSystemFields, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
 
 const options = computed<SelectProps['options']>(() =>
   (

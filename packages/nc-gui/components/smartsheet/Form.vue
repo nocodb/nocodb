@@ -23,7 +23,7 @@ import {
   useI18n,
   useNuxtApp,
   useRoles,
-  useViewColumns,
+  useViewColumnsOrThrow,
   useViewData,
   watch,
 } from '#imports'
@@ -67,7 +67,7 @@ reloadEventHook.on(async () => {
   setFormData()
 })
 
-const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta, async () => reloadEventHook.trigger())
+const { showAll, hideAll, saveOrUpdate } = useViewColumnsOrThrow(view, meta)
 
 const { syncLTARRefs, row } = useProvideSmartsheetRowStore(
   meta,

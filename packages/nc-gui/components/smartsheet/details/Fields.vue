@@ -50,7 +50,7 @@ const {
   toggleFieldVisibility,
   loadViewColumns,
   isViewColumnsLoading,
-} = useViewColumns(view, meta as Ref<TableType | undefined>)
+} = useViewColumnsOrThrow(view, meta as Ref<TableType | undefined>)
 
 const loading = ref(false)
 

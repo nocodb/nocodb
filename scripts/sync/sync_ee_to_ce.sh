@@ -32,6 +32,8 @@ for commit_info in "${commit_data[@]}"; do
 
   git cherry-pick -X theirs "$commit_sha" --no-commit
 
+  git add .
+
   cat ../nocohub/scripts/sync/exclude-list.txt | sed 's/^/":/;s/$/"/' | tr '\n' ' ' | xargs git reset --
 
   git config user.name "$commit_author"

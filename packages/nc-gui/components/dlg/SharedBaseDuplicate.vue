@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { ProjectTypes } from 'nocodb-sdk'
-import { useApi, useVModel, useWorkspace } from '#imports'
+import { isEeUI, useApi, useVModel, useWorkspace } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
-  sharedBaseId: string
   onOk: (jobData: { name: string; id: string }) => Promise<void>
 }>()
 
 const emit = defineEmits(['update:modelValue'])
 
 const { api } = useApi()
+
+const { sharedBaseId } = useCopySharedBase()
 
 const { workspacesList } = storeToRefs(useWorkspace())
 
@@ -29,38 +30,26 @@ const optionsToExclude = computed(() => {
   }
 })
 
-onMounted(() => {
-  console.log(props.sharedBaseId)
-})
-
 const isLoading = ref(false)
 
 const selectedWorkspace = ref<string>()
 
 const _duplicate = async () => {
-  if (!selectedWorkspace.value) return
+  if (!selectedWorkspace.value && isEeUI) return
+
   try {
     isLoading.value = true
-    // pick a random color from array and assign to base
-    // const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
-    // const tcolor = tinycolor(color)
-
-    //  const complement = tcolor.complement()
-
-    const jobData = await api.base.duplicateShared(selectedWorkspace.value, props.sharedBaseId, {
+    const jobData = await api.base.duplicateShared(selectedWorkspace.value ?? 'nc', sharedBaseId.value, {
       options: optionsToExclude.value,
-      base: {
-        fk_workspace_id: selectedWorkspace.value,
-        type: ProjectTypes.DATABASE,
-        /* color,
-        meta: JSON.stringify({
-          theme: {
-            primaryColor: color,
-            accentColor: complement.toHex8String(),
-          },
-        }), */
-      },
+      base: isEeUI
+        ? {
+            fk_workspace_id: selectedWorkspace.value,
+            type: ProjectTypes.DATABASE,
+          }
+        : {},
     })
+
+    sharedBaseId.value = null
 
     props.onOk({ ...jobData, workspace_id: selectedWorkspace.value } as any)
   } catch (e: any) {
@@ -76,15 +65,16 @@ const _duplicate = async () => {
   <GeneralModal v-model:visible="dialogShow" class="!w-[30rem]" wrap-class-name="nc-modal-project-duplicate">
     <div>
       <div class="prose-xl font-bold self-center">{{ $t('general.duplicate') }} {{ $t('labels.sharedBase') }}</div>
+      <template v-if="isEeUI">
+        <div class="my-4">Select workspace to duplicate shared base to:</div>
 
-      <div class="my-4">Select workspace to duplicate shared base to:</div>
-
-      <NcSelect
-        v-model:value="selectedWorkspace"
-        class="w-full"
-        :options="workspacesList.map((w) => ({ label: w.title, value: w.id }))"
-        placeholder="Select Workspace"
-      />
+        <NcSelect
+          v-model:value="selectedWorkspace"
+          class="w-full"
+          :options="workspacesList.map((w) => ({ label: w.title, value: w.id }))"
+          placeholder="Select Workspace"
+        />
+      </template>
 
       <div class="prose-md self-center text-gray-500 mt-4">{{ $t('title.advancedSettings') }}</div>
 
@@ -97,7 +87,12 @@ const _duplicate = async () => {
     </div>
     <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
       <NcButton key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
-      <NcButton key="submit" v-e="['a:base:duplicate']" :loading="isLoading" :disabled="!selectedWorkspace" @click="_duplicate"
+      <NcButton
+        key="submit"
+        v-e="['a:shared-base:duplicate']"
+        :loading="isLoading"
+        :disabled="!selectedWorkspace && isEeUI"
+        @click="_duplicate"
         >{{ $t('general.confirm') }}
       </NcButton>
     </div>

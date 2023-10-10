@@ -36,6 +36,7 @@ const permissionScopes = {
     'commandPalette',
     'testConnection',
     'genericGPT',
+    'duplicateSharedBase',
 
     // Cache
     'cacheGet',
@@ -245,6 +246,7 @@ const rolePermissions:
       uploadViaURL: true,
       isPluginActive: true,
       baseCreate: true,
+      duplicateSharedBase: true,
     },
   },
 };

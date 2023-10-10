@@ -414,7 +414,8 @@ const closeAddColumnDropdown = (scrollToLastCol = false) => {
   preloadColumn.value = {}
   if (scrollToLastCol) {
     setTimeout(() => {
-      const lastAddNewRowHeader = tableHeadEl.value?.querySelector('th:last-child')
+      const lastAddNewRowHeader =
+        tableHeadEl.value?.querySelector('.nc-grid-add-edit-column') ?? tableHeadEl.value?.querySelector('th:last-child')
       if (lastAddNewRowHeader) {
         lastAddNewRowHeader.scrollIntoView({ behavior: 'smooth' })
       }

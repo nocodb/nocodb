@@ -71,7 +71,7 @@ const copySharedBase = async () => {
     </NcButton>
   </div>
 
-  <template v-else-if="isSharedBase && isEeUI">
+  <template v-else-if="isSharedBase">
     <div class="flex-1"></div>
     <div class="flex flex-col justify-center h-full">
       <div class="flex flex-row items-center w-full">

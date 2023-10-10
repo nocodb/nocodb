@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isDrawerOrModalExist, isEeUI, isMac, useNuxtApp, useRoles } from '#imports'
+import { isDrawerOrModalExist, isMac, useNuxtApp, useRoles } from '#imports'
 
 interface Props {
   disabled?: boolean
@@ -13,6 +13,7 @@ const { isMobileMode, getMainUrl } = useGlobal()
 const { visibility, showShareModal } = storeToRefs(useShare())
 
 const { activeTable } = storeToRefs(useTablesStore())
+
 const { base, isSharedBase } = storeToRefs(useBase())
 
 const { $e } = useNuxtApp()

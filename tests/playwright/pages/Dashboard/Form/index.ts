@@ -164,7 +164,7 @@ export class FormPage extends BasePage {
         await this.formHeading.fill(param.title);
         await this.formSubHeading.click();
       },
-      requestUrlPathToMatch: 'api/v1/meta/forms',
+      requestUrlPathToMatch: '/api/v1/db/meta/forms',
       httpMethodsToMatch: ['PATCH'],
     });
     await this.waitForResponse({
@@ -173,7 +173,7 @@ export class FormPage extends BasePage {
         await this.formSubHeading.fill(param.subtitle);
         await this.formHeading.click();
       },
-      requestUrlPathToMatch: 'api/v1/meta/forms',
+      requestUrlPathToMatch: '/api/v1/db/meta/forms',
       httpMethodsToMatch: ['PATCH'],
     });
   }
@@ -208,7 +208,7 @@ export class FormPage extends BasePage {
     const waitForResponse = async (action: () => Promise<any>) =>
       await this.waitForResponse({
         uiAction: action,
-        requestUrlPathToMatch: 'api/v1/meta/form-columns',
+        requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
         httpMethodsToMatch: ['PATCH'],
       });
 
@@ -272,7 +272,7 @@ export class FormPage extends BasePage {
         await this.afterSubmitMsg.click();
         await this.afterSubmitMsg.fill(param.message);
       },
-      requestUrlPathToMatch: 'api/v1/meta/forms',
+      requestUrlPathToMatch: '/api/v1/db/meta/forms',
       httpMethodsToMatch: ['PATCH'],
     });
   }

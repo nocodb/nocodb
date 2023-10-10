@@ -59,7 +59,7 @@ function attachmentTestsEE() {
 
     // invite user to base with editor role
     await request(context.app)
-      .post(`/api/v1/meta/bases/${newProject.id}/users`)
+      .post(`//api/v1/db/meta/bases/${newProject.id}/users`)
       .set('xc-auth', context.token)
       .send({
         roles: ProjectRoles.EDITOR,

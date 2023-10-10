@@ -337,7 +337,7 @@ export class ColumnPageObject extends BasePage {
 
     await this.waitForResponse({
       uiAction: async () => await this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click(),
-      requestUrlPathToMatch: 'api/v1/meta/views',
+      requestUrlPathToMatch: '/api/v1/db/meta/views',
       httpMethodsToMatch: ['PATCH'],
     });
 

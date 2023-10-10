@@ -85,6 +85,6 @@ export class DuplicateController extends DuplicateControllerCE {
       },
     });
 
-    return { id: job.id, base_id: dupProject.id };
+    return { id: job.id, base_id: dupProject.id, fk_workspace_id: workspaceId };
   }
 }

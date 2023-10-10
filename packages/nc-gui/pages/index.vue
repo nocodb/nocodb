@@ -16,7 +16,7 @@ const basesStore = useBases()
 
 const { populateWorkspace } = useWorkspace()
 
-const { signedIn, ncNavigateTo } = useGlobal()
+const { signedIn } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
@@ -121,40 +121,6 @@ function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: str
 }
 
 provide(ToggleDialogInj, toggleDialog)
-
-const { $e, $poller } = useNuxtApp()
-
-const DlgSharedBaseDuplicateOnOk = async (jobData: { id: string; base_id: string; workspace_id: string }) => {
-  await populateWorkspace()
-
-  $poller.subscribe(
-    { id: jobData.id },
-    async (data: {
-      id: string
-      status?: string
-      data?: {
-        error?: {
-          message: string
-        }
-        message?: string
-        result?: any
-      }
-    }) => {
-      if (data.status !== 'close') {
-        if (data.status === JobStatus.COMPLETED) {
-          await ncNavigateTo({
-            baseId: jobData.base_id,
-          })
-        } else if (data.status === JobStatus.FAILED) {
-          message.error('Failed to duplicate shared base')
-          await populateWorkspace()
-        }
-      }
-    },
-  )
-
-  $e('a:base:duplicate-shared-base')
-}
 </script>
 
 <template>
@@ -179,12 +145,7 @@ const DlgSharedBaseDuplicateOnOk = async (jobData: { id: string; base_id: string
       v-model:data-sources-state="dataSourcesState"
       :base-id="baseId"
     />
-    <DlgSharedBaseDuplicate
-      v-if="isUIAllowed('baseDuplicate')"
-      v-model="isDuplicateDlgOpen"
-      :shared-base-id="sharedBaseId"
-      :on-ok="DlgSharedBaseDuplicateOnOk"
-    />
+    <DlgSharedBaseDuplicate v-if="isUIAllowed('baseDuplicate')" v-model="isDuplicateDlgOpen" />
   </div>
 </template>
 

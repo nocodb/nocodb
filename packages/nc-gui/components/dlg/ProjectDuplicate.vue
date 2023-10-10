@@ -67,8 +67,6 @@ const _duplicate = async () => {
       },
     })
 
-    await loadProjects('workspace')
-
     $poller.subscribe(
       { id: jobData.id },
       async (data: {

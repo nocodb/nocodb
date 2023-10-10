@@ -8,8 +8,8 @@
 
 NC_REQ_NODE_V="18.17.1"
 NC_REQ_PNPM_V="8.8.0"
-
-NODE_PATH="/home/docker/actions-runner/_work/_tool/node/${NC_REQ_NODE_V}/x64/bin/node"
+G_HOME=${1:-/home/docker}
+NODE_PATH="${G_HOME}/actions-runner/_work/_tool/node/${NC_REQ_NODE_V}/x64/bin/node"
 PNPM_PATH="/root/setup-pnpm/node_modules/.bin/pnpm"
 
 NC_NODE_V=$($NODE_PATH -v || echo "error")

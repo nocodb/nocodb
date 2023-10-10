@@ -74,14 +74,19 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
       resolveTokenGenerationProgress = resolve
     })
 
+    const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
+
     if (state.token.value) {
       resolveTokenGenerationProgress(true)
       tokenGenerationProgress = null
+      if (!skipRedirect && continueAfterSignIn) {
+        localStorage.removeItem('continueAfterSignIn')
+        navigateTo(continueAfterSignIn)
+      }
       return
     }
 
     try {
-      const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
       const cognitoUserSession = await Auth.currentSession()
       const idToken = cognitoUserSession.getIdToken()
       const jwt = idToken.getJwtToken()

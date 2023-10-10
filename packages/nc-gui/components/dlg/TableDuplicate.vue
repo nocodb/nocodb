@@ -7,7 +7,6 @@ import type { TabType } from '#imports'
 const props = defineProps<{
   modelValue: boolean
   table: TableType
-  onOk: (jobData: { name: string; id: string }) => Promise<void>
 }>()
 
 const emit = defineEmits(['update:modelValue'])

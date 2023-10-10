@@ -136,9 +136,11 @@ const isEaster = ref(false)
       <a-divider class="!m-0 !p-0 !my-2" />
 
       <div class="text-xs p-2">
-        <a-checkbox v-model:checked="options.includeData">{{ $t('labels.includeData') }}</a-checkbox>
-        <a-checkbox v-model:checked="options.includeViews">{{ $t('labels.includeView') }}</a-checkbox>
-        <a-checkbox v-show="isEaster" v-model:checked="options.includeHooks">{{ $t('labels.includeWebhook') }}</a-checkbox>
+        <a-checkbox v-model:checked="options.includeData" :disabled="isLoading">{{ $t('labels.includeData') }}</a-checkbox>
+        <a-checkbox v-model:checked="options.includeViews" :disabled="isLoading">{{ $t('labels.includeView') }}</a-checkbox>
+        <a-checkbox v-show="isEaster" v-model:checked="options.includeHooks" :disabled="isLoading">
+          {{ $t('labels.includeWebhook') }}
+        </a-checkbox>
       </div>
     </div>
     <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">

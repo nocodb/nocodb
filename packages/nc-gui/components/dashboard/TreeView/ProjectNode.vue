@@ -477,7 +477,7 @@ const projectDelete = () => {
           </span>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(base)"></div>
 
-          <NcDropdown v-model:visible="isOptionsOpen" :trigger="['click']">
+          <NcDropdown v-if="!isSharedBase" v-model:visible="isOptionsOpen" :trigger="['click']">
             <NcButton
               v-e="['c:base:options']"
               class="nc-sidebar-node-btn"

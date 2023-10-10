@@ -28,6 +28,7 @@ import {
   createHmAndBtColumn,
   generateFkName,
   randomID,
+  sanitizeColumnName,
   validateLookupPayload,
   validatePayload,
   validateRequiredField,
@@ -80,11 +81,6 @@ async function reuseOrSave(
   return res;
 }
 
-const nc_sanitizeName = (name) => {
-  // replace all special characters by _
-  return name.replace(/\W+/g, '_').trim();
-};
-
 @Injectable()
 export class ColumnsService {
   constructor(
@@ -123,6 +119,26 @@ export class ColumnsService {
 
     const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
+    if (!isVirtualCol(param.column)) {
+      param.column.column_name = sanitizeColumnName(param.column.column_name);
+    }
+
+    if (param.column.column_name.length > mxColumnLength) {
+      let colName = param.column.column_name.slice(0, mxColumnLength - 5);
+      let suffix = 1;
+      while (
+        !(await Column.checkTitleAvailable({
+          column_name: colName,
+          fk_model_id: column.fk_model_id,
+          exclude_id: param.columnId,
+        }))
+      ) {
+        colName = param.column.column_name.slice(0, mxColumnLength - 5);
+        colName += `_${suffix++}`;
+      }
+      param.column.column_name = colName;
+    }
+
     if (
       !isVirtualCol(param.column) &&
       param.column.column_name.length > mxColumnLength
@@ -132,8 +148,10 @@ export class ColumnsService {
       );
     }
 
-    if (!isVirtualCol(param.column)) {
-      param.column.column_name = nc_sanitizeName(param.column.column_name);
+    if (param.column.title && param.column.title.length > 255) {
+      NcError.badRequest(
+        `Column title ${param.column.title} exceeds 255 characters`,
+      );
     }
 
     if (
@@ -1043,19 +1061,36 @@ export class ColumnsService {
 
       const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
-      if (
-        (param.column.title || param.column.column_name).length > mxColumnLength
-      ) {
+      if (!isVirtualCol(param.column)) {
+        param.column.column_name = sanitizeColumnName(param.column.column_name);
+      }
+
+      if (param.column.column_name.length > mxColumnLength) {
+        let colName = param.column.column_name.slice(0, mxColumnLength - 5);
+        let suffix = 1;
+        while (
+          !(await Column.checkTitleAvailable({
+            column_name: colName,
+            fk_model_id: param.tableId,
+          }))
+        ) {
+          colName = param.column.column_name.slice(0, mxColumnLength - 5);
+          colName += `_${suffix++}`;
+        }
+        param.column.column_name = colName;
+      }
+
+      if (param.column.column_name.length > mxColumnLength) {
         NcError.badRequest(
-          `Column name ${
-            param.column.title || param.column.column_name
-          } exceeds ${mxColumnLength} characters`,
+          `Column name ${param.column.column_name} exceeds ${mxColumnLength} characters`,
         );
       }
-    }
 
-    if (!isVirtualCol(param.column)) {
-      param.column.column_name = nc_sanitizeName(param.column.column_name);
+      if (param.column.title && param.column.title.length > 255) {
+        NcError.badRequest(
+          `Column title ${param.column.title} exceeds 255 characters`,
+        );
+      }
     }
 
     if (

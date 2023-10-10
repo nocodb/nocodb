@@ -98,13 +98,15 @@ export const fieldRequiredValidator = () => {
   }
 }
 
-export const fieldLengthValidator = (sqlClientType: string) => {
+export const fieldLengthValidator = (_sqlClientType: string) => {
   return {
     validator: (rule: any, value: any) => {
       const { t } = getI18n().global
 
-      // no limit for sqlite but set as 255
-      let fieldLengthLimit = 255
+      const fieldLengthLimit = 255
+
+      /*
+      Now we allow 255 for all databases, truncate will be handled by backend for column_name
 
       if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
         fieldLengthLimit = 64
@@ -113,6 +115,7 @@ export const fieldLengthValidator = (sqlClientType: string) => {
       } else if (sqlClientType === 'mssql') {
         fieldLengthLimit = 128
       }
+      */
 
       return new Promise((resolve, reject) => {
         if (value?.length > fieldLengthLimit) {

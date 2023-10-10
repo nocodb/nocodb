@@ -9,7 +9,7 @@ const { forcedProjectId } = storeToRefs(useBase())
 
 onMounted(() => {
   sharedBaseId.value = route.query.base as string
-  forcedProjectId.value = undefined
+  if (forcedProjectId?.value) forcedProjectId.value = undefined
   navigateTo(`/`)
 })
 </script>

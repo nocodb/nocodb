@@ -143,7 +143,7 @@ onMounted(async () => {
     if (continueAfterSignIn) {
       return await navigateTo({
         path: continueAfterSignIn,
-        query: route.query,
+        query: route.value.query,
       })
     }
   }
@@ -184,7 +184,7 @@ const DlgSharedBaseDuplicateOnOk = async (jobData: { id: string; base_id: string
             baseId: jobData.base_id,
           })
         } else if (data.status === JobStatus.FAILED) {
-          message.error('Failed to duplicate project')
+          message.error('Failed to duplicate shared base')
           await populateWorkspace()
         }
       }

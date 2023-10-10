@@ -28,8 +28,6 @@ export class DuplicateController extends DuplicateControllerCE {
     super(jobsService, basesService);
   }
 
-  // const project = await Project.getByUuid(sharedBaseId);
-
   @Post([
     '/api/v1/db/meta/duplicate/:workspaceId/shared/:sharedBaseId',
     '/api/v1/meta/duplicate/:workspaceId/shared/:sharedBaseId',
@@ -38,8 +36,9 @@ export class DuplicateController extends DuplicateControllerCE {
   @Acl('duplicateSharedBase', {
     scope: 'workspace',
   })
-  async duplicateSharedBase(
+  public async duplicateSharedBase(
     @Request() req,
+    @Param('workspaceId') workspaceId: string,
     @Param('sharedBaseId') sharedBaseId: string,
     @Body()
     body?: {
@@ -74,7 +73,7 @@ export class DuplicateController extends DuplicateControllerCE {
       base: {
         title: uniqueTitle,
         status: ProjectStatus.JOB,
-        ...(body.base || {}),
+        ...({ ...body.base, fk_workspace_id: workspaceId } || {}),
       },
       user: { id: req.user.id },
     });

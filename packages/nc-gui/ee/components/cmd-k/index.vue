@@ -332,7 +332,7 @@ defineExpose({
               <template #title>
                 {{ el.label }}
               </template>
-              <span class="max-w-28 truncate capitalize">
+              <span class="truncate capitalize mr-4">
                 {{ el.label }}
               </span>
             </a-tooltip>
@@ -390,7 +390,7 @@ defineExpose({
                       <template #title>
                         {{ act.title }}
                       </template>
-                      <span class="max-w-28 truncate capitalize">
+                      <span class="truncate capitalize mr-4">
                         {{ act.title }}
                       </span>
                     </a-tooltip>

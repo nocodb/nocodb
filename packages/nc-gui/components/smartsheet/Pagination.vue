@@ -72,7 +72,12 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
       isGroupBy ? 'margin-top:1px; border-radius: 0 0 12px 12px !important;' : ''
     }${extraStyle}`"
   >
-    <div class="flex-1 flex items-center">
+    <div
+      class="flex items-center"
+      :class="{
+        'flex-1': !alignLeft,
+      }"
+    >
       <slot name="add-record" />
       <span
         v-if="!alignCountOnRight && count !== null && count !== Infinity"
@@ -87,8 +92,8 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
       v-if="!hidePagination"
       class="transition-all duration-350"
       :class="{
-        '-ml-17': isLeftSidebarOpen,
-        '!absolute top-1 !left-65': alignLeft,
+        '-ml-17': isLeftSidebarOpen && !alignLeft,
+        'ml-8': alignLeft,
       }"
     >
       <div v-if="isPaginationLoading" class="flex flex-row justify-center item-center min-h-10 min-w-42">

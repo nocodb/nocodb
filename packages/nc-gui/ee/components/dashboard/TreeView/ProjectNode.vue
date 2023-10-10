@@ -535,7 +535,7 @@ const duplicateProject = (base: BaseType) => {
                   v-e="['e:api-docs']"
                   class="group"
                   data-testid="nc-sidebar-base-rest-apis"
-                  @click.stop="openLink(`/api/v1/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)"
+                  @click.stop="openLink(`/api/v1/db/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)"
                 >
                   <GeneralIcon icon="snippet" class="group-hover:text-black !max-w-3.9" />
                   {{ $t('labels.restApis') }}

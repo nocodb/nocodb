@@ -17,6 +17,7 @@ import { importData, importLTARData } from './helpers/readAndProcessData';
 import EntityMap from './helpers/EntityMap';
 import type { UserType } from 'nocodb-sdk';
 import type { Base } from '~/models';
+import { sanitizeColumnName } from '~/helpers';
 import { AttachmentsService } from '~/services/attachments.service';
 import { ColumnsService } from '~/services/columns.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
@@ -306,13 +307,8 @@ export class AtImportProcessor {
     // aTbl helper routines
     //
 
-    const nc_sanitizeName = (name) => {
-      // replace all special characters by _
-      return name.replace(/\W+/g, '_').trim();
-    };
-
     const nc_getSanitizedColumnName = (table, name) => {
-      let col_name = nc_sanitizeName(name);
+      let col_name = sanitizeColumnName(name);
 
       // truncate to 50 chars if character if exceeds above 50
       col_name = col_name?.slice(0, 50);
@@ -548,7 +544,7 @@ export class AtImportProcessor {
 
         // Enable to use aTbl identifiers as is: table.id = tblSchema[i].id;
         table.title = tblSchema[i].name;
-        let sanitizedName = nc_sanitizeName(tblSchema[i].name);
+        let sanitizedName = sanitizeColumnName(tblSchema[i].name);
 
         // truncate to 50 chars if character if exceeds above 50
         // upto 64 should be fine but we are keeping it to 50 since

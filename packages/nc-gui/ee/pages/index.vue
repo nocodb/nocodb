@@ -32,7 +32,7 @@ provide(ToggleDialogInj, toggleDialog)
 
 const workspaceStore = useWorkspace()
 const { populateWorkspace } = workspaceStore
-const { collaborators, lastPopulatedWorkspaceId } = storeToRefs(workspaceStore)
+const { collaborators, lastPopulatedWorkspaceId, activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
 
@@ -79,7 +79,7 @@ const autoNavigateToProject = async ({ initial = false }: { initial: boolean }) 
 }
 
 watch(
-  () => workspaceStore.activeWorkspaceId,
+  activeWorkspaceId,
   async (newId, oldId) => {
     if (newId === 'nc') {
       workspaceStore.setLoadingState(false)

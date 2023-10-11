@@ -22,7 +22,6 @@ export class BulkDataAliasController {
 
   @Post([
     '/api/v1/db/data/bulk/:orgs/:baseName/:tableName',
-    '/api/v1/data/bulk/:orgs/:baseName/:tableName',
   ])
   @HttpCode(200)
   @Acl('bulkDataInsert')
@@ -45,7 +44,6 @@ export class BulkDataAliasController {
 
   @Patch([
     '/api/v1/db/data/bulk/:orgs/:baseName/:tableName',
-    '/api/v1/data/bulk/:orgs/:baseName/:tableName',
   ])
   @Acl('bulkDataUpdate')
   async bulkDataUpdate(
@@ -65,7 +63,6 @@ export class BulkDataAliasController {
   // todo: Integrate with filterArrJson bulkDataUpdateAll
   @Patch([
     '/api/v1/db/data/bulk/:orgs/:baseName/:tableName/all',
-    '/api/v1/data/bulk/:orgs/:baseName/:tableName/all',
   ])
   @Acl('bulkDataUpdateAll')
   async bulkDataUpdateAll(
@@ -85,7 +82,6 @@ export class BulkDataAliasController {
 
   @Delete([
     '/api/v1/db/data/bulk/:orgs/:baseName/:tableName',
-    '/api/v1/data/bulk/:orgs/:baseName/:tableName',
   ])
   @Acl('bulkDataDelete')
   async bulkDataDelete(
@@ -106,7 +102,6 @@ export class BulkDataAliasController {
 
   @Delete([
     '/api/v1/db/data/bulk/:orgs/:baseName/:tableName/all',
-    '/api/v1/data/bulk/:orgs/:baseName/:tableName/all',
   ])
   @Acl('bulkDataDeleteAll')
   async bulkDataDeleteAll(

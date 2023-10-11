@@ -84,7 +84,7 @@ const selectedLangName = ref(langs[0].name)
 const apiUrl = computed(
   () =>
     new URL(
-      `/api/v1/data/noco/${base.value?.id}/${meta.value?.title}/views/${view.value?.title}`,
+      `/api/v1/db/data/noco/${base.value?.id}/${meta.value?.title}/views/${view.value?.title}`,
       (appInfo.value && appInfo.value.ncSiteUrl) || '/',
     ).href,
 )

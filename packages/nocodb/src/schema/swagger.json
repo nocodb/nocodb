@@ -8653,7 +8653,7 @@
         "x-internal": true
       }
     },
-    "/api/v1/data/{orgs}/{baseName}/{tableName}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}": {
       "parameters": [
         {
           "schema": {
@@ -8907,7 +8907,7 @@
         ]
       }
     },
-    "/api/v1/data/{orgs}/{baseName}/{tableName}/find-one": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/find-one": {
       "parameters": [
         {
           "schema": {
@@ -8997,7 +8997,7 @@
         }
       }
     },
-    "/api/v1/data/{orgs}/{baseName}/{tableName}/groupby": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/groupby": {
       "parameters": [
         {
           "schema": {
@@ -9089,7 +9089,7 @@
         }
       }
     },
-    "/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}/group/{columnId}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/group/{columnId}": {
       "parameters": [
         {
           "schema": {
@@ -9267,7 +9267,7 @@
         }
       }
     },
-    "/api/v1/data/{orgs}/{baseName}/{tableName}/group/{columnId}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/group/{columnId}": {
       "parameters": [
         {
           "schema": {
@@ -9435,7 +9435,7 @@
         }
       }
     },
-    "/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}": {
       "parameters": [
         {
           "schema": {
@@ -9669,7 +9669,7 @@
         "description": "Create a new row in the given Table View"
       }
     },
-    "/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}/find-one": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/find-one": {
       "parameters": [
         {
           "schema": {
@@ -9773,7 +9773,7 @@
         }
       }
     },
-    "/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}/groupby": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/groupby": {
       "parameters": [
         {
           "schema": {
@@ -9876,7 +9876,7 @@
         }
       }
     },
-    "/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}/count": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/count": {
       "parameters": [
         {
           "schema": {
@@ -9970,7 +9970,7 @@
         }
       }
     },
-    "/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}": {
       "parameters": [
         {
           "schema": {
@@ -10146,7 +10146,7 @@
         ]
       }
     },
-    "/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}/exist": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}/exist": {
       "parameters": [
         {
           "schema": {
@@ -10227,7 +10227,7 @@
         ]
       }
     },
-    "/api/v1/data/{orgs}/{baseName}/{tableName}/{rowId}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}": {
       "parameters": [
         {
           "schema": {
@@ -10402,7 +10402,7 @@
         ]
       }
     },
-    "/api/v1/data/{orgs}/{baseName}/{tableName}/{rowId}/exist": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/exist": {
       "parameters": [
         {
           "schema": {
@@ -10475,7 +10475,7 @@
         ]
       }
     },
-    "/api/v1/data/bulk/{orgs}/{baseName}/{tableName}": {
+    "/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}": {
       "parameters": [
         {
           "schema": {
@@ -10733,7 +10733,7 @@
         ]
       }
     },
-    "/api/v1/data/bulk/{orgs}/{baseName}/{tableName}/all": {
+    "/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}/all": {
       "parameters": [
         {
           "schema": {
@@ -10890,7 +10890,7 @@
         ]
       }
     },
-    "/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}/export/{type}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/export/{type}": {
       "parameters": [
         {
           "schema": {
@@ -10976,7 +10976,7 @@
         ]
       }
     },
-    "/api/v1/data/{orgs}/{baseName}/{tableName}/export/{type}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/export/{type}": {
       "parameters": [
         {
           "schema": {
@@ -11054,7 +11054,7 @@
         ]
       }
     },
-    "/api/v1/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}": {
       "parameters": [
         {
           "schema": {
@@ -11166,7 +11166,7 @@
         "description": "List all nested relations rows"
       }
     },
-    "/api/v1/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}": {
       "parameters": [
         {
           "schema": {
@@ -11391,7 +11391,7 @@
         ]
       }
     },
-    "/api/v1/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude": {
       "parameters": [
         {
           "schema": {

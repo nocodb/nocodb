@@ -49,7 +49,12 @@ export class UtilsController {
   }
 
   @UseGuards(PublicApiLimiterGuard)
-  @Get(['/api/v1/db/meta/nocodb/info', '/api/v2/meta/nocodb/info'])
+  @Get([
+    '/api/v1/db/meta/nocodb/info',
+    '/api/v2/meta/nocodb/info',
+    // todo: remove this once we added the health api
+    '/api/v1/meta/nocodb/info',
+  ])
   async appInfo(@Request() req) {
     return await this.utilsService.appInfo({
       req: {

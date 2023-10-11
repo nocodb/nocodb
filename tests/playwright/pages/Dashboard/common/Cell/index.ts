@@ -90,7 +90,7 @@ export class CellPageObject extends BasePage {
     // await this.get({ index, columnHeader }).hover();
     await this.waitForResponse({
       uiAction: () => this.get({ index, columnHeader }).locator('.nc-datatype-link').click(),
-      requestUrlPathToMatch: '/api/v1/data/noco/',
+      requestUrlPathToMatch: '/api/v1/db/data/noco',
       httpMethodsToMatch: ['GET'],
     });
   }
@@ -371,7 +371,7 @@ export class CellPageObject extends BasePage {
       await this.waitForResponse({
         uiAction: () =>
           this.rootPage.locator(`[data-testid="nc-child-list-item"]`).last().click({ force: true, timeout: 3000 }),
-        requestUrlPathToMatch: '/api/v1/data/noco/',
+        requestUrlPathToMatch: '/api/v1/db/data/noco',
         httpMethodsToMatch: ['GET'],
       });
 

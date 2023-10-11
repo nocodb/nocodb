@@ -21,8 +21,8 @@ export class TablesController extends TablesControllerCE {
   }
 
   @Post([
-    '/api/v1/db/meta/bases/:baseId/:sourceId/tables/magic',
-    '/api/v1/meta/bases/:baseId/:sourceId/tables/magic',
+    '/api/v1/db/meta/projects/:baseId/:sourceId/tables/magic',
+    '/api/v2/meta/bases/:baseId/:sourceId/tables/magic',
   ])
   @Acl('tableCreateMagic')
   async tableCreateMagic(
@@ -41,8 +41,8 @@ export class TablesController extends TablesControllerCE {
   }
 
   @Post([
-    '/api/v1/db/meta/bases/:baseId/:sourceId/schema/magic',
-    '/api/v1/meta/bases/:baseId/:sourceId/schema/magic',
+    '/api/v1/db/meta/projects/:baseId/:sourceId/schema/magic',
+    '/api/v2/meta/bases/:baseId/:sourceId/schema/magic',
   ])
   @Acl('schemaMagic')
   async schemaMagic(

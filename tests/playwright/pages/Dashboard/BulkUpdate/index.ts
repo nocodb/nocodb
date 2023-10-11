@@ -181,7 +181,7 @@ export class BulkUpdatePage extends BasePage {
     } else {
       await this.waitForResponse({
         uiAction: saveRowAction,
-        requestUrlPathToMatch: 'api/v1/data/noco/',
+        requestUrlPathToMatch: 'api/v1/db/data/noco/',
         httpMethodsToMatch: ['GET'],
         responseJsonMatcher: json => json['pageInfo'],
       });

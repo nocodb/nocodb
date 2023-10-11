@@ -34,7 +34,7 @@ function groupByTests() {
 
     const columns = (
       await request(context.app)
-        .get(`/api/v1/meta/views/${filmView.id}/columns`)
+        .get(`/api/v1/db/meta/views/${filmView.id}/columns`)
         .set('xc-auth', context.token)
         .expect(200)
     ).body.list;
@@ -45,7 +45,7 @@ function groupByTests() {
   it('Check One GroupBy Column Ascending', async function () {
     const lengthColumn = filmColumns.find((c) => c.column_name === 'length');
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: lengthColumn.column_name,
@@ -65,7 +65,7 @@ function groupByTests() {
     );
     const filterCondition = '(Length,eq,46)';
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: rentalDurationColumn.column_name,
@@ -84,7 +84,7 @@ function groupByTests() {
     const titleColumn = filmColumns.find((c) => c.column_name === 'title');
     const filterCondition = '(Length,eq,46)~and(RentalDuration,eq,5)';
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: titleColumn.column_name,
@@ -102,7 +102,7 @@ function groupByTests() {
   it('Check One GroupBy Column With Descending', async function () {
     const lengthColumn = filmColumns.find((c) => c.column_name === 'length');
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: lengthColumn.column_name,
@@ -122,7 +122,7 @@ function groupByTests() {
     );
     const filterCondition = '(Length,eq,46)';
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: rentalDurationColumn.column_name,
@@ -141,7 +141,7 @@ function groupByTests() {
     const titleColumn = filmColumns.find((c) => c.column_name === 'title');
     const filterCondition = '(Length,eq,46)~and(RentalDuration,eq,5)';
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: titleColumn.column_name,
@@ -172,7 +172,7 @@ function groupByTests() {
 
     // Group By Length Column Ascending Order
     await request(context.app)
-      .patch(`/api/v1/meta/grid-columns/${lengthColumn.id}`)
+      .patch(`/api/v1/db/meta/grid-columns/${lengthColumn.id}`)
       .set('xc-auth', context.token)
       .send({
         group_by: true,
@@ -182,7 +182,7 @@ function groupByTests() {
       .expect(200);
     // Group By RentalDuration Column Descending
     await request(context.app)
-      .patch(`/api/v1/meta/grid-columns/${rentalColumn.id}`)
+      .patch(`/api/v1/db/meta/grid-columns/${rentalColumn.id}`)
       .set('xc-auth', context.token)
       .send({
         group_by: true,
@@ -192,7 +192,7 @@ function groupByTests() {
       .expect(200);
     const columns = (
       await request(context.app)
-        .get(`/api/v1/meta/views/${filmView.id}/columns`)
+        .get(`/api/v1/db/meta/views/${filmView.id}/columns`)
         .set('xc-auth', context.token)
         .expect(200)
     ).body.list;
@@ -226,7 +226,7 @@ function groupByTests() {
       ],
     });
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: _lengthColumn.column_name,
@@ -243,7 +243,7 @@ function groupByTests() {
   it('Check One GroupBy Column with Links/Rollup', async function () {
     const actorsColumn = filmColumns.find((c) => c.title === 'Actors');
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: actorsColumn.title,
@@ -285,7 +285,7 @@ function groupByTests() {
     });
 
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: 'LanguageName',
@@ -307,7 +307,7 @@ function groupByTests() {
     });
 
     const res = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: 'ActorNames',
@@ -326,7 +326,7 @@ function groupByTests() {
     });
 
     const res = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: formulaColumnTitle,
@@ -349,7 +349,7 @@ function groupByTests() {
     });
 
     const res1 = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: nestedFormulaColumnTitle,

@@ -20,7 +20,7 @@ export class MetaSyncController {
 
   @Post([
     '/api/v1/db/meta/projects/:baseId/meta-diff',
-    '/api/v1/meta/bases/:baseId/meta-diff',
+    '/api/v2/meta/bases/:baseId/meta-diff',
   ])
   @HttpCode(200)
   @Acl('metaDiffSync')
@@ -45,7 +45,7 @@ export class MetaSyncController {
 
   @Post([
     '/api/v1/db/meta/projects/:baseId/meta-diff/:sourceId',
-    '/api/v1/meta/bases/:baseId/meta-diff/:sourceId',
+    '/api/v2/meta/bases/:baseId/meta-diff/:sourceId',
   ])
   @HttpCode(200)
   @Acl('baseMetaDiffSync')

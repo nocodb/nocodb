@@ -1,4 +1,9 @@
-import { Injectable, Logger, SetMetadata, UseInterceptors } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  SetMetadata,
+  UseInterceptors,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import {
   OrgUserRoles,
@@ -142,8 +147,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     // extract fk_model_id from query params only if it's audit post endpoint
     else if (
       [
-        '/api/v1/meta/audits/rows/:rowId/update',
-        '/api/v1/meta/audits/comments',
+        '/api/v1/db/meta/audits/rows/:rowId/update',
+        '/api/v2/meta/audits/rows/:rowId/update',
+        '/api/v1/db/meta/audits/comments',
+        '/api/v2/meta/audits/comments',
       ].some(
         (auditInsertOrUpdatePath) => req.route.path === auditInsertOrUpdatePath,
       ) &&
@@ -158,8 +165,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     // extract fk_model_id from query params only if it's audit get endpoint
     else if (
       [
-        '/api/v1/meta/audits/comments/count',
-        '/api/v1/meta/audits/comments',
+        '/api/v2/meta/audits/comments/count',
+        '/api/v2/meta/audits/comments',
+        '/api/v1/db/meta/audits/comments/count',
+        '/api/v1/db/meta/audits/comments',
       ].some((auditReadPath) => req.route.path === auditReadPath) &&
       req.method === 'GET' &&
       req.query.fk_model_id
@@ -171,7 +180,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     } else if (
       [
         '/api/v1/db/meta/audits/:auditId/comment',
-        '/api/v1/meta/audits/:auditId/comment',
+        '/api/v2/meta/audits/:auditId/comment',
       ].some((auditPatchPath) => req.route.path === auditPatchPath) &&
       req.method === 'PATCH' &&
       req.params.auditId
@@ -181,7 +190,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     }
     // extract base id from query params only if it's userMe endpoint
     else if (
-      ['/auth/user/me', '/api/v1/auth/user/me', '/api/v1/auth/user/me'].some(
+      ['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'].some(
         (userMePath) => req.route.path === userMePath,
       ) &&
       (req.query.base_id || req.query.workspace_id)
@@ -215,7 +224,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     }
     // extract workspace id from body only if it's base create endpoint
     else if (
-      ['/api/v1/meta/bases'].some(
+      ['/api/v2/meta/bases', '/api/v1/db/meta/projects'].some(
         (baseCreatePath) => req.route.path === baseCreatePath,
       ) &&
       req.method === 'POST' &&

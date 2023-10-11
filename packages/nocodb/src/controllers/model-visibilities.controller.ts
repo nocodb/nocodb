@@ -22,7 +22,7 @@ export class ModelVisibilitiesController {
 
   @Post([
     '/api/v1/db/meta/projects/:baseId/visibility-rules',
-    '/api/v1/meta/bases/:baseId/visibility-rules',
+    '/api/v2/meta/bases/:baseId/visibility-rules',
   ])
   @HttpCode(200)
   @Acl('modelVisibilitySet')
@@ -40,7 +40,7 @@ export class ModelVisibilitiesController {
 
   @Get([
     '/api/v1/db/meta/projects/:baseId/visibility-rules',
-    '/api/v1/meta/bases/:baseId/visibility-rules',
+    '/api/v2/meta/bases/:baseId/visibility-rules',
   ])
   @Acl('modelVisibilityList')
   async modelVisibilityList(

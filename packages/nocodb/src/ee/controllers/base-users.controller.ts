@@ -25,7 +25,7 @@ export class BaseUsersController extends BaseUsersControllerCE {
 
   @Post([
     '/api/v1/db/meta/projects/:baseId/users',
-    '/api/v1/meta/bases/:baseId/users',
+    '/api/v2/meta/bases/:baseId/users',
   ])
   @HttpCode(200)
   @Acl('userInvite')

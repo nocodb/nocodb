@@ -27,7 +27,7 @@ export class BasesController extends BasesControllerCE {
   @Acl('baseList', {
     scope: 'workspace',
   })
-  @Get(['/api/v1/db/meta/projects/', '/api/v1/meta/bases/'])
+  @Get(['/api/v1/db/meta/projects/', '/api/v2/meta/bases/'])
   async list(@Query() queryParams: Record<string, any>, @Request() req) {
     const bases = await this.projectsService.baseList({
       user: req.user,
@@ -42,7 +42,7 @@ export class BasesController extends BasesControllerCE {
   @Acl('baseCreate', {
     scope: 'workspace',
   })
-  @Post(['/api/v1/db/meta/projects', '/api/v1/meta/bases'])
+  @Post(['/api/v1/db/meta/projects', '/api/v2/meta/bases'])
   @HttpCode(200)
   async baseCreate(@Body() baseBody: ProjectReqType, @Request() req) {
     const base = await this.projectsService.baseCreate({

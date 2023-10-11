@@ -87,7 +87,7 @@ export class AuthController extends AuthControllerCE {
   }
 
   @UseGuards(PublicApiLimiterGuard, GlobalGuard)
-  @Post('/api/v1/auth/user/signout')
+  @Post(['/api/v1/auth/user/signout'])
   @HttpCode(200)
   async signOut(@Request() req, @Response() res): Promise<any> {
     if (!(req as any).isAuthenticated()) {
@@ -129,7 +129,7 @@ export class AuthController extends AuthControllerCE {
   /* OpenID Connect auth apis */
   /* OpenID Connect APIs */
   @Post('/auth/cognito')
-  @UseGuards(AuthGuard('cognito'))
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('cognito'))
   async cognitoSignin(@Request() req, @Response() res) {
     await this.setRefreshToken({ req, res });
     res.json({

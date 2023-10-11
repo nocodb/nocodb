@@ -20,7 +20,7 @@ export class ApiDocsController {
 
   @Get([
     '/api/v1/db/meta/projects/:baseId/swagger.json',
-    '/api/v1/meta/bases/:baseId/swagger.json',
+    '/api/v2/meta/bases/:baseId/swagger.json',
   ])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Acl('swaggerJson')
@@ -34,7 +34,7 @@ export class ApiDocsController {
   }
 
   @Get([
-    '/api/v1/meta/bases/:baseId/swagger',
+    '/api/v2/meta/bases/:baseId/swagger',
     '/api/v1/db/meta/projects/:baseId/swagger',
   ])
   @UseGuards(PublicApiLimiterGuard)
@@ -45,7 +45,7 @@ export class ApiDocsController {
   @UseGuards(PublicApiLimiterGuard)
   @Get([
     '/api/v1/db/meta/projects/:baseId/redoc',
-    '/api/v1/meta/bases/:baseId/redoc',
+    '/api/v2/meta/bases/:baseId/redoc',
   ])
   redocHtml(@Param('baseId') baseId: string, @Response() res) {
     res.send(getRedocHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));

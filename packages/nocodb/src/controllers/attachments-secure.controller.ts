@@ -26,7 +26,7 @@ export class AttachmentsSecureController {
   constructor(private readonly attachmentsService: AttachmentsService) {}
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  @Post(['/api/v1/db/storage/upload', '/api/v1/storage/upload'])
+  @Post(['/api/v1/db/storage/upload', '/api/v2/storage/upload'])
   @HttpCode(200)
   @UseInterceptors(UploadAllowedInterceptor, AnyFilesInterceptor())
   async upload(@UploadedFiles() files: Array<any>, @Request() req) {
@@ -40,7 +40,7 @@ export class AttachmentsSecureController {
     return attachments;
   }
 
-  @Post(['/api/v1/db/storage/upload-by-url', '/api/v1/storage/upload-by-url'])
+  @Post(['/api/v1/db/storage/upload-by-url', '/api/v2/storage/upload-by-url'])
   @HttpCode(200)
   @UseInterceptors(UploadAllowedInterceptor)
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)

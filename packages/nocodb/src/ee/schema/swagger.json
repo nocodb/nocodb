@@ -1395,7 +1395,7 @@
         }
       ]
     },
-    "/api/v1/meta/filters/{filterId}": {
+    "/api/v2/meta/filters/{filterId}": {
       "parameters": [
         {
           "schema": {
@@ -1546,7 +1546,7 @@
         ]
       }
     },
-    "/api/v1/meta/filters/{filterGroupId}/children": {
+    "/api/v2/meta/filters/{filterGroupId}/children": {
       "parameters": [
         {
           "schema": {
@@ -1620,7 +1620,7 @@
         ]
       }
     },
-    "/api/v1/meta/magic": {
+    "/api/v2/meta/magic": {
       "parameters": [],
       "post": {
         "summary": "Get generic response using NocoAI",
@@ -1696,7 +1696,7 @@
         "description": "Get dynamic command palette suggestions based on scope"
       }
     },
-    "/api/v1/meta/bases/{baseId}/{sourceId}/tables/magic": {
+    "/api/v2/meta/bases/{baseId}/{sourceId}/tables/magic": {
       "parameters": [
         {
           "schema": {
@@ -1757,7 +1757,7 @@
         ]
       }
     },
-    "/api/v1/meta/bases/{baseId}/{sourceId}/schema/magic": {
+    "/api/v2/meta/bases/{baseId}/{sourceId}/schema/magic": {
       "parameters": [
         {
           "schema": {
@@ -2022,7 +2022,7 @@
         }
       }
     },
-    "/api/v1/meta/duplicate/:workspaceId/shared/{sharedBaseId}": {
+    "/api/v2/meta/duplicate/:workspaceId/shared/{sharedBaseId}": {
       "post": {
         "summary": "Duplicate Shared Base",
         "operationId": "base-duplicate-shared",

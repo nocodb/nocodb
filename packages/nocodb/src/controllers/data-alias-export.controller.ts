@@ -15,8 +15,6 @@ export class DataAliasExportController {
   @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/export/excel',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/export/excel',
-    '/api/v1/data/:orgs/:baseName/:tableName/export/excel',
-    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/export/excel',
   ])
   @Acl('exportExcel')
   async excelDataExport(@Request() req, @Response() res) {
@@ -44,8 +42,6 @@ export class DataAliasExportController {
   @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/export/csv',
     '/api/v1/db/data/:orgs/:baseName/:tableName/export/csv',
-    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/export/csv',
-    '/api/v1/data/:orgs/:baseName/:tableName/export/csv',
   ])
   @Acl('exportCsv')
   async csvDataExport(@Request() req, @Response() res) {

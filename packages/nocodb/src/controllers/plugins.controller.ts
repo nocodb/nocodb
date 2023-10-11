@@ -26,7 +26,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 export class PluginsController {
   constructor(private readonly pluginsService: PluginsService) {}
 
-  @Get(['/api/v1/db/meta/plugins', '/api/v1/meta/plugins'])
+  @Get(['/api/v1/db/meta/plugins', '/api/v2/meta/plugins'])
   @Acl('pluginList', {
     scope: 'org',
   })
@@ -34,7 +34,7 @@ export class PluginsController {
     return new PagedResponseImpl(await this.pluginsService.pluginList());
   }
 
-  @Get(['/api/v1/db/meta/plugins/webhook', '/api/v1/meta/plugins/webhook'])
+  @Get(['/api/v1/db/meta/plugins/webhook', '/api/v2/meta/plugins/webhook'])
   @Acl('webhookPluginList', {
     scope: 'org',
   })
@@ -42,7 +42,7 @@ export class PluginsController {
     return new PagedResponseImpl(await this.pluginsService.webhookPluginList());
   }
 
-  @Post(['/api/v1/db/meta/plugins/test', '/api/v1/meta/plugins/test'])
+  @Post(['/api/v1/db/meta/plugins/test', '/api/v2/meta/plugins/test'])
   @HttpCode(200)
   @Acl('pluginTest', {
     scope: 'org',
@@ -51,7 +51,7 @@ export class PluginsController {
     return await this.pluginsService.pluginTest({ body: body });
   }
 
-  @Get(['/api/v1/db/meta/plugins/:pluginId', '/api/v1/meta/plugins/:pluginId'])
+  @Get(['/api/v1/db/meta/plugins/:pluginId', '/api/v2/meta/plugins/:pluginId'])
   @Acl('pluginRead', {
     scope: 'org',
   })
@@ -61,7 +61,7 @@ export class PluginsController {
 
   @Patch([
     '/api/v1/db/meta/plugins/:pluginId',
-    '/api/v1/meta/plugins/:pluginId',
+    '/api/v2/meta/plugins/:pluginId',
   ])
   @Acl('pluginUpdate', {
     scope: 'org',
@@ -76,7 +76,7 @@ export class PluginsController {
 
   @Get([
     '/api/v1/db/meta/plugins/:pluginTitle/status',
-    '/api/v1/meta/plugins/:pluginTitle/status',
+    '/api/v2/meta/plugins/:pluginTitle/status',
   ])
   @Acl('isPluginActive', {
     scope: 'org',

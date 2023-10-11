@@ -27,8 +27,8 @@ export class SourceCreateController {
   constructor(@Inject('JobsService') private readonly jobsService) {}
 
   @Post([
-    '/api/v1/db/meta/projects/:baseId/sources',
-    '/api/v1/meta/bases/:baseId/sources',
+    '/api/v1/db/meta/projects/:baseId/bases',
+    '/api/v2/meta/bases/:baseId/sources',
   ])
   @HttpCode(200)
   @Acl('baseCreate')

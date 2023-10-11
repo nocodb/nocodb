@@ -15,7 +15,7 @@ async function undo({ page, dashboard }: { page: Page; dashboard: DashboardPage 
     await dashboard.grid.waitForResponse({
       uiAction: () => page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: `/api/v1/data/noco/`,
+      requestUrlPathToMatch: `/api/v1/db/data/noco/`,
       responseJsonMatcher: json => json.pageInfo,
     });
   } else {

@@ -56,8 +56,6 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
   const tables = computed(() => baseTables.value.get(param.baseId) || [])
   const base = computed(() => bases.value.get(param.baseId))
 
-  const { loadViews } = useViewsStore()
-
   const openTable = async (table: TableType) => {
     if (!table.base_id) return
 
@@ -81,10 +79,6 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
     if (['base'].includes(route.value.params.typeOrId as string)) {
       baseIdOrBaseId = route.value.params.baseId as string
     }
-
-    await loadViews({
-      tableId: table.id,
-    })
 
     const views = viewsByTable.value.get(table.id as string) ?? []
 

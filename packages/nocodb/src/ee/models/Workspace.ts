@@ -206,7 +206,6 @@ export default class Workspace implements WorkspaceType {
 
     if (!workspace) NcError.notFound('Workspace not found');
 
-    // todo: delete from workspace user
     await ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USER, {
       fk_workspace_id: id,
     });
@@ -245,10 +244,6 @@ export default class Workspace implements WorkspaceType {
     const workspace = await this.get(id);
 
     if (!workspace) NcError.notFound('Workspace not found');
-
-    await ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USER, {
-      fk_workspace_id: id,
-    });
 
     await NocoCache.del(`${CacheScope.WORKSPACE}:${id}`);
 

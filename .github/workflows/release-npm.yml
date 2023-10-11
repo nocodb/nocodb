@@ -37,32 +37,36 @@ jobs:
     env:
       working-directory: ./packages/nocodb
     steps:
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
           ref: ${{ github.ref }}
-      - name: NPM Setup and Publish with 16.15.0
+      - name: pnpm Setup and Publish with 18.14.0
         # Setup .npmrc file to publish to npm
         uses: actions/setup-node@v3
         with:
-          node-version: 16.15.0
+          node-version: 18.14.0
           registry-url: 'https://registry.npmjs.org'
       - run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
+          NOCODB_SDK_PKG_NAME=nocodb-sdk
+          if [[ "${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' }}" ]]; then
+            NOCODB_SDK_PKG_NAME=nocodb-sdk-daily
+          fi
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
-          cd packages/nocodb-sdk &&
-          npm ci && npm run build && npm publish &&
-          cd ../.. &&
-          sleep 60 &&
+          pnpm --filter=${NOCODB_SDK_PKG_NAME} install --ignore-scripts --no-frozen-lockfile && pnpm --filter=${NOCODB_SDK_PKG_NAME} run build && pnpm --filter=${NOCODB_SDK_PKG_NAME} publish --no-git-checks &&
+          sleep 90 &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNcGuiVersion.js &&
-          cd packages/nc-gui &&
-          npm ci &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} npm run build:copy:publish &&
-          cd ../.. &&
-          sleep 60 &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js && cd packages/nocodb && npm install && npm run obfuscate:build:publish
+          pnpm --filter=nc-gui install --ignore-scripts --no-frozen-lockfile &&
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} pnpm --filter=nc-gui run build:copy:publish --no-git-checks &&
+          sleep 90 &&
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js && cd packages/nocodb && pnpm run obfuscate:build:publish --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Create Pull Request

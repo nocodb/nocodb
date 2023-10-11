@@ -19,6 +19,7 @@ const {
   $destroy,
   fitView,
   viewport,
+  setMaxZoom,
   onNodeDoubleClick,
   zoomIn: internalZoomIn,
   zoomOut: internalZoomOut,
@@ -56,6 +57,14 @@ watch(showSkeleton, async (isSkeleton) => {
       maxZoom: isSkeleton ? viewport.value.zoom : undefined,
     })
   })
+})
+
+watch(elements, (elements) => {
+  if (elements.length > 3) {
+    setMaxZoom(2)
+  } else {
+    setMaxZoom(1.25)
+  }
 })
 
 onScopeDispose($destroy)
@@ -98,8 +107,7 @@ onScopeDispose($destroy)
         class="color-transition z-5 cursor-pointer rounded shadow-sm text-slate-400 font-semibold px-4 py-2 bg-slate-100/50 hover:(text-slate-900 ring ring-accent ring-opacity-100 bg-slate-100/90)"
         @click="zoomIn"
       >
-        <!-- todo: i18n -->
-        Zoom in to view columns
+        {{ $t('labels.zoomInToViewColumns') }}
       </Panel>
     </Transition>
 

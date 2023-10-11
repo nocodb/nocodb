@@ -21,11 +21,15 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
+const colTitle = computed(() => column.value?.title || '')
+
 const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
+
+const { t } = useI18n()
 
 const { state, isNew } = useSmartsheetRowStoreOrThrow()
 
@@ -43,15 +47,28 @@ const relatedTableDisplayColumn = computed(
 loadRelatedTableMeta()
 
 const textVal = computed(() => {
+  if (isForm?.value) {
+    return state.value?.[colTitle.value]?.length
+      ? `${+state.value?.[colTitle.value]?.length} ${t('msg.recordsLinked')}`
+      : t('msg.noRecordsLinked')
+  }
+
   const parsedValue = +value?.value || 0
 
   if (!parsedValue) {
-    return 'Empty'
+    return t('msg.noRecordsLinked')
   } else if (parsedValue === 1) {
-    return `1 ${column.value?.meta?.singular || 'Link'}`
+    return `1 ${column.value?.meta?.singular || t('general.link')}`
   } else {
-    return `${parsedValue} ${column.value?.meta?.plural || 'Links'}`
+    return `${parsedValue} ${column.value?.meta?.plural || t('general.links')}`
   }
+})
+
+const toatlRecordsLinked = computed(() => {
+  if (isForm?.value) {
+    return state.value?.[colTitle.value]?.length
+  }
+  return +value?.value || 0
 })
 
 const onAttachRecord = () => {
@@ -60,6 +77,8 @@ const onAttachRecord = () => {
 }
 
 const openChildList = () => {
+  if (isUnderLookup.value) return
+
   if (!isLocked.value) {
     childListDlg.value = true
   }
@@ -81,38 +100,48 @@ const localCellValue = computed<any[]>(() => {
   }
   return []
 })
+
+const openListDlg = () => {
+  if (isUnderLookup.value) return
+
+  listItemsDlg.value = true
+}
 </script>
 
 <template>
-  <div class="flex w-full items-center nc-links-wrapper" @dblclick.stop="openChildList">
-    <template v-if="!isForm">
-      <div class="block flex-shrink truncate">
-        <component
-          :is="isLocked || isUnderLookup ? 'span' : 'a'"
-          :title="textVal"
-          class="text-center pl-3 nc-datatype-link underline-transparent"
-          :class="{ '!text-gray-300': !value }"
-          @click.stop.prevent="openChildList"
-        >
-          {{ textVal }}
-        </component>
-      </div>
-      <div class="flex-grow" />
+  <div class="flex w-full group items-center nc-links-wrapper" @dblclick.stop="openChildList">
+    <div class="block flex-shrink truncate">
+      <component
+        :is="isLocked || isUnderLookup ? 'span' : 'a'"
+        v-e="['c:cell:links:modal:open']"
+        :title="textVal"
+        class="text-center nc-datatype-link underline-transparent"
+        :class="{ '!text-gray-300': !textVal }"
+        @click.stop.prevent="openChildList"
+      >
+        {{ textVal }}
+      </component>
+    </div>
+    <div class="flex-grow" />
 
-      <div v-if="!isLocked && !isUnderLookup" class="flex justify-end gap-1 min-h-[30px] items-center">
-        <GeneralIcon
-          v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
-          icon="plus"
-          class="nc-icon-transition select-none !text-xxl nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus hover:text-shadow-md"
-          @click.stop="listItemsDlg = true"
-        />
-      </div>
-    </template>
+    <div v-if="!isLocked && !isUnderLookup" class="!xs:hidden flex justify-end hidden group-hover:flex items-center">
+      <MdiPlus
+        v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
+        class="select-none !text-md text-gray-700 nc-action-icon nc-plus"
+        @click.stop="openListDlg"
+      />
+    </div>
 
-    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" :column="relatedTableDisplayColumn" />
+    <LazyVirtualCellComponentsListItems
+      v-if="listItemsDlg || childListDlg"
+      v-model="listItemsDlg"
+      :column="relatedTableDisplayColumn"
+    />
 
     <LazyVirtualCellComponentsListChildItems
+      v-if="listItemsDlg || childListDlg"
       v-model="childListDlg"
+      :items="toatlRecordsLinked"
       :column="relatedTableDisplayColumn"
       :cell-value="localCellValue"
       @attach-record="onAttachRecord"

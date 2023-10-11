@@ -4,6 +4,8 @@ const { loadUsers, users } = useManageUsers()
 
 const formRef = ref()
 
+const { t } = useI18n()
+
 const useForm = Form.useForm
 const validators = computed(() => {
   return {
@@ -11,12 +13,16 @@ const validators = computed(() => {
       {
         validator: (rule: any, value: string, callback: (errMsg?: string) => void) => {
           if (!value || value.length === 0) {
-            callback('Email is required')
+            callback(t('msg.error.signUpRules.emailReqd'))
             return
           }
           const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !validateEmail(e))
           if (invalidEmails.length > 0) {
-            callback(`${invalidEmails.length > 1 ? ' Invalid emails:' : 'Invalid email:'} ${invalidEmails.join(', ')} `)
+            callback(
+              `${
+                invalidEmails.length > 1 ? t('msg.error.signUpRules.invalidEmails') : t('msg.error.signUpRules.invalidEmail')
+              } ${invalidEmails.join(', ')} `,
+            )
           } else {
             callback()
           }
@@ -60,7 +66,7 @@ watch(
                 class="!rounded-md !ml-0.5"
                 validate-trigger="onBlur"
                 placeholder="Add people by email..."
-                data-testid="docs-share-dlg-share-project-collaborate-emails"
+                data-testid="docs-share-dlg-share-base-collaborate-emails"
               />
             </a-form-item>
           </div>
@@ -71,9 +77,9 @@ watch(
                 v-model:value="invitationUsersData.role"
                 class="!rounded-md !bg-white"
                 dropdown-class-name="nc-dropdown-user-role !rounded-md"
-                data-testid="docs-share-dlg-share-project-collaborate-role"
+                data-testid="docs-share-dlg-share-base-collaborate-role"
               >
-                <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
+                <a-select-option v-for="(role, index) in baseRoles" :key="index" :value="role" class="nc-role-option">
                   <div
                     class="flex flex-row h-full justify-start items-center"
                     :data-testid="`nc-share-invite-user-role-option-${role}`"

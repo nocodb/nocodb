@@ -1,15 +1,15 @@
-import type { Base } from '~/models';
+import type { Source } from '~/models';
 
 export async function generateBaseIdMap(
-  base: Base,
+  source: Source,
   idMap: Map<string, string>,
 ) {
-  idMap.set(base.project_id, base.project_id);
-  idMap.set(base.id, `${base.project_id}::${base.id}`);
-  const models = await base.getModels();
+  idMap.set(source.base_id, source.base_id);
+  idMap.set(source.id, `${source.base_id}::${source.id}`);
+  const models = await source.getModels();
 
   for (const md of models) {
-    idMap.set(md.id, `${base.project_id}::${base.id}::${md.id}`);
+    idMap.set(md.id, `${source.base_id}::${source.id}::${md.id}`);
     await md.getColumns();
     for (const column of md.columns) {
       idMap.set(column.id, `${idMap.get(md.id)}::${column.id}`);

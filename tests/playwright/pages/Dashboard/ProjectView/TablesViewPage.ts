@@ -3,14 +3,14 @@ import { ProjectViewPage } from './index';
 import { expect, Locator } from '@playwright/test';
 
 export class TablesViewPage extends BasePage {
-  readonly projectView: ProjectViewPage;
+  readonly baseView: ProjectViewPage;
 
   readonly btn_addNewTable: Locator;
   readonly btn_importData: Locator;
 
-  constructor(projectView: ProjectViewPage) {
-    super(projectView.rootPage);
-    this.projectView = projectView;
+  constructor(baseView: ProjectViewPage) {
+    super(baseView.rootPage);
+    this.baseView = baseView;
 
     this.btn_addNewTable = this.get().locator('[data-testid="proj-view-btn__add-new-table"]');
     this.btn_importData = this.get().locator('[data-testid="proj-view-btn__import-data"]');
@@ -24,11 +24,11 @@ export class TablesViewPage extends BasePage {
     await this.get().waitFor({ state: 'visible' });
 
     if (role.toLowerCase() === 'creator' || role.toLowerCase() === 'owner') {
-      expect(await this.btn_addNewTable.isVisible()).toBeTruthy();
-      expect(await this.btn_importData.isVisible()).toBeTruthy();
+      await expect(this.btn_addNewTable).toBeVisible();
+      await expect(this.btn_importData).toBeVisible();
     } else {
-      expect(await this.btn_addNewTable.isVisible()).toBeFalsy();
-      expect(await this.btn_importData.isVisible()).toBeFalsy();
+      await expect(this.btn_addNewTable).toHaveCount(0);
+      await expect(this.btn_importData).toHaveCount(0);
     }
   }
 }

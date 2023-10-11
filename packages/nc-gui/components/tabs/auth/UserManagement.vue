@@ -1,21 +1,20 @@
 <script setup lang="ts">
-import { OrgUserRoles } from 'nocodb-sdk'
+import { OrgUserRoles, RoleColors } from 'nocodb-sdk'
 import type { ProjectUserReqType, RequestParams } from 'nocodb-sdk'
 import {
   extractSdkResponseErrorMsg,
   iconMap,
   message,
   onBeforeMount,
-  projectRoleTagColors,
   ref,
   storeToRefs,
   useApi,
+  useBase,
   useCopy,
   useDashboard,
   useI18n,
   useNuxtApp,
-  useProject,
-  useUIPermission,
+  useRoles,
   watchDebounced,
 } from '#imports'
 import type { User } from '#imports'
@@ -26,11 +25,11 @@ const { $e } = useNuxtApp()
 
 const { api } = useApi()
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
 const { copy } = useCopy()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { dashboardUrl } = useDashboard()
 
@@ -54,10 +53,10 @@ const searchText = ref<string>('')
 
 const loadUsers = async (page = currentPage.value, limit = currentLimit.value) => {
   try {
-    if (!project.value?.id) return
+    if (!base.value?.id) return
 
     // TODO: Types of api is not correct
-    const response: any = await api.auth.projectUserList(project.value?.id, {
+    const response: any = await api.auth.baseUserList(base.value?.id, {
       query: {
         limit,
         offset: (page - 1) * limit,
@@ -76,16 +75,16 @@ const loadUsers = async (page = currentPage.value, limit = currentLimit.value) =
 
 const inviteUser = async (user: User) => {
   try {
-    if (!project.value?.id) return
+    if (!base.value?.id) return
 
     if (!user.roles) {
       // mark it as editor by default
       user.roles = 'editor'
     }
 
-    await api.auth.projectUserAdd(project.value.id, user as ProjectUserReqType)
+    await api.auth.baseUserAdd(base.value.id, user as ProjectUserReqType)
 
-    // Successfully added user to project
+    // Successfully added user to base
     message.success(t('msg.success.userAddedToProject'))
     await loadUsers()
   } catch (e: any) {
@@ -97,11 +96,11 @@ const inviteUser = async (user: User) => {
 
 const deleteUser = async () => {
   try {
-    if (!project.value?.id || !selectedUser.value?.id) return
+    if (!base.value?.id || !selectedUser.value?.id) return
 
-    await api.auth.projectUserRemove(project.value.id, selectedUser.value.id)
+    await api.auth.baseUserRemove(base.value.id, selectedUser.value.id)
 
-    // Successfully deleted user from project
+    // Successfully deleted user from base
     message.success(t('msg.success.userDeletedFromProject'))
 
     await loadUsers()
@@ -132,10 +131,10 @@ const onDelete = (user: User) => {
 }
 
 const resendInvite = async (user: User) => {
-  if (!project.value?.id) return
+  if (!base.value?.id) return
 
   try {
-    await api.auth.projectUserResendInvite(project.value.id, user.id)
+    await api.auth.baseUserResendInvite(base.value.id, user.id)
 
     // Invite email sent successfully
     message.success(t('msg.success.inviteEmailSent'))
@@ -210,7 +209,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
     >
       <div class="flex flex-col h-full">
         <div class="flex flex-row justify-center mt-2 text-center w-full text-base">
-          This action will remove this user from this project
+          This action will remove this user from this base
         </div>
         <div class="flex mt-6 justify-end space-x-2">
           <a-button class="!rounded-md" @click="showUserDeleteModal = false"> {{ $t('general.cancel') }}</a-button>
@@ -278,21 +277,17 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
           <div
             v-if="isSuperAdmin(user)"
             class="rounded-full px-3 py-1 nc-user-role"
-            :style="{ backgroundColor: projectRoleTagColors[OrgUserRoles.SUPER_ADMIN] }"
+            :style="{ backgroundColor: RoleColors[OrgUserRoles.SUPER_ADMIN] }"
           >
             Super Admin
           </div>
-          <div
-            v-if="user.roles"
-            class="rounded-full px-3 py-1 nc-user-role"
-            :style="{ backgroundColor: projectRoleTagColors[user.roles] }"
-          >
+          <div v-if="user.roles" class="rounded-full px-3 py-1 nc-user-role" :style="{ backgroundColor: RoleColors[user.roles] }">
             {{ $t(`objects.roleType.${user.roles}`) }}
           </div>
         </div>
         <div class="flex w-1/6 flex-wrap justify-end">
           <template v-if="!isSuperAdmin(user)">
-            <a-tooltip v-if="user.project_id" placement="bottom">
+            <a-tooltip v-if="user.base_id" placement="bottom">
               <template #title>
                 <span>{{ $t('activity.editUser') }}</span>
               </template>
@@ -304,8 +299,8 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
               </a-button>
             </a-tooltip>
 
-            <!--          Add user to project -->
-            <a-tooltip v-if="!user.project_id" placement="bottom">
+            <!--          Add user to base -->
+            <a-tooltip v-if="!user.base_id" placement="bottom">
               <template #title>
                 <span>{{ $t('activity.addUserToProject') }}</span>
               </template>
@@ -317,7 +312,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
               </a-button>
             </a-tooltip>
 
-            <!--          Remove user from the project -->
+            <!--          Remove user from the base -->
             <a-tooltip v-else placement="bottom">
               <template #title>
                 <span>{{ $t('activity.deleteUser') }}</span>

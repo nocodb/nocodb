@@ -1,15 +1,12 @@
 import { Page, selectors } from '@playwright/test';
 import axios, { AxiosResponse } from 'axios';
-import { Api, ProjectListType, ProjectType, ProjectTypes, UserType, WorkspaceType } from 'nocodb-sdk';
+import { Api, BaseType, ProjectListType, ProjectTypes, UserType, WorkspaceType } from 'nocodb-sdk';
 import { getDefaultPwd } from '../tests/utils/general';
 import { Knex, knex } from 'knex';
 import { promises as fs } from 'fs';
 import { isEE } from './db';
 import { resetSakilaPg } from './knexHelper';
 import path from 'path';
-
-// Use local reset logic instead of remote
-const enableLocalInit = true;
 
 // MySQL Configuration
 const mysqlConfig = {
@@ -27,7 +24,7 @@ const mysqlConfig = {
 
 const extMysqlProject = (title, parallelId) => ({
   title,
-  bases: [
+  sources: [
     {
       type: 'mysql2',
       config: {
@@ -74,13 +71,13 @@ const sakilaKnexConfig = (parallelId: string) => ({
   pool: { min: 0, max: 1 },
 });
 
-// External PG Project create payload
+// External PG Base create payload
 //
-const extPgProject = (workspaceId, title, parallelId, projectType) => ({
+const extPgProject = (workspaceId, title, parallelId, baseType) => ({
   fk_workspace_id: workspaceId,
   title,
-  type: projectType,
-  bases: [
+  type: baseType,
+  sources: [
     {
       type: 'pg',
       config: {
@@ -103,7 +100,7 @@ const extPgProject = (workspaceId, title, parallelId, projectType) => ({
 
 const extPgProjectCE = (title, parallelId) => ({
   title,
-  bases: [
+  sources: [
     {
       type: 'pg',
       config: {
@@ -126,7 +123,7 @@ const extPgProjectCE = (title, parallelId) => ({
 
 const extSQLiteProjectCE = (title: string, workerId: string) => ({
   title,
-  bases: [
+  sources: [
     {
       type: 'sqlite3',
       config: {
@@ -150,12 +147,14 @@ const extSQLiteProjectCE = (title: string, workerId: string) => ({
 const workerCount = [0, 0, 0, 0, 0, 0, 0, 0];
 
 export interface NcContext {
-  project: ProjectType;
+  base: BaseType;
   token: string;
   dbType?: string;
   workerId?: string;
   rootUser: UserType & { password: string };
   workspace: WorkspaceType;
+  defaultProjectTitle: string;
+  defaultTableTitle: string;
 }
 
 selectors.setTestIdAttribute('data-testid');
@@ -167,13 +166,13 @@ const sqliteFilePath = (workerId: string) => {
 async function localInit({
   workerId,
   isEmptyProject = false,
-  projectType = ProjectTypes.DATABASE,
+  baseType = ProjectTypes.DATABASE,
   isSuperUser = false,
   dbType,
 }: {
   workerId: string;
   isEmptyProject?: boolean;
-  projectType?: ProjectTypes;
+  baseType?: ProjectTypes;
   isSuperUser?: boolean;
   dbType?: string;
 }) {
@@ -206,7 +205,7 @@ async function localInit({
 
     // const workspaceTitle_old = `ws_pgExtREST${+workerId - 1}`;
     const workspaceTitle = `ws_pgExtREST${workerId}`;
-    const projectTitle = `pgExtREST${workerId}`;
+    const baseTitle = `pgExtREST${workerId}`;
 
     // console.log(process.env.TEST_WORKER_INDEX, process.env.TEST_PARALLEL_INDEX);
 
@@ -217,8 +216,18 @@ async function localInit({
       const ws = await api['workspace'].list();
       for (const w of ws.list) {
         // check if w.title starts with workspaceTitle
-        if (w.title.startsWith(`ws_pgExtREST_p${process.env.TEST_PARALLEL_INDEX}`)) {
+        if (w.title.startsWith(`ws_pgExtREST${process.env.TEST_PARALLEL_INDEX}`)) {
           try {
+            const bases = await api.workspaceBase.list(w.id);
+
+            for (const base of bases.list) {
+              try {
+                await api.base.delete(base.id);
+              } catch (e) {
+                console.log(`Error deleting base: ws delete`, base);
+              }
+            }
+
             await api['workspace'].delete(w.id);
           } catch (e) {
             console.log(`Error deleting workspace: ${w.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
@@ -226,24 +235,24 @@ async function localInit({
         }
       }
     } else {
-      let projects: ProjectListType;
+      let bases: ProjectListType;
       try {
-        projects = await api.project.list();
+        bases = await api.base.list();
       } catch (e) {
-        console.log('Error fetching projects', e);
+        console.log('Error fetching bases', e);
       }
 
-      if (projects) {
-        for (const p of projects.list) {
-          // check if p.title starts with projectTitle
+      if (bases) {
+        for (const p of bases.list) {
+          // check if p.title starts with baseTitle
           if (
-            p.title.startsWith(`pgExtREST_p${process.env.TEST_PARALLEL_INDEX}`) ||
+            p.title.startsWith(`pgExtREST${process.env.TEST_PARALLEL_INDEX}`) ||
             p.title.startsWith(`xcdb_p${process.env.TEST_PARALLEL_INDEX}`)
           ) {
             try {
-              await api.project.delete(p.id);
+              await api.base.delete(p.id);
             } catch (e) {
-              console.log(`Error deleting project: ${p.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
+              console.log(`Error deleting base: ${p.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
             }
           }
         }
@@ -283,104 +292,93 @@ async function localInit({
       });
     }
 
-    let project;
+    let base;
     if (isEE()) {
       if (isEmptyProject) {
-        // create a new project under the workspace we just created
-        project = await api.project.create({
-          title: projectTitle,
+        // create a new base under the workspace we just created
+        base = await api.base.create({
+          title: baseTitle,
           fk_workspace_id: workspace.id,
-          type: projectType,
+          type: baseType,
         });
       } else {
         if ('id' in workspace) {
           // @ts-ignore
-          project = await api.project.create(extPgProject(workspace.id, projectTitle, workerId, projectType));
+          base = await api.base.create(extPgProject(workspace.id, baseTitle, workerId, baseType));
         }
       }
     } else {
       if (isEmptyProject) {
-        // create a new project
-        project = await api.project.create({
-          title: projectTitle,
+        // create a new base
+        base = await api.base.create({
+          title: baseTitle,
         });
       } else {
         try {
-          project = await api.project.create(
+          base = await api.base.create(
             dbType === 'pg'
-              ? extPgProjectCE(projectTitle, workerId)
+              ? extPgProjectCE(baseTitle, workerId)
               : dbType === 'sqlite'
-              ? extSQLiteProjectCE(projectTitle, parallelId)
-              : extMysqlProject(projectTitle, parallelId)
+              ? extSQLiteProjectCE(baseTitle, parallelId)
+              : extMysqlProject(baseTitle, parallelId)
           );
         } catch (e) {
-          console.log(`Error creating project: ${projectTitle}`);
+          console.log(`Error creating base: ${baseTitle}`);
         }
       }
     }
 
     // get current user information
     const user = await api.auth.me();
-    return { data: { project, user, workspace, token }, status: 200 };
+    return { data: { base, user, workspace, token }, status: 200 };
   } catch (e) {
-    console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);
+    console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
     return { data: {}, status: 500 };
   }
 }
 
 const setup = async ({
-  projectType = ProjectTypes.DATABASE,
+  baseType = ProjectTypes.DATABASE,
   page,
   isEmptyProject = false,
   isSuperUser = false,
   url,
 }: {
-  projectType?: ProjectTypes;
+  baseType?: ProjectTypes;
   page: Page;
   isEmptyProject?: boolean;
   isSuperUser?: boolean;
   url?: string;
 }): Promise<NcContext> => {
+  console.time('Setup');
+
   let dbType = process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE;
-  dbType = dbType || 'sqlite';
+  dbType = dbType || (isEE() ? 'pg' : 'sqlite');
 
   let response;
 
   const workerIndex = process.env.TEST_WORKER_INDEX;
   const parallelIndex = process.env.TEST_PARALLEL_INDEX;
 
-  const workerId = `_p${parallelIndex}_w${workerIndex}_c${(+workerIndex + 1) * 1000 + workerCount[parallelIndex]}`;
-  workerCount[+parallelIndex]++;
+  const workerId = parallelIndex;
 
   // console.log(process.env.TEST_PARALLEL_INDEX, '#Setup', workerId);
 
   try {
     // Localised reset logic
-    if (enableLocalInit) {
-      response = await localInit({
-        workerId,
-        isEmptyProject,
-        projectType,
-        isSuperUser,
-        dbType,
-      });
-    }
-    // Remote reset logic
-    else {
-      response = await axios.post(`http://localhost:8080/api/v1/meta/test/reset`, {
-        parallelId: process.env.TEST_PARALLEL_INDEX,
-        workerId: workerId,
-        dbType,
-        projectType,
-        isEmptyProject,
-      });
-    }
+    response = await localInit({
+      workerId: parallelIndex,
+      isEmptyProject,
+      baseType,
+      isSuperUser,
+      dbType,
+    });
   } catch (e) {
-    console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);
+    console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
   }
 
-  if (response.status !== 200 || !response.data?.token || !response.data?.project) {
-    console.error('Failed to reset test data', response.data, response.status);
+  if (response.status !== 200 || !response.data?.token || !response.data?.base) {
+    console.error('Failed to reset test data', response.data, response.status, dbType);
     throw new Error('Failed to reset test data');
   }
   const token = response.data.token;
@@ -390,10 +388,15 @@ const setup = async ({
       email: `user@nocodb.com`,
       password: getDefaultPwd(),
     });
-    await axios.post(`http://localhost:8080/api/v1/license`, { key: '' }, { headers: { 'xc-auth': admin.data.token } });
+    if (!isEE())
+      await axios.post(
+        `http://localhost:8080/api/v1/license`,
+        { key: '' },
+        { headers: { 'xc-auth': admin.data.token } }
+      );
   } catch (e) {
     // ignore error: some roles will not have permission for license reset
-    // console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);
+    // console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
   }
 
   await page.addInitScript(
@@ -419,48 +422,45 @@ const setup = async ({
     { token: token }
   );
 
-  const project = response.data.project;
+  const base = response.data.base;
   const rootUser = { ...response.data.user, password: getDefaultPwd() };
   const workspace = response.data.workspace;
 
   // default landing page for tests
-  let projectUrl;
+  let baseUrl;
   if (isEE()) {
-    switch (project.type) {
+    switch (base.type) {
       case ProjectTypes.DOCUMENTATION:
-        projectUrl = url ? url : `/#/${project.fk_workspace_id}/${project.id}/doc`;
+        baseUrl = url ? url : `/#/${base.fk_workspace_id}/${base.id}/doc`;
         break;
       case ProjectTypes.DATABASE:
-        projectUrl = url ? url : `/#/${project.fk_workspace_id}/${project.id}`;
+        baseUrl = url ? url : `/#/${base.fk_workspace_id}/${base.id}`;
         break;
       default:
-        throw new Error(`Unknown project type: ${project.type}`);
+        throw new Error(`Unknown base type: ${base.type}`);
     }
   } else {
-    // sample: http://localhost:3000/#/ws/default/project/pdknlfoc5e7bx4w
-    projectUrl = url ? url : `/#/nc/${project.id}`;
+    // sample: http://localhost:3000/#/ws/default/base/pdknlfoc5e7bx4w
+    baseUrl = url ? url : `/#/nc/${base.id}`;
   }
 
-  await page.goto(projectUrl, { waitUntil: 'networkidle' });
-  return { project, token, dbType, workerId, rootUser, workspace } as NcContext;
+  await page.goto(baseUrl, { waitUntil: 'networkidle' });
+
+  console.timeEnd('Setup');
+
+  return {
+    base,
+    token,
+    dbType,
+    workerId,
+    rootUser,
+    workspace,
+    defaultProjectTitle: 'Getting Started',
+    defaultTableTitle: 'Features',
+  } as NcContext;
 };
 
-export const unsetup = async (context: NcContext): Promise<void> => {
-  if (context.token && context.project) {
-    // try to delete the project
-    try {
-      // Init SDK using token
-      const api = new Api({
-        baseURL: `http://localhost:8080/`,
-        headers: {
-          'xc-auth': context.token,
-        },
-      });
-
-      await api.project.delete(context.project.id);
-    } catch (e) {}
-  }
-};
+export const unsetup = async (context: NcContext): Promise<void> => {};
 
 // Reference
 // packages/nocodb/src/lib/services/test/TestResetService/resetPgSakilaProject.ts

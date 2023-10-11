@@ -17,11 +17,11 @@ export class FootbarPage extends BasePage {
     this.parent = parent;
     this.leftSidebarToggle = this.get().locator(`div.nc-sidebar-left-toggle-icon`);
     this.rightSidebarToggle = this.get().locator(`div.nc-sidebar-right-toggle-icon`);
-    this.btn_addNewRow = this.get().locator('button.ant-btn').nth(0);
+    this.btn_addNewRow = this.get().getByTestId('nc-pagination-add-record');
   }
 
   get() {
-    return this.rootPage.locator(`div.nc-pagination-wrapper`);
+    return this.rootPage.locator(`div.nc-grid-pagination-wrapper`);
   }
 
   async clickAddRecord() {
@@ -31,9 +31,9 @@ export class FootbarPage extends BasePage {
   async verifyRoleAccess(param: { role: string }) {
     const role = param.role.toLowerCase();
     if (role === 'creator' || role === 'editor' || role === 'owner') {
-      expect(await this.btn_addNewRow.count()).toBe(1);
+      await expect(this.btn_addNewRow).toHaveCount(1);
     } else {
-      expect(await this.btn_addNewRow.count()).toBe(0);
+      await expect(this.btn_addNewRow).toHaveCount(0);
     }
   }
 

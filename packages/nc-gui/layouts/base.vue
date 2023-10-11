@@ -15,7 +15,7 @@ const sidebar = ref<HTMLDivElement>()
 
 const logout = async () => {
   await signOut(false)
-  navigateTo('/signin')
+  await navigateTo('/signin')
 }
 
 const { hooks } = useNuxtApp()
@@ -31,15 +31,15 @@ hooks.hook('page:finish', () => {
 </script>
 
 <template>
-  <a-layout id="nc-app" has-sider>
+  <a-layout id="nc-app" class="nc-app" has-sider>
     <Transition name="slide">
       <div v-show="hasSider" id="nc-sidebar-left" ref="sidebar" />
     </Transition>
 
-    <a-layout class="!flex-col">
+    <a-layout class="!flex-col h-screen">
       <a-layout-header v-if="!route.meta.public && signedIn && !route.meta.hideHeader" class="nc-navbar">
         <div
-          v-if="!route.params.projectType"
+          v-if="!route.params.baseType"
           v-e="['c:navbar:home']"
           data-testid="nc-noco-brand-icon"
           class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
@@ -88,7 +88,7 @@ hooks.hook('page:finish', () => {
             <template #overlay>
               <a-menu class="!py-0 leading-8 !rounded">
                 <a-menu-item key="0" data-testid="nc-menu-accounts__user-settings" class="!rounded-t">
-                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/account/users">
+                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-base-menu-item group !no-underline" to="/account/users">
                     <component :is="iconMap.accountCircle" class="mt-1 group-hover:text-accent" />&nbsp;
                     <div class="prose group-hover:text-primary">
                       <div>Account</div>
@@ -98,10 +98,10 @@ hooks.hook('page:finish', () => {
                 </a-menu-item>
 
                 <a-menu-divider class="!m-0" />
-                <!--                <a-menu-item v-if="isUIAllowed('appStore')" key="0" class="!rounded-t">
+                <!--                <a-menu-item v-if="isUIAllowed('superAdminAppStore')" key="0" class="!rounded-t">
                   <nuxt-link
                     v-e="['c:settings:appstore', { page: true }]"
-                    class="nc-project-menu-item group !no-underline"
+                    class="nc-base-menu-item group !no-underline"
                     to="/admin/users"
                   >
                     <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
@@ -114,7 +114,7 @@ hooks.hook('page:finish', () => {
                 <a-menu-divider class="!m-0" /> -->
 
                 <a-menu-item key="1" class="!rounded-b group" data-testid="nc-menu-accounts__sign-out">
-                  <div v-e="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
+                  <div v-e="['a:navbar:user:sign-out']" class="nc-base-menu-item group" @click="logout">
                     <component :is="iconMap.signout" class="group-hover:text-accent" />&nbsp;
 
                     <span class="prose group-hover:text-primary">
@@ -131,10 +131,10 @@ hooks.hook('page:finish', () => {
       <a-tooltip v-if="!appInfo.ee" placement="bottom">
         <template #title> Switch language</template>
 
-        <LazyGeneralLanguage v-if="!signedIn && !route.params.projectId && !route.params.erdUuid" class="nc-lang-btn" />
+        <LazyGeneralLanguage v-if="!signedIn && !route.params.baseId && !route.params.erdUuid" class="nc-lang-btn" />
       </a-tooltip>
 
-      <div class="w-full h-full overflow-hidden">
+      <div class="w-full h-full overflow-hidden nc-layout-base-inner">
         <slot />
       </div>
     </a-layout>
@@ -162,5 +162,9 @@ hooks.hook('page:finish', () => {
 
 .nc-navbar {
   @apply flex !bg-white items-center !pl-2 !pr-5;
+}
+
+.nc-layout-base-inner > div {
+  @apply h-full;
 }
 </style>

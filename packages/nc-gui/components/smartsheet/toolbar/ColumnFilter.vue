@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { ColumnType, FilterType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
+  AllFiltersInj,
   MetaInj,
   ReloadViewDataHookInj,
   comparisonOpList,
@@ -10,6 +11,7 @@ import {
   computed,
   iconMap,
   inject,
+  onMounted,
   ref,
   useNuxtApp,
   useViewFilters,
@@ -42,9 +44,11 @@ const { nestedLevel, parentId, autoSave, hookId, modelValue, showLoading, webHoo
 
 const nested = computed(() => nestedLevel.value > 0)
 
+const { t } = useI18n()
+
 const logicalOps = [
-  { value: 'and', text: 'AND' },
-  { value: 'or', text: 'OR' },
+  { value: 'and', text: t('general.and') },
+  { value: 'or', text: t('general.or') },
 ]
 
 const meta = inject(MetaInj, ref())
@@ -52,6 +56,8 @@ const meta = inject(MetaInj, ref())
 const activeView = inject(ActiveViewInj, ref())
 
 const reloadDataHook = inject(ReloadViewDataHookInj)!
+
+const isPublic = inject(IsPublicInj, ref(false))
 
 const { $e } = useNuxtApp()
 
@@ -68,6 +74,8 @@ const {
   saveOrUpdateDebounced,
   isComparisonOpAllowed,
   isComparisonSubOpAllowed,
+  loadBtLookupTypes,
+  btLookupTypesMap,
 } = useViewFilters(
   activeView,
   parentId?.value,
@@ -78,6 +86,8 @@ const {
   webHook.value,
 )
 
+const { getPlanLimit } = useWorkspace()
+
 const localNestedFilters = ref()
 
 const wrapperDomRef = ref<HTMLElement>()
@@ -86,7 +96,8 @@ const addFiltersRowDomRef = ref<HTMLElement>()
 const columns = computed(() => meta.value?.columns)
 
 const getColumn = (filter: Filter) => {
-  return columns.value?.find((col: ColumnType) => col.id === filter.fk_column_id)
+  // extract looked up column if available
+  return btLookupTypesMap.value[filter.fk_column_id] || columns.value?.find((col: ColumnType) => col.id === filter.fk_column_id)
 }
 
 const filterPrevComparisonOp = ref<Record<string, string>>({})
@@ -177,12 +188,21 @@ watch(
   },
 )
 
+const allFilters: Ref<Record<string, FilterType[]>> = inject(AllFiltersInj, ref({}))
+
 watch(
   () => nonDeletedFilters.value.length,
   (length: number) => {
+    allFilters.value[parentId?.value ?? 'root'] = [...nonDeletedFilters.value]
     emit('update:filtersLength', length ?? 0)
   },
 )
+
+const filtersCount = computed(() => {
+  return Object.values(allFilters.value).reduce((acc, filters) => {
+    return acc + filters.filter((el) => !el.is_group).length
+  }, 0)
+})
 
 const applyChanges = async (hookId?: string, _nested = false) => {
   await sync(hookId, _nested)
@@ -289,6 +309,14 @@ const showFilterInput = (filter: Filter) => {
 onMounted(() => {
   loadFilters(hookId?.value)
 })
+
+onMounted(async () => {
+  await loadBtLookupTypes()
+})
+
+onBeforeUnmount(() => {
+  if (parentId.value) delete allFilters.value[parentId.value]
+})
 </script>
 
 <template>
@@ -296,7 +324,7 @@ onMounted(() => {
     class="menu-filter-dropdown"
     :class="{
       'max-h-[max(80vh,500px)] min-w-112 py-6 pl-6': !nested,
-      'w-full': nested,
+      'w-full ': nested,
     }"
   >
     <div
@@ -315,6 +343,7 @@ onMounted(() => {
                 <div v-else :key="`${i}nested`" class="flex nc-filter-logical-op">
                   <NcSelect
                     v-model:value="filter.logical_op"
+                    v-e="['c:filter:logical-op:select']"
                     :dropdown-match-select-width="false"
                     class="min-w-20 capitalize"
                     placeholder="Group op"
@@ -332,6 +361,7 @@ onMounted(() => {
                 <NcButton
                   v-if="!filter.readOnly"
                   :key="i"
+                  v-e="['c:filter:delete']"
                   type="text"
                   size="small"
                   class="nc-filter-item-remove-btn cursor-pointer"
@@ -340,8 +370,7 @@ onMounted(() => {
                   <component :is="iconMap.deleteListItem" />
                 </NcButton>
               </div>
-
-              <div class="flex border-1 rounded-lg p-2 w-full">
+              <div class="flex border-1 rounded-lg p-2 w-full" :class="nestedLevel % 2 !== 0 ? 'bg-white' : 'bg-gray-100'">
                 <LazySmartsheetToolbarColumnFilter
                   v-if="filter.id || filter.children"
                   :key="filter.id ?? i"
@@ -361,6 +390,7 @@ onMounted(() => {
             <NcSelect
               v-else
               v-model:value="filter.logical_op"
+              v-e="['c:filter:logical-op:select']"
               :dropdown-match-select-width="false"
               class="h-full !min-w-20 !max-w-20 capitalize"
               hide-details
@@ -386,6 +416,7 @@ onMounted(() => {
             />
             <NcSelect
               v-model:value="filter.comparison_op"
+              v-e="['c:filter:comparison-op:select']"
               :dropdown-match-select-width="false"
               class="caption nc-filter-operation-select !min-w-26.75 !max-w-26.75 max-h-8"
               :placeholder="$t('labels.operation')"
@@ -407,6 +438,7 @@ onMounted(() => {
             <NcSelect
               v-else-if="[UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt)"
               v-model:value="filter.comparison_sub_op"
+              v-e="['c:filter:sub-comparison-op:select']"
               :dropdown-match-select-width="false"
               class="caption nc-filter-sub_operation-select min-w-28"
               :class="{ 'flex-grow w-full': !showFilterInput(filter), 'max-w-28': showFilterInput(filter) }"
@@ -444,6 +476,7 @@ onMounted(() => {
 
             <NcButton
               v-if="!filter.readOnly"
+              v-e="['c:filter:delete']"
               type="text"
               size="small"
               class="nc-filter-item-remove-btn self-center"
@@ -456,23 +489,44 @@ onMounted(() => {
       </template>
     </div>
 
-    <div ref="addFiltersRowDomRef" class="flex gap-2">
-      <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
-        <div class="flex items-center gap-1">
-          <component :is="iconMap.plus" />
-          <!-- Add Filter -->
-          {{ $t('activity.addFilter') }}
-        </div>
-      </NcButton>
+    <template v-if="isEeUI && !isPublic">
+      <div v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)" ref="addFiltersRowDomRef" class="flex gap-2">
+        <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
+          <div class="flex items-center gap-1">
+            <component :is="iconMap.plus" />
+            <!-- Add Filter -->
+            {{ $t('activity.addFilter') }}
+          </div>
+        </NcButton>
 
-      <NcButton v-if="!webHook && nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
-        <div class="flex items-center gap-1">
-          <!-- Add Filter Group -->
-          <component :is="iconMap.plus" />
-          {{ $t('activity.addFilterGroup') }}
-        </div>
-      </NcButton>
-    </div>
+        <NcButton v-if="!webHook && nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
+          <div class="flex items-center gap-1">
+            <!-- Add Filter Group -->
+            <component :is="iconMap.plus" />
+            {{ $t('activity.addFilterGroup') }}
+          </div>
+        </NcButton>
+      </div>
+    </template>
+    <template v-else>
+      <div ref="addFiltersRowDomRef" class="flex gap-2">
+        <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
+          <div class="flex items-center gap-1">
+            <component :is="iconMap.plus" />
+            <!-- Add Filter -->
+            {{ $t('activity.addFilter') }}
+          </div>
+        </NcButton>
+
+        <NcButton v-if="!webHook && nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
+          <div class="flex items-center gap-1">
+            <!-- Add Filter Group -->
+            <component :is="iconMap.plus" />
+            {{ $t('activity.addFilterGroup') }}
+          </div>
+        </NcButton>
+      </div>
+    </template>
     <div
       v-if="!filters.length"
       class="flex flex-row text-gray-400 mt-2"
@@ -481,7 +535,7 @@ onMounted(() => {
         'ml-0.5': !nested,
       }"
     >
-      No filters added
+      {{ $t('title.noFiltersAdded') }}
     </div>
 
     <slot />
@@ -498,5 +552,9 @@ onMounted(() => {
 
 :deep(.ant-select-item-option) {
   @apply "!min-w-full";
+}
+
+:deep(.ant-select-selector) {
+  @apply !min-h-8.25;
 }
 </style>

@@ -1,16 +1,22 @@
 <script setup lang="ts">
 const workspaceStore = useWorkspace()
-const projectStore = useProject()
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-const { isSharedBase } = storeToRefs(projectStore)
 const { activeWorkspace, isWorkspaceLoading } = storeToRefs(workspaceStore)
+
+const { activeViewTitleOrId } = storeToRefs(useViewsStore())
+
+const { activeTableId } = storeToRefs(useTablesStore())
+
+const { isMobileMode } = useGlobal()
+
+const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOrId.value && !activeTableId.value))
 </script>
 
 <template>
   <div
-    class="flex items-center px-2 nc-sidebar-header py-1.2 w-full border-b-1 border-gray-200 group"
+    class="flex items-center nc-sidebar-header w-full border-b-1 border-gray-200 group md:(px-2 py-1.2) xs:(px-1 py-1)"
     :data-workspace-title="activeWorkspace?.title"
     style="height: var(--topbar-height)"
   >
@@ -20,7 +26,7 @@ const { activeWorkspace, isWorkspaceLoading } = storeToRefs(workspaceStore)
       <div class="flex flex-grow min-w-1"></div>
 
       <NcTooltip
-        class="flex opacity-0 group-hover:opacity-100 transition-opacity duration-50"
+        class="flex"
         :class="{
           '!opacity-100': !isLeftSidebarOpen,
         }"
@@ -28,20 +34,20 @@ const { activeWorkspace, isWorkspaceLoading } = storeToRefs(workspaceStore)
         hide-on-click
       >
         <template #title>
-          {{
-            isLeftSidebarOpen
-              ? `${$t('general.hide')} ${$t('objects.sidebar').toLowerCase()}`
-              : `${$t('general.show')} ${$t('objects.sidebar').toLowerCase()}`
-          }}
+          {{ isLeftSidebarOpen ? `${$t('title.hideSidebar')}` : `${$t('title.showSidebar')}` }}
         </template>
         <NcButton
-          type="text"
-          size="small"
-          class="nc-sidebar-left-toggle-icon !text-gray-700 !hover:text-gray-800 !hover:bg-gray-200"
+          v-if="showSidebarBtn"
+          v-e="['c:leftSidebar:hideToggle']"
+          :type="isMobileMode ? 'secondary' : 'text'"
+          :size="isMobileMode ? 'medium' : 'small'"
+          class="nc-sidebar-left-toggle-icon !text-gray-700 !hover:text-gray-800 !xs:(h-10.5 max-h-10.5 max-w-10.5) !md:(hover:bg-gray-200)"
           @click="isLeftSidebarOpen = !isLeftSidebarOpen"
         >
           <div class="flex items-center text-inherit">
+            <GeneralIcon v-if="isMobileMode" icon="close" />
             <GeneralIcon
+              v-else
               icon="doubleLeftArrow"
               class="duration-150 transition-all !text-lg -mt-0.5"
               :class="{

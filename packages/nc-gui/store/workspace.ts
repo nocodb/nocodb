@@ -1,12 +1,12 @@
-import type { ProjectType } from 'nocodb-sdk'
+import type { BaseType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
-import { computed, navigateTo, ref, useCommandPalette, useNuxtApp, useProjects, useRouter, useTheme } from '#imports'
+import { computed, navigateTo, ref, useBases, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
 import type { ThemeConfig } from '#imports'
 
 export const useWorkspace = defineStore('workspaceStore', () => {
-  const projectsStore = useProjects()
+  const basesStore = useBases()
 
   const collaborators = ref<any[] | null>()
 
@@ -26,8 +26,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { appInfo, ncNavigateTo } = useGlobal()
 
-  const { orgRoles } = useRoles()
-
   const workspaces = ref<Map<string, any>>(new Map())
   const workspacesList = computed<any[]>(() => Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at))
 
@@ -36,6 +34,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const isWorkspaceLoading = ref(true)
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
+  const workspaceUserCount = ref<number | undefined>(undefined)
 
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
     () => (route.value.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'recent',
@@ -62,22 +61,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   })
 
-  /** getters */
-  const isWorkspaceCreator = computed(() => {
-    // todo: type correction
-    return orgRoles.value?.[Role.OrgLevelCreator]
-  })
-
-  const isWorkspaceOwner = computed(() => {
-    // todo: type correction
-    return orgRoles.value?.[Role.OrgLevelCreator]
-  })
-
-  const isWorkspaceOwnerOrCreator = computed(() => {
-    // todo: type correction
-    return orgRoles.value?.[Role.OrgLevelCreator]
-  })
-
   /** actions */
   const loadWorkspaces = async (_ignoreError = false) => {}
 
@@ -101,7 +84,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isWorkspaceLoading.value = true
 
     try {
-      await projectsStore.loadProjects()
+      await basesStore.loadProjects()
     } catch (e: any) {
       console.error(e)
     } finally {
@@ -113,20 +96,20 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (page === 'workspace') {
       return
     }
-    await projectsStore.loadProjects(page)
+    await basesStore.loadProjects(page)
   })
 
-  const addToFavourite = async (projectId: string) => {
+  const addToFavourite = async (baseId: string) => {
     try {
-      const projects = projectsStore.projects
-      const project = projects.get(projectId)
-      if (!project) return
+      const bases = basesStore.bases
+      const base = bases.get(baseId)
+      if (!base) return
 
       // todo: update the type
-      project.starred = true
+      base.starred = true
 
-      await $api.project.userMetaUpdate(
-        projectId,
+      await $api.base.userMetaUpdate(
+        baseId,
         {
           starred: true,
         },
@@ -139,15 +122,15 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const removeFromFavourite = async (projectId: string) => {
+  const removeFromFavourite = async (baseId: string) => {
     try {
-      const project = projectsStore.projects.get(projectId)
-      if (!project) return
+      const base = basesStore.bases.get(baseId)
+      if (!base) return
 
-      project.starred = false
+      base.starred = false
 
-      await $api.project.userMetaUpdate(
-        projectId,
+      await $api.base.userMetaUpdate(
+        baseId,
         {
           starred: false,
         },
@@ -160,17 +143,17 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const updateProjectTitle = async (project: ProjectType & { edit: boolean; temp_title: string }) => {
+  const updateProjectTitle = async (base: BaseType & { edit: boolean; temp_title: string }) => {
     try {
-      await $api.project.update(
-        project.id!,
-        { title: project.temp_title },
+      await $api.base.update(
+        base.id!,
+        { title: base.temp_title },
         {
           baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace.value.id}.${appInfo.value.baseHostName}` : undefined,
         },
       )
-      project.title = project.temp_title
-      project.edit = false
+      base.title = base.temp_title
+      base.edit = false
       refreshCommandPalette()
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -199,7 +182,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function clearWorkspaces() {
-    await projectsStore.clearProjects()
+    await basesStore.clearBases()
     workspaces.value.clear()
   }
 
@@ -224,6 +207,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isWorkspaceLoading.value = isLoading
   }
 
+  const getPlanLimit = (_arg: any) => {
+    return 9999
+  }
+
   return {
     loadWorkspaces,
     workspaces,
@@ -237,8 +224,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     removeCollaborator,
     updateCollaborator,
     collaborators,
-    isWorkspaceCreator,
-    isWorkspaceOwner,
     isInvitingCollaborators,
     isCollaboratorsLoading,
     addToFavourite,
@@ -255,11 +240,12 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     clearWorkspaces,
     upgradeActiveWorkspace,
     navigateToWorkspace,
-    isWorkspaceOwnerOrCreator,
     setLoadingState,
     navigateToWorkspaceSettings,
     lastPopulatedWorkspaceId,
     isWorkspaceSettingsPageOpened,
+    workspaceUserCount,
+    getPlanLimit,
   }
 })
 

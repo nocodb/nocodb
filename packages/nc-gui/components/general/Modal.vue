@@ -5,16 +5,23 @@ const props = withDefaults(
     width?: string | number
     size?: 'small' | 'medium' | 'large'
     destroyOnClose?: boolean
+    maskClosable?: boolean
+    closable?: boolean
+    keyboard?: boolean
   }>(),
   {
     size: 'medium',
     destroyOnClose: true,
+    maskClosable: true,
+    closable: false,
+    keyboard: true,
   },
 )
 
 const emits = defineEmits(['update:visible'])
 
 const { width: propWidth, destroyOnClose } = props
+const { maskClosable, closable, keyboard } = toRefs(props)
 
 const width = computed(() => {
   if (propWidth) {
@@ -60,19 +67,15 @@ const visible = useVModel(props, 'visible', emits)
     v-model:visible="visible"
     :class="{ active: visible }"
     :width="width"
-    :centered="true"
-    :closable="false"
+    :closable="closable"
+    :keyboard="keyboard"
     wrap-class-name="nc-modal-wrapper"
     :footer="null"
     :destroy-on-close="destroyOnClose"
+    :mask-closable="maskClosable"
     @keydown.esc="visible = false"
   >
-    <div
-      class="nc-modal"
-      :style="{
-        maxHeight: height,
-      }"
-    >
+    <div :class="`nc-modal max-h-[${height}]`">
       <slot />
     </div>
   </a-modal>

@@ -1,17 +1,9 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
-import {
-  IsKanbanInj,
-  enumColor,
-  iconMap,
-  isEeUI,
-  onMounted,
-  storeToRefs,
-  useColumnCreateStoreOrThrow,
-  useVModel,
-  watch,
-} from '#imports'
+import InfiniteLoading from 'v3-infinite-loading'
+
+import { IsKanbanInj, enumColor, iconMap, onMounted, useColumnCreateStoreOrThrow, useVModel } from '#imports'
 
 interface Option {
   color: string
@@ -29,13 +21,23 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-const { formState, setAdditionalValidations, validateInfos, isPg, isMysql } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
 
-const { project } = storeToRefs(useProject())
+// const { base } = storeToRefs(useBase())
 
-const { loadMagic, optionsMagic: _optionsMagic } = useNocoEe()
+const { optionsMagic: _optionsMagic } = useNocoEe()
+
+const optionsWrapperDomRef = ref<HTMLElement>()
 
 const options = ref<(Option & { status?: 'remove' })[]>([])
+
+const isAddingOption = ref(false)
+
+// TODO: Implement proper top and bottom virtual scrolling
+const OPTIONS_PAGE_COUNT = 20
+const loadedOptionAnchor = ref(OPTIONS_PAGE_COUNT)
+const isReverseLazyLoad = ref(false)
+
 const renderedOptions = ref<(Option & { status?: 'remove' })[]>([])
 const savedDefaultOption = ref<Option | null>(null)
 const savedCdf = ref<string | null>(null)
@@ -44,10 +46,11 @@ const colorMenus = ref<any>({})
 
 const colors = ref(enumColor.light)
 
-const inputs = ref()
 const defaultOption = ref()
 
 const isKanban = inject(IsKanbanInj, ref(false))
+
+const { t } = useI18n()
 
 const validators = {
   colOptions: [
@@ -61,13 +64,13 @@ const validators = {
                 if ((opt as any).status === 'remove') continue
 
                 if (!opt.title.length) {
-                  return reject(new Error("Select options can't be null"))
+                  return reject(new Error(t('msg.selectOption.cantBeNull')))
                 }
                 if (vModel.value.uidt === UITypes.MultiSelect && opt.title.includes(',')) {
-                  return reject(new Error("MultiSelect columns can't have commas(',')"))
+                  return reject(new Error(t('msg.selectOption.multiSelectCantHaveCommas')))
                 }
                 if (options.value.filter((el) => el.title === opt.title && (el as any).status !== 'remove').length > 1) {
-                  return reject(new Error("Select options can't have duplicates"))
+                  return reject(new Error(t('msg.selectOption.cantHaveDuplicates')))
                 }
               }
               resolve()
@@ -91,9 +94,13 @@ onMounted(() => {
     }
   }
 
+  isReverseLazyLoad.value = false
+
   options.value = vModel.value.colOptions.options
 
-  renderedOptions.value = [...options.value]
+  loadedOptionAnchor.value = Math.min(loadedOptionAnchor.value, options.value.length)
+
+  renderedOptions.value = [...options.value].slice(0, loadedOptionAnchor.value)
 
   // Support for older options
   for (const op of options.value.filter((el) => el.order === null)) {
@@ -101,14 +108,9 @@ onMounted(() => {
   }
 
   if (vModel.value.cdf) {
-    // Postgres returns default value wrapped with single quotes & casted with type so we have to get value between single quotes to keep it unified for all databases
-    if (isPg.value) {
-      vModel.value.cdf = vModel.value.cdf.substring(vModel.value.cdf.indexOf(`'`) + 1, vModel.value.cdf.lastIndexOf(`'`))
-    }
-
-    // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
-    if (!isMysql.value) {
-      vModel.value.cdf = vModel.value.cdf.replace(/''/g, "'")
+    const fndDefaultOption = options.value.find((el) => el.title === vModel.value.cdf)
+    if (!fndDefaultOption) {
+      vModel.value.cdf = vModel.value.cdf.replace(/^'/, '').replace(/'$/, '')
     }
   }
 
@@ -134,17 +136,42 @@ const getNextColor = () => {
 }
 
 const addNewOption = () => {
+  isAddingOption.value = true
+
   const tempOption = {
     title: '',
     color: getNextColor(),
   }
-  renderedOptions.value.push(tempOption)
   options.value.push(tempOption)
+
+  isReverseLazyLoad.value = true
+
+  loadedOptionAnchor.value = options.value.length - OPTIONS_PAGE_COUNT
+  loadedOptionAnchor.value = Math.max(loadedOptionAnchor.value, 0)
+
+  renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)
+
+  optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
+
+  nextTick(() => {
+    // Last child doesnt work for query selector
+    setTimeout(() => {
+      const doms = document.querySelectorAll(`.nc-col-option-select-option .nc-select-col-option-select-option`)
+      const dom = doms[doms.length - 1] as HTMLInputElement
+
+      if (dom) {
+        dom.focus()
+      }
+    }, 150)
+
+    optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
+    isAddingOption.value = false
+  })
 }
 
-const optionsMagic = async () => {
-  await _optionsMagic(project, formState, getNextColor, options.value, renderedOptions.value)
-}
+// const optionsMagic = async () => {
+//   await _optionsMagic(base, formState, getNextColor, options.value, renderedOptions.value)
+// }
 
 const syncOptions = () => {
   vModel.value.colOptions.options = renderedOptions.value.filter((op) => op.status !== 'remove')
@@ -179,16 +206,86 @@ const undoRemoveRenderedOption = (index: number) => {
 }
 
 // focus last created input
-watch(inputs, () => {
-  if (inputs.value?.$el) {
-    inputs.value.$el.focus()
-  }
+// watch(inputs, () => {
+//   if (inputs.value?.$el) {
+//     inputs.value.$el.focus()
+//   }
+// })
+
+// Removes the Select Option from cdf if the option is removed
+watch(vModel.value, (next) => {
+  const cdfs = (next.cdf ?? '').split(',')
+  const values = (next.colOptions.options ?? []).map((col) => {
+    return col.title.replace(/^'/, '').replace(/'$/, '')
+  })
+  const newCdf = cdfs.filter((c: string) => values.includes(c)).join(',')
+  next.cdf = newCdf.length === 0 ? null : newCdf
 })
+
+const loadListDataReverse = async ($state: any) => {
+  if (isAddingOption.value) return
+
+  if (loadedOptionAnchor.value === 0) {
+    $state.complete()
+    return
+  }
+  $state.loading()
+
+  loadedOptionAnchor.value -= OPTIONS_PAGE_COUNT
+  loadedOptionAnchor.value = Math.max(loadedOptionAnchor.value, 0)
+
+  renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)
+
+  optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollTop + 100
+
+  if (loadedOptionAnchor.value === 0) {
+    $state.complete()
+    return
+  }
+  $state.loaded()
+}
+
+const loadListData = async ($state: any) => {
+  if (isAddingOption.value) return
+
+  if (loadedOptionAnchor.value === options.value.length) {
+    return $state.complete()
+  }
+
+  $state.loading()
+
+  loadedOptionAnchor.value += OPTIONS_PAGE_COUNT
+  loadedOptionAnchor.value = Math.min(loadedOptionAnchor.value, options.value.length)
+
+  renderedOptions.value = options.value.slice(0, loadedOptionAnchor.value)
+
+  if (loadedOptionAnchor.value === options.value.length) {
+    return $state.complete()
+  }
+
+  $state.loaded()
+}
 </script>
 
 <template>
   <div class="w-full">
-    <div class="max-h-[250px] overflow-x-auto scrollbar-thin-dull">
+    <div
+      ref="optionsWrapperDomRef"
+      class="nc-col-option-select-option overflow-x-auto scrollbar-thin-dull"
+      :style="{
+        maxHeight: 'calc(min(30vh, 250px))',
+      }"
+    >
+      <InfiniteLoading v-if="isReverseLazyLoad" v-bind="$attrs" @infinite="loadListDataReverse">
+        <template #spinner>
+          <div class="flex flex-row w-full justify-center mt-2">
+            <GeneralLoader />
+          </div>
+        </template>
+        <template #complete>
+          <span></span>
+        </template>
+      </InfiniteLoading>
       <Draggable :list="renderedOptions" item-key="id" handle=".nc-child-draggable-icon" @change="syncOptions">
         <template #item="{ element, index }">
           <div class="flex py-1 items-center nc-select-option">
@@ -213,20 +310,20 @@ watch(inputs, () => {
                   <LazyGeneralColorPicker
                     v-model="element.color"
                     :pick-button="true"
-                    @update:model-value="colorMenus[index] = false"
+                    @close-modal="colorMenus[index] = false"
+                    @input="(el:string) => (element.color = el)"
                   />
                 </template>
                 <MdiArrowDownDropCircle
-                  class="mr-2 text-[1.5em] outline-0 hover:!text-[1.75em]"
+                  class="mr-2 text-[1.5em] outline-0 hover:!text-[1.75em] cursor-pointer"
                   :class="{ 'text-[1.75em]': colorMenus[index] }"
                   :style="{ color: element.color }"
                 />
               </a-dropdown>
 
               <a-input
-                ref="inputs"
                 v-model:value="element.title"
-                class="caption !rounded-lg"
+                class="caption !rounded-lg nc-select-col-option-select-option"
                 :data-testid="`select-column-option-input-${index}`"
                 :disabled="element.status === 'remove'"
                 @keydown.enter.prevent="element.title?.trim() && addNewOption()"
@@ -252,6 +349,16 @@ watch(inputs, () => {
           </div>
         </template>
       </Draggable>
+      <InfiniteLoading v-if="!isReverseLazyLoad" v-bind="$attrs" @infinite="loadListData">
+        <template #spinner>
+          <div class="flex flex-row w-full justify-center mt-2">
+            <GeneralLoader />
+          </div>
+        </template>
+        <template #complete>
+          <span></span>
+        </template>
+      </InfiniteLoading>
     </div>
 
     <div v-if="validateInfos?.colOptions?.help?.[0]?.[0]" class="text-error text-[10px] mb-1 mt-2">
@@ -263,9 +370,9 @@ watch(inputs, () => {
         <span class="flex-auto">Add option</span>
       </div>
     </a-button>
-    <div v-if="isEeUI" class="w-full cursor-pointer" @click="optionsMagic()">
+    <!-- <div v-if="isEeUI" class="w-full cursor-pointer" @click="optionsMagic()">
       <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
-    </div>
+    </div> -->
   </div>
 </template>
 

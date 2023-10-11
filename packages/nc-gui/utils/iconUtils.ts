@@ -1,6 +1,7 @@
 import MdiCheckBold from '~icons/mdi/check-bold'
 import MdiCropSquare from '~icons/mdi/crop-square'
 import MdiCheckCircleOutline from '~icons/mdi/check-circle-outline'
+import MdiCheckboxMarkedCircle from '~icons/mdi/checkbox-marked-circle'
 import MdiCheckboxBlankCircleOutline from '~icons/mdi/checkbox-blank-circle-outline'
 import MdiStar from '~icons/mdi/star'
 import MdiStarOutline from '~icons/mdi/star-outline'
@@ -12,7 +13,6 @@ import MdiThumbUp from '~icons/mdi/thumb-up'
 import MdiThumbUpOutline from '~icons/mdi/thumb-up-outline'
 import MdiFlag from '~icons/mdi/flag'
 import MdiFlagOutline from '~icons/mdi/flag-outline'
-import MdiTable from '~icons/mdi/table'
 import MsMove from '~icons/material-symbols/drive-file-move-outline'
 import MSCloseRounded from '~icons/material-symbols/close-rounded'
 import MdiTableLarge from '~icons/mdi/table-large'
@@ -24,7 +24,8 @@ import MsGroup from '~icons/material-symbols/groups-outline-rounded'
 import MsAddBoxOutline from '~icons/nc-icons/add-box'
 import MsDownloadRounded from '~icons/nc-icons/download'
 import LogosAirtable from '~icons/logos/airtable'
-import MsStar from '~icons/material-symbols/star-outline-rounded'
+import NcStar from '~icons/nc-icons/star'
+import NcUnStar from '~icons/nc-icons/star-remove'
 import MsSort from '~icons/material-symbols/sort'
 import MaterialSymbolsEdit from '~icons/material-symbols/edit-outline-rounded'
 import MaterialDuplicate from '~icons/material-symbols/file-copy-outline-rounded'
@@ -32,25 +33,19 @@ import MaterialSymbolsWarningOutlineRounded from '~icons/material-symbols/warnin
 import MaterialSymbolsDragIndicator from '~icons/ri/draggable'
 import NcSearch from '~icons/nc-icons/search'
 import NcCreditCard from '~icons/nc-icons/credit-card'
-
 import NcLayers from '~icons/nc-icons/layers'
 import NcUsers from '~icons/nc-icons/users'
 import NcCheck from '~icons/nc-icons/check'
 import PlusSquare from '~icons/nc-icons/plus-square'
-
+import MobileShare from '~icons/nc-icons/share'
 import PhLayout from '~icons/ph/layout'
-import Copy from '~icons/material-symbols/content-copy-outline'
 import Delete from '~icons/material-symbols/delete-outline-rounded'
-import CiFilter from '~icons/mdi/filter-outline'
-import Plus from '~icons/material-symbols/add-rounded'
 import Minus from '~icons/material-symbols/remove-rounded'
 import Code from '~icons/material-symbols/code-rounded'
 import Palette from '~icons/material-symbols/palette-outline'
-import Erd from '~icons/material-symbols/account-tree-outline-rounded'
 import MsSync from '~icons/material-symbols/sync-rounded'
 import MdiRefresh from '~icons/mdi/refresh'
 import ApiSnippet from '~icons/material-symbols/settings-ethernet-rounded'
-import MdiSettings from '~icons/mdi/cog-outline'
 import Phishing from '~icons/material-symbols/phishing-outline-rounded'
 import MdiAccountGroup from '~icons/mdi/account-group'
 import MdiDotsVertical from '~icons/mdi/dots-vertical'
@@ -70,7 +65,6 @@ import NcIconsRowHeightExtraTall from '~icons/nc-icons/row-height-extra-tall'
 import MsInfo from '~icons/material-symbols/info-outline-rounded'
 import PhSparkleFill from '~icons/ph/sparkle-fill'
 import NcArticle from '~icons/nc-icons/article'
-
 import MsDatabase from '~icons/mdi/database-outline'
 import MdiDatabaseSearch from '~icons/mdi/database-search'
 import MdiMagicStaff from '~icons/mdi/magic-staff'
@@ -80,6 +74,36 @@ import Right from '~icons/material-symbols/chevron-right-rounded'
 import Left from '~icons/material-symbols/chevron-left-rounded'
 import Up from '~icons/material-symbols/keyboard-arrow-up-rounded'
 import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
+import PhTriangleFill from '~icons/ph/triangle-fill'
+import LcSend from '~icons/lucide/send'
+import NcCommentHere from '~icons/nc-icons/comment-here'
+import NcAddDataSource from '~icons/nc-icons/add-data-source'
+import NcDatabaseIcon from '~icons/nc-icons/database'
+
+import HasManyIcon from '~icons/nc-icons/hasmany'
+import ManytoManyIcon from '~icons/nc-icons/manytomany'
+import BelongsToIcon from '~icons/nc-icons/belongsto'
+import HasManySolidIcon from '~icons/nc-icons/hm-solid'
+import ManytoManySolidIcon from '~icons/nc-icons/mm-solid'
+import BelongsToSolidIcon from '~icons/nc-icons/bt-solid'
+import Record from '~icons/nc-icons/record'
+import Project from '~icons/nc-icons/project'
+import LookupIcon from '~icons/nc-icons/lookup'
+
+// Roles
+import SuperAdmin from '~icons/nc-icons/super-admin'
+import Owner from '~icons/nc-icons/owner'
+import Creator from '~icons/nc-icons/creator'
+import Editor from '~icons/nc-icons/editor'
+import Commentor from '~icons/nc-icons/commentor'
+import Viewer from '~icons/nc-icons/viewer'
+import NoAccess from '~icons/nc-icons/no-access'
+
+// toolbar
+import Fields from '~icons/nc-icons/fields'
+import Filter from '~icons/nc-icons/filter'
+import Group from '~icons/nc-icons/group'
+import Sort from '~icons/nc-icons/sort'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -229,8 +253,20 @@ import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
 } as const */
 
 export const iconMap = {
+  sort: Sort,
+  group: Group,
+  filter: Filter,
+  fields: Fields,
+  mm: ManytoManyIcon,
+  hm: HasManyIcon,
+  bt: BelongsToIcon,
+  mm_solid: ManytoManySolidIcon,
+  hm_solid: HasManySolidIcon,
+  bt_solid: BelongsToSolidIcon,
   workspaceDefault: MsGroup,
+  project: Project,
   search: NcSearch,
+  error: h('span', { class: 'material-symbols' }, 'error'),
   info: h(MsInfo, {}, () => 'info'),
   inbox: h('span', { class: 'material-symbols' }, 'inbox'),
   addOutlineBox: MsAddBoxOutline,
@@ -248,9 +284,11 @@ export const iconMap = {
   export: h('span', { class: 'material-symbols' }, 'get_app'),
   colInsertAfter: TablerColumnInsertRight,
   colInsertBefore: TablerColumnInsertLeft,
-  star: MsStar,
+  star: NcStar,
+  unStar: NcUnStar,
   sortDesc: MsSort,
   article: NcArticle,
+  triangleFill: PhTriangleFill,
   sortAsc: h('span', { class: 'material-symbols', style: { transform: 'scaleY(-1)' } }, 'sort'),
   contentSaveExit: h('span', { class: 'material-symbols' }, 'save'),
   contentSaveStay: h('span', { class: 'material-symbols' }, 'save_as'),
@@ -261,7 +299,6 @@ export const iconMap = {
   viewList: h('span', { class: 'material-symbols' }, 'view_list'),
   cloud: h('span', { class: 'material-symbols' }, 'cloud'),
   apiAndSupport: h('span', { class: 'material-symbols' }, 'api'),
-  sort: h('span', { class: 'material-symbols', style: { transform: 'scaleY(-1)' } }, 'sort'),
   translate: h('span', { class: 'material-symbols' }, 'translate'),
   preview: h('span', { class: 'material-symbols' }, 'visibility'),
   link: h('span', { class: 'material-symbols' }, 'link'),
@@ -311,7 +348,7 @@ export const iconMap = {
   // threeDotHorizontal: h('span', { class: 'material-symbols' }, 'more_horiz'),
   threeDotVertical: MdiDotsVertical,
   threeDotHorizontal: MdiDotsHorizontal,
-  table: MdiTable,
+  table: Record,
   excel: PhExcelThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   csv: PhCsvThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   code: Code,
@@ -320,9 +357,9 @@ export const iconMap = {
   deleteListItem: h('span', { class: 'material-symbols' }, 'delete'),
   import: h('span', { class: 'material-symbols' }, 'system_update_alt'),
   edit: MaterialSymbolsEdit,
-  lookup: h('span', { class: 'material-symbols' }, 'search'),
+  lookup: LookupIcon,
   text: h('span', { class: 'material-symbols' }, 'text_fields'),
-  longText: h('span', { class: 'material-symbols' }, 'text_format'),
+  longText: h('span', { class: 'material-symbols' }, 'view_headline'),
   clock: h('span', { class: 'material-symbols' }, 'access_time'),
   web: h('span', { class: 'material-symbols' }, 'web'),
   webhook: h('span', { class: 'material-symbols' }, 'webhook'),
@@ -337,6 +374,8 @@ export const iconMap = {
   number: h('span', { class: 'material-symbols' }, 'looks_one'),
   email: h('span', { class: 'material-symbols' }, 'email'),
   sendEmail: h('span', { class: 'material-symbols' }, 'email'),
+  send: LcSend,
+  dataSource: NcAddDataSource,
   currency: h('span', { class: 'material-symbols' }, 'attach_money'),
   percent: h('span', { class: 'material-symbols' }, 'percent'),
   decimal: h('span', { class: 'material-symbols' }, 'decimal_increase'),
@@ -357,10 +396,12 @@ export const iconMap = {
   expand: h('span', { class: 'material-symbols' }, 'open_in_full'),
   shrink: h('span', { class: 'material-symbols' }, 'close_fullscreen'),
   check: NcCheck,
+  circleCheck: MdiCheckboxMarkedCircle,
   acl: h('span', { class: 'material-symbols' }, 'shield'),
   sync: MsSync,
   warning: MaterialSymbolsWarningOutlineRounded,
   share: h('span', { class: 'material-symbols' }, 'share'),
+  mobileShare: MobileShare,
   reload: MdiRefresh,
   xml: h('span', { class: 'material-symbols' }, 'code'),
   airtable: LogosAirtable,
@@ -373,14 +414,10 @@ export const iconMap = {
   view: h('span', { class: 'material-symbols' }, 'visibility'),
   // rowHeight: h('span', { class: 'material-symbols' }, 'height'),
   rowHeight: h(PhSplitVerticalThin, { style: { fontSize: '14px' } }),
-  filter: CiFilter,
   closeCircle: h('span', { class: 'material-symbols' }, 'cancel'),
   closeBox: h('span', { class: 'material-symbols' }, 'close'),
   close: MSCloseRounded,
   openInNew: h('span', { class: 'material-symbols' }, 'open_in_new'),
-  mm: h('span', { class: 'material-symbols' }, 'table_rows'),
-  hm: h('span', { class: 'material-symbols' }, 'table_rows'),
-  bt: h('span', { class: 'material-symbols' }, 'subdirectory_arrow_right'),
   passwordChange: h('span', { class: 'material-symbols' }, 'vpn_key'),
   mapMarker: h('span', { class: 'material-symbols' }, 'room'),
   currentLocation: h('span', { class: 'material-symbols' }, 'my_location'),
@@ -391,6 +428,7 @@ export const iconMap = {
   drag: MaterialSymbolsDragIndicator,
   comment: h('span', { class: 'material-symbols' }, 'comment'),
   doc: h('span', { class: 'material-symbols' }, 'menu_book'),
+  menu: h('span', { class: 'material-symbols' }, 'menu'),
   move: MsMove,
   creditCard: NcCreditCard,
   heightShort: NcIconsRowHeightShort,
@@ -399,10 +437,19 @@ export const iconMap = {
   heightExtra: NcIconsRowHeightExtraTall,
   databaseSearch: MdiDatabaseSearch,
   layers: NcLayers,
+  ncDatabase: NcDatabaseIcon,
   magic: PhSparkleFill,
   magic1: MdiMagicStaff,
   workspace: h('span', { class: 'material-symbols' }, 'dataset'),
   notification: NcNotification,
+  role_owner: Owner,
+  role_creator: Creator,
+  role_editor: Editor,
+  role_commenter: Commentor,
+  role_viewer: Viewer,
+  role_super: SuperAdmin,
+  role_no_access: NoAccess,
+  commentHere: NcCommentHere,
 }
 
 export const getMdiIcon = (type: string): any => {

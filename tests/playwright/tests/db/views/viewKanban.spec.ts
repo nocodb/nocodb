@@ -3,18 +3,20 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 
 import setup, { unsetup } from '../../../setup';
-import { isPg, isSqlite } from '../../../setup/db';
+import { enableQuickRun, isPg, isSqlite } from '../../../setup/db';
 import { TopbarPage } from '../../../pages/Dashboard/common/Topbar';
 
 const filmRatings = ['G', 'PG', 'PG-13', 'R', 'NC-17'];
 
 test.describe('View', () => {
+  if (enableQuickRun()) test.skip();
+
   let dashboard: DashboardPage, toolbar: ToolbarPage, topbar: TopbarPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = toolbar = dashboard.kanban.toolbar;
     topbar = dashboard.kanban.topbar;
 
@@ -61,7 +63,7 @@ test.describe('View', () => {
     });
     await dashboard.viewSidebar.verifyView({
       title: 'Film Kanban',
-      index: 1,
+      index: 0,
     });
 
     // configure stack-by field
@@ -202,7 +204,7 @@ test.describe('View', () => {
     });
     await dashboard.viewSidebar.verifyView({
       title: 'Film Kanban',
-      index: 1,
+      index: 0,
     });
 
     await toolbar.sort.add({
@@ -227,7 +229,7 @@ test.describe('View', () => {
     await dashboard.viewSidebar.copyView({ title: 'Film Kanban' });
     await dashboard.viewSidebar.verifyView({
       title: 'Untitled Kanban',
-      index: 2,
+      index: 1,
     });
     const kanban = dashboard.kanban;
     await kanban.verifyStackCount({ count: 6 });
@@ -328,7 +330,7 @@ test.describe('View', () => {
     });
     await dashboard.viewSidebar.verifyView({
       title: 'Film Kanban',
-      index: 1,
+      index: 0,
     });
 
     // Share view

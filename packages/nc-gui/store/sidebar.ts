@@ -1,35 +1,58 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
+import { MAX_WIDTH_FOR_MOBILE_MODE } from '~/lib'
 
 export const useSidebarStore = defineStore('sidebarStore', () => {
-  const isLeftSidebarOpen = ref(true)
-  const isRightSidebarOpen = ref(true)
-  const leftSidebarWidthPercent = ref(20)
+  const { width } = useWindowSize()
+  const isViewPortMobile = () => {
+    return width.value < MAX_WIDTH_FOR_MOBILE_MODE
+  }
+  const { isMobileMode } = useGlobal()
 
-  const leftSideBarSize = ref({
-    old: leftSidebarWidthPercent.value,
-    current: leftSidebarWidthPercent.value,
+  const tablesStore = useTablesStore()
+  const _isLeftSidebarOpen = ref(!isViewPortMobile())
+  const isLeftSidebarOpen = computed({
+    get() {
+      return (isMobileMode && !tablesStore.activeTableId) || _isLeftSidebarOpen.value
+    },
+    set(value) {
+      _isLeftSidebarOpen.value = value
+    },
   })
 
-  const rightSidebarSize = ref({
-    old: 17.5,
-    current: 17.5,
+  const isRightSidebarOpen = ref(true)
+
+  const leftSidebarWidthPercent = ref(isViewPortMobile() ? 0 : 20)
+
+  const leftSideBarSize = ref({
+    old: 20,
+    current: leftSidebarWidthPercent.value,
   })
 
   const leftSidebarState = ref<
     'openStart' | 'openEnd' | 'hiddenStart' | 'hiddenEnd' | 'peekOpenStart' | 'peekOpenEnd' | 'peekCloseOpen' | 'peekCloseEnd'
   >(isLeftSidebarOpen.value ? 'openEnd' : 'hiddenEnd')
 
-  const rightSidebarState = ref<
-    'openStart' | 'openEnd' | 'hiddenStart' | 'hiddenEnd' | 'peekOpenStart' | 'peekOpenEnd' | 'peekCloseOpen' | 'peekCloseEnd'
-  >(isRightSidebarOpen.value ? 'openEnd' : 'hiddenEnd')
+  const mobileNormalizedSidebarSize = computed(() => {
+    if (isMobileMode.value) {
+      return isLeftSidebarOpen.value ? 100 : 0
+    }
+
+    return leftSideBarSize.value.current
+  })
+
+  const leftSidebarWidth = computed(() => (width.value * mobileNormalizedSidebarSize.value) / 100)
 
   return {
     isLeftSidebarOpen,
     isRightSidebarOpen,
-    rightSidebarSize,
     leftSidebarWidthPercent,
     leftSideBarSize,
     leftSidebarState,
-    rightSidebarState,
+    leftSidebarWidth,
+    mobileNormalizedSidebarSize,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useSidebarStore as any, import.meta.hot))
+}

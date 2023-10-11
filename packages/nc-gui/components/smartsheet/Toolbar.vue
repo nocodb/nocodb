@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { IsPublicInj, inject, ref, useSharedView, useSmartsheetStoreOrThrow, useUIPermission, useViewsStore } from '#imports'
+import { IsPublicInj, inject, ref, useRoles, useSharedView, useSmartsheetStoreOrThrow, useViewsStore } from '#imports'
 
-const { isGrid, isForm, isGallery, isKanban, isMap } = useSmartsheetStoreOrThrow()
+const { isGrid, isGallery, isKanban, isMap } = useSmartsheetStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -9,25 +9,14 @@ const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { isMobileMode } = useGlobal()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { allowCSVDownload } = useSharedView()
-
-const isViewSidebarAvailable = computed(
-  () => (isGrid.value || isGallery.value || isKanban.value || isMap.value) && !isPublic.value,
-)
 </script>
 
 <template>
   <div
-    class="nc-table-toolbar h-12 min-h-12 py-1 flex gap-2 items-center border-b border-gray-200 overflow-hidden"
-    :class="{
-      'nc-table-toolbar-mobile': isMobileMode,
-      'max-h-[var(--topbar-height)] min-h-[var(--topbar-height)]': !isMobileMode,
-      'pl-3 pr-0': isViewSidebarAvailable,
-      'px-3': !isViewSidebarAvailable,
-    }"
-    style="z-index: 7"
+    class="nc-table-toolbar py-1 px-2.25 xs:(px-1) flex gap-2 items-center border-b border-gray-200 overflow-hidden xs:(min-h-14) max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] z-7"
   >
     <template v-if="isViewsLoading">
       <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
@@ -35,9 +24,9 @@ const isViewSidebarAvailable = computed(
     <template v-else>
       <LazySmartsheetToolbarMappedBy v-if="isMap" />
 
-      <LazySmartsheetToolbarStackedBy v-if="isKanban" />
-
       <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
+
+      <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 
       <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
@@ -45,21 +34,30 @@ const isViewSidebarAvailable = computed(
 
       <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
 
-      <LazySmartsheetToolbarRowHeight v-if="isGrid" />
+      <template v-if="!isMobileMode">
+        <LazySmartsheetToolbarRowHeight v-if="isGrid" />
 
-      <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" />
+        <!-- <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" /> -->
 
-      <LazySmartsheetToolbarExport v-if="(!isPublic && !isUIAllowed('dataInsert')) || (isPublic && allowCSVDownload)" />
+        <LazySmartsheetToolbarExport v-if="(!isPublic && !isUIAllowed('dataInsert')) || (isPublic && allowCSVDownload)" />
 
-      <div v-if="!isMobileMode" class="flex-1" />
+        <div class="flex-1" />
+      </template>
 
-      <LazySmartsheetToolbarSearchData v-if="(isGrid || isGallery || isKanban) && !isPublic" class="shrink" />
-
-      <LazySmartsheetToolbarViewActions
-        v-if="(isGrid || isGallery || isKanban || isMap) && !isPublic && isUIAllowed('dataInsert')"
-        :show-system-fields="false"
+      <LazySmartsheetToolbarSearchData
+        v-if="(isGrid || isGallery || isKanban) && !isPublic"
+        :class="{
+          'shrink': !isMobileMode,
+          'w-full': isMobileMode,
+        }"
       />
-      <LazySmartsheetToolbarOpenViewSidebarBtn v-if="isViewSidebarAvailable" />
+
+      <template v-if="!isMobileMode">
+        <LazySmartsheetToolbarViewActions
+          v-if="(isGrid || isGallery || isKanban || isMap) && !isPublic && isUIAllowed('dataInsert')"
+          :show-system-fields="false"
+        />
+      </template>
     </template>
   </div>
 </template>

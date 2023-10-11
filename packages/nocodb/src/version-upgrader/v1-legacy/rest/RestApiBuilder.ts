@@ -1,8 +1,8 @@
 import autoBind from 'auto-bind';
 import BaseApiBuilder from '../BaseApiBuilder';
+import type NcProjectBuilder from '../NcProjectBuilder';
 import type { Router } from 'express';
 import type { DbConfig, NcConfig } from '~/interface/config';
-import type NcProjectBuilder from '../NcProjectBuilder';
 import type { MetaService } from '~/meta/meta.service';
 import type Noco from '~/Noco';
 import NcHelp from '~/utils/NcHelp';
@@ -18,12 +18,12 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
   constructor(
     app: Noco,
-    projectBuilder: NcProjectBuilder,
+    baseBuilder: NcProjectBuilder,
     config: NcConfig,
     connectionConfig: DbConfig,
     xcMeta?: MetaService,
   ) {
-    super(app, projectBuilder, config, connectionConfig);
+    super(app, baseBuilder, config, connectionConfig);
     autoBind(this);
     this.routers = {};
     this.hooks = {};
@@ -62,7 +62,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         return async () => {
           if (
             !(await this.xcMeta.metaGet(
-              this.projectId,
+              this.baseId,
               this.dbAlias,
               'nc_routes',
               {
@@ -74,7 +74,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
             ))
           ) {
             await this.xcMeta.metaInsert(
-              this.projectId,
+              this.baseId,
               this.dbAlias,
               'nc_routes',
               {
@@ -89,7 +89,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
             );
           } else {
             await this.xcMeta.metaUpdate(
-              this.projectId,
+              this.baseId,
               this.dbAlias,
               'nc_routes',
               {
@@ -137,7 +137,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       }).getObject();
 
       const meta = await this.xcMeta.metaGet(
-        this.projectId,
+        this.baseId,
         this.dbAlias,
         'nc_models',
         {
@@ -155,7 +155,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
       oldSwaggerDoc.definitions = swaggerDoc.definitions;
       await this.xcMeta.metaUpdate(
-        this.projectId,
+        this.baseId,
         this.dbAlias,
         'nc_models',
         {

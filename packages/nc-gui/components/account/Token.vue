@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { Empty, message } from 'ant-design-vue'
-import type { ApiTokenType, RequestParams, UserType } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, iconMap, ref, useApi, useCopy, useNuxtApp } from '#imports'
+import { message } from 'ant-design-vue'
+import type { ApiTokenType, RequestParams } from 'nocodb-sdk'
+import { extractSdkResponseErrorMsg, isEeUI, ref, useApi, useCopy, useNuxtApp } from '#imports'
 
 const { api, isLoading } = useApi()
 
@@ -12,7 +12,16 @@ const { copy } = useCopy()
 
 const { t } = useI18n()
 
-const tokens = ref<UserType[]>([])
+interface IApiTokenInfo extends ApiTokenType {
+  created_by: string
+}
+
+const tokens = ref<IApiTokenInfo[]>([])
+
+const selectedToken = reactive({
+  isShow: false,
+  id: '',
+})
 
 const currentPage = ref(1)
 
@@ -20,7 +29,11 @@ const showNewTokenModal = ref(false)
 
 const currentLimit = ref(10)
 
-const selectedTokenData = ref<ApiTokenType>({})
+const defaultTokenName = t('labels.untitledToken')
+
+const selectedTokenData = ref<ApiTokenType>({
+  description: defaultTokenName,
+})
 
 const searchText = ref<string>('')
 
@@ -28,6 +41,17 @@ const pagination = reactive({
   total: 0,
   pageSize: 10,
 })
+
+const hideOrShowToken = (tokenId: string) => {
+  if (selectedToken.isShow && selectedToken.id === tokenId) {
+    selectedToken.isShow = false
+    selectedToken.id = ''
+  } else {
+    selectedToken.isShow = true
+    selectedToken.id = tokenId
+  }
+}
+
 const loadTokens = async (page = currentPage.value, limit = currentLimit.value) => {
   currentPage.value = page
   try {
@@ -42,7 +66,7 @@ const loadTokens = async (page = currentPage.value, limit = currentLimit.value) 
     pagination.total = response.pageInfo.totalRows ?? 0
     pagination.pageSize = 10
 
-    tokens.value = response.list as UserType[]
+    tokens.value = response.list as IApiTokenInfo[]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -53,18 +77,17 @@ loadTokens()
 const isModalOpen = ref(false)
 const tokenDesc = ref('')
 const tokenToCopy = ref('')
-
-const openModal = (tk: string, desc: string) => {
-  isModalOpen.value = true
-  tokenToCopy.value = tk
-  tokenDesc.value = desc
-}
+const isValidTokenName = ref(false)
 
 const deleteToken = async (token: string): Promise<void> => {
   try {
     await api.orgTokens.delete(token)
     // message.success(t('msg.success.tokenDeleted'))
     await loadTokens()
+    if (!tokens.value.length && currentPage.value !== 1) {
+      currentPage.value--
+      loadTokens(currentPage.value)
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -74,7 +97,15 @@ const deleteToken = async (token: string): Promise<void> => {
   tokenDesc.value = ''
 }
 
+const validateTokenName = (tokenName: string | undefined) => {
+  if (!tokenName) return false
+  return tokenName.length < 255
+}
+
 const generateToken = async () => {
+  isValidTokenName.value = validateTokenName(selectedTokenData.value.description)
+
+  if (!isValidTokenName.value) return
   try {
     await api.orgTokens.create(selectedTokenData.value)
     showNewTokenModal.value = false
@@ -84,8 +115,10 @@ const generateToken = async () => {
     await loadTokens()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    selectedTokenData.value.description = defaultTokenName
+    $e('a:api-token:generate')
   }
-  $e('a:api-token:generate')
 }
 
 const copyToken = async (token: string | undefined) => {
@@ -102,132 +135,186 @@ const copyToken = async (token: string | undefined) => {
   }
 }
 
-const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+const triggerDeleteModal = (tokenToDelete: string, tokenDescription: string) => {
+  tokenToCopy.value = tokenToDelete
+  tokenDesc.value = tokenDescription
+  isModalOpen.value = true
+}
+
+const selectInputOnMount: VNodeRef = (el) =>
+  selectedTokenData.value.description === defaultTokenName && (el as HTMLInputElement)?.select()
+
+const errorMessage = computed(() => {
+  const tokenLength = selectedTokenData.value.description?.length
+  if (!tokenLength) {
+    return t('msg.info.tokenNameNotEmpty')
+  } else if (tokenLength > 255) {
+    return t('msg.info.tokenNameMaxLength')
+  }
+})
+
+const handleCancel = () => {
+  showNewTokenModal.value = false
+  isValidTokenName.value = false
+}
 </script>
 
 <template>
-  <div class="h-full overflow-y-scroll scrollbar-thin-dull pt-2">
-    <div class="max-w-[900px] mx-auto p-4" data-testid="nc-token-list">
-      <div class="text-xl my-4 text-left font-weight-bold">{{ $t('title.tokenManagement') }}</div>
-      <div class="py-2 flex gap-4 items-center">
-        <div class="flex-grow"></div>
-        <component :is="iconMap.reload" class="cursor-pointer" @click="() => loadTokens()" />
-        <a-button
-          class="!rounded-md"
-          data-testid="nc-token-create"
-          size="middle"
-          type="primary"
-          @click="showNewTokenModal = true"
-        >
-          <div class="flex items-center gap-1">
-            <component :is="iconMap.plus" />
-            {{ $t('title.addNewToken') }}
-          </div>
-        </a-button>
+  <div class="h-full pt-2">
+    <div class="max-w-202 mx-auto px-4 h-full" data-testid="nc-token-list">
+      <div class="py-2 flex gap-4 items-baseline justify-between">
+        <h6 class="text-2xl text-left font-bold" data-rec="true">{{ $t('title.apiTokens') }}</h6>
+        <NcTooltip :disabled="!(isEeUI && tokens.length)">
+          <template #title>{{ $t('labels.tokenLimit') }}</template>
+          <NcButton
+            :disabled="showNewTokenModal || (isEeUI && tokens.length)"
+            class="!rounded-md"
+            data-testid="nc-token-create"
+            size="middle"
+            type="primary"
+            tooltip="bottom"
+            @click="showNewTokenModal = true"
+          >
+            <span class="hidden md:block" data-rec="true">
+              {{ $t('title.addNewToken') }}
+            </span>
+            <span class="flex items-center justify-center md:hidden" data-rec="true">
+              <component :is="iconMap.plus" />
+            </span>
+          </NcButton>
+        </NcTooltip>
       </div>
-      <a-table
-        :row-key="(record) => record.id"
-        :data-source="tokens"
-        :pagination="{ position: ['bottomCenter'] }"
-        :loading="isLoading"
-        size="small"
-        @change="loadTokens($event.current)"
-      >
-        <template #emptyText>
-          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
-        </template>
-
-        <!-- Created By -->
-        <a-table-column key="created_by" :title="$t('labels.createdBy')" data-index="created_by">
-          <template #default="{ text }">
-            <div v-if="text">
-              {{ text }}
-            </div>
-            <div v-else class="text-gray-400">N/A</div>
-          </template>
-        </a-table-column>
-
-        <!-- Description -->
-        <a-table-column key="description" :title="$t('labels.description')" data-index="description">
-          <template #default="{ text }">
-            {{ text }}
-          </template>
-        </a-table-column>
-
-        <!-- Token -->
-        <a-table-column key="token" :title="$t('labels.token')" data-index="token">
-          <template #default="{ text, record }">
-            <div class="w-[320px]">
-              <span v-if="record.show">{{ text }}</span>
-              <span v-else>*******************************************</span>
-            </div>
-          </template>
-        </a-table-column>
-
-        <!-- Actions -->
-
-        <a-table-column key="actions" :title="$t('labels.actions')" data-index="token">
-          <template #default="{ record }">
-            <div class="flex items-center gap-2">
-              <a-tooltip placement="bottom">
-                <template #title>
-                  <span v-if="record.show"> {{ $t('general.hide') }} </span>
-                  <span v-else> {{ $t('general.show') }} </span>
-                </template>
-
-                <a-button type="text" class="!rounded-md nc-toggle-token-visibility" @click="record.show = !record.show">
-                  <template #icon>
-                    <MaterialSymbolsVisibilityOff v-if="record.show" class="flex mx-auto h-[1.1rem]" />
-                    <MaterialSymbolsVisibility v-else class="flex mx-auto h-[1rem]" />
-                  </template>
-                </a-button>
-              </a-tooltip>
-
-              <a-tooltip placement="bottom">
-                <template #title> {{ $t('general.copy') }}</template>
-
-                <a-button type="text" class="!rounded-md" @click="copyToken(record.token)">
-                  <template #icon>
-                    <component :is="iconMap.copy" class="flex mx-auto h-[1rem]" />
-                  </template>
-                </a-button>
-              </a-tooltip>
-
-              <a-dropdown
-                :trigger="['click']"
-                class="flex"
-                placement="bottomRight"
-                overlay-class-name="nc-dropdown-api-token-mgmt"
+      <span data-rec="true">{{ $t('msg.apiTokenCreate') }}</span>
+      <div class="mt-5 h-[calc(100%-13rem)]">
+        <div class="h-full w-full !overflow-hidden rounded-md">
+          <div class="flex w-full pl-5 bg-gray-50 border-1 rounded-t-md">
+            <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9" data-rec="true">{{ $t('title.tokenName') }}</span>
+            <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9 text-start" data-rec="true">{{
+              $t('title.creator')
+            }}</span>
+            <span class="py-3.5 text-gray-500 font-medium text-3.5 w-3/9 text-start" data-rec="true">{{
+              $t('labels.token')
+            }}</span>
+            <span class="py-3.5 pl-19 text-gray-500 font-medium text-3.5 w-2/9 text-start" data-rec="true">{{
+              $t('labels.actions')
+            }}</span>
+          </div>
+          <div class="nc-scrollbar-md !overflow-y-auto flex flex-col h-[calc(100%-5rem)]">
+            <div v-if="showNewTokenModal">
+              <div
+                class="flex gap-5 px-3 py-2.5 text-gray-500 font-medium text-3.5 w-full nc-token-generate border-b-1 border-l-1 border-r-1"
+                :class="{
+                  'rounded-b-md': !tokens.length,
+                }"
               >
-                <div class="flex flex-row items-center">
-                  <a-button type="text" class="!px-0">
-                    <div class="flex flex-row items-center h-[1.2rem]">
-                      <IcBaselineMoreVert class="nc-token-menu" />
-                    </div>
-                  </a-button>
+                <div class="flex w-full">
+                  <a-input
+                    :ref="selectInputOnMount"
+                    v-model:value="selectedTokenData.description"
+                    :default-value="defaultTokenName"
+                    type="text"
+                    class="!rounded-lg !py-1"
+                    placeholder="Token Name"
+                    data-testid="nc-token-input"
+                    @press-enter="generateToken"
+                  />
+                  <span v-if="!isValidTokenName" class="text-red-500 text-xs font-light mt-1.5 ml-1" data-rec="true"
+                    >{{ errorMessage }}
+                  </span>
                 </div>
-
-                <template #overlay>
-                  <a-menu data-testid="nc-token-row-action-icon">
-                    <a-menu-item>
-                      <div
-                        class="flex flex-row items-center py-3 h-[2rem] nc-delete-token"
-                        @click="openModal(record.token, record.description)"
-                      >
-                        <component :is="iconMap.delete" class="flex" />
-                        <div class="text-sm pl-2">{{ $t('general.remove') }}</div>
-                      </div>
-                    </a-menu-item>
-                  </a-menu>
-                </template>
-              </a-dropdown>
+                <div class="flex gap-2 justify-start">
+                  <NcButton v-if="!isLoading" type="secondary" size="small" @click="handleCancel">
+                    {{ $t('general.cancel') }}
+                  </NcButton>
+                  <NcButton
+                    type="primary"
+                    size="sm"
+                    :is-loading="isLoading"
+                    data-testid="nc-token-save-btn"
+                    @click="generateToken"
+                  >
+                    {{ $t('general.save') }}
+                  </NcButton>
+                </div>
+              </div>
             </div>
-          </template>
-        </a-table-column>
-      </a-table>
+            <div
+              v-if="!tokens.length && !showNewTokenModal"
+              class="border-l-1 border-r-1 border-b-1 rounded-b-md justify-center flex items-center"
+            >
+              <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noToken')" />
+            </div>
+
+            <div
+              v-for="el of tokens"
+              :key="el.id"
+              data-testid="nc-token-list"
+              class="flex pl-5 py-3 justify-between token items-center border-l-1 border-r-1 border-b-1"
+            >
+              <span class="text-black font-bold text-3.5 text-start w-2/9">
+                <GeneralTruncateText placement="top" length="20">
+                  {{ el.description }}
+                </GeneralTruncateText>
+              </span>
+              <span class="text-gray-500 font-medium text-3.5 text-start w-2/9">
+                <GeneralTruncateText placement="top" length="20">
+                  {{ el.created_by }}
+                </GeneralTruncateText>
+              </span>
+              <span class="text-gray-500 font-medium text-3.5 text-start w-3/9">
+                <GeneralTruncateText v-if="el.token === selectedToken.id && selectedToken.isShow" placement="top" length="29">
+                  {{ el.token }}
+                </GeneralTruncateText>
+                <span v-else>************************************</span>
+              </span>
+              <!-- ACTIONS -->
+              <div class="flex justify-end items-center gap-3 pr-5 text-gray-500 font-medium text-3.5 w-2/9">
+                <NcTooltip placement="top">
+                  <template #title>{{ $t('labels.showOrHide') }}</template>
+                  <component
+                    :is="iconMap.eye"
+                    class="nc-toggle-token-visibility hover::cursor-pointer w-h-4 mb-[1.8px]"
+                    @click="hideOrShowToken(el.token as string)"
+                  />
+                </NcTooltip>
+                <NcTooltip placement="top" class="h-4">
+                  <template #title>{{ $t('general.copy') }}</template>
+                  <component
+                    :is="iconMap.copy"
+                    class="hover::cursor-pointer w-4 h-4 text-gray-600 mt-0.25"
+                    @click="copyToken(el.token)"
+                  />
+                </NcTooltip>
+                <NcTooltip placement="top" class="mb-0.5">
+                  <template #title>{{ $t('general.delete') }}</template>
+                  <component
+                    :is="iconMap.delete"
+                    data-testid="nc-token-row-action-icon"
+                    class="nc-delete-icon hover::cursor-pointer w-4 h-4"
+                    @click="triggerDeleteModal(el.token as string, el.description as string)"
+                  />
+                </NcTooltip>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="pagination.total > 10" class="flex items-center justify-center mt-5">
+        <a-pagination
+          v-model:current="currentPage"
+          :total="pagination.total"
+          show-less-items
+          @change="loadTokens(currentPage, currentLimit)"
+        />
+      </div>
     </div>
 
-    <GeneralDeleteModal v-model:visible="isModalOpen" entity-name="Token" :on-delete="() => deleteToken(tokenToCopy)">
+    <GeneralDeleteModal
+      v-model:visible="isModalOpen"
+      :entity-name="$t('labels.token')"
+      :on-delete="() => deleteToken(tokenToCopy)"
+    >
       <template #entity-preview>
         <span>
           <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
@@ -242,57 +329,11 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
         </span>
       </template>
     </GeneralDeleteModal>
-
-    <a-modal
-      v-model:visible="showNewTokenModal"
-      :class="{ active: showNewTokenModal }"
-      :closable="false"
-      width="28rem"
-      centered
-      :footer="null"
-      wrap-class-name="nc-modal-generate-token"
-    >
-      <div class="relative flex flex-col h-full">
-        <a-button type="text" class="!absolute top-0 right-0 rounded-md -mt-2 -mr-3" @click="showNewTokenModal = false">
-          <template #icon>
-            <MaterialSymbolsCloseRounded class="flex mx-auto" />
-          </template>
-        </a-button>
-
-        <!-- Generate Token -->
-        <div class="flex flex-row w-full -mt-1 mb-3">
-          <a-typography-title :level="5">{{ $t('title.generateToken') }}</a-typography-title>
-        </div>
-
-        <!-- Description -->
-        <a-form
-          ref="form"
-          :model="selectedTokenData"
-          name="basic"
-          layout="vertical"
-          class="flex flex-col justify-center space-y-6"
-          no-style
-          autocomplete="off"
-          @finish="generateToken"
-        >
-          <a-input
-            :ref="descriptionInput"
-            v-model:value="selectedTokenData.description"
-            data-testid="nc-token-modal-description"
-            :placeholder="$t('labels.description')"
-            class="h-9 rounded-md"
-          />
-
-          <!-- Generate -->
-          <div class="flex flex-row justify-end">
-            <a-button size="middle" class="!rounded-md" type="primary" html-type="submit" data-testid="nc-token-modal-save">
-              {{ $t('general.generate') }}
-            </a-button>
-          </div>
-        </a-form>
-      </div>
-    </a-modal>
   </div>
 </template>
 
-<style scoped></style>
+<style>
+.token:last-child {
+  @apply border-b-1 rounded-b-md;
+}
+</style>

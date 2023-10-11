@@ -6,7 +6,7 @@ export default {
 
 <template>
   <div class="p-4">
-    <!-- <WorkspaceProjectList /> -->
+    <!-- <workspaceBaseList /> -->
   </div>
 </template>
 

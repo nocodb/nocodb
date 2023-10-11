@@ -3,15 +3,17 @@ const workspaceStore = useWorkspace()
 
 const { isWorkspaceLoading } = storeToRefs(workspaceStore)
 
-const { isSharedBase } = storeToRefs(useProject())
+const { isSharedBase } = storeToRefs(useBase())
 
-const isCreateProjectOpen = ref(false)
+const { isMobileMode } = useGlobal()
 
 const treeViewDom = ref<HTMLElement>()
 
 const isTreeViewOnScrollTop = ref(false)
 
 const checkScrollTopMoreThanZero = () => {
+  if (isMobileMode.value) return
+
   if (treeViewDom.value) {
     if (treeViewDom.value.scrollTop > 0) {
       isTreeViewOnScrollTop.value = true
@@ -45,34 +47,16 @@ onUnmounted(() => {
     </div>
     <div
       ref="treeViewDom"
-      class="flex flex-col nc-scrollbar-sm-dark flex-grow"
+      class="flex flex-col nc-scrollbar-dark-md flex-grow xs:(border-transparent pt-2)"
       :class="{
         'border-t-1': !isSharedBase,
         'border-transparent': !isTreeViewOnScrollTop,
         'pt-0.25': isSharedBase,
       }"
     >
-      <div v-if="!isSharedBase" class="flex flex-row w-full justify-between items-center my-1.5 pl-4 pr-1.75">
-        <template v-if="!isWorkspaceLoading">
-          <div class="text-gray-500 font-medium">{{ $t('objects.projects') }}</div>
-          <WorkspaceCreateProjectBtn
-            v-model:is-open="isCreateProjectOpen"
-            modal
-            type="text"
-            size="xxsmall"
-            class="!hover:bg-gray-200 !hover-text-gray-800 !text-gray-600"
-            :centered="true"
-            data-testid="nc-sidebar-create-project-btn-small"
-          >
-            <GeneralIcon icon="plus" class="text-lg leading-6" style="-webkit-text-stroke: 0.2px" />
-          </WorkspaceCreateProjectBtn>
-        </template>
-        <a-skeleton-input v-else :active="true" class="mt-0.5 !w-40 !h-4 !rounded overflow-hidden" />
-      </div>
-
-      <LazyDashboardTreeView v-if="!isWorkspaceLoading" />
+      <DashboardTreeView v-if="!isWorkspaceLoading" />
     </div>
-    <div v-if="!isSharedBase" style="height: var(--sidebar-bottom-height)">
+    <div v-if="!isSharedBase">
       <DashboardSidebarUserInfo />
     </div>
   </div>

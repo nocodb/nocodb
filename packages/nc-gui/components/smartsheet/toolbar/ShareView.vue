@@ -3,21 +3,21 @@ import { ViewTypes } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import tinycolor from 'tinycolor2'
 import {
+  baseThemeColors,
   computed,
   extractSdkResponseErrorMsg,
   iconMap,
   isRtlLang,
   message,
-  projectThemeColors,
   ref,
   storeToRefs,
+  useBase,
   useCopy,
   useDashboard,
   useI18n,
   useNuxtApp,
-  useProject,
+  useRoles,
   useSmartsheetStoreOrThrow,
-  useUIPermission,
   watch,
 } from '#imports'
 import type { SharedView } from '#imports'
@@ -32,9 +32,9 @@ const { $e } = useNuxtApp()
 
 const { dashboardUrl } = useDashboard()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
-const { isSharedBase } = storeToRefs(useProject())
+const { isSharedBase } = storeToRefs(useBase())
 
 const { isMobileMode } = useGlobal()
 
@@ -249,7 +249,7 @@ watch(shared, () => {
 <template>
   <div>
     <a-button
-      v-if="isUIAllowed('share-view') && !isSharedBase"
+      v-if="isUIAllowed('viewShare') && !isSharedBase"
       v-e="['c:view:share']"
       outlined
       class="nc-btn-share-view nc-toolbar-btn"
@@ -390,7 +390,7 @@ watch(shared, () => {
                   data-testid="nc-modal-share-view__theme-picker"
                   class="!p-0"
                   :model-value="shared.meta.theme?.primaryColor"
-                  :colors="projectThemeColors"
+                  :colors="baseThemeColors"
                   :row-size="9"
                   :advanced="false"
                   @input="onChangeTheme"

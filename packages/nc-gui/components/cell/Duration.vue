@@ -2,6 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import {
   ColumnInj,
+  EditColumnInj,
   EditModeInj,
   IsExpandedFormOpenInj,
   computed,
@@ -22,6 +23,8 @@ const { modelValue, showValidationError = true } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
+const { t } = useI18n()
+
 const { showNull } = useGlobal()
 
 const column = inject(ColumnInj)
@@ -34,9 +37,13 @@ const durationInMS = ref(0)
 
 const isEdited = ref(false)
 
+const isEditColumn = inject(EditColumnInj, ref(false))
+
 const durationType = computed(() => parseProp(column?.value?.meta)?.duration || 0)
 
-const durationPlaceholder = computed(() => durationOptions[durationType.value].title)
+const durationPlaceholder = computed(() =>
+  isEditColumn.value ? `(${t('labels.optional')})` : durationOptions[durationType.value].title,
+)
 
 const localState = computed({
   get: () => convertMS2Duration(modelValue, durationType.value),
@@ -76,7 +83,7 @@ const submitDuration = () => {
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
@@ -85,8 +92,8 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputEle
       v-if="editEnabled"
       :ref="focus"
       v-model="localState"
-      class="w-full !border-none p-0"
-      :class="{ '!px-2': editEnabled }"
+      class="w-full !border-none !outline-none p-0"
+      :class="{ '!px-2 !py-1': editEnabled }"
       :placeholder="durationPlaceholder"
       @blur="submitDuration"
       @keypress="checkDurationFormat($event)"
@@ -102,13 +109,12 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputEle
       @mousedown.stop
     />
 
-    <span v-else-if="modelValue === null && showNull" class="nc-null">NULL</span>
+    <span v-else-if="modelValue === null && showNull" class="nc-null capitalize">{{ $t('general.null') }}</span>
 
     <span v-else> {{ localState }}</span>
 
     <div v-if="showWarningMessage && showValidationError" class="duration-warning">
-      <!-- TODO: i18n -->
-      Please enter a number
+      {{ $t('msg.plsEnterANumber') }}
     </div>
   </div>
 </template>

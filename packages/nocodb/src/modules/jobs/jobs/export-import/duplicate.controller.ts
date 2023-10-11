@@ -11,26 +11,97 @@ import {
 import { ProjectStatus } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { ProjectsService } from '~/services/projects.service';
-import { Base, Model, Project } from '~/models';
+import { BasesService } from '~/services/bases.service';
+import { Base, Model, Source } from '~/models';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
 import { JobTypes } from '~/interface/Jobs';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class DuplicateController {
   constructor(
-    @Inject('JobsService') private readonly jobsService,
-    private readonly projectsService: ProjectsService,
+    @Inject('JobsService') protected readonly jobsService,
+    protected readonly basesService: BasesService,
   ) {}
 
-  @Post('/api/v1/db/meta/duplicate/:projectId/:baseId?')
+  @Post([
+    '/api/v1/db/meta/duplicate/:workspaceId/shared/:sharedBaseId',
+    '/api/v1/meta/duplicate/:workspaceId/shared/:sharedBaseId',
+  ])
+  @HttpCode(200)
+  @Acl('duplicateSharedBase', {
+    scope: 'org',
+  })
+  public async duplicateSharedBase(
+    @Request() req,
+    @Param('workspaceId') _workspaceId: string,
+    @Param('sharedBaseId') sharedBaseId: string,
+    @Body()
+    body?: {
+      options?: {
+        excludeData?: boolean;
+        excludeViews?: boolean;
+      };
+      base?: any;
+    },
+  ) {
+    const base = await Base.getByUuid(sharedBaseId);
+
+    if (!base) {
+      throw new Error(`Base not found for id '${sharedBaseId}'`);
+    }
+
+    const source = (await base.getBases())[0];
+
+    if (!source) {
+      throw new Error(`Source not found!`);
+    }
+
+    const bases = await Base.list({});
+
+    const uniqueTitle = generateUniqueName(
+      `${base.title} copy`,
+      bases.map((p) => p.title),
+    );
+
+    const dupProject = await this.basesService.baseCreate({
+      base: {
+        title: uniqueTitle,
+        status: ProjectStatus.JOB,
+        ...(body.base || {}),
+      },
+      user: { id: req.user.id },
+    });
+
+    const job = await this.jobsService.add(JobTypes.DuplicateBase, {
+      baseId: base.id,
+      sourceId: source.id,
+      dupProjectId: dupProject.id,
+      options:
+        {
+          ...body.options,
+          excludeHooks: true,
+        } || {},
+      req: {
+        user: req.user,
+        clientIp: req.clientIp,
+      },
+    });
+
+    return { id: job.id, base_id: dupProject.id };
+  }
+
+  @Post([
+    '/api/v1/db/meta/duplicate/:baseId/:sourceId?',
+    '/api/v2/meta/duplicate/:baseId/:sourceId?',
+  ])
   @HttpCode(200)
   @Acl('duplicateBase')
   async duplicateBase(
     @Request() req,
-    @Param('projectId') projectId: string,
-    @Param('baseId') baseId?: string,
+    @Param('baseId') baseId: string,
+    @Param('sourceId') sourceId?: string,
     @Body()
     body?: {
       options?: {
@@ -38,43 +109,43 @@ export class DuplicateController {
         excludeViews?: boolean;
         excludeHooks?: boolean;
       };
-      // override duplicated project
-      project?: any;
+      // override duplicated base
+      base?: any;
     },
   ) {
-    const project = await Project.get(projectId);
-
-    if (!project) {
-      throw new Error(`Project not found for id '${projectId}'`);
-    }
-
-    const base = baseId
-      ? await Base.get(baseId)
-      : (await project.getBases())[0];
+    const base = await Base.get(baseId);
 
     if (!base) {
-      throw new Error(`Base not found!`);
+      throw new Error(`Base not found for id '${baseId}'`);
     }
 
-    const projects = await Project.list({});
+    const source = sourceId
+      ? await Source.get(sourceId)
+      : (await base.getBases())[0];
+
+    if (!source) {
+      throw new Error(`Source not found!`);
+    }
+
+    const bases = await Base.list({});
 
     const uniqueTitle = generateUniqueName(
-      `${project.title} copy`,
-      projects.map((p) => p.title),
+      `${base.title} copy`,
+      bases.map((p) => p.title),
     );
 
-    const dupProject = await this.projectsService.projectCreate({
-      project: {
+    const dupProject = await this.basesService.baseCreate({
+      base: {
         title: uniqueTitle,
         status: ProjectStatus.JOB,
-        ...(body.project || {}),
+        ...(body.base || {}),
       },
       user: { id: req.user.id },
     });
 
     const job = await this.jobsService.add(JobTypes.DuplicateBase, {
-      projectId: project.id,
       baseId: base.id,
+      sourceId: source.id,
       dupProjectId: dupProject.id,
       options: body.options || {},
       req: {
@@ -83,15 +154,18 @@ export class DuplicateController {
       },
     });
 
-    return { id: job.id, project_id: dupProject.id };
+    return { id: job.id, base_id: dupProject.id };
   }
 
-  @Post('/api/v1/db/meta/duplicate/:projectId/table/:modelId')
+  @Post([
+    '/api/v1/db/meta/duplicate/:baseId/table/:modelId',
+    '/api/v2/meta/duplicate/:baseId/table/:modelId',
+  ])
   @HttpCode(200)
   @Acl('duplicateModel')
   async duplicateModel(
     @Request() req,
-    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
     @Param('modelId') modelId?: string,
     @Body()
     body?: {
@@ -102,10 +176,10 @@ export class DuplicateController {
       };
     },
   ) {
-    const project = await Project.get(projectId);
+    const base = await Base.get(baseId);
 
-    if (!project) {
-      throw new Error(`Project not found for id '${projectId}'`);
+    if (!base) {
+      throw new Error(`Base not found for id '${baseId}'`);
     }
 
     const model = await Model.get(modelId);
@@ -114,9 +188,9 @@ export class DuplicateController {
       throw new Error(`Model not found!`);
     }
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
-    const models = await base.getModels();
+    const models = await source.getModels();
 
     const uniqueTitle = generateUniqueName(
       `${model.title} copy`,
@@ -124,8 +198,8 @@ export class DuplicateController {
     );
 
     const job = await this.jobsService.add(JobTypes.DuplicateModel, {
-      projectId: project.id,
       baseId: base.id,
+      sourceId: source.id,
       modelId: model.id,
       title: uniqueTitle,
       options: body.options || {},

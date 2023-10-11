@@ -8,47 +8,49 @@ import type LookupColumn from '~/models/LookupColumn';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { Model, View } from '~/models';
-import Base from '~/models/Base';
+import Source from '~/models/Source';
 import Column from '~/models/Column';
-import Project from '~/models/Project';
+import Base from '~/models/Base';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 export interface PathParams {
-  projectName: string;
+  baseName: string;
   tableName: string;
   viewName?: string;
 }
 
 export interface OldPathParams {
-  projectId: string;
+  baseId: string;
   tableName: string;
   viewName?: string;
 }
 
 export async function getViewAndModelByAliasOrId(param: {
-  projectName: string;
+  baseName: string;
   tableName: string;
   viewName?: string;
 }) {
-  const project = await Project.getWithInfoByTitleOrId(param.projectName);
+  const base = await Base.getWithInfoByTitleOrId(param.baseName);
 
   const model = await Model.getByAliasOrId({
-    project_id: project.id,
+    base_id: base.id,
     aliasOrId: param.tableName,
   });
+
+  if (!model) NcError.notFound('Table not found');
+
   const view =
     param.viewName &&
     (await View.getByTitleOrId({
       titleOrId: param.viewName,
       fk_model_id: model.id,
     }));
-  if (!model) NcError.notFound('Table not found');
   if (param.viewName && !view) NcError.notFound('View not found');
   return { model, view };
 }
 
 export async function extractXlsxData(view: View, req) {
-  const base = await Base.get(view.base_id);
+  const source = await Source.get(view.source_id);
 
   await view.getModelWithInfo();
   await view.getColumns();
@@ -64,7 +66,7 @@ export async function extractXlsxData(view: View, req) {
   const baseModel = await Model.getBaseModelSQL({
     id: view.model.id,
     viewId: view?.id,
-    dbDriver: await NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(source),
   });
 
   const { offset, dbRows, elapsed } = await getDbRows({
@@ -82,7 +84,7 @@ export async function extractXlsxData(view: View, req) {
 }
 
 export async function extractCsvData(view: View, req) {
-  const base = await Base.get(view.base_id);
+  const source = await Source.get(view.source_id);
   const fields = req.query.fields;
 
   await view.getModelWithInfo();
@@ -99,7 +101,7 @@ export async function extractCsvData(view: View, req) {
   const baseModel = await Model.getBaseModelSQL({
     id: view.model.id,
     viewId: view?.id,
-    dbDriver: await NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(source),
   });
 
   const { offset, dbRows, elapsed } = await getDbRows({
@@ -161,7 +163,9 @@ export async function serializeCellValue({
       return (data || []).map(
         (attachment) =>
           `${encodeURI(attachment.title)}(${encodeURI(
-            attachment.path ? `${siteUrl}/${attachment.path}` : attachment.url,
+            attachment.signedPath
+              ? `${siteUrl}/${attachment.signedPath}`
+              : attachment.signedUrl,
           )})`,
       );
     }
@@ -260,7 +264,7 @@ export async function getDbRows(param: {
       ast,
       await baseModel.list({ ...listArgs, ...dependencyFields, offset, limit }),
       {},
-      query,
+      dependencyFields,
     );
 
     if (!rows?.length) {

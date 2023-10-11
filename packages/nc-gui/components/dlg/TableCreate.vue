@@ -3,11 +3,10 @@ import {
   Form,
   TabType,
   computed,
-  iconMap,
   nextTick,
   onMounted,
   ref,
-  useProject,
+  useBase,
   useTableNew,
   useTablesStore,
   useTabs,
@@ -17,8 +16,8 @@ import {
 
 const props = defineProps<{
   modelValue: boolean
+  sourceId: string
   baseId: string
-  projectId: string
 }>()
 
 const emit = defineEmits(['update:modelValue', 'create'])
@@ -31,30 +30,32 @@ const inputEl = ref<HTMLInputElement>()
 
 const { addTab } = useTabs()
 
-const { isMysql, isMssql, isPg } = useProject()
+const { isMysql, isMssql, isPg } = useBase()
 
 const { loadProjectTables, addTable } = useTablesStore()
 
-const { table, createTable, generateUniqueTitle, tables, project } = useTableNew({
+const { refreshCommandPalette } = useCommandPalette()
+
+const { table, createTable, generateUniqueTitle, tables, base } = useTableNew({
   async onTableCreate(table) {
-    // await loadProject(props.projectId)
+    // await loadProject(props.baseId)
 
     await addTab({
       id: table.id as string,
       title: table.title,
       type: TabType.TABLE,
-      projectId: props.projectId,
-      // baseId: props.baseId,
+      baseId: props.baseId,
+      // sourceId: props.sourceId,
     })
 
-    addTable(props.projectId, table)
-    await loadProjectTables(props.projectId, true)
+    addTable(props.baseId, table)
+    await loadProjectTables(props.baseId, true)
 
     emit('create', table)
     dialogShow.value = false
   },
+  sourceId: props.sourceId,
   baseId: props.baseId,
-  projectId: props.projectId,
 })
 
 const useForm = Form.useForm
@@ -67,7 +68,7 @@ const validators = computed(() => {
         validator: (_: any, value: any) => {
           // validate duplicate alias
           return new Promise((resolve, reject) => {
-            if ((tables.value || []).some((t) => t.title === (value || '') && t.base_id === props.baseId)) {
+            if ((tables.value || []).some((t) => t.title === (value || '') && t.source_id === props.sourceId)) {
               return reject(new Error('Duplicate table alias'))
             }
             return resolve(true)
@@ -78,15 +79,15 @@ const validators = computed(() => {
         validator: (rule: any, value: any) => {
           return new Promise<void>((resolve, reject) => {
             let tableNameLengthLimit = 255
-            if (isMysql(props.baseId)) {
+            if (isMysql(props.sourceId)) {
               tableNameLengthLimit = 64
-            } else if (isPg(props.baseId)) {
+            } else if (isPg(props.sourceId)) {
               tableNameLengthLimit = 63
-            } else if (isMssql(props.baseId)) {
+            } else if (isMssql(props.sourceId)) {
               tableNameLengthLimit = 128
             }
-            const projectPrefix = project?.value?.prefix || ''
-            if ((projectPrefix + value).length > tableNameLengthLimit) {
+            const basePrefix = base?.value?.prefix || ''
+            if ((basePrefix + value).length > tableNameLengthLimit) {
               return reject(new Error(`Table name exceeds ${tableNameLengthLimit} characters`))
             }
             resolve()
@@ -121,6 +122,7 @@ const _createTable = async () => {
     setTimeout(() => {
       creating.value = false
     }, 500)
+    refreshCommandPalette()
   }
 }
 
@@ -153,25 +155,7 @@ onMounted(() => {
             :placeholder="$t('msg.info.enterTableName')"
           />
         </a-form-item>
-        <div v-if="false" class="flex justify-end items-center">
-          <div
-            class="pointer flex flex-row items-center gap-x-1 cursor-pointer"
-            @click="isAdvanceOptVisible = !isAdvanceOptVisible"
-          >
-            {{ isAdvanceOptVisible ? $t('general.hideAll') : $t('general.showMore') }}
-
-            <component :is="iconMap.minusCircle" v-if="isAdvanceOptVisible" class="text-gray-500" />
-            <component :is="iconMap.plusCircle" v-else class="text-gray-500" />
-          </div>
-        </div>
         <div class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">
-          <!-- hint="Table name as saved in database" -->
-          <!-- <div v-if="!project.prefix" class="mb-2">{{ $t('msg.info.tableNameInDb') }}</div>
-
-          <a-form-item v-if="!project.prefix" v-bind="validateInfos.table_name">
-            <a-input v-model:value="table.table_name" size="large" hide-details :placeholder="$t('msg.info.tableNameInDb')" />
-          </a-form-item> -->
-
           <div>
             <div class="mb-1">
               <!-- Add Default Columns -->
@@ -187,9 +171,9 @@ onMounted(() => {
                 <template #label="{ value }">
                   <a-tooltip v-if="value === 'id'" placement="top" class="!flex">
                     <template #title>
-                      <span>ID column is required, you can rename this later if required.</span>
+                      <span>{{ $t('msg.idColumnRequired') }}</span>
                     </template>
-                    ID
+                    {{ $t('datatype.ID') }}
                   </a-tooltip>
                   <div v-else class="flex">
                     {{ value }}
@@ -203,13 +187,14 @@ onMounted(() => {
           <NcButton type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
 
           <NcButton
+            v-e="['a:table:create']"
             type="primary"
             :disabled="validateInfos.title.validateStatus === 'error'"
             :loading="creating"
             @click="_createTable"
           >
             {{ $t('activity.createTable') }}
-            <template #loading> Creating Table </template>
+            <template #loading> {{ $t('title.creatingTable') }} </template>
           </NcButton>
         </div>
       </a-form>

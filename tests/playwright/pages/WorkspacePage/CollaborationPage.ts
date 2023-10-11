@@ -36,17 +36,18 @@ export class CollaborationPage extends BasePage {
 
     // email
     await this.input_email.fill(email);
+    await this.rootPage.keyboard.press('Enter');
 
     // role
     await this.selector_role.click();
-    await this.rootPage.waitForTimeout(500);
-    await this.rootPage.locator(`.ant-select-item-option-content:has-text("${role}"):visible`).click();
+    const menu = this.rootPage.locator('.nc-role-select-dropdown:visible');
+    await menu.locator(`.nc-role-select-workspace-level-${role.toLowerCase()}:visible`).click();
 
     // submit
 
     // allow button to be enabled
     await this.rootPage.waitForTimeout(500);
-
+    await this.rootPage.keyboard.press('Enter');
     await this.button_addUser.click();
     await this.verifyToast({ message: 'Invitation sent successfully' });
     await this.rootPage.waitForTimeout(500);

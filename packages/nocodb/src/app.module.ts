@@ -10,7 +10,6 @@ import { GuiMiddleware } from '~/middlewares/gui/gui.middleware';
 import { DatasModule } from '~/modules/datas/datas.module';
 import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
 import { AuthService } from '~/services/auth.service';
-import { TestModule } from '~/modules/test/test.module';
 import { GlobalModule } from '~/modules/global/global.module';
 import { LocalStrategy } from '~/strategies/local.strategy';
 import { AuthTokenStrategy } from '~/strategies/authtoken.strategy/authtoken.strategy';
@@ -24,12 +23,13 @@ import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.midd
 import { HookHandlerService } from '~/services/hook-handler.service';
 import { BasicStrategy } from '~/strategies/basic.strategy/basic.strategy';
 import { UsersModule } from '~/modules/users/users.module';
+import { AuthModule } from '~/modules/auth/auth.module';
 
 export const ceModuleConfig = {
   imports: [
     GlobalModule,
     UsersModule,
-    ...(process.env['PLAYWRIGHT_TEST'] === 'true' ? [TestModule] : []),
+    AuthModule,
     MetasModule,
     DatasModule,
     EventEmitterModule,
@@ -39,7 +39,6 @@ export const ceModuleConfig = {
       load: [() => appConfig],
       isGlobal: true,
     }),
-    TestModule,
   ],
   providers: [
     AuthService,

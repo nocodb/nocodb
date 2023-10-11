@@ -1,18 +1,7 @@
 import { ViewTypes, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import {
-  IsPublicInj,
-  computed,
-  inject,
-  ref,
-  storeToRefs,
-  useNuxtApp,
-  useProject,
-  useUIPermission,
-  useUndoRedo,
-  watch,
-} from '#imports'
+import { IsPublicInj, computed, inject, ref, storeToRefs, useBase, useNuxtApp, useRoles, useUndoRedo, watch } from '#imports'
 import type { Field } from '#imports'
 
 export function useViewColumns(
@@ -28,14 +17,16 @@ export function useViewColumns(
 
   const { $api, $e } = useNuxtApp()
 
-  const { isUIAllowed } = useUIPermission()
+  const { isUIAllowed } = useRoles()
 
-  const { isSharedBase } = storeToRefs(useProject())
+  const { isSharedBase } = storeToRefs(useBase())
+
+  const isViewColumnsLoading = ref(false)
 
   const { addUndo, defineViewScope } = useUndoRedo()
 
   const isLocalMode = computed(
-    () => isPublic.value || !isUIAllowed('hideAllColumns') || !isUIAllowed('showAllColumns') || isSharedBase.value,
+    () => isPublic.value || !isUIAllowed('viewFieldEdit') || !isUIAllowed('viewFieldEdit') || isSharedBase.value,
   )
 
   const localChanges = ref<Field[]>([])
@@ -169,7 +160,7 @@ export function useViewColumns(
       localChanges.value.push(field)
     }
 
-    if (isUIAllowed('fieldsSync')) {
+    if (isUIAllowed('viewFieldEdit')) {
       if (field.id && view?.value?.id) {
         await $api.dbViewColumn.update(view.value.id, field.id, field)
       } else if (view.value?.id) {
@@ -276,7 +267,13 @@ export function useViewColumns(
     async ([newViewId]) => {
       // reload only if view belongs to current table
       if (newViewId && view.value?.fk_model_id === meta.value?.id) {
-        await loadViewColumns()
+        isViewColumnsLoading.value = true
+        try {
+          await loadViewColumns()
+        } catch (e) {
+          console.error(e)
+        }
+        isViewColumnsLoading.value = false
       }
     },
     { immediate: true },
@@ -294,5 +291,6 @@ export function useViewColumns(
     showSystemFields,
     metaColumnById,
     toggleFieldVisibility,
+    isViewColumnsLoading,
   }
 }

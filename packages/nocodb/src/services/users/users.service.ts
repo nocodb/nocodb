@@ -2,7 +2,7 @@ import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
 import { AppEvents, OrgUserRoles, validatePassword } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import { isEmail } from 'validator';
+import isEmail from 'validator/lib/isEmail';
 import { T } from 'nc-help';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
@@ -24,14 +24,15 @@ import { Store, User } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
-import { ProjectsService } from '~/services/projects.service';
+import { BasesService } from '~/services/bases.service';
+import { extractProps } from '~/helpers/extractProps';
 
 @Injectable()
 export class UsersService {
   constructor(
     protected metaService: MetaService,
     protected appHooksService: AppHooksService,
-    protected projectsService: ProjectsService,
+    protected basesService: BasesService,
   ) {}
 
   // allow signup/signin only if email matches against pattern
@@ -70,6 +71,21 @@ export class UsersService {
     });
   }
 
+  async profileUpdate({
+    id,
+    params,
+  }: {
+    id: number;
+    params: {
+      display_name?: string;
+      avatar?: string;
+    };
+  }) {
+    const updateObj = extractProps(params, ['display_name', 'avatar']);
+
+    return await User.update(id, updateObj);
+  }
+
   async registerNewUserIfAllowed({
     email,
     salt,
@@ -92,7 +108,7 @@ export class UsersService {
       // todo: update in nc_store
       // roles = 'owner,creator,editor'
       T.emit('evt', {
-        evt_type: 'project:invite',
+        evt_type: 'base:invite',
         count: 1,
       });
     } else {
@@ -118,7 +134,7 @@ export class UsersService {
       token_version,
     });
 
-    // if first user and super admin, create a project
+    // if first user and super admin, create a base
     if (isFirstUser && process.env.NC_CLOUD !== 'true') {
       // todo: update swagger type
       (user as any).createdProject = await this.createDefaultProject(user);
@@ -209,7 +225,7 @@ export class UsersService {
       });
       try {
         const template = (
-          await import('~/controllers/users/ui/emailTemplates/forgotPassword')
+          await import('~/controllers/auth/ui/emailTemplates/forgotPassword')
         ).default;
         await NcPluginMgrv2.emailAdapter().then((adapter) =>
           adapter.mailSend({
@@ -259,7 +275,6 @@ export class UsersService {
   async passwordReset(param: {
     body: PasswordResetReqType;
     token: string;
-    // todo: exclude
     req: any;
   }): Promise<any> {
     validatePayload(
@@ -451,7 +466,7 @@ export class UsersService {
 
     try {
       const template = (
-        await import('~/controllers/users/ui/emailTemplates/verify')
+        await import('~/controllers/auth/ui/emailTemplates/verify')
       ).default;
       await (
         await NcPluginMgrv2.emailAdapter()
@@ -521,11 +536,11 @@ export class UsersService {
   }
 
   private async createDefaultProject(user: User) {
-    // create new project for user
-    const project = await this.projectsService.createDefaultProject({
+    // create new base for user
+    const base = await this.basesService.createDefaultBase({
       user,
     });
 
-    return project;
+    return base;
   }
 }

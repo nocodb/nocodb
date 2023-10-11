@@ -1,7 +1,8 @@
 import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
-import type { Language, NcProjectType, ProjectRole, User, useCounter } from '#imports'
+import type { ProjectRoles } from 'nocodb-sdk'
+import type { Language, NcProjectType, User, useCounter } from '#imports'
 
 export interface AppInfo {
   ncSiteUrl: string
@@ -15,7 +16,7 @@ export interface AppInfo {
   oidcProviderName: string | null
   ncMin: boolean
   oneClick: boolean
-  projectHasAdmin: boolean
+  baseHasAdmin: boolean
   teleEnabled: boolean
   auditEnabled: boolean
   type: string
@@ -36,7 +37,7 @@ export interface StoredState {
   lang: keyof typeof Language
   darkMode: boolean
   filterAutoSave: boolean
-  previewAs: ProjectRole | null
+  previewAs: ProjectRoles | null
   includeM2M: boolean
   showNull: boolean
   currentVersion: string | null
@@ -67,16 +68,17 @@ export interface Actions {
   refreshToken: () => void
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
-  navigateToProject: (params: { workspaceId?: string; projectId?: string; type?: NcProjectType; query?: any }) => void
+  navigateToProject: (params: { workspaceId?: string; baseId?: string; type?: NcProjectType; query?: any }) => void
   ncNavigateTo: (params: {
     workspaceId?: string
-    projectId?: string
+    baseId?: string
     type?: NcProjectType
     query?: any
     tableId?: string
     viewId?: string
   }) => void
   getBaseUrl: (workspaceId: string) => string | undefined
+  getMainUrl: (workspaceId: string) => string | undefined
 }
 
 export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State, 'token' | 'user'>

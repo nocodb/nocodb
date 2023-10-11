@@ -8,11 +8,13 @@ import {
   ReloadViewDataHookInj,
   computed,
   inject,
-  isEeUI,
+  isJSON,
+  isTextArea,
   message,
   onMounted,
   ref,
   uiTypes,
+  useBase,
   useColumnCreateStoreOrThrow,
   useGlobal,
   useI18n,
@@ -20,7 +22,6 @@ import {
   useNuxtApp,
   watchEffect,
 } from '#imports'
-import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
 
@@ -47,7 +48,7 @@ const { getMeta } = useMetas()
 
 const { t } = useI18n()
 
-const columnLabel = computed(() => props.columnLabel || t('objects.column'))
+const columnLabel = computed(() => props.columnLabel || t('objects.field'))
 
 const { $e } = useNuxtApp()
 
@@ -55,7 +56,9 @@ const { appInfo } = useGlobal()
 
 const { betaFeatureToggleState } = useBetaFeatureToggle()
 
-const { loadMagic, predictColumnType: _predictColumnType } = useNocoEe()
+const { openedViewsTab } = storeToRefs(useViewsStore())
+
+const { predictColumnType: _predictColumnType } = useNocoEe()
 
 const meta = inject(MetaInj, ref())
 
@@ -63,11 +66,11 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
+const { isMysql, isMssql, isXcdbBase } = useBase()
+
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
 const advancedOptions = ref(false)
-
-const advancedDbOptions = ref(false)
 
 const mounted = ref(false)
 
@@ -83,9 +86,9 @@ const showDeprecated = ref(false)
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
-    ...uiTypes.filter(
-      (t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual) && (!t.deprecated || showDeprecated.value),
-    ),
+    ...uiTypes
+      .filter((t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual) && (!t.deprecated || showDeprecated.value))
+      .filter((t) => !(t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id))),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
           {
@@ -142,10 +145,6 @@ watchEffect(() => {
   advancedOptions.value = false
 })
 
-const predictColumnType = async () => {
-  _predictColumnType(formState, onUidtOrIdTypeChange)
-}
-
 onMounted(() => {
   if (!isEdit.value) {
     generateNewColumnMeta()
@@ -193,6 +192,10 @@ const handleEscape = (event: KeyboardEvent): void => {
   if (event.key === 'Escape') emit('cancel')
 }
 
+const isFieldsTab = computed(() => {
+  return openedViewsTab.value === 'field'
+})
+
 if (props.fromTableExplorer) {
   watch(
     formState,
@@ -211,7 +214,7 @@ if (props.fromTableExplorer) {
       'bg-white': !props.fromTableExplorer,
       'w-[400px]': !props.embedMode,
       '!w-[600px]': formState.uidt === UITypes.Formula && !props.embedMode,
-      '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode,
+      '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode && !appInfo.ee,
       'shadow-lg border-1 border-gray-50 shadow-gray-100 rounded-md p-6': !embedMode,
     }"
     @keydown="handleEscape"
@@ -219,8 +222,21 @@ if (props.fromTableExplorer) {
   >
     <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">
       <div class="flex flex-col gap-2">
+        <a-form-item v-if="isFieldsTab" v-bind="validateInfos.title" class="flex flex-grow">
+          <div
+            class="flex flex-grow px-2 py-1 items-center rounded-lg bg-gray-100 focus:bg-gray-100 outline-none"
+            style="outline-style: solid; outline-width: thin"
+          >
+            <input
+              ref="antInput"
+              v-model="formState.title"
+              class="flex flex-grow text-lg font-bold outline-none bg-inherit"
+              :contenteditable="true"
+            />
+          </div>
+        </a-form-item>
         <a-form-item
-          v-if="!props.hideTitle"
+          v-if="!props.hideTitle && !isFieldsTab"
           :label="`${columnLabel} ${$t('general.name')}`"
           v-bind="validateInfos.title"
           :required="false"
@@ -257,14 +273,14 @@ if (props.fromTableExplorer) {
                 <div class="flex gap-1 items-center">
                   <component :is="opt.icon" class="text-gray-700 mx-1" />
                   {{ opt.name }}
-                  <span v-if="opt.deprecated" class="!text-xs !text-gray-300">(Deprecated)</span>
+                  <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
                 </div>
               </a-select-option>
             </a-select>
           </a-form-item>
-          <div v-if="isEeUI && !props.hideType" class="mt-2 cursor-pointer" @click="predictColumnType()">
+          <!-- <div v-if="isEeUI && !props.hideType" class="mt-2 cursor-pointer" @click="predictColumnType()">
             <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
-          </div>
+          </div> -->
         </div>
 
         <LazySmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
@@ -285,17 +301,39 @@ if (props.fromTableExplorer) {
         />
         <LazySmartsheetColumnLinkOptions v-if="isEdit && formState.uidt === UITypes.Links" v-model:value="formState" />
         <LazySmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
-        <LazySmartsheetColumnSelectOptions
+        <SmartsheetColumnSelectOptions
           v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
+          v-model:value="formState"
+        />
+      </div>
+      <a-checkbox
+        v-if="formState.meta && columnToValidate.includes(formState.uidt)"
+        v-model:checked="formState.meta.validate"
+        class="ml-1 mb-1"
+      >
+        <span class="text-[10px] text-gray-600">
+          {{ `${$t('msg.acceptOnlyValid')} ${formState.uidt}` }}
+        </span>
+      </a-checkbox>
+      <div class="!my-3">
+        <!--
+        Default Value for JSON & LongText is not supported in MySQL
+         Default Value is Disabled for MSSQL -->
+        <LazySmartsheetColumnDefaultValue
+          v-if="
+          !isVirtualCol(formState) &&
+          !isAttachment(formState) &&
+          !isMssql(meta!.source_id) &&
+          !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState)))
+          "
           v-model:value="formState"
         />
       </div>
 
       <div
-        v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)"
+        v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
         class="text-xs cursor-pointer text-gray-400 nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
         @click="advancedOptions = !advancedOptions"
-        @dblclick="advancedDbOptions = !advancedDbOptions"
       >
         {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
         <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
@@ -303,25 +341,12 @@ if (props.fromTableExplorer) {
 
       <Transition name="layout" mode="out-in">
         <div v-if="advancedOptions" class="overflow-hidden">
-          <a-checkbox
-            v-if="formState.meta && columnToValidate.includes(formState.uidt)"
-            v-model:checked="formState.meta.validate"
-            class="ml-1 mb-1"
-          >
-            <span class="text-[10px] text-gray-600">
-              {{ `Accept only valid ${formState.uidt}` }}
-            </span>
-          </a-checkbox>
-
-          <LazySmartsheetColumnAttachmentOptions
-            v-if="appInfo.ee && formState.uidt === UITypes.Attachment"
-            v-model:value="formState"
-          />
+          <LazySmartsheetColumnAttachmentOptions v-if="appInfo.ee && isAttachment(formState)" v-model:value="formState" />
 
           <LazySmartsheetColumnAdvancedOptions
             v-if="formState.uidt !== UITypes.Attachment"
             v-model:value="formState"
-            :advanced-db-options="advancedDbOptions || formState.uidt === UITypes.SpecificDBType"
+            :advanced-db-options="advancedOptions || formState.uidt === UITypes.SpecificDBType"
           />
         </div>
       </Transition>

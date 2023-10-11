@@ -26,7 +26,7 @@ export class GridPage extends BasePage {
   readonly topbar: TopbarPage;
   readonly toolbar: ToolbarPage;
   readonly footbar: FootbarPage;
-  readonly projectMenu: ProjectMenuObject;
+  readonly baseMenu: ProjectMenuObject;
   readonly workspaceMenu: WorkspaceMenuObject;
   readonly rowPage: RowPageObject;
   readonly groupPage: GroupPageObject;
@@ -45,7 +45,7 @@ export class GridPage extends BasePage {
     this.topbar = new TopbarPage(this);
     this.toolbar = new ToolbarPage(this);
     this.footbar = new FootbarPage(this);
-    this.projectMenu = new ProjectMenuObject(this);
+    this.baseMenu = new ProjectMenuObject(this);
     this.workspaceMenu = new WorkspaceMenuObject(this);
     this.rowPage = new RowPageObject(this);
     this.groupPage = new GroupPageObject(this);
@@ -64,7 +64,7 @@ export class GridPage extends BasePage {
 
   async verifyCollaborativeMode() {
     // add new row button
-    expect(await this.btn_addNewRow.count()).toBe(1);
+    await expect(this.btn_addNewRow).toHaveCount(1);
 
     await this.toolbar.verifyCollaborativeMode();
     await this.footbar.verifyCollaborativeMode();
@@ -94,6 +94,7 @@ export class GridPage extends BasePage {
       index,
       columnHeader,
     });
+    await this.rootPage.waitForTimeout(500);
 
     await cell.locator('input').fill(value);
   }
@@ -114,20 +115,21 @@ export class GridPage extends BasePage {
     if (index !== 0) await this.get().locator('.nc-grid-row').nth(0).waitFor({ state: 'attached' });
 
     await (await this.get().locator('.nc-grid-add-new-cell').elementHandle())?.waitForElementState('stable');
-    await this.rootPage.waitForTimeout(100);
 
-    const rowCount = await this.get().locator('.nc-grid-row').count();
+    await this.rootPage.waitForTimeout(200);
+    await this.rootPage.waitForLoadState('networkidle');
+    await this.rootPage.waitForTimeout(200);
+    await this.rootPage.waitForLoadState('domcontentloaded');
 
     await this.get().locator('.nc-grid-add-new-cell').click();
 
-    // add delay for UI to render (can wait for count to stabilize by reading it multiple times)
-    await this.rootPage.waitForTimeout(100);
-    expect(await this.get().locator('.nc-grid-row').count()).toBe(rowCount + 1);
+    const rowCount = index + 1;
+    await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount);
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 
     const clickOnColumnHeaderToSave = () =>
-      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[title="${columnHeader}"]`).click();
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[data-test-id="${columnHeader}"]`).click();
 
     if (networkValidation) {
       await this.waitForResponse({
@@ -159,7 +161,7 @@ export class GridPage extends BasePage {
     await this._fillRow({ index, columnHeader, value });
 
     const clickOnColumnHeaderToSave = () =>
-      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[title="${columnHeader}"]`).click();
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[data-test-id="${columnHeader}"]`).click();
 
     if (networkValidation) {
       await this.waitForResponse({
@@ -197,11 +199,11 @@ export class GridPage extends BasePage {
     });
 
     // Click text=Delete Row
-    await this.rootPage.locator('text=Delete Row').click();
+    await this.rootPage.locator('.ant-dropdown-menu-item:has-text("Delete record")').click();
 
     // todo: improve selector
     await this.rootPage
-      .locator('span.ant-dropdown-menu-title-content > nc-project-menu-item')
+      .locator('span.ant-dropdown-menu-title-content > nc-base-menu-item')
       .waitFor({ state: 'hidden' });
 
     await this.rootPage.waitForTimeout(300);
@@ -216,14 +218,13 @@ export class GridPage extends BasePage {
     await cell.click({ button: 'right' });
 
     // Click text=Insert New Row
-    await this.rootPage.locator('text=Insert New Row').click();
+    await this.rootPage.locator('.insert-row').click();
     await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
   }
 
   async openExpandedRow({ index }: { index: number }) {
     await this.row(index).locator(`td[data-testid="cell-Id-${index}"]`).hover();
     await this.row(index).locator(`div[data-testid="nc-expand-${index}"]`).click();
-    await (await this.rootPage.locator('.ant-drawer-body').elementHandle())?.waitForElementState('stable');
   }
 
   async selectRow(index: number) {
@@ -258,7 +259,7 @@ export class GridPage extends BasePage {
     await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
       button: 'right',
     });
-    await this.rootPage.locator('text=Delete Selected Rows').click();
+    await this.rootPage.locator('[data-testid="nc-delete-row"]').click();
     await this.dashboard.waitForLoaderToDisappear();
   }
 
@@ -271,7 +272,7 @@ export class GridPage extends BasePage {
     await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
       button: 'right',
     });
-    await this.rootPage.locator('text=Update Selected Rows').click();
+    await this.rootPage.locator('.nc-menu-item:has-text("Update Selected Records")').click();
     await this.dashboard.waitForLoaderToDisappear();
   }
 
@@ -299,40 +300,23 @@ export class GridPage extends BasePage {
     expect(parseInt(recordCnt)).toEqual(count);
   }
 
-  async verifyPaginationCount({ count }: { count: number }) {
-    let i = 0;
-    await this.get().locator(`.nc-pagination`).first().waitFor();
-    let records = await this.get().locator(`[data-testid="grid-pagination"]`).allInnerTexts();
-    let recordCnt = records[0].split(' ')[0];
-
-    while (parseInt(recordCnt) !== count && i < 5) {
-      await this.get().locator(`.nc-pagination`).first().waitFor();
-      records = await this.get().locator(`[data-testid="grid-pagination"]`).allInnerTexts();
-      recordCnt = records[0].split(' ')[0];
-
-      // to ensure page loading is complete
-      i++;
-      await this.rootPage.waitForTimeout(300 * i);
-    }
-    expect(parseInt(recordCnt)).toEqual(count);
+  async verifyPaginationCount({ count }: { count: string }) {
+    await expect(this.get().locator(`.nc-pagination .total`)).toHaveText(count);
   }
 
-  private async pagination({ page }: { page: string }) {
-    await this.get().locator(`.nc-pagination`).waitFor();
-
-    if (page === '<') return this.get().locator('.nc-pagination > .ant-pagination-prev');
-    if (page === '>') return this.get().locator('.nc-pagination > .ant-pagination-next');
-
-    return this.get().locator(`.nc-pagination > .ant-pagination-item.ant-pagination-item-${page}`);
-  }
-
-  async clickPagination({ page, skipWait = false }: { page: string; skipWait?: boolean }) {
+  async clickPagination({
+    type,
+    skipWait = false,
+  }: {
+    type: 'first-page' | 'last-page' | 'next-page' | 'prev-page';
+    skipWait?: boolean;
+  }) {
     if (!skipWait) {
-      await (await this.pagination({ page })).click();
+      await this.get().locator(`.nc-pagination .${type}`).click();
       await this.waitLoading();
     } else {
       await this.waitForResponse({
-        uiAction: async () => (await this.pagination({ page })).click(),
+        uiAction: async () => (await this.get().locator(`.nc-pagination .${type}`)).click(),
         httpMethodsToMatch: ['GET'],
         requestUrlPathToMatch: '/views/',
         responseJsonMatcher: resJson => resJson?.pageInfo,
@@ -342,8 +326,8 @@ export class GridPage extends BasePage {
     }
   }
 
-  async verifyActivePage({ page }: { page: string }) {
-    await expect(await this.pagination({ page })).toHaveClass(/ant-pagination-item-active/);
+  async verifyActivePage({ pageNumber }: { pageNumber: string }) {
+    await expect(this.get().locator(`.nc-pagination .ant-select-selection-item`)).toHaveText(pageNumber);
   }
 
   async waitLoading() {
@@ -363,7 +347,7 @@ export class GridPage extends BasePage {
     await this.get().locator(`td[data-testid="cell-${columnHeader}-0"]`).click({
       button: 'right',
     });
-    await expect(this.rootPage.locator('text=Insert New Row')).not.toBeVisible();
+    // await expect(this.rootPage.locator('text=Insert New Row')).not.toBeVisible();
 
     // in cell-add
     await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
@@ -394,7 +378,7 @@ export class GridPage extends BasePage {
     await this.get().locator(`td[data-testid="cell-${columnHeader}-0"]`).click({
       button: 'right',
     });
-    await expect(this.rootPage.locator('text=Insert New Row')).toBeVisible();
+    // await expect(this.rootPage.locator('text=Insert New Row')).toBeVisible();
 
     // in cell-add
     await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();

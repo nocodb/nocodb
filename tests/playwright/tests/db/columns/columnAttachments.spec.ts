@@ -7,7 +7,7 @@ test.describe('Attachment column', () => {
   let dashboard: DashboardPage, context: any;
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test.afterEach(async () => {
@@ -31,6 +31,9 @@ test.describe('Attachment column', () => {
         columnHeader: 'testAttach',
         filePath: filepath,
       });
+
+      await dashboard.rootPage.waitForTimeout(500);
+
       await dashboard.grid.cell.attachment.verifyFile({
         index: i,
         columnHeader: 'testAttach',
@@ -41,30 +44,43 @@ test.describe('Attachment column', () => {
       columnHeader: 'testAttach',
       filePath: [`${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`],
     });
+
+    await dashboard.rootPage.waitForTimeout(1000);
+
     await dashboard.grid.cell.attachment.verifyFile({
       index: 4,
       columnHeader: 'testAttach',
     });
 
+    // Kludge: tooltip somehow persists. fix me!
+    await dashboard.rootPage.reload();
+
     await dashboard.viewSidebar.createFormView({
       title: 'Form 1',
     });
+    await dashboard.rootPage.waitForTimeout(500);
     const sharedFormUrl = await dashboard.form.topbar.getSharedViewUrl();
-    await dashboard.viewSidebar.openView({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country' });
 
     // Verify attachment in shared form
     const newPage = await context.newPage();
     await newPage.goto(sharedFormUrl);
     const sharedForm = new SharedFormPage(newPage);
+
+    await sharedForm.rootPage.waitForTimeout(500);
     await sharedForm.cell.fillText({
       index: 0,
       columnHeader: 'Country',
       text: 'test',
     });
+
+    await sharedForm.rootPage.waitForTimeout(500);
     await sharedForm.cell.attachment.addFile({
       columnHeader: 'testAttach',
       filePath: [`${process.cwd()}/fixtures/sampleFiles/1.json`],
     });
+
+    await sharedForm.rootPage.waitForTimeout(1000);
     await sharedForm.submit();
     await sharedForm.verifySuccessMessage();
     await newPage.close();
@@ -93,6 +109,6 @@ test.describe('Attachment column', () => {
     // PR8504
     // await expect(cells[1]).toBe('al-Manama');
     expect(cells[1]).toBe('1');
-    expect(cells[2].includes('5.json(http://localhost:8080/download/')).toBe(true);
+    expect(cells[2].includes('5.json(http://localhost:8080/dltemp/')).toBe(true);
   });
 });

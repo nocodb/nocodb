@@ -5,11 +5,21 @@ import { iconMap } from '#imports'
 <template>
   <a
     v-e="['c:navbar:join-cloud']"
-    class="flex justify-center mx-2 rounded-lg items-center space-x-1 w-full cursor-pointer pl-3 py-1.5 !text-current !no-underline !hover:(text-primary bg-primary bg-opacity-5)"
+    class="flex !no-underline"
     href="https://docs.google.com/forms/d/e/1FAIpQLSfKLe8Rcrq0uo2_jM5W1kbVBbzDiQ3IvlP8Iov61FTekVAvzA/viewform?usp=pp_url"
-    target="_blank"
   >
-    <component :is="iconMap.cloud" class="mr-1" />
-    Join NocoDB Cloud
+    <div
+      class="flex justify-center items-center rounded-l-[3px] w-full cursor-pointer px-2 py-1 !text-current !no-underline text-primary border-1 border-[#cdd1d6] bg-[#EFF2F6] hover:bg-[#e9ebef] m-0"
+      target="_blank"
+    >
+      <component :is="iconMap.cloud" class="mt-[1px] text-black font-bold" />
+      <div class="px-1 text-xs font-bold text-gray-800">Join</div>
+    </div>
+    <div
+      class="group flex justify-center items-center rounded-r-[3px] w-full cursor-pointer px-1 py-1 text-primary border-r-1 border-b-1 border-t-1 border-[#cdd1d6] m-0"
+      target="_blank"
+    >
+      <div class="px-1 text-xs font-semibold group-hover:text-[#0a69da] text-gray-900">NocoDB Cloud</div>
+    </div>
   </a>
 </template>

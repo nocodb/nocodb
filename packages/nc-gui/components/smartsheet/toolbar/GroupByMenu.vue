@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { type ColumnType, UITypes } from 'nocodb-sdk'
-import MdiFormatListGroup from '~icons/mdi/format-list-group'
+import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
+import { RelationTypes, UITypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   IsLockedInj,
@@ -8,8 +8,11 @@ import {
   computed,
   getSortDirectionOptions,
   inject,
+  onMounted,
   ref,
   useMenuCloseOnEsc,
+  useMetas,
+  useNuxtApp,
   useSmartsheetStoreOrThrow,
 } from '#imports'
 
@@ -20,6 +23,10 @@ const groupingUidt = [
   UITypes.Date,
   UITypes.SingleLineText,
   UITypes.Number,
+  UITypes.Rollup,
+  UITypes.Lookup,
+  UITypes.Links,
+  UITypes.Formula,
 ]
 
 const meta = inject(MetaInj, ref())
@@ -28,7 +35,11 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { gridViewCols, updateGridViewColumn } = useGridViewColumnOrThrow()
 
+const { $e } = useNuxtApp()
+
 const _groupBy = ref<{ fk_column_id?: string; sort: string; order: number }[]>([])
+
+const { getMeta } = useMetas()
 
 const groupBy = computed<{ fk_column_id?: string; sort: string; order: number }[]>(() => {
   const tempGroupBy: { fk_column_id?: string; sort: string; order: number }[] = []
@@ -50,12 +61,19 @@ const groupedByColumnIds = computed(() => groupBy.value.map((g) => g.fk_column_i
 const { eventBus } = useSmartsheetStoreOrThrow()
 
 const { isMobileMode } = useGlobal()
+const btLookups = ref([])
 
 const fieldsToGroupBy = computed(() => {
   const fields = meta.value?.columns || []
 
   return fields.filter((field) => {
-    return groupingUidt.includes(field.uidt as UITypes)
+    if (!groupingUidt.includes(field.uidt as UITypes)) return false
+
+    if (field.uidt === UITypes.Lookup) {
+      return btLookups.value.includes(field.id)
+    }
+
+    return true
   })
 })
 
@@ -106,6 +124,8 @@ const saveGroupBy = async () => {
         }
       }
 
+      $e('a:group-by:update', { groupBy: groupBy.value })
+
       eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
     } catch (e) {
       message.error('There was an error while updating view!')
@@ -139,6 +159,53 @@ watch(open, () => {
     }
   }
 })
+
+const loadBtLookups = async () => {
+  const filteredLookupCols = []
+  try {
+    for (const col of meta.value?.columns || []) {
+      if (col.uidt !== UITypes.Lookup) continue
+
+      let nextCol = col
+      let btLookup = true
+
+      // check all the relation of nested lookup columns is bt or not
+      // include the column only if all only if all relations are bt
+      while (btLookup && nextCol && nextCol.uidt === UITypes.Lookup) {
+        const lookupRelation = (await getMeta(nextCol.fk_model_id))?.columns?.find(
+          (c) => c.id === (nextCol.colOptions as LookupType).fk_relation_column_id,
+        )
+        if ((lookupRelation.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO) {
+          btLookup = false
+          continue
+        }
+
+        const relatedTableMeta = await getMeta((lookupRelation.colOptions as LinkToAnotherRecordType).fk_related_model_id)
+
+        nextCol = relatedTableMeta?.columns?.find(
+          (c) => c.id === (nextCol.colOptions as LinkToAnotherRecordType).fk_lookup_column_id,
+        )
+
+        // if next column is same as root lookup column then break the loop
+        // since it's going to be a circular loop, and ignore the column
+        if (nextCol.id === col.id) {
+          btLookup = false
+          break
+        }
+      }
+
+      if (btLookup) filteredLookupCols.push(col.id)
+    }
+
+    btLookups.value = filteredLookupCols
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+onMounted(async () => {
+  await loadBtLookups()
+})
 </script>
 
 <template>
@@ -146,32 +213,31 @@ watch(open, () => {
     v-model:visible="open"
     offset-y
     :trigger="['click']"
-    overlay-class-name="nc-dropdown-group-by-menu nc-toolbar-dropdown"
+    class="!xs:hidden"
+    overlay-class-name="nc-dropdown-group-by-menu nc-toolbar-dropdown overflow-hidden"
   >
-    <div :class="{ 'nc-badge nc-active-btn': groupedByColumnIds?.length }">
+    <div :class="{ 'nc-active-btn': groupedByColumnIds?.length }">
       <a-button v-e="['c:group-by']" class="nc-group-by-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-2">
-          <MdiFormatListGroup class="h-4 w-4" />
+          <component :is="iconMap.group" class="h-4 w-4" />
 
           <!-- Group By -->
           <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.groupBy') }}</span>
 
-          <span v-if="groupedByColumnIds?.length" class="nc-count-badge">{{ groupedByColumnIds.length }}</span>
+          <span v-if="groupedByColumnIds?.length" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{
+            groupedByColumnIds.length
+          }}</span>
         </div>
       </a-button>
     </div>
     <template #overlay>
       <div
         :class="{ ' min-w-[400px]': _groupBy.length }"
-        class="flex flex-col bg-white shadow-lg rounded-md overflow-auto border-1 border-gray-50 menu-filter-dropdown max-h-[max(80vh,500px)] py-6 pl-6"
+        class="flex flex-col bg-white overflow-auto menu-filter-dropdown max-h-[max(80vh,500px)] py-6 pl-6"
         data-testid="nc-group-by-menu"
       >
         <div class="group-by-grid pb-1 mb-2 max-h-100 nc-scrollbar-md pr-5" @click.stop>
-          <template
-            v-for="[i, group] of Object.entries(_groupBy)"
-            :key="`grouped-by-${group.fk_column_id}`"
-            class="nc-group-menu"
-          >
+          <template v-for="[i, group] of Object.entries(_groupBy)" :key="`grouped-by-${group.fk_column_id}`">
             <LazySmartsheetToolbarFieldListAutoCompleteDropdown
               v-model="group.fk_column_id"
               class="caption nc-sort-field-select"
@@ -202,14 +268,21 @@ watch(open, () => {
             </NcSelect>
 
             <a-tooltip placement="right" title="Remove">
-              <NcButton class="nc-group-by-item-remove-btn" size="small" type="text" @click.stop="removeFieldFromGroupBy(i)">
-                <GeneralIcon icon="delete" class="" />
+              <NcButton
+                v-e="['c:group-by:remove']"
+                class="nc-group-by-item-remove-btn"
+                size="small"
+                type="text"
+                @click.stop="removeFieldFromGroupBy(i)"
+              >
+                <component :is="iconMap.deleteListItem" />
               </NcButton>
             </a-tooltip>
           </template>
         </div>
         <NcButton
           v-if="fieldsToGroupBy.length > _groupBy.length && _groupBy.length < 3"
+          v-e="['c:group-by:add']"
           class="nc-add-group-btn"
           style="width: fit-content"
           size="small"

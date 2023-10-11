@@ -1,51 +1,69 @@
 <script lang="ts" setup>
-import type { UserType } from 'nocodb-sdk'
+import { isColorDark, stringToColor } from '~/utils/colorsUtils'
 
-const props = defineProps<{
-  hideLabel?: boolean
-  size?: 'small' | 'medium'
-}>()
+const props = withDefaults(
+  defineProps<{
+    size?: 'small' | 'medium' | 'base' | 'large' | 'xlarge'
+    name?: string
+    email?: string
+  }>(),
+  {
+    email: '',
+  },
+)
 
-const { user } = useGlobal()
+const emailProp = toRef(props, 'email')
 
-const backgroundColor = computed(() => (user.value?.id ? stringToColour(user.value?.id) : '#FFFFFF'))
+const backgroundColor = computed(() => {
+  // in comments we need to generate user icon from email
+  if (emailProp.value.length) {
+    return stringToColor(emailProp.value)
+  }
+
+  return props.email ? stringToColor(props.email) : '#FFFFFF'
+})
 
 const size = computed(() => props.size || 'medium')
 
-const firstName = computed(() => user.value?.firstname ?? '')
-const lastName = computed(() => user.value?.lastname ?? '')
-const email = computed(() => user.value?.email ?? '')
+const displayName = computed(() => props.email ?? '')
+
+const email = computed(() => props.name ?? props?.email ?? '')
 
 const usernameInitials = computed(() => {
-  if (firstName.value && lastName.value) {
-    return firstName.value[0] + lastName.value[0]
-  } else if (firstName.value) {
-    return firstName.value[0] + (firstName.value.length > 1 ? firstName.value[1] : '')
-  } else if (lastName.value) {
-    return lastName.value[0] + (lastName.value.length > 1 ? lastName.value[1] : '')
+  const displayNameSplit = displayName.value?.split(' ').filter((name) => name) ?? []
+
+  if (displayNameSplit.length > 0) {
+    if (displayNameSplit.length > 1) {
+      return displayNameSplit[0][0] + displayNameSplit[1][0]
+    } else {
+      return displayName.value.slice(0, 2)
+    }
   } else {
-    return email.value[0] + email.value[1]
+    return email.value?.split('@')[0].slice(0, 2)
   }
 })
 </script>
 
 <template>
   <div
-    class="flex nc-user-avatar"
+    class="flex nc-user-avatar font-bold"
     :class="{
       'min-w-4 min-h-4': size === 'small',
       'min-w-6 min-h-6': size === 'medium',
+      'w-8 h-8 !text-md': size === 'base',
+      'min-w-20 min-h-20 !text-3xl': size === 'large',
+      'min-w-26 min-h-26 !text-4xl': size === 'xlarge',
+      'text-white': isColorDark(backgroundColor),
+      'text-black': !isColorDark(backgroundColor),
     }"
     :style="{ backgroundColor }"
   >
-    <template v-if="!props.hideLabel">
-      {{ usernameInitials }}
-    </template>
+    {{ usernameInitials }}
   </div>
 </template>
 
 <style lang="scss" scoped>
 .nc-user-avatar {
-  @apply rounded-full text-xs flex items-center justify-center text-white uppercase;
+  @apply rounded-full text-xs flex items-center justify-center  uppercase;
 }
 </style>

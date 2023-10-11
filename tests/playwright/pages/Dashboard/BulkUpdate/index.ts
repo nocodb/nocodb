@@ -136,7 +136,7 @@ export class BulkUpdatePage extends BasePage {
         break;
       case 'checkbox':
         if (value === 'true') {
-          await field.click();
+          await field.locator('.nc-checkbox').click();
         }
         break;
       case 'attachment':
@@ -173,7 +173,7 @@ export class BulkUpdatePage extends BasePage {
     awaitResponse?: boolean;
   } = {}) {
     await this.bulkUpdateButton.click();
-    const confirmModal = this.rootPage.locator('.ant-modal-confirm');
+    const confirmModal = this.rootPage.locator('.ant-modal');
 
     const saveRowAction = () => confirmModal.locator('.ant-btn-primary').click();
     if (!awaitResponse) {

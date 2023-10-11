@@ -7,11 +7,12 @@ interface Props {
   modelValue?: boolean
   openKey?: string
   dataSourcesState?: string
-  projectId?: string
+  baseId?: string
 }
 
 interface SubTabGroup {
   [key: string]: {
+    key: string
     title: string
     body: any
     onClick?: () => void
@@ -37,11 +38,13 @@ const vOpenKey = useVModel(props, 'openKey', emits)
 
 const vDataState = useVModel(props, 'dataSourcesState', emits)
 
-const projectId = toRef(props, 'projectId')
+const baseId = toRef(props, 'baseId')
 
-provide(ProjectIdInj, projectId)
+provide(ProjectIdInj, baseId)
 
 const { $e } = useNuxtApp()
+
+const { t } = useI18n()
 
 const dataSourcesReload = ref(false)
 
@@ -105,19 +108,20 @@ const tabsInfo: TabGroup = {
   //     $e('c:settings:audit')
   //   },
   // },
-  projectSettings: {
-    // Project Settings
-    title: 'Project Settings',
+  baseSettings: {
+    // Base Settings
+    title: t('labels.projectSettings'),
     icon: iconMap.settings,
     subTabs: {
       misc: {
         // Misc
-        title: 'Misc',
+        key: 'Misc',
+        title: t('general.misc'),
         body: Misc,
       },
     },
     onClick: () => {
-      $e('c:settings:project-settings')
+      $e('c:settings:base-settings')
     },
   },
 }
@@ -252,16 +256,16 @@ watch(
             v-model:state="vDataState"
             v-model:reload="dataSourcesReload"
             class="px-2 pb-2"
-            :data-testid="`nc-settings-subtab-${selectedSubTab.title}`"
-            :project-id="projectId"
+            :data-testid="`nc-settings-subtab-${selectedSubTab.key}`"
+            :base-id="baseId"
             @awaken="handleAwaken"
           />
           <component
             :is="selectedSubTab?.body"
             v-else
             class="px-2 py-6"
-            :project-id="projectId"
-            :data-testid="`nc-settings-subtab-${selectedSubTab.title}`"
+            :base-id="baseId"
+            :data-testid="`nc-settings-subtab-${selectedSubTab.key}`"
           />
         </div>
       </a-layout-content>

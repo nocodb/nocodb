@@ -20,7 +20,7 @@ export class TopbarPage extends BasePage {
     this.parent = parent;
     this.share = new TopbarSharePage(this);
 
-    this.btn_share = this.get().locator(`[data-testid="share-project-button"]`);
+    this.btn_share = this.get().locator(`[data-testid="share-base-button"]`);
     this.btn_data = this.get().locator(`.nc-tab:has-text("Data")`);
     this.btn_details = this.get().locator(`.nc-tab:has-text("Details")`);
   }
@@ -54,12 +54,13 @@ export class TopbarPage extends BasePage {
     return await this.getClipboardText();
   }
 
-  async getSharedBaseUrl({ role }: { role: string }) {
+  async getSharedBaseUrl({ role, enableSharedBase }: { role: string; enableSharedBase: boolean }) {
     await this.clickShare();
-    if (!(await this.share.isSharedBasePublicAccessEnabled())) await this.share.clickShareBasePublicAccess();
-    if (role === 'editor' && !(await this.share.isSharedBaseEditorAccessEnabled())) {
+    if (enableSharedBase) await this.share.clickShareBasePublicAccess();
+
+    if (role === 'editor' && enableSharedBase) {
       await this.share.clickShareBaseEditorAccess();
-    } else if (role === 'viewer' && (await this.share.isSharedBaseEditorAccessEnabled())) {
+    } else if (role === 'viewer' && !enableSharedBase) {
       await this.share.clickShareBaseEditorAccess();
     }
     await this.share.clickCopyLink();
@@ -69,6 +70,7 @@ export class TopbarPage extends BasePage {
 
   async openDetailedTab() {
     await this.btn_details.click();
+    await this.rootPage.waitForTimeout(500);
   }
 
   async openDataTab() {

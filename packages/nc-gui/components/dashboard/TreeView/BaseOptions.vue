@@ -1,21 +1,21 @@
 <script lang="ts" setup>
-import type { BaseType, ProjectType } from 'nocodb-sdk'
+import type { BaseType, SourceType } from 'nocodb-sdk'
 
 const props = defineProps<{
+  source: SourceType
   base: BaseType
-  project: ProjectType
 }>()
 
-const base = toRef(props, 'base')
+const source = toRef(props, 'source')
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
-const projectRole = inject(ProjectRoleInj)
+const baseRole = inject(ProjectRoleInj)
 
 const { $e } = useNuxtApp()
 
-function openAirtableImportDialog(baseId?: string) {
-  if (!baseId) return
+function openAirtableImportDialog(baseId?: string, sourceId?: string) {
+  if (!baseId || !sourceId) return
 
   $e('a:actions:import-airtable')
 
@@ -24,6 +24,7 @@ function openAirtableImportDialog(baseId?: string) {
   const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
     'modelValue': isOpen,
     'baseId': baseId,
+    'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -35,7 +36,7 @@ function openAirtableImportDialog(baseId?: string) {
 }
 
 function openQuickImportDialog(type: string) {
-  if (!base.value?.id) return
+  if (!source.value?.id) return
 
   $e(`a:actions:import-${type}`)
 
@@ -44,7 +45,7 @@ function openQuickImportDialog(type: string) {
   const { close } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
     'importType': type,
-    'baseId': base.value.id,
+    'sourceId': source.value.id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -57,123 +58,54 @@ function openQuickImportDialog(type: string) {
 </script>
 
 <template>
-  <a-menu-divider class="my-0" />
-
   <!-- Quick Import From -->
-  <a-sub-menu class="py-0">
+  <NcSubMenu class="py-0" data-testid="nc-sidebar-base-import">
     <template #title>
-      <div class="nc-project-menu-item group">
-        <GeneralIcon icon="download" class="-ml-0.25" />
-        <div class="-ml-0.5">
-          {{ $t('title.quickImportFrom') }}
-        </div>
+      <GeneralIcon icon="download" />
 
-        <MaterialSymbolsChevronRightRounded class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400" />
-      </div>
+      {{ $t('labels.importData') }}
     </template>
 
     <template #expandIcon></template>
 
-    <a-menu-item
-      v-if="isUIAllowed('airtableImport', false, projectRole)"
+    <NcMenuItem
+      v-if="isUIAllowed('airtableImport', { roles: baseRole })"
       key="quick-import-airtable"
-      @click="openAirtableImportDialog(base.id)"
+      v-e="['c:import:airtable']"
+      @click="openAirtableImportDialog(source.base_id, source.id)"
     >
-      <div class="color-transition nc-project-menu-item group">
-        <GeneralIcon icon="airtable" class="group-hover:text-black" />
-        Airtable
-      </div>
-    </a-menu-item>
+      <GeneralIcon icon="airtable" class="max-w-3.75 group-hover:text-black" />
+      <div class="ml-0.5">{{ $t('labels.airtable') }}</div>
+    </NcMenuItem>
 
-    <a-menu-item v-if="isUIAllowed('csvImport', false, projectRole)" key="quick-import-csv" @click="openQuickImportDialog('csv')">
-      <div class="color-transition nc-project-menu-item group">
-        <GeneralIcon icon="csv" class="group-hover:text-black" />
-        CSV file
-      </div>
-    </a-menu-item>
+    <NcMenuItem
+      v-if="isUIAllowed('csvImport', { roles: baseRole })"
+      key="quick-import-csv"
+      v-e="['c:import:csv']"
+      @click="openQuickImportDialog('csv')"
+    >
+      <GeneralIcon icon="csv" class="w-4 group-hover:text-black" />
+      {{ $t('labels.csvFile') }}
+    </NcMenuItem>
 
-    <a-menu-item
-      v-if="isUIAllowed('jsonImport', false, projectRole)"
+    <NcMenuItem
+      v-if="isUIAllowed('jsonImport', { roles: baseRole })"
       key="quick-import-json"
+      v-e="['c:import:json']"
       @click="openQuickImportDialog('json')"
     >
-      <div class="color-transition nc-project-menu-item group">
-        <GeneralIcon icon="code" class="group-hover:text-black" />
-        JSON file
-      </div>
-    </a-menu-item>
+      <GeneralIcon icon="code" class="w-4 group-hover:text-black" />
+      {{ $t('labels.jsonFile') }}
+    </NcMenuItem>
 
-    <a-menu-item
-      v-if="isUIAllowed('excelImport', false, projectRole)"
+    <NcMenuItem
+      v-if="isUIAllowed('excelImport', { roles: baseRole })"
       key="quick-import-excel"
+      v-e="['c:import:excel']"
       @click="openQuickImportDialog('excel')"
     >
-      <div class="color-transition nc-project-menu-item group">
-        <GeneralIcon icon="excel" class="group-hover:text-black" />
-        Microsoft Excel
-      </div>
-    </a-menu-item>
-  </a-sub-menu>
-
-  <a-menu-divider v-if="false" class="my-0" />
-
-  <!-- Connect to new datasource -->
-  <!-- <a-sub-menu>
-    <template #title>
-      <div class="nc-project-menu-item group">
-        <GeneralIcon icon="datasource" class="group-hover:text-black" />
-        Connect to new datasource
-        <div class="flex-1" />
-
-        <MaterialSymbolsChevronRightRounded class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400" />
-      </div>
-    </template>
-
-    <template #expandIcon></template>
-    <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MYSQL, project.id)">
-      <div class="color-transition nc-project-menu-item group">
-        <LogosMysqlIcon class="group-hover:text-black" />
-        MySQL
-      </div>
-    </a-menu-item>
-    <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.PG, project.id)">
-      <div class="color-transition nc-project-menu-item group">
-        <LogosPostgresql class="group-hover:text-black" />
-        Postgres
-      </div>
-    </a-menu-item>
-    <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SQLITE, project.id)">
-      <div class="color-transition nc-project-menu-item group">
-        <VscodeIconsFileTypeSqlite class="group-hover:text-black" />
-        SQLite
-      </div>
-    </a-menu-item>
-    <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MSSQL, project.id)">
-      <div class="color-transition nc-project-menu-item group">
-        <SimpleIconsMicrosoftsqlserver class="group-hover:text-black" />
-        MSSQL
-      </div>
-    </a-menu-item>
-    <a-menu-item
-      v-if="appInfo.ee"
-      key="connect-new-source"
-      @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE, project.id)"
-    >
-      <div class="color-transition nc-project-menu-item group">
-        <LogosSnowflakeIcon class="group-hover:text-black" />
-        Snowflake
-      </div>
-    </a-menu-item>
-    <a-menu-item v-if="isUIAllowed('importRequest', false, projectRole)" key="add-new-table" class="py-1 rounded-b">
-      <a
-        v-e="['e:datasource:import-request']"
-        href="https://github.com/nocodb/nocodb/issues/2052"
-        target="_blank"
-        class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
-      >
-        <GeneralIcon icon="openInNew" class="group-hover:text-black" />
-        {{ $t('labels.requestDataSource') }}
-      </a>
-    </a-menu-item>
-  </a-sub-menu> -->
+      <GeneralIcon icon="excel" class="max-w-4 group-hover:text-black" />
+      {{ $t('labels.microsoftExcel') }}
+    </NcMenuItem>
+  </NcSubMenu>
 </template>

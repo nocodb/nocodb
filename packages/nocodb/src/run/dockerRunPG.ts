@@ -1,6 +1,10 @@
+import dns from 'node:dns';
 import cors from 'cors';
 import express from 'express';
 import Noco from '~/Noco';
+
+// ref: https://github.com/nodejs/node/issues/40702#issuecomment-1103623246
+dns.setDefaultResultOrder('ipv4first');
 
 const server = express();
 server.enable('trust proxy');
@@ -26,7 +30,11 @@ process.env[`NC_DB`] = `pg://localhost:5432?u=postgres&p=password&d=${metaDb}`;
 // process.env[`DEBUG`] = 'xc*';
 
 (async () => {
-  const httpServer = server.listen(process.env.PORT || 8080, async () => {
-    server.use(await Noco.init({}, httpServer, server));
-  });
+  if (process.env.NC_WORKER_CONTAINER === 'true') {
+    await Noco.init({}, null, null);
+  } else {
+    const httpServer = server.listen(process.env.PORT || 8080, async () => {
+      server.use(await Noco.init({}, httpServer, server));
+    });
+  }
 })().catch((e) => console.log(e));

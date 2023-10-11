@@ -1,0 +1,66 @@
+name: pre-build-for-playwright
+
+on:
+  workflow_call:
+    inputs:
+      FORCE_RUN_PRERQUISITE_STEPS:
+        description: 'FORCE_RUN_PRERQUISITE_STEPS'
+        required: false
+        type: string  
+        default: 'false'
+
+jobs:
+  playwright:
+    runs-on: [self-hosted, v3]
+    timeout-minutes: 100
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Check node,pnpm Installation and set Path
+        shell: bash
+        working-directory: scripts/self-hosted-gh-runner
+        timeout-minutes: 1
+        run: |
+          ./node-pnpm-check.sh
+          echo "make sure below mentioned versions are expected versions"
+          echo "If you are expecting the node and pnpm versions to be updated. Please update the node-pnpm-check.sh script"
+          env
+      - name: Setup Node
+        if: ${{ env.SETUP_NODE != 'false' }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NC_REQ_NODE_V }}
+      - name: Setup pnpm
+        if: ${{ env.SETUP_PNPM != 'false' }}
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.NC_REQ_PNPM_V }}        
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV          
+      - uses: actions/cache@v3
+        if: env.IS_NPM_CACHE_DOWNLOAD_REQUIRED == 'true'
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - name: install dependencies
+        run: pnpm bootstrap
+      - name: build frontend (nc-gui)
+        working-directory: ./packages/nc-gui
+        run: |
+          pnpm run build
+        timeout-minutes: 20
+      - name: upload frontend (nc-gui) build to artf server
+        working-directory: ./
+        run: |
+          # expects the variables to be available in runner context.
+          FILE="$(echo ${GITHUB_REPOSITORY} | sed "s,/,-,g")-${GITHUB_RUN_ID}.zip"
+          cd ./packages/nc-gui/
+          zip -r ${FILE} .output || echo "UI build directory does not exists" >&2
+          echo "uploading  ${FILE} to http://65.21.27.147/upload/${FILE}"
+          time curl -T "${FILE}" http://65.21.27.147/upload/${FILE} -n
+          

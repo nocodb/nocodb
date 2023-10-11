@@ -1,17 +1,8 @@
-import type {
-  ColumnType,
-  FilterType,
-  MetaType,
-  OrgUserRoles,
-  PaginatedType,
-  ProjectType,
-  ViewTypes,
-  WorkspaceUserRoles,
-} from 'nocodb-sdk'
+import type { BaseType, ColumnType, FilterType, MetaType, PaginatedType, Roles, RolesObj, ViewTypes } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
-import type { ImportSource, ImportType, ProjectRole, Role, TabType } from './enums'
+import type { ImportSource, ImportType, TabType } from './enums'
 import type { rolePermissions } from './constants'
 
 interface User {
@@ -19,11 +10,12 @@ interface User {
   email: string
   firstname: string | null
   lastname: string | null
-  roles: Roles | string
-  project_roles: Roles | string
-  workspace_roles: Roles | string
+  roles: RolesObj
+  base_roles: RolesObj
+  workspace_roles: RolesObj
   invite_token?: string
-  project_id?: string
+  base_id?: string
+  display_name?: string | null
 }
 
 interface ProjectMetaInfo {
@@ -45,8 +37,6 @@ interface Field {
   system?: boolean
   isViewEssentialField?: boolean
 }
-
-type Roles<T extends Role | ProjectRole = Role | ProjectRole> = Record<T | string, boolean>
 
 type Filter = FilterType & {
   field?: string
@@ -94,7 +84,7 @@ interface TabItem {
   filterState?: Map<string, any>
   meta?: MetaType
   tabMeta?: any
-  projectId?: string
+  baseId?: string
 }
 
 interface SharedViewMeta extends Record<string, any> {
@@ -121,20 +111,21 @@ type streamImportFileList = UploadFile[]
 type Nullable<T> = { [K in keyof T]: T[K] | null }
 
 /**
- * @description: Project type for frontend
+ * @description: Base type for frontend
  */
-type NcProject = ProjectType & {
+type NcProject = BaseType & {
   /**
-   * When project is expanded in sidebar
+   * When base is expanded in sidebar
    * */
   isExpanded?: boolean
   /**
-   * When project's content is being fetched i.e tables, views, etc
+   * When base's content is being fetched i.e tables, views, etc
    */
   isLoading?: boolean
   temp_title?: string
   edit?: boolean
   starred?: boolean
+  uuid?: string
 }
 
 interface UndoRedoAction {
@@ -170,15 +161,9 @@ interface GroupNestedIn {
   column_uidt: string
 }
 
-type AllRoles =
-  | (typeof ProjectRole)[keyof typeof ProjectRole]
-  | (typeof Role)[keyof typeof Role]
-  | (typeof WorkspaceUserRoles)[keyof typeof WorkspaceUserRoles]
-  | (typeof OrgUserRoles)[keyof typeof OrgUserRoles]
-
 interface Users {
   emails?: string
-  role: AllRoles
+  role: Roles
   invitationToken?: string
 }
 
@@ -190,7 +175,6 @@ export {
   User,
   ProjectMetaInfo,
   Field,
-  Roles,
   Filter,
   NocoI18n,
   ThemeConfig,
@@ -208,7 +192,6 @@ export {
   ImportWorkerPayload,
   Group,
   GroupNestedIn,
-  AllRoles,
   Users,
   ViewPageType,
   NcButtonSize,

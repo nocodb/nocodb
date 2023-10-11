@@ -4,6 +4,7 @@ import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
+  EditColumnInj,
   EditModeInj,
   ReadonlyInj,
   computed,
@@ -24,6 +25,8 @@ const { modelValue, isPk } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
+const { t } = useI18n()
+
 const { showNull } = useGlobal()
 
 const columnMeta = inject(ColumnInj, null)!
@@ -31,6 +34,8 @@ const columnMeta = inject(ColumnInj, null)!
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const isLockedMode = inject(IsLockedInj, ref(false))
+
+const isEditColumn = inject(EditColumnInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
 
@@ -79,7 +84,17 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isDateInvalid.value ? 'Invalid date' : ''))
+const placeholder = computed(() => {
+  if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
+    return t('labels.optional')
+  } else if (modelValue === null && showNull.value) {
+    return t('general.null')
+  } else if (isDateInvalid.value) {
+    return t('msg.invalidDate')
+  } else {
+    return ''
+  }
+})
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
@@ -201,7 +216,7 @@ const clickHandler = () => {
   <a-date-picker
     v-model:value="localState"
     :bordered="false"
-    class="!w-full !px-0 !border-none"
+    class="!w-full !px-1 !border-none"
     :class="{ 'nc-null': modelValue === null && showNull }"
     :format="dateFormat"
     :placeholder="placeholder"

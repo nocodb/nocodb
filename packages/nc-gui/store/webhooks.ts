@@ -172,10 +172,10 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     if (!openMainPage && !openCreatePage && !hookId) throw new Error('hook id is not defined')
 
     return {
-      name: 'index-typeOrId-projectId-index-index-viewId-viewTitle-slugs',
+      name: 'index-typeOrId-baseId-index-index-viewId-viewTitle-slugs',
       params: {
         typeOrId: route.value.params.typeOrId,
-        projectId: route.value.params.projectId,
+        baseId: route.value.params.baseId,
         viewId: route.value.params.viewId,
         viewTitle: activeView.id,
         slugs: openMainPage ? ['webhook'] : ['webhook', openCreatePage ? 'create' : hookId!],

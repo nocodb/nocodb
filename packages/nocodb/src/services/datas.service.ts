@@ -1,17 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { isSystemColumn, UITypes } from 'nocodb-sdk';
+import { Injectable, Logger } from '@nestjs/common';
+import { isSystemColumn } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
 import { nocoExecute } from 'nc-help';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/modules/datas/helpers';
-import type { LinkToAnotherRecordColumn, LookupColumn } from '~/models';
-import {
-  getDbRows,
-  getViewAndModelByAliasOrId,
-  serializeCellValue,
-} from '~/modules/datas/helpers';
-import { Base, Column, Model, Project, View } from '~/models';
+import { getDbRows, getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
+import { Base, Column, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -19,6 +14,8 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class DatasService {
+  protected logger = new Logger(DatasService.name);
+
   constructor() {}
 
   async dataList(
@@ -46,12 +43,12 @@ export class DatasService {
   async dataCount(param: PathParams & { query: any }) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const countArgs: any = { ...param.query };
@@ -73,12 +70,12 @@ export class DatasService {
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     return await baseModel.insert(param.body, null, param.cookie);
@@ -93,12 +90,12 @@ export class DatasService {
     },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     return await baseModel.updateByPk(
@@ -112,15 +109,15 @@ export class DatasService {
 
   async dataDelete(param: PathParams & { rowId: string; cookie: any }) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    // if xcdb project skip checking for LTAR
-    if (!base.isMeta()) {
+    // if xcdb base skip checking for LTAR
+    if (!source.isMeta()) {
       // todo: Should have error http status code
       const message = await baseModel.hasLTARData(param.rowId, model);
       if (message.length) {
@@ -139,14 +136,14 @@ export class DatasService {
   }) {
     const { model, view, query = {} } = param;
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel =
       param.baseModel ||
       (await Model.getBaseModelSQL({
         id: model.id,
         viewId: view?.id,
-        dbDriver: await NcConnectionMgrv2.get(base),
+        dbDriver: await NcConnectionMgrv2.get(source),
       }));
 
     const { ast, dependencyFields } = await getAst({ model, query, view });
@@ -159,21 +156,26 @@ export class DatasService {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
 
-    let data = [];
-    let count = 0;
-    try {
-      data = await nocoExecute(
-        ast,
-        await baseModel.list(listArgs),
-        {},
-        listArgs,
-      );
-      count = await baseModel.count(listArgs);
-    } catch (e) {
-      console.log(e);
-      NcError.internalServerError('Please check server log for more details');
-    }
-
+    const [count, data] = await Promise.all([
+      baseModel.count(listArgs),
+      (async () => {
+        let data = [];
+        try {
+          data = await nocoExecute(
+            ast,
+            await baseModel.list(listArgs),
+            {},
+            listArgs,
+          );
+        } catch (e) {
+          this.logger.log(e);
+          NcError.internalServerError(
+            'Please check server log for more details',
+          );
+        }
+        return data;
+      })(),
+    ]);
     return new PagedResponseImpl(data, {
       ...query,
       count,
@@ -183,12 +185,12 @@ export class DatasService {
   async getFindOne(param: { model: Model; view: View; query: any }) {
     const { model, view, query = {} } = param;
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const args: any = { ...query };
@@ -212,12 +214,12 @@ export class DatasService {
   async getDataGroupBy(param: { model: Model; view: View; query?: any }) {
     const { model, view, query = {} } = param;
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const listArgs: any = { ...query };
@@ -248,12 +250,12 @@ export class DatasService {
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
     const row = await baseModel.readByPk(param.rowId, false, param.query, {
       getHiddenColumn: param.getHiddenColumn,
@@ -269,12 +271,12 @@ export class DatasService {
   async dataExist(param: PathParams & { rowId: string; query: any }) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     return await baseModel.exist(param.rowId);
@@ -300,12 +302,12 @@ export class DatasService {
   }) {
     const { model, view, query = {} } = param;
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const { ast, dependencyFields } = await getAst({ model, query, view });
@@ -374,12 +376,12 @@ export class DatasService {
 
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const key = `${model.title}List`;
@@ -407,10 +409,13 @@ export class DatasService {
       )
     )?.[key];
 
-    const count: any = await baseModel.mmListCount({
-      colId: param.colId,
-      parentId: param.rowId,
-    });
+    const count: any = await baseModel.mmListCount(
+      {
+        colId: param.colId,
+        parentId: param.rowId,
+      },
+      param.query,
+    );
 
     return new PagedResponseImpl(data, {
       count,
@@ -432,12 +437,12 @@ export class DatasService {
 
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const key = 'List';
@@ -493,12 +498,12 @@ export class DatasService {
 
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const key = 'List';
@@ -554,12 +559,12 @@ export class DatasService {
 
     if (!model) return NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const key = 'List';
@@ -615,12 +620,12 @@ export class DatasService {
 
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const key = `${model.title}List`;
@@ -647,10 +652,13 @@ export class DatasService {
       )
     )?.[key];
 
-    const count = await baseModel.hmListCount({
-      colId: param.colId,
-      id: param.rowId,
-    });
+    const count = await baseModel.hmListCount(
+      {
+        colId: param.colId,
+        id: param.rowId,
+      },
+      param.query,
+    );
 
     return new PagedResponseImpl(data, {
       totalRows: count,
@@ -664,11 +672,11 @@ export class DatasService {
       });
       if (!model) NcError.notFound('Table not found');
 
-      const base = await Base.get(model.base_id);
+      const source = await Source.get(model.source_id);
 
       const baseModel = await Model.getBaseModelSQL({
         id: model.id,
-        dbDriver: await NcConnectionMgrv2.get(base),
+        dbDriver: await NcConnectionMgrv2.get(source),
       });
 
       const { ast, dependencyFields } = await getAst({
@@ -683,7 +691,7 @@ export class DatasService {
         dependencyFields,
       );
     } catch (e) {
-      console.log(e);
+      this.logger.error(e);
       NcError.internalServerError('Please check server log for more details');
     }
   }
@@ -694,11 +702,11 @@ export class DatasService {
     });
     if (!model) return NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     return await baseModel.insert(param.body, null, param.cookie);
@@ -715,11 +723,11 @@ export class DatasService {
     });
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     return await baseModel.updateByPk(
@@ -740,11 +748,11 @@ export class DatasService {
     });
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     return await baseModel.delByPk(param.rowId, null, param.cookie);
@@ -765,12 +773,12 @@ export class DatasService {
 
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     await baseModel.removeChild({
@@ -798,12 +806,12 @@ export class DatasService {
 
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     await baseModel.addChild({
@@ -819,15 +827,13 @@ export class DatasService {
   async getViewAndModelFromRequestByAliasOrId(
     req,
     // :
-    // | Request<{ projectName: string; tableName: string; viewName?: string }>
+    // | Request<{ baseName: string; tableName: string; viewName?: string }>
     // | Request,
   ) {
-    const project = await Project.getWithInfoByTitleOrId(
-      req.params.projectName,
-    );
+    const base = await Base.getWithInfoByTitleOrId(req.params.baseName);
 
     const model = await Model.getByAliasOrId({
-      project_id: project.id,
+      base_id: base.id,
       aliasOrId: req.params.tableName,
     });
     const view =
@@ -842,7 +848,7 @@ export class DatasService {
 
   async extractXlsxData(param: { view: View; query: any; siteUrl: string }) {
     const { view, query, siteUrl } = param;
-    const base = await Base.get(view.base_id);
+    const source = await Source.get(view.source_id);
 
     await view.getModelWithInfo();
     await view.getColumns();
@@ -861,7 +867,7 @@ export class DatasService {
     const baseModel = await Model.getBaseModelSQL({
       id: view.model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const { offset, dbRows, elapsed } = await getDbRows({
@@ -879,7 +885,7 @@ export class DatasService {
   }
 
   async extractCsvData(view: View, req) {
-    const base = await Base.get(view.base_id);
+    const source = await Source.get(view.source_id);
     const fields = req.query.fields;
 
     await view.getModelWithInfo();
@@ -899,7 +905,7 @@ export class DatasService {
     const baseModel = await Model.getBaseModelSQL({
       id: view.model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const { offset, dbRows, elapsed } = await getDbRows({
@@ -933,77 +939,6 @@ export class DatasService {
     );
 
     return { offset, dbRows, elapsed, data };
-  }
-
-  async serializeCellValue({
-    value,
-    column,
-    siteUrl,
-  }: {
-    column?: Column;
-    value: any;
-    siteUrl: string;
-  }) {
-    if (!column) {
-      return value;
-    }
-
-    if (!value) return value;
-
-    switch (column?.uidt) {
-      case UITypes.Attachment: {
-        let data = value;
-        try {
-          if (typeof value === 'string') {
-            data = JSON.parse(value);
-          }
-        } catch {}
-
-        return (data || []).map(
-          (attachment) =>
-            `${encodeURI(attachment.title)}(${encodeURI(
-              attachment.path
-                ? `${siteUrl}/${attachment.path}`
-                : attachment.url,
-            )})`,
-        );
-      }
-      case UITypes.Lookup:
-        {
-          const colOptions = await column.getColOptions<LookupColumn>();
-          const lookupColumn = await colOptions.getLookupColumn();
-          return (
-            await Promise.all(
-              [...(Array.isArray(value) ? value : [value])].map(async (v) =>
-                serializeCellValue({
-                  value: v,
-                  column: lookupColumn,
-                  siteUrl,
-                }),
-              ),
-            )
-          ).join(', ');
-        }
-        break;
-      case UITypes.LinkToAnotherRecord:
-        {
-          const colOptions =
-            await column.getColOptions<LinkToAnotherRecordColumn>();
-          const relatedModel = await colOptions.getRelatedTable();
-          await relatedModel.getColumns();
-          return [...(Array.isArray(value) ? value : [value])]
-            .map((v) => {
-              return v[relatedModel.displayValue?.title];
-            })
-            .join(', ');
-        }
-        break;
-      default:
-        if (value && typeof value === 'object') {
-          return JSON.stringify(value);
-        }
-        return value;
-    }
   }
 
   async getColumnByIdOrName(columnNameOrId: string, model: Model) {

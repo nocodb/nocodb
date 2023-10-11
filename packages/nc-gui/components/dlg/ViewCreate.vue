@@ -2,9 +2,9 @@
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import type { Form as AntForm, SelectProps } from 'ant-design-vue'
 import { capitalize } from '@vue/runtime-core'
-import type { FormType, GalleryType, GridType, KanbanType, MapType, TableType, ViewType } from 'nocodb-sdk'
+import type { FormType, GalleryType, GridType, KanbanType, MapType, TableType } from 'nocodb-sdk'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
-import { computed, message, nextTick, onBeforeMount, reactive, ref, unref, useApi, useI18n, useVModel, watch } from '#imports'
+import { computed, message, nextTick, onBeforeMount, reactive, ref, useApi, useI18n, useVModel, watch } from '#imports'
 
 interface Props {
   modelValue: boolean
@@ -13,8 +13,7 @@ interface Props {
   selectedViewId?: string
   groupingFieldColumnId?: string
   geoDataFieldColumnId?: string
-  views: ViewType[]
-  meta: TableType
+  tableId: string
 }
 
 interface Emits {
@@ -31,9 +30,23 @@ interface Form {
   fk_geo_data_col_id: string | null
 }
 
-const { views = [], meta, selectedViewId, groupingFieldColumnId, geoDataFieldColumnId, ...props } = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  selectedViewId: undefined,
+  groupingFieldColumnId: undefined,
+  geoDataFieldColumnId: undefined,
+})
 
 const emits = defineEmits<Emits>()
+
+const { getMeta } = useMetas()
+
+const { viewsByTable } = storeToRefs(useViewsStore())
+
+const { refreshCommandPalette } = useCommandPalette()
+
+const { selectedViewId, groupingFieldColumnId, geoDataFieldColumnId, tableId } = toRefs(props)
+
+const meta = ref<TableType | undefined>()
 
 const inputEl = ref<ComponentPublicInstance>()
 
@@ -46,6 +59,8 @@ const { t } = useI18n()
 const { api } = useApi()
 
 const isViewCreating = ref(false)
+
+const views = computed(() => viewsByTable.value.get(tableId.value) ?? [])
 
 const form = reactive<Form>({
   title: props.title || '',
@@ -64,7 +79,7 @@ const viewNameRules = [
   {
     validator: (_: unknown, v: string) =>
       new Promise((resolve, reject) => {
-        views.every((v1) => v1.title !== v) ? resolve(true) : reject(new Error(`View name should be unique`))
+        views.value.every((v1) => v1.title !== v) ? resolve(true) : reject(new Error(`View name should be unique`))
       }),
     message: 'View name should be unique',
   },
@@ -97,52 +112,13 @@ watch(
 function init() {
   form.title = `Untitled ${capitalize(typeAlias.value)}`
 
-  const repeatCount = views.filter((v) => v.title.startsWith(form.title)).length
+  const repeatCount = views.value.filter((v) => v.title.startsWith(form.title)).length
   if (repeatCount) {
     form.title = `${form.title} ${repeatCount}`
   }
 
-  if (selectedViewId) {
-    form.copy_from_id = selectedViewId
-  }
-
-  // preset the grouping field column
-  if (props.type === ViewTypes.KANBAN) {
-    viewSelectFieldOptions.value = meta
-      .columns!.filter((el) => el.uidt === UITypes.SingleSelect)
-      .map((field) => {
-        return {
-          value: field.id,
-          label: field.title,
-        }
-      })
-
-    if (groupingFieldColumnId) {
-      // take from the one from copy view
-      form.fk_grp_col_id = groupingFieldColumnId
-    } else {
-      // take the first option
-      form.fk_grp_col_id = viewSelectFieldOptions.value?.[0]?.value as string
-    }
-  }
-
-  if (props.type === ViewTypes.MAP) {
-    viewSelectFieldOptions.value = meta
-      .columns!.filter((el) => el.uidt === UITypes.GeoData)
-      .map((field) => {
-        return {
-          value: field.id,
-          label: field.title,
-        }
-      })
-
-    if (geoDataFieldColumnId) {
-      // take from the one from copy view
-      form.fk_geo_data_col_id = geoDataFieldColumnId
-    } else {
-      // take the first option
-      form.fk_geo_data_col_id = viewSelectFieldOptions.value?.[0]?.value as string
-    }
+  if (selectedViewId.value) {
+    form.copy_from_id = selectedViewId?.value
   }
 
   nextTick(() => {
@@ -165,9 +141,7 @@ async function onSubmit() {
   }
 
   if (isValid && form.type) {
-    const _meta = unref(meta)
-
-    if (!_meta || !_meta.id) return
+    if (!tableId.value) return
 
     try {
       let data: GridType | KanbanType | GalleryType | FormType | MapType | null = null
@@ -176,19 +150,19 @@ async function onSubmit() {
 
       switch (form.type) {
         case ViewTypes.GRID:
-          data = await api.dbView.gridCreate(_meta.id, form)
+          data = await api.dbView.gridCreate(tableId.value, form)
           break
         case ViewTypes.GALLERY:
-          data = await api.dbView.galleryCreate(_meta.id, form)
+          data = await api.dbView.galleryCreate(tableId.value, form)
           break
         case ViewTypes.FORM:
-          data = await api.dbView.formCreate(_meta.id, form)
+          data = await api.dbView.formCreate(tableId.value, form)
           break
         case ViewTypes.KANBAN:
-          data = await api.dbView.kanbanCreate(_meta.id, form)
+          data = await api.dbView.kanbanCreate(tableId.value, form)
           break
         case ViewTypes.MAP:
-          data = await api.dbView.mapCreate(_meta.id, form)
+          data = await api.dbView.mapCreate(tableId.value, form)
       }
 
       if (data) {
@@ -199,6 +173,8 @@ async function onSubmit() {
       }
     } catch (e: any) {
       message.error(e.message)
+    } finally {
+      refreshCommandPalette()
     }
 
     vModel.value = false
@@ -208,6 +184,60 @@ async function onSubmit() {
     }, 500)
   }
 }
+
+const isMetaLoading = ref(false)
+
+onMounted(async () => {
+  if (props.type === ViewTypes.KANBAN || props.type === ViewTypes.MAP) {
+    isMetaLoading.value = true
+    try {
+      meta.value = (await getMeta(tableId.value))!
+
+      if (props.type === ViewTypes.MAP) {
+        viewSelectFieldOptions.value = meta
+          .value!.columns!.filter((el) => el.uidt === UITypes.GeoData)
+          .map((field) => {
+            return {
+              value: field.id,
+              label: field.title,
+            }
+          })
+
+        if (geoDataFieldColumnId.value) {
+          // take from the one from copy view
+          form.fk_geo_data_col_id = geoDataFieldColumnId.value
+        } else {
+          // take the first option
+          form.fk_geo_data_col_id = viewSelectFieldOptions.value?.[0]?.value as string
+        }
+      }
+
+      // preset the grouping field column
+      if (props.type === ViewTypes.KANBAN) {
+        viewSelectFieldOptions.value = meta.value
+          .columns!.filter((el) => el.uidt === UITypes.SingleSelect)
+          .map((field) => {
+            return {
+              value: field.id,
+              label: field.title,
+            }
+          })
+
+        if (groupingFieldColumnId.value) {
+          // take from the one from copy view
+          form.fk_grp_col_id = groupingFieldColumnId.value
+        } else {
+          // take the first option
+          form.fk_grp_col_id = viewSelectFieldOptions.value?.[0]?.value as string
+        }
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      isMetaLoading.value = false
+    }
+  }
+})
 </script>
 
 <template>
@@ -215,8 +245,46 @@ async function onSubmit() {
     <template #header>
       <div class="flex flex-row items-center gap-x-1.5">
         <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon !text-xl" />
-        {{ $t(`general.${selectedViewId ? 'duplicate' : 'create'}`) }} <span class="capitalize">{{ typeAlias }}</span>
-        {{ $t('objects.view') }}
+        <template v-if="form.type === ViewTypes.GRID">
+          <template v-if="form.copy_from_id">
+            {{ $t('labels.duplicateGridView') }}
+          </template>
+          <template v-else>
+            {{ $t('labels.createGridView') }}
+          </template>
+        </template>
+        <template v-else-if="form.type === ViewTypes.GALLERY">
+          <template v-if="form.copy_from_id">
+            {{ $t('labels.duplicateGalleryView') }}
+          </template>
+          <template v-else>
+            {{ $t('labels.createGalleryView') }}
+          </template>
+        </template>
+        <template v-else-if="form.type === ViewTypes.FORM">
+          <template v-if="form.copy_from_id">
+            {{ $t('labels.duplicateFormView') }}
+          </template>
+          <template v-else>
+            {{ $t('labels.createFormView') }}
+          </template>
+        </template>
+        <template v-else-if="form.type === ViewTypes.KANBAN">
+          <template v-if="form.copy_from_id">
+            {{ $t('labels.duplicateKanbanView') }}
+          </template>
+          <template v-else>
+            {{ $t('labels.createKanbanView') }}
+          </template>
+        </template>
+        <template v-else>
+          <template v-if="form.copy_from_id">
+            {{ $t('labels.duplicateMapView') }}
+          </template>
+          <template v-else>
+            {{ $t('labels.duplicateView') }}
+          </template>
+        </template>
       </div>
     </template>
     <div class="mt-2">
@@ -237,13 +305,14 @@ async function onSubmit() {
           name="fk_grp_col_id"
           :rules="groupingFieldColumnRules"
         >
-          <a-select
+          <NcSelect
             v-model:value="form.fk_grp_col_id"
             class="w-full nc-kanban-grouping-field-select"
+            :disabled="groupingFieldColumnId || isMetaLoading"
+            :loading="isMetaLoading"
             :options="viewSelectFieldOptions"
-            :disabled="groupingFieldColumnId"
-            placeholder="Select a Grouping Field"
-            not-found-content="No Single Select Field can be found. Please create one first."
+            :placeholder="$t('placeholder.selectGroupField')"
+            :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
           />
         </a-form-item>
         <a-form-item
@@ -252,13 +321,14 @@ async function onSubmit() {
           name="fk_geo_data_col_id"
           :rules="geoDataFieldColumnRules"
         >
-          <a-select
+          <NcSelect
             v-model:value="form.fk_geo_data_col_id"
             class="w-full"
             :options="viewSelectFieldOptions"
-            :disabled="geoDataFieldColumnId"
-            placeholder="Select a GeoData Field"
-            not-found-content="No GeoData Field can be found. Please create one first."
+            :disabled="groupingFieldColumnId || isMetaLoading"
+            :loading="isMetaLoading"
+            :placeholder="$t('placeholder.selectGeoField')"
+            :not-found-content="$t('placeholder.selectGeoFieldNotFound')"
           />
         </a-form-item>
       </a-form>
@@ -268,9 +338,14 @@ async function onSubmit() {
           {{ $t('general.cancel') }}
         </NcButton>
 
-        <NcButton type="primary" :loading="isViewCreating" @click="onSubmit">
-          Create View
-          <template #loading> Creating View </template>
+        <NcButton
+          v-e="[form.copy_from_id ? 'a:view:duplicate' : 'a:view:create']"
+          type="primary"
+          :loading="isViewCreating"
+          @click="onSubmit"
+        >
+          {{ $t('labels.createView') }}
+          <template #loading> {{ $t('labels.creatingView') }}</template>
         </NcButton>
       </div>
     </div>

@@ -1,23 +1,34 @@
-import { Controller, Get, Param, Request, Response } from '@nestjs/common';
-import { ErrorMessages, isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
+import {
+  Controller,
+  Get,
+  Param,
+  Request,
+  Response,
+  UseGuards,
+} from '@nestjs/common';
+import { ErrorMessages, isSystemColumn, ViewTypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import { nocoExecute } from 'nc-help';
 import papaparse from 'papaparse';
-import type { LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { serializeCellValue } from '~/modules/datas/helpers';
 import { PublicDatasExportService } from '~/services/public-datas-export.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { Base, Column, Model, View } from '~/models';
+import { Column, Model, Source, View } from '~/models';
+import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 
+@UseGuards(PublicApiLimiterGuard)
 @Controller()
 export class PublicDatasExportController {
   constructor(
     private readonly publicDatasExportService: PublicDatasExportService,
   ) {}
 
-  @Get('/api/v1/db/public/shared-view/:publicDataUuid/rows/export/excel')
+  @Get([
+    '/api/v1/db/public/shared-view/:publicDataUuid/rows/export/excel',
+    '/api/v2/public/shared-view/:publicDataUuid/rows/export/excel',
+  ])
   async exportExcel(
     @Request() req,
     @Response() res,
@@ -69,7 +80,10 @@ export class PublicDatasExportController {
     res.end(buf);
   }
 
-  @Get('/api/v1/db/public/shared-view/:publicDataUuid/rows/export/csv')
+  @Get([
+    '/api/v1/db/public/shared-view/:publicDataUuid/rows/export/csv',
+    '/api/v2/public/shared-view/:publicDataUuid/rows/export/csv',
+  ])
   async exportCsv(@Request() req, @Response() res) {
     const view = await View.getByUUID(req.params.publicDataUuid);
     const fields = req.query.fields;
@@ -148,11 +162,11 @@ export class PublicDatasExportController {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const { ast } = await getAst({
@@ -203,72 +217,5 @@ export class PublicDatasExportController {
       }
     }
     return { offset, dbRows, elapsed };
-  }
-
-  async serializeCellValue({
-    value,
-    column,
-    ncSiteUrl,
-  }: {
-    column?: Column;
-    value: any;
-    ncSiteUrl?: string;
-  }) {
-    if (!column) {
-      return value;
-    }
-
-    if (!value) return value;
-
-    switch (column?.uidt) {
-      case UITypes.Attachment: {
-        let data = value;
-        try {
-          if (typeof value === 'string') {
-            data = JSON.parse(value);
-          }
-        } catch {}
-
-        return (data || []).map(
-          (attachment) =>
-            `${encodeURI(attachment.title)}(${encodeURI(attachment.url)})`,
-        );
-      }
-      case UITypes.Lookup:
-        {
-          const colOptions = await column.getColOptions<LookupColumn>();
-          const lookupColumn = await colOptions.getLookupColumn();
-          return (
-            await Promise.all(
-              [...(Array.isArray(value) ? value : [value])].map(async (v) =>
-                serializeCellValue({
-                  value: v,
-                  column: lookupColumn,
-                  siteUrl: ncSiteUrl,
-                }),
-              ),
-            )
-          ).join(', ');
-        }
-        break;
-      case UITypes.LinkToAnotherRecord:
-        {
-          const colOptions =
-            await column.getColOptions<LinkToAnotherRecordColumn>();
-          const relatedModel = await colOptions.getRelatedTable();
-          await relatedModel.getColumns();
-          return [...(Array.isArray(value) ? value : [value])]
-            .map((v) => {
-              return v[relatedModel.displayValue?.title];
-            })
-            .join(', ');
-        }
-        break;
-      default:
-        if (value && typeof value === 'object') {
-          return JSON.stringify(value);
-        }
-        return value;
-    }
   }
 }

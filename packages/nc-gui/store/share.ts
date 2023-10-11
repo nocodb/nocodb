@@ -1,26 +1,27 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
+import { ProjectRoles } from 'nocodb-sdk'
 import type { Users } from '#imports'
 
 export const useShare = defineStore('share', () => {
   const visibility = ref<'public' | 'private' | 'none' | 'hidden'>('none')
-  const { project } = toRefs(useProject())
+  const { base } = toRefs(useBase())
 
   const isProjectPublic = computed(() => {
-    if (typeof project.value?.meta === 'string') {
-      const meta = JSON.parse(project.value?.meta)
+    if (typeof base.value?.meta === 'string') {
+      const meta = JSON.parse(base.value?.meta)
       return meta.isPublic
     }
 
-    return (project.value?.meta as any)?.isPublic
+    return (base.value?.meta as any)?.isPublic
   })
 
   const formStatus = ref<
     | 'collaborate'
-    | 'project-collaborateSaving'
-    | 'project-collaborateSaved'
+    | 'base-collaborateSaving'
+    | 'base-collaborateSaved'
     | 'manageCollaborators'
-    | 'project-collaborate'
-    | 'project-public'
+    | 'base-collaborate'
+    | 'base-public'
     | 'none'
   >('none')
   const invitationValid = ref(false)
@@ -28,7 +29,7 @@ export const useShare = defineStore('share', () => {
 
   const showShareModal = ref(false)
 
-  const invitationUsersData = ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })
+  const invitationUsersData = ref<Users>({ emails: undefined, role: ProjectRoles.VIEWER, invitationToken: undefined })
 
   watch(
     [isProjectPublic],
@@ -39,9 +40,9 @@ export const useShare = defineStore('share', () => {
   )
 
   const resetData = () => {
-    formStatus.value = 'project-collaborate'
+    formStatus.value = 'base-collaborate'
     invitationValid.value = false
-    invitationUsersData.value = { emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined }
+    invitationUsersData.value = { emails: undefined, role: ProjectRoles.VIEWER, invitationToken: undefined }
     isInvitationLinkCopied.value = false
   }
 

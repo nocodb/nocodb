@@ -17,7 +17,7 @@ import type { NcButtonSize } from '~/lib'
 interface Props {
   loading?: boolean
   disabled?: boolean
-  type?: ButtonType | 'danger' | undefined
+  type?: ButtonType | 'danger' | 'secondary' | undefined
   size?: NcButtonSize
   centered?: boolean
 }
@@ -95,10 +95,19 @@ useEventListener(NcButton, 'mousedown', () => {
         'justify-start': !props.centered,
       }"
     >
-      <GeneralLoader v-if="loading" size="medium" class="flex !text-white" loader-class="!text-white" />
+      <GeneralLoader
+        v-if="loading"
+        size="medium"
+        class="flex !bg-inherit"
+        :class="{
+          '!text-white': type === 'primary' || type === 'danger',
+          '!text-gray-800': type !== 'primary' && type !== 'danger',
+        }"
+      />
 
       <slot v-else name="icon" />
       <div
+        v-if="!(size === 'xxsmall' && loading)"
         class="flex flex-row items-center"
         :class="{
           'font-medium': type === 'primary' || type === 'danger',
@@ -113,19 +122,35 @@ useEventListener(NcButton, 'mousedown', () => {
 </template>
 
 <style lang="scss">
+.ant-btn:before {
+  display: none !important;
+}
+
 .nc-button {
+  // Not Icon
+  :not(.nc-icon):not(.material-symbols) {
+    line-height: 0.95;
+  }
   > .ant-btn-loading-icon {
     display: none !important;
   }
 }
 
 .nc-button {
+  @apply !xs:(outline-none)
+
   box-shadow: 0px 5px 3px -2px rgba(0, 0, 0, 0.02), 0px 3px 1px -2px rgba(0, 0, 0, 0.06);
   outline: none;
 }
 
-.nc-button.ant-btn.focused {
-  box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+.desktop {
+  .nc-button.ant-btn.focused {
+    box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+  }
+
+  .nc-button.ant-btn-text.focused {
+    @apply text-brand-500;
+  }
 }
 
 .nc-button.ant-btn {
@@ -137,7 +162,7 @@ useEventListener(NcButton, 'mousedown', () => {
 }
 
 .nc-button.ant-btn.medium {
-  @apply py-2 px-3 h-10 min-w-10;
+  @apply py-2 px-4 h-10 min-w-10 xs:(h-10.5 max-h-10.5 min-w-10.5 !px-3);
 }
 
 .nc-button.ant-btn.xsmall {
@@ -145,12 +170,12 @@ useEventListener(NcButton, 'mousedown', () => {
 }
 
 .nc-button.ant-btn.xxsmall {
-  @apply p-0 h-6 min-w-6 rounded-md;
+  @apply p-0 h-5.75 min-w-5.75 rounded-md;
 }
 
 .nc-button.ant-btn[disabled] {
   box-shadow: none !important;
-  @apply bg-gray-50 hover:bg-gray-50 border-0 text-gray-300 cursor-not-allowed;
+  @apply bg-gray-50 border-0 text-gray-300 cursor-not-allowed md:(hover:bg-gray-50);
 }
 
 .nc-button.ant-btn-text.ant-btn[disabled] {
@@ -162,40 +187,24 @@ useEventListener(NcButton, 'mousedown', () => {
 }
 
 .nc-button.ant-btn-primary {
-  @apply bg-brand-500 border-0 text-white;
-
-  &:hover {
-    @apply bg-brand-600 border-0;
-  }
+  @apply bg-brand-500 border-0 text-white xs:(hover:border-0) md:(hover:bg-brand-600);
 }
 
 .nc-button.ant-btn-secondary {
-  @apply bg-white border-1 border-gray-200 text-gray-700;
-
-  &:hover {
-    @apply bg-gray-100;
-  }
+  @apply bg-white border-1 border-gray-200 text-gray-700 md:(hover:bg-gray-100);
 }
 
 .nc-button.ant-btn-danger {
-  @apply bg-red-500 border-0;
-
-  &:hover {
-    @apply bg-red-600 border-0;
-  }
+  @apply bg-red-500 border-0 hover:border-0 md:(hover:bg-red-600);
 }
 
 .nc-button.ant-btn-text {
   box-shadow: none;
 
-  @apply bg-transparent border-0 text-gray-700 hover:bg-gray-100;
+  @apply bg-transparent border-0 text-gray-700 hover:text-gray-900 hover:bg-gray-100;
 
   &:focus {
     box-shadow: none;
   }
-}
-
-.nc-button.ant-btn-text.focused {
-  @apply text-brand-500;
 }
 </style>

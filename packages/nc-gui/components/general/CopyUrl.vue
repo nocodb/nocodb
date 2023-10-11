@@ -56,8 +56,8 @@ const copyUrl = async () => {
         <MdiCheck v-if="isCopied.link" class="h-3.5" />
         <MdiContentCopy v-else class="h-3.5" />
         <div class="flex text-xs" :style="{ fontWeight: 500 }">
-          <template v-if="isCopied.link"> Link Copied </template>
-          <template v-else> Copy Link </template>
+          <template v-if="isCopied.link"> {{ $t('activity.copiedLink') }} </template>
+          <template v-else> {{ $t('activity.copyUrl') }} </template>
         </div>
       </div>
     </div>

@@ -1,33 +1,26 @@
 <script setup lang="ts">
-import type ColumnFilter from './ColumnFilter.vue'
 import {
   ActiveViewInj,
+  AllFiltersInj,
   IsLockedInj,
-  IsPublicInj,
   computed,
+  iconMap,
   inject,
   ref,
   useGlobal,
   useMenuCloseOnEsc,
-  useNuxtApp,
   useSmartsheetStoreOrThrow,
   useViewFilters,
   watch,
 } from '#imports'
 
-import FilterIcon from '~icons/nc-icons/filter'
-
 const isLocked = inject(IsLockedInj, ref(false))
 
 const activeView = inject(ActiveViewInj, ref())
 
-const isPublic = inject(IsPublicInj, ref(false))
-
 const { filterAutoSave, isMobileMode } = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
-
-const { $e } = useNuxtApp()
 
 const { nestedFilters } = useSmartsheetStoreOrThrow()
 
@@ -56,20 +49,28 @@ watch(
 
 const open = ref(false)
 
+const allFilters = ref({})
+
+provide(AllFiltersInj, allFilters)
+
 useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <NcDropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown">
+  <NcDropdown
+    v-model:visible="open"
+    :trigger="['click']"
+    overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown"
+    class="!xs:hidden"
+  >
     <div :class="{ 'nc-active-btn': filtersLength }">
       <a-button v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
         <div class="flex items-center gap-2">
-          <FilterIcon class="h-4 w-4" />
-
+          <component :is="iconMap.filter" class="h-4 w-4" />
           <!-- Filter -->
           <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.filter') }}</span>
 
-          <span v-if="filtersLength" class="nc-count-badge">{{ filtersLength }}</span>
+          <span v-if="filtersLength" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{ filtersLength }}</span>
         </div>
       </a-button>
     </div>

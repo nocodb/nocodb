@@ -29,6 +29,20 @@ export default class NocoCache {
     return this.client.set(`${this.prefix}:${key}`, value);
   }
 
+  public static async setExpiring(key, value, expireSeconds): Promise<boolean> {
+    if (this.cacheDisabled) return Promise.resolve(true);
+    return this.client.setExpiring(
+      `${this.prefix}:${key}`,
+      value,
+      expireSeconds,
+    );
+  }
+
+  public static async incrby(key, value): Promise<boolean> {
+    if (this.cacheDisabled) return Promise.resolve(true);
+    return this.client.incrby(`${this.prefix}:${key}`, value);
+  }
+
   public static async get(key, type): Promise<any> {
     if (this.cacheDisabled) {
       if (type === CacheGetType.TYPE_ARRAY) return Promise.resolve([]);

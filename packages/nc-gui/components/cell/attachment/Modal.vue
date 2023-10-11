@@ -2,9 +2,9 @@
 import { onKeyDown, useEventListener } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import { iconMap, isImage, ref, useAttachment, useDropZone, useUIPermission, watch } from '#imports'
+import { iconMap, isImage, ref, useAttachment, useDropZone, useRoles, watch } from '#imports'
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const {
   open,
@@ -96,23 +96,25 @@ const handleFileDelete = (i: number) => {
     <template #title>
       <div class="flex gap-4">
         <div
-          v-if="isSharedForm || (!readOnly && isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
+          v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic && !isLocked)"
           class="nc-attach-file group"
           data-testid="attachment-expand-file-picker-button"
           @click="open"
         >
           <MaterialSymbolsAttachFile class="transform group-hover:(text-accent scale-120)" />
-          Attach File
+          {{ $t('activity.attachFile') }}
         </div>
 
         <div class="flex items-center gap-2">
-          <div v-if="readOnly" class="text-gray-400">[Readonly]</div>
-          Viewing Attachments of
+          <div v-if="readOnly" class="text-gray-400">[{{ $t('labels.readOnly') }}]</div>
+          {{ $t('labels.viewingAttachmentsOf') }}
           <div class="font-semibold underline">{{ column?.title }}</div>
         </div>
 
         <div v-if="selectedVisibleItems.includes(true)" class="flex flex-1 items-center gap-3 justify-end mr-[30px]">
-          <NcButton type="primary" class="nc-attachment-download-all" @click="bulkDownloadFiles"> Bulk Download </NcButton>
+          <NcButton type="primary" class="nc-attachment-download-all" @click="bulkDownloadFiles">
+            {{ $t('activity.bulkDownload') }}
+          </NcButton>
         </div>
       </div>
     </template>
@@ -124,7 +126,7 @@ const handleFileDelete = (i: number) => {
           class="text-white ring ring-accent ring-opacity-100 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
         >
           <MaterialSymbolsFileCopyOutline class="text-accent" height="35" width="35" />
-          <div class="text-white text-3xl">Drop here</div>
+          <div class="text-white text-3xl">{{ $t('labels.dropHere') }}</div>
         </general-overlay>
       </template>
 
@@ -138,28 +140,25 @@ const handleFileDelete = (i: number) => {
             />
 
             <a-tooltip v-if="!readOnly">
-              <template #title> Remove File </template>
+              <template #title> {{ $t('title.removeFile') }} </template>
               <component
                 :is="iconMap.closeCircle"
-                v-if="isSharedForm || (isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
+                v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic && !isLocked)"
                 class="nc-attachment-remove"
                 @click.stop="onRemoveFileClick(item.title, i)"
               />
             </a-tooltip>
 
             <a-tooltip placement="bottom">
-              <template #title> Download File </template>
+              <template #title> {{ $t('title.downloadFile') }} </template>
 
               <div class="nc-attachment-download group-hover:(opacity-100)">
                 <component :is="iconMap.download" @click.stop="downloadFile(item)" />
               </div>
             </a-tooltip>
 
-            <a-tooltip
-              v-if="isSharedForm || (!readOnly && isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
-              placement="bottom"
-            >
-              <template #title> Rename File </template>
+            <a-tooltip v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic && !isLocked)" placement="bottom">
+              <template #title> {{ $t('title.renameFile') }} </template>
 
               <div class="nc-attachment-download group-hover:(opacity-100) mr-[35px]">
                 <component :is="iconMap.edit" @click.stop="renameFile(item, i)" />
@@ -173,7 +172,7 @@ const handleFileDelete = (i: number) => {
               <LazyCellAttachmentImage
                 v-if="isImage(item.title, item.mimetype)"
                 :srcs="getPossibleAttachmentSrc(item)"
-                class="max-w-full max-h-full m-auto justify-center"
+                class="object-cover h-64 m-auto justify-center"
                 @click.stop="onClick(item)"
               />
 

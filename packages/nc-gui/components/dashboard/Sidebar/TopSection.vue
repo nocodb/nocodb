@@ -1,14 +1,16 @@
 <script setup lang="ts">
 const workspaceStore = useWorkspace()
-const projectStore = useProject()
+const baseStore = useBase()
+
+const { isUIAllowed } = useRoles()
 
 const { appInfo } = useGlobal()
 
-const { isWorkspaceLoading, isWorkspaceOwnerOrCreator, isWorkspaceSettingsPageOpened } = storeToRefs(workspaceStore)
+const { isWorkspaceLoading, isWorkspaceSettingsPageOpened } = storeToRefs(workspaceStore)
 
 const { navigateToWorkspaceSettings } = workspaceStore
 
-const { isSharedBase } = storeToRefs(projectStore)
+const { isSharedBase } = storeToRefs(baseStore)
 
 const isCreateProjectOpen = ref(false)
 
@@ -41,14 +43,15 @@ const navigateToSettings = () => {
     </div>
   </template>
   <template v-else-if="!isSharedBase">
-    <div class="flex flex-col p-1 gap-y-0.5 mt-0.25">
+    <div class="xs:hidden flex flex-col p-1 gap-y-0.5 mt-0.25 mb-0.5 truncate">
       <DashboardSidebarTopSectionHeader />
 
       <NcButton
-        v-if="isWorkspaceOwnerOrCreator"
+        v-if="isUIAllowed('workspaceSettings')"
+        v-e="['c:team:settings']"
         type="text"
         size="small"
-        class="nc-sidebar-top-button"
+        class="nc-sidebar-top-button !xs:hidden"
         data-testid="nc-sidebar-team-settings-btn"
         :centered="false"
         :class="{
@@ -59,15 +62,15 @@ const navigateToSettings = () => {
       >
         <div class="flex items-center gap-2">
           <GeneralIcon icon="settings" class="!h-4" />
-          <div>Team & Settings</div>
+          <div>{{ $t('title.teamAndSettings') }}</div>
         </div>
       </NcButton>
       <WorkspaceCreateProjectBtn
         v-model:is-open="isCreateProjectOpen"
         modal
         type="text"
-        class="nc-sidebar-top-button !hover:bg-gray-200"
-        data-testid="nc-sidebar-create-project-btn"
+        class="nc-sidebar-top-button !hover:bg-gray-200 !xs:hidden"
+        data-testid="nc-sidebar-create-base-btn"
       >
         <div class="gap-x-2 flex flex-row w-full items-center !font-normal">
           <GeneralIcon icon="plus" />

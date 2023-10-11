@@ -7,17 +7,19 @@ import { Api, UITypes } from 'nocodb-sdk';
 import { LoginPage } from '../../../pages/LoginPage';
 import { getDefaultPwd } from '../../../tests/utils/general';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
-import { isEE } from '../../../setup/db';
+import { enableQuickRun, isEE } from '../../../setup/db';
 
 // todo: Move most of the ui actions to page object and await on the api response
 test.describe('Form view', () => {
+  if (enableQuickRun()) test.skip();
+
   let dashboard: DashboardPage;
   let form: FormPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     form = dashboard.form;
   });
 
@@ -31,7 +33,7 @@ test.describe('Form view', () => {
     await dashboard.treeView.openTable({ title: 'Country' });
 
     await dashboard.viewSidebar.createFormView({ title: 'CountryForm' });
-    await dashboard.viewSidebar.verifyView({ title: 'CountryForm', index: 1 });
+    await dashboard.viewSidebar.verifyView({ title: 'CountryForm', index: 0 });
 
     // verify form-view fields order
     await form.verifyFormViewFieldsOrder({
@@ -92,7 +94,7 @@ test.describe('Form view', () => {
     await dashboard.treeView.openTable({ title: 'Country' });
 
     await dashboard.viewSidebar.createFormView({ title: 'CountryForm' });
-    await dashboard.viewSidebar.verifyView({ title: 'CountryForm', index: 1 });
+    await dashboard.viewSidebar.verifyView({ title: 'CountryForm', index: 0 });
 
     await form.configureHeader({
       title: 'Country',
@@ -218,7 +220,7 @@ test.describe('Form view', () => {
   });
 
   test('Form share, verify attachment file', async () => {
-    await dashboard.treeView.createTable({ title: 'New', projectTitle: context.project.title });
+    await dashboard.treeView.createTable({ title: 'New', baseTitle: context.base.title });
 
     await dashboard.grid.column.create({
       title: 'Attachment',
@@ -248,6 +250,8 @@ test.describe('Form view', () => {
 });
 
 test.describe('Form view with LTAR', () => {
+  if (enableQuickRun()) test.skip();
+
   let dashboard: DashboardPage;
   let loginPage: LoginPage;
   let wsPage: WorkspacePage;
@@ -258,7 +262,7 @@ test.describe('Form view with LTAR', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     loginPage = new LoginPage(page);
     wsPage = new WorkspacePage(page);
 
@@ -297,23 +301,23 @@ test.describe('Form view with LTAR', () => {
     ];
 
     try {
-      const project = await api.project.read(context.project.id);
-      cityTable = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      const base = await api.base.read(context.base.id);
+      cityTable = await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
         table_name: 'City',
         title: 'City',
         columns: cityColumns,
       });
-      countryTable = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      countryTable = await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
         table_name: 'Country',
         title: 'Country',
         columns: countryColumns,
       });
 
       const cityRowAttributes = [{ City: 'Atlanta' }, { City: 'Pune' }, { City: 'London' }, { City: 'Sydney' }];
-      await api.dbTableRow.bulkCreate('noco', context.project.id, cityTable.id, cityRowAttributes);
+      await api.dbTableRow.bulkCreate('noco', context.base.id, cityTable.id, cityRowAttributes);
 
       const countryRowAttributes = [{ Country: 'India' }, { Country: 'UK' }, { Country: 'Australia' }];
-      await api.dbTableRow.bulkCreate('noco', context.project.id, countryTable.id, countryRowAttributes);
+      await api.dbTableRow.bulkCreate('noco', context.base.id, countryTable.id, countryRowAttributes);
 
       // create LTAR Country has-many City
       await api.dbTableColumn.create(countryTable.id, {
@@ -325,7 +329,7 @@ test.describe('Form view with LTAR', () => {
         type: 'hm',
       });
 
-      // await api.dbTableRow.nestedAdd('noco', context.project.id, countryTable.id, '1', 'hm', 'CityList', '1');
+      // await api.dbTableRow.nestedAdd('noco', context.base.id, countryTable.id, '1', 'hm', 'CityList', '1');
     } catch (e) {
       console.log(e);
     }
@@ -363,6 +367,7 @@ test.describe('Form view with LTAR', () => {
 
     await sharedForm.verifyChildList(['Atlanta', 'Pune', 'London', 'Sydney']);
     await sharedForm.selectChildList('Atlanta');
+    await sharedForm.closeLinkToChildList();
 
     await sharedForm.submit();
     await sharedForm.verifySuccessMessage();
@@ -380,11 +385,10 @@ test.describe('Form view with LTAR', () => {
       await dashboard.leftSidebar.openWorkspace({ title: context.workspace.title });
       await dashboard.rootPage.waitForTimeout(500);
     }
-    await dashboard.treeView.openProject({ title: context.project.title });
+    await dashboard.treeView.openProject({ title: context.base.title, context });
     await dashboard.rootPage.waitForTimeout(500);
 
     await dashboard.treeView.openTable({ title: 'Country' });
-    await dashboard.viewSidebar.openView({ title: 'Country' });
 
     await dashboard.grid.cell.verify({
       index: 3,
@@ -402,13 +406,15 @@ test.describe('Form view with LTAR', () => {
 });
 
 test.describe('Form view', () => {
+  if (enableQuickRun()) test.skip();
+
   let dashboard: DashboardPage;
   let context: any;
   let api: Api<any>;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test.afterEach(async () => {
@@ -443,8 +449,8 @@ test.describe('Form view', () => {
       },
     ];
 
-    const project = await api.project.read(context.project.id);
-    await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+    const base = await api.base.read(context.base.id);
+    await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
       table_name: 'selectBased',
       title: 'selectBased',
       columns: columns,
@@ -486,10 +492,14 @@ test.describe('Form view', () => {
     await sharedForm.cell.selectOption.select({ ...multiSelectParams, option: 'mar' });
 
     await sharedForm.submit();
-    await dashboard.rootPage.goto(url);
-    await dashboard.viewSidebar.openView({ title: 'selectBased' });
 
-    await dashboard.rootPage.waitForTimeout(500);
+    await dashboard.rootPage.goto(url);
+    // kludge- reload
+    await dashboard.rootPage.reload();
+
+    await dashboard.treeView.openTable({ title: 'selectBased' });
+
+    await dashboard.rootPage.waitForTimeout(2000);
 
     await dashboard.grid.cell.selectOption.verify({
       columnHeader: 'SingleSelect',

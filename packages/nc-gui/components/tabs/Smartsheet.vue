@@ -21,8 +21,8 @@ import {
   useMetas,
   useProvideKanbanViewStore,
   useProvideSmartsheetStore,
+  useRoles,
   useSqlEditor,
-  useUIPermission,
 } from '#imports'
 import type { TabItem } from '#imports'
 
@@ -30,13 +30,11 @@ const props = defineProps<{
   activeTab: TabItem
 }>()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { metas, getMeta } = useMetas()
 
 useSidebar('nc-right-sidebar')
-
-const isPublic = inject(IsPublicInj, ref(false))
 
 const activeTab = toRef(props, 'activeTab')
 
@@ -49,13 +47,13 @@ const meta = computed<TableType | undefined>(() => {
   return viewId && metas.value[viewId]
 })
 
-const { activeView, openedViewsTab } = storeToRefs(useViewsStore())
+const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
+const { activeTableId } = storeToRefs(useTablesStore())
+
+const { activeView, openedViewsTab, activeViewTitleOrId } = storeToRefs(useViewsStore())
 const { isGallery, isGrid, isForm, isKanban, isLocked, isMap } = useProvideSmartsheetStore(activeView, meta)
 
 useSqlEditor()
-
-const { openedProject } = storeToRefs(useProjects())
-const { activeTable } = storeToRefs(useTablesStore())
 
 const reloadEventHook = createEventHook<void | boolean>()
 
@@ -79,7 +77,7 @@ provide(IsFormInj, isForm)
 provide(TabMetaInj, activeTab)
 provide(
   ReadonlyInj,
-  computed(() => !isUIAllowed('xcDatatableEditable')),
+  computed(() => !isUIAllowed('dataEdit')),
 )
 
 const grid = ref()
@@ -91,8 +89,8 @@ const onDrop = async (event: DragEvent) => {
     const data = JSON.parse(event.dataTransfer!.getData('text/json'))
     // Do something with the received data
 
-    // if dragged item is not from the same base, return
-    if (data.baseId !== meta.value?.base_id) return
+    // if dragged item is not from the same source, return
+    if (data.sourceId !== meta.value?.source_id) return
 
     // if dragged item or opened view is not a table, return
     if (data.type !== 'table' || meta.value?.type !== 'table') return
@@ -158,44 +156,40 @@ const onDrop = async (event: DragEvent) => {
     console.log('error', e)
   }
 }
+
+watch([activeViewTitleOrId, activeTableId], () => {
+  handleSidebarOpenOnMobileForNonViews()
+})
 </script>
 
 <template>
   <div class="nc-container flex flex-col h-full" @drop="onDrop" @dragover.prevent>
     <LazySmartsheetTopbar />
-    <TabsSmartsheetResizable style="height: calc(100% - var(--topbar-height))">
-      <template #content>
-        <div v-if="openedViewsTab === 'view'" class="flex flex-col h-full flex-1 min-w-0">
-          <LazySmartsheetToolbar v-if="!isForm" />
-          <div class="flex flex-row w-full" style="height: calc(100% - var(--topbar-height))">
-            <Transition name="layout" mode="out-in">
-              <template v-if="meta">
-                <div class="flex flex-1 min-h-0 w-3/4">
-                  <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-white">
-                    <LazySmartsheetGrid v-if="isGrid" ref="grid" />
+    <div style="height: calc(100% - var(--topbar-height))">
+      <div v-if="openedViewsTab === 'view'" class="flex flex-col h-full flex-1 min-w-0">
+        <LazySmartsheetToolbar v-if="!isForm" />
+        <div class="flex flex-row w-full" style="height: calc(100% - var(--topbar-height))">
+          <Transition name="layout" mode="out-in">
+            <template v-if="meta">
+              <div class="flex flex-1 min-h-0 w-3/4">
+                <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-white">
+                  <LazySmartsheetGrid v-if="isGrid" ref="grid" />
 
-                    <LazySmartsheetGallery v-else-if="isGallery" />
+                  <LazySmartsheetGallery v-else-if="isGallery" />
 
-                    <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
+                  <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
-                    <LazySmartsheetKanban v-else-if="isKanban" />
+                  <LazySmartsheetKanban v-else-if="isKanban" />
 
-                    <LazySmartsheetMap v-else-if="isMap" />
-                  </div>
+                  <LazySmartsheetMap v-else-if="isMap" />
                 </div>
-              </template>
-            </Transition>
-          </div>
+              </div>
+            </template>
+          </Transition>
         </div>
-        <SmartsheetDetails v-else />
-      </template>
-      <template #sidebar>
-        <template v-if="!isPublic">
-          <LazySmartsheetSidebar />
-        </template>
-      </template>
-    </TabsSmartsheetResizable>
-
+      </div>
+      <SmartsheetDetails v-else />
+    </div>
     <LazySmartsheetExpandedFormDetached />
   </div>
 </template>

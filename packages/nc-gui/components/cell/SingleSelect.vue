@@ -4,11 +4,11 @@ import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
-import { WorkspaceUserRoles } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
+  EditColumnInj,
   EditModeInj,
   IsFormInj,
   IsKanbanInj,
@@ -20,8 +20,8 @@ import {
   inject,
   isDrawerOrModalExist,
   ref,
+  useBase,
   useEventListener,
-  useProject,
   useRoles,
   useSelectedCellKeyupListener,
   watch,
@@ -59,6 +59,8 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const isEditColumn = inject(EditColumnInj, ref(false))
+
 const isForm = inject(IsFormInj, ref(false))
 
 const { $api } = useNuxtApp()
@@ -67,23 +69,15 @@ const searchVal = ref()
 
 const { getMeta } = useMetas()
 
-const { hasRole } = useRoles()
+const { isUIAllowed } = useRoles()
 
-const { isPg, isMysql } = useProject()
+const { isPg, isMysql } = useBase()
 
 // a variable to keep newly created option value
 // temporary until it's add the option to column meta
 const tempSelectedOptState = ref<string>()
 
-const isNewOptionCreateEnabled = computed(
-  () =>
-    !isPublic.value &&
-    !disableOptionCreation &&
-    (hasRole('owner', true) ||
-      hasRole('creator', true) ||
-      hasRole(WorkspaceUserRoles.OWNER, true) ||
-      hasRole(WorkspaceUserRoles.CREATOR, true)),
-)
+const isNewOptionCreateEnabled = computed(() => !isPublic.value && !disableOptionCreation && isUIAllowed('fieldEdit'))
 
 const options = computed<(SelectOptionType & { value: string })[]>(() => {
   if (column?.value.colOptions) {
@@ -103,20 +97,12 @@ const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
 })
 
-const hasEditRoles = computed(
-  () =>
-    hasRole('owner', true) ||
-    hasRole('creator', true) ||
-    hasRole('editor', true) ||
-    hasRole(WorkspaceUserRoles.OWNER, true) ||
-    hasRole(WorkspaceUserRoles.CREATOR, true) ||
-    hasRole(WorkspaceUserRoles.EDITOR, true),
-)
+const hasEditRoles = computed(() => isUIAllowed('dataEdit'))
 
 const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 
 const vModel = computed({
-  get: () => tempSelectedOptState.value ?? modelValue,
+  get: () => tempSelectedOptState.value ?? modelValue?.trim(),
   set: (val) => {
     if (val && isNewOptionCreateEnabled.value && (options.value ?? []).every((op) => op.title !== val)) {
       tempSelectedOptState.value = val
@@ -189,7 +175,7 @@ async function addIfMissingAndSave() {
       // todo: refactor and avoid repetition
       if (updatedColMeta.cdf) {
         // Postgres returns default value wrapped with single quotes & casted with type so we have to get value between single quotes to keep it unified for all databases
-        if (isPg(column.value.base_id)) {
+        if (isPg(column.value.source_id)) {
           updatedColMeta.cdf = updatedColMeta.cdf.substring(
             updatedColMeta.cdf.indexOf(`'`) + 1,
             updatedColMeta.cdf.lastIndexOf(`'`),
@@ -197,7 +183,7 @@ async function addIfMissingAndSave() {
         }
 
         // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
-        if (!isMysql(column.value.base_id)) {
+        if (!isMysql(column.value.source_id) && !isPg(column.value.source_id)) {
           updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
         }
       }
@@ -231,6 +217,7 @@ const onKeydown = (e: KeyboardEvent) => {
 
 const onSelect = () => {
   isOpen.value = false
+  isEditable.value = false
 }
 
 const cellClickHook = inject(CellClickHookInj, null)
@@ -300,6 +287,7 @@ const selectedOpt = computed(() => {
       v-model:value="vModel"
       class="w-full overflow-hidden"
       :class="{ 'caret-transparent': !hasEditRoles }"
+      :placeholder="isEditColumn ? $t('labels.optional') : ''"
       :allow-clear="!column.rqd && editAllowed"
       :bordered="false"
       :open="isOpen && editAllowed"
@@ -337,7 +325,7 @@ const selectedOpt = computed(() => {
         <div class="flex gap-2 text-gray-500 items-center h-full">
           <component :is="iconMap.plusThick" class="min-w-4" />
           <div class="text-xs whitespace-normal">
-            Create new option named <strong>{{ searchVal }}</strong>
+            {{ $t('msg.selectOption.createNewOptionNamed') }} <strong>{{ searchVal }}</strong>
           </div>
         </div>
       </a-select-option>

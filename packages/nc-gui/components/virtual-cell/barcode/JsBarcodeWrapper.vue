@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import JsBarcode from 'jsbarcode'
-import { onMounted } from '#imports'
+import { IsGalleryInj, onMounted } from '#imports'
 
 const props = defineProps({
   barcodeValue: { type: String, required: true },
@@ -9,6 +9,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['onClickBarcode'])
+
+const isGallery = inject(IsGalleryInj, ref(false))
 
 const barcodeSvgRef = ref<HTMLElement>()
 const errorForCurrentInput = ref(false)
@@ -33,6 +35,7 @@ const generate = () => {
 }
 
 const onBarcodeClick = (ev: MouseEvent) => {
+  if (isGallery.value) return
   ev.stopPropagation()
   emit('onClickBarcode')
 }
@@ -42,6 +45,15 @@ onMounted(generate)
 </script>
 
 <template>
-  <svg v-show="!errorForCurrentInput" ref="barcodeSvgRef" class="w-full" data-testid="barcode" @click="onBarcodeClick"></svg>
+  <svg
+    v-show="!errorForCurrentInput"
+    ref="barcodeSvgRef"
+    :class="{
+      'w-full': !isGallery,
+      'w-auto': isGallery,
+    }"
+    data-testid="barcode"
+    @click="onBarcodeClick"
+  ></svg>
   <slot v-if="errorForCurrentInput" name="barcodeRenderError" />
 </template>

@@ -11,16 +11,14 @@ import {
   nextTick,
   onMounted,
   ref,
-  storeToRefs,
-  useGlobal,
   useNuxtApp,
-  useProject,
   watch,
 } from '#imports'
 
-const { modelValue, baseId } = defineProps<{
+const { modelValue, baseId, sourceId } = defineProps<{
   modelValue: boolean
   baseId: string
+  sourceId: string
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -29,15 +27,13 @@ const { $api } = useNuxtApp()
 
 const baseURL = $api.instance.defaults.baseURL
 
-const { $state, $jobs } = useNuxtApp()
+const { $state, $poller } = useNuxtApp()
 
-const projectStore = useProject()
+const baseStore = useBase()
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { loadTables } = projectStore
-
-const { project } = storeToRefs(projectStore)
+const { loadTables } = baseStore
 
 const showGoToDashboardButton = ref(false)
 
@@ -48,6 +44,10 @@ const progress = ref<Record<string, any>[]>([])
 const logRef = ref<typeof AntCard>()
 
 const enableAbort = ref(false)
+
+const goBack = ref(false)
+
+const listeningForUpdates = ref(false)
 
 const syncSource = ref({
   id: '',
@@ -82,10 +82,6 @@ const pushProgress = async (message: string, status: JobStatus | 'progress') => 
   })
 }
 
-const onSubscribe = () => {
-  step.value = 2
-}
-
 const onStatus = async (status: JobStatus, data?: any) => {
   if (status === JobStatus.COMPLETED) {
     showGoToDashboardButton.value = true
@@ -94,6 +90,7 @@ const onStatus = async (status: JobStatus, data?: any) => {
     refreshCommandPalette()
     // TODO: add tab of the first table
   } else if (status === JobStatus.FAILED) {
+    goBack.value = true
     pushProgress(data.error.message, status)
   }
 }
@@ -135,7 +132,7 @@ async function createOrUpdate() {
         body: payload,
       })
     } else {
-      syncSource.value = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs/${baseId}`, {
+      syncSource.value = await $fetch(`/api/v1/db/meta/projects/${baseId}/syncs/${sourceId}`, {
         baseURL,
         method: 'POST',
         headers: { 'xc-auth': $state.token.value as string },
@@ -147,8 +144,47 @@ async function createOrUpdate() {
   }
 }
 
+async function listenForUpdates() {
+  if (listeningForUpdates.value) return
+
+  listeningForUpdates.value = true
+
+  const job = await $api.jobs.status({ syncId: syncSource.value.id })
+
+  if (!job) {
+    listeningForUpdates.value = false
+    return
+  }
+
+  $poller.subscribe(
+    { id: job.id },
+    (data: {
+      id: string
+      status?: string
+      data?: {
+        error?: {
+          message: string
+        }
+        message?: string
+        result?: any
+      }
+    }) => {
+      if (data.status !== 'close') {
+        step.value = 2
+        if (data.status) {
+          onStatus(data.status as JobStatus, data.data)
+        } else {
+          onLog(data.data as any)
+        }
+      } else {
+        listeningForUpdates.value = false
+      }
+    },
+  )
+}
+
 async function loadSyncSrc() {
-  const data: any = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs/${baseId}`, {
+  const data: any = await $fetch(`/api/v1/db/meta/projects/${baseId}/syncs/${sourceId}`, {
     baseURL,
     method: 'GET',
     headers: { 'xc-auth': $state.token.value as string },
@@ -161,7 +197,7 @@ async function loadSyncSrc() {
     syncSource.value = migrateSync(srcs[0])
     syncSource.value.details.syncSourceUrlOrId =
       srcs[0].details.appId && srcs[0].details.appId.length > 0 ? srcs[0].details.syncSourceUrlOrId : srcs[0].details.shareId
-    $jobs.subscribe({ syncId: syncSource.value.id }, onSubscribe, onStatus, onLog)
+    listenForUpdates()
   } else {
     syncSource.value = {
       id: '',
@@ -195,7 +231,7 @@ async function sync() {
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
     })
-    $jobs.subscribe({ syncId: syncSource.value.id }, onSubscribe, onStatus, onLog)
+    listenForUpdates()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -253,9 +289,8 @@ watch(
 
 onMounted(async () => {
   if (syncSource.value.id) {
-    $jobs.subscribe({ syncId: syncSource.value.id }, onSubscribe, onStatus, onLog)
+    listenForUpdates()
   }
-
   await loadSyncSrc()
 })
 </script>
@@ -271,7 +306,7 @@ onMounted(async () => {
   >
     <div class="px-5">
       <!--      Quick Import -->
-      <div class="mt-5 prose-xl font-weight-bold" @dblclick="enableAbort = true">{{ $t('title.quickImport') }} - AIRTABLE</div>
+      <div class="mt-5 prose-xl font-weight-bold" @dblclick="enableAbort = true">{{ $t('title.quickImportAirtable') }}</div>
 
       <div v-if="step === 1">
         <div class="mb-4">
@@ -292,7 +327,7 @@ onMounted(async () => {
             <a-input-password
               v-model:value="syncSource.details.apiKey"
               class="nc-input-api-key"
-              :placeholder="$t('labels.apiKey')"
+              :placeholder="`${$t('labels.apiKey')} / ${$t('labels.personalAccessToken')}`"
               size="large"
             />
           </a-form-item>
@@ -354,7 +389,7 @@ onMounted(async () => {
           <!--          Import Formula Columns -->
           <a-tooltip placement="top">
             <template #title>
-              <span>Coming Soon!</span>
+              <span>{{ $t('title.comingSoon') }}</span>
             </template>
             <a-checkbox v-model:checked="syncSource.details.options.syncFormula" disabled>
               {{ $t('labels.importFormulaColumns') }}
@@ -421,7 +456,12 @@ onMounted(async () => {
           <a-button v-if="showGoToDashboardButton" class="mt-4" size="large" @click="dialogShow = false">
             {{ $t('labels.goToDashboard') }}
           </a-button>
-          <a-button v-else-if="enableAbort" class="mt-4" size="large" danger @click="abort()">ABORT</a-button>
+          <a-button v-else-if="goBack" class="mt-4 uppercase" size="large" danger @click="step = 1">{{
+            $t('general.cancel')
+          }}</a-button>
+          <a-button v-else-if="enableAbort" class="mt-4 uppercase" size="large" danger @click="abort()">{{
+            $t('general.abort')
+          }}</a-button>
         </div>
       </div>
     </div>

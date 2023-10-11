@@ -1,11 +1,11 @@
-import { isSystemColumn, RelationTypes, UITypes } from 'nocodb-sdk';
+import { isSystemColumn, RelationTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import type {
   Column,
   LinkToAnotherRecordColumn,
   LookupColumn,
   Model,
 } from '~/models';
-import { View } from '~/models';
+import { GalleryView, KanbanView, View } from '~/models';
 
 const getAst = async ({
   query,
@@ -32,6 +32,15 @@ const getAst = async ({
   dependencyFields.nested = dependencyFields.nested || {};
   dependencyFields.fieldsSet = dependencyFields.fieldsSet || new Set();
 
+  let coverImageId;
+  if (view && view.type === ViewTypes.GALLERY) {
+    const gallery = await GalleryView.get(view.id);
+    coverImageId = gallery.fk_cover_image_col_id;
+  } else if (view && view.type === ViewTypes.KANBAN) {
+    const kanban = await KanbanView.get(view.id);
+    coverImageId = kanban.fk_cover_image_col_id;
+  }
+
   if (!model.columns?.length) await model.getColumns();
 
   // extract only pk and pv
@@ -48,7 +57,7 @@ const getAst = async ({
 
     await extractDependencies(model.displayValue, dependencyFields);
 
-    return { ast, dependencyFields };
+    return { ast, dependencyFields, parsedQuery: dependencyFields };
   }
 
   let fields = query?.fields || query?.f;
@@ -59,7 +68,7 @@ const getAst = async ({
   }
 
   let allowedCols = null;
-  if (view)
+  if (view) {
     allowedCols = (await View.getColumns(view.id)).reduce(
       (o, c) => ({
         ...o,
@@ -67,6 +76,10 @@ const getAst = async ({
       }),
       {},
     );
+    if (coverImageId) {
+      allowedCols[coverImageId] = 1;
+    }
+  }
 
   const ast = await model.columns.reduce(async (obj, col: Column) => {
     let value: number | boolean | { [key: string]: any } = 1;
@@ -142,7 +155,7 @@ const getAst = async ({
     };
   }, Promise.resolve({}));
 
-  return { ast, dependencyFields };
+  return { ast, dependencyFields, parsedQuery: dependencyFields };
 };
 
 const extractDependencies = async (

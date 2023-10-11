@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ModelTypes, MssqlUi, SqliteUi, UITypes } from 'nocodb-sdk'
-import { MetaInj, inject, ref, storeToRefs, useProject, useVModel } from '#imports'
+import { MetaInj, inject, ref, storeToRefs, useBase, useVModel } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 
@@ -16,11 +16,13 @@ const meta = inject(MetaInj, ref())
 
 const { setAdditionalValidations, validateInfos, onDataTypeChange, sqlUi, isXcdbBase } = useColumnCreateStoreOrThrow()
 
-const projectStore = useProject()
-const { tables } = storeToRefs(projectStore)
+const baseStore = useBase()
+const { tables } = storeToRefs(baseStore)
+
+const { t } = useI18n()
 
 setAdditionalValidations({
-  childId: [{ required: true, message: 'Required' }],
+  childId: [{ required: true, message: t('general.required') }],
 })
 
 const onUpdateDeleteOptions = sqlUi === MssqlUi ? ['NO ACTION'] : ['NO ACTION', 'CASCADE', 'RESTRICT', 'SET NULL', 'SET DEFAULT']
@@ -45,7 +47,7 @@ const refTables = computed(() => {
     return []
   }
 
-  return tables.value.filter((t) => t.type === ModelTypes.TABLE && t.base_id === meta.value?.base_id)
+  return tables.value.filter((t) => t.type === ModelTypes.TABLE && t.source_id === meta.value?.source_id)
 })
 
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
@@ -58,8 +60,8 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links)
     <div class="border-2 p-6">
       <a-form-item v-bind="validateInfos.type" class="nc-ltar-relation-type">
         <a-radio-group v-model:value="vModel.type" name="type" v-bind="validateInfos.type">
-          <a-radio value="hm">Has Many</a-radio>
-          <a-radio value="mm">Many To Many</a-radio>
+          <a-radio value="hm">{{ $t('title.hasMany') }}</a-radio>
+          <a-radio value="mm">{{ $t('title.manyToMany') }}</a-radio>
         </a-radio-group>
       </a-form-item>
 
@@ -78,7 +80,7 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links)
           <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
             <div class="flex items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
-                <GeneralTableIcon :meta="table" class="text-gray-500"></GeneralTableIcon>
+                <GeneralTableIcon :meta="table" class="text-gray-500" />
               </div>
 
               <span class="overflow-ellipsis min-w-0 shrink-1">{{ table.title }}</span>
@@ -110,7 +112,14 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links)
                 @change="onDataTypeChange"
               >
                 <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
-                  {{ option }}
+                  <template v-if="option === 'NO ACTION'">{{ $t('title.links.noAction') }}</template>
+                  <template v-else-if="option === 'CASCADE'">{{ $t('title.links.cascade') }}</template>
+                  <template v-else-if="option === 'RESTRICT'">{{ $t('title.links.restrict') }}</template>
+                  <template v-else-if="option === 'SET NULL'">{{ $t('title.links.setNull') }}</template>
+                  <template v-else-if="option === 'SET DEFAULT'">{{ $t('title.links.setDefault') }}</template>
+                  <template v-else>
+                    {{ option }}
+                  </template>
                 </a-select-option>
               </a-select>
             </a-form-item>
@@ -124,7 +133,14 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links)
                 @change="onDataTypeChange"
               >
                 <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
-                  {{ option }}
+                  <template v-if="option === 'NO ACTION'">{{ $t('title.links.noAction') }}</template>
+                  <template v-else-if="option === 'CASCADE'">{{ $t('title.links.cascade') }}</template>
+                  <template v-else-if="option === 'RESTRICT'">{{ $t('title.links.restrict') }}</template>
+                  <template v-else-if="option === 'SET NULL'">{{ $t('title.links.setNull') }}</template>
+                  <template v-else-if="option === 'SET DEFAULT'">{{ $t('title.links.setDefault') }}</template>
+                  <template v-else>
+                    {{ option }}
+                  </template>
                 </a-select-option>
               </a-select>
             </a-form-item>
@@ -132,7 +148,9 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links)
 
           <div class="flex flex-row">
             <a-form-item>
-              <a-checkbox v-model:checked="vModel.virtual" name="virtual" @change="onDataTypeChange">Virtual Relation</a-checkbox>
+              <a-checkbox v-model:checked="vModel.virtual" name="virtual" @change="onDataTypeChange">{{
+                $t('title.virtualRelation')
+              }}</a-checkbox>
             </a-form-item>
           </div>
         </template>

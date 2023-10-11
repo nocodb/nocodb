@@ -3,19 +3,21 @@ import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
-import { NcProjectType, extractSdkResponseErrorMsg, projectTitleValidator, ref, useGlobal, useVModel } from '#imports'
+import { NcProjectType, baseTitleValidator, extractSdkResponseErrorMsg, ref, useGlobal, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
-  type: NcProjectType
+  type?: NcProjectType
 }>()
 
 const emit = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const projectsStore = useProjects()
-const { loadProjects, createProject: _createProject } = projectsStore
+const baseType = computed(() => props.type ?? NcProjectType.DB)
+
+const basesStore = useBases()
+const { createProject: _createProject } = basesStore
 
 const { navigateToProject } = useGlobal()
 
@@ -24,7 +26,7 @@ const nameValidationRules = [
     required: true,
     message: 'Database name is required',
   },
-  projectTitleValidator,
+  baseTitleValidator,
 ] as RuleObject[]
 
 const form = ref<typeof Form>()
@@ -38,14 +40,14 @@ const creating = ref(false)
 const createProject = async () => {
   creating.value = true
   try {
-    const project = await _createProject({
-      type: props.type,
+    const base = await _createProject({
+      type: baseType.value,
       title: formState.value.title,
     })
 
     navigateToProject({
-      projectId: project.id!,
-      type: props.type,
+      baseId: base.id!,
+      type: baseType.value,
       workspaceId: 'nc',
     })
     dialogShow.value = false
@@ -68,7 +70,7 @@ watch(dialogShow, async (n, o) => {
     form.value?.resetFields()
 
     formState.value = {
-      title: 'Untitled Database',
+      title: 'Untitled Base',
     }
 
     await nextTick()
@@ -79,10 +81,10 @@ watch(dialogShow, async (n, o) => {
 })
 
 const typeLabel = computed(() => {
-  switch (props.type) {
+  switch (baseType.value) {
     case NcProjectType.DB:
     default:
-      return 'Database'
+      return 'Base'
   }
 })
 </script>
@@ -92,7 +94,7 @@ const typeLabel = computed(() => {
     <template #header>
       <!-- Create A New Table -->
       <div class="flex flex-row items-center">
-        <GeneralProjectIcon :type="props.type" class="mr-2.5 !text-lg !h-4" />
+        <GeneralProjectIcon :type="baseType" class="mr-2.5 !text-lg !h-4" />
         Create {{ typeLabel }}
       </div>
     </template>
@@ -112,7 +114,7 @@ const typeLabel = computed(() => {
             ref="input"
             v-model:value="formState.title"
             name="title"
-            class="nc-metadb-project-name nc-input-md"
+            class="nc-metadb-base-name nc-input-md"
             placeholder="Title"
           />
         </a-form-item>
@@ -121,6 +123,7 @@ const typeLabel = computed(() => {
       <div class="flex flex-row justify-end mt-7 gap-x-2">
         <NcButton type="secondary" @click="dialogShow = false">Cancel</NcButton>
         <NcButton
+          v-e="['a:base:create']"
           data-testid="docs-create-proj-dlg-create-btn"
           :loading="creating"
           type="primary"

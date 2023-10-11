@@ -12,12 +12,12 @@ import {
   message,
   ref,
   storeToRefs,
+  useBase,
   useI18n,
   useNuxtApp,
-  useProject,
+  useRoles,
   useSharedView,
   useSmartsheetStoreOrThrow,
-  useUIPermission,
 } from '#imports'
 
 const { t } = useI18n()
@@ -28,7 +28,7 @@ const isPublicView = inject(IsPublicInj, ref(false))
 
 const isView = false
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
 const { $api } = useNuxtApp()
 
@@ -48,7 +48,7 @@ const showWebhookDrawer = ref(false)
 
 const quickImportDialog = ref(false)
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const exportFile = async (exportType: ExportTypes) => {
   let offset = 0
@@ -66,7 +66,7 @@ const exportFile = async (exportType: ExportTypes) => {
       } else {
         res = await $api.dbViewRow.export(
           'noco',
-          project?.value.id as string,
+          base?.value.id as string,
           meta.value?.id as string,
           selectedView.value?.id as string,
           exportType,
@@ -146,7 +146,7 @@ const exportFile = async (exportType: ExportTypes) => {
             </div>
 
             <div
-              v-if="isUIAllowed('sharedViewList') && !isView && !isPublicView"
+              v-if="isUIAllowed('viewShare') && !isView && !isPublicView"
               v-e="['a:actions:shared-view-list']"
               class="nc-menu-item"
               @click="sharedViewListDlg = true"

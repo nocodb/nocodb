@@ -2,12 +2,16 @@
 @import '@vue-flow/core/dist/style.css';
 @import '@vue-flow/core/dist/theme-default.css';
 
+body {
+  line-height: 1.3125rem;
+}
+
 :root {
   --topbar-height: 3.1rem;
   --sidebar-bottom-height: 8.5rem;
   --new-header-height: 3.5rem;
   --tw-text-opacity: 1;
-  --navbar-bg: #FAFAFA;
+  --navbar-bg: #fafafa;
   --navbar-border: #e0e0e0;
   --nc-grid-bg: #fdfdfd;
 }
@@ -32,6 +36,10 @@
   height: var(--topbar-height) !important;
 }
 
+.anticon-check-circle {
+  @apply !relative top-[-1px] left-0;
+}
+
 html,
 body,
 #__nuxt,
@@ -40,8 +48,17 @@ main {
   @apply m-0 h-full w-full bg-white;
 }
 
+
 .nc-input-md {
   @apply !rounded-lg !py-2 !px-3 mb-1;
+}
+
+.mobile {
+  .nc-scrollbar-md, nc-scrollbar-dark-md, nc-scrollbar-dark-md, nc-scrollbar-sm-dark, nc-scrollbar-x-md {
+    &::-webkit-scrollbar {
+      width: 0px;
+    }
+  }
 }
 
 .nc-scrollbar-md {
@@ -60,7 +77,7 @@ main {
   }
   &::-webkit-scrollbar-thumb {
     width: 4px;
-    @apply bg-gray-300 ;
+    @apply bg-gray-300;
   }
   &::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-400;
@@ -75,6 +92,11 @@ main {
     width: 4px;
     height: 4px;
   }
+
+  &::-webkit-scrollbar-track {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+  }
   &::-webkit-scrollbar-track-piece {
     width: 0px;
   }
@@ -82,11 +104,14 @@ main {
     @apply bg-transparent;
   }
   &::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+
     width: 4px;
-    @apply bg-gray-200 ;
+    @apply bg-gray-300;
   }
   &::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-300;
+    @apply bg-gray-400;
   }
 }
 
@@ -106,7 +131,7 @@ main {
   }
   &::-webkit-scrollbar-thumb {
     width: 4px;
-    @apply bg-gray-300 ;
+    @apply bg-gray-300;
   }
   &::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-400;
@@ -128,13 +153,12 @@ main {
   }
   &::-webkit-scrollbar-thumb {
     width: 4px;
-    @apply bg-gray-200 ;
+    @apply bg-gray-200;
   }
   &::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-300;
   }
 }
-
 
 html {
   overflow-y: auto !important;
@@ -162,14 +186,14 @@ a {
 
 // menu item styling
 .nc-menu-item {
-  @apply cursor-pointer text-xs flex items-center gap-2 px-4 py-3 relative after:(content-[''] absolute top-0 left-0 bottom-0 w-full h-full right-0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
+  @apply cursor-pointer text-sm flex items-center gap-2 px-4 py-3 relative after:(content-[''] absolute top-0 left-0 bottom-0 w-full h-full right-0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
 
   &.disabled {
     @apply text-black text-opacity-25 bg-[#f5f5f5] cursor-not-allowed text-shadow-none box-shadow-none border-[#d9d9d9];
   }
 }
 
-.nc-project-menu-item {
+.nc-base-menu-item {
   @apply cursor-pointer flex items-center gap-2 py-2 after:(content-[''] absolute top-0 left-0 bottom-0 right-0 w-full h-full bg-current opacity-0 transition transition-opacity duration-100) hover:(after:(opacity-5));
 
   // &:hover {
@@ -230,7 +254,6 @@ a {
 }
 
 // for highlighing toolbar kanban menu item
-
 
 .nc-locked-overlay {
   @apply absolute h-full w-full z-2 top-0 left-0;
@@ -416,20 +439,17 @@ a {
 }
 
 .nc-warning-info {
-  @apply !shadow-none rounded ring-1 ring-red-600
+  @apply !shadow-none rounded ring-1 ring-red-600;
 }
 
-.ant-modal {
-  @apply !top-[50px] ;
-}
 .ant-modal-content {
-  @apply  !p-6;
+  @apply !p-6;
   border-radius: 1rem;
 }
 .ant-modal-body {
   @apply !p-0;
 }
-.ant-modal-confirm-body-wrapper{
+.ant-modal-confirm-body-wrapper {
   @apply p-4;
 }
 
@@ -448,28 +468,24 @@ a {
   }
 }
 
-.ant-btn-loading-icon{
+.ant-btn-loading-icon {
   & > span {
     @apply block;
   }
 }
 
-
-.nc-copy-failed-modal .ant-modal-confirm-content{
+.nc-copy-failed-modal .ant-modal-confirm-content {
   @apply pt-4 overflow-auto;
   white-space: pre;
   user-select: auto;
 }
 
-
-
 .nc-drawer-expanded-form .ant-drawer-content-wrapper {
   transition: width 0.3s !important;
 }
 
-
 .nc-icon-transition {
-  @apply transform transition-transform !hover:(scale-115 text-shadow-sm) !active:(scale-100)
+  @apply transform transition-transform !hover:(scale-115 text-shadow-sm) !active:(scale-100);
 }
 
 .nc-animation-pulse {
@@ -488,17 +504,16 @@ a {
   }
 }
 
-
 .nc-menu-item-wrapper {
   @apply flex flex-row items-center py-3 gap-2;
 }
 
 .nc-click-transition {
-  @apply transform transition-transform transition-color !text-gray-400 !hover:(scale-130 !text-gray-500) !active:(scale-100 !text-gray-500)
+  @apply transform transition-transform transition-color !text-gray-400 !hover:(scale-130 !text-gray-500) !active:(scale-100 !text-gray-500);
 }
 
 .nc-click-transition-1 {
-  @apply transform transition-transform !hover:(scale-120) !active:(scale-100)
+  @apply transform transition-transform !hover:(scale-120) !active:(scale-100);
 }
 
 @keyframes pop-in {
@@ -518,10 +533,9 @@ a {
   animation: pop-in 0.15s cubic-bezier(0, 0, 0.6, -0.13);
 }
 
-
 // button
-.nc-btn{
-  @apply rounded py-2 px-4 border-gray-200 h-auto
+.nc-btn {
+  @apply rounded py-2 px-4 border-gray-200 h-auto;
 }
 
 .ant-popover-inner {
@@ -535,11 +549,87 @@ a {
   min-height: 0 !important;
 }
 
-
 .ant-skeleton-input {
   @apply !h-full;
 }
 
 .nc-toolbar-dropdown {
   @apply !rounded-2xl;
+}
+
+input[type='number'] {
+  @apply !outline-none !ring-0 !border-0;
+}
+
+.ant-pagination {
+  @apply !flex !flex-row !gap-1;
+}
+
+.ant-pagination .ant-pagination-prev {
+  @apply !border-1 !rounded-md !border-gray-200 transform scale-95;
+}
+
+.ant-pagination .ant-pagination-item {
+  @apply !bg-white !rounded-md !border-1 !scale-110 !border-gray-200 !flex !items-center !justify-center;
+}
+
+.ant-pagination .ant-pagination-item a {
+  @apply !no-underline !text-gray-700;
+}
+.ant-pagination .ant-pagination-item-active a {
+  @apply !text-brand-500;
+}
+
+.ant-pagination .ant-pagination-next {
+  @apply !border-1  !rounded-md !border-gray-200 scale-95;
+}
+
+.ant-pagination .ant-pagination-item-active {
+  @apply !bg-brand-50 !text-brand-500 !border-0 !scale-110;
+}
+.ant-pagination .ant-pagination-item-link {
+  @apply !flex !items-center !justify-center;
+}
+
+.ant-pagination .ant-pagination-jump-next-custom-icon .ant-pagination-item-link {
+  @apply !block;
+}
+.ant-pagination .ant-pagination-jump-prev-custom-icon .ant-pagination-item-link {
+  @apply !block;
+}
+
+.ant-pagination .ant-pagination-item-link-icon {
+  @apply !block !py-1.5;
+}
+
+.nc-sidebar-node {
+  @apply !xs:(min-h-12 max-h-12 hover:bg-gray-50 ml-1.5);
+
+  .nc-emoji {
+    @apply xs:(text-lg);
+  }
+  .material-symbols, .nc-icon {
+    @apply !xs:(text-xl -mt-0.25);
+  }
+
+  .nc-sidebar-node-title {
+    @apply xs:(text-base);
+  }
+
+  .nc-sidebar-node-btn:not(.nc-sidebar-expand) {
+    @apply !xs:(hidden)
+  }
+}
+
+.nc-button.ant-btn.nc-sidebar-node-btn {
+  @apply opacity-0 group-hover:(opacity-100) text-gray-600 hover:(bg-gray-400 bg-opacity-20 text-gray-900) duration-100;
+}
+
+
+.nc-button.ant-btn.nc-sidebar-node-btn.nc-sidebar-expand {
+  @apply xs:(opacity-100 hover:bg-gray-50);
+
+  .nc-icon {
+    @apply xs:(visible opacity-100 !text-gray-500)
+  }
 }

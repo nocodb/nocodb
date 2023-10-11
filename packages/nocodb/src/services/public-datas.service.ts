@@ -13,7 +13,7 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { getColumnByIdOrName } from '~/modules/datas/helpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { mimeIcons } from '~/utils/mimeTypes';
-import { Base, Column, Model, View } from '~/models';
+import { Column, Model, Source, View } from '~/models';
 
 // todo: move to utils
 export function sanitizeUrlPath(paths) {
@@ -27,7 +27,8 @@ export class PublicDatasService {
     password?: string;
     query: any;
   }) {
-    const view = await View.getByUUID(param.sharedViewUuid);
+    const { sharedViewUuid, password, query = {} } = param;
+    const view = await View.getByUUID(sharedViewUuid);
 
     if (!view) NcError.notFound('Not found');
     if (
@@ -39,7 +40,7 @@ export class PublicDatasService {
       NcError.notFound('Not found');
     }
 
-    if (view.password && view.password !== param.password) {
+    if (view.password && view.password !== password) {
       return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
     }
 
@@ -47,32 +48,31 @@ export class PublicDatasService {
       id: view?.fk_model_id,
     });
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    const listArgs: any = { ...param.query };
+    const { ast, dependencyFields } = await getAst({
+      model,
+      query: {},
+      view,
+    });
+
+    const listArgs: any = { ...query, ...dependencyFields };
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
     try {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
-
     let data = [];
     let count = 0;
 
     try {
-      const { ast } = await getAst({
-        query: param.query,
-        model,
-        view,
-      });
-
       data = await nocoExecute(
         ast,
         await baseModel.list(listArgs),
@@ -130,12 +130,12 @@ export class PublicDatasService {
     groupColumnId: string;
   }) {
     const { model, view, query = {}, groupColumnId } = param;
-    const base = await Base.get(param.model.base_id);
+    const source = await Source.get(param.model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const { ast } = await getAst({ model, query: param.query, view });
@@ -215,12 +215,12 @@ export class PublicDatasService {
     try {
       const { model, view, query = {} } = param;
 
-      const base = await Base.get(model.base_id);
+      const source = await Source.get(model.source_id);
 
       const baseModel = await Model.getBaseModelSQL({
         id: model.id,
         viewId: view?.id,
-        dbDriver: await NcConnectionMgrv2.get(base),
+        dbDriver: await NcConnectionMgrv2.get(source),
       });
 
       const listArgs: any = { ...query };
@@ -265,13 +265,13 @@ export class PublicDatasService {
       id: view?.fk_model_id,
     });
 
-    const base = await Base.get(model.base_id);
-    const project = await base.getProject();
+    const source = await Source.get(model.source_id);
+    const base = await source.getProject();
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     await view.getViewWithInfo();
@@ -309,7 +309,7 @@ export class PublicDatasService {
 
       const filePath = sanitizeUrlPath([
         'noco',
-        project.title,
+        base.title,
         model.title,
         fieldName,
       ]);
@@ -376,12 +376,12 @@ export class PublicDatasService {
 
     const model = await colOptions.getRelatedTable();
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const { ast, dependencyFields } = await getAst({
@@ -440,12 +440,12 @@ export class PublicDatasService {
     if (column.fk_model_id !== view.fk_model_id)
       NcError.badRequest("Column doesn't belongs to the model");
 
-    const base = await Base.get(view.base_id);
+    const source = await Source.get(view.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: view.fk_model_id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const key = `List`;
@@ -473,10 +473,13 @@ export class PublicDatasService {
       )
     )?.[key];
 
-    const count: any = await baseModel.mmListCount({
-      colId: param.columnId,
-      parentId: param.rowId,
-    });
+    const count: any = await baseModel.mmListCount(
+      {
+        colId: param.columnId,
+        parentId: param.rowId,
+      },
+      param.query,
+    );
 
     return new PagedResponseImpl(data, { ...param.query, count });
   }
@@ -511,12 +514,12 @@ export class PublicDatasService {
     if (column.fk_model_id !== view.fk_model_id)
       NcError.badRequest("Column doesn't belongs to the model");
 
-    const base = await Base.get(view.base_id);
+    const source = await Source.get(view.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: view.fk_model_id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const key = `List`;
@@ -543,10 +546,13 @@ export class PublicDatasService {
       )
     )?.[key];
 
-    const count = await baseModel.hmListCount({
-      colId: param.columnId,
-      id: param.rowId,
-    });
+    const count = await baseModel.hmListCount(
+      {
+        colId: param.columnId,
+        id: param.rowId,
+      },
+      param.query,
+    );
 
     return new PagedResponseImpl(data, { ...param.query, count });
   }

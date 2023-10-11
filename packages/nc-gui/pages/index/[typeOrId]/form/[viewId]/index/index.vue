@@ -72,22 +72,21 @@ const onDecode = async (scannedCodeValue: string) => {
 <template>
   <div class="h-full flex flex-col items-center">
     <div
-      class="color-transition relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(bg-white dark:bg-slate-700 rounded-lg border-1 border-gray-200 shadow-xl)"
+      class="color-transition flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(bg-white dark:bg-slate-700 rounded-lg border-1 border-gray-200 shadow-xl)"
     >
       <template v-if="sharedFormView">
-        <h1 class="prose-2xl font-bold self-center my-4" style="word-break: break-all">
+        <h1 class="prose-2xl font-bold self-center my-4 break-words">
           {{ sharedFormView.heading }}
         </h1>
 
         <h2
           v-if="sharedFormView.subheading"
-          class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4 leading-6"
-          style="word-break: break-all"
+          class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4 leading-6 break-words"
         >
           {{ sharedFormView.subheading }}
         </h2>
 
-        <a-alert v-if="notFound" type="warning" class="my-4 text-center" message="Not found" />
+        <a-alert v-if="notFound" type="warning" class="my-4 text-center" :message="$t('general.notFound')" />
 
         <template v-else-if="submitted">
           <div class="flex justify-center">
@@ -96,15 +95,15 @@ const onDecode = async (scannedCodeValue: string) => {
                 type="success"
                 class="my-4 text-center"
                 outlined
-                :message="sharedFormView.success_msg || 'Successfully submitted form data'"
+                :message="sharedFormView.success_msg || $t('msg.successfullySubmittedFormData')"
               />
 
               <p v-if="sharedFormView.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">
-                New form will be loaded after {{ secondsRemain }} seconds
+                {{ $t('msg.newFormWillBeLoaded', { seconds: secondsRemain }) }}
               </p>
 
               <div v-if="sharedFormView.submit_another_form" class="text-center">
-                <a-button type="primary" @click="submitted = false"> Submit Another Form</a-button>
+                <a-button type="primary" @click="submitted = false"> {{ $t('activity.submitAnotherForm') }}</a-button>
               </div>
             </div>
           </div>
@@ -187,8 +186,8 @@ const onDecode = async (scannedCodeValue: string) => {
                     </LazySmartsheetDivDataCell>
 
                     <div
-                      class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1"
-                      style="word-break: break-all"
+                      class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1 leading-[18px]"
+                      style="word-break: break-word"
                     >
                       <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
                         {{ error.$message }}
@@ -201,14 +200,9 @@ const onDecode = async (scannedCodeValue: string) => {
               </div>
 
               <div class="text-center mt-4">
-                <button
-                  type="submit"
-                  class="uppercase scaling-btn prose-sm"
-                  data-testid="shared-form-submit-button"
-                  @click="submitForm"
-                >
+                <NcButton type="primary" html-type="submit" data-testid="shared-form-submit-button" @click="submitForm">
                   {{ $t('general.submit') }}
-                </button>
+                </NcButton>
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { Catch, Logger } from '@nestjs/common';
+import { Catch, Logger, NotFoundException } from '@nestjs/common';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import type { Response } from 'express';
 import {
@@ -21,7 +21,28 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
-    this.logger.error(exception.message, exception.stack);
+    // skip unnecessary error logging
+    if (
+      process.env.NC_ENABLE_ALL_API_ERROR_LOGGING === 'true' ||
+      !(
+        exception instanceof BadRequest ||
+        exception instanceof AjvError ||
+        exception instanceof Unauthorized ||
+        exception instanceof Forbidden ||
+        exception instanceof NotFound ||
+        exception instanceof NotImplemented ||
+        exception instanceof UnprocessableEntity ||
+        exception instanceof NotFoundException
+      )
+    )
+      this.logger.error(exception.message, exception.stack);
+
+    // API not found
+    if (exception instanceof NotFoundException) {
+      this.logger.debug(exception.message, exception.stack);
+
+      return response.status(404).json({ msg: exception.message });
+    }
 
     const dbError = extractDBError(exception);
 

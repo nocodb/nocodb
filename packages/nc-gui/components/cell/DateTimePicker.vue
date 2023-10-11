@@ -5,6 +5,7 @@ import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
+  EditColumnInj,
   ReadonlyInj,
   dateFormats,
   inject,
@@ -12,7 +13,7 @@ import {
   parseProp,
   ref,
   timeFormats,
-  useProject,
+  useBase,
   useSelectedCellKeyupListener,
   watch,
 } from '#imports'
@@ -27,7 +28,7 @@ const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { isMssql, isXcdbBase } = useProject()
+const { isMssql, isXcdbBase } = useBase()
 
 const { showNull } = useGlobal()
 
@@ -38,6 +39,10 @@ const active = inject(ActiveCellInj, ref(false))
 const editable = inject(EditModeInj, ref(false))
 
 const isLockedMode = inject(IsLockedInj, ref(false))
+
+const { t } = useI18n()
+
+const isEditColumn = inject(EditColumnInj, ref(false))
 
 const column = inject(ColumnInj)!
 
@@ -62,7 +67,7 @@ const localState = computed({
       return undefined
     }
 
-    const isXcDB = isXcdbBase(column.value.base_id)
+    const isXcDB = isXcdbBase(column.value.source_id)
 
     // cater copy and paste
     // when copying a datetime cell, the copied value would be local time
@@ -78,7 +83,7 @@ const localState = computed({
       return /^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)
     }
 
-    if (isMssql(column.value.base_id)) {
+    if (isMssql(column.value.source_id)) {
       // e.g. 2023-04-29T11:41:53.000Z
       return dayjs(modelValue)
     }
@@ -132,7 +137,17 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isDateInvalid.value ? 'Invalid date' : ''))
+const placeholder = computed(() => {
+  if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
+    return t('labels.optional')
+  } else if (modelValue === null && showNull.value) {
+    return t('general.null')
+  } else if (isDateInvalid.value) {
+    return t('msg.invalidDate')
+  } else {
+    return ''
+  }
+})
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
@@ -249,7 +264,7 @@ const isColDisabled = computed(() => {
     :disabled="isColDisabled"
     :show-time="true"
     :bordered="false"
-    class="!w-full !px-0 !border-none"
+    class="!w-full !px-0 !py-1 !border-none"
     :class="{ 'nc-null': modelValue === null && showNull }"
     :format="dateTimeFormat"
     :placeholder="placeholder"

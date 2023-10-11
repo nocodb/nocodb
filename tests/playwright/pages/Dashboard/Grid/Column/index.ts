@@ -260,7 +260,7 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.locator('li[role="menuitem"]:has-text("Delete"):visible').click();
 
     // pressing on delete column button
-    await this.rootPage.locator('.ant-modal.active button:has-text("Delete Column")').click();
+    await this.rootPage.locator('.ant-modal.active button:has-text("Delete Field")').click();
 
     // wait till modal is closed
     await this.rootPage.locator('.ant-modal.active').waitFor({ state: 'hidden' });
@@ -336,8 +336,8 @@ export class ColumnPageObject extends BasePage {
     }
 
     await this.waitForResponse({
-      uiAction: () => this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click(),
-      requestUrlPathToMatch: 'api/v1/db/meta/views',
+      uiAction: async () => await this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click(),
+      requestUrlPathToMatch: '/api/v1/db/meta/views',
       httpMethodsToMatch: ['PATCH'],
     });
 
@@ -346,7 +346,7 @@ export class ColumnPageObject extends BasePage {
 
   async save({ isUpdated }: { isUpdated?: boolean } = {}) {
     await this.waitForResponse({
-      uiAction: () => this.get().locator('button:has-text("Save")').click(),
+      uiAction: async () => await this.get().locator('button:has-text("Save")').click(),
       requestUrlPathToMatch: 'api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
       responseJsonMatcher: json => json['pageInfo'],
@@ -385,9 +385,9 @@ export class ColumnPageObject extends BasePage {
     }
 
     // select all menu access
-    expect(
-      await this.grid.get().locator('[data-testid="nc-check-all"]').locator('input[type="checkbox"]').count()
-    ).toBe(role === 'creator' || role === 'owner' || role === 'editor' ? 1 : 0);
+    await expect(
+      await this.grid.get().locator('[data-testid="nc-check-all"]').locator('input[type="checkbox"]')
+    ).toHaveCount(role === 'creator' || role === 'owner' || role === 'editor' ? 1 : 0);
 
     if (role === 'creator' || role === 'owner' || role === 'editor') {
       await this.grid.selectAll();

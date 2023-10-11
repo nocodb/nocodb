@@ -1,12 +1,12 @@
 import { type ColumnType, type SelectOptionsType, UITypes, type ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { GROUP_BY_VARS, ref, storeToRefs, useApi, useProject } from '#imports'
+import { GROUP_BY_VARS, ref, storeToRefs, useApi, useBase } from '#imports'
 import type { Group, GroupNestedIn, Row } from '#imports'
 
 export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: ComputedRef<string | undefined>) => {
   const { api } = useApi()
 
-  const { project } = storeToRefs(useProject())
+  const { base } = storeToRefs(useBase())
 
   const { sharedView, fetchSharedViewData } = useSharedView()
 
@@ -34,7 +34,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
 
   const isGroupBy = computed(() => !!groupBy.value.length)
 
-  const { isUIAllowed } = useUIPermission()
+  const { isUIAllowed } = useRoles()
 
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
@@ -151,7 +151,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
   async function loadGroups(params: any = {}, group?: Group) {
     group = group || rootGroup.value
 
-    if (!project?.value?.id || !view.value?.id || !view.value?.fk_model_id || !group) return
+    if (!base?.value?.id || !view.value?.id || !view.value?.fk_model_id || !group) return
 
     if (groupBy.value.length === 0) {
       group.children = []
@@ -161,19 +161,17 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     if (group.nestedIn.length > groupBy.value.length) return
 
     if (group.nestedIn.length === 0) nextGroupColor.value = colors.value[0]
-
     const groupby = groupBy.value[group.nestedIn.length]
 
     const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
-
-    if (!groupby || !groupby.column.column_name) return
+    if (!groupby || !groupby.column.title) return
 
     if (isPublic.value && !sharedView.value?.uuid) {
       return
     }
 
     const response = !isPublic.value
-      ? await api.dbViewRow.groupBy('noco', project.value.id, view.value.fk_model_id, view.value.id, {
+      ? await api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
           offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByLimit),
           limit: group.paginationData.pageSize ?? groupByLimit,
           ...params,
@@ -181,7 +179,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
           where: `${nestedWhere}`,
           sort: `${groupby.sort === 'desc' ? '-' : ''}${groupby.column.title}`,
-          column_name: groupby.column.column_name,
+          column_name: groupby.column.title,
         } as any)
       : await api.public.dataGroupBy(sharedView.value!.uuid!, {
           offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByLimit),
@@ -189,30 +187,32 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
           ...params,
           where: nestedWhere,
           sort: `${groupby.sort === 'desc' ? '-' : ''}${groupby.column.title}`,
-          column_name: groupby.column.column_name,
+          column_name: groupby.column.title,
           sortsArr: sorts.value,
           filtersArr: nestedFilters.value,
         })
 
     const tempList: Group[] = response.list.reduce((acc: Group[], curr: Record<string, any>) => {
-      const keyExists = acc.find((a) => a.key === valueToTitle(curr[groupby.column.column_name!], groupby.column))
+      const keyExists = acc.find(
+        (a) => a.key === valueToTitle(curr[groupby.column.column_name!] ?? curr[groupby.column.title!], groupby.column),
+      )
       if (keyExists) {
         keyExists.count += +curr.count
         keyExists.paginationData = { page: 1, pageSize: groupByLimit, totalRows: keyExists.count }
         return acc
       }
-      if (groupby.column.title && groupby.column.column_name && groupby.column.uidt) {
+      if (groupby.column.title && groupby.column.uidt) {
         acc.push({
-          key: valueToTitle(curr[groupby.column.column_name!], groupby.column),
+          key: valueToTitle(curr[groupby.column.title!], groupby.column),
           column: groupby.column,
           count: +curr.count,
-          color: findKeyColor(curr[groupby.column.column_name!], groupby.column),
+          color: findKeyColor(curr[groupby.column.title!], groupby.column),
           nestedIn: [
             ...group!.nestedIn,
             {
               title: groupby.column.title,
-              column_name: groupby.column.column_name!,
-              key: valueToTitle(curr[groupby.column.column_name!], groupby.column),
+              column_name: groupby.column.title!,
+              key: valueToTitle(curr[groupby.column.title!], groupby.column),
               column_uidt: groupby.column.uidt,
             },
           ],
@@ -263,7 +263,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
   }
 
   async function loadGroupData(group: Group, force = false) {
-    if (!project?.value?.id || !view.value?.id || !view.value?.fk_model_id) return
+    if (!base?.value?.id || !view.value?.id || !view.value?.fk_model_id) return
 
     if (group.children && !force) return
 
@@ -280,7 +280,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     }
 
     const response = !isPublic.value
-      ? await api.dbViewRow.list('noco', project.value.id, view.value.fk_model_id, view.value.id, {
+      ? await api.dbViewRow.list('noco', base.value.id, view.value.fk_model_id, view.value.id, {
           ...query,
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),

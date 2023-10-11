@@ -185,7 +185,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     }
     // extract base id from query params only if it's userMe endpoint
     else if (
-      ['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v2/auth/user/me'].some(
+      ['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'].some(
         (userMePath) => req.route.path === userMePath,
       ) &&
       (req.query.base_id || req.query.workspace_id)

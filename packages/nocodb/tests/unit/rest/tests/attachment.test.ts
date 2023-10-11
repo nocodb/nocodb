@@ -53,7 +53,7 @@ function attachmentTests() {
     };
 
     const signupResponse = await request(context.app)
-      .post('/api/v1/db/auth/user/signup')
+      .post('/api/v1/auth/user/signup')
       .send(args)
       .expect(200);
 
@@ -75,7 +75,7 @@ function attachmentTests() {
     };
 
     await request(context.app)
-      .post('/api/v1/db/auth/user/signup')
+      .post('/api/v1/auth/user/signup')
       .send(args)
       .expect(200);
 
@@ -98,7 +98,7 @@ function attachmentTests() {
       .expect(200);
 
     const signinResponse = await request(context.app)
-      .post('/api/v1/db/auth/user/signin')
+      .post('/api/v1/auth/user/signin')
       // pass empty data in await request
       .send(args)
       .expect(200);
@@ -124,7 +124,7 @@ function attachmentTests() {
       };
 
       await request(context.app)
-        .post('/api/v1/db/auth/user/signup')
+        .post('/api/v1/auth/user/signup')
         .send(args)
         .expect(200);
 
@@ -146,7 +146,7 @@ function attachmentTests() {
 
       // signin to get user token
       const signinResponse = await request(context.app)
-        .post('/api/v1/db/auth/user/signin')
+        .post('/api/v1/auth/user/signin')
         // pass empty data in await request
         .send(args)
         .expect(200);

@@ -36,7 +36,7 @@ function authTests() {
 
   it('Signup with valid email', async () => {
     const response = await request(context.app)
-      .post('/api/v1/db/auth/user/signup')
+      .post('/api/v1/auth/user/signup')
       .send({ email: 'new@example.com', password: defaultUserArgs.password })
       .expect(200);
 
@@ -46,21 +46,21 @@ function authTests() {
 
   it('Signup with invalid email', async () => {
     await request(context.app)
-      .post('/api/v1/db/auth/user/signup')
+      .post('/api/v1/auth/user/signup')
       .send({ email: 'test', password: defaultUserArgs.password })
       .expect(400);
   });
 
   it('Signup with invalid passsword', async () => {
     await request(context.app)
-      .post('/api/v1/db/auth/user/signup')
+      .post('/api/v1/auth/user/signup')
       .send({ email: defaultUserArgs.email, password: 'weakpass' })
       .expect(400);
   });
 
   it('Signin with valid credentials', async () => {
     const response = await request(context.app)
-      .post('/api/v1/db/auth/user/signin')
+      .post('/api/v1/auth/user/signin')
       .send({
         email: defaultUserArgs.email,
         password: defaultUserArgs.password,
@@ -72,7 +72,7 @@ function authTests() {
 
   it('Signin without email and password', async () => {
     await request(context.app)
-      .post('/api/v1/db/auth/user/signin')
+      .post('/api/v1/auth/user/signin')
       // pass empty data in await request
       .send({})
       .expect(401);
@@ -80,21 +80,21 @@ function authTests() {
 
   it('Signin with invalid credentials', async () => {
     await request(context.app)
-      .post('/api/v1/db/auth/user/signin')
+      .post('/api/v1/auth/user/signin')
       .send({ email: 'abc@abc.com', password: defaultUserArgs.password })
       .expect(400);
   });
 
   it('Signin with invalid password', async () => {
     await request(context.app)
-      .post('/api/v1/db/auth/user/signin')
+      .post('/api/v1/auth/user/signin')
       .send({ email: defaultUserArgs.email, password: 'wrongPassword' })
       .expect(400);
   });
 
   it('me without token', async () => {
     const response = await request(context.app)
-      .get('/api/v1/db/auth/user/me')
+      .get('/api/v1/auth/user/me')
       .unset('xc-auth')
       .expect(200);
 
@@ -105,7 +105,7 @@ function authTests() {
 
   it('me with token', async () => {
     const response = await request(context.app)
-      .get('/api/v1/db/auth/user/me')
+      .get('/api/v1/auth/user/me')
       .set('xc-auth', context.token)
       .expect(200);
 
@@ -115,7 +115,7 @@ function authTests() {
 
   it('Forgot password with a non-existing email id', async () => {
     await request(context.app)
-      .post('/api/v1/db/auth/password/forgot')
+      .post('/api/v1/auth/password/forgot')
       .send({ email: 'nonexisting@email.com' })
       .expect(400);
   });
@@ -125,7 +125,7 @@ function authTests() {
 
   it('Change password', async () => {
     await request(context.app)
-      .post('/api/v1/db/auth/password/change')
+      .post('/api/v1/auth/password/change')
       .set('xc-auth', context.token)
       .send({
         currentPassword: defaultUserArgs.password,
@@ -136,7 +136,7 @@ function authTests() {
 
   it('Change password - after logout', async () => {
     await request(context.app)
-      .post('/api/v1/db/auth/password/change')
+      .post('/api/v1/auth/password/change')
       .unset('xc-auth')
       .send({
         currentPassword: defaultUserArgs.password,
@@ -148,14 +148,14 @@ function authTests() {
   // todo:
   it('Reset Password with an invalid token', async () => {
     await request(context.app)
-      .post('/api/v1/db/auth/password/reset/someRandomValue')
+      .post('/api/v1/auth/password/reset/someRandomValue')
       .send({ email: defaultUserArgs.email })
       .expect(400);
   });
 
   it('Email validate with an invalid token', async () => {
     await request(context.app)
-      .post('/api/v1/db/auth/email/validate/someRandomValue')
+      .post('/api/v1/auth/email/validate/someRandomValue')
       .send({ email: defaultUserArgs.email })
       .expect(400);
   });

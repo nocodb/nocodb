@@ -185,7 +185,7 @@ function authTests() {
       .expect(200);
 
     const failedRes = await request(context.app)
-      .post('/api/v1/db/auth/user/signup')
+      .post('/api/v1/auth/user/signup')
       .send(args)
       .expect(400);
 
@@ -201,7 +201,7 @@ function authTests() {
       .expect(200);
 
     const successRes = await request(context.app)
-      .post('/api/v1/db/auth/user/signup')
+      .post('/api/v1/auth/user/signup')
       .send(args)
       .expect(200);
 
@@ -211,7 +211,7 @@ function authTests() {
       .to.be.a('string');
 
     const userMeRes = await request(context.app)
-      .get('/api/v1/db/auth/user/me')
+      .get('/api/v1/auth/user/me')
       .set('xc-auth', successRes.body.token)
       .expect(200);
 

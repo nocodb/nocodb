@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@docusaurus/core": "2.4.1",
-    "@docusaurus/plugin-client-redirects": "^2.4.3",
+    "@docusaurus/plugin-client-redirects": "2.4.1",
     "@docusaurus/plugin-ideal-image": "2.4.1",
     "@docusaurus/plugin-sitemap": "2.4.1",
     "@docusaurus/preset-classic": "2.4.1",

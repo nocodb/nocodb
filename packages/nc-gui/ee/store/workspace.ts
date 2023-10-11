@@ -265,7 +265,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     lastPopulatedWorkspaceId.value = workspaceId
 
-    if (force || !workspaces.value.get(workspaceId)) {
+    const wsState = workspaces.value.get(workspaceId)
+
+    if (force || !wsState || !(wsState as any)?.limits) {
       await loadWorkspace(workspaceId)
       await loadRoles()
     }

@@ -95,7 +95,8 @@ export default class WorkspaceUser {
         `${MetaTable.WORKSPACE_USER}.invite_token`,
         `${MetaTable.WORKSPACE_USER}.invite_accepted`,
         `${MetaTable.WORKSPACE_USER}.roles as roles`,
-      );
+      )
+      .where(`${MetaTable.WORKSPACE}.deleted`, false);
 
     // todo : pagination
     // .offset(offset)

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { lastValueFrom, Observable } from 'rxjs';
 import { extractRolesObj } from 'nocodb-sdk';
@@ -7,6 +7,8 @@ import { JwtStrategy } from '~/strategies/jwt.strategy';
 
 @Injectable()
 export class GlobalGuard extends AuthGuard(['jwt']) {
+  private logger = new Logger(GlobalGuard.name);
+
   constructor(private jwtStrategy: JwtStrategy) {
     super();
   }
@@ -20,7 +22,7 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
       try {
         result = await this.extractBoolVal(super.canActivate(context));
       } catch (e) {
-        console.log(e);
+        this.logger.debug(e);
       }
     }
 

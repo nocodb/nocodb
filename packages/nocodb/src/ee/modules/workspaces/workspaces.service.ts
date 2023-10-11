@@ -46,11 +46,13 @@ export class WorkspacesService implements OnApplicationBootstrap {
   ) {}
 
   async onApplicationBootstrap() {
+    /*
+    // TODO: move this to on demand
+
     const deprecatedWorkspaceTemplates = await Workspace.count({
       fk_user_id: 'DEPRECATED',
     });
 
-    // TODO: move this to on demand instead of on boot
     if (deprecatedWorkspaceTemplates) {
       const list = await Noco.ncMeta.metaList2(
         null,
@@ -75,6 +77,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
         }
       }
     }
+    */
 
     await this.prepopulateWorkspaces();
   }

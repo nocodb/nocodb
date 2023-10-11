@@ -22,13 +22,11 @@ const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
-const reloadDataHook = inject(ReloadViewDataHookInj)!
-
 const isLocked = inject(IsLockedInj, ref(false))
 
 const IsPublic = inject(IsPublicInj, ref(false))
 
-const { fields, loadViewColumns, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
+const { fields, loadViewColumns, metaColumnById } = useViewColumnsOrThrow()
 
 const { loadMapData, loadMapMeta, updateMapMeta, mapMetaData, geoDataFieldColumn } = useMapViewStoreOrThrow()
 

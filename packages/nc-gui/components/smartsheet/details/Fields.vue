@@ -45,12 +45,7 @@ const visibilityOps = ref<fieldsVisibilityOps[]>([])
 
 const fieldsListWrapperDomRef = ref<HTMLElement>()
 
-const {
-  fields: viewFields,
-  toggleFieldVisibility,
-  loadViewColumns,
-  isViewColumnsLoading,
-} = useViewColumnsOrThrow(view, meta as Ref<TableType | undefined>)
+const { fields: viewFields, toggleFieldVisibility, loadViewColumns, isViewColumnsLoading } = useViewColumnsOrThrow()
 
 const loading = ref(false)
 

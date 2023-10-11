@@ -1,6 +1,6 @@
 import { type ColumnType, type SelectOptionsType, UITypes, type ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { GROUP_BY_VARS, ref, storeToRefs, useApi, useBase } from '#imports'
+import { GROUP_BY_VARS, ref, storeToRefs, useApi, useBase, useViewColumnsOrThrow } from '#imports'
 import type { Group, GroupNestedIn, Row } from '#imports'
 
 export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: ComputedRef<string | undefined>) => {
@@ -12,7 +12,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
 
   const meta = inject(MetaInj)
 
-  const { gridViewCols } = useGridViewColumnOrThrow()
+  const { gridViewCols } = useViewColumnsOrThrow()
 
   const groupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
     const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []

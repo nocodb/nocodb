@@ -25,11 +25,7 @@ import {
   watch,
 } from '#imports'
 
-const meta = inject(MetaInj, ref())
-
 const activeView = inject(ActiveViewInj, ref())
-
-const reloadDataHook = inject(ReloadViewDataHookInj)!
 
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj, undefined)!
 
@@ -55,7 +51,7 @@ const {
   metaColumnById,
   loadViewColumns,
   toggleFieldVisibility,
-} = useViewColumnsOrThrow(activeView, meta)
+} = useViewColumnsOrThrow()
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 

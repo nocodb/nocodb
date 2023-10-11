@@ -1,5 +1,5 @@
 import { ViewTypes, isSystemColumn } from 'nocodb-sdk'
-import type { ColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, GridColumnReqType, GridColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { computed, ref, storeToRefs, useBase, useNuxtApp, useRoles, useUndoRedo, watch } from '#imports'
 import type { Field } from '#imports'
@@ -50,6 +50,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       ) as Record<string, ColumnType>
     })
 
+    const gridViewCols = ref<Record<string, GridColumnType>>({})
+
     const loadViewColumns = async () => {
       if (!meta || !view) return
 
@@ -92,6 +94,16 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
             }
           }
         }
+
+        const colsData: GridColumnType[] = (isPublic.value ? view.value?.columns : fields.value) ?? []
+
+        gridViewCols.value = colsData.reduce<Record<string, GridColumnType>>(
+          (o, col) => ({
+            ...o,
+            [col.fk_column_id as string]: col,
+          }),
+          {},
+        )
       }
     }
 
@@ -279,6 +291,48 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       { immediate: true },
     )
 
+    const resizingColOldWith = ref('200px')
+
+    const updateGridViewColumn = async (id: string, props: Partial<GridColumnReqType>, undo = false) => {
+      if (!undo) {
+        const oldProps = Object.keys(props).reduce<Partial<GridColumnReqType>>((o: any, k) => {
+          if (gridViewCols.value[id][k as keyof GridColumnType]) {
+            if (k === 'width') o[k] = `${resizingColOldWith.value}px`
+            else o[k] = gridViewCols.value[id][k as keyof GridColumnType]
+          }
+          return o
+        }, {})
+        addUndo({
+          redo: {
+            fn: (w: Partial<GridColumnReqType>) => updateGridViewColumn(id, w, true),
+            args: [props],
+          },
+          undo: {
+            fn: (w: Partial<GridColumnReqType>) => updateGridViewColumn(id, w, true),
+            args: [oldProps],
+          },
+          scope: defineViewScope({ view: view.value }),
+        })
+      }
+
+      // sync with server if allowed
+      if (!isPublic.value && isUIAllowed('viewFieldEdit') && gridViewCols.value[id]?.id) {
+        await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
+          ...props,
+        })
+      }
+
+      if (gridViewCols.value?.[id]) {
+        Object.assign(gridViewCols.value[id], {
+          ...gridViewCols.value[id],
+          ...props,
+        })
+      } else {
+        // fallback to reload
+        await loadViewColumns()
+      }
+    }
+
     return {
       fields,
       loadViewColumns,
@@ -292,6 +346,9 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       metaColumnById,
       toggleFieldVisibility,
       isViewColumnsLoading,
+      updateGridViewColumn,
+      gridViewCols,
+      resizingColOldWith,
     }
   },
   'useViewColumnsOrThrow',

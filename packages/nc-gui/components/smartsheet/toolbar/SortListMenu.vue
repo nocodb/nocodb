@@ -28,7 +28,7 @@ const { eventBus } = useSmartsheetStoreOrThrow()
 
 const { sorts, saveOrUpdate, loadSorts, addSort: _addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
-const { showSystemFields, metaColumnById } = useViewColumnsOrThrow(view, meta)
+const { showSystemFields, metaColumnById } = useViewColumnsOrThrow()
 
 const showCreateSort = ref(false)
 

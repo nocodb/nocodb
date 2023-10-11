@@ -387,7 +387,7 @@ export default class Base implements BaseType {
     return baseData?.id && this.get(baseData?.id, ncMeta);
   }
 
-    static async getByTitleOrId(titleOrId: string, ncMeta = Noco.ncMeta) {
+  static async getByTitleOrId(titleOrId: string, ncMeta = Noco.ncMeta) {
     const baseId =
       titleOrId &&
       (await NocoCache.get(

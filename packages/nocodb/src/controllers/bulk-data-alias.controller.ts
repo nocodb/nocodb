@@ -20,9 +20,7 @@ import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 export class BulkDataAliasController {
   constructor(private bulkDataAliasService: BulkDataAliasService) {}
 
-  @Post([
-    '/api/v1/db/data/bulk/:orgs/:baseName/:tableName',
-  ])
+  @Post(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName'])
   @HttpCode(200)
   @Acl('bulkDataInsert')
   async bulkDataInsert(
@@ -42,9 +40,7 @@ export class BulkDataAliasController {
     res.json(exists);
   }
 
-  @Patch([
-    '/api/v1/db/data/bulk/:orgs/:baseName/:tableName',
-  ])
+  @Patch(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName'])
   @Acl('bulkDataUpdate')
   async bulkDataUpdate(
     @Request() req,
@@ -61,9 +57,7 @@ export class BulkDataAliasController {
   }
 
   // todo: Integrate with filterArrJson bulkDataUpdateAll
-  @Patch([
-    '/api/v1/db/data/bulk/:orgs/:baseName/:tableName/all',
-  ])
+  @Patch(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName/all'])
   @Acl('bulkDataUpdateAll')
   async bulkDataUpdateAll(
     @Request() req,
@@ -80,9 +74,7 @@ export class BulkDataAliasController {
     });
   }
 
-  @Delete([
-    '/api/v1/db/data/bulk/:orgs/:baseName/:tableName',
-  ])
+  @Delete(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName'])
   @Acl('bulkDataDelete')
   async bulkDataDelete(
     @Request() req,
@@ -100,9 +92,7 @@ export class BulkDataAliasController {
 
   // todo: Integrate with filterArrJson bulkDataDeleteAll
 
-  @Delete([
-    '/api/v1/db/data/bulk/:orgs/:baseName/:tableName/all',
-  ])
+  @Delete(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName/all'])
   @Acl('bulkDataDeleteAll')
   async bulkDataDeleteAll(
     @Request() req,

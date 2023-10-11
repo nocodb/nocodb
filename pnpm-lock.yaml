@@ -632,8 +632,8 @@ importers:
         specifier: 0.3.1
         version: 0.3.1(asn1.js@5.4.1)(debug@4.3.4)(knex@2.4.2)
       nc-lib-gui:
-        specifier: 0.202.0
-        version: 0.202.0
+        specifier: 0.111.4
+        version: 0.111.4
       nc-plugin:
         specifier: ^0.1.3
         version: 0.1.3
@@ -17743,8 +17743,8 @@ packages:
       - supports-color
     dev: false
 
-  /nc-lib-gui@0.202.0:
-    resolution: {integrity: sha512-sfWrneJeDMpPx/xTy1B1cZRIILKbdj0mQGbNQ6s0sQ+O/PE1GEGZHSbvvk4SCexwUkcTMmLlc8LC2rLqtPG3MA==}
+  /nc-lib-gui@0.111.4:
+    resolution: {integrity: sha512-2ST6vycxHpQ0mropVq9GRhVt9dWng3+hZZPyjZ6HiK8kXRjBrsv7Ck4WLIRj7TuloRTI8zn9Mixud9CkvgkvWQ==}
     dependencies:
       express: 4.18.2
     transitivePeerDependencies:

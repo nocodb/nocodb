@@ -22,7 +22,7 @@ export class KanbansController {
 
   @Get([
     '/api/v1/db/meta/kanbans/:kanbanViewId',
-    '/api/v1/meta/kanbans/:kanbanViewId',
+    '/api/v2/meta/kanbans/:kanbanViewId',
   ])
   @Acl('kanbanViewGet')
   async kanbanViewGet(@Param('kanbanViewId') kanbanViewId: string) {
@@ -33,7 +33,7 @@ export class KanbansController {
 
   @Post([
     '/api/v1/db/meta/tables/:tableId/kanbans',
-    '/api/v1/meta/tables/:tableId/kanbans',
+    '/api/v2/meta/tables/:tableId/kanbans',
   ])
   @HttpCode(200)
   @Acl('kanbanViewCreate')
@@ -51,7 +51,7 @@ export class KanbansController {
 
   @Patch([
     '/api/v1/db/meta/kanbans/:kanbanViewId',
-    '/api/v1/meta/kanbans/:kanbanViewId',
+    '/api/v2/meta/kanbans/:kanbanViewId',
   ])
   @Acl('kanbanViewUpdate')
   async kanbanViewUpdate(

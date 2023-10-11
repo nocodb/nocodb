@@ -20,7 +20,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 export class FormsController {
   constructor(private readonly formsService: FormsService) {}
 
-  @Get(['/api/v1/db/meta/forms/:formViewId', '/api/v1/meta/forms/:formViewId'])
+  @Get(['/api/v1/db/meta/forms/:formViewId', '/api/v2/meta/forms/:formViewId'])
   @Acl('formViewGet')
   async formViewGet(@Param('formViewId') formViewId: string) {
     const formViewData = await this.formsService.formViewGet({
@@ -31,7 +31,7 @@ export class FormsController {
 
   @Post([
     '/api/v1/db/meta/tables/:tableId/forms',
-    '/api/v1/meta/tables/:tableId/forms',
+    '/api/v2/meta/tables/:tableId/forms',
   ])
   @HttpCode(200)
   @Acl('formViewCreate')
@@ -49,7 +49,7 @@ export class FormsController {
   }
   @Patch([
     '/api/v1/db/meta/forms/:formViewId',
-    '/api/v1/meta/forms/:formViewId',
+    '/api/v2/meta/forms/:formViewId',
   ])
   @Acl('formViewUpdate')
   async formViewUpdate(@Param('formViewId') formViewId: string, @Body() body) {

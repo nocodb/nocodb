@@ -25,7 +25,7 @@ export class ViewsController {
 
   @Get([
     '/api/v1/db/meta/tables/:tableId/views',
-    '/api/v1/meta/tables/:tableId/views',
+    '/api/v2/meta/tables/:tableId/views',
   ])
   @Acl('viewList')
   async viewList(@Param('tableId') tableId: string, @Request() req) {
@@ -37,7 +37,7 @@ export class ViewsController {
     );
   }
 
-  @Patch(['/api/v1/db/meta/views/:viewId', '/api/v1/meta/views/:viewId'])
+  @Patch(['/api/v1/db/meta/views/:viewId', '/api/v2/meta/views/:viewId'])
   @Acl('viewUpdate')
   async viewUpdate(
     @Param('viewId') viewId: string,
@@ -52,7 +52,7 @@ export class ViewsController {
     return result;
   }
 
-  @Delete(['/api/v1/db/meta/views/:viewId', '/api/v1/meta/views/:viewId'])
+  @Delete(['/api/v1/db/meta/views/:viewId', '/api/v2/meta/views/:viewId'])
   @Acl('viewDelete')
   async viewDelete(@Param('viewId') viewId: string, @Request() req) {
     const result = await this.viewsService.viewDelete({
@@ -64,7 +64,7 @@ export class ViewsController {
 
   @Post([
     '/api/v1/db/meta/views/:viewId/show-all',
-    '/api/v1/meta/views/:viewId/show-all',
+    '/api/v2/meta/views/:viewId/show-all',
   ])
   @HttpCode(200)
   @Acl('showAllColumns')
@@ -79,7 +79,7 @@ export class ViewsController {
   }
   @Post([
     '/api/v1/db/meta/views/:viewId/hide-all',
-    '/api/v1/meta/views/:viewId/hide-all',
+    '/api/v2/meta/views/:viewId/hide-all',
   ])
   @HttpCode(200)
   @Acl('hideAllColumns')
@@ -95,7 +95,7 @@ export class ViewsController {
 
   @Post([
     '/api/v1/db/meta/views/:viewId/share',
-    '/api/v1/meta/views/:viewId/share',
+    '/api/v2/meta/views/:viewId/share',
   ])
   @HttpCode(200)
   @Acl('shareView')
@@ -105,7 +105,7 @@ export class ViewsController {
 
   @Get([
     '/api/v1/db/meta/tables/:tableId/share',
-    '/api/v1/meta/tables/:tableId/share',
+    '/api/v2/meta/tables/:tableId/share',
   ])
   @Acl('shareViewList')
   async shareViewList(@Param('tableId') tableId: string) {
@@ -118,7 +118,7 @@ export class ViewsController {
 
   @Patch([
     '/api/v1/db/meta/views/:viewId/share',
-    '/api/v1/meta/views/:viewId/share',
+    '/api/v2/meta/views/:viewId/share',
   ])
   @Acl('shareViewUpdate')
   async shareViewUpdate(
@@ -135,7 +135,7 @@ export class ViewsController {
 
   @Delete([
     '/api/v1/db/meta/views/:viewId/share',
-    '/api/v1/meta/views/:viewId/share',
+    '/api/v2/meta/views/:viewId/share',
   ])
   @Acl('shareViewDelete')
   async shareViewDelete(@Param('viewId') viewId: string, @Request() req) {

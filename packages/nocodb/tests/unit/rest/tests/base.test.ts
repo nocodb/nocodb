@@ -111,7 +111,7 @@ function baseTest() {
   //     title: 'deletedTitle',
   //   });
   //   await request(app)
-  //     .delete('/api/v1/meta/bases/${toBeDeletedProject.id}')
+  //     .delete('/api/v1/db/meta/bases/${toBeDeletedProject.id}')
   //     .set('xc-auth', token)
   //     .send({
   //       title: 'Title1',

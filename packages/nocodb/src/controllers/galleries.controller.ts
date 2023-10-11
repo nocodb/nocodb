@@ -22,7 +22,7 @@ export class GalleriesController {
 
   @Get([
     '/api/v1/db/meta/galleries/:galleryViewId',
-    '/api/v1/meta/galleries/:galleryViewId',
+    '/api/v2/meta/galleries/:galleryViewId',
   ])
   @Acl('galleryViewGet')
   async galleryViewGet(@Param('galleryViewId') galleryViewId: string) {
@@ -33,7 +33,7 @@ export class GalleriesController {
 
   @Post([
     '/api/v1/db/meta/tables/:tableId/galleries',
-    '/api/v1/meta/tables/:tableId/galleries',
+    '/api/v2/meta/tables/:tableId/galleries',
   ])
   @HttpCode(200)
   @Acl('galleryViewCreate')
@@ -52,7 +52,7 @@ export class GalleriesController {
 
   @Patch([
     '/api/v1/db/meta/galleries/:galleryViewId',
-    '/api/v1/meta/galleries/:galleryViewId',
+    '/api/v2/meta/galleries/:galleryViewId',
   ])
   @Acl('galleryViewUpdate')
   async galleryViewUpdate(

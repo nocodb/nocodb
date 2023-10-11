@@ -347,7 +347,7 @@ export class ColumnPageObject extends BasePage {
   async save({ isUpdated }: { isUpdated?: boolean } = {}) {
     await this.waitForResponse({
       uiAction: async () => await this.get().locator('button:has-text("Save")').click(),
-      requestUrlPathToMatch: 'api/v1/data/noco/',
+      requestUrlPathToMatch: 'api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
       responseJsonMatcher: json => json['pageInfo'],
     });

@@ -113,14 +113,14 @@ export class ExpandedFormPage extends BasePage {
     if (waitForRowsData) {
       await this.waitForResponse({
         uiAction: saveRowAction,
-        requestUrlPathToMatch: 'api/v1/data/noco/',
+        requestUrlPathToMatch: 'api/v1/db/data/noco/',
         httpMethodsToMatch: ['GET'],
         responseJsonMatcher: json => json['pageInfo'],
       });
     } else {
       await this.waitForResponse({
         uiAction: saveRowAction,
-        requestUrlPathToMatch: 'api/v1/data/noco/',
+        requestUrlPathToMatch: 'api/v1/db/data/noco/',
         httpMethodsToMatch: ['POST'],
       });
     }

@@ -183,12 +183,12 @@ async function localInit({
     // Login as root user
     if (isSuperUser) {
       // required for configuring license key settings
-      response = await axios.post('http://localhost:8080/api/v1/db/auth/user/signin', {
+      response = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
         email: `user@nocodb.com`,
         password: getDefaultPwd(),
       });
     } else {
-      response = await axios.post('http://localhost:8080/api/v1/db/auth/user/signin', {
+      response = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
         email: `user-${parallelId}@nocodb.com`,
         password: getDefaultPwd(),
       });
@@ -384,7 +384,7 @@ const setup = async ({
   const token = response.data.token;
 
   try {
-    const admin = await axios.post('http://localhost:8080/api/v1/db/auth/user/signin', {
+    const admin = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
       email: `user@nocodb.com`,
       password: getDefaultPwd(),
     });

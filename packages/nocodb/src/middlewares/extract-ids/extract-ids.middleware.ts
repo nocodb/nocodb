@@ -162,7 +162,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       [
         '/auth/user/me',
         '/api/v1/db/auth/user/me',
-        '/api/v2/auth/user/me',
+        '/api/v1/auth/user/me',
         '/api/v1/db/meta/plugins/webhook',
         '/api/v2/meta/plugins/webhook',
       ].some((userMePath) => req.route.path === userMePath) &&

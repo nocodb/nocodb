@@ -200,7 +200,7 @@ const rowMixedValue = (column: ColumnType, index: number) => {
 
 const getRow = async (context, { base, table, id }) => {
   const response = await request(context.app)
-    .get(`/api/v1/data/noco/${base.id}/${table.id}/${id}`)
+    .get(`/api/v1/db/data/noco/${base.id}/${table.id}/${id}`)
     .set('xc-auth', context.token);
 
   if (response.status !== 200) {
@@ -240,7 +240,7 @@ const getOneRow = async (
   { base, table }: { base: Base; table: Model },
 ) => {
   const response = await request(context.app)
-    .get(`/api/v1/data/noco/${base.id}/${table.id}/find-one`)
+    .get(`/api/v1/db/data/noco/${base.id}/${table.id}/find-one`)
     .set('xc-auth', context.token);
 
   return response.body;
@@ -281,7 +281,7 @@ const createRow = async (
   const rowData = generateDefaultRowAttributes({ columns, index });
 
   const response = await request(context.app)
-    .post(`/api/v1/data/noco/${base.id}/${table.id}`)
+    .post(`/api/v1/db/data/noco/${base.id}/${table.id}`)
     .set('xc-auth', context.token)
     .send(rowData);
 
@@ -301,7 +301,7 @@ const createBulkRows = async (
   },
 ) => {
   await request(context.app)
-    .post(`/api/v1/data/bulk/noco/${base.id}/${table.id}`)
+    .post(`/api/v1/db/data/bulk/noco/${base.id}/${table.id}`)
     .set('xc-auth', context.token)
     .send(values)
     .expect(200);
@@ -340,7 +340,7 @@ const createChildRow = async (
 
   await request(context.app)
     .post(
-      `/api/v1/data/noco/${base.id}/${table.id}/${rowId}/${type}/${column.title}/${childRowId}`,
+      `/api/v1/db/data/noco/${base.id}/${table.id}/${rowId}/${type}/${column.title}/${childRowId}`,
     )
     .set('xc-auth', context.token);
 

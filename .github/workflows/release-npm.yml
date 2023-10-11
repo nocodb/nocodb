@@ -57,6 +57,7 @@ jobs:
           export NOCODB_SDK_PKG_NAME="nocodb-sdk"
           if [[ "${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' }}" ]]; then
             export NOCODB_SDK_PKG_NAME=nocodb-sdk-daily
+            # todo: enable later
             exit 0;
           fi
           echo ${NOCODB_SDK_PKG_NAME}

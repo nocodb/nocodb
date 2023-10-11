@@ -91,7 +91,7 @@ jobs:
         run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
           NOCODB_SDK_PKG_NAME=nocodb-sdk
-          if [[ "${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' }}" ]]; then
+          if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == "DEV" ]]; then
             NOCODB_SDK_PKG_NAME=nocodb-sdk-daily
           fi
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&

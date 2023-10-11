@@ -446,28 +446,29 @@ export const getModelPaths = async (ctx: {
           : {}),
       }
     : {}),
-  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/export/{type}`]: {
-    parameters: [exportTypeParam],
-    get: {
-      summary: 'Rows export',
-      operationId: `${ctx.tableName.toLowerCase()}-csv-export`,
-      description:
-        'Export all the records from a table.Currently we are only supports `csv` export.',
-      tags: [ctx.tableName],
-      responses: {
-        '200': {
-          description: 'OK',
-          content: {
-            'application/octet-stream': {
-              schema: {},
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/export/{type}`]:
+    {
+      parameters: [exportTypeParam],
+      get: {
+        summary: 'Rows export',
+        operationId: `${ctx.tableName.toLowerCase()}-csv-export`,
+        description:
+          'Export all the records from a table.Currently we are only supports `csv` export.',
+        tags: [ctx.tableName],
+        responses: {
+          '200': {
+            description: 'OK',
+            content: {
+              'application/octet-stream': {
+                schema: {},
+              },
             },
+            headers: csvExportResponseHeader,
           },
-          headers: csvExportResponseHeader,
         },
+        parameters: [csvExportOffsetParam],
       },
-      parameters: [csvExportOffsetParam],
     },
-  },
 });
 
 export const getViewPaths = async (ctx: {

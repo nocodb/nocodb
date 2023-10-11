@@ -143,7 +143,7 @@ export class TreeViewPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.dashboard.get().locator('button:has-text("Create Table")').click(),
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `/api/v1/meta/bases/`,
+      requestUrlPathToMatch: `//api/v1/db/meta/bases/`,
       responseJsonMatcher: json => json.title === title && json.type === 'table',
     });
 
@@ -179,7 +179,7 @@ export class TreeViewPage extends BasePage {
         return await this.dashboard.get().locator('button:has-text("Delete Table")').click();
       },
       httpMethodsToMatch: ['DELETE'],
-      requestUrlPathToMatch: `/api/v1/meta/tables/`,
+      requestUrlPathToMatch: `//api/v1/db/meta/tables/`,
     });
 
     await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
@@ -253,7 +253,7 @@ export class TreeViewPage extends BasePage {
     await this.waitForResponse({
       uiAction: async () => await this.rootPage.getByRole('button', { name: 'Confirm' }).click(),
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `/api/v1/meta/duplicate/`,
+      requestUrlPathToMatch: `//api/v1/db/meta/duplicate/`,
     });
     await this.get().locator(`[data-testid="nc-tbl-title-${title} copy"]`).waitFor();
   }

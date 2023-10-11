@@ -13,7 +13,7 @@ export class AccountAppStorePage extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.rootPage.goto('/#/account/apps', { waitUntil: 'networkidle' }),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: 'api/v1/meta/plugins',
+      requestUrlPathToMatch: '/api/v1/db/meta/plugins',
     });
   }
 

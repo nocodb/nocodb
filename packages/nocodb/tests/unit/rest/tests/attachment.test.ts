@@ -25,7 +25,7 @@ function attachmentTests() {
 
   it('Upload file - Super admin', async () => {
     const response = await request(context.app)
-      .post('/api/v1/storage/upload')
+      .post('/api/v1/db/storage/upload')
       .attach('files', FILE_PATH)
       .set('xc-auth', context.token)
       .expect(200);
@@ -37,7 +37,7 @@ function attachmentTests() {
 
   it('Upload file - Without token', async () => {
     const response = await request(context.app)
-      .post('/api/v1/storage/upload')
+      .post('/api/v1/db/storage/upload')
       .attach('files', FILE_PATH)
       .expect(401);
 
@@ -58,7 +58,7 @@ function attachmentTests() {
       .expect(200);
 
     const response = await request(context.app)
-      .post('/api/v1/storage/upload')
+      .post('/api/v1/db/storage/upload')
       .attach('files', FILE_PATH)
       .set('xc-auth', signupResponse.body.token)
       .expect(400);
@@ -81,7 +81,7 @@ function attachmentTests() {
 
     // update user role to creator
     const usersListResponse = await request(context.app)
-      .get('/api/v1/users')
+      .get('/api/v1/db/users')
       .set('xc-auth', context.token)
       .expect(200);
 
@@ -92,7 +92,7 @@ function attachmentTests() {
     expect(user).to.have.property('roles').to.be.equal(OrgUserRoles.VIEWER);
 
     await request(context.app)
-      .patch('/api/v1/users/' + user.id)
+      .patch('/api/v1/db/users/' + user.id)
       .set('xc-auth', context.token)
       .send({ roles: OrgUserRoles.CREATOR })
       .expect(200);
@@ -104,7 +104,7 @@ function attachmentTests() {
       .expect(200);
 
     const response = await request(context.app)
-      .post('/api/v1/storage/upload')
+      .post('/api/v1/db/storage/upload')
       .attach('files', FILE_PATH)
       .set('xc-auth', signinResponse.body.token)
       .expect(200);
@@ -134,7 +134,7 @@ function attachmentTests() {
 
       // invite user to base with editor role
       await request(context.app)
-        .post(`/api/v1/meta/bases/${newProject.id}/users`)
+        .post(`/api/v1/db/meta/projects/${newProject.id}/users`)
         .set('xc-auth', context.token)
         .send({
           roles: ProjectRoles.EDITOR,
@@ -152,7 +152,7 @@ function attachmentTests() {
         .expect(200);
 
       const response = await request(context.app)
-        .post('/api/v1/storage/upload')
+        .post('/api/v1/db/storage/upload')
         .attach('files', FILE_PATH)
         .set('xc-auth', signinResponse.body.token)
         .expect(200);

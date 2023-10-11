@@ -164,7 +164,7 @@ const customColumns = function (type: string, options: any = {}) {
 
 const createColumn = async (context, table, columnAttr) => {
   await request(context.app)
-    .post(`/api/v1/meta/tables/${table.id}/columns`)
+    .post(`/api/v1/db/meta/tables/${table.id}/columns`)
     .set('xc-auth', context.token)
     .send({
       ...columnAttr,
@@ -373,7 +373,7 @@ const updateViewColumn = async (
   { view, column, attr }: { column: Column; view: View; attr: any },
 ) => {
   const res = await request(context.app)
-    .patch(`/api/v1/meta/views/${view.id}/columns/${column.id}`)
+    .patch(`/api/v1/db/meta/views/${view.id}/columns/${column.id}`)
     .set('xc-auth', context.token)
     .send({
       ...attr,

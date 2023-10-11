@@ -147,7 +147,7 @@ async function retrieveRecordsAndValidate(
 
   // retrieve filtered records
   const response = await request(context.app)
-    .get(`/api/v1/data/noco/${base.id}/${table.id}`)
+    .get(`/api/v1/db/data/noco/${base.id}/${table.id}`)
     .set('xc-auth', context.token)
     .query({
       filterArrJson: JSON.stringify([filter]),
@@ -586,7 +586,7 @@ function filterSelectBased() {
 
 async function applyDateFilter(filterParams, expectedRecords) {
   const response = await request(context.app)
-    .get(`/api/v1/data/noco/${base.id}/${table.id}`)
+    .get(`/api/v1/db/data/noco/${base.id}/${table.id}`)
     .set('xc-auth', context.token)
     .query({
       filterArrJson: JSON.stringify([filterParams]),

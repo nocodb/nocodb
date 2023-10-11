@@ -4,7 +4,6 @@ import { isEeUI, useApi, useVModel, useWorkspace } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
-  onOk: (jobData: { name: string; id: string }) => Promise<void>
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -13,7 +12,13 @@ const { api } = useApi()
 
 const { sharedBaseId } = useCopySharedBase()
 
-const { workspacesList } = storeToRefs(useWorkspace())
+const workspaceStore = useWorkspace()
+
+const { populateWorkspace } = workspaceStore
+
+const { workspacesList } = storeToRefs(workspaceStore)
+
+const { ncNavigateTo } = useGlobal()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
@@ -34,6 +39,8 @@ const isLoading = ref(false)
 
 const selectedWorkspace = ref<string>()
 
+const { $e, $poller } = useNuxtApp()
+
 const _duplicate = async () => {
   if (!selectedWorkspace.value && isEeUI) return
 
@@ -51,10 +58,41 @@ const _duplicate = async () => {
 
     sharedBaseId.value = null
 
-    props.onOk({ ...jobData, workspace_id: selectedWorkspace.value } as any)
+    $poller.subscribe(
+      { id: jobData.id },
+      async (data: {
+        id: string
+        status?: string
+        data?: {
+          error?: {
+            message: string
+          }
+          message?: string
+          result?: any
+        }
+      }) => {
+        if (data.status !== 'close') {
+          if (data.status === JobStatus.COMPLETED) {
+            console.log('job completed', jobData)
+            await ncNavigateTo({
+              ...(isEeUI ? { workspaceId: jobData.fk_workspace_id } : {}),
+              baseId: jobData.base_id,
+            })
+            isLoading.value = false
+            dialogShow.value = false
+          } else if (data.status === JobStatus.FAILED) {
+            message.error('Failed to duplicate shared base')
+            await populateWorkspace()
+            isLoading.value = false
+            dialogShow.value = false
+          }
+        }
+      },
+    )
+
+    $e('a:base:duplicate-shared-base')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
     isLoading.value = false
     dialogShow.value = false
   }

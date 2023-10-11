@@ -22,7 +22,7 @@ export class ApiTokensController {
 
   @Get([
     '/api/v1/db/meta/projects/:baseId/api-tokens',
-    '/api/v1/meta/bases/:baseId/api-tokens',
+    '/api/v2/meta/bases/:baseId/api-tokens',
   ])
   @Acl('baseApiTokenList')
   async apiTokenList(@Request() req) {
@@ -33,7 +33,7 @@ export class ApiTokensController {
 
   @Post([
     '/api/v1/db/meta/projects/:baseId/api-tokens',
-    '/api/v1/meta/bases/:baseId/api-tokens',
+    '/api/v2/meta/bases/:baseId/api-tokens',
   ])
   @HttpCode(200)
   @Acl('baseApiTokenCreate')
@@ -46,7 +46,7 @@ export class ApiTokensController {
 
   @Delete([
     '/api/v1/db/meta/projects/:baseId/api-tokens/:token',
-    '/api/v1/meta/bases/:baseId/api-tokens/:token',
+    '/api/v2/meta/bases/:baseId/api-tokens/:token',
   ])
   @Acl('baseApiTokenDelete')
   async apiTokenDelete(@Request() req, @Param('token') token: string) {

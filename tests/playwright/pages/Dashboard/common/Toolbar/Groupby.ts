@@ -77,7 +77,7 @@ export class ToolbarGroupByPage extends BasePage {
     await this.waitForResponse({
       uiAction: selectSortDirection,
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: locallySaved ? `/api/v1/public/` : `/api/v1/data/noco/`,
+      requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
     });
   }
 

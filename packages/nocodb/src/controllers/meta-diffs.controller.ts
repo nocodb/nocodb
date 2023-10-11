@@ -11,7 +11,7 @@ export class MetaDiffsController {
 
   @Get([
     '/api/v1/db/meta/projects/:baseId/meta-diff',
-    '/api/v1/meta/bases/:baseId/meta-diff',
+    '/api/v2/meta/bases/:baseId/meta-diff',
   ])
   @Acl('metaDiff')
   async metaDiff(@Param('baseId') baseId: string) {
@@ -20,7 +20,7 @@ export class MetaDiffsController {
 
   @Get([
     '/api/v1/db/meta/projects/:baseId/meta-diff/:sourceId',
-    '/api/v1/meta/bases/:baseId/meta-diff/:sourceId',
+    '/api/v2/meta/bases/:baseId/meta-diff/:sourceId',
   ])
   @Acl('metaDiff')
   async baseMetaDiff(

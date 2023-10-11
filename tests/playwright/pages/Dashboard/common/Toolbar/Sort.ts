@@ -68,7 +68,7 @@ export class ToolbarSortPage extends BasePage {
     await this.waitForResponse({
       uiAction: selectSortDirection,
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: locallySaved ? `/api/v1/public/` : `/api/v1/data/noco/`,
+      requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
     });
     await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
     // close sort menu
@@ -119,7 +119,7 @@ export class ToolbarSortPage extends BasePage {
     await this.waitForResponse({
       uiAction: selectColumn,
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: locallySaved ? `/api/v1/public/` : `/api/v1/data/noco/`,
+      requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
     });
 
     // read content of the dropdown
@@ -159,7 +159,7 @@ export class ToolbarSortPage extends BasePage {
     await this.waitForResponse({
       uiAction: selectSortDirection,
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: locallySaved ? `/api/v1/public/` : `/api/v1/data/noco/`,
+      requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
     });
     await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
     // close sort menu

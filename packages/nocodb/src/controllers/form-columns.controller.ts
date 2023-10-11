@@ -13,7 +13,7 @@ export class FormColumnsController {
 
   @Patch([
     '/api/v1/db/meta/form-columns/:formViewColumnId',
-    '/api/v1/meta/form-columns/:formViewColumnId',
+    '/api/v2/meta/form-columns/:formViewColumnId',
   ])
   @Acl('columnUpdate')
   async columnUpdate(

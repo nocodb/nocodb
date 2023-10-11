@@ -74,6 +74,8 @@ export default class Workspace implements WorkspaceType {
       }
     }
 
+    if (workspaceData?.deleted) return undefined;
+
     return workspaceData && new Workspace(workspaceData);
   }
 
@@ -238,7 +240,11 @@ export default class Workspace implements WorkspaceType {
   }
 
   static async list(ncMeta = Noco.ncMeta) {
-    const workspaces = await ncMeta.metaList(null, null, MetaTable.WORKSPACE);
+    const workspaces = await ncMeta.metaList(null, null, MetaTable.WORKSPACE, {
+      condition: {
+        deleted: false,
+      },
+    });
     return workspaces.map((workspace) => {
       workspace.meta = parseMetaProp(workspace);
       workspace.infra_meta = parseMetaProp(workspace, 'infra_meta');

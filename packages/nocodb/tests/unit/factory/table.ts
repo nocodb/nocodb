@@ -12,7 +12,7 @@ const defaultTableValue = (context) => ({
 const createTable = async (context, base, args = {}) => {
   const defaultValue = defaultTableValue(context);
   const response = await request(context.app)
-    .post(`/api/v1/meta/bases/${base.id}/tables`)
+    .post(`/api/v1/db/meta/projects/${base.id}/tables`)
     .set('xc-auth', context.token)
     .send({ ...defaultValue, ...args });
 

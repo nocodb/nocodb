@@ -24,7 +24,7 @@ export class BaseUsersController {
 
   @Get([
     '/api/v1/db/meta/projects/:baseId/users',
-    '/api/v1/meta/bases/:baseId/users',
+    '/api/v2/meta/bases/:baseId/users',
   ])
   @Acl('userList')
   async userList(@Param('baseId') baseId: string, @Request() req) {
@@ -38,7 +38,7 @@ export class BaseUsersController {
 
   @Post([
     '/api/v1/db/meta/projects/:baseId/users',
-    '/api/v1/meta/bases/:baseId/users',
+    '/api/v2/meta/bases/:baseId/users',
   ])
   @HttpCode(200)
   @Acl('userInvite')
@@ -60,7 +60,7 @@ export class BaseUsersController {
 
   @Patch([
     '/api/v1/db/meta/projects/:baseId/users/:userId',
-    '/api/v1/meta/bases/:baseId/users/:userId',
+    '/api/v2/meta/bases/:baseId/users/:userId',
   ])
   @Acl('baseUserUpdate')
   async baseUserUpdate(
@@ -85,7 +85,7 @@ export class BaseUsersController {
 
   @Delete([
     '/api/v1/db/meta/projects/:baseId/users/:userId',
-    '/api/v1/meta/bases/:baseId/users/:userId',
+    '/api/v2/meta/bases/:baseId/users/:userId',
   ])
   @Acl('baseUserDelete')
   async baseUserDelete(
@@ -105,7 +105,7 @@ export class BaseUsersController {
 
   @Post([
     '/api/v1/db/meta/projects/:baseId/users/:userId/resend-invite',
-    '/api/v1/meta/bases/:baseId/users/:userId/resend-invite',
+    '/api/v2/meta/bases/:baseId/users/:userId/resend-invite',
   ])
   @HttpCode(200)
   @Acl('baseUserInviteResend')
@@ -128,7 +128,7 @@ export class BaseUsersController {
 
   @Patch([
     '/api/v1/db/meta/projects/:baseId/user',
-    '/api/v1/meta/bases/:baseId/user',
+    '/api/v2/meta/bases/:baseId/user',
   ])
   @Acl('baseUserMetaUpdate')
   async baseUserMetaUpdate(

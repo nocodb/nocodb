@@ -27,8 +27,6 @@ export class DataAliasController {
   @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName',
-    '/api/v1/data/:orgs/:baseName/:tableName',
-    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName',
   ])
   @Acl('dataList')
   async dataList(
@@ -61,8 +59,6 @@ export class DataAliasController {
   @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/find-one',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/find-one',
-    '/api/v1/data/:orgs/:baseName/:tableName/find-one',
-    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/find-one',
   ])
   @Acl('dataFindOne')
   async dataFindOne(
@@ -82,8 +78,6 @@ export class DataAliasController {
   @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/groupby',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/groupby',
-    '/api/v1/data/:orgs/:baseName/:tableName/groupby',
-    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/groupby',
   ])
   @Acl('dataGroupBy')
   async dataGroupBy(
@@ -103,8 +97,6 @@ export class DataAliasController {
   @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/count',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/count',
-    '/api/v1/data/:orgs/:baseName/:tableName/count',
-    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/count',
   ])
   @Acl('dataCount')
   async dataCount(
@@ -127,8 +119,6 @@ export class DataAliasController {
   @Post([
     '/api/v1/db/data/:orgs/:baseName/:tableName',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName',
-    '/api/v1/data/:orgs/:baseName/:tableName',
-    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName',
   ])
   @HttpCode(200)
   @Acl('dataInsert')
@@ -153,8 +143,6 @@ export class DataAliasController {
   @Patch([
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/:rowId',
-    '/api/v1/data/:orgs/:baseName/:tableName/:rowId',
-    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/:rowId',
   ])
   @Acl('dataUpdate')
   async dataUpdate(
@@ -179,8 +167,6 @@ export class DataAliasController {
   @Delete([
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/:rowId',
-    '/api/v1/data/:orgs/:baseName/:tableName/:rowId',
-    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/:rowId',
   ])
   @Acl('dataDelete')
   async dataDelete(
@@ -202,8 +188,6 @@ export class DataAliasController {
   @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/:rowId',
-    '/api/v1/data/:orgs/:baseName/:tableName/:rowId',
-    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/:rowId',
   ])
   @Acl('dataRead')
   async dataRead(
@@ -229,8 +213,6 @@ export class DataAliasController {
   @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/exist',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/:rowId/exist',
-    '/api/v1/data/:orgs/:baseName/:tableName/:rowId/exist',
-    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/:rowId/exist',
   ])
   @Acl('dataExist')
   async dataExist(
@@ -257,8 +239,6 @@ export class DataAliasController {
   @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/group/:columnId',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/group/:columnId',
-    '/api/v1/data/:orgs/:baseName/:tableName/group/:columnId',
-    '/api/v1/data/:orgs/:baseName/:tableName/views/:viewName/group/:columnId',
   ])
   @Acl('groupedDataList')
   async groupedDataList(

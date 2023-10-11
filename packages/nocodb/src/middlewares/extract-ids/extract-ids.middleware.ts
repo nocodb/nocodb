@@ -128,8 +128,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       [
         '/api/v1/db/meta/audits/rows/:rowId/update',
         '/api/v1/db/meta/audits/comments',
-        '/api/v1/meta/audits/rows/:rowId/update',
-        '/api/v1/meta/audits/comments',
+        '/api/v2/meta/audits/rows/:rowId/update',
+        '/api/v2/meta/audits/comments',
       ].some(
         (auditInsertOrUpdatePath) => req.route.path === auditInsertOrUpdatePath,
       ) &&
@@ -146,8 +146,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       [
         '/api/v1/db/meta/audits/comments/count',
         '/api/v1/db/meta/audits/comments',
-        '/api/v1/meta/audits/comments/count',
-        '/api/v1/meta/audits/comments',
+        '/api/v2/meta/audits/comments/count',
+        '/api/v2/meta/audits/comments',
       ].some((auditReadPath) => req.route.path === auditReadPath) &&
       req.method === 'GET' &&
       req.query.fk_model_id
@@ -163,9 +163,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         '/auth/user/me',
         '/api/v1/db/auth/user/me',
         '/api/v1/auth/user/me',
-        '/api/v1/auth/user/me',
         '/api/v1/db/meta/plugins/webhook',
-        '/api/v1/meta/plugins/webhook',
+        '/api/v2/meta/plugins/webhook',
       ].some((userMePath) => req.route.path === userMePath) &&
       req.query.base_id
     ) {

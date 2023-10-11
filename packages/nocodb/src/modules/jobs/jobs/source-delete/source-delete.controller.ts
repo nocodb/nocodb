@@ -16,7 +16,7 @@ export class SourceDeleteController {
 
   @Delete([
     '/api/v1/db/meta/projects/:baseId/bases/:sourceId',
-    '/api/v1/meta/bases/:baseId/sources/:sourceId',
+    '/api/v2/meta/bases/:baseId/sources/:sourceId',
   ])
   @Acl('baseDelete')
   async baseDelete(@Param('sourceId') sourceId: string) {

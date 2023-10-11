@@ -74,7 +74,7 @@ export class SidebarPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.dashboard.get().getByTestId('docs-create-proj-dlg-create-btn').click(),
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `api/v1/meta/bases/`,
+      requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
     });
 
     if (type === ProjectTypes.DOCUMENTATION) {
@@ -121,7 +121,7 @@ export class SidebarPage extends BasePage {
       this.rootPage.locator('.ant-modal-content').locator('button.ant-btn.ant-btn-primary').click();
     await this.waitForResponse({
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: '/api/v1/meta/tables/',
+      requestUrlPathToMatch: '/api/v1/db/meta/tables/',
       uiAction: submitAction,
       responseJsonMatcher: json => json.title === title,
     });

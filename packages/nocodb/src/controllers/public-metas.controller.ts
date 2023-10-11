@@ -9,7 +9,7 @@ export class PublicMetasController {
 
   @Get([
     '/api/v1/db/public/shared-view/:sharedViewUuid/meta',
-    '/api/v1/public/shared-view/:sharedViewUuid/meta',
+    '/api/v2/public/shared-view/:sharedViewUuid/meta',
   ])
   async viewMetaGet(
     @Request() req,
@@ -23,7 +23,7 @@ export class PublicMetasController {
 
   @Get([
     '/api/v1/db/public/shared-base/:sharedBaseUuid/meta',
-    '/api/v1/public/shared-base/:sharedBaseUuid/meta',
+    '/api/v2/public/shared-base/:sharedBaseUuid/meta',
   ])
   async publicSharedBaseGet(
     @Param('sharedBaseUuid') sharedBaseUuid: string,

@@ -39,7 +39,7 @@ export class UtilsController {
   }
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  @Post(['/api/v1/db/meta/connection/test', '/api/v1/meta/connection/test'])
+  @Post(['/api/v1/db/meta/connection/test', '/api/v2/meta/connection/test'])
   @Acl('testConnection', {
     scope: 'org',
   })
@@ -49,7 +49,7 @@ export class UtilsController {
   }
 
   @UseGuards(PublicApiLimiterGuard)
-  @Get(['/api/v1/db/meta/nocodb/info', '/api/v1/meta/nocodb/info'])
+  @Get(['/api/v1/db/meta/nocodb/info', '/api/v2/meta/nocodb/info'])
   async appInfo(@Request() req) {
     return await this.utilsService.appInfo({
       req: {
@@ -65,7 +65,7 @@ export class UtilsController {
   }
 
   @UseGuards(PublicApiLimiterGuard)
-  @Post(['/api/v1/db/meta/axiosRequestMake', '/api/v1/meta/axiosRequestMake'])
+  @Post(['/api/v1/db/meta/axiosRequestMake', '/api/v2/meta/axiosRequestMake'])
   @HttpCode(200)
   async axiosRequestMake(@Body() body: any) {
     return await this.utilsService.axiosRequestMake({ body });

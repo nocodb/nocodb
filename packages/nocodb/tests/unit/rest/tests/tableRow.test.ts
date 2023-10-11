@@ -60,7 +60,7 @@ function tableStaticTest() {
 
   it('Get table data list', async function () {
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200);
@@ -79,7 +79,7 @@ function tableStaticTest() {
     const requiredColumns = customerColumns.filter((_, index) => index < 3);
 
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         fields: requiredColumns.map((c) => c.title),
@@ -104,7 +104,7 @@ function tableStaticTest() {
     const sortInfo = [{ fk_column_id: firstNameColumn.id, direction: 'desc' }];
 
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         fields: visibleColumns.map((c) => c.title),
@@ -131,7 +131,7 @@ function tableStaticTest() {
     const lastPageOffset =
       Math.trunc(pageInfo.totalRows / pageInfo.pageSize) * pageInfo.pageSize;
     const lastPageResponse = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         fields: visibleColumns.map((c) => c.title),
@@ -157,7 +157,7 @@ function tableStaticTest() {
     const sortInfo = [{ fk_column_id: firstNameColumn.id, direction: 'asc' }];
 
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         fields: visibleColumns.map((c) => c.title),
@@ -184,7 +184,7 @@ function tableStaticTest() {
     const lastPageOffset =
       Math.trunc(pageInfo.totalRows / pageInfo.pageSize) * pageInfo.pageSize;
     const lastPageResponse = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         fields: visibleColumns.map((c) => c.title),
@@ -204,7 +204,7 @@ function tableStaticTest() {
   });
   it('Create table row with wrong table id', async function () {
     const response = await request(context.app)
-      .post(`/api/v1/data/noco/${base.id}/wrong-table-id`)
+      .post(`/api/v1/db/data/noco/${base.id}/wrong-table-id`)
       .set('xc-auth', context.token)
       .send({
         title: 'Test',
@@ -222,7 +222,7 @@ function tableStaticTest() {
 
     let response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -243,7 +243,7 @@ function tableStaticTest() {
 
     response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -264,7 +264,7 @@ function tableStaticTest() {
   });
   it('Read table row', async function () {
     const listResponse = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .expect(200);
 
@@ -272,7 +272,7 @@ function tableStaticTest() {
 
     const readResponse = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${row['CustomerId']}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${row['CustomerId']}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -292,7 +292,7 @@ function tableStaticTest() {
     });
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -311,7 +311,7 @@ function tableStaticTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${row['CustomerId']}/exist`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${row['CustomerId']}/exist`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -323,7 +323,7 @@ function tableStaticTest() {
   it('Exist should be false table row when it does not exists', async function () {
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/998546/exist`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/998546/exist`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -336,7 +336,7 @@ function tableStaticTest() {
   it('Export csv', async () => {
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.title}/export/csv`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/export/csv`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -354,7 +354,7 @@ function tableStaticTest() {
   it('Export excel', async () => {
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.title}/export/excel`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/export/excel`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -378,7 +378,7 @@ function tableStaticTest() {
     )!;
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -396,7 +396,7 @@ function tableStaticTest() {
     )!;
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -421,7 +421,7 @@ function tableStaticTest() {
     )!;
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/wrong-id/${rowId}/hm/${rentalListColumn.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/wrong-id/${rowId}/hm/${rentalListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(404);
@@ -442,7 +442,7 @@ function tableStaticTest() {
     )!;
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -465,7 +465,7 @@ function tableStaticTest() {
     )!;
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -495,7 +495,7 @@ function tableStaticTest() {
     )!;
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/mm/${filmListColumn.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/mm/${filmListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(404);
@@ -513,7 +513,7 @@ function tableStaticTest() {
     const refId = 1;
     const response = await request(context.app)
       .post(
-        `/api/v1/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/hm/${rentalListColumn.id}/${refId}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/hm/${rentalListColumn.id}/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(404);
@@ -530,7 +530,7 @@ function tableStaticTest() {
     const refId = 1;
     const response = await request(context.app)
       .post(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${firstNameColumn.id}/${refId}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${firstNameColumn.id}/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(404);
@@ -546,7 +546,7 @@ function tableStaticTest() {
 
     const response = await request(context.app)
       .post(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/invalid-column/${refId}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/invalid-column/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(404);
@@ -566,7 +566,7 @@ function tableStaticTest() {
 
     await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${firstNameColumn.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${firstNameColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(400);
@@ -579,7 +579,7 @@ function tableStaticTest() {
 
     await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/mm/${firstNameColumn.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/mm/${firstNameColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(400);
@@ -592,7 +592,7 @@ function tableStaticTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/exclude`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/exclude`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -610,7 +610,7 @@ function tableStaticTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/exclude`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/exclude`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -641,7 +641,7 @@ function tableStaticTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/exclude`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/exclude`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -663,7 +663,7 @@ function tableStaticTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/exclude`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/exclude`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -694,7 +694,7 @@ function tableStaticTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${addressTable.id}/${rowId}/bt/${cityColumn.id}/exclude`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${addressTable.id}/${rowId}/bt/${cityColumn.id}/exclude`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -714,7 +714,7 @@ function tableStaticTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${addressTable.id}/${rowId}/bt/${cityColumn.id}/exclude`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${addressTable.id}/${rowId}/bt/${cityColumn.id}/exclude`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -735,7 +735,7 @@ function tableStaticTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/Film/group/${ratingColumn.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/Film/group/${ratingColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -792,7 +792,7 @@ function tableTest() {
     });
 
     const ascResponse = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         sortArrJson: JSON.stringify([
@@ -804,7 +804,7 @@ function tableTest() {
       throw new Error('Wrong sort');
 
     const descResponse = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         sortArrJson: JSON.stringify([
@@ -831,7 +831,7 @@ function tableTest() {
     });
 
     const ascResponse = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${rentalTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
       .set('xc-auth', context.token)
       .query({
         sortArrJson: JSON.stringify([
@@ -844,7 +844,7 @@ function tableTest() {
       throw new Error('Wrong sort');
 
     const descResponse = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${rentalTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
       .set('xc-auth', context.token)
       .query({
         sortArrJson: JSON.stringify([
@@ -879,7 +879,7 @@ function tableTest() {
     };
 
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${rentalTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([filter]),
@@ -914,7 +914,7 @@ function tableTest() {
     };
 
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([filter]),
@@ -957,7 +957,7 @@ function tableTest() {
     };
 
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${rentalTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([nestedFilter]),
@@ -967,7 +967,7 @@ function tableTest() {
     expect(response.body.pageInfo.totalRows).equal(9558);
 
     const ascResponse = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${rentalTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([nestedFilter]),
@@ -984,7 +984,7 @@ function tableTest() {
     expect(ascResponse.body.list[0][lookupColumn.title]).equal('AARON');
 
     const descResponse = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${rentalTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([nestedFilter]),
@@ -1051,7 +1051,7 @@ function tableTest() {
     };
 
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${rentalTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([nestedFilter]),
@@ -1067,7 +1067,7 @@ function tableTest() {
       throw new Error('Wrong filter');
 
     const ascResponse = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${rentalTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([nestedFilter]),
@@ -1091,7 +1091,7 @@ function tableTest() {
     }
 
     const descResponse = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${rentalTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([nestedFilter]),
@@ -1180,7 +1180,7 @@ function tableTest() {
     ];
 
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([nestedFilter]),
@@ -1198,7 +1198,7 @@ function tableTest() {
     }
 
     const ascResponse = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([nestedFilter]),
@@ -1234,7 +1234,7 @@ function tableTest() {
     }
 
     const descResponse = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([nestedFilter]),
@@ -1327,7 +1327,7 @@ function tableTest() {
     ];
 
     const ascResponse = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         nested: nestedFields,
@@ -1383,7 +1383,7 @@ function tableTest() {
     });
 
     const response = await request(context.app)
-      .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         sortArrJson: JSON.stringify([
@@ -1440,7 +1440,7 @@ function tableTest() {
   //   console.log(formulaColumn);
 
   //   const response = await request(context.app)
-  //     .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
+  //     .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
   //     .set('xc-auth', context.token)
   //     .query({
   //       sortArrJson: JSON.stringify([
@@ -1459,7 +1459,7 @@ function tableTest() {
     const table = await createTable(context, base);
 
     const response = await request(context.app)
-      .post(`/api/v1/data/noco/${base.id}/${table.id}`)
+      .post(`/api/v1/db/data/noco/${base.id}/${table.id}`)
       .set('xc-auth', context.token)
       .send({
         title: 'Test',
@@ -1489,7 +1489,7 @@ function tableTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -1569,7 +1569,7 @@ function tableTest() {
 
     const ascResponse = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -1613,7 +1613,7 @@ function tableTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/groupby`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/groupby`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -1649,7 +1649,7 @@ function tableTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/groupby`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/groupby`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -1672,7 +1672,7 @@ function tableTest() {
     const row = await createRow(context, { base, table });
 
     const updateResponse = await request(context.app)
-      .patch(`/api/v1/data/noco/${base.id}/${table.id}/${row['Id']}`)
+      .patch(`/api/v1/db/data/noco/${base.id}/${table.id}/${row['Id']}`)
       .set('xc-auth', context.token)
       .send({
         title: 'Updated',
@@ -1697,7 +1697,7 @@ function tableTest() {
     const row = await createRow(context, { base, table });
 
     await request(context.app)
-      .patch(`/api/v1/data/noco/${base.id}/${table.id}/${row['Id']}`)
+      .patch(`/api/v1/db/data/noco/${base.id}/${table.id}/${row['Id']}`)
       .set('xc-auth', context.token)
       .send({
         [emailColumn.column_name]: 'invalidemail',
@@ -1721,7 +1721,7 @@ function tableTest() {
     const row = await createRow(context, { base, table });
 
     const response = await request(context.app)
-      .patch(`/api/v1/data/noco/${base.id}/${table.id}/${row['Id']}`)
+      .patch(`/api/v1/db/data/noco/${base.id}/${table.id}/${row['Id']}`)
       .set('xc-auth', context.token)
       .send({
         [emailColumn.column_name]: 'valid@example.com',
@@ -1743,7 +1743,7 @@ function tableTest() {
     const row = await createRow(context, { base, table });
 
     await request(context.app)
-      .delete(`/api/v1/data/noco/${base.id}/${table.id}/${row['Id']}`)
+      .delete(`/api/v1/db/data/noco/${base.id}/${table.id}/${row['Id']}`)
       .set('xc-auth', context.token)
       .expect(200);
 
@@ -1779,7 +1779,7 @@ function tableTest() {
     });
 
     await request(context.app)
-      .delete(`/api/v1/data/noco/${base.id}/${table.id}/${row['Id']}`)
+      .delete(`/api/v1/db/data/noco/${base.id}/${table.id}/${row['Id']}`)
       .set('xc-auth', context.token)
       .expect(200);
 
@@ -1798,7 +1798,7 @@ function tableTest() {
       .map((index) => generateDefaultRowAttributes({ columns, index }));
 
     const response = await request(context.app)
-      .post(`/api/v1/data/bulk/noco/${base.id}/${table.id}`)
+      .post(`/api/v1/db/data/bulk/noco/${base.id}/${table.id}`)
       .set('xc-auth', context.token)
       .send(rowAttributes)
       .expect(200);
@@ -1835,7 +1835,7 @@ function tableTest() {
       .map((index) => generateDefaultRowAttributes({ columns, index }));
 
     const response = await request(context.app)
-      .post(`/api/v1/data/bulk/noco/${base.id}/${table.id}`)
+      .post(`/api/v1/db/data/bulk/noco/${base.id}/${table.id}`)
       .set('xc-auth', context.token)
       .send(rowAttributes)
       .expect(200);
@@ -1883,7 +1883,7 @@ function tableTest() {
 
     const rows = await listRow({ base, table });
     await request(context.app)
-      .patch(`/api/v1/data/bulk/noco/${base.id}/${table.id}`)
+      .patch(`/api/v1/db/data/bulk/noco/${base.id}/${table.id}`)
       .set('xc-auth', context.token)
       .send(
         rows.map((row) => ({ title: `new-${row['Title']}`, id: row['Id'] })),
@@ -1912,7 +1912,7 @@ function tableTest() {
     const rows = await listRow({ base, table });
 
     await request(context.app)
-      .delete(`/api/v1/data/bulk/noco/${base.id}/${table.id}`)
+      .delete(`/api/v1/db/data/bulk/noco/${base.id}/${table.id}`)
       .set('xc-auth', context.token)
       .send(rows.map((row) => ({ id: row['Id'] })))
       .expect(200);
@@ -1939,7 +1939,7 @@ function tableTest() {
   //   const rows = await listRow({ base, table });
 
   //   await request(context.app)
-  //     .delete(`/api/v1/data/bulk/noco/${base.id}/${table.id}/all`)
+  //     .delete(`/api/v1/db/data/bulk/noco/${base.id}/${table.id}/all`)
   //     .set('xc-auth', context.token)
   //     .query({ filterArr: [
   //       {
@@ -1976,7 +1976,7 @@ function tableTest() {
   //     (column) => column.title === 'Rentals'
   //   )!;
   //   const response = await request(context.app)
-  //     .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`)
+  //     .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`)
   //     .query({
   //       fields: visibleColumns.map((c) => c.title),
   //     })
@@ -2002,12 +2002,12 @@ function tableTest() {
   //   const refId = 1;
 
   //   await request(context.app)
-  //     .post(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
+  //     .post(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
   //     .set('xc-auth', context.token)
   //     .expect(400)
 
   //     await request(context.app)
-  //     .post(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
+  //     .post(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
   //     .set('xc-auth', context.token)
   //     .expect(400)
   // })
@@ -2021,14 +2021,14 @@ function tableTest() {
 
     const lisResponseBeforeUpdate = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
 
     await request(context.app)
       .post(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -2036,7 +2036,7 @@ function tableTest() {
 
     const lisResponseAfterUpdate = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -2059,7 +2059,7 @@ function tableTest() {
 
     const response = await request(context.app)
       .post(
-        `/api/v1/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/invalid-column/${refId}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/invalid-column/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(404);
@@ -2084,7 +2084,7 @@ function tableTest() {
     const refId = 1;
     const response = await request(context.app)
       .post(
-        `/api/v1/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${firstNameColumn.id}/${refId}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${firstNameColumn.id}/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(404);
@@ -2108,7 +2108,7 @@ function tableTest() {
 
     await request(context.app)
       .post(
-        `/api/v1/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(400);
@@ -2130,14 +2130,14 @@ function tableTest() {
 
     const lisResponseBeforeUpdate = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
 
     await request(context.app)
       .post(
-        `/api/v1/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -2145,7 +2145,7 @@ function tableTest() {
 
     const lisResponseAfterUpdate = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -2171,14 +2171,14 @@ function tableTest() {
 
     const lisResponseBeforeDelete = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
 
     await request(context.app)
       .delete(
-        `/api/v1/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -2186,7 +2186,7 @@ function tableTest() {
 
     const lisResponseAfterDelete = await request(context.app)
       .get(
-        `/api/v1/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -2211,7 +2211,7 @@ function tableTest() {
 
     const response = await request(context.app)
       .delete(
-        `/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(400);
@@ -2259,7 +2259,7 @@ function tableTest() {
     const childRow = (await listRow({ base, table: relatedTable }))[0];
     const response = await request(context.app)
       .delete(
-        `/api/v1/data/noco/${base.id}/${table.id}/${row['Id']}/hm/${ltarColumn.id}/${childRow['Id']}`,
+        `/api/v1/db/data/noco/${base.id}/${table.id}/${row['Id']}/hm/${ltarColumn.id}/${childRow['Id']}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -2286,7 +2286,7 @@ function tableTest() {
 
     const response = await request(context.app)
       .post(
-        `/api/v1/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/hm/${rentalListColumn.id}/exclude`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/hm/${rentalListColumn.id}/exclude`,
       )
       .set('xc-auth', context.token)
       .expect(404);
@@ -2308,7 +2308,7 @@ function tableTest() {
     )!;
     const response = await request(context.app)
       .post(
-        `/api/v1/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/mm/${filmListColumn.id}/exclude`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/mm/${filmListColumn.id}/exclude`,
       )
       .set('xc-auth', context.token)
       .expect(404);

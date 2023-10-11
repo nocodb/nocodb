@@ -159,7 +159,7 @@ export class SelectOptionCellPageObject extends BasePage {
     const saveRowAction = () => selectCell.locator('.ant-select-selection-search-input').press('Enter');
     await this.waitForResponse({
       uiAction: saveRowAction,
-      requestUrlPathToMatch: 'api/v1/data/noco/',
+      requestUrlPathToMatch: 'api/v1/db/data/noco/',
       httpMethodsToMatch: ['PATCH'],
       responseJsonMatcher: resJson => String(resJson?.[columnHeader]).includes(String(option)),
     });

@@ -4,8 +4,8 @@
     "id": "qiz1rcfqd2jy6"
   },
   "info": {
-    "title": "nocodb",
-    "version": "1.0",
+    "title": "NocoDB v2",
+    "version": "",
     "description": "NocoDB API Documentation"
   },
   "x-tagGroups": [
@@ -714,979 +714,7 @@
         }
       ]
     },
-    "/api/v1/tokens": {
-      "get": {
-        "summary": "List Organisation API Tokens",
-        "operationId": "org-tokens-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiTokenList"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "list": [
-                        {
-                          "id": "1",
-                          "fk_user_id": "us_b3xo2i44nx5y9l",
-                          "description": "This API Token is for ABC application",
-                          "token": "DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"
-                        }
-                      ],
-                      "pageInfo": {
-                        "isFirstPage": true,
-                        "isLastPage": true,
-                        "page": 1,
-                        "pageSize": 10,
-                        "totalRows": 1
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "List all organisation API tokens.  Access with API tokens will be blocked.",
-        "tags": [
-          "Org Tokens"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ],
-      "post": {
-        "summary": "Create Organisation API Token",
-        "operationId": "org-tokens-create",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiToken"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "id": "1",
-                      "fk_user_id": "us_b3xo2i44nx5y9l",
-                      "description": "This API Token is for ABC application",
-                      "token": "DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ApiTokenReq"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "description": "This API token is for ABC application"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Org Tokens"
-        ],
-        "description": "Creat an organisation API token. Access with API tokens will be blocked."
-      }
-    },
-    "/api/v1/tokens/{token}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "token",
-          "in": "path",
-          "required": true,
-          "description": "API Token"
-        }
-      ],
-      "delete": {
-        "summary": "Delete Organisation API Tokens",
-        "operationId": "org-tokens-delete",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "number",
-                  "example": 1
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": 1
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Org Tokens"
-        ],
-        "description": "Delete an organisation API token. Access with API tokens will be blocked.",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/license": {
-      "get": {
-        "summary": "Get App License",
-        "operationId": "org-license-get",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "key": {
-                      "type": "string",
-                      "description": "Application license key"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "key": "195f7bcc-c3e1-43c5-b23c-8d8127280e7d"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Get the application license key. Exclusive for super admin.",
-        "tags": [
-          "Org License"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ],
-      "post": {
-        "summary": "Create App License",
-        "operationId": "org-license-set",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "x-stoplight": {
-                        "id": "wsiywigeb9hjl"
-                      },
-                      "example": "The license key has been saved"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "The license key has been saved"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LicenseReq"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "key": "1234567890"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Org License"
-        ],
-        "description": "Set the application license key. Exclusive for super admin.",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/app-settings": {
-      "get": {
-        "summary": "Get App Settings",
-        "operationId": "org-app-settings-get",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "invite_only_signup": {
-                      "type": "boolean",
-                      "description": "Status of invite only signup",
-                      "example": true
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "invite_only_signup": true
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Get the application settings. Exclusive for super admin.",
-        "tags": [
-          "Org App Settings"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ],
-      "post": {
-        "summary": "Create App Settings",
-        "operationId": "org-app-settings-set",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "x-stoplight": {
-                        "id": "6qbh8ijtc4tva"
-                      },
-                      "example": "The app settings have been saved"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "The app settings have been saved"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "invite_only_signup": {
-                    "type": "boolean",
-                    "description": "Status of invite only signup",
-                    "example": true
-                  }
-                }
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "invite_only_signup": true
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Org App Settings"
-        ],
-        "description": "Update the application settings. Exclusive for super admin.",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/users": {
-      "get": {
-        "summary": "List Organisation Users",
-        "operationId": "org-users-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserList"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "list": [
-                        {
-                          "email": "user@example.com",
-                          "email_verified": true,
-                          "firstname": "Alice",
-                          "id": "us_8kugj628ebjngs",
-                          "lastname": "Smith",
-                          "roles": "org-level-viewer"
-                        }
-                      ],
-                      "pageInfo": {
-                        "isFirstPage": true,
-                        "isLastPage": true,
-                        "page": 1,
-                        "pageSize": 10,
-                        "totalRows": 1
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "List all organisation users. Exclusive for Super Admin. Access with API Tokens will be blocked.",
-        "tags": [
-          "Org Users"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ],
-      "post": {
-        "summary": "Create Organisation User",
-        "operationId": "org-users-add",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "x-examples": {
-                    "Example 1": {
-                      "invite_token": "c22c129f-d947-4030-a838-1b498fce21bb",
-                      "email": "w123@nocodb.com"
-                    }
-                  },
-                  "properties": {
-                    "invite_token": {
-                      "type": "string",
-                      "description": "Invite Token"
-                    },
-                    "email": {
-                      "type": "string",
-                      "description": "User email",
-                      "example": "user@example.com"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "invite_token": "c22c129f-d947-4030-a838-1b498fce21bb",
-                      "email": "user@example.com"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OrgUserReq"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "email": "user@example.com",
-                    "roles": "org-level-creator"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Org Users"
-        ],
-        "description": "Create an organisation user. Exclusive for Super Admin. Access with API Tokens will be blocked.",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/users/{userId}": {
-      "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "us_b3xo2i44nx5y9l"
-          },
-          "name": "userId",
-          "in": "path",
-          "required": true,
-          "description": "Unique User ID"
-        }
-      ],
-      "patch": {
-        "summary": "Update Organisation User",
-        "operationId": "org-users-update",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "x-stoplight": {
-                        "id": "6oa45bkw7j57j"
-                      },
-                      "example": "The user has been updated successfully"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "The user has been updated successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Org Users"
-        ],
-        "description": "Update an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OrgUserReq"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "email": "user@example.com",
-                    "roles": "org-level-creator"
-                  }
-                }
-              }
-            }
-          },
-          "description": ""
-        }
-      },
-      "delete": {
-        "summary": "Delete Organisation User",
-        "operationId": "org-users-delete",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "x-stoplight": {
-                        "id": "buvrqjvv255tf"
-                      },
-                      "example": "The user has been deleted successfully",
-                      "description": "Sucess Message"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "The user has been deleted successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Org Users"
-        ],
-        "description": "Delete an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked."
-      }
-    },
-    "/api/v1/users/{username}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "username",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "Organisation User GetByUsername",
-        "operationId": "org-users-get-by-username",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Org users"
-        ],
-        "description": "Organisation User GetByUsername"
-      }
-    },
-    "/api/v1/users/{userId}/resend-invite": {
-      "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "us_b3xo2i44nx5y9l"
-          },
-          "name": "userId",
-          "in": "path",
-          "required": true,
-          "description": "Unique User ID"
-        }
-      ],
-      "post": {
-        "summary": "Invite Organisation User",
-        "operationId": "org-users-resend-invite",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "x-stoplight": {
-                        "id": "aixfqd9jfh5pq"
-                      },
-                      "example": "The invitation has been sent to the target user",
-                      "description": "Success Message"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "The invitation has been sent to the target user"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Org Users"
-        ],
-        "description": "Resend Invitation to a specific user. Exclusive for Super Admin. Access with API Tokens will be blocked.",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/users/{userId}/profile": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "userId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "post": {
-        "summary": "Organisation User Profile - Create",
-        "operationId": "org-users-profile-create",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Org users"
-        ],
-        "description": "Create Organisation User Profile",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/User"
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "summary": "Organisation User Profile - Get",
-        "operationId": "org-users-profile-get",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "description": "Get Organisation User Profile",
-        "tags": [
-          "Org users"
-        ]
-      },
-      "patch": {
-        "summary": "",
-        "operationId": "org-users-profile-update",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "description": "Update Organisation User Profile\n",
-        "tags": [
-          "Org users"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/User"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/users/{userId}/follower": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "userId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "post": {
-        "summary": "Organisation User Follower - Create",
-        "operationId": "org-users-follower-create",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Org users"
-        ],
-        "description": "Create Organisation User Follower Relationship (Follow)",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Follower"
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "summary": "Organisation User Follower - List",
-        "operationId": "org-users-follower-list",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "description": "List Organisation User Followers",
-        "tags": [
-          "Org users"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Follower"
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "summary": "Organisation User Follower - Delete",
-        "operationId": "org-users-follower-delete",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Org users"
-        ],
-        "description": "Delete Organisation User Follower Relationship (Unfollow)",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Follower"
-              }
-            }
-          },
-          "description": ""
-        }
-      }
-    },
-    "/api/v1/users/{userId}/following": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "userId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "Organisation User Following - List",
-        "operationId": "org-users-following-list",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "description": "List Organisation User Following",
-        "tags": [
-          "Org users"
-        ]
-      }
-    },
-    "/api/v1/users/{userId}/isFollowing/{followerId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "userId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "followerId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "Organisation User IsFollowing",
-        "operationId": "org-users-is-following",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "description": "Check if Organisation User is following someone",
-        "tags": [
-          "Org users"
-        ]
-      }
-    },
-    "/api/v1/users/{userId}/generate-reset-url": {
-      "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "us_b3xo2i44nx5y9l"
-          },
-          "name": "userId",
-          "in": "path",
-          "required": true,
-          "description": "Unique User ID"
-        }
-      ],
-      "post": {
-        "summary": "Generate Organisation User Password Reset Token",
-        "operationId": "org-users-generate-password-reset-token",
-        "tags": [
-          "Org Users"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "reset_password_token": {
-                      "type": "string",
-                      "description": "Password Reset Token for the user"
-                    },
-                    "reset_password_url": {
-                      "type": "string",
-                      "description": "Password Reset URL for the user"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "reset_password_token": "string",
-                      "reset_password_url": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Generate Password Reset Token for Organisation User. Exclusive for Super Admin. Access with API Tokens will be blocked.",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/db/meta/projects/{baseId}/users": {
+    "/api/v2/meta/projects/{baseId}/users": {
       "get": {
         "summary": "List Base Users",
         "operationId": "auth-base-user-list",
@@ -1897,7 +925,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{baseId}/info": {
+    "/api/v2/meta/projects/{baseId}/info": {
       "parameters": [
         {
           "schema": {
@@ -1996,7 +1024,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{baseId}/users/{userId}": {
+    "/api/v2/meta/projects/{baseId}/users/{userId}": {
       "parameters": [
         {
           "schema": {
@@ -2128,7 +1156,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{baseId}/visibility-rules": {
+    "/api/v2/meta/projects/{baseId}/visibility-rules": {
       "get": {
         "summary": "Get UI ACL",
         "operationId": "base-model-visibility-list",
@@ -2282,7 +1310,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/": {
+    "/api/v2/meta/projects/": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -2446,7 +1474,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/duplicate/{baseId}/{sourceId}": {
+    "/api/v2/meta/duplicate/{baseId}/{sourceId}": {
       "post": {
         "summary": "Duplicate Base Source",
         "operationId": "base-source-duplicate",
@@ -2550,7 +1578,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/duplicate/{baseId}": {
+    "/api/v2/meta/duplicate/{baseId}": {
       "post": {
         "summary": "Duplicate Base",
         "operationId": "base-duplicate",
@@ -2640,7 +1668,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{baseId}": {
+    "/api/v2/meta/projects/{baseId}": {
       "parameters": [
         {
           "schema": {
@@ -2800,7 +1828,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{baseId}/user": {
+    "/api/v2/meta/projects/{baseId}/user": {
       "parameters": [
         {
           "schema": {
@@ -2833,7 +1861,7 @@
         }
       }
     },
-    "/api/v1/db/meta/projects/{baseId}/bases/{sourceId}": {
+    "/api/v2/meta/projects/{baseId}/bases/{sourceId}": {
       "parameters": [
         {
           "schema": {
@@ -3012,7 +2040,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/:baseId/bases/:sourceId/sqlView": {
+    "/api/v2/meta/projects/:baseId/bases/:sourceId/sqlView": {
       "parameters": [
         {
           "schema": {
@@ -3069,7 +2097,7 @@
         }
       }
     },
-    "/api/v1/db/meta/projects/{baseId}/bases/": {
+    "/api/v2/meta/projects/{baseId}/bases/": {
       "parameters": [
         {
           "schema": {
@@ -3208,7 +2236,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{baseId}/bases/{sourceId}/share/erd": {
+    "/api/v2/meta/projects/{baseId}/bases/{sourceId}/share/erd": {
       "parameters": [
         {
           "schema": {
@@ -3259,7 +2287,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{baseId}/shared": {
+    "/api/v2/meta/projects/{baseId}/shared": {
       "parameters": [
         {
           "schema": {
@@ -3472,7 +2500,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{baseId}/cost": {
+    "/api/v2/meta/projects/{baseId}/cost": {
       "parameters": [
         {
           "schema": {
@@ -3517,7 +2545,7 @@
         "x-internal": true
       }
     },
-    "/api/v1/db/meta/projects/{baseId}/tables": {
+    "/api/v2/meta/projects/{baseId}/tables": {
       "parameters": [
         {
           "schema": {
@@ -3976,7 +3004,7 @@
         "description": "List all tables in a given base"
       }
     },
-    "/api/v1/db/meta/tables/{tableId}": {
+    "/api/v2/meta/tables/{tableId}": {
       "parameters": [
         {
           "schema": {
@@ -4493,7 +3521,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/duplicate/{baseId}/table/{tableId}": {
+    "/api/v2/meta/duplicate/{baseId}/table/{tableId}": {
       "post": {
         "summary": "Duplicate Table",
         "operationId": "db-table-duplicate",
@@ -4589,7 +3617,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{baseId}/{sourceId}/tables": {
+    "/api/v2/meta/projects/{baseId}/{sourceId}/tables": {
       "parameters": [
         {
           "schema": {
@@ -5160,7 +4188,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/reorder": {
+    "/api/v2/meta/tables/{tableId}/reorder": {
       "parameters": [
         {
           "schema": {
@@ -5229,7 +4257,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/columns": {
+    "/api/v2/meta/tables/{tableId}/columns": {
       "parameters": [
         {
           "schema": {
@@ -5312,7 +4340,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/columns/{columnId}": {
+    "/api/v2/meta/columns/{columnId}": {
       "parameters": [
         {
           "schema": {
@@ -5403,7 +4431,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/columns/{columnId}/primary": {
+    "/api/v2/meta/columns/{columnId}/primary": {
       "parameters": [
         {
           "schema": {
@@ -5448,7 +4476,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/views": {
+    "/api/v2/meta/tables/{tableId}/views": {
       "parameters": [
         {
           "schema": {
@@ -5570,7 +4598,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/views/{viewId}": {
+    "/api/v2/meta/views/{viewId}": {
       "parameters": [
         {
           "schema": {
@@ -5689,7 +4717,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/views/{viewId}/show-all": {
+    "/api/v2/meta/views/{viewId}/show-all": {
       "parameters": [
         {
           "schema": {
@@ -5743,7 +4771,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/views/{viewId}/hide-all": {
+    "/api/v2/meta/views/{viewId}/hide-all": {
       "parameters": [
         {
           "schema": {
@@ -5797,7 +4825,7 @@
         "description": "Hide All Columns in a given View"
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/share": {
+    "/api/v2/meta/tables/{tableId}/share": {
       "parameters": [
         {
           "schema": {
@@ -5882,7 +4910,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/views/{viewId}/share": {
+    "/api/v2/meta/views/{viewId}/share": {
       "parameters": [
         {
           "schema": {
@@ -6003,7 +5031,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/views/{viewId}/columns": {
+    "/api/v2/meta/views/{viewId}/columns": {
       "parameters": [
         {
           "schema": {
@@ -6182,7 +5210,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/views/{viewId}/columns/{columnId}": {
+    "/api/v2/meta/views/{viewId}/columns/{columnId}": {
       "parameters": [
         {
           "schema": {
@@ -6256,7 +5284,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/views/{viewId}/sorts": {
+    "/api/v2/meta/views/{viewId}/sorts": {
       "parameters": [
         {
           "schema": {
@@ -6378,7 +5406,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/sorts/{sortId}": {
+    "/api/v2/meta/sorts/{sortId}": {
       "parameters": [
         {
           "schema": {
@@ -6517,7 +5545,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/views/{viewId}/filters": {
+    "/api/v2/meta/views/{viewId}/filters": {
       "parameters": [
         {
           "schema": {
@@ -6661,7 +5689,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/hooks/{hookId}/filters": {
+    "/api/v2/meta/hooks/{hookId}/filters": {
       "parameters": [
         {
           "schema": {
@@ -6805,7 +5833,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/hooks/{hookId}/logs": {
+    "/api/v2/meta/hooks/{hookId}/logs": {
       "parameters": [
         {
           "schema": {
@@ -6893,7 +5921,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/filters/{filterId}": {
+    "/api/v2/meta/filters/{filterId}": {
       "parameters": [
         {
           "schema": {
@@ -7043,7 +6071,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/filters/{filterGroupId}/children": {
+    "/api/v2/meta/filters/{filterGroupId}/children": {
       "parameters": [
         {
           "schema": {
@@ -7117,7 +6145,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/grids": {
+    "/api/v2/meta/tables/{tableId}/grids": {
       "parameters": [
         {
           "schema": {
@@ -7202,7 +6230,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/forms": {
+    "/api/v2/meta/tables/{tableId}/forms": {
       "parameters": [
         {
           "schema": {
@@ -7287,7 +6315,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/forms/{formViewId}": {
+    "/api/v2/meta/forms/{formViewId}": {
       "parameters": [
         {
           "schema": {
@@ -7430,7 +6458,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/form-columns/{formViewColumnId}": {
+    "/api/v2/meta/form-columns/{formViewColumnId}": {
       "parameters": [
         {
           "schema": {
@@ -7495,7 +6523,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/grids/{viewId}": {
+    "/api/v2/meta/grids/{viewId}": {
       "parameters": [
         {
           "schema": {
@@ -7559,7 +6587,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/grids/{gridId}/grid-columns": {
+    "/api/v2/meta/grids/{gridId}/grid-columns": {
       "parameters": [
         {
           "schema": {
@@ -7621,7 +6649,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/grid-columns/{columnId}": {
+    "/api/v2/meta/grid-columns/{columnId}": {
       "parameters": [
         {
           "schema": {
@@ -7687,7 +6715,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/galleries": {
+    "/api/v2/meta/tables/{tableId}/galleries": {
       "parameters": [
         {
           "schema": {
@@ -7770,7 +6798,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/galleries/{galleryViewId}": {
+    "/api/v2/meta/galleries/{galleryViewId}": {
       "parameters": [
         {
           "schema": {
@@ -7862,7 +6890,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/kanbans": {
+    "/api/v2/meta/tables/{tableId}/kanbans": {
       "parameters": [
         {
           "schema": {
@@ -7947,7 +6975,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/kanbans/{kanbanViewId}": {
+    "/api/v2/meta/kanbans/{kanbanViewId}": {
       "parameters": [
         {
           "schema": {
@@ -8082,7 +7110,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/maps": {
+    "/api/v2/meta/tables/{tableId}/maps": {
       "parameters": [
         {
           "schema": {
@@ -8168,7 +7196,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/maps/{mapViewId}": {
+    "/api/v2/meta/maps/{mapViewId}": {
       "parameters": [
         {
           "schema": {
@@ -8260,7 +7288,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{baseId}/meta-diff": {
+    "/api/v2/meta/projects/{baseId}/meta-diff": {
       "parameters": [
         {
           "schema": {
@@ -8432,7 +7460,7 @@
         "description": "Get the meta data difference between NC_DB and external data sources "
       }
     },
-    "/api/v1/db/meta/projects/{baseId}/meta-diff/{sourceId}": {
+    "/api/v2/meta/projects/{baseId}/meta-diff/{sourceId}": {
       "parameters": [
         {
           "schema": {
@@ -8611,7 +7639,7 @@
         "description": "Get the meta data difference between NC_DB and external data sources in a given Source"
       }
     },
-    "/api/v1/db/meta/projects/{baseId}/has-empty-or-null-filters": {
+    "/api/v2/meta/projects/{baseId}/has-empty-or-null-filters": {
       "parameters": [
         {
           "schema": {
@@ -8653,2855 +7681,7 @@
         "x-internal": true
       }
     },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        }
-      ],
-      "get": {
-        "summary": "List Table Rows",
-        "operationId": "db-table-row-list",
-        "description": "List all table rows in a given table and base",
-        "tags": [
-          "DB Table Row"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "fields",
-            "description": "Which fields to be shown"
-          },
-          {
-            "schema": {
-              "oneOf": [
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                {
-                  "type": "string"
-                }
-              ]
-            },
-            "in": "query",
-            "name": "sort",
-            "description": "The result will be sorted based on `sort` query"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where",
-            "description": "Extra filtering"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "in": "query",
-            "name": "offset",
-            "description": "Offset in rows"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "in": "query",
-            "name": "limit",
-            "description": "Limit in rows"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "sortArrJson",
-            "description": "Used for multiple sort queries"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "filterArrJson",
-            "description": "Used for multiple filter queries"
-          },
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "list": {
-                      "type": "array",
-                      "x-stoplight": {
-                        "id": "g92aqxk869a7o"
-                      },
-                      "description": "List of data objects",
-                      "items": {
-                        "x-stoplight": {
-                          "id": "rnbt8ubciknfd"
-                        },
-                        "type": "object"
-                      }
-                    },
-                    "pageInfo": {
-                      "$ref": "#/components/schemas/Paginated",
-                      "x-stoplight": {
-                        "id": "7f38yyzdg03x5"
-                      },
-                      "description": "Paginated Info"
-                    }
-                  },
-                  "required": [
-                    "list",
-                    "pageInfo"
-                  ]
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "list": [
-                        {
-                          "Id": 1,
-                          "Title": "baz",
-                          "SingleSelect": null,
-                          "Sheet-1 List": [
-                            {
-                              "Id": 1,
-                              "Title": "baz"
-                            }
-                          ],
-                          "LTAR": [
-                            {
-                              "Id": 1,
-                              "Title": "baz"
-                            }
-                          ]
-                        },
-                        {
-                          "Id": 2,
-                          "Title": "foo",
-                          "SingleSelect": "a",
-                          "Sheet-1 List": [
-                            {
-                              "Id": 2,
-                              "Title": "foo"
-                            }
-                          ],
-                          "LTAR": [
-                            {
-                              "Id": 2,
-                              "Title": "foo"
-                            }
-                          ]
-                        },
-                        {
-                          "Id": 3,
-                          "Title": "bar",
-                          "SingleSelect": "b",
-                          "Sheet-1 List": [],
-                          "LTAR": []
-                        }
-                      ],
-                      "pageInfo": {
-                        "totalRows": 3,
-                        "page": 1,
-                        "pageSize": 25,
-                        "isFirstPage": true,
-                        "isLastPage": true
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        }
-      },
-      "post": {
-        "summary": "Create Table Row",
-        "operationId": "db-table-row-create",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB Table Row"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "Id": 1,
-                    "Title": "foo",
-                    "CreatedAt": "2023-03-11T09:10:53.567Z",
-                    "UpdatedAt": "2023-03-11T09:10:53.567Z"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Create a new row in a given table and base.",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/find-one": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        }
-      ],
-      "get": {
-        "summary": "Find One Table Row",
-        "operationId": "db-table-row-find-one",
-        "description": "Return the first result of the target Table Row",
-        "tags": [
-          "DB Table Row"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "fields"
-          },
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "sort"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where"
-          },
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "Id": 1,
-                      "Title": "foo",
-                      "CreatedAt": "2023-03-11T09:10:53.567Z",
-                      "UpdatedAt": "2023-03-11T09:10:53.567Z"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        }
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/groupby": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "in": "query",
-          "name": "column_name",
-          "description": "Column name of the column you want to group by, eg. `column_name=column1`"
-        }
-      ],
-      "get": {
-        "summary": "Group By Table Row",
-        "operationId": "db-table-row-group-by",
-        "description": "Get the result grouped by the given query",
-        "tags": [
-          "DB Table Row"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "sort"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "in": "query",
-            "name": "limit"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "in": "query",
-            "name": "offset"
-          },
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/group/{columnId}": {
-      "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string",
-            "example": "p_tbhl1hnycvhe5l"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string",
-            "example": "md_5hua2iqloqirhd"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "type": "string",
-            "example": "vw_mldv0a5mtwh1la"
-          },
-          "name": "viewName",
-          "in": "path",
-          "required": true,
-          "description": "View Name"
-        },
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "cl_8iw2o4ejzvdyna",
-            "type": "string"
-          },
-          "name": "columnId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Column ID"
-        }
-      ],
-      "get": {
-        "summary": "Table Group by Column",
-        "operationId": "db-view-row-grouped-data-list",
-        "description": "Get the grouped data By Column ID. Used in Kanban View.",
-        "tags": [
-          "DB View Row"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "fields"
-          },
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "sort"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where"
-          },
-          {
-            "schema": {},
-            "in": "query",
-            "name": "nested",
-            "description": "Query params for nested data"
-          },
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {}
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": [
-                      {
-                        "key": "a",
-                        "value": {
-                          "list": [
-                            {
-                              "Id": 2,
-                              "Title": "foo",
-                              "SingleSelect": "a"
-                            }
-                          ],
-                          "pageInfo": {
-                            "totalRows": 1,
-                            "page": 1,
-                            "pageSize": 25,
-                            "isFirstPage": true,
-                            "isLastPage": true
-                          }
-                        }
-                      },
-                      {
-                        "key": "b",
-                        "value": {
-                          "list": [
-                            {
-                              "Id": 3,
-                              "Title": "bar",
-                              "SingleSelect": "b"
-                            }
-                          ],
-                          "pageInfo": {
-                            "totalRows": 1,
-                            "page": 1,
-                            "pageSize": 25,
-                            "isFirstPage": true,
-                            "isLastPage": true
-                          }
-                        }
-                      },
-                      {
-                        "key": null,
-                        "value": {
-                          "list": [
-                            {
-                              "Id": 1,
-                              "Title": "baz",
-                              "SingleSelect": null
-                            },
-                            {
-                              "Id": 5,
-                              "Title": "xyz",
-                              "SingleSelect": null
-                            }
-                          ],
-                          "pageInfo": {
-                            "totalRows": 2,
-                            "page": 1,
-                            "pageSize": 25,
-                            "isFirstPage": true,
-                            "isLastPage": true
-                          }
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        }
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/group/{columnId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string",
-            "example": "p_tbhl1hnycvhe5l"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string",
-            "example": "md_5hua2iqloqirhd"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "cl_8iw2o4ejzvdyna",
-            "type": "string"
-          },
-          "name": "columnId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Column ID"
-        }
-      ],
-      "get": {
-        "summary": "Table Group by Column",
-        "operationId": "db-table-row-grouped-data-list",
-        "description": "Get the grouped data By Column ID. Used in Kanban View.",
-        "tags": [
-          "DB Table Row"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "fields"
-          },
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "sort"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where"
-          },
-          {
-            "schema": {},
-            "in": "query",
-            "name": "nested",
-            "description": "Query params for nested data"
-          },
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {}
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": [
-                      {
-                        "key": "a",
-                        "value": {
-                          "list": [
-                            {
-                              "Id": 2,
-                              "Title": "foo",
-                              "SingleSelect": "a"
-                            }
-                          ],
-                          "pageInfo": {
-                            "totalRows": 1,
-                            "page": 1,
-                            "pageSize": 25,
-                            "isFirstPage": true,
-                            "isLastPage": true
-                          }
-                        }
-                      },
-                      {
-                        "key": "b",
-                        "value": {
-                          "list": [
-                            {
-                              "Id": 3,
-                              "Title": "bar",
-                              "SingleSelect": "b"
-                            }
-                          ],
-                          "pageInfo": {
-                            "totalRows": 1,
-                            "page": 1,
-                            "pageSize": 25,
-                            "isFirstPage": true,
-                            "isLastPage": true
-                          }
-                        }
-                      },
-                      {
-                        "key": null,
-                        "value": {
-                          "list": [
-                            {
-                              "Id": 1,
-                              "Title": "baz",
-                              "SingleSelect": null
-                            },
-                            {
-                              "Id": 5,
-                              "Title": "xyz",
-                              "SingleSelect": null
-                            }
-                          ],
-                          "pageInfo": {
-                            "totalRows": 2,
-                            "page": 1,
-                            "pageSize": 25,
-                            "isFirstPage": true,
-                            "isLastPage": true
-                          }
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        }
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewName",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "List Table View Rows",
-        "operationId": "db-view-row-list",
-        "description": "List all table view rows",
-        "tags": [
-          "DB View Row"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "fields"
-          },
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "sort"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where"
-          },
-          {
-            "schema": {},
-            "in": "query",
-            "name": "nested",
-            "description": "Query params for nested data"
-          },
-          {
-            "schema": {
-              "type": "number"
-            },
-            "in": "query",
-            "name": "offset"
-          },
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "list": {
-                      "type": "array",
-                      "x-stoplight": {
-                        "id": "okd8utzm9xqet"
-                      },
-                      "description": "List of table view rows",
-                      "items": {
-                        "x-stoplight": {
-                          "id": "j758lsjv53o4q"
-                        },
-                        "type": "object"
-                      }
-                    },
-                    "pageInfo": {
-                      "$ref": "#/components/schemas/Paginated",
-                      "x-stoplight": {
-                        "id": "hylgqzgm8yhye"
-                      },
-                      "description": "Paginated Info"
-                    }
-                  },
-                  "required": [
-                    "list",
-                    "pageInfo"
-                  ]
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "list": [
-                        {
-                          "Id": 1,
-                          "Title": "baz",
-                          "SingleSelect": null,
-                          "Sheet-1 List": [
-                            {
-                              "Id": 1,
-                              "Title": "baz"
-                            }
-                          ],
-                          "LTAR": [
-                            {
-                              "Id": 1,
-                              "Title": "baz"
-                            }
-                          ]
-                        },
-                        {
-                          "Id": 2,
-                          "Title": "foo",
-                          "SingleSelect": "a",
-                          "Sheet-1 List": [
-                            {
-                              "Id": 2,
-                              "Title": "foo"
-                            }
-                          ],
-                          "LTAR": [
-                            {
-                              "Id": 2,
-                              "Title": "foo"
-                            }
-                          ]
-                        },
-                        {
-                          "Id": 3,
-                          "Title": "bar",
-                          "SingleSelect": "b",
-                          "Sheet-1 List": [],
-                          "LTAR": []
-                        }
-                      ],
-                      "pageInfo": {
-                        "totalRows": 3,
-                        "page": 1,
-                        "pageSize": 25,
-                        "isFirstPage": true,
-                        "isLastPage": true
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        }
-      },
-      "post": {
-        "summary": "Create Table View Row",
-        "operationId": "db-view-row-create",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "Id": 1,
-                      "col1": "foo",
-                      "col2": "bar",
-                      "CreatedAt": "2023-03-11T08:48:25.598Z",
-                      "UpdatedAt": "2023-03-11T08:48:25.598Z"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB View Row"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "col1": "foo",
-                    "col2": "bar"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Create a new row in the given Table View"
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/find-one": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewName",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "Find One Table View Row",
-        "operationId": "db-view-row-find-one",
-        "description": "Return the first result of table view rows with the given query",
-        "tags": [
-          "DB View Row"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "fields"
-          },
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "sort"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where"
-          },
-          {
-            "schema": {},
-            "in": "query",
-            "name": "nested",
-            "description": "Query params for nested data"
-          },
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "Id": 1,
-                      "Title": "foo",
-                      "CreatedAt": "2023-03-11T09:10:53.567Z",
-                      "UpdatedAt": "2023-03-11T09:10:53.567Z"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        }
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/groupby": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewName",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "in": "query",
-          "name": "column_name",
-          "description": "Column name of the column you want to group by, eg. `column_name=column1`"
-        }
-      ],
-      "get": {
-        "summary": "Group By Table View Row",
-        "operationId": "db-view-row-group-by",
-        "description": "Get the table view rows grouped by the given query",
-        "tags": [
-          "DB View Row"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "sort"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "in": "query",
-            "name": "limit"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "in": "query",
-            "name": "offset"
-          },
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        }
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/count": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "type": "string",
-            "example": "vw_75neroyqdye94k"
-          },
-          "name": "viewName",
-          "in": "path",
-          "required": true,
-          "description": "View Name"
-        }
-      ],
-      "get": {
-        "summary": "Count Table View Rows",
-        "operationId": "db-view-row-count",
-        "description": "Count how many rows in the given Table View",
-        "tags": [
-          "DB View Row"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where"
-          },
-          {
-            "schema": {},
-            "in": "query",
-            "name": "nested",
-            "description": "Query params for nested data"
-          },
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "count": {
-                      "type": "number",
-                      "x-stoplight": {
-                        "id": "hwq29x70rcipi"
-                      }
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "count": 25
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "type": "string",
-            "example": "vw_75neroyqdye94k"
-          },
-          "name": "viewName",
-          "in": "path",
-          "required": true,
-          "description": "View Name"
-        },
-        {
-          "schema": {
-            "example": "1"
-          },
-          "name": "rowId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Row ID"
-        }
-      ],
-      "get": {
-        "summary": "Get Table View Row",
-        "operationId": "db-view-row-read",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "Id": 1,
-                      "Title": "foo",
-                      "CreatedAt": "2023-03-11T09:11:47.437Z",
-                      "UpdatedAt": "2023-03-11T09:11:47.784Z"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Get the target Table View Row",
-        "tags": [
-          "DB View Row"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "patch": {
-        "summary": "Update Table View Row",
-        "operationId": "db-view-row-update",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "Id": 1,
-                      "Title": "bar",
-                      "CreatedAt": "2023-03-11T09:11:47.437Z",
-                      "UpdatedAt": "2023-03-11T09:20:21.133Z"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB View Row"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "Title": "bar"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Update the target Table View Row",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "delete": {
-        "summary": "Delete Table View Row",
-        "operationId": "db-view-row-delete",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "number"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": 1
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB View Row"
-        ],
-        "description": "Delete the target Table View Row",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}/exist": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewName",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "example": "1"
-          },
-          "name": "rowId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Row ID"
-        }
-      ],
-      "get": {
-        "summary": "Does Table View Row Exist",
-        "operationId": "db-view-row-exist",
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "number"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": 1
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Check row with provided primary key exists or not",
-        "tags": [
-          "DB View Row"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "example": "1"
-          },
-          "name": "rowId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Row ID"
-        },
-        {
-          "name": "getHiddenColumn",
-          "in": "query",
-          "description": "To get Hidden Columns",
-          "required": false,
-          "schema": {
-            "type": "boolean"
-          }
-        }
-      ],
-      "get": {
-        "summary": "Get Table Row",
-        "operationId": "db-table-row-read",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "Id": 1,
-                      "Title": "foo",
-                      "CreatedAt": "2023-03-11T09:11:47.437Z",
-                      "UpdatedAt": "2023-03-11T09:11:47.784Z"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Get the Table Row by Row ID",
-        "tags": [
-          "DB Table Row"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "patch": {
-        "summary": "Update Table Row",
-        "operationId": "db-table-row-update",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "Id": 1,
-                      "Title": "bar",
-                      "CreatedAt": "2023-03-11T09:11:47.437Z",
-                      "UpdatedAt": "2023-03-11T09:20:21.133Z"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB Table Row"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "Title": "bar"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Update the Table Row",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "delete": {
-        "summary": "Delete Table Row",
-        "operationId": "db-table-row-delete",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "number"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": 1
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB Table Row"
-        ],
-        "description": "Delete the Table Row",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/exist": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "example": "1"
-          },
-          "name": "rowId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Row ID"
-        }
-      ],
-      "get": {
-        "summary": "Does Table Row Exist",
-        "operationId": "db-table-row-exist",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "number"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": 1
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "check row with provided primary key exists or not",
-        "tags": [
-          "DB Table Row"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        }
-      ],
-      "post": {
-        "summary": "Bulk Insert Table Rows",
-        "operationId": "db-table-row-bulk-create",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "description": "List of returned IDs",
-                  "items": {
-                    "x-stoplight": {
-                      "id": "dbkhyd3mnajax"
-                    },
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string",
-                        "x-stoplight": {
-                          "id": "lnwqjl14f287f"
-                        }
-                      }
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": [
-                      {
-                        "id": 1
-                      },
-                      {
-                        "id": 2
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB Table Row"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "array",
-                "description": "List of data objects",
-                "items": {
-                  "x-stoplight": {
-                    "id": "7u0mp8nzlvysz"
-                  },
-                  "type": "object"
-                }
-              },
-              "examples": {
-                "Example 1": {
-                  "value": [
-                    {
-                      "Title": "abc"
-                    },
-                    {
-                      "Title": "def"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "description": ""
-        },
-        "description": "Bulk insert table rows in one go.",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "patch": {
-        "summary": "Bulk Update Table Rows by IDs",
-        "operationId": "db-table-row-bulk-update",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "description": "List of returned values. 1 means successful. 0 means failed.",
-                  "items": {
-                    "x-stoplight": {
-                      "id": "ga0xhsahovdt7"
-                    },
-                    "type": "number"
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": [
-                      1,
-                      1
-                    ]
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB Table Row"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "array",
-                "description": "List of data objects",
-                "items": {
-                  "x-stoplight": {
-                    "id": "q2xtbf29i1s5n"
-                  },
-                  "type": "object"
-                }
-              },
-              "examples": {
-                "Example 1": {
-                  "value": [
-                    {
-                      "Id": "1",
-                      "Title": "123"
-                    },
-                    {
-                      "Id": "2",
-                      "Title": "456"
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "description": "Bulk Update Table Rows by given IDs",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "delete": {
-        "summary": "Bulk Delete Table Rows by IDs",
-        "operationId": "db-table-row-bulk-delete",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "x-stoplight": {
-                      "id": "b9o9o2r6ipho9"
-                    },
-                    "type": "number"
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": [
-                      1,
-                      1
-                    ]
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB Table Row"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "array",
-                "items": {
-                  "x-stoplight": {
-                    "id": "sd8udhhjnqiay"
-                  },
-                  "type": "object"
-                }
-              },
-              "examples": {
-                "Example 1": {
-                  "value": [
-                    {
-                      "Id": "1"
-                    },
-                    {
-                      "Id": "2"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "description": ""
-        },
-        "description": "Bulk Delete Table Rows by given IDs",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}/all": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "in": "query",
-          "name": "where"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "in": "query",
-          "name": "viewId"
-        }
-      ],
-      "patch": {
-        "summary": "Bulk Update Table Rows with Conditions",
-        "operationId": "db-table-row-bulk-update-all",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {},
-                "examples": {
-                  "Example 1": {
-                    "value": [
-                      {
-                        "Id": "1"
-                      },
-                      {
-                        "Id": "2"
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB Table Row"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "Title": "foo"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Bulk Update all Table Rows if the condition is true",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "delete": {
-        "summary": "Bulk Delete Table Rows with Conditions",
-        "operationId": "db-table-row-bulk-delete-all",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "x-stoplight": {
-                      "id": "9gcl3ok7is3y0"
-                    },
-                    "type": "object"
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": [
-                      1,
-                      1
-                    ]
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB Table Row"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "Title": "foo"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Bulk Delete all Table Rows if the condition is true",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/export/{type}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewName",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string",
-            "enum": [
-              "csv",
-              "excel"
-            ]
-          },
-          "name": "type",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "Export Table View Rows",
-        "operationId": "db-view-row-export",
-        "description": "Export Table View Rows by CSV or Excel",
-        "tags": [
-          "DB View Row"
-        ],
-        "wrapped": true,
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/octet-stream": {
-                "schema": {}
-              }
-            },
-            "headers": {
-              "nc-export-offset": {
-                "schema": {
-                  "type": "integer"
-                },
-                "description": "The starting offset of the next set of rows"
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/export/{type}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "type": "string",
-            "enum": [
-              "csv",
-              "excel"
-            ]
-          },
-          "name": "type",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "Export Table View Rows",
-        "operationId": "db-table-row-csv-export",
-        "description": "Export Table View Rows by CSV or Excel",
-        "tags": [
-          "DB Table Row"
-        ],
-        "wrapped": true,
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/octet-stream": {
-                "schema": {}
-              }
-            },
-            "headers": {
-              "nc-export-offset": {
-                "schema": {
-                  "type": "integer"
-                },
-                "description": "The starting offset of the next set of rows"
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "example": "1"
-          },
-          "name": "rowId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Row ID"
-        },
-        {
-          "schema": {
-            "type": "string",
-            "enum": [
-              "mm",
-              "hm",
-              "bt"
-            ]
-          },
-          "name": "relationType",
-          "in": "path",
-          "required": true,
-          "description": "Relation Type"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "columnName",
-          "in": "path",
-          "required": true,
-          "description": "Column Name"
-        }
-      ],
-      "get": {
-        "summary": "List Nested Relations Rows",
-        "operationId": "db-table-row-nested-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB Table Row"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "in": "query",
-            "name": "limit"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "in": "query",
-            "name": "offset"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where"
-          },
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "description": "List all nested relations rows"
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "example": "1"
-          },
-          "name": "rowId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Row ID"
-        },
-        {
-          "schema": {
-            "type": "string",
-            "enum": [
-              "mm",
-              "hm",
-              "bt"
-            ]
-          },
-          "name": "relationType",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "columnName",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "refRowId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "post": {
-        "summary": "Create Nested Relations Row",
-        "operationId": "db-table-row-nested-add",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "x-stoplight": {
-                        "id": "m6jox00hxgd6s"
-                      },
-                      "example": "The relation data has been created successfully"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "The relation data has been created successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB Table Row"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "fields",
-            "description": "Which fields to be shown"
-          },
-          {
-            "schema": {
-              "oneOf": [
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                {
-                  "type": "string"
-                }
-              ]
-            },
-            "in": "query",
-            "name": "sort",
-            "description": "The result will be sorted based on `sort` query"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where",
-            "description": "Extra filtering"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "in": "query",
-            "name": "offset",
-            "description": "Offset in rows"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "in": "query",
-            "name": "limit",
-            "description": "Limit in rows"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "sortArrJson",
-            "description": "Used for multiple sort queries"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "filterArrJson",
-            "description": "Used for multiple filter queries"
-          },
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "description": "Create a new nested relations row"
-      },
-      "delete": {
-        "summary": "Delete Nested Relations Row",
-        "operationId": "db-table-row-nested-remove",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "x-stoplight": {
-                        "id": "vo3x8xf3j2xlb"
-                      },
-                      "example": "The relation data has been deleted successfully"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "The relation data has been deleted successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB Table Row"
-        ],
-        "description": "Delete a new nested relations row",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "example": "1"
-          },
-          "name": "rowId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Row ID"
-        },
-        {
-          "schema": {
-            "type": "string",
-            "enum": [
-              "mm",
-              "hm",
-              "bt"
-            ]
-          },
-          "name": "relationType",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "columnName",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "Referenced Table Rows Excluding Current Record's Children / Parent",
-        "operationId": "db-table-row-nested-children-excluded-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB Table Row"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "in": "query",
-            "name": "limit"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "in": "query",
-            "name": "offset"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where"
-          },
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "description": "Get the table rows but exculding the current record's children and parent"
-      }
-    },
-    "/api/v1/db/public/shared-view/{sharedViewUuid}/group/{columnId}": {
+    "/api/v2/public/shared-view/{sharedViewUuid}/group/{columnId}": {
       "parameters": [
         {
           "schema": {
@@ -11742,7 +7922,7 @@
         "description": "List Shared View Grouped Data"
       }
     },
-    "/api/v1/db/public/shared-view/{sharedViewUuid}/rows": {
+    "/api/v2/public/shared-view/{sharedViewUuid}/rows": {
       "parameters": [
         {
           "schema": {
@@ -11950,7 +8130,7 @@
         "description": "Create a new row for the target shared view"
       }
     },
-    "/api/v1/db/public/shared-view/{sharedViewUuid}/groupby": {
+    "/api/v2/public/shared-view/{sharedViewUuid}/groupby": {
       "parameters": [
         {
           "schema": {
@@ -12073,7 +8253,7 @@
         "description": "List all shared view rows grouped by a column"
       }
     },
-    "/api/v1/db/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}": {
+    "/api/v2/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}": {
       "parameters": [
         {
           "schema": {
@@ -12271,7 +8451,7 @@
         "description": "List all nested list data in a given shared view"
       }
     },
-    "/api/v1/db/public/shared-view/{sharedViewUuid}/rows/export/{type}": {
+    "/api/v2/public/shared-view/{sharedViewUuid}/rows/export/{type}": {
       "parameters": [
         {
           "schema": {
@@ -12329,7 +8509,7 @@
         ]
       }
     },
-    "/api/v1/db/public/shared-view/{sharedViewUuid}/nested/{columnName}": {
+    "/api/v2/public/shared-view/{sharedViewUuid}/nested/{columnName}": {
       "parameters": [
         {
           "schema": {
@@ -12451,7 +8631,7 @@
         "description": "List Nested Data Relation"
       }
     },
-    "/api/v1/db/public/shared-base/{sharedBaseUuid}/meta": {
+    "/api/v2/public/shared-base/{sharedBaseUuid}/meta": {
       "parameters": [
         {
           "schema": {
@@ -12506,7 +8686,7 @@
         ]
       }
     },
-    "/api/v1/db/public/shared-view/{sharedViewUuid}/meta": {
+    "/api/v2/public/shared-view/{sharedViewUuid}/meta": {
       "parameters": [
         {
           "schema": {
@@ -12611,7 +8791,7 @@
         "description": "Get Share View Meta"
       }
     },
-    "/api/v1/db/public/shared-erd/{sharedErdUuid}/meta": {
+    "/api/v2/public/shared-erd/{sharedErdUuid}/meta": {
       "parameters": [
         {
           "schema": {
@@ -12632,7 +8812,7 @@
         "parameters": []
       }
     },
-    "/api/v1/db/meta/audits/comments": {
+    "/api/v2/meta/audits/comments": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -12814,7 +8994,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/audits/{auditId}/comment": {
+    "/api/v2/meta/audits/{auditId}/comment": {
       "parameters": [
         {
           "schema": {
@@ -12879,7 +9059,7 @@
         }
       }
     },
-    "/api/v1/db/meta/audits/comments/count": {
+    "/api/v2/meta/audits/comments/count": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -12967,7 +9147,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{baseId}/audits": {
+    "/api/v2/meta/projects/{baseId}/audits": {
       "parameters": [
         {
           "schema": {
@@ -13050,7 +9230,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/audits/rows/{rowId}/update": {
+    "/api/v2/meta/audits/rows/{rowId}/update": {
       "parameters": [
         {
           "schema": {
@@ -13124,7 +9304,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/hooks": {
+    "/api/v2/meta/tables/{tableId}/hooks": {
       "parameters": [
         {
           "schema": {
@@ -13271,7 +9451,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/hooks/test": {
+    "/api/v2/meta/tables/{tableId}/hooks/test": {
       "parameters": [
         {
           "schema": {
@@ -13378,7 +9558,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}/{version}": {
+    "/api/v2/meta/tables/{tableId}/hooks/samplePayload/{operation}/{version}": {
       "parameters": [
         {
           "schema": {
@@ -13472,7 +9652,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/hooks/{hookId}": {
+    "/api/v2/meta/hooks/{hookId}": {
       "parameters": [
         {
           "schema": {
@@ -13596,7 +9776,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/plugins": {
+    "/api/v2/meta/plugins": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -13644,7 +9824,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/plugins/webhook": {
+    "/api/v2/meta/plugins/webhook": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -13692,7 +9872,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/plugins/{pluginTitle}/status": {
+    "/api/v2/meta/plugins/{pluginTitle}/status": {
       "parameters": [
         {
           "schema": {
@@ -13734,7 +9914,7 @@
         "x-internal": false
       }
     },
-    "/api/v1/db/meta/plugins/test": {
+    "/api/v2/meta/plugins/test": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -13785,7 +9965,7 @@
         }
       }
     },
-    "/api/v1/db/meta/plugins/{pluginId}": {
+    "/api/v2/meta/plugins/{pluginId}": {
       "parameters": [
         {
           "schema": {
@@ -13858,7 +10038,7 @@
         "x-internal": false
       }
     },
-    "/api/v1/db/meta/connection/test": {
+    "/api/v2/meta/connection/test": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -13987,7 +10167,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/connection/select": {
+    "/api/v2/meta/connection/select": {
       "parameters": [],
       "post": {
         "summary": "",
@@ -14142,7 +10322,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/nocodb/info": {
+    "/api/v2/meta/nocodb/info": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -14294,7 +10474,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/axiosRequestMake": {
+    "/api/v2/meta/axiosRequestMake": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -14695,7 +10875,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/cache": {
+    "/api/v2/meta/cache": {
       "get": {
         "summary": "Get Cache",
         "tags": [
@@ -14749,7 +10929,7 @@
         }
       ]
     },
-    "/api/v1/db/meta/projects/{baseId}/api-tokens": {
+    "/api/v2/meta/projects/{baseId}/api-tokens": {
       "get": {
         "summary": "List API Tokens in Base",
         "tags": [
@@ -14868,7 +11048,7 @@
         }
       ]
     },
-    "/api/v1/db/meta/projects/{baseId}/api-tokens/{token}": {
+    "/api/v2/meta/projects/{baseId}/api-tokens/{token}": {
       "delete": {
         "summary": "Delete API Token",
         "operationId": "api-token-delete",
@@ -14927,7 +11107,7 @@
         }
       ]
     },
-    "/api/v1/db/storage/upload": {
+    "/api/v2/storage/upload": {
       "post": {
         "summary": "Attachment Upload",
         "operationId": "storage-upload",
@@ -14973,7 +11153,7 @@
         "description": "Upload attachment"
       }
     },
-    "/api/v1/db/storage/upload-by-url": {
+    "/api/v2/storage/upload-by-url": {
       "post": {
         "summary": "Attachment Upload by URL",
         "operationId": "storage-upload-by-url",
@@ -15012,7 +11192,7 @@
         "description": "Upload attachment by URL. Used in Airtable Migration."
       }
     },
-    "/api/v1/db/meta/projects/{baseId}/users/{userId}/resend-invite": {
+    "/api/v2/meta/projects/{baseId}/users/{userId}/resend-invite": {
       "parameters": [
         {
           "schema": {
@@ -15192,7 +11372,7 @@
         "description": "Mark all notifications as read"
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/columns/hash": {
+    "/api/v2/meta/tables/{tableId}/columns/hash": {
       "parameters": [
         {
           "schema": {
@@ -15238,7 +11418,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/columns/bulk": {
+    "/api/v2/meta/tables/{tableId}/columns/bulk": {
       "parameters": [
         {
           "schema": {
@@ -16227,54 +12407,6 @@
           }
         ]
       }
-    },
-    "/jobs/listen": {
-      "post": {
-        "summary": "Jobs Listen",
-        "operationId": "jobs-listen",
-        "description": "Listen for job events",
-        "tags": [
-          "Jobs"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              }
-            }
-          }
-        }
-      },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ]
-    },
-    "/jobs/status": {
-      "post": {
-        "summary": "Jobs Status",
-        "operationId": "jobs-status",
-        "description": "Get job status",
-        "tags": [
-          "Jobs"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              }
-            }
-          }
-        }
-      },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ]
     }
   },
   "components": {

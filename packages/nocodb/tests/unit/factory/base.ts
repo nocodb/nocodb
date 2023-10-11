@@ -59,7 +59,7 @@ const defaultSharedBaseValue = {
 
 const createSharedBase = async (app, token, base, sharedBaseArgs = {}) => {
   await request(app)
-    .post(`/api/v1/meta/bases/${base.id}/shared`)
+    .post(`/api/v1/db/meta/projects/${base.id}/shared`)
     .set('xc-auth', token)
     .send({
       ...defaultSharedBaseValue,
@@ -69,7 +69,7 @@ const createSharedBase = async (app, token, base, sharedBaseArgs = {}) => {
 
 const createSakilaProject = async (context) => {
   const response = await request(context.app)
-    .post('/api/v1/meta/bases/')
+    .post('/api/v1/db/meta/projects/')
     .set('xc-auth', context.token)
     .send(sakilaProjectConfig(context));
 
@@ -81,7 +81,7 @@ const createProject = async (
   baseArgs: ProjectArgs = defaultProjectValue,
 ) => {
   const response = await request(context.app)
-    .post('/api/v1/meta/bases/')
+    .post('/api/v1/db/meta/projects/')
     .set('xc-auth', context.token)
     .send({
       ...baseArgs,

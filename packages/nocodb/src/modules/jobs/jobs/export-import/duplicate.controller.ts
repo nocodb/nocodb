@@ -94,7 +94,7 @@ export class DuplicateController {
 
   @Post([
     '/api/v1/db/meta/duplicate/:baseId/:sourceId?',
-    '/api/v1/meta/duplicate/:baseId/:sourceId?',
+    '/api/v2/meta/duplicate/:baseId/:sourceId?',
   ])
   @HttpCode(200)
   @Acl('duplicateBase')
@@ -159,7 +159,7 @@ export class DuplicateController {
 
   @Post([
     '/api/v1/db/meta/duplicate/:baseId/table/:modelId',
-    '/api/v1/meta/duplicate/:baseId/table/:modelId',
+    '/api/v2/meta/duplicate/:baseId/table/:modelId',
   ])
   @HttpCode(200)
   @Acl('duplicateModel')

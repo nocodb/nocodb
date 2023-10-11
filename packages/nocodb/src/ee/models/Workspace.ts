@@ -58,12 +58,10 @@ export default class Workspace implements WorkspaceType {
     );
 
     if (!workspaceData) {
-      workspaceData = await ncMeta.metaGet2(
-        null,
-        null,
-        MetaTable.WORKSPACE,
-        workspaceId,
-      );
+      workspaceData = await ncMeta.metaGet2(null, null, MetaTable.WORKSPACE, {
+        id: workspaceId,
+        deleted: false,
+      });
       if (workspaceData) {
         workspaceData.meta = parseMetaProp(workspaceData);
         workspaceData.infra_meta = parseMetaProp(workspaceData, 'infra_meta');
@@ -118,15 +116,21 @@ export default class Workspace implements WorkspaceType {
 
   public static async update(
     id: string,
-    workspace: Partial<Workspace>,
+    workspaceAttr: Partial<Workspace>,
     ncMeta = Noco.ncMeta,
   ) {
+    if (!id) NcError.badRequest('Workspace id is required');
+
+    const workspace = await this.get(id);
+
+    if (!workspace) NcError.notFound('Workspace not found');
+
     // get existing cache
     const key = `${CacheScope.WORKSPACE}:${id}`;
     const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
 
     // extract props which is allowed to be inserted
-    const updateObject = extractProps(workspace, [
+    const updateObject = extractProps(workspaceAttr, [
       'title',
       'description',
       'meta',

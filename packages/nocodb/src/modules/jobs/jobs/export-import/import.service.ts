@@ -34,6 +34,7 @@ import { ViewsService } from '~/services/views.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { sanitizeColumnName } from '~/helpers';
 
 @Injectable()
 export class ImportService {
@@ -149,7 +150,7 @@ export class ImportService {
       // map column id's with new created column id's
       for (const col of table.columns) {
         const colRef = modelData.columns.find(
-          (a) => a.column_name === col.column_name,
+          (a) => sanitizeColumnName(a.column_name) === col.column_name,
         );
         idMap.set(colRef.id, col.id);
 

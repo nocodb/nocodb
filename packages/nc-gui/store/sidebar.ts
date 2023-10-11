@@ -12,7 +12,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const _isLeftSidebarOpen = ref(!isViewPortMobile())
   const isLeftSidebarOpen = computed({
     get() {
-      return (isMobileMode && !tablesStore.activeTableId) || _isLeftSidebarOpen.value
+      return (isMobileMode.value && !tablesStore.activeTableId) || _isLeftSidebarOpen.value
     },
     set(value) {
       _isLeftSidebarOpen.value = value

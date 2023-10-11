@@ -434,7 +434,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     // block unauthorized user form deleting
 
     // todo: unlink any base linked
-    await Workspace.delete(param.workspaceId);
+    await Workspace.softDelete(param.workspaceId);
 
     this.appHooksService.emit(AppEvents.WORKSPACE_DELETE, {
       workspace,

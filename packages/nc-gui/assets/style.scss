@@ -603,7 +603,7 @@ input[type='number'] {
 }
 
 .nc-sidebar-node {
-  @apply !xs:(min-h-12 max-h-12 hover:bg-gray-50 ml-1.5);
+  @apply !xs:(min-h-12 max-h-12 hover:bg-gray-50 ml-1.5 w-[calc(100%-8px)]);
 
   .nc-emoji {
     @apply xs:(text-lg);

@@ -1,0 +1,27 @@
+{
+  "unversionedId": "rows/rows-overview",
+  "id": "rows/rows-overview",
+  "title": "Overview",
+  "description": "",
+  "source": "@site/docs/070.rows/010.rows-overview.md",
+  "sourceDirName": "070.rows",
+  "slug": "/rows/rows-overview",
+  "permalink": "/rows/rows-overview",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.rows/010.rows-overview.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Overview"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Configurations",
+    "permalink": "/fields/configurations"
+  },
+  "next": {
+    "title": "Create",
+    "permalink": "/rows/create"
+  }
+}

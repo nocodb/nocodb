@@ -1,0 +1,14 @@
+{
+  "label": "Primary Key",
+  "permalink": "/tags/primary-key",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "fields/primary-key",
+      "title": "Primary key",
+      "description": "Understanding Primary Key in NocoDB!",
+      "permalink": "/fields/primary-key"
+    }
+  ]
+}

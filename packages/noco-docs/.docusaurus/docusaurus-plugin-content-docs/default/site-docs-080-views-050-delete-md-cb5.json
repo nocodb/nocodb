@@ -1,0 +1,27 @@
+{
+  "unversionedId": "views/delete",
+  "id": "views/delete",
+  "title": "Delete",
+  "description": "",
+  "source": "@site/docs/080.views/050.delete.md",
+  "sourceDirName": "080.views",
+  "slug": "/views/delete",
+  "permalink": "/views/delete",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/080.views/050.delete.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 50,
+  "frontMatter": {
+    "title": "Delete"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Duplicate",
+    "permalink": "/views/duplicate"
+  },
+  "next": {
+    "title": "Configurations",
+    "permalink": "/views/configurations"
+  }
+}

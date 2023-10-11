@@ -1,0 +1,25 @@
+{
+  "unversionedId": "fields/field-types/formula/string-functions",
+  "id": "fields/field-types/formula/string-functions",
+  "title": "string-functions",
+  "description": "",
+  "source": "@site/docs/060.fields/030.field-types/060.formula/020.string-functions.md",
+  "sourceDirName": "060.fields/030.field-types/060.formula",
+  "slug": "/fields/field-types/formula/string-functions",
+  "permalink": "/fields/field-types/formula/string-functions",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/060.formula/020.string-functions.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "numeric-functions",
+    "permalink": "/fields/field-types/formula/numeric-functions"
+  },
+  "next": {
+    "title": "Date Time",
+    "permalink": "/fields/field-types/date-time-based/date-time"
+  }
+}

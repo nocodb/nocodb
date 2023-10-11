@@ -1,0 +1,14 @@
+{
+  "label": "User management",
+  "permalink": "/tags/user-management",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "collaboration/oss-specific-details",
+      "title": "In Open Source",
+      "description": "This article explains specifics of User management in OSS.",
+      "permalink": "/collaboration/oss-specific-details"
+    }
+  ]
+}

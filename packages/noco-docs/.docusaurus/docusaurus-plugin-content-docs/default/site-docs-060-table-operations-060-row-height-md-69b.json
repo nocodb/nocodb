@@ -1,0 +1,49 @@
+{
+  "unversionedId": "table-operations/row-height",
+  "id": "table-operations/row-height",
+  "title": "Row height",
+  "description": "NocoDB offers users the flexibility to adjust the display height of records within the spreadsheet grid to four distinct levels: Short (the default setting), Medium, Tall, and Extra. This feature proves valuable when working with extensive text columns and multi-select fields, as it enables users to present a greater amount of content within each cell.",
+  "source": "@site/docs/060.table-operations/060.row-height.md",
+  "sourceDirName": "060.table-operations",
+  "slug": "/table-operations/row-height",
+  "permalink": "/table-operations/row-height",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.table-operations/060.row-height.md",
+  "tags": [
+    {
+      "label": "Table operations",
+      "permalink": "/tags/table-operations"
+    },
+    {
+      "label": "Row height",
+      "permalink": "/tags/row-height"
+    },
+    {
+      "label": "Grid View",
+      "permalink": "/tags/grid-view"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 60,
+  "frontMatter": {
+    "title": "Row height",
+    "tags": [
+      "Table operations",
+      "Row height",
+      "Grid View"
+    ],
+    "keywords": [
+      "table operations",
+      "row height"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Grouping records",
+    "permalink": "/table-operations/group-by"
+  },
+  "next": {
+    "title": "Search",
+    "permalink": "/table-operations/search"
+  }
+}

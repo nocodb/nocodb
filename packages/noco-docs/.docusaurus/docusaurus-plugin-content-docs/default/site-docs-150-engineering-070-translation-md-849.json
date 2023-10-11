@@ -1,0 +1,36 @@
+{
+  "unversionedId": "engineering/translation",
+  "id": "engineering/translation",
+  "title": "i18n translation",
+  "description": "Contribute to NocoDB's i18n translation",
+  "source": "@site/docs/150.engineering/070.translation.md",
+  "sourceDirName": "150.engineering",
+  "slug": "/engineering/translation",
+  "permalink": "/engineering/translation",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/150.engineering/070.translation.md",
+  "tags": [
+    {
+      "label": "Engineering",
+      "permalink": "/tags/engineering"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 70,
+  "frontMatter": {
+    "title": "i18n translation",
+    "description": "Contribute to NocoDB's i18n translation",
+    "tags": [
+      "Engineering"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Releases & builds",
+    "permalink": "/engineering/builds-and-releases"
+  },
+  "next": {
+    "title": "Writing docs",
+    "permalink": "/engineering/writing-docs"
+  }
+}

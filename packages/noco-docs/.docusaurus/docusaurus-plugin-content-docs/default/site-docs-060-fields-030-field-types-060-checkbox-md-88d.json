@@ -1,0 +1,25 @@
+{
+  "unversionedId": "fields/field-types/checkbox",
+  "id": "fields/field-types/checkbox",
+  "title": "checkbox",
+  "description": "",
+  "source": "@site/docs/060.fields/030.field-types/060.checkbox.md",
+  "sourceDirName": "060.fields/030.field-types",
+  "slug": "/fields/field-types/checkbox",
+  "permalink": "/fields/field-types/checkbox",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/060.checkbox.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 60,
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "attachment",
+    "permalink": "/fields/field-types/attachment"
+  },
+  "next": {
+    "title": "rating",
+    "permalink": "/fields/field-types/rating"
+  }
+}

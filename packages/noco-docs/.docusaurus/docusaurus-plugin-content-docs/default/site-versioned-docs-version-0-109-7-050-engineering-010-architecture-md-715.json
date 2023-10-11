@@ -1,0 +1,29 @@
+{
+  "unversionedId": "engineering/architecture",
+  "id": "version-0.109.7/engineering/architecture",
+  "title": "Architecture Overview",
+  "description": "Simple overview of NocoDB architecture",
+  "source": "@site/versioned_docs/version-0.109.7/050.engineering/010.architecture.md",
+  "sourceDirName": "050.engineering",
+  "slug": "/engineering/architecture",
+  "permalink": "/0.109.7/engineering/architecture",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/versioned_docs/version-0.109.7/050.engineering/010.architecture.md",
+  "tags": [],
+  "version": "0.109.7",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Architecture Overview",
+    "description": "Simple overview of NocoDB architecture",
+    "hide_table_of_contents": true
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Upload via API",
+    "permalink": "/0.109.7/developer-resources/upload-via-api"
+  },
+  "next": {
+    "title": "Repository structure",
+    "permalink": "/0.109.7/engineering/repository-structure"
+  }
+}

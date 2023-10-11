@@ -1,0 +1,27 @@
+{
+  "unversionedId": "account-settings/overview",
+  "id": "account-settings/overview",
+  "title": "Overview",
+  "description": "",
+  "source": "@site/docs/120.account-settings/010.overview.md",
+  "sourceDirName": "120.account-settings",
+  "slug": "/account-settings/overview",
+  "permalink": "/account-settings/overview",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/120.account-settings/010.overview.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Overview"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Actions on webhook",
+    "permalink": "/automation/webhook/actions-on-webhook"
+  },
+  "next": {
+    "title": "FAQs",
+    "permalink": "/FAQs"
+  }
+}

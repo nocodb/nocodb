@@ -1,0 +1,27 @@
+{
+  "unversionedId": "tables/import-excel",
+  "id": "tables/import-excel",
+  "title": "Import from Excel",
+  "description": "",
+  "source": "@site/docs/050.tables/070.import-excel.md",
+  "sourceDirName": "050.tables",
+  "slug": "/tables/import-excel",
+  "permalink": "/tables/import-excel",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/050.tables/070.import-excel.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 70,
+  "frontMatter": {
+    "title": "Import from Excel"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Delete",
+    "permalink": "/tables/delete-table"
+  },
+  "next": {
+    "title": "Import from JSON",
+    "permalink": "/tables/import-json"
+  }
+}

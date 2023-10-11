@@ -1,0 +1,27 @@
+{
+  "unversionedId": "toolbar/filter",
+  "id": "toolbar/filter",
+  "title": "Filtering records",
+  "description": "Filters provide a powerful way to narrow down and organize your data according to your specific requirements. NocoDB supports nested filters, allowing you to select multiple columns and conditions for filtering. You can choose between and or or mode of operation to combine filters, and filtering also supports Lookup, Formula, and Nested Data.",
+  "source": "@site/docs/082.toolbar/030.filter.md",
+  "sourceDirName": "082.toolbar",
+  "slug": "/toolbar/filter",
+  "permalink": "/toolbar/filter",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/082.toolbar/030.filter.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 30,
+  "frontMatter": {
+    "title": "Filtering records"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Hide & Reorder Fields",
+    "permalink": "/toolbar/field-operations"
+  },
+  "next": {
+    "title": "Sorting records",
+    "permalink": "/toolbar/sort"
+  }
+}

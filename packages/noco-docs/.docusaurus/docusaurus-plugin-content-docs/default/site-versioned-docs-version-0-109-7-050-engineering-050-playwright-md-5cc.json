@@ -1,0 +1,28 @@
+{
+  "unversionedId": "engineering/playwright",
+  "id": "version-0.109.7/engineering/playwright",
+  "title": "Playwright E2E Testing",
+  "description": "Overview to playwright based e2e tests",
+  "source": "@site/versioned_docs/version-0.109.7/050.engineering/050.playwright.md",
+  "sourceDirName": "050.engineering",
+  "slug": "/engineering/playwright",
+  "permalink": "/0.109.7/engineering/playwright",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/versioned_docs/version-0.109.7/050.engineering/050.playwright.md",
+  "tags": [],
+  "version": "0.109.7",
+  "sidebarPosition": 50,
+  "frontMatter": {
+    "title": "Playwright E2E Testing",
+    "description": "Overview to playwright based e2e tests"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Writing Unit Tests",
+    "permalink": "/0.109.7/engineering/unit-testing"
+  },
+  "next": {
+    "title": "Releases & Builds",
+    "permalink": "/0.109.7/engineering/builds-and-releases"
+  }
+}

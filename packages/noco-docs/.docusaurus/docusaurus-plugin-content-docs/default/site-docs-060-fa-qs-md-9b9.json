@@ -1,0 +1,24 @@
+{
+  "unversionedId": "FAQs",
+  "id": "FAQs",
+  "title": "FAQs",
+  "description": "General FAQs",
+  "source": "@site/docs/060.FAQs.md",
+  "sourceDirName": ".",
+  "slug": "/FAQs",
+  "permalink": "/FAQs",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.FAQs.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 60,
+  "frontMatter": {
+    "title": "FAQs",
+    "description": "General FAQs"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "i18n translation",
+    "permalink": "/engineering/translation"
+  }
+}

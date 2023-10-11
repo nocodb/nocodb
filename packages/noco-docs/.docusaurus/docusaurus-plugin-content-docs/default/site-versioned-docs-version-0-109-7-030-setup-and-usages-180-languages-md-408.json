@@ -1,0 +1,28 @@
+{
+  "unversionedId": "setup-and-usages/languages",
+  "id": "version-0.109.7/setup-and-usages/languages",
+  "title": "Languages",
+  "description": "Multiple languages on Dashboard!",
+  "source": "@site/versioned_docs/version-0.109.7/030.setup-and-usages/180.languages.md",
+  "sourceDirName": "030.setup-and-usages",
+  "slug": "/setup-and-usages/languages",
+  "permalink": "/0.109.7/setup-and-usages/languages",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/versioned_docs/version-0.109.7/030.setup-and-usages/180.languages.md",
+  "tags": [],
+  "version": "0.109.7",
+  "sidebarPosition": 180,
+  "frontMatter": {
+    "title": "Languages",
+    "description": "Multiple languages on Dashboard!"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Account Settings",
+    "permalink": "/0.109.7/setup-and-usages/account-settings"
+  },
+  "next": {
+    "title": "Expanded Form",
+    "permalink": "/0.109.7/setup-and-usages/expanded-form"
+  }
+}

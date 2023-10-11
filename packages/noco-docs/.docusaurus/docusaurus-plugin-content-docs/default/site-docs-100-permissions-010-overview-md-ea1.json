@@ -1,0 +1,27 @@
+{
+  "unversionedId": "permissions/overview",
+  "id": "permissions/overview",
+  "title": "Permission overview",
+  "description": "",
+  "source": "@site/docs/100.permissions/010.overview.md",
+  "sourceDirName": "100.permissions",
+  "slug": "/permissions/overview",
+  "permalink": "/permissions/overview",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/100.permissions/010.overview.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Permission overview"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Collaboration overview",
+    "permalink": "/collaboration/overview"
+  },
+  "next": {
+    "title": "Automation overview",
+    "permalink": "/automation/overview"
+  }
+}

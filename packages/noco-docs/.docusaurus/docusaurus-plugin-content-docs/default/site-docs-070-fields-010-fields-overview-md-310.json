@@ -1,0 +1,46 @@
+{
+  "unversionedId": "fields/fields-overview",
+  "id": "fields/fields-overview",
+  "title": "Fields overview",
+  "description": "- Primary Key",
+  "source": "@site/docs/070.fields/010.fields-overview.md",
+  "sourceDirName": "070.fields",
+  "slug": "/fields/fields-overview",
+  "permalink": "/fields/fields-overview",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.fields/010.fields-overview.md",
+  "tags": [
+    {
+      "label": "Fields",
+      "permalink": "/tags/fields"
+    },
+    {
+      "label": "Overview",
+      "permalink": "/tags/overview"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Fields overview",
+    "tags": [
+      "Fields",
+      "Overview"
+    ],
+    "keywords": [
+      "NocoDB fields",
+      "fields overview",
+      "field administration",
+      "field organization"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Table details overview",
+    "permalink": "/table-details/table-details-overview"
+  },
+  "next": {
+    "title": "Primary key",
+    "permalink": "/fields/primary-key"
+  }
+}

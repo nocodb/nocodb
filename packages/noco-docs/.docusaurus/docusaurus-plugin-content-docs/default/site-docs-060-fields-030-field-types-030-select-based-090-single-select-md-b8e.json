@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/select-based/single-select",
+  "id": "fields/field-types/select-based/single-select",
+  "title": "Single Select",
+  "description": "",
+  "source": "@site/docs/060.fields/030.field-types/030.select-based/090.single-select.md",
+  "sourceDirName": "060.fields/030.field-types/030.select-based",
+  "slug": "/fields/field-types/select-based/single-select",
+  "permalink": "/fields/field-types/select-based/single-select",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/030.select-based/090.single-select.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 90,
+  "frontMatter": {
+    "title": "Single Select"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Percent",
+    "permalink": "/fields/field-types/numerical/percent"
+  },
+  "next": {
+    "title": "Multi Select",
+    "permalink": "/fields/field-types/select-based/multi-select"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "label": "Rating",
+  "permalink": "/tags/rating",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "fields/field-types/custom-types/rating",
+      "title": "Rating",
+      "description": "The",
+      "permalink": "/fields/field-types/custom-types/rating"
+    }
+  ]
+}

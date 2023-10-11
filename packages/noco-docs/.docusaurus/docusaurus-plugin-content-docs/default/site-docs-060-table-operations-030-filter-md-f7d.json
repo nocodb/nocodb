@@ -1,0 +1,78 @@
+{
+  "unversionedId": "table-operations/filter",
+  "id": "table-operations/filter",
+  "title": "Filtering records",
+  "description": "Filters provide a powerful way to narrow down and organize your data according to your specific requirements. NocoDB supports nested filters, allowing you to select multiple columns and conditions for filtering. You can choose between and or or mode of operation to combine filters, and filtering also supports Lookup, Formula, and Nested Data.",
+  "source": "@site/docs/060.table-operations/030.filter.md",
+  "sourceDirName": "060.table-operations",
+  "slug": "/table-operations/filter",
+  "permalink": "/table-operations/filter",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.table-operations/030.filter.md",
+  "tags": [
+    {
+      "label": "Table operations",
+      "permalink": "/tags/table-operations"
+    },
+    {
+      "label": "Filter",
+      "permalink": "/tags/filter"
+    },
+    {
+      "label": "Gallery View",
+      "permalink": "/tags/gallery-view"
+    },
+    {
+      "label": "Kanban View",
+      "permalink": "/tags/kanban-view"
+    },
+    {
+      "label": "Grid View",
+      "permalink": "/tags/grid-view"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 30,
+  "frontMatter": {
+    "title": "Filtering records",
+    "tags": [
+      "Table operations",
+      "Filter",
+      "Gallery View",
+      "Kanban View",
+      "Grid View"
+    ],
+    "keywords": [
+      "NocoDB table operations",
+      "table operations overview",
+      "table administration",
+      "table organization",
+      "hide column",
+      "show column",
+      "filter",
+      "sort",
+      "group by",
+      "row height",
+      "quick search",
+      "download",
+      "hide-field",
+      "show-field",
+      "field-operations",
+      "filter",
+      "sort",
+      "group-by",
+      "row-height",
+      "search",
+      "download"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Hide & reorder fields",
+    "permalink": "/table-operations/field-operations"
+  },
+  "next": {
+    "title": "Sorting records",
+    "permalink": "/table-operations/sort"
+  }
+}

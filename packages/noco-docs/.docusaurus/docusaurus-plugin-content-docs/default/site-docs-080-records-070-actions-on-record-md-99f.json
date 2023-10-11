@@ -1,0 +1,66 @@
+{
+  "unversionedId": "records/actions-on-record",
+  "id": "records/actions-on-record",
+  "title": "Actions on record",
+  "description": "Keyboard navigation within Grid view",
+  "source": "@site/docs/080.records/070.actions-on-record.md",
+  "sourceDirName": "080.records",
+  "slug": "/records/actions-on-record",
+  "permalink": "/records/actions-on-record",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/080.records/070.actions-on-record.md",
+  "tags": [
+    {
+      "label": "Records",
+      "permalink": "/tags/records"
+    },
+    {
+      "label": "Delete",
+      "permalink": "/tags/delete"
+    },
+    {
+      "label": "Edit",
+      "permalink": "/tags/edit"
+    },
+    {
+      "label": "Duplicate",
+      "permalink": "/tags/duplicate"
+    },
+    {
+      "label": "Expand",
+      "permalink": "/tags/expand"
+    },
+    {
+      "label": "Shortcuts",
+      "permalink": "/tags/shortcuts"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 70,
+  "frontMatter": {
+    "title": "Actions on record",
+    "tags": [
+      "Records",
+      "Delete",
+      "Edit",
+      "Duplicate",
+      "Expand",
+      "Shortcuts"
+    ],
+    "keywords": [
+      "NocoDB delete record",
+      "delete record",
+      "delete row",
+      "delete rows"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Expanded record",
+    "permalink": "/records/expand-record"
+  },
+  "next": {
+    "title": "View overview",
+    "permalink": "/views/views-overview"
+  }
+}

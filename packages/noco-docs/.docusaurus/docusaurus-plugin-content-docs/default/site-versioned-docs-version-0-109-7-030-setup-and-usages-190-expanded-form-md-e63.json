@@ -1,0 +1,28 @@
+{
+  "unversionedId": "setup-and-usages/expanded-form",
+  "id": "version-0.109.7/setup-and-usages/expanded-form",
+  "title": "Expanded Form",
+  "description": "NocoDB provides Expanded Form to let you edit your data easily",
+  "source": "@site/versioned_docs/version-0.109.7/030.setup-and-usages/190.expanded-form.md",
+  "sourceDirName": "030.setup-and-usages",
+  "slug": "/setup-and-usages/expanded-form",
+  "permalink": "/0.109.7/setup-and-usages/expanded-form",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/versioned_docs/version-0.109.7/030.setup-and-usages/190.expanded-form.md",
+  "tags": [],
+  "version": "0.109.7",
+  "sidebarPosition": 190,
+  "frontMatter": {
+    "title": "Expanded Form",
+    "description": "NocoDB provides Expanded Form to let you edit your data easily"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Languages",
+    "permalink": "/0.109.7/setup-and-usages/languages"
+  },
+  "next": {
+    "title": "Import Airtable to NocoDB",
+    "permalink": "/0.109.7/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free"
+  }
+}

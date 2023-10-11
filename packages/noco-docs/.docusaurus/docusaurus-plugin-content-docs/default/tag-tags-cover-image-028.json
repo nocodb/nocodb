@@ -1,0 +1,14 @@
+{
+  "label": "Cover image",
+  "permalink": "/tags/cover-image",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "table-operations/field-operations",
+      "title": "Hide & reorder fields",
+      "description": "Learn how to hide and reorder fields in NocoDB.",
+      "permalink": "/table-operations/field-operations"
+    }
+  ]
+}

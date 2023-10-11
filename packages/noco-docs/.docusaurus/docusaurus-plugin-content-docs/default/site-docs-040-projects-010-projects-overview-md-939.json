@@ -1,0 +1,25 @@
+{
+  "unversionedId": "projects/projects-overview",
+  "id": "projects/projects-overview",
+  "title": "projects-overview",
+  "description": "",
+  "source": "@site/docs/040.projects/010.projects-overview.md",
+  "sourceDirName": "040.projects",
+  "slug": "/projects/projects-overview",
+  "permalink": "/projects/projects-overview",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/040.projects/010.projects-overview.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "delete",
+    "permalink": "/workspaces/delete"
+  },
+  "next": {
+    "title": "create-workspace",
+    "permalink": "/projects/create-workspace"
+  }
+}

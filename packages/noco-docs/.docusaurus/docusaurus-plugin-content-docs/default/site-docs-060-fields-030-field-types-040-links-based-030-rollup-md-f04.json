@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/links-based/rollup",
+  "id": "fields/field-types/links-based/rollup",
+  "title": "Rollup",
+  "description": "Rollup fields are used to aggregate data from fields in the related table. Often used to calculate totals, averages, and other aggregate data.",
+  "source": "@site/docs/060.fields/030.field-types/040.links-based/030.rollup.md",
+  "sourceDirName": "060.fields/030.field-types/040.links-based",
+  "slug": "/fields/field-types/links-based/rollup",
+  "permalink": "/fields/field-types/links-based/rollup",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/040.links-based/030.rollup.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 30,
+  "frontMatter": {
+    "title": "Rollup"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "LookUp",
+    "permalink": "/fields/field-types/links-based/lookup"
+  },
+  "next": {
+    "title": "Attachment",
+    "permalink": "/fields/field-types/custom-types/attachment"
+  }
+}

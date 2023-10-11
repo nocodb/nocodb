@@ -1,0 +1,24 @@
+{
+  "unversionedId": "collaboration/share-view",
+  "id": "collaboration/share-view",
+  "title": "share-view",
+  "description": "",
+  "source": "@site/docs/100.collaboration/share-view.md",
+  "sourceDirName": "100.collaboration",
+  "slug": "/collaboration/share-view",
+  "permalink": "/collaboration/share-view",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/100.collaboration/share-view.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Share Base",
+    "permalink": "/collaboration/share-base"
+  },
+  "next": {
+    "title": "Automation overview",
+    "permalink": "/automation/overview"
+  }
+}

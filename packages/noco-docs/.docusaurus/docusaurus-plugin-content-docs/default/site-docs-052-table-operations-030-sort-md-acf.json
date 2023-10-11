@@ -1,0 +1,34 @@
+{
+  "unversionedId": "table-operations/sort",
+  "id": "table-operations/sort",
+  "title": "Sorting records",
+  "description": "Sorting enables you to arrange your data alphabetically (A → Z) or (Z → A) for text based types and in ascending or descending order for numerical types. NocoDB supports nested sorting, allowing you to select fields and the order in which to apply nested sorting.",
+  "source": "@site/docs/052.table-operations/030.sort.md",
+  "sourceDirName": "052.table-operations",
+  "slug": "/table-operations/sort",
+  "permalink": "/table-operations/sort",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/052.table-operations/030.sort.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 30,
+  "frontMatter": {
+    "title": "Sorting records",
+    "keywords": [
+      "NocoDB table",
+      "sorting",
+      "sort",
+      "table administration",
+      "table organization"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Filtering records",
+    "permalink": "/table-operations/filter"
+  },
+  "next": {
+    "title": "Grouping Records",
+    "permalink": "/table-operations/group-by"
+  }
+}

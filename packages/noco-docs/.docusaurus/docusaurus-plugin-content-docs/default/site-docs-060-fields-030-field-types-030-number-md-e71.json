@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/number",
+  "id": "fields/field-types/number",
+  "title": "Number",
+  "description": "Create field",
+  "source": "@site/docs/060.fields/030.field-types/030.number.md",
+  "sourceDirName": "060.fields/030.field-types",
+  "slug": "/fields/field-types/number",
+  "permalink": "/fields/field-types/number",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/030.number.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 30,
+  "frontMatter": {
+    "title": "Number"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "URL",
+    "permalink": "/fields/field-types/text-based/url"
+  },
+  "next": {
+    "title": "Decimal",
+    "permalink": "/fields/field-types/decimal"
+  }
+}

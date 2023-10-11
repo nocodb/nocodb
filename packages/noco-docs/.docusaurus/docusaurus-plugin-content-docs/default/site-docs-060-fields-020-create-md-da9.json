@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/create",
+  "id": "fields/create",
+  "title": "Create",
+  "description": "",
+  "source": "@site/docs/060.fields/020.create.md",
+  "sourceDirName": "060.fields",
+  "slug": "/fields/create",
+  "permalink": "/fields/create",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/020.create.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "Create"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Fields overview",
+    "permalink": "/fields/fields-overview"
+  },
+  "next": {
+    "title": "Delete",
+    "permalink": "/fields/delete-field"
+  }
+}

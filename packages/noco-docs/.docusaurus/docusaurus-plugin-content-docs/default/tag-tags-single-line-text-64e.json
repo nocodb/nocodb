@@ -1,0 +1,14 @@
+{
+  "label": "Single line text",
+  "permalink": "/tags/single-line-text",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "fields/field-types/text-based/single-line-text",
+      "title": "Single line text",
+      "description": "Single line text field is a simple text based field. It can hold any text value. It is generally used for storing short text values like name, email, phone number, etc. For storing text values with multiple lines, use Long text field.",
+      "permalink": "/fields/field-types/text-based/single-line-text"
+    }
+  ]
+}

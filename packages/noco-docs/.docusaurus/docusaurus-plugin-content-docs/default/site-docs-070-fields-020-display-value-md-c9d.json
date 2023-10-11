@@ -1,0 +1,34 @@
+{
+  "unversionedId": "fields/display-value",
+  "id": "fields/display-value",
+  "title": "Display Value",
+  "description": "Understanding Display Value in NocoDB!",
+  "source": "@site/docs/070.fields/020.display-value.md",
+  "sourceDirName": "070.fields",
+  "slug": "/fields/display-value",
+  "permalink": "/fields/display-value",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.fields/020.display-value.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "Display Value",
+    "description": "Understanding Display Value in NocoDB!",
+    "keywords": [
+      "NocoDB display value",
+      "display value",
+      "display value in nocoDB",
+      "display value in nocoDB"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Primary Key",
+    "permalink": "/fields/primary-key"
+  },
+  "next": {
+    "title": "Single line text",
+    "permalink": "/fields/field-types/text-based/single-line-text"
+  }
+}

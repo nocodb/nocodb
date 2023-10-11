@@ -1,0 +1,14 @@
+{
+  "label": "delete view",
+  "permalink": "/tags/delete-view",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "views/actions-on-view",
+      "title": "Actions on view",
+      "description": "Learn how to delete, rename, duplicate a a view in NocoDB.",
+      "permalink": "/views/actions-on-view"
+    }
+  ]
+}

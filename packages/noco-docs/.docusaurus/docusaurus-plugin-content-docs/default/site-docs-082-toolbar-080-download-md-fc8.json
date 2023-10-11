@@ -1,0 +1,27 @@
+{
+  "unversionedId": "Toolbar/download",
+  "id": "Toolbar/download",
+  "title": "Export",
+  "description": "",
+  "source": "@site/docs/082.Toolbar/080.download.md",
+  "sourceDirName": "082.Toolbar",
+  "slug": "/Toolbar/download",
+  "permalink": "/Toolbar/download",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/082.Toolbar/080.download.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 80,
+  "frontMatter": {
+    "title": "Export"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Search",
+    "permalink": "/Toolbar/search"
+  },
+  "next": {
+    "title": "Data Sources",
+    "permalink": "/data-source/overview"
+  }
+}

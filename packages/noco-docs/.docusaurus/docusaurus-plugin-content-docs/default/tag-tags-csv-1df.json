@@ -1,0 +1,20 @@
+{
+  "label": "CSV",
+  "permalink": "/tags/csv",
+  "allTagsPath": "/tags",
+  "count": 2,
+  "items": [
+    {
+      "id": "table-operations/download",
+      "title": "Download",
+      "description": "NocoDB offers users the ability to export data from the spreadsheet grid in a variety of formats. This feature is useful when working with large datasets and can be used in conjunction with the Filter and Sort feature to further refine your data.",
+      "permalink": "/table-operations/download"
+    },
+    {
+      "id": "tables/import-data-into-existing-table",
+      "title": "Import data into an existing table",
+      "description": "Learn how to import data into an existing table in NocoDB.",
+      "permalink": "/tables/import-data-into-existing-table"
+    }
+  ]
+}

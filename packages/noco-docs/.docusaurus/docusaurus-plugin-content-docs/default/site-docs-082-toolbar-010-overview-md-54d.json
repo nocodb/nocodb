@@ -1,0 +1,27 @@
+{
+  "unversionedId": "toolbar/overview",
+  "id": "toolbar/overview",
+  "title": "Toolbar overview",
+  "description": "The toolbar provides a set of tools to interact with the data in the table. The toolbar is located at the top of the view area.",
+  "source": "@site/docs/082.toolbar/010.overview.md",
+  "sourceDirName": "082.toolbar",
+  "slug": "/toolbar/overview",
+  "permalink": "/toolbar/overview",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/082.toolbar/010.overview.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Toolbar overview"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Kanban",
+    "permalink": "/views/view-types/kanban"
+  },
+  "next": {
+    "title": "Hide & Reorder Fields",
+    "permalink": "/toolbar/field-operations"
+  }
+}

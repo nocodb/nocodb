@@ -1,0 +1,28 @@
+{
+  "unversionedId": "setup-and-usages/column-types",
+  "id": "setup-and-usages/column-types",
+  "title": "Column Types",
+  "description": "NocoDB Column Types Overview",
+  "source": "@site/docs/030.setup-and-usages/040.column-types.md",
+  "sourceDirName": "030.setup-and-usages",
+  "slug": "/setup-and-usages/column-types",
+  "permalink": "/setup-and-usages/column-types",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/030.setup-and-usages/040.column-types.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 40,
+  "frontMatter": {
+    "title": "Column Types",
+    "description": "NocoDB Column Types Overview"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Column Operations",
+    "permalink": "/setup-and-usages/column-operations"
+  },
+  "next": {
+    "title": "Code Snippets",
+    "permalink": "/setup-and-usages/code-snippets"
+  }
+}

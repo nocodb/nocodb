@@ -1,0 +1,47 @@
+{
+  "unversionedId": "tables/create-table",
+  "id": "tables/create-table",
+  "title": "Create empty table",
+  "description": "Learn how to create a table in NocoDB.",
+  "source": "@site/docs/050.tables/020.create-table.md",
+  "sourceDirName": "050.tables",
+  "slug": "/tables/create-table",
+  "permalink": "/tables/create-table",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/050.tables/020.create-table.md",
+  "tags": [
+    {
+      "label": "Tables",
+      "permalink": "/tags/tables"
+    },
+    {
+      "label": "Create",
+      "permalink": "/tags/create"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "Create empty table",
+    "description": "Learn how to create a table in NocoDB.",
+    "tags": [
+      "Tables",
+      "Create"
+    ],
+    "keywords": [
+      "NocoDB table",
+      "create table",
+      "table administration",
+      "table organization"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Table overview",
+    "permalink": "/tables/table-overview"
+  },
+  "next": {
+    "title": "Create table via import",
+    "permalink": "/tables/create-table-via-import"
+  }
+}

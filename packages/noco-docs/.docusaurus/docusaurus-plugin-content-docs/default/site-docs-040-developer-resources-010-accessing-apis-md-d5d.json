@@ -1,0 +1,28 @@
+{
+  "unversionedId": "developer-resources/accessing-apis",
+  "id": "developer-resources/accessing-apis",
+  "title": "Accessing APIs",
+  "description": "How to access NocoDB APIs with Auth or API token?",
+  "source": "@site/docs/040.developer-resources/010.accessing-apis.md",
+  "sourceDirName": "040.developer-resources",
+  "slug": "/developer-resources/accessing-apis",
+  "permalink": "/developer-resources/accessing-apis",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/040.developer-resources/010.accessing-apis.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Accessing APIs",
+    "description": "How to access NocoDB APIs with Auth or API token?"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Team & Settings > Project settings",
+    "permalink": "/setup-and-usages/project-settings"
+  },
+  "next": {
+    "title": "REST APIs",
+    "permalink": "/developer-resources/rest-apis"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "unversionedId": "engineering/development-setup",
+  "id": "version-0.109.7/engineering/development-setup",
+  "title": "Development Setup",
+  "description": "How to set-up your development environment",
+  "source": "@site/versioned_docs/version-0.109.7/050.engineering/030.development-setup.md",
+  "sourceDirName": "050.engineering",
+  "slug": "/engineering/development-setup",
+  "permalink": "/0.109.7/engineering/development-setup",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/versioned_docs/version-0.109.7/050.engineering/030.development-setup.md",
+  "tags": [],
+  "version": "0.109.7",
+  "sidebarPosition": 30,
+  "frontMatter": {
+    "title": "Development Setup",
+    "description": "How to set-up your development environment"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Repository structure",
+    "permalink": "/0.109.7/engineering/repository-structure"
+  },
+  "next": {
+    "title": "Writing Unit Tests",
+    "permalink": "/0.109.7/engineering/unit-testing"
+  }
+}

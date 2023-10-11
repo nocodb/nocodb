@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/rating",
+  "id": "fields/field-types/rating",
+  "title": "Rating",
+  "description": "",
+  "source": "@site/docs/060.fields/030.field-types/080.rating.md",
+  "sourceDirName": "060.fields/030.field-types",
+  "slug": "/fields/field-types/rating",
+  "permalink": "/fields/field-types/rating",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/080.rating.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 80,
+  "frontMatter": {
+    "title": "Rating"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Checkbox",
+    "permalink": "/fields/field-types/checkbox"
+  },
+  "next": {
+    "title": "Single Select",
+    "permalink": "/fields/field-types/single-select"
+  }
+}

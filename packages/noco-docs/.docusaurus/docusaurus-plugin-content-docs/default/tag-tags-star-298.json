@@ -1,0 +1,14 @@
+{
+  "label": "Star",
+  "permalink": "/tags/star",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "bases/actions-on-base",
+      "title": "Actions on base",
+      "description": "Actions you can perform on a base in NocoDB: Rename, duplicate, delete, star a base.",
+      "permalink": "/bases/actions-on-base"
+    }
+  ]
+}

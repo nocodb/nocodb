@@ -1,0 +1,27 @@
+{
+  "unversionedId": "records/create-row",
+  "id": "records/create-row",
+  "title": "Create row",
+  "description": "",
+  "source": "@site/docs/070.records/020.create-row.md",
+  "sourceDirName": "070.records",
+  "slug": "/records/create-row",
+  "permalink": "/records/create-row",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.records/020.create-row.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "Create row"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Rows overview",
+    "permalink": "/records/records-overview"
+  },
+  "next": {
+    "title": "Comments",
+    "permalink": "/records/comments"
+  }
+}

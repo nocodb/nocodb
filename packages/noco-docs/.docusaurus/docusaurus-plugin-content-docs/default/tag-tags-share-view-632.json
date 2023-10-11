@@ -1,0 +1,20 @@
+{
+  "label": "share view",
+  "permalink": "/tags/share-view",
+  "allTagsPath": "/tags",
+  "count": 2,
+  "items": [
+    {
+      "id": "collaboration/overview",
+      "title": "Collaboration overview",
+      "description": "This article explains various collaboration features that NocoDB offers.",
+      "permalink": "/collaboration/overview"
+    },
+    {
+      "id": "collaboration/share-view",
+      "title": "Share View",
+      "description": "Procedures to share a view",
+      "permalink": "/collaboration/share-view"
+    }
+  ]
+}

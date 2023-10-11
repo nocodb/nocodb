@@ -1,0 +1,26 @@
+{
+  "label": "Links based types",
+  "permalink": "/tags/links-based-types",
+  "allTagsPath": "/tags",
+  "count": 3,
+  "items": [
+    {
+      "id": "fields/field-types/links-based/links",
+      "title": "Links",
+      "description": "Links field type is used to establish relationship between tables & create links to other records.",
+      "permalink": "/fields/field-types/links-based/links"
+    },
+    {
+      "id": "fields/field-types/links-based/lookup",
+      "title": "LookUp",
+      "description": "Lookup fields help bring additional field information from related table into the current table. This is useful when you want to display additional information about a record in a table. For example, if you have a table of Orders and a table of Customers, you can use a Lookup field to display the customer's name and address in the Orders table.",
+      "permalink": "/fields/field-types/links-based/lookup"
+    },
+    {
+      "id": "fields/field-types/links-based/rollup",
+      "title": "Rollup",
+      "description": "Rollup fields are used to aggregate data from fields in the related table. Often used to calculate totals, averages, and other aggregate data.",
+      "permalink": "/fields/field-types/links-based/rollup"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "unversionedId": "Toolbar/sort",
+  "id": "Toolbar/sort",
+  "title": "Sorting records",
+  "description": "Sorting Data",
+  "source": "@site/docs/082.Toolbar/030.sort.md",
+  "sourceDirName": "082.Toolbar",
+  "slug": "/Toolbar/sort",
+  "permalink": "/Toolbar/sort",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/082.Toolbar/030.sort.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 30,
+  "frontMatter": {
+    "title": "Sorting records"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Filtering records",
+    "permalink": "/Toolbar/filter"
+  },
+  "next": {
+    "title": "Group by",
+    "permalink": "/Toolbar/group-by"
+  }
+}

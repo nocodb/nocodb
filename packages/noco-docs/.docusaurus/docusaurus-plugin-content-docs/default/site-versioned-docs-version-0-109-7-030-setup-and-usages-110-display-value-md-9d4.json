@@ -1,0 +1,28 @@
+{
+  "unversionedId": "setup-and-usages/display-value",
+  "id": "version-0.109.7/setup-and-usages/display-value",
+  "title": "Display Value",
+  "description": "Understanding Display Value in NocoDB!",
+  "source": "@site/versioned_docs/version-0.109.7/030.setup-and-usages/110.display-value.md",
+  "sourceDirName": "030.setup-and-usages",
+  "slug": "/setup-and-usages/display-value",
+  "permalink": "/0.109.7/setup-and-usages/display-value",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/versioned_docs/version-0.109.7/030.setup-and-usages/110.display-value.md",
+  "tags": [],
+  "version": "0.109.7",
+  "sidebarPosition": 110,
+  "frontMatter": {
+    "title": "Display Value",
+    "description": "Understanding Display Value in NocoDB!"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Primary Key",
+    "permalink": "/0.109.7/setup-and-usages/primary-key"
+  },
+  "next": {
+    "title": "Sync Schema",
+    "permalink": "/0.109.7/setup-and-usages/sync-schema"
+  }
+}

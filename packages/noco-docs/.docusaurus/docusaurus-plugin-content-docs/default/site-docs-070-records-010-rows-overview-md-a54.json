@@ -1,0 +1,27 @@
+{
+  "unversionedId": "records/rows-overview",
+  "id": "records/rows-overview",
+  "title": "Rows overview",
+  "description": "",
+  "source": "@site/docs/070.records/010.rows-overview.md",
+  "sourceDirName": "070.records",
+  "slug": "/records/rows-overview",
+  "permalink": "/records/rows-overview",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.records/010.rows-overview.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Rows overview"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Actions on fields",
+    "permalink": "/fields/actions-on-field"
+  },
+  "next": {
+    "title": "Create row",
+    "permalink": "/records/create-row"
+  }
+}

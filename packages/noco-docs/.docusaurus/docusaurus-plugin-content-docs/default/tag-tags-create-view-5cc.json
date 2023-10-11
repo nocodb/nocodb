@@ -1,0 +1,14 @@
+{
+  "label": "create view",
+  "permalink": "/tags/create-view",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "views/create-view",
+      "title": "Create view",
+      "description": "Learn how to create a view in NocoDB.",
+      "permalink": "/views/create-view"
+    }
+  ]
+}

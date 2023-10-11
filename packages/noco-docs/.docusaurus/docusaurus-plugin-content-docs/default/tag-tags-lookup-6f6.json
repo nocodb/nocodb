@@ -1,0 +1,14 @@
+{
+  "label": "Lookup",
+  "permalink": "/tags/lookup",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "fields/field-types/links-based/lookup",
+      "title": "LookUp",
+      "description": "Lookup fields help bring additional field information from related table into the current table. This is useful when you want to display additional information about a record in a table. For example, if you have a table of Orders and a table of Customers, you can use a Lookup field to display the customer's name and address in the Orders table.",
+      "permalink": "/fields/field-types/links-based/lookup"
+    }
+  ]
+}

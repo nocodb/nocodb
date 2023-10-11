@@ -1,0 +1,14 @@
+{
+  "label": "Group by",
+  "permalink": "/tags/group-by",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "table-operations/group-by",
+      "title": "Grouping records",
+      "description": "Grouping records in NocoDB allows for efficient categorization of data into specific Groups and Subgroups. NocoDB supports three levels of record segregation, providing a powerful organizational tool.",
+      "permalink": "/table-operations/group-by"
+    }
+  ]
+}

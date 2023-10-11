@@ -1,0 +1,14 @@
+{
+  "label": "Row height",
+  "permalink": "/tags/row-height",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "table-operations/row-height",
+      "title": "Row height",
+      "description": "NocoDB offers users the flexibility to adjust the display height of records within the spreadsheet grid to four distinct levels: Short (the default setting), Medium, Tall, and Extra. This feature proves valuable when working with extensive text columns and multi-select fields, as it enables users to present a greater amount of content within each cell.",
+      "permalink": "/table-operations/row-height"
+    }
+  ]
+}

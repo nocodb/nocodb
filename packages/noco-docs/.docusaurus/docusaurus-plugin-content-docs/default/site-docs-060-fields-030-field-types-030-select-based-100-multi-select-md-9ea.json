@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/select-based/multi-select",
+  "id": "fields/field-types/select-based/multi-select",
+  "title": "Multi Select",
+  "description": "",
+  "source": "@site/docs/060.fields/030.field-types/030.select-based/100.multi-select.md",
+  "sourceDirName": "060.fields/030.field-types/030.select-based",
+  "slug": "/fields/field-types/select-based/multi-select",
+  "permalink": "/fields/field-types/select-based/multi-select",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/030.select-based/100.multi-select.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 100,
+  "frontMatter": {
+    "title": "Multi Select"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Single Select",
+    "permalink": "/fields/field-types/select-based/single-select"
+  },
+  "next": {
+    "title": "Links",
+    "permalink": "/fields/field-types/links-based/links"
+  }
+}

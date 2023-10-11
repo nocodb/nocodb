@@ -1,0 +1,27 @@
+{
+  "unversionedId": "views/view-types/kanban",
+  "id": "views/view-types/kanban",
+  "title": "Kanban",
+  "description": "Kanban View allows you to visualise your data using cards as part of various stacks on the board. You can easily rearrange the cards by dragging and dropping them to different stacks. This section will cover all the operations that can be performed on the Kanban view.",
+  "source": "@site/docs/080.views/090.view-types/040.kanban.md",
+  "sourceDirName": "080.views/090.view-types",
+  "slug": "/views/view-types/kanban",
+  "permalink": "/views/view-types/kanban",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/080.views/090.view-types/040.kanban.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 40,
+  "frontMatter": {
+    "title": "Kanban"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Forms",
+    "permalink": "/views/view-types/forms"
+  },
+  "next": {
+    "title": "Data Sources overview",
+    "permalink": "/data-source/data-source-overview"
+  }
+}

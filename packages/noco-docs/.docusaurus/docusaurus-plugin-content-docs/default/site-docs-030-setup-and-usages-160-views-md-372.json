@@ -1,0 +1,28 @@
+{
+  "unversionedId": "setup-and-usages/views",
+  "id": "setup-and-usages/views",
+  "title": "Views",
+  "description": "Understanding Views in NocoDB!",
+  "source": "@site/docs/030.setup-and-usages/160.views.md",
+  "sourceDirName": "030.setup-and-usages",
+  "slug": "/setup-and-usages/views",
+  "permalink": "/setup-and-usages/views",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/030.setup-and-usages/160.views.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 160,
+  "frontMatter": {
+    "title": "Views",
+    "description": "Understanding Views in NocoDB!"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Keyboard Maneuver",
+    "permalink": "/setup-and-usages/keyboard-maneuver"
+  },
+  "next": {
+    "title": "Account Settings",
+    "permalink": "/setup-and-usages/account-settings"
+  }
+}

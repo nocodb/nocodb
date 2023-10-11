@@ -1,0 +1,28 @@
+{
+  "unversionedId": "setup-and-usages/share-base",
+  "id": "version-0.109.7/setup-and-usages/share-base",
+  "title": "Share Base",
+  "description": "Procedures to share a base & generating embedded iframe",
+  "source": "@site/versioned_docs/version-0.109.7/030.setup-and-usages/130.share-base.md",
+  "sourceDirName": "030.setup-and-usages",
+  "slug": "/setup-and-usages/share-base",
+  "permalink": "/0.109.7/setup-and-usages/share-base",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/versioned_docs/version-0.109.7/030.setup-and-usages/130.share-base.md",
+  "tags": [],
+  "version": "0.109.7",
+  "sidebarPosition": 130,
+  "frontMatter": {
+    "title": "Share Base",
+    "description": "Procedures to share a base & generating embedded iframe"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Sync Schema",
+    "permalink": "/0.109.7/setup-and-usages/sync-schema"
+  },
+  "next": {
+    "title": "Share View",
+    "permalink": "/0.109.7/setup-and-usages/share-view"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "unversionedId": "collaboration/share-base",
+  "id": "collaboration/share-base",
+  "title": "Share base",
+  "description": "Procedures to share a base & generating embedded iframe",
+  "source": "@site/docs/120.collaboration/030.share-base.md",
+  "sourceDirName": "120.collaboration",
+  "slug": "/collaboration/share-base",
+  "permalink": "/collaboration/share-base",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/120.collaboration/030.share-base.md",
+  "tags": [
+    {
+      "label": "Collaboration",
+      "permalink": "/tags/collaboration"
+    },
+    {
+      "label": "Bases",
+      "permalink": "/tags/bases"
+    },
+    {
+      "label": "Share",
+      "permalink": "/tags/share"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 30,
+  "frontMatter": {
+    "title": "Share base",
+    "description": "Procedures to share a base & generating embedded iframe",
+    "tags": [
+      "Collaboration",
+      "Bases",
+      "Share"
+    ],
+    "keywords": [
+      "NocoDB base",
+      "share base",
+      "base collaboration",
+      "base actions",
+      "base settings"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Base collaboration",
+    "permalink": "/collaboration/base-collaboration"
+  },
+  "next": {
+    "title": "Share view",
+    "permalink": "/collaboration/share-view"
+  }
+}

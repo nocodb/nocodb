@@ -1,0 +1,28 @@
+{
+  "unversionedId": "getting-started/installation",
+  "id": "getting-started/installation",
+  "title": "Installation",
+  "description": "Simple installation - takes about three minutes!",
+  "source": "@site/docs/020.getting-started/010.installation.md",
+  "sourceDirName": "020.getting-started",
+  "slug": "/getting-started/installation",
+  "permalink": "/getting-started/installation",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/020.getting-started/010.installation.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Installation",
+    "description": "Simple installation - takes about three minutes!"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Welcome",
+    "permalink": "/"
+  },
+  "next": {
+    "title": "Environment Variables",
+    "permalink": "/getting-started/environment-variables"
+  }
+}

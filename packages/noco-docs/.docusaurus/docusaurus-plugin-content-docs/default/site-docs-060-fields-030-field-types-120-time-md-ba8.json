@@ -1,0 +1,25 @@
+{
+  "unversionedId": "fields/field-types/time",
+  "id": "fields/field-types/time",
+  "title": "time",
+  "description": "",
+  "source": "@site/docs/060.fields/030.field-types/120.time.md",
+  "sourceDirName": "060.fields/030.field-types",
+  "slug": "/fields/field-types/time",
+  "permalink": "/fields/field-types/time",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/120.time.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 120,
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "date",
+    "permalink": "/fields/field-types/date"
+  },
+  "next": {
+    "title": "duration",
+    "permalink": "/fields/field-types/duration"
+  }
+}

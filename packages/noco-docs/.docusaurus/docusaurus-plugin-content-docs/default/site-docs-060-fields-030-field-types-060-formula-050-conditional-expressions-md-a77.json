@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/formula/conditional-expressions",
+  "id": "fields/field-types/formula/conditional-expressions",
+  "title": "Conditional expressions",
+  "description": "Conditional expressions",
+  "source": "@site/docs/060.fields/030.field-types/060.formula/050.conditional-expressions.md",
+  "sourceDirName": "060.fields/030.field-types/060.formula",
+  "slug": "/fields/field-types/formula/conditional-expressions",
+  "permalink": "/fields/field-types/formula/conditional-expressions",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/060.formula/050.conditional-expressions.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 50,
+  "frontMatter": {
+    "title": "Conditional expressions"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Date functions",
+    "permalink": "/fields/field-types/formula/date-functions"
+  },
+  "next": {
+    "title": "Date Time",
+    "permalink": "/fields/field-types/date-time-based/date-time"
+  }
+}

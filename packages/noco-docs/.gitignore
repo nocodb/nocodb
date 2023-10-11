@@ -6,7 +6,7 @@
 /dist
 
 # Generated files
-.docusaurus
+#.docusaurus
 .cache-loader
 
 # Misc

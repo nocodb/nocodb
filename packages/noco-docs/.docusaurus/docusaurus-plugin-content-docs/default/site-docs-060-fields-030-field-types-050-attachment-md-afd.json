@@ -1,0 +1,25 @@
+{
+  "unversionedId": "fields/field-types/attachment",
+  "id": "fields/field-types/attachment",
+  "title": "attachment",
+  "description": "",
+  "source": "@site/docs/060.fields/030.field-types/050.attachment.md",
+  "sourceDirName": "060.fields/030.field-types",
+  "slug": "/fields/field-types/attachment",
+  "permalink": "/fields/field-types/attachment",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/050.attachment.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 50,
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "percent",
+    "permalink": "/fields/field-types/percent"
+  },
+  "next": {
+    "title": "checkbox",
+    "permalink": "/fields/field-types/checkbox"
+  }
+}

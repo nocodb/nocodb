@@ -1,0 +1,27 @@
+{
+  "unversionedId": "tables/import-json",
+  "id": "tables/import-json",
+  "title": "Import from JSON",
+  "description": "",
+  "source": "@site/docs/050.tables/080.import-json.md",
+  "sourceDirName": "050.tables",
+  "slug": "/tables/import-json",
+  "permalink": "/tables/import-json",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/050.tables/080.import-json.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 80,
+  "frontMatter": {
+    "title": "Import from JSON"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Import from Excel",
+    "permalink": "/tables/import-excel"
+  },
+  "next": {
+    "title": "Import Data into an existing Table",
+    "permalink": "/tables/import-data"
+  }
+}

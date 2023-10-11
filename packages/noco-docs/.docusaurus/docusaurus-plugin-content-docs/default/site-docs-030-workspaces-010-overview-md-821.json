@@ -1,0 +1,27 @@
+{
+  "unversionedId": "workspaces/overview",
+  "id": "workspaces/overview",
+  "title": "Overview",
+  "description": "",
+  "source": "@site/docs/030.workspaces/010.overview.md",
+  "sourceDirName": "030.workspaces",
+  "slug": "/workspaces/overview",
+  "permalink": "/workspaces/overview",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/030.workspaces/010.overview.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Overview"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "keyboard-shortcuts",
+    "permalink": "/getting-started/keyboard-shortcuts"
+  },
+  "next": {
+    "title": "Create",
+    "permalink": "/workspaces/create"
+  }
+}

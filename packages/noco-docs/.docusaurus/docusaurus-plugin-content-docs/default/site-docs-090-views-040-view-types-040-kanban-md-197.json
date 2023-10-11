@@ -1,0 +1,47 @@
+{
+  "unversionedId": "views/view-types/kanban",
+  "id": "views/view-types/kanban",
+  "title": "Kanban",
+  "description": "Learn how to use Kanban view in NocoDB.",
+  "source": "@site/docs/090.views/040.view-types/040.kanban.md",
+  "sourceDirName": "090.views/040.view-types",
+  "slug": "/views/view-types/kanban",
+  "permalink": "/views/view-types/kanban",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/090.views/040.view-types/040.kanban.md",
+  "tags": [
+    {
+      "label": "Views",
+      "permalink": "/tags/views"
+    },
+    {
+      "label": "Kanban View",
+      "permalink": "/tags/kanban-view"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 40,
+  "frontMatter": {
+    "title": "Kanban",
+    "description": "Learn how to use Kanban view in NocoDB.",
+    "tags": [
+      "Views",
+      "Kanban View"
+    ],
+    "keywords": [
+      "NocoDB kanban",
+      "kanban view",
+      "kanban board",
+      "kanban view operations"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Form",
+    "permalink": "/views/view-types/form"
+  },
+  "next": {
+    "title": "Actions on view",
+    "permalink": "/views/actions-on-view"
+  }
+}

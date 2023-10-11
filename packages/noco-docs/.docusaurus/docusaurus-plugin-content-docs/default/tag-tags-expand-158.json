@@ -1,0 +1,14 @@
+{
+  "label": "Expand",
+  "permalink": "/tags/expand",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "records/actions-on-record",
+      "title": "Actions on record",
+      "description": "Keyboard navigation within Grid view",
+      "permalink": "/records/actions-on-record"
+    }
+  ]
+}

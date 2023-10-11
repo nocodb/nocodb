@@ -1,0 +1,14 @@
+{
+  "label": "oss specific details",
+  "permalink": "/tags/oss-specific-details",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "collaboration/oss-specific-details",
+      "title": "On Self-Hosted plans",
+      "description": "This article explains the OSS specific details of NocoDB for collaboration management.",
+      "permalink": "/collaboration/oss-specific-details"
+    }
+  ]
+}

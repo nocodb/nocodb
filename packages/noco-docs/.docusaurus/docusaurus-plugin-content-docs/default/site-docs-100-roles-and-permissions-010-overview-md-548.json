@@ -1,0 +1,27 @@
+{
+  "unversionedId": "roles-and-permissions/overview",
+  "id": "roles-and-permissions/overview",
+  "title": "Roles & Permissions overview",
+  "description": "In NocoDB, we have roles that determine what people can do in a Workspace, Database, or Table. You can give a team or a user one of these roles: Admin, Builder, Editor, Commenter, or Viewer. When you invite someone or create a team, you'll set their role level at the beginning, but you can always change it later if needed.",
+  "source": "@site/docs/100.roles-and-permissions/010.overview.md",
+  "sourceDirName": "100.roles-and-permissions",
+  "slug": "/roles-and-permissions/overview",
+  "permalink": "/roles-and-permissions/overview",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/100.roles-and-permissions/010.overview.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Roles & Permissions overview"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Collaboration overview",
+    "permalink": "/collaboration/overview"
+  },
+  "next": {
+    "title": "Automation overview",
+    "permalink": "/automation/overview"
+  }
+}

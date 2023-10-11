@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/date-time-based/time",
+  "id": "fields/field-types/date-time-based/time",
+  "title": "Time",
+  "description": "",
+  "source": "@site/docs/060.fields/030.field-types/070.date-time-based/130.time.md",
+  "sourceDirName": "060.fields/030.field-types/070.date-time-based",
+  "slug": "/fields/field-types/date-time-based/time",
+  "permalink": "/fields/field-types/date-time-based/time",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/070.date-time-based/130.time.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 130,
+  "frontMatter": {
+    "title": "Time"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Date",
+    "permalink": "/fields/field-types/date-time-based/date"
+  },
+  "next": {
+    "title": "Duration",
+    "permalink": "/fields/field-types/date-time-based/duration"
+  }
+}

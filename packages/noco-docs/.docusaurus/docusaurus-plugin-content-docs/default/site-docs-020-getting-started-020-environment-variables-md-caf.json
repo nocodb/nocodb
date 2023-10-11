@@ -1,0 +1,29 @@
+{
+  "unversionedId": "getting-started/environment-variables",
+  "id": "getting-started/environment-variables",
+  "title": "Environment Variables",
+  "description": "Environment Variables for NocoDB!",
+  "source": "@site/docs/020.getting-started/020.environment-variables.md",
+  "sourceDirName": "020.getting-started",
+  "slug": "/getting-started/environment-variables",
+  "permalink": "/getting-started/environment-variables",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/020.getting-started/020.environment-variables.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {
+    "title": "Environment Variables",
+    "description": "Environment Variables for NocoDB!",
+    "hide_table_of_contents": true
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Installation",
+    "permalink": "/getting-started/installation"
+  },
+  "next": {
+    "title": "Upgrading",
+    "permalink": "/getting-started/upgrading"
+  }
+}

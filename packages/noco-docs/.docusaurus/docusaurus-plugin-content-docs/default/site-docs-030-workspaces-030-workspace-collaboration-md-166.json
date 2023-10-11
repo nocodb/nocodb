@@ -1,0 +1,25 @@
+{
+  "unversionedId": "workspaces/Workspace collaboration",
+  "id": "workspaces/Workspace collaboration",
+  "title": "Workspace collaboration",
+  "description": "",
+  "source": "@site/docs/030.workspaces/030.Workspace collaboration.md",
+  "sourceDirName": "030.workspaces",
+  "slug": "/workspaces/Workspace collaboration",
+  "permalink": "/workspaces/Workspace collaboration",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/030.workspaces/030.Workspace collaboration.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 30,
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Create workspace",
+    "permalink": "/workspaces/create-workspace"
+  },
+  "next": {
+    "title": "Delete workspace",
+    "permalink": "/workspaces/delete-workspace"
+  }
+}

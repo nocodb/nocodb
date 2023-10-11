@@ -1,0 +1,14 @@
+{
+  "label": "create record",
+  "permalink": "/tags/create-record",
+  "allTagsPath": "/tags",
+  "count": 1,
+  "items": [
+    {
+      "id": "records/create-record",
+      "title": "Create record",
+      "description": "Learn how to create a record in NocoDB.",
+      "permalink": "/records/create-record"
+    }
+  ]
+}

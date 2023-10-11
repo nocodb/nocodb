@@ -1,0 +1,27 @@
+{
+  "unversionedId": "fields/field-types/date-time-based/duration",
+  "id": "fields/field-types/date-time-based/duration",
+  "title": "Duration",
+  "description": "",
+  "source": "@site/docs/060.fields/030.field-types/070.date-time-based/140.duration.md",
+  "sourceDirName": "060.fields/030.field-types/070.date-time-based",
+  "slug": "/fields/field-types/date-time-based/duration",
+  "permalink": "/fields/field-types/date-time-based/duration",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.fields/030.field-types/070.date-time-based/140.duration.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 140,
+  "frontMatter": {
+    "title": "Duration"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Time",
+    "permalink": "/fields/field-types/date-time-based/time"
+  },
+  "next": {
+    "title": "Delete field",
+    "permalink": "/fields/delete-field"
+  }
+}

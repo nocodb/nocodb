@@ -1,0 +1,25 @@
+{
+  "unversionedId": "projects/create-workspace",
+  "id": "projects/create-workspace",
+  "title": "create-workspace",
+  "description": "",
+  "source": "@site/docs/040.projects/020.create-workspace.md",
+  "sourceDirName": "040.projects",
+  "slug": "/projects/create-workspace",
+  "permalink": "/projects/create-workspace",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/040.projects/020.create-workspace.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 20,
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "projects-overview",
+    "permalink": "/projects/projects-overview"
+  },
+  "next": {
+    "title": "modify-workspace",
+    "permalink": "/projects/modify-workspace"
+  }
+}

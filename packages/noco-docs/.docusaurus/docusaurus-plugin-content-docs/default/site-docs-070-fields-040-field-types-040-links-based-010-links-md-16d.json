@@ -1,0 +1,50 @@
+{
+  "unversionedId": "fields/field-types/links-based/links",
+  "id": "fields/field-types/links-based/links",
+  "title": "Links",
+  "description": "Links field type is used to establish relationship between tables & create links to other records.",
+  "source": "@site/docs/070.fields/040.field-types/040.links-based/010.links.md",
+  "sourceDirName": "070.fields/040.field-types/040.links-based",
+  "slug": "/fields/field-types/links-based/links",
+  "permalink": "/fields/field-types/links-based/links",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/070.fields/040.field-types/040.links-based/010.links.md",
+  "tags": [
+    {
+      "label": "Fields",
+      "permalink": "/tags/fields"
+    },
+    {
+      "label": "Field types",
+      "permalink": "/tags/field-types"
+    },
+    {
+      "label": "Links based types",
+      "permalink": "/tags/links-based-types"
+    },
+    {
+      "label": "Links",
+      "permalink": "/tags/links"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Links",
+    "tags": [
+      "Fields",
+      "Field types",
+      "Links based types",
+      "Links"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Multi Select",
+    "permalink": "/fields/field-types/select-based/multi-select"
+  },
+  "next": {
+    "title": "LookUp",
+    "permalink": "/fields/field-types/links-based/lookup"
+  }
+}

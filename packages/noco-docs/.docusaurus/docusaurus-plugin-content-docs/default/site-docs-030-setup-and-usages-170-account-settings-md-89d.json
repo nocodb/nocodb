@@ -1,0 +1,28 @@
+{
+  "unversionedId": "setup-and-usages/account-settings",
+  "id": "setup-and-usages/account-settings",
+  "title": "Account Settings",
+  "description": "NocoDB provides Account Settings for managing your account or more for super admin",
+  "source": "@site/docs/030.setup-and-usages/170.account-settings.md",
+  "sourceDirName": "030.setup-and-usages",
+  "slug": "/setup-and-usages/account-settings",
+  "permalink": "/setup-and-usages/account-settings",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/030.setup-and-usages/170.account-settings.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 170,
+  "frontMatter": {
+    "title": "Account Settings",
+    "description": "NocoDB provides Account Settings for managing your account or more for super admin"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Views",
+    "permalink": "/setup-and-usages/views"
+  },
+  "next": {
+    "title": "Languages",
+    "permalink": "/setup-and-usages/languages"
+  }
+}

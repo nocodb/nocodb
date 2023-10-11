@@ -1,0 +1,77 @@
+{
+  "unversionedId": "table-operations/download",
+  "id": "table-operations/download",
+  "title": "Download",
+  "description": "NocoDB offers users the ability to export data from the spreadsheet grid in a variety of formats. This feature is useful when working with large datasets and can be used in conjunction with the Filter and Sort feature to further refine your data.",
+  "source": "@site/docs/060.table-operations/080.download.md",
+  "sourceDirName": "060.table-operations",
+  "slug": "/table-operations/download",
+  "permalink": "/table-operations/download",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.table-operations/080.download.md",
+  "tags": [
+    {
+      "label": "Table operations",
+      "permalink": "/tags/table-operations"
+    },
+    {
+      "label": "Download",
+      "permalink": "/tags/download"
+    },
+    {
+      "label": "Gallery View",
+      "permalink": "/tags/gallery-view"
+    },
+    {
+      "label": "Kanban View",
+      "permalink": "/tags/kanban-view"
+    },
+    {
+      "label": "Grid View",
+      "permalink": "/tags/grid-view"
+    },
+    {
+      "label": "CSV",
+      "permalink": "/tags/csv"
+    },
+    {
+      "label": "JSON",
+      "permalink": "/tags/json"
+    },
+    {
+      "label": "XLSX",
+      "permalink": "/tags/xlsx"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 80,
+  "frontMatter": {
+    "title": "Download",
+    "tags": [
+      "Table operations",
+      "Download",
+      "Gallery View",
+      "Kanban View",
+      "Grid View",
+      "CSV",
+      "JSON",
+      "XLSX"
+    ],
+    "keywords": [
+      "NocoDB table",
+      "download",
+      "export",
+      "table administration",
+      "table organization"
+    ]
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Search",
+    "permalink": "/table-operations/search"
+  },
+  "next": {
+    "title": "Table details overview",
+    "permalink": "/table-details/table-details-overview"
+  }
+}

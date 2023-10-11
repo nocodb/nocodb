@@ -1,0 +1,27 @@
+{
+  "unversionedId": "projects/templates",
+  "id": "projects/templates",
+  "title": "Templates",
+  "description": "",
+  "source": "@site/docs/040.projects/060.templates.md",
+  "sourceDirName": "040.projects",
+  "slug": "/projects/templates",
+  "permalink": "/projects/templates",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/040.projects/060.templates.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 60,
+  "frontMatter": {
+    "title": "Templates"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Delete",
+    "permalink": "/projects/delete"
+  },
+  "next": {
+    "title": "Import from Airtable",
+    "permalink": "/projects/import-airtable"
+  }
+}

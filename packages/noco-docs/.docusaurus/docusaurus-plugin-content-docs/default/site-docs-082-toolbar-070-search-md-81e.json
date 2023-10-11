@@ -1,0 +1,27 @@
+{
+  "unversionedId": "toolbar/search",
+  "id": "toolbar/search",
+  "title": "Search",
+  "description": "NocoDB offers a quick search feature that allows you to search for records by field from the toolbar menu. This feature is useful when working with large datasets and can be used in conjunction with the Filter feature to further refine your search results.",
+  "source": "@site/docs/082.toolbar/070.search.md",
+  "sourceDirName": "082.toolbar",
+  "slug": "/toolbar/search",
+  "permalink": "/toolbar/search",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/082.toolbar/070.search.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 70,
+  "frontMatter": {
+    "title": "Search"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Row Height",
+    "permalink": "/toolbar/row-height"
+  },
+  "next": {
+    "title": "Download",
+    "permalink": "/toolbar/download"
+  }
+}

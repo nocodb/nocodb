@@ -1,0 +1,27 @@
+{
+  "unversionedId": "columns/overview",
+  "id": "columns/overview",
+  "title": "Overview",
+  "description": "",
+  "source": "@site/docs/060.columns/010.overview.md",
+  "sourceDirName": "060.columns",
+  "slug": "/columns/overview",
+  "permalink": "/columns/overview",
+  "draft": false,
+  "editUrl": "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/docs/060.columns/010.overview.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "title": "Overview"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Configurations",
+    "permalink": "/tables/configurations"
+  },
+  "next": {
+    "title": "Create",
+    "permalink": "/columns/create"
+  }
+}

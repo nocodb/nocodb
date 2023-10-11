@@ -101,6 +101,7 @@ jobs:
 
       - name: Build nocodb and docker files
         run: |
+          pnpm install --ignore-scripts --no-frozen-lockfile
           pnpm run docker:build
         working-directory: ${{ env.working-directory }}
 

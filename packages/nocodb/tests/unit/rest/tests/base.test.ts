@@ -65,7 +65,7 @@ function baseTest() {
         .expect(200);
     } else {
       response = await request(context.app)
-        .get(`/api/v1/workspaces/${context.fk_workspace_id}/projects`)
+        .get(`/api/v1/workspaces/${context.fk_workspace_id}/bases`)
         .set('xc-auth', context.token)
         .send({})
         .expect(200);

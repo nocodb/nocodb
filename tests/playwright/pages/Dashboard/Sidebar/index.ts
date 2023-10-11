@@ -74,7 +74,7 @@ export class SidebarPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.dashboard.get().getByTestId('docs-create-proj-dlg-create-btn').click(),
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `/api/v1/db/meta/bases/`,
+      requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
     });
 
     if (type === ProjectTypes.DOCUMENTATION) {

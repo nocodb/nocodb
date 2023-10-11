@@ -21,7 +21,7 @@ const activeView = inject(ActiveViewInj, ref())
 
 const meta = inject(MetaInj, ref())
 
-const { showSystemFields, metaColumnById } = useViewColumns(activeView, meta)
+const { showSystemFields, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
 
 const { sorts } = useViewSorts(activeView)
 

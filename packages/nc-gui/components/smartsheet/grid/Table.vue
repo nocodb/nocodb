@@ -123,7 +123,7 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
-const { isViewColumnsLoading } = useViewColumns(view, meta, () => reloadViewDataHook.trigger())
+const { isViewColumnsLoading } = useViewColumnsOrThrow(view, meta)
 
 const { isMobileMode } = useGlobal()
 

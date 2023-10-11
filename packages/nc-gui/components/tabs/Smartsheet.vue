@@ -80,6 +80,8 @@ provide(
   computed(() => !isUIAllowed('dataEdit')),
 )
 
+useProvideViewColumns(activeView, meta, () => reloadEventHook?.trigger())
+
 const grid = ref()
 
 const onDrop = async (event: DragEvent) => {

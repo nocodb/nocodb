@@ -12,7 +12,7 @@ import {
   iconMap,
   inject,
   ref,
-  useViewColumns,
+  useViewColumnsOrThrow,
   watch,
 } from '#imports'
 
@@ -28,7 +28,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const IsPublic = inject(IsPublicInj, ref(false))
 
-const { fields, loadViewColumns, metaColumnById } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
+const { fields, loadViewColumns, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
 
 const { loadMapData, loadMapMeta, updateMapMeta, mapMetaData, geoDataFieldColumn } = useMapViewStoreOrThrow()
 

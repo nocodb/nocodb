@@ -18,7 +18,7 @@ const { t } = useI18n()
 
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 
-const { fields, metaColumnById } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
+const { fields, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
 
 const vModel = useVModel(props, 'modelValue', emit)
 

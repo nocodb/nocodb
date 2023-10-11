@@ -21,7 +21,7 @@ import {
   useNuxtApp,
   useSmartsheetStoreOrThrow,
   useUndoRedo,
-  useViewColumns,
+  useViewColumnsOrThrow,
   watch,
 } from '#imports'
 
@@ -55,7 +55,7 @@ const {
   metaColumnById,
   loadViewColumns,
   toggleFieldVisibility,
-} = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
+} = useViewColumnsOrThrow(activeView, meta)
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 

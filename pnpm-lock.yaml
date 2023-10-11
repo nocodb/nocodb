@@ -112,7 +112,7 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0
       nocodb-sdk:
-        specifier: 0.200.0
+        specifier: 0.111.4
         version: link:../nocodb-sdk
       papaparse:
         specifier: ^5.3.2
@@ -632,8 +632,8 @@ importers:
         specifier: 0.3.1
         version: 0.3.1(asn1.js@5.4.1)(debug@4.3.4)(knex@2.4.2)
       nc-lib-gui:
-        specifier: 0.200.0
-        version: 0.200.0
+        specifier: 0.111.4
+        version: 0.111.4
       nc-plugin:
         specifier: ^0.1.3
         version: 0.1.3
@@ -647,7 +647,7 @@ importers:
         specifier: ^0.3.0
         version: 0.3.0(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)(@nestjs/throttler@4.2.1)(ioredis@5.3.2)(reflect-metadata@0.1.13)
       nocodb-sdk:
-        specifier: 0.200.0
+        specifier: 0.111.4
         version: link:../nocodb-sdk
       nodemailer:
         specifier: ^6.4.10
@@ -931,7 +931,7 @@ importers:
         specifier: ^2.4.2
         version: 2.4.2(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6)(tedious@16.4.0)
       nocodb-sdk:
-        specifier: 0.200.0
+        specifier: 0.111.4
         version: link:../../packages/nocodb-sdk
       sqlite3:
         specifier: ^5.1.6
@@ -17743,8 +17743,8 @@ packages:
       - supports-color
     dev: false
 
-  /nc-lib-gui@0.200.0:
-    resolution: {integrity: sha512-ALoKTpBXhtZ8yU1I06Su7PSA6ngO8aUF3xrl4dtEm/qQ0zbXuwuJcD6CQQ19uy5gBWPosJskebkLDzrO+AeISQ==}
+  /nc-lib-gui@0.111.4:
+    resolution: {integrity: sha512-2ST6vycxHpQ0mropVq9GRhVt9dWng3+hZZPyjZ6HiK8kXRjBrsv7Ck4WLIRj7TuloRTI8zn9Mixud9CkvgkvWQ==}
     dependencies:
       express: 4.18.2
     transitivePeerDependencies:

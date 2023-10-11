@@ -116,7 +116,7 @@ export class AuthController {
   }
 
   @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'])
-  @UseGuards(GlobalGuard)
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   async me(@Request() req) {
     const user = {
       ...req.user,

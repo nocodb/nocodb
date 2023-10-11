@@ -129,7 +129,7 @@ export class AuthController extends AuthControllerCE {
   /* OpenID Connect auth apis */
   /* OpenID Connect APIs */
   @Post('/auth/cognito')
-  @UseGuards(AuthGuard('cognito'))
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('cognito'))
   async cognitoSignin(@Request() req, @Response() res) {
     await this.setRefreshToken({ req, res });
     res.json({

@@ -225,6 +225,12 @@ export default class Workspace implements WorkspaceType {
   }
 
   public static async softDelete(id: string, ncMeta = Noco.ncMeta) {
+    if (!id) NcError.badRequest('Workspace id is required');
+
+    const workspace = await this.get(id);
+
+    if (!workspace) NcError.notFound('Workspace not found');
+
     await NocoCache.del(`${CacheScope.WORKSPACE}:${id}`);
 
     return await ncMeta.metaUpdate(
@@ -254,7 +260,7 @@ export default class Workspace implements WorkspaceType {
 
   static async count(condition: any, ncMeta = Noco.ncMeta) {
     return await ncMeta.metaCount(null, null, MetaTable.WORKSPACE, {
-      condition,
+      condition: { ...condition, deleted: false },
     });
   }
 }

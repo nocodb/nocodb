@@ -109,7 +109,7 @@ export class TreeViewPage extends BasePage {
               },
             }),
         httpMethodsToMatch: ['GET'],
-        requestUrlPathToMatch: `/api/v1/db/auth/noco/`,
+        requestUrlPathToMatch: `/api/v1/db/data/noco`,
         responseJsonMatcher: json => json.pageInfo,
       });
       await this.dashboard.waitForTabRender({ title, mode });

@@ -14,8 +14,6 @@ const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
-const reloadDataHook = inject(ReloadViewDataHookInj)!
-
 const { fields, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
 
 const vModel = useVModel(props, 'modelValue', emit)

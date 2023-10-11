@@ -37,6 +37,8 @@ provide(FieldsInj, columns)
 provide(IsPublicInj, ref(true))
 provide(IsLockedInj, isLocked)
 
+useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)
+
 const { loadGridViewColumns } = useProvideGridViewColumn(sharedView, true)
 
 if (signedIn.value) {

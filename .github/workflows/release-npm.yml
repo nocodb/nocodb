@@ -55,6 +55,7 @@ jobs:
       - run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
           NOCODB_SDK_PKG_NAME=nocodb-sdk
+          # If targetEnv is DEV, then use nocodb-sdk-daily package
           if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then
             NOCODB_SDK_PKG_NAME=nocodb-sdk-daily
           fi

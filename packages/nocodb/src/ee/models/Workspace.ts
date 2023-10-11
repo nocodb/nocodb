@@ -231,7 +231,7 @@ export default class Workspace implements WorkspaceType {
       MetaTable.WORKSPACE,
       {
         deleted: true,
-        deleted_at: Date.now(),
+        deleted_at: ncMeta.knex.fn.now(),
       },
       id,
     );

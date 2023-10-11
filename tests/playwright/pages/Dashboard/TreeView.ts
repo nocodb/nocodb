@@ -143,7 +143,7 @@ export class TreeViewPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.dashboard.get().locator('button:has-text("Create Table")').click(),
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `//api/v1/db/meta/bases/`,
+      requestUrlPathToMatch: `/api/v1/db/meta/bases/`,
       responseJsonMatcher: json => json.title === title && json.type === 'table',
     });
 

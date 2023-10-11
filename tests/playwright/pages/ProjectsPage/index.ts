@@ -41,7 +41,7 @@ export class ProjectsPage extends BasePage {
     await this.waitForResponse({
       uiAction: createProjectSubmitAction,
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: '//api/v1/db/meta/bases/',
+      requestUrlPathToMatch: '/api/v1/db/meta/bases/',
     });
 
     // wait for dashboard to render
@@ -180,7 +180,7 @@ export class ProjectsPage extends BasePage {
     await this.waitForResponse({
       uiAction: deleteProjectAction,
       httpMethodsToMatch: ['DELETE'],
-      requestUrlPathToMatch: '//api/v1/db/meta/bases/',
+      requestUrlPathToMatch: '/api/v1/db/meta/bases/',
     });
 
     await this.get().locator('.ant-table-row', { hasText: title }).waitFor({ state: 'hidden' });

@@ -39,7 +39,7 @@ function baseTest() {
 
   it('Get base info', async () => {
     await request(context.app)
-      .get(`/api/v1/db/meta/bases/${base.id}/info`)
+      .get(`/api/v1/db/meta/projects/${base.id}/info`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200);
@@ -48,24 +48,24 @@ function baseTest() {
   // todo: Test by creating models under base and check if the UCL is working
   it('UI ACL', async () => {
     await request(context.app)
-      .get(`/api/v1/db/meta/bases/${base.id}/visibility-rules`)
+      .get(`/api/v1/db/meta/projects/${base.id}/visibility-rules`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200);
   });
   // todo: Test creating visibility set
 
-  it('List bases', async () => {
+  it('List projects', async () => {
     let response;
     if (process.env.EE !== 'true') {
       response = await request(context.app)
-        .get('/api/v1/db/meta/bases/')
+        .get('/api/v1/db/meta/projects/')
         .set('xc-auth', context.token)
         .send({})
         .expect(200);
     } else {
       response = await request(context.app)
-        .get(`/api/v1/workspaces/${context.fk_workspace_id}/bases`)
+        .get(`/api/v1/workspaces/${context.fk_workspace_id}/projects`)
         .set('xc-auth', context.token)
         .send({})
         .expect(200);
@@ -77,7 +77,7 @@ function baseTest() {
 
   it('Create base', async () => {
     const response = await request(context.app)
-      .post('/api/v1/db/meta/bases/')
+      .post('/api/v1/db/meta/projects/')
       .set('xc-auth', context.token)
       .send({
         title: 'Title1',
@@ -91,9 +91,9 @@ function baseTest() {
     if (!newProject) return new Error('Base not created');
   });
 
-  it('Create bases with existing title', async () => {
+  it('Create projects with existing title', async () => {
     await request(context.app)
-      .post(`/api/v1/db/meta/bases/`)
+      .post(`/api/v1/db/meta/projects/`)
       .set('xc-auth', context.token)
       .send({
         title: base.title,
@@ -110,7 +110,7 @@ function baseTest() {
   //     title: 'deletedTitle',
   //   });
   //   await request(app)
-  //     .delete('/api/v1/db/meta/bases/${toBeDeletedProject.id}')
+  //     .delete('/api/v1/db/meta/projects/${toBeDeletedProject.id}')
   //     .set('xc-auth', token)
   //     .send({
   //       title: 'Title1',
@@ -130,7 +130,7 @@ function baseTest() {
 
   it('Read base', async () => {
     const response = await request(context.app)
-      .get(`/api/v1/db/meta/bases/${base.id}`)
+      .get(`/api/v1/db/meta/projects/${base.id}`)
       .set('xc-auth', context.token)
       .send()
       .expect(200);
@@ -138,9 +138,9 @@ function baseTest() {
     if (response.body.id !== base.id) return new Error('Got the wrong base');
   });
 
-  it('Update bases', async () => {
+  it('Update projects', async () => {
     await request(context.app)
-      .patch(`/api/v1/db/meta/bases/${base.id}`)
+      .patch(`/api/v1/db/meta/projects/${base.id}`)
       .set('xc-auth', context.token)
       .send({
         title: 'NewTitle',
@@ -153,7 +153,7 @@ function baseTest() {
     }
   });
 
-  it('Update bases with existing title', async function () {
+  it('Update projects with existing title', async function () {
     if (process.env.EE !== 'true') {
       const newProject = await createProject(context, {
         title: 'NewTitle1',
@@ -161,7 +161,7 @@ function baseTest() {
 
       // Allow base rename to be replaced with same title
       await request(context.app)
-        .patch(`/api/v1/db/meta/bases/${base.id}`)
+        .patch(`/api/v1/db/meta/projects/${base.id}`)
         .set('xc-auth', context.token)
         .send({
           title: newProject.title,
@@ -172,7 +172,7 @@ function baseTest() {
 
   it('Create base shared base', async () => {
     await request(context.app)
-      .post(`/api/v1/db/meta/bases/${base.id}/shared`)
+      .post(`/api/v1/db/meta/projects/${base.id}/shared`)
       .set('xc-auth', context.token)
       .send({
         roles: 'viewer',
@@ -193,7 +193,7 @@ function baseTest() {
 
   it('Created base shared base should have only editor or viewer role', async () => {
     await request(context.app)
-      .post(`/api/v1/db/meta/bases/${base.id}/shared`)
+      .post(`/api/v1/db/meta/projects/${base.id}/shared`)
       .set('xc-auth', context.token)
       .send({
         roles: 'commenter',
@@ -212,7 +212,7 @@ function baseTest() {
     await createSharedBase(context.app, context.token, base);
 
     await request(context.app)
-      .patch(`/api/v1/db/meta/bases/${base.id}/shared`)
+      .patch(`/api/v1/db/meta/projects/${base.id}/shared`)
       .set('xc-auth', context.token)
       .send({
         roles: 'commenter',
@@ -231,7 +231,7 @@ function baseTest() {
     await createSharedBase(context.app, context.token, base);
 
     await request(context.app)
-      .patch(`/api/v1/db/meta/bases/${base.id}/shared`)
+      .patch(`/api/v1/db/meta/projects/${base.id}/shared`)
       .set('xc-auth', context.token)
       .send({
         roles: 'editor',
@@ -249,7 +249,7 @@ function baseTest() {
     await createSharedBase(context.app, context.token, base);
 
     await request(context.app)
-      .get(`/api/v1/db/meta/bases/${base.id}/shared`)
+      .get(`/api/v1/db/meta/projects/${base.id}/shared`)
       .set('xc-auth', context.token)
       .send()
       .expect(200);
@@ -264,7 +264,7 @@ function baseTest() {
     await createSharedBase(context.app, context.token, base);
 
     await request(context.app)
-      .delete(`/api/v1/db/meta/bases/${base.id}/shared`)
+      .delete(`/api/v1/db/meta/projects/${base.id}/shared`)
       .set('xc-auth', context.token)
       .send()
       .expect(200);
@@ -278,7 +278,7 @@ function baseTest() {
 
   it('Meta diff sync', async () => {
     await request(context.app)
-      .get(`/api/v1/db/meta/bases/${base.id}/meta-diff`)
+      .get(`/api/v1/db/meta/projects/${base.id}/meta-diff`)
       .set('xc-auth', context.token)
       .send()
       .expect(200);
@@ -286,7 +286,7 @@ function baseTest() {
 
   it('Meta diff sync', async () => {
     await request(context.app)
-      .post(`/api/v1/db/meta/bases/${base.id}/meta-diff`)
+      .post(`/api/v1/db/meta/projects/${base.id}/meta-diff`)
       .set('xc-auth', context.token)
       .send()
       .expect(200);
@@ -295,7 +295,7 @@ function baseTest() {
   // todo: improve test. Check whether the all the actions are present in the response and correct as well
   it('Meta diff sync', async () => {
     await request(context.app)
-      .get(`/api/v1/db/meta/bases/${base.id}/audits`)
+      .get(`/api/v1/db/meta/projects/${base.id}/audits`)
       .set('xc-auth', context.token)
       .send()
       .expect(200);

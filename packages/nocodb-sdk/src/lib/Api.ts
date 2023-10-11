@@ -3344,7 +3344,7 @@ export class Api<
  * @tags Auth
  * @name BaseUserList
  * @summary List Base Users
- * @request GET:/api/v1/meta/bases/{baseId}/users
+ * @request GET:/api/v1/db/meta/projects/{baseId}/users
  * @response `200` `{
   users?: {
   list: (UserType)[],
@@ -3374,7 +3374,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/users`,
+        path: `/api/v1/db/meta/projects/${baseId}/users`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3386,7 +3386,7 @@ export class Api<
  * @tags Auth
  * @name BaseUserAdd
  * @summary Create Base User
- * @request POST:/api/v1/meta/bases/{baseId}/users
+ * @request POST:/api/v1/db/meta/projects/{baseId}/users
  * @response `200` `{
   \**
    * Success Message for inviting single email
@@ -3440,7 +3440,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/users`,
+        path: `/api/v1/db/meta/projects/${baseId}/users`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -3454,7 +3454,7 @@ export class Api<
  * @tags Auth
  * @name BaseUserUpdate
  * @summary Update Base User
- * @request PATCH:/api/v1/meta/bases/{baseId}/users/{userId}
+ * @request PATCH:/api/v1/db/meta/projects/{baseId}/users/{userId}
  * @response `200` `{
   \**
    * Success Message
@@ -3488,7 +3488,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/users/${userId}`,
+        path: `/api/v1/db/meta/projects/${baseId}/users/${userId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -3502,7 +3502,7 @@ export class Api<
  * @tags Auth
  * @name BaseUserRemove
  * @summary Delete Base User
- * @request DELETE:/api/v1/meta/bases/{baseId}/users/{userId}
+ * @request DELETE:/api/v1/db/meta/projects/{baseId}/users/{userId}
  * @response `200` `{
   \**
    * Success Message
@@ -3535,7 +3535,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/users/${userId}`,
+        path: `/api/v1/db/meta/projects/${baseId}/users/${userId}`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -3547,7 +3547,7 @@ export class Api<
  * @tags Auth
  * @name BaseUserResendInvite
  * @summary Resend User Invitation
- * @request POST:/api/v1/meta/bases/{baseId}/users/{userId}/resend-invite
+ * @request POST:/api/v1/db/meta/projects/{baseId}/users/{userId}/resend-invite
  * @response `200` `{
   \**
    * Success Message
@@ -3580,7 +3580,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/users/${userId}/resend-invite`,
+        path: `/api/v1/db/meta/projects/${baseId}/users/${userId}/resend-invite`,
         method: 'POST',
         format: 'json',
         ...params,
@@ -4257,7 +4257,7 @@ export class Api<
  * @tags Base
  * @name MetaGet
  * @summary Get Base info
- * @request GET:/api/v1/meta/bases/{baseId}/info
+ * @request GET:/api/v1/db/meta/projects/{baseId}/info
  * @response `200` `{
   \**
    * Node version
@@ -4356,7 +4356,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/info`,
+        path: `/api/v1/db/meta/projects/${baseId}/info`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -4368,7 +4368,7 @@ export class Api<
  * @tags Base
  * @name ModelVisibilityList
  * @summary Get UI ACL
- * @request GET:/api/v1/meta/bases/{baseId}/visibility-rules
+ * @request GET:/api/v1/db/meta/projects/{baseId}/visibility-rules
  * @response `200` `(any)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -4390,7 +4390,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/visibility-rules`,
+        path: `/api/v1/db/meta/projects/${baseId}/visibility-rules`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -4403,7 +4403,7 @@ export class Api<
  * @tags Base
  * @name ModelVisibilitySet
  * @summary Create UI ACL
- * @request POST:/api/v1/meta/bases/{baseId}/visibility-rules
+ * @request POST:/api/v1/db/meta/projects/{baseId}/visibility-rules
  * @response `200` `{
   \** @example UI ACL has been created successfully *\
   msg?: string,
@@ -4430,7 +4430,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/visibility-rules`,
+        path: `/api/v1/db/meta/projects/${baseId}/visibility-rules`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -4444,7 +4444,7 @@ export class Api<
  * @tags Base
  * @name List
  * @summary List Projects
- * @request GET:/api/v1/meta/bases/
+ * @request GET:/api/v1/db/meta/projects/
  * @response `200` `ProjectListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -4460,7 +4460,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/`,
+        path: `/api/v1/db/meta/projects/`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -4472,7 +4472,7 @@ export class Api<
  * @tags Base
  * @name Create
  * @summary Create Base
- * @request POST:/api/v1/meta/bases/
+ * @request POST:/api/v1/db/meta/projects/
  * @response `200` `BaseType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -4494,7 +4494,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/`,
+        path: `/api/v1/db/meta/projects/`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -4508,7 +4508,7 @@ export class Api<
  * @tags Base
  * @name SourceDuplicate
  * @summary Duplicate Base Source
- * @request POST:/api/v1/meta/duplicate/{baseId}/{sourceId}
+ * @request POST:/api/v1/db/meta/duplicate/{baseId}/{sourceId}
  * @response `200` `{
   name?: string,
   id?: string,
@@ -4545,7 +4545,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/duplicate/${baseId}/${sourceId}`,
+        path: `/api/v1/db/meta/duplicate/${baseId}/${sourceId}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -4559,7 +4559,7 @@ export class Api<
  * @tags Base
  * @name Duplicate
  * @summary Duplicate Base
- * @request POST:/api/v1/meta/duplicate/{baseId}
+ * @request POST:/api/v1/db/meta/duplicate/{baseId}
  * @response `200` `{
   name?: string,
   id?: string,
@@ -4593,7 +4593,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/duplicate/${baseId}`,
+        path: `/api/v1/db/meta/duplicate/${baseId}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -4607,7 +4607,7 @@ export class Api<
  * @tags Base
  * @name Read
  * @summary Get Base
- * @request GET:/api/v1/meta/bases/{baseId}
+ * @request GET:/api/v1/db/meta/projects/{baseId}
  * @response `200` `BaseType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -4623,7 +4623,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}`,
+        path: `/api/v1/db/meta/projects/${baseId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -4635,7 +4635,7 @@ export class Api<
  * @tags Base
  * @name Delete
  * @summary Delete Base
- * @request DELETE:/api/v1/meta/bases/{baseId}
+ * @request DELETE:/api/v1/db/meta/projects/{baseId}
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -4651,7 +4651,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}`,
+        path: `/api/v1/db/meta/projects/${baseId}`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -4663,7 +4663,7 @@ export class Api<
  * @tags Base
  * @name Update
  * @summary Update Base
- * @request PATCH:/api/v1/meta/bases/{baseId}
+ * @request PATCH:/api/v1/db/meta/projects/{baseId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -4683,7 +4683,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}`,
+        path: `/api/v1/db/meta/projects/${baseId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -4697,7 +4697,7 @@ export class Api<
      * @tags Base
      * @name UserMetaUpdate
      * @summary Base user meta update
-     * @request PATCH:/api/v1/meta/bases/{baseId}/user
+     * @request PATCH:/api/v1/db/meta/projects/{baseId}/user
      * @response `200` `void` OK
      */
     userMetaUpdate: (
@@ -4706,7 +4706,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/meta/bases/${baseId}/user`,
+        path: `/api/v1/db/meta/projects/${baseId}/user`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -4719,7 +4719,7 @@ export class Api<
  * @tags Base
  * @name SharedBaseGet
  * @summary Get Base Shared Base
- * @request GET:/api/v1/meta/bases/{baseId}/shared
+ * @request GET:/api/v1/db/meta/projects/{baseId}/shared
  * @response `200` `{
   \**
    * @format uuid
@@ -4756,7 +4756,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/shared`,
+        path: `/api/v1/db/meta/projects/${baseId}/shared`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -4768,7 +4768,7 @@ export class Api<
  * @tags Base
  * @name SharedBaseDisable
  * @summary Delete Base Shared Base
- * @request DELETE:/api/v1/meta/bases/{baseId}/shared
+ * @request DELETE:/api/v1/db/meta/projects/{baseId}/shared
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -4784,7 +4784,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/shared`,
+        path: `/api/v1/db/meta/projects/${baseId}/shared`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -4796,7 +4796,7 @@ export class Api<
  * @tags Base
  * @name SharedBaseCreate
  * @summary Create Base Shared Base
- * @request POST:/api/v1/meta/bases/{baseId}/shared
+ * @request POST:/api/v1/db/meta/projects/{baseId}/shared
  * @response `200` `{
   \** Model for StringOrNull *\
   uuid?: StringOrNullType,
@@ -4827,7 +4827,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/shared`,
+        path: `/api/v1/db/meta/projects/${baseId}/shared`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -4841,7 +4841,7 @@ export class Api<
  * @tags Base
  * @name SharedBaseUpdate
  * @summary Update Base Shared Base
- * @request PATCH:/api/v1/meta/bases/{baseId}/shared
+ * @request PATCH:/api/v1/db/meta/projects/{baseId}/shared
  * @response `200` `{
   \**
    * @format uuid
@@ -4882,7 +4882,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/shared`,
+        path: `/api/v1/db/meta/projects/${baseId}/shared`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -4896,7 +4896,7 @@ export class Api<
  * @tags Base
  * @name Cost
  * @summary Base Cost
- * @request GET:/api/v1/meta/bases/{baseId}/cost
+ * @request GET:/api/v1/db/meta/projects/{baseId}/cost
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -4912,7 +4912,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/cost`,
+        path: `/api/v1/db/meta/projects/${baseId}/cost`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -4924,7 +4924,7 @@ export class Api<
  * @tags Base
  * @name MetaDiffSync
  * @summary Sync Meta
- * @request POST:/api/v1/meta/bases/{baseId}/meta-diff
+ * @request POST:/api/v1/db/meta/projects/{baseId}/meta-diff
  * @response `200` `{
   \** @example The meta has been synchronized successfully *\
   msg?: string,
@@ -4947,7 +4947,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/meta-diff`,
+        path: `/api/v1/db/meta/projects/${baseId}/meta-diff`,
         method: 'POST',
         format: 'json',
         ...params,
@@ -4959,7 +4959,7 @@ export class Api<
  * @tags Base
  * @name MetaDiffGet
  * @summary Meta Diff
- * @request GET:/api/v1/meta/bases/{baseId}/meta-diff
+ * @request GET:/api/v1/db/meta/projects/{baseId}/meta-diff
  * @response `200` `({
   \**
    * Table Name
@@ -5012,7 +5012,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/meta-diff`,
+        path: `/api/v1/db/meta/projects/${baseId}/meta-diff`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -5024,7 +5024,7 @@ export class Api<
  * @tags Base
  * @name HasEmptyOrNullFilters
  * @summary List Empty & Null Filter
- * @request GET:/api/v1/meta/bases/{baseId}/has-empty-or-null-filters
+ * @request GET:/api/v1/db/meta/projects/{baseId}/has-empty-or-null-filters
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5040,7 +5040,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/has-empty-or-null-filters`,
+        path: `/api/v1/db/meta/projects/${baseId}/has-empty-or-null-filters`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -5052,7 +5052,7 @@ export class Api<
  * @tags Base
  * @name AuditList
  * @summary List Audits in Base
- * @request GET:/api/v1/meta/bases/{baseId}/audits
+ * @request GET:/api/v1/db/meta/projects/{baseId}/audits
  * @response `200` `{
   list: (AuditType)[],
   \** Model for Paginated *\
@@ -5087,7 +5087,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/audits`,
+        path: `/api/v1/db/meta/projects/${baseId}/audits`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -5101,7 +5101,7 @@ export class Api<
  * @tags Source
  * @name Read
  * @summary Get Source
- * @request GET:/api/v1/meta/bases/{baseId}/sources/{sourceId}
+ * @request GET:/api/v1/db/meta/projects/{baseId}/bases/{sourceId}
  * @response `200` `SourceType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5117,7 +5117,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/sources/${sourceId}`,
+        path: `/api/v1/db/meta/projects/${baseId}/bases/${sourceId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -5129,7 +5129,7 @@ export class Api<
  * @tags Source
  * @name Delete
  * @summary Delete Source
- * @request DELETE:/api/v1/meta/bases/{baseId}/sources/{sourceId}
+ * @request DELETE:/api/v1/db/meta/projects/{baseId}/bases/{sourceId}
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5145,7 +5145,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/sources/${sourceId}`,
+        path: `/api/v1/db/meta/projects/${baseId}/bases/${sourceId}`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -5157,7 +5157,7 @@ export class Api<
  * @tags Source
  * @name Update
  * @summary Update Source
- * @request PATCH:/api/v1/meta/bases/{baseId}/sources/{sourceId}
+ * @request PATCH:/api/v1/db/meta/projects/{baseId}/bases/{sourceId}
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5178,7 +5178,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/sources/${sourceId}`,
+        path: `/api/v1/db/meta/projects/${baseId}/bases/${sourceId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -5192,7 +5192,7 @@ export class Api<
      * @tags Source
      * @name CreateSqlView
      * @summary Create sql view
-     * @request POST:/api/v1/meta/bases/:baseId/sources/:sourceId/sqlView
+     * @request POST:/api/v1/db/meta/projects/:baseId/bases/:sourceId/sqlView
      * @response `200` `object` OK
      */
     createSqlView: (
@@ -5205,7 +5205,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<object, any>({
-        path: `/api/v1/meta/bases/${baseId}/sources/${sourceId}/sqlView`,
+        path: `/api/v1/db/meta/projects/${baseId}/bases/${sourceId}/sqlView`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -5219,7 +5219,7 @@ export class Api<
  * @tags Source
  * @name List
  * @summary List Sources
- * @request GET:/api/v1/meta/bases/{baseId}/sources/
+ * @request GET:/api/v1/db/meta/projects/{baseId}/bases/
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5235,7 +5235,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/sources/`,
+        path: `/api/v1/db/meta/projects/${baseId}/bases/`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -5247,7 +5247,7 @@ export class Api<
  * @tags Source
  * @name Create
  * @summary Create Source
- * @request POST:/api/v1/meta/bases/{baseId}/sources/
+ * @request POST:/api/v1/db/meta/projects/{baseId}/bases/
  * @response `200` `SourceType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5269,7 +5269,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/sources/`,
+        path: `/api/v1/db/meta/projects/${baseId}/bases/`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -5283,12 +5283,12 @@ export class Api<
      * @tags Source
      * @name ShareErd
      * @summary share ERD view
-     * @request POST:/api/v1/meta/bases/{baseId}/sources/{sourceId}/share/erd
+     * @request POST:/api/v1/db/meta/projects/{baseId}/bases/{sourceId}/share/erd
      * @response `200` `SourceType` OK
      */
     shareErd: (baseId: string, sourceId: string, params: RequestParams = {}) =>
       this.request<SourceType, any>({
-        path: `/api/v1/meta/bases/${baseId}/sources/${sourceId}/share/erd`,
+        path: `/api/v1/db/meta/projects/${baseId}/bases/${sourceId}/share/erd`,
         method: 'POST',
         format: 'json',
         ...params,
@@ -5299,7 +5299,7 @@ export class Api<
      *
      * @tags Source
      * @name DisableShareErd
-     * @request DELETE:/api/v1/meta/bases/{baseId}/sources/{sourceId}/share/erd
+     * @request DELETE:/api/v1/db/meta/projects/{baseId}/bases/{sourceId}/share/erd
      * @response `200` `void` OK
      */
     disableShareErd: (
@@ -5308,7 +5308,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/meta/bases/${baseId}/sources/${sourceId}/share/erd`,
+        path: `/api/v1/db/meta/projects/${baseId}/bases/${sourceId}/share/erd`,
         method: 'DELETE',
         ...params,
       }),
@@ -5319,7 +5319,7 @@ export class Api<
  * @tags Source
  * @name TableList
  * @summary List Tables
- * @request GET:/api/v1/meta/bases/{baseId}/{sourceId}/tables
+ * @request GET:/api/v1/db/meta/projects/{baseId}/{sourceId}/tables
  * @response `200` `TableListType`
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5345,7 +5345,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/${sourceId}/tables`,
+        path: `/api/v1/db/meta/projects/${baseId}/${sourceId}/tables`,
         method: 'GET',
         query: query,
         ...params,
@@ -5357,7 +5357,7 @@ export class Api<
  * @tags Source
  * @name TableCreate
  * @summary Create Table
- * @request POST:/api/v1/meta/bases/{baseId}/{sourceId}/tables
+ * @request POST:/api/v1/db/meta/projects/{baseId}/{sourceId}/tables
  * @response `200` `TableType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5378,7 +5378,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/${sourceId}/tables`,
+        path: `/api/v1/db/meta/projects/${baseId}/${sourceId}/tables`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -5392,7 +5392,7 @@ export class Api<
  * @tags Source
  * @name MetaDiffSync
  * @summary Synchronise Source Meta
- * @request POST:/api/v1/meta/bases/{baseId}/meta-diff/{sourceId}
+ * @request POST:/api/v1/db/meta/projects/{baseId}/meta-diff/{sourceId}
  * @response `200` `{
   \** @example The source meta has been synchronized successfully *\
   msg?: string,
@@ -5419,7 +5419,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/meta-diff/${sourceId}`,
+        path: `/api/v1/db/meta/projects/${baseId}/meta-diff/${sourceId}`,
         method: 'POST',
         format: 'json',
         ...params,
@@ -5431,7 +5431,7 @@ export class Api<
  * @tags Source
  * @name MetaDiffGet
  * @summary Source Meta Diff
- * @request GET:/api/v1/meta/bases/{baseId}/meta-diff/{sourceId}
+ * @request GET:/api/v1/db/meta/projects/{baseId}/meta-diff/{sourceId}
  * @response `200` `({
   \**
    * Table Name
@@ -5488,7 +5488,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/meta-diff/${sourceId}`,
+        path: `/api/v1/db/meta/projects/${baseId}/meta-diff/${sourceId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -5501,7 +5501,7 @@ export class Api<
  * @tags DB Table
  * @name Create
  * @summary Create Table
- * @request POST:/api/v1/meta/bases/{baseId}/tables
+ * @request POST:/api/v1/db/meta/projects/{baseId}/tables
  * @response `200` `TableType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5517,7 +5517,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/tables`,
+        path: `/api/v1/db/meta/projects/${baseId}/tables`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -5531,7 +5531,7 @@ export class Api<
  * @tags DB Table
  * @name List
  * @summary List Tables
- * @request GET:/api/v1/meta/bases/{baseId}/tables
+ * @request GET:/api/v1/db/meta/projects/{baseId}/tables
  * @response `200` `TableListType`
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5556,7 +5556,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/tables`,
+        path: `/api/v1/db/meta/projects/${baseId}/tables`,
         method: 'GET',
         query: query,
         ...params,
@@ -5568,7 +5568,7 @@ export class Api<
  * @tags DB Table
  * @name Read
  * @summary Read Table
- * @request GET:/api/v1/meta/tables/{tableId}
+ * @request GET:/api/v1/db/meta/tables/{tableId}
  * @response `200` `TableType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5584,7 +5584,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/tables/${tableId}`,
+        path: `/api/v1/db/meta/tables/${tableId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -5596,7 +5596,7 @@ export class Api<
  * @tags DB Table
  * @name Update
  * @summary Update Table
- * @request PATCH:/api/v1/meta/tables/{tableId}
+ * @request PATCH:/api/v1/db/meta/tables/{tableId}
  * @response `200` `{
   \** @example The table has been updated successfully *\
   msg?: string,
@@ -5641,7 +5641,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/tables/${tableId}`,
+        path: `/api/v1/db/meta/tables/${tableId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -5655,7 +5655,7 @@ export class Api<
  * @tags DB Table
  * @name Delete
  * @summary Delete Table
- * @request DELETE:/api/v1/meta/tables/{tableId}
+ * @request DELETE:/api/v1/db/meta/tables/{tableId}
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5671,7 +5671,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/tables/${tableId}`,
+        path: `/api/v1/db/meta/tables/${tableId}`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -5683,7 +5683,7 @@ export class Api<
  * @tags DB Table
  * @name Duplicate
  * @summary Duplicate Table
- * @request POST:/api/v1/meta/duplicate/{baseId}/table/{tableId}
+ * @request POST:/api/v1/db/meta/duplicate/{baseId}/table/{tableId}
  * @response `200` `{
   name?: string,
   id?: string,
@@ -5717,7 +5717,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/duplicate/${baseId}/table/${tableId}`,
+        path: `/api/v1/db/meta/duplicate/${baseId}/table/${tableId}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -5731,7 +5731,7 @@ export class Api<
  * @tags DB Table
  * @name Reorder
  * @summary Reorder Table
- * @request POST:/api/v1/meta/tables/{tableId}/reorder
+ * @request POST:/api/v1/db/meta/tables/{tableId}/reorder
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5753,7 +5753,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/tables/${tableId}/reorder`,
+        path: `/api/v1/db/meta/tables/${tableId}/reorder`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -5768,7 +5768,7 @@ export class Api<
  * @tags DB Table Column
  * @name Create
  * @summary Create Column
- * @request POST:/api/v1/meta/tables/{tableId}/columns
+ * @request POST:/api/v1/db/meta/tables/{tableId}/columns
  * @response `200` `void` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5788,7 +5788,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/tables/${tableId}/columns`,
+        path: `/api/v1/db/meta/tables/${tableId}/columns`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -5801,7 +5801,7 @@ export class Api<
  * @tags DB Table Column
  * @name Update
  * @summary Update Column
- * @request PATCH:/api/v1/meta/columns/{columnId}
+ * @request PATCH:/api/v1/db/meta/columns/{columnId}
  * @response `200` `ColumnType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5821,7 +5821,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/columns/${columnId}`,
+        path: `/api/v1/db/meta/columns/${columnId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -5835,7 +5835,7 @@ export class Api<
  * @tags DB Table Column
  * @name Delete
  * @summary Delete Column
- * @request DELETE:/api/v1/meta/columns/{columnId}
+ * @request DELETE:/api/v1/db/meta/columns/{columnId}
  * @response `200` `void` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5851,7 +5851,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/columns/${columnId}`,
+        path: `/api/v1/db/meta/columns/${columnId}`,
         method: 'DELETE',
         ...params,
       }),
@@ -5862,7 +5862,7 @@ export class Api<
  * @tags DB Table Column
  * @name Get
  * @summary Get Column
- * @request GET:/api/v1/meta/columns/{columnId}
+ * @request GET:/api/v1/db/meta/columns/{columnId}
  * @response `200` `void` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5878,7 +5878,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/columns/${columnId}`,
+        path: `/api/v1/db/meta/columns/${columnId}`,
         method: 'GET',
         ...params,
       }),
@@ -5889,7 +5889,7 @@ export class Api<
  * @tags DB Table Column
  * @name PrimaryColumnSet
  * @summary Create Primary Value
- * @request POST:/api/v1/meta/columns/{columnId}/primary
+ * @request POST:/api/v1/db/meta/columns/{columnId}/primary
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5905,7 +5905,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/columns/${columnId}/primary`,
+        path: `/api/v1/db/meta/columns/${columnId}/primary`,
         method: 'POST',
         format: 'json',
         ...params,
@@ -5917,7 +5917,7 @@ export class Api<
  * @tags DB Table Column
  * @name Hash
  * @summary Get columns hash for table
- * @request GET:/api/v1/meta/tables/{tableId}/columns/hash
+ * @request GET:/api/v1/db/meta/tables/{tableId}/columns/hash
  * @response `200` `{
   \** Columns hash *\
   hash?: string,
@@ -5932,7 +5932,7 @@ export class Api<
         },
         any
       >({
-        path: `/api/v1/meta/tables/${tableId}/columns/hash`,
+        path: `/api/v1/db/meta/tables/${tableId}/columns/hash`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -5944,7 +5944,7 @@ export class Api<
  * @tags DB Table Column
  * @name Bulk
  * @summary Bulk create-update-delete columns
- * @request POST:/api/v1/meta/tables/{tableId}/columns/bulk
+ * @request POST:/api/v1/db/meta/tables/{tableId}/columns/bulk
  * @response `200` `{
   failedOps?: (any)[],
 
@@ -5973,7 +5973,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/tables/${tableId}/columns/bulk`,
+        path: `/api/v1/db/meta/tables/${tableId}/columns/bulk`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -5988,7 +5988,7 @@ export class Api<
  * @tags DB View
  * @name List
  * @summary List Views
- * @request GET:/api/v1/meta/tables/{tableId}/views
+ * @request GET:/api/v1/db/meta/tables/{tableId}/views
  * @response `200` `ViewListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6004,7 +6004,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/tables/${tableId}/views`,
+        path: `/api/v1/db/meta/tables/${tableId}/views`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -6016,7 +6016,7 @@ export class Api<
  * @tags DB View
  * @name Update
  * @summary Update View
- * @request PATCH:/api/v1/meta/views/{viewId}
+ * @request PATCH:/api/v1/db/meta/views/{viewId}
  * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6036,7 +6036,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/views/${viewId}`,
+        path: `/api/v1/db/meta/views/${viewId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -6050,7 +6050,7 @@ export class Api<
  * @tags DB View
  * @name Delete
  * @summary Delete View
- * @request DELETE:/api/v1/meta/views/{viewId}
+ * @request DELETE:/api/v1/db/meta/views/{viewId}
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6066,7 +6066,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/views/${viewId}`,
+        path: `/api/v1/db/meta/views/${viewId}`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -6078,7 +6078,7 @@ export class Api<
  * @tags DB View
  * @name ShowAllColumn
  * @summary Show All Columns In View
- * @request POST:/api/v1/meta/views/{viewId}/show-all
+ * @request POST:/api/v1/db/meta/views/{viewId}/show-all
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6100,7 +6100,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/views/${viewId}/show-all`,
+        path: `/api/v1/db/meta/views/${viewId}/show-all`,
         method: 'POST',
         query: query,
         format: 'json',
@@ -6113,7 +6113,7 @@ export class Api<
  * @tags DB View
  * @name HideAllColumn
  * @summary Hide All Columns In View
- * @request POST:/api/v1/meta/views/{viewId}/hide-all
+ * @request POST:/api/v1/db/meta/views/{viewId}/hide-all
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6135,7 +6135,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/views/${viewId}/hide-all`,
+        path: `/api/v1/db/meta/views/${viewId}/hide-all`,
         method: 'POST',
         query: query,
         format: 'json',
@@ -6148,7 +6148,7 @@ export class Api<
  * @tags DB View
  * @name GridCreate
  * @summary Create Grid View
- * @request POST:/api/v1/meta/tables/{tableId}/grids
+ * @request POST:/api/v1/db/meta/tables/{tableId}/grids
  * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6168,7 +6168,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/tables/${tableId}/grids`,
+        path: `/api/v1/db/meta/tables/${tableId}/grids`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -6182,7 +6182,7 @@ export class Api<
  * @tags DB View
  * @name FormCreate
  * @summary Create Form View
- * @request POST:/api/v1/meta/tables/{tableId}/forms
+ * @request POST:/api/v1/db/meta/tables/{tableId}/forms
  * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6202,7 +6202,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/tables/${tableId}/forms`,
+        path: `/api/v1/db/meta/tables/${tableId}/forms`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -6216,7 +6216,7 @@ export class Api<
  * @tags DB View
  * @name FormUpdate
  * @summary Update Form View
- * @request PATCH:/api/v1/meta/forms/{formViewId}
+ * @request PATCH:/api/v1/db/meta/forms/{formViewId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6236,7 +6236,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/forms/${formViewId}`,
+        path: `/api/v1/db/meta/forms/${formViewId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -6250,7 +6250,7 @@ export class Api<
  * @tags DB View
  * @name FormRead
  * @summary Get Form
- * @request GET:/api/v1/meta/forms/{formViewId}
+ * @request GET:/api/v1/db/meta/forms/{formViewId}
  * @response `200` `FormType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6266,7 +6266,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/forms/${formViewId}`,
+        path: `/api/v1/db/meta/forms/${formViewId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -6278,7 +6278,7 @@ export class Api<
  * @tags DB View
  * @name FormColumnUpdate
  * @summary Update Form Column
- * @request PATCH:/api/v1/meta/form-columns/{formViewColumnId}
+ * @request PATCH:/api/v1/db/meta/form-columns/{formViewColumnId}
  * @response `200` `FormColumnReqType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6298,7 +6298,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/form-columns/${formViewColumnId}`,
+        path: `/api/v1/db/meta/form-columns/${formViewColumnId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -6312,7 +6312,7 @@ export class Api<
  * @tags DB View
  * @name GridUpdate
  * @summary Update Grid View
- * @request PATCH:/api/v1/meta/grids/{viewId}
+ * @request PATCH:/api/v1/db/meta/grids/{viewId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6332,7 +6332,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/grids/${viewId}`,
+        path: `/api/v1/db/meta/grids/${viewId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -6346,7 +6346,7 @@ export class Api<
  * @tags DB View
  * @name GridColumnsList
  * @summary List Grid Columns
- * @request GET:/api/v1/meta/grids/{gridId}/grid-columns
+ * @request GET:/api/v1/db/meta/grids/{gridId}/grid-columns
  * @response `200` `(GridColumnType)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6362,7 +6362,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/grids/${gridId}/grid-columns`,
+        path: `/api/v1/db/meta/grids/${gridId}/grid-columns`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -6374,7 +6374,7 @@ export class Api<
  * @tags DB View
  * @name GridColumnUpdate
  * @summary Update Grid Column
- * @request PATCH:/api/v1/meta/grid-columns/{columnId}
+ * @request PATCH:/api/v1/db/meta/grid-columns/{columnId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6394,7 +6394,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/grid-columns/${columnId}`,
+        path: `/api/v1/db/meta/grid-columns/${columnId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -6408,7 +6408,7 @@ export class Api<
  * @tags DB View
  * @name GalleryCreate
  * @summary Create Gallery View
- * @request POST:/api/v1/meta/tables/{tableId}/galleries
+ * @request POST:/api/v1/db/meta/tables/{tableId}/galleries
  * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6428,7 +6428,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/tables/${tableId}/galleries`,
+        path: `/api/v1/db/meta/tables/${tableId}/galleries`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -6442,7 +6442,7 @@ export class Api<
  * @tags DB View
  * @name GalleryUpdate
  * @summary Update Gallery View
- * @request PATCH:/api/v1/meta/galleries/{galleryViewId}
+ * @request PATCH:/api/v1/db/meta/galleries/{galleryViewId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6462,7 +6462,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/galleries/${galleryViewId}`,
+        path: `/api/v1/db/meta/galleries/${galleryViewId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -6476,7 +6476,7 @@ export class Api<
  * @tags DB View
  * @name GalleryRead
  * @summary Get Gallery View
- * @request GET:/api/v1/meta/galleries/{galleryViewId}
+ * @request GET:/api/v1/db/meta/galleries/{galleryViewId}
  * @response `200` `GalleryType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6492,7 +6492,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/galleries/${galleryViewId}`,
+        path: `/api/v1/db/meta/galleries/${galleryViewId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -6504,7 +6504,7 @@ export class Api<
  * @tags DB View
  * @name KanbanCreate
  * @summary Create Kanban View
- * @request POST:/api/v1/meta/tables/{tableId}/kanbans
+ * @request POST:/api/v1/db/meta/tables/{tableId}/kanbans
  * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6524,7 +6524,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/tables/${tableId}/kanbans`,
+        path: `/api/v1/db/meta/tables/${tableId}/kanbans`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -6538,7 +6538,7 @@ export class Api<
  * @tags DB View
  * @name KanbanUpdate
  * @summary Update Kanban View
- * @request PATCH:/api/v1/meta/kanbans/{kanbanViewId}
+ * @request PATCH:/api/v1/db/meta/kanbans/{kanbanViewId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6558,7 +6558,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/kanbans/${kanbanViewId}`,
+        path: `/api/v1/db/meta/kanbans/${kanbanViewId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -6572,7 +6572,7 @@ export class Api<
  * @tags DB View
  * @name KanbanRead
  * @summary Get Kanban View
- * @request GET:/api/v1/meta/kanbans/{kanbanViewId}
+ * @request GET:/api/v1/db/meta/kanbans/{kanbanViewId}
  * @response `200` `KanbanType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6588,7 +6588,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/kanbans/${kanbanViewId}`,
+        path: `/api/v1/db/meta/kanbans/${kanbanViewId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -6600,7 +6600,7 @@ export class Api<
  * @tags DB View
  * @name MapCreate
  * @summary Create Map View
- * @request POST:/api/v1/meta/tables/{tableId}/maps
+ * @request POST:/api/v1/db/meta/tables/{tableId}/maps
  * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6620,7 +6620,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/tables/${tableId}/maps`,
+        path: `/api/v1/db/meta/tables/${tableId}/maps`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -6634,7 +6634,7 @@ export class Api<
  * @tags DB View
  * @name MapUpdate
  * @summary Update Map View
- * @request PATCH:/api/v1/meta/maps/{mapViewId}
+ * @request PATCH:/api/v1/db/meta/maps/{mapViewId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6654,7 +6654,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/maps/${mapViewId}`,
+        path: `/api/v1/db/meta/maps/${mapViewId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -6668,7 +6668,7 @@ export class Api<
  * @tags DB View
  * @name MapRead
  * @summary Get Map View
- * @request GET:/api/v1/meta/maps/{mapViewId}
+ * @request GET:/api/v1/db/meta/maps/{mapViewId}
  * @response `200` `MapType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6684,7 +6684,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/maps/${mapViewId}`,
+        path: `/api/v1/db/meta/maps/${mapViewId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -6697,7 +6697,7 @@ export class Api<
  * @tags DB View Share
  * @name List
  * @summary List Shared Views
- * @request GET:/api/v1/meta/tables/{tableId}/share
+ * @request GET:/api/v1/db/meta/tables/{tableId}/share
  * @response `200` `SharedViewListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6713,7 +6713,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/tables/${tableId}/share`,
+        path: `/api/v1/db/meta/tables/${tableId}/share`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -6725,7 +6725,7 @@ export class Api<
  * @tags DB View Share
  * @name Create
  * @summary Create Shared View
- * @request POST:/api/v1/meta/views/{viewId}/share
+ * @request POST:/api/v1/db/meta/views/{viewId}/share
  * @response `200` `SharedViewReqType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6741,7 +6741,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/views/${viewId}/share`,
+        path: `/api/v1/db/meta/views/${viewId}/share`,
         method: 'POST',
         format: 'json',
         ...params,
@@ -6753,7 +6753,7 @@ export class Api<
  * @tags DB View Share
  * @name Update
  * @summary Update Shared View
- * @request PATCH:/api/v1/meta/views/{viewId}/share
+ * @request PATCH:/api/v1/db/meta/views/{viewId}/share
  * @response `200` `SharedViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6773,7 +6773,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/views/${viewId}/share`,
+        path: `/api/v1/db/meta/views/${viewId}/share`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -6787,7 +6787,7 @@ export class Api<
  * @tags DB View Share
  * @name Delete
  * @summary Delete Shared View
- * @request DELETE:/api/v1/meta/views/{viewId}/share
+ * @request DELETE:/api/v1/db/meta/views/{viewId}/share
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6803,7 +6803,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/views/${viewId}/share`,
+        path: `/api/v1/db/meta/views/${viewId}/share`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -6816,7 +6816,7 @@ export class Api<
  * @tags DB View Column
  * @name List
  * @summary List Columns In View
- * @request GET:/api/v1/meta/views/{viewId}/columns
+ * @request GET:/api/v1/db/meta/views/{viewId}/columns
  * @response `200` `ColumnListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6832,7 +6832,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/views/${viewId}/columns`,
+        path: `/api/v1/db/meta/views/${viewId}/columns`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -6844,7 +6844,7 @@ export class Api<
  * @tags DB View Column
  * @name Create
  * @summary Create Column in View
- * @request POST:/api/v1/meta/views/{viewId}/columns
+ * @request POST:/api/v1/db/meta/views/{viewId}/columns
  * @response `200` `ColumnType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6864,7 +6864,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/views/${viewId}/columns`,
+        path: `/api/v1/db/meta/views/${viewId}/columns`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -6878,7 +6878,7 @@ export class Api<
  * @tags DB View Column
  * @name Update
  * @summary Update View Column
- * @request PATCH:/api/v1/meta/views/{viewId}/columns/{columnId}
+ * @request PATCH:/api/v1/db/meta/views/{viewId}/columns/{columnId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6899,7 +6899,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/views/${viewId}/columns/${columnId}`,
+        path: `/api/v1/db/meta/views/${viewId}/columns/${columnId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -6914,7 +6914,7 @@ export class Api<
  * @tags DB Table Sort
  * @name List
  * @summary List View Sorts
- * @request GET:/api/v1/meta/views/{viewId}/sorts
+ * @request GET:/api/v1/db/meta/views/{viewId}/sorts
  * @response `200` `SortListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6930,7 +6930,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/views/${viewId}/sorts`,
+        path: `/api/v1/db/meta/views/${viewId}/sorts`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -6942,7 +6942,7 @@ export class Api<
  * @tags DB Table Sort
  * @name Create
  * @summary Update View Sort
- * @request POST:/api/v1/meta/views/{viewId}/sorts
+ * @request POST:/api/v1/db/meta/views/{viewId}/sorts
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6968,7 +6968,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/views/${viewId}/sorts`,
+        path: `/api/v1/db/meta/views/${viewId}/sorts`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -6982,7 +6982,7 @@ export class Api<
  * @tags DB Table Sort
  * @name Get
  * @summary Get Sort
- * @request GET:/api/v1/meta/sorts/{sortId}
+ * @request GET:/api/v1/db/meta/sorts/{sortId}
  * @response `200` `SortType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -6998,7 +6998,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/sorts/${sortId}`,
+        path: `/api/v1/db/meta/sorts/${sortId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -7010,7 +7010,7 @@ export class Api<
  * @tags DB Table Sort
  * @name Update
  * @summary Update Sort
- * @request PATCH:/api/v1/meta/sorts/{sortId}
+ * @request PATCH:/api/v1/db/meta/sorts/{sortId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7026,7 +7026,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/sorts/${sortId}`,
+        path: `/api/v1/db/meta/sorts/${sortId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -7040,7 +7040,7 @@ export class Api<
  * @tags DB Table Sort
  * @name Delete
  * @summary Delete Sort
- * @request DELETE:/api/v1/meta/sorts/{sortId}
+ * @request DELETE:/api/v1/db/meta/sorts/{sortId}
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7056,7 +7056,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/sorts/${sortId}`,
+        path: `/api/v1/db/meta/sorts/${sortId}`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -7069,7 +7069,7 @@ export class Api<
  * @tags DB Table Filter
  * @name Read
  * @summary Get View Filter
- * @request GET:/api/v1/meta/views/{viewId}/filters
+ * @request GET:/api/v1/db/meta/views/{viewId}/filters
  * @response `200` `FilterListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7085,7 +7085,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/views/${viewId}/filters`,
+        path: `/api/v1/db/meta/views/${viewId}/filters`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -7097,7 +7097,7 @@ export class Api<
  * @tags DB Table Filter
  * @name Create
  * @summary Create View Filter
- * @request POST:/api/v1/meta/views/{viewId}/filters
+ * @request POST:/api/v1/db/meta/views/{viewId}/filters
  * @response `200` `FilterType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7113,7 +7113,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/views/${viewId}/filters`,
+        path: `/api/v1/db/meta/views/${viewId}/filters`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -7127,7 +7127,7 @@ export class Api<
  * @tags DB Table Filter
  * @name Get
  * @summary Get Filter
- * @request GET:/api/v1/meta/filters/{filterId}
+ * @request GET:/api/v1/db/meta/filters/{filterId}
  * @response `200` `FilterType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7143,7 +7143,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/filters/${filterId}`,
+        path: `/api/v1/db/meta/filters/${filterId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -7155,7 +7155,7 @@ export class Api<
  * @tags DB Table Filter
  * @name Update
  * @summary Update Filter
- * @request PATCH:/api/v1/meta/filters/{filterId}
+ * @request PATCH:/api/v1/db/meta/filters/{filterId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7175,7 +7175,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/filters/${filterId}`,
+        path: `/api/v1/db/meta/filters/${filterId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -7189,7 +7189,7 @@ export class Api<
  * @tags DB Table Filter
  * @name Delete
  * @summary Delete Filter
- * @request DELETE:/api/v1/meta/filters/{filterId}
+ * @request DELETE:/api/v1/db/meta/filters/{filterId}
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7205,7 +7205,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/filters/${filterId}`,
+        path: `/api/v1/db/meta/filters/${filterId}`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -7217,7 +7217,7 @@ export class Api<
  * @tags DB Table Filter
  * @name ChildrenRead
  * @summary Get Filter Group Children
- * @request GET:/api/v1/meta/filters/{filterGroupId}/children
+ * @request GET:/api/v1/db/meta/filters/{filterGroupId}/children
  * @response `200` `FilterListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7233,7 +7233,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/filters/${filterGroupId}/children`,
+        path: `/api/v1/db/meta/filters/${filterGroupId}/children`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -7246,7 +7246,7 @@ export class Api<
  * @tags DB Table Webhook Filter
  * @name Read
  * @summary Get Hook Filter
- * @request GET:/api/v1/meta/hooks/{hookId}/filters
+ * @request GET:/api/v1/db/meta/hooks/{hookId}/filters
  * @response `200` `FilterListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7262,7 +7262,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/hooks/${hookId}/filters`,
+        path: `/api/v1/db/meta/hooks/${hookId}/filters`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -7274,7 +7274,7 @@ export class Api<
  * @tags DB Table Webhook Filter
  * @name Create
  * @summary Create Hook Filter
- * @request POST:/api/v1/meta/hooks/{hookId}/filters
+ * @request POST:/api/v1/db/meta/hooks/{hookId}/filters
  * @response `200` `FilterType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7290,7 +7290,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/hooks/${hookId}/filters`,
+        path: `/api/v1/db/meta/hooks/${hookId}/filters`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -7305,7 +7305,7 @@ export class Api<
  * @tags DB Table Webhook Logs
  * @name List
  * @summary List Hook Logs
- * @request GET:/api/v1/meta/hooks/{hookId}/logs
+ * @request GET:/api/v1/db/meta/hooks/{hookId}/logs
  * @response `200` `HookLogListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7330,7 +7330,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/hooks/${hookId}/logs`,
+        path: `/api/v1/db/meta/hooks/${hookId}/logs`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -7344,7 +7344,7 @@ export class Api<
  * @tags DB Table Row
  * @name List
  * @summary List Table Rows
- * @request GET:/api/v1/data/{orgs}/{baseName}/{tableName}
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}
  * @response `200` `{
   \** List of data objects *\
   list: (object)[],
@@ -7398,7 +7398,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -7411,7 +7411,7 @@ export class Api<
  * @tags DB Table Row
  * @name Create
  * @summary Create Table Row
- * @request POST:/api/v1/data/{orgs}/{baseName}/{tableName}
+ * @request POST:/api/v1/db/data/{orgs}/{baseName}/{tableName}
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7433,7 +7433,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -7447,7 +7447,7 @@ export class Api<
  * @tags DB Table Row
  * @name FindOne
  * @summary Find One Table Row
- * @request GET:/api/v1/data/{orgs}/{baseName}/{tableName}/find-one
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/find-one
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7473,7 +7473,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/find-one`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/find-one`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -7486,7 +7486,7 @@ export class Api<
      * @tags DB Table Row
      * @name GroupBy
      * @summary Group By Table Row
-     * @request GET:/api/v1/data/{orgs}/{baseName}/{tableName}/groupby
+     * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/groupby
      * @response `200` `any` OK
      */
     groupBy: (
@@ -7506,7 +7506,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/groupby`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/groupby`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -7519,7 +7519,7 @@ export class Api<
  * @tags DB Table Row
  * @name GroupedDataList
  * @summary Table Group by Column
- * @request GET:/api/v1/data/{orgs}/{baseName}/{tableName}/group/{columnId}
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/group/{columnId}
  * @response `200` `(any)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7548,7 +7548,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/group/${columnId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/group/${columnId}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -7561,7 +7561,7 @@ export class Api<
  * @tags DB Table Row
  * @name Read
  * @summary Get Table Row
- * @request GET:/api/v1/data/{orgs}/{baseName}/{tableName}/{rowId}
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7587,7 +7587,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/${rowId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/${rowId}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -7600,7 +7600,7 @@ export class Api<
  * @tags DB Table Row
  * @name Update
  * @summary Update Table Row
- * @request PATCH:/api/v1/data/{orgs}/{baseName}/{tableName}/{rowId}
+ * @request PATCH:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7627,7 +7627,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/${rowId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/${rowId}`,
         method: 'PATCH',
         query: query,
         body: data,
@@ -7642,7 +7642,7 @@ export class Api<
  * @tags DB Table Row
  * @name Delete
  * @summary Delete Table Row
- * @request DELETE:/api/v1/data/{orgs}/{baseName}/{tableName}/{rowId}
+ * @request DELETE:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7668,7 +7668,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/${rowId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/${rowId}`,
         method: 'DELETE',
         query: query,
         format: 'json',
@@ -7681,7 +7681,7 @@ export class Api<
  * @tags DB Table Row
  * @name Exist
  * @summary Does Table Row Exist
- * @request GET:/api/v1/data/{orgs}/{baseName}/{tableName}/{rowId}/exist
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/exist
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7703,7 +7703,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/${rowId}/exist`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/${rowId}/exist`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -7715,7 +7715,7 @@ export class Api<
  * @tags DB Table Row
  * @name BulkCreate
  * @summary Bulk Insert Table Rows
- * @request POST:/api/v1/data/bulk/{orgs}/{baseName}/{tableName}
+ * @request POST:/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}
  * @response `200` `({
   id?: string,
 
@@ -7742,7 +7742,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/bulk/${orgs}/${baseName}/${tableName}`,
+        path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -7756,7 +7756,7 @@ export class Api<
  * @tags DB Table Row
  * @name BulkUpdate
  * @summary Bulk Update Table Rows by IDs
- * @request PATCH:/api/v1/data/bulk/{orgs}/{baseName}/{tableName}
+ * @request PATCH:/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}
  * @response `200` `(number)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7778,7 +7778,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/bulk/${orgs}/${baseName}/${tableName}`,
+        path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -7792,7 +7792,7 @@ export class Api<
  * @tags DB Table Row
  * @name BulkDelete
  * @summary Bulk Delete Table Rows by IDs
- * @request DELETE:/api/v1/data/bulk/{orgs}/{baseName}/{tableName}
+ * @request DELETE:/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}
  * @response `200` `(number)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7814,7 +7814,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/bulk/${orgs}/${baseName}/${tableName}`,
+        path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}`,
         method: 'DELETE',
         body: data,
         type: ContentType.Json,
@@ -7828,7 +7828,7 @@ export class Api<
  * @tags DB Table Row
  * @name BulkUpdateAll
  * @summary Bulk Update Table Rows with Conditions
- * @request PATCH:/api/v1/data/bulk/{orgs}/{baseName}/{tableName}/all
+ * @request PATCH:/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}/all
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7854,7 +7854,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/bulk/${orgs}/${baseName}/${tableName}/all`,
+        path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}/all`,
         method: 'PATCH',
         query: query,
         body: data,
@@ -7869,7 +7869,7 @@ export class Api<
  * @tags DB Table Row
  * @name BulkDeleteAll
  * @summary Bulk Delete Table Rows with Conditions
- * @request DELETE:/api/v1/data/bulk/{orgs}/{baseName}/{tableName}/all
+ * @request DELETE:/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}/all
  * @response `200` `(object)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7895,7 +7895,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/bulk/${orgs}/${baseName}/${tableName}/all`,
+        path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}/all`,
         method: 'DELETE',
         query: query,
         body: data,
@@ -7910,7 +7910,7 @@ export class Api<
  * @tags DB Table Row
  * @name CsvExport
  * @summary Export Table View Rows
- * @request GET:/api/v1/data/{orgs}/{baseName}/{tableName}/export/{type}
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/export/{type}
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7932,7 +7932,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/export/${type}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/export/${type}`,
         method: 'GET',
         wrapped: true,
         ...params,
@@ -7944,7 +7944,7 @@ export class Api<
  * @tags DB Table Row
  * @name NestedList
  * @summary List Nested Relations Rows
- * @request GET:/api/v1/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7975,7 +7975,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/${rowId}/${relationType}/${columnName}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/${rowId}/${relationType}/${columnName}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -7988,7 +7988,7 @@ export class Api<
  * @tags DB Table Row
  * @name NestedAdd
  * @summary Create Nested Relations Row
- * @request POST:/api/v1/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
+ * @request POST:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
  * @response `200` `{
   \** @example The relation data has been created successfully *\
   msg?: string,
@@ -8042,7 +8042,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/${rowId}/${relationType}/${columnName}/${refRowId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/${rowId}/${relationType}/${columnName}/${refRowId}`,
         method: 'POST',
         query: query,
         format: 'json',
@@ -8055,7 +8055,7 @@ export class Api<
  * @tags DB Table Row
  * @name NestedRemove
  * @summary Delete Nested Relations Row
- * @request DELETE:/api/v1/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
+ * @request DELETE:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
  * @response `200` `{
   \** @example The relation data has been deleted successfully *\
   msg?: string,
@@ -8087,7 +8087,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/${rowId}/${relationType}/${columnName}/${refRowId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/${rowId}/${relationType}/${columnName}/${refRowId}`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -8099,7 +8099,7 @@ export class Api<
  * @tags DB Table Row
  * @name NestedChildrenExcludedList
  * @summary Referenced Table Rows Excluding Current Record's Children / Parent
- * @request GET:/api/v1/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8130,7 +8130,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/${rowId}/${relationType}/${columnName}/exclude`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/${rowId}/${relationType}/${columnName}/exclude`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -8144,7 +8144,7 @@ export class Api<
  * @tags DB View Row
  * @name GroupedDataList
  * @summary Table Group by Column
- * @request GET:/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}/group/{columnId}
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/group/{columnId}
  * @response `200` `(any)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8174,7 +8174,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/views/${viewName}/group/${columnId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/group/${columnId}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -8187,7 +8187,7 @@ export class Api<
  * @tags DB View Row
  * @name List
  * @summary List Table View Rows
- * @request GET:/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}
  * @response `200` `{
   \** List of table view rows *\
   list: (object)[],
@@ -8228,7 +8228,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/views/${viewName}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -8241,7 +8241,7 @@ export class Api<
  * @tags DB View Row
  * @name Create
  * @summary Create Table View Row
- * @request POST:/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}
+ * @request POST:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8264,7 +8264,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/views/${viewName}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -8278,7 +8278,7 @@ export class Api<
  * @tags DB View Row
  * @name FindOne
  * @summary Find One Table View Row
- * @request GET:/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}/find-one
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/find-one
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8307,7 +8307,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/views/${viewName}/find-one`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/find-one`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -8320,7 +8320,7 @@ export class Api<
  * @tags DB View Row
  * @name GroupBy
  * @summary Group By Table View Row
- * @request GET:/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}/groupby
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/groupby
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8352,7 +8352,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/views/${viewName}/groupby`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/groupby`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -8365,7 +8365,7 @@ export class Api<
  * @tags DB View Row
  * @name Count
  * @summary Count Table View Rows
- * @request GET:/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}/count
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/count
  * @response `200` `{
   count?: number,
 
@@ -8389,7 +8389,7 @@ export class Api<
         },
         any
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/views/${viewName}/count`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/count`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -8402,7 +8402,7 @@ export class Api<
  * @tags DB View Row
  * @name Read
  * @summary Get Table View Row
- * @request GET:/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8425,7 +8425,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/views/${viewName}/${rowId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/${rowId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -8437,7 +8437,7 @@ export class Api<
  * @tags DB View Row
  * @name Update
  * @summary Update Table View Row
- * @request PATCH:/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}
+ * @request PATCH:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8461,7 +8461,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/views/${viewName}/${rowId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/${rowId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -8475,7 +8475,7 @@ export class Api<
  * @tags DB View Row
  * @name Delete
  * @summary Delete Table View Row
- * @request DELETE:/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}
+ * @request DELETE:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8498,7 +8498,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/views/${viewName}/${rowId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/${rowId}`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -8510,7 +8510,7 @@ export class Api<
  * @tags DB View Row
  * @name Exist
  * @summary Does Table View Row Exist
- * @request GET:/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}/exist
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}/exist
  * @response `201` `number` Created
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8533,7 +8533,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/views/${viewName}/${rowId}/exist`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/${rowId}/exist`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -8545,7 +8545,7 @@ export class Api<
  * @tags DB View Row
  * @name Export
  * @summary Export Table View Rows
- * @request GET:/api/v1/data/{orgs}/{baseName}/{tableName}/views/{viewName}/export/{type}
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/export/{type}
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8568,7 +8568,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/data/${orgs}/${baseName}/${tableName}/views/${viewName}/export/${type}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/export/${type}`,
         method: 'GET',
         wrapped: true,
         ...params,
@@ -8581,7 +8581,7 @@ export class Api<
  * @tags Public
  * @name GroupedDataList
  * @summary List Shared View Grouped Data
- * @request GET:/api/v1/public/shared-view/{sharedViewUuid}/group/{columnId}
+ * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/group/{columnId}
  * @response `200` `({
   \** The Grouped Key *\
   key: string,
@@ -8645,7 +8645,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/public/shared-view/${sharedViewUuid}/group/${columnId}`,
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/group/${columnId}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -8658,7 +8658,7 @@ export class Api<
  * @tags Public
  * @name DataList
  * @summary List Shared View Rows
- * @request GET:/api/v1/public/shared-view/{sharedViewUuid}/rows
+ * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows
  * @response `200` `SharedViewListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8699,7 +8699,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/public/shared-view/${sharedViewUuid}/rows`,
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -8712,7 +8712,7 @@ export class Api<
  * @tags Public
  * @name DataCreate
  * @summary Create Share View Row
- * @request POST:/api/v1/public/shared-view/{sharedViewUuid}/rows
+ * @request POST:/api/v1/db/public/shared-view/{sharedViewUuid}/rows
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8732,7 +8732,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/public/shared-view/${sharedViewUuid}/rows`,
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows`,
         method: 'POST',
         body: data,
         type: ContentType.FormData,
@@ -8746,7 +8746,7 @@ export class Api<
  * @tags Public
  * @name DataGroupBy
  * @summary List Shared View Rows
- * @request GET:/api/v1/public/shared-view/{sharedViewUuid}/groupby
+ * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/groupby
  * @response `200` `SharedViewListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8789,7 +8789,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/public/shared-view/${sharedViewUuid}/groupby`,
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/groupby`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -8802,7 +8802,7 @@ export class Api<
  * @tags Public
  * @name DataNestedList
  * @summary List Nested List Data
- * @request GET:/api/v1/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}
+ * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}
  * @response `200` `{
   \** List of data objects *\
   list: (object)[],
@@ -8857,7 +8857,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/public/shared-view/${sharedViewUuid}/rows/${rowId}/${relationType}/${columnName}`,
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows/${rowId}/${relationType}/${columnName}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -8870,7 +8870,7 @@ export class Api<
  * @tags Public
  * @name CsvExport
  * @summary Export Rows in Share View
- * @request GET:/api/v1/public/shared-view/{sharedViewUuid}/rows/export/{type}
+ * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/export/{type}
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8890,7 +8890,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/public/shared-view/${sharedViewUuid}/rows/export/${type}`,
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows/export/${type}`,
         method: 'GET',
         wrapped: true,
         ...params,
@@ -8902,7 +8902,7 @@ export class Api<
  * @tags Public
  * @name DataRelationList
  * @summary List Nested Data Relation
- * @request GET:/api/v1/public/shared-view/{sharedViewUuid}/nested/{columnName}
+ * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/nested/{columnName}
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8944,7 +8944,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/public/shared-view/${sharedViewUuid}/nested/${columnName}`,
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/nested/${columnName}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -8957,7 +8957,7 @@ export class Api<
  * @tags Public
  * @name SharedBaseGet
  * @summary Get Share Source Meta
- * @request GET:/api/v1/public/shared-base/{sharedBaseUuid}/meta
+ * @request GET:/api/v1/db/public/shared-base/{sharedBaseUuid}/meta
  * @response `200` `{
   \** Base ID *\
   base_id?: string,
@@ -8980,7 +8980,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/public/shared-base/${sharedBaseUuid}/meta`,
+        path: `/api/v1/db/public/shared-base/${sharedBaseUuid}/meta`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -8992,7 +8992,7 @@ export class Api<
  * @tags Public
  * @name SharedViewMetaGet
  * @summary Get Share View Meta
- * @request GET:/api/v1/public/shared-view/{sharedViewUuid}/meta
+ * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/meta
  * @response `200` `(ViewType & {
   relatedMetas?: any,
   client?: string,
@@ -9038,7 +9038,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/public/shared-view/${sharedViewUuid}/meta`,
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/meta`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -9049,11 +9049,11 @@ export class Api<
      *
      * @tags Public
      * @name SharedErdMetaGet
-     * @request GET:/api/v1/public/shared-erd/{sharedErdUuid}/meta
+     * @request GET:/api/v1/db/public/shared-erd/{sharedErdUuid}/meta
      */
     sharedErdMetaGet: (sharedErdUuid: string, params: RequestParams = {}) =>
       this.request<any, any>({
-        path: `/api/v1/public/shared-erd/${sharedErdUuid}/meta`,
+        path: `/api/v1/db/public/shared-erd/${sharedErdUuid}/meta`,
         method: 'GET',
         ...params,
       }),
@@ -9065,7 +9065,7 @@ export class Api<
  * @tags Utils
  * @name CommentList
  * @summary List Comments in Audit
- * @request GET:/api/v1/meta/audits/comments
+ * @request GET:/api/v1/db/meta/audits/comments
  * @response `200` `{
   list: (AuditType)[],
 
@@ -9105,7 +9105,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/audits/comments`,
+        path: `/api/v1/db/meta/audits/comments`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -9118,7 +9118,7 @@ export class Api<
  * @tags Utils
  * @name CommentRow
  * @summary Comment Rows
- * @request POST:/api/v1/meta/audits/comments
+ * @request POST:/api/v1/db/meta/audits/comments
  * @response `200` `AuditType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -9134,7 +9134,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/audits/comments`,
+        path: `/api/v1/db/meta/audits/comments`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -9148,7 +9148,7 @@ export class Api<
      * @tags Utils
      * @name CommentUpdate
      * @summary Update Comment in Audit
-     * @request PATCH:/api/v1/meta/audits/{auditId}/comment
+     * @request PATCH:/api/v1/db/meta/audits/{auditId}/comment
      * @response `200` `number` OK
      */
     commentUpdate: (
@@ -9157,7 +9157,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<number, any>({
-        path: `/api/v1/meta/audits/${auditId}/comment`,
+        path: `/api/v1/db/meta/audits/${auditId}/comment`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -9171,7 +9171,7 @@ export class Api<
  * @tags Utils
  * @name CommentCount
  * @summary Count Comments
- * @request GET:/api/v1/meta/audits/comments/count
+ * @request GET:/api/v1/db/meta/audits/comments/count
  * @response `200` `({
   \**
    * The number of comments
@@ -9218,7 +9218,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/audits/comments/count`,
+        path: `/api/v1/db/meta/audits/comments/count`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -9231,7 +9231,7 @@ export class Api<
  * @tags Utils
  * @name AuditRowUpdate
  * @summary Update Audit Row
- * @request POST:/api/v1/meta/audits/rows/{rowId}/update
+ * @request POST:/api/v1/db/meta/audits/rows/{rowId}/update
  * @response `200` `AuditType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -9251,7 +9251,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/audits/rows/${rowId}/update`,
+        path: `/api/v1/db/meta/audits/rows/${rowId}/update`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -9265,7 +9265,7 @@ export class Api<
  * @tags Utils
  * @name TestConnection
  * @summary Test DB Connection
- * @request POST:/api/v1/meta/connection/test
+ * @request POST:/api/v1/db/meta/connection/test
  * @response `200` `{
   code?: number,
   message?: string,
@@ -9314,7 +9314,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/connection/test`,
+        path: `/api/v1/db/meta/connection/test`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -9327,12 +9327,12 @@ export class Api<
      *
      * @tags Utils
      * @name SelectQuery
-     * @request POST:/api/v1/meta/connection/select
+     * @request POST:/api/v1/db/meta/connection/select
      * @response `200` `any` OK
      */
     selectQuery: (data: any, params: RequestParams = {}) =>
       this.request<any, any>({
-        path: `/api/v1/meta/connection/select`,
+        path: `/api/v1/db/meta/connection/select`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -9432,7 +9432,7 @@ export class Api<
  * @tags Utils
  * @name AppInfo
  * @summary Get App Info
- * @request GET:/api/v1/meta/nocodb/info
+ * @request GET:/api/v1/db/meta/nocodb/info
  * @response `200` `{
   authType?: string,
   baseHasAdmin?: boolean,
@@ -9491,7 +9491,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/nocodb/info`,
+        path: `/api/v1/db/meta/nocodb/info`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -9503,7 +9503,7 @@ export class Api<
  * @tags Utils
  * @name AxiosRequestMake
  * @summary Axios Request
- * @request POST:/api/v1/meta/axiosRequestMake
+ * @request POST:/api/v1/db/meta/axiosRequestMake
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -9519,7 +9519,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/axiosRequestMake`,
+        path: `/api/v1/db/meta/axiosRequestMake`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -9764,11 +9764,11 @@ export class Api<
      * @tags Utils
      * @name CacheGet
      * @summary Get Cache
-     * @request GET:/api/v1/meta/cache
+     * @request GET:/api/v1/db/meta/cache
      */
     cacheGet: (params: RequestParams = {}) =>
       this.request<any, any>({
-        path: `/api/v1/meta/cache`,
+        path: `/api/v1/db/meta/cache`,
         method: 'GET',
         ...params,
       }),
@@ -9779,7 +9779,7 @@ export class Api<
  * @tags Utils
  * @name CacheDelete
  * @summary Delete Cache
- * @request DELETE:/api/v1/meta/cache
+ * @request DELETE:/api/v1/db/meta/cache
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -9795,7 +9795,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/cache`,
+        path: `/api/v1/db/meta/cache`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -9808,7 +9808,7 @@ export class Api<
  * @tags DB Table Webhook
  * @name List
  * @summary List Table Hooks
- * @request GET:/api/v1/meta/tables/{tableId}/hooks
+ * @request GET:/api/v1/db/meta/tables/{tableId}/hooks
  * @response `200` `HookListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -9824,7 +9824,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/tables/${tableId}/hooks`,
+        path: `/api/v1/db/meta/tables/${tableId}/hooks`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -9836,7 +9836,7 @@ export class Api<
  * @tags DB Table Webhook
  * @name Create
  * @summary Create Table Hook
- * @request POST:/api/v1/meta/tables/{tableId}/hooks
+ * @request POST:/api/v1/db/meta/tables/{tableId}/hooks
  * @response `200` `HookType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -9852,7 +9852,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/tables/${tableId}/hooks`,
+        path: `/api/v1/db/meta/tables/${tableId}/hooks`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -9866,7 +9866,7 @@ export class Api<
  * @tags DB Table Webhook
  * @name Test
  * @summary Test Hook
- * @request POST:/api/v1/meta/tables/{tableId}/hooks/test
+ * @request POST:/api/v1/db/meta/tables/{tableId}/hooks/test
  * @response `200` `{
   \** @example The hook has been tested successfully *\
   msg?: string,
@@ -9893,7 +9893,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/tables/${tableId}/hooks/test`,
+        path: `/api/v1/db/meta/tables/${tableId}/hooks/test`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -9907,7 +9907,7 @@ export class Api<
  * @tags DB Table Webhook
  * @name SamplePayloadGet
  * @summary Get Sample Hook Payload
- * @request GET:/api/v1/meta/tables/{tableId}/hooks/samplePayload/{operation}/{version}
+ * @request GET:/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}/{version}
  * @response `200` `{
   \** Sample Payload Data *\
   data?: object,
@@ -9941,7 +9941,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/tables/${tableId}/hooks/samplePayload/${operation}/${version}`,
+        path: `/api/v1/db/meta/tables/${tableId}/hooks/samplePayload/${operation}/${version}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -9953,7 +9953,7 @@ export class Api<
  * @tags DB Table Webhook
  * @name Update
  * @summary Update Hook
- * @request PATCH:/api/v1/meta/hooks/{hookId}
+ * @request PATCH:/api/v1/db/meta/hooks/{hookId}
  * @response `200` `HookType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -9969,7 +9969,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/hooks/${hookId}`,
+        path: `/api/v1/db/meta/hooks/${hookId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -9983,7 +9983,7 @@ export class Api<
  * @tags DB Table Webhook
  * @name Delete
  * @summary Delete Hook
- * @request DELETE:/api/v1/meta/hooks/{hookId}
+ * @request DELETE:/api/v1/db/meta/hooks/{hookId}
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -9999,7 +9999,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/hooks/${hookId}`,
+        path: `/api/v1/db/meta/hooks/${hookId}`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -10012,7 +10012,7 @@ export class Api<
  * @tags Plugin
  * @name List
  * @summary List Plugins
- * @request GET:/api/v1/meta/plugins
+ * @request GET:/api/v1/db/meta/plugins
  * @response `200` `{
   list?: (PluginType)[],
   \** Model for Paginated *\
@@ -10037,7 +10037,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/plugins`,
+        path: `/api/v1/db/meta/plugins`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -10049,7 +10049,7 @@ export class Api<
  * @tags Plugin
  * @name WebhookList
  * @summary Webhook List Plugins
- * @request GET:/api/v1/meta/plugins/webhook
+ * @request GET:/api/v1/db/meta/plugins/webhook
  * @response `200` `{
   list?: (PluginType)[],
   \** Model for Paginated *\
@@ -10074,7 +10074,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/plugins/webhook`,
+        path: `/api/v1/db/meta/plugins/webhook`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -10086,7 +10086,7 @@ export class Api<
  * @tags Plugin
  * @name Status
  * @summary Get Plugin Status
- * @request GET:/api/v1/meta/plugins/{pluginTitle}/status
+ * @request GET:/api/v1/db/meta/plugins/{pluginTitle}/status
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10102,7 +10102,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/plugins/${pluginTitle}/status`,
+        path: `/api/v1/db/meta/plugins/${pluginTitle}/status`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -10114,7 +10114,7 @@ export class Api<
  * @tags Plugin
  * @name Test
  * @summary Test Plugin
- * @request POST:/api/v1/meta/plugins/test
+ * @request POST:/api/v1/db/meta/plugins/test
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10130,7 +10130,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/plugins/test`,
+        path: `/api/v1/db/meta/plugins/test`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -10144,7 +10144,7 @@ export class Api<
  * @tags Plugin
  * @name Update
  * @summary Update Plugin
- * @request PATCH:/api/v1/meta/plugins/{pluginId}
+ * @request PATCH:/api/v1/db/meta/plugins/{pluginId}
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10164,7 +10164,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/plugins/${pluginId}`,
+        path: `/api/v1/db/meta/plugins/${pluginId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -10178,7 +10178,7 @@ export class Api<
  * @tags Plugin
  * @name Read
  * @summary Get Plugin
- * @request GET:/api/v1/meta/plugins/{pluginId}
+ * @request GET:/api/v1/db/meta/plugins/{pluginId}
  * @response `200` `PluginType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10194,7 +10194,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/plugins/${pluginId}`,
+        path: `/api/v1/db/meta/plugins/${pluginId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -10207,7 +10207,7 @@ export class Api<
  * @tags API Token
  * @name List
  * @summary List API Tokens in Base
- * @request GET:/api/v1/meta/bases/{baseId}/api-tokens
+ * @request GET:/api/v1/db/meta/projects/{baseId}/api-tokens
  * @response `200` `ApiTokenListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10223,7 +10223,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/api-tokens`,
+        path: `/api/v1/db/meta/projects/${baseId}/api-tokens`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -10235,7 +10235,7 @@ export class Api<
  * @tags API Token
  * @name Create
  * @summary Create API Token
- * @request POST:/api/v1/meta/bases/{baseId}/api-tokens
+ * @request POST:/api/v1/db/meta/projects/{baseId}/api-tokens
  * @response `200` `ApiTokenType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10255,7 +10255,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/api-tokens`,
+        path: `/api/v1/db/meta/projects/${baseId}/api-tokens`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -10269,7 +10269,7 @@ export class Api<
  * @tags API Token
  * @name Delete
  * @summary Delete API Token
- * @request DELETE:/api/v1/meta/bases/{baseId}/api-tokens/{token}
+ * @request DELETE:/api/v1/db/meta/projects/{baseId}/api-tokens/{token}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10285,7 +10285,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/meta/bases/${baseId}/api-tokens/${token}`,
+        path: `/api/v1/db/meta/projects/${baseId}/api-tokens/${token}`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -10298,7 +10298,7 @@ export class Api<
      * @tags Storage
      * @name Upload
      * @summary Attachment Upload
-     * @request POST:/api/v1/storage/upload
+     * @request POST:/api/v1/db/storage/upload
      */
     upload: (
       query: {
@@ -10312,7 +10312,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/api/v1/storage/upload`,
+        path: `/api/v1/db/storage/upload`,
         method: 'POST',
         query: query,
         body: data,
@@ -10326,7 +10326,7 @@ export class Api<
      * @tags Storage
      * @name UploadByUrl
      * @summary Attachment Upload by URL
-     * @request POST:/api/v1/storage/upload-by-url
+     * @request POST:/api/v1/db/storage/upload-by-url
      */
     uploadByUrl: (
       query: {
@@ -10340,7 +10340,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/api/v1/storage/upload-by-url`,
+        path: `/api/v1/db/storage/upload-by-url`,
         method: 'POST',
         query: query,
         body: data,
@@ -10435,7 +10435,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name List
  * @summary List Table Rows
- * @request GET:/api/v2/tables/{tableId}/rows
+ * @request GET:/api/v2/tables/{tableId}/records
  * @response `200` `{
   \** List of data objects *\
   list: (object)[],
@@ -10451,9 +10451,9 @@ export class Api<
  */
     list: (
       tableId: string,
-      query: {
+      query?: {
         /** View ID */
-        viewId: string;
+        viewId?: string;
         /** Which fields to be shown */
         fields?: any[];
         /** The result will be sorted based on `sort` query */
@@ -10489,7 +10489,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v2/tables/${tableId}/rows`,
+        path: `/api/v2/tables/${tableId}/records`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -10502,7 +10502,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name Create
  * @summary Create Table Rows
- * @request POST:/api/v2/tables/{tableId}/rows
+ * @request POST:/api/v2/tables/{tableId}/records
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10512,11 +10512,11 @@ export class Api<
  */
     create: (
       tableId: string,
-      query: {
-        /** View ID */
-        viewId: string;
-      },
       data: object | object[],
+      query?: {
+        /** View ID */
+        viewId?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -10526,7 +10526,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v2/tables/${tableId}/rows`,
+        path: `/api/v2/tables/${tableId}/records`,
         method: 'POST',
         query: query,
         body: data,
@@ -10541,7 +10541,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name Update
  * @summary Update Table Rows
- * @request PUT:/api/v2/tables/{tableId}/rows
+ * @request PUT:/api/v2/tables/{tableId}/records
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10551,11 +10551,11 @@ export class Api<
  */
     update: (
       tableId: string,
-      query: {
-        /** View ID */
-        viewId: string;
-      },
       data: object | object[],
+      query?: {
+        /** View ID */
+        viewId?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -10565,7 +10565,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v2/tables/${tableId}/rows`,
+        path: `/api/v2/tables/${tableId}/records`,
         method: 'PUT',
         query: query,
         body: data,
@@ -10580,7 +10580,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name Delete
  * @summary Delete Table Rows
- * @request DELETE:/api/v2/tables/{tableId}/rows
+ * @request DELETE:/api/v2/tables/{tableId}/records
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10590,11 +10590,11 @@ export class Api<
  */
     delete: (
       tableId: string,
-      query: {
-        /** View ID */
-        viewId: string;
-      },
       data: object | object[],
+      query?: {
+        /** View ID */
+        viewId?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -10604,7 +10604,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v2/tables/${tableId}/rows`,
+        path: `/api/v2/tables/${tableId}/records`,
         method: 'DELETE',
         query: query,
         body: data,
@@ -10630,9 +10630,9 @@ export class Api<
     read: (
       tableId: string,
       rowId: string,
-      query: {
+      query?: {
         /** View ID */
-        viewId: string;
+        viewId?: string;
         /** Which fields to be shown */
         fields?: any[];
         /**
@@ -10676,9 +10676,9 @@ export class Api<
  */
     count: (
       tableId: string,
-      query: {
+      query?: {
         /** View ID */
-        viewId: string;
+        viewId?: string;
         /** Which fields to be shown */
         fields?: any[];
         /** Extra filtering */
@@ -10728,9 +10728,9 @@ export class Api<
       tableId: string,
       columnId: string,
       rowId: string,
-      query: {
+      query?: {
         /** View ID */
-        viewId: string;
+        viewId?: string;
         /** Which fields to be shown */
         fields?: any[];
         /** The result will be sorted based on `sort` query */
@@ -10791,11 +10791,11 @@ export class Api<
       tableId: string,
       columnId: string,
       rowId: string,
-      query: {
-        /** View ID */
-        viewId: string;
-      },
       data: object | object[],
+      query?: {
+        /** View ID */
+        viewId?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -10832,11 +10832,11 @@ export class Api<
       tableId: string,
       columnId: string,
       rowId: string,
-      query: {
-        /** View ID */
-        viewId: string;
-      },
       data: object | object[],
+      query?: {
+        /** View ID */
+        viewId?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<

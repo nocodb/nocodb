@@ -45,6 +45,18 @@ const config = {
         disableInDev: false,
       },
     ],
+    [
+      '@docusaurus/plugin-client-redirects',
+      {
+        createRedirects(existingPath) {
+          if (existingPath.startsWith('/0.109.7/')) {
+            return [
+              existingPath.replace('/0.109.7/', '/'),
+            ];
+          }
+        },
+      },
+    ],
   ],
 
   presets: [

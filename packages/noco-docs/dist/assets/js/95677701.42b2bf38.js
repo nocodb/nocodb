@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunknoco_docs=self.webpackChunknoco_docs||[]).push([[1174],{44721:o=>{o.exports=JSON.parse('{"label":"Group by","permalink":"/tags/group-by","allTagsPath":"/tags","count":1,"items":[{"id":"table-operations/group-by","title":"Grouping records","description":"Learn how to group records in NocoDB.","permalink":"/table-operations/group-by"}]}')}}]);

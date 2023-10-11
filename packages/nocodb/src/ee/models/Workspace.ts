@@ -202,7 +202,7 @@ export default class Workspace implements WorkspaceType {
   public static async delete(id: string, ncMeta = Noco.ncMeta) {
     if (!id) NcError.badRequest('Workspace id is required');
 
-    const workspace = await this.get(id);
+    const workspace = await this.get(id, ncMeta);
 
     if (!workspace) NcError.notFound('Workspace not found');
 
@@ -213,7 +213,7 @@ export default class Workspace implements WorkspaceType {
 
     await NocoCache.delAll(CacheScope.WORKSPACE_USER, `${id}:*`);
 
-    const bases = await Base.listByWorkspace(id);
+    const bases = await Base.listByWorkspace(id, ncMeta);
 
     for (const base of bases) {
       await Base.delete(base.id, ncMeta);

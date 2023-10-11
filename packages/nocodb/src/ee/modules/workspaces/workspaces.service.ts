@@ -50,6 +50,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       fk_user_id: 'DEPRECATED',
     });
 
+    // TODO: move this to on demand instead of on boot
     if (deprecatedWorkspaceTemplates) {
       const list = await Noco.ncMeta.metaList2(
         null,
@@ -63,7 +64,15 @@ export class WorkspacesService implements OnApplicationBootstrap {
       );
 
       for (const workspace of list) {
-        await Workspace.delete(workspace.id);
+        const ncMeta = await Noco.ncMeta.startTransaction();
+        try {
+          await Workspace.delete(workspace.id, ncMeta);
+          await ncMeta.commit();
+          console.log(`[TEMPLATES] ${workspace.id} deleted`);
+        } catch (e) {
+          console.log(`[TEMPLATES] ${workspace.id} failed to delete`);
+          await ncMeta.rollback();
+        }
       }
     }
 

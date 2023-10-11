@@ -184,16 +184,19 @@ export default class Base extends BaseCE {
   }
 
   static async delete(baseId, ncMeta = Noco.ncMeta): Promise<any> {
-    let base = await this.get(baseId);
-    const users = await BaseUser.getUsersList({
-      base_id: baseId,
-      workspace_id: (base as Base).fk_workspace_id,
-      offset: 0,
-      limit: 1000,
-    });
+    let base = await this.get(baseId, ncMeta);
+    const users = await BaseUser.getUsersList(
+      {
+        base_id: baseId,
+        workspace_id: (base as Base).fk_workspace_id,
+        offset: 0,
+        limit: 1000,
+      },
+      ncMeta,
+    );
 
     for (const user of users) {
-      await BaseUser.delete(baseId, user.id);
+      await BaseUser.delete(baseId, user.id, ncMeta);
     }
 
     // remove left over users (used for workspace template)
@@ -201,11 +204,11 @@ export default class Base extends BaseCE {
       base_id: baseId,
     });
 
-    const sources = await Source.list({ baseId });
+    const sources = await Source.list({ baseId }, ncMeta);
     for (const source of sources) {
       await source.delete(ncMeta, { force: true });
     }
-    base = await this.get(baseId);
+    base = await this.get(baseId, ncMeta);
 
     if (base) {
       // delete <scope>:<uuid>

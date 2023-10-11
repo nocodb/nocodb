@@ -103,7 +103,7 @@ export class ProjectsPage extends BasePage {
     const reloadUiAction = () => this.get().locator('[data-testid="bases-reload-button"]').click();
     await this.waitForResponse({
       uiAction: reloadUiAction,
-      requestUrlPathToMatch: '//api/v1/db/meta/projects',
+      requestUrlPathToMatch: '/api/v1/db/meta/projects',
       httpMethodsToMatch: ['GET'],
     });
   }

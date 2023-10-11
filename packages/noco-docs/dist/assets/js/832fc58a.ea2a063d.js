@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunknoco_docs=self.webpackChunknoco_docs||[]).push([[9874],{56038:e=>{e.exports=JSON.parse('{"label":"Comments","permalink":"/tags/comments","allTagsPath":"/tags","count":1,"items":[{"id":"records/expand-record","title":"Expanded record","description":"Learn how to expand a record & work with it in NocoDB.","permalink":"/records/expand-record"}]}')}}]);

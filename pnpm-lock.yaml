@@ -632,8 +632,8 @@ importers:
         specifier: 0.3.1
         version: 0.3.1(asn1.js@5.4.1)(debug@4.3.4)(knex@2.4.2)
       nc-lib-gui:
-        specifier: 0.111.4
-        version: 0.111.4
+        specifier: 0.202.0
+        version: 0.202.0
       nc-plugin:
         specifier: ^0.1.3
         version: 0.1.3
@@ -932,7 +932,7 @@ importers:
         version: 2.4.2(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6)(tedious@16.4.0)
       nocodb-sdk:
         specifier: 0.111.4
-        version: link:../../packages/nocodb-sdk
+        version: 0.111.4
       sqlite3:
         specifier: ^5.1.6
         version: 5.1.6
@@ -17743,8 +17743,8 @@ packages:
       - supports-color
     dev: false
 
-  /nc-lib-gui@0.111.4:
-    resolution: {integrity: sha512-2ST6vycxHpQ0mropVq9GRhVt9dWng3+hZZPyjZ6HiK8kXRjBrsv7Ck4WLIRj7TuloRTI8zn9Mixud9CkvgkvWQ==}
+  /nc-lib-gui@0.202.0:
+    resolution: {integrity: sha512-sfWrneJeDMpPx/xTy1B1cZRIILKbdj0mQGbNQ6s0sQ+O/PE1GEGZHSbvvk4SCexwUkcTMmLlc8LC2rLqtPG3MA==}
     dependencies:
       express: 4.18.2
     transitivePeerDependencies:
@@ -17897,6 +17897,24 @@ packages:
     dependencies:
       lower-case: 2.0.2
       tslib: 2.6.2
+    dev: false
+
+  /nocodb-sdk@0.111.4:
+    resolution: {integrity: sha512-LFjaUWgghTvvWERvEzSLYKnre8gR9AVKXEBkImWeSh6C9VUvlDEOaqOzhmLvozfKQwgsijhCGg7dJcmvvKH0PA==}
+    dependencies:
+      axios: 0.21.1
+      jsep: 1.3.6
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
+  /nocodb-sdk@0.111.4(debug@4.3.4):
+    resolution: {integrity: sha512-LFjaUWgghTvvWERvEzSLYKnre8gR9AVKXEBkImWeSh6C9VUvlDEOaqOzhmLvozfKQwgsijhCGg7dJcmvvKH0PA==}
+    dependencies:
+      axios: 0.21.1(debug@4.3.4)
+      jsep: 1.3.6
+    transitivePeerDependencies:
+      - debug
     dev: false
 
   /node-abi@3.47.0:

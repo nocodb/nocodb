@@ -8,6 +8,7 @@ import { NcError } from '~/helpers/catchError';
 import NocoCache from '~/cache/NocoCache';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import Page from '~/models/Page';
+import { Base } from '~/models';
 
 export default class Workspace implements WorkspaceType {
   id?: string;
@@ -201,12 +202,22 @@ export default class Workspace implements WorkspaceType {
   public static async delete(id: string, ncMeta = Noco.ncMeta) {
     if (!id) NcError.badRequest('Workspace id is required');
 
+    const workspace = await this.get(id);
+
+    if (!workspace) NcError.notFound('Workspace not found');
+
     // todo: delete from workspace user
     await ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USER, {
       fk_workspace_id: id,
     });
 
     await NocoCache.delAll(CacheScope.WORKSPACE_USER, `${id}:*`);
+
+    const bases = await Base.listByWorkspace(id);
+
+    for (const base of bases) {
+      await Base.delete(base.id, ncMeta);
+    }
 
     // todo: reset base workspace mapping
     // and mark it as deleted
@@ -234,6 +245,10 @@ export default class Workspace implements WorkspaceType {
     const workspace = await this.get(id);
 
     if (!workspace) NcError.notFound('Workspace not found');
+
+    await ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USER, {
+      fk_workspace_id: id,
+    });
 
     await NocoCache.del(`${CacheScope.WORKSPACE}:${id}`);
 

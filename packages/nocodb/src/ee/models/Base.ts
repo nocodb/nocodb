@@ -183,7 +183,6 @@ export default class Base extends BaseCE {
     return base as BaseCE;
   }
 
-  // Todo: Remove the base entry from the connection pool in NcConnectionMgrv2
   static async delete(baseId, ncMeta = Noco.ncMeta): Promise<any> {
     let base = await this.get(baseId);
     const users = await BaseUser.getUsersList({
@@ -197,9 +196,14 @@ export default class Base extends BaseCE {
       await BaseUser.delete(baseId, user.id);
     }
 
+    // remove left over users (used for workspace template)
+    await ncMeta.metaDelete(null, null, MetaTable.PROJECT_USERS, {
+      base_id: baseId,
+    });
+
     const sources = await Source.list({ baseId });
     for (const source of sources) {
-      await source.delete(ncMeta);
+      await source.delete(ncMeta, { force: true });
     }
     base = await this.get(baseId);
 

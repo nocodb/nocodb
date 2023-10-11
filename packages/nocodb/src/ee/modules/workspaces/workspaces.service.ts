@@ -46,6 +46,27 @@ export class WorkspacesService implements OnApplicationBootstrap {
   ) {}
 
   async onApplicationBootstrap() {
+    const deprecatedWorkspaceTemplates = await Workspace.count({
+      fk_user_id: 'DEPRECATED',
+    });
+
+    if (deprecatedWorkspaceTemplates) {
+      const list = await Noco.ncMeta.metaList2(
+        null,
+        null,
+        MetaTable.WORKSPACE,
+        {
+          condition: {
+            fk_user_id: 'DEPRECATED',
+          },
+        },
+      );
+
+      for (const workspace of list) {
+        await Workspace.delete(workspace.id);
+      }
+    }
+
     await this.prepopulateWorkspaces();
   }
 

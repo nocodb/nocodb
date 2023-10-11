@@ -15355,7 +15355,6 @@
           },
           "name": "viewId",
           "in": "query",
-          "required": true,
           "description": "View ID"
         }
       ],
@@ -15719,7 +15718,6 @@
           },
           "name": "viewId",
           "in": "query",
-          "required": true,
           "description": "View ID"
         }
       ],
@@ -15807,7 +15805,6 @@
           },
           "name": "viewId",
           "in": "query",
-          "required": true,
           "description": "View ID"
         }
       ],
@@ -15946,7 +15943,6 @@
           },
           "name": "viewId",
           "in": "query",
-          "required": true,
           "description": "View ID"
         }
       ],

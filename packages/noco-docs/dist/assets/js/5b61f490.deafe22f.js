@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunknoco_docs=self.webpackChunknoco_docs||[]).push([[518],{40809:o=>{o.exports=JSON.parse('{"label":"Expand","permalink":"/tags/expand","allTagsPath":"/tags","count":1,"items":[{"id":"records/actions-on-record","title":"Actions on record","description":"Keyboard navigation within Grid view","permalink":"/records/actions-on-record"}]}')}}]);

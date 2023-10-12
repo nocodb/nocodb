@@ -35,7 +35,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     tableExplorerColumns?: Ref<ColumnType[] | undefined>,
   ) => {
     const baseStore = useBase()
-    const { isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc, isXcdbBase: isXcdbBaseFunc, getBaseType } = baseStore
+
+    const { isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc, isXcdbBase: isXcdbBaseFunc } = baseStore
+
     const { sqlUis } = storeToRefs(baseStore)
 
     const { $api } = useNuxtApp()
@@ -59,8 +61,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const isXcdbBase = computed(() =>
       isXcdbBaseFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]),
     )
-
-    const baseType = computed(() => getBaseType(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
 
     const idType = null
 

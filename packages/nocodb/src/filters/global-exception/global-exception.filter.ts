@@ -1,4 +1,5 @@
-import { Catch, Logger, NotFoundException } from '@nestjs/common';
+import { Catch, Logger, NotFoundException, Optional } from '@nestjs/common';
+import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import type { Response } from 'express';
 import {
@@ -15,6 +16,10 @@ import {
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
+  constructor(
+    @Optional() @InjectSentry() private readonly client: SentryService,
+  ) {}
+
   private logger = new Logger(GlobalExceptionFilter.name);
 
   catch(exception: any, host: ArgumentsHost) {
@@ -90,6 +95,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception.getStatus?.()) {
       response.status(exception.getStatus()).json(exception.getResponse());
     } else {
+      this.client?.instance().captureException(exception);
+
       // todo: change the response code
       response.status(400).json({
         msg: exception.message,

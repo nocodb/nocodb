@@ -36,7 +36,6 @@ const bumbVersionAndSave = () => {
     return Promise.all([
         replacePackageVersion(path.join(__dirname, '..', 'packages', 'nocodb', 'package.json')),
         replacePackageVersion(path.join(__dirname, '..', 'packages', 'nc-gui', 'package.json')),
-        replacePackageVersion(path.join(__dirname, '..', 'tests', 'playwright', 'package.json')),
     ])
 }
 

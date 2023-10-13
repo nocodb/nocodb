@@ -2161,6 +2161,17 @@ export interface SignUpReqType {
   /** Ignore Subscription */
   ignore_subscribe?: BoolType;
 }
+/**
+ * Model for Edit User Request
+ */
+export interface EditUserReqType {
+  /** Model for StringOrNull */
+  firstname?: StringOrNullType;
+  /** Model for StringOrNull */
+  lastname?: StringOrNullType;
+  /** Sign Up Token. Used for invitation. */
+  username?: StringOrNullType;
+}
 
 /**
  * Model for Sort
@@ -2300,6 +2311,11 @@ export interface UserType {
   /** Set to true if the user's email has been verified. */
   email_verified: boolean;
   /**
+   * The usernsame name of the user
+   * @example Alice
+   */
+  username: string;
+  /**
    * The first name of the user
    * @example Alice
    */
@@ -2334,6 +2350,8 @@ export interface UserInfoType {
   email?: string;
   /** Set to true if the user's email has been verified. */
   email_verified?: boolean;
+  /** The username of the user */
+  username?: string;
   /** The firstname of the user */
   firstname?: string;
   /** User ID */
@@ -2805,7 +2823,7 @@ export class Api<
         format: 'json',
         ...params,
       }),
-
+    
     /**
  * @description Returns authenticated user info
  * 
@@ -3684,6 +3702,47 @@ export class Api<
     update: (
       userId: IdType,
       data: OrgUserReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          /** @example The user has been updated successfully */
+          msg?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/users/${userId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+      /**
+ * @description Update an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked.
+ * 
+ * @tags Org Users
+ * @name Update
+ * @summary Update Organisation User
+ * @request PATCH:/api/v1/users/{userId}
+ * @response `200` `{
+  \** @example The user has been updated successfully *\
+  msg?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    userEdit: (
+      userId: IdType,
+      data: EditUserReqType,
       params: RequestParams = {}
     ) =>
       this.request<

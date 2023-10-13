@@ -8,6 +8,7 @@ import {
   Request,
   Response,
   UseGuards,
+  Patch,
 } from '@nestjs/common';
 import * as ejs from 'ejs';
 import { AuthGuard } from '@nestjs/passport';
@@ -126,6 +127,28 @@ export class UsersController {
     }
 
     await this.usersService.passwordChange({
+      user: req['user'],
+      req,
+      body: req.body,
+    });
+
+    return { msg: 'Password has been updated successfully' };
+  }
+
+  @Patch([
+    '/user/password/change',
+    '/api/v1/db/auth/password/change',
+    '/api/v1/auth/password/change',
+  ])
+  @UseGuards(GlobalGuard)
+  @Acl('userEdit')
+  @HttpCode(200)
+  async userEdit (@Request() req: any): Promise<any> {
+    if (!(req as any).isAuthenticated()) {
+      NcError.forbidden('Not allowed');
+    }
+
+    await this.usersService.userEdit({
       user: req['user'],
       req,
       body: req.body,

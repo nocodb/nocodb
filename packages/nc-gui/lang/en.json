@@ -231,7 +231,7 @@
     "sqliteFile": "SQLite File",
     "hostAddress": "Host Address",
     "port": "Port Number",
-    "username": "Username",
+    "username": "Username", 
     "password": "Password",
     "schemaName": "Schema name",
     "database": "Database",

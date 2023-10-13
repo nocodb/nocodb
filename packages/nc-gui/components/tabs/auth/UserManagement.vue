@@ -258,6 +258,13 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
           <component :is="iconMap.email" class="flex text-gray-500 -mt-0.5" />
 
           <div class="text-gray-600 text-xs space-x-1">{{ $t('labels.email') }}</div>
+
+        </div>
+        <div class="flex flex-row w-3/6 space-x-1 items-center pl-1">
+          <component :is="iconMap.users" class="flex text-gray-500 -mt-0.5" />
+
+          <div class="text-gray-600 text-xs space-x-1">{{ $t('labels.username') }}</div>
+
         </div>
         <div class="flex flex-row justify-start w-2/6 space-x-1 items-center pl-1">
           <component :is="iconMap.role" class="flex text-gray-500 -mt-0.5" />
@@ -272,6 +279,9 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
       <div v-for="(user, index) of users" :key="index" class="flex flex-row items-center border-b-1 py-2 px-2 nc-user-row">
         <div class="flex w-3/6 flex-wrap nc-user-email">
           {{ user.email }}
+        </div>
+        <div class="flex w-3/6 flex-wrap nc-user-username">
+          {{ user.username }}
         </div>
 
         <div class="flex w-2/6 justify-start gap-2 flex-wrap ml-4">

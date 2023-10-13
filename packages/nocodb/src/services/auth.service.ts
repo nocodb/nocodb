@@ -40,6 +40,7 @@ export class AuthService {
       email: _email,
       firstname,
       lastname,
+      username,
       token,
       ignore_subscribe,
     } = createUserDto as any;
@@ -102,6 +103,7 @@ export class AuthService {
       await this.registerNewUserIfAllowed({
         firstname,
         lastname,
+        username,
         email,
         salt,
         password,
@@ -155,6 +157,7 @@ export class AuthService {
   async registerNewUserIfAllowed({
     firstname,
     lastname,
+    username,
     email,
     salt,
     password,
@@ -162,6 +165,7 @@ export class AuthService {
   }: {
     firstname;
     lastname;
+    username;
     email: string;
     salt: any;
     password;
@@ -195,6 +199,7 @@ export class AuthService {
     return await this.usersService.insert({
       firstname,
       lastname,
+      username,
       email,
       salt,
       password,

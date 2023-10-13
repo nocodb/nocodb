@@ -21,6 +21,7 @@ import { Audit, Store, User } from '../../models';
 import Noco from '../../Noco';
 import { genJwt, setTokenCookie } from './helpers';
 import type {
+  EditUserReqType,
   PasswordChangeReqType,
   PasswordForgotReqType,
   PasswordResetReqType,
@@ -44,6 +45,7 @@ export class UsersService {
   async insert(param: {
     token_version: string;
     firstname: any;
+    username: any;
     password: any;
     salt: any;
     email_verification_token: any;
@@ -60,6 +62,7 @@ export class UsersService {
   async registerNewUserIfAllowed({
     firstname,
     lastname,
+    username,
     email,
     salt,
     password,
@@ -67,6 +70,7 @@ export class UsersService {
   }: {
     firstname;
     lastname;
+    username;
     email: string;
     salt: any;
     password;
@@ -100,6 +104,7 @@ export class UsersService {
     return await User.insert({
       firstname,
       lastname,
+      username,
       email,
       salt,
       password,
@@ -379,6 +384,7 @@ export class UsersService {
       email: _email,
       firstname,
       lastname,
+      username,
       token,
       ignore_subscribe,
     } = param.req.body;
@@ -427,6 +433,7 @@ export class UsersService {
         await User.update(user.id, {
           firstname,
           lastname,
+          username,
           salt,
           password,
           email_verification_token,
@@ -441,6 +448,7 @@ export class UsersService {
       await this.registerNewUserIfAllowed({
         firstname,
         lastname,
+        username,
         email,
         salt,
         password,
@@ -488,6 +496,50 @@ export class UsersService {
     });
 
     return this.login(user);
+  }
+
+  async userEdit(param: {
+    body: EditUserReqType;
+    user: UserType;
+    req: any;
+  }): Promise<any> {
+    validatePayload('swagger.json#/components/schemas/OrgUserReq', param.body);
+
+    const {
+      email: _email,
+      firstname,
+      lastname,
+      username,
+      token,
+      ignore_subscribe,
+    } = param.req.body;
+
+    const user = await Noco.ncMeta.metaGet(null, null, MetaTable.USERS, {
+    });
+
+    if (!user) {
+      NcError.badRequest('Invalid reset url');
+    }
+
+    const salt = await promisify(bcrypt.genSalt)(10);
+
+
+    const refreshToken = randomTokenString();
+
+    await User.update(user.id, {
+      refresh_token: refreshToken,
+      email: user.email,
+    });
+
+    await Audit.insert({
+      op_type: AuditOperationTypes.ORG_USER,
+      op_sub_type: AuditOperationSubTypes.UPDATE,
+      user: user.email,
+      description: `User has been edit`,
+      ip: (param.req as any).clientIp,
+    });
+
+    return true;
   }
 
   login(user: UserType) {

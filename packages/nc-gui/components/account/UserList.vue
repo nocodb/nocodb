@@ -183,6 +183,13 @@ const copyPasswordResetUrl = async (user: User) => {
             </div>
           </template>
         </a-table-column>
+        <a-table-column :title="$t('labels.username')" data-index="username">
+          <template #default="{ text }">
+            <div>
+              {{ text }}
+            </div>
+          </template>
+        </a-table-column>
 
         <!-- Role -->
         <a-table-column key="roles" :title="$t('objects.role')" data-index="roles">

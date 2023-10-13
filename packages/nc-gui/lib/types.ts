@@ -8,6 +8,7 @@ import type { rolePermissions } from './constants'
 export interface User {
   id: string
   email: string
+  username:string | null
   firstname: string | null
   lastname: string | null
   roles: Roles | string

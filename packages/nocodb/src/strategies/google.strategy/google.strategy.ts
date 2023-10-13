@@ -52,6 +52,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         const user = await this.usersService.registerNewUserIfAllowed({
           firstname: null,
           lastname: null,
+          username: null,
           email_verification_token: null,
           email: profile.emails[0].value,
           password: '',

@@ -89,6 +89,7 @@ export default class ProjectUser {
       .select(
         `${MetaTable.USERS}.id`,
         `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.username`,
         `${MetaTable.USERS}.invite_token`,
         `${MetaTable.USERS}.roles as main_roles`,
         `${MetaTable.PROJECT_USERS}.project_id`,

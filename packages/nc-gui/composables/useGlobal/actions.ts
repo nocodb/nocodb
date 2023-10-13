@@ -26,6 +26,7 @@ export function useGlobalActions(state: State): Actions {
       state.user.value = {
         id: state.jwtPayload.value.id,
         email: state.jwtPayload.value.email,
+        username: state.jwtPayload.value.username,
         firstname: state.jwtPayload.value.firstname,
         lastname: state.jwtPayload.value.lastname,
         roles: state.jwtPayload.value.roles,

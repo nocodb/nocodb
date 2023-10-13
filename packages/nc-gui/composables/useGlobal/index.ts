@@ -68,6 +68,7 @@ export const useGlobal = createGlobalState((): UseGlobalReturn => {
         state.user.value = {
           id: nextPayload.id,
           email: nextPayload.email,
+          username: nextPayload.username,
           firstname: nextPayload.firstname,
           lastname: nextPayload.lastname,
           roles: nextPayload.roles,

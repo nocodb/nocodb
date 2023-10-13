@@ -75,6 +75,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
           {
             firstname: '',
             lastname: '',
+            username:'',
             email,
             salt,
             password,
@@ -133,6 +134,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
               {
                 firstname: '',
                 lastname: '',
+                username: '',
                 email,
                 salt,
                 password,

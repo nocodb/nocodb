@@ -10,7 +10,7 @@ import {
   useApi,
   useRoute,
   useRouter,
-  useI18n
+  useI18n,
 } from '#imports'
 
 definePageMeta({
@@ -91,7 +91,7 @@ function resetError() {
           <a-form-item
             :label="$t('placeholder.password.new')"
             name="password"
-            :rules="[{ required: true, message: t('error.passwdRequired') }]"
+            :rules="[{ required: true, message: t('msg.error.signUpRules.passwdRequired') }]"
           >
             <a-input-password
               v-model:value="form.password"
@@ -104,7 +104,7 @@ function resetError() {
           <a-form-item
             :label="$t('placeholder.password.confirm')"
             name="newPassword"
-            :rules="[{ required: true, message: t('error.passwdRequired') }]"
+            :rules="[{ required: true, message: t('msg.error.signUpRules.passwdRequired') }]"
           >
             <a-input-password
               v-model:value="form.newPassword"

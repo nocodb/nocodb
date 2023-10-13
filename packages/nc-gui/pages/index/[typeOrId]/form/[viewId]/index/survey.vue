@@ -346,7 +346,7 @@ onMounted(() => {
               <div v-else-if="!submitted" class="flex items-center gap-3 flex-col">
                 <a-tooltip
                   :title="
-                    v$.localState[field.title]?.$error ? v$.localState[field.title].$errors[0].$message : $t('msg.goToNext')
+                    v$.localState[field.title]?.$error ? v$.localState[field.title].$errors[0].$message : $t('msg.info.goToNext')
                   "
                   :mouse-enter-delay="0.25"
                   :mouse-leave-delay="0"
@@ -393,9 +393,9 @@ onMounted(() => {
 
                 <template v-else>
                   <div class="flex flex-col gap-1">
-                    <div>{{ $t('msg.thankyou') }}</div>
+                    <div>{{ $t('msg.info.thankYou') }}</div>
 
-                    <div>{{ $t('msg.submittedFormData') }}</div>
+                    <div>{{ $t('msg.info.submittedFormData') }}</div>
                   </div>
                 </template>
               </div>
@@ -429,7 +429,7 @@ onMounted(() => {
           v-if="!submitted"
           class="color-transition shadow-sm absolute bottom-18 right-1/2 transform translate-x-[50%] md:bottom-4 md:(right-12 transform-none) flex items-center bg-white border dark:bg-slate-500 rounded divide-x-1"
         >
-          <a-tooltip :title="isFirst ? '' : 'Go to previous'" :mouse-enter-delay="0.25" :mouse-leave-delay="0">
+          <a-tooltip :title="isFirst ? '' : $t('msg.info.goToPrevious')" :mouse-enter-delay="0.25" :mouse-leave-delay="0">
             <button
               :class="
                 animationTarget === AnimationTarget.ArrowLeft && isAnimating
@@ -449,7 +449,7 @@ onMounted(() => {
           </a-tooltip>
 
           <a-tooltip
-            :title="v$.localState[field.title]?.$error ? '' : $t('msg.goToNext')"
+            :title="v$.localState[field.title]?.$error ? '' : $t('msg.info.goToNext')"
             :mouse-enter-delay="0.25"
             :mouse-leave-delay="0"
           >

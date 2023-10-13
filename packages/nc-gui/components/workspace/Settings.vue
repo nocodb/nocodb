@@ -3,7 +3,6 @@ import { useI18n } from '#imports'
 const { signOut } = useGlobal()
 const { t } = useI18n()
 
-
 const { deleteWorkspace, navigateToWorkspace, updateWorkspace } = useWorkspace()
 const { workspacesList, activeWorkspaceId, activeWorkspace, workspaces } = storeToRefs(useWorkspace())
 
@@ -20,9 +19,9 @@ const form = ref({
 
 const formRules = {
   title: [
-    { required: true, message: t('msg.wsNameRequired') },
-    { min: 3, message: t('msg.wsNameMinLength') },
-    { max: 50, message: t('msg.wsNameMaxLength') },
+    { required: true, message: t('msg.info.wsNameRequired') },
+    { min: 3, message: t('msg.info.wsNameMinLength') },
+    { max: 50, message: t('msg.info.wsNameMaxLength') },
   ],
 }
 
@@ -145,10 +144,10 @@ const onCancel = () => {
     </div>
     <div class="item flex flex-col">
       <div class="font-medium text-base">{{ $t('title.deleteWs') }}</div>
-      <div class="text-gray-500 mt-2">{{ $t('msg.wsDeleteDlg') }}</div>
+      <div class="text-gray-500 mt-2">{{ $t('msg.info.wsDeleteDlg') }}</div>
       <div class="flex flex-row mt-8 gap-x-2">
         <a-checkbox v-model:checked="isConfirmed" />
-        <div class="flex">{{ $t('msg.userConfirmation') }}</div>
+        <div class="flex">{{ $t('msg.info.userConfirmation') }}</div>
       </div>
 
       <div class="flex flex-row w-full justify-end mt-8">

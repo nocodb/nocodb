@@ -25,7 +25,7 @@ const groupType = computed({
     <div class="p-3" @click.stop>
       <div class="flex items-center">
         <span class="text-md font-medium text-[#212121]">
-          {{ $t('activity.notification') }}
+          {{ $t('general.notification') }}
         </span>
         <div class="flex-grow"></div>
         <div

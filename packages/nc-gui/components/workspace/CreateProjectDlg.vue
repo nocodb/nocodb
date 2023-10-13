@@ -26,7 +26,7 @@ const { navigateToProject } = useGlobal()
 const nameValidationRules = [
   {
     required: true,
-    message: t('msg.dbNameRequired'),
+    message: t('msg.info.dbNameRequired'),
   },
   baseTitleValidator,
 ] as RuleObject[]

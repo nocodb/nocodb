@@ -9,7 +9,6 @@ export default defineNuxtPlugin((nuxtApp) => {
   Sentry.init({
     app: [vueApp],
     dsn: 'https://0da0f8ab4bc2afc11ee510490f452b22@o4505953073889280.ingest.sentry.io/4505953708867584',
-    allowUrls: [/^https:\/\/\w+\.(nocodb\.com|noco\.to)/],
     environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',
     integrations: [
       new Sentry.BrowserTracing({
@@ -17,6 +16,10 @@ export default defineNuxtPlugin((nuxtApp) => {
         routingInstrumentation: Sentry.vueRouterInstrumentation(nuxtApp.$router),
       }),
     ],
+    beforeSend(event) {
+      if (process.env.NODE_ENV === 'production') return event
+      return null
+    },
     autoSessionTracking: false,
     // Set tracesSampleRate to 1.0 to capture 100%
     // of transactions for performance monitoring.

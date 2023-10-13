@@ -592,7 +592,7 @@ export default {
               :data-testid="`nc-expand-col-${col.title}`"
             >
               <div class="flex items-start flex-row sm:(gap-x-6) xs:(flex-col w-full) nc-expanded-cell min-h-10">
-                <div class="w-[12rem] xs:(w-full) mt-0.25 !h-[35px]">
+                <div class="w-48 xs:(w-full) mt-0.25 !h-[35px]">
                   <LazySmartsheetHeaderVirtualCell
                     v-if="isVirtualCol(col)"
                     class="nc-expanded-cell-header h-full"
@@ -649,17 +649,17 @@ export default {
               </NcButton>
               <div class="flex-grow h-px ml-1 bg-gray-100"></div>
             </div>
-            <div v-if="hiddenFields.length > 0 && showHiddenFields" class="xs:w-full mb-3">
+            <div v-if="hiddenFields.length > 0 && showHiddenFields" class="flex flex-col w-full mb-3 items-center">
               <div
                 v-for="(col, i) of hiddenFields"
                 v-show="isFormula(col) || !isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
                 :key="col.title"
-                class="sm:(mt-2 py-2) xs:py-2"
+                class="sm:(mt-2) py-2 xs:w-full"
                 :class="`nc-expand-col-${col.title}`"
                 :data-testid="`nc-expand-col-${col.title}`"
               >
-                <div class="flex sm:flex-row xs:(flex-col) items-start min-h-10">
-                  <div class="w-[12rem] scale-110 !h-[35px] mt-2.5">
+                <div class="sm:gap-x-6 flex sm:flex-row xs:(flex-col) items-start min-h-10">
+                  <div class="sm:w-48 xs:w-full scale-110 !h-[35px]">
                     <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" class="nc-expanded-cell-header" />
 
                     <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header" :column="col" />

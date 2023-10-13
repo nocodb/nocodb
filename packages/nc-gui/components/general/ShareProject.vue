@@ -92,11 +92,3 @@ const copySharedBase = async () => {
 
   <LazyDlgShareAndCollaborateView :is-view-toolbar="isViewToolbar" />
 </template>
-
-<style lang="scss">
-.share-status-tootltip {
-  .ant-tooltip-inner {
-    @apply !rounded-md !border-1 !border-gray-200;
-  }
-}
-</style>

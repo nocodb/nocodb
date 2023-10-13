@@ -43,6 +43,8 @@ const { modelValue, disableOptionCreation } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
+const { isMobileMode } = useGlobal()
+
 const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
@@ -383,7 +385,7 @@ const selectedOpts = computed(() => {
       :placeholder="isEditColumn ? $t('labels.optional') : ''"
       :bordered="false"
       clear-icon
-      show-search
+      :show-search="!isMobileMode"
       :show-arrow="editAllowed && !(readOnly || isLockedMode)"
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed || isLockedMode"
@@ -392,6 +394,9 @@ const selectedOpts = computed(() => {
       @search="search"
       @keydown.stop
     >
+      <template #suffixIcon>
+        <GeneralIcon icon="arrowDown" class="text-gray-700 nc-select-expand-btn" />
+      </template>
       <a-select-option
         v-for="op of options"
         :key="op.id || op.title"

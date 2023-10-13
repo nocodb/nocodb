@@ -310,7 +310,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       workspaceId,
     );
 
-    const workspaceRowLimit = getLimit(
+    const workspaceRowLimit = await getLimit(
       PlanLimitTypes.WORKSPACE_ROW_LIMIT,
       workspaceId,
     );

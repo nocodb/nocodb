@@ -8,9 +8,10 @@ const props = defineProps<{
   size?: 'small' | 'medium' | 'large'
 }>()
 
-const workspaceColor = computed(() =>
-  props.workspace ? props.workspace.meta?.color || stringToColor(props.workspace.id!) : undefined,
-)
+const workspaceColor = computed(() => {
+  const color = props.workspace ? props.workspace.meta?.color || stringToColor(props.workspace.id!) : undefined
+  return color || '#0A1433'
+})
 
 const size = computed(() => props.size || 'medium')
 </script>

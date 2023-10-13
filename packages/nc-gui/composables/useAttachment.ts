@@ -28,8 +28,9 @@ const useAttachment = () => {
       } catch {}
     }
     // if no source can be fetched, it could be probably blocked by CORS
-    // return original url or built url anyway
-    return item.url || `${appInfo.value.ncSiteUrl}/${item.path}`
+    // return signed url / original url / built url anyway
+    // which we can extract from the sources array since it's ordered based on priority
+    return sources[0]
   }
 
   const openAttachment = async (item: Record<string, any>) => {

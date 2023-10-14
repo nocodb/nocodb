@@ -262,7 +262,7 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
   private async setupSQLResources(baseData: IBaseData, models: Model[]) {
     const notificationChannel = this.getSqlNotificationChannel(baseData);
 
-    // esa_nocodb_bmh_notifcations_channel
+    // esa_nocodb__bmh__notifcations_channel
 
     const notificationsTableName = this.createSqlIdentifier(
       baseData,
@@ -274,7 +274,9 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
     CREATE TABLE IF NOT EXISTS "${notificationsTableName}" ( "id" SERIAL PRIMARY KEY, "operation" VARCHAR(20) NOT NULL, "nocodbModelId" VARCHAR(30) NOT NULL, "oldData" JSONB, "newData" JSONB, "createdAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP );
     `;
 
+    this.log('about to run notificationsTableCreateQuery ');
     await baseData.knex.raw(notificationsTableCreateQuery);
+    this.log('finished running notificationsTableCreateQuery ');
 
     const procedureName = this.createSqlIdentifier(baseData, 'function');
     // esa_nocodb_bmh_function
@@ -301,15 +303,18 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
     END;
     $trigger$ LANGUAGE plpgsql;
     `;
+    this.log('about to run procedureQuery ');
     await baseData.knex.raw(procedureQuery);
+    this.log('finnished running procedureQuery ');
 
     for (const { id: modelId, table_name: tableName } of models) {
-      // TODO skip audit trail tables
+      // Audit trail tables already skipped
 
       const triggerName = this.createSqlIdentifier(
         baseData,
         `${tableName}__trigger`
       );
+      // esa_nocodb_bmh_{tableName}__trigger
 
       // postgressql does not have "create or replace" statement for function, hence that can be suffixed by first dropping it
       const dropTriggerQuery = `DROP TRIGGER IF EXISTS "${triggerName}" on "${tableName}"`;
@@ -322,7 +327,19 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
       INITIALLY DEFERRED
       FOR EACH ROW EXECUTE PROCEDURE ${procedureName}('${modelId}');
       `;
+
+      // any trigger that exist is always dropped, if it is to be recreated
+      this.log(
+        `about to run dropTriggerQuery for ${triggerName} on  ${tableName}`
+      );
       await baseData.knex.raw(dropTriggerQuery);
+      this.log(
+        `finished running dropTriggerQuery for ${triggerName} on  ${tableName}`
+      );
+
+      this.log(
+        `about to run createTriggerQuery for ${triggerName} on  ${tableName}`
+      );
       await baseData.knex.raw(createTriggerQuery).catch((error: any) => {
         this.log(
           `Warning - Trigger not created on "${tableName}" probably because it does not exist. Analysis the stacktrace: ${
@@ -331,6 +348,9 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
           error
         );
       });
+      this.log(
+        `finished running createTriggerQuery for ${triggerName} on  ${tableName}`
+      );
     }
   }
 
@@ -414,7 +434,7 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
       !isEqual(connectionOptions, baseData.connectionOptions);
 
     if (baseData && createNewBaseData) {
-      // //////// will never get called as basedata will always be empty at this point 
+      // //////// will never get called as basedata will always be empty at this point
       ///// and will never dispose all resources
       // ////// Needs to be fixed in case connection options change
       await this.unwatchBase(baseData.base);
@@ -504,6 +524,7 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
 
       this.log('about to register listeners');
       // start watching
+      // ///////////
       await this.registerListeners(baseData, connection);
       this.log('finished registering listeners ...');
     }
@@ -547,6 +568,7 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
       await Promise.all(projects.map((project) => project.getBases()))
     ).flat();
     const baseIds = bases.map((base) => base.id);
+    //////// Retreive watched base data from DB and set it in this.allBaseData.
 
     const allObsoleteBaseData = Array.from(this.allBaseData.values()).filter(
       (baseData) => !baseIds.includes(baseData.base.id)

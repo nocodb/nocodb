@@ -91,18 +91,21 @@ const getAst = async ({
           .getColOptions<LinkToAnotherRecordColumn>()
           .then((colOpt) => colOpt.getRelatedTable());
 
-        const { ast } = await getAst({
-          model,
-          query: query?.nested?.[col.title],
-          dependencyFields: (dependencyFields.nested[col.title] =
-            dependencyFields.nested[col.title] || {
-              nested: {},
-              fieldsSet: new Set(),
-            }),
-        });
+        if (model) {
+          value = 0;
+        } else {
+          const { ast } = await getAst({
+            model,
+            query: query?.nested?.[col.title],
+            dependencyFields: (dependencyFields.nested[col.title] =
+              dependencyFields.nested[col.title] || {
+                nested: {},
+                fieldsSet: new Set(),
+              }),
+          });
 
-        value = ast;
-
+          value = ast;
+        }
         // todo: include field relative to the relation => pk / fk
       } else if (col.uidt === UITypes.Links) {
         value = 1;

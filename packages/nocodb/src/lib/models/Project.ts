@@ -109,18 +109,25 @@ export default class Project implements ProjectType {
 
   // @ts-ignore
   static async get(projectId: string, ncMeta = Noco.ncMeta): Promise<Project> {
+    console.log('about to check cache for project data');
     let projectData =
       projectId &&
       (await NocoCache.get(
         `${CacheScope.PROJECT}:${projectId}`,
         CacheGetType.TYPE_OBJECT
       ));
+    console.log('Finished getting project data from cache');
     if (!projectData) {
+      console.log('about to check db for project data');
       projectData = await ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
         id: projectId,
         deleted: false,
       });
+      console.log('Finished getting Db for project data from cache');
+      console.log({ projectData });
+      console.log('about to set projectdata in cache');
       await NocoCache.set(`${CacheScope.PROJECT}:${projectId}`, projectData);
+      console.log('finished to setting projectdata in cache');
     } else {
       if (projectData.deleted) {
         projectData = null;
@@ -348,12 +355,14 @@ export default class Project implements ProjectType {
   }
 
   static async getByTitleOrId(titleOrId: string, ncMeta = Noco.ncMeta) {
+    console.log('about to check cache for project ref titleOrId');
     const projectId =
       titleOrId &&
       (await NocoCache.get(
         `${CacheScope.PROJECT}:ref:${titleOrId}`,
         CacheGetType.TYPE_OBJECT
       ));
+    console.log('finished checking cache for project ref  titleOrId');
     let projectData = null;
     if (!projectId) {
       projectData = await Noco.ncMeta.metaGet2(
@@ -379,10 +388,12 @@ export default class Project implements ProjectType {
           ],
         }
       );
+      console.log('about to set project ref  titleOrId in cache');
       await NocoCache.set(
         `${CacheScope.PROJECT}:ref:${titleOrId}`,
         projectData?.id
       );
+      console.log('finished to set project ref  titleOrId in cache');
     } else {
       return this.get(projectId);
     }

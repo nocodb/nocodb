@@ -64,657 +64,7 @@
     }
   ],
   "paths": {
-    "/api/v1/user/profile": {
-      "patch": {
-        "summary": "Update User Profile",
-        "operationId": "user-profile-update",
-        "responses": {
-          "200": {
-            "$ref": "#/components/schemas/User"
-          }
-        },
-        "tags": [
-          "User profile"
-        ],
-        "description": "Update User Profile",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/User"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/auth/user/signup": {
-      "post": {
-        "summary": "Signup",
-        "operationId": "auth-signup",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "token": {
-                      "type": "string",
-                      "description": "The signed JWT token for information exchange",
-                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "examples": {
-                  "Invalid email": {
-                    "value": {
-                      "msg": "Invalid email"
-                    }
-                  },
-                  "Invalid invite url": {
-                    "value": {
-                      "msg": "Invalid invite url"
-                    }
-                  },
-                  "Expired invite url": {
-                    "value": {
-                      "msg": "Expired invite url, Please contact super admin to get a new invite url"
-                    }
-                  },
-                  "User already exist": {
-                    "value": {
-                      "msg": "User already exist"
-                    }
-                  },
-                  "Invite only signup": {
-                    "value": {
-                      "msg": "Not allowed to signup, contact super admin"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Auth"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SignUpReq"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "email": "user@example.com",
-                    "password": "password123456789",
-                    "firstname": "Alice",
-                    "lastname": "Smith",
-                    "token": null,
-                    "ignore_subscribe": 0
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Create a new user with provided email and password and first user is marked as super admin. "
-      }
-    },
-    "/api/v1/auth/user/signout": {
-      "post": {
-        "summary": "Signout",
-        "operationId": "auth-signout",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "description": "Success Message",
-                      "example": "Signed out successfully"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "Signed out successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Auth"
-        ],
-        "description": "Clear refresh token from the database and cookie."
-      },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ]
-    },
-    "/api/v1/auth/user/signin": {
-      "post": {
-        "summary": "Signin",
-        "operationId": "auth-signin",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "token": {
-                      "type": "string",
-                      "description": "The signed JWT token for information exchange",
-                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Auth"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SignInReq"
-              },
-              "examples": {
-                "example-1": {
-                  "value": {
-                    "email": "user@example.com",
-                    "password": "Password"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Authenticate existing user with their email and password. Successful login will return a JWT access-token. "
-      },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ]
-    },
-    "/api/v1/auth/user/me": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ],
-      "get": {
-        "summary": "Get User Info",
-        "operationId": "auth-me",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserInfo"
-                },
-                "examples": {
-                  "example-1": {
-                    "value": {
-                      "id": "us_8kugj628ebjngs",
-                      "email": "user@example.com",
-                      "email_verified": true,
-                      "firstname": "Alice",
-                      "lastname": "Smith",
-                      "roles": "org-level-viewer"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Auth"
-        ],
-        "description": "Returns authenticated user info",
-        "parameters": [
-          {
-            "schema": {
-              "$ref": "#/components/schemas/Id"
-            },
-            "in": "query",
-            "name": "base_id",
-            "description": "Pass base id to get base specific roles along with user info"
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/password/forgot": {
-      "post": {
-        "summary": "Forget Password",
-        "operationId": "auth-password-forgot",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "x-stoplight": {
-                        "id": "q9s5vh2i34x6c"
-                      },
-                      "example": "Please check your email to reset the password",
-                      "description": "Success Message"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "Please check your email to reset the password"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Emails user with a reset url.",
-        "tags": [
-          "Auth"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PasswordForgotReq"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "email": "user@example.com"
-                  }
-                }
-              }
-            }
-          },
-          "description": "Pass registered user email id in request body"
-        }
-      },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ]
-    },
-    "/api/v1/auth/password/change": {
-      "post": {
-        "summary": "Change Password",
-        "operationId": "auth-password-change",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "description": "Success Message"
-                    }
-                  }
-                },
-                "examples": {
-                  "Success response": {
-                    "value": {
-                      "msg": "Password has been updated successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Change password of authenticated user with a new one.",
-        "tags": [
-          "Auth"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PasswordChangeReq"
-              },
-              "examples": {
-                "example-1": {
-                  "value": {
-                    "currentPassword": "currentPassword",
-                    "newPassword": "newPassword"
-                  }
-                }
-              }
-            }
-          },
-          "description": "Old password need to be passed along with new password for changing password."
-        }
-      },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ]
-    },
-    "/api/v1/auth/token/validate/{token}": {
-      "post": {
-        "summary": "Verify Reset Token",
-        "operationId": "auth-password-reset-token-validate",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "x-stoplight": {
-                        "id": "unxdsok22kg1y"
-                      },
-                      "example": "Token has been validated successfully",
-                      "description": "Success Message"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "Token has been validated successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Validate password reset url token.",
-        "tags": [
-          "Auth"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "parameters": [
-        {
-          "schema": {
-            "type": "string",
-            "format": "uuid",
-            "example": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
-          },
-          "name": "token",
-          "in": "path",
-          "required": true,
-          "description": "Reset Token"
-        }
-      ]
-    },
-    "/api/v1/auth/email/validate/{token}": {
-      "post": {
-        "summary": "Verify Email",
-        "operationId": "auth-email-validate",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "x-stoplight": {
-                        "id": "u49sbr20s9rgf"
-                      },
-                      "description": "Success Message",
-                      "example": "Email has been verified successfully"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "Email has been verified successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Api for verifying email where token need to be passed which is shared to user email.",
-        "tags": [
-          "Auth"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "parameters": [
-        {
-          "schema": {
-            "type": "string",
-            "format": "uuid",
-            "example": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
-          },
-          "name": "token",
-          "in": "path",
-          "required": true,
-          "description": "Validation Token"
-        }
-      ]
-    },
-    "/api/v1/auth/password/reset/{token}": {
-      "post": {
-        "summary": "Reset Password",
-        "operationId": "auth-password-reset",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "x-stoplight": {
-                        "id": "2to6ro4121rfx"
-                      },
-                      "description": "Success Message",
-                      "example": "Password has been reset successfully"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "Password has been reset successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Update user password to new by using reset token.",
-        "tags": [
-          "Auth"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PasswordResetReq"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "password": "newpassword"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "parameters": [
-        {
-          "schema": {
-            "type": "string",
-            "format": "uuid",
-            "example": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
-          },
-          "name": "token",
-          "in": "path",
-          "required": true,
-          "description": "Reset Password Token"
-        }
-      ]
-    },
-    "/api/v1/auth/token/refresh": {
-      "post": {
-        "summary": "Refresh Token",
-        "operationId": "auth-token-refresh",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "token": {
-                      "type": "string",
-                      "description": "New access token for user",
-                      "example": "96751db2d53fb834382b682268874a2ea9ee610e4d904e688d1513f11d3c30d62d36d9e05dec0d63"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "token": "96751db2d53fb834382b682268874a2ea9ee610e4d904e688d1513f11d3c30d62d36d9e05dec0d63"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Regenerate user refresh token",
-        "tags": [
-          "Auth"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ]
-    },
-    "/api/v2/meta/projects/{baseId}/users": {
+    "/api/v2/meta/bases/{baseId}/users": {
       "get": {
         "summary": "List Base Users",
         "operationId": "auth-base-user-list",
@@ -925,7 +275,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/info": {
+    "/api/v2/meta/bases/{baseId}/info": {
       "parameters": [
         {
           "schema": {
@@ -1024,7 +374,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/users/{userId}": {
+    "/api/v2/meta/bases/{baseId}/users/{userId}": {
       "parameters": [
         {
           "schema": {
@@ -1156,7 +506,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/visibility-rules": {
+    "/api/v2/meta/bases/{baseId}/visibility-rules": {
       "get": {
         "summary": "Get UI ACL",
         "operationId": "base-model-visibility-list",
@@ -1310,14 +660,14 @@
         ]
       }
     },
-    "/api/v2/meta/projects/": {
+    "/api/v2/meta/bases/": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
         }
       ],
       "get": {
-        "summary": "List Projects",
+        "summary": "List Bases",
         "operationId": "base-list",
         "responses": {
           "200": {
@@ -1668,7 +1018,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}": {
+    "/api/v2/meta/bases/{baseId}": {
       "parameters": [
         {
           "schema": {
@@ -1828,7 +1178,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/user": {
+    "/api/v2/meta/bases/{baseId}/user": {
       "parameters": [
         {
           "schema": {
@@ -1861,7 +1211,7 @@
         }
       }
     },
-    "/api/v2/meta/projects/{baseId}/bases/{sourceId}": {
+    "/api/v2/meta/bases/{baseId}/sources/{sourceId}": {
       "parameters": [
         {
           "schema": {
@@ -2040,7 +1390,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/:baseId/bases/:sourceId/sqlView": {
+    "/api/v2/meta/bases/:baseId/sources/:sourceId/sqlView": {
       "parameters": [
         {
           "schema": {
@@ -2097,7 +1447,7 @@
         }
       }
     },
-    "/api/v2/meta/projects/{baseId}/bases/": {
+    "/api/v2/meta/bases/{baseId}/sources/": {
       "parameters": [
         {
           "schema": {
@@ -2236,7 +1586,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/bases/{sourceId}/share/erd": {
+    "/api/v2/meta/bases/{baseId}/sources/{sourceId}/share/erd": {
       "parameters": [
         {
           "schema": {
@@ -2287,7 +1637,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/shared": {
+    "/api/v2/meta/bases/{baseId}/shared": {
       "parameters": [
         {
           "schema": {
@@ -2500,7 +1850,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/cost": {
+    "/api/v2/meta/bases/{baseId}/cost": {
       "parameters": [
         {
           "schema": {
@@ -2545,7 +1895,7 @@
         "x-internal": true
       }
     },
-    "/api/v2/meta/projects/{baseId}/tables": {
+    "/api/v2/meta/bases/{baseId}/tables": {
       "parameters": [
         {
           "schema": {
@@ -3617,7 +2967,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/{sourceId}/tables": {
+    "/api/v2/meta/bases/{baseId}/{sourceId}/tables": {
       "parameters": [
         {
           "schema": {
@@ -7288,7 +6638,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/meta-diff": {
+    "/api/v2/meta/bases/{baseId}/meta-diff": {
       "parameters": [
         {
           "schema": {
@@ -7460,7 +6810,7 @@
         "description": "Get the meta data difference between NC_DB and external data sources "
       }
     },
-    "/api/v2/meta/projects/{baseId}/meta-diff/{sourceId}": {
+    "/api/v2/meta/bases/{baseId}/meta-diff/{sourceId}": {
       "parameters": [
         {
           "schema": {
@@ -7639,7 +6989,7 @@
         "description": "Get the meta data difference between NC_DB and external data sources in a given Source"
       }
     },
-    "/api/v2/meta/projects/{baseId}/has-empty-or-null-filters": {
+    "/api/v2/meta/bases/{baseId}/has-empty-or-null-filters": {
       "parameters": [
         {
           "schema": {
@@ -9147,7 +8497,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/audits": {
+    "/api/v2/meta/bases/{baseId}/audits": {
       "parameters": [
         {
           "schema": {
@@ -10193,135 +9543,6 @@
         "description": ""
       }
     },
-    "/api/v1/url_to_config": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ],
-      "post": {
-        "summary": "Convert JDBC URL to Config",
-        "operationId": "utils-url-to-config",
-        "tags": [
-          "Utils"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "url": {
-                    "type": "string",
-                    "x-stoplight": {
-                      "id": "fgdbmcjjtkky5"
-                    },
-                    "description": "JDBC URL",
-                    "example": "jdbc:mysql://username:password@localhost:3306/sakila"
-                  }
-                }
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "url": "jdbc:mysql://username:password@localhost:3306/sakila"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "x-examples": {
-                    "Example 1": {
-                      "client": "mysql2",
-                      "connection": {
-                        "user": "username",
-                        "password": "password",
-                        "database": "sakila",
-                        "host": "localhost",
-                        "port": "3306"
-                      }
-                    }
-                  },
-                  "properties": {
-                    "client": {
-                      "description": "DB Type",
-                      "enum": [
-                        "mssql",
-                        "mysql",
-                        "mysql2",
-                        "oracledb",
-                        "pg",
-                        "snowflake",
-                        "sqlite3"
-                      ],
-                      "example": "mysql2",
-                      "type": "string"
-                    },
-                    "connection": {
-                      "type": "object",
-                      "description": "Connection Config",
-                      "properties": {
-                        "user": {
-                          "type": "string",
-                          "description": "DB User"
-                        },
-                        "password": {
-                          "type": "string",
-                          "description": "DB Password"
-                        },
-                        "database": {
-                          "type": "string",
-                          "description": "DB Name"
-                        },
-                        "host": {
-                          "type": "string",
-                          "description": "DB Host"
-                        },
-                        "port": {
-                          "type": "string",
-                          "description": "DB Host"
-                        }
-                      }
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "client": "mysql2",
-                      "connection": {
-                        "user": "username",
-                        "password": "password",
-                        "database": "sakila",
-                        "host": "localhost",
-                        "port": "3306"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Extract XC URL From JDBC and parse to connection config",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
     "/api/v2/meta/nocodb/info": {
       "parameters": [
         {
@@ -10520,361 +9741,6 @@
         ]
       }
     },
-    "/api/v1/version": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ],
-      "get": {
-        "summary": "Get App Version",
-        "operationId": "utils-app-version",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "x-examples": {
-                    "Example 1": {
-                      "currentVersion": "0.105.3",
-                      "releaseVersion": "0.105.3"
-                    }
-                  },
-                  "properties": {
-                    "currentVersion": {
-                      "type": "string",
-                      "description": "Current NocoDB Version",
-                      "example": "0.104.0"
-                    },
-                    "releaseVersion": {
-                      "type": "string",
-                      "description": "Latest Release Version",
-                      "example": "0.105.3"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "currentVersion": "0.104.0",
-                      "releaseVersion": "0.105.3"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Utils"
-        ],
-        "description": "Get the application version",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/health": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ],
-      "get": {
-        "summary": "Get Application Health Status",
-        "operationId": "utils-app-health",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "x-examples": {
-                    "Example 1": {
-                      "message": "OK",
-                      "timestamp": 1678702175755,
-                      "uptime": 1618.996877834
-                    }
-                  },
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "OK"
-                    },
-                    "timestamp": {
-                      "type": "string",
-                      "example": "1678702175755"
-                    },
-                    "uptime": {
-                      "type": "string",
-                      "example": "1618.996877834"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "message": "OK",
-                      "timestamp": 1678702175755,
-                      "uptime": 1618.996877834
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Utils"
-        ],
-        "description": "Get Application Health Status",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/aggregated-meta-info": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ],
-      "get": {
-        "summary": "Get Aggregated Meta Info",
-        "operationId": "utils-aggregated-meta-info",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "baseCount": {
-                      "type": "integer"
-                    },
-                    "bases": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "tableCount": {
-                            "type": "object",
-                            "properties": {
-                              "table": {
-                                "type": "integer",
-                                "description": "Table Count"
-                              },
-                              "view": {
-                                "type": "integer",
-                                "description": "View Count"
-                              }
-                            }
-                          },
-                          "external": {
-                            "type": "boolean",
-                            "description": "External Base",
-                            "default": false
-                          },
-                          "viewCount": {
-                            "type": "object",
-                            "properties": {
-                              "formCount": {
-                                "type": "integer",
-                                "description": "Form Count"
-                              },
-                              "gridCount": {
-                                "type": "integer",
-                                "description": "Grid Count"
-                              },
-                              "galleryCount": {
-                                "type": "integer",
-                                "description": "Gallery Count"
-                              },
-                              "kanbanCount": {
-                                "type": "integer",
-                                "description": "Kanban Count"
-                              },
-                              "total": {
-                                "type": "integer",
-                                "description": "Total View Count"
-                              },
-                              "sharedFormCount": {
-                                "type": "integer",
-                                "description": "Shared Form Count"
-                              },
-                              "sharedGridCount": {
-                                "type": "integer",
-                                "description": "Shared Grid Count"
-                              },
-                              "sharedGalleryCount": {
-                                "type": "integer",
-                                "description": "Shared Gallery Count"
-                              },
-                              "sharedKanbanCount": {
-                                "type": "integer",
-                                "description": "Shared Kanban Count"
-                              },
-                              "sharedTotal": {
-                                "type": "integer",
-                                "description": "Shared Total View Count"
-                              },
-                              "sharedLockedCount": {
-                                "type": "integer",
-                                "description": "Shared Locked View Count"
-                              }
-                            }
-                          },
-                          "webhookCount": {
-                            "type": "integer",
-                            "description": "Webhook Count"
-                          },
-                          "filterCount": {
-                            "type": "integer",
-                            "description": "Filter Count"
-                          },
-                          "sortCount": {
-                            "type": "integer",
-                            "description": "Sort Count"
-                          },
-                          "rowCount": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "TotalRecords": {
-                                  "type": "string"
-                                }
-                              }
-                            },
-                            "description": "Row Count"
-                          },
-                          "userCount": {
-                            "type": "integer",
-                            "description": "Total base user Count"
-                          }
-                        }
-                      }
-                    },
-                    "userCount": {
-                      "type": "integer",
-                      "description": "Total user Count"
-                    },
-                    "sharedBaseCount": {
-                      "type": "integer",
-                      "description": "Total shared base Count"
-                    }
-                  },
-                  "x-examples": {
-                    "Example 1": {
-                      "baseCount": 1,
-                      "bases": [
-                        {
-                          "tableCount": {
-                            "table": 3,
-                            "view": 0
-                          },
-                          "external": false,
-                          "viewCount": {
-                            "formCount": 0,
-                            "gridCount": 3,
-                            "galleryCount": 0,
-                            "kanbanCount": 0,
-                            "total": 3,
-                            "sharedFormCount": 0,
-                            "sharedGridCount": 0,
-                            "sharedGalleryCount": 0,
-                            "sharedKanbanCount": 0,
-                            "sharedTotal": 0,
-                            "sharedLockedCount": 0
-                          },
-                          "webhookCount": 0,
-                          "filterCount": 0,
-                          "sortCount": 0,
-                          "rowCount": [
-                            {
-                              "TotalRecords": "76"
-                            }
-                          ],
-                          "userCount": 1
-                        }
-                      ],
-                      "userCount": 1,
-                      "sharedBaseCount": 0
-                    }
-                  }
-                },
-                "examples": {
-                  "example-1": {
-                    "value": {
-                      "baseCount": 1,
-                      "bases": [
-                        {
-                          "tableCount": {
-                            "table": 3,
-                            "view": 0
-                          },
-                          "external": false,
-                          "viewCount": {
-                            "formCount": 0,
-                            "gridCount": 3,
-                            "galleryCount": 0,
-                            "kanbanCount": 0,
-                            "total": 3,
-                            "sharedFormCount": 0,
-                            "sharedGridCount": 0,
-                            "sharedGalleryCount": 0,
-                            "sharedKanbanCount": 0,
-                            "sharedTotal": 0,
-                            "sharedLockedCount": 0
-                          },
-                          "webhookCount": 0,
-                          "filterCount": 0,
-                          "sortCount": 0,
-                          "rowCount": [
-                            {
-                              "TotalRecords": "76"
-                            }
-                          ],
-                          "userCount": 1
-                        }
-                      ],
-                      "userCount": 1,
-                      "sharedBaseCount": 0
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Utils"
-        ],
-        "description": "Get Aggregated Meta Info such as tableCount, dbViewCount, viewCount and etc.",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
     "/api/v2/meta/cache": {
       "get": {
         "summary": "Get Cache",
@@ -10929,7 +9795,7 @@
         }
       ]
     },
-    "/api/v2/meta/projects/{baseId}/api-tokens": {
+    "/api/v2/meta/bases/{baseId}/api-tokens": {
       "get": {
         "summary": "List API Tokens in Base",
         "tags": [
@@ -11048,7 +9914,7 @@
         }
       ]
     },
-    "/api/v2/meta/projects/{baseId}/api-tokens/{token}": {
+    "/api/v2/meta/bases/{baseId}/api-tokens/{token}": {
       "delete": {
         "summary": "Delete API Token",
         "operationId": "api-token-delete",
@@ -11192,7 +10058,7 @@
         "description": "Upload attachment by URL. Used in Airtable Migration."
       }
     },
-    "/api/v2/meta/projects/{baseId}/users/{userId}/resend-invite": {
+    "/api/v2/meta/bases/{baseId}/users/{userId}/resend-invite": {
       "parameters": [
         {
           "schema": {
@@ -11260,116 +10126,6 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ]
-      }
-    },
-    "/api/v1/notifications": {
-      "get": {
-        "summary": "Notification list",
-        "operationId": "notification-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotificationList"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Notification"
-        ],
-        "description": "List notifications",
-        "parameters": [
-          {
-            "schema": {
-              "type": "boolean"
-            },
-            "name": "is_read",
-            "in": "query",
-            "required": false
-          },
-          {
-            "schema": {
-              "type": "number"
-            },
-            "name": "limit",
-            "in": "query",
-            "required": false
-          },
-          {
-            "schema": {
-              "type": "number"
-            },
-            "name": "offset",
-            "in": "query",
-            "required": false
-          }
-        ]
-      }
-    },
-    "/api/v1/notifications/{notificationId}": {
-      "patch": {
-        "summary": "Notification update",
-        "operationId": "notification-update",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NotificationUpdate"
-              }
-            }
-          }
-        },
-        "tags": [
-          "Notification"
-        ],
-        "description": "Notificattion update"
-      },
-      "delete": {
-        "summary": "Delete notification",
-        "operationId": "notification-delete",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Notification"
-        ],
-        "description": "Delete notification"
-      },
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "notificationId",
-          "in": "path",
-          "required": true
-        }
-      ]
-    },
-    "/api/v1/notifications/mark-all-read": {
-      "post": {
-        "summary": "Mark all notifications as read",
-        "operationId": "notification-mark-all-as-read",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Notification"
-        ],
-        "description": "Mark all notifications as read"
       }
     },
     "/api/v2/meta/tables/{tableId}/columns/hash": {

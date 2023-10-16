@@ -142,7 +142,9 @@ export const isEmailType = (colData: [], col?: number) =>
 export const isUrlType = (colData: [], col?: number) =>
   colData.some((r: any) => {
     const v = getColVal(r, col)
-    return v && isURL(v)
+    // convert to string since isURL only accepts string
+    // and cell data value can be number or any other types
+    return v && isURL(v.toString())
   })
 
 export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {

@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { DatasService as DatasServiceCE } from 'src/services/datas.service';
+import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import type { PathParams } from '~/modules/datas/helpers';
 import { InternalServerError, NcError } from '~/helpers/catchError';
 import { getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
@@ -10,7 +11,10 @@ import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
 
 @Injectable()
 export class DatasService extends DatasServiceCE {
-  constructor(private readonly dataOptService: DataOptService) {
+  constructor(
+    private readonly dataOptService: DataOptService,
+    @Optional() @InjectSentry() private readonly client: SentryService,
+  ) {
     super();
   }
 
@@ -43,6 +47,7 @@ export class DatasService extends DatasServiceCE {
         });
       }
     } catch (e) {
+      this.client?.instance().captureException(e);
       // if not internal server error log and throw internal server error
       if (!(e instanceof InternalServerError)) console.error(e);
       NcError.internalServerError('Please contact server admin');
@@ -87,6 +92,7 @@ export class DatasService extends DatasServiceCE {
         });
       }
     } catch (e) {
+      this.client?.instance().captureException(e);
       // if not internal server error log and throw internal server error
       if (!(e instanceof InternalServerError)) console.error(e);
       NcError.internalServerError('Please contact server admin');

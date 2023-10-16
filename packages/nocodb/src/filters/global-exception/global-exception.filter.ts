@@ -1,7 +1,8 @@
 import { Catch, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
+import { ThrottlerException } from '@nestjs/throttler';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import {
   AjvError,
   BadRequest,
@@ -25,6 +26,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
 
     // skip unnecessary error logging
     if (
@@ -37,10 +39,19 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception instanceof NotFound ||
         exception instanceof NotImplemented ||
         exception instanceof UnprocessableEntity ||
-        exception instanceof NotFoundException
+        exception instanceof NotFoundException ||
+        exception instanceof ThrottlerException
       )
     )
       this.logger.error(exception.message, exception.stack);
+
+    if (exception instanceof ThrottlerException) {
+      this.logger.log(
+        `${exception.message}, Path : ${request.path}, Workspace ID : ${
+          (request as any).ncWorkspaceId
+        }, Project ID : ${(request as any).ncProjectId}`,
+      );
+    }
 
     // API not found
     if (exception instanceof NotFoundException) {

@@ -25,7 +25,7 @@ import { HookHandlerService } from '~/services/hook-handler.service';
 import { BasicStrategy } from '~/strategies/basic.strategy/basic.strategy';
 import { UsersModule } from '~/modules/users/users.module';
 import { AuthModule } from '~/modules/auth/auth.module';
-import {packageInfo} from "~/utils/packageVersion";
+import { packageInfo } from '~/utils/packageVersion';
 
 export const ceModuleConfig = {
   imports: [

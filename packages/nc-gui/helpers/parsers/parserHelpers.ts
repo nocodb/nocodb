@@ -142,8 +142,8 @@ export const isEmailType = (colData: [], col?: number) =>
 export const isUrlType = (colData: [], col?: number) =>
   colData.some((r: any) => {
     const v = getColVal(r, col)
-    // convert string to number since isURL only accepts string
-    // and cell data value can be number and other types
+    // convert to string since isURL only accepts string
+    // and cell data value can be number or any other types
     return v && isURL(v.toString())
   })
 

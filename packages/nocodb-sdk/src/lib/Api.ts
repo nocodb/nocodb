@@ -10428,13 +10428,13 @@ export class Api<
         ...params,
       }),
   };
-  dbDataTableRow = {
+  tableRecords = {
     /**
- * @description List all table rows in a given table
+ * @description This API endpoint allows you to retrieve records from a specified table. You can customize the response by applying various query parameters for filtering, sorting, and formatting. **Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block: - `totalRows`: Indicates the total number of rows available for the specified conditions (if any). - `page`: Specifies the current page number. - `pageSize`: Defaults to 25 and defines the number of records on each page. - `isFirstPage`: A boolean value that indicates whether the current page is the first page of records in the dataset. - `isLastPage`: A boolean value that indicates whether the current page is the last page of records in the dataset. The `pageInfo` attributes are particularly valuable when dealing with large datasets that are divided into multiple pages. They enable you to determine whether additional pages of records are available for retrieval or if you've reached the end of the dataset.
  * 
- * @tags DB Data Table Row
- * @name List
- * @summary List Table Rows
+ * @tags Table Records
+ * @name DbDataTableRowList
+ * @summary List Table Records
  * @request GET:/api/v2/tables/{tableId}/records
  * @response `200` `{
   \** List of data objects *\
@@ -10449,31 +10449,55 @@ export class Api<
 
 }`
  */
-    list: (
+    dbDataTableRowList: (
       tableId: string,
       query?: {
-        /** View ID */
-        viewId?: string;
-        /** Which fields to be shown */
-        fields?: any[];
-        /** The result will be sorted based on `sort` query */
-        sort?: string[] | string;
-        /** Extra filtering */
+        /**
+         * Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.
+         *
+         * Example: `fields=field1,field2` will include only 'field1' and 'field2' in the API response.
+         * Please note that it's essential not to include spaces between field names in the comma-separated list.
+         */
+        fields?: string;
+        /**
+         * Allows you to specify the fields by which you want to sort the records in your API response. By default, sorting is done in ascending order for the designated fields. To sort in descending order, add a '-' symbol before the field name.
+         *
+         * Example: `sort=field1,-field2` will sort the records first by 'field1' in ascending order and then by 'field2' in descending order.
+         * If `viewId` query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view.
+         * Please note that it's essential not to include spaces between field names in the comma-separated list.
+         */
+        sort?: string;
+        /**
+         * Enables you to define specific conditions for filtering records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.
+         *
+         * Example: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'.
+         * You can also use other comparison operators like 'ne' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.
+         * If `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view.
+         * Please remember to maintain the specified format, and do not include spaces between the different condition components
+         */
         where?: string;
         /**
-         * Offset in rows
+         * Enables you to control the pagination of your API response by specifying the number of records you want to skip from the beginning of the result set. The default value for this parameter is set to 0, meaning no records are skipped by default.
+         *
+         * Example: `offset=25` will skip the first 25 records in your API response, allowing you to access records starting from the 26th position.
+         * Please note that the 'offset' value represents the number of records to exclude, not an index value, so an offset of 25 will skip the first 25 records.
          * @min 0
          */
         offset?: number;
         /**
-         * Limit in rows
+         * Enables you to set a limit on the number of records you want to retrieve in your API response. By default, your response includes all the available records, but by using this parameter, you can control the quantity you receive.
+         *
+         * Example: `limit=100` will constrain your response to the first 100 records in the dataset.
          * @min 1
          */
         limit?: number;
-        /** Used for multiple sort queries */
-        sortArrJson?: string;
-        /** Used for multiple filter queries */
-        filterArrJson?: string;
+        /**
+         * ***View Identifier***. Allows you to fetch records that are currently visible within a specific view. API retrieves records in the order they are displayed if the SORT option is enabled within that view.
+         *
+         * Additionally, if you specify a `sort` query parameter, it will take precedence over any sorting configuration defined in the view. If you specify a `where` query parameter, it will be applied over the filtering configuration defined in the view.
+         * By default, all fields, including those that are disabled within the view, are included in the response. To explicitly specify which fields to include or exclude, you can use the `fields` query parameter to customize the output according to your requirements.
+         */
+        viewId?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -10497,11 +10521,11 @@ export class Api<
       }),
 
     /**
- * @description Create a new row in a given table and base.
+ * @description This API endpoint allows the creation of new records within a specified table. Records to be inserted are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. When dealing with 'Links' or 'Link To Another Record' field types, you should utilize the 'Create Link' API to insert relevant data. Certain read-only field types will be disregarded if included in the request. These field types include 'Look Up,' 'Roll Up,' 'Formula,' 'Auto Number,' 'Created By,' 'Updated By,' 'Created At,' 'Updated At,' 'Barcode,' and 'QR Code.'
  * 
- * @tags DB Data Table Row
- * @name Create
- * @summary Create Table Rows
+ * @tags Table Records
+ * @name DbDataTableRowCreate
+ * @summary Create Table Records
  * @request POST:/api/v2/tables/{tableId}/records
  * @response `200` `any` OK
  * @response `400` `{
@@ -10510,13 +10534,9 @@ export class Api<
 
 }`
  */
-    create: (
+    dbDataTableRowCreate: (
       tableId: string,
       data: object | object[],
-      query?: {
-        /** View ID */
-        viewId?: string;
-      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -10528,7 +10548,6 @@ export class Api<
       >({
         path: `/api/v2/tables/${tableId}/records`,
         method: 'POST',
-        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -10536,11 +10555,11 @@ export class Api<
       }),
 
     /**
- * @description Create a new row in a given table and base.
+ * @description This API endpoint allows updating existing records within a specified table identified by an array of Record-IDs, serving as unique identifier for the record. Records to be updated are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. When dealing with 'Links' or 'Link To Another Record' field types, you should utilize the 'Create Link' API to insert relevant data. Certain read-only field types will be disregarded if included in the request. These field types include 'Look Up,' 'Roll Up,' 'Formula,' 'Auto Number,' 'Created By,' 'Updated By,' 'Created At,' 'Updated At,' 'Barcode,' and 'QR Code.' Note that a PATCH request only updates the specified fields while leaving other fields unaffected. Currently, PUT requests are not supported by this endpoint.
  * 
- * @tags DB Data Table Row
- * @name Update
- * @summary Update Table Rows
+ * @tags Table Records
+ * @name DbDataTableRowUpdate
+ * @summary Update Table Records
  * @request PUT:/api/v2/tables/{tableId}/records
  * @response `200` `any` OK
  * @response `400` `{
@@ -10549,13 +10568,9 @@ export class Api<
 
 }`
  */
-    update: (
+    dbDataTableRowUpdate: (
       tableId: string,
       data: object | object[],
-      query?: {
-        /** View ID */
-        viewId?: string;
-      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -10567,7 +10582,6 @@ export class Api<
       >({
         path: `/api/v2/tables/${tableId}/records`,
         method: 'PUT',
-        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -10575,11 +10589,11 @@ export class Api<
       }),
 
     /**
- * @description Create a new row in a given table and base.
+ * @description This API endpoint allows deleting existing records within a specified table identified by an array of Record-IDs, serving as unique identifier for the record. Records to be deleted are input as an array of record-identifiers.
  * 
- * @tags DB Data Table Row
- * @name Delete
- * @summary Delete Table Rows
+ * @tags Table Records
+ * @name DbDataTableRowDelete
+ * @summary Delete Table Records
  * @request DELETE:/api/v2/tables/{tableId}/records
  * @response `200` `any` OK
  * @response `400` `{
@@ -10588,13 +10602,9 @@ export class Api<
 
 }`
  */
-    delete: (
+    dbDataTableRowDelete: (
       tableId: string,
       data: object | object[],
-      query?: {
-        /** View ID */
-        viewId?: string;
-      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -10606,7 +10616,6 @@ export class Api<
       >({
         path: `/api/v2/tables/${tableId}/records`,
         method: 'DELETE',
-        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -10614,12 +10623,12 @@ export class Api<
       }),
 
     /**
- * @description Get table row in a given table
+ * @description This API endpoint allows you to retrieve a single record identified by Record-ID, serving as unique identifier for the record from a specified table.
  * 
- * @tags DB Data Table Row
- * @name Read
- * @summary Read Table Row
- * @request GET:/api/v2/tables/{tableId}/records/{rowId}
+ * @tags Table Records
+ * @name DbDataTableRowRead
+ * @summary Read Table Record
+ * @request GET:/api/v2/tables/{tableId}/records/{recordId}
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10627,19 +10636,17 @@ export class Api<
 
 }`
  */
-    read: (
+    dbDataTableRowRead: (
       tableId: string,
-      rowId: string,
+      recordId: string,
       query?: {
-        /** View ID */
-        viewId?: string;
-        /** Which fields to be shown */
-        fields?: any[];
         /**
-         * Offset in rows
-         * @min 0
+         * Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.
+         *
+         * Example: `fields=field1,field2` will include only 'field1' and 'field2' in the API response.
+         * Please note that it's essential not to include spaces between field names in the comma-separated list.
          */
-        offset?: number;
+        fields?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -10650,7 +10657,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v2/tables/${tableId}/records/${rowId}`,
+        path: `/api/v2/tables/${tableId}/records/${recordId}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -10658,11 +10665,11 @@ export class Api<
       }),
 
     /**
- * @description Count of rows in a given table
+ * @description This API endpoint allows you to retrieve the total number of records from a specified table or a view. You can narrow down search results by applying `where` query parameter
  * 
- * @tags DB Data Table Row
- * @name Count
- * @summary Table Rows Count
+ * @tags Table Records
+ * @name DbDataTableRowCount
+ * @summary Count Table Records
  * @request GET:/api/v2/tables/{tableId}/records/count
  * @response `200` `{
   count?: number,
@@ -10674,17 +10681,20 @@ export class Api<
 
 }`
  */
-    count: (
+    dbDataTableRowCount: (
       tableId: string,
       query?: {
-        /** View ID */
+        /** **View Identifier**. Allows you to fetch record count that are currently visible within a specific view. */
         viewId?: string;
-        /** Which fields to be shown */
-        fields?: any[];
-        /** Extra filtering */
+        /**
+         * Enables you to define specific conditions for filtering record count in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.
+         *
+         * Example: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'.
+         * You can also use other comparison operators like 'ne' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.
+         * If `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view.
+         * Please remember to maintain the specified format, and do not include spaces between the different condition components
+         */
         where?: string;
-        /** Used for multiple filter queries */
-        filterArrJson?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -10705,12 +10715,12 @@ export class Api<
       }),
 
     /**
- * @description Linked rows in a given Links/LinkToAnotherRecord column
+ * @description This API endpoint allows you to retrieve list of linked records for a specific `Link field` and `Record ID`. The response is an array of objects containing Primary Key and its corresponding display value.
  * 
- * @tags DB Data Table Row
- * @name NestedList
- * @summary Get Nested Relations Rows
- * @request GET:/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}
+ * @tags Table Records
+ * @name DbDataTableRowNestedList
+ * @summary List Linked Records
+ * @request GET:/api/v2/tables/{tableId}/links/{linkFieldId}/records/{recordId}
  * @response `200` `{
   \** List of data objects *\
   list: (object)[],
@@ -10724,33 +10734,48 @@ export class Api<
 
 }`
  */
-    nestedList: (
+    dbDataTableRowNestedList: (
       tableId: string,
-      columnId: string,
-      rowId: string,
+      linkFieldId: string,
+      recordId: string,
       query?: {
-        /** View ID */
-        viewId?: string;
-        /** Which fields to be shown */
-        fields?: any[];
-        /** The result will be sorted based on `sort` query */
-        sort?: string[] | string;
-        /** Extra filtering */
+        /**
+         * Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.
+         *
+         * Example: `fields=field1,field2` will include only 'field1' and 'field2' in the API response.
+         * Please note that it's essential not to include spaces between field names in the comma-separated list.
+         */
+        fields?: string;
+        /**
+         * Allows you to specify the fields by which you want to sort linked records in your API response. By default, sorting is done in ascending order for the designated fields. To sort in descending order, add a '-' symbol before the field name.
+         *
+         * Example: `sort=field1,-field2` will sort the records first by 'field1' in ascending order and then by 'field2' in descending order.
+         * Please note that it's essential not to include spaces between field names in the comma-separated list.
+         */
+        sort?: string;
+        /**
+         * Enables you to define specific conditions for filtering linked records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.
+         *
+         * Example: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter linked records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'.
+         * You can also use other comparison operators like 'ne' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.
+         * Please remember to maintain the specified format, and do not include spaces between the different condition components
+         */
         where?: string;
         /**
-         * Offset in rows
+         * Enables you to control the pagination of your API response by specifying the number of linked records you want to skip from the beginning of the result set. The default value for this parameter is set to 0, meaning no linked records are skipped by default.
+         *
+         * Example: `offset=25` will skip the first 25 linked records in your API response, allowing you to access linked records starting from the 26th position.
+         * Please note that the 'offset' value represents the number of linked records to exclude, not an index value, so an offset of 25 will skip the first 25 linked records.
          * @min 0
          */
         offset?: number;
         /**
-         * Limit in rows
+         * Enables you to set a limit on the number of linked records you want to retrieve in your API response. By default, your response includes all the available linked records, but by using this parameter, you can control the quantity you receive.
+         *
+         * Example: `limit=100` will constrain your response to the first 100 linked records in the dataset.
          * @min 1
          */
         limit?: number;
-        /** Used for multiple sort queries */
-        sortArrJson?: string;
-        /** Used for multiple filter queries */
-        filterArrJson?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -10766,7 +10791,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v2/tables/${tableId}/links/${columnId}/records/${rowId}`,
+        path: `/api/v2/tables/${tableId}/links/${linkFieldId}/records/${recordId}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -10774,12 +10799,12 @@ export class Api<
       }),
 
     /**
- * @description Create a link with the row.
+ * @description This API endpoint allows you to link records to a specific `Link field` and `Record ID`. The request payload is an array of record-ids from the adjacent table for linking purposes. Note that any existing links, if present, will be unaffected during this operation.
  * 
- * @tags DB Data Table Row
- * @name NestedLink
- * @summary Create Nested Relations Rows
- * @request POST:/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}
+ * @tags Table Records
+ * @name DbDataTableRowNestedLink
+ * @summary Link Records
+ * @request POST:/api/v2/tables/{tableId}/links/{linkFieldId}/records/{recordId}
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10787,15 +10812,11 @@ export class Api<
 
 }`
  */
-    nestedLink: (
+    dbDataTableRowNestedLink: (
       tableId: string,
-      columnId: string,
-      rowId: string,
+      linkFieldId: string,
+      recordId: string,
       data: object | object[],
-      query?: {
-        /** View ID */
-        viewId?: string;
-      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -10805,9 +10826,8 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v2/tables/${tableId}/links/${columnId}/records/${rowId}`,
+        path: `/api/v2/tables/${tableId}/links/${linkFieldId}/records/${recordId}`,
         method: 'POST',
-        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -10815,12 +10835,12 @@ export class Api<
       }),
 
     /**
- * @description Create a new row in a given table and base.
+ * @description This API endpoint allows you to unlink records from a specific `Link field` and `Record ID`. The request payload is an array of record-ids from the adjacent table for unlinking purposes. Note that, - duplicated record-ids will be ignored. - non-existent record-ids will be ignored.
  * 
- * @tags DB Data Table Row
- * @name NestedUnlink
- * @summary Delete Nested Relations Rows
- * @request DELETE:/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}
+ * @tags Table Records
+ * @name DbDataTableRowNestedUnlink
+ * @summary Unlink Records
+ * @request DELETE:/api/v2/tables/{tableId}/links/{linkFieldId}/records/{recordId}
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10828,15 +10848,11 @@ export class Api<
 
 }`
  */
-    nestedUnlink: (
+    dbDataTableRowNestedUnlink: (
       tableId: string,
-      columnId: string,
-      rowId: string,
+      linkFieldId: string,
+      recordId: string,
       data: object | object[],
-      query?: {
-        /** View ID */
-        viewId?: string;
-      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -10846,9 +10862,8 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v2/tables/${tableId}/links/${columnId}/records/${rowId}`,
+        path: `/api/v2/tables/${tableId}/links/${linkFieldId}/records/${recordId}`,
         method: 'DELETE',
-        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',

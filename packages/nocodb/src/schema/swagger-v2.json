@@ -667,7 +667,7 @@
         }
       ],
       "get": {
-        "summary": "List Projects",
+        "summary": "List Bases",
         "operationId": "base-list",
         "responses": {
           "200": {

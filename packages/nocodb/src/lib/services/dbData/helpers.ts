@@ -14,6 +14,14 @@ import type LookupColumn from '../../models/LookupColumn';
 import type { BaseModelSqlv2 } from '../../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
 import type { Request } from 'express';
 
+const log = (
+  message: string,
+  extraData?: any,
+  level: 'log' | 'error' | 'warn' | 'info' = 'log'
+) => {
+  console[level](`helpers : ${message}`, extraData);
+};
+
 export interface PathParams {
   projectName: string;
   tableName: string;
@@ -25,18 +33,24 @@ export async function getViewAndModelByAliasOrId(param: {
   tableName: string;
   viewName?: string;
 }) {
+  log('about to fetch project in getViewAndModelByAliasOrId');
   const project = await Project.getWithInfoByTitleOrId(param.projectName);
+  log('fetched project in getViewAndModelByAliasOrId ...');
+  log(JSON.stringify({ project }));
 
   const model = await Model.getByAliasOrId({
     project_id: project.id,
     aliasOrId: param.tableName,
   });
+  log(JSON.stringify({ model }));
+
   const view =
     param.viewName &&
     (await View.getByTitleOrId({
       titleOrId: param.viewName,
       fk_model_id: model.id,
     }));
+    log(JSON.stringify({ view }))
   if (!model) NcError.notFound('Table not found');
   return { model, view };
 }

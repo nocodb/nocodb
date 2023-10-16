@@ -262,18 +262,24 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
   private async setupSQLResources(baseData: IBaseData, models: Model[]) {
     const notificationChannel = this.getSqlNotificationChannel(baseData);
 
+    // esa_nocodb__bmh__notifcations_channel
+
     const notificationsTableName = this.createSqlIdentifier(
       baseData,
       'notifications_table'
     );
+    // esa_nocodb_bmh_notifcations_table
 
     const notificationsTableCreateQuery = `
     CREATE TABLE IF NOT EXISTS "${notificationsTableName}" ( "id" SERIAL PRIMARY KEY, "operation" VARCHAR(20) NOT NULL, "nocodbModelId" VARCHAR(30) NOT NULL, "oldData" JSONB, "newData" JSONB, "createdAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP );
     `;
 
+    this.log('about to run notificationsTableCreateQuery ');
     await baseData.knex.raw(notificationsTableCreateQuery);
+    this.log('finished running notificationsTableCreateQuery ');
 
     const procedureName = this.createSqlIdentifier(baseData, 'function');
+    // esa_nocodb_bmh_function
     const procedureQuery = `
     CREATE OR REPLACE FUNCTION ${procedureName}() RETURNS TRIGGER AS $trigger$
     DECLARE
@@ -297,13 +303,18 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
     END;
     $trigger$ LANGUAGE plpgsql;
     `;
+    this.log('about to run procedureQuery ');
     await baseData.knex.raw(procedureQuery);
+    this.log('finnished running procedureQuery ');
 
     for (const { id: modelId, table_name: tableName } of models) {
+      // Audit trail tables already skipped
+
       const triggerName = this.createSqlIdentifier(
         baseData,
         `${tableName}__trigger`
       );
+      // esa_nocodb_bmh_{tableName}__trigger
 
       // postgressql does not have "create or replace" statement for function, hence that can be suffixed by first dropping it
       const dropTriggerQuery = `DROP TRIGGER IF EXISTS "${triggerName}" on "${tableName}"`;
@@ -316,7 +327,19 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
       INITIALLY DEFERRED
       FOR EACH ROW EXECUTE PROCEDURE ${procedureName}('${modelId}');
       `;
+
+      // any trigger that exist is always dropped, if it is to be recreated
+      this.log(
+        `about to run dropTriggerQuery for ${triggerName} on  ${tableName}`
+      );
       await baseData.knex.raw(dropTriggerQuery);
+      this.log(
+        `finished running dropTriggerQuery for ${triggerName} on  ${tableName}`
+      );
+
+      this.log(
+        `about to run createTriggerQuery for ${triggerName} on  ${tableName}`
+      );
       await baseData.knex.raw(createTriggerQuery).catch((error: any) => {
         this.log(
           `Warning - Trigger not created on "${tableName}" probably because it does not exist. Analysis the stacktrace: ${
@@ -325,6 +348,9 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
           error
         );
       });
+      this.log(
+        `finished running createTriggerQuery for ${triggerName} on  ${tableName}`
+      );
     }
   }
 
@@ -397,6 +423,9 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
 
     let baseData: IBaseData = this.allBaseData.get(base.id);
 
+    this.log(`watching base ${base.alias}`);
+    this.log(`watching base ${base.id}`);
+
     const connectionOptions = (await base.getConnectionConfig()).connection;
 
     const createNewBaseData =
@@ -405,7 +434,9 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
       !isEqual(connectionOptions, baseData.connectionOptions);
 
     if (baseData && createNewBaseData) {
-      // will dispose all resources
+      // //////// will never get called as basedata will always be empty at this point
+      ///// and will never dispose all resources
+      // ////// Needs to be fixed in case connection options change
       await this.unwatchBase(baseData.base);
     }
 
@@ -420,11 +451,12 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
 
       newModels.push(...models);
     } else {
-      const modelIds = models.map((model) => model.table_name);
+      //////// this never even gets used as baseData will be empty
+      const modelIds = models.map((model) => model.id); /////// //////// //  why is tablename being mapped to modelIDs
       obsoleteModels.push(
         ...baseData.models.filter((model) => !modelIds.includes(model.id))
       );
-      const prevModelIds = baseData.models.map((model) => model.id);
+      const prevModelIds = baseData.models.map((model) => model.id); // this will always be empty, add logs to see intdev tests
       newModels.push(
         ...models.filter((model) => !prevModelIds.includes(model.id))
       );
@@ -437,13 +469,20 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
      * WARNING: do not watch on table ( especially notification table ) created by this class to avoid exaustive loop of death because nocodb will also have a model for the table. If the model is
      * watched( an sql trigger registered for it per se ), then a direct insert, update, delete action OR an insertion of notification event from trigger of other tables will cause a
      * notification event to be inserted again, which causes another insertion, hence an unending loop.
+     * Also do not watch audit trail tables except explicitely setup to watch them.
      */
+    let shouldWatchAuditTables: boolean = false;
+    if (process.env.SHOULD_WATCH_AUDIT_TABLES === 'true') {
+      shouldWatchAuditTables = true;
+    }
+
     [newModels, skippedModels] = newModels.reduce(
       (results, newModel) => {
         results[
           newModel.table_name.startsWith(
             this.createSqlIdentifierPrefix(baseData)
-          )
+          ) ||
+          (!shouldWatchAuditTables && newModel.table_name.endsWith('_audit'))
             ? 1
             : 0
         ].push(newModel);
@@ -471,22 +510,32 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
       obsoleteModels.map((model) => pick(model, pickedFields))
     );
 
-    await this.setupSQLResources(baseData, newModels);
+    this.log(JSON.stringify({ base }));
 
+    await this.setupSQLResources(baseData, newModels);
+    this.log('finished seting up sql resources ...');
+
+    this.log('about to consume notifications');
     void this.consumeNotifications(baseData);
+    this.log('finished consuming notifications ..... ');
 
     if (createNewBaseData || rewatch) {
       const connection = await baseData.knex.client.acquireConnection();
 
+      this.log('about to register listeners');
       // start watching
+      // ///////////
       await this.registerListeners(baseData, connection);
+      this.log('finished registering listeners ...');
     }
 
+    this.log('about to  dispose sql resources for obsolete models');
     await Promise.all(
       obsoleteModels.map((obsoleteModel) =>
         this.disposeSQLResourcesForModel(baseData, obsoleteModel)
       )
     );
+    this.log('done  disposing sql resources for obsolete models ....');
 
     this.allBaseData.set(base.id, baseData);
   }
@@ -519,16 +568,21 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
       await Promise.all(projects.map((project) => project.getBases()))
     ).flat();
     const baseIds = bases.map((base) => base.id);
+    //////// Retreive watched base data from DB and set it in this.allBaseData.
 
     const allObsoleteBaseData = Array.from(this.allBaseData.values()).filter(
       (baseData) => !baseIds.includes(baseData.base.id)
-    );
+    ); // this will always be null as this.allBaseData should be empty at this point as no baseData
+    // exists in allBaseData confirm with logs
 
+    this.log(JSON.stringify({ allBaseData: this.allBaseData }));
+    this.log(JSON.stringify({ allObsoleteBaseData }));
     for (const base of bases) {
       await this.watchBase(base);
     }
 
     for (const obsoleteBaseData of allObsoleteBaseData) {
+      // no base will ever be unwatched as allObsoleteBaseData is empty
       await this.unwatchBase(obsoleteBaseData.base);
     }
   }
@@ -593,6 +647,7 @@ export class PSQLRecordOperationWatcher extends EventEmitter {
         } catch (e) {
           const hookName = `${event}.${operation}`;
           console.log('PSQLRecordEvent : hooks :: error', hookName, e);
+          // add incident reporting here if clling a hook fails
         }
       }
     );

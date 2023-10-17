@@ -149,9 +149,9 @@ const dialogShow = useVModel(rest, 'modelValue', emit)
 if (isWorkerSupport) {
   watch(
     dialogShow,
-    (val) => {
+    async (val) => {
       if (val) {
-        importWorker = initWorker(importWorkerUrl)
+        importWorker = await initWorker(importWorkerUrl)
       } else {
         importWorker?.terminate()
       }

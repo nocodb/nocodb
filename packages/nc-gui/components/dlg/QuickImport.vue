@@ -152,7 +152,9 @@ if (isWorkerSupport) {
     (val) => {
       if (val) {
         importWorker = initWorker(importWorkerUrl)
-      } else importWorker?.terminate()
+      } else {
+        importWorker?.terminate()
+      }
     },
     { immediate: true },
   )

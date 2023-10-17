@@ -63,6 +63,9 @@ importers:
       chart.js:
         specifier: ^4.3.0
         version: 4.3.0
+      crossoriginworker:
+        specifier: ^1.1.0
+        version: 1.1.0
       d3-scale:
         specifier: ^4.0.2
         version: 4.0.2
@@ -11284,6 +11287,10 @@ packages:
       shebang-command: 2.0.0
       which: 2.0.2
     dev: true
+
+  /crossoriginworker@1.1.0:
+    resolution: {integrity: sha512-nNrgCCyA8Qel1qiZDg4qAQMpIhup0yVCQZh04uv0rktIyLaTszli8Mhhb5ZcoeCcnkEPIjf2L+lAJidmeprYWg==}
+    dev: false
 
   /crypt@0.0.2:
     resolution: {integrity: sha512-mCxBlsHFYh9C+HVpiEacem8FEBnMXgU9gy4zmNC+SXAZNB/1idgp/aulFJ4FgCi7GPEVbfyng092GqL2k2rmow==}

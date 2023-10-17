@@ -781,6 +781,14 @@ class PGClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
+      const versionQuery = await this.sqlClient.raw('SELECT version()');
+
+      const version = versionQuery.rows[0]?.version
+        ?.split(' ')?.[1]
+        ?.split('.')?.[0];
+
+      const identitySelector = +version >= 10 ? 'c.is_identity as ii,' : '';
+
       args.databaseName = this.connectionConfig.connection.database;
       const response = await this.sqlClient.raw(
         `select
@@ -800,6 +808,7 @@ class PGClient extends KnexClient {
                     -- c.collation_name as clnn,
                     pk.ordinal_position as pk_ordinal_position, pk.constraint_name as pk_constraint_name,
                     c.udt_name,
+                    ${identitySelector}
 
        (SELECT count(*)
             FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc1
@@ -891,6 +900,13 @@ class PGClient extends KnexClient {
         column.data_type_custom = response.rows[i].udt_name;
         if (column.dt === 'USER-DEFINED') {
           column.dtxp = response.rows[i].enum_values;
+        }
+
+        // handle identity column
+        if (+version >= 10) {
+          if (response.rows[i].ii === 'YES') {
+            column.ai = true;
+          }
         }
 
         columns.push(column);

@@ -1,6 +1,4 @@
 import path from 'path';
-import * as Sentry from '@sentry/node';
-import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';
@@ -11,6 +9,7 @@ import dotenv from 'dotenv';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import requestIp from 'request-ip';
 import cookieParser from 'cookie-parser';
+import { Logger } from '@nestjs/common';
 import type { MetaService } from '~/meta/meta.service';
 import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import type { Express } from 'express';
@@ -121,7 +120,7 @@ export default class Noco {
       nestApp.use(requestIp.mw());
       nestApp.use(cookieParser());
 
-      this.initSentry(nestApp);
+      // this.initSentry(nestApp);
 
       nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
 
@@ -139,7 +138,7 @@ export default class Noco {
         server.get('/', (_req, res) => res.redirect(dashboardPath));
       }
 
-      this.initSentryErrorHandler(server);
+      // this.initSentryErrorHandler(server);
 
       return nestApp.getHttpAdapter().getInstance();
     }
@@ -189,19 +188,19 @@ export default class Noco {
     }
     process.env.NC_SERVER_UUID = serverId;
   }
-
-  private static initSentryErrorHandler(router) {
-    if (process.env.NC_SENTRY_DSN) {
-      router.use(Sentry.Handlers.errorHandler());
-    }
-  }
-
-  private static initSentry(router) {
-    if (process.env.NC_SENTRY_DSN) {
-      Sentry.init({ dsn: process.env.NC_SENTRY_DSN });
-
-      // The request handler must be the first middleware on the app
-      router.use(Sentry.Handlers.requestHandler());
-    }
-  }
+  //
+  // private static initSentryErrorHandler(router) {
+  //   if (process.env.NC_SENTRY_DSN) {
+  //     router.use(Sentry.Handlers.errorHandler());
+  //   }
+  // }
+  //
+  // private static initSentry(router) {
+  //   if (process.env.NC_SENTRY_DSN) {
+  //     Sentry.init({ dsn: process.env.NC_SENTRY_DSN });
+  //
+  //     // The request handler must be the first middleware on the app
+  //     router.use(Sentry.Handlers.requestHandler());
+  //   }
+  // }
 }

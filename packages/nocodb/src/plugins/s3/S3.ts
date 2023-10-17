@@ -60,6 +60,7 @@ export default class S3 implements IStorageAdapterV2 {
         .get(url, {
           httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
           httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+          responseType: 'arraybuffer',
         })
         .then((response) => {
           uploadParams.Body = response.data;

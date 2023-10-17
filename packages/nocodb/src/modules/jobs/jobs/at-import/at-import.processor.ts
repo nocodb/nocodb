@@ -1,4 +1,5 @@
 import { promisify } from 'util';
+import moment from 'moment';
 import { UITypes } from 'nocodb-sdk';
 import Airtable from 'airtable';
 import jsonfile from 'jsonfile';
@@ -1544,8 +1545,11 @@ export class AtImportProcessor {
                     ?.map((a) => a.filename?.split('?')?.[0])
                     .join(', ')}`,
                 );
+                const path = `${moment().format('YYYY/MM/DD')}/${hash(
+                  syncDB.user.id,
+                )}`;
                 tempArr = await this.attachmentsService.uploadViaURL({
-                  path: `noco/${sDB.baseName}/${table.title}/${key}`,
+                  path,
                   urls: value?.map((attachment) => ({
                     fileName: attachment.filename?.split('?')?.[0],
                     url: attachment.url,

@@ -1415,7 +1415,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    const data = await qb;
+    const data = await this.execAndParse(qb, childTable);
     return data.map((c) => {
       c.__proto__ = proto;
       return c;

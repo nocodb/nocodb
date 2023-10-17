@@ -18,7 +18,7 @@ import {
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   constructor(
-    @Optional() @InjectSentry() private readonly client: SentryService,
+    @Optional() @InjectSentry() private readonly sentryClient: SentryService,
   ) {}
 
   private logger = new Logger(GlobalExceptionFilter.name);
@@ -106,7 +106,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception.getStatus?.()) {
       response.status(exception.getStatus()).json(exception.getResponse());
     } else {
-      this.client?.instance().captureException(exception);
+      this.sentryClient?.instance().captureException(exception);
 
       // todo: change the response code
       response.status(400).json({

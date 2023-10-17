@@ -4392,7 +4392,7 @@ class BaseModelSqlv2 {
               });
             // .where(_wherePk(parentTable.primaryKeys, childId))
 
-            if (parentTable.primaryKeys.length > 1) {
+            if (parentTable.primaryKeys.length > 1 || typeof childIds[0] === 'object') {
               childRowsQb.where((qb) => {
                 for (const childId of childIds) {
                   qb.orWhere(_wherePk(parentTable.primaryKeys, childId));

@@ -1,8 +1,6 @@
-import { promisify } from 'util';
 import moment from 'moment';
 import { UITypes } from 'nocodb-sdk';
 import Airtable from 'airtable';
-import jsonfile from 'jsonfile';
 import hash from 'object-hash';
 import { T } from 'nc-help';
 import dayjs from 'dayjs';
@@ -10,7 +8,7 @@ import utc from 'dayjs/plugin/utc';
 import tinycolor from 'tinycolor2';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
-import { extractRolesObj, isLinksOrLTAR } from 'nocodb-sdk';
+import { isLinksOrLTAR } from 'nocodb-sdk';
 import debug from 'debug';
 import { JobsLogService } from '../jobs-log.service';
 import FetchAT from './helpers/fetchAT';
@@ -34,8 +32,6 @@ import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
 import { FormsService } from '~/services/forms.service';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
-
-const writeJsonFileAsync = promisify(jsonfile.writeFile);
 
 dayjs.extend(utc);
 
@@ -255,9 +251,6 @@ export class AtImportProcessor {
       // store copy of airtable schema globally
       g_aTblSchema = file.tableSchemas;
 
-      if (debugMode)
-        await writeJsonFileAsync('aTblSchema.json', ft, { spaces: 2 });
-
       return file;
     };
 
@@ -268,8 +261,6 @@ export class AtImportProcessor {
       rtc.fetchAt.count++;
       rtc.fetchAt.time += duration;
 
-      if (debugMode)
-        await writeJsonFileAsync(`${viewId}.json`, ft, { spaces: 2 });
       return ft.view;
     };
 
@@ -395,29 +386,6 @@ export class AtImportProcessor {
     //
     const nc_getTableSchema = async (tableName) => {
       return ncSchema.tables.find((x) => x.title === tableName);
-    };
-
-    // delete base if already exists
-    const init = async ({
-      baseName,
-    }: {
-      baseName?: string;
-      baseId?: string;
-    }) => {
-      // delete 'sample' base if already exists
-      const x = { list: [] };
-      x['list'] = await this.basesService.baseList({
-        user: { id: syncDB.user.id, roles: extractRolesObj(syncDB.user.roles) },
-      });
-
-      const sampleProj = x.list.find((a) => a.title === baseName);
-      if (sampleProj) {
-        await this.basesService.baseSoftDelete({
-          baseId: sampleProj.id,
-          user: syncDB.user,
-        });
-      }
-      logDetailed('Init');
     };
 
     // map UIDT
@@ -2005,18 +1973,6 @@ export class AtImportProcessor {
       logBasic(`:: Axios fetch count:   ${rtc.fetchAt.count}`);
       logBasic(`:: Axios fetch time:    ${rtc.fetchAt.time}`);
 
-      if (debugMode) {
-        await writeJsonFileAsync('stats.json', perfStats, { spaces: 2 });
-        const perflog = [];
-        for (let i = 0; i < perfStats.length; i++) {
-          perflog.push(`${perfStats[i].e}, ${perfStats[i].d}`);
-        }
-        await writeJsonFileAsync('stats.csv', perflog, { spaces: 2 });
-        await writeJsonFileAsync('skip.txt', rtc.migrationSkipLog.log, {
-          spaces: 2,
-        });
-      }
-
       T.event({
         event: 'a:airtable-import:success',
         data: {
@@ -2286,7 +2242,6 @@ export class AtImportProcessor {
       logBasic('SDK initialized');
       logDetailed('Base initialization started');
       // delete base if already exists
-      if (debugMode) await init(syncDB);
 
       logDetailed('Base initialized');
 
@@ -2445,10 +2400,10 @@ export class AtImportProcessor {
             });
           }
         } catch (error) {
-          logDetailed(
-            `There was an error while migrating data! Please make sure your API key (${syncDB.apiKey}) is correct.`,
+          logBasic(
+            `There was an error while migrating data! Please make sure your API key is correct.`,
           );
-          logDetailed(`Error: ${error}`);
+          logBasic(`Data migration failed: ${error}`);
         }
       }
       if (generate_migrationStats) {

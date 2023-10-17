@@ -2428,7 +2428,7 @@ export class AtImportProcessor {
 
             rtc.data.nestedLinks += await importLTARData({
               table: ncTbl,
-              baseName: syncDB.baseName,
+              baseName: syncDB.baseId,
               atBase,
               fields: null, //Object.values(tblLinkGroup).flat(),
               logBasic,

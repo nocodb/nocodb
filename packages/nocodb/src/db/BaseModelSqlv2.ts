@@ -5064,7 +5064,7 @@ export function getListArgs(
   { ignoreAssigningWildcardSelect = false } = {},
 ): XcFilter {
   const obj: XcFilter = {};
-  obj.where = args.where || args.w || '';
+  obj.where = args.where || args.filter || args.w || '';
   obj.having = args.having || args.h || '';
   obj.shuffle = args.shuffle || args.r || '';
   obj.condition = args.condition || args.c || {};

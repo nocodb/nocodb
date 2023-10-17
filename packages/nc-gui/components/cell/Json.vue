@@ -6,6 +6,7 @@ import {
   IsFormInj,
   JsonExpandInj,
   ReadonlyInj,
+  RowHeightInj,
   computed,
   inject,
   ref,
@@ -35,6 +36,8 @@ const active = inject(ActiveCellInj, ref(false))
 const isForm = inject(IsFormInj, ref(false))
 
 const readonly = inject(ReadonlyInj)
+
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const vModel = useVModel(props, 'modelValue', emits)
 
@@ -182,7 +185,7 @@ watch(isExpanded, () => {
 
     <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
-    <span v-else>{{ vModel }}</span>
+    <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" />
   </component>
 </template>
 

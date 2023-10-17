@@ -7,7 +7,7 @@ const PlanLimits = {
     [PlanLimitTypes.FREE_WORKSPACE_LIMIT]: 3,
   },
   [WorkspacePlan.FREE]: {
-    [PlanLimitTypes.WORKSPACE_USER_LIMIT]: 5,
+    [PlanLimitTypes.WORKSPACE_USER_LIMIT]: 20,
     [PlanLimitTypes.WORKSPACE_ROW_LIMIT]: 150 * 1000,
     [PlanLimitTypes.BASE_LIMIT]: 20,
     [PlanLimitTypes.SOURCE_LIMIT]: 2,
@@ -20,7 +20,7 @@ const PlanLimits = {
     [PlanLimitTypes.SORT_LIMIT]: 5,
   },
   [WorkspacePlan.TEAM]: {
-    [PlanLimitTypes.WORKSPACE_USER_LIMIT]: 10,
+    [PlanLimitTypes.WORKSPACE_USER_LIMIT]: 20,
     [PlanLimitTypes.WORKSPACE_ROW_LIMIT]: 150 * 1000,
     [PlanLimitTypes.BASE_LIMIT]: 20,
     [PlanLimitTypes.SOURCE_LIMIT]: 2,

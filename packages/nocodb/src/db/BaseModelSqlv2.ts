@@ -4392,17 +4392,23 @@ class BaseModelSqlv2 {
               });
             // .where(_wherePk(parentTable.primaryKeys, childId))
 
-            if (
-              parentTable.primaryKeys.length > 1 ||
-              typeof childIds[0] === 'object'
-            ) {
+            if (parentTable.primaryKeys.length > 1) {
               childRowsQb.where((qb) => {
                 for (const childId of childIds) {
                   qb.orWhere(_wherePk(parentTable.primaryKeys, childId));
                 }
               });
             } else {
-              childRowsQb.whereIn(parentTable.primaryKey.column_name, childIds);
+              childRowsQb.whereIn(
+                parentTable.primaryKey.column_name,
+                typeof childIds[0] === 'object'
+                  ? childIds.map(
+                      (c) =>
+                        c[parentTable.primaryKey.title] ||
+                        c[parentTable.primaryKey.column_name],
+                    )
+                  : childIds,
+              );
             }
 
             if (parentTable.primaryKey.column_name !== parentColumn.column_name)
@@ -4434,38 +4440,8 @@ class BaseModelSqlv2 {
             if (!insertData.length) return true;
           }
 
-          // if (this.isSnowflake) {
-          //   const parentPK = this.dbDriver(parentTn)
-          //     .select(parentColumn.column_name)
-          //     // .where(_wherePk(parentTable.primaryKeys, childId))
-          //     .whereIn(parentTable.primaryKey.column_name, childIds)
-          //     .first();
-          //
-          //   const childPK = this.dbDriver(childTn)
-          //     .select(childColumn.column_name)
-          //     .where(_wherePk(childTable.primaryKeys, rowId))
-          //     .first();
-          //
-          //   await this.dbDriver.raw(
-          //     `INSERT INTO ?? (??, ??) SELECT (${parentPK.toQuery()}), (${childPK.toQuery()})`,
-          //     [vTn, vParentCol.column_name, vChildCol.column_name],
-          //   );
-          // } else {
-          //   await this.dbDriver(vTn).insert({
-          //     [vParentCol.column_name]: this.dbDriver(parentTn)
-          //       .select(parentColumn.column_name)
-          //       // .where(_wherePk(parentTable.primaryKeys, childId))
-          //       .where(parentTable.primaryKey.column_name, childIds)
-          //       .first(),
-          //     [vChildCol.column_name]: this.dbDriver(childTn)
-          //       .select(childColumn.column_name)
-          //       .where(_wherePk(childTable.primaryKeys, rowId))
-          //       .first(),
-          //   });
-
           // todo: use bulk insert
           await this.dbDriver(vTn).insert(insertData);
-          // }
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -4476,17 +4452,23 @@ class BaseModelSqlv2 {
               childTable.primaryKey.column_name,
             );
 
-            if (
-              childTable.primaryKeys.length > 1 ||
-              typeof childIds[0] === 'object'
-            ) {
+            if (childTable.primaryKeys.length > 1) {
               childRowsQb.where((qb) => {
                 for (const childId of childIds) {
                   qb.orWhere(_wherePk(childTable.primaryKeys, childId));
                 }
               });
             } else {
-              childRowsQb.whereIn(parentTable.primaryKey.column_name, childIds);
+              childRowsQb.whereIn(
+                parentTable.primaryKey.column_name,
+                typeof childIds[0] === 'object'
+                  ? childIds.map(
+                      (c) =>
+                        c[parentTable.primaryKey.title] ||
+                        c[parentTable.primaryKey.column_name],
+                    )
+                  : childIds,
+              );
             }
 
             const childRows = await childRowsQb;
@@ -4502,19 +4484,34 @@ class BaseModelSqlv2 {
               );
             }
           }
-
-          await this.dbDriver(childTn)
-            .update({
-              [childColumn.column_name]: this.dbDriver.from(
-                this.dbDriver(parentTn)
-                  .select(parentColumn.column_name)
-                  .where(_wherePk(parentTable.primaryKeys, rowId))
-                  .first()
-                  .as('___cn_alias'),
-              ),
-            })
-            // .where(_wherePk(childTable.primaryKeys, childId));
-            .whereIn(childTable.primaryKey.column_name, childIds);
+          const updateQb = this.dbDriver(childTn).update({
+            [childColumn.column_name]: this.dbDriver.from(
+              this.dbDriver(parentTn)
+                .select(parentColumn.column_name)
+                .where(_wherePk(parentTable.primaryKeys, rowId))
+                .first()
+                .as('___cn_alias'),
+            ),
+          });
+          if (childTable.primaryKeys.length > 1) {
+            updateQb.where((qb) => {
+              for (const childId of childIds) {
+                qb.orWhere(_wherePk(childTable.primaryKeys, childId));
+              }
+            });
+          } else {
+            updateQb.whereIn(
+              childTable.primaryKey.column_name,
+              typeof childIds[0] === 'object'
+                ? childIds.map(
+                    (c) =>
+                      c[childTable.primaryKey.title] ||
+                      c[childTable.primaryKey.column_name],
+                  )
+                : childIds,
+            );
+          }
+          await updateQb;
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -4611,15 +4608,21 @@ class BaseModelSqlv2 {
               parentColumn.column_name,
             );
 
-            if (
-              parentTable.primaryKeys.length > 1 ||
-              typeof childIds[0] === 'object'
-            ) {
+            if (parentTable.primaryKeys.length > 1) {
               childRowsQb.where((qb) => {
                 for (const childId of childIds) {
                   qb.orWhere(_wherePk(parentTable.primaryKeys, childId));
                 }
               });
+            } else if (typeof childIds[0] === 'object') {
+              childRowsQb.whereIn(
+                parentTable.primaryKey.column_name,
+                childIds.map(
+                  (c) =>
+                    c[parentTable.primaryKey.title] ||
+                    c[parentTable.primaryKey.column_name],
+                ),
+              );
             } else {
               childRowsQb.whereIn(parentTable.primaryKey.column_name, childIds);
             }
@@ -4643,20 +4646,26 @@ class BaseModelSqlv2 {
 
           const vTn = this.getTnPath(vTable);
 
-          await this.dbDriver(vTn)
+          const delQb = this.dbDriver(vTn)
             .where({
               [vChildCol.column_name]: this.dbDriver(childTn)
                 .select(childColumn.column_name)
                 .where(_wherePk(childTable.primaryKeys, rowId))
                 .first(),
             })
-            .whereIn(
-              [vParentCol.column_name],
-              this.dbDriver(parentTn)
-                .select(parentColumn.column_name)
-                .whereIn(parentTable.primaryKey.column_name, childIds),
-            )
             .delete();
+
+          delQb.whereIn(
+            vParentCol.column_name,
+            typeof childIds[0] === 'object'
+              ? childIds.map(
+                  (c) =>
+                    c[parentTable.primaryKey.title] ||
+                    c[parentTable.primaryKey.column_name],
+                )
+              : childIds,
+          );
+          await delQb;
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -4681,16 +4690,28 @@ class BaseModelSqlv2 {
             }
           }
 
-          await this.dbDriver(childTn)
-            // .where({
-            //   [childColumn.cn]: this.dbDriver(parentTable.tn)
-            //     .select(parentColumn.cn)
-            //     .where(parentTable.primaryKey.cn, rowId)
-            //     .first()
-            // })
-            // .where(_wherePk(childTable.primaryKeys, childId))
-            .whereIn(childTable.primaryKey.column_name, childIds)
-            .update({ [childColumn.column_name]: null });
+          const childRowsQb = this.dbDriver(childTn);
+
+          if (parentTable.primaryKeys.length > 1) {
+            childRowsQb.where((qb) => {
+              for (const childId of childIds) {
+                qb.orWhere(_wherePk(parentTable.primaryKeys, childId));
+              }
+            });
+          } else {
+            childRowsQb.whereIn(
+              parentTable.primaryKey.column_name,
+              typeof childIds[0] === 'object'
+                ? childIds.map(
+                    (c) =>
+                      c[parentTable.primaryKey.title] ||
+                      c[parentTable.primaryKey.column_name],
+                  )
+                : childIds,
+            );
+          }
+
+          await childRowsQb.update({ [childColumn.column_name]: null });
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -4994,7 +5015,7 @@ export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
   const where = {};
 
   // if id object is provided use as it is
-  if (id && typeof id === 'object') {
+  if (id && typeof id === 'object' && !Array.isArray(id)) {
     // verify all pk columns are present in id object
     for (const pk of primaryKeys) {
       if (pk.title in id) {

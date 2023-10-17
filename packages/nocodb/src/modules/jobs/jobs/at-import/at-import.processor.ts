@@ -2083,7 +2083,11 @@ export class AtImportProcessor {
         const ncFilters = [];
 
         // console.log(filter)
-        if (datatype === UITypes.Date || datatype === UITypes.DateTime) {
+        if (
+          datatype === UITypes.Date ||
+          datatype === UITypes.DateTime ||
+          datatype === UITypes.Links
+        ) {
           // skip filters over data datatype
           updateMigrationSkipLog(
             await sMap.getNcNameFromAtId(viewId),

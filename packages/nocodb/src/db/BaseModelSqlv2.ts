@@ -4332,7 +4332,7 @@ class BaseModelSqlv2 {
     rowId,
   }: {
     cookie: any;
-    childIds: (string | number)[];
+    childIds: (string | number | Record<string, any>)[];
     colId: string;
     rowId: string;
   }) {
@@ -4973,13 +4973,27 @@ function applyPaginate(
 }
 
 export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
+  const where = {};
+
   // if id object is provided use as it is
   if (id && typeof id === 'object') {
+    // verify all pk columns are present in id object
+    for (const pk of primaryKeys) {
+      if (pk.title in id) {
+        where[pk.column_name] = id[pk.title];
+      } else if (pk.column_name in id) {
+        where[pk.column_name] = id[pk.column_name];
+      } else {
+        NcError.badRequest(
+          `Primary key column ${pk.title} not found in id object`,
+        );
+      }
+    }
+
     return id;
   }
 
   const ids = Array.isArray(id) ? id : (id + '').split('___');
-  const where = {};
   for (let i = 0; i < primaryKeys.length; ++i) {
     if (primaryKeys[i].dt === 'bytea') {
       // if column is bytea, then we need to encode the id to hex based on format

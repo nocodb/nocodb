@@ -48,6 +48,7 @@
     "@vueuse/integrations": "^10.2.1",
     "ant-design-vue": "^3.2.11",
     "chart.js": "^4.3.0",
+    "crossoriginworker": "^1.1.0",
     "d3-scale": "^4.0.2",
     "dagre": "^0.8.5",
     "dayjs": "^1.11.9",

@@ -111,7 +111,9 @@ export class AttachmentsService {
       param.urls?.map?.(async (urlMeta) => {
         const { url, fileName: _fileName } = urlMeta;
 
-        const fileName = `${nanoid(18)}${_fileName || url.split('/').pop()}`;
+        const fileName = `${nanoid(18)}${path.extname(
+          _fileName || url.split('/').pop(),
+        )}`;
 
         const attachmentUrl = await (storageAdapter as any).fileCreateByUrl(
           slash(path.join(destPath, fileName)),
@@ -130,7 +132,7 @@ export class AttachmentsService {
         return {
           ...(attachmentUrl ? { url: attachmentUrl } : {}),
           ...(attachmentPath ? { path: attachmentPath } : {}),
-          title: fileName,
+          title: _fileName,
           mimetype: urlMeta.mimetype,
           size: urlMeta.size,
           icon: mimeIcons[path.extname(fileName).slice(1)] || undefined,

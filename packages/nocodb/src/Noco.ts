@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import requestIp from 'request-ip';
 import cookieParser from 'cookie-parser';
+import { Logger } from '@nestjs/common';
 import type { MetaService } from '~/meta/meta.service';
 import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import type { Express } from 'express';

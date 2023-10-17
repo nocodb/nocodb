@@ -13,7 +13,7 @@ import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
 export class DatasService extends DatasServiceCE {
   constructor(
     private readonly dataOptService: DataOptService,
-    @Optional() @InjectSentry() private readonly client: SentryService,
+    @Optional() @InjectSentry() private readonly sentryClient: SentryService,
   ) {
     super();
   }
@@ -47,7 +47,7 @@ export class DatasService extends DatasServiceCE {
         });
       }
     } catch (e) {
-      this.client?.instance().captureException(e);
+      this.sentryClient?.instance().captureException(e);
       // if not internal server error log and throw internal server error
       if (!(e instanceof InternalServerError)) console.error(e);
       NcError.internalServerError('Please contact server admin');
@@ -92,7 +92,7 @@ export class DatasService extends DatasServiceCE {
         });
       }
     } catch (e) {
-      this.client?.instance().captureException(e);
+      this.sentryClient?.instance().captureException(e);
       // if not internal server error log and throw internal server error
       if (!(e instanceof InternalServerError)) console.error(e);
       NcError.internalServerError('Please contact server admin');

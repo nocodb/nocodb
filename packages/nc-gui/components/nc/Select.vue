@@ -55,6 +55,16 @@ const onChange = (value: string) => {
 </template>
 
 <style lang="scss">
+.ant-select-item {
+  @apply !xs:h-13;
+}
+.ant-select-item-option-content {
+  @apply !xs:mt-2.5;
+}
+.ant-select-item-option-state {
+  @apply !xs:mt-1.75;
+}
+
 .nc-select.ant-select {
   height: fit-content;
   .ant-select-selector {

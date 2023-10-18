@@ -161,8 +161,6 @@ const open = (e: Event) => {
 
   e.stopPropagation()
 
-  console.log('open attachment cell', isMobileMode.value, isExpandedForm.value)
-
   _open()
 }
 
@@ -210,7 +208,7 @@ const onExpand = () => {
 
     <div
       v-if="!isReadonly"
-      :class="{ 'sm:(mx-auto px-4) xs:(w-full)': !visibleItems.length }"
+      :class="{ 'sm:(mx-auto px-4) xs:(w-full min-w-8)': !visibleItems.length }"
       class="group cursor-pointer py-1 flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
       data-testid="attachment-cell-file-picker-button"
       @click="open"
@@ -224,7 +222,7 @@ const onExpand = () => {
 
         <div
           v-if="active || !visibleItems.length || (isForm && visibleItems.length)"
-          class="flex items-center gap-1 xs:(w-full h-8 justify-center)"
+          class="flex items-center gap-1 xs:(w-full min-w-12 h-8 justify-center)"
         >
           <MaterialSymbolsAttachFile
             class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
@@ -262,7 +260,9 @@ const onExpand = () => {
                 :class="{ 'ml-2': active }"
                 @click="
                   () => {
-                    if (isGallery || isMobileMode || (isKanban && !isExpandedForm)) return
+                    if (isGallery || (isKanban && !isExpandedForm)) return
+                    if (isMobileMode && !isExpandedForm) return
+
                     selectedImage = item
                   }
                 "

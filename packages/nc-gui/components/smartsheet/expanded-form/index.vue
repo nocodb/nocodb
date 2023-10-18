@@ -761,7 +761,7 @@ export default {
           class="nc-comments-drawer border-1 relative border-gray-200 w-1/3 max-w-125 bg-gray-50 rounded-xl min-w-0 overflow-hidden h-full xs:hidden"
           :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
         >
-          <SmartsheetExpandedFormComments />
+          <SmartsheetExpandedFormComments :loading="isLoading" />
         </div>
       </div>
     </div>

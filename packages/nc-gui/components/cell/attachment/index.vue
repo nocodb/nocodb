@@ -153,12 +153,6 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
 const rowHeight = inject(RowHeightInj, ref())
 
 const open = (e: Event) => {
-  // if (isMobileMode.value && !isExpandedForm.value) {
-  //   isExpandedForm.value = true
-
-  //   return
-  // }
-
   e.stopPropagation()
 
   _open()
@@ -178,6 +172,14 @@ const onExpand = () => {
   if (isMobileMode.value) return
 
   modalVisible.value = true
+}
+
+const onImageClick = (item: any) => {
+  if (isMobileMode.value && !isExpandedForm.value) return
+
+  if (!isMobileMode.value && (isGallery.value || (isKanban.value && !isExpandedForm.value))) return
+
+  selectedImage.value = item
 }
 </script>
 
@@ -258,14 +260,7 @@ const onExpand = () => {
               <div
                 class="nc-attachment flex items-center flex-col flex-wrap justify-center"
                 :class="{ 'ml-2': active }"
-                @click="
-                  () => {
-                    if (isGallery || (isKanban && !isExpandedForm)) return
-                    if (isMobileMode && !isExpandedForm) return
-
-                    selectedImage = item
-                  }
-                "
+                @click="() => onImageClick(item)"
               >
                 <LazyCellAttachmentImage
                   :alt="item.title || `#${i}`"

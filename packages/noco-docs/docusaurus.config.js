@@ -133,6 +133,18 @@ const config = {
             position: "right",
           },
           {
+            href: "https://app.nocodb.com/#/signin?utm_source=docs&utm_medium=docs&utm_campaign=docs&utm_content=docs",
+            html: "Join NocoDB Cloud For FREE",
+            position: "right",
+            className: "header-join-link",
+          },
+          {
+            href: "https://app.nocodb.com/#/signin?utm_source=docs&utm_medium=docs&utm_campaign=docs&utm_content=docs",
+            html: "Join NocoDB Cloud",
+            position: "right",
+            className: "header-join-link-medium",
+          },
+          {
             href: "https://github.com/nocodb/nocodb",
             position: "right",
             className: "header-github-link",
@@ -148,6 +160,11 @@ const config = {
           width: 50,
         },
         links: [
+          {
+            label: "Join NocoDB Cloud For FREE",
+            href: "https://app.nocodb.com/#/signin?utm_source=docs&utm_medium=docs&utm_campaign=docs&utm_content=docs",
+            className: "footer-join-link",
+          },
           {
             label: "GitHub",
             href: "https://github.com/facebook/docusaurus",

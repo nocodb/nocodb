@@ -158,8 +158,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                       .map((r: any) => r[col])
                       .filter((v: any) => v !== null && v !== undefined && v.toString().trim() !== '')
 
-                    const checkboxType = isCheckboxType(vals, col)
-                    if (checkboxType.length === 1) {
+                    if (isCheckboxType(vals, col)) {
                       column.uidt = UITypes.Checkbox
                     } else {
                       // Single Select / Multi Select

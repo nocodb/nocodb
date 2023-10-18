@@ -29,17 +29,15 @@ export const isCheckboxType: any = (values: [], col?: number) => {
   let options = booleanOptions
   for (let i = 0; i < values.length; i++) {
     const val = getColVal(values[i], col)
-
     if (val === null || val === undefined || val.toString().trim() === '') {
       continue
     }
-
     options = options.filter((v) => val in v)
     if (!options.length) {
       return false
     }
   }
-  return options
+  return true
 }
 
 export const getCheckboxValue = (value: any) => {
@@ -161,8 +159,7 @@ export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {
     if (isUrlType(colData)) {
       colProps.uidt = UITypes.URL
     } else {
-      const checkboxType = isCheckboxType(colData)
-      if (checkboxType.length === 1) {
+      if (isCheckboxType(colData)) {
         colProps.uidt = UITypes.Checkbox
       } else {
         Object.assign(colProps, extractMultiOrSingleSelectProps(colData))

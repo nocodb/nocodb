@@ -130,23 +130,25 @@ const getAst = async ({
       ).ast;
     }
     let isRequested;
+
     if (getHiddenColumn) {
       isRequested =
         !isSystemColumn(col) ||
         col.column_name === 'created_at' ||
         col.column_name === 'updated_at' ||
         col.pk;
-    } else {
+    } else if (allowedCols && (!includePkByDefault || !col.pk)) {
       isRequested =
-        allowedCols && (!includePkByDefault || !col.pk)
-          ? allowedCols[col.id] &&
-            (!isSystemColumn(col) || view.show_system_fields || col.pv) &&
-            (!fields?.length || fields.includes(col.title)) &&
-            value
-          : fields?.length
-          ? fields.includes(col.title) && value
-          : value;
+        allowedCols[col.id] &&
+        (!isSystemColumn(col) || view.show_system_fields || col.pv) &&
+        (!fields?.length || fields.includes(col.title)) &&
+        value;
+    } else if (fields?.length) {
+      isRequested = fields.includes(col.title) && value;
+    } else {
+      isRequested = value;
     }
+
     if (isRequested || col.pk) await extractDependencies(col, dependencyFields);
 
     return {

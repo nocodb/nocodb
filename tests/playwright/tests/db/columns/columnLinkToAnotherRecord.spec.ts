@@ -1,8 +1,11 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
+import { enableQuickRun } from '../../../setup/db';
 
 test.describe('LTAR create & update', () => {
+  if (enableQuickRun()) test.skip();
+
   let dashboard: DashboardPage;
   let context: any;
 

@@ -49,7 +49,7 @@ main {
 }
 
 .mobile {
-  .nc-scrollbar-md, nc-scrollbar-dark-md, nc-scrollbar-dark-md, nc-scrollbar-sm-dark, nc-scrollbar-x-md {
+  .nc-scrollbar-md, .nc-scrollbar-dark-md, .nc-scrollbar-dark-md, .nc-scrollbar-sm-dark, .nc-scrollbar-x-md, .nc-scrollbar-x-md-dark {
     &::-webkit-scrollbar {
       width: 0px;
     }
@@ -152,6 +152,28 @@ main {
   }
   &::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-200;
+  }
+}
+
+.nc-scrollbar-x-md-dark {
+  overflow-x: scroll;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  &::-webkit-scrollbar-track-piece {
+    width: 0px;
+  }
+  &::-webkit-scrollbar {
+    @apply bg-transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    width: 4px;
+    @apply bg-gray-300 !bg-opacity-100;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
   }
 }
 

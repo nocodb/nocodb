@@ -225,11 +225,14 @@ class PGClient extends PGClientCE {
     try {
       const versionQuery = await this.sqlClient.raw('SELECT version()');
 
-      const version = versionQuery.rows[0]?.version
+      // Example output of `SELECT version()`
+      // PostgreSQL 14.4 (Debian 14.4-1.pgdg110+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 10.2.1-6) 10.2.1 20210110, 64-bit
+      const majorVersion = versionQuery.rows[0]?.version
         ?.split(' ')?.[1]
         ?.split('.')?.[0];
 
-      const identitySelector = +version >= 10 ? 'c.is_identity as ii,' : '';
+      const identitySelector =
+        +majorVersion >= 10 ? 'c.is_identity as ii,' : '';
 
       args.databaseName = this.connectionConfig.connection.database;
       const response = await this.sqlClient.raw(
@@ -380,7 +383,7 @@ class PGClient extends PGClientCE {
         }
 
         // handle identity column
-        if (+version >= 10) {
+        if (+majorVersion >= 10) {
           if (response.rows[i].ii === 'YES') {
             column.ai = true;
           }

@@ -152,14 +152,26 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
 
 const rowHeight = inject(RowHeightInj, ref())
 
-const open = () => {
-  if (isMobileMode.value) return (isExpandedForm.value = true)
+const open = (e: Event) => {
+  // if (isMobileMode.value && !isExpandedForm.value) {
+  //   isExpandedForm.value = true
+
+  //   return
+  // }
+
+  e.stopPropagation()
+
+  console.log('open attachment cell', isMobileMode.value, isExpandedForm.value)
 
   _open()
 }
 
 const openAttachment = (item: any) => {
-  if (isMobileMode.value) return
+  if (isMobileMode.value && !isExpandedForm.value) {
+    isExpandedForm.value = true
+
+    return
+  }
 
   _openAttachment(item)
 }
@@ -178,7 +190,7 @@ const onExpand = () => {
     :style="{
       height: isForm || isExpandedForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
     }"
-    class="nc-attachment-cell relative flex color-transition flex items-center w-full"
+    class="nc-attachment-cell relative flex color-transition flex items-center w-full xs:(min-h-12 max-h-32)"
     :class="{ 'justify-center': !active, 'justify-between': active }"
   >
     <LazyCellAttachmentCarousel />
@@ -198,26 +210,29 @@ const onExpand = () => {
 
     <div
       v-if="!isReadonly"
-      :class="{ 'mx-auto px-4': !visibleItems.length }"
+      :class="{ 'sm:(mx-auto px-4) xs:(w-full)': !visibleItems.length }"
       class="group cursor-pointer py-1 flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
       data-testid="attachment-cell-file-picker-button"
-      @click.stop="open"
+      @click="open"
     >
       <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
-      <NcTooltip placement="bottom">
+      <NcTooltip placement="bottom" class="xs:w-full">
         <template #title
           ><span data-rec="true">{{ $t('activity.attachmentDrop') }} </span></template
         >
 
-        <div v-if="active || !visibleItems.length || (isForm && visibleItems.length)" class="flex items-center gap-1">
+        <div
+          v-if="active || !visibleItems.length || (isForm && visibleItems.length)"
+          class="flex items-center gap-1 xs:(w-full h-8 justify-center)"
+        >
           <MaterialSymbolsAttachFile
             class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
           />
           <div
             v-if="!visibleItems.length"
             data-rec="true"
-            class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-xs"
+            class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-xs xs:(justify-center rounded-lg text-sm)"
           >
             {{ $t('activity.addFiles') }}
           </div>
@@ -281,7 +296,7 @@ const onExpand = () => {
 
       <div
         v-if="active || (isForm && visibleItems.length)"
-        class="h-6 w-5 group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none p-1 hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+        class="xs:hidden h-6 w-5 group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none p-1 hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
       >
         <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 

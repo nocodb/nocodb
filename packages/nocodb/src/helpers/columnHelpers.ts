@@ -264,5 +264,10 @@ export async function populateRollupForLTAR({
 }
 
 export const sanitizeColumnName = (name: string) => {
-  return name.replace(/\W+/g, '_').trim();
+  const columnName = name.replace(/\W+/g, '_').trim();
+
+  // if column name only contains _ then return as 'field'
+  if (/^_+$/.test(columnName)) return 'field';
+
+  return columnName;
 };

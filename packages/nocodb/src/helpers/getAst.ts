@@ -18,7 +18,7 @@ const getAst = async ({
     nested: { ...(query?.nested || {}) },
     fieldsSet: new Set(),
   },
-  getHiddenColumn = false,
+  getHiddenColumn = query?.['getHiddenColumn'],
 }: {
   query?: RequestQuery;
   extractOnlyPrimaries?: boolean;

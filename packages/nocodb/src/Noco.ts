@@ -97,10 +97,7 @@ export default class Noco {
   }
 
   static async init(param: any, httpServer: http.Server, server: Express) {
-    const nestApp = await NestFactory.create(
-      AppModule,
-      // new ExpressAdapter(server),
-    );
+    const nestApp = await NestFactory.create(AppModule);
 
     if (process.env.NC_WORKER_CONTAINER === 'true') {
       if (!process.env.NC_REDIS_URL) {
@@ -117,8 +114,6 @@ export default class Noco {
 
       nestApp.use(requestIp.mw());
       nestApp.use(cookieParser());
-
-      // this.initSentry(nestApp);
 
       nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
 

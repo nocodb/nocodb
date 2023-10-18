@@ -6,6 +6,7 @@ import {
   IsFormInj,
   JsonExpandInj,
   ReadonlyInj,
+  RowHeightInj,
   computed,
   inject,
   ref,
@@ -45,6 +46,8 @@ const error = ref<string | undefined>()
 const _isExpanded = inject(JsonExpandInj, ref(false))
 
 const isExpanded = ref(false)
+
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const localValue = computed<string | Record<string, any> | undefined>({
   get: () => localValueState.value,
@@ -182,7 +185,7 @@ watch(isExpanded, () => {
 
     <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
-    <span v-else>{{ vModel }}</span>
+    <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" />
   </component>
 </template>
 

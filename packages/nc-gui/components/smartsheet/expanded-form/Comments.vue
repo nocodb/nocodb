@@ -97,8 +97,7 @@ function scrollComments() {
 }
 
 const saveComment = async () => {
-  await _saveComment()
-  scrollComments()
+  await _saveComment(() => setTimeout(() => scrollComments(), 100))
 }
 
 watch(commentsWrapperEl, () => {

@@ -131,7 +131,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     }
   }
 
-  const saveComment = async () => {
+  const saveComment = async (scrollToCreateComment?: any) => {
     try {
       if (!row.value || !comment.value) return
 
@@ -142,10 +142,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       isSaving.value = true
 
       const createdDate = new Date().toISOString()
+      const createdIndex = commentsAndLogs.value.length
 
       commentsAndLogs.value.push({
         created_at: createdDate,
-        description: `The following comment has been created:${comment.value}`,
+        description: `The following comment has been created: ${comment.value}`,
         email: user?.value?.email,
         user: user?.value?.email,
         id: '',
@@ -153,19 +154,23 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         row_id: rowId,
         updated_at: createdDate,
         op_type: 'COMMENT',
+        new: true,
       })
 
-      await api.utils.commentRow({
-        fk_model_id: meta.value?.id as string,
-        row_id: rowId,
-        description: `The following comment has been created: ${comment.value}`,
-      })
-
+      const commentValue = comment.value
       comment.value = ''
 
-      reloadTrigger?.trigger()
+      if (scrollToCreateComment) scrollToCreateComment()
 
-      await loadCommentsAndLogs()
+      const createdComment = await api.utils.commentRow({
+        fk_model_id: meta.value?.id as string,
+        row_id: rowId,
+        description: `The following comment has been created: ${commentValue}`,
+      })
+
+      commentsAndLogs.value[createdIndex] = createdComment
+
+      reloadTrigger?.trigger()
     } catch (e: any) {
       message.error(e.message)
     } finally {

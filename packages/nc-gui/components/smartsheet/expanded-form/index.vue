@@ -811,7 +811,7 @@ export default {
 }
 
 .nc-expanded-cell-header {
-  @apply w-full text-gray-700 xs:mb-2;
+  @apply w-full text-gray-500 xs:(text-gray-600 mb-2);
 }
 
 .nc-expanded-cell-header > :nth-child(2) {

@@ -6,6 +6,7 @@ import {
   IsFormInj,
   JsonExpandInj,
   ReadonlyInj,
+  RowHeightInj,
   computed,
   inject,
   ref,
@@ -45,6 +46,8 @@ const error = ref<string | undefined>()
 const _isExpanded = inject(JsonExpandInj, ref(false))
 
 const isExpanded = ref(false)
+
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const localValue = computed<string | Record<string, any> | undefined>({
   get: () => localValueState.value,
@@ -140,6 +143,13 @@ useSelectedCellKeyupListener(active, (e) => {
   }
 })
 
+const inputWrapperRef = ref<HTMLElement | null>(null)
+
+onClickOutside(inputWrapperRef, (e) => {
+  if ((e.target as HTMLElement)?.closest('.nc-json-action')) return
+  editEnabled.value = false
+})
+
 watch(isExpanded, () => {
   _isExpanded.value = isExpanded.value
 })
@@ -148,7 +158,7 @@ watch(isExpanded, () => {
 <template>
   <component :is="isExpanded ? NcModal : 'div'" v-model:visible="isExpanded" :closable="false" centered :footer="null">
     <div v-if="editEnabled && !readonly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
-      <div class="flex flex-row justify-between pt-1 pb-2" @mousedown.stop>
+      <div class="flex flex-row justify-between pt-1 pb-2 nc-json-action" @mousedown.stop>
         <a-button type="text" size="small" @click="isExpanded = !isExpanded">
           <CilFullscreenExit v-if="isExpanded" class="h-2.5" />
 
@@ -167,6 +177,7 @@ watch(isExpanded, () => {
       </div>
 
       <LazyMonacoEditor
+        ref="inputWrapperRef"
         :model-value="localValue || ''"
         class="min-w-full w-80"
         :class="{ 'expanded-editor': isExpanded, 'editor': !isExpanded }"
@@ -182,7 +193,7 @@ watch(isExpanded, () => {
 
     <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
-    <span v-else>{{ vModel }}</span>
+    <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" />
   </component>
 </template>
 

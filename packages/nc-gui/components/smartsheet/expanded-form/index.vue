@@ -595,11 +595,11 @@ export default {
                 <div class="w-48 xs:(w-full) mt-0.25 !h-[35px]">
                   <LazySmartsheetHeaderVirtualCell
                     v-if="isVirtualCol(col)"
-                    class="nc-expanded-cell-header h-full !text-gray-500"
+                    class="nc-expanded-cell-header h-full"
                     :column="col"
                   />
 
-                  <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header !text-gray-500" :column="col" />
+                  <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header" :column="col" />
                 </div>
 
                 <template v-if="isLoading">

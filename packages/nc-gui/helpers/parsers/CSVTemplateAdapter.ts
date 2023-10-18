@@ -101,17 +101,14 @@ export default class CSVTemplateAdapter {
       } else if (colProps.uidt === UITypes.SingleLineText) {
         if (isEmailType(colData)) {
           colProps.uidt = UITypes.Email
-        }
-        if (isUrlType(colData)) {
+        } else if (isUrlType(colData)) {
           colProps.uidt = UITypes.URL
+        } else if (isCheckboxType(colData)) {
+          colProps.uidt = UITypes.Checkbox
         } else {
-          if (isCheckboxType(colData)) {
-            colProps.uidt = UITypes.Checkbox
-          } else {
-            if (data[columnIdx] && columnIdx < this.config.maxRowsToParse) {
-              this.columnValues[columnIdx].push(data[columnIdx])
-              colProps.uidt = UITypes.SingleSelect
-            }
+          if (data[columnIdx] && columnIdx < this.config.maxRowsToParse) {
+            this.columnValues[columnIdx].push(data[columnIdx])
+            colProps.uidt = UITypes.SingleSelect
           }
         }
       } else if (colProps.uidt === UITypes.Number) {

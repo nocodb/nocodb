@@ -154,7 +154,10 @@ export async function extractColumn({
         await relatedModel.getColumns();
         // @ts-ignore
         const pkColumn = relatedModel.primaryKey;
-        const pvColumn = relatedModel.displayValue;
+        // if mm table then only extract primary keys
+        const pvColumn = relatedModel.mm
+          ? relatedModel.primaryKeys[1]
+          : relatedModel.displayValue;
 
         // extract nested query params
 

@@ -18,6 +18,8 @@ import { MetaTable } from '~/utils/globals';
 import { AppModule } from '~/app.module';
 import { isEE } from '~/utils';
 
+import { Logger as PinoLogger } from 'nestjs-pino';
+
 dotenv.config();
 
 export default class Noco {
@@ -97,7 +99,14 @@ export default class Noco {
   }
 
   static async init(param: any, httpServer: http.Server, server: Express) {
-    const nestApp = await NestFactory.create(AppModule);
+    const nestApp = await NestFactory.create(
+      AppModule,
+      {
+        bufferLogs : true
+      }
+    );
+
+    nestApp.useLogger(nestApp.get(PinoLogger));
 
     if (process.env.NC_WORKER_CONTAINER === 'true') {
       if (!process.env.NC_REDIS_URL) {

@@ -595,11 +595,11 @@ export default {
                 <div class="w-48 xs:(w-full) mt-0.25 !h-[35px]">
                   <LazySmartsheetHeaderVirtualCell
                     v-if="isVirtualCol(col)"
-                    class="nc-expanded-cell-header h-full !text-gray-500"
+                    class="nc-expanded-cell-header h-full"
                     :column="col"
                   />
 
-                  <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header !text-gray-500" :column="col" />
+                  <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header" :column="col" />
                 </div>
 
                 <template v-if="isLoading">
@@ -618,7 +618,7 @@ export default {
                   <SmartsheetDivDataCell
                     v-if="col.title"
                     :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                    class="!bg-white rounded-lg !w-[20rem] !xs:w-full border-1 border-gray-200 overflow-hidden px-1 min-h-[35px] flex items-center relative"
+                    class="!bg-white rounded-lg !w-[20rem] !xs:w-full border-1 border-gray-200 overflow-hidden px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
                   >
                     <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="_row.row[col.title]" :row="_row" :column="col" />
 
@@ -681,7 +681,7 @@ export default {
                     <LazySmartsheetDivDataCell
                       v-if="col.title"
                       :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                      class="!bg-white rounded-lg !sm:w-[20rem] !xs:w-full border-1 overflow-hidden border-gray-200 px-1 min-h-[35px] xs:min-h-[48px] flex items-center relative"
+                      class="!bg-white rounded-lg !w-[20rem] border-1 overflow-hidden border-gray-200 px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
                     >
                       <LazySmartsheetVirtualCell
                         v-if="isVirtualCol(col)"
@@ -818,7 +818,7 @@ export default {
 }
 
 .nc-expanded-cell-header {
-  @apply w-full !sm:text-gray-500 !xs:text-gray-600 xs:mb-2;
+  @apply w-full text-gray-500 xs:(text-gray-600 mb-2);
 }
 
 .nc-expanded-cell-header > :nth-child(2) {
@@ -830,5 +830,15 @@ export default {
 
 .nc-drawer-expanded-form .nc-modal {
   @apply !p-0;
+}
+</style>
+
+<style lang="scss" scoped>
+:deep(.ant-select-selector) {
+  @apply !xs:(h-full);
+}
+
+:deep(.ant-select-selection-item) {
+  @apply !xs:(mt-1.75 ml-1);
 }
 </style>

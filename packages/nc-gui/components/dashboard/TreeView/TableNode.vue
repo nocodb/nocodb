@@ -182,7 +182,7 @@ const isTableOpened = computed(() => {
               :class="{ '!rotate-180': isExpanded }"
             />
           </NcButton>
-          <div v-else class="min-w-5.75"></div>
+          <div v-else class="sm:min-w-5.75 xs:min-w-7.5 h-2"></div>
           <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
             <div
               class="flex items-center nc-table-icon"

@@ -4,11 +4,17 @@ import type { AuditType } from 'nocodb-sdk'
 import { Icon } from '@iconify/vue'
 import { ref, timeAgo, useExpandedFormStoreOrThrow, useGlobal, useRoles, watch } from '#imports'
 
+const props = defineProps<{
+  isLoading: boolean
+}>()
+
 const { loadCommentsAndLogs, commentsAndLogs, saveComment: _saveComment, comment, updateComment } = useExpandedFormStoreOrThrow()
 
 const commentsWrapperEl = ref<HTMLDivElement>()
 
 const { user, appInfo } = useGlobal()
+
+const isExpandedFormLoading = computed(() => props.isLoading)
 
 const tab = ref<'comments' | 'audits'>('comments')
 
@@ -90,9 +96,22 @@ function scrollComments() {
   if (commentsWrapperEl.value) commentsWrapperEl.value.scrollTop = commentsWrapperEl.value?.scrollHeight
 }
 
+const isSaving = ref(false)
+
 const saveComment = async () => {
-  await _saveComment()
-  scrollComments()
+  if (isSaving.value) return
+
+  isSaving.value = true
+
+  try {
+    await _saveComment()
+
+    scrollComments()
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isSaving.value = false
+  }
 }
 
 watch(commentsWrapperEl, () => {
@@ -160,7 +179,10 @@ const onClickAudit = () => {
         'pb-2': tab !== 'comments' && !appInfo.ee,
       }"
     >
-      <div v-if="tab === 'comments'" class="flex flex-col h-full">
+      <div v-if="isExpandedFormLoading" class="flex flex-col h-full">
+        <GeneralLoader class="!mt-16" size="xlarge" />
+      </div>
+      <div v-else-if="tab === 'comments'" class="flex flex-col h-full">
         <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full">
           <div class="text-center text-3xl text-gray-700">
             <GeneralIcon icon="commentHere" />
@@ -229,10 +251,12 @@ const onClickAudit = () => {
               v-e="['a:row-expand:comment:save']"
               size="medium"
               class="!w-8"
-              :disabled="!comment.length"
+              :loading="isSaving"
+              :disabled="!isSaving && !comment.length"
+              :icon-only="isSaving"
               @click="saveComment"
             >
-              <GeneralIcon icon="send" />
+              <GeneralIcon v-if="!isSaving" icon="send" />
             </NcButton>
           </div>
         </div>

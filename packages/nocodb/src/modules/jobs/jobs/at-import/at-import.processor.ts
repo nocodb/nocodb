@@ -32,6 +32,7 @@ import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
 import { FormsService } from '~/services/forms.service';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
+import { GridColumnsService } from '~/services/grid-columns.service';
 
 dayjs.extend(utc);
 
@@ -102,6 +103,7 @@ export class AtImportProcessor {
     private readonly sortsService: SortsService,
     private readonly bulkDataAliasService: BulkDataAliasService,
     private readonly jobsLogService: JobsLogService,
+    private readonly gridColumnService: GridColumnsService,
   ) {}
 
   @Process(JobTypes.AtImport)
@@ -2178,9 +2180,26 @@ export class AtImportProcessor {
       }
 
       // insert group
+      const viewDetails = await this.viewColumnsService.columnList({
+        viewId: viewId,
+      });
       for (let i = 0; i < ncGroup.length; i++) {
-        // fix me!
-        console.log(ncGroup[i]);
+        const ncViewColumnId = viewDetails.find(
+          (x) => x.fk_column_id === ncGroup[i].group_column_id,
+        )?.id;
+        try {
+          await this.gridColumnService.gridColumnUpdate({
+            gridViewColumnId: ncViewColumnId,
+            grid: {
+              group_by: true,
+              group_by_order: i + 1,
+              group_by_sort:
+                ncGroup[i].direction === 'ascending' ? 'asc' : 'desc',
+            },
+          });
+        } catch (e) {
+          // ignore
+        }
       }
     };
 

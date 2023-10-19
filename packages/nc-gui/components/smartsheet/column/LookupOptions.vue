@@ -39,13 +39,7 @@ const refTables = computed(() => {
   }
 
   const _refTables = meta.value.columns
-    .filter(
-      (column) =>
-        isLinksOrLTAR(column) &&
-        !column.system &&
-        column.source_id === meta.value?.source_id &&
-        (!appInfo.value.ee || vModel.value.fk_relation_column_id === column.id || (column?.colOptions as any)?.type === 'bt'),
-    )
+    .filter((column) => isLinksOrLTAR(column) && !column.system && column.source_id === meta.value?.source_id)
     .map((column) => ({
       col: column.colOptions,
       column,

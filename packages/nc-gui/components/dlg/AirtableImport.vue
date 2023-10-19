@@ -144,12 +144,12 @@ async function createOrUpdate() {
   }
 }
 
-async function listenForUpdates() {
+async function listenForUpdates(id?: string) {
   if (listeningForUpdates.value) return
 
   listeningForUpdates.value = true
 
-  const job = await $api.jobs.status({ syncId: syncSource.value.id })
+  const job = id ? { id } : await $api.jobs.status({ syncId: syncSource.value.id })
 
   if (!job) {
     listeningForUpdates.value = false
@@ -226,12 +226,12 @@ async function loadSyncSrc() {
 
 async function sync() {
   try {
-    await $fetch(`/api/v1/db/meta/syncs/${syncSource.value.id}/trigger`, {
+    const jobData: any = await $fetch(`/api/v1/db/meta/syncs/${syncSource.value.id}/trigger`, {
       baseURL,
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
     })
-    listenForUpdates()
+    listenForUpdates(jobData.id)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -251,11 +251,21 @@ async function abort() {
           headers: { 'xc-auth': $state.token.value as string },
         })
         step.value = 1
+        progress.value = []
+        goBack.value = false
+        enableAbort.value = false
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
     },
   })
+}
+
+function cancel() {
+  step.value = 1
+  progress.value = []
+  goBack.value = false
+  enableAbort.value = false
 }
 
 function migrateSync(src: any) {
@@ -456,7 +466,7 @@ onMounted(async () => {
           <a-button v-if="showGoToDashboardButton" class="mt-4" size="large" @click="dialogShow = false">
             {{ $t('labels.goToDashboard') }}
           </a-button>
-          <a-button v-else-if="goBack" class="mt-4 uppercase" size="large" danger @click="step = 1">{{
+          <a-button v-else-if="goBack" class="mt-4 uppercase" size="large" danger @click="cancel()">{{
             $t('general.cancel')
           }}</a-button>
           <a-button v-else-if="enableAbort" class="mt-4 uppercase" size="large" danger @click="abort()">{{

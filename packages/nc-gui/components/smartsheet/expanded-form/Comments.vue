@@ -96,8 +96,22 @@ function scrollComments() {
   if (commentsWrapperEl.value) commentsWrapperEl.value.scrollTop = commentsWrapperEl.value?.scrollHeight
 }
 
+const isSaving = ref(false)
+
 const saveComment = async () => {
-  await _saveComment(() => setTimeout(() => scrollComments(), 100))
+  if (isSaving.value) return
+
+  isSaving.value = true
+
+  try {
+    await _saveComment()
+
+    scrollComments()
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isSaving.value = false
+  }
 }
 
 watch(commentsWrapperEl, () => {
@@ -237,10 +251,12 @@ const onClickAudit = () => {
               v-e="['a:row-expand:comment:save']"
               size="medium"
               class="!w-8"
-              :disabled="!comment.length"
+              :loading="isSaving"
+              :disabled="!isSaving && !comment.length"
+              :icon-only="isSaving"
               @click="saveComment"
             >
-              <GeneralIcon icon="send" />
+              <GeneralIcon v-if="!isSaving" icon="send" />
             </NcButton>
           </div>
         </div>

@@ -45,6 +45,11 @@ export class UtilsController {
   })
   @HttpCode(200)
   async testConnection(@Body() body: any) {
+    body.pool = {
+      min: 0,
+      max: 1,
+    };
+
     return await this.utilsService.testConnection({ body });
   }
 

@@ -2020,8 +2020,8 @@ export class AtImportProcessor {
       '<=': 'lte',
       '>': 'gt',
       '>=': 'gte',
-      isEmpty: 'empty',
-      isNotEmpty: 'notempty',
+      isEmpty: 'blank',
+      isNotEmpty: 'notblank',
       contains: 'like',
       doesNotContain: 'nlike',
       isAnyOf: 'anyof',
@@ -2051,12 +2051,9 @@ export class AtImportProcessor {
         const ncFilters = [];
 
         // console.log(filter)
-        if (
-          datatype === UITypes.Date ||
-          datatype === UITypes.DateTime ||
-          datatype === UITypes.Links
-        ) {
-          // skip filters over data datatype
+        if (datatype === UITypes.Links) {
+          // skip filters for links; Link filters in NocoDB are only rollup counts
+          // where-as in airtable, filter can be textual
           updateMigrationSkipLog(
             await sMap.getNcNameFromAtId(viewId),
             colSchema.title,
@@ -2097,6 +2094,26 @@ export class AtImportProcessor {
               logical_op: f.conjunction,
               comparison_op: filterMap[filter.operator],
               value: await sMap.getNcNameFromAtId(filter.value),
+            };
+            ncFilters.push(fx);
+          }
+        } else if (datatype === UITypes.Date || datatype === UITypes.DateTime) {
+          if (filter.operator === 'isWithin') {
+            const fx = {
+              fk_column_id: columnId,
+              logical_op: f.conjunction,
+              comparison_op: filter.operator,
+              comparison_sub_op: filter.value?.mode,
+              value: filter.value?.numberOfDays,
+            };
+            ncFilters.push(fx);
+          } else {
+            const fx = {
+              fk_column_id: columnId,
+              logical_op: f.conjunction,
+              comparison_op: filterMap[filter.operator],
+              comparison_sub_op: filter.value?.mode,
+              value: filter.value?.exactDate,
             };
             ncFilters.push(fx);
           }

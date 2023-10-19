@@ -4073,23 +4073,51 @@ class BaseModelSqlv2 {
 
           if (d[col.title]?.length) {
             for (const attachment of d[col.title]) {
-              if (attachment?.path) {
-                promises.push(
-                  PresignedUrl.getSignedUrl({
-                    path: attachment.path.replace(/^download\//, ''),
-                  }).then((r) => (attachment.signedPath = r)),
-                );
-              } else if (attachment?.url) {
-                if (attachment.url.includes('.amazonaws.com/')) {
-                  const relativePath = decodeURI(
-                    attachment.url.split('.amazonaws.com/')[1],
-                  );
+              // we expect array of array of attachments in case of lookup
+              if (Array.isArray(attachment)) {
+                for (const lookedUpAttachment of attachment) {
+                  if (lookedUpAttachment?.path) {
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        path: lookedUpAttachment.path.replace(
+                          /^download\//,
+                          '',
+                        ),
+                      }).then((r) => (lookedUpAttachment.signedPath = r)),
+                    );
+                  } else if (lookedUpAttachment?.url) {
+                    if (lookedUpAttachment.url.includes('.amazonaws.com/')) {
+                      const relativePath = decodeURI(
+                        lookedUpAttachment.url.split('.amazonaws.com/')[1],
+                      );
+                      promises.push(
+                        PresignedUrl.getSignedUrl({
+                          path: relativePath,
+                          s3: true,
+                        }).then((r) => (lookedUpAttachment.signedUrl = r)),
+                      );
+                    }
+                  }
+                }
+              } else {
+                if (attachment?.path) {
                   promises.push(
                     PresignedUrl.getSignedUrl({
-                      path: relativePath,
-                      s3: true,
-                    }).then((r) => (attachment.signedUrl = r)),
+                      path: attachment.path.replace(/^download\//, ''),
+                    }).then((r) => (attachment.signedPath = r)),
                   );
+                } else if (attachment?.url) {
+                  if (attachment.url.includes('.amazonaws.com/')) {
+                    const relativePath = decodeURI(
+                      attachment.url.split('.amazonaws.com/')[1],
+                    );
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        path: relativePath,
+                        s3: true,
+                      }).then((r) => (attachment.signedUrl = r)),
+                    );
+                  }
                 }
               }
             }
@@ -4099,6 +4127,14 @@ class BaseModelSqlv2 {
       }
     } catch {}
     return d;
+  }
+
+  public async getNestedUidt(column: Column) {
+    if (column.uidt !== UITypes.Lookup) {
+      return column.uidt;
+    }
+    const colOptions = await column.getColOptions<LookupColumn>();
+    return this.getNestedUidt(await colOptions?.getLookupColumn());
   }
 
   public async convertAttachmentType(
@@ -4114,9 +4150,22 @@ class BaseModelSqlv2 {
         await this.model.getColumns();
       }
 
-      const attachmentColumns = (
-        childTable ? childTable.columns : this.model.columns
-      ).filter((c) => c.uidt === UITypes.Attachment);
+      const attachmentColumns = [];
+
+      const columns = childTable ? childTable.columns : this.model.columns;
+
+      for (const col of columns) {
+        if (col.uidt === UITypes.Lookup) {
+          if ((await this.getNestedUidt(col)) === UITypes.Attachment) {
+            attachmentColumns.push(col);
+          }
+        } else {
+          if (col.uidt === UITypes.Attachment) {
+            attachmentColumns.push(col);
+          }
+        }
+      }
+
       if (attachmentColumns.length) {
         if (Array.isArray(data)) {
           data = await Promise.all(

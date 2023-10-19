@@ -1554,19 +1554,18 @@ const loaderText = computed(() => {
                 @mouseup.stop
                 @click="addEmptyRow()"
               >
-                <td class="text-left pointer sticky left-0 !border-r-0"></td>
+                <div
+                  class="h-10.5 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
+                >
+                  <component
+                    :is="iconMap.plus"
+                    v-if="!isViewColumnsLoading"
+                    class="text-pint-500 text-base ml-2 mt-0 text-gray-600 group-hover:text-black"
+                  />
+                </div>
                 <td class="!border-gray-100" :colspan="visibleColLength"></td>
               </tr>
             </tbody>
-            <div
-              class="max-h-0 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500 pointer-events-none"
-            >
-              <component
-                :is="iconMap.plus"
-                v-if="!isViewColumnsLoading"
-                class="text-pint-500 text-base ml-2 -mt-10 text-gray-600 group-hover:text-black"
-              />
-            </div>
           </table>
 
           <!-- Fill Handle -->

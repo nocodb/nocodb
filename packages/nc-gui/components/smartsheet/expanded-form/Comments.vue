@@ -69,7 +69,7 @@ onKeyStroke('Enter', (event) => {
 })
 
 const comments = computed(() => commentsAndLogs.value.filter((log) => log.op_type === 'COMMENT'))
-const audits = computed(() => commentsAndLogs.value.filter((log) => log.op_type !== 'COMMENT'))
+const audits = computed(() => commentsAndLogs.value.filter((log) => log.op_type !== 'COMMENT' && log.details))
 
 function editComment(log: AuditType) {
   editLog.value = log
@@ -157,7 +157,7 @@ const onClickAudit = () => {
     <div
       class="h-[calc(100%-4rem)]"
       :class="{
-        'pb-2': tab !== 'comments' && !appInfo.ee,
+        'pb-1': tab !== 'comments' && !appInfo.ee,
       }"
     >
       <div v-if="tab === 'comments'" class="flex flex-col h-full">
@@ -237,7 +237,7 @@ const onClickAudit = () => {
           </div>
         </div>
       </div>
-      <div v-if="tab === 'audits'" ref="commentsWrapperEl" class="flex flex-col h-full pl-2 pr-1 pt-2 nc-scrollbar-md space-y-2">
+      <div v-if="tab === 'audits'" ref="commentsWrapperEl" class="flex flex-col h-full nc-scrollbar-md !overflow-y-auto">
         <template v-if="audits.length === 0">
           <div class="flex flex-col text-center justify-center h-full">
             <div class="text-center text-3xl text-gray-600">
@@ -246,25 +246,24 @@ const onClickAudit = () => {
             <div class="font-bold text-center my-1 text-gray-600">See changes to this record</div>
           </div>
         </template>
-        <div v-for="log of audits" :key="log.id">
-          <div v-if="log.details" class="bg-white rounded-xl border-1 gap-3 border-gray-200">
-            <div class="flex flex-col p-4 gap-3">
-              <div class="flex justify-between">
-                <div class="flex items-center gap-2">
-                  <GeneralUserIcon size="base" :email="log.user" />
 
-                  <div class="flex flex-col">
-                    <span class="truncate font-bold max-w-50">
-                      {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared source' }}
-                    </span>
-                    <div v-if="log.id !== editLog?.id" class="text-xs font-medium text-gray-500">
-                      {{ timeAgo(log.created_at) }}
-                    </div>
+        <div v-for="log of audits" :key="log.id" class="nc-audit-item">
+          <div class="flex flex-col p-4 gap-3">
+            <div class="flex justify-between">
+              <div class="flex items-center gap-2">
+                <GeneralUserIcon size="base" :email="log.user" />
+
+                <div class="flex flex-col">
+                  <span class="truncate font-bold max-w-50">
+                    {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared source' }}
+                  </span>
+                  <div v-if="log.id !== editLog?.id" class="text-xs font-medium text-gray-500">
+                    {{ timeAgo(log.created_at) }}
                   </div>
                 </div>
               </div>
-              <div v-dompurify-html="log.details" class="text-sm font-medium"></div>
             </div>
+            <div v-dompurify-html="log.details" class="text-sm font-medium"></div>
           </div>
         </div>
       </div>
@@ -276,6 +275,15 @@ const onClickAudit = () => {
 .tab {
   @apply max-w-1/2;
 }
+
+.nc-audit-item {
+  @apply border-b-1 gap-3 border-gray-200;
+}
+
+.nc-audit-item:last-child {
+  @apply border-b-0;
+}
+
 .tab .tab-title {
   @apply min-w-0 flex justify-center gap-2 font-semibold items-center;
   word-break: 'keep-all';

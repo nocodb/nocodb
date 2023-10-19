@@ -43,6 +43,8 @@ for commit_info in "${commit_data[@]}"; do
 
   git cherry-pick "$commit_sha" --no-commit > /dev/null 2> /dev/null
 
+  git add .
+
   cat scripts/sync/exclude-list.txt | sed 's/^/":/;s/$/"/' | tr '\n' ' ' | xargs git reset --quiet --
 
   git config user.name "$commit_author"

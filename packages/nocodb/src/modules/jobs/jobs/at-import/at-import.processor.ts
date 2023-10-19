@@ -1798,6 +1798,12 @@ export class AtImportProcessor {
             logDetailed(`   Configure sort set`);
             await nc_configureSort(ncViewId, vData.lastSortsApplied);
           }
+
+          // configure group
+          if (vData?.groupLevels) {
+            logDetailed(`   Configure group set`);
+            await nc_configureGroup(ncViewId, vData.groupLevels);
+          }
         }
       }
     };
@@ -2119,6 +2125,66 @@ export class AtImportProcessor {
         }
       }
     };
+
+    //////////////////////////////
+    // group
+
+    const nc_configureGroup = async (viewId, g) => {
+      const ncGroup = [];
+
+      for (let i = 0; i < g.length; i++) {
+        const group = g[i];
+        const colSchema = await nc_getColumnSchema(group.columnId);
+
+        // column not available;
+        // one of not migrated column;
+        if (!colSchema) {
+          updateMigrationSkipLog(
+            await sMap.getNcNameFromAtId(viewId),
+            colSchema.title,
+            colSchema.uidt,
+            `group config skipped; column not migrated`,
+          );
+          continue;
+        }
+
+        const columnId = colSchema.id;
+        const datatype = colSchema.uidt;
+
+        if (
+          datatype === UITypes.Date ||
+          datatype === UITypes.DateTime ||
+          datatype === UITypes.Links ||
+          datatype === UITypes.MultiSelect ||
+          datatype === UITypes.SingleSelect ||
+          datatype === UITypes.SingleLineText ||
+          datatype === UITypes.Formula ||
+          datatype === UITypes.Checkbox
+        ) {
+          ncGroup.push({
+            group_column_id: columnId,
+            direction: group.order,
+          });
+        } else {
+          // skip group by over other data types
+          updateMigrationSkipLog(
+            await sMap.getNcNameFromAtId(viewId),
+            colSchema.title,
+            colSchema.uidt,
+            `group config skipped; group over ${datatype}  not supported`,
+          );
+          continue;
+        }
+      }
+
+      // insert group
+      for (let i = 0; i < ncGroup.length; i++) {
+        // fix me!
+        console.log(ncGroup[i]);
+      }
+    };
+
+    //////////////////////////////
 
     const nc_configureSort = async (viewId, s) => {
       for (let i = 0; i < s.sortSet.length; i++) {

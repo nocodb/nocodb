@@ -1558,7 +1558,9 @@ const loaderText = computed(() => {
                 <td class="!border-gray-100" :colspan="visibleColLength"></td>
               </tr>
             </tbody>
-            <div class="max-h-0 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500">
+            <div
+              class="max-h-0 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500 pointer-events-none"
+            >
               <component
                 :is="iconMap.plus"
                 v-if="!isViewColumnsLoading"

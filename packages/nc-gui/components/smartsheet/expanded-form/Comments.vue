@@ -4,11 +4,17 @@ import type { AuditType } from 'nocodb-sdk'
 import { Icon } from '@iconify/vue'
 import { ref, timeAgo, useExpandedFormStoreOrThrow, useGlobal, useRoles, watch } from '#imports'
 
+const props = defineProps<{
+  isLoading: boolean
+}>()
+
 const { loadCommentsAndLogs, commentsAndLogs, saveComment: _saveComment, comment, updateComment } = useExpandedFormStoreOrThrow()
 
 const commentsWrapperEl = ref<HTMLDivElement>()
 
 const { user, appInfo } = useGlobal()
+
+const isExpandedFormLoading = computed(() => props.isLoading)
 
 const tab = ref<'comments' | 'audits'>('comments')
 
@@ -160,7 +166,10 @@ const onClickAudit = () => {
         'pb-2': tab !== 'comments' && !appInfo.ee,
       }"
     >
-      <div v-if="tab === 'comments'" class="flex flex-col h-full">
+      <div v-if="isExpandedFormLoading" class="flex flex-col h-full">
+        <GeneralLoader class="!mt-16" size="xlarge" />
+      </div>
+      <div v-else-if="tab === 'comments'" class="flex flex-col h-full">
         <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full">
           <div class="text-center text-3xl text-gray-700">
             <GeneralIcon icon="commentHere" />

@@ -2162,7 +2162,8 @@ export class AtImportProcessor {
           datatype === UITypes.SingleLineText ||
           datatype === UITypes.Formula ||
           datatype === UITypes.Checkbox ||
-          datatype === UITypes.Collaborator
+          datatype === UITypes.Collaborator ||
+          datatype === UITypes.Number
         ) {
           ncGroup.push({
             group_column_id: columnId,

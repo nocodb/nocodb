@@ -26,10 +26,14 @@ import { BasicStrategy } from '~/strategies/basic.strategy/basic.strategy';
 import { UsersModule } from '~/modules/users/users.module';
 import { AuthModule } from '~/modules/auth/auth.module';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { packageInfo } from '~/utils/packageVersion';
 =======
 import {packageInfo} from "~/utils/packageVersion";
 >>>>>>> 9149c5b28f... fix: correction in sentry integration
+=======
+import { packageInfo } from '~/utils/packageVersion';
+>>>>>>> 6e22796d15... chore: integrate sentry
 
 export const ceModuleConfig = {
   imports: [

@@ -49,8 +49,8 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
-      - name: remove last line from .npmrc (use-node-version)
-        run: sed -i '$ d' .npmrc
+      - name: remove use-node-version line from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
       - name: install dependencies
         run: pnpm bootstrap
       - name: Set outputs

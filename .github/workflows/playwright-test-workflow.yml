@@ -49,8 +49,8 @@ jobs:
           kill -9 $(lsof -t -i:3000) || echo "no process running on 3000"
       - name: Set NC Edition
         run: export EE=true
-      - name: remove last line from .npmrc (use-node-version)
-        run: sed -i '$ d' .npmrc
+      - name: remove use-node-version line from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
       - name: install dependencies
         run: pnpm bootstrap
       - name: Setup pg for quick tests

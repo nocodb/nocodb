@@ -61,8 +61,8 @@ jobs:
         run: export CI=true
       - name: Set NC Edition
         run: export EE=true
-      - name: remove last line from .npmrc (use-node-version)
-        run: sed -i '$ d' .npmrc
+      - name: remove use-node-version line from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
       - name: install dependencies
         run: pnpm bootstrap
       - name: build nocodb-sdk

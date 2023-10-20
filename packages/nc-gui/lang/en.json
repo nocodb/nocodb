@@ -293,6 +293,8 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "docs": "Docs",
+    "forum": "Forum",
     "parameter": "Parameter",
     "headers": "Headers",
     "parameterName": "Parameter Name",

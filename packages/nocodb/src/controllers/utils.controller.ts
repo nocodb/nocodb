@@ -14,12 +14,16 @@ import { UtilsService } from '~/services/utils.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
+import { TelemetryService } from '~/services/telemetry.service';
 
 @Controller()
 export class UtilsController {
   private version: string;
 
-  constructor(protected readonly utilsService: UtilsService) {}
+  constructor(
+    protected readonly utilsService: UtilsService,
+    protected readonly telemetryService: TelemetryService,
+  ) {}
 
   @UseGuards(PublicApiLimiterGuard)
   @Get('/api/v1/version')
@@ -44,7 +48,7 @@ export class UtilsController {
     scope: 'org',
   })
   @HttpCode(200)
-  async testConnection(@Body() body: any) {
+  async testConnection(@Body() body: any, @Request() _req: any) {
     body.pool = {
       min: 0,
       max: 1,

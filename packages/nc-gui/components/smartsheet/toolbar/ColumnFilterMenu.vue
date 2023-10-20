@@ -18,7 +18,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { filterAutoSave, isMobileMode } = useGlobal()
+const { isMobileMode } = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
 
@@ -79,7 +79,7 @@ useMenuCloseOnEsc(open)
       <SmartsheetToolbarColumnFilter
         ref="filterComp"
         class="nc-table-toolbar-menu"
-        :auto-save="filterAutoSave"
+        :auto-save="true"
         data-testid="nc-filter-menu"
         @update:filters-length="filtersLength = $event"
       >

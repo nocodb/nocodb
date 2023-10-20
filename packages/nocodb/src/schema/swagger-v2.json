@@ -10274,7 +10274,7 @@
         ]
       }
     },
-    "/api/v2/tables/{tableId}/rows": {
+    "/api/v2/tables/{tableId}/records": {
       "parameters": [
         {
           "schema": {
@@ -10283,51 +10283,32 @@
           "name": "tableId",
           "in": "path",
           "required": true,
-          "description": "Table ID"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewId",
-          "in": "query",
-          "required": true,
-          "description": "View ID"
+          "description": "**Table Identifier**."
         }
       ],
       "get": {
-        "summary": "List Table Rows",
+        "summary": "List Table Records",
         "operationId": "db-data-table-row-list",
-        "description": "List all table rows in a given table",
+        "description": "This API endpoint allows you to retrieve records from a specified table. You can customize the response by applying various query parameters for filtering, sorting, and formatting.\n\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\n\n- `totalRows`: Indicates the total number of rows available for the specified conditions (if any).\n- `page`: Specifies the current page number.\n- `pageSize`: Defaults to 25 and defines the number of records on each page.\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of records in the dataset.\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of records in the dataset.\n\nThe `pageInfo` attributes are particularly valuable when dealing with large datasets that are divided into multiple pages. They enable you to determine whether additional pages of records are available for retrieval or if you've reached the end of the dataset.",
         "tags": [
-          "DB Data Table Row"
+          "Table Records"
         ],
         "parameters": [
           {
             "schema": {
-              "type": "array"
+              "type": "string"
             },
             "in": "query",
             "name": "fields",
-            "description": "Which fields to be shown"
+            "description": "Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
           },
           {
             "schema": {
-              "oneOf": [
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                {
-                  "type": "string"
-                }
-              ]
+              "type": "string"
             },
             "in": "query",
             "name": "sort",
-            "description": "The result will be sorted based on `sort` query"
+            "description": "Allows you to specify the fields by which you want to sort the records in your API response. By default, sorting is done in ascending order for the designated fields. To sort in descending order, add a '-' symbol before the field name.\n\nExample: `sort=field1,-field2` will sort the records first by 'field1' in ascending order and then by 'field2' in descending order.\n\nIf `viewId` query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view.\n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
           },
           {
             "schema": {
@@ -10335,7 +10316,7 @@
             },
             "in": "query",
             "name": "where",
-            "description": "Extra filtering"
+            "description": "Enables you to define specific conditions for filtering records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'ne' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
           },
           {
             "schema": {
@@ -10344,7 +10325,7 @@
             },
             "in": "query",
             "name": "offset",
-            "description": "Offset in rows"
+            "description": "Enables you to control the pagination of your API response by specifying the number of records you want to skip from the beginning of the result set. The default value for this parameter is set to 0, meaning no records are skipped by default.\n\nExample: `offset=25` will skip the first 25 records in your API response, allowing you to access records starting from the 26th position.\n\nPlease note that the 'offset' value represents the number of records to exclude, not an index value, so an offset of 25 will skip the first 25 records."
           },
           {
             "schema": {
@@ -10353,23 +10334,15 @@
             },
             "in": "query",
             "name": "limit",
-            "description": "Limit in rows"
+            "description": "Enables you to set a limit on the number of records you want to retrieve in your API response. By default, your response includes all the available records, but by using this parameter, you can control the quantity you receive.\n\nExample: `limit=100` will constrain your response to the first 100 records in the dataset."
           },
           {
             "schema": {
               "type": "string"
             },
+            "name": "viewId",
             "in": "query",
-            "name": "sortArrJson",
-            "description": "Used for multiple sort queries"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "filterArrJson",
-            "description": "Used for multiple filter queries"
+            "description": "***View Identifier***. Allows you to fetch records that are currently visible within a specific view. API retrieves records in the order they are displayed if the SORT option is enabled within that view.\n\nAdditionally, if you specify a `sort` query parameter, it will take precedence over any sorting configuration defined in the view. If you specify a `where` query parameter, it will be applied over the filtering configuration defined in the view. \n\nBy default, all fields, including those that are disabled within the view, are included in the response. To explicitly specify which fields to include or exclude, you can use the `fields` query parameter to customize the output according to your requirements."
           },
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -10406,52 +10379,74 @@
                       "list": [
                         {
                           "Id": 1,
-                          "Title": "baz",
-                          "SingleSelect": null,
-                          "Sheet-1 List": [
+                          "SingleLineText": "David",
+                          "Year": 2023,
+                          "URL": "www.google.com",
+                          "SingleSelect": "Jan",
+                          "Email": "a@b.com",
+                          "Duration": 74040,
+                          "Decimal": 23.658,
+                          "Currency": 23,
+                          "JSON": {
+                            "name": "John Doe",
+                            "age": 30,
+                            "email": "johndoe@example.com",
+                            "isSubscribed": true,
+                            "address": {
+                              "street": "123 Main Street",
+                              "city": "Anytown",
+                              "zipCode": "12345"
+                            },
+                            "hobbies": [
+                              "Reading",
+                              "Hiking",
+                              "Cooking"
+                            ],
+                            "scores": {
+                              "math": 95,
+                              "science": 88,
+                              "history": 75
+                            }
+                          },
+                          "Date": "2023-10-16",
+                          "Time": "06:02:00",
+                          "Rating": 1,
+                          "Percent": 55,
+                          "Checkbox": true,
+                          "Attachment": [
                             {
-                              "Id": 1,
-                              "Title": "baz"
+                              "url": "https://some-s3-server.com/nc/uploads/2023/10/16/some-key/3niqHLngUKiU2Hupe8.jpeg",
+                              "title": "2 be loved.jpeg",
+                              "mimetype": "image/jpeg",
+                              "size": 146143,
+                              "signedUrl": "https://some-s3-server.com/nc/uploads/2023/10/16/signed-url-misc-info"
                             }
                           ],
-                          "LTAR": [
-                            {
-                              "Id": 1,
-                              "Title": "baz"
-                            }
-                          ]
-                        },
-                        {
-                          "Id": 2,
-                          "Title": "foo",
-                          "SingleSelect": "a",
-                          "Sheet-1 List": [
-                            {
-                              "Id": 2,
-                              "Title": "foo"
-                            }
-                          ],
-                          "LTAR": [
-                            {
-                              "Id": 2,
-                              "Title": "foo"
-                            }
-                          ]
-                        },
-                        {
-                          "Id": 3,
-                          "Title": "bar",
-                          "SingleSelect": "b",
-                          "Sheet-1 List": [],
-                          "LTAR": []
+                          "MultiSelect": "Jan,Feb",
+                          "DateTime": "2023-10-16 08:56:32+00:00",
+                          "LongText": "The sunsets in the small coastal town were a breathtaking sight. The sky would transform from a vibrant blue to warm hues of orange and pink as the day came to an end. Locals and tourists alike would gather at the beach, sipping on cool drinks and watching in awe as the sun dipped below the horizon.",
+                          "Geometry": "23.23, 36.54",
+                          "PhoneNumber": "123456789",
+                          "Number": 5248,
+                          "Barcode": "David",
+                          "QRCode": "David",
+                          "Formula": "10",
+                          "Lookup": "a",
+                          "Links:belongs-to": {
+                            "Id": 1,
+                            "Title": "a"
+                          },
+                          "Links:has-many": 2,
+                          "Rollup": 3,
+                          "Links:many-many": 3
                         }
                       ],
                       "pageInfo": {
-                        "totalRows": 3,
+                        "totalRows": 5,
                         "page": 1,
-                        "pageSize": 25,
+                        "pageSize": 1,
                         "isFirstPage": true,
-                        "isLastPage": true
+                        "isLastPage": false
                       }
                     }
                   }
@@ -10465,14 +10460,26 @@
         }
       },
       "post": {
-        "summary": "Create Table Rows",
+        "summary": "Create Table Records",
         "operationId": "db-data-table-row-create",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {},
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "Id": 10
+                      },
+                      {
+                        "Id": 11
+                      }
+                    ]
+                  }
+                }
               }
             }
           },
@@ -10481,7 +10488,7 @@
           }
         },
         "tags": [
-          "DB Data Table Row"
+          "Table Records"
         ],
         "requestBody": {
           "content": {
@@ -10501,33 +10508,93 @@
               },
               "examples": {
                 "Example 1": {
-                  "value": {
-                    "Id": 1,
-                    "Title": "foo",
-                    "CreatedAt": "2023-03-11T09:10:53.567Z",
-                    "UpdatedAt": "2023-03-11T09:10:53.567Z"
+                  "value": [{
+                    "SingleLineText": "David",
+                    "LongText": "The sunsets in the small coastal town were a breathtaking sight. The sky would transform from a vibrant blue to warm hues of orange and pink as the day came to an end. Locals and tourists alike would gather at the beach, sipping on cool drinks and watching in awe as the sun dipped below the horizon.",
+                    "CreatedAt": "2023-10-16 08:27:59+00:00",
+                    "UpdatedAt": "2023-10-16 08:56:32+00:00",
+                    "Decimal": 23.658,
+                    "Checkbox": true,
+                    "Attachment": [
+                      {
+                        "url": "https://some-s3-server.com/nc/uploads/2023/10/16/some-key/3niqHLngUKiU2Hupe8.jpeg",
+                        "title": "2 be loved.jpeg",
+                        "mimetype": "image/jpeg",
+                        "size": 146143,
+                        "signedUrl": "https://some-s3-server.com/nc/uploads/2023/10/16/signed-url-misc-info"
+                      }
+                    ],
+                    "MultiSelect": "Jan,Feb",
+                    "SingleSelect": "Jan",
+                    "Date": "2023-10-16",
+                    "Year": 2023,
+                    "Time": "06:02:00",
+                    "PhoneNumber": "123456789",
+                    "Email": "a@b.com",
+                    "URL": "www.google.com",
+                    "Currency": 23,
+                    "Percent": 55,
+                    "Duration": 74040,
+                    "Rating": 1,
+                    "JSON": {
+                      "name": "John Doe",
+                      "age": 30,
+                      "email": "johndoe@example.com",
+                      "isSubscribed": true,
+                      "address": {
+                        "street": "123 Main Street",
+                        "city": "Anytown",
+                        "zipCode": "12345"
+                      },
+                      "hobbies": [
+                        "Reading",
+                        "Hiking",
+                        "Cooking"
+                      ],
+                      "scores": {
+                        "math": 95,
+                        "science": 88,
+                        "history": 75
+                      }
+                    },
+                    "DateTime": "2023-10-16 08:56:32+00:00",
+                    "Geometry": "23.23, 36.54",
+                    "Number": 5248
                   }
+                  ]
                 }
               }
             }
           }
         },
-        "description": "Create a new row in a given table and base.",
+        "description": "This API endpoint allows the creation of new records within a specified table. Records to be inserted are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. \n\nWhen dealing with 'Links' or 'Link To Another Record' field types, you should utilize the 'Create Link' API to insert relevant data. \n\nCertain read-only field types will be disregarded if included in the request. These field types include 'Look Up,' 'Roll Up,' 'Formula,' 'Auto Number,' 'Created By,' 'Updated By,' 'Created At,' 'Updated At,' 'Barcode,' and 'QR Code.'",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
           }
         ]
       },
-      "put": {
-        "summary": "Update Table Rows",
+      "patch": {
+        "summary": "Update Table Records",
         "operationId": "db-data-table-row-update",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {},
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "Id": 6
+                      },
+                      {
+                        "Id": 7
+                      }
+                    ]
+                  }
+                }
               }
             }
           },
@@ -10536,7 +10603,7 @@
           }
         },
         "tags": [
-          "DB Data Table Row"
+          "Table Records"
         ],
         "requestBody": {
           "content": {
@@ -10556,18 +10623,25 @@
               },
               "examples": {
                 "Example 1": {
-                  "value": {
-                    "Id": 1,
-                    "Title": "foo",
-                    "CreatedAt": "2023-03-11T09:10:53.567Z",
-                    "UpdatedAt": "2023-03-11T09:10:53.567Z"
-                  }
+                  "value": [{
+                    "Id": 6,
+                    "SingleLineText": "Updated text-1",
+                    "DateTime": "2023-10-19 08:56:32+00:00",
+                    "Geometry": "23.232, 36.542",
+                    "Number": 52482
+                  },{
+                    "Id": 7,
+                    "SingleLineText": "Updated text-2",
+                    "DateTime": "2023-10-19 08:56:32+00:00",
+                    "Geometry": "23.232, 36.542",
+                    "Number": 52482
+                  }]
                 }
               }
             }
           }
         },
-        "description": "Create a new row in a given table and base.",
+        "description": "This API endpoint allows updating existing records within a specified table identified by an array of Record-IDs, serving as unique identifier for the record. Records to be updated are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. \n\nWhen dealing with 'Links' or 'Link To Another Record' field types, you should utilize the 'Create Link' API to insert relevant data. \n\nCertain read-only field types will be disregarded if included in the request. These field types include 'Look Up,' 'Roll Up,' 'Formula,' 'Auto Number,' 'Created By,' 'Updated By,' 'Created At,' 'Updated At,' 'Barcode,' and 'QR Code.'\n\nNote that a PATCH request only updates the specified fields while leaving other fields unaffected. Currently, PUT requests are not supported by this endpoint.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -10575,14 +10649,26 @@
         ]
       },
       "delete": {
-        "summary": "Delete Table Rows",
+        "summary": "Delete Table Records",
         "operationId": "db-data-table-row-delete",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {},
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "Id": 1
+                      },
+                      {
+                        "Id": 2
+                      }
+                    ]
+                  }
+                }
               }
             }
           },
@@ -10591,7 +10677,7 @@
           }
         },
         "tags": [
-          "DB Data Table Row"
+          "Table Records"
         ],
         "requestBody": {
           "content": {
@@ -10614,6 +10700,9 @@
                   "value": [
                     {
                       "Id": 1
+                    },
+                    {
+                      "Id": 2
                     }
                   ]
                 }
@@ -10621,7 +10710,7 @@
             }
           }
         },
-        "description": "Create a new row in a given table and base.",
+        "description": "This API endpoint allows deleting existing records within a specified table identified by an array of Record-IDs, serving as unique identifier for the record. Records to be deleted are input as an array of record-identifiers.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -10629,7 +10718,7 @@
         ]
       }
     },
-    "/api/v2/tables/{tableId}/records/{rowId}": {
+    "/api/v2/tables/{tableId}/records/{recordId}": {
       "parameters": [
         {
           "schema": {
@@ -10638,51 +10727,33 @@
           "name": "tableId",
           "in": "path",
           "required": true,
-          "description": "Table ID"
+          "description": "**Table Identifier**"
         },
         {
           "schema": {
             "type": "string"
           },
-          "name": "rowId",
+          "name": "recordId",
           "in": "path",
           "required": true,
-          "description": "Row ID"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewId",
-          "in": "query",
-          "required": true,
-          "description": "View ID"
+          "description": "Record ID"
         }
       ],
       "get": {
-        "summary": "Read Table Row",
+        "summary": "Read Table Record",
         "operationId": "db-data-table-row-read",
-        "description": "Get table row in a given table",
+        "description": "This API endpoint allows you to retrieve a single record identified by Record-ID, serving as unique identifier for the record from a specified table.",
         "tags": [
-          "DB Data Table Row"
+          "Table Records"
         ],
         "parameters": [
           {
             "schema": {
-              "type": "array"
+              "type": "string"
             },
             "in": "query",
             "name": "fields",
-            "description": "Which fields to be shown"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "in": "query",
-            "name": "offset",
-            "description": "Offset in rows"
+            "description": "Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
           },
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -10700,20 +10771,68 @@
                   "Example 1": {
                     "value": {
                       "Id": 1,
-                      "Title": "baz",
-                      "SingleSelect": null,
-                      "Sheet-1 List": [
+                      "SingleLineText": "David",
+                      "CreatedAt": "2023-10-16 08:27:59+00:00",
+                      "UpdatedAt": "2023-10-16 10:05:41+00:00",
+                      "Year": 2023,
+                      "URL": "www.google.com",
+                      "SingleSelect": "Jan",
+                      "Email": "a@b.com",
+                      "Duration": 74040,
+                      "Decimal": 23.658,
+                      "Currency": 23,
+                      "Barcode": "David",
+                      "JSON": {
+                        "name": "John Doe",
+                        "age": 30,
+                        "email": "johndoe@example.com",
+                        "isSubscribed": true,
+                        "address": {
+                          "street": "123 Main Street",
+                          "city": "Anytown",
+                          "zipCode": "12345"
+                        },
+                        "hobbies": [
+                          "Reading",
+                          "Hiking",
+                          "Cooking"
+                        ],
+                        "scores": {
+                          "math": 95,
+                          "science": 88,
+                          "history": 75
+                        }
+                      },
+                      "QRCode": "David",
+                      "Rollup": 3,
+                      "Date": "2023-10-16",
+                      "Time": "06:02:00",
+                      "Rating": 1,
+                      "Percent": 55,
+                      "Formula": 10,
+                      "Checkbox": true,
+                      "Attachment": [
                         {
-                          "Id": 1,
-                          "Title": "baz"
+                          "url": "https://some-s3-server.com/nc/uploads/2023/10/16/some-key/3niqHLngUKiU2Hupe8.jpeg",
+                          "title": "2 be loved.jpeg",
+                          "mimetype": "image/jpeg",
+                          "size": 146143,
+                          "signedUrl": "https://some-s3-server.com/nc/uploads/2023/10/16/signed-url-misc-info"
                         }
                       ],
-                      "LTAR": [
-                        {
-                          "Id": 1,
-                          "Title": "baz"
-                        }
-                      ]
+                      "MultiSelect": "Jan,Feb",
+                      "DateTime": "2023-10-19 08:56:32+00:00",
+                      "LongText": "The sunsets in the small coastal town were a breathtaking sight. The sky would transform from a vibrant blue to warm hues of orange and pink as the day came to an end. Locals and tourists alike would gather at the beach, sipping on cool drinks and watching in awe as the sun dipped below the horizon.",
+                      "Geometry": "23.232, 36.542",
+                      "PhoneNumber": "123456789",
+                      "Number": 52482,
+                      "Links:has-many": 2,
+                      "Links:many-many": 3,
+                      "Links:belongs-to": {
+                        "Id": 1,
+                        "Title": "a"
+                      },
+                      "Lookup": "a"
                     }
                   }
                 }
@@ -10735,7 +10854,7 @@
           "name": "tableId",
           "in": "path",
           "required": true,
-          "description": "Table ID"
+          "description": "**Table Identifier**"
         },
         {
           "schema": {
@@ -10743,41 +10862,24 @@
           },
           "name": "viewId",
           "in": "query",
-          "required": true,
-          "description": "View ID"
+          "description": "**View Identifier**. Allows you to fetch record count that are currently visible within a specific view."
         }
       ],
       "get": {
-        "summary": "Table Rows Count",
+        "summary": "Count Table Records",
         "operationId": "db-data-table-row-count",
-        "description": "Count of rows in a given table",
+        "description": "This API endpoint allows you to retrieve the total number of records from a specified table or a view. You can narrow down search results by applying `where` query parameter",
         "tags": [
-          "DB Data Table Row"
+          "Table Records"
         ],
         "parameters": [
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "fields",
-            "description": "Which fields to be shown"
-          },
           {
             "schema": {
               "type": "string"
             },
             "in": "query",
             "name": "where",
-            "description": "Extra filtering"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "filterArrJson",
-            "description": "Used for multiple filter queries"
+            "description": "Enables you to define specific conditions for filtering record count in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'ne' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
           },
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -10803,56 +10905,7 @@
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "list": [
-                        {
-                          "Id": 1,
-                          "Title": "baz",
-                          "SingleSelect": null,
-                          "Sheet-1 List": [
-                            {
-                              "Id": 1,
-                              "Title": "baz"
-                            }
-                          ],
-                          "LTAR": [
-                            {
-                              "Id": 1,
-                              "Title": "baz"
-                            }
-                          ]
-                        },
-                        {
-                          "Id": 2,
-                          "Title": "foo",
-                          "SingleSelect": "a",
-                          "Sheet-1 List": [
-                            {
-                              "Id": 2,
-                              "Title": "foo"
-                            }
-                          ],
-                          "LTAR": [
-                            {
-                              "Id": 2,
-                              "Title": "foo"
-                            }
-                          ]
-                        },
-                        {
-                          "Id": 3,
-                          "Title": "bar",
-                          "SingleSelect": "b",
-                          "Sheet-1 List": [],
-                          "LTAR": []
-                        }
-                      ],
-                      "pageInfo": {
-                        "totalRows": 3,
-                        "page": 1,
-                        "pageSize": 25,
-                        "isFirstPage": true,
-                        "isLastPage": true
-                      }
+                      "count": 3
                     }
                   }
                 }
@@ -10865,7 +10918,7 @@
         }
       }
     },
-    "/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}": {
+    "/api/v2/tables/{tableId}/links/{linkFieldId}/records/{recordId}": {
       "parameters": [
         {
           "schema": {
@@ -10874,51 +10927,50 @@
           "name": "tableId",
           "in": "path",
           "required": true,
-          "description": "Table ID"
+          "description": "**Table Identifier**"
         },
         {
           "schema": {
             "type": "string"
           },
-          "name": "viewId",
-          "in": "query",
+          "name": "linkFieldId",
+          "in": "path",
           "required": true,
-          "description": "View ID"
+          "description": "**Links Field Identifier** corresponding to the relation field `Links` established between tables."
         }
       ],
       "get": {
-        "summary": "Get Nested Relations Rows",
+        "summary": "List Linked Records",
         "operationId": "db-data-table-row-nested-list",
-        "description": "Linked rows in a given Links/LinkToAnotherRecord column",
+        "description": "This API endpoint allows you to retrieve list of linked records for a specific `Link field` and `Record ID`. The response is an array of objects containing Primary Key and its corresponding display value.",
         "tags": [
-          "DB Data Table Row"
+          "Table Records"
         ],
         "parameters": [
           {
             "schema": {
-              "type": "array"
+              "type": "string"
             },
-            "in": "query",
-            "name": "fields",
-            "description": "Which fields to be shown"
+            "name": "recordId",
+            "in": "path",
+            "required": true,
+            "description": "**Record Identifier** corresponding to the record in this table for which linked records are being fetched."
           },
           {
             "schema": {
-              "oneOf": [
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                {
-                  "type": "string"
-                }
-              ]
+              "type": "string"
+            },
+            "in": "query",
+            "name": "fields",
+            "description": "Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
+          },
+          {
+            "schema": {
+              "type": "string"
             },
             "in": "query",
             "name": "sort",
-            "description": "The result will be sorted based on `sort` query"
+            "description": "Allows you to specify the fields by which you want to sort linked records in your API response. By default, sorting is done in ascending order for the designated fields. To sort in descending order, add a '-' symbol before the field name.\n\nExample: `sort=field1,-field2` will sort the records first by 'field1' in ascending order and then by 'field2' in descending order.\n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
           },
           {
             "schema": {
@@ -10926,7 +10978,7 @@
             },
             "in": "query",
             "name": "where",
-            "description": "Extra filtering"
+            "description": "Enables you to define specific conditions for filtering linked records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter linked records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'ne' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
           },
           {
             "schema": {
@@ -10935,7 +10987,7 @@
             },
             "in": "query",
             "name": "offset",
-            "description": "Offset in rows"
+            "description": "Enables you to control the pagination of your API response by specifying the number of linked records you want to skip from the beginning of the result set. The default value for this parameter is set to 0, meaning no linked records are skipped by default.\n\nExample: `offset=25` will skip the first 25 linked records in your API response, allowing you to access linked records starting from the 26th position.\n\nPlease note that the 'offset' value represents the number of linked records to exclude, not an index value, so an offset of 25 will skip the first 25 linked records."
           },
           {
             "schema": {
@@ -10944,24 +10996,9 @@
             },
             "in": "query",
             "name": "limit",
-            "description": "Limit in rows"
+            "description": "Enables you to set a limit on the number of linked records you want to retrieve in your API response. By default, your response includes all the available linked records, but by using this parameter, you can control the quantity you receive.\n\nExample: `limit=100` will constrain your response to the first 100 linked records in the dataset."
           },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "sortArrJson",
-            "description": "Used for multiple sort queries"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "filterArrJson",
-            "description": "Used for multiple filter queries"
-          },
+
           {
             "$ref": "#/components/parameters/xc-auth"
           }
@@ -10997,48 +11034,23 @@
                       "list": [
                         {
                           "Id": 1,
-                          "Title": "baz",
-                          "SingleSelect": null,
-                          "Sheet-1 List": [
-                            {
-                              "Id": 1,
-                              "Title": "baz"
-                            }
-                          ],
-                          "LTAR": [
-                            {
-                              "Id": 1,
-                              "Title": "baz"
-                            }
-                          ]
+                          "SingleLineText": "David"
                         },
                         {
                           "Id": 2,
-                          "Title": "foo",
-                          "SingleSelect": "a",
-                          "Sheet-1 List": [
-                            {
-                              "Id": 2,
-                              "Title": "foo"
-                            }
-                          ],
-                          "LTAR": [
-                            {
-                              "Id": 2,
-                              "Title": "foo"
-                            }
-                          ]
+                          "SingleLineText": "Jane"
                         },
                         {
                           "Id": 3,
-                          "Title": "bar",
-                          "SingleSelect": "b",
-                          "Sheet-1 List": [],
-                          "LTAR": []
+                          "SingleLineText": "Dave"
+                        },
+                        {
+                          "Id": 4,
+                          "SingleLineText": "Martin"
                         }
                       ],
                       "pageInfo": {
-                        "totalRows": 3,
+                        "totalRows": 4,
                         "page": 1,
                         "pageSize": 25,
                         "isFirstPage": true,
@@ -11056,14 +11068,19 @@
         }
       },
       "post": {
-        "summary": "Create Nested Relations Rows",
+        "summary": "Link Records",
         "operationId": "db-data-table-row-nested-link",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {},
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
               }
             }
           },
@@ -11072,7 +11089,7 @@
           }
         },
         "tags": [
-          "DB Data Table Row"
+          "Table Records"
         ],
         "requestBody": {
           "content": {
@@ -11094,7 +11111,10 @@
                 "Example 1": {
                   "value": [
                     {
-                      "Id": 1
+                      "Id": 4
+                    },
+                    {
+                      "Id": 5
                     }
                   ]
                 }
@@ -11102,22 +11122,36 @@
             }
           }
         },
-        "description": "Create a link with the row.",
+        "description": "This API endpoint allows you to link records to a specific `Link field` and `Record ID`. The request payload is an array of record-ids from the adjacent table for linking purposes. Note that any existing links, if present, will be unaffected during this operation.",
         "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "recordId",
+            "in": "path",
+            "required": true,
+            "description": "**Record Identifier** corresponding to the record in this table for which links are being created."
+          },
           {
             "$ref": "#/components/parameters/xc-auth"
           }
         ]
       },
       "delete": {
-        "summary": "Delete Nested Relations Rows",
+        "summary": "Unlink Records",
         "operationId": "db-data-table-row-nested-unlink",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {},
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
               }
             }
           },
@@ -11126,16 +11160,13 @@
           }
         },
         "tags": [
-          "DB Data Table Row"
+          "Table Records"
         ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "oneOf": [
-                  {
-                    "type": "object"
-                  },
                   {
                     "type": "array",
                     "items": {
@@ -11149,6 +11180,9 @@
                   "value": [
                     {
                       "Id": 1
+                    },
+                    {
+                      "Id": 2
                     }
                   ]
                 }
@@ -11156,8 +11190,17 @@
             }
           }
         },
-        "description": "Create a new row in a given table and base.",
+        "description": "This API endpoint allows you to unlink records from a specific `Link field` and `Record ID`. The request payload is an array of record-ids from the adjacent table for unlinking purposes. Note that, \n- duplicated record-ids will be ignored.\n- non-existent record-ids will be ignored.",
         "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "recordId",
+            "in": "path",
+            "required": true,
+            "description": "**Record Identifier** corresponding to the record in this table for which links are being removed."
+          },
           {
             "$ref": "#/components/parameters/xc-auth"
           }

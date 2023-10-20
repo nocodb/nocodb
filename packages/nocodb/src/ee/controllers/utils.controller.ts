@@ -55,6 +55,12 @@ export class UtilsController extends UtilsControllerCE {
         }
       }
     }
+
+    body.pool = {
+      min: 0,
+      max: 1,
+    };
+
     return await this.utilsService.testConnection({ body });
   }
 }

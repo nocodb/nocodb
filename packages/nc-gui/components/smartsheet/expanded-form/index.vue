@@ -484,7 +484,7 @@ export default {
                 {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
               </div>
             </NcButton>
-            <NcDropdown v-if="!isNew">
+            <NcDropdown v-if="!isNew" placement="bottomRight">
               <NcButton type="secondary" class="nc-expand-form-more-actions w-10">
                 <GeneralIcon icon="threeDotVertical" class="text-md text-gray-700" />
               </NcButton>
@@ -710,7 +710,7 @@ export default {
             v-if="isUIAllowed('dataEdit')"
             class="w-full h-16 border-t-1 border-gray-200 bg-white flex items-center justify-end p-3 xs:(p-0 mt-4 border-t-0 gap-x-4 justify-between)"
           >
-            <NcDropdown v-if="!isNew && isMobileMode">
+            <NcDropdown v-if="!isNew && isMobileMode" placement="bottomRight">
               <NcButton type="secondary" class="nc-expand-form-more-actions w-10">
                 <GeneralIcon icon="threeDotVertical" class="text-md text-gray-700" />
               </NcButton>

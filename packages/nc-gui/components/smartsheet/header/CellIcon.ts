@@ -63,7 +63,7 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
   } else if (isYear(column, abstractType)) {
     return iconMap.calendar
   } else if (isTime(column, abstractType)) {
-    return iconMap.calendar
+    return iconMap.clock
   } else if (isRating(column)) {
     return iconMap.rating
   } else if (isAttachment(column)) {

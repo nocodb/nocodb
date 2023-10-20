@@ -438,7 +438,7 @@ export default {
     :class="{ active: isExpanded }"
   >
     <div class="h-[85vh] xs:(max-h-full) max-h-215 flex flex-col p-6">
-      <div class="flex h-8 flex-shrink-0 w-full items-center nc-expanded-form-header relative mb-4 justify-between">
+      <div class="flex h-9.5 flex-shrink-0 w-full items-center nc-expanded-form-header relative mb-4 justify-between">
         <template v-if="!isMobileMode">
           <div class="flex gap-3 w-100">
             <div class="flex gap-2">
@@ -580,7 +580,7 @@ export default {
           }"
         >
           <div
-            class="flex flex-col flex-grow mt-2 h-full max-h-full nc-scrollbar-md !pb-2 items-center w-full bg-white p-4 xs:p-0"
+            class="flex flex-col flex-grow mt-2 h-full max-h-full nc-scrollbar-md pb-6 items-center w-full bg-white p-4 xs:p-0"
           >
             <div
               v-for="(col, i) of fields"

@@ -23,11 +23,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 18.17.1
+          node-version: 18.14.0
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8.8.0
+          version: 8
       - name: Get pnpm store directory
         shell: bash
         run: |

@@ -12,8 +12,8 @@ on:
         description: "Any additional Tag"
         required: false
   schedule:
-    # trigger at 6:00AM IST(0:30 GMT) and 14:00 IST(8:30 GMT)
-    - cron:  '30 0,8 * * *'
+    # trigger at 6:00AM IST(0:30 GMT) and 20:00 IST(14:30 GMT)
+    - cron:  '30 0,14 * * *'
 
 
 jobs:

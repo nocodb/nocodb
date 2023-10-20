@@ -1,17 +1,28 @@
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
-import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { UtilsController as UtilsControllerCE } from 'src/controllers/utils.controller';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { UtilsService } from '~/services/utils.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcError } from '~/helpers/catchError';
+import { TelemetryService } from '~/services/telemetry.service';
 
 @Controller()
 export class UtilsController extends UtilsControllerCE {
-  constructor(protected readonly utilsService: UtilsService) {
-    super(utilsService);
+  constructor(
+    protected readonly utilsService: UtilsService,
+    protected readonly telemetryService: TelemetryService,
+  ) {
+    super(utilsService, telemetryService);
   }
 
   @Post(['/api/v1/db/meta/magic', '/api/v2/meta/magic'])
@@ -29,7 +40,7 @@ export class UtilsController extends UtilsControllerCE {
     scope: 'org',
   })
   @HttpCode(200)
-  async testConnection(@Body() body: any) {
+  async testConnection(@Body() body: any, @Request() req: any) {
     if (process.env.NC_ALLOW_LOCAL_EXTERNAL_DBS !== 'true') {
       if (!body?.connection || !body?.connection.host) {
         NcError.badRequest('Connection missing host name or IP address');
@@ -61,6 +72,23 @@ export class UtilsController extends UtilsControllerCE {
       max: 1,
     };
 
-    return await this.utilsService.testConnection({ body });
+    const result = await this.utilsService.testConnection({
+      body,
+    });
+
+    if (result.code !== -1) {
+      return result;
+    } else {
+      this.telemetryService.sendEvent({
+        evt_type: 'a:extDb:connection:error',
+        user_id: req.user.id,
+        email: req.user.email,
+        data: {
+          client: body.client,
+          message: result.message,
+        },
+      });
+      NcError.unprocessableEntity(result.message);
+    }
   }
 }

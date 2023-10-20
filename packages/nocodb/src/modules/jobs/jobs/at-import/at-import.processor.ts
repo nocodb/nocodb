@@ -2,7 +2,6 @@ import moment from 'moment';
 import { UITypes } from 'nocodb-sdk';
 import Airtable from 'airtable';
 import hash from 'object-hash';
-import { T } from 'nc-help';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import tinycolor from 'tinycolor2';
@@ -33,6 +32,7 @@ import { ViewsService } from '~/services/views.service';
 import { FormsService } from '~/services/forms.service';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { GridColumnsService } from '~/services/grid-columns.service';
+import { TelemetryService } from '~/services/telemetry.service';
 
 dayjs.extend(utc);
 
@@ -104,6 +104,7 @@ export class AtImportProcessor {
     private readonly bulkDataAliasService: BulkDataAliasService,
     private readonly jobsLogService: JobsLogService,
     private readonly gridColumnService: GridColumnsService,
+    private readonly telemetryService: TelemetryService,
   ) {}
 
   @Process(JobTypes.AtImport)
@@ -1981,8 +1982,10 @@ export class AtImportProcessor {
       logBasic(`:: Axios fetch count:   ${rtc.fetchAt.count}`);
       logBasic(`:: Axios fetch time:    ${rtc.fetchAt.time}`);
 
-      T.event({
-        event: 'a:airtable-import:success',
+      this.telemetryService.sendEvent({
+        evt_type: 'a:airtable-import:success',
+        user_id: syncDB.user.id,
+        email: syncDB.user.email,
         data: {
           stats: {
             migrationTime: duration,
@@ -2498,8 +2501,9 @@ export class AtImportProcessor {
       }
     } catch (e) {
       if (e.message) {
-        T.event({
-          event: 'a:airtable-import:error',
+        this.telemetryService.sendEvent({
+          evt_type: 'a:airtable-import:error',
+          user_id: syncDB.user.id,
           data: { error: e.message },
         });
         console.log(e);

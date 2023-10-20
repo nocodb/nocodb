@@ -96,15 +96,13 @@ useSelectedCellKeyupListener(active, (e) => {
       :class="{ 'w-full justify-start': isEditColumnMenu || isGallery || isForm, 'py-2': isEditColumnMenu }"
       @click="onClick(true)"
     >
-      <Transition name="layout" mode="out-in" :duration="100">
-        <component
-          :is="getMdiIcon(vModel ? checkboxMeta.icon.checked : checkboxMeta.icon.unchecked)"
-          class="nc-checkbox"
-          :style="{
-            color: checkboxMeta.color,
-          }"
-        />
-      </Transition>
+      <NcCheckbox
+        v-model:checked="vModel"
+        class="nc-checkbox"
+        :style="{
+          color: checkboxMeta.color,
+        }"
+      />
     </div>
   </div>
 </template>

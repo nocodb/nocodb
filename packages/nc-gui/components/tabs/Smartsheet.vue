@@ -63,7 +63,6 @@ const openNewRecordFormHook = createEventHook<void>()
 
 useProvideKanbanViewStore(meta, activeView)
 useProvideMapViewStore(meta, activeView)
-useProvideGridViewColumn(activeView)
 
 // todo: move to store
 provide(MetaInj, meta)
@@ -79,6 +78,8 @@ provide(
   ReadonlyInj,
   computed(() => !isUIAllowed('dataEdit')),
 )
+
+useProvideViewColumns(activeView, meta, () => reloadEventHook?.trigger())
 
 const grid = ref()
 

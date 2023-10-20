@@ -23,7 +23,7 @@ import {
   useI18n,
   useNuxtApp,
   useRoles,
-  useViewColumns,
+  useViewColumnsOrThrow,
   useViewData,
   watch,
 } from '#imports'
@@ -58,16 +58,14 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view)
 
-const reloadEventHook = createEventHook<boolean | void>()
-
-provide(ReloadViewDataHookInj, reloadEventHook)
+const reloadEventHook = inject(ReloadViewDataHookInj, createEventHook<boolean | void>())
 
 reloadEventHook.on(async () => {
   await loadFormView()
   setFormData()
 })
 
-const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta, async () => reloadEventHook.trigger())
+const { showAll, hideAll, saveOrUpdate } = useViewColumnsOrThrow()
 
 const { syncLTARRefs, row } = useProvideSmartsheetRowStore(
   meta,

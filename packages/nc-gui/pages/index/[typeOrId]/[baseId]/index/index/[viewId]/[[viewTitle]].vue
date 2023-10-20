@@ -20,7 +20,7 @@ watch(
     until(tables)
       .toMatch((tables) => tables.length > 0)
       .then(() => {
-        getMeta(viewId as string, true)
+        getMeta(viewId as string)
       })
   },
   { immediate: true },

@@ -58,8 +58,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const { isUIAllowed } = useRoles()
 
-  const isSaving = ref(false)
-
   // getters
   const displayValue = computed(() => {
     if (row?.value?.row) {
@@ -137,22 +135,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       if (!rowId) return
 
-      isSaving.value = true
-
-      const createdDate = new Date().toISOString()
-
-      commentsAndLogs.value.push({
-        created_at: createdDate,
-        description: `The following comment has been created:${comment.value}`,
-        email: user?.value?.email,
-        user: user?.value?.email,
-        id: '',
-        display_name: user.value?.display_name,
-        row_id: rowId,
-        updated_at: createdDate,
-        op_type: 'COMMENT',
-      })
-
       await api.utils.commentRow({
         fk_model_id: meta.value?.id as string,
         row_id: rowId,
@@ -166,8 +148,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       comment.value = ''
     } catch (e: any) {
       message.error(e.message)
-    } finally {
-      isSaving.value = false
     }
 
     $e('a:row-expand:comment')

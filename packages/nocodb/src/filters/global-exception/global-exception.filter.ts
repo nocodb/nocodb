@@ -1,6 +1,13 @@
 import { Catch, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
+<<<<<<< HEAD
+<<<<<<< HEAD
 import { ThrottlerException } from '@nestjs/throttler';
+=======
+>>>>>>> 9149c5b28f... fix: correction in sentry integration
+=======
+import { ThrottlerException } from '@nestjs/throttler';
+>>>>>>> 6e22796d15... chore: integrate sentry
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import {
@@ -18,7 +25,15 @@ import {
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   constructor(
+<<<<<<< HEAD
+<<<<<<< HEAD
     @Optional() @InjectSentry() private readonly sentryClient: SentryService,
+=======
+    @Optional() @InjectSentry() private readonly client: SentryService,
+>>>>>>> 9149c5b28f... fix: correction in sentry integration
+=======
+    @Optional() @InjectSentry() private readonly sentryClient: SentryService,
+>>>>>>> 84d4eb5bec... refactor: better naming
   ) {}
 
   private logger = new Logger(GlobalExceptionFilter.name);
@@ -106,7 +121,15 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception.getStatus?.()) {
       response.status(exception.getStatus()).json(exception.getResponse());
     } else {
+<<<<<<< HEAD
+<<<<<<< HEAD
       this.sentryClient?.instance().captureException(exception);
+=======
+      this.client?.instance().captureException(exception);
+>>>>>>> 9149c5b28f... fix: correction in sentry integration
+=======
+      this.sentryClient?.instance().captureException(exception);
+>>>>>>> 84d4eb5bec... refactor: better naming
 
       // todo: change the response code
       response.status(400).json({

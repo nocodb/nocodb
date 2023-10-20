@@ -35,7 +35,7 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
         with:
-          source_file: 'packages/nocodb/src/schema/swagger.json'
+          source_file: 'packages/nocodb/src/schema/swagger-v2.json'
           destination_repo: 'nocodb/noco-apis-doc'
           destination_folder: 'data-apis-v2'
           user_email: 'oof1lab@gmail.com'

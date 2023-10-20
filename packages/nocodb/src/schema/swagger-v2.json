@@ -64,657 +64,7 @@
     }
   ],
   "paths": {
-    "/api/v1/user/profile": {
-      "patch": {
-        "summary": "Update User Profile",
-        "operationId": "user-profile-update",
-        "responses": {
-          "200": {
-            "$ref": "#/components/schemas/User"
-          }
-        },
-        "tags": [
-          "User profile"
-        ],
-        "description": "Update User Profile",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/User"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/auth/user/signup": {
-      "post": {
-        "summary": "Signup",
-        "operationId": "auth-signup",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "token": {
-                      "type": "string",
-                      "description": "The signed JWT token for information exchange",
-                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "examples": {
-                  "Invalid email": {
-                    "value": {
-                      "msg": "Invalid email"
-                    }
-                  },
-                  "Invalid invite url": {
-                    "value": {
-                      "msg": "Invalid invite url"
-                    }
-                  },
-                  "Expired invite url": {
-                    "value": {
-                      "msg": "Expired invite url, Please contact super admin to get a new invite url"
-                    }
-                  },
-                  "User already exist": {
-                    "value": {
-                      "msg": "User already exist"
-                    }
-                  },
-                  "Invite only signup": {
-                    "value": {
-                      "msg": "Not allowed to signup, contact super admin"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Auth"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SignUpReq"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "email": "user@example.com",
-                    "password": "password123456789",
-                    "firstname": "Alice",
-                    "lastname": "Smith",
-                    "token": null,
-                    "ignore_subscribe": 0
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Create a new user with provided email and password and first user is marked as super admin. "
-      }
-    },
-    "/api/v1/auth/user/signout": {
-      "post": {
-        "summary": "Signout",
-        "operationId": "auth-signout",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "description": "Success Message",
-                      "example": "Signed out successfully"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "Signed out successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Auth"
-        ],
-        "description": "Clear refresh token from the database and cookie."
-      },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ]
-    },
-    "/api/v1/auth/user/signin": {
-      "post": {
-        "summary": "Signin",
-        "operationId": "auth-signin",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "token": {
-                      "type": "string",
-                      "description": "The signed JWT token for information exchange",
-                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Auth"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SignInReq"
-              },
-              "examples": {
-                "example-1": {
-                  "value": {
-                    "email": "user@example.com",
-                    "password": "Password"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Authenticate existing user with their email and password. Successful login will return a JWT access-token. "
-      },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ]
-    },
-    "/api/v1/auth/user/me": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ],
-      "get": {
-        "summary": "Get User Info",
-        "operationId": "auth-me",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserInfo"
-                },
-                "examples": {
-                  "example-1": {
-                    "value": {
-                      "id": "us_8kugj628ebjngs",
-                      "email": "user@example.com",
-                      "email_verified": true,
-                      "firstname": "Alice",
-                      "lastname": "Smith",
-                      "roles": "org-level-viewer"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Auth"
-        ],
-        "description": "Returns authenticated user info",
-        "parameters": [
-          {
-            "schema": {
-              "$ref": "#/components/schemas/Id"
-            },
-            "in": "query",
-            "name": "base_id",
-            "description": "Pass base id to get base specific roles along with user info"
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/password/forgot": {
-      "post": {
-        "summary": "Forget Password",
-        "operationId": "auth-password-forgot",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "x-stoplight": {
-                        "id": "q9s5vh2i34x6c"
-                      },
-                      "example": "Please check your email to reset the password",
-                      "description": "Success Message"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "Please check your email to reset the password"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Emails user with a reset url.",
-        "tags": [
-          "Auth"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PasswordForgotReq"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "email": "user@example.com"
-                  }
-                }
-              }
-            }
-          },
-          "description": "Pass registered user email id in request body"
-        }
-      },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ]
-    },
-    "/api/v1/auth/password/change": {
-      "post": {
-        "summary": "Change Password",
-        "operationId": "auth-password-change",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "description": "Success Message"
-                    }
-                  }
-                },
-                "examples": {
-                  "Success response": {
-                    "value": {
-                      "msg": "Password has been updated successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Change password of authenticated user with a new one.",
-        "tags": [
-          "Auth"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PasswordChangeReq"
-              },
-              "examples": {
-                "example-1": {
-                  "value": {
-                    "currentPassword": "currentPassword",
-                    "newPassword": "newPassword"
-                  }
-                }
-              }
-            }
-          },
-          "description": "Old password need to be passed along with new password for changing password."
-        }
-      },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ]
-    },
-    "/api/v1/auth/token/validate/{token}": {
-      "post": {
-        "summary": "Verify Reset Token",
-        "operationId": "auth-password-reset-token-validate",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "x-stoplight": {
-                        "id": "unxdsok22kg1y"
-                      },
-                      "example": "Token has been validated successfully",
-                      "description": "Success Message"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "Token has been validated successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Validate password reset url token.",
-        "tags": [
-          "Auth"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "parameters": [
-        {
-          "schema": {
-            "type": "string",
-            "format": "uuid",
-            "example": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
-          },
-          "name": "token",
-          "in": "path",
-          "required": true,
-          "description": "Reset Token"
-        }
-      ]
-    },
-    "/api/v1/auth/email/validate/{token}": {
-      "post": {
-        "summary": "Verify Email",
-        "operationId": "auth-email-validate",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "x-stoplight": {
-                        "id": "u49sbr20s9rgf"
-                      },
-                      "description": "Success Message",
-                      "example": "Email has been verified successfully"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "Email has been verified successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Api for verifying email where token need to be passed which is shared to user email.",
-        "tags": [
-          "Auth"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "parameters": [
-        {
-          "schema": {
-            "type": "string",
-            "format": "uuid",
-            "example": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
-          },
-          "name": "token",
-          "in": "path",
-          "required": true,
-          "description": "Validation Token"
-        }
-      ]
-    },
-    "/api/v1/auth/password/reset/{token}": {
-      "post": {
-        "summary": "Reset Password",
-        "operationId": "auth-password-reset",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "x-stoplight": {
-                        "id": "2to6ro4121rfx"
-                      },
-                      "description": "Success Message",
-                      "example": "Password has been reset successfully"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "Password has been reset successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Update user password to new by using reset token.",
-        "tags": [
-          "Auth"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PasswordResetReq"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "password": "newpassword"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "parameters": [
-        {
-          "schema": {
-            "type": "string",
-            "format": "uuid",
-            "example": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
-          },
-          "name": "token",
-          "in": "path",
-          "required": true,
-          "description": "Reset Password Token"
-        }
-      ]
-    },
-    "/api/v1/auth/token/refresh": {
-      "post": {
-        "summary": "Refresh Token",
-        "operationId": "auth-token-refresh",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "token": {
-                      "type": "string",
-                      "description": "New access token for user",
-                      "example": "96751db2d53fb834382b682268874a2ea9ee610e4d904e688d1513f11d3c30d62d36d9e05dec0d63"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "token": "96751db2d53fb834382b682268874a2ea9ee610e4d904e688d1513f11d3c30d62d36d9e05dec0d63"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Regenerate user refresh token",
-        "tags": [
-          "Auth"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ]
-    },
-    "/api/v2/meta/projects/{baseId}/users": {
+    "/api/v2/meta/bases/{baseId}/users": {
       "get": {
         "summary": "List Base Users",
         "operationId": "auth-base-user-list",
@@ -925,7 +275,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/info": {
+    "/api/v2/meta/bases/{baseId}/info": {
       "parameters": [
         {
           "schema": {
@@ -1024,7 +374,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/users/{userId}": {
+    "/api/v2/meta/bases/{baseId}/users/{userId}": {
       "parameters": [
         {
           "schema": {
@@ -1156,7 +506,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/visibility-rules": {
+    "/api/v2/meta/bases/{baseId}/visibility-rules": {
       "get": {
         "summary": "Get UI ACL",
         "operationId": "base-model-visibility-list",
@@ -1310,14 +660,14 @@
         ]
       }
     },
-    "/api/v2/meta/projects/": {
+    "/api/v2/meta/bases/": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
         }
       ],
       "get": {
-        "summary": "List Projects",
+        "summary": "List Bases",
         "operationId": "base-list",
         "responses": {
           "200": {
@@ -1668,7 +1018,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}": {
+    "/api/v2/meta/bases/{baseId}": {
       "parameters": [
         {
           "schema": {
@@ -1828,7 +1178,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/user": {
+    "/api/v2/meta/bases/{baseId}/user": {
       "parameters": [
         {
           "schema": {
@@ -1861,7 +1211,7 @@
         }
       }
     },
-    "/api/v2/meta/projects/{baseId}/bases/{sourceId}": {
+    "/api/v2/meta/bases/{baseId}/sources/{sourceId}": {
       "parameters": [
         {
           "schema": {
@@ -2040,7 +1390,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/:baseId/bases/:sourceId/sqlView": {
+    "/api/v2/meta/bases/:baseId/sources/:sourceId/sqlView": {
       "parameters": [
         {
           "schema": {
@@ -2097,7 +1447,7 @@
         }
       }
     },
-    "/api/v2/meta/projects/{baseId}/bases/": {
+    "/api/v2/meta/bases/{baseId}/sources/": {
       "parameters": [
         {
           "schema": {
@@ -2236,7 +1586,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/bases/{sourceId}/share/erd": {
+    "/api/v2/meta/bases/{baseId}/sources/{sourceId}/share/erd": {
       "parameters": [
         {
           "schema": {
@@ -2287,7 +1637,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/shared": {
+    "/api/v2/meta/bases/{baseId}/shared": {
       "parameters": [
         {
           "schema": {
@@ -2500,7 +1850,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/cost": {
+    "/api/v2/meta/bases/{baseId}/cost": {
       "parameters": [
         {
           "schema": {
@@ -2545,7 +1895,7 @@
         "x-internal": true
       }
     },
-    "/api/v2/meta/projects/{baseId}/tables": {
+    "/api/v2/meta/bases/{baseId}/tables": {
       "parameters": [
         {
           "schema": {
@@ -3617,7 +2967,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/{sourceId}/tables": {
+    "/api/v2/meta/bases/{baseId}/{sourceId}/tables": {
       "parameters": [
         {
           "schema": {
@@ -7288,7 +6638,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/meta-diff": {
+    "/api/v2/meta/bases/{baseId}/meta-diff": {
       "parameters": [
         {
           "schema": {
@@ -7460,7 +6810,7 @@
         "description": "Get the meta data difference between NC_DB and external data sources "
       }
     },
-    "/api/v2/meta/projects/{baseId}/meta-diff/{sourceId}": {
+    "/api/v2/meta/bases/{baseId}/meta-diff/{sourceId}": {
       "parameters": [
         {
           "schema": {
@@ -7639,7 +6989,7 @@
         "description": "Get the meta data difference between NC_DB and external data sources in a given Source"
       }
     },
-    "/api/v2/meta/projects/{baseId}/has-empty-or-null-filters": {
+    "/api/v2/meta/bases/{baseId}/has-empty-or-null-filters": {
       "parameters": [
         {
           "schema": {
@@ -9147,7 +8497,7 @@
         ]
       }
     },
-    "/api/v2/meta/projects/{baseId}/audits": {
+    "/api/v2/meta/bases/{baseId}/audits": {
       "parameters": [
         {
           "schema": {
@@ -10193,135 +9543,6 @@
         "description": ""
       }
     },
-    "/api/v1/url_to_config": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ],
-      "post": {
-        "summary": "Convert JDBC URL to Config",
-        "operationId": "utils-url-to-config",
-        "tags": [
-          "Utils"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "url": {
-                    "type": "string",
-                    "x-stoplight": {
-                      "id": "fgdbmcjjtkky5"
-                    },
-                    "description": "JDBC URL",
-                    "example": "jdbc:mysql://username:password@localhost:3306/sakila"
-                  }
-                }
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "url": "jdbc:mysql://username:password@localhost:3306/sakila"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "x-examples": {
-                    "Example 1": {
-                      "client": "mysql2",
-                      "connection": {
-                        "user": "username",
-                        "password": "password",
-                        "database": "sakila",
-                        "host": "localhost",
-                        "port": "3306"
-                      }
-                    }
-                  },
-                  "properties": {
-                    "client": {
-                      "description": "DB Type",
-                      "enum": [
-                        "mssql",
-                        "mysql",
-                        "mysql2",
-                        "oracledb",
-                        "pg",
-                        "snowflake",
-                        "sqlite3"
-                      ],
-                      "example": "mysql2",
-                      "type": "string"
-                    },
-                    "connection": {
-                      "type": "object",
-                      "description": "Connection Config",
-                      "properties": {
-                        "user": {
-                          "type": "string",
-                          "description": "DB User"
-                        },
-                        "password": {
-                          "type": "string",
-                          "description": "DB Password"
-                        },
-                        "database": {
-                          "type": "string",
-                          "description": "DB Name"
-                        },
-                        "host": {
-                          "type": "string",
-                          "description": "DB Host"
-                        },
-                        "port": {
-                          "type": "string",
-                          "description": "DB Host"
-                        }
-                      }
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "client": "mysql2",
-                      "connection": {
-                        "user": "username",
-                        "password": "password",
-                        "database": "sakila",
-                        "host": "localhost",
-                        "port": "3306"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "Extract XC URL From JDBC and parse to connection config",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
     "/api/v2/meta/nocodb/info": {
       "parameters": [
         {
@@ -10520,361 +9741,6 @@
         ]
       }
     },
-    "/api/v1/version": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ],
-      "get": {
-        "summary": "Get App Version",
-        "operationId": "utils-app-version",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "x-examples": {
-                    "Example 1": {
-                      "currentVersion": "0.105.3",
-                      "releaseVersion": "0.105.3"
-                    }
-                  },
-                  "properties": {
-                    "currentVersion": {
-                      "type": "string",
-                      "description": "Current NocoDB Version",
-                      "example": "0.104.0"
-                    },
-                    "releaseVersion": {
-                      "type": "string",
-                      "description": "Latest Release Version",
-                      "example": "0.105.3"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "currentVersion": "0.104.0",
-                      "releaseVersion": "0.105.3"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Utils"
-        ],
-        "description": "Get the application version",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/health": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ],
-      "get": {
-        "summary": "Get Application Health Status",
-        "operationId": "utils-app-health",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "x-examples": {
-                    "Example 1": {
-                      "message": "OK",
-                      "timestamp": 1678702175755,
-                      "uptime": 1618.996877834
-                    }
-                  },
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "OK"
-                    },
-                    "timestamp": {
-                      "type": "string",
-                      "example": "1678702175755"
-                    },
-                    "uptime": {
-                      "type": "string",
-                      "example": "1618.996877834"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "message": "OK",
-                      "timestamp": 1678702175755,
-                      "uptime": 1618.996877834
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Utils"
-        ],
-        "description": "Get Application Health Status",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/aggregated-meta-info": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ],
-      "get": {
-        "summary": "Get Aggregated Meta Info",
-        "operationId": "utils-aggregated-meta-info",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "baseCount": {
-                      "type": "integer"
-                    },
-                    "bases": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "tableCount": {
-                            "type": "object",
-                            "properties": {
-                              "table": {
-                                "type": "integer",
-                                "description": "Table Count"
-                              },
-                              "view": {
-                                "type": "integer",
-                                "description": "View Count"
-                              }
-                            }
-                          },
-                          "external": {
-                            "type": "boolean",
-                            "description": "External Base",
-                            "default": false
-                          },
-                          "viewCount": {
-                            "type": "object",
-                            "properties": {
-                              "formCount": {
-                                "type": "integer",
-                                "description": "Form Count"
-                              },
-                              "gridCount": {
-                                "type": "integer",
-                                "description": "Grid Count"
-                              },
-                              "galleryCount": {
-                                "type": "integer",
-                                "description": "Gallery Count"
-                              },
-                              "kanbanCount": {
-                                "type": "integer",
-                                "description": "Kanban Count"
-                              },
-                              "total": {
-                                "type": "integer",
-                                "description": "Total View Count"
-                              },
-                              "sharedFormCount": {
-                                "type": "integer",
-                                "description": "Shared Form Count"
-                              },
-                              "sharedGridCount": {
-                                "type": "integer",
-                                "description": "Shared Grid Count"
-                              },
-                              "sharedGalleryCount": {
-                                "type": "integer",
-                                "description": "Shared Gallery Count"
-                              },
-                              "sharedKanbanCount": {
-                                "type": "integer",
-                                "description": "Shared Kanban Count"
-                              },
-                              "sharedTotal": {
-                                "type": "integer",
-                                "description": "Shared Total View Count"
-                              },
-                              "sharedLockedCount": {
-                                "type": "integer",
-                                "description": "Shared Locked View Count"
-                              }
-                            }
-                          },
-                          "webhookCount": {
-                            "type": "integer",
-                            "description": "Webhook Count"
-                          },
-                          "filterCount": {
-                            "type": "integer",
-                            "description": "Filter Count"
-                          },
-                          "sortCount": {
-                            "type": "integer",
-                            "description": "Sort Count"
-                          },
-                          "rowCount": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "TotalRecords": {
-                                  "type": "string"
-                                }
-                              }
-                            },
-                            "description": "Row Count"
-                          },
-                          "userCount": {
-                            "type": "integer",
-                            "description": "Total base user Count"
-                          }
-                        }
-                      }
-                    },
-                    "userCount": {
-                      "type": "integer",
-                      "description": "Total user Count"
-                    },
-                    "sharedBaseCount": {
-                      "type": "integer",
-                      "description": "Total shared base Count"
-                    }
-                  },
-                  "x-examples": {
-                    "Example 1": {
-                      "baseCount": 1,
-                      "bases": [
-                        {
-                          "tableCount": {
-                            "table": 3,
-                            "view": 0
-                          },
-                          "external": false,
-                          "viewCount": {
-                            "formCount": 0,
-                            "gridCount": 3,
-                            "galleryCount": 0,
-                            "kanbanCount": 0,
-                            "total": 3,
-                            "sharedFormCount": 0,
-                            "sharedGridCount": 0,
-                            "sharedGalleryCount": 0,
-                            "sharedKanbanCount": 0,
-                            "sharedTotal": 0,
-                            "sharedLockedCount": 0
-                          },
-                          "webhookCount": 0,
-                          "filterCount": 0,
-                          "sortCount": 0,
-                          "rowCount": [
-                            {
-                              "TotalRecords": "76"
-                            }
-                          ],
-                          "userCount": 1
-                        }
-                      ],
-                      "userCount": 1,
-                      "sharedBaseCount": 0
-                    }
-                  }
-                },
-                "examples": {
-                  "example-1": {
-                    "value": {
-                      "baseCount": 1,
-                      "bases": [
-                        {
-                          "tableCount": {
-                            "table": 3,
-                            "view": 0
-                          },
-                          "external": false,
-                          "viewCount": {
-                            "formCount": 0,
-                            "gridCount": 3,
-                            "galleryCount": 0,
-                            "kanbanCount": 0,
-                            "total": 3,
-                            "sharedFormCount": 0,
-                            "sharedGridCount": 0,
-                            "sharedGalleryCount": 0,
-                            "sharedKanbanCount": 0,
-                            "sharedTotal": 0,
-                            "sharedLockedCount": 0
-                          },
-                          "webhookCount": 0,
-                          "filterCount": 0,
-                          "sortCount": 0,
-                          "rowCount": [
-                            {
-                              "TotalRecords": "76"
-                            }
-                          ],
-                          "userCount": 1
-                        }
-                      ],
-                      "userCount": 1,
-                      "sharedBaseCount": 0
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Utils"
-        ],
-        "description": "Get Aggregated Meta Info such as tableCount, dbViewCount, viewCount and etc.",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
     "/api/v2/meta/cache": {
       "get": {
         "summary": "Get Cache",
@@ -10929,7 +9795,7 @@
         }
       ]
     },
-    "/api/v2/meta/projects/{baseId}/api-tokens": {
+    "/api/v2/meta/bases/{baseId}/api-tokens": {
       "get": {
         "summary": "List API Tokens in Base",
         "tags": [
@@ -11048,7 +9914,7 @@
         }
       ]
     },
-    "/api/v2/meta/projects/{baseId}/api-tokens/{token}": {
+    "/api/v2/meta/bases/{baseId}/api-tokens/{token}": {
       "delete": {
         "summary": "Delete API Token",
         "operationId": "api-token-delete",
@@ -11192,7 +10058,7 @@
         "description": "Upload attachment by URL. Used in Airtable Migration."
       }
     },
-    "/api/v2/meta/projects/{baseId}/users/{userId}/resend-invite": {
+    "/api/v2/meta/bases/{baseId}/users/{userId}/resend-invite": {
       "parameters": [
         {
           "schema": {
@@ -11260,116 +10126,6 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ]
-      }
-    },
-    "/api/v1/notifications": {
-      "get": {
-        "summary": "Notification list",
-        "operationId": "notification-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotificationList"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Notification"
-        ],
-        "description": "List notifications",
-        "parameters": [
-          {
-            "schema": {
-              "type": "boolean"
-            },
-            "name": "is_read",
-            "in": "query",
-            "required": false
-          },
-          {
-            "schema": {
-              "type": "number"
-            },
-            "name": "limit",
-            "in": "query",
-            "required": false
-          },
-          {
-            "schema": {
-              "type": "number"
-            },
-            "name": "offset",
-            "in": "query",
-            "required": false
-          }
-        ]
-      }
-    },
-    "/api/v1/notifications/{notificationId}": {
-      "patch": {
-        "summary": "Notification update",
-        "operationId": "notification-update",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NotificationUpdate"
-              }
-            }
-          }
-        },
-        "tags": [
-          "Notification"
-        ],
-        "description": "Notificattion update"
-      },
-      "delete": {
-        "summary": "Delete notification",
-        "operationId": "notification-delete",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Notification"
-        ],
-        "description": "Delete notification"
-      },
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "notificationId",
-          "in": "path",
-          "required": true
-        }
-      ]
-    },
-    "/api/v1/notifications/mark-all-read": {
-      "post": {
-        "summary": "Mark all notifications as read",
-        "operationId": "notification-mark-all-as-read",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Notification"
-        ],
-        "description": "Mark all notifications as read"
       }
     },
     "/api/v2/meta/tables/{tableId}/columns/hash": {
@@ -11518,7 +10274,7 @@
         ]
       }
     },
-    "/api/v2/tables/{tableId}/rows": {
+    "/api/v2/tables/{tableId}/records": {
       "parameters": [
         {
           "schema": {
@@ -11527,51 +10283,32 @@
           "name": "tableId",
           "in": "path",
           "required": true,
-          "description": "Table ID"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewId",
-          "in": "query",
-          "required": true,
-          "description": "View ID"
+          "description": "**Table Identifier**."
         }
       ],
       "get": {
-        "summary": "List Table Rows",
+        "summary": "List Table Records",
         "operationId": "db-data-table-row-list",
-        "description": "List all table rows in a given table",
+        "description": "This API endpoint allows you to retrieve records from a specified table. You can customize the response by applying various query parameters for filtering, sorting, and formatting.\n\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\n\n- `totalRows`: Indicates the total number of rows available for the specified conditions (if any).\n- `page`: Specifies the current page number.\n- `pageSize`: Defaults to 25 and defines the number of records on each page.\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of records in the dataset.\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of records in the dataset.\n\nThe `pageInfo` attributes are particularly valuable when dealing with large datasets that are divided into multiple pages. They enable you to determine whether additional pages of records are available for retrieval or if you've reached the end of the dataset.",
         "tags": [
-          "DB Data Table Row"
+          "Table Records"
         ],
         "parameters": [
           {
             "schema": {
-              "type": "array"
+              "type": "string"
             },
             "in": "query",
             "name": "fields",
-            "description": "Which fields to be shown"
+            "description": "Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
           },
           {
             "schema": {
-              "oneOf": [
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                {
-                  "type": "string"
-                }
-              ]
+              "type": "string"
             },
             "in": "query",
             "name": "sort",
-            "description": "The result will be sorted based on `sort` query"
+            "description": "Allows you to specify the fields by which you want to sort the records in your API response. By default, sorting is done in ascending order for the designated fields. To sort in descending order, add a '-' symbol before the field name.\n\nExample: `sort=field1,-field2` will sort the records first by 'field1' in ascending order and then by 'field2' in descending order.\n\nIf `viewId` query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view.\n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
           },
           {
             "schema": {
@@ -11579,7 +10316,7 @@
             },
             "in": "query",
             "name": "where",
-            "description": "Extra filtering"
+            "description": "Enables you to define specific conditions for filtering records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'ne' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
           },
           {
             "schema": {
@@ -11588,7 +10325,7 @@
             },
             "in": "query",
             "name": "offset",
-            "description": "Offset in rows"
+            "description": "Enables you to control the pagination of your API response by specifying the number of records you want to skip from the beginning of the result set. The default value for this parameter is set to 0, meaning no records are skipped by default.\n\nExample: `offset=25` will skip the first 25 records in your API response, allowing you to access records starting from the 26th position.\n\nPlease note that the 'offset' value represents the number of records to exclude, not an index value, so an offset of 25 will skip the first 25 records."
           },
           {
             "schema": {
@@ -11597,23 +10334,15 @@
             },
             "in": "query",
             "name": "limit",
-            "description": "Limit in rows"
+            "description": "Enables you to set a limit on the number of records you want to retrieve in your API response. By default, your response includes all the available records, but by using this parameter, you can control the quantity you receive.\n\nExample: `limit=100` will constrain your response to the first 100 records in the dataset."
           },
           {
             "schema": {
               "type": "string"
             },
+            "name": "viewId",
             "in": "query",
-            "name": "sortArrJson",
-            "description": "Used for multiple sort queries"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "filterArrJson",
-            "description": "Used for multiple filter queries"
+            "description": "***View Identifier***. Allows you to fetch records that are currently visible within a specific view. API retrieves records in the order they are displayed if the SORT option is enabled within that view.\n\nAdditionally, if you specify a `sort` query parameter, it will take precedence over any sorting configuration defined in the view. If you specify a `where` query parameter, it will be applied over the filtering configuration defined in the view. \n\nBy default, all fields, including those that are disabled within the view, are included in the response. To explicitly specify which fields to include or exclude, you can use the `fields` query parameter to customize the output according to your requirements."
           },
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -11650,52 +10379,74 @@
                       "list": [
                         {
                           "Id": 1,
-                          "Title": "baz",
-                          "SingleSelect": null,
-                          "Sheet-1 List": [
+                          "SingleLineText": "David",
+                          "Year": 2023,
+                          "URL": "www.google.com",
+                          "SingleSelect": "Jan",
+                          "Email": "a@b.com",
+                          "Duration": 74040,
+                          "Decimal": 23.658,
+                          "Currency": 23,
+                          "JSON": {
+                            "name": "John Doe",
+                            "age": 30,
+                            "email": "johndoe@example.com",
+                            "isSubscribed": true,
+                            "address": {
+                              "street": "123 Main Street",
+                              "city": "Anytown",
+                              "zipCode": "12345"
+                            },
+                            "hobbies": [
+                              "Reading",
+                              "Hiking",
+                              "Cooking"
+                            ],
+                            "scores": {
+                              "math": 95,
+                              "science": 88,
+                              "history": 75
+                            }
+                          },
+                          "Date": "2023-10-16",
+                          "Time": "06:02:00",
+                          "Rating": 1,
+                          "Percent": 55,
+                          "Checkbox": true,
+                          "Attachment": [
                             {
-                              "Id": 1,
-                              "Title": "baz"
+                              "url": "https://some-s3-server.com/nc/uploads/2023/10/16/some-key/3niqHLngUKiU2Hupe8.jpeg",
+                              "title": "2 be loved.jpeg",
+                              "mimetype": "image/jpeg",
+                              "size": 146143,
+                              "signedUrl": "https://some-s3-server.com/nc/uploads/2023/10/16/signed-url-misc-info"
                             }
                           ],
-                          "LTAR": [
-                            {
-                              "Id": 1,
-                              "Title": "baz"
-                            }
-                          ]
-                        },
-                        {
-                          "Id": 2,
-                          "Title": "foo",
-                          "SingleSelect": "a",
-                          "Sheet-1 List": [
-                            {
-                              "Id": 2,
-                              "Title": "foo"
-                            }
-                          ],
-                          "LTAR": [
-                            {
-                              "Id": 2,
-                              "Title": "foo"
-                            }
-                          ]
-                        },
-                        {
-                          "Id": 3,
-                          "Title": "bar",
-                          "SingleSelect": "b",
-                          "Sheet-1 List": [],
-                          "LTAR": []
+                          "MultiSelect": "Jan,Feb",
+                          "DateTime": "2023-10-16 08:56:32+00:00",
+                          "LongText": "The sunsets in the small coastal town were a breathtaking sight. The sky would transform from a vibrant blue to warm hues of orange and pink as the day came to an end. Locals and tourists alike would gather at the beach, sipping on cool drinks and watching in awe as the sun dipped below the horizon.",
+                          "Geometry": "23.23, 36.54",
+                          "PhoneNumber": "123456789",
+                          "Number": 5248,
+                          "Barcode": "David",
+                          "QRCode": "David",
+                          "Formula": "10",
+                          "Lookup": "a",
+                          "Links:belongs-to": {
+                            "Id": 1,
+                            "Title": "a"
+                          },
+                          "Links:has-many": 2,
+                          "Rollup": 3,
+                          "Links:many-many": 3
                         }
                       ],
                       "pageInfo": {
-                        "totalRows": 3,
+                        "totalRows": 5,
                         "page": 1,
-                        "pageSize": 25,
+                        "pageSize": 1,
                         "isFirstPage": true,
-                        "isLastPage": true
+                        "isLastPage": false
                       }
                     }
                   }
@@ -11709,14 +10460,26 @@
         }
       },
       "post": {
-        "summary": "Create Table Rows",
+        "summary": "Create Table Records",
         "operationId": "db-data-table-row-create",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {},
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "Id": 10
+                      },
+                      {
+                        "Id": 11
+                      }
+                    ]
+                  }
+                }
               }
             }
           },
@@ -11725,7 +10488,7 @@
           }
         },
         "tags": [
-          "DB Data Table Row"
+          "Table Records"
         ],
         "requestBody": {
           "content": {
@@ -11745,33 +10508,93 @@
               },
               "examples": {
                 "Example 1": {
-                  "value": {
-                    "Id": 1,
-                    "Title": "foo",
-                    "CreatedAt": "2023-03-11T09:10:53.567Z",
-                    "UpdatedAt": "2023-03-11T09:10:53.567Z"
+                  "value": [{
+                    "SingleLineText": "David",
+                    "LongText": "The sunsets in the small coastal town were a breathtaking sight. The sky would transform from a vibrant blue to warm hues of orange and pink as the day came to an end. Locals and tourists alike would gather at the beach, sipping on cool drinks and watching in awe as the sun dipped below the horizon.",
+                    "CreatedAt": "2023-10-16 08:27:59+00:00",
+                    "UpdatedAt": "2023-10-16 08:56:32+00:00",
+                    "Decimal": 23.658,
+                    "Checkbox": true,
+                    "Attachment": [
+                      {
+                        "url": "https://some-s3-server.com/nc/uploads/2023/10/16/some-key/3niqHLngUKiU2Hupe8.jpeg",
+                        "title": "2 be loved.jpeg",
+                        "mimetype": "image/jpeg",
+                        "size": 146143,
+                        "signedUrl": "https://some-s3-server.com/nc/uploads/2023/10/16/signed-url-misc-info"
+                      }
+                    ],
+                    "MultiSelect": "Jan,Feb",
+                    "SingleSelect": "Jan",
+                    "Date": "2023-10-16",
+                    "Year": 2023,
+                    "Time": "06:02:00",
+                    "PhoneNumber": "123456789",
+                    "Email": "a@b.com",
+                    "URL": "www.google.com",
+                    "Currency": 23,
+                    "Percent": 55,
+                    "Duration": 74040,
+                    "Rating": 1,
+                    "JSON": {
+                      "name": "John Doe",
+                      "age": 30,
+                      "email": "johndoe@example.com",
+                      "isSubscribed": true,
+                      "address": {
+                        "street": "123 Main Street",
+                        "city": "Anytown",
+                        "zipCode": "12345"
+                      },
+                      "hobbies": [
+                        "Reading",
+                        "Hiking",
+                        "Cooking"
+                      ],
+                      "scores": {
+                        "math": 95,
+                        "science": 88,
+                        "history": 75
+                      }
+                    },
+                    "DateTime": "2023-10-16 08:56:32+00:00",
+                    "Geometry": "23.23, 36.54",
+                    "Number": 5248
                   }
+                  ]
                 }
               }
             }
           }
         },
-        "description": "Create a new row in a given table and base.",
+        "description": "This API endpoint allows the creation of new records within a specified table. Records to be inserted are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. \n\nWhen dealing with 'Links' or 'Link To Another Record' field types, you should utilize the 'Create Link' API to insert relevant data. \n\nCertain read-only field types will be disregarded if included in the request. These field types include 'Look Up,' 'Roll Up,' 'Formula,' 'Auto Number,' 'Created By,' 'Updated By,' 'Created At,' 'Updated At,' 'Barcode,' and 'QR Code.'",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
           }
         ]
       },
-      "put": {
-        "summary": "Update Table Rows",
+      "patch": {
+        "summary": "Update Table Records",
         "operationId": "db-data-table-row-update",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {},
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "Id": 6
+                      },
+                      {
+                        "Id": 7
+                      }
+                    ]
+                  }
+                }
               }
             }
           },
@@ -11780,7 +10603,7 @@
           }
         },
         "tags": [
-          "DB Data Table Row"
+          "Table Records"
         ],
         "requestBody": {
           "content": {
@@ -11800,18 +10623,25 @@
               },
               "examples": {
                 "Example 1": {
-                  "value": {
-                    "Id": 1,
-                    "Title": "foo",
-                    "CreatedAt": "2023-03-11T09:10:53.567Z",
-                    "UpdatedAt": "2023-03-11T09:10:53.567Z"
-                  }
+                  "value": [{
+                    "Id": 6,
+                    "SingleLineText": "Updated text-1",
+                    "DateTime": "2023-10-19 08:56:32+00:00",
+                    "Geometry": "23.232, 36.542",
+                    "Number": 52482
+                  },{
+                    "Id": 7,
+                    "SingleLineText": "Updated text-2",
+                    "DateTime": "2023-10-19 08:56:32+00:00",
+                    "Geometry": "23.232, 36.542",
+                    "Number": 52482
+                  }]
                 }
               }
             }
           }
         },
-        "description": "Create a new row in a given table and base.",
+        "description": "This API endpoint allows updating existing records within a specified table identified by an array of Record-IDs, serving as unique identifier for the record. Records to be updated are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. \n\nWhen dealing with 'Links' or 'Link To Another Record' field types, you should utilize the 'Create Link' API to insert relevant data. \n\nCertain read-only field types will be disregarded if included in the request. These field types include 'Look Up,' 'Roll Up,' 'Formula,' 'Auto Number,' 'Created By,' 'Updated By,' 'Created At,' 'Updated At,' 'Barcode,' and 'QR Code.'\n\nNote that a PATCH request only updates the specified fields while leaving other fields unaffected. Currently, PUT requests are not supported by this endpoint.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -11819,14 +10649,26 @@
         ]
       },
       "delete": {
-        "summary": "Delete Table Rows",
+        "summary": "Delete Table Records",
         "operationId": "db-data-table-row-delete",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {},
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "Id": 1
+                      },
+                      {
+                        "Id": 2
+                      }
+                    ]
+                  }
+                }
               }
             }
           },
@@ -11835,7 +10677,7 @@
           }
         },
         "tags": [
-          "DB Data Table Row"
+          "Table Records"
         ],
         "requestBody": {
           "content": {
@@ -11858,6 +10700,9 @@
                   "value": [
                     {
                       "Id": 1
+                    },
+                    {
+                      "Id": 2
                     }
                   ]
                 }
@@ -11865,7 +10710,7 @@
             }
           }
         },
-        "description": "Create a new row in a given table and base.",
+        "description": "This API endpoint allows deleting existing records within a specified table identified by an array of Record-IDs, serving as unique identifier for the record. Records to be deleted are input as an array of record-identifiers.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -11873,7 +10718,7 @@
         ]
       }
     },
-    "/api/v2/tables/{tableId}/records/{rowId}": {
+    "/api/v2/tables/{tableId}/records/{recordId}": {
       "parameters": [
         {
           "schema": {
@@ -11882,51 +10727,33 @@
           "name": "tableId",
           "in": "path",
           "required": true,
-          "description": "Table ID"
+          "description": "**Table Identifier**"
         },
         {
           "schema": {
             "type": "string"
           },
-          "name": "rowId",
+          "name": "recordId",
           "in": "path",
           "required": true,
-          "description": "Row ID"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewId",
-          "in": "query",
-          "required": true,
-          "description": "View ID"
+          "description": "Record ID"
         }
       ],
       "get": {
-        "summary": "Read Table Row",
+        "summary": "Read Table Record",
         "operationId": "db-data-table-row-read",
-        "description": "Get table row in a given table",
+        "description": "This API endpoint allows you to retrieve a single record identified by Record-ID, serving as unique identifier for the record from a specified table.",
         "tags": [
-          "DB Data Table Row"
+          "Table Records"
         ],
         "parameters": [
           {
             "schema": {
-              "type": "array"
+              "type": "string"
             },
             "in": "query",
             "name": "fields",
-            "description": "Which fields to be shown"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "in": "query",
-            "name": "offset",
-            "description": "Offset in rows"
+            "description": "Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
           },
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -11944,20 +10771,68 @@
                   "Example 1": {
                     "value": {
                       "Id": 1,
-                      "Title": "baz",
-                      "SingleSelect": null,
-                      "Sheet-1 List": [
+                      "SingleLineText": "David",
+                      "CreatedAt": "2023-10-16 08:27:59+00:00",
+                      "UpdatedAt": "2023-10-16 10:05:41+00:00",
+                      "Year": 2023,
+                      "URL": "www.google.com",
+                      "SingleSelect": "Jan",
+                      "Email": "a@b.com",
+                      "Duration": 74040,
+                      "Decimal": 23.658,
+                      "Currency": 23,
+                      "Barcode": "David",
+                      "JSON": {
+                        "name": "John Doe",
+                        "age": 30,
+                        "email": "johndoe@example.com",
+                        "isSubscribed": true,
+                        "address": {
+                          "street": "123 Main Street",
+                          "city": "Anytown",
+                          "zipCode": "12345"
+                        },
+                        "hobbies": [
+                          "Reading",
+                          "Hiking",
+                          "Cooking"
+                        ],
+                        "scores": {
+                          "math": 95,
+                          "science": 88,
+                          "history": 75
+                        }
+                      },
+                      "QRCode": "David",
+                      "Rollup": 3,
+                      "Date": "2023-10-16",
+                      "Time": "06:02:00",
+                      "Rating": 1,
+                      "Percent": 55,
+                      "Formula": 10,
+                      "Checkbox": true,
+                      "Attachment": [
                         {
-                          "Id": 1,
-                          "Title": "baz"
+                          "url": "https://some-s3-server.com/nc/uploads/2023/10/16/some-key/3niqHLngUKiU2Hupe8.jpeg",
+                          "title": "2 be loved.jpeg",
+                          "mimetype": "image/jpeg",
+                          "size": 146143,
+                          "signedUrl": "https://some-s3-server.com/nc/uploads/2023/10/16/signed-url-misc-info"
                         }
                       ],
-                      "LTAR": [
-                        {
-                          "Id": 1,
-                          "Title": "baz"
-                        }
-                      ]
+                      "MultiSelect": "Jan,Feb",
+                      "DateTime": "2023-10-19 08:56:32+00:00",
+                      "LongText": "The sunsets in the small coastal town were a breathtaking sight. The sky would transform from a vibrant blue to warm hues of orange and pink as the day came to an end. Locals and tourists alike would gather at the beach, sipping on cool drinks and watching in awe as the sun dipped below the horizon.",
+                      "Geometry": "23.232, 36.542",
+                      "PhoneNumber": "123456789",
+                      "Number": 52482,
+                      "Links:has-many": 2,
+                      "Links:many-many": 3,
+                      "Links:belongs-to": {
+                        "Id": 1,
+                        "Title": "a"
+                      },
+                      "Lookup": "a"
                     }
                   }
                 }
@@ -11979,7 +10854,7 @@
           "name": "tableId",
           "in": "path",
           "required": true,
-          "description": "Table ID"
+          "description": "**Table Identifier**"
         },
         {
           "schema": {
@@ -11987,41 +10862,24 @@
           },
           "name": "viewId",
           "in": "query",
-          "required": true,
-          "description": "View ID"
+          "description": "**View Identifier**. Allows you to fetch record count that are currently visible within a specific view."
         }
       ],
       "get": {
-        "summary": "Table Rows Count",
+        "summary": "Count Table Records",
         "operationId": "db-data-table-row-count",
-        "description": "Count of rows in a given table",
+        "description": "This API endpoint allows you to retrieve the total number of records from a specified table or a view. You can narrow down search results by applying `where` query parameter",
         "tags": [
-          "DB Data Table Row"
+          "Table Records"
         ],
         "parameters": [
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "fields",
-            "description": "Which fields to be shown"
-          },
           {
             "schema": {
               "type": "string"
             },
             "in": "query",
             "name": "where",
-            "description": "Extra filtering"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "filterArrJson",
-            "description": "Used for multiple filter queries"
+            "description": "Enables you to define specific conditions for filtering record count in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'ne' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
           },
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -12047,56 +10905,7 @@
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "list": [
-                        {
-                          "Id": 1,
-                          "Title": "baz",
-                          "SingleSelect": null,
-                          "Sheet-1 List": [
-                            {
-                              "Id": 1,
-                              "Title": "baz"
-                            }
-                          ],
-                          "LTAR": [
-                            {
-                              "Id": 1,
-                              "Title": "baz"
-                            }
-                          ]
-                        },
-                        {
-                          "Id": 2,
-                          "Title": "foo",
-                          "SingleSelect": "a",
-                          "Sheet-1 List": [
-                            {
-                              "Id": 2,
-                              "Title": "foo"
-                            }
-                          ],
-                          "LTAR": [
-                            {
-                              "Id": 2,
-                              "Title": "foo"
-                            }
-                          ]
-                        },
-                        {
-                          "Id": 3,
-                          "Title": "bar",
-                          "SingleSelect": "b",
-                          "Sheet-1 List": [],
-                          "LTAR": []
-                        }
-                      ],
-                      "pageInfo": {
-                        "totalRows": 3,
-                        "page": 1,
-                        "pageSize": 25,
-                        "isFirstPage": true,
-                        "isLastPage": true
-                      }
+                      "count": 3
                     }
                   }
                 }
@@ -12109,7 +10918,7 @@
         }
       }
     },
-    "/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}": {
+    "/api/v2/tables/{tableId}/links/{linkFieldId}/records/{recordId}": {
       "parameters": [
         {
           "schema": {
@@ -12118,51 +10927,50 @@
           "name": "tableId",
           "in": "path",
           "required": true,
-          "description": "Table ID"
+          "description": "**Table Identifier**"
         },
         {
           "schema": {
             "type": "string"
           },
-          "name": "viewId",
-          "in": "query",
+          "name": "linkFieldId",
+          "in": "path",
           "required": true,
-          "description": "View ID"
+          "description": "**Links Field Identifier** corresponding to the relation field `Links` established between tables."
         }
       ],
       "get": {
-        "summary": "Get Nested Relations Rows",
+        "summary": "List Linked Records",
         "operationId": "db-data-table-row-nested-list",
-        "description": "Linked rows in a given Links/LinkToAnotherRecord column",
+        "description": "This API endpoint allows you to retrieve list of linked records for a specific `Link field` and `Record ID`. The response is an array of objects containing Primary Key and its corresponding display value.",
         "tags": [
-          "DB Data Table Row"
+          "Table Records"
         ],
         "parameters": [
           {
             "schema": {
-              "type": "array"
+              "type": "string"
             },
-            "in": "query",
-            "name": "fields",
-            "description": "Which fields to be shown"
+            "name": "recordId",
+            "in": "path",
+            "required": true,
+            "description": "**Record Identifier** corresponding to the record in this table for which linked records are being fetched."
           },
           {
             "schema": {
-              "oneOf": [
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                {
-                  "type": "string"
-                }
-              ]
+              "type": "string"
+            },
+            "in": "query",
+            "name": "fields",
+            "description": "Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
+          },
+          {
+            "schema": {
+              "type": "string"
             },
             "in": "query",
             "name": "sort",
-            "description": "The result will be sorted based on `sort` query"
+            "description": "Allows you to specify the fields by which you want to sort linked records in your API response. By default, sorting is done in ascending order for the designated fields. To sort in descending order, add a '-' symbol before the field name.\n\nExample: `sort=field1,-field2` will sort the records first by 'field1' in ascending order and then by 'field2' in descending order.\n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
           },
           {
             "schema": {
@@ -12170,7 +10978,7 @@
             },
             "in": "query",
             "name": "where",
-            "description": "Extra filtering"
+            "description": "Enables you to define specific conditions for filtering linked records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter linked records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'ne' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
           },
           {
             "schema": {
@@ -12179,7 +10987,7 @@
             },
             "in": "query",
             "name": "offset",
-            "description": "Offset in rows"
+            "description": "Enables you to control the pagination of your API response by specifying the number of linked records you want to skip from the beginning of the result set. The default value for this parameter is set to 0, meaning no linked records are skipped by default.\n\nExample: `offset=25` will skip the first 25 linked records in your API response, allowing you to access linked records starting from the 26th position.\n\nPlease note that the 'offset' value represents the number of linked records to exclude, not an index value, so an offset of 25 will skip the first 25 linked records."
           },
           {
             "schema": {
@@ -12188,24 +10996,9 @@
             },
             "in": "query",
             "name": "limit",
-            "description": "Limit in rows"
+            "description": "Enables you to set a limit on the number of linked records you want to retrieve in your API response. By default, your response includes all the available linked records, but by using this parameter, you can control the quantity you receive.\n\nExample: `limit=100` will constrain your response to the first 100 linked records in the dataset."
           },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "sortArrJson",
-            "description": "Used for multiple sort queries"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "filterArrJson",
-            "description": "Used for multiple filter queries"
-          },
+
           {
             "$ref": "#/components/parameters/xc-auth"
           }
@@ -12241,48 +11034,23 @@
                       "list": [
                         {
                           "Id": 1,
-                          "Title": "baz",
-                          "SingleSelect": null,
-                          "Sheet-1 List": [
-                            {
-                              "Id": 1,
-                              "Title": "baz"
-                            }
-                          ],
-                          "LTAR": [
-                            {
-                              "Id": 1,
-                              "Title": "baz"
-                            }
-                          ]
+                          "SingleLineText": "David"
                         },
                         {
                           "Id": 2,
-                          "Title": "foo",
-                          "SingleSelect": "a",
-                          "Sheet-1 List": [
-                            {
-                              "Id": 2,
-                              "Title": "foo"
-                            }
-                          ],
-                          "LTAR": [
-                            {
-                              "Id": 2,
-                              "Title": "foo"
-                            }
-                          ]
+                          "SingleLineText": "Jane"
                         },
                         {
                           "Id": 3,
-                          "Title": "bar",
-                          "SingleSelect": "b",
-                          "Sheet-1 List": [],
-                          "LTAR": []
+                          "SingleLineText": "Dave"
+                        },
+                        {
+                          "Id": 4,
+                          "SingleLineText": "Martin"
                         }
                       ],
                       "pageInfo": {
-                        "totalRows": 3,
+                        "totalRows": 4,
                         "page": 1,
                         "pageSize": 25,
                         "isFirstPage": true,
@@ -12300,14 +11068,19 @@
         }
       },
       "post": {
-        "summary": "Create Nested Relations Rows",
+        "summary": "Link Records",
         "operationId": "db-data-table-row-nested-link",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {},
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
               }
             }
           },
@@ -12316,7 +11089,7 @@
           }
         },
         "tags": [
-          "DB Data Table Row"
+          "Table Records"
         ],
         "requestBody": {
           "content": {
@@ -12338,7 +11111,10 @@
                 "Example 1": {
                   "value": [
                     {
-                      "Id": 1
+                      "Id": 4
+                    },
+                    {
+                      "Id": 5
                     }
                   ]
                 }
@@ -12346,22 +11122,36 @@
             }
           }
         },
-        "description": "Create a link with the row.",
+        "description": "This API endpoint allows you to link records to a specific `Link field` and `Record ID`. The request payload is an array of record-ids from the adjacent table for linking purposes. Note that any existing links, if present, will be unaffected during this operation.",
         "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "recordId",
+            "in": "path",
+            "required": true,
+            "description": "**Record Identifier** corresponding to the record in this table for which links are being created."
+          },
           {
             "$ref": "#/components/parameters/xc-auth"
           }
         ]
       },
       "delete": {
-        "summary": "Delete Nested Relations Rows",
+        "summary": "Unlink Records",
         "operationId": "db-data-table-row-nested-unlink",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {},
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
               }
             }
           },
@@ -12370,16 +11160,13 @@
           }
         },
         "tags": [
-          "DB Data Table Row"
+          "Table Records"
         ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "oneOf": [
-                  {
-                    "type": "object"
-                  },
                   {
                     "type": "array",
                     "items": {
@@ -12393,6 +11180,9 @@
                   "value": [
                     {
                       "Id": 1
+                    },
+                    {
+                      "Id": 2
                     }
                   ]
                 }
@@ -12400,8 +11190,17 @@
             }
           }
         },
-        "description": "Create a new row in a given table and base.",
+        "description": "This API endpoint allows you to unlink records from a specific `Link field` and `Record ID`. The request payload is an array of record-ids from the adjacent table for unlinking purposes. Note that, \n- duplicated record-ids will be ignored.\n- non-existent record-ids will be ignored.",
         "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "recordId",
+            "in": "path",
+            "required": true,
+            "description": "**Record Identifier** corresponding to the record in this table for which links are being removed."
+          },
           {
             "$ref": "#/components/parameters/xc-auth"
           }

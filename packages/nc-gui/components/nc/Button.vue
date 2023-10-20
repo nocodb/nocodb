@@ -20,6 +20,7 @@ interface Props {
   type?: ButtonType | 'danger' | 'secondary' | undefined
   size?: NcButtonSize
   centered?: boolean
+  iconOnly?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -51,10 +52,8 @@ const onFocus = (e: FocusEvent) => {
       isFocused.value = false
     } else {
       const relatedTarget = e.relatedTarget as HTMLElement | null
-      const focusFromModal =
-        relatedTarget?.classList?.contains('ant-modal-wrap') || relatedTarget?.classList?.contains('ant-modal-wrap')
 
-      isFocused.value = !focusFromModal
+      isFocused.value = !!relatedTarget
     }
 
     isClicked.value = false
@@ -107,7 +106,7 @@ useEventListener(NcButton, 'mousedown', () => {
 
       <slot v-else name="icon" />
       <div
-        v-if="!(size === 'xxsmall' && loading)"
+        v-if="!(size === 'xxsmall' && loading) && !props.iconOnly"
         class="flex flex-row items-center"
         :class="{
           'font-medium': type === 'primary' || type === 'danger',

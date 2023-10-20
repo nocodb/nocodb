@@ -123,7 +123,7 @@ export class JobsController implements OnModuleInit {
                 this.closedJobs.push(jobId);
                 setTimeout(() => {
                   this.closedJobs = this.closedJobs.filter((j) => j !== jobId);
-                }, POLLING_INTERVAL * 1.5);
+                }, POLLING_INTERVAL * 2);
               }
               break;
           }
@@ -184,10 +184,9 @@ export class JobsController implements OnModuleInit {
       response = {
         status: 'update',
         data,
-        _mid: this.localJobs[jobId]._mid,
+        _mid: ++this.localJobs[jobId]._mid,
       };
       this.localJobs[jobId].messages.push(response);
-      this.localJobs[jobId]._mid += 1;
 
       // limit to 20 messages
       if (this.localJobs[jobId].messages.length > 20) {
@@ -233,13 +232,13 @@ export class JobsController implements OnModuleInit {
       this.closedJobs.push(jobId);
       setTimeout(() => {
         this.closedJobs = this.closedJobs.filter((j) => j !== jobId);
-      }, POLLING_INTERVAL * 1.5);
+      }, POLLING_INTERVAL * 2);
 
       setTimeout(() => {
         delete this.jobRooms[jobId];
         delete this.localJobs[jobId];
         NocoCache.del(`${CacheScope.JOBS}:${jobId}:messages`);
-      }, POLLING_INTERVAL);
+      }, POLLING_INTERVAL * 2);
     }
   }
 
@@ -253,11 +252,10 @@ export class JobsController implements OnModuleInit {
       response = {
         status: 'update',
         data,
-        _mid: this.localJobs[jobId]._mid,
+        _mid: ++this.localJobs[jobId]._mid,
       };
 
       this.localJobs[jobId].messages.push(response);
-      this.localJobs[jobId]._mid += 1;
 
       // limit to 20 messages
       if (this.localJobs[jobId].messages.length > 20) {

@@ -55,7 +55,7 @@ useEventListener(container, 'click', (e) => {
 <template>
   <GeneralOverlay v-model="selectedImage" :z-index="1001" class="bg-gray-500 bg-opacity-50">
     <template v-if="selectedImage">
-      <div ref="container" class="overflow-hidden p-12 text-center relative">
+      <div ref="container" class="overflow-hidden p-12 text-center relative xs:h-screen">
         <div class="text-white group absolute top-5 right-5">
           <component
             :is="iconMap.closeCircle"

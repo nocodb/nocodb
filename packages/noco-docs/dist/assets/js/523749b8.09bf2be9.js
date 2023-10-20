@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunknoco_docs=self.webpackChunknoco_docs||[]).push([[9508],{64307:e=>{e.exports=JSON.parse('{"label":"Search","permalink":"/tags/search","allTagsPath":"/tags","count":1,"items":[{"id":"table-operations/search","title":"Search","description":"Learn how to search for records in NocoDB.","permalink":"/table-operations/search"}]}')}}]);

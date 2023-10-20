@@ -1,15 +1,13 @@
-import { promisify } from 'util';
+import moment from 'moment';
 import { UITypes } from 'nocodb-sdk';
 import Airtable from 'airtable';
-import jsonfile from 'jsonfile';
 import hash from 'object-hash';
-import { T } from 'nc-help';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import tinycolor from 'tinycolor2';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
-import { extractRolesObj, isLinksOrLTAR } from 'nocodb-sdk';
+import { isLinksOrLTAR } from 'nocodb-sdk';
 import debug from 'debug';
 import { JobsLogService } from '../jobs-log.service';
 import FetchAT from './helpers/fetchAT';
@@ -33,8 +31,8 @@ import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
 import { FormsService } from '~/services/forms.service';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
-
-const writeJsonFileAsync = promisify(jsonfile.writeFile);
+import { GridColumnsService } from '~/services/grid-columns.service';
+import { TelemetryService } from '~/services/telemetry.service';
 
 dayjs.extend(utc);
 
@@ -105,6 +103,8 @@ export class AtImportProcessor {
     private readonly sortsService: SortsService,
     private readonly bulkDataAliasService: BulkDataAliasService,
     private readonly jobsLogService: JobsLogService,
+    private readonly gridColumnService: GridColumnsService,
+    private readonly telemetryService: TelemetryService,
   ) {}
 
   @Process(JobTypes.AtImport)
@@ -254,9 +254,6 @@ export class AtImportProcessor {
       // store copy of airtable schema globally
       g_aTblSchema = file.tableSchemas;
 
-      if (debugMode)
-        await writeJsonFileAsync('aTblSchema.json', ft, { spaces: 2 });
-
       return file;
     };
 
@@ -267,8 +264,6 @@ export class AtImportProcessor {
       rtc.fetchAt.count++;
       rtc.fetchAt.time += duration;
 
-      if (debugMode)
-        await writeJsonFileAsync(`${viewId}.json`, ft, { spaces: 2 });
       return ft.view;
     };
 
@@ -394,29 +389,6 @@ export class AtImportProcessor {
     //
     const nc_getTableSchema = async (tableName) => {
       return ncSchema.tables.find((x) => x.title === tableName);
-    };
-
-    // delete base if already exists
-    const init = async ({
-      baseName,
-    }: {
-      baseName?: string;
-      baseId?: string;
-    }) => {
-      // delete 'sample' base if already exists
-      const x = { list: [] };
-      x['list'] = await this.basesService.baseList({
-        user: { id: syncDB.user.id, roles: extractRolesObj(syncDB.user.roles) },
-      });
-
-      const sampleProj = x.list.find((a) => a.title === baseName);
-      if (sampleProj) {
-        await this.basesService.baseSoftDelete({
-          baseId: sampleProj.id,
-          user: syncDB.user,
-        });
-      }
-      logDetailed('Init');
     };
 
     // map UIDT
@@ -1544,8 +1516,11 @@ export class AtImportProcessor {
                     ?.map((a) => a.filename?.split('?')?.[0])
                     .join(', ')}`,
                 );
+                const path = `${moment().format('YYYY/MM/DD')}/${hash(
+                  syncDB.user.id,
+                )}`;
                 tempArr = await this.attachmentsService.uploadViaURL({
-                  path: `noco/${sDB.baseName}/${table.title}/${key}`,
+                  path,
                   urls: value?.map((attachment) => ({
                     fileName: attachment.filename?.split('?')?.[0],
                     url: attachment.url,
@@ -1826,6 +1801,12 @@ export class AtImportProcessor {
             logDetailed(`   Configure sort set`);
             await nc_configureSort(ncViewId, vData.lastSortsApplied);
           }
+
+          // configure group
+          if (vData?.groupLevels) {
+            logDetailed(`   Configure group set`);
+            await nc_configureGroup(ncViewId, vData.groupLevels);
+          }
         }
       }
     };
@@ -2001,20 +1982,10 @@ export class AtImportProcessor {
       logBasic(`:: Axios fetch count:   ${rtc.fetchAt.count}`);
       logBasic(`:: Axios fetch time:    ${rtc.fetchAt.time}`);
 
-      if (debugMode) {
-        await writeJsonFileAsync('stats.json', perfStats, { spaces: 2 });
-        const perflog = [];
-        for (let i = 0; i < perfStats.length; i++) {
-          perflog.push(`${perfStats[i].e}, ${perfStats[i].d}`);
-        }
-        await writeJsonFileAsync('stats.csv', perflog, { spaces: 2 });
-        await writeJsonFileAsync('skip.txt', rtc.migrationSkipLog.log, {
-          spaces: 2,
-        });
-      }
-
-      T.event({
-        event: 'a:airtable-import:success',
+      this.telemetryService.sendEvent({
+        evt_type: 'a:airtable-import:success',
+        user_id: syncDB.user.id,
+        email: syncDB.user.email,
         data: {
           stats: {
             migrationTime: duration,
@@ -2052,8 +2023,8 @@ export class AtImportProcessor {
       '<=': 'lte',
       '>': 'gt',
       '>=': 'gte',
-      isEmpty: 'empty',
-      isNotEmpty: 'notempty',
+      isEmpty: 'blank',
+      isNotEmpty: 'notblank',
       contains: 'like',
       doesNotContain: 'nlike',
       isAnyOf: 'anyof',
@@ -2083,8 +2054,9 @@ export class AtImportProcessor {
         const ncFilters = [];
 
         // console.log(filter)
-        if (datatype === UITypes.Date || datatype === UITypes.DateTime) {
-          // skip filters over data datatype
+        if (datatype === UITypes.Links) {
+          // skip filters for links; Link filters in NocoDB are only rollup counts
+          // where-as in airtable, filter can be textual
           updateMigrationSkipLog(
             await sMap.getNcNameFromAtId(viewId),
             colSchema.title,
@@ -2128,6 +2100,26 @@ export class AtImportProcessor {
             };
             ncFilters.push(fx);
           }
+        } else if (datatype === UITypes.Date || datatype === UITypes.DateTime) {
+          if (filter.operator === 'isWithin') {
+            const fx = {
+              fk_column_id: columnId,
+              logical_op: f.conjunction,
+              comparison_op: filter.operator,
+              comparison_sub_op: filter.value?.mode,
+              value: filter.value?.numberOfDays,
+            };
+            ncFilters.push(fx);
+          } else {
+            const fx = {
+              fk_column_id: columnId,
+              logical_op: f.conjunction,
+              comparison_op: filterMap[filter.operator],
+              comparison_sub_op: filter.value?.mode,
+              value: filter.value?.exactDate,
+            };
+            ncFilters.push(fx);
+          }
         }
 
         // other data types (number/ text/ long text/ ..)
@@ -2155,6 +2147,85 @@ export class AtImportProcessor {
         }
       }
     };
+
+    //////////////////////////////
+    // group
+
+    const nc_configureGroup = async (viewId, g) => {
+      const ncGroup = [];
+
+      for (let i = 0; i < g.length; i++) {
+        const group = g[i];
+        const colSchema = await nc_getColumnSchema(group.columnId);
+
+        // column not available;
+        // one of not migrated column;
+        if (!colSchema) {
+          updateMigrationSkipLog(
+            await sMap.getNcNameFromAtId(viewId),
+            colSchema.title,
+            colSchema.uidt,
+            `group config skipped; column not migrated`,
+          );
+          continue;
+        }
+
+        const columnId = colSchema.id;
+        const datatype = colSchema.uidt;
+
+        if (
+          datatype === UITypes.Date ||
+          datatype === UITypes.DateTime ||
+          datatype === UITypes.Links ||
+          datatype === UITypes.MultiSelect ||
+          datatype === UITypes.SingleSelect ||
+          datatype === UITypes.SingleLineText ||
+          datatype === UITypes.Formula ||
+          datatype === UITypes.Checkbox ||
+          datatype === UITypes.Collaborator ||
+          datatype === UITypes.Number
+        ) {
+          ncGroup.push({
+            group_column_id: columnId,
+            direction: group.order,
+          });
+        } else {
+          // skip group by over other data types
+          updateMigrationSkipLog(
+            await sMap.getNcNameFromAtId(viewId),
+            colSchema.title,
+            colSchema.uidt,
+            `group config skipped; group over ${datatype}  not supported`,
+          );
+          continue;
+        }
+      }
+
+      // insert group
+      const viewDetails = await this.viewColumnsService.columnList({
+        viewId: viewId,
+      });
+      for (let i = 0; i < ncGroup.length; i++) {
+        const ncViewColumnId = viewDetails.find(
+          (x) => x.fk_column_id === ncGroup[i].group_column_id,
+        )?.id;
+        try {
+          await this.gridColumnService.gridColumnUpdate({
+            gridViewColumnId: ncViewColumnId,
+            grid: {
+              group_by: true,
+              group_by_order: i + 1,
+              group_by_sort:
+                ncGroup[i].direction === 'ascending' ? 'asc' : 'desc',
+            },
+          });
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+
+    //////////////////////////////
 
     const nc_configureSort = async (viewId, s) => {
       for (let i = 0; i < s.sortSet.length; i++) {
@@ -2278,7 +2349,6 @@ export class AtImportProcessor {
       logBasic('SDK initialized');
       logDetailed('Base initialization started');
       // delete base if already exists
-      if (debugMode) await init(syncDB);
 
       logDetailed('Base initialized');
 
@@ -2420,7 +2490,7 @@ export class AtImportProcessor {
 
             rtc.data.nestedLinks += await importLTARData({
               table: ncTbl,
-              baseName: syncDB.baseName,
+              baseName: syncDB.baseId,
               atBase,
               fields: null, //Object.values(tblLinkGroup).flat(),
               logBasic,
@@ -2437,10 +2507,10 @@ export class AtImportProcessor {
             });
           }
         } catch (error) {
-          logDetailed(
-            `There was an error while migrating data! Please make sure your API key (${syncDB.apiKey}) is correct.`,
+          logBasic(
+            `There was an error while migrating data! Please make sure your API key is correct.`,
           );
-          logDetailed(`Error: ${error}`);
+          logBasic(`Data migration failed: ${error}`);
         }
       }
       if (generate_migrationStats) {
@@ -2448,8 +2518,9 @@ export class AtImportProcessor {
       }
     } catch (e) {
       if (e.message) {
-        T.event({
-          event: 'a:airtable-import:error',
+        this.telemetryService.sendEvent({
+          evt_type: 'a:airtable-import:error',
+          user_id: syncDB.user.id,
           data: { error: e.message },
         });
         console.log(e);

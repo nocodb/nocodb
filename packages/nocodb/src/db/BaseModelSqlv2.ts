@@ -1415,7 +1415,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    const data = await qb;
+    const data = await this.execAndParse(qb, childTable);
     return data.map((c) => {
       c.__proto__ = proto;
       return c;
@@ -4073,23 +4073,51 @@ class BaseModelSqlv2 {
 
           if (d[col.title]?.length) {
             for (const attachment of d[col.title]) {
-              if (attachment?.path) {
-                promises.push(
-                  PresignedUrl.getSignedUrl({
-                    path: attachment.path.replace(/^download\//, ''),
-                  }).then((r) => (attachment.signedPath = r)),
-                );
-              } else if (attachment?.url) {
-                if (attachment.url.includes('.amazonaws.com/')) {
-                  const relativePath = decodeURI(
-                    attachment.url.split('.amazonaws.com/')[1],
-                  );
+              // we expect array of array of attachments in case of lookup
+              if (Array.isArray(attachment)) {
+                for (const lookedUpAttachment of attachment) {
+                  if (lookedUpAttachment?.path) {
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        path: lookedUpAttachment.path.replace(
+                          /^download\//,
+                          '',
+                        ),
+                      }).then((r) => (lookedUpAttachment.signedPath = r)),
+                    );
+                  } else if (lookedUpAttachment?.url) {
+                    if (lookedUpAttachment.url.includes('.amazonaws.com/')) {
+                      const relativePath = decodeURI(
+                        lookedUpAttachment.url.split('.amazonaws.com/')[1],
+                      );
+                      promises.push(
+                        PresignedUrl.getSignedUrl({
+                          path: relativePath,
+                          s3: true,
+                        }).then((r) => (lookedUpAttachment.signedUrl = r)),
+                      );
+                    }
+                  }
+                }
+              } else {
+                if (attachment?.path) {
                   promises.push(
                     PresignedUrl.getSignedUrl({
-                      path: relativePath,
-                      s3: true,
-                    }).then((r) => (attachment.signedUrl = r)),
+                      path: attachment.path.replace(/^download\//, ''),
+                    }).then((r) => (attachment.signedPath = r)),
                   );
+                } else if (attachment?.url) {
+                  if (attachment.url.includes('.amazonaws.com/')) {
+                    const relativePath = decodeURI(
+                      attachment.url.split('.amazonaws.com/')[1],
+                    );
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        path: relativePath,
+                        s3: true,
+                      }).then((r) => (attachment.signedUrl = r)),
+                    );
+                  }
                 }
               }
             }
@@ -4099,6 +4127,14 @@ class BaseModelSqlv2 {
       }
     } catch {}
     return d;
+  }
+
+  public async getNestedUidt(column: Column) {
+    if (column.uidt !== UITypes.Lookup) {
+      return column.uidt;
+    }
+    const colOptions = await column.getColOptions<LookupColumn>();
+    return this.getNestedUidt(await colOptions?.getLookupColumn());
   }
 
   public async convertAttachmentType(
@@ -4114,9 +4150,22 @@ class BaseModelSqlv2 {
         await this.model.getColumns();
       }
 
-      const attachmentColumns = (
-        childTable ? childTable.columns : this.model.columns
-      ).filter((c) => c.uidt === UITypes.Attachment);
+      const attachmentColumns = [];
+
+      const columns = childTable ? childTable.columns : this.model.columns;
+
+      for (const col of columns) {
+        if (col.uidt === UITypes.Lookup) {
+          if ((await this.getNestedUidt(col)) === UITypes.Attachment) {
+            attachmentColumns.push(col);
+          }
+        } else {
+          if (col.uidt === UITypes.Attachment) {
+            attachmentColumns.push(col);
+          }
+        }
+      }
+
       if (attachmentColumns.length) {
         if (Array.isArray(data)) {
           data = await Promise.all(
@@ -4283,7 +4332,7 @@ class BaseModelSqlv2 {
     rowId,
   }: {
     cookie: any;
-    childIds: (string | number)[];
+    childIds: (string | number | Record<string, any>)[];
     colId: string;
     rowId: string;
   }) {
@@ -4350,7 +4399,16 @@ class BaseModelSqlv2 {
                 }
               });
             } else {
-              childRowsQb.whereIn(parentTable.primaryKey.column_name, childIds);
+              childRowsQb.whereIn(
+                parentTable.primaryKey.column_name,
+                typeof childIds[0] === 'object'
+                  ? childIds.map(
+                      (c) =>
+                        c[parentTable.primaryKey.title] ||
+                        c[parentTable.primaryKey.column_name],
+                    )
+                  : childIds,
+              );
             }
 
             if (parentTable.primaryKey.column_name !== parentColumn.column_name)
@@ -4382,38 +4440,8 @@ class BaseModelSqlv2 {
             if (!insertData.length) return true;
           }
 
-          // if (this.isSnowflake) {
-          //   const parentPK = this.dbDriver(parentTn)
-          //     .select(parentColumn.column_name)
-          //     // .where(_wherePk(parentTable.primaryKeys, childId))
-          //     .whereIn(parentTable.primaryKey.column_name, childIds)
-          //     .first();
-          //
-          //   const childPK = this.dbDriver(childTn)
-          //     .select(childColumn.column_name)
-          //     .where(_wherePk(childTable.primaryKeys, rowId))
-          //     .first();
-          //
-          //   await this.dbDriver.raw(
-          //     `INSERT INTO ?? (??, ??) SELECT (${parentPK.toQuery()}), (${childPK.toQuery()})`,
-          //     [vTn, vParentCol.column_name, vChildCol.column_name],
-          //   );
-          // } else {
-          //   await this.dbDriver(vTn).insert({
-          //     [vParentCol.column_name]: this.dbDriver(parentTn)
-          //       .select(parentColumn.column_name)
-          //       // .where(_wherePk(parentTable.primaryKeys, childId))
-          //       .where(parentTable.primaryKey.column_name, childIds)
-          //       .first(),
-          //     [vChildCol.column_name]: this.dbDriver(childTn)
-          //       .select(childColumn.column_name)
-          //       .where(_wherePk(childTable.primaryKeys, rowId))
-          //       .first(),
-          //   });
-
           // todo: use bulk insert
           await this.dbDriver(vTn).insert(insertData);
-          // }
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -4431,7 +4459,16 @@ class BaseModelSqlv2 {
                 }
               });
             } else {
-              childRowsQb.whereIn(parentTable.primaryKey.column_name, childIds);
+              childRowsQb.whereIn(
+                parentTable.primaryKey.column_name,
+                typeof childIds[0] === 'object'
+                  ? childIds.map(
+                      (c) =>
+                        c[parentTable.primaryKey.title] ||
+                        c[parentTable.primaryKey.column_name],
+                    )
+                  : childIds,
+              );
             }
 
             const childRows = await childRowsQb;
@@ -4447,19 +4484,34 @@ class BaseModelSqlv2 {
               );
             }
           }
-
-          await this.dbDriver(childTn)
-            .update({
-              [childColumn.column_name]: this.dbDriver.from(
-                this.dbDriver(parentTn)
-                  .select(parentColumn.column_name)
-                  .where(_wherePk(parentTable.primaryKeys, rowId))
-                  .first()
-                  .as('___cn_alias'),
-              ),
-            })
-            // .where(_wherePk(childTable.primaryKeys, childId));
-            .whereIn(childTable.primaryKey.column_name, childIds);
+          const updateQb = this.dbDriver(childTn).update({
+            [childColumn.column_name]: this.dbDriver.from(
+              this.dbDriver(parentTn)
+                .select(parentColumn.column_name)
+                .where(_wherePk(parentTable.primaryKeys, rowId))
+                .first()
+                .as('___cn_alias'),
+            ),
+          });
+          if (childTable.primaryKeys.length > 1) {
+            updateQb.where((qb) => {
+              for (const childId of childIds) {
+                qb.orWhere(_wherePk(childTable.primaryKeys, childId));
+              }
+            });
+          } else {
+            updateQb.whereIn(
+              childTable.primaryKey.column_name,
+              typeof childIds[0] === 'object'
+                ? childIds.map(
+                    (c) =>
+                      c[childTable.primaryKey.title] ||
+                      c[childTable.primaryKey.column_name],
+                  )
+                : childIds,
+            );
+          }
+          await updateQb;
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -4508,7 +4560,7 @@ class BaseModelSqlv2 {
     rowId,
   }: {
     cookie: any;
-    childIds: (string | number)[];
+    childIds: (string | number | Record<string, any>)[];
     colId: string;
     rowId: string;
   }) {
@@ -4552,10 +4604,28 @@ class BaseModelSqlv2 {
 
           // validate Ids
           {
-            const childRowsQb = this.dbDriver(parentTn)
-              .select(parentColumn.column_name)
-              // .where(_wherePk(parentTable.primaryKeys, childId))
-              .whereIn(parentTable.primaryKey.column_name, childIds);
+            const childRowsQb = this.dbDriver(parentTn).select(
+              parentColumn.column_name,
+            );
+
+            if (parentTable.primaryKeys.length > 1) {
+              childRowsQb.where((qb) => {
+                for (const childId of childIds) {
+                  qb.orWhere(_wherePk(parentTable.primaryKeys, childId));
+                }
+              });
+            } else if (typeof childIds[0] === 'object') {
+              childRowsQb.whereIn(
+                parentTable.primaryKey.column_name,
+                childIds.map(
+                  (c) =>
+                    c[parentTable.primaryKey.title] ||
+                    c[parentTable.primaryKey.column_name],
+                ),
+              );
+            } else {
+              childRowsQb.whereIn(parentTable.primaryKey.column_name, childIds);
+            }
 
             if (parentTable.primaryKey.column_name !== parentColumn.column_name)
               childRowsQb.select(parentTable.primaryKey.column_name);
@@ -4576,20 +4646,26 @@ class BaseModelSqlv2 {
 
           const vTn = this.getTnPath(vTable);
 
-          await this.dbDriver(vTn)
+          const delQb = this.dbDriver(vTn)
             .where({
               [vChildCol.column_name]: this.dbDriver(childTn)
                 .select(childColumn.column_name)
                 .where(_wherePk(childTable.primaryKeys, rowId))
                 .first(),
             })
-            .whereIn(
-              [vParentCol.column_name],
-              this.dbDriver(parentTn)
-                .select(parentColumn.column_name)
-                .whereIn(parentTable.primaryKey.column_name, childIds),
-            )
             .delete();
+
+          delQb.whereIn(
+            vParentCol.column_name,
+            typeof childIds[0] === 'object'
+              ? childIds.map(
+                  (c) =>
+                    c[parentTable.primaryKey.title] ||
+                    c[parentTable.primaryKey.column_name],
+                )
+              : childIds,
+          );
+          await delQb;
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -4614,16 +4690,28 @@ class BaseModelSqlv2 {
             }
           }
 
-          await this.dbDriver(childTn)
-            // .where({
-            //   [childColumn.cn]: this.dbDriver(parentTable.tn)
-            //     .select(parentColumn.cn)
-            //     .where(parentTable.primaryKey.cn, rowId)
-            //     .first()
-            // })
-            // .where(_wherePk(childTable.primaryKeys, childId))
-            .whereIn(childTable.primaryKey.column_name, childIds)
-            .update({ [childColumn.column_name]: null });
+          const childRowsQb = this.dbDriver(childTn);
+
+          if (parentTable.primaryKeys.length > 1) {
+            childRowsQb.where((qb) => {
+              for (const childId of childIds) {
+                qb.orWhere(_wherePk(parentTable.primaryKeys, childId));
+              }
+            });
+          } else {
+            childRowsQb.whereIn(
+              parentTable.primaryKey.column_name,
+              typeof childIds[0] === 'object'
+                ? childIds.map(
+                    (c) =>
+                      c[parentTable.primaryKey.title] ||
+                      c[parentTable.primaryKey.column_name],
+                  )
+                : childIds,
+            );
+          }
+
+          await childRowsQb.update({ [childColumn.column_name]: null });
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -4924,13 +5012,27 @@ function applyPaginate(
 }
 
 export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
+  const where = {};
+
   // if id object is provided use as it is
-  if (id && typeof id === 'object') {
+  if (id && typeof id === 'object' && !Array.isArray(id)) {
+    // verify all pk columns are present in id object
+    for (const pk of primaryKeys) {
+      if (pk.title in id) {
+        where[pk.column_name] = id[pk.title];
+      } else if (pk.column_name in id) {
+        where[pk.column_name] = id[pk.column_name];
+      } else {
+        NcError.badRequest(
+          `Primary key column ${pk.title} not found in id object`,
+        );
+      }
+    }
+
     return id;
   }
 
   const ids = Array.isArray(id) ? id : (id + '').split('___');
-  const where = {};
   for (let i = 0; i < primaryKeys.length; ++i) {
     if (primaryKeys[i].dt === 'bytea') {
       // if column is bytea, then we need to encode the id to hex based on format
@@ -5015,7 +5117,7 @@ export function getListArgs(
   { ignoreAssigningWildcardSelect = false } = {},
 ): XcFilter {
   const obj: XcFilter = {};
-  obj.where = args.where || args.w || '';
+  obj.where = args.where || args.filter || args.w || '';
   obj.having = args.having || args.h || '';
   obj.shuffle = args.shuffle || args.r || '';
   obj.condition = args.condition || args.c || {};

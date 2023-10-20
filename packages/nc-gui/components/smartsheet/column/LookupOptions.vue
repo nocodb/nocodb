@@ -2,7 +2,7 @@
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { MetaInj, inject, ref, storeToRefs, useBase, useColumnCreateStoreOrThrow, useMetas, useVModel } from '#imports'
+import { MetaInj, inject, ref, storeToRefs, useBase, useColumnCreateStoreOrThrow, useI18n, useMetas, useVModel } from '#imports'
 
 const props = defineProps<{
   value: any
@@ -16,11 +16,10 @@ const meta = inject(MetaInj, ref())
 
 const { t } = useI18n()
 
-const { appInfo } = useGlobal()
-
 const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit } = useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
+
 const { tables } = storeToRefs(baseStore)
 
 const { metas } = useMetas()
@@ -39,13 +38,7 @@ const refTables = computed(() => {
   }
 
   const _refTables = meta.value.columns
-    .filter(
-      (column) =>
-        isLinksOrLTAR(column) &&
-        !column.system &&
-        column.source_id === meta.value?.source_id &&
-        (!appInfo.value.ee || vModel.value.fk_relation_column_id === column.id || (column?.colOptions as any)?.type === 'bt'),
-    )
+    .filter((column) => isLinksOrLTAR(column) && !column.system && column.source_id === meta.value?.source_id)
     .map((column) => ({
       col: column.colOptions,
       column,

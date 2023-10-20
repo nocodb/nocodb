@@ -37,6 +37,8 @@ const { modelValue, disableOptionCreation } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
+const { isMobileMode } = useGlobal()
+
 const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
@@ -202,6 +204,8 @@ async function addIfMissingAndSave() {
 }
 
 const search = () => {
+  if (isMobileMode.value) return
+
   searchVal.value = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
 }
 
@@ -285,7 +289,7 @@ const selectedOpt = computed(() => {
       v-else
       ref="aselect"
       v-model:value="vModel"
-      class="w-full overflow-hidden"
+      class="w-full overflow-hidden xs:min-h-12"
       :class="{ 'caret-transparent': !hasEditRoles }"
       :placeholder="isEditColumn ? $t('labels.optional') : ''"
       :allow-clear="!column.rqd && editAllowed"
@@ -294,7 +298,7 @@ const selectedOpt = computed(() => {
       :disabled="readOnly || !editAllowed || isLockedMode"
       :show-arrow="hasEditRoles && !(readOnly || isLockedMode) && active && vModel === null"
       :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && active ? 'active' : ''}`"
-      :show-search="isOpen && active"
+      :show-search="!isMobileMode && isOpen && active"
       @select="onSelect"
       @keydown="onKeydown($event)"
       @search="search"

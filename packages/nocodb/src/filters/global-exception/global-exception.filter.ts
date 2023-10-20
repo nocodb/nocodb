@@ -1,6 +1,8 @@
-import { Catch, Logger, NotFoundException } from '@nestjs/common';
+import { Catch, Logger, NotFoundException, Optional } from '@nestjs/common';
+import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
+import { ThrottlerException } from '@nestjs/throttler';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import {
   AjvError,
   BadRequest,
@@ -15,11 +17,16 @@ import {
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
+  constructor(
+    @Optional() @InjectSentry() private readonly sentryClient: SentryService,
+  ) {}
+
   private logger = new Logger(GlobalExceptionFilter.name);
 
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
 
     // skip unnecessary error logging
     if (
@@ -32,10 +39,19 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception instanceof NotFound ||
         exception instanceof NotImplemented ||
         exception instanceof UnprocessableEntity ||
-        exception instanceof NotFoundException
+        exception instanceof NotFoundException ||
+        exception instanceof ThrottlerException
       )
     )
       this.logger.error(exception.message, exception.stack);
+
+    if (exception instanceof ThrottlerException) {
+      this.logger.log(
+        `${exception.message}, Path : ${request.path}, Workspace ID : ${
+          (request as any).ncWorkspaceId
+        }, Project ID : ${(request as any).ncProjectId}`,
+      );
+    }
 
     // API not found
     if (exception instanceof NotFoundException) {
@@ -90,6 +106,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception.getStatus?.()) {
       response.status(exception.getStatus()).json(exception.getResponse());
     } else {
+      this.sentryClient?.instance().captureException(exception);
+
       // todo: change the response code
       response.status(400).json({
         msg: exception.message,

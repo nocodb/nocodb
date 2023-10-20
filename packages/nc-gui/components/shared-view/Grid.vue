@@ -37,7 +37,7 @@ provide(FieldsInj, columns)
 provide(IsPublicInj, ref(true))
 provide(IsLockedInj, isLocked)
 
-const { loadGridViewColumns } = useProvideGridViewColumn(sharedView, true)
+useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)
 
 if (signedIn.value) {
   try {
@@ -55,10 +55,6 @@ watch(
     immediate: true,
   },
 )
-
-onMounted(async () => {
-  await loadGridViewColumns()
-})
 </script>
 
 <template>

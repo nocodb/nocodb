@@ -553,7 +553,9 @@ const parseConditionV2 = async (
                 val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
               } else {
                 val =
-                  val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
+                  (val + '').startsWith('%') || (val + '').endsWith('%')
+                    ? val
+                    : `%${val}%`;
               }
               if (qb?.client?.config?.client === 'pg') {
                 qb = qb.where(knex.raw('??::text ilike ?', [field, val]));

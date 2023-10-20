@@ -14,6 +14,7 @@ import {
   useMetas,
   useNuxtApp,
   useSmartsheetStoreOrThrow,
+  useViewColumnsOrThrow,
 } from '#imports'
 
 const groupingUidt = [
@@ -33,7 +34,7 @@ const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
 
-const { gridViewCols, updateGridViewColumn } = useGridViewColumnOrThrow()
+const { gridViewCols, updateGridViewColumn } = useViewColumnsOrThrow()
 
 const { $e } = useNuxtApp()
 

@@ -144,13 +144,9 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                   // check for long text
                   if (isMultiLineTextType(rows, col)) {
                     column.uidt = UITypes.LongText
-                  }
-
-                  if (isEmailType(rows, col)) {
+                  } else if (isEmailType(rows, col)) {
                     column.uidt = UITypes.Email
-                  }
-
-                  if (isUrlType(rows, col)) {
+                  } else if (isUrlType(rows, col)) {
                     column.uidt = UITypes.URL
                   } else {
                     const vals = rows
@@ -158,8 +154,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                       .map((r: any) => r[col])
                       .filter((v: any) => v !== null && v !== undefined && v.toString().trim() !== '')
 
-                    const checkboxType = isCheckboxType(vals, col)
-                    if (checkboxType.length === 1) {
+                    if (isCheckboxType(vals, col)) {
                       column.uidt = UITypes.Checkbox
                     } else {
                       // Single Select / Multi Select

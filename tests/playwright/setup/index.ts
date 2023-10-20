@@ -181,7 +181,7 @@ async function localInit({
   try {
     let response: AxiosResponse<any, any>;
     // Login as root user
-    if (isSuperUser) {
+    if (isSuperUser && !isEE()) {
       // required for configuring license key settings
       response = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
         email: `user@nocodb.com`,

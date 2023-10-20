@@ -14,7 +14,7 @@ import {
   useKanbanViewStoreOrThrow,
   useMenuCloseOnEsc,
   useUndoRedo,
-  useViewColumns,
+  useViewColumnsOrThrow,
   watch,
 } from '#imports'
 
@@ -30,7 +30,7 @@ const reloadDataHook = inject(ReloadViewDataHookInj)!
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const { fields, loadViewColumns, metaColumnById } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
+const { fields, loadViewColumns, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
 
 const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField, groupingFieldColumn } =
   useKanbanViewStoreOrThrow()

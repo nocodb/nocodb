@@ -28,7 +28,7 @@ const { eventBus } = useSmartsheetStoreOrThrow()
 
 const { sorts, saveOrUpdate, loadSorts, addSort: _addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
-const { showSystemFields, metaColumnById } = useViewColumns(view, meta)
+const { showSystemFields, metaColumnById } = useViewColumnsOrThrow()
 
 const showCreateSort = ref(false)
 
@@ -79,14 +79,6 @@ const getColumnUidtByID = (key?: string) => {
   return columnByID.value[key]?.uidt || ''
 }
 
-watch(
-  () => view.value?.id,
-  (viewId) => {
-    if (viewId) loadSorts()
-  },
-  { immediate: true },
-)
-
 const open = ref(false)
 
 useMenuCloseOnEsc(open)
@@ -104,6 +96,10 @@ watch(open, () => {
   if (!open.value) {
     showCreateSort.value = false
   }
+})
+
+onMounted(() => {
+  loadSorts()
 })
 </script>
 

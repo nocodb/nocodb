@@ -44,7 +44,7 @@
     "dayjs": "^1.11.9",
     "express": "^4.18.1",
     "knex": "^2.4.2",
-    "nocodb-sdk": "0.111.4",
+    "nocodb-sdk": "workspace:^",
     "sqlite3": "^5.1.6",
     "xlsx": "^0.18.5"
   },

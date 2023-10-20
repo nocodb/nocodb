@@ -25,6 +25,7 @@ const statePlugin = async (_nuxtApp) => {
 
   /** force load initial locale messages */
   await loadLocaleMessages(currentLang)
+  await loadLocaleMessages('en')
 
   /** set i18n locale to stored language */
   await setI18nLanguage(currentLang)

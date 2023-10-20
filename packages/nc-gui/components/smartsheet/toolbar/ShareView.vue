@@ -240,10 +240,6 @@ const copyIframeCode = async () => {
     }
   }
 }
-
-watch(shared, () => {
-  console.log('shared', shared.value)
-})
 </script>
 
 <template>
@@ -292,23 +288,21 @@ watch(shared, () => {
         @click="copyIframeCode"
       >
         <component :is="iconMap.embed" class="text-gray-500" />
-        Embed this view in your site
+        {{ $t('labels.embedInSite') }}
       </div>
 
       <div class="px-1 mt-2 flex flex-col gap-3">
-        <!-- todo: i18n -->
-        <div class="text-gray-500 border-b-1">Options</div>
+        <div class="text-gray-500 border-b-1">{{ $t('general.options') }}</div>
 
         <div class="px-1 flex flex-col gap-2">
           <div>
-            <!-- Survey Mode; todo: i18n -->
             <a-checkbox
               v-if="shared.type === ViewTypes.FORM"
               v-model:checked="surveyMode"
               data-testid="nc-modal-share-view__survey-mode"
               class="!text-sm"
             >
-              Use Survey Mode
+              {{ $t('general.useSurveyMode') }}
             </a-checkbox>
 
             <!--            <Transition name="layout" mode="out-in">
@@ -379,9 +373,8 @@ watch(shared, () => {
           </div>
 
           <div v-if="shared.type === ViewTypes.FORM">
-            <!-- todo: i18n -->
             <a-checkbox v-model:checked="viewTheme" data-testid="nc-modal-share-view__with-theme" class="!text-sm">
-              Use Theme
+              {{ $t('activity.useTheme') }}
             </a-checkbox>
 
             <Transition name="layout" mode="out-in">
@@ -400,10 +393,8 @@ watch(shared, () => {
           </div>
 
           <div v-if="shared.type === ViewTypes.FORM && isRtl">
-            <!-- use RTL orientation in form - todo: i18n -->
             <a-checkbox v-model:checked="withRTL" data-testid="nc-modal-share-view__locale" class="!text-sm">
-              <!-- todo i18n -->
-              RTL Orientation
+              {{ $t('activity.rtlOrientation') }}
             </a-checkbox>
           </div>
         </div>

@@ -3,7 +3,7 @@ import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
-import { NcProjectType, baseTitleValidator, extractSdkResponseErrorMsg, ref, useGlobal, useVModel } from '#imports'
+import { NcProjectType, baseTitleValidator, extractSdkResponseErrorMsg, ref, useGlobal, useI18n, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -11,6 +11,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['update:modelValue'])
+
+const { t } = useI18n()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
@@ -24,7 +26,7 @@ const { navigateToProject } = useGlobal()
 const nameValidationRules = [
   {
     required: true,
-    message: 'Database name is required',
+    message: t('msg.info.dbNameRequired'),
   },
   baseTitleValidator,
 ] as RuleObject[]
@@ -95,7 +97,11 @@ const typeLabel = computed(() => {
       <!-- Create A New Table -->
       <div class="flex flex-row items-center">
         <GeneralProjectIcon :type="baseType" class="mr-2.5 !text-lg !h-4" />
-        Create {{ typeLabel }}
+        {{
+          $t('general.createEntity', {
+            entity: typeLabel,
+          })
+        }}
       </div>
     </template>
     <div class="mt-3">
@@ -121,19 +127,27 @@ const typeLabel = computed(() => {
       </a-form>
 
       <div class="flex flex-row justify-end mt-7 gap-x-2">
-        <NcButton type="secondary" @click="dialogShow = false">Cancel</NcButton>
+        <NcButton type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
         <NcButton
           v-e="['a:base:create']"
           data-testid="docs-create-proj-dlg-create-btn"
           :loading="creating"
           type="primary"
-          :label="`Create ${typeLabel}`"
-          :loading-label="`Creating ${typeLabel}`"
+          :label="`${$t('general.create')} ${typeLabel}`"
+          :loading-label="`${$t('general.creating')} ${typeLabel}`"
           @click="createProject"
         >
-          {{ `Create ${typeLabel}` }}
+          {{
+            $t('general.createEntity', {
+              entity: typeLabel,
+            })
+          }}
           <template #loading>
-            {{ `Creating ${typeLabel}` }}
+            {{
+              $t('general.creatingEntity', {
+                entity: typeLabel,
+              })
+            }}
           </template>
         </NcButton>
       </div>

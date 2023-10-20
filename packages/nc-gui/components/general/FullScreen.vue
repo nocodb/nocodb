@@ -34,9 +34,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <a-tooltip placement="left">
-    <!-- todo: i18n -->
     <template #title>
-      <span class="text-xs">{{ isSidebarsOpen ? 'Full width' : 'Exit full width' }}</span>
+      <span class="text-xs">{{ isSidebarsOpen ? $t('activity.fullWidth') : $t('activity.exitFullWidth') }}</span>
     </template>
     <div
       v-e="['c:toolbar:fullscreen']"

@@ -34,7 +34,7 @@ function build_gui() {
     export NODE_OPTIONS="--max_old_space_size=16384"
     # generate static build of nc-gui
     cd ${SCRIPT_DIR}/packages/nc-gui
-    pnpm run generate || ERROR="gui build failed"
+    pnpm run generate:ee || ERROR="gui build failed"
 }
 
 function copy_gui_artifacts() {

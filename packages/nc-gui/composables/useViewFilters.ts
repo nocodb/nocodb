@@ -81,7 +81,7 @@ export function useViewFilters(
 
   const activeView = inject(ActiveViewInj, ref())
 
-  const { showSystemFields, metaColumnById } = useViewColumns(activeView, meta)
+  const { showSystemFields, metaColumnById } = useViewColumnsOrThrow()
 
   const options = computed<SelectProps['options']>(() =>
     meta.value?.columns?.filter((c: ColumnType) => {

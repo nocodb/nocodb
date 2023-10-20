@@ -53,9 +53,7 @@ reloadEventHook.on(async () => {
   await loadCowriterTable()
 })
 
-const { saveOrUpdate } = useViewColumns(cowriterFormView as Ref<ViewType>, cowriterTable as Ref<TableType>, async () =>
-  reloadEventHook.trigger(),
-)
+const { saveOrUpdate } = useViewColumnsOrThrow()
 
 const isCreateColumnUsingAIDlgOpen = ref(false)
 

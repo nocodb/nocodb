@@ -649,43 +649,17 @@ export default {
               </NcButton>
               <div class="flex-grow h-px ml-1 bg-gray-100"></div>
             </div>
-<<<<<<< HEAD
-<<<<<<< HEAD
             <div v-if="hiddenFields.length > 0 && showHiddenFields" class="flex flex-col w-full mb-3 items-center">
-=======
-            <div v-if="hiddenFields.length > 0 && showHiddenFields" class="xs:w-full mb-3">
->>>>>>> 8da671e7e7... fix: Added responsive for mobile in expanded form hidden fields
-=======
-            <div v-if="hiddenFields.length > 0 && showHiddenFields" class="flex flex-col w-full mb-3 items-center">
->>>>>>> 0fbe5c744c... fix: Added responsive for mobile in expanded form hidden fields
               <div
                 v-for="(col, i) of hiddenFields"
                 v-show="isFormula(col) || !isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
                 :key="col.title"
-<<<<<<< HEAD
-<<<<<<< HEAD
                 class="sm:(mt-2) py-2 xs:w-full"
                 :class="`nc-expand-col-${col.title}`"
                 :data-testid="`nc-expand-col-${col.title}`"
               >
                 <div class="sm:gap-x-6 flex sm:flex-row xs:(flex-col) items-start min-h-10">
                   <div class="sm:w-48 xs:w-full scale-110 !h-[35px]">
-=======
-                class="sm:(mt-2 py-2) xs:py-2"
-                :class="`nc-expand-col-${col.title}`"
-                :data-testid="`nc-expand-col-${col.title}`"
-              >
-                <div class="flex sm:flex-row xs:(flex-col) items-start min-h-10">
-                  <div class="w-[12rem] scale-110 !h-[35px] mt-2.5">
->>>>>>> 8da671e7e7... fix: Added responsive for mobile in expanded form hidden fields
-=======
-                class="sm:(mt-2) py-2 xs:w-full"
-                :class="`nc-expand-col-${col.title}`"
-                :data-testid="`nc-expand-col-${col.title}`"
-              >
-                <div class="sm:gap-x-6 flex sm:flex-row xs:(flex-col) items-start min-h-10">
-                  <div class="sm:w-48 xs:w-full scale-110 !h-[35px]">
->>>>>>> 0fbe5c744c... fix: Added responsive for mobile in expanded form hidden fields
                     <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" class="nc-expanded-cell-header" />
 
                     <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header" :column="col" />

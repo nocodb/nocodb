@@ -1,6 +1,9 @@
 import { Catch, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
+<<<<<<< HEAD
 import { ThrottlerException } from '@nestjs/throttler';
+=======
+>>>>>>> 9149c5b28f... fix: correction in sentry integration
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import {
@@ -18,7 +21,11 @@ import {
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   constructor(
+<<<<<<< HEAD
     @Optional() @InjectSentry() private readonly sentryClient: SentryService,
+=======
+    @Optional() @InjectSentry() private readonly client: SentryService,
+>>>>>>> 9149c5b28f... fix: correction in sentry integration
   ) {}
 
   private logger = new Logger(GlobalExceptionFilter.name);
@@ -106,7 +113,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception.getStatus?.()) {
       response.status(exception.getStatus()).json(exception.getResponse());
     } else {
+<<<<<<< HEAD
       this.sentryClient?.instance().captureException(exception);
+=======
+      this.client?.instance().captureException(exception);
+>>>>>>> 9149c5b28f... fix: correction in sentry integration
 
       // todo: change the response code
       response.status(400).json({

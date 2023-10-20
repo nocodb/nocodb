@@ -69,6 +69,15 @@ export default defineConfig({
           min: '1780px',
         },
       },
+      fontWeight: {
+        thin: 150,
+        extraLight: 250,
+        light: 350,
+        normal: 450,
+        medium: 550,
+        bold: 650,
+        black: 750,
+      },
       textColor: {
         primary: 'rgba(var(--color-primary), var(--tw-text-opacity))',
         accent: 'rgba(var(--color-accent), var(--tw-text-opacity))',

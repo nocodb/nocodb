@@ -869,7 +869,11 @@ function handleUIDTChange(column, table) {
                       <a-select-option v-for="(option, i) of uiTypeOptions" :key="i" :value="option.value">
                         <a-tooltip placement="right">
                           <template v-if="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)" #title>
-                            {{ $t('msg.tooLargeField') }} {{ option.label }}
+                            {{
+                              $t('msg.tooLargeFieldEntity', {
+                                entity: option.label,
+                              })
+                            }}
                           </template>
                           {{ option.label }}
                         </a-tooltip>

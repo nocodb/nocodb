@@ -141,11 +141,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         description: `The following comment has been created: ${comment.value}`,
       })
 
-      comment.value = ''
-
       reloadTrigger?.trigger()
 
       await loadCommentsAndLogs()
+
+      comment.value = ''
     } catch (e: any) {
       message.error(e.message)
     }

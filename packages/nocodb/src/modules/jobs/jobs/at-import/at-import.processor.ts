@@ -32,6 +32,7 @@ import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
 import { FormsService } from '~/services/forms.service';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
+import { GridColumnsService } from '~/services/grid-columns.service';
 
 dayjs.extend(utc);
 
@@ -102,6 +103,7 @@ export class AtImportProcessor {
     private readonly sortsService: SortsService,
     private readonly bulkDataAliasService: BulkDataAliasService,
     private readonly jobsLogService: JobsLogService,
+    private readonly gridColumnService: GridColumnsService,
   ) {}
 
   @Process(JobTypes.AtImport)
@@ -1798,6 +1800,12 @@ export class AtImportProcessor {
             logDetailed(`   Configure sort set`);
             await nc_configureSort(ncViewId, vData.lastSortsApplied);
           }
+
+          // configure group
+          if (vData?.groupLevels) {
+            logDetailed(`   Configure group set`);
+            await nc_configureGroup(ncViewId, vData.groupLevels);
+          }
         }
       }
     };
@@ -2119,6 +2127,85 @@ export class AtImportProcessor {
         }
       }
     };
+
+    //////////////////////////////
+    // group
+
+    const nc_configureGroup = async (viewId, g) => {
+      const ncGroup = [];
+
+      for (let i = 0; i < g.length; i++) {
+        const group = g[i];
+        const colSchema = await nc_getColumnSchema(group.columnId);
+
+        // column not available;
+        // one of not migrated column;
+        if (!colSchema) {
+          updateMigrationSkipLog(
+            await sMap.getNcNameFromAtId(viewId),
+            colSchema.title,
+            colSchema.uidt,
+            `group config skipped; column not migrated`,
+          );
+          continue;
+        }
+
+        const columnId = colSchema.id;
+        const datatype = colSchema.uidt;
+
+        if (
+          datatype === UITypes.Date ||
+          datatype === UITypes.DateTime ||
+          datatype === UITypes.Links ||
+          datatype === UITypes.MultiSelect ||
+          datatype === UITypes.SingleSelect ||
+          datatype === UITypes.SingleLineText ||
+          datatype === UITypes.Formula ||
+          datatype === UITypes.Checkbox ||
+          datatype === UITypes.Collaborator ||
+          datatype === UITypes.Number
+        ) {
+          ncGroup.push({
+            group_column_id: columnId,
+            direction: group.order,
+          });
+        } else {
+          // skip group by over other data types
+          updateMigrationSkipLog(
+            await sMap.getNcNameFromAtId(viewId),
+            colSchema.title,
+            colSchema.uidt,
+            `group config skipped; group over ${datatype}  not supported`,
+          );
+          continue;
+        }
+      }
+
+      // insert group
+      const viewDetails = await this.viewColumnsService.columnList({
+        viewId: viewId,
+      });
+      for (let i = 0; i < ncGroup.length; i++) {
+        const ncViewColumnId = viewDetails.find(
+          (x) => x.fk_column_id === ncGroup[i].group_column_id,
+        )?.id;
+        try {
+          await this.gridColumnService.gridColumnUpdate({
+            gridViewColumnId: ncViewColumnId,
+            grid: {
+              group_by: true,
+              group_by_order: i + 1,
+              group_by_sort:
+                ncGroup[i].direction === 'ascending' ? 'asc' : 'desc',
+            },
+          });
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+
+    //////////////////////////////
 
     const nc_configureSort = async (viewId, s) => {
       for (let i = 0; i < s.sortSet.length; i++) {

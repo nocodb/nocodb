@@ -72,6 +72,10 @@ export function getRolesLabels(
 
 const logger: Logger = new Logger('AclMiddleware');
 
+const workspacesOnThisServer: string[] = !process.env.NC_WORKSPACE_ID
+  ? [] // If process.env.NC_WORKSPACE_ID is empty, set workspaceIds to an empty array
+  : process.env.NC_WORKSPACE_ID.split(',').map((value) => value.trim());
+
 // todo: refactor name since we are using it as auth guard
 @Injectable()
 export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
@@ -99,9 +103,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     ) {
       const view = await View.get(
         params.formViewId ||
-          params.gridViewId ||
-          params.kanbanViewId ||
-          params.galleryViewId,
+        params.gridViewId ||
+        params.kanbanViewId ||
+        params.galleryViewId,
       );
       req.ncProjectId = view?.base_id;
     } else if (params.publicDataUuid) {
@@ -235,10 +239,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
     if (req.route.path === '/api/v1/workspaces/:workspaceId/status') {
       // skip workspace id check for workspace status update endpoint which is used internally
-    } else if (req.ncWorkspaceId && process.env.NC_WORKSPACE_ID) {
-      if (req.ncWorkspaceId !== process.env.NC_WORKSPACE_ID) {
-        NcError.badRequest(
-          'Requested workspace id does not match with domain name, please use your custom domain',
+    } else if (req.ncWorkspaceId && workspacesOnThisServer.length) {
+      if (!workspacesOnThisServer.includes(req.ncWorkspaceId)) {
+        logger.error(
+          `Requested workspace id: ${req.ncWorkspaceId} does not match with listed domain names, This can happen due to incorrect routing rules in LB`,
         );
       }
     } else if (req.ncWorkspaceId) {
@@ -260,7 +264,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     await this.use(
       context.switchToHttp().getRequest(),
       context.switchToHttp().getResponse(),
-      () => {},
+      () => { },
     );
     return true;
   }
@@ -278,7 +282,7 @@ function getUserRoleForScope(user: any, scope: string) {
 
 @Injectable()
 export class AclMiddleware implements NestInterceptor {
-  constructor(private reflector: Reflector) {}
+  constructor(private reflector: Reflector) { }
 
   async intercept(
     context: ExecutionContext,
@@ -377,14 +381,14 @@ export const Acl =
       blockApiTokenAccess?: boolean;
     } = {},
   ) =>
-  (target: any, key?: string, descriptor?: PropertyDescriptor) => {
-    SetMetadata('permission', permissionName)(target, key, descriptor);
-    SetMetadata('scope', scope)(target, key, descriptor);
-    SetMetadata('allowedRoles', allowedRoles)(target, key, descriptor);
-    SetMetadata('blockApiTokenAccess', blockApiTokenAccess)(
-      target,
-      key,
-      descriptor,
-    );
-    UseInterceptors(AclMiddleware)(target, key, descriptor);
-  };
+    (target: any, key?: string, descriptor?: PropertyDescriptor) => {
+      SetMetadata('permission', permissionName)(target, key, descriptor);
+      SetMetadata('scope', scope)(target, key, descriptor);
+      SetMetadata('allowedRoles', allowedRoles)(target, key, descriptor);
+      SetMetadata('blockApiTokenAccess', blockApiTokenAccess)(
+        target,
+        key,
+        descriptor,
+      );
+      UseInterceptors(AclMiddleware)(target, key, descriptor);
+    };

@@ -4,7 +4,7 @@ const props = defineProps<{
   total: number
   pageSize: number
   entityName?: string
-  mode: 'simple' | 'full'
+  mode?: 'simple' | 'full'
 }>()
 
 const emits = defineEmits(['update:current', 'update:pageSize'])

@@ -157,9 +157,8 @@ export enum WorkspaceStatus {
 
 export enum WorkspacePlan {
   FREE = 'free',
-  STANDARD = 'standard',
+  TEAM = 'team',
   BUSINESS = 'business',
-  BUSINESS_PRO = 'business-pro',
 }
 
 export const RoleLabels = {

@@ -109,7 +109,7 @@ export class TreeViewPage extends BasePage {
               },
             }),
         httpMethodsToMatch: ['GET'],
-        requestUrlPathToMatch: `/api/v1/data/noco/`,
+        requestUrlPathToMatch: `/api/v1/db/data/noco`,
         responseJsonMatcher: json => json.pageInfo,
       });
       await this.dashboard.waitForTabRender({ title, mode });
@@ -143,7 +143,7 @@ export class TreeViewPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.dashboard.get().locator('button:has-text("Create Table")').click(),
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `/api/v1/meta/bases/`,
+      requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
       responseJsonMatcher: json => json.title === title && json.type === 'table',
     });
 
@@ -179,7 +179,7 @@ export class TreeViewPage extends BasePage {
         return await this.dashboard.get().locator('button:has-text("Delete Table")').click();
       },
       httpMethodsToMatch: ['DELETE'],
-      requestUrlPathToMatch: `/api/v1/meta/tables/`,
+      requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
     });
 
     await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
@@ -253,7 +253,7 @@ export class TreeViewPage extends BasePage {
     await this.waitForResponse({
       uiAction: async () => await this.rootPage.getByRole('button', { name: 'Confirm' }).click(),
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `/api/v1/meta/duplicate/`,
+      requestUrlPathToMatch: `/api/v1/db/meta/duplicate/`,
     });
     await this.get().locator(`[data-testid="nc-tbl-title-${title} copy"]`).waitFor();
   }
@@ -267,7 +267,13 @@ export class TreeViewPage extends BasePage {
     ).toHaveCount(1);
   }
 
-  async validateRoleAccess(param: { role: string; baseTitle?: string; tableTitle?: string; context: NcContext }) {
+  async validateRoleAccess(param: {
+    role: string;
+    baseTitle?: string;
+    tableTitle?: string;
+    mode?: string;
+    context: NcContext;
+  }) {
     const context = param.context;
     param.baseTitle = param.baseTitle ?? context.base.title;
 
@@ -275,14 +281,16 @@ export class TreeViewPage extends BasePage {
     const pjtNode = await this.getProject({ title: param.baseTitle });
     await pjtNode.hover();
 
-    // add new table button & context menu is visible only for owner & creator
-    await expect(pjtNode.locator('[data-testid="nc-sidebar-add-base-entity"]')).toHaveCount(count);
-    await expect(pjtNode.locator('[data-testid="nc-sidebar-context-menu"]')).toHaveCount(1);
+    if (param.mode !== 'shareBase') {
+      // add new table button & context menu is visible only for owner & creator
+      await expect(pjtNode.locator('[data-testid="nc-sidebar-add-base-entity"]')).toHaveCount(count);
+      await expect(pjtNode.locator('[data-testid="nc-sidebar-context-menu"]')).toHaveCount(1);
 
-    // table context menu
-    const tblNode = await this.getTable({ index: 0, tableTitle: param.tableTitle });
-    await tblNode.hover();
-    await expect(tblNode.locator('.nc-tbl-context-menu')).toHaveCount(count);
+      // table context menu
+      const tblNode = await this.getTable({ index: 0, tableTitle: param.tableTitle });
+      await tblNode.hover();
+      await expect(tblNode.locator('.nc-tbl-context-menu')).toHaveCount(count);
+    }
   }
 
   async openProject({ title, context }: { title: string; context: NcContext }) {

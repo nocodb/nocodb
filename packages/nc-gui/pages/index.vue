@@ -18,6 +18,8 @@ const { populateWorkspace } = useWorkspace()
 
 const { signedIn } = useGlobal()
 
+const { isUIAllowed } = useRoles()
+
 const router = useRouter()
 
 const route = router.currentRoute
@@ -45,6 +47,10 @@ const isSharedFormView = computed(() => {
   // check route is shared form view route
   return routeName.startsWith('index-typeOrId-form-viewId')
 })
+
+const { sharedBaseId } = useCopySharedBase()
+
+const isDuplicateDlgOpen = ref(false)
 
 async function handleRouteTypeIdChange() {
   // avoid loading bases for shared views
@@ -82,7 +88,29 @@ watch(
 // immediate watch, because if route is changed during page transition
 // It will error out nuxt
 onMounted(() => {
-  handleRouteTypeIdChange()
+  if (route.value.query?.continueAfterSignIn) {
+    localStorage.removeItem('continueAfterSignIn')
+    return navigateTo(route.value.query.continueAfterSignIn as string)
+  } else {
+    const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
+
+    if (continueAfterSignIn) {
+      return navigateTo({
+        path: continueAfterSignIn,
+        query: route.value.query,
+      })
+    }
+  }
+
+  handleRouteTypeIdChange().then(() => {
+    if (sharedBaseId.value) {
+      if (!isUIAllowed('baseDuplicate')) {
+        message.error('You are not allowed to create base')
+        return
+      }
+      isDuplicateDlgOpen.value = true
+    }
+  })
 })
 
 function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: string) {
@@ -117,6 +145,7 @@ provide(ToggleDialogInj, toggleDialog)
       v-model:data-sources-state="dataSourcesState"
       :base-id="baseId"
     />
+    <DlgSharedBaseDuplicate v-if="isUIAllowed('baseDuplicate')" v-model="isDuplicateDlgOpen" />
   </div>
 </template>
 

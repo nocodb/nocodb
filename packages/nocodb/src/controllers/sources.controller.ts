@@ -13,7 +13,7 @@ export class SourcesController {
 
   @Get([
     '/api/v1/db/meta/projects/:baseId/bases/:sourceId',
-    '/api/v1/meta/bases/:baseId/sources/:sourceId',
+    '/api/v2/meta/bases/:baseId/sources/:sourceId',
   ])
   @Acl('baseGet')
   async baseGet(@Param('sourceId') sourceId: string) {
@@ -30,7 +30,7 @@ export class SourcesController {
 
   @Patch([
     '/api/v1/db/meta/projects/:baseId/bases/:sourceId',
-    '/api/v1/meta/bases/:baseId/sources/:sourceId',
+    '/api/v2/meta/bases/:baseId/sources/:sourceId',
   ])
   @Acl('baseUpdate')
   async baseUpdate(
@@ -49,7 +49,7 @@ export class SourcesController {
 
   @Get([
     '/api/v1/db/meta/projects/:baseId/bases',
-    '/api/v1/meta/bases/:baseId/sources',
+    '/api/v2/meta/bases/:baseId/sources',
   ])
   @Acl('baseList')
   async baseList(@Param('baseId') baseId: string) {

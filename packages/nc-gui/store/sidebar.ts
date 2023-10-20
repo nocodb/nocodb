@@ -3,10 +3,22 @@ import { MAX_WIDTH_FOR_MOBILE_MODE } from '~/lib'
 
 export const useSidebarStore = defineStore('sidebarStore', () => {
   const { width } = useWindowSize()
-  const isViewPortMobile = () => width.value < MAX_WIDTH_FOR_MOBILE_MODE
+  const isViewPortMobile = () => {
+    return width.value < MAX_WIDTH_FOR_MOBILE_MODE
+  }
   const { isMobileMode } = useGlobal()
 
-  const isLeftSidebarOpen = ref(!isViewPortMobile())
+  const tablesStore = useTablesStore()
+  const _isLeftSidebarOpen = ref(!isViewPortMobile())
+  const isLeftSidebarOpen = computed({
+    get() {
+      return (isMobileMode.value && !tablesStore.activeTableId) || _isLeftSidebarOpen.value
+    },
+    set(value) {
+      _isLeftSidebarOpen.value = value
+    },
+  })
+
   const isRightSidebarOpen = ref(true)
 
   const leftSidebarWidthPercent = ref(isViewPortMobile() ? 0 : 20)

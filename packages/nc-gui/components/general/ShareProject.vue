@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isDrawerOrModalExist, isEeUI, isMac, useNuxtApp, useRoles } from '#imports'
+import { isDrawerOrModalExist, isMac, useNuxtApp, useRoles } from '#imports'
 
 interface Props {
   disabled?: boolean
@@ -13,6 +13,7 @@ const { isMobileMode, getMainUrl } = useGlobal()
 const { visibility, showShareModal } = storeToRefs(useShare())
 
 const { activeTable } = storeToRefs(useTablesStore())
+
 const { base, isSharedBase } = storeToRefs(useBase())
 
 const { $e } = useNuxtApp()
@@ -71,7 +72,7 @@ const copySharedBase = async () => {
     </NcButton>
   </div>
 
-  <template v-else-if="isSharedBase && isEeUI">
+  <template v-else-if="isSharedBase">
     <div class="flex-1"></div>
     <div class="flex flex-col justify-center h-full">
       <div class="flex flex-row items-center w-full">
@@ -91,11 +92,3 @@ const copySharedBase = async () => {
 
   <LazyDlgShareAndCollaborateView :is-view-toolbar="isViewToolbar" />
 </template>
-
-<style lang="scss">
-.share-status-tootltip {
-  .ant-tooltip-inner {
-    @apply !rounded-md !border-1 !border-gray-200;
-  }
-}
-</style>

@@ -6,7 +6,7 @@ import { iconMap } from '#imports'
   <a
     v-e="['c:navbar:join-cloud']"
     class="flex !no-underline"
-    href="https://docs.google.com/forms/d/e/1FAIpQLSfKLe8Rcrq0uo2_jM5W1kbVBbzDiQ3IvlP8Iov61FTekVAvzA/viewform?usp=pp_url"
+    href="https://app.nocodb.com/#/signin?utm_source=OSS&utm_medium=OSS&utm_campaign=OSS&utm_content=OSS"
   >
     <div
       class="flex justify-center items-center rounded-l-[3px] w-full cursor-pointer px-2 py-1 !text-current !no-underline text-primary border-1 border-[#cdd1d6] bg-[#EFF2F6] hover:bg-[#e9ebef] m-0"

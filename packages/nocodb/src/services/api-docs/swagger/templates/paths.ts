@@ -25,7 +25,7 @@ export const getModelPaths = async (ctx: {
   columns: SwaggerColumn[];
   baseName: string;
 }): Promise<{ [path: string]: any }> => ({
-  [`/api/v1/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}`]: {
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}`]: {
     get: {
       summary: `${ctx.tableName} list`,
       operationId: `${ctx.tableName.toLowerCase()}-db-table-row-list`,
@@ -84,7 +84,7 @@ export const getModelPaths = async (ctx: {
         }
       : {}),
   },
-  [`/api/v1/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/{rowId}`]: {
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/{rowId}`]: {
     parameters: [rowIdParam],
     ...(ctx.type === ModelTypes.TABLE
       ? {
@@ -149,7 +149,7 @@ export const getModelPaths = async (ctx: {
         }
       : {}),
   },
-  [`/api/v1/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/count`]: {
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/count`]: {
     get: {
       summary: `${ctx.tableName} count`,
       operationId: `${ctx.tableName.toLowerCase()}-count`,
@@ -168,7 +168,7 @@ export const getModelPaths = async (ctx: {
       },
     },
   },
-  [`/api/v1/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/find-one`]: {
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/find-one`]: {
     get: {
       summary: `${ctx.tableName} find-one`,
       operationId: `${ctx.tableName.toLowerCase()}-db-table-row-find-one`,
@@ -189,7 +189,7 @@ export const getModelPaths = async (ctx: {
       },
     },
   },
-  [`/api/v1/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/groupby`]: {
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/groupby`]: {
     get: {
       summary: `${ctx.tableName} groupby`,
       operationId: `${ctx.tableName.toLowerCase()}-groupby`,
@@ -230,7 +230,7 @@ export const getModelPaths = async (ctx: {
   },
   ...(ctx.type === ModelTypes.TABLE
     ? {
-        [`/api/v1/data/bulk/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}`]: {
+        [`/api/v1/db/data/bulk/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}`]: {
           post: {
             summary: `${ctx.tableName} bulk insert`,
             description:
@@ -304,7 +304,7 @@ export const getModelPaths = async (ctx: {
             },
           },
         },
-        [`/api/v1/data/bulk/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/all`]:
+        [`/api/v1/db/data/bulk/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/all`]:
           {
             parameters: [whereParam],
             patch: {
@@ -352,7 +352,7 @@ export const getModelPaths = async (ctx: {
 
         ...(isRelationExist(ctx.columns)
           ? {
-              [`/api/v1/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/{rowId}/{relationType}/{columnName}`]:
+              [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/{rowId}/{relationType}/{columnName}`]:
                 {
                   parameters: [
                     rowIdParam,
@@ -376,7 +376,7 @@ export const getModelPaths = async (ctx: {
                     parameters: [limitParam, offsetParam],
                   },
                 },
-              [`/api/v1/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/{rowId}/{relationType}/{columnName}/{refRowId}`]:
+              [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/{rowId}/{relationType}/{columnName}/{refRowId}`]:
                 {
                   parameters: [
                     rowIdParam,
@@ -417,7 +417,7 @@ export const getModelPaths = async (ctx: {
                     tags: [ctx.tableName],
                   },
                 },
-              [`/api/v1/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/{rowId}/{relationType}/{columnName}/exclude`]:
+              [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/{rowId}/{relationType}/{columnName}/exclude`]:
                 {
                   parameters: [
                     rowIdParam,
@@ -446,28 +446,29 @@ export const getModelPaths = async (ctx: {
           : {}),
       }
     : {}),
-  [`/api/v1/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/export/{type}`]: {
-    parameters: [exportTypeParam],
-    get: {
-      summary: 'Rows export',
-      operationId: `${ctx.tableName.toLowerCase()}-csv-export`,
-      description:
-        'Export all the records from a table.Currently we are only supports `csv` export.',
-      tags: [ctx.tableName],
-      responses: {
-        '200': {
-          description: 'OK',
-          content: {
-            'application/octet-stream': {
-              schema: {},
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/export/{type}`]:
+    {
+      parameters: [exportTypeParam],
+      get: {
+        summary: 'Rows export',
+        operationId: `${ctx.tableName.toLowerCase()}-csv-export`,
+        description:
+          'Export all the records from a table.Currently we are only supports `csv` export.',
+        tags: [ctx.tableName],
+        responses: {
+          '200': {
+            description: 'OK',
+            content: {
+              'application/octet-stream': {
+                schema: {},
+              },
             },
+            headers: csvExportResponseHeader,
           },
-          headers: csvExportResponseHeader,
         },
+        parameters: [csvExportOffsetParam],
       },
-      parameters: [csvExportOffsetParam],
     },
-  },
 });
 
 export const getViewPaths = async (ctx: {
@@ -478,7 +479,7 @@ export const getViewPaths = async (ctx: {
   baseName: string;
   columns: SwaggerColumn[];
 }): Promise<any> => ({
-  [`/api/v1/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/views/${ctx.viewName}`]:
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/views/${ctx.viewName}`]:
     {
       get: {
         summary: `${ctx.viewName} list`,
@@ -535,7 +536,7 @@ export const getViewPaths = async (ctx: {
           }
         : {}),
     },
-  [`/api/v1/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/views/${ctx.viewName}/count`]:
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/views/${ctx.viewName}/count`]:
     {
       get: {
         summary: `${ctx.viewName} count`,
@@ -562,7 +563,7 @@ export const getViewPaths = async (ctx: {
     },
   ...(ctx.type === ModelTypes.TABLE
     ? {
-        [`/api/v1/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/views/${ctx.viewName}/{rowId}`]:
+        [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/views/${ctx.viewName}/{rowId}`]:
           {
             parameters: [rowIdParam],
             get: {
@@ -625,7 +626,7 @@ export const getViewPaths = async (ctx: {
           },
       }
     : {}),
-  [`/api/v1/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/views/${ctx.viewName}/export/{type}`]:
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/views/${ctx.viewName}/export/{type}`]:
     {
       parameters: [exportTypeParam],
       get: {

@@ -3,6 +3,7 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 // @ts-ignore
 import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule as NestJsEventEmitter } from '@nestjs/event-emitter';
+import { SentryModule } from '@ntegral/nestjs-sentry';
 import type { MiddlewareConsumer } from '@nestjs/common';
 import { GlobalExceptionFilter } from '~/filters/global-exception/global-exception.filter';
 import { GlobalMiddleware } from '~/middlewares/global/global.middleware';
@@ -24,6 +25,7 @@ import { HookHandlerService } from '~/services/hook-handler.service';
 import { BasicStrategy } from '~/strategies/basic.strategy/basic.strategy';
 import { UsersModule } from '~/modules/users/users.module';
 import { AuthModule } from '~/modules/auth/auth.module';
+import { packageInfo } from '~/utils/packageVersion';
 
 export const ceModuleConfig = {
   imports: [
@@ -39,6 +41,17 @@ export const ceModuleConfig = {
       load: [() => appConfig],
       isGlobal: true,
     }),
+    ...(process.env.NC_SENTRY_DSN
+      ? [
+          SentryModule.forRoot({
+            dsn: process.env.NC_SENTRY_DSN,
+            debug: false,
+            environment: process.env.NODE_ENV,
+            release: packageInfo.version, // must create a release in sentry.io dashboard
+            logLevels: ['debug'], //based on sentry.io loglevel //
+          }),
+        ]
+      : []),
   ],
   providers: [
     AuthService,

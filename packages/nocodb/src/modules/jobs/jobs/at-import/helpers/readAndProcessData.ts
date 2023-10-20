@@ -146,7 +146,7 @@ export async function importData({
 
                   await services.bulkDataService.bulkDataInsert({
                     baseName,
-                    tableName: table.title,
+                    tableName: table.id,
                     body: insertArray,
                     cookie: {},
                     skip_hooks: true,
@@ -394,7 +394,7 @@ export async function importLTARData({
 
             await services.bulkDataService.bulkDataInsert({
               baseName,
-              tableName: assocMeta.modelMeta.title,
+              tableName: assocMeta.modelMeta.id,
               body: assocTableData,
               cookie: {},
               skip_hooks: true,

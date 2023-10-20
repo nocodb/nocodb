@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
+import { message } from 'ant-design-vue'
 import { useVModel } from '#imports'
+import type { TabType } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
   table: TableType
-  onOk: (jobData: { name: string; id: string }) => Promise<void>
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -13,6 +14,26 @@ const emit = defineEmits(['update:modelValue'])
 const { api } = useApi()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
+
+const { addTab } = useTabs()
+
+const { $e, $poller } = useNuxtApp()
+
+const basesStore = useBases()
+
+const { createProject: _createProject } = basesStore
+
+const { openTable } = useTablesStore()
+
+const baseStore = useBase()
+
+const { loadTables } = baseStore
+
+const { tables } = storeToRefs(baseStore)
+
+const { t } = useI18n()
+
+const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -37,13 +58,45 @@ const _duplicate = async () => {
   try {
     isLoading.value = true
     const jobData = await api.dbTable.duplicate(props.table.base_id!, props.table.id!, { options: optionsToExclude.value })
-    props.onOk(jobData as any)
+
+    $poller.subscribe(
+      { id: jobData.id },
+      async (data: {
+        id: string
+        status?: string
+        data?: {
+          error?: {
+            message: string
+          }
+          message?: string
+          result?: any
+        }
+      }) => {
+        if (data.status !== 'close') {
+          if (data.status === JobStatus.COMPLETED) {
+            await loadTables()
+            refreshCommandPalette()
+            const newTable = tables.value.find((el) => el.id === data?.data?.result?.id)
+            if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
+
+            openTable(newTable!)
+            isLoading.value = false
+            dialogShow.value = false
+          } else if (data.status === JobStatus.FAILED) {
+            message.error(t('msg.error.failedToDuplicateTable'))
+            await loadTables()
+            isLoading.value = false
+            dialogShow.value = false
+          }
+        }
+      },
+    )
+
+    $e('a:table:duplicate')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
     isLoading.value = false
     dialogShow.value = false
-    refreshCommandPalette()
   }
 }
 
@@ -61,10 +114,12 @@ const isEaster = ref(false)
   <GeneralModal
     v-model:visible="dialogShow"
     :class="{ active: dialogShow }"
+    :closable="!isLoading"
+    :mask-closable="!isLoading"
+    :keyboard="!isLoading"
     centered
     wrap-class-name="nc-modal-table-duplicate"
     :footer="null"
-    :closable="false"
     class="!w-[30rem]"
     @keydown.esc="dialogShow = false"
   >
@@ -80,13 +135,15 @@ const isEaster = ref(false)
       <a-divider class="!m-0 !p-0 !my-2" />
 
       <div class="text-xs p-2">
-        <a-checkbox v-model:checked="options.includeData">{{ $t('labels.includeData') }}</a-checkbox>
-        <a-checkbox v-model:checked="options.includeViews">{{ $t('labels.includeView') }}</a-checkbox>
-        <a-checkbox v-show="isEaster" v-model:checked="options.includeHooks">{{ $t('labels.includeWebhook') }}</a-checkbox>
+        <a-checkbox v-model:checked="options.includeData" :disabled="isLoading">{{ $t('labels.includeData') }}</a-checkbox>
+        <a-checkbox v-model:checked="options.includeViews" :disabled="isLoading">{{ $t('labels.includeView') }}</a-checkbox>
+        <a-checkbox v-show="isEaster" v-model:checked="options.includeHooks" :disabled="isLoading">
+          {{ $t('labels.includeWebhook') }}
+        </a-checkbox>
       </div>
     </div>
     <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-      <NcButton key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
+      <NcButton v-if="!isLoading" key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
       <NcButton key="submit" v-e="['a:table:duplicate']" type="primary" :loading="isLoading" @click="_duplicate"
         >{{ $t('general.confirm') }}
       </NcButton>

@@ -134,7 +134,7 @@ export class GridPage extends BasePage {
     if (networkValidation) {
       await this.waitForResponse({
         uiAction: clickOnColumnHeaderToSave,
-        requestUrlPathToMatch: 'api/v1/data/noco',
+        requestUrlPathToMatch: 'api/v1/db/data/noco',
         httpMethodsToMatch: ['POST'],
         // numerical types are returned in number format from the server
         responseJsonMatcher: resJson => String(resJson?.[columnHeader]) === String(rowValue),
@@ -166,7 +166,7 @@ export class GridPage extends BasePage {
     if (networkValidation) {
       await this.waitForResponse({
         uiAction: clickOnColumnHeaderToSave,
-        requestUrlPathToMatch: 'api/v1/data/noco',
+        requestUrlPathToMatch: 'api/v1/db/data/noco',
         httpMethodsToMatch: [
           'PATCH',
           // since edit row on an empty row will emit POST request

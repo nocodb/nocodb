@@ -14,7 +14,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 </p>
 
 <div align="center">
- 
+
 [![Node version](https://img.shields.io/badge/node-%3E%3D%2018.14.0-brightgreen)](http://nodejs.org/download/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
 
@@ -210,22 +210,22 @@ Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/
 # Table of Contents
 
 - [Quick try](#quick-try)
-  - [NPX](#npx)
-  - [Node Application](#node-application)
-  - [Docker](#docker)
-  - [Docker Compose](#docker-compose)
+    - [NPX](#npx)
+    - [Node Application](#node-application)
+    - [Docker](#docker)
+    - [Docker Compose](#docker-compose)
 - [GUI](#gui)
 - [Join Our Community](#join-our-community)
 - [Screenshots](#screenshots)
 - [Table of Contents](#table-of-contents)
 - [Features](#features)
-  - [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
-  - [App Store for Workflow Automations](#app-store-for-workflow-automations)
-  - [Programmatic Access](#programmatic-access)
-  - [Sync Schema](#sync-schema)
-  - [Audit](#audit)
+    - [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
+    - [App Store for Workflow Automations](#app-store-for-workflow-automations)
+    - [Programmatic Access](#programmatic-access)
+    - [Sync Schema](#sync-schema)
+    - [Audit](#audit)
 - [Production Setup](#production-setup)
-  - [Environment variables](#environment-variables)
+    - [Environment variables](#environment-variables)
 - [Development Setup](#development-setup)
 - [Contributing](#contributing)
 - [Why are we building this?](#why-are-we-building-this)

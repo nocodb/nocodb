@@ -10,7 +10,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 export class CachesController {
   constructor(private readonly cachesService: CachesService) {}
 
-  @Get(['/api/v1/db/meta/cache', '/api/v1/meta/cache'])
+  @Get(['/api/v1/db/meta/cache', '/api/v2/meta/cache'])
   @Acl('cacheGet', {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
@@ -25,7 +25,7 @@ export class CachesController {
     return JSON.stringify(data);
   }
 
-  @Delete(['/api/v1/db/meta/cache', '/api/v1/meta/cache'])
+  @Delete(['/api/v1/db/meta/cache', '/api/v2/meta/cache'])
   @Acl('cacheDelete', {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],

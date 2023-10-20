@@ -57,7 +57,7 @@ function columnTypeSpecificTests() {
   describe('Qr Code Column', () => {
     it('delivers the same cell values as the referenced column', async () => {
       const resp = await request(context.app)
-        .get(`/api/v1/data/noco/${sakilaProject.id}/${customerTable.id}`)
+        .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
         .set('xc-auth', context.token)
         .expect(200);
       expect(resp.body.list[0][qrValueReferenceColumnTitle]).to.eql(
@@ -80,7 +80,7 @@ function columnTypeSpecificTests() {
       ).to.eq(true);
 
       const response = await request(context.app)
-        .delete(`/api/v1/meta/columns/${qrValueReferenceColumn.id}`)
+        .delete(`/api/v1/db/meta/columns/${qrValueReferenceColumn.id}`)
         .set('xc-auth', context.token)
         .send({});
 

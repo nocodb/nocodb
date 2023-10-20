@@ -18,7 +18,7 @@ export class SqlViewsController {
 
   @Post([
     '/api/v1/db/meta/projects/:baseId/bases/:sourceId/sqlView',
-    '/api/v1/meta/bases/:baseId/sources/:sourceId/sqlView',
+    '/api/v2/meta/bases/:baseId/sources/:sourceId/sqlView',
   ])
   @Acl('sqlViewCreate')
   async sqlViewCreate(

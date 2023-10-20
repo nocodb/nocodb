@@ -140,7 +140,7 @@ export class ContainerPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.rootPage.locator('.nc-metadb-base-name').press('Enter'),
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `api/v1/meta/bases`,
+      requestUrlPathToMatch: `/api/v1/db/meta/projects`,
     });
   }
 
@@ -154,7 +154,7 @@ export class ContainerPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => row.locator('td.ant-table-cell').nth(0).locator('input').press('Enter'),
       httpMethodsToMatch: ['PATCH'],
-      requestUrlPathToMatch: `api/v1/meta/bases/`,
+      requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
     });
   }
 
@@ -185,7 +185,7 @@ export class ContainerPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.rootPage.locator('.ant-modal-content').locator('button:has-text("Delete")').click(),
       httpMethodsToMatch: ['DELETE'],
-      requestUrlPathToMatch: `api/v1/meta/bases/`,
+      requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
     });
   }
 

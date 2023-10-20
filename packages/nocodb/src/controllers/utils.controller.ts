@@ -14,12 +14,16 @@ import { UtilsService } from '~/services/utils.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
+import { TelemetryService } from '~/services/telemetry.service';
 
 @Controller()
 export class UtilsController {
   private version: string;
 
-  constructor(protected readonly utilsService: UtilsService) {}
+  constructor(
+    protected readonly utilsService: UtilsService,
+    protected readonly telemetryService: TelemetryService,
+  ) {}
 
   @UseGuards(PublicApiLimiterGuard)
   @Get('/api/v1/version')
@@ -39,17 +43,26 @@ export class UtilsController {
   }
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  @Post(['/api/v1/db/meta/connection/test', '/api/v1/meta/connection/test'])
+  @Post(['/api/v1/db/meta/connection/test', '/api/v2/meta/connection/test'])
   @Acl('testConnection', {
     scope: 'org',
   })
   @HttpCode(200)
-  async testConnection(@Body() body: any) {
+  async testConnection(@Body() body: any, @Request() _req: any) {
+    body.pool = {
+      min: 0,
+      max: 1,
+    };
+
     return await this.utilsService.testConnection({ body });
   }
 
   @UseGuards(PublicApiLimiterGuard)
-  @Get(['/api/v1/db/meta/nocodb/info', '/api/v1/meta/nocodb/info'])
+  @Get([
+    '/api/v1/db/meta/nocodb/info',
+    '/api/v2/meta/nocodb/info',
+    '/api/v1/meta/nocodb/info',
+  ])
   async appInfo(@Request() req) {
     return await this.utilsService.appInfo({
       req: {
@@ -65,7 +78,7 @@ export class UtilsController {
   }
 
   @UseGuards(PublicApiLimiterGuard)
-  @Post(['/api/v1/db/meta/axiosRequestMake', '/api/v1/meta/axiosRequestMake'])
+  @Post(['/api/v1/db/meta/axiosRequestMake', '/api/v2/meta/axiosRequestMake'])
   @HttpCode(200)
   async axiosRequestMake(@Body() body: any) {
     return await this.utilsService.axiosRequestMake({ body });

@@ -128,10 +128,7 @@ const validators = computed(() =>
     hasSelectColumn.value[tableIdx] = false
 
     table.columns?.forEach((column, columnIdx) => {
-      acc[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = [
-        fieldRequiredValidator(),
-        fieldLengthValidator(base.value?.sources?.[0].type || ClientType.MYSQL),
-      ]
+      acc[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = [fieldRequiredValidator(), fieldLengthValidator()]
       acc[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = [fieldRequiredValidator()]
       if (isSelect(column)) {
         hasSelectColumn.value[tableIdx] = true
@@ -434,7 +431,7 @@ async function importTemplate() {
                     let input = row[col.srcCn]
                     // parse potential boolean values
                     if (v.uidt === UITypes.Checkbox) {
-                      input = input.replace(/["']/g, '').toLowerCase().trim()
+                      input = input ? input.replace(/["']/g, '').toLowerCase().trim() : 'false'
                       if (input === 'false' || input === 'no' || input === 'n') {
                         input = '0'
                       } else if (input === 'true' || input === 'yes' || input === 'y') {

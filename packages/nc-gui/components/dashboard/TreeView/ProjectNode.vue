@@ -57,7 +57,7 @@ const basesStore = useBases()
 
 const { isMobileMode } = useGlobal()
 
-const { loadProjects, createProject: _createProject, updateProject, getProjectMetaInfo } = basesStore
+const { createProject: _createProject, updateProject, getProjectMetaInfo } = basesStore
 
 const { bases } = storeToRefs(basesStore)
 
@@ -65,7 +65,7 @@ const { loadProjectTables } = useTablesStore()
 
 const { activeTable } = storeToRefs(useTablesStore())
 
-const { appInfo, navigateToProject } = useGlobal()
+const { appInfo } = useGlobal()
 
 const { orgRoles, isUIAllowed } = useRoles()
 
@@ -351,46 +351,6 @@ const duplicateProject = (base: BaseType) => {
   selectedProjectToDuplicate.value = base
   isDuplicateDlgOpen.value = true
 }
-const { $poller } = useNuxtApp()
-
-const DlgProjectDuplicateOnOk = async (jobData: { id: string; base_id: string }) => {
-  await loadProjects('workspace')
-
-  $poller.subscribe(
-    { id: jobData.id },
-    async (data: {
-      id: string
-      status?: string
-      data?: {
-        error?: {
-          message: string
-        }
-        message?: string
-        result?: any
-      }
-    }) => {
-      if (data.status !== 'close') {
-        if (data.status === JobStatus.COMPLETED) {
-          await loadProjects('workspace')
-
-          const base = bases.value.get(jobData.base_id)
-
-          // open base after duplication
-          if (base) {
-            await navigateToProject({
-              baseId: base.id,
-              type: base.type,
-            })
-          }
-        } else if (data.status === JobStatus.FAILED) {
-          message.error('Failed to duplicate base')
-          await loadProjects('workspace')
-        }
-      }
-    },
-  )
-  $e('a:base:duplicate')
-}
 
 const tableDelete = () => {
   isTableDeleteDialogVisible.value = true
@@ -477,7 +437,7 @@ const projectDelete = () => {
           </span>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(base)"></div>
 
-          <NcDropdown v-model:visible="isOptionsOpen" :trigger="['click']">
+          <NcDropdown v-if="!isSharedBase" v-model:visible="isOptionsOpen" :trigger="['click']">
             <NcButton
               v-e="['c:base:options']"
               class="nc-sidebar-node-btn"
@@ -554,7 +514,7 @@ const projectDelete = () => {
                     @click.stop="
                       () => {
                         $e('c:base:api-docs')
-                        openLink(`/api/v1/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)
+                        openLink(`/api/v1/db/meta/projects/${base.id}/swagger`, appInfo.ncSiteUrl)
                       }
                     "
                   >
@@ -791,12 +751,7 @@ const projectDelete = () => {
     :base-id="base?.id"
   />
   <DlgProjectDelete v-model:visible="isProjectDeleteDialogVisible" :base-id="base?.id" />
-  <DlgProjectDuplicate
-    v-if="selectedProjectToDuplicate"
-    v-model="isDuplicateDlgOpen"
-    :base="selectedProjectToDuplicate"
-    :on-ok="DlgProjectDuplicateOnOk"
-  />
+  <DlgProjectDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
   <GeneralModal v-model:visible="isErdModalOpen" size="large">
     <div class="h-[80vh]">
       <LazyDashboardSettingsErd :source-id="activeBaseId" />

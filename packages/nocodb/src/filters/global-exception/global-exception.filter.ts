@@ -26,10 +26,14 @@ import {
 export class GlobalExceptionFilter implements ExceptionFilter {
   constructor(
 <<<<<<< HEAD
+<<<<<<< HEAD
     @Optional() @InjectSentry() private readonly sentryClient: SentryService,
 =======
     @Optional() @InjectSentry() private readonly client: SentryService,
 >>>>>>> 9149c5b28f... fix: correction in sentry integration
+=======
+    @Optional() @InjectSentry() private readonly sentryClient: SentryService,
+>>>>>>> 84d4eb5bec... refactor: better naming
   ) {}
 
   private logger = new Logger(GlobalExceptionFilter.name);
@@ -118,10 +122,14 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       response.status(exception.getStatus()).json(exception.getResponse());
     } else {
 <<<<<<< HEAD
+<<<<<<< HEAD
       this.sentryClient?.instance().captureException(exception);
 =======
       this.client?.instance().captureException(exception);
 >>>>>>> 9149c5b28f... fix: correction in sentry integration
+=======
+      this.sentryClient?.instance().captureException(exception);
+>>>>>>> 84d4eb5bec... refactor: better naming
 
       // todo: change the response code
       response.status(400).json({

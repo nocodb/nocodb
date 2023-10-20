@@ -98,20 +98,8 @@ watch(columns, () => {
       <div v-if="!isMobileMode" class="w-16 text-[0.75rem] font-medium text-gray-400 truncate">
         {{ displayColumnLabel }}
       </div>
-      <div
-        :class="{
-          'opacity-0 group-hover:opacity-100': !isMobileMode,
-          'text-gray-700': isMobileMode,
-        }"
-      >
-        <component
-          :is="iconMap.arrowDown"
-          class="text-sm"
-          :class="{
-            'text-gray-400': !isMobileMode,
-            'text-gray-600': isMobileMode,
-          }"
-        />
+      <div class="xs:(text-gray-600) group-hover:text-gray-700 sm:(text-gray-400)">
+        <component :is="iconMap.arrowDown" class="text-sm text-inherit" />
       </div>
       <a-select
         v-model:value="search.field"

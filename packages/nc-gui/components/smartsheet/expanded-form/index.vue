@@ -438,7 +438,7 @@ export default {
     :class="{ active: isExpanded }"
   >
     <div class="h-[85vh] xs:(max-h-full) max-h-215 flex flex-col p-6">
-      <div class="flex h-8 flex-shrink-0 w-full items-center nc-expanded-form-header relative mb-4 justify-between">
+      <div class="flex h-9.5 flex-shrink-0 w-full items-center nc-expanded-form-header relative mb-4 justify-between">
         <template v-if="!isMobileMode">
           <div class="flex gap-3 w-100">
             <div class="flex gap-2">
@@ -484,7 +484,7 @@ export default {
                 {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
               </div>
             </NcButton>
-            <NcDropdown v-if="!isNew">
+            <NcDropdown v-if="!isNew" placement="bottomRight">
               <NcButton type="secondary" class="nc-expand-form-more-actions w-10">
                 <GeneralIcon icon="threeDotVertical" class="text-md text-gray-700" />
               </NcButton>
@@ -580,7 +580,7 @@ export default {
           }"
         >
           <div
-            class="flex flex-col flex-grow mt-2 h-full max-h-full nc-scrollbar-md !pb-2 items-center w-full bg-white p-4 xs:p-0"
+            class="flex flex-col flex-grow mt-2 h-full max-h-full nc-scrollbar-md pb-6 items-center w-full bg-white p-4 xs:p-0"
           >
             <div
               v-for="(col, i) of fields"
@@ -710,7 +710,7 @@ export default {
             v-if="isUIAllowed('dataEdit')"
             class="w-full h-16 border-t-1 border-gray-200 bg-white flex items-center justify-end p-3 xs:(p-0 mt-4 border-t-0 gap-x-4 justify-between)"
           >
-            <NcDropdown v-if="!isNew && isMobileMode">
+            <NcDropdown v-if="!isNew && isMobileMode" placement="bottomRight">
               <NcButton type="secondary" class="nc-expand-form-more-actions w-10">
                 <GeneralIcon icon="threeDotVertical" class="text-md text-gray-700" />
               </NcButton>

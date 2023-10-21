@@ -46,7 +46,7 @@ onMounted(async () => {
 <template>
   <GeneralModal v-model:visible="isOpen" size="large">
     <div class="h-[80vh]">
-      <ErdView v-if="!isLoading" :source-id="activeSourceId" :base-id="baseId" />
+      <ErdView v-if="!isLoading" :source-id="activeSourceId" :base-id="baseId" :show-all-columns="false" />
     </div>
   </GeneralModal>
 </template>

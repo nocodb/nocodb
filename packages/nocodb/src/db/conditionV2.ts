@@ -21,13 +21,21 @@ export default async function conditionV2(
   conditionObj: Filter | Filter[],
   qb: Knex.QueryBuilder,
   alias?: string,
+  throwErrorIfInvalid = false,
 ) {
   if (!conditionObj || typeof conditionObj !== 'object') {
     return;
   }
-  (await parseConditionV2(baseModelSqlv2, conditionObj, { count: 0 }, alias))(
-    qb,
-  );
+  (
+    await parseConditionV2(
+      baseModelSqlv2,
+      conditionObj,
+      { count: 0 },
+      alias,
+      undefined,
+      throwErrorIfInvalid,
+    )
+  )(qb);
 }
 
 function getLogicalOpMethod(filter: Filter) {
@@ -49,6 +57,7 @@ const parseConditionV2 = async (
   aliasCount = { count: 0 },
   alias?,
   customWhereClause?,
+  throwErrorIfInvalid = false,
 ) => {
   const knex = baseModelSqlv2.dbDriver;
 
@@ -60,7 +69,14 @@ const parseConditionV2 = async (
   if (Array.isArray(_filter)) {
     const qbs = await Promise.all(
       _filter.map((child) =>
-        parseConditionV2(baseModelSqlv2, child, aliasCount, alias),
+        parseConditionV2(
+          baseModelSqlv2,
+          child,
+          aliasCount,
+          alias,
+          undefined,
+          throwErrorIfInvalid,
+        ),
       ),
     );
 
@@ -76,7 +92,14 @@ const parseConditionV2 = async (
 
     const qbs = await Promise.all(
       (children || []).map((child) =>
-        parseConditionV2(baseModelSqlv2, child, aliasCount),
+        parseConditionV2(
+          baseModelSqlv2,
+          child,
+          aliasCount,
+          undefined,
+          undefined,
+          throwErrorIfInvalid,
+        ),
       ),
     );
 
@@ -89,7 +112,12 @@ const parseConditionV2 = async (
     };
   } else {
     const column = await filter.getColumn();
-    if (!column) return () => {};
+    if (!column) {
+      if (throwErrorIfInvalid) {
+        throw new Error(`Invalid column id '${filter.fk_column_id}' in filter`);
+      }
+      return;
+    }
     if (column.uidt === UITypes.LinkToAnotherRecord) {
       const colOptions =
         (await column.getColOptions()) as LinkToAnotherRecordColumn;
@@ -153,6 +181,9 @@ const parseConditionV2 = async (
               fk_column_id: childModel?.displayValue?.id,
             }),
             aliasCount,
+            undefined,
+            undefined,
+            throwErrorIfInvalid,
           )
         )(selectQb);
 
@@ -216,6 +247,9 @@ const parseConditionV2 = async (
               fk_column_id: parentModel?.displayValue?.id,
             }),
             aliasCount,
+            undefined,
+            undefined,
+            throwErrorIfInvalid,
           )
         )(selectQb);
 
@@ -292,6 +326,9 @@ const parseConditionV2 = async (
               fk_column_id: parentModel?.displayValue?.id,
             }),
             aliasCount,
+            undefined,
+            undefined,
+            throwErrorIfInvalid,
           )
         )(selectQb);
 
@@ -310,6 +347,7 @@ const parseConditionV2 = async (
         filter,
         knex,
         aliasCount,
+        throwErrorIfInvalid,
       );
     } else if (
       [UITypes.Rollup, UITypes.Links].includes(column.uidt) &&
@@ -843,6 +881,7 @@ async function generateLookupCondition(
   filter: Filter,
   knex,
   aliasCount = { count: 0 },
+  throwErrorIfInvalid = false,
 ): Promise<any> {
   const colOptions = await col.getColOptions<LookupColumn>();
   const relationColumn = await colOptions.getRelationColumn();
@@ -880,6 +919,7 @@ async function generateLookupCondition(
         knex,
         alias,
         aliasCount,
+        throwErrorIfInvalid,
       );
 
       return (qbP: Knex.QueryBuilder) => {
@@ -906,6 +946,7 @@ async function generateLookupCondition(
         knex,
         alias,
         aliasCount,
+        throwErrorIfInvalid,
       );
 
       return (qbP: Knex.QueryBuilder) => {
@@ -943,6 +984,7 @@ async function generateLookupCondition(
         knex,
         childAlias,
         aliasCount,
+        throwErrorIfInvalid,
       );
 
       return (qbP: Knex.QueryBuilder) => {
@@ -962,6 +1004,7 @@ async function nestedConditionJoin(
   knex,
   alias: string,
   aliasCount: { count: number },
+  throwErrorIfInvalid = false,
 ) {
   if (
     lookupColumn.uidt === UITypes.Lookup ||
@@ -1044,6 +1087,7 @@ async function nestedConditionJoin(
         knex,
         relAlias,
         aliasCount,
+        throwErrorIfInvalid,
       );
     } else {
       switch (relationColOptions.type) {
@@ -1059,6 +1103,8 @@ async function nestedConditionJoin(
                 }),
                 aliasCount,
                 relAlias,
+                undefined,
+                throwErrorIfInvalid,
               )
             )(qb);
           }
@@ -1075,6 +1121,8 @@ async function nestedConditionJoin(
                 }),
                 aliasCount,
                 relAlias,
+                undefined,
+                throwErrorIfInvalid,
               )
             )(qb);
           }
@@ -1091,6 +1139,8 @@ async function nestedConditionJoin(
                 }),
                 aliasCount,
                 relAlias,
+                undefined,
+                throwErrorIfInvalid,
               )
             )(qb);
           }
@@ -1108,6 +1158,8 @@ async function nestedConditionJoin(
         }),
         aliasCount,
         alias,
+        undefined,
+        throwErrorIfInvalid,
       )
     )(qb);
   }

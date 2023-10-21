@@ -33,7 +33,7 @@ const groupType = computed({
           class="cursor-pointer text-xs text-gray-500 hover:text-primary"
           @click.stop="notificationStore.markAllAsRead"
         >
-          {{ $t('activity.maskAllAsRead') }}
+          {{ $t('activity.markAllAsRead') }}
         </div>
       </div>
     </div>

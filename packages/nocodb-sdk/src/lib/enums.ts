@@ -173,7 +173,7 @@ export const RoleLabels = {
   [ProjectRoles.COMMENTER]: 'commenter',
   [ProjectRoles.VIEWER]: 'viewer',
   [ProjectRoles.NO_ACCESS]: 'noaccess',
-  [OrgUserRoles.SUPER_ADMIN]: 'super',
+  [OrgUserRoles.SUPER_ADMIN]: 'superAdmin',
   [OrgUserRoles.CREATOR]: 'creator',
   [OrgUserRoles.VIEWER]: 'viewer',
 };

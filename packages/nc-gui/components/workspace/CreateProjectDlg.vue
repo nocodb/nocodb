@@ -3,7 +3,7 @@ import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
-import { NcProjectType, baseTitleValidator, extractSdkResponseErrorMsg, ref, useGlobal, useVModel, useI18n } from '#imports'
+import { NcProjectType, baseTitleValidator, extractSdkResponseErrorMsg, ref, useGlobal, useI18n, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -26,7 +26,7 @@ const { navigateToProject } = useGlobal()
 const nameValidationRules = [
   {
     required: true,
-    message: t('msg.dbNamerequired'),
+    message: t('msg.dbNameRequired'),
   },
   baseTitleValidator,
 ] as RuleObject[]
@@ -97,7 +97,7 @@ const typeLabel = computed(() => {
       <!-- Create A New Table -->
       <div class="flex flex-row items-center">
         <GeneralProjectIcon :type="baseType" class="mr-2.5 !text-lg !h-4" />
-        {{ $t('general.create')+` ${typeLabel}` }}
+        {{ `${$t('general.create')} ${typeLabel}` }}
       </div>
     </template>
     <div class="mt-3">
@@ -129,13 +129,13 @@ const typeLabel = computed(() => {
           data-testid="docs-create-proj-dlg-create-btn"
           :loading="creating"
           type="primary"
-          :label="$t('general.create')+` ${typeLabel}`"
-          :loading-label="`Creating ${typeLabel}`"
+          :label="`${$t('general.create')} ${typeLabel}`"
+          :loading-label="`${$t('general.creating')} ${typeLabel}`"
           @click="createProject"
         >
-          {{ $t('general.create')+` ${typeLabel}` }}
+          {{ `${$t('general.create')} ${typeLabel}` }}
           <template #loading>
-            {{ $t('general.creating')+` ${typeLabel}` }}
+            {{ `${$t('general.creating')} ${typeLabel}` }}
           </template>
         </NcButton>
       </div>

@@ -42,7 +42,7 @@ const validators = computed(() => {
       {
         validator: (rule: any, value: string, callback: (errMsg?: string) => void) => {
           if (!value || value.length === 0) {
-            callback(t('error.signUpRules.emailRequired'))
+            callback(t('msg.error.signUpRules.emailRequired'))
             return
           }
           const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !validateEmail(e))
@@ -50,8 +50,8 @@ const validators = computed(() => {
             callback(
               `${
                 invalidEmails.length > 1
-                  ? `${t('error.signUpRules.invalidEmails')}: `
-                  : `${t('error.signUpRules.invalidEmail')}: `
+                  ? `${t('msg.error.signUpRules.invalidEmails')}: `
+                  : `${t('msg.error.signUpRules.invalidEmail')}: `
               } ${invalidEmails.join(', ')} `,
             )
           } else {

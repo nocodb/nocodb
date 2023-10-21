@@ -841,7 +841,7 @@ function handleUIDTChange(column, table) {
 
                 <template v-else-if="column.key === 'dtxp' && hasSelectColumn[tableIdx]">
                   <span>
-                    {{ $t('general.options')}}
+                    {{ $t('general.options') }}
                   </span>
                 </template>
               </template>
@@ -884,7 +884,7 @@ function handleUIDTChange(column, table) {
                 <template v-if="column.key === 'action'">
                   <a-tooltip v-if="record.key === 0">
                     <template #title>
-                      <span>{{ $t('general.primaryValue')}}</span>
+                      <span>{{ $t('general.primaryValue') }}</span>
                     </template>
 
                     <div class="flex items-center float-right mr-4">
@@ -894,7 +894,7 @@ function handleUIDTChange(column, table) {
 
                   <a-tooltip v-else>
                     <template #title>
-                      <span>{{  $t('activity.deleteColumn') }}</span>
+                      <span>{{ $t('activity.column.delete') }}</span>
                     </template>
 
                     <a-button type="text" @click="deleteTableColumn(tableIdx, record.key)">
@@ -910,7 +910,7 @@ function handleUIDTChange(column, table) {
             <div class="mt-5 flex gap-2 justify-center">
               <a-tooltip bottom>
                 <template #title>
-                  <span>{{  $t('activity.column.addNumberColumn') }}</span>
+                  <span>{{ $t('activity.column.addNumber') }}</span>
                 </template>
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'Number')">
@@ -922,7 +922,7 @@ function handleUIDTChange(column, table) {
 
               <a-tooltip bottom>
                 <template #title>
-                  <span>{{  $t('activity.column.addSingleLineText') }}</span>
+                  <span>{{ $t('activity.column.addSingleLineText') }}</span>
                 </template>
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">
@@ -934,7 +934,7 @@ function handleUIDTChange(column, table) {
 
               <a-tooltip bottom>
                 <template #title>
-                  <span>{{  $t('activity.column.addLongText') }}</span>
+                  <span>{{ $t('activity.column.addLongText') }}</span>
                 </template>
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'LongText')">
@@ -946,7 +946,7 @@ function handleUIDTChange(column, table) {
 
               <a-tooltip bottom>
                 <template #title>
-                  <span>{{  $t('activity.column.addOther') }}</span>
+                  <span>{{ $t('activity.column.addOther') }}</span>
                 </template>
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">

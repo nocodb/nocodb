@@ -31,6 +31,9 @@ IFS=$'\n' read -rd '' -a commit_data <<<"$commit_data"
 
 information="## Commits:\n\`\`\`"
 
+old_user=$(git config user.name)
+old_email=$(git config user.email)
+
 # Iterate over the commit data
 for commit_info in "${commit_data[@]}"; do
   # Get the commit date, author, and SHA
@@ -41,7 +44,9 @@ for commit_info in "${commit_data[@]}"; do
 
   information="$information\n- $commit_message by $commit_author"
 
-  git cherry-pick "$commit_sha" --no-commit > /dev/null 2> /dev/null
+  git cherry-pick -X theirs "$commit_sha" --no-commit > /dev/null 2> /dev/null
+
+  git add .
 
   cat scripts/sync/exclude-list.txt | sed 's/^/":/;s/$/"/' | tr '\n' ' ' | xargs git reset --quiet --
 
@@ -54,5 +59,8 @@ for commit_info in "${commit_data[@]}"; do
 
   git clean -fd > /dev/null 2> /dev/null
 done
+
+git config user.name "$old_user"
+git config user.email "$old_email"
 
 echo -e "$information\n\`\`\`"

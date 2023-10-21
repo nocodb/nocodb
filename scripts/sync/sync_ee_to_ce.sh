@@ -22,6 +22,9 @@ git fetch ee "$ACTIVE_BRANCH"
 # create sync branch
 git checkout -b "nc-$ACTIVE_BRANCH"
 
+old_user=$(git config user.name)
+old_email=$(git config user.email)
+
 # Iterate over the commit data
 for commit_info in "${commit_data[@]}"; do
   # Get the commit date, author, and SHA
@@ -45,3 +48,6 @@ for commit_info in "${commit_data[@]}"; do
 
   git clean -fd
 done
+
+git config user.name "$old_user"
+git config user.email "$old_email"

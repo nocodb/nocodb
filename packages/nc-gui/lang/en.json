@@ -76,7 +76,9 @@
     "whatsappTwilio": "WhatsApp Twilio",
     "submit": "Submit",
     "create": "Create",
+    "createEntity": "Create {entity}",
     "creating": "Creating",
+    "creatingEntity": "Creating {entity}",
     "details": "Details",
     "skip": "Skip",
     "duplicate": "Duplicate",
@@ -993,7 +995,7 @@
     "noRecordFound": "Record not found",
     "rowDeleted": "Record deleted",
     "saveChanges": "Do you want to save the changes?",
-    "tooLargeField": "The field is too large to be converted to",
+    "tooLargeFieldEntity": "The field is too large to be converted to {entity}",
     "roleRequired": "Role required",
     "warning": {
       "dbValid": "Please make sure database you are trying to connect is valid! This operation can cause schema loss!!",

@@ -97,7 +97,11 @@ const typeLabel = computed(() => {
       <!-- Create A New Table -->
       <div class="flex flex-row items-center">
         <GeneralProjectIcon :type="baseType" class="mr-2.5 !text-lg !h-4" />
-        {{ `${$t('general.create')} ${typeLabel}` }}
+        {{
+          $t('general.createEntity', {
+            entity: typeLabel,
+          })
+        }}
       </div>
     </template>
     <div class="mt-3">
@@ -133,9 +137,17 @@ const typeLabel = computed(() => {
           :loading-label="`${$t('general.creating')} ${typeLabel}`"
           @click="createProject"
         >
-          {{ `${$t('general.create')} ${typeLabel}` }}
+          {{
+            $t('general.createEntity', {
+              entity: typeLabel,
+            })
+          }}
           <template #loading>
-            {{ `${$t('general.creating')} ${typeLabel}` }}
+            {{
+              $t('general.creatingEntity', {
+                entity: typeLabel,
+              })
+            }}
           </template>
         </NcButton>
       </div>

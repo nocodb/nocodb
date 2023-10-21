@@ -6,10 +6,16 @@ import { defineNuxtPlugin } from 'nuxt/app'
 export default defineNuxtPlugin((nuxtApp) => {
   const { vueApp } = nuxtApp
 
+  let env = process.env.NODE_ENV === 'production' ? 'production' : 'development'
+
+  if (process.env.PLAYWRIGHT) {
+    env = 'playwright'
+  }
+
   Sentry.init({
     app: [vueApp],
     dsn: 'https://0da0f8ab4bc2afc11ee510490f452b22@o4505953073889280.ingest.sentry.io/4505953708867584',
-    environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+    environment: env,
     integrations: [
       new Sentry.BrowserTracing({
         tracingOrigins: ['*'],

@@ -17,6 +17,7 @@ import {
   useRoute,
   useSidebar,
   watch,
+  useI18n
 } from '#imports'
 
 definePageMeta({
@@ -26,6 +27,8 @@ definePageMeta({
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const route = useRoute()
+
+const { t } = useI18n()
 
 const { loadSharedView, sharedView, sharedViewMeta, meta, notFound, password, passwordDlg, passwordError } =
   useProvideSharedFormStore(route.params.viewId as string)
@@ -43,7 +46,7 @@ if (!notFound.value) {
   applyLanguageDirection(sharedViewMeta.value.rtl ? 'rtl' : 'ltr')
 } else {
   navigateTo('/error/404')
-  throw createError({ statusCode: 404, statusMessage: 'Page Not Found' })
+  throw createError({ statusCode: 404, statusMessage: t('msg.pageNotFound') })
 }
 
 const form = reactive({

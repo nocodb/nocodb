@@ -10,6 +10,7 @@ import {
   useApi,
   useRoute,
   useRouter,
+  useI18n
 } from '#imports'
 
 definePageMeta({
@@ -17,6 +18,8 @@ definePageMeta({
 })
 
 const { api, isLoading, error } = useApi()
+
+const { t } = useI18n()
 
 const route = useRoute()
 const navigator = useRouter()
@@ -88,7 +91,7 @@ function resetError() {
           <a-form-item
             :label="$t('placeholder.password.new')"
             name="password"
-            :rules="[{ required: true, message: 'password is required' }]"
+            :rules="[{ required: true, message: t('error.passwdRequired') }]"
           >
             <a-input-password
               v-model:value="form.password"
@@ -101,7 +104,7 @@ function resetError() {
           <a-form-item
             :label="$t('placeholder.password.confirm')"
             name="newPassword"
-            :rules="[{ required: true, message: 'password is required' }]"
+            :rules="[{ required: true, message: t('error.passwdRequired') }]"
           >
             <a-input-password
               v-model:value="form.newPassword"

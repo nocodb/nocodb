@@ -25,6 +25,8 @@ const { loadProject } = useBase()
 
 const { isLocked } = useProvideSmartsheetStore(sharedView, meta, true, sorts, nestedFilters)
 
+useProvideKanbanViewStore(meta, sharedView)
+
 const reloadEventHook = createEventHook()
 
 const columns = ref(meta.value?.columns || [])

@@ -182,8 +182,7 @@
     "useSurveyMode": "Use Survey Mode",
     "shift": "Shift",
     "enter": "Enter",
-    "seconds": "Seconds",
-    "todo": "todo"
+    "seconds": "Seconds"
   },
   "objects": {
     "workspace": "Workspace",

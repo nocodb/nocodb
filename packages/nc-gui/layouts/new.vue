@@ -106,8 +106,6 @@ export default {
                     to="/admin/users"
                   >
                     <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
-
-                    &lt;!&ndash; {{`${$t('general.todo')}: i18n`}} &ndash;&gt;
                     <span class="prose group-hover:text-primary">{{ $t('title.accountManagement') }}</span>
                   </nuxt-link>
                 </a-menu-item> -->

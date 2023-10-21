@@ -9,12 +9,11 @@ import {
   populateSamplePayloadV2,
 } from '~/helpers/populateSamplePayload';
 import { invokeWebhook } from '~/helpers/webhookHelpers';
-import Noco from '~/Noco';
 import { Hook, HookLog, Model } from '~/models';
 
 @Injectable()
 export class HooksService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   validateHookPayload(notificationJsonOrObject: string | Record<string, any>) {
     let notification: { type?: string } = {};
@@ -136,7 +135,7 @@ export class HooksService {
   }) {
     const model = new Model(await Model.getByIdOrName({ id: param.tableId }));
 
-    if (param.version === 'v1' || (param.version === 'v2' && Noco.isEE())) {
+    if (param.version === 'v1') {
       return await populateSamplePayload(model, false, param.operation);
     }
     return await populateSamplePayloadV2(model, false, param.operation);

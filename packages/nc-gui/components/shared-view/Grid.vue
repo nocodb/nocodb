@@ -11,8 +11,8 @@ import {
   message,
   provide,
   ref,
+  useBase,
   useGlobal,
-  useProject,
   useProvideSmartsheetStore,
   useSharedView,
 } from '#imports'
@@ -21,7 +21,7 @@ const { sharedView, meta, sorts, nestedFilters } = useSharedView()
 
 const { signedIn } = useGlobal()
 
-const { loadProject } = useProject()
+const { loadProject } = useBase()
 
 const { isLocked } = useProvideSmartsheetStore(sharedView, meta, true, sorts, nestedFilters)
 

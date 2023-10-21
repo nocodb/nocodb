@@ -28,7 +28,11 @@ process.env[`DEBUG`] = 'xc*';
 // })().catch((e) => console.log(e));
 
 (async () => {
-  const httpServer = server.listen(process.env.PORT || 8080, async () => {
-    server.use(await Noco.init({}, httpServer, server));
-  });
+  if (process.env.NC_WORKER_CONTAINER === 'true') {
+    await Noco.init({}, null, null);
+  } else {
+    const httpServer = server.listen(process.env.PORT || 8080, async () => {
+      server.use(await Noco.init({}, httpServer, server));
+    });
+  }
 })().catch((e) => console.log(e));

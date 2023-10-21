@@ -12,12 +12,14 @@ const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { isMobileMode } = storeToRefs(useConfigStore())
 
+const { appInfo } = useGlobal()
+
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 </script>
 
 <template>
   <div
-    class="nc-table-topbar h-20 py-1 flex gap-2 items-center border-b border-gray-200 overflow-hidden relative max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(pr-2 pl-2.5) xs:(px-1)"
+    class="nc-table-topbar h-20 py-1 flex gap-2 items-center border-b border-gray-200 overflow-hidden relative max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(pr-2 pl-2) xs:(px-1)"
     style="z-index: 7"
   >
     <template v-if="isViewsLoading">
@@ -27,11 +29,10 @@ const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
       <GeneralOpenLeftSidebarBtn />
       <LazySmartsheetToolbarViewInfo v-if="!isPublic" />
 
-      <div class="flex-1" />
-
-      <div v-if="!isSharedBase && !isMobileMode" class="absolute mx-auto -left-1/8 right-0 w-47.5">
+      <div v-if="!isSharedBase && !isMobileMode" class="w-47.5">
         <SmartsheetTopbarSelectMode />
       </div>
+      <div class="flex-1" />
 
       <GeneralApiLoader v-if="!isMobileMode" />
 
@@ -41,7 +42,7 @@ const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
       />
 
       <LazyGeneralLanguage
-        v-if="isSharedBase"
+        v-if="isSharedBase && !appInfo.ee"
         class="cursor-pointer text-lg hover:(text-black bg-gray-200) mr-0 p-1.5 rounded-md"
       />
     </template>

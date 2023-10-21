@@ -90,10 +90,7 @@ jobs:
         if: ${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' }}
         run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
-          NOCODB_SDK_PKG_NAME=nocodb-sdk
-          if [[ "${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' }}" ]]; then
-            NOCODB_SDK_PKG_NAME=nocodb-sdk-daily
-          fi
+          NOCODB_SDK_PKG_NAME=nocodb-sdk-daily
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
           pnpm --filter=${NOCODB_SDK_PKG_NAME} install --ignore-scripts --no-frozen-lockfile && pnpm --filter=${NOCODB_SDK_PKG_NAME} run build &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js &&
@@ -104,6 +101,7 @@ jobs:
 
       - name: Build nocodb and docker files
         run: |
+          pnpm install --ignore-scripts --no-frozen-lockfile
           pnpm run docker:build
         working-directory: ${{ env.working-directory }}
 

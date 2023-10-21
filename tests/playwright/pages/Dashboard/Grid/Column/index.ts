@@ -260,7 +260,7 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.locator('li[role="menuitem"]:has-text("Delete"):visible').click();
 
     // pressing on delete column button
-    await this.rootPage.locator('.ant-modal.active button:has-text("Delete Column")').click();
+    await this.rootPage.locator('.ant-modal.active button:has-text("Delete Field")').click();
 
     // wait till modal is closed
     await this.rootPage.locator('.ant-modal.active').waitFor({ state: 'hidden' });
@@ -337,7 +337,7 @@ export class ColumnPageObject extends BasePage {
 
     await this.waitForResponse({
       uiAction: async () => await this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click(),
-      requestUrlPathToMatch: 'api/v1/db/meta/views',
+      requestUrlPathToMatch: '/api/v1/db/meta/views',
       httpMethodsToMatch: ['PATCH'],
     });
 

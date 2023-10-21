@@ -1,4 +1,5 @@
 import autoBind from 'auto-bind';
+
 import groupBy from 'lodash/groupBy';
 import DataLoader from 'dataloader';
 import dayjs from 'dayjs';
@@ -18,6 +19,7 @@ import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
+import type LookupColumn from '~/models/LookupColumn';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type {
@@ -34,6 +36,7 @@ import type {
   SelectOption,
 } from '~/models';
 import type { SortType } from 'nocodb-sdk';
+import generateBTLookupSelectQuery from '~/db/generateBTLookupSelectQuery';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import conditionV2 from '~/db/conditionV2';
@@ -42,7 +45,16 @@ import { customValidators } from '~/db/util/customValidators';
 import { extractLimitAndOffset } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
-import { Audit, Base, Column, Filter, Model, Sort, View } from '~/models';
+import {
+  Audit,
+  Column,
+  Filter,
+  Model,
+  PresignedUrl,
+  Sort,
+  Source,
+  View,
+} from '~/models';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
@@ -51,8 +63,10 @@ import {
   COMPARISON_SUB_OPS,
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from '~/utils/globals';
+import { extractProps } from '~/helpers/extractProps';
 
 dayjs.extend(utc);
+
 dayjs.extend(timezone);
 
 const GROUP_COL = '__nc_group_id';
@@ -497,21 +511,95 @@ class BaseModelSqlv2 {
 
     args.column_name = args.column_name || '';
 
-    const groupByColumns = await this.model.getColumns().then((cols) =>
-      args.column_name.split(',').map((col) => {
+    const cols = await this.model.getColumns();
+    const groupByColumns: Record<string, Column> = {};
+
+    const selectors = [];
+    const groupBySelectors = [];
+
+    await Promise.all(
+      args.column_name.split(',').map(async (col) => {
         const column = cols.find(
           (c) => c.column_name === col || c.title === col,
         );
+        groupByColumns[column.id] = column;
         if (!column) {
           throw NcError.notFound('Column not found');
         }
-        return column.column_name;
+
+        switch (column.uidt) {
+          case UITypes.Links:
+          case UITypes.Rollup:
+            selectors.push(
+              (
+                await genRollupSelectv2({
+                  baseModelSqlv2: this,
+                  knex: this.dbDriver,
+                  columnOptions: (await column.getColOptions()) as RollupColumn,
+                })
+              ).builder.as(sanitize(column.title)),
+            );
+            groupBySelectors.push(sanitize(column.title));
+            break;
+          case UITypes.Formula:
+            {
+              let selectQb;
+              try {
+                const _selectQb = await this.getSelectQueryBuilderForFormula(
+                  column,
+                );
+
+                selectQb = this.dbDriver.raw(`?? as ??`, [
+                  _selectQb.builder,
+                  sanitize(column.title),
+                ]);
+              } catch (e) {
+                console.log(e);
+                // return dummy select
+                selectQb = this.dbDriver.raw(`'ERR' as ??`, [
+                  sanitize(column.title),
+                ]);
+              }
+
+              selectors.push(selectQb);
+              groupBySelectors.push(column.title);
+            }
+            break;
+          case UITypes.Lookup:
+            {
+              const _selectQb = await generateBTLookupSelectQuery({
+                baseModelSqlv2: this,
+                column,
+                alias: null,
+                model: this.model,
+              });
+
+              const selectQb = this.dbDriver.raw(`?? as ??`, [
+                this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
+                sanitize(column.title),
+              ]);
+
+              selectors.push(selectQb);
+              groupBySelectors.push(sanitize(column.title));
+            }
+            break;
+          default:
+            selectors.push(
+              this.dbDriver.raw('?? as ??', [column.column_name, column.title]),
+            );
+            groupBySelectors.push(sanitize(column.title));
+            break;
+        }
       }),
     );
 
     const qb = this.dbDriver(this.tnPath);
+
+    // get aggregated count of each group
     qb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
-    qb.select(...groupByColumns);
+
+    // get each group
+    qb.select(...selectors);
 
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
@@ -548,14 +636,28 @@ class BaseModelSqlv2 {
       qb,
     );
 
-    qb.groupBy(...groupByColumns);
-
     if (!sorts)
       sorts = args.sortArr?.length
         ? args.sortArr
         : await Sort.list({ viewId: this.viewId });
 
-    if (sorts) await sortV2(this, sorts, qb);
+    // if sort is provided filter out the group by columns sort and apply
+    // since we are grouping by the column and applying sort on any other column is not required
+    for (const sort of sorts) {
+      if (!groupByColumns[sort.fk_column_id]) {
+        continue;
+      }
+
+      qb.orderBy(
+        groupByColumns[sort.fk_column_id].title,
+        sort.direction,
+        sort.direction === 'desc' ? 'LAST' : 'FIRST',
+      );
+    }
+
+    // group by using the column aliases
+    qb.groupBy(...groupBySelectors);
+
     applyPaginate(qb, rest);
     return await qb;
   }
@@ -566,29 +668,100 @@ class BaseModelSqlv2 {
     limit?;
     offset?;
     filterArr?: Filter[];
-    // skip sort for count
-    // sort?: string | string[];
-    // sortArr?: Sort[];
   }) {
-    const { where, ..._rest } = this._getListArgs(args as any);
+    const { where } = this._getListArgs(args as any);
 
     args.column_name = args.column_name || '';
 
-    const groupByColumns = await this.model.getColumns().then((cols) =>
-      args.column_name.split(',').map((col) => {
-        const column = cols.find(
-          (c) => c.column_name === col || c.title === col,
-        );
-        if (!column) {
-          throw NcError.notFound('Column not found');
-        }
-        return column.column_name;
-      }),
+    const selectors = [];
+    const groupBySelectors = [];
+
+    await this.model.getColumns().then((cols) =>
+      Promise.all(
+        args.column_name.split(',').map(async (col) => {
+          const column = cols.find(
+            (c) => c.column_name === col || c.title === col,
+          );
+          if (!column) {
+            throw NcError.notFound('Column not found');
+          }
+
+          switch (column.uidt) {
+            case UITypes.Rollup:
+            case UITypes.Links:
+              selectors.push(
+                (
+                  await genRollupSelectv2({
+                    baseModelSqlv2: this,
+                    // tn: this.title,
+                    knex: this.dbDriver,
+                    // column,
+                    // alias,
+                    columnOptions:
+                      (await column.getColOptions()) as RollupColumn,
+                  })
+                ).builder.as(sanitize(column.title)),
+              );
+              groupBySelectors.push(sanitize(column.title));
+              break;
+            case UITypes.Formula: {
+              let selectQb;
+              try {
+                const _selectQb = await this.getSelectQueryBuilderForFormula(
+                  column,
+                );
+
+                selectQb = this.dbDriver.raw(`?? as ??`, [
+                  _selectQb.builder,
+                  sanitize(column.title),
+                ]);
+              } catch (e) {
+                console.log(e);
+                // return dummy select
+                selectQb = this.dbDriver.raw(`'ERR' as ??`, [
+                  sanitize(column.title),
+                ]);
+              }
+
+              selectors.push(selectQb);
+              groupBySelectors.push(column.title);
+              break;
+            }
+            case UITypes.Lookup:
+              {
+                const _selectQb = await generateBTLookupSelectQuery({
+                  baseModelSqlv2: this,
+                  column,
+                  alias: null,
+                  model: this.model,
+                });
+
+                const selectQb = this.dbDriver.raw(`?? as ??`, [
+                  this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
+                  sanitize(column.title),
+                ]);
+
+                selectors.push(selectQb);
+                groupBySelectors.push(sanitize(column.title));
+              }
+              break;
+            default:
+              selectors.push(
+                this.dbDriver.raw('?? as ??', [
+                  column.column_name,
+                  column.title,
+                ]),
+              );
+              groupBySelectors.push(sanitize(column.title));
+              break;
+          }
+        }),
+      ),
     );
 
     const qb = this.dbDriver(this.tnPath);
     qb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
-    qb.select(...groupByColumns);
+    qb.select(...selectors);
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
 
@@ -619,11 +792,12 @@ class BaseModelSqlv2 {
       qb,
     );
 
-    qb.groupBy(...groupByColumns);
+    qb.groupBy(...groupBySelectors);
 
     const qbP = this.dbDriver
       .count('*', { as: 'count' })
       .from(qb.as('groupby'));
+
     return (await qbP.first())?.count;
   }
 
@@ -1241,7 +1415,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    const data = await qb;
+    const data = await this.execAndParse(qb, childTable);
     return data.map((c) => {
       c.__proto__ = proto;
       return c;
@@ -1998,6 +2172,9 @@ class BaseModelSqlv2 {
       }
 
       await this.model.getColumns();
+
+      await this.prepareAttachmentData(insertObj);
+
       let response;
       // const driver = trx ? trx : this.dbDriver;
 
@@ -2222,6 +2399,8 @@ class BaseModelSqlv2 {
       await this.validate(data);
 
       await this.beforeUpdate(data, trx, cookie);
+
+      await this.prepareAttachmentData(updateObj);
 
       const prevData = await this.readByPk(
         id,
@@ -2478,6 +2657,7 @@ class BaseModelSqlv2 {
       skip_hooks = false,
       raw = false,
       insertOneByOneAsFallback = false,
+      isSingleRecordInsertion = false,
     }: {
       chunkSize?: number;
       cookie?: any;
@@ -2485,6 +2665,7 @@ class BaseModelSqlv2 {
       skip_hooks?: boolean;
       raw?: boolean;
       insertOneByOneAsFallback?: boolean;
+      isSingleRecordInsertion?: boolean;
     } = {},
   ) {
     let trx;
@@ -2617,8 +2798,14 @@ class BaseModelSqlv2 {
             }
           }
 
+          await this.prepareAttachmentData(insertObj);
+
           insertDatas.push(insertObj);
         }
+      }
+
+      if ('beforeBulkInsert' in this) {
+        await this.beforeBulkInsert(insertDatas, trx, cookie);
       }
 
       // await this.beforeInsertb(insertDatas, null);
@@ -2671,8 +2858,14 @@ class BaseModelSqlv2 {
 
       await trx.commit();
 
-      if (!raw && !skip_hooks)
-        await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
+      if (!raw && !skip_hooks) {
+        if (isSingleRecordInsertion) {
+          const insertData = await this.readByPk(response[0]);
+          await this.afterInsert(insertData, this.dbDriver, cookie);
+        } else {
+          await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
+        }
+      }
 
       return response;
     } catch (e) {
@@ -2688,7 +2881,13 @@ class BaseModelSqlv2 {
       cookie,
       raw = false,
       throwExceptionIfNotExist = false,
-    }: { cookie?: any; raw?: boolean; throwExceptionIfNotExist?: boolean } = {},
+      isSingleRecordUpdation = false,
+    }: {
+      cookie?: any;
+      raw?: boolean;
+      throwExceptionIfNotExist?: boolean;
+      isSingleRecordUpdation?: boolean;
+    } = {},
   ) {
     let transaction;
     try {
@@ -2706,17 +2905,34 @@ class BaseModelSqlv2 {
       const newData = [];
       const updatePkValues = [];
       const toBeUpdated = [];
-      const res = [];
       for (const d of updateDatas) {
         if (!raw) await this.validate(d);
         const pkValues = await this._extractPksValues(d);
         if (!pkValues) {
-          // pk not specified - bypass
+          // throw or skip if no pk provided
+          if (throwExceptionIfNotExist) {
+            NcError.unprocessableEntity(
+              `Record with pk ${JSON.stringify(pkValues)} not found`,
+            );
+          }
           continue;
         }
-        if (!raw) prevData.push(await this.readByPk(pkValues));
+        if (!raw) {
+          await this.prepareAttachmentData(d);
+
+          const oldRecord = await this.readByPk(pkValues);
+          if (!oldRecord) {
+            // throw or skip if no record found
+            if (throwExceptionIfNotExist) {
+              NcError.unprocessableEntity(
+                `Record with pk ${JSON.stringify(pkValues)} not found`,
+              );
+            }
+            continue;
+          }
+          prevData.push(oldRecord);
+        }
         const wherePk = await this._wherePk(pkValues);
-        res.push(wherePk);
         toBeUpdated.push({ d, wherePk });
         updatePkValues.push(pkValues);
       }
@@ -2731,19 +2947,26 @@ class BaseModelSqlv2 {
 
       if (!raw) {
         for (const pkValues of updatePkValues) {
-          const oldRecord = await this.readByPk(pkValues);
-          if (!oldRecord && throwExceptionIfNotExist)
-            NcError.unprocessableEntity(
-              `Record with pk ${JSON.stringify(pkValues)} not found`,
-            );
-          newData.push(oldRecord);
+          const updatedRecord = await this.readByPk(pkValues);
+          newData.push(updatedRecord);
         }
       }
 
-      if (!raw)
-        await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
+      if (!raw) {
+        if (isSingleRecordUpdation) {
+          await this.afterUpdate(
+            prevData[0],
+            newData[0],
+            null,
+            cookie,
+            datas[0],
+          );
+        } else {
+          await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
+        }
+      }
 
-      return res;
+      return newData;
     } catch (e) {
       if (transaction) await transaction.rollback();
       throw e;
@@ -2816,7 +3039,12 @@ class BaseModelSqlv2 {
     {
       cookie,
       throwExceptionIfNotExist = false,
-    }: { cookie?: any; throwExceptionIfNotExist?: boolean } = {},
+      isSingleRecordDeletion = false,
+    }: {
+      cookie?: any;
+      throwExceptionIfNotExist?: boolean;
+      isSingleRecordDeletion?: boolean;
+    } = {},
   ) {
     let transaction;
     try {
@@ -2831,16 +3059,26 @@ class BaseModelSqlv2 {
       for (const d of deleteIds) {
         const pkValues = await this._extractPksValues(d);
         if (!pkValues) {
-          // pk not specified - bypass
+          // throw or skip if no pk provided
+          if (throwExceptionIfNotExist) {
+            NcError.unprocessableEntity(
+              `Record with pk ${JSON.stringify(pkValues)} not found`,
+            );
+          }
           continue;
         }
 
-        const oldRecord = await this.readByPk(pkValues);
-        if (!oldRecord && throwExceptionIfNotExist)
-          NcError.unprocessableEntity(
-            `Record with pk ${JSON.stringify(pkValues)} not found`,
-          );
-        deleted.push(oldRecord);
+        const deletedRecord = await this.readByPk(pkValues);
+        if (!deletedRecord) {
+          // throw or skip if no record found
+          if (throwExceptionIfNotExist) {
+            NcError.unprocessableEntity(
+              `Record with pk ${JSON.stringify(pkValues)} not found`,
+            );
+          }
+          continue;
+        }
+        deleted.push(deletedRecord);
 
         res.push(d);
       }
@@ -2850,7 +3088,7 @@ class BaseModelSqlv2 {
         ids: any[],
       ) => Promise<any>)[] = [];
 
-      const base = await Base.get(this.model.base_id);
+      const base = await Source.get(this.model.source_id);
 
       for (const column of this.model.columns) {
         if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
@@ -2918,7 +3156,11 @@ class BaseModelSqlv2 {
 
       await transaction.commit();
 
-      await this.afterBulkDelete(deleted, this.dbDriver, cookie);
+      if (isSingleRecordDeletion) {
+        await this.afterDelete(deleted[0], null, cookie);
+      } else {
+        await this.afterBulkDelete(deleted, this.dbDriver, cookie);
+      }
 
       return res;
     } catch (e) {
@@ -3030,12 +3272,12 @@ class BaseModelSqlv2 {
         }
       }
 
-      const base = await Base.get(this.model.base_id);
+      const source = await Source.get(this.model.source_id);
 
       trx = await this.dbDriver.transaction();
 
       // unlink LTAR data
-      if (base.isMeta()) {
+      if (source.isMeta()) {
         for (const execQuery of execQueries) {
           await execQuery(trx, qb.clone());
         }
@@ -3061,6 +3303,10 @@ class BaseModelSqlv2 {
 
   public async beforeInsert(data: any, _trx: any, req): Promise<void> {
     await this.handleHooks('before.insert', null, data, req);
+  }
+
+  public async beforeBulkInsert(data: any, _trx: any, req): Promise<void> {
+    await this.handleHooks('before.bulkInsert', null, data, req);
   }
 
   public async afterInsert(data: any, _trx: any, req): Promise<void> {
@@ -3220,7 +3466,7 @@ class BaseModelSqlv2 {
   }
 
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
-    const id = req?.params?.id;
+    const id = this._extractPksValues(data);
     await Audit.insert({
       fk_model_id: this.model.id,
       row_id: id,
@@ -3684,7 +3930,7 @@ class BaseModelSqlv2 {
 
       const proto = await this.getProto();
 
-      const data = await groupedQb;
+      const data: any[] = await this.execAndParse(groupedQb);
       const result = data?.map((d) => {
         d.__proto__ = proto;
         return d;
@@ -3805,7 +4051,7 @@ class BaseModelSqlv2 {
         : await this.dbDriver.raw(query);
 
     // update attachment fields
-    data = this.convertAttachmentType(data, childTable);
+    data = await this.convertAttachmentType(data, childTable);
 
     // update date time fields
     data = this.convertDateFormat(data, childTable);
@@ -3813,36 +4059,120 @@ class BaseModelSqlv2 {
     return data;
   }
 
-  protected _convertAttachmentType(
+  protected async _convertAttachmentType(
     attachmentColumns: Record<string, any>[],
     d: Record<string, any>,
   ) {
     try {
       if (d) {
-        attachmentColumns.forEach((col) => {
+        const promises = [];
+        for (const col of attachmentColumns) {
           if (d[col.title] && typeof d[col.title] === 'string') {
             d[col.title] = JSON.parse(d[col.title]);
           }
-        });
+
+          if (d[col.title]?.length) {
+            for (const attachment of d[col.title]) {
+              // we expect array of array of attachments in case of lookup
+              if (Array.isArray(attachment)) {
+                for (const lookedUpAttachment of attachment) {
+                  if (lookedUpAttachment?.path) {
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        path: lookedUpAttachment.path.replace(
+                          /^download\//,
+                          '',
+                        ),
+                      }).then((r) => (lookedUpAttachment.signedPath = r)),
+                    );
+                  } else if (lookedUpAttachment?.url) {
+                    if (lookedUpAttachment.url.includes('.amazonaws.com/')) {
+                      const relativePath = decodeURI(
+                        lookedUpAttachment.url.split('.amazonaws.com/')[1],
+                      );
+                      promises.push(
+                        PresignedUrl.getSignedUrl({
+                          path: relativePath,
+                          s3: true,
+                        }).then((r) => (lookedUpAttachment.signedUrl = r)),
+                      );
+                    }
+                  }
+                }
+              } else {
+                if (attachment?.path) {
+                  promises.push(
+                    PresignedUrl.getSignedUrl({
+                      path: attachment.path.replace(/^download\//, ''),
+                    }).then((r) => (attachment.signedPath = r)),
+                  );
+                } else if (attachment?.url) {
+                  if (attachment.url.includes('.amazonaws.com/')) {
+                    const relativePath = decodeURI(
+                      attachment.url.split('.amazonaws.com/')[1],
+                    );
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        path: relativePath,
+                        s3: true,
+                      }).then((r) => (attachment.signedUrl = r)),
+                    );
+                  }
+                }
+              }
+            }
+          }
+        }
+        await Promise.all(promises);
       }
     } catch {}
     return d;
   }
 
-  public convertAttachmentType(data: Record<string, any>, childTable?: Model) {
+  public async getNestedUidt(column: Column) {
+    if (column.uidt !== UITypes.Lookup) {
+      return column.uidt;
+    }
+    const colOptions = await column.getColOptions<LookupColumn>();
+    return this.getNestedUidt(await colOptions?.getLookupColumn());
+  }
+
+  public async convertAttachmentType(
+    data: Record<string, any>,
+    childTable?: Model,
+  ) {
     // attachment is stored in text and parse in UI
     // convertAttachmentType is used to convert the response in string to array of object in API response
     if (data) {
-      const attachmentColumns = (
-        childTable ? childTable.columns : this.model.columns
-      ).filter((c) => c.uidt === UITypes.Attachment);
+      if (childTable && !childTable?.columns) {
+        await childTable.getColumns();
+      } else if (!this.model?.columns) {
+        await this.model.getColumns();
+      }
+
+      const attachmentColumns = [];
+
+      const columns = childTable ? childTable.columns : this.model.columns;
+
+      for (const col of columns) {
+        if (col.uidt === UITypes.Lookup) {
+          if ((await this.getNestedUidt(col)) === UITypes.Attachment) {
+            attachmentColumns.push(col);
+          }
+        } else {
+          if (col.uidt === UITypes.Attachment) {
+            attachmentColumns.push(col);
+          }
+        }
+      }
+
       if (attachmentColumns.length) {
         if (Array.isArray(data)) {
-          data = data.map((d) =>
-            this._convertAttachmentType(attachmentColumns, d),
+          data = await Promise.all(
+            data.map((d) => this._convertAttachmentType(attachmentColumns, d)),
           );
         } else {
-          data = this._convertAttachmentType(attachmentColumns, data);
+          data = await this._convertAttachmentType(attachmentColumns, data);
         }
       }
     }
@@ -4018,7 +4348,7 @@ class BaseModelSqlv2 {
 
     // validate rowId
     if (!row) {
-      NcError.notFound(`Row with id '${rowId}' not found`);
+      NcError.notFound(`Record with id '${rowId}' not found`);
     }
 
     if (!childIds.length) return;
@@ -4243,7 +4573,7 @@ class BaseModelSqlv2 {
 
     // validate rowId
     if (!row) {
-      NcError.notFound(`Row with id '${rowId}' not found`);
+      NcError.notFound(`Record with id '${rowId}' not found`);
     }
 
     if (!childIds.length) return;
@@ -4405,7 +4735,7 @@ class BaseModelSqlv2 {
 
       // validate rowId
       if (!row) {
-        NcError.notFound(`Row with id ${id} not found`);
+        NcError.notFound(`Record with id ${id} not found`);
       }
 
       const parentCol = await (
@@ -4452,6 +4782,29 @@ class BaseModelSqlv2 {
       throw e;
     }
   }
+
+  prepareAttachmentData(data) {
+    if (this.model.columns.some((c) => c.uidt === UITypes.Attachment)) {
+      for (const column of this.model.columns) {
+        if (column.uidt === UITypes.Attachment) {
+          if (data[column.column_name]) {
+            if (Array.isArray(data[column.column_name])) {
+              for (let attachment of data[column.column_name]) {
+                attachment = extractProps(attachment, [
+                  'url',
+                  'path',
+                  'title',
+                  'mimetype',
+                  'size',
+                  'icon',
+                ]);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 export function extractSortsObject(
@@ -4462,14 +4815,16 @@ export function extractSortsObject(
 
   let sorts = _sorts;
 
-  if (!Array.isArray(sorts)) sorts = sorts.split(',');
+  if (!Array.isArray(sorts)) sorts = sorts.split(/\s*,\s*/);
 
   return sorts.map((s) => {
     const sort: SortType = { direction: 'asc' };
     if (s.startsWith('-')) {
       sort.direction = 'desc';
       sort.fk_column_id = aliasColObjMap[s.slice(1)]?.id;
-    } else sort.fk_column_id = aliasColObjMap[s]?.id;
+    }
+    // replace + at the beginning if present
+    else sort.fk_column_id = aliasColObjMap[s.replace(/^\+/, '')]?.id;
 
     return new Sort(sort);
   });
@@ -4618,6 +4973,11 @@ function applyPaginate(
 }
 
 export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
+  // if id object is provided use as it is
+  if (id && typeof id === 'object') {
+    return id;
+  }
+
   const ids = Array.isArray(id) ? id : (id + '').split('___');
   const where = {};
   for (let i = 0; i < primaryKeys.length; ++i) {
@@ -4633,7 +4993,6 @@ export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
           [primaryKeys[i].column_name, ids[i]],
         );
       };
-      continue;
     }
 
     // Cast the id to string.

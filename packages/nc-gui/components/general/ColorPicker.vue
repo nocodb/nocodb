@@ -17,21 +17,23 @@ const props = withDefaults(defineProps<Props>(), {
   pickButton: false,
 })
 
-const emit = defineEmits(['update:modelValue', 'input'])
+const emit = defineEmits(['input', 'closeModal'])
 
 const vModel = computed({
   get: () => props.modelValue,
   set: (val) => {
-    emit('update:modelValue', val || null)
     emit('input', val || null)
   },
 })
 
 const picked = ref<string>(props.modelValue || enumColor.light[0])
 
-const selectColor = (color: string) => {
+const selectColor = (color: string, closeModal = false) => {
   picked.value = color
   if (props.pickButton) vModel.value = color
+  if (closeModal) {
+    emit('closeModal')
+  }
 }
 
 const isPickerOn = ref(false)
@@ -39,9 +41,7 @@ const isPickerOn = ref(false)
 const compare = (colorA: string, colorB: string) => colorA.toLowerCase() === colorB.toLowerCase()
 
 watch(picked, (n, _o) => {
-  if (!props.pickButton) {
-    vModel.value = n
-  }
+  vModel.value = n
 })
 </script>
 
@@ -54,7 +54,7 @@ watch(picked, (n, _o) => {
         class="color-selector"
         :class="compare(picked, color) ? 'selected' : ''"
         :style="{ 'background-color': `${color}` }"
-        @click="selectColor(color)"
+        @click="selectColor(color, true)"
       >
         {{ compare(picked, color) ? '&#10003;' : '' }}
       </button>
@@ -63,7 +63,7 @@ watch(picked, (n, _o) => {
         @click="isPickerOn = !isPickerOn"
       >
         <GeneralTooltip>
-          <template #title>More colors</template>
+          <template #title>{{ $t('activity.moreColors') }}</template>
           <GeneralIcon class="mt-1.5" :icon="isPickerOn ? 'minus' : 'plus'" />
         </GeneralTooltip>
       </button>

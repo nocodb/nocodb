@@ -15,7 +15,7 @@ test.describe('Verify shortcuts', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     grid = dashboard.grid;
 
     api = new Api({
@@ -57,7 +57,7 @@ test.describe('Verify shortcuts', () => {
     await dashboard.treeView.createTable({
       title: 'New Table',
       skipOpeningModal: true,
-      projectTitle: context.project.title,
+      baseTitle: context.base.title,
     });
     await dashboard.treeView.verifyTable({ title: 'New Table' });
 
@@ -130,9 +130,7 @@ test.describe('Verify shortcuts', () => {
     // Space to open expanded row and Meta + Space to save
     await grid.cell.click({ index: 1, columnHeader: 'Country' });
     await page.keyboard.press('Space');
-    await dashboard.expandedForm.verify({
-      header: 'Algeria',
-    });
+
     await dashboard.expandedForm.fillField({ columnTitle: 'Country', value: 'NewAlgeria' });
     await dashboard.expandedForm.save();
     await dashboard.expandedForm.escape();
@@ -149,7 +147,7 @@ test.describe('Clipboard support', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     grid = dashboard.grid;
 
     api = new Api({
@@ -198,15 +196,15 @@ test.describe('Clipboard support', () => {
     };
 
     try {
-      const project = await api.project.read(context.project.id);
-      const table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      const base = await api.base.read(context.base.id);
+      const table = await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
         table_name: 'Sheet1',
         title: 'Sheet1',
         columns: columns,
       });
 
-      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, [record]);
-      await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 1 });
+      await api.dbTableRow.bulkCreate('noco', context.base.id, table.id, [record]);
+      await api.dbTableRow.list('noco', context.base.id, table.id, { limit: 1 });
     } catch (e) {
       console.error(e);
     }

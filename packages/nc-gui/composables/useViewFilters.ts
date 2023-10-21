@@ -1,4 +1,4 @@
-import type { ColumnType, FilterType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, FilterType, LinkToAnotherRecordType, LookupType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { SelectProps } from 'ant-design-vue'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
@@ -12,10 +12,10 @@ import {
   message,
   ref,
   storeToRefs,
+  useBase,
   useDebounceFn,
   useMetas,
   useNuxtApp,
-  useProject,
   useRoles,
   watch,
 } from '#imports'
@@ -32,11 +32,13 @@ export function useViewFilters(
 ) {
   const currentFilters = ref(_currentFilters)
 
+  const btLookupTypesMap = ref({})
+
   const reloadHook = inject(ReloadViewDataHookInj)
 
   const { nestedFilters } = useSmartsheetStoreOrThrow()
 
-  const { projectMeta } = storeToRefs(useProject())
+  const { baseMeta } = storeToRefs(useBase())
 
   const isPublic = inject(IsPublicInj, ref(false))
 
@@ -44,7 +46,7 @@ export function useViewFilters(
 
   const { isUIAllowed } = useRoles()
 
-  const { metas } = useMetas()
+  const { metas, getMeta } = useMetas()
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
@@ -101,7 +103,12 @@ export function useViewFilters(
     }
 
     return meta.value?.columns?.reduce((obj: any, col: any) => {
-      obj[col.id] = col.uidt
+      // if column is a lookup column, then use the lookup type extracted from the column
+      if (btLookupTypesMap.value[col.id]) {
+        obj[col.id] = btLookupTypesMap.value[col.id].uidt
+      } else {
+        obj[col.id] = col.uidt
+      }
       return obj
     }, {})
   })
@@ -134,8 +141,8 @@ export function useViewFilters(
       // include allowed values only if selected column type matches
       if (filter.fk_column_id && compOp.includedTypes.includes(types.value[filter.fk_column_id])) {
         // for 'empty', 'notempty', 'null', 'notnull',
-        // show them based on `showNullAndEmptyInFilter` in Project Settings
-        return isNullOrEmptyOp ? projectMeta.value.showNullAndEmptyInFilter : true
+        // show them based on `showNullAndEmptyInFilter` in Base Settings
+        return isNullOrEmptyOp ? baseMeta.value.showNullAndEmptyInFilter : true
       } else {
         return false
       }
@@ -143,14 +150,14 @@ export function useViewFilters(
       // include not allowed values only if selected column type not matches
       if (filter.fk_column_id && !compOp.excludedTypes.includes(types.value[filter.fk_column_id])) {
         // for 'empty', 'notempty', 'null', 'notnull',
-        // show them based on `showNullAndEmptyInFilter` in Project Settings
-        return isNullOrEmptyOp ? projectMeta.value.showNullAndEmptyInFilter : true
+        // show them based on `showNullAndEmptyInFilter` in Base Settings
+        return isNullOrEmptyOp ? baseMeta.value.showNullAndEmptyInFilter : true
       } else {
         return false
       }
     }
     // explicitly include for non-null / non-empty ops
-    return isNullOrEmptyOp ? projectMeta.value.showNullAndEmptyInFilter : true
+    return isNullOrEmptyOp ? baseMeta.value.showNullAndEmptyInFilter : true
   }
 
   const isComparisonSubOpAllowed = (
@@ -425,6 +432,39 @@ export function useViewFilters(
     },
   )
 
+  // method to extract looked up column meta for all bt lookup columns
+  // it helps to decide the condition operations for the column
+  const loadBtLookupTypes = async () => {
+    const btLookupTypes = {}
+    try {
+      for (const col of meta.value?.columns || []) {
+        if (col.uidt !== UITypes.Lookup) continue
+        let nextCol = col
+        // check all the relation of nested lookup columns is bt or not
+        // include the column only if all only if all relations are bt
+        while (nextCol && nextCol.uidt === UITypes.Lookup) {
+          // extract the relation column meta
+          const lookupRelation = (await getMeta(nextCol.fk_model_id))?.columns?.find(
+            (c) => c.id === (nextCol.colOptions as LookupType).fk_relation_column_id,
+          )
+          const relatedTableMeta = await getMeta((lookupRelation.colOptions as LinkToAnotherRecordType).fk_related_model_id)
+          nextCol = relatedTableMeta?.columns?.find((c) => c.id === (nextCol.colOptions as LookupType).fk_lookup_column_id)
+
+          // if next column is same as root lookup column then break the loop
+          // since it's going to be a circular loop
+          if (nextCol.id === col.id) {
+            break
+          }
+        }
+        btLookupTypes[col.id] = nextCol
+      }
+      btLookupTypesMap.value = btLookupTypes
+    } catch (e) {
+      // ignore error since it is not blocking any functionality of the app
+      console.error(e)
+    }
+  }
+
   return {
     filters,
     nonDeletedFilters,
@@ -437,5 +477,7 @@ export function useViewFilters(
     saveOrUpdateDebounced,
     isComparisonOpAllowed,
     isComparisonSubOpAllowed,
+    loadBtLookupTypes,
+    btLookupTypesMap,
   }
 }

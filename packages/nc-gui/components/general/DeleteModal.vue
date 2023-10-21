@@ -47,7 +47,7 @@ onKeyStroke('Enter', () => {
       </div>
 
       <div class="mb-3 text-gray-800">
-        Are you sure you want to delete the following <span class="-ml-0.3">{{ props.entityName.toLowerCase() }}?</span>
+        {{ $t('msg.areYouSureUWantTo') }}<span class="ml-1">{{ props.entityName.toLowerCase() }}?</span>
       </div>
 
       <slot name="entity-preview"></slot>
@@ -57,7 +57,14 @@ onKeyStroke('Enter', () => {
           {{ $t('general.cancel') }}
         </NcButton>
 
-        <NcButton key="submit" type="danger" html-type="submit" :loading="isLoading" @click="onDelete">
+        <NcButton
+          key="submit"
+          type="danger"
+          html-type="submit"
+          :loading="isLoading"
+          data-testid="nc-delete-modal-delete-btn"
+          @click="onDelete"
+        >
           {{ `${$t('general.delete')} ${props.entityName}` }}
           <template #loading>
             {{ $t('general.deleting') }}

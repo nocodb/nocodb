@@ -19,7 +19,7 @@ export default class CSVTemplateAdapter {
   distinctValues: Record<number, Set<string>>
   headers: Record<number, string[]>
   tables: Record<number, any>
-  project: {
+  base: {
     tables: Record<string, any>[]
   }
 
@@ -31,7 +31,7 @@ export default class CSVTemplateAdapter {
   constructor(source: UploadFile[] | string, parserConfig = {}, progressCallback?: (msg: string) => void) {
     this.config = parserConfig
     this.source = source
-    this.project = {
+    this.base = {
       tables: [],
     }
     this.detectedColumnTypes = {}
@@ -85,7 +85,7 @@ export default class CSVTemplateAdapter {
   detectInitialUidt(v: string) {
     if (!isNaN(Number(v)) && !isNaN(parseFloat(v))) return UITypes.Number
     if (validateDateWithUnknownFormat(v)) return UITypes.DateTime
-    if (['true', 'True', 'false', 'False', '1', '0', 'T', 'F', 'Y', 'N'].includes(v)) return UITypes.Checkbox
+    if (isCheckboxType(v)) return UITypes.Checkbox
     return UITypes.SingleLineText
   }
 
@@ -101,18 +101,14 @@ export default class CSVTemplateAdapter {
       } else if (colProps.uidt === UITypes.SingleLineText) {
         if (isEmailType(colData)) {
           colProps.uidt = UITypes.Email
-        }
-        if (isUrlType(colData)) {
+        } else if (isUrlType(colData)) {
           colProps.uidt = UITypes.URL
+        } else if (isCheckboxType(colData)) {
+          colProps.uidt = UITypes.Checkbox
         } else {
-          const checkboxType = isCheckboxType(colData)
-          if (checkboxType.length === 1) {
-            colProps.uidt = UITypes.Checkbox
-          } else {
-            if (data[columnIdx] && columnIdx < this.config.maxRowsToParse) {
-              this.columnValues[columnIdx].push(data[columnIdx])
-              colProps.uidt = UITypes.SingleSelect
-            }
+          if (data[columnIdx] && columnIdx < this.config.maxRowsToParse) {
+            this.columnValues[columnIdx].push(data[columnIdx])
+            colProps.uidt = UITypes.SingleSelect
           }
         }
       } else if (colProps.uidt === UITypes.Number) {
@@ -224,7 +220,6 @@ export default class CSVTemplateAdapter {
                 const data = (row.data as [])[columnIdx] === '' ? null : (row.data as [])[columnIdx]
                 if (column.uidt === UITypes.Checkbox) {
                   rowData[column.column_name] = getCheckboxValue(data)
-                  rowData[column.column_name] = data
                 } else if (column.uidt === UITypes.SingleSelect || column.uidt === UITypes.MultiSelect) {
                   rowData[column.column_name] = (data || '').toString().trim() || null
                 } else {
@@ -294,7 +289,7 @@ export default class CSVTemplateAdapter {
         },
         async complete() {
           that.updateTemplate(tableIdx)
-          that.project.tables.push(that.tables[tableIdx])
+          that.base.tables.push(that.tables[tableIdx])
           that.progress(`Processed ${tn} metadata`)
           await that._parseTableData(tableIdx, source, tn)
           resolve(true)
@@ -322,7 +317,7 @@ export default class CSVTemplateAdapter {
   }
 
   getColumns() {
-    return this.project.tables.map((t: Record<string, any>) => t.columns)
+    return this.base.tables.map((t: Record<string, any>) => t.columns)
   }
 
   getData() {
@@ -330,7 +325,7 @@ export default class CSVTemplateAdapter {
   }
 
   getTemplate() {
-    return this.project
+    return this.base
   }
 
   progress(msg: string) {

@@ -2,7 +2,7 @@
 import type { GridType } from 'nocodb-sdk'
 import { ActiveViewInj, IsLockedInj, iconMap, inject, ref, storeToRefs, useMenuCloseOnEsc, useUndoRedo } from '#imports'
 
-const { isSharedBase } = storeToRefs(useProject())
+const { isSharedBase } = storeToRefs(useBase())
 
 const view = inject(ActiveViewInj, ref())
 
@@ -72,7 +72,7 @@ useMenuCloseOnEsc(open)
           <div class="text-xs text-gray-500 px-3 pt-2 pb-1 select-none">{{ $t('objects.rowHeight') }}</div>
           <div
             class="nc-row-height-option"
-            :class="{'active': (view?.view as GridType).row_height === 0}"
+            :class="{'active': !(view?.view as GridType).row_height }"
             @click="updateRowHeight(0)"
           >
             <GeneralIcon icon="heightShort" class="nc-row-height-icon" />

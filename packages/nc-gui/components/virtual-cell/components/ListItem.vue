@@ -1,10 +1,23 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
-import { IsFormInj, isImage, useAttachment } from '#imports'
+import {
+  type ComputedRef,
+  IsExpandedFormOpenInj,
+  IsFormInj,
+  IsPublicInj,
+  RowHeightInj,
+  computed,
+  inject,
+  isImage,
+  provide,
+  ref,
+  useAttachment,
+  useVModel,
+} from '#imports'
 import MaximizeIcon from '~icons/nc-icons/maximize'
 import LinkIcon from '~icons/nc-icons/link'
 
-const { row, fields, relatedTableDisplayValueProp, isLoading, isLinked, attachment } = defineProps<{
+const props = defineProps<{
   row: any
   fields: any[]
   attachment: any
@@ -12,15 +25,20 @@ const { row, fields, relatedTableDisplayValueProp, isLoading, isLinked, attachme
   isLoading: boolean
   isLinked: boolean
 }>()
+
 defineEmits(['expand'])
 
 provide(IsExpandedFormOpenInj, ref(true))
 
-const isForm = inject(IsFormInj, ref(false))
-
 provide(RowHeightInj, ref(1 as const))
 
+const isForm = inject(IsFormInj, ref(false))
+
+const row = useVModel(props, 'row')
+
 const isPublic = inject(IsPublicInj, ref(false))
+
+const readonly = inject(ReadonlyInj, ref(false))
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
@@ -31,10 +49,19 @@ interface Attachment {
   mimetype: string
 }
 
-const attachments: Attachment[] = computed(() => {
+const isRowEmpty = (row: any, col: any) => {
+  const val = row[col.title]
+  if (!val) return true
+
+  return Array.isArray(val) && val.length === 0
+}
+
+const attachments: ComputedRef<Attachment[]> = computed(() => {
   try {
-    if (attachment && row[attachment.title]) {
-      return typeof row[attachment.title] === 'string' ? JSON.parse(row[attachment.title]) : row[attachment.title]
+    if (props.attachment && row.value[props.attachment.title]) {
+      return typeof row.value[props.attachment.title] === 'string'
+        ? JSON.parse(row.value[props.attachment.title])
+        : row.value[props.attachment.title]
     }
     return []
   } catch (e) {
@@ -57,21 +84,23 @@ const attachments: Attachment[] = computed(() => {
     <div class="flex flex-row items-center justify-start w-full">
       <a-carousel v-if="attachment && attachments && attachments.length" autoplay class="!w-24 !h-24">
         <template #customPaging> </template>
-        <template v-for="(attachmen, index) in attachments">
+        <template v-for="(attachmentObj, index) in attachments">
           <LazyCellAttachmentImage
-            v-if="isImage(attachmen.title, attachmen.mimetype ?? attachmen.type)"
-            :key="`carousel-${attachmen.title}-${index}`"
+            v-if="isImage(attachmentObj.title, attachmentObj.mimetype ?? attachmentObj.type)"
+            :key="`carousel-${attachmentObj.title}-${index}`"
             class="!h-24 !w-24 object-cover !rounded-l-xl"
-            :srcs="getPossibleAttachmentSrc(attachmen)"
+            :srcs="getPossibleAttachmentSrc(attachmentObj)"
           />
         </template>
       </a-carousel>
       <div v-else-if="attachment" class="h-24 w-24 w-full !flex flex-row items-center !rounded-l-xl justify-center">
         <img class="object-contain h-24 w-24" src="~assets/icons/FileIconImageBox.png" />
       </div>
-      <div class="flex flex-col m-[.75rem] gap-1 flex-grow justify-center">
-        <div class="flex justify-between">
-          <span class="font-semibold text-gray-800 nc-display-value"> {{ row[relatedTableDisplayValueProp] }} </span>
+      <div class="flex flex-col m-[.75rem] gap-1 flex-grow justify-center overflow-hidden">
+        <div class="flex justify-between xs:gap-x-2">
+          <span class="font-semibold text-gray-800 nc-display-value xs:(truncate)">
+            {{ row[relatedTableDisplayValueProp] }}
+          </span>
           <div
             v-if="isLinked && !isLoading"
             class="text-brand-500 text-0.875"
@@ -91,8 +120,11 @@ const attachments: Attachment[] = computed(() => {
           />
         </div>
 
-        <div v-if="fields.length > 0 && !isPublic && !isForm" class="flex ml-[-0.25rem] flex-row gap-4 w-10/12">
-          <div v-for="field in fields" :key="field.id" :class="attachment ? 'w-1/3' : 'w-1/4'">
+        <div
+          v-if="fields.length > 0 && !isPublic && !isForm"
+          class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 w-10/12"
+        >
+          <div v-for="field in fields" :key="field.id" :class="attachment ? 'sm:w-1/3' : 'sm:w-1/4'">
             <div class="flex flex-col gap-[-1] max-w-72">
               <LazySmartsheetHeaderVirtualCell
                 v-if="isVirtualCol(field)"
@@ -103,22 +135,26 @@ const attachments: Attachment[] = computed(() => {
               />
               <LazySmartsheetHeaderCell v-else class="!scale-70" :column="field" :hide-menu="true" :hide-icon="true" />
 
-              <LazySmartsheetVirtualCell v-if="isVirtualCol(field)" v-model="row[field.title]" :row="row" :column="field" />
-              <LazySmartsheetCell
-                v-else
-                v-model="row[field.title]"
-                class="!text-gray-600 ml-1"
-                :column="field"
-                :edit-enabled="false"
-                :read-only="true"
-              />
+              <div v-if="!isRowEmpty(row, field)">
+                <LazySmartsheetVirtualCell v-if="isVirtualCol(field)" v-model="row[field.title]" :row="row" :column="field" />
+                <LazySmartsheetCell
+                  v-else
+                  v-model="row[field.title]"
+                  class="!text-gray-600 ml-1"
+                  :column="field"
+                  :edit-enabled="false"
+                  :read-only="true"
+                />
+              </div>
+              <div v-else class="flex flex-row w-full h-[1.375rem] pl-1 items-center justify-start">-</div>
             </div>
           </div>
         </div>
       </div>
     </div>
     <NcButton
-      v-if="!isForm && !isPublic"
+      v-if="!isForm && !isPublic && !readonly"
+      v-e="['c:row-expand:open']"
       type="text"
       size="lg"
       class="!px-2 nc-expand-item !group-hover:block !hidden !border-1 !shadow-sm !border-gray-200 !bg-white !absolute right-3 bottom-3"

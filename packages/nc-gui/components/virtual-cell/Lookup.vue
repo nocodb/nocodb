@@ -114,36 +114,38 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
           </div>
           <!-- For attachment cell avoid adding chip style -->
           <template v-else>
-            <div
-              v-for="(v, i) of arrValue"
-              :key="i"
-              class="min-w-max"
-              :class="{
-                'bg-gray-100 px-1 rounded-full flex-1': !isAttachment(lookupColumn),
-                'border-gray-200 rounded border-1': ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(
-                  lookupColumn.uidt,
-                ),
-              }"
-            >
-              <LazySmartsheetCell
-                :model-value="v"
-                :column="lookupColumn"
-                :edit-enabled="false"
-                :virtual="true"
-                :read-only="true"
-              />
+            <div class="flex flex-col">
+              <div class="flex gap-1.5">
+                <div
+                  v-for="(v, i) of arrValue"
+                  :key="i"
+                  class="min-w-max"
+                  :class="{
+                    'bg-gray-100 px-1 rounded-full flex-1': !isAttachment(lookupColumn),
+                    'border-gray-200 rounded border-1': ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(
+                      lookupColumn.uidt,
+                    ),
+                  }"
+                >
+                  <LazySmartsheetCell
+                    :model-value="v"
+                    :column="lookupColumn"
+                    :edit-enabled="false"
+                    :virtual="true"
+                    :read-only="true"
+                  />
+                </div>
+              </div>
+              <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+                {{ $t('msg.info.computedFieldEditWarning') }}
+              </div>
+              <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+                {{ $t('msg.info.computedFieldDeleteWarning') }}
+              </div>
             </div>
           </template>
         </template>
       </template>
-    </div>
-    <div>
-      <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-        {{ $t('msg.info.computedFieldEditWarning') }}
-      </div>
-      <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-        {{ $t('msg.info.computedFieldDeleteWarning') }}
-      </div>
     </div>
   </div>
 </template>

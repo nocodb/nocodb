@@ -53,7 +53,9 @@ async function initialize(shareId, appId?: string) {
     info.headers = JSON.parse(
       hreq.match(/(?<=var headers =)(.*)(?=;)/g)[0].trim(),
     );
-    info.link = unicodeToChar(hreq.match(/(?<=fetch\(")(.*)(?=")/g)[0].trim());
+    info.link = unicodeToChar(
+      hreq.match(/(?<=fetch\(")(\\.*)(?=")/g)[0].trim(),
+    );
     info.baseInfo = decodeURIComponent(info.link)
       .match(/{(.*)}/g)[0]
       .split('&')

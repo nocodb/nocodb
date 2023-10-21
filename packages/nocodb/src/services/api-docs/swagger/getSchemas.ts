@@ -1,5 +1,5 @@
 import { getModelSchemas, getViewSchemas } from './templates/schemas';
-import type { Model, Project } from '~/models';
+import type { Base, Model } from '~/models';
 
 import type { SwaggerColumn } from './getSwaggerColumnMetas';
 import type { SwaggerView } from './getSwaggerJSON';
@@ -7,12 +7,12 @@ import Noco from '~/Noco';
 
 export default async function getSchemas(
   {
-    project,
+    base,
     model,
     columns,
     views,
   }: {
-    project: Project;
+    base: Base;
     model: Model;
     columns: SwaggerColumn[];
     views: SwaggerView[];
@@ -22,7 +22,7 @@ export default async function getSchemas(
   const swaggerSchemas = getModelSchemas({
     tableName: model.title,
     orgs: 'v1',
-    projectName: project.title,
+    baseName: base.title,
     columns,
   });
 
@@ -37,7 +37,7 @@ export default async function getSchemas(
         viewName: view.title,
         orgs: 'v1',
         columns: swaggerColumns,
-        projectName: project.title,
+        baseName: base.title,
       }),
     );
   }

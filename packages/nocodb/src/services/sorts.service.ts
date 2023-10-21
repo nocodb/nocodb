@@ -8,7 +8,7 @@ import { Sort } from '~/models';
 
 @Injectable()
 export class SortsService {
-  constructor(private appHooksService: AppHooksService) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async sortGet(param: { sortId: string }) {
     return Sort.get(param.sortId);

@@ -1,17 +1,17 @@
 // import ses from '../../v1-legacy/plugins/ses';
 import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, MetaTableOldV2 } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   console.time(
-    `Removed foreign keys and created index for columns in '${MetaTable.BASES}'`,
+    `Removed foreign keys and created index for columns in '${MetaTableOldV2.BASES}'`,
   );
-  await knex.schema.alterTable(MetaTable.BASES, (table) => {
+  await knex.schema.alterTable(MetaTableOldV2.BASES, (table) => {
     table.dropForeign('project_id');
     table.index('project_id');
   });
   console.timeEnd(
-    `Removed foreign keys and created index for columns in '${MetaTable.BASES}'`,
+    `Removed foreign keys and created index for columns in '${MetaTableOldV2.BASES}'`,
   );
 
   console.time(
@@ -355,9 +355,9 @@ const up = async (knex: Knex) => {
   );
 
   console.time(
-    `Removed foreign keys and created index for columns in '${MetaTable.PROJECT_USERS}'`,
+    `Removed foreign keys and created index for columns in '${MetaTableOldV2.PROJECT_USERS}'`,
   );
-  await knex.schema.alterTable(MetaTable.PROJECT_USERS, (table) => {
+  await knex.schema.alterTable(MetaTableOldV2.PROJECT_USERS, (table) => {
     table.dropForeign('project_id');
     table.index('project_id');
 
@@ -365,7 +365,7 @@ const up = async (knex: Knex) => {
     table.index('fk_user_id');
   });
   console.timeEnd(
-    `Removed foreign keys and created index for columns in '${MetaTable.PROJECT_USERS}'`,
+    `Removed foreign keys and created index for columns in '${MetaTableOldV2.PROJECT_USERS}'`,
   );
 
   console.time(
@@ -420,13 +420,13 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex: Knex) => {
-  await knex.schema.alterTable(MetaTable.BASES, (table) => {
-    table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+  await knex.schema.alterTable(MetaTableOldV2.BASES, (table) => {
+    table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
   });
 
   await knex.schema.alterTable(MetaTable.MODELS, (table) => {
-    table.foreign('base_id').references(`${MetaTable.BASES}.id`);
-    table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
+    table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
   });
 
   await knex.schema.alterTable(MetaTable.COLUMNS, (table) => {
@@ -543,8 +543,8 @@ const down = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.MAP_VIEW, (table) => {
     table.string('fk_view_id', 20).primary();
     table.foreign('fk_view_id').references(`${MetaTable.VIEWS}.id`);
-    table.foreign('base_id').references(`${MetaTable.BASES}.id`);
-    table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
+    table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
     table.foreign('fk_geo_data_col_id').references(`${MetaTable.COLUMNS}.id`);
   });
   await knex.schema.alterTable(MetaTable.MAP_VIEW_COLUMNS, (table) => {
@@ -566,13 +566,13 @@ const down = async (knex: Knex) => {
       .references(`${MetaTable.KANBAN_VIEW}.fk_view_id`);
     table.foreign('fk_column_id').references(`${MetaTable.COLUMNS}.id`);
   });
-  await knex.schema.alterTable(MetaTable.PROJECT_USERS, (table) => {
-    table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+  await knex.schema.alterTable(MetaTableOldV2.PROJECT_USERS, (table) => {
+    table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
     table.foreign('fk_user_id').references(`${MetaTable.USERS}.id`);
   });
 
   await knex.schema.alterTable(MetaTable.AUDIT, (table) => {
-    table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
     table.foreign('fk_model_id').references(`${MetaTable.MODELS}.id`);
   });
 
@@ -581,12 +581,12 @@ const down = async (knex: Knex) => {
   });
 
   await knex.schema.alterTable(MetaTable.SYNC_SOURCE, (table) => {
-    table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
   });
 
   await knex.schema.alterTable(MetaTable.API_TOKENS, (table) => {
     table.foreign('fk_user_id').references(`${MetaTable.USERS}.id`);
-    table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
   });
 };
 

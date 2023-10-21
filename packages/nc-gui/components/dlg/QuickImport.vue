@@ -28,9 +28,9 @@ import {
   reactive,
   ref,
   storeToRefs,
+  useBase,
   useGlobal,
   useI18n,
-  useProject,
   useVModel,
 } from '#imports'
 
@@ -41,11 +41,11 @@ import { useNuxtApp } from '#app'
 interface Props {
   modelValue: boolean
   importType: 'csv' | 'json' | 'excel'
-  baseId: string
+  sourceId: string
   importDataOnly?: boolean
 }
 
-const { importType, importDataOnly = false, baseId, ...rest } = defineProps<Props>()
+const { importType, importDataOnly = false, sourceId, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -63,7 +63,7 @@ const { t } = useI18n()
 
 const progressMsg = ref('Parsing Data ...')
 
-const { tables } = storeToRefs(useProject())
+const { tables } = storeToRefs(useBase())
 
 const activeKey = ref('uploadTab')
 
@@ -119,7 +119,7 @@ const { validate, validateInfos } = useForm(importState, validators)
 const importMeta = computed(() => {
   if (IsImportTypeExcel.value) {
     return {
-      header: `${t('title.quickImport')} - EXCEL`,
+      header: `${t('title.quickImportExcel')}`,
       uploadHint: t('msg.info.excelSupport'),
       urlInputLabel: t('msg.info.excelURL'),
       loadUrlDirective: ['c:quick-import:excel:load-url'],
@@ -127,7 +127,7 @@ const importMeta = computed(() => {
     }
   } else if (isImportTypeCsv.value) {
     return {
-      header: `${t('title.quickImport')} - CSV`,
+      header: `${t('title.quickImportCSV')}`,
       uploadHint: '',
       urlInputLabel: t('msg.info.csvURL'),
       loadUrlDirective: ['c:quick-import:csv:load-url'],
@@ -135,7 +135,7 @@ const importMeta = computed(() => {
     }
   } else if (isImportTypeJson.value) {
     return {
-      header: `${t('title.quickImport')} - JSON`,
+      header: `${t('title.quickImportJSON')}`,
       uploadHint: '',
       acceptTypes: '.json',
     }
@@ -149,10 +149,12 @@ const dialogShow = useVModel(rest, 'modelValue', emit)
 if (isWorkerSupport) {
   watch(
     dialogShow,
-    (val) => {
+    async (val) => {
       if (val) {
-        importWorker = initWorker(importWorkerUrl)
-      } else importWorker?.terminate()
+        importWorker = await initWorker(importWorkerUrl)
+      } else {
+        importWorker?.terminate()
+      }
     },
     { immediate: true },
   )
@@ -546,13 +548,13 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
           <LazyTemplateEditor
             v-if="templateEditorModal"
             ref="templateEditorRef"
-            :project-template="templateData"
+            :base-template="templateData"
             :import-data="importData"
             :import-columns="importColumns"
             :import-data-only="importDataOnly"
             :quick-import-type="importType"
             :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
-            :base-id="baseId"
+            :source-id="sourceId"
             :import-worker="importWorker"
             class="nc-quick-import-template-editor"
             @import="handleImport"
@@ -598,7 +600,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
               <template #tab>
                 <span class="flex items-center gap-2">
                   <component :is="iconMap.json" />
-                  JSON Editor
+                  {{ $t('title.jsonEditor') }}
                 </span>
               </template>
 
@@ -611,7 +613,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
               <template #tab>
                 <span class="flex items-center gap-2">
                   <component :is="iconMap.link" />
-                  URL
+                  {{ $t('datatype.URL') }}
                 </span>
               </template>
 
@@ -645,7 +647,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
             <a-form-item v-if="isImportTypeCsv || IsImportTypeExcel" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.firstRowAsHeaders">
-                <span class="caption">Use First Row as Headers</span>
+                <span class="caption">{{ $t('labels.firstRowAsHeaders') }}</span>
               </a-checkbox>
             </a-form-item>
 
@@ -665,7 +667,9 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
       </div>
     </a-spin>
     <template #footer>
-      <a-button v-if="templateEditorModal" key="back" class="!rounded-md" @click="templateEditorModal = false">Back </a-button>
+      <a-button v-if="templateEditorModal" key="back" class="!rounded-md" @click="templateEditorModal = false"
+        >{{ $t('general.back') }}
+      </a-button>
 
       <a-button v-else key="cancel" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }} </a-button>
 
@@ -676,7 +680,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
         :disabled="disableFormatJsonButton"
         @click="formatJson"
       >
-        Format JSON
+        {{ $t('labels.formatJson') }}
       </a-button>
 
       <a-button

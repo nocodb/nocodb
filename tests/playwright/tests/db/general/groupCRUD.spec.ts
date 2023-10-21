@@ -4,6 +4,7 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { createDemoTable } from '../../../setup/demoTable';
 import { TopbarPage } from '../../../pages/Dashboard/common/Topbar';
+import { enableQuickRun } from '../../../setup/db';
 
 const validateResponse = false;
 
@@ -26,12 +27,14 @@ async function undo({ page, dashboard }: { page: Page; dashboard: DashboardPage 
 }
 
 test.describe('GroupBy CRUD Operations', () => {
+  if (enableQuickRun()) test.skip();
+
   let dashboard: DashboardPage, toolbar: ToolbarPage, topbar: TopbarPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    context = await setup({ page, isEmptyProject: false });
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
     topbar = dashboard.grid.topbar;
 
@@ -246,6 +249,23 @@ test.describe('GroupBy CRUD Operations', () => {
       rowIndex: 0,
       columnHeader: 'Item',
       value: 'Zzzzzzzzzzzzzzzzzzz',
+    });
+  });
+
+  test('Single GroupBy CRUD Operations - Links', async ({ page }) => {
+    await dashboard.treeView.openTable({ title: 'Film' });
+
+    await toolbar.clickGroupBy();
+
+    await toolbar.groupBy.add({ title: 'Actors', ascending: false, locallySaved: false });
+
+    await dashboard.grid.groupPage.openGroup({ indexMap: [2] });
+
+    await dashboard.grid.groupPage.validateFirstRow({
+      indexMap: [2],
+      rowIndex: 0,
+      columnHeader: 'Title',
+      value: 'ARABIA DOGMA',
     });
   });
 });

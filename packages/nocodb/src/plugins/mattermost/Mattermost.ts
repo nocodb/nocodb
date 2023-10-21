@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAgent } from 'request-filtering-agent';
 import type { IWebhookNotificationAdapter } from 'nc-plugin';
 
 export default class Mattermost implements IWebhookNotificationAdapter {
@@ -11,6 +12,12 @@ export default class Mattermost implements IWebhookNotificationAdapter {
       try {
         return await axios.post(webhook_url, {
           text,
+          httpAgent: useAgent(webhook_url, {
+            stopPortScanningByUrlRedirection: true,
+          }),
+          httpsAgent: useAgent(webhook_url, {
+            stopPortScanningByUrlRedirection: true,
+          }),
         });
       } catch (e) {
         console.log(e);

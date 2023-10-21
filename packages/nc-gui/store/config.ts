@@ -7,11 +7,15 @@ export const useConfigStore = defineStore('configStore', () => {
 
   const sidebarStore = useSidebarStore()
   const viewsStore = useViewsStore()
+  const { activeViewTitleOrId } = storeToRefs(viewsStore)
   const tablesStore = useTablesStore()
+  const { activeTableId } = storeToRefs(tablesStore)
 
   const isViewPortMobile = () => width.value < MAX_WIDTH_FOR_MOBILE_MODE
 
   const isMobileMode = ref(isViewPortMobile())
+
+  const projectPageTab = ref<'allTable' | 'collaborator' | 'data-source'>('allTable')
 
   const onViewPortResize = () => {
     isMobileMode.value = isViewPortMobile()
@@ -45,7 +49,7 @@ export const useConfigStore = defineStore('configStore', () => {
   const handleSidebarOpenOnMobileForNonViews = () => {
     if (!isViewPortMobile()) return
 
-    if (!viewsStore.activeViewTitleOrId && !tablesStore.activeTableId) {
+    if (!activeViewTitleOrId && !activeTableId) {
       nextTick(() => {
         sidebarStore.isLeftSidebarOpen = true
       })
@@ -54,7 +58,7 @@ export const useConfigStore = defineStore('configStore', () => {
     }
   }
 
-  watch([viewsStore.activeViewTitleOrId, tablesStore.activeTableId], () => {
+  watch([activeViewTitleOrId, activeTableId], () => {
     handleSidebarOpenOnMobileForNonViews()
   })
 
@@ -62,6 +66,7 @@ export const useConfigStore = defineStore('configStore', () => {
     isMobileMode,
     isViewPortMobile,
     handleSidebarOpenOnMobileForNonViews,
+    projectPageTab,
   }
 })
 

@@ -12,6 +12,8 @@ import {
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { UtilsService } from '~/services/utils.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 
 @Controller()
 export class UtilsController {
@@ -19,6 +21,7 @@ export class UtilsController {
 
   constructor(protected readonly utilsService: UtilsService) {}
 
+  @UseGuards(PublicApiLimiterGuard)
   @Get('/api/v1/version')
   async getVersion() {
     if (process.env.NC_CLOUD !== 'true') {
@@ -35,8 +38,8 @@ export class UtilsController {
     return this.version;
   }
 
-  @UseGuards(GlobalGuard)
-  @Post('/api/v1/db/meta/connection/test')
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Post(['/api/v1/db/meta/connection/test', '/api/v2/meta/connection/test'])
   @Acl('testConnection', {
     scope: 'org',
   })
@@ -45,7 +48,13 @@ export class UtilsController {
     return await this.utilsService.testConnection({ body });
   }
 
-  @Get('/api/v1/db/meta/nocodb/info')
+  @UseGuards(PublicApiLimiterGuard)
+  @Get([
+    '/api/v1/db/meta/nocodb/info',
+    '/api/v2/meta/nocodb/info',
+    // todo: remove this once we added the health api
+    '/api/v1/meta/nocodb/info',
+  ])
   async appInfo(@Request() req) {
     return await this.utilsService.appInfo({
       req: {
@@ -54,17 +63,20 @@ export class UtilsController {
     });
   }
 
+  @UseGuards(PublicApiLimiterGuard)
   @Get('/api/v1/health')
   async appHealth() {
     return await this.utilsService.appHealth();
   }
 
-  @Post('/api/v1/db/meta/axiosRequestMake')
+  @UseGuards(PublicApiLimiterGuard)
+  @Post(['/api/v1/db/meta/axiosRequestMake', '/api/v2/meta/axiosRequestMake'])
   @HttpCode(200)
   async axiosRequestMake(@Body() body: any) {
     return await this.utilsService.axiosRequestMake({ body });
   }
 
+  @UseGuards(PublicApiLimiterGuard)
   @Post('/api/v1/url_to_config')
   @HttpCode(200)
   async urlToDbConfig(@Body() body: any) {
@@ -73,6 +85,7 @@ export class UtilsController {
     });
   }
 
+  @UseGuards(PublicApiLimiterGuard)
   @Get('/api/v1/aggregated-meta-info')
   async aggregatedMetaInfo() {
     // todo: refactor

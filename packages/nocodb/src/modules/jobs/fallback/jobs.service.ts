@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { QueueService } from './fallback-queue.service';
+import { QueueService } from '~/modules/jobs/fallback/fallback-queue.service';
 import { JobStatus } from '~/interface/Jobs';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class JobsService {
   async jobStatus(jobId: string) {
     return await (
       await this.fallbackQueueService.getJob(jobId)
-    ).status;
+    )?.status;
   }
 
   async jobList() {

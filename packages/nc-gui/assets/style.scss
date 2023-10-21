@@ -53,6 +53,14 @@ main {
   @apply !rounded-lg !py-2 !px-3 mb-1;
 }
 
+.mobile {
+  .nc-scrollbar-md, nc-scrollbar-dark-md, nc-scrollbar-dark-md, nc-scrollbar-sm-dark, nc-scrollbar-x-md {
+    &::-webkit-scrollbar {
+      width: 0px;
+    }
+  }
+}
+
 .nc-scrollbar-md {
   overflow-y: scroll;
   overflow-x: hidden;
@@ -185,7 +193,7 @@ a {
   }
 }
 
-.nc-project-menu-item {
+.nc-base-menu-item {
   @apply cursor-pointer flex items-center gap-2 py-2 after:(content-[''] absolute top-0 left-0 bottom-0 right-0 w-full h-full bg-current opacity-0 transition transition-opacity duration-100) hover:(after:(opacity-5));
 
   // &:hover {
@@ -434,9 +442,6 @@ a {
   @apply !shadow-none rounded ring-1 ring-red-600;
 }
 
-.ant-modal {
-  @apply !top-[30px];
-}
 .ant-modal-content {
   @apply !p-6;
   border-radius: 1rem;
@@ -598,7 +603,7 @@ input[type='number'] {
 }
 
 .nc-sidebar-node {
-  @apply !xs:(min-h-12 max-h-12 hover:bg-gray-50 ml-1.5);
+  @apply !xs:(min-h-12 max-h-12 hover:bg-gray-50 ml-1.5 w-[calc(100%-8px)]);
 
   .nc-emoji {
     @apply xs:(text-lg);

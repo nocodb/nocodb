@@ -26,7 +26,7 @@ export class GridPage extends BasePage {
   readonly topbar: TopbarPage;
   readonly toolbar: ToolbarPage;
   readonly footbar: FootbarPage;
-  readonly projectMenu: ProjectMenuObject;
+  readonly baseMenu: ProjectMenuObject;
   readonly workspaceMenu: WorkspaceMenuObject;
   readonly rowPage: RowPageObject;
   readonly groupPage: GroupPageObject;
@@ -45,7 +45,7 @@ export class GridPage extends BasePage {
     this.topbar = new TopbarPage(this);
     this.toolbar = new ToolbarPage(this);
     this.footbar = new FootbarPage(this);
-    this.projectMenu = new ProjectMenuObject(this);
+    this.baseMenu = new ProjectMenuObject(this);
     this.workspaceMenu = new WorkspaceMenuObject(this);
     this.rowPage = new RowPageObject(this);
     this.groupPage = new GroupPageObject(this);
@@ -115,20 +115,21 @@ export class GridPage extends BasePage {
     if (index !== 0) await this.get().locator('.nc-grid-row').nth(0).waitFor({ state: 'attached' });
 
     await (await this.get().locator('.nc-grid-add-new-cell').elementHandle())?.waitForElementState('stable');
-    await this.rootPage.waitForTimeout(100);
 
-    const rowCount = await this.get().locator('.nc-grid-row').count();
+    await this.rootPage.waitForTimeout(200);
+    await this.rootPage.waitForLoadState('networkidle');
+    await this.rootPage.waitForTimeout(200);
+    await this.rootPage.waitForLoadState('domcontentloaded');
 
     await this.get().locator('.nc-grid-add-new-cell').click();
 
-    // add delay for UI to render (can wait for count to stabilize by reading it multiple times)
-    await this.rootPage.waitForTimeout(100);
-    await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
+    const rowCount = index + 1;
+    await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount);
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 
     const clickOnColumnHeaderToSave = () =>
-      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[title="${columnHeader}"]`).click();
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[data-test-id="${columnHeader}"]`).click();
 
     if (networkValidation) {
       await this.waitForResponse({
@@ -160,7 +161,7 @@ export class GridPage extends BasePage {
     await this._fillRow({ index, columnHeader, value });
 
     const clickOnColumnHeaderToSave = () =>
-      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[title="${columnHeader}"]`).click();
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[data-test-id="${columnHeader}"]`).click();
 
     if (networkValidation) {
       await this.waitForResponse({
@@ -198,11 +199,11 @@ export class GridPage extends BasePage {
     });
 
     // Click text=Delete Row
-    await this.rootPage.locator('.ant-dropdown-menu-item:has-text("Delete row")').click();
+    await this.rootPage.locator('.ant-dropdown-menu-item:has-text("Delete record")').click();
 
     // todo: improve selector
     await this.rootPage
-      .locator('span.ant-dropdown-menu-title-content > nc-project-menu-item')
+      .locator('span.ant-dropdown-menu-title-content > nc-base-menu-item')
       .waitFor({ state: 'hidden' });
 
     await this.rootPage.waitForTimeout(300);
@@ -271,7 +272,7 @@ export class GridPage extends BasePage {
     await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
       button: 'right',
     });
-    await this.rootPage.locator('text=Update Selected Rows').click();
+    await this.rootPage.locator('.nc-menu-item:has-text("Update Selected Records")').click();
     await this.dashboard.waitForLoaderToDisappear();
   }
 
@@ -299,40 +300,23 @@ export class GridPage extends BasePage {
     expect(parseInt(recordCnt)).toEqual(count);
   }
 
-  async verifyPaginationCount({ count }: { count: number }) {
-    let i = 0;
-    await this.get().locator(`.nc-pagination`).first().waitFor();
-    let records = await this.get().locator(`[data-testid="grid-pagination"]`).allInnerTexts();
-    let recordCnt = records[0].split(' ')[0];
-
-    while (parseInt(recordCnt) !== count && i < 5) {
-      await this.get().locator(`.nc-pagination`).first().waitFor();
-      records = await this.get().locator(`[data-testid="grid-pagination"]`).allInnerTexts();
-      recordCnt = records[0].split(' ')[0];
-
-      // to ensure page loading is complete
-      i++;
-      await this.rootPage.waitForTimeout(300 * i);
-    }
-    expect(parseInt(recordCnt)).toEqual(count);
+  async verifyPaginationCount({ count }: { count: string }) {
+    await expect(this.get().locator(`.nc-pagination .total`)).toHaveText(count);
   }
 
-  private async pagination({ page }: { page: string }) {
-    await this.get().locator(`.nc-pagination`).waitFor();
-
-    if (page === '<') return this.get().locator('.nc-pagination > .ant-pagination-prev');
-    if (page === '>') return this.get().locator('.nc-pagination > .ant-pagination-next');
-
-    return this.get().locator(`.nc-pagination > .ant-pagination-item.ant-pagination-item-${page}`);
-  }
-
-  async clickPagination({ page, skipWait = false }: { page: string; skipWait?: boolean }) {
+  async clickPagination({
+    type,
+    skipWait = false,
+  }: {
+    type: 'first-page' | 'last-page' | 'next-page' | 'prev-page';
+    skipWait?: boolean;
+  }) {
     if (!skipWait) {
-      await (await this.pagination({ page })).click();
+      await this.get().locator(`.nc-pagination .${type}`).click();
       await this.waitLoading();
     } else {
       await this.waitForResponse({
-        uiAction: async () => (await this.pagination({ page })).click(),
+        uiAction: async () => (await this.get().locator(`.nc-pagination .${type}`)).click(),
         httpMethodsToMatch: ['GET'],
         requestUrlPathToMatch: '/views/',
         responseJsonMatcher: resJson => resJson?.pageInfo,
@@ -342,8 +326,8 @@ export class GridPage extends BasePage {
     }
   }
 
-  async verifyActivePage({ page }: { page: string }) {
-    await expect(await this.pagination({ page })).toHaveClass(/ant-pagination-item-active/);
+  async verifyActivePage({ pageNumber }: { pageNumber: string }) {
+    await expect(this.get().locator(`.nc-pagination .ant-select-selection-item`)).toHaveText(pageNumber);
   }
 
   async waitLoading() {

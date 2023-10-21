@@ -12,6 +12,7 @@ const {
   leftSidebarWidthPercent,
   leftSideBarSize: sideBarSize,
   leftSidebarState: sidebarState,
+  mobileNormalizedSidebarSize,
 } = storeToRefs(useSidebarStore())
 
 const wrapperRef = ref<HTMLDivElement>()
@@ -30,14 +31,6 @@ const currentSidebarSize = computed({
 const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
 
 const contentSize = computed(() => 100 - sideBarSize.value.current)
-
-const mobileNormalizedSidebarSize = computed(() => {
-  if (isMobileMode.value) {
-    return isLeftSidebarOpen.value ? 100 : 0
-  }
-
-  return currentSidebarSize.value
-})
 
 const mobileNormalizedContentSize = computed(() => {
   if (isMobileMode.value) {
@@ -64,12 +57,11 @@ watch(isLeftSidebarOpen, () => {
     setTimeout(() => (sidebarState.value = 'openEnd'), animationDuration)
   } else {
     sideBarSize.value.old = sideBarSize.value.current
+    sideBarSize.value.current = 0
 
     sidebarState.value = 'hiddenStart'
 
     setTimeout(() => {
-      sideBarSize.value.current = 0
-
       sidebarState.value = 'hiddenEnd'
     }, animationDuration)
   }
@@ -119,6 +111,14 @@ watch(isMobileMode, () => {
   isLeftSidebarOpen.value = !isMobileMode.value
 })
 
+watch(sidebarState, () => {
+  if (sidebarState.value === 'peekCloseEnd') {
+    setTimeout(() => {
+      sidebarState.value = 'hiddenEnd'
+    }, animationDuration)
+  }
+})
+
 onMounted(() => {
   handleSidebarOpenOnMobileForNonViews()
 })
@@ -140,7 +140,7 @@ onMounted(() => {
     >
       <div
         ref="wrapperRef"
-        class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !min-w-32 absolute overflow-visible"
+        class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !min-w-12 absolute overflow-visible"
         :class="{
           'mobile': isMobileMode,
           'minimized-height': !isLeftSidebarOpen,
@@ -179,6 +179,7 @@ onMounted(() => {
 
   > * {
     @apply opacity-0;
+    z-index: -1 !important;
     transform: translateX(-100%);
   }
 }

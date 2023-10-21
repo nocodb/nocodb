@@ -10,7 +10,7 @@ import {
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
-import type { LinkToAnotherRecordColumn, Project } from '~/models';
+import type { Base, LinkToAnotherRecordColumn } from '~/models';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
@@ -28,6 +28,7 @@ import {
   createHmAndBtColumn,
   generateFkName,
   randomID,
+  sanitizeColumnName,
   validateLookupPayload,
   validatePayload,
   validateRequiredField,
@@ -41,7 +42,7 @@ import {
 } from '~/helpers/getUniqueName';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import validateParams from '~/helpers/validateParams';
-import { Base, Column, FormulaColumn, KanbanView, Model } from '~/models';
+import { Column, FormulaColumn, KanbanView, Model, Source } from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
@@ -56,8 +57,8 @@ export enum Altered {
 
 interface ReusableParams {
   table?: Model;
+  source?: Source;
   base?: Base;
-  project?: Project;
   dbDriver?: CustomKnex;
   sqlClient?: SqlClient;
   sqlMgr?: SqlMgrv2;
@@ -83,8 +84,8 @@ async function reuseOrSave(
 @Injectable()
 export class ColumnsService {
   constructor(
-    private readonly metaService: MetaService,
-    private readonly appHooksService: AppHooksService,
+    protected readonly metaService: MetaService,
+    protected readonly appHooksService: AppHooksService,
   ) {}
 
   async columnUpdate(param: {
@@ -106,21 +107,51 @@ export class ColumnsService {
       }),
     );
 
-    const base = await reuseOrSave('base', reuse, async () =>
-      Base.get(table.base_id),
+    const source = await reuseOrSave('source', reuse, async () =>
+      Source.get(table.source_id),
     );
 
     const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
-      NcConnectionMgrv2.getSqlClient(base),
+      NcConnectionMgrv2.getSqlClient(source),
     );
 
     const sqlClientType = sqlClient.knex.clientType();
 
     const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
-    if (param.column.column_name.length > mxColumnLength) {
+    if (!isVirtualCol(param.column)) {
+      param.column.column_name = sanitizeColumnName(param.column.column_name);
+    }
+
+    if (param.column.column_name) {
+      // - 5 is a buffer for suffix
+      let colName = param.column.column_name.slice(0, mxColumnLength - 5);
+      let suffix = 1;
+      while (
+        !(await Column.checkTitleAvailable({
+          column_name: colName,
+          fk_model_id: column.fk_model_id,
+          exclude_id: param.columnId,
+        }))
+      ) {
+        colName = param.column.column_name.slice(0, mxColumnLength - 5);
+        colName += `_${suffix++}`;
+      }
+      param.column.column_name = colName;
+    }
+
+    if (
+      !isVirtualCol(param.column) &&
+      param.column.column_name.length > mxColumnLength
+    ) {
       NcError.badRequest(
         `Column name ${param.column.column_name} exceeds ${mxColumnLength} characters`,
+      );
+    }
+
+    if (param.column.title && param.column.title.length > 255) {
+      NcError.badRequest(
+        `Column title ${param.column.title} exceeds 255 characters`,
       );
     }
 
@@ -177,7 +208,7 @@ export class ColumnsService {
               Model.getBaseModelSQL({
                 id: table.id,
                 dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
-                  NcConnectionMgrv2.get(base),
+                  NcConnectionMgrv2.get(source),
                 ),
               }),
             );
@@ -237,13 +268,13 @@ export class ColumnsService {
     } else if (
       [UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)
     ) {
-      colBody = await getColumnPropsFromUIDT(colBody, base);
+      colBody = await getColumnPropsFromUIDT(colBody, source);
 
       const baseModel = await reuseOrSave('baseModel', reuse, async () =>
         Model.getBaseModelSQL({
           id: table.id,
           dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
-            NcConnectionMgrv2.get(base),
+            NcConnectionMgrv2.get(source),
           ),
         }),
       );
@@ -251,15 +282,15 @@ export class ColumnsService {
       if (colBody.colOptions?.options) {
         const supportedDrivers = ['mysql', 'mysql2', 'pg', 'mssql', 'sqlite3'];
         const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
-          NcConnectionMgrv2.get(base),
+          NcConnectionMgrv2.get(source),
         );
         const driverType = dbDriver.clientType();
 
-        // MultiSelect to SingleSelect
         if (
           column.uidt === UITypes.MultiSelect &&
           colBody.uidt === UITypes.SingleSelect
         ) {
+          // MultiSelect to SingleSelect
           if (driverType === 'mysql' || driverType === 'mysql2') {
             await dbDriver.raw(
               `UPDATE ?? SET ?? = SUBSTRING_INDEX(??, ',', 1) WHERE ?? LIKE '%,%';`,
@@ -299,6 +330,63 @@ export class ColumnsService {
               ],
             );
           }
+        } else if (
+          [
+            UITypes.SingleLineText,
+            UITypes.Email,
+            UITypes.PhoneNumber,
+            UITypes.URL,
+          ].includes(column.uidt)
+        ) {
+          // Text to SingleSelect/MultiSelect
+          const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
+            NcConnectionMgrv2.get(source),
+          );
+
+          const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+            Model.getBaseModelSQL({
+              id: table.id,
+              dbDriver: dbDriver,
+            }),
+          );
+
+          const data = await baseModel.execAndParse(
+            dbDriver.raw('SELECT DISTINCT ?? FROM ??', [
+              column.column_name,
+              baseModel.getTnPath(table.table_name),
+            ]),
+          );
+
+          if (data.length) {
+            const existingOptions = colBody.colOptions.options.map(
+              (el) => el.title,
+            );
+            const options = data.reduce((acc, el) => {
+              if (el[column.column_name]) {
+                const values = el[column.column_name].split(',');
+                if (values.length > 1) {
+                  if (colBody.uidt === UITypes.SingleSelect) {
+                    NcError.badRequest(
+                      'SingleSelect cannot have comma separated values, please use MultiSelect instead.',
+                    );
+                  }
+                }
+                for (const v of values) {
+                  if (!existingOptions.includes(v.trim())) {
+                    acc.push({
+                      title: v.trim(),
+                    });
+                    existingOptions.push(v.trim());
+                  }
+                }
+              }
+              return acc;
+            }, []);
+            colBody.colOptions.options = [
+              ...colBody.colOptions.options,
+              ...options,
+            ];
+          }
         }
 
         // Handle migrations
@@ -316,23 +404,48 @@ export class ColumnsService {
         );
         if (colBody.cdf) {
           if (colBody.uidt === UITypes.SingleSelect) {
-            if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
-              NcError.badRequest(
-                `Default value '${colBody.cdf}' is not a select option.`,
-              );
+            try {
+              if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
+                NcError.badRequest(
+                  `Default value '${colBody.cdf}' is not a select option.`,
+                );
+              }
+            } catch (e) {
+              colBody.cdf = colBody.cdf.replace(/^'/, '').replace(/'$/, '');
+              if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
+                NcError.badRequest(
+                  `Default value '${colBody.cdf}' is not a select option.`,
+                );
+              }
             }
           } else {
-            for (const cdf of colBody.cdf.split(',')) {
-              if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
-                NcError.badRequest(
-                  `Default value '${cdf}' is not a select option.`,
-                );
+            try {
+              for (const cdf of colBody.cdf.split(',')) {
+                if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
+                  NcError.badRequest(
+                    `Default value '${cdf}' is not a select option.`,
+                  );
+                }
+              }
+            } catch (e) {
+              colBody.cdf = colBody.cdf.replace(/^'/, '').replace(/'$/, '');
+              for (const cdf of colBody.cdf.split(',')) {
+                if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
+                  NcError.badRequest(
+                    `Default value '${cdf}' is not a select option.`,
+                  );
+                }
               }
             }
           }
 
           // handle single quote for default value
-          if (driverType === 'mysql' || driverType === 'mysql2') {
+          if (
+            driverType === 'mysql' ||
+            driverType === 'mysql2' ||
+            driverType === 'pg' ||
+            driverType === 'sqlite3'
+          ) {
             colBody.cdf = colBody.cdf.replace(/'/g, "'");
           } else {
             colBody.cdf = colBody.cdf.replace(/'/g, "''");
@@ -590,10 +703,10 @@ export class ColumnsService {
 
               const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
                 ProjectMgrv2.getSqlMgr({
-                  id: base.project_id,
+                  id: source.base_id,
                 }),
               );
-              await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
+              await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
               await Column.update(param.columnId, {
                 ...column,
@@ -824,15 +937,15 @@ export class ColumnsService {
       };
 
       const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-        ProjectMgrv2.getSqlMgr({ id: base.project_id }),
+        ProjectMgrv2.getSqlMgr({ id: source.base_id }),
       );
-      await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
+      await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
       await Column.update(param.columnId, {
         ...colBody,
       });
     } else {
-      colBody = await getColumnPropsFromUIDT(colBody, base);
+      colBody = await getColumnPropsFromUIDT(colBody, source);
       const tableUpdateBody = {
         ...table,
         tn: table.table_name,
@@ -885,9 +998,9 @@ export class ColumnsService {
       };
 
       const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-        ProjectMgrv2.getSqlMgr({ id: base.project_id }),
+        ProjectMgrv2.getSqlMgr({ id: source.base_id }),
       );
-      await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
+      await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
       await Column.update(param.columnId, {
         ...colBody,
@@ -932,30 +1045,55 @@ export class ColumnsService {
       }),
     );
 
-    const base = await reuseOrSave('base', reuse, async () =>
-      Base.get(table.base_id),
+    const source = await reuseOrSave('source', reuse, async () =>
+      Source.get(table.source_id),
     );
 
-    const project = await reuseOrSave('project', reuse, async () =>
-      base.getProject(),
+    const base = await reuseOrSave('base', reuse, async () =>
+      source.getProject(),
     );
 
     if (param.column.title || param.column.column_name) {
       const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
-        NcConnectionMgrv2.get(base),
+        NcConnectionMgrv2.get(source),
       );
 
       const sqlClientType = dbDriver.clientType();
 
       const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
+      if (!isVirtualCol(param.column)) {
+        param.column.column_name = sanitizeColumnName(param.column.column_name);
+      }
+
+      if (param.column.column_name) {
+        // - 5 is a buffer for suffix
+        let colName = param.column.column_name.slice(0, mxColumnLength - 5);
+        let suffix = 1;
+        while (
+          !(await Column.checkTitleAvailable({
+            column_name: colName,
+            fk_model_id: param.tableId,
+          }))
+        ) {
+          colName = param.column.column_name.slice(0, mxColumnLength - 5);
+          colName += `_${suffix++}`;
+        }
+        param.column.column_name = colName;
+      }
+
       if (
-        (param.column.title || param.column.column_name).length > mxColumnLength
+        param.column.column_name &&
+        param.column.column_name.length > mxColumnLength
       ) {
         NcError.badRequest(
-          `Column name ${
-            param.column.title || param.column.column_name
-          } exceeds ${mxColumnLength} characters`,
+          `Column name ${param.column.column_name} exceeds ${mxColumnLength} characters`,
+        );
+      }
+
+      if (param.column.title && param.column.title.length > 255) {
+        NcError.badRequest(
+          `Column title ${param.column.title} exceeds 255 characters`,
         );
       }
     }
@@ -1003,14 +1141,14 @@ export class ColumnsService {
 
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
-        await this.createLTARColumn({ ...param, base, project, reuse });
+        await this.createLTARColumn({ ...param, source, base, reuse });
 
         this.appHooksService.emit(AppEvents.RELATION_DELETE, {
           column: {
             ...colBody,
             fk_model_id: param.tableId,
-            project_id: project.id,
             base_id: base.id,
+            source_id: source.id,
           },
         });
         break;
@@ -1038,7 +1176,7 @@ export class ColumnsService {
             Model.getBaseModelSQL({
               id: table.id,
               dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
-                NcConnectionMgrv2.get(base),
+                NcConnectionMgrv2.get(source),
               ),
             }),
           );
@@ -1065,7 +1203,7 @@ export class ColumnsService {
         break;
       default:
         {
-          colBody = await getColumnPropsFromUIDT(colBody, base);
+          colBody = await getColumnPropsFromUIDT(colBody, source);
           if (colBody.uidt === UITypes.Duration) {
             colBody.dtxp = '20';
             // by default, colBody.dtxs is 2
@@ -1076,7 +1214,7 @@ export class ColumnsService {
           if (
             [UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)
           ) {
-            const dbDriver = await NcConnectionMgrv2.get(base);
+            const dbDriver = await NcConnectionMgrv2.get(source);
             const driverType = dbDriver.clientType();
             const optionTitles = colBody.colOptions.options.map((el) =>
               el.title.replace(/'/g, "''"),
@@ -1087,23 +1225,48 @@ export class ColumnsService {
             // Handle default values
             if (colBody.cdf) {
               if (colBody.uidt === UITypes.SingleSelect) {
-                if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
-                  NcError.badRequest(
-                    `Default value '${colBody.cdf}' is not a select option.`,
-                  );
+                try {
+                  if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
+                    NcError.badRequest(
+                      `Default value '${colBody.cdf}' is not a select option.`,
+                    );
+                  }
+                } catch (e) {
+                  colBody.cdf = colBody.cdf.replace(/^'/, '').replace(/'$/, '');
+                  if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
+                    NcError.badRequest(
+                      `Default value '${colBody.cdf}' is not a select option.`,
+                    );
+                  }
                 }
               } else {
-                for (const cdf of colBody.cdf.split(',')) {
-                  if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
-                    NcError.badRequest(
-                      `Default value '${cdf}' is not a select option.`,
-                    );
+                try {
+                  for (const cdf of colBody.cdf.split(',')) {
+                    if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
+                      NcError.badRequest(
+                        `Default value '${cdf}' is not a select option.`,
+                      );
+                    }
+                  }
+                } catch (e) {
+                  colBody.cdf = colBody.cdf.replace(/^'/, '').replace(/'$/, '');
+                  for (const cdf of colBody.cdf.split(',')) {
+                    if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
+                      NcError.badRequest(
+                        `Default value '${cdf}' is not a select option.`,
+                      );
+                    }
                   }
                 }
               }
 
               // handle single quote for default value
-              if (driverType === 'mysql' || driverType === 'mysql2') {
+              if (
+                driverType === 'mysql' ||
+                driverType === 'mysql2' ||
+                driverType === 'pg' ||
+                driverType === 'sqlite3'
+              ) {
                 colBody.cdf = colBody.cdf.replace(/'/g, "'");
               } else {
                 colBody.cdf = colBody.cdf.replace(/'/g, "''");
@@ -1194,12 +1357,12 @@ export class ColumnsService {
           };
 
           const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
-            NcConnectionMgrv2.getSqlClient(base),
+            NcConnectionMgrv2.getSqlClient(source),
           );
           const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-            ProjectMgrv2.getSqlMgr({ id: base.project_id }),
+            ProjectMgrv2.getSqlMgr({ id: source.base_id }),
           );
-          await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
+          await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
           const columns: Array<
             Omit<Column, 'column_name' | 'title'> & {
@@ -1209,7 +1372,7 @@ export class ColumnsService {
           > = (
             await sqlClient.columnList({
               tn: table.table_name,
-              schema: base.getConfig()?.schema,
+              schema: source.getConfig()?.schema,
             })
           )?.data?.list;
 
@@ -1265,12 +1428,12 @@ export class ColumnsService {
         ncMeta,
       ),
     );
-    const base = await reuseOrSave('base', reuse, async () =>
-      Base.get(table.base_id, ncMeta),
+    const source = await reuseOrSave('source', reuse, async () =>
+      Source.get(table.source_id, false, ncMeta),
     );
 
     const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-      ProjectMgrv2.getSqlMgr({ id: base.project_id }, ncMeta),
+      ProjectMgrv2.getSqlMgr({ id: source.base_id }, ncMeta),
     );
 
     switch (column.uidt) {
@@ -1299,7 +1462,7 @@ export class ColumnsService {
               {
                 await this.deleteHmOrBtRelation({
                   relationColOpt,
-                  base,
+                  source,
                   childColumn,
                   childTable,
                   parentColumn,
@@ -1327,7 +1490,7 @@ export class ColumnsService {
                     sqlMgr,
                     parentTable: parentTable,
                     childColumn: mmParentCol,
-                    base,
+                    source,
                     ncMeta,
                     virtual: !!relationColOpt.virtual,
                   },
@@ -1342,7 +1505,7 @@ export class ColumnsService {
                     sqlMgr,
                     parentTable: childTable,
                     childColumn: mmChildCol,
-                    base,
+                    source,
                     ncMeta,
                     virtual: !!relationColOpt.virtual,
                   },
@@ -1411,7 +1574,7 @@ export class ColumnsService {
                 // the expected 2 columns would be table1_id & table2_id
                 if (mmTable.columns.length === 2) {
                   (mmTable as any).tn = mmTable.table_name;
-                  await sqlMgr.sqlOpPlus(base, 'tableDelete', mmTable);
+                  await sqlMgr.sqlOpPlus(source, 'tableDelete', mmTable);
                   await mmTable.delete(ncMeta);
                 }
               }
@@ -1460,7 +1623,7 @@ export class ColumnsService {
           }),
         };
 
-        await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
+        await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
         await Column.delete(param.columnId, ncMeta);
       }
@@ -1489,7 +1652,7 @@ export class ColumnsService {
   deleteHmOrBtRelation = async (
     {
       relationColOpt,
-      base,
+      source,
       childColumn,
       childTable,
       parentColumn,
@@ -1499,7 +1662,7 @@ export class ColumnsService {
       virtual,
     }: {
       relationColOpt: LinkToAnotherRecordColumn;
-      base: Base;
+      source: Source;
       childColumn: Column;
       childTable: Model;
       parentColumn: Column;
@@ -1537,7 +1700,7 @@ export class ColumnsService {
     if (!relationColOpt?.virtual && !virtual) {
       // todo: handle relation delete exception
       try {
-        await sqlMgr.sqlOpPlus(base, 'relationDelete', {
+        await sqlMgr.sqlOpPlus(source, 'relationDelete', {
           childColumn: childColumn.column_name,
           childTable: childTable.table_name,
           parentTable: parentTable.table_name,
@@ -1582,7 +1745,7 @@ export class ColumnsService {
       if (relationColOpt?.virtual) {
         const indexes =
           (
-            await sqlMgr.sqlOp(base, 'indexList', {
+            await sqlMgr.sqlOp(source, 'indexList', {
               tn: cTable.table_name,
             })
           )?.data?.list ?? [];
@@ -1590,7 +1753,7 @@ export class ColumnsService {
         for (const index of indexes) {
           if (index.cn !== childColumn.column_name) continue;
 
-          await sqlMgr.sqlOpPlus(base, 'indexDelete', {
+          await sqlMgr.sqlOpPlus(source, 'indexDelete', {
             ...index,
             tn: cTable.table_name,
             columns: [childColumn.column_name],
@@ -1622,7 +1785,7 @@ export class ColumnsService {
         }),
       };
 
-      await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
+      await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
     }
     // delete foreign key column
     await Column.delete(childColumn.id, ncMeta);
@@ -1631,8 +1794,8 @@ export class ColumnsService {
   async createLTARColumn(param: {
     tableId: string;
     column: ColumnReqType;
+    source: Source;
     base: Base;
-    project: Project;
     reuse?: ReusableParams;
   }) {
     validateParams(['parentId', 'childId', 'type'], param.column);
@@ -1650,13 +1813,13 @@ export class ColumnsService {
 
     const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
       ProjectMgrv2.getSqlMgr({
-        id: param.base.project_id,
+        id: param.source.base_id,
       }),
     );
     const isLinks = param.column.uidt === UITypes.Links;
 
     // if xcdb base then treat as virtual relation to avoid creating foreign key
-    if (param.base.isMeta()) {
+    if (param.source.isMeta()) {
       (param.column as LinkToAnotherColumnReqType).virtual = true;
     }
 
@@ -1704,7 +1867,7 @@ export class ColumnsService {
           ],
         };
 
-        await sqlMgr.sqlOpPlus(param.base, 'tableUpdate', tableUpdateBody);
+        await sqlMgr.sqlOpPlus(param.source, 'tableUpdate', tableUpdateBody);
 
         const { id } = await Column.insert({
           ...newColumn,
@@ -1718,7 +1881,7 @@ export class ColumnsService {
         if (!(param.column as LinkToAnotherColumnReqType).virtual) {
           foreignKeyName = generateFkName(parent, child);
           // create relation
-          await sqlMgr.sqlOpPlus(param.base, 'relationCreate', {
+          await sqlMgr.sqlOpPlus(param.source, 'relationCreate', {
             childColumn: fkColName,
             childTable: child.table_name,
             parentTable: parent.table_name,
@@ -1733,7 +1896,7 @@ export class ColumnsService {
         // todo: create index for virtual relations as well
         //       create index for foreign key in pg
         if (
-          param.base.type === 'pg' ||
+          param.source.type === 'pg' ||
           (param.column as LinkToAnotherColumnReqType).virtual
         ) {
           await this.createColumnIndex({
@@ -1741,7 +1904,7 @@ export class ColumnsService {
               ...newColumn,
               fk_model_id: child.id,
             }),
-            base: param.base,
+            source: param.source,
             sqlMgr,
           });
         }
@@ -1759,7 +1922,7 @@ export class ColumnsService {
         isLinks,
       );
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
-      const aTn = `${param.project?.prefix ?? ''}_nc_m2m_${randomID()}`;
+      const aTn = `${param.base?.prefix ?? ''}_nc_m2m_${randomID()}`;
       const aTnAlias = aTn;
 
       const parentPK = parent.primaryKey;
@@ -1803,13 +1966,13 @@ export class ColumnsService {
         },
       );
 
-      await sqlMgr.sqlOpPlus(param.base, 'tableCreate', {
+      await sqlMgr.sqlOpPlus(param.source, 'tableCreate', {
         tn: aTn,
         _tn: aTnAlias,
         columns: associateTableCols,
       });
 
-      const assocModel = await Model.insert(param.project.id, param.base.id, {
+      const assocModel = await Model.insert(param.base.id, param.source.id, {
         table_name: aTn,
         title: aTnAlias,
         // todo: sanitize
@@ -1843,8 +2006,8 @@ export class ColumnsService {
           foreignKeyName: foreignKeyName2,
         };
 
-        await sqlMgr.sqlOpPlus(param.base, 'relationCreate', rel1Args);
-        await sqlMgr.sqlOpPlus(param.base, 'relationCreate', rel2Args);
+        await sqlMgr.sqlOpPlus(param.source, 'relationCreate', rel1Args);
+        await sqlMgr.sqlOpPlus(param.source, 'relationCreate', rel2Args);
       }
       const parentCol = (await assocModel.getColumns())?.find(
         (c) => c.column_name === parentCn,
@@ -1928,13 +2091,13 @@ export class ColumnsService {
 
       // todo: create index for virtual relations as well
       // create index for foreign key in pg
-      if (param.base.type === 'pg') {
+      if (param.source.type === 'pg') {
         await this.createColumnIndex({
           column: new Column({
             ...associateTableCols[0],
             fk_model_id: assocModel.id,
           }),
-          base: param.base,
+          source: param.source,
           sqlMgr,
         });
         await this.createColumnIndex({
@@ -1942,7 +2105,7 @@ export class ColumnsService {
             ...associateTableCols[1],
             fk_model_id: assocModel.id,
           }),
-          base: param.base,
+          source: param.source,
           sqlMgr,
         });
       }
@@ -1952,13 +2115,13 @@ export class ColumnsService {
   async createColumnIndex({
     column,
     sqlMgr,
-    base,
+    source,
     indexName = null,
     nonUnique = true,
   }: {
     column: Column;
     sqlMgr: SqlMgrv2;
-    base: Base;
+    source: Source;
     indexName?: string;
     nonUnique?: boolean;
   }) {
@@ -1969,7 +2132,7 @@ export class ColumnsService {
       non_unique: nonUnique,
       indexName,
     };
-    sqlMgr.sqlOpPlus(base, 'indexCreate', indexArgs);
+    sqlMgr.sqlOpPlus(source, 'indexCreate', indexArgs);
   }
 
   async updateRollupOrLookup(colBody: any, column: Column<any>) {
@@ -2039,21 +2202,21 @@ export class ColumnsService {
       );
     }
 
-    const base = await Base.get(table.base_id);
+    const source = await Source.get(table.source_id);
+
+    if (!source) {
+      NcError.badRequest('Source not found');
+    }
+
+    const base = await source.getProject();
 
     if (!base) {
       NcError.badRequest('Base not found');
     }
 
-    const project = await base.getProject();
-
-    if (!project) {
-      NcError.badRequest('Project not found');
-    }
-
-    const dbDriver = await NcConnectionMgrv2.get(base);
-    const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
-    const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+    const dbDriver = await NcConnectionMgrv2.get(source);
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
+    const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: source.base_id });
     const baseModel = await Model.getBaseModelSQL({
       id: table.id,
       dbDriver: dbDriver,
@@ -2065,8 +2228,8 @@ export class ColumnsService {
 
     const reuse: ReusableParams = {
       table,
+      source,
       base,
-      project,
       dbDriver,
       sqlClient,
       sqlMgr,

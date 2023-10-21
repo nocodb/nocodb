@@ -1619,6 +1619,15 @@ class SqliteClient extends KnexClient {
 
       await this.sqlClient.raw('PRAGMA legacy_alter_table = ON;');
 
+      /*
+        This is a hack to avoid the following error:
+        - SQLITE_ERROR: duplicate column name: column_name
+
+        Somehow this error is thrown when we drop a column and add a new column with the same name right after it.
+        TODO - Find a better solution for this.
+      */
+      await this.sqlClient.raw('SELECT * FROM ?? LIMIT 1', [args.table]);
+
       const trx = await this.sqlClient.transaction();
 
       try {
@@ -1650,7 +1659,7 @@ class SqliteClient extends KnexClient {
         await trx.commit();
       } catch (e) {
         await trx.rollback();
-        log.ppe(e, _func);
+        // log.ppe(e, _func);
         throw e;
       } finally {
         if (fkCheckEnabled)
@@ -2081,7 +2090,7 @@ class SqliteClient extends KnexClient {
       addNewColumnQuery +=
         n.dtxp && n.dt !== 'text' ? `(${this.genRaw(n.dtxp)})` : '';
       addNewColumnQuery += n.cdf
-        ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}`
+        ? ` DEFAULT ${this.genValue(n.cdf)}`
         : !n.rqd
         ? ' '
         : ` DEFAULT ''`;
@@ -2113,7 +2122,7 @@ class SqliteClient extends KnexClient {
         shouldSanitize,
       );
       query += n.dtxp && n.dt !== 'text' ? `(${this.genRaw(n.dtxp)})` : '';
-      query += n.cdf ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}` : ' ';
+      query += n.cdf ? ` DEFAULT ${this.genValue(n.cdf)}` : ' ';
       query += n.rqd ? ` NOT NULL` : ' ';
     } else if (change === 1) {
       shouldSanitize = true;
@@ -2124,7 +2133,7 @@ class SqliteClient extends KnexClient {
       );
       query += n.dtxp && n.dt !== 'text' ? `(${this.genRaw(n.dtxp)})` : '';
       query += n.cdf
-        ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}`
+        ? ` DEFAULT ${this.genValue(n.cdf)}`
         : !n.rqd
         ? ' '
         : ` DEFAULT ''`;

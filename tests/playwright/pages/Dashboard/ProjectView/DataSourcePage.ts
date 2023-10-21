@@ -5,14 +5,14 @@ import { MetaDataPage } from './Metadata';
 import { AuditPage } from './Audit';
 
 export class DataSourcePage extends BasePage {
-  readonly projectView: ProjectViewPage;
+  readonly baseView: ProjectViewPage;
   readonly databaseType: Locator;
   readonly metaData: MetaDataPage;
   readonly audit: AuditPage;
 
-  constructor(projectView: ProjectViewPage) {
-    super(projectView.rootPage);
-    this.projectView = projectView;
+  constructor(baseView: ProjectViewPage) {
+    super(baseView.rootPage);
+    this.baseView = baseView;
     this.databaseType = this.get().locator('.nc-extdb-db-type');
     this.metaData = new MetaDataPage(this);
     this.audit = new AuditPage(this);
@@ -39,7 +39,7 @@ export class DataSourcePage extends BasePage {
     const row = this.get()
       .locator('.ds-table-row')
       .nth(rowIndex + 1);
-    await row.locator('button.nc-action-btn:has-text("Sync Metadata")').click();
+    await row.getByTestId('nc-data-sources-view-meta-sync').click();
   }
 
   async openERD({ rowIndex }: { rowIndex: number }) {
@@ -47,7 +47,7 @@ export class DataSourcePage extends BasePage {
     const row = this.get()
       .locator('.ds-table-row')
       .nth(rowIndex + 1);
-    await row.locator('button.nc-action-btn:has-text("Relations")').click();
+    await row.getByTestId('nc-data-sources-view-erd').click();
   }
 
   async openAudit({ rowIndex }: { rowIndex: number }) {
@@ -55,6 +55,6 @@ export class DataSourcePage extends BasePage {
     const row = this.get()
       .locator('.ds-table-row')
       .nth(rowIndex + 1);
-    await row.locator('button.nc-action-btn:has-text("Audit")').click();
+    await row.getByTestId('nc-data-sources-view-audit').click();
   }
 }

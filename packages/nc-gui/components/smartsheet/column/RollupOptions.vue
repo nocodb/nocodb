@@ -2,7 +2,7 @@
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, TableType, UITypes } from 'nocodb-sdk'
 import { isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { MetaInj, inject, ref, storeToRefs, useColumnCreateStoreOrThrow, useMetas, useProject, useVModel } from '#imports'
+import { MetaInj, inject, ref, storeToRefs, useBase, useColumnCreateStoreOrThrow, useMetas, useVModel } from '#imports'
 
 const props = defineProps<{
   value: any
@@ -16,26 +16,28 @@ const meta = inject(MetaInj, ref())
 
 const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit } = useColumnCreateStoreOrThrow()
 
-const projectStore = useProject()
-const { tables } = storeToRefs(projectStore)
+const baseStore = useBase()
+const { tables } = storeToRefs(baseStore)
 
 const { metas } = useMetas()
 
+const { t } = useI18n()
+
 setAdditionalValidations({
-  fk_relation_column_id: [{ required: true, message: 'Required' }],
-  fk_rollup_column_id: [{ required: true, message: 'Required' }],
-  rollup_function: [{ required: true, message: 'Required' }],
+  fk_relation_column_id: [{ required: true, message: t('general.required') }],
+  fk_rollup_column_id: [{ required: true, message: t('general.required') }],
+  rollup_function: [{ required: true, message: t('general.required') }],
 })
 
 const aggrFunctionsList = [
-  { text: 'count', value: 'count' },
-  { text: 'min', value: 'min' },
-  { text: 'max', value: 'max' },
-  { text: 'avg', value: 'avg' },
-  { text: 'sum', value: 'sum' },
-  { text: 'countDistinct', value: 'countDistinct' },
-  { text: 'sumDistinct', value: 'sumDistinct' },
-  { text: 'avgDistinct', value: 'avgDistinct' },
+  { text: t('datatype.Count'), value: 'count' },
+  { text: t('general.min'), value: 'min' },
+  { text: t('general.max'), value: 'max' },
+  { text: t('general.avg'), value: 'avg' },
+  { text: t('general.sum'), value: 'sum' },
+  { text: t('general.countDistinct'), value: 'countDistinct' },
+  { text: t('general.sumDistinct'), value: 'sumDistinct' },
+  { text: t('general.avgDistinct'), value: 'avgDistinct' },
 ]
 
 if (!vModel.value.fk_relation_column_id) vModel.value.fk_relation_column_id = null
@@ -53,7 +55,7 @@ const refTables = computed(() => {
         isLinksOrLTAR(c) &&
         (c.colOptions as LinkToAnotherRecordType).type !== 'bt' &&
         !c.system &&
-        c.base_id === meta.value?.base_id,
+        c.source_id === meta.value?.source_id,
     )
     .map((c) => ({
       col: c.colOptions,
@@ -133,7 +135,7 @@ const cellIcon = (column: ColumnType) =>
       </a-form-item>
     </div>
 
-    <a-form-item label="Aggregate function" v-bind="validateInfos.rollup_function">
+    <a-form-item :label="$t('labels.aggregateFunction')" v-bind="validateInfos.rollup_function">
       <a-select
         v-model:value="vModel.rollup_function"
         dropdown-class-name="nc-dropdown-rollup-function"

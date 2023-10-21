@@ -1,5 +1,7 @@
 import Handlebars from 'handlebars';
 import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
+import { useAgent } from 'request-filtering-agent';
 import NcPluginMgrv2 from './NcPluginMgrv2';
 import type { Column, FormView, Hook, Model, View } from '~/models';
 import type { HookLogType } from 'nocodb-sdk';
@@ -176,13 +178,13 @@ export async function handleHttpWebHook(
   user,
   prevData,
   newData,
-) {
+): Promise<any> {
   const req = axiosRequestMake(
     apiMeta,
     user,
     constructWebHookData(hook, model, view, prevData, newData),
   );
-  return require('axios')(req);
+  return axios(req);
 }
 
 export function axiosRequestMake(_apiMeta, _user, data) {
@@ -219,6 +221,8 @@ export function axiosRequestMake(_apiMeta, _user, data) {
     }
   }
   apiMeta.response = {};
+  const url = parseBody(apiMeta.path, data);
+
   const req = {
     params: apiMeta.parameters
       ? apiMeta.parameters.reduce((paramsObj, param) => {
@@ -228,7 +232,7 @@ export function axiosRequestMake(_apiMeta, _user, data) {
           return paramsObj;
         }, {})
       : {},
-    url: parseBody(apiMeta.path, data),
+    url: url,
     method: apiMeta.method,
     data: apiMeta.body,
     headers: apiMeta.headers
@@ -240,6 +244,16 @@ export function axiosRequestMake(_apiMeta, _user, data) {
         }, {})
       : {},
     withCredentials: true,
+    ...(process.env.NC_ALLOW_LOCAL_HOOKS !== 'true'
+      ? {
+          httpAgent: useAgent(url, {
+            stopPortScanningByUrlRedirection: true,
+          }),
+          httpsAgent: useAgent(url, {
+            stopPortScanningByUrlRedirection: true,
+          }),
+        }
+      : {}),
   };
   return req;
 }

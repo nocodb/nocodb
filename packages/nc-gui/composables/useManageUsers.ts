@@ -4,7 +4,7 @@ import type { User } from '#imports'
 
 const [setup, use] = useInjectionState(() => {
   const { api } = useApi()
-  const { project } = storeToRefs(useProject())
+  const { base } = storeToRefs(useBase())
   const { $e } = useNuxtApp()
   const { formStatus, invitationUsersData } = storeToRefs(useShare())
 
@@ -29,10 +29,10 @@ const [setup, use] = useInjectionState(() => {
 
   const loadUsers = async (page = currentPage.value, limit = currentLimit.value) => {
     try {
-      if (!project.value?.id) return
+      if (!base.value?.id) return
 
       // TODO: Types of api is not correct
-      const response: any = await api.auth.projectUserList(project.value?.id, {
+      const response: any = await api.auth.baseUserList(base.value?.id, {
         query: {
           limit,
           offset: (page - 1) * limit,
@@ -58,14 +58,14 @@ const [setup, use] = useInjectionState(() => {
 
   const inviteUser = async (user: Partial<User>) => {
     let res
-    formStatus.value = 'project-collaborateSaving'
+    formStatus.value = 'base-collaborateSaving'
     try {
-      if (!project.value?.id) return
+      if (!base.value?.id) return
 
-      res = await api.auth.projectUserAdd(project.value.id, {
+      res = await api.auth.baseUserAdd(base.value.id, {
         ...user,
-        project_id: project.value!.id!,
-        projectName: project.value.title,
+        base_id: base.value!.id!,
+        baseName: base.value.title,
       } as any)
 
       invitationUsersData.value.invitationToken = (res as any).invite_token
@@ -73,14 +73,14 @@ const [setup, use] = useInjectionState(() => {
       currentPage.value = 1
       users.value = []
       await loadUsers()
-      // Successfully added user to project
+      // Successfully added user to base
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
       formStatus.value = 'collaborate'
       return
     }
 
-    formStatus.value = 'project-collaborateSaved'
+    formStatus.value = 'base-collaborateSaved'
     $e('a:user:add')
     return res
   }
@@ -93,11 +93,11 @@ const [setup, use] = useInjectionState(() => {
         _editedUsers
           .filter((user) => user.roles !== 'No access')
           .map(async (user) => {
-            await api.auth.projectUserUpdate(project.value!.id!, user.id, {
+            await api.auth.baseUserUpdate(base.value!.id!, user.id, {
               email: user.email,
               roles: user.roles,
-              project_id: project.value.id,
-              projectName: project.value.title,
+              base_id: base.value.id,
+              baseName: base.value.title,
             })
             const savedUser = users.value?.find((u) => u.id === user.id)
             if (savedUser) {
@@ -109,7 +109,7 @@ const [setup, use] = useInjectionState(() => {
         _editedUsers
           .filter((user) => user.roles === 'No access')
           .map(async (user) => {
-            await api.auth.projectUserRemove(project.value!.id!, user.id)
+            await api.auth.baseUserRemove(base.value!.id!, user.id)
           }),
       )
       users.value = users.value?.filter((user) => user.roles !== 'No access') ?? []

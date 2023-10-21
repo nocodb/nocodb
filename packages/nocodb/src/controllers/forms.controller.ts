@@ -13,13 +13,14 @@ import { ViewCreateReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { FormsService } from '~/services/forms.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class FormsController {
   constructor(private readonly formsService: FormsService) {}
 
-  @Get('/api/v1/db/meta/forms/:formViewId')
+  @Get(['/api/v1/db/meta/forms/:formViewId', '/api/v2/meta/forms/:formViewId'])
   @Acl('formViewGet')
   async formViewGet(@Param('formViewId') formViewId: string) {
     const formViewData = await this.formsService.formViewGet({
@@ -28,7 +29,10 @@ export class FormsController {
     return formViewData;
   }
 
-  @Post('/api/v1/db/meta/tables/:tableId/forms')
+  @Post([
+    '/api/v1/db/meta/tables/:tableId/forms',
+    '/api/v2/meta/tables/:tableId/forms',
+  ])
   @HttpCode(200)
   @Acl('formViewCreate')
   async formViewCreate(
@@ -43,7 +47,10 @@ export class FormsController {
     });
     return view;
   }
-  @Patch('/api/v1/db/meta/forms/:formViewId')
+  @Patch([
+    '/api/v1/db/meta/forms/:formViewId',
+    '/api/v2/meta/forms/:formViewId',
+  ])
   @Acl('formViewUpdate')
   async formViewUpdate(@Param('formViewId') formViewId: string, @Body() body) {
     return await this.formsService.formViewUpdate({

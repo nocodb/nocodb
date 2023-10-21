@@ -29,6 +29,12 @@ const relatedColumnId = (colOptions: LinkToAnotherRecordType | any) =>
 
 const hasColumns = computed(() => data.pkAndFkColumns.length || data.nonPkColumns.length)
 
+const nonPkColumns = computed(() =>
+  data.nonPkColumns
+    // Removed MM system column from the table node
+    .filter((col) => !(col.system && isLinksOrLTAR(col) && /.*_nc_m2m_.*/.test(col.title!))),
+)
+
 watch(
   () => viewport.value.zoom,
   () => {
@@ -59,7 +65,7 @@ watch(
         :class="[showSkeleton ? '' : '', hasColumns ? '' : '']"
         class="text-gray-800 text-sm py-4 border-b-1 border-gray-200 rounded-t-lg w-full h-full px-3 font-medium flex items-center"
       >
-        <GeneralTableIcon class="text-primary" :class="{ '!text-6xl !w-auto mr-2': showSkeleton }" :meta="table" />
+        <GeneralTableIcon class="text-primary" :class="{ '!text-6xl !w-auto mr-2 !h-18': showSkeleton }" :meta="table" />
         <div :class="showSkeleton ? 'text-6xl' : ''" class="flex pr-2 pl-1">
           {{ table.title }}
         </div>
@@ -80,10 +86,10 @@ watch(
           <LazySmartsheetHeaderCell v-if="col" class="nc-erd-table-node-column" :column="col" :hide-menu="true" />
         </div>
 
-        <div v-for="(col, index) in data.nonPkColumns" :key="col.title">
+        <div v-for="(col, index) in nonPkColumns" :key="col.title">
           <div
             class="relative w-full h-full flex items-center min-w-32 py-2 px-1"
-            :class="index + 1 === data.nonPkColumns.length ? 'rounded-b-lg' : ''"
+            :class="index + 1 === nonPkColumns.length ? 'rounded-b-lg' : ''"
           >
             <div
               v-if="isLinksOrLTAR(col)"

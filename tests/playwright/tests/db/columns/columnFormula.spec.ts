@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
-import { isPg, isSqlite } from '../../../setup/db';
+import { enableQuickRun, isPg, isSqlite } from '../../../setup/db';
 
 // Add formula to be verified here & store expected results for 5 rows
 // Column data from City table (Sakila DB)
@@ -157,12 +157,14 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
 };
 
 test.describe('Virtual Columns', () => {
+  if (enableQuickRun()) test.skip();
+
   let dashboard: DashboardPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test.afterEach(async () => {

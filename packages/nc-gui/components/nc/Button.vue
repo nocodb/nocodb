@@ -17,9 +17,10 @@ import type { NcButtonSize } from '~/lib'
 interface Props {
   loading?: boolean
   disabled?: boolean
-  type?: ButtonType | 'danger' | undefined
+  type?: ButtonType | 'danger' | 'secondary' | undefined
   size?: NcButtonSize
   centered?: boolean
+  iconOnly?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -107,7 +108,7 @@ useEventListener(NcButton, 'mousedown', () => {
 
       <slot v-else name="icon" />
       <div
-        v-if="!(size === 'xxsmall' && loading)"
+        v-if="!(size === 'xxsmall' && loading) && !props.iconOnly"
         class="flex flex-row items-center"
         :class="{
           'font-medium': type === 'primary' || type === 'danger',

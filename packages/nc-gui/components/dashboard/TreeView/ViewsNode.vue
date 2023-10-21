@@ -41,23 +41,21 @@ const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType &
 
 const { $e } = useNuxtApp()
 
+const { isMobileMode } = useGlobal()
+
 const { isUIAllowed } = useRoles()
 
-const { activeViewTitleOrId } = storeToRefs(useViewsStore())
-
-const project = inject(ProjectInj, ref())
+const base = inject(ProjectInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const { rightSidebarState } = storeToRefs(useSidebarStore())
-
 const isDefaultBase = computed(() => {
-  const base = project.value?.bases?.find((b) => b.id === vModel.value.base_id)
-  if (!base) return false
+  const source = base.value?.sources?.find((b) => b.id === vModel.value.source_id)
+  if (!source) return false
 
-  return _isDefaultBase(base)
+  return _isDefaultBase(source)
 })
 
 const isDropdownOpen = ref(false)
@@ -80,6 +78,7 @@ const onClick = useDebounceFn(() => {
 
 /** Enable editing view name on dbl click */
 function onDblClick() {
+  if (isMobileMode.value) return
   if (!isUIAllowed('viewCreateOrEdit')) return
 
   if (!isEditing.value) {
@@ -190,47 +189,29 @@ function onStopEdit() {
     isStopped.value = false
   }, 250)
 }
-
-watch(rightSidebarState, () => {
-  if (rightSidebarState.value === 'peekCloseEnd') {
-    isDropdownOpen.value = false
-  }
-})
-
-function onRef(el: HTMLElement) {
-  if (activeViewTitleOrId.value === vModel.value.id) {
-    nextTick(() => {
-      setTimeout(() => {
-        el?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-      }, 1000)
-    })
-  }
-}
 </script>
 
 <template>
   <a-menu-item
+    v-e="['c:view:open']"
     class="nc-sidebar-node !min-h-7 !max-h-7 !mb-0.25 select-none group text-gray-700 !flex !items-center !mt-0 hover:(!bg-gray-200 !text-gray-900) cursor-pointer"
     :class="{
-      '!pl-18': isDefaultBase,
-      '!pl-23.5': !isDefaultBase,
+      '!pl-18 !xs:(pl-19.75)': isDefaultBase,
+      '!pl-23.5 !xs:(pl-27)': !isDefaultBase,
     }"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @dblclick.stop="onDblClick"
     @click="onClick"
   >
-    <div
-      :ref="onRef"
-      v-e="['a:view:open', { view: vModel.type }]"
-      class="text-sm flex items-center w-full gap-1"
-      data-testid="view-item"
-    >
+    <div v-e="['a:view:open', { view: vModel.type }]" class="text-sm flex items-center w-full gap-1" data-testid="view-item">
       <div class="flex min-w-6" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
         <LazyGeneralEmojiPicker
+          v-e="['c:view:emoji-picker']"
           class="nc-table-icon"
           :emoji="props.view?.meta?.icon"
           size="small"
           :clearable="true"
+          :readonly="isMobileMode"
           @emoji-selected="emits('selectIcon', $event)"
         >
           <template #default>
@@ -268,6 +249,7 @@ function onRef(el: HTMLElement) {
       <template v-if="!isEditing && !isLocked && isUIAllowed('viewCreateOrEdit')">
         <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
           <NcButton
+            v-e="['c:view:option']"
             type="text"
             size="xxsmall"
             class="nc-sidebar-node-btn invisible !group-hover:visible nc-sidebar-view-node-context-btn"
@@ -281,21 +263,21 @@ function onRef(el: HTMLElement) {
 
           <template #overlay>
             <NcMenu class="min-w-27" :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`">
-              <NcMenuItem @click.stop="onDblClick">
+              <NcMenuItem v-e="['c:view:rename']" @click.stop="onDblClick">
                 <GeneralIcon icon="edit" />
-                <div class="-ml-0.25">Rename</div>
+                <div class="-ml-0.25">{{ $t('general.rename') }}</div>
               </NcMenuItem>
-              <NcMenuItem @click.stop="onDuplicate">
+              <NcMenuItem v-e="['c:view:duplicate']" @click.stop="onDuplicate">
                 <GeneralIcon icon="duplicate" class="nc-view-copy-icon" />
-                Duplicate
+                {{ $t('general.duplicate') }}
               </NcMenuItem>
 
               <NcDivider />
 
               <template v-if="!vModel.is_default">
-                <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click.stop="onDelete">
+                <NcMenuItem v-e="['c:view:delete']" class="!text-red-500 !hover:bg-red-50" @click.stop="onDelete">
                   <GeneralIcon icon="delete" class="text-sm nc-view-delete-icon" />
-                  <div class="-ml-0.25">Delete</div>
+                  <div class="-ml-0.25">{{ $t('general.delete') }}</div>
                 </NcMenuItem>
               </template>
             </NcMenu>

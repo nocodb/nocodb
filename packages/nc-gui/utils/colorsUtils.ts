@@ -90,7 +90,7 @@ export const hexToRGB = (hex: string) => {
   return `${r}, ${g}, ${b}`
 }
 
-export const projectThemeColors = [
+export const baseThemeColors = [
   themeV2Colors['royal-blue'].DEFAULT,
   '#2D7FF9',
   '#18BFFF',
@@ -111,17 +111,127 @@ export const projectThemeColors = [
   '#333333',
 ]
 
+const designSystem = {
+  light: [
+    // '#EBF0FF',
+    // '#D6E0FF',
+    // '#ADC2FF',
+    // '#85A3FF',
+    // '#5C85FF',
+    '#3366FF',
+    '#2952CC',
+    '#1F3D99',
+    '#142966',
+    '#0A1433',
+    // '#FCFCFC',
+    // '#F9F9FA',
+    // '#F4F4F5',
+    // '#E7E7E9',
+    // '#D5D5D9',
+    // '#9AA2AF',
+    // '#6A7184',
+    '#4A5268',
+    '#374151',
+    '#1F293A',
+    '#101015',
+    // '#FFF2F1',
+    // '#FFDBD9',
+    // '#FFB7B2',
+    // '#FF928C',
+    // '#FF6E65',
+    // '#FF4A3F',
+    '#E8463C',
+    '#CB3F36',
+    '#B23830',
+    '#7D2721',
+    // '#FFEEFB',
+    // '#FED8F4',
+    // '#FEB0E8',
+    // '#FD89DD',
+    // '#FD61D1',
+    '#FC3AC6',
+    '#CA2E9E',
+    '#972377',
+    '#65174F',
+    '#320C28',
+    // '#FFF5EF',
+    // '#FEE6D6',
+    // '#FDCDAD',
+    // '#FCB483',
+    // '#FB9B5A',
+    '#FA8231',
+    '#E1752C',
+    '#C86827',
+    '#964E1D',
+    '#4B270F',
+
+    // '#F3ECFA',
+    // '#E5D4F5',
+    // '#CBA8EB',
+    // '#B17DE1',
+    // '#9751D7',
+    '#7D26CD',
+    '#641EA4',
+    '#4B177B',
+    '#320F52',
+    '#190829',
+
+    // '#EDF9FF',
+    // '#D7F2FF',
+    // '#AFE5FF',
+    // '#86D9FF',
+    // '#5ECCFF',
+    '#36BFFF',
+    '#2B99CC',
+    '#207399',
+    '#164C66',
+    '#0B2633',
+    // '#fffbf2',
+    // '#fff0d1',
+    // '#fee5b0',
+    // '#fdd889',
+    // '#fdcb61',
+    // '#fcbe3a',
+    '#ca982e',
+    '#977223',
+    '#654c17',
+    '#32260c',
+  ],
+  dark: [],
+}
+
 // convert string into a unique color
-export const stringToColour = function (str: string) {
-  let i
+export const stringToColor = (input: string, colorArray = designSystem.light) => {
+  // Calculate a numeric hash value from the input string
   let hash = 0
-  for (i = 0; i < str?.length ?? 0; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  for (let i = 0; i < input.length; i++) {
+    hash = input.charCodeAt(i) + ((hash << 5) - hash)
   }
-  let colour = '#'
-  for (i = 0; i < 3; i++) {
-    const value = (hash >> (i * 8)) & 0xff
-    colour += `00${value.toString(16)}`.substr(-2)
-  }
-  return colour
+
+  // Ensure the hash value is within the array length
+  const index = Math.abs(hash) % colorArray.length
+
+  // Return the selected color
+  return colorArray[index]
+}
+
+// Function to convert hex color to RGB
+function hexToRGBObject(hexColor: string) {
+  // Remove '#' if present in the hexColor
+  hexColor = hexColor.replace(/^#/, '')
+
+  // Split the hexColor into red, green, and blue components
+  const r = parseInt(hexColor.substring(0, 2), 16)
+  const g = parseInt(hexColor.substring(2, 4), 16)
+  const b = parseInt(hexColor.substring(4, 6), 16)
+
+  return { r, g, b }
+}
+
+export function isColorDark(hexColor: string) {
+  const rgbColor = hexToRGBObject(hexColor)
+
+  const luminance = 0.299 * rgbColor.r + 0.587 * rgbColor.g + 0.114 * rgbColor.b
+  // Choose a luminance threshold (e.g., 0.5) to determine darkness/lightness
+  return luminance < 128
 }

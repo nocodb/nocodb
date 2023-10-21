@@ -2,7 +2,7 @@ import type { NcBuilderUpgraderCtx } from '../BaseApiBuilder';
 
 export default async function (ctx: NcBuilderUpgraderCtx) {
   const models = await ctx.xcMeta.metaList(
-    ctx.projectId,
+    ctx.baseId,
     ctx.dbAlias,
     'nc_models',
     {
@@ -14,7 +14,7 @@ export default async function (ctx: NcBuilderUpgraderCtx) {
   let order = 0;
   for (const model of models) {
     await ctx.xcMeta.metaUpdate(
-      ctx.projectId,
+      ctx.baseId,
       ctx.dbAlias,
       'nc_models',
       {
@@ -25,7 +25,7 @@ export default async function (ctx: NcBuilderUpgraderCtx) {
     );
 
     const views = await ctx.xcMeta.metaList(
-      ctx.projectId,
+      ctx.baseId,
       ctx.dbAlias,
       'nc_models',
       {
@@ -35,7 +35,7 @@ export default async function (ctx: NcBuilderUpgraderCtx) {
     let view_order = 1;
     for (const view of views) {
       await ctx.xcMeta.metaUpdate(
-        ctx.projectId,
+        ctx.baseId,
         ctx.dbAlias,
         'nc_models',
         {

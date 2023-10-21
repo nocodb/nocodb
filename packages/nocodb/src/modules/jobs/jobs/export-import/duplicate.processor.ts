@@ -2,10 +2,10 @@ import { Readable } from 'stream';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import papaparse from 'papaparse';
-import { Logger } from '@nestjs/common';
+import debug from 'debug';
 import { isLinksOrLTAR } from 'nocodb-sdk';
-import { Base, Column, Model, Project } from '~/models';
-import { ProjectsService } from '~/services/projects.service';
+import { Base, Column, Model, Source } from '~/models';
+import { BasesService } from '~/services/bases.service';
 import { findWithIdentifier } from '~/helpers/exportImportHelpers';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
@@ -15,41 +15,41 @@ import { ImportService } from '~/modules/jobs/jobs/export-import/import.service'
 
 @Processor(JOBS_QUEUE)
 export class DuplicateProcessor {
-  private readonly logger = new Logger(
-    `${JOBS_QUEUE}:${DuplicateProcessor.name}`,
-  );
+  private readonly debugLog = debug('nc:jobs:duplicate');
 
   constructor(
     private readonly exportService: ExportService,
     private readonly importService: ImportService,
-    private readonly projectsService: ProjectsService,
+    private readonly projectsService: BasesService,
     private readonly bulkDataService: BulkDataAliasService,
   ) {}
 
   @Process(JobTypes.DuplicateBase)
   async duplicateBase(job: Job) {
+    this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateBase})`);
+
     const hrTime = initTime();
 
-    const { projectId, baseId, dupProjectId, req, options } = job.data;
+    const { baseId, sourceId, dupProjectId, req, options } = job.data;
 
     const excludeData = options?.excludeData || false;
     const excludeHooks = options?.excludeHooks || false;
     const excludeViews = options?.excludeViews || false;
 
-    const project = await Project.get(projectId);
-    const dupProject = await Project.get(dupProjectId);
     const base = await Base.get(baseId);
+    const dupProject = await Base.get(dupProjectId);
+    const source = await Source.get(sourceId);
 
     try {
-      if (!project || !dupProject || !base) {
-        throw new Error(`Project or base not found!`);
+      if (!base || !dupProject || !source) {
+        throw new Error(`Base or source not found!`);
       }
 
       const user = (req as any).user;
 
-      const models = (await base.getModels()).filter(
+      const models = (await source.getModels()).filter(
         // TODO revert this when issue with cache is fixed
-        (m) => m.base_id === base.id && !m.mm && m.type === 'table',
+        (m) => m.source_id === source.id && !m.mm && m.type === 'table',
       );
 
       const exportedModels = await this.exportService.serializeModels({
@@ -61,22 +61,22 @@ export class DuplicateProcessor {
 
       elapsedTime(
         hrTime,
-        `serialize models schema for ${base.project_id}::${base.id}`,
+        `serialize models schema for ${source.base_id}::${source.id}`,
         'duplicateBase',
       );
 
       if (!exportedModels) {
-        throw new Error(`Export failed for base '${base.id}'`);
+        throw new Error(`Export failed for source '${source.id}'`);
       }
 
       await dupProject.getBases();
 
-      const dupBase = dupProject.bases[0];
+      const dupBase = dupProject.sources[0];
 
       const idMap = await this.importService.importModels({
         user,
-        projectId: dupProject.id,
-        baseId: dupBase.id,
+        baseId: dupProject.id,
+        sourceId: dupBase.id,
         data: exportedModels,
         req: req,
       });
@@ -84,13 +84,13 @@ export class DuplicateProcessor {
       elapsedTime(hrTime, `import models schema`, 'duplicateBase');
 
       if (!idMap) {
-        throw new Error(`Import failed for base '${base.id}'`);
+        throw new Error(`Import failed for source '${source.id}'`);
       }
 
       if (!excludeData) {
         await this.importModelsData({
           idMap,
-          sourceProject: project,
+          sourceProject: base,
           sourceModels: models,
           destProject: dupProject,
           destBase: dupBase,
@@ -98,40 +98,44 @@ export class DuplicateProcessor {
         });
       }
 
-      await this.projectsService.projectUpdate({
-        projectId: dupProject.id,
-        project: {
+      await this.projectsService.baseUpdate({
+        baseId: dupProject.id,
+        base: {
           status: null,
         },
         user: req.user,
       });
     } catch (e) {
       if (dupProject?.id) {
-        await this.projectsService.projectSoftDelete({
-          projectId: dupProject.id,
+        await this.projectsService.baseSoftDelete({
+          baseId: dupProject.id,
           user: req.user,
         });
       }
       throw e;
     }
+
+    this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateBase})`);
   }
 
   @Process(JobTypes.DuplicateModel)
   async duplicateModel(job: Job) {
+    this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateModel})`);
+
     const hrTime = initTime();
 
-    const { projectId, baseId, modelId, title, req, options } = job.data;
+    const { baseId, sourceId, modelId, title, req, options } = job.data;
 
     const excludeData = options?.excludeData || false;
     const excludeHooks = options?.excludeHooks || false;
     const excludeViews = options?.excludeViews || false;
 
-    const project = await Project.get(projectId);
     const base = await Base.get(baseId);
+    const source = await Source.get(sourceId);
 
     const user = (req as any).user;
 
-    const models = (await base.getModels()).filter(
+    const models = (await source.getModels()).filter(
       (m) => !m.mm && m.type === 'table',
     );
 
@@ -162,15 +166,15 @@ export class DuplicateProcessor {
     );
 
     if (!exportedModel) {
-      throw new Error(`Export failed for base '${base.id}'`);
+      throw new Error(`Export failed for source '${source.id}'`);
     }
 
     exportedModel.model.title = title;
     exportedModel.model.table_name = title.toLowerCase().replace(/ /g, '_');
 
     const idMap = await this.importService.importModels({
-      projectId,
       baseId,
+      sourceId,
       data: [exportedModel],
       user,
       req,
@@ -204,10 +208,10 @@ export class DuplicateProcessor {
 
       await this.importModelsData({
         idMap,
-        sourceProject: project,
+        sourceProject: base,
         sourceModels: [sourceModel],
-        destProject: project,
-        destBase: base,
+        destProject: base,
+        destBase: source,
         hrTime,
         modelFieldIds: fields,
         externalModels: relatedModels,
@@ -216,15 +220,17 @@ export class DuplicateProcessor {
       elapsedTime(hrTime, 'import model data', 'duplicateModel');
     }
 
+    this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateModel})`);
+
     return await Model.get(findWithIdentifier(idMap, sourceModel.id));
   }
 
   async importModelsData(param: {
     idMap: Map<string, string>;
-    sourceProject: Project;
+    sourceProject: Base;
     sourceModels: Model[];
-    destProject: Project;
-    destBase: Base;
+    destProject: Base;
+    destBase: Source;
     hrTime: { hrTime: [number, number] };
     modelFieldIds?: Record<string, string[]>;
     externalModels?: Model[];
@@ -259,12 +265,12 @@ export class DuplicateProcessor {
         .streamModelDataAsCsv({
           dataStream,
           linkStream,
-          projectId: sourceProject.id,
+          baseId: sourceProject.id,
           modelId: sourceModel.id,
           handledMmList: handledLinks,
         })
         .catch((e) => {
-          this.logger.error(e);
+          this.debugLog(e);
           dataStream.push(null);
           linkStream.push(null);
           error = e;
@@ -318,13 +324,13 @@ export class DuplicateProcessor {
           .streamModelDataAsCsv({
             dataStream,
             linkStream,
-            projectId: sourceProject.id,
+            baseId: sourceProject.id,
             modelId: sourceModel.id,
             handledMmList: handledLinks,
             _fieldIds: fields,
           })
           .catch((e) => {
-            this.logger.error(e);
+            this.debugLog(e);
             dataStream.push(null);
             linkStream.push(null);
             error = e;
@@ -345,31 +351,31 @@ export class DuplicateProcessor {
                   const id = idMap.get(header);
                   if (id) {
                     const col = await Column.get({
-                      base_id: destBase.id,
+                      source_id: destBase.id,
                       colId: id,
                     });
                     if (col) {
                       if (col.colOptions?.type === 'bt') {
                         const childCol = await Column.get({
-                          base_id: destBase.id,
+                          source_id: destBase.id,
                           colId: col.colOptions.fk_child_column_id,
                         });
                         if (childCol) {
                           headers.push(childCol.column_name);
                         } else {
                           headers.push(null);
-                          this.logger.error(`child column not found (${id})`);
+                          this.debugLog(`child column not found (${id})`);
                         }
                       } else {
                         headers.push(col.column_name);
                       }
                     } else {
                       headers.push(null);
-                      this.logger.error(`column not found (${id})`);
+                      this.debugLog(`column not found (${id})`);
                     }
                   } else {
                     headers.push(null);
-                    this.logger.error(`id not found (${header})`);
+                    this.debugLog(`id not found (${header})`);
                   }
                 }
                 parser.resume();
@@ -388,14 +394,14 @@ export class DuplicateProcessor {
                     parser.pause();
                     try {
                       await this.bulkDataService.bulkDataUpdate({
-                        projectName: destProject.id,
+                        baseName: destProject.id,
                         tableName: model.id,
                         body: chunk,
                         cookie: null,
                         raw: true,
                       });
                     } catch (e) {
-                      this.logger.error(e);
+                      this.debugLog(e);
                     }
                     chunk = [];
                     parser.resume();
@@ -407,14 +413,14 @@ export class DuplicateProcessor {
               if (chunk.length > 0) {
                 try {
                   await this.bulkDataService.bulkDataUpdate({
-                    projectName: destProject.id,
+                    baseName: destProject.id,
                     tableName: model.id,
                     body: chunk,
                     cookie: null,
                     raw: true,
                   });
                 } catch (e) {
-                  this.logger.error(e);
+                  this.debugLog(e);
                 }
                 chunk = [];
               }

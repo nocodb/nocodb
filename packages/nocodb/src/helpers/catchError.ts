@@ -215,7 +215,7 @@ export function extractDBError(error): {
       message = 'A timeout occurred while waiting for a table lock.';
       break;
     case 'ER_NO_REFERENCED_ROW':
-      message = 'The referenced row does not exist.';
+      message = 'The referenced record does not exist.';
       break;
     case 'ER_ROW_IS_REFERENCED':
       message = 'This record is being referenced by other records.';
@@ -232,7 +232,7 @@ export function extractDBError(error): {
       message = 'A value is required for this field.';
       break;
     case '23503':
-      message = 'The referenced row does not exist.';
+      message = 'The referenced record does not exist.';
       break;
     case '23514':
       message = 'A null value is not allowed for this field.';
@@ -390,8 +390,20 @@ export default function (
     try {
       return await requestHandler(req, res, next);
     } catch (e) {
-      // todo: error log
-      console.log(requestHandler.name ? `${requestHandler.name} ::` : '', e);
+      // skip unnecessary error logging
+      if (
+        process.env.NC_ENABLE_ALL_API_ERROR_LOGGING === 'true' ||
+        !(
+          e instanceof BadRequest ||
+          e instanceof AjvError ||
+          e instanceof Unauthorized ||
+          e instanceof Forbidden ||
+          e instanceof NotFound ||
+          e instanceof NotImplemented ||
+          e instanceof UnprocessableEntity
+        )
+      )
+        console.log(requestHandler.name ? `${requestHandler.name} ::` : '', e);
 
       const dbError = extractDBError(e);
 
@@ -415,13 +427,18 @@ export default function (
         return res.status(400).json({ msg: e.message, errors: e.errors });
       } else if (e instanceof UnprocessableEntity) {
         return res.status(422).json({ msg: e.message });
+      } else if (e instanceof NotAllowed) {
+        return res.status(405).json({ msg: e.message });
       }
-      next(e);
+      // if some other error occurs then send 500 and a generic message
+      res.status(500).json({ msg: 'Internal server error' });
     }
   };
 }
 
 export class BadRequest extends Error {}
+
+export class NotAllowed extends Error {}
 
 export class Unauthorized extends Error {}
 
@@ -475,5 +492,9 @@ export class NcError {
 
   static unprocessableEntity(message = 'Unprocessable entity') {
     throw new UnprocessableEntity(message);
+  }
+
+  static notAllowed(message = 'Not allowed') {
+    throw new NotAllowed(message);
   }
 }

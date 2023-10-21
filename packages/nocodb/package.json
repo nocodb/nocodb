@@ -1,6 +1,6 @@
 {
   "name": "nocodb",
-  "version": "0.111.4",
+  "version": "0.202.4",
   "description": "NocoDB Backend",
   "main": "dist/bundle.js",
   "author": {
@@ -37,7 +37,7 @@
     "watch:run:pg": "cross-env  NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG --log-error --project tsconfig.json\"",
     "watch:run:playwright:mysql": "rm -f ./test_noco.db; cross-env DB_TYPE=mysql NC_DB=\"mysql2://localhost:3306?u=root&p=password&d=pw_ncdb\" PLAYWRIGHT_TEST=true NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/testDocker --log-error --project tsconfig.json\"",
     "watch:run:playwright:pg": "rm -f ./test_noco.db; cross-env DB_TYPE=pg NC_DB=\"pg://localhost:5432?u=postgres&p=password&d=pw_ncdb\" PLAYWRIGHT_TEST=true NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/testDocker --log-error --project tsconfig.json\"",
-    "watch:run:playwright": "rm -f ./test_noco.db; cross-env DB_TYPE=sqlite DATABASE_URL=sqlite:./test_noco.db PLAYWRIGHT_TEST=true NC_DISABLE_TELE=true EE=true NC_SNAPSHOT_WINDOW_SEC=3 nodemon -e ts,js -w ./src -x \"ts-node src/run/testDocker --log-error --project tsconfig.json\"",
+    "watch:run:playwright": "rm -f ./test_*.db; cross-env DB_TYPE=sqlite DATABASE_URL=sqlite:./test_noco.db PLAYWRIGHT_TEST=true NC_DISABLE_TELE=true EE=true NC_SNAPSHOT_WINDOW_SEC=3 nodemon -e ts,js -w ./src -x \"ts-node src/run/testDocker --log-error --project tsconfig.json\"",
     "watch:run:playwright:quick": "rm -f ./test_noco.db; cp ../../tests/playwright/fixtures/noco_0_91_7.db ./test_noco.db; cross-env DATABASE_URL=sqlite:./test_noco.db NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/docker --log-error --project tsconfig.json\"",
     "watch:run:playwright:pg:cyquick": "rm -f ./test_noco.db; cp ../../tests/playwright/fixtures/noco_0_91_7.db ./test_noco.db; cross-env NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG_CyQuick.ts --log-error --project tsconfig.json\"",
     "test:unit": "cross-env EE=false TS_NODE_PROJECT=./tests/unit/tsconfig.json mocha -r ts-node/register   tests/unit/index.test.ts --recursive --timeout 300000  --exit --delay",
@@ -46,6 +46,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-kafka": "^3.410.0",
+    "@aws-sdk/client-s3": "^3.423.0",
+    "@aws-sdk/s3-request-presigner": "^3.423.0",
     "@google-cloud/storage": "^7.1.0",
     "@graphql-tools/merge": "^6.0.12",
     "@jm18457/kafkajs-msk-iam-authentication-mechanism": "^3.1.2",
@@ -128,7 +130,7 @@
     "mysql2": "^3.2.0",
     "nanoid": "^3.1.20",
     "nc-help": "0.3.1",
-    "nc-lib-gui": "0.111.4",
+    "nc-lib-gui": "0.202.4",
     "nc-plugin": "^0.1.3",
     "ncp": "^2.0.0",
     "nestjs-kafka": "^1.0.6",
@@ -152,6 +154,7 @@
     "pg": "^8.10.0",
     "redlock": "^5.0.0-beta.2",
     "reflect-metadata": "^0.1.13",
+    "request-filtering-agent": "^1.1.2",
     "request-ip": "^2.1.3",
     "rmdir": "^1.2.0",
     "rxjs": "^7.2.0",

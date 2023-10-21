@@ -66,8 +66,8 @@ export default class View implements ViewType {
 
   sorts: Sort[];
   filter: Filter;
-  project_id?: string;
   base_id?: string;
+  source_id?: string;
   show_system_fields?: boolean;
   meta?: any;
 
@@ -283,8 +283,8 @@ export default class View implements ViewType {
       'is_default',
       'type',
       'fk_model_id',
-      'project_id',
       'base_id',
+      'source_id',
       'meta',
     ]);
 
@@ -301,11 +301,11 @@ export default class View implements ViewType {
 
     insertObj.meta = stringifyMetaProp(insertObj);
 
-    // get project and base id if missing
-    if (!(view.project_id && view.base_id)) {
+    // get base and base id if missing
+    if (!(view.base_id && view.source_id)) {
       const model = await Model.getByIdOrName({ id: view.fk_model_id }, ncMeta);
-      insertObj.project_id = model.project_id;
       insertObj.base_id = model.base_id;
+      insertObj.source_id = model.source_id;
     }
 
     const copyFromView =
@@ -500,6 +500,11 @@ export default class View implements ViewType {
         );
       }
     }
+
+    await Model.getNonDefaultViewsCountAndReset(
+      { modelId: view.fk_model_id },
+      ncMeta,
+    );
 
     return View.get(view_id, ncMeta);
   }
@@ -843,7 +848,7 @@ export default class View implements ViewType {
             show: colData.show,
           });
       }
-      return await ncMeta.metaInsert2(view.project_id, view.base_id, table, {
+      return await ncMeta.metaInsert2(view.base_id, view.source_id, table, {
         fk_view_id: viewId,
         fk_column_id: fkColId,
         order: colData.order,
@@ -1077,6 +1082,11 @@ export default class View implements ViewType {
     await NocoCache.delAll(
       CacheScope.SINGLE_QUERY,
       `${view.fk_model_id}:${view.id}:*`,
+    );
+
+    await Model.getNonDefaultViewsCountAndReset(
+      { modelId: view.fk_model_id },
+      ncMeta,
     );
   }
 

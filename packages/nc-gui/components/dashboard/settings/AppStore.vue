@@ -102,38 +102,38 @@ onMounted(async () => {
           {{ `Click on confirm to reset ${pluginApp && pluginApp.title}` }}
         </div>
         <div class="flex mt-6 justify-center space-x-2">
-          <a-button @click="showPluginUninstallModal = false"> {{ $t('general.cancel') }} </a-button>
-          <a-button type="primary" danger @click="resetPlugin"> {{ $t('general.confirm') }} </a-button>
+          <NcButton type="secondary" @click="showPluginUninstallModal = false"> {{ $t('general.cancel') }} </NcButton>
+          <NcButton type="danger" @click="resetPlugin"> {{ $t('general.confirm') }} </NcButton>
         </div>
       </div>
     </a-modal>
 
-    <div class="grid grid-cols-2 gap-x-2 gap-y-4 mt-4">
+    <div class="flex flex-wrap mt-4 w-full gap-5 mb-10">
       <a-card
         v-for="(app, i) in apps"
         :key="i"
+        class="sm:w-100 md:w-138.1"
         :class="`relative flex overflow-x-hidden app-item-card !shadow-sm rounded-md w-full nc-app-store-card-${app.title}`"
-        :body-style="{ width: '100%' }"
       >
         <div class="install-btn flex flex-row justify-end space-x-1">
           <a-button v-if="app.parsedInput" size="small" type="primary" @click="showInstallPluginModal(app)">
             <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-edit">
               <IcRoundEdit class="pr-0.5" :height="12" />
-              Edit
+              {{ $t('general.edit') }}
             </div>
           </a-button>
 
           <a-button v-if="app.parsedInput" size="small" outlined @click="showResetPluginModal(app)">
             <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-reset">
               <component :is="iconMap.closeCircle" />
-              <div class="flex ml-0.5">Reset</div>
+              <div class="flex ml-0.5">{{ $t('general.reset') }}</div>
             </div>
           </a-button>
 
           <a-button v-else size="small" type="primary" @click="showInstallPluginModal(app)">
             <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-install">
               <component :is="iconMap.plus" />
-              Install
+              {{ $t('general.install') }}
             </div>
           </a-button>
         </div>

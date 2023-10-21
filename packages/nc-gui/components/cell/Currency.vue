@@ -79,7 +79,7 @@ onMounted(() => {
     v-model="vModel"
     type="number"
     class="w-full h-full text-sm border-none rounded-md outline-none"
-    :placeholder="isEditColumn ? '(Optional)' : ''"
+    :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="submitCurrency"
     @keydown.down.stop
     @keydown.left.stop
@@ -93,7 +93,7 @@ onMounted(() => {
     @contextmenu.stop
   />
 
-  <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
   <!-- only show the numeric value as previously string value was accepted -->
   <span v-else-if="!isNaN(vModel)">{{ currency }}</span>

@@ -1,10 +1,11 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
-import { isMysql, isPg, isSqlite, mysqlExec, pgExec, sqliteExec } from '../../../setup/db';
+import { enableQuickRun, isMysql, isPg, isSqlite, mysqlExec, pgExec, sqliteExec } from '../../../setup/db';
 import { MetaDataPage } from '../../../pages/Dashboard/ProjectView/Metadata';
 
 test.describe('Meta sync', () => {
+  if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage;
   let context: NcContext;
   let dbExec;
@@ -12,8 +13,8 @@ test.describe('Meta sync', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
-    metaData = dashboard.projectView.dataSources.metaData;
+    dashboard = new DashboardPage(page, context.base);
+    metaData = dashboard.baseView.dataSources.metaData;
 
     switch (context.dbType) {
       case 'sqlite':
@@ -35,8 +36,8 @@ test.describe('Meta sync', () => {
   test('Meta sync', async () => {
     test.setTimeout(process.env.CI ? 100000 : 70000);
 
-    await dashboard.projectView.tab_dataSources.click();
-    await dashboard.projectView.dataSources.openMetaSync({ rowIndex: 0 });
+    await dashboard.baseView.tab_dataSources.click();
+    await dashboard.baseView.dataSources.openMetaSync({ rowIndex: 0 });
 
     await dbExec(`CREATE TABLE table1 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`);
     await dbExec(`CREATE TABLE table2 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`);
@@ -246,8 +247,8 @@ test.describe('Meta sync', () => {
       `INSERT INTO table1 (id, col1, col2, col3, col4) VALUES (1,1,1,1,1), (2,2,2,2,2), (3,3,3,3,3), (4,4,4,4,4), (5,5,5,5,5), (6,6,6,6,6), (7,7,7,7,7), (8,8,8,8,8), (9,9,9,9,9);`
     );
 
-    await dashboard.projectView.tab_dataSources.click();
-    await dashboard.projectView.dataSources.openMetaSync({ rowIndex: 0 });
+    await dashboard.baseView.tab_dataSources.click();
+    await dashboard.baseView.dataSources.openMetaSync({ rowIndex: 0 });
 
     await metaData.clickReload();
     await metaData.sync();

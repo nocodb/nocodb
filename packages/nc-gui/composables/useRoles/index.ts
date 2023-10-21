@@ -21,9 +21,9 @@ const hasPermission = (role: Exclude<Roles, WorkspaceUserRoles>, hasRole: boolea
 /**
  * Provides the roles a user currently has
  *
- * * `userRoles` - the roles a user has outside of projects
- * * `projectRoles` - the roles a user has in the current project (if one was loaded)
- * * `allRoles` - all roles a user has (userRoles + projectRoles)
+ * * `userRoles` - the roles a user has outside of bases
+ * * `baseRoles` - the roles a user has in the current base (if one was loaded)
+ * * `allRoles` - all roles a user has (userRoles + baseRoles)
  * * `loadRoles` - a function to load reload user roles for scope
  */
 export const useRoles = createSharedComposable(() => {
@@ -36,13 +36,13 @@ export const useRoles = createSharedComposable(() => {
 
     orgRoles = extractRolesObj(orgRoles)
 
-    let projectRoles = user.value?.project_roles ?? {}
+    let baseRoles = user.value?.base_roles ?? {}
 
-    projectRoles = extractRolesObj(projectRoles)
+    baseRoles = extractRolesObj(baseRoles)
 
     return {
       ...orgRoles,
-      ...projectRoles,
+      ...baseRoles,
     }
   })
 
@@ -54,16 +54,16 @@ export const useRoles = createSharedComposable(() => {
     return orgRoles
   })
 
-  const projectRoles = computed<RolesObj | null>(() => {
-    let projectRoles = user.value?.project_roles ?? {}
+  const baseRoles = computed<RolesObj | null>(() => {
+    let baseRoles = user.value?.base_roles ?? {}
 
-    if (Object.keys(projectRoles).length === 0) {
-      projectRoles = user.value?.roles ?? {}
+    if (Object.keys(baseRoles).length === 0) {
+      baseRoles = user.value?.roles ?? {}
     }
 
-    projectRoles = extractRolesObj(projectRoles)
+    baseRoles = extractRolesObj(baseRoles)
 
-    return projectRoles
+    return baseRoles
   })
 
   const workspaceRoles = computed<RolesObj | null>(() => {
@@ -71,13 +71,13 @@ export const useRoles = createSharedComposable(() => {
   })
 
   async function loadRoles(
-    projectId?: string,
+    baseId?: string,
     options: { isSharedBase?: boolean; sharedBaseId?: string; isSharedErd?: boolean; sharedErdId?: string } = {},
   ) {
     if (options?.isSharedBase) {
       const res = await api.auth.me(
         {
-          project_id: projectId,
+          base_id: baseId,
         },
         {
           headers: {
@@ -89,12 +89,12 @@ export const useRoles = createSharedComposable(() => {
       user.value = {
         ...user.value,
         roles: res.roles,
-        project_roles: res.project_roles,
+        base_roles: res.base_roles,
       } as typeof User
     } else if (options?.isSharedErd) {
       const res = await api.auth.me(
         {
-          project_id: projectId,
+          base_id: baseId,
         },
         {
           headers: {
@@ -106,15 +106,15 @@ export const useRoles = createSharedComposable(() => {
       user.value = {
         ...user.value,
         roles: res.roles,
-        project_roles: res.project_roles,
+        base_roles: res.base_roles,
       } as typeof User
-    } else if (projectId) {
-      const res = await api.auth.me({ project_id: projectId })
+    } else if (baseId) {
+      const res = await api.auth.me({ base_id: baseId })
 
       user.value = {
         ...user.value,
         roles: res.roles,
-        project_roles: res.project_roles,
+        base_roles: res.base_roles,
       } as typeof User
     } else {
       const res = await api.auth.me({})
@@ -122,7 +122,7 @@ export const useRoles = createSharedComposable(() => {
       user.value = {
         ...user.value,
         roles: res.roles,
-        project_roles: res.project_roles,
+        base_roles: res.base_roles,
       } as typeof User
     }
   }
@@ -146,5 +146,5 @@ export const useRoles = createSharedComposable(() => {
     )
   }
 
-  return { allRoles, orgRoles, workspaceRoles, projectRoles, loadRoles, isUIAllowed }
+  return { allRoles, orgRoles, workspaceRoles, baseRoles, loadRoles, isUIAllowed }
 })

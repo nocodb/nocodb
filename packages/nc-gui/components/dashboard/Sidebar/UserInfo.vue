@@ -99,13 +99,12 @@ onMounted(() => {
             <span class="menu-btn"> {{ $t('general.logout') }}</span>
           </NcMenuItem>
           <template v-if="!isMobileMode">
-            <NcDivider />
-            <a v-e="['c:nocodb:docs-open']" href="https://docs.nocodb.com" target="_blank" class="!underline-transparent">
-              <NcMenuItem>
-                <GeneralIcon icon="help" class="menu-icon mt-0.5" />
-                <span class="menu-btn"> {{ $t('title.helpCenter') }} </span>
-              </NcMenuItem>
-            </a>
+            <NcMenuItem v-e="['c:auth-token:copy']" @click="onCopy">
+              <GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black menu-icon" />
+              <GeneralIcon v-else icon="copy" class="menu-icon" />
+              <template v-if="isAuthTokenCopied"> {{ $t('title.copiedAuthToken') }} </template>
+              <template v-else> {{ $t('title.copyAuthToken') }} </template>
+            </NcMenuItem>
           </template>
           <NcDivider />
           <a v-e="['c:nocodb:discord']" href="https://discord.gg/5RgZmkW" target="_blank" class="!underline-transparent">
@@ -148,12 +147,24 @@ onMounted(() => {
 
           <template v-if="!isMobileMode">
             <NcDivider />
-            <NcMenuItem v-e="['c:auth-token:copy']" @click="onCopy">
-              <GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black menu-icon" />
-              <GeneralIcon v-else icon="copy" class="menu-icon" />
-              <template v-if="isAuthTokenCopied"> {{ $t('title.copiedAuthToken') }} </template>
-              <template v-else> {{ $t('title.copyAuthToken') }} </template>
-            </NcMenuItem>
+
+
+
+
+            <a v-e="['c:nocodb:forum-open']" href="https://community.nocodb.com" target="_blank" class="!underline-transparent">
+              <NcMenuItem>
+                <GeneralIcon icon="help" class="menu-icon mt-0.5" />
+                <span class="menu-btn"> {{ $t('title.forum') }} </span>
+              </NcMenuItem>
+            </a>
+
+            <a v-e="['c:nocodb:docs-open']" href="https://docs.nocodb.com" target="_blank" class="!underline-transparent">
+              <NcMenuItem>
+                <GeneralIcon icon="doc" class="menu-icon mt-0.5" />
+                <span class="menu-btn"> {{ $t('title.docs') }} </span>
+              </NcMenuItem>
+            </a>
+
             <nuxt-link v-e="['c:user:settings']" class="!no-underline" to="/account/profile">
               <NcMenuItem> <GeneralIcon icon="settings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
             </nuxt-link>

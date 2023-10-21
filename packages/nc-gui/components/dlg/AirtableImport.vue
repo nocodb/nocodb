@@ -346,7 +346,7 @@ onMounted(async () => {
             <a-input
               v-model:value="syncSource.details.syncSourceUrlOrId"
               class="nc-input-shared-base"
-              :placeholder="`${$t('labels.sharedBase')} URL`"
+              :placeholder="`${$t('labels.sharedBaseUrl')}`"
               size="large"
             />
           </a-form-item>

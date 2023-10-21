@@ -25,8 +25,7 @@ const groupType = computed({
     <div class="p-3" @click.stop>
       <div class="flex items-center">
         <span class="text-md font-medium text-[#212121]">
-          <!-- todo: i18n -->
-          Notification
+          {{ $t('general.notification') }}
         </span>
         <div class="flex-grow"></div>
         <div
@@ -34,7 +33,7 @@ const groupType = computed({
           class="cursor-pointer text-xs text-gray-500 hover:text-primary"
           @click.stop="notificationStore.markAllAsRead"
         >
-          Mark all as read
+          {{ $t('activity.markAllAsRead') }}
         </div>
       </div>
     </div>
@@ -48,7 +47,7 @@ const groupType = computed({
     >
       <template v-if="!notifications?.length">
         <div class="flex flex-col gap-2 items-center justify-center">
-          <div class="text-sm text-gray-400">You have no new notifications</div>
+          <div class="text-sm text-gray-400">{{ $t('msg.noNewNotifications') }}</div>
           <GeneralIcon icon="inbox" class="!text-40px text-gray-400" />
         </div>
       </template>

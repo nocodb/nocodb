@@ -12,6 +12,7 @@ import {
   provide,
   reactive,
   ref,
+  useI18n,
   useProvideSharedFormStore,
   useProvideSmartsheetStore,
   useRoute,
@@ -26,6 +27,8 @@ definePageMeta({
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const route = useRoute()
+
+const { t } = useI18n()
 
 const { loadSharedView, sharedView, sharedViewMeta, meta, notFound, password, passwordDlg, passwordError } =
   useProvideSharedFormStore(route.params.viewId as string)
@@ -43,7 +46,7 @@ if (!notFound.value) {
   applyLanguageDirection(sharedViewMeta.value.rtl ? 'rtl' : 'ltr')
 } else {
   navigateTo('/error/404')
-  throw createError({ statusCode: 404, statusMessage: 'Page Not Found' })
+  throw createError({ statusCode: 404, statusMessage: t('msg.pageNotFound') })
 }
 
 const form = reactive({
@@ -74,7 +77,6 @@ watch(
       @close="passwordDlg = false"
     >
       <div class="w-full flex flex-col gap-4">
-        <!-- todo: i18n -->
         <h2 class="text-xl font-semibold">{{ $t('msg.thisSharedViewIsProtected') }}</h2>
 
         <a-form layout="vertical" no-style :model="form" @finish="loadSharedView">

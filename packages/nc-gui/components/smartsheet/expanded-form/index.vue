@@ -294,8 +294,7 @@ onMounted(async () => {
       await loadCommentsAndLogs()
     } catch (e: any) {
       if (e.response?.status === 404) {
-        // todo: i18n
-        message.error('Record not found')
+        message.error(t("msg.noRecordFound"))
         router.replace({ query: {} })
       } else throw e
     }
@@ -358,9 +357,9 @@ useActiveKeyupListener(
 
       if (changedColumns.value.size > 0) {
         await Modal.confirm({
-          title: 'Do you want to save the changes?',
-          okText: 'Save',
-          cancelText: 'Discard',
+          title: t('msg.saveChanges'),
+          okText: t('general.save'),
+          cancelText: t('labels.discard'),
           onOk: async () => {
             await save()
             reloadHook?.trigger(null)
@@ -373,8 +372,8 @@ useActiveKeyupListener(
       } else if (isNew.value) {
         await Modal.confirm({
           title: 'Do you want to save the record?',
-          okText: 'Save',
-          cancelText: 'Discard',
+          okText: t('general.save'),
+          cancelText: t('labels.discard'),
           onOk: async () => {
             const data = await _save(rowState.value)
             await syncLTARRefs(data)
@@ -402,7 +401,7 @@ const onDeleteRowClick = () => {
 const onConfirmDeleteRowClick = async () => {
   showDeleteRowModal.value = false
   await deleteRowById(primaryKey.value)
-  message.success('Record deleted')
+  message.success(t('msg.rowDeleted'))
   reloadTrigger.trigger()
   onClose()
   showDeleteRowModal.value = false

@@ -161,7 +161,7 @@ cd nocodb/docker-compose/mssql
 docker-compose up -d
 ```
 
-> To persist data in docker, you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise your data will be lost after recreating the container.
+> To persist data in docker, you can mount the volume at `/usr/app/data/` since 0.10.6. Otherwise your data will be lost after recreating the container.
 
 > If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for [MySQL Docker Compose](https://github.com/nocodb/nocodb/issues/1313#issuecomment-1046625974).
 
@@ -291,7 +291,7 @@ Most internet businesses equip themselves with either spreadsheet or a database 
 
 # Our Mission
 
-Our mission is to provide the most powerful no-code interface for databases that is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on the internet.
+Our mission is to provide the most powerful no-code interface for databases that is open source to every single internet business in the world. This would not only democratize access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on the internet.
 
 # License
 

@@ -69,7 +69,7 @@ hooks.hook('page:finish', () => {
         <LazyGeneralReleaseInfo />
 
         <a-tooltip v-if="!appInfo.ee" placement="bottom" :mouse-enter-delay="1">
-          <template #title> Switch language</template>
+          <template #title>{{ $t('title.switchLanguage') }}</template>
 
           <div class="flex pr-4 items-center">
             <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-accent" />
@@ -106,7 +106,7 @@ hooks.hook('page:finish', () => {
                   >
                     <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
 
-                    &lt;!&ndash; todo: i18n &ndash;&gt;
+                    &lt;!&ndash; &ndash;&gt;
                     <span class="prose group-hover:text-primary">Account management</span>
                   </nuxt-link>
                 </a-menu-item>
@@ -129,7 +129,7 @@ hooks.hook('page:finish', () => {
       </a-layout-header>
 
       <a-tooltip v-if="!appInfo.ee" placement="bottom">
-        <template #title> Switch language</template>
+        <template #title>{{ $t('title.switchLanguage') }}</template>
 
         <LazyGeneralLanguage v-if="!signedIn && !route.params.baseId && !route.params.erdUuid" class="nc-lang-btn" />
       </a-tooltip>

@@ -55,8 +55,7 @@ const ownedWorkspaces = computed(() => {
       <!-- Create A New Table -->
       <div class="prose-xl font-bold self-center my-4">{{ $t('activity.moveProject') }}</div>
 
-      <!-- todo: i18n -->
-      <div class="mb-2">Workspace</div>
+      <div class="mb-2">{{ $t('objects.workspace') }}</div>
       <a-select v-model:value="workspaceId" class="w-full" show-search>
         <a-select-option v-for="workspace of ownedWorkspaces" :key="workspace.id" :value="workspace.id">
           {{ workspace.title }}

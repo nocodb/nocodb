@@ -318,8 +318,8 @@ onMounted(() => {
                 </div>
 
                 <div v-if="field.uidt === UITypes.LongText" class="text-sm text-gray-500 flex flex-wrap items-center">
-                  Shift <MdiAppleKeyboardShift class="mx-1 text-primary" /> + Enter
-                  <MaterialSymbolsKeyboardReturn class="mx-1 text-primary" /> to make a line break
+                  {{ $t('general.shift') }} <MdiAppleKeyboardShift class="mx-1 text-primary" /> + {{ $t('general.enter') }}
+                  <MaterialSymbolsKeyboardReturn class="mx-1 text-primary" /> {{ $t('msg.makeLineBreak') }}
                 </div>
               </div>
             </LazySmartsheetDivDataCell>
@@ -345,7 +345,9 @@ onMounted(() => {
 
               <div v-else-if="!submitted" class="flex items-center gap-3 flex-col">
                 <a-tooltip
-                  :title="v$.localState[field.title]?.$error ? v$.localState[field.title].$errors[0].$message : 'Go to next'"
+                  :title="
+                    v$.localState[field.title]?.$error ? v$.localState[field.title].$errors[0].$message : $t('msg.goToNext')
+                  "
                   :mouse-enter-delay="0.25"
                   :mouse-leave-delay="0"
                 >
@@ -361,7 +363,7 @@ onMounted(() => {
                     @click="goNext()"
                   >
                     <Transition name="fade">
-                      <span v-if="!v$.localState[field.title]?.$error" class="uppercase text-white">Ok</span>
+                      <span v-if="!v$.localState[field.title]?.$error" class="uppercase text-white">{{ $t('general.ok') }}</span>
                     </Transition>
 
                     <Transition name="slide-right" mode="out-in">
@@ -375,9 +377,8 @@ onMounted(() => {
                   </NcButton>
                 </a-tooltip>
 
-                <!-- todo: i18n -->
                 <div class="hidden md:flex text-sm text-gray-500 items-center gap-1">
-                  Press Enter <MaterialSymbolsKeyboardReturn class="text-primary" />
+                  {{ $t('labels.pressEnter') }} <MaterialSymbolsKeyboardReturn class="text-primary" />
                 </div>
               </div>
             </div>
@@ -392,21 +393,21 @@ onMounted(() => {
 
                 <template v-else>
                   <div class="flex flex-col gap-1">
-                    <div>Thank you!</div>
+                    <div>{{ $t('msg.thankyou') }}</div>
 
-                    <div>You have successfully submitted the form data.</div>
+                    <div>{{ $t('msg.submittedFormData') }}</div>
                   </div>
                 </template>
               </div>
 
               <div v-if="sharedFormView" class="mt-3">
                 <p v-if="sharedFormView?.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">
-                  New form will be loaded after {{ secondsRemain }} seconds
+                  {{ $t('labels.newFormLoaded') }} {{ secondsRemain }} {{ $t('general.seconds') }}
                 </p>
 
                 <div v-if="sharedFormView?.submit_another_form" class="text-center">
                   <NcButton type="primary" data-testid="nc-survey-form__btn-submit-another-form" @click="resetForm">
-                    Submit Another Form
+                    {{ $t('activity.submitAnotherForm') }}
                   </NcButton>
                 </div>
               </div>
@@ -448,7 +449,7 @@ onMounted(() => {
           </a-tooltip>
 
           <a-tooltip
-            :title="v$.localState[field.title]?.$error ? '' : 'Go to next'"
+            :title="v$.localState[field.title]?.$error ? '' : $t('msg.goToNext')"
             :mouse-enter-delay="0.25"
             :mouse-leave-delay="0"
           >

@@ -76,6 +76,7 @@
     "whatsappTwilio": "WhatsApp Twilio",
     "submit": "Submit",
     "create": "Create",
+    "creating": "Creating",
     "details": "Details",
     "skip": "Skip",
     "duplicate": "Duplicate",
@@ -174,7 +175,11 @@
     "count": "Count",
     "countDistinct": "Count Distinct",
     "sumDistinct": "Sum Distinct",
-    "avgDistinct": "Avg Distinct"
+    "avgDistinct": "Avg Distinct",
+    "join": "Join",
+    "options": "Options",
+    "primaryValue": "Primary Value",
+    "useSurveyMode": "Use Survey Mode"
   },
   "objects": {
     "workspace": "Workspace",
@@ -215,6 +220,8 @@
       "editor": "Editor",
       "commenter": "Commenter",
       "viewer": "Viewer",
+      "noaccess":"No Access",
+      "super": "Super",
       "orgLevelCreator": "Organization Level Creator",
       "orgLevelViewer": "Organization Level Viewer"
     },
@@ -314,6 +321,7 @@
     "renamingTable": "Renaming Table",
     "copyAuthToken": "Copy Auth Token",
     "copiedAuthToken": "Copied Auth Token",
+    "copyInviteToken": "Copy Invite Token",
     "showSidebar": "Show Sidebar",
     "hideSidebar": "Hide Sidebar",
     "creatingTable": "Creating Table",
@@ -550,7 +558,7 @@
     "requestDataSource": "Request a data source you need?",
     "apiKey": "API Key",
     "personalAccessToken": "Personal Access Token",
-    "sharedBase": "Shared Base",
+    "sharedBaseUrl": "Shared Base",
     "importData": "Import Data",
     "importSecondaryViews": "Import Secondary Views",
     "importRollupColumns": "Import Rollup Fields",
@@ -589,7 +597,10 @@
     "includeData": "Include Data",
     "includeView": "Include View",
     "includeWebhook": "Include Webhook",
-    "zoomInToViewColumns": "Zoom in to view fields"
+    "zoomInToViewColumns": "Zoom in to view columns",
+    "embedInSite": "Embed this view in your site",
+    "titleRequired": "title is required.",
+    "sourceNameRequired":"Source name is required"
   },
   "activity": {
     "onCondition": "On Condition",
@@ -622,6 +633,8 @@
     "useTheme": "Use Theme",
     "copyLink": "Copy Link",
     "copiedLink": "Link Copied",
+    "copyInviteLink":"Copy invite link",
+    "copiedInviteLink":"Copied invite link",
     "copyUrl": "Copy URL",
     "moreColors": "More Colors",
     "moveProject": "Move Base",
@@ -763,6 +776,16 @@
     "toggleCommentsDraw": "Toggle comments draw",
     "expandRecord": "Expand Record",
     "deleteRecord": "Delete Record",
+    "fullWidth": "Full width",
+    "exitFullWidth": "Full width",
+    "maskAllAsRead": "Mark all as read",
+    "column":{
+      "delete": "Delete Column",
+      "addNumber": "Add Number Column",
+      "addSingleLineText": "Add SingleLineText Column",
+      "addLongText": "Add LongText Column",
+      "addOther":"Add Other Column"
+    },
     "erd": {
       "showColumns": "Show Fields",
       "showPkAndFk": "Show Primary and Foreign Keys",
@@ -916,6 +939,7 @@
       "createNewOptionNamed": "Create new option named"
     },
     "plsEnterANumber": "Please enter a number",
+    "plsInputEmail": "Please input email",
     "invalidDate": "Invalid date",
     "invalidLocale": "Invalid locale",
     "invalidCurrencyCode": "Invalid Currency Code",
@@ -954,6 +978,12 @@
     "areYouSureUWantTo": "Are you sure you want to delete the following",
     "idColumnRequired": "ID field is required, you can rename this later if required.",
     "length59Required": "The length exceeds the max 59 characters",
+    "noNewNotifications": "You have no new notifications",
+    "noRecordFound": "Record not found",
+    "rowDeleted": "Row deleted",
+    "saveChanges": "Do you want to save the changes?",
+    "tooLargeField": "The field is too large to be converted to",
+    "roleRequired": "Role required",
     "warning": {
       "dbValid": "Please make sure database you are trying to connect is valid! This operation can cause schema loss!!",
       "barcode": {
@@ -1113,7 +1143,8 @@
       "computedFieldDeleteWarning": "contents are read-only",
       "noMoreRecords": "No more records",
       "tokenNameNotEmpty": "Token name should not be empty",
-      "tokenNameMaxLength": "Token name should not be more than 255 characters"
+      "tokenNameMaxLength": "Token name should not be more than 255 characters",
+      "dbNamerequired": "Database name is required"
     },
     "error": {
       "nameRequired": "Name Required",

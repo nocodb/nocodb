@@ -17,6 +17,7 @@ export class GlobalExceptionFilter extends GlobalExceptionFilterCE {
         projectId: (request as any).ncProjectId,
         ip: (request as any).clientIp,
         email: (request as any).user?.email,
+        path: (request as any).path,
       },
     });
   }

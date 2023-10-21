@@ -23,7 +23,11 @@ export default defineNuxtPlugin((nuxtApp) => {
       }),
     ],
     beforeSend(event) {
-      if (process.env.NODE_ENV === 'production') return event
+      if (process.env.NODE_ENV === 'production') {
+        event.extra = event.extra || {}
+        event.extra.client_id = window.ncClientId
+        return event
+      }
       return null
     },
     autoSessionTracking: false,

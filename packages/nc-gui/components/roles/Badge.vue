@@ -35,7 +35,6 @@ const roleProperties = computed(() => {
     label,
   }
 })
-
 </script>
 
 <template>

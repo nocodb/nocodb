@@ -3,25 +3,41 @@ import { Empty } from 'ant-design-vue'
 import type { BaseType } from 'nocodb-sdk'
 import { ProjectRoles, ProjectStatus, WorkspaceUserRoles } from 'nocodb-sdk'
 import { nextTick } from '@vue/runtime-core'
-import { NcProjectType, isEeUI, navigateTo, storeToRefs, timeAgo, useGlobal, useWorkspace } from '#imports'
+import {
+  NcProjectType,
+  computed,
+  extractSdkResponseErrorMsg,
+  isEeUI,
+  message,
+  navigateTo,
+  ref,
+  storeToRefs,
+  timeAgo,
+  useBases,
+  useGlobal,
+  useRoles,
+  useWorkspace,
+} from '#imports'
 import { useNuxtApp } from '#app'
 
 const workspaceStore = useWorkspace()
+
 const { updateProjectTitle } = workspaceStore
+
 const { activePage } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
+
 const { basesList, isProjectsLoading } = storeToRefs(basesStore)
 
 const { navigateToProject } = useGlobal()
-
-// const filteredProjects = computed(() => bases.value?.filter((p) => !p.deleted) || [])
 
 const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
 
 const showProjectDeleteModal = ref(false)
+
 const toBeDeletedProjectId = ref<string | undefined>()
 
 const openProject = async (base: BaseType) => {
@@ -52,6 +68,7 @@ const deleteProject = (base: BaseType) => {
 }
 
 const renameInput = ref<HTMLInputElement>()
+
 const enableEdit = (index: number) => {
   basesList.value![index]!.temp_title = basesList.value![index].title
   basesList.value![index]!.edit = true
@@ -137,6 +154,7 @@ const workspaceMoveProjectOnSuccess = async (workspaceId: string) => {
 }
 
 const isDuplicateDlgOpen = ref(false)
+
 const selectedProjectToDuplicate = ref()
 
 const duplicateProject = (base: BaseType) => {
@@ -145,7 +163,9 @@ const duplicateProject = (base: BaseType) => {
 }
 
 let clickCount = 0
+
 let timer: any = null
+
 const delay = 250
 
 function onProjectTitleClick(index: number) {
@@ -379,7 +399,7 @@ const setIcon = async (icon: string, base: BaseType) => {
   @apply !pl-6;
 }
 
-:deep(.ant-table-cell:lst-child) {
+:deep(.ant-table-cell:last-child) {
   @apply !plr6;
 }
 

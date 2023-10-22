@@ -3,7 +3,7 @@ import { diff } from 'deep-object-diff'
 import { message } from 'ant-design-vue'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
-import type { ColumnType, SelectOptionsType, TableType } from 'nocodb-sdk'
+import type { ColumnType, SelectOptionsType } from 'nocodb-sdk'
 import { Icon } from '@iconify/vue'
 import { type Field, getUniqueColumnName, ref, useSmartsheetStoreOrThrow } from '#imports'
 

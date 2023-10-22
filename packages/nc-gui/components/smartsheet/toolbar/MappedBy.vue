@@ -7,11 +7,11 @@ import {
   IsLockedInj,
   IsPublicInj,
   MetaInj,
-  ReloadViewDataHookInj,
   computed,
   iconMap,
   inject,
   ref,
+  useSmartsheetStoreOrThrow,
   useViewColumnsOrThrow,
   watch,
 } from '#imports'

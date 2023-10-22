@@ -10,8 +10,6 @@ import {
   FieldsInj,
   IsLockedInj,
   IsPublicInj,
-  MetaInj,
-  ReloadViewDataHookInj,
   computed,
   iconMap,
   inject,

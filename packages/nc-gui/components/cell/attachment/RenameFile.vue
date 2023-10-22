@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import { onKeyStroke, onMounted, reactive, ref, useI18n } from '#imports'
 
-const { t } = useI18n()
-
 const props = defineProps<{
   title: string
 }>()
@@ -11,6 +9,8 @@ const emit = defineEmits<{
   (event: 'rename', value: string): void
   (event: 'cancel'): void
 }>()
+
+const { t } = useI18n()
 
 const inputEl = ref()
 

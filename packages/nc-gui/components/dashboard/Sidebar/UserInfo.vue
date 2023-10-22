@@ -148,9 +148,6 @@ onMounted(() => {
           <template v-if="!isMobileMode">
             <NcDivider />
 
-
-
-
             <a v-e="['c:nocodb:forum-open']" href="https://community.nocodb.com" target="_blank" class="!underline-transparent">
               <NcMenuItem>
                 <GeneralIcon icon="help" class="menu-icon mt-0.5" />

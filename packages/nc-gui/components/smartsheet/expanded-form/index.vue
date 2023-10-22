@@ -294,7 +294,7 @@ onMounted(async () => {
       await loadCommentsAndLogs()
     } catch (e: any) {
       if (e.response?.status === 404) {
-        message.error(t("msg.noRecordFound"))
+        message.error(t('msg.noRecordFound'))
         router.replace({ query: {} })
       } else throw e
     }

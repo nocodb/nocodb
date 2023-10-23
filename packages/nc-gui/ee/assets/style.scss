@@ -168,8 +168,8 @@ main {
   overflow-x: scroll;
 
   &::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
   &::-webkit-scrollbar-track-piece {
     width: 0px;
@@ -182,7 +182,7 @@ main {
     border-radius: 10px;
 
 
-    width: 6px;
+    width: 8px;
     @apply bg-gray-200;
   }
   &::-webkit-scrollbar-thumb:hover {

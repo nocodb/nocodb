@@ -49,6 +49,8 @@ function check_status_all_workspaces(){
 
 function checkStatus(){
     # check if all deployments in the service is set to COMPLETED
+    # start after initial sleep to avoid race
+    sleep 30; 
     local service=${1}
     if [[ ! "${CLUSTER}" ]]; then echo "CLUSTER and service variable must be set for check status"; log_and_exit  ; fi
 

@@ -573,6 +573,8 @@ export class MetaDiffsService {
             UITypes.Lookup,
             UITypes.Formula,
             UITypes.Links,
+            UITypes.QrCode,
+            UITypes.Barcode,
           ].includes(column.uidt)
         ) {
           continue;

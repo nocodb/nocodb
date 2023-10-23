@@ -272,6 +272,8 @@ export class MetaDiffsService {
             UITypes.Rollup,
             UITypes.Lookup,
             UITypes.Formula,
+            UITypes.QrCode,
+            UITypes.Barcode,
           ].includes(column.uidt)
         ) {
           if (isLinksOrLTAR(column.uidt)) {

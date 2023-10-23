@@ -19,7 +19,7 @@ provide(IsPublicInj, ref(true))
 
 useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)
 
-useProvideSmartsheetStore(sharedView, meta, true, sorts, nestedFilters)
+useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
 </script>
 
 <template>

@@ -23,7 +23,13 @@ const permissionScopes = {
     'baseCreate',
 
     // User
+    'userList',
+    'userAdd',
+    'userUpdate',
+    'userDelete',
     'passwordChange',
+    'userInviteResend',
+    'generateResetUrl',
 
     // Plugin
     'isPluginActive',
@@ -242,6 +248,12 @@ const rolePermissions:
   },
   [OrgUserRoles.CREATOR]: {
     include: {
+      userList: true,
+      userAdd: true,
+      userUpdate: true,
+      userDelete: true,
+      generateResetUrl: true,
+      userInviteResend: true,
       upload: true,
       uploadViaURL: true,
       isPluginActive: true,

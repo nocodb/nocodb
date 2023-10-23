@@ -84,7 +84,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
     getMeta(table.id as string, (route.value.params?.viewId as string) !== table.id)
 
-    if (openedViewsTab.value !== 'view' && views[0].id) {
+    if (openedViewsTab.value !== 'view' && views.length && views[0].id) {
       await navigateTo({
         path: `/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${views[0].id}/${openedViewsTab.value}`,
         query: route.value.query,

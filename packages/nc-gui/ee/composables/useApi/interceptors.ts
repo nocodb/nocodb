@@ -27,6 +27,8 @@ export function addAxiosInterceptors(api: Api<any>) {
         config.baseURL = baseUrl
       }
     }
+    config.headers['nc-client-id'] = (window as any).ncClientId
+
     // add current time to calculate the latency for data api
     if (dataApiRegex.test(config.url || '')) {
       // reset timing if data api is invoking

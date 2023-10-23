@@ -371,7 +371,7 @@ const gridWrapperClass = computed<string>(() => {
   const classes = []
   if (headerOnly !== true) {
     if (!scrollParent.value) {
-      classes.push('nc-scrollbar-x-md-dark overflow-auto')
+      classes.push('nc-scrollbar-x-lg overflow-auto')
     }
   } else {
     classes.push('overflow-visible')
@@ -1209,7 +1209,7 @@ const loaderText = computed(() => {
         <div class="table-overlay" :class="{ 'nc-grid-skelton-loader': showSkeleton }">
           <table
             ref="smartTable"
-            class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white relative"
+            class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white relative pr-60 pb-12"
             :class="{
               mobile: isMobileMode,
               desktop: !isMobileMode,

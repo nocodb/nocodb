@@ -35,6 +35,9 @@ function update_workspace(){
 
 # expects ALL_SVS and CLUSTER variable to be set to check status
 function check_status_all_workspaces(){
+    # start after initial sleep to avoid race
+    echo "Adding initial delay of 30 sec to check status "
+    sleep 30; 
     if [[ ! "${CLUSTER}" || ! "${ALL_SVS}" ]]; then echo "CLUSTER and ALL_SVS variables must be set for check status"; log_and_exit  ; fi
     for SVC in ${ALL_SVS}
     do
@@ -49,8 +52,6 @@ function check_status_all_workspaces(){
 
 function checkStatus(){
     # check if all deployments in the service is set to COMPLETED
-    # start after initial sleep to avoid race
-    sleep 30; 
     local service=${1}
     if [[ ! "${CLUSTER}" ]]; then echo "CLUSTER and service variable must be set for check status"; log_and_exit  ; fi
 

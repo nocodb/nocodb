@@ -59,6 +59,7 @@ main {
 .nc-scrollbar-md {
   overflow-y: scroll;
   overflow-x: hidden;
+  scrollbar-width: thin !important;
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -81,6 +82,8 @@ main {
 
 .nc-scrollbar-x-md {
   overflow-x: scroll;
+  scrollbar-width: thin !important;
+
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -108,6 +111,8 @@ main {
 .nc-scrollbar-dark-md {
   overflow-y: scroll;
   overflow-x: hidden;
+  scrollbar-width: thin !important;
+
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -138,7 +143,9 @@ main {
 
 .nc-scrollbar-x-md-dark {
   overflow-x: scroll;
+  scrollbar-width: thin !important;
 
+  
   &::-webkit-scrollbar {
     width: 4px;
     height: 4px;

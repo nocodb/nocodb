@@ -10,15 +10,9 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-const meta = inject(MetaInj, ref())
-
-const activeView = inject(ActiveViewInj, ref())
-
 const { t } = useI18n()
 
-const reloadDataHook = inject(ReloadViewDataHookInj)!
-
-const { fields, metaColumnById } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
+const { fields, metaColumnById } = useViewColumnsOrThrow()
 
 const vModel = useVModel(props, 'modelValue', emit)
 
@@ -40,7 +34,8 @@ const columnsAllowedAsQrValue = computed<SelectProps['options']>(() => {
 
 onMounted(() => {
   // set default value
-  vModel.value.fk_qr_value_column_id = (column?.value?.colOptions as Record<string, any>)?.fk_qr_value_column_id || ''
+  vModel.value.fk_qr_value_column_id =
+    (column?.value?.colOptions as Record<string, any>)?.fk_qr_value_column_id || columnsAllowedAsQrValue.value?.[0]?.value
 })
 
 setAdditionalValidations({

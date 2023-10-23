@@ -1,14 +1,24 @@
 <script lang="ts" setup>
+import { ref, storeToRefs, useGlobal, useI18n, useWorkspace, watch } from '#imports'
+
 const { signOut } = useGlobal()
 
+const { t } = useI18n()
+
 const { deleteWorkspace, navigateToWorkspace, updateWorkspace } = useWorkspace()
+
 const { workspacesList, activeWorkspaceId, activeWorkspace, workspaces } = storeToRefs(useWorkspace())
 
 const formValidator = ref()
+
 const isConfirmed = ref(false)
+
 const isDeleting = ref(false)
+
 const isErrored = ref(false)
+
 const isTitleUpdating = ref(false)
+
 const isCancelButtonVisible = ref(false)
 
 const form = ref({
@@ -17,9 +27,9 @@ const form = ref({
 
 const formRules = {
   title: [
-    { required: true, message: 'Workspace name required' },
-    { min: 3, message: 'Workspace name must be at least 3 characters long' },
-    { max: 50, message: 'Workspace name must be at most 50 characters long' },
+    { required: true, message: t('msg.info.wsNameRequired') },
+    { min: 3, message: t('msg.info.wsNameMinLength') },
+    { max: 50, message: t('msg.info.wsNameMaxLength') },
   ],
 }
 
@@ -104,9 +114,9 @@ const onCancel = () => {
 <template>
   <div class="flex flex-col items-center nc-workspace-settings-settings">
     <div class="item flex flex-col w-full">
-      <div class="font-medium text-base">Change Workspace Name</div>
+      <div class="font-medium text-base">{{ $t('labels.changeWsName') }}</div>
       <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="titleChange">
-        <div class="text-gray-500 mt-6 mb-1.5">Workspace name</div>
+        <div class="text-gray-500 mt-6 mb-1.5">{{ `${t('objects.workspace')} ${t('general.name')}` }}</div>
         <a-form-item name="title" :rules="formRules.title">
           <a-input
             v-model:value="form.title"
@@ -123,8 +133,8 @@ const onCancel = () => {
             data-testid="nc-workspace-settings-settings-rename-cancel"
             @click="onCancel"
           >
-            <template #loading> Renaming Workspace </template>
-            Cancel
+            <template #loading> {{ $t('title.renamingWs') }} </template>
+            {{ $t('general.cancel') }}
           </NcButton>
           <NcButton
             v-e="['c:workspace:settings:rename']"
@@ -134,18 +144,18 @@ const onCancel = () => {
             :loading="isDeleting"
             data-testid="nc-workspace-settings-settings-rename-submit"
           >
-            <template #loading> Renaming Workspace </template>
-            Rename Workspace
+            <template #loading> {{ $t('title.renamingWs') }} </template>
+            {{ $t('title.renameWs') }}
           </NcButton>
         </div>
       </a-form>
     </div>
     <div class="item flex flex-col">
-      <div class="font-medium text-base">Delete Workspace</div>
-      <div class="text-gray-500 mt-2">Delete this workspace and all it’s contents.</div>
+      <div class="font-medium text-base">{{ $t('title.deleteWs') }}</div>
+      <div class="text-gray-500 mt-2">{{ $t('msg.info.wsDeleteDlg') }}</div>
       <div class="flex flex-row mt-8 gap-x-2">
         <a-checkbox v-model:checked="isConfirmed" />
-        <div class="flex">I understand that this action is irreversible</div>
+        <div class="flex">{{ $t('msg.info.userConfirmation') }}</div>
       </div>
 
       <div class="flex flex-row w-full justify-end mt-8">
@@ -156,8 +166,8 @@ const onCancel = () => {
           :loading="isDeleting"
           @click="onDelete"
         >
-          <template #loading> Deleting Workspace </template>
-          Delete Workspace
+          <template #loading> {{ $t('title.deletingWs') }} </template>
+          {{ $t('title.deleteWs') }}
         </NcButton>
       </div>
     </div>

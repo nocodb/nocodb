@@ -368,7 +368,7 @@ export class DataTableService {
     modelId: string;
     columnId: string;
     query: any;
-    refRowIds: string | string[] | number | number[];
+    refRowIds: string | string[] | number | number[] | Record<string, any>;
     rowId: string;
   }) {
     this.validateIds(param.refRowIds);
@@ -403,7 +403,7 @@ export class DataTableService {
     modelId: string;
     columnId: string;
     query: any;
-    refRowIds: string | string[] | number | number[];
+    refRowIds: string | string[] | number | number[] | Record<string, any>;
     rowId: string;
   }) {
     this.validateIds(param.refRowIds);

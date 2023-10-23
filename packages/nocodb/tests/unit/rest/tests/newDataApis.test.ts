@@ -1947,7 +1947,26 @@ function linkBased() {
         rowId: 1,
       },
       body: [
-        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        { Id: 1 },
+        { Id: 2 },
+        { Id: 3 },
+        { Id: 4 },
+        { Id: 5 },
+        { Id: 6 },
+        { Id: 7 },
+        { Id: 8 },
+        { Id: 9 },
+        { Id: 10 },
+        { Id: 11 },
+        { Id: 12 },
+        { Id: 13 },
+        { Id: 14 },
+        { Id: 15 },
+        { Id: 16 },
+        { Id: 17 },
+        { Id: 18 },
+        { Id: 19 },
+        { Id: 20 },
       ],
     });
     await ncAxiosLinkAdd({
@@ -1957,7 +1976,26 @@ function linkBased() {
         rowId: 1,
       },
       body: [
-        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        { Id: 1 },
+        { Id: 2 },
+        { Id: 3 },
+        { Id: 4 },
+        { Id: 5 },
+        { Id: 6 },
+        { Id: 7 },
+        { Id: 8 },
+        { Id: 9 },
+        { Id: 10 },
+        { Id: 11 },
+        { Id: 12 },
+        { Id: 13 },
+        { Id: 14 },
+        { Id: 15 },
+        { Id: 16 },
+        { Id: 17 },
+        { Id: 18 },
+        { Id: 19 },
+        { Id: 20 },
       ],
     });
 
@@ -2071,7 +2109,7 @@ function linkBased() {
         linkId: getColumnId(columnsActor, 'Films'),
         rowId: 1,
       },
-      body: [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29],
+      body: [{Id:1}, {Id:3}, {Id:5}, {Id:7}, {Id:9}, {Id:11}, {Id:13}, {Id:15}, {Id:17}, {Id:19}, {Id:21}, {Id:23}, {Id:25}, {Id:27}, {Id:29}],
     });
 
     // verify in Actor table
@@ -2121,7 +2159,7 @@ function linkBased() {
         linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 1,
       },
-      body: [1, 2, 3],
+      body: [{Id:1}, {Id:2}, {Id:3}],
     });
 
     // update the link
@@ -2131,7 +2169,7 @@ function linkBased() {
         linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 2,
       },
-      body: [2, 3],
+      body: [{Id:2}, {Id:3}],
     });
 
     // verify record 1

@@ -126,7 +126,7 @@ const validators = computed(() => {
     'title': [
       {
         required: true,
-        message: 'Source name is required',
+        message: t('labels.sourceNameRequired'),
       },
       baseTitleValidator,
     ],

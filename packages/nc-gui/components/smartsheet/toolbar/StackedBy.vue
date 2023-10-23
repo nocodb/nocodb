@@ -4,17 +4,18 @@ import type { KanbanType } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 import {
   ActiveViewInj,
+  IsKanbanInj,
   IsLockedInj,
   IsPublicInj,
   MetaInj,
-  ReloadViewDataHookInj,
   computed,
   inject,
+  provide,
   ref,
   useKanbanViewStoreOrThrow,
   useMenuCloseOnEsc,
   useUndoRedo,
-  useViewColumns,
+  useViewColumnsOrThrow,
   watch,
 } from '#imports'
 
@@ -26,11 +27,9 @@ const activeView = inject(ActiveViewInj, ref())
 
 const IsPublic = inject(IsPublicInj, ref(false))
 
-const reloadDataHook = inject(ReloadViewDataHookInj)!
-
 const isLocked = inject(IsLockedInj, ref(false))
 
-const { fields, loadViewColumns, metaColumnById } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
+const { fields, loadViewColumns, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
 
 const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField, groupingFieldColumn } =
   useKanbanViewStoreOrThrow()

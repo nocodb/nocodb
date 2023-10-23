@@ -170,15 +170,12 @@ export const useViewsStore = defineStore('viewsStore', () => {
         return
       }
 
-      isViewsLoading.value = true
       isViewDataLoading.value = true
 
       try {
         await loadViews()
       } catch (e) {
         console.error(e)
-      } finally {
-        isViewsLoading.value = false
       }
     },
     { immediate: true },

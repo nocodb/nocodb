@@ -1,6 +1,6 @@
 {
   "name": "nocodb",
-  "version": "0.202.4",
+  "version": "0.202.5",
   "description": "NocoDB Backend",
   "main": "dist/bundle.js",
   "author": {
@@ -64,6 +64,7 @@
     "@nestjs/serve-static": "^4.0.0",
     "@nestjs/throttler": "^4.2.1",
     "@nestjs/websockets": "^10.2.1",
+    "@ntegral/nestjs-sentry": "^4.0.0",
     "@sentry/node": "^6.3.5",
     "@techpass/passport-openidconnect": "^0.3.3",
     "@types/chai": "^4.2.12",
@@ -130,7 +131,7 @@
     "mysql2": "^3.2.0",
     "nanoid": "^3.1.20",
     "nc-help": "0.3.1",
-    "nc-lib-gui": "0.202.4",
+    "nc-lib-gui": "0.202.5",
     "nc-plugin": "^0.1.3",
     "ncp": "^2.0.0",
     "nestjs-kafka": "^1.0.6",

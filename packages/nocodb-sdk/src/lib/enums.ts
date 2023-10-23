@@ -157,26 +157,25 @@ export enum WorkspaceStatus {
 
 export enum WorkspacePlan {
   FREE = 'free',
-  STANDARD = 'standard',
+  TEAM = 'team',
   BUSINESS = 'business',
-  BUSINESS_PRO = 'business-pro',
 }
 
 export const RoleLabels = {
-  [WorkspaceUserRoles.OWNER]: 'Owner',
-  [WorkspaceUserRoles.CREATOR]: 'Creator',
-  [WorkspaceUserRoles.EDITOR]: 'Editor',
-  [WorkspaceUserRoles.COMMENTER]: 'Commenter',
-  [WorkspaceUserRoles.VIEWER]: 'Viewer',
-  [ProjectRoles.OWNER]: 'Owner',
-  [ProjectRoles.CREATOR]: 'Creator',
-  [ProjectRoles.EDITOR]: 'Editor',
-  [ProjectRoles.COMMENTER]: 'Commenter',
-  [ProjectRoles.VIEWER]: 'Viewer',
-  [ProjectRoles.NO_ACCESS]: 'No Access',
-  [OrgUserRoles.SUPER_ADMIN]: 'Super',
-  [OrgUserRoles.CREATOR]: 'Creator',
-  [OrgUserRoles.VIEWER]: 'Viewer',
+  [WorkspaceUserRoles.OWNER]: 'owner',
+  [WorkspaceUserRoles.CREATOR]: 'creator',
+  [WorkspaceUserRoles.EDITOR]: 'editor',
+  [WorkspaceUserRoles.COMMENTER]: 'commenter',
+  [WorkspaceUserRoles.VIEWER]: 'viewer',
+  [ProjectRoles.OWNER]: 'owner',
+  [ProjectRoles.CREATOR]: 'creator',
+  [ProjectRoles.EDITOR]: 'editor',
+  [ProjectRoles.COMMENTER]: 'commenter',
+  [ProjectRoles.VIEWER]: 'viewer',
+  [ProjectRoles.NO_ACCESS]: 'noaccess',
+  [OrgUserRoles.SUPER_ADMIN]: 'superAdmin',
+  [OrgUserRoles.CREATOR]: 'creator',
+  [OrgUserRoles.VIEWER]: 'viewer',
 };
 
 export const RoleColors = {

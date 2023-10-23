@@ -28,7 +28,6 @@ import {
   provide,
   ref,
   useEventListener,
-  useGridViewColumnOrThrow,
   useI18n,
   useMultiSelect,
   useNuxtApp,
@@ -36,6 +35,7 @@ import {
   useRoute,
   useSmartsheetStoreOrThrow,
   useUndoRedo,
+  useViewColumnsOrThrow,
   useViewsStore,
   watch,
 } from '#imports'
@@ -123,8 +123,6 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
-const { isViewColumnsLoading } = useViewColumns(view, meta, () => reloadViewDataHook.trigger())
-
 const { isMobileMode } = useGlobal()
 
 const scrollParent = inject(ScrollParentInj, ref<undefined>())
@@ -140,6 +138,8 @@ const { t } = useI18n()
 const { getMeta } = useMetas()
 
 const { addUndo, clone, defineViewScope } = useUndoRedo()
+
+const { isViewColumnsLoading, updateGridViewColumn, gridViewCols, resizingColOldWith } = useViewColumnsOrThrow()
 
 const {
   predictingNextColumn,
@@ -894,8 +894,6 @@ const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?
 }
 
 // #Grid Resize
-const { updateGridViewColumn, gridViewCols, resizingColOldWith } = useGridViewColumnOrThrow()
-
 const onresize = (colID: string | undefined, event: any) => {
   if (!colID) return
   updateGridViewColumn(colID, { width: event.detail })
@@ -1211,7 +1209,7 @@ const loaderText = computed(() => {
         <div class="table-overlay" :class="{ 'nc-grid-skelton-loader': showSkeleton }">
           <table
             ref="smartTable"
-            class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
+            class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white relative"
             :class="{
               mobile: isMobileMode,
               desktop: !isMobileMode,
@@ -1554,11 +1552,15 @@ const loaderText = computed(() => {
                 @mouseup.stop
                 @click="addEmptyRow()"
               >
-                <td class="text-left pointer sticky left-0 !border-r-0">
-                  <div class="px-2 w-full flex items-center text-gray-500">
-                    <component :is="iconMap.plus" class="text-pint-500 text-base ml-2 text-gray-600 group-hover:text-black" />
-                  </div>
-                </td>
+                <div
+                  class="h-10.5 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
+                >
+                  <component
+                    :is="iconMap.plus"
+                    v-if="!isViewColumnsLoading"
+                    class="text-pint-500 text-base ml-2 mt-0 text-gray-600 group-hover:text-black"
+                  />
+                </div>
                 <td class="!border-gray-100" :colspan="visibleColLength"></td>
               </tr>
             </tbody>

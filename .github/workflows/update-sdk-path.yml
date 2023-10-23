@@ -20,9 +20,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
-        
+          fetch-depth: 0        
       - run: |
+          sed -i '/^use-node-version/d' .npmrc      
           pnpm bootstrap
 
       - name: Create Pull Request

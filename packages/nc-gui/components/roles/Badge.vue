@@ -26,11 +26,9 @@ const sizeSelect = computed(() => props.size)
 
 const roleProperties = computed(() => {
   const role = roleRef.value
-
   const color = RoleColors[role]
   const icon = RoleIcons[role]
   const label = RoleLabels[role]
-
   return {
     color,
     icon,
@@ -63,7 +61,7 @@ const roleProperties = computed(() => {
       >
         <GeneralIcon :icon="roleProperties.icon" />
         <span class="flex whitespace-nowrap">
-          {{ roleProperties.label }}
+          {{ $t(`objects.roleType.${roleProperties.label}`) }}
         </span>
         <GeneralIcon v-if="clickableRef" icon="arrowDown" />
       </div>

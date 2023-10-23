@@ -151,7 +151,8 @@ export class DataTableController {
     @Query('viewId') viewId: string,
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
-    @Body() refRowIds: string | string[] | number | number[],
+    @Body()
+    refRowIds: string | string[] | number | number[] | Record<string, any>,
   ) {
     return await this.dataTableService.nestedLink({
       modelId,
@@ -172,7 +173,8 @@ export class DataTableController {
     @Query('viewId') viewId: string,
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
-    @Body() refRowIds: string | string[] | number | number[],
+    @Body()
+    refRowIds: string | string[] | number | number[] | Record<string, any>,
   ) {
     return await this.dataTableService.nestedUnlink({
       modelId,

@@ -52,10 +52,8 @@ const onFocus = (e: FocusEvent) => {
       isFocused.value = false
     } else {
       const relatedTarget = e.relatedTarget as HTMLElement | null
-      const focusFromModal =
-        relatedTarget?.classList?.contains('ant-modal-wrap') || relatedTarget?.classList?.contains('ant-modal-wrap')
 
-      isFocused.value = !focusFromModal
+      isFocused.value = !!relatedTarget
     }
 
     isClicked.value = false

@@ -8,9 +8,9 @@ import {
   reactive,
   ref,
   useApi,
+  useI18n,
   useRoute,
   useRouter,
-  useI18n,
 } from '#imports'
 
 definePageMeta({

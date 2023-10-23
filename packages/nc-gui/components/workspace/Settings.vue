@@ -1,16 +1,24 @@
 <script lang="ts" setup>
-import { useI18n } from '#imports'
+import { ref, storeToRefs, useGlobal, useI18n, useWorkspace, watch } from '#imports'
+
 const { signOut } = useGlobal()
+
 const { t } = useI18n()
 
 const { deleteWorkspace, navigateToWorkspace, updateWorkspace } = useWorkspace()
+
 const { workspacesList, activeWorkspaceId, activeWorkspace, workspaces } = storeToRefs(useWorkspace())
 
 const formValidator = ref()
+
 const isConfirmed = ref(false)
+
 const isDeleting = ref(false)
+
 const isErrored = ref(false)
+
 const isTitleUpdating = ref(false)
+
 const isCancelButtonVisible = ref(false)
 
 const form = ref({
@@ -108,7 +116,7 @@ const onCancel = () => {
     <div class="item flex flex-col w-full">
       <div class="font-medium text-base">{{ $t('labels.changeWsName') }}</div>
       <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="titleChange">
-        <div class="text-gray-500 mt-6 mb-1.5">{{ $t('objects.workspace') $t('general.name')}}</div>
+        <div class="text-gray-500 mt-6 mb-1.5">{{ `${t('objects.workspace')} ${t('general.name')}` }}</div>
         <a-form-item name="title" :rules="formRules.title">
           <a-input
             v-model:value="form.title"

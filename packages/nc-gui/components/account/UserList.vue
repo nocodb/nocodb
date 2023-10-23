@@ -15,6 +15,8 @@ const { t } = useI18n()
 
 const { dashboardUrl } = useDashboard()
 
+const { user: loggedInUser } = useGlobal()
+
 const { copy } = useCopy()
 
 const users = ref<UserType[]>([])
@@ -269,11 +271,13 @@ const openDeleteModal = (user: UserType) => {
                           <div>{{ $t('activity.copyPasswordResetURL') }}</div>
                         </NcMenuItem>
                       </template>
-                      <NcDivider v-if="!el.roles?.includes('super')" />
-                      <NcMenuItem data-rec="true" class="!text-red-500 !hover:bg-red-50" @click="openDeleteModal(el)">
-                        <MaterialSymbolsDeleteOutlineRounded />
-                        {{ $t('general.remove') }} {{ $t('objects.user') }}
-                      </NcMenuItem>
+                      <template v-if="el.id !== loggedInUser?.id">
+                        <NcDivider v-if="!el.roles?.includes('super')" />
+                        <NcMenuItem data-rec="true" class="!text-red-500 !hover:bg-red-50" @click="openDeleteModal(el)">
+                          <MaterialSymbolsDeleteOutlineRounded />
+                          {{ $t('general.remove') }} {{ $t('objects.user') }}
+                        </NcMenuItem>
+                      </template>
                     </NcMenu>
                   </template>
                 </NcDropdown>

@@ -24,7 +24,7 @@ const indicator = h(LoadingOutlined, {
     </div>
 
     <Suspense v-else>
-      <LazyErdView :table="activeTable" :source-id="activeTable?.source_id" :show-all-columns="false" />
+      <LazyErdView :table="activeTable" :source-id="activeTable?.source_id" show-all-columns />
       <template #fallback>
         <div class="h-full w-full flex flex-col justify-center items-center mt-28">
           <a-spin size="large" :indicator="indicator" />

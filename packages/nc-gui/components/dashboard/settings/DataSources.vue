@@ -554,7 +554,7 @@ const isEditBaseModalOpen = computed({
       />
       <GeneralModal v-model:visible="isErdModalOpen" size="large">
         <div class="h-[80vh]">
-          <LazyDashboardSettingsErd :source-id="activeBaseId" />
+          <LazyDashboardSettingsErd :source-id="activeBaseId" :show-all-columns="false" />
         </div>
       </GeneralModal>
       <GeneralModal v-model:visible="isMetaDataModal" size="medium">

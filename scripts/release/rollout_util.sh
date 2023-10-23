@@ -101,4 +101,5 @@ function perform_rollout(){
     ALL_SVS=$( aws ecs list-services --cluster ${CLUSTER}  --region=us-east-2  | jq -r '.serviceArns[] | split("/") | .[2]')
     update_workspace 
     check_status_all_workspaces 
+    message "${ENVIRONMENT}: deployment script executed successfully."
 }

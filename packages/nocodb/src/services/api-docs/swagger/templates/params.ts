@@ -197,6 +197,10 @@ export const getNestedParams = async (
 ): Promise<any[]> => {
   return await columns.reduce(async (paramsArr, { column }) => {
     if (column.uidt === UITypes.LinkToAnotherRecord) {
+      // exclude system columns(relations to junction table)
+      if (column.system) {
+        return paramsArr;
+      }
       const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>();
       if (colOpt.type !== RelationTypes.BELONGS_TO) {
         return [

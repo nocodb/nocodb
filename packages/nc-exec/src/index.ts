@@ -11,14 +11,11 @@ app.post('/query', async (req, res) => {
   const { query, config, raw = false } = req.body;
 
   config.pool = {
-    min: 3,
-    max: 10,
+    min: 2,
+    max: 5,
   }
 
   const connectionKey = hash(config);
-
-  // console.log(query);
-  // console.log('----------------');
 
   if (!connectionPools[connectionKey]) {
     connectionPools[connectionKey] = knex(config);
@@ -38,7 +35,10 @@ app.post('/query', async (req, res) => {
             : await connectionPools[connectionKey].raw(query);
     }
   } catch (e) {
+    console.log('\nQuery failed with error:');
+    console.log(query);
     console.log(e);
+    console.log('\n');
   }
   res.send(result);
 });

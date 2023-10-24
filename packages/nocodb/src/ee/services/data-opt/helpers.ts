@@ -729,13 +729,15 @@ export async function singleQueryRead(ctx: {
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {
-      const res = await baseModel.execAndParseFirst(
+      const res = await baseModel.execAndParse(
         knex
           .raw(
             cachedQuery,
             ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
           )
           .toQuery(),
+        null,
+        { skipDateConversion: true, first: true },
       );
 
       return res;
@@ -850,13 +852,15 @@ export async function singleQueryRead(ctx: {
 
   // const res = await finalQb;
 
-  const res = await baseModel.execAndParseFirst(
+  const res = await baseModel.execAndParse(
     knex
       .raw(
         query,
         ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
       )
       .toQuery(),
+    null,
+    { skipDateConversion: true, first: true },
   );
 
   return res;
@@ -913,6 +917,8 @@ export async function singleQueryList(ctx: {
       const startTime = process.hrtime();
       const res = await baseModel.execAndParse(
         knex.raw(cachedQuery, [+listArgs.limit, +listArgs.offset]).toQuery(),
+        null,
+        { skipDateConversion: true },
       );
       dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
 
@@ -1034,7 +1040,9 @@ export async function singleQueryList(ctx: {
   let res: any;
   if (skipCache) {
     const startTime = process.hrtime();
-    res = await baseModel.execAndParse(finalQb);
+    res = await baseModel.execAndParse(finalQb, null, {
+      skipDateConversion: true,
+    });
     dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   } else {
     const { sql, bindings } = finalQb.toSQL();
@@ -1061,6 +1069,8 @@ export async function singleQueryList(ctx: {
     // run the query with actual limit and offset
     res = await baseModel.execAndParse(
       knex.raw(query, [+listArgs.limit, +listArgs.offset]).toQuery(),
+      null,
+      { skipDateConversion: true },
     );
     dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   }

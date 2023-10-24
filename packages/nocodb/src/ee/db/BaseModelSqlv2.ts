@@ -100,7 +100,27 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   public async execAndParse(
     qb: Knex.QueryBuilder | string,
     childTable?: Model,
+    options: {
+      skipDateConversion?: boolean;
+      skipAttachmentConversion?: boolean;
+      raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
+      first?: boolean;
+    } = {
+      skipDateConversion: false,
+      skipAttachmentConversion: false,
+      raw: false,
+      first: false,
+    },
   ) {
+    if (options.raw) {
+      options.skipDateConversion = true;
+      options.skipAttachmentConversion = true;
+    }
+
+    if (options.first && typeof qb !== 'string') {
+      qb = qb.limit(1);
+    }
+
     let query = typeof qb === 'string' ? qb : qb.toQuery();
     if (!this.isPg && !this.isMssql && !this.isSnowflake) {
       query = unsanitize(query);
@@ -127,58 +147,20 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
 
     // update attachment fields
-    data = await this.convertAttachmentType(data, childTable);
+    if (!options.skipAttachmentConversion) {
+      data = await this.convertAttachmentType(data, childTable);
+    }
 
     // update date time fields
-    data = this.convertDateFormat(data, childTable);
-
-    return data;
-  }
-
-  public async execAndParseFirst(
-    qb: Knex.QueryBuilder | string,
-    childTable?: Model,
-  ) {
-    if (typeof qb !== 'string') {
-      qb = qb.limit(1);
-    }
-    return (await this.execAndParse(qb, childTable))?.[0];
-  }
-
-  public async execRaw(qb: Knex.QueryBuilder | string) {
-    let query = typeof qb === 'string' ? qb : qb.toQuery();
-    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
-      query = unsanitize(query);
-    } else {
-      query = sanitize(query);
+    if (!options.skipDateConversion) {
+      data = this.convertDateFormat(data, childTable);
     }
 
-    let data;
-
-    if ((this.dbDriver as any).isExternal) {
-      data = await runExternal(
-        this.dbDriver.raw(query).toQuery(),
-        (this.dbDriver as any).extDb,
-      );
-    } else {
-      data =
-        this.isPg || this.isSnowflake
-          ? (await this.dbDriver.raw(query))?.rows
-          : query.slice(0, 6) === 'select' && !this.isMssql
-          ? await this.dbDriver.from(
-              this.dbDriver.raw(query).wrap('(', ') __nc_alias'),
-            )
-          : await this.dbDriver.raw(query);
+    if (options.first) {
+      return data?.[0];
     }
 
     return data;
-  }
-
-  public async execRawFirst(qb: Knex.QueryBuilder | string) {
-    if (typeof qb !== 'string') {
-      qb = qb.limit(1);
-    }
-    return (await this.execRaw(qb))?.[0];
   }
 
   async insert(data, trx?, cookie?, disableOptimization = false) {
@@ -981,10 +963,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
+      // we have extra queries other than insert if foreign_key_checks is false to disable foreign key checks
+      // we need to trim the leading and trailing extra queries
       if (trimLeading) {
         responses = responses.slice(trimLeading);
       }
-
       if (trimTrailing) {
         responses = responses.slice(0, -trimTrailing);
       }

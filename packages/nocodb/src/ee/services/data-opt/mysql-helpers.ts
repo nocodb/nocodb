@@ -754,7 +754,7 @@ export async function singleQueryRead(ctx: {
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {
-      const res = await baseModel.execAndParseFirst(
+      const res = await baseModel.execAndParse(
         knex
           .raw(
             cachedQuery,
@@ -763,6 +763,8 @@ export async function singleQueryRead(ctx: {
             ),
           )
           .toQuery(),
+        null,
+        { first: true },
       );
       return res;
     }
@@ -876,13 +878,15 @@ export async function singleQueryRead(ctx: {
 
   // const res = await finalQb;
 
-  const res = await baseModel.execAndParseFirst(
+  const res = await baseModel.execAndParse(
     knex
       .raw(
         query,
         ctx.model.primaryKeys.map((pkCol) => pkCondition[pkCol.column_name]),
       )
       .toQuery(),
+    null,
+    { first: true },
   );
 
   return res;

@@ -166,7 +166,7 @@ class BaseModelSqlv2 {
     let data;
 
     try {
-      data = await this.execAndParseFirst(qb);
+      data = await this.execAndParse(qb, null, { first: true });
     } catch (e) {
       if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
         throw e;
@@ -195,7 +195,7 @@ class BaseModelSqlv2 {
       return false;
     }
     qb.where(_wherePk(pks, id)).first();
-    return !!(await this.execRawFirst(qb));
+    return !!(await this.execAndParse(qb, null, { raw: true, first: true }));
   }
 
   // todo: add support for sortArrJson
@@ -241,7 +241,7 @@ class BaseModelSqlv2 {
     let data;
 
     try {
-      data = await this.execAndParseFirst(qb);
+      data = await this.execAndParse(qb, null, { first: true });
     } catch (e) {
       if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
         throw e;
@@ -453,7 +453,8 @@ class BaseModelSqlv2 {
       sql = unsanitize(qb.toQuery());
     }
 
-    return (await this.execRawFirst(sql))?.count;
+    return (await this.execAndParse(sql, null, { raw: true, first: true }))
+      ?.count;
   }
 
   async groupByAndAggregate(
@@ -817,7 +818,8 @@ class BaseModelSqlv2 {
       .count('*', { as: 'count' })
       .from(qb.as('groupby'));
 
-    return (await this.execRawFirst(qbP))?.count;
+    return (await this.execAndParse(qbP, null, { raw: true, first: true }))
+      ?.count;
   }
 
   async multipleHmList(
@@ -945,7 +947,7 @@ class BaseModelSqlv2 {
       const childTn = this.getTnPath(childTable);
       const parentTn = this.getTnPath(parentTable);
 
-      const children = await this.execRaw(
+      const children = await this.execAndParse(
         this.dbDriver.unionAll(
           ids.map((p) => {
             const query = this.dbDriver(childTn)
@@ -963,6 +965,8 @@ class BaseModelSqlv2 {
           }),
           !this.isSqlite,
         ),
+        null,
+        { raw: true },
       );
 
       return children.map(({ count }) => count);
@@ -1069,7 +1073,8 @@ class BaseModelSqlv2 {
 
       await conditionV2(this, filterObj, query);
 
-      return (await this.execRawFirst(query))?.count;
+      return (await this.execAndParse(query, null, { raw: true, first: true }))
+        ?.count;
     } catch (e) {
       console.log(e);
       throw e;
@@ -1249,7 +1254,7 @@ class BaseModelSqlv2 {
       .count(`${vtn}.${vcn}`, { as: 'count' });
 
     // await childModel.selectObject({ qb });
-    const children = await this.execRaw(
+    const children = await this.execAndParse(
       this.dbDriver.unionAll(
         parentIds.map((id) => {
           const query = qb
@@ -1267,6 +1272,8 @@ class BaseModelSqlv2 {
         }),
         !this.isSqlite,
       ),
+      null,
+      { raw: true },
     );
 
     const gs = groupBy(children, GROUP_COL);
@@ -1314,7 +1321,8 @@ class BaseModelSqlv2 {
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await conditionV2(this, filterObj, qb);
-    return (await this.execRawFirst(qb))?.count;
+    return (await this.execAndParse(qb, null, { raw: true, first: true }))
+      ?.count;
   }
 
   // todo: naming & optimizing
@@ -1365,7 +1373,8 @@ class BaseModelSqlv2 {
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await conditionV2(this, filterObj, qb);
-    return (await this.execRawFirst(qb))?.count;
+    return (await this.execAndParse(qb, null, { raw: true, first: true }))
+      ?.count;
   }
 
   // todo: naming & optimizing
@@ -1488,7 +1497,8 @@ class BaseModelSqlv2 {
 
     await conditionV2(this, filterObj, qb);
 
-    return (await this.execRawFirst(qb))?.count;
+    return (await this.execAndParse(qb, null, { raw: true, first: true }))
+      ?.count;
   }
 
   // todo: naming & optimizing
@@ -1603,7 +1613,8 @@ class BaseModelSqlv2 {
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await conditionV2(this, filterObj, qb);
-    return (await this.execRawFirst(qb))?.count;
+    return (await this.execAndParse(qb, null, { raw: true, first: true }))
+      ?.count;
   }
 
   // todo: naming & optimizing
@@ -2239,18 +2250,22 @@ class BaseModelSqlv2 {
           if (this.isSqlite) {
             // sqlite doesnt return id after insert
             id = (
-              await this.execRaw(
+              await this.execAndParse(
                 this.dbDriver(this.tnPath)
                   .select(ai.column_name)
                   .max(ai.column_name, { as: 'id' }),
+                null,
+                { raw: true },
               )
             )[0].id;
           } else if (this.isSnowflake) {
             id = (
-              await this.execRawFirst(
+              await this.execAndParse(
                 this.dbDriver(this.tnPath).max(ai.column_name, {
                   as: 'id',
                 }),
+                null,
+                { raw: true, first: true },
               )
             ).id;
           }
@@ -2386,17 +2401,19 @@ class BaseModelSqlv2 {
       let cnt = 0;
       if (colOptions.type === RelationTypes.HAS_MANY) {
         cnt = +(
-          await this.execRawFirst(
+          await this.execAndParse(
             this.dbDriver(this.getTnPath(childModel.table_name))
               .count(childColumn.column_name, { as: 'cnt' })
               .where(childColumn.column_name, rowId),
+            null,
+            { raw: true, first: true },
           )
         ).cnt;
       } else if (colOptions.type === RelationTypes.MANY_TO_MANY) {
         const mmModel = await colOptions.getMMModel();
         const mmChildColumn = await colOptions.getMMChildColumn();
         cnt = +(
-          await this.execAndParseFirst(
+          await this.execAndParse(
             this.dbDriver(this.getTnPath(mmModel.table_name))
               .where(
                 `${this.getTnPath(mmModel.table_name)}.${
@@ -2405,6 +2422,8 @@ class BaseModelSqlv2 {
                 rowId,
               )
               .count(mmChildColumn.column_name, { as: 'cnt' }),
+            null,
+            { first: true },
           )
         ).cnt;
       }
@@ -2571,7 +2590,7 @@ class BaseModelSqlv2 {
                 await childModel.getColumns();
 
                 postInsertOps.push(async () => {
-                  await this.execRaw(
+                  await this.execAndParse(
                     this.dbDriver(this.getTnPath(childModel.table_name))
                       .update({
                         [childCol.column_name]: rowId,
@@ -2580,6 +2599,8 @@ class BaseModelSqlv2 {
                         childModel.primaryKey.column_name,
                         nestedData?.map((r) => r[childModel.primaryKey.title]),
                       ),
+                    null,
+                    { raw: true },
                   );
                 });
               }
@@ -2598,10 +2619,12 @@ class BaseModelSqlv2 {
                   [parentMMCol.column_name]: r[parentModel.primaryKey.title],
                   [childMMCol.column_name]: rowId,
                 }));
-                await this.execRaw(
+                await this.execAndParse(
                   this.dbDriver(this.getTnPath(mmModel.table_name)).insert(
                     rows,
                   ),
+                  null,
+                  { raw: true },
                 );
               });
             }
@@ -2632,25 +2655,29 @@ class BaseModelSqlv2 {
         if (response?.length) {
           id = response[0];
         } else {
-          id = await this.execRawFirst(query);
+          id = await this.execAndParse(query, null, { raw: true, first: true });
         }
 
         if (ai) {
           if (this.isSqlite) {
             // sqlite doesnt return id after insert
             id = (
-              await this.execRawFirst(
+              await this.execAndParse(
                 this.dbDriver(this.tnPath)
                   .select(ai.column_name)
                   .max(ai.column_name, { as: 'id' }),
+                null,
+                { raw: true, first: true },
               )
             ).id;
           } else if (this.isSnowflake) {
             id = (
-              await this.execRawFirst(
+              await this.execAndParse(
                 this.dbDriver(this.tnPath).max(ai.column_name, {
                   as: 'id',
                 }),
+                null,
+                { raw: true, first: true },
               )
             ).id;
           }
@@ -3060,11 +3087,16 @@ class BaseModelSqlv2 {
 
         await conditionV2(this, conditionObj, qb);
 
-        count = (await this.execRawFirst(qb.clone().count()))?.count;
+        count = (
+          await this.execAndParse(qb.clone().count(), null, {
+            raw: true,
+            first: true,
+          })
+        )?.count;
 
         qb.update(updateData);
 
-        await this.execRaw(qb);
+        await this.execAndParse(qb, null, { raw: true });
       }
 
       await this.afterBulkUpdate(null, count, this.dbDriver, cookie, true);
@@ -3645,14 +3677,16 @@ class BaseModelSqlv2 {
               .where(_wherePk(childTable.primaryKeys, rowId))
               .first();
 
-            await this.execRaw(
+            await this.execAndParse(
               this.dbDriver.raw(
                 `INSERT INTO ?? (??, ??) SELECT (${parentPK.toQuery()}), (${childPK.toQuery()})`,
                 [vTn, vParentCol.column_name, vChildCol.column_name],
               ) as any,
+              null,
+              { raw: true },
             );
           } else {
-            await this.execRaw(
+            await this.execAndParse(
               this.dbDriver(vTn).insert({
                 [vParentCol.column_name]: this.dbDriver(parentTn)
                   .select(parentColumn.column_name)
@@ -3663,13 +3697,15 @@ class BaseModelSqlv2 {
                   .where(_wherePk(childTable.primaryKeys, rowId))
                   .first(),
               }),
+              null,
+              { raw: true },
             );
           }
         }
         break;
       case RelationTypes.HAS_MANY:
         {
-          await this.execRaw(
+          await this.execAndParse(
             this.dbDriver(childTn)
               .update({
                 [childColumn.column_name]: this.dbDriver.from(
@@ -3681,12 +3717,14 @@ class BaseModelSqlv2 {
                 ),
               })
               .where(_wherePk(childTable.primaryKeys, childId)),
+            null,
+            { raw: true },
           );
         }
         break;
       case RelationTypes.BELONGS_TO:
         {
-          await this.execRaw(
+          await this.execAndParse(
             this.dbDriver(childTn)
               .update({
                 [childColumn.column_name]: this.dbDriver.from(
@@ -3698,6 +3736,8 @@ class BaseModelSqlv2 {
                 ),
               })
               .where(_wherePk(childTable.primaryKeys, rowId)),
+            null,
+            { raw: true },
           );
         }
         break;
@@ -3776,7 +3816,7 @@ class BaseModelSqlv2 {
 
           const vTn = this.getTnPath(vTable);
 
-          await this.execRaw(
+          await this.execAndParse(
             this.dbDriver(vTn)
               .where({
                 [vParentCol.column_name]: this.dbDriver(parentTn)
@@ -3789,12 +3829,14 @@ class BaseModelSqlv2 {
                   .first(),
               })
               .delete(),
+            null,
+            { raw: true },
           );
         }
         break;
       case RelationTypes.HAS_MANY:
         {
-          await this.execRaw(
+          await this.execAndParse(
             this.dbDriver(childTn)
               // .where({
               //   [childColumn.cn]: this.dbDriver(parentTable.tn)
@@ -3804,12 +3846,14 @@ class BaseModelSqlv2 {
               // })
               .where(_wherePk(childTable.primaryKeys, childId))
               .update({ [childColumn.column_name]: null }),
+            null,
+            { raw: true },
           );
         }
         break;
       case RelationTypes.BELONGS_TO:
         {
-          await this.execRaw(
+          await this.execAndParse(
             this.dbDriver(childTn)
               // .where({
               //   [childColumn.cn]: this.dbDriver(parentTable.tn)
@@ -3819,6 +3863,8 @@ class BaseModelSqlv2 {
               // })
               .where(_wherePk(childTable.primaryKeys, rowId))
               .update({ [childColumn.column_name]: null }),
+            null,
+            { raw: true },
           );
         }
         break;
@@ -3886,8 +3932,10 @@ class BaseModelSqlv2 {
       } else {
         groupingValues = new Set(
           (
-            await this.execRaw(
+            await this.execAndParse(
               this.dbDriver(this.tnPath).select(column.column_name).distinct(),
+              null,
+              { raw: true },
             )
           ).map((row) => row[column.column_name]),
         );
@@ -4090,10 +4138,33 @@ class BaseModelSqlv2 {
     return await this.execAndParse(qb);
   }
 
-  public async execAndParse(qb: Knex.QueryBuilder, childTable?: Model) {
-    let query = qb.toQuery();
+  public async execAndParse(
+    qb: Knex.QueryBuilder | string,
+    childTable?: Model,
+    options: {
+      skipDateConversion?: boolean;
+      skipAttachmentConversion?: boolean;
+      raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
+      first?: boolean;
+    } = {
+      skipDateConversion: false,
+      skipAttachmentConversion: false,
+      raw: false,
+      first: false,
+    },
+  ) {
+    if (options.raw) {
+      options.skipDateConversion = true;
+      options.skipAttachmentConversion = true;
+    }
+
+    if (options.first && typeof qb !== 'string') {
+      qb = qb.limit(1);
+    }
+
+    let query = typeof qb === 'string' ? qb : qb.toQuery();
     if (!this.isPg && !this.isMssql && !this.isSnowflake) {
-      query = unsanitize(qb.toQuery());
+      query = unsanitize(query);
     } else {
       query = sanitize(query);
     }
@@ -4108,42 +4179,20 @@ class BaseModelSqlv2 {
         : await this.dbDriver.raw(query);
 
     // update attachment fields
-    data = await this.convertAttachmentType(data, childTable);
-
-    // update date time fields
-    data = this.convertDateFormat(data, childTable);
-
-    return data;
-  }
-
-  public async execAndParseFirst(qb: Knex.QueryBuilder, childTable?: Model) {
-    qb = qb.limit(1);
-    return (await this.execAndParse(qb, childTable))?.[0];
-  }
-
-  public async execRaw(qb: Knex.QueryBuilder) {
-    let query = qb.toQuery();
-    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
-      query = unsanitize(qb.toQuery());
-    } else {
-      query = sanitize(query);
+    if (!options.skipAttachmentConversion) {
+      data = await this.convertAttachmentType(data, childTable);
     }
 
-    const data =
-      this.isPg || this.isSnowflake
-        ? (await this.dbDriver.raw(query))?.rows
-        : query.slice(0, 6) === 'select' && !this.isMssql
-        ? await this.dbDriver.from(
-            this.dbDriver.raw(query).wrap('(', ') __nc_alias'),
-          )
-        : await this.dbDriver.raw(query);
+    // update date time fields
+    if (!options.skipDateConversion) {
+      data = this.convertDateFormat(data, childTable);
+    }
+
+    if (options.first) {
+      return data?.[0];
+    }
 
     return data;
-  }
-
-  public async execRawFirst(qb: Knex.QueryBuilder) {
-    qb = qb.limit(1);
-    return (await this.execRaw(qb))?.[0];
   }
 
   protected async _convertAttachmentType(
@@ -4426,8 +4475,10 @@ class BaseModelSqlv2 {
     if (!column || !isLinksOrLTAR(column))
       NcError.notFound(`Link column ${colId} not found`);
 
-    const row = await this.execRawFirst(
+    const row = await this.execAndParse(
       this.dbDriver(this.tnPath).where(await this._wherePk(rowId)),
+      null,
+      { raw: true, first: true },
     );
 
     // validate rowId
@@ -4525,7 +4576,9 @@ class BaseModelSqlv2 {
           }
 
           // todo: use bulk insert
-          await this.execRaw(this.dbDriver(vTn).insert(insertData));
+          await this.execAndParse(this.dbDriver(vTn).insert(insertData), null, {
+            raw: true,
+          });
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -4595,7 +4648,7 @@ class BaseModelSqlv2 {
                 : childIds,
             );
           }
-          await this.execRaw(updateQb);
+          await this.execAndParse(updateQb, null, { raw: true });
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -4616,7 +4669,7 @@ class BaseModelSqlv2 {
             }
           }
 
-          await this.execRaw(
+          await this.execAndParse(
             this.dbDriver(childTn)
               .update({
                 [childColumn.column_name]: this.dbDriver.from(
@@ -4629,6 +4682,8 @@ class BaseModelSqlv2 {
                 ),
               })
               .where(_wherePk(childTable.primaryKeys, rowId)),
+            null,
+            { raw: true },
           );
         }
         break;
@@ -4656,8 +4711,10 @@ class BaseModelSqlv2 {
     if (!column || !isLinksOrLTAR(column))
       NcError.notFound(`Link column ${colId} not found`);
 
-    const row = await this.execRawFirst(
+    const row = await this.execAndParse(
       this.dbDriver(this.tnPath).where(await this._wherePk(rowId)),
+      null,
+      { raw: true, first: true },
     );
 
     // validate rowId
@@ -4751,7 +4808,7 @@ class BaseModelSqlv2 {
                 )
               : childIds,
           );
-          await this.execRaw(delQb);
+          await this.execAndParse(delQb, null, { raw: true });
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -4797,8 +4854,10 @@ class BaseModelSqlv2 {
             );
           }
 
-          await this.execRaw(
+          await this.execAndParse(
             childRowsQb.update({ [childColumn.column_name]: null }),
+            null,
+            { raw: true },
           );
         }
         break;
@@ -4825,7 +4884,7 @@ class BaseModelSqlv2 {
             }
           }
 
-          await this.execRaw(
+          await this.execAndParse(
             this.dbDriver(childTn)
               // .where({
               //   [childColumn.cn]: this.dbDriver(parentTable.tn)
@@ -4836,6 +4895,8 @@ class BaseModelSqlv2 {
               // .where(_wherePk(childTable.primaryKeys, rowId))
               .where(childTable.primaryKey.column_name, rowId)
               .update({ [childColumn.column_name]: null }),
+            null,
+            { raw: true },
           );
         }
         break;
@@ -4858,8 +4919,10 @@ class BaseModelSqlv2 {
         (c) => c.id === colId,
       );
 
-      const row = await this.execRawFirst(
+      const row = await this.execAndParse(
         this.dbDriver(this.tnPath).where(await this._wherePk(id)),
+        null,
+        { raw: true, first: true },
       );
 
       // validate rowId
@@ -4898,7 +4961,9 @@ class BaseModelSqlv2 {
 
       await parentModel.selectObject({ qb, fieldsSet: args.fieldSet });
 
-      const parent = await this.execAndParseFirst(qb, childTable);
+      const parent = await this.execAndParse(qb, childTable, {
+        first: true,
+      });
 
       const proto = await parentModel.getProto();
 

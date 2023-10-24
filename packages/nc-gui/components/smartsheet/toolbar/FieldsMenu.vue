@@ -374,7 +374,12 @@ useMenuCloseOnEsc(open)
                   >
                     <div class="flex items-center -ml-0.75">
                       <component :is="getIcon(metaColumnById[field.fk_column_id])" />
-                      <span class="mt-0.65">{{ field.title }}</span>
+                      <NcTooltip :disabled="field.title.length < 30">
+                        <template #title>
+                          {{ field.title }}
+                        </template>
+                        <span class="mx-0.65 break-all line-clamp-1">{{ field.title }}</span>
+                      </NcTooltip>
                     </div>
 
                     <NcSwitch v-e="['a:fields:show-hide']" :checked="field.show" :disabled="field.isViewEssentialField" />

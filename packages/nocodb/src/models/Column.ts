@@ -27,7 +27,7 @@ import {
   MetaTable,
 } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
-import { stringifyMetaProp } from '~/utils/modelUtils';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 const selectColors = [
   '#cfdffe',
@@ -496,13 +496,7 @@ export default class Column<T = any> implements ColumnType {
       });
 
       columnsList.forEach((column) => {
-        if (column.meta && typeof column.meta === 'string') {
-          try {
-            column.meta = JSON.parse(column.meta);
-          } catch {
-            column.meta = {};
-          }
-        }
+        column.meta = parseMetaProp(column);
       });
 
       await NocoCache.setList(CacheScope.COLUMN, [fk_model_id], columnsList);
@@ -1277,7 +1271,7 @@ export default class Column<T = any> implements ColumnType {
       null,
       MetaTable.COLUMNS,
       {
-        meta: stringifyMetaProp(meta),
+        meta: stringifyMetaProp({ meta }),
       },
       colId,
     );

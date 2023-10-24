@@ -3198,7 +3198,7 @@ class BaseModelSqlv2 {
         ],
         qb,
         undefined,
-        true
+        true,
       );
       const execQueries: ((trx: Knex.Transaction, qb: any) => Promise<any>)[] =
         [];
@@ -4851,6 +4851,7 @@ class BaseModelSqlv2 {
 export function extractSortsObject(
   _sorts: string | string[],
   aliasColObjMap: { [columnAlias: string]: Column },
+  throwErrorIfInvalid = false,
 ): Sort[] {
   if (!_sorts?.length) return;
 
@@ -4866,6 +4867,11 @@ export function extractSortsObject(
     }
     // replace + at the beginning if present
     else sort.fk_column_id = aliasColObjMap[s.replace(/^\+/, '')]?.id;
+
+    if (throwErrorIfInvalid && !sort.fk_column_id)
+      NcError.unprocessableEntity(
+        `Invalid column '${s.replace(/^[+-]/, '')}' in sort`,
+      );
 
     return new Sort(sort);
   });

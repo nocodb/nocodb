@@ -1,6 +1,46 @@
 import express from 'express';
 import knex, { Knex } from 'knex';
 import hash from 'object-hash';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc.js';
+import timezone from 'dayjs/plugin/timezone';
+import { defaults, types } from 'pg';
+
+dayjs.extend(utc);
+
+dayjs.extend(timezone);
+
+// refer : https://github.com/brianc/node-pg-types/blob/master/lib/builtins.js
+const pgTypes = {
+  FLOAT4: 700,
+  FLOAT8: 701,
+  DATE: 1082,
+  TIMESTAMP: 1114,
+  TIMESTAMPTZ: 1184,
+  NUMERIC: 1700,
+};
+
+// override parsing date column to Date()
+types.setTypeParser(pgTypes.DATE, (val) => val);
+// override timestamp
+types.setTypeParser(pgTypes.TIMESTAMP, (val) => {
+  return dayjs.utc(val).format('YYYY-MM-DD HH:mm:ssZ');
+});
+// override timestampz
+types.setTypeParser(pgTypes.TIMESTAMPTZ, (val) => {
+  return dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+});
+
+const parseFloatVal = (val: string) => {
+  return parseFloat(val);
+};
+
+// parse integer values
+defaults.parseInt8 = true;
+
+// parse float values
+types.setTypeParser(pgTypes.FLOAT8, parseFloatVal);
+types.setTypeParser(pgTypes.NUMERIC, parseFloatVal);
 
 const app = express();
 const connectionPools: { [key: string]: Knex; } = {};

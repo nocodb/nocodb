@@ -1,4 +1,4 @@
-const config = {
+export const defaultLimitConfig = {
   limitDefault: Math.max(+process.env.DB_QUERY_LIMIT_DEFAULT || 25, 1),
   limitMin: Math.max(+process.env.DB_QUERY_LIMIT_MIN || 1, 1),
   limitMax: Math.max(+process.env.DB_QUERY_LIMIT_MAX || 1000, 1),
@@ -25,10 +25,10 @@ export function extractLimitAndOffset(
     Math.min(
       limit && limit > 0 && Number.isInteger(limit)
         ? limit
-        : config.limitDefault,
-      config.limitMax,
+        : defaultLimitConfig.limitDefault,
+      defaultLimitConfig.limitMax,
     ),
-    config.limitMin,
+    defaultLimitConfig.limitMin,
   );
 
   // skip any invalid offset, ignore negative and non-integer values

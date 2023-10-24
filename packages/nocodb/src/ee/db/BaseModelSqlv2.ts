@@ -13,6 +13,8 @@ import {
   populatePk,
 } from 'src/db/BaseModelSqlv2';
 import DOMPurify from 'isomorphic-dompurify';
+import axios from 'axios';
+import type { Knex } from 'knex';
 import type { Column, Model } from '~/models';
 import { Audit, ModelStat, Source } from '~/models';
 import { getSingleQueryReadFn } from '~/services/data-opt/helpers';
@@ -26,6 +28,15 @@ import Noco from '~/Noco';
 import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
 import { NcError } from '~/helpers/catchError';
+import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
+
+async function runExternal(query: string, config: any) {
+  const { data } = await axios.post(`http://localhost:9000/query`, {
+    query,
+    config,
+  });
+  return data;
+}
 
 /**
  * Base class for models
@@ -70,6 +81,90 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     } else {
       return `${tn}${alias ? ` as ${alias}` : ``}`;
     }
+  }
+
+  public async execAndParse(
+    qb: Knex.QueryBuilder | string,
+    childTable?: Model,
+  ) {
+    let query = typeof qb === 'string' ? qb : qb.toQuery();
+    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
+      query = unsanitize(query);
+    } else {
+      query = sanitize(query);
+    }
+
+    let data;
+
+    if ((this.dbDriver as any).isExternal) {
+      data = await runExternal(
+        this.dbDriver.raw(query).toQuery(),
+        (this.dbDriver as any).extDb,
+      );
+    } else {
+      data =
+        this.isPg || this.isSnowflake
+          ? (await this.dbDriver.raw(query))?.rows
+          : query.slice(0, 6) === 'select' && !this.isMssql
+          ? await this.dbDriver.from(
+              this.dbDriver.raw(query).wrap('(', ') __nc_alias'),
+            )
+          : await this.dbDriver.raw(query);
+    }
+
+    // update attachment fields
+    data = await this.convertAttachmentType(data, childTable);
+
+    // update date time fields
+    data = this.convertDateFormat(data, childTable);
+
+    return data;
+  }
+
+  public async execAndParseFirst(
+    qb: Knex.QueryBuilder | string,
+    childTable?: Model,
+  ) {
+    if (typeof qb !== 'string') {
+      qb = qb.limit(1);
+    }
+    return (await this.execAndParse(qb, childTable))?.[0];
+  }
+
+  public async execRaw(qb: Knex.QueryBuilder | string) {
+    let query = typeof qb === 'string' ? qb : qb.toQuery();
+    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
+      query = unsanitize(query);
+    } else {
+      query = sanitize(query);
+    }
+
+    let data;
+
+    if ((this.dbDriver as any).isExternal) {
+      data = await runExternal(
+        this.dbDriver.raw(query).toQuery(),
+        (this.dbDriver as any).extDb,
+      );
+    } else {
+      data =
+        this.isPg || this.isSnowflake
+          ? (await this.dbDriver.raw(query))?.rows
+          : query.slice(0, 6) === 'select' && !this.isMssql
+          ? await this.dbDriver.from(
+              this.dbDriver.raw(query).wrap('(', ') __nc_alias'),
+            )
+          : await this.dbDriver.raw(query);
+    }
+
+    return data;
+  }
+
+  public async execRawFirst(qb: Knex.QueryBuilder | string) {
+    if (typeof qb !== 'string') {
+      qb = qb.limit(1);
+    }
+    return (await this.execRaw(qb))?.[0];
   }
 
   async insert(data, trx?, cookie?, disableOptimization = false) {

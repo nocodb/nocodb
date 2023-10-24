@@ -491,7 +491,7 @@ export class TablesService {
         system?: boolean;
       }
     > = (
-      await sqlClient.columnList({
+      await sqlMgr.sqlOpPlus(source, 'columnList', {
         tn: tableCreatePayLoad.table_name,
         schema: source.getConfig()?.schema,
       })

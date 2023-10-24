@@ -33,6 +33,15 @@ export default class Model extends ModelCE implements TableType {
       });
     }
 
+    if (source && source.type === 'pg') {
+      return new BaseModelSqlv2({
+        dbDriver: args.dbDriver,
+        viewId: args.viewId,
+        model,
+        schema: source.getConfig()?.searchPath?.[0],
+      });
+    }
+
     return new BaseModelSqlv2({
       dbDriver: args.dbDriver,
       viewId: args.viewId,

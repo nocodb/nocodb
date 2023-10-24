@@ -1,12 +1,52 @@
 import PGClientCE from 'src/db/sql-client/lib/pg/PgClient';
 import knex from 'knex';
 import find from 'lodash/find';
+import axios from 'axios';
 import Debug from '~/db/util/Debug';
 import Result from '~/db/util/Result';
 
 const log = new Debug('PGClient');
 
+async function runExternal(query: string, config: any) {
+  const { data } = await axios.post(`http://localhost:9000/query`, {
+    query,
+    config,
+    raw: true,
+  });
+  return data;
+}
+
 class PGClient extends PGClientCE {
+  constructor(connectionConfig) {
+    super(connectionConfig);
+
+    const knexRaw = this.sqlClient.raw;
+
+    const self = this;
+
+    Object.defineProperties(this.sqlClient, {
+      raw: {
+        enumerable: true,
+        value: function (...args) {
+          const builder = knexRaw.apply(this, args);
+
+          const originalThen = builder.then;
+
+          builder.then = function (onFulfilled, onRejected) {
+            if (self.sqlClient && self.sqlClient.isExternal) {
+              return runExternal(builder.toQuery(), self.sqlClient.extDb)
+                .then(onFulfilled)
+                .catch(onRejected);
+            }
+            return originalThen.call(builder, onFulfilled, onRejected);
+          };
+
+          return builder;
+        },
+      },
+    });
+  }
+
   /**
    *
    * @param {Object} args
@@ -106,19 +146,20 @@ class PGClient extends PGClientCE {
       );
 
       if (exists.rows.length === 0) {
-        const data = await this.sqlClient.schema.createTable(
-          args.tn,
-          function (table) {
-            table.increments();
-            table.string('title').notNullable();
-            table.string('titleDown').nullable();
-            table.string('description').nullable();
-            table.integer('batch').nullable();
-            table.string('checksum').nullable();
-            table.integer('status').nullable();
-            table.dateTime('created');
-            table.timestamps();
-          },
+        const data = await this.sqlClient.raw(
+          this.sqlClient.schema
+            .createTable(args.tn, function (table) {
+              table.increments();
+              table.string('title').notNullable();
+              table.string('titleDown').nullable();
+              table.string('description').nullable();
+              table.integer('batch').nullable();
+              table.string('checksum').nullable();
+              table.integer('status').nullable();
+              table.dateTime('created');
+              table.timestamps();
+            })
+            .toQuery(),
         );
         log.debug('Table created:', `${args.tn}`, data);
       } else {
@@ -511,13 +552,17 @@ class PGClient extends PGClientCE {
       args.table = args.schema ? `${args.schema}.${args.tn}` : args.tn;
 
       // s = await this.sqlClient.schema.index(Object.keys(args.columns));
-      await this.sqlClient.schema.table(args.table, function (table) {
-        if (args.non_unique) {
-          table.index(args.columns, indexName);
-        } else {
-          table.unique(args.columns, indexName);
-        }
-      });
+      await this.sqlClient.raw(
+        this.sqlClient.schema
+          .table(args.table, function (table) {
+            if (args.non_unique) {
+              table.index(args.columns, indexName);
+            } else {
+              table.unique(args.columns, indexName);
+            }
+          })
+          .toQuery(),
+      );
 
       const upStatement =
         this.querySeparator() +
@@ -582,13 +627,17 @@ class PGClient extends PGClientCE {
       args.table = args.schema ? `${args.schema}.${args.tn}` : args.tn;
 
       // s = await this.sqlClient.schema.index(Object.keys(args.columns));
-      await this.sqlClient.schema.table(args.table, function (table) {
-        if (args.non_unique_original) {
-          table.dropIndex(args.columns, indexName);
-        } else {
-          table.dropUnique(args.columns, indexName);
-        }
-      });
+      await this.sqlClient.raw(
+        this.sqlClient.schema
+          .table(args.table, function (table) {
+            if (args.non_unique_original) {
+              table.dropIndex(args.columns, indexName);
+            } else {
+              table.dropUnique(args.columns, indexName);
+            }
+          })
+          .toQuery(),
+      );
 
       const upStatement =
         this.querySeparator() +
@@ -724,11 +773,12 @@ class PGClient extends PGClientCE {
     try {
       // const self = this;
 
-      await this.sqlClient.schema.table(
-        args.childTableWithSchema,
-        function (table) {
-          table.dropForeign(args.childColumn, foreignKeyName);
-        },
+      await this.sqlClient.raw(
+        this.sqlClient.schema
+          .table(args.childTableWithSchema, function (table) {
+            table.dropForeign(args.childColumn, foreignKeyName);
+          })
+          .toQuery(),
       );
 
       const upStatement =
@@ -741,14 +791,14 @@ class PGClient extends PGClientCE {
 
       const downStatement =
         this.querySeparator() +
-        (await this.sqlClient.schema
+        this.sqlClient.schema
           .table(args.childTableWithSchema, function (table) {
             table
               .foreign(args.childColumn, foreignKeyName)
               .references(args.parentColumn)
               .on(args.parentTableWithSchema);
           })
-          .toQuery());
+          .toQuery();
 
       result.data.object = {
         upStatement: [{ sql: upStatement }],
@@ -1434,23 +1484,25 @@ class PGClient extends PGClientCE {
       relationsList = relationsList.data.list;
 
       for (const relation of relationsList) {
-        downQuery +=
-          this.querySeparator() +
-          (await this.sqlClient.schema
-            .table(relation.tn, function (table) {
-              table = table
-                .foreign(relation.cn, null)
-                .references(relation.rcn)
-                .on(relation.rtn);
+        const query = this.sqlClient.raw(
+          this.sqlClient.schema.table(relation.tn, function (table) {
+            table = table
+              .foreign(relation.cn, null)
+              .references(relation.rcn)
+              .on(relation.rtn);
 
-              if (relation.ur) {
-                table = table.onUpdate(relation.ur);
-              }
-              if (relation.dr) {
-                table.onDelete(relation.dr);
-              }
-            })
-            .toQuery());
+            if (relation.ur) {
+              table = table.onUpdate(relation.ur);
+            }
+            if (relation.dr) {
+              table.onDelete(relation.dr);
+            }
+          }),
+        );
+
+        downQuery += this.querySeparator() + query.toQuery();
+
+        await query;
       }
 
       let indexList: any = await this.indexList(args);
@@ -1492,8 +1544,10 @@ class PGClient extends PGClientCE {
       this.emit(`Success : ${upStatement}`);
 
       /** ************** drop tn *************** */
-      await this.sqlClient.schema.dropTable(
-        args.schema ? `${args.schema}.${args.tn}` : args.tn,
+      await this.sqlClient.raw(
+        this.sqlClient.schema
+          .dropTable(args.schema ? `${args.schema}.${args.tn}` : args.tn)
+          .toQuery(),
       );
 
       /** ************** return files *************** */
@@ -1541,9 +1595,16 @@ class PGClient extends PGClientCE {
       args.table = args.tn;
 
       /** ************** create table *************** */
-      await this.sqlClient.schema.renameTable(
-        this.sqlClient.raw('??.??', [args.schema || this.schema, args.tn_old]),
-        args.tn,
+      await this.sqlClient.raw(
+        this.sqlClient.schema
+          .renameTable(
+            this.sqlClient.raw('??.??', [
+              args.schema || this.schema,
+              args.tn_old,
+            ]),
+            args.tn,
+          )
+          .toQuery(),
       );
 
       /** ************** create up & down statements *************** */

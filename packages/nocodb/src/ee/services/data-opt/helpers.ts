@@ -729,18 +729,14 @@ export async function singleQueryRead(ctx: {
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {
-      const rawRes = await knex.raw(
-        cachedQuery,
-        ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
+      const res = await baseModel.execAndParseFirst(
+        knex
+          .raw(
+            cachedQuery,
+            ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
+          )
+          .toQuery(),
       );
-
-      let res = rawRes?.rows?.[0];
-
-      // update attachment fields
-      res = await baseModel.convertAttachmentType(res, ctx.model);
-
-      // update date time fields
-      // res = baseModel.convertDateFormat(res, ctx.model);
 
       return res;
     }
@@ -854,18 +850,14 @@ export async function singleQueryRead(ctx: {
 
   // const res = await finalQb;
 
-  const rawRes = await knex.raw(
-    query,
-    ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
+  const res = await baseModel.execAndParseFirst(
+    knex
+      .raw(
+        query,
+        ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
+      )
+      .toQuery(),
   );
-
-  let res = rawRes?.rows?.[0];
-
-  // update attachment fields
-  res = await baseModel.convertAttachmentType(res, ctx.model);
-
-  // update date time fields
-  // res = baseModel.convertDateFormat(res, ctx.model);
 
   return res;
 }
@@ -919,19 +911,10 @@ export async function singleQueryList(ctx: {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {
       const startTime = process.hrtime();
-      const rawRes = await knex.raw(cachedQuery, [
-        +listArgs.limit,
-        +listArgs.offset,
-      ]);
+      const res = await baseModel.execAndParse(
+        knex.raw(cachedQuery, [+listArgs.limit, +listArgs.offset]).toQuery(),
+      );
       dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
-
-      let res = rawRes?.rows;
-
-      // update attachment fields
-      res = await baseModel.convertAttachmentType(res, ctx.model);
-
-      // update date time fields
-      // res = baseModel.convertDateFormat(res, ctx.model);
 
       return new PagedResponseImpl(
         res.map(({ __nc_count, ...rest }) => rest),
@@ -1051,7 +1034,7 @@ export async function singleQueryList(ctx: {
   let res: any;
   if (skipCache) {
     const startTime = process.hrtime();
-    res = await finalQb;
+    res = await baseModel.execAndParse(finalQb);
     dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   } else {
     const { sql, bindings } = finalQb.toSQL();
@@ -1076,15 +1059,11 @@ export async function singleQueryList(ctx: {
 
     const startTime = process.hrtime();
     // run the query with actual limit and offset
-    res = (await knex.raw(query, [+listArgs.limit, +listArgs.offset])).rows;
+    res = await baseModel.execAndParse(
+      knex.raw(query, [+listArgs.limit, +listArgs.offset]).toQuery(),
+    );
     dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   }
-
-  // update attachment fields
-  res = await baseModel.convertAttachmentType(res, ctx.model);
-
-  // update date time fields
-  // res = baseModel.convertDateFormat(res, ctx.model);
 
   return new PagedResponseImpl(
     res.map(({ __nc_count, ...rest }) => rest),

@@ -34,7 +34,7 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
 
     const connectionConfig = await source.getConnectionConfig();
 
-    this.connectionRefs[source.base_id][source.id] = XKnex({
+    const finalConfig = {
       ...defaultConnectionOptions,
       ...connectionConfig,
       connection: {
@@ -50,7 +50,22 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
           return res;
         },
       },
-    } as any);
+    } as any;
+
+    const { client, connection, searchPath: _searchPath, pool } = finalConfig;
+
+    this.connectionRefs[source.base_id][source.id] = XKnex(
+      {
+        client,
+      },
+      {
+        client,
+        connection,
+        // searchPath,
+        pool,
+      },
+    );
+
     return this.connectionRefs[source.base_id][source.id];
   }
 

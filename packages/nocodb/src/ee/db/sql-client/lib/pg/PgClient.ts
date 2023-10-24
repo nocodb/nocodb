@@ -212,7 +212,7 @@ class PGClient extends PGClientCE {
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
-      const { rows } = await this.raw(
+      const { rows } = await this.sqlClient.raw(
         `SELECT table_schema as ts, table_name as tn,table_type
               FROM information_schema.tables
               where table_schema = ?
@@ -719,7 +719,7 @@ class PGClient extends PGClientCE {
         },
       );
 
-      await upQb;
+      await this.sqlClient.raw(upQb.toQuery());
 
       const upStatement = this.querySeparator() + upQb.toQuery();
 
@@ -1026,7 +1026,7 @@ class PGClient extends PGClientCE {
     try {
       args.databaseName = this.connectionConfig.connection.database;
 
-      const { rows } = await this.raw(
+      const { rows } = await this.sqlClient.raw(
         `SELECT *
               FROM pg_catalog.pg_namespace n
                      JOIN pg_catalog.pg_proc p
@@ -1081,7 +1081,7 @@ class PGClient extends PGClientCE {
     try {
       args.databaseName = this.connectionConfig.connection.database;
 
-      const { rows } = await this.raw(
+      const { rows } = await this.sqlClient.raw(
         `SELECT *
               FROM pg_catalog.pg_namespace n
                      JOIN pg_catalog.pg_proc p

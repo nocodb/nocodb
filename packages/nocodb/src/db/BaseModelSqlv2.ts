@@ -2875,7 +2875,7 @@ class BaseModelSqlv2 {
 
         for (const insertData of insertDatas) {
           const query = trx(this.tnPath).insert(insertData);
-          const id = await this.execRawFirst(query);
+          const id = await query;
           response.push(aiPkCol ? { [aiPkCol.title]: id } : id);
         }
       } else {

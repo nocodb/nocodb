@@ -1,36 +1,36 @@
 import path from 'path';
-import {NestFactory} from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';
 import NcToolGui from 'nc-lib-gui';
-import {T} from 'nc-help';
-import {v4 as uuidv4} from 'uuid';
+import { T } from 'nc-help';
+import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
-import {IoAdapter} from '@nestjs/platform-socket.io';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import requestIp from 'request-ip';
 import cookieParser from 'cookie-parser';
-import {Logger as PinoLogger} from 'nestjs-pino';
-import type {MetaService} from '~/meta/meta.service';
-import type {IEventEmitter} from '~/modules/event-emitter/event-emitter.interface';
-import type {Express} from 'express';
+import type { INestApplication } from '@nestjs/common';
+import type { MetaService } from '~/meta/meta.service';
+import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
+import type { Express } from 'express';
 import type http from 'http';
-import {MetaTable} from '~/utils/globals';
-import {AppModule} from '~/app.module';
-import {isEE} from '~/utils';
+import { MetaTable } from '~/utils/globals';
+import { AppModule } from '~/app.module';
+import { isEE } from '~/utils';
 
 dotenv.config();
 
 export default class Noco {
-  private static _this: Noco;
-  private static ee: boolean;
+  protected static _this: Noco;
+  protected static ee: boolean;
   public static readonly env: string = '_noco';
-  private static _httpServer: http.Server;
-  private static _server: Express;
+  protected static _httpServer: http.Server;
+  protected static _server: Express;
 
   public static get dashboardUrl(): string {
     const siteUrl = `http://localhost:${process.env.PORT || 8080}`;
 
-    return `${siteUrl}${Noco._this?.config?.dashboardPath}`;
+    return `${siteUrl}${this._this?.config?.dashboardPath}`;
   }
 
   public static config: any;
@@ -42,8 +42,8 @@ export default class Noco {
   public readonly metaMgrv2: any;
   public env: string;
 
-  private config: any;
-  private requestContext: any;
+  protected config: any;
+  protected requestContext: any;
 
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
@@ -81,28 +81,26 @@ export default class Noco {
   }
 
   public static getConfig(): any {
-    return Noco.config;
+    return this.config;
   }
 
   public static isEE(): boolean {
-    return Noco.ee || process.env.NC_CLOUD === 'true';
+    return this.ee || process.env.NC_CLOUD === 'true';
   }
 
   public static async loadEEState(): Promise<boolean> {
     try {
-      return (Noco.ee = isEE);
-    } catch {
-    }
-    return (Noco.ee = false);
+      return (this.ee = isEE);
+    } catch {}
+    return (this.ee = false);
   }
 
   static async init(param: any, httpServer: http.Server, server: Express) {
     const nestApp = await NestFactory.create(AppModule, {
       bufferLogs: true,
     });
-
-    nestApp.useLogger(nestApp.get(PinoLogger));
-    nestApp.flushLogs()
+    this.initCustomLogger(nestApp);
+    nestApp.flushLogs();
 
     if (process.env.NC_WORKER_CONTAINER === 'true') {
       if (!process.env.NC_REDIS_URL) {
@@ -123,7 +121,7 @@ export default class Noco {
       nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
 
       nestApp.use(
-        express.json({limit: process.env.NC_REQUEST_BODY_SIZE || '50mb'}),
+        express.json({ limit: process.env.NC_REQUEST_BODY_SIZE || '50mb' }),
       );
 
       await nestApp.init();
@@ -141,23 +139,23 @@ export default class Noco {
   }
 
   public static get httpServer(): http.Server {
-    return Noco._httpServer;
+    return this._httpServer;
   }
 
   public static get server(): Express {
-    return Noco._server;
+    return this._server;
   }
 
   public static async initJwt(): Promise<any> {
     if (this.config?.auth?.jwt) {
       if (!this.config.auth.jwt.secret) {
         let secret = (
-          await Noco._ncMeta.metaGet('', '', MetaTable.STORE, {
+          await this._ncMeta.metaGet('', '', MetaTable.STORE, {
             key: 'nc_auth_jwt_secret',
           })
         )?.value;
         if (!secret) {
-          await Noco._ncMeta.metaInsert('', '', MetaTable.STORE, {
+          await this._ncMeta.metaInsert('', '', MetaTable.STORE, {
             key: 'nc_auth_jwt_secret',
             value: (secret = uuidv4()),
           });
@@ -172,16 +170,20 @@ export default class Noco {
       }
     }
     let serverId = (
-      await Noco._ncMeta.metaGet('', '', MetaTable.STORE, {
+      await this._ncMeta.metaGet('', '', MetaTable.STORE, {
         key: 'nc_server_id',
       })
     )?.value;
     if (!serverId) {
-      await Noco._ncMeta.metaInsert('', '', MetaTable.STORE, {
+      await this._ncMeta.metaInsert('', '', MetaTable.STORE, {
         key: 'nc_server_id',
         value: (serverId = T.id),
       });
     }
     process.env.NC_SERVER_UUID = serverId;
+  }
+
+  protected static initCustomLogger(_nestApp: INestApplication<any>) {
+    // setup custom logger for nestjs if needed
   }
 }

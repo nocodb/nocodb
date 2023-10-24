@@ -22,6 +22,7 @@ export class DatasService {
     param: PathParams & { query: any; disableOptimization?: boolean },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
+
     return await this.getDataList({
       model,
       view,

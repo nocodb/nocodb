@@ -3,6 +3,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppModule as AppCeModule, ceModuleConfig } from 'src/app.module';
+import { LoggerModule } from 'nestjs-pino';
 import { WorkspacesModule } from './modules/workspaces/workspaces.module';
 import { WorkspaceUsersModule } from '~/modules/workspace-users/workspace-users.module';
 import { ThrottlerConfigService } from '~/services/throttler/throttler-config.service';
@@ -33,6 +34,12 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
           }),
         ]
       : []),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        quietReqLogger: true,
+        autoLogging: false,
+      },
+    }),
   ],
 
   providers: [

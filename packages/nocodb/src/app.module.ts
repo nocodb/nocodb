@@ -4,6 +4,7 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule as NestJsEventEmitter } from '@nestjs/event-emitter';
 import { SentryModule } from '@ntegral/nestjs-sentry';
+import { LoggerModule } from 'nestjs-pino';
 import type { MiddlewareConsumer } from '@nestjs/common';
 import { GlobalExceptionFilter } from '~/filters/global-exception/global-exception.filter';
 import { GlobalMiddleware } from '~/middlewares/global/global.middleware';
@@ -26,7 +27,6 @@ import { BasicStrategy } from '~/strategies/basic.strategy/basic.strategy';
 import { UsersModule } from '~/modules/users/users.module';
 import { AuthModule } from '~/modules/auth/auth.module';
 import { packageInfo } from '~/utils/packageVersion';
-import { LoggerModule } from 'nestjs-pino';
 
 export const ceModuleConfig = {
   imports: [
@@ -53,7 +53,12 @@ export const ceModuleConfig = {
           }),
         ]
       : []),
-    LoggerModule.forRoot()
+    LoggerModule.forRoot({
+      pinoHttp: {
+        quietReqLogger:true,
+        autoLogging: false
+      },
+    }),
   ],
   providers: [
     AuthService,

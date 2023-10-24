@@ -1,24 +1,22 @@
 import path from 'path';
-import { NestFactory } from '@nestjs/core';
+import {NestFactory} from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';
 import NcToolGui from 'nc-lib-gui';
-import { T } from 'nc-help';
-import { v4 as uuidv4 } from 'uuid';
+import {T} from 'nc-help';
+import {v4 as uuidv4} from 'uuid';
 import dotenv from 'dotenv';
-import { IoAdapter } from '@nestjs/platform-socket.io';
+import {IoAdapter} from '@nestjs/platform-socket.io';
 import requestIp from 'request-ip';
 import cookieParser from 'cookie-parser';
-import { Logger } from '@nestjs/common';
-import type { MetaService } from '~/meta/meta.service';
-import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
-import type { Express } from 'express';
+import {Logger as PinoLogger} from 'nestjs-pino';
+import type {MetaService} from '~/meta/meta.service';
+import type {IEventEmitter} from '~/modules/event-emitter/event-emitter.interface';
+import type {Express} from 'express';
 import type http from 'http';
-import { MetaTable } from '~/utils/globals';
-import { AppModule } from '~/app.module';
-import { isEE } from '~/utils';
-
-import { Logger as PinoLogger } from 'nestjs-pino';
+import {MetaTable} from '~/utils/globals';
+import {AppModule} from '~/app.module';
+import {isEE} from '~/utils';
 
 dotenv.config();
 
@@ -28,7 +26,6 @@ export default class Noco {
   public static readonly env: string = '_noco';
   private static _httpServer: http.Server;
   private static _server: Express;
-  private static logger = new Logger(Noco.name);
 
   public static get dashboardUrl(): string {
     const siteUrl = `http://localhost:${process.env.PORT || 8080}`;
@@ -94,19 +91,18 @@ export default class Noco {
   public static async loadEEState(): Promise<boolean> {
     try {
       return (Noco.ee = isEE);
-    } catch {}
+    } catch {
+    }
     return (Noco.ee = false);
   }
 
   static async init(param: any, httpServer: http.Server, server: Express) {
-    const nestApp = await NestFactory.create(
-      AppModule,
-      {
-        bufferLogs : true
-      }
-    );
+    const nestApp = await NestFactory.create(AppModule, {
+      bufferLogs: true,
+    });
 
     nestApp.useLogger(nestApp.get(PinoLogger));
+    nestApp.flushLogs()
 
     if (process.env.NC_WORKER_CONTAINER === 'true') {
       if (!process.env.NC_REDIS_URL) {
@@ -127,7 +123,7 @@ export default class Noco {
       nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
 
       nestApp.use(
-        express.json({ limit: process.env.NC_REQUEST_BODY_SIZE || '50mb' }),
+        express.json({limit: process.env.NC_REQUEST_BODY_SIZE || '50mb'}),
       );
 
       await nestApp.init();

@@ -393,7 +393,7 @@ export class UtilsService {
       defaultLimit: Math.max(
         Math.min(
           +process.env.DB_QUERY_LIMIT_DEFAULT || 25,
-          +process.env.DB_QUERY_LIMIT_MAX || 100,
+          +process.env.DB_QUERY_LIMIT_MAX || 1000,
         ),
         +process.env.DB_QUERY_LIMIT_MIN || 1,
       ),

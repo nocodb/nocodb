@@ -74,9 +74,9 @@ class BaseModelSql extends BaseModel {
     this.manyToManyRelations = manyToMany;
     this.virtualColumns = v;
     this.config = {
-      limitDefault: process.env.DB_QUERY_LIMIT_DEFAULT || 25,
-      limitMax: process.env.DB_QUERY_LIMIT_MAX || 100,
-      limitMin: process.env.DB_QUERY_LIMIT_MIN || 1,
+      limitDefault: Math.max(+process.env.DB_QUERY_LIMIT_DEFAULT || 25, 1),
+      limitMin: Math.max(+process.env.DB_QUERY_LIMIT_MIN || 1, 1),
+      limitMax: Math.max(+process.env.DB_QUERY_LIMIT_MAX || 1000, 1),
       log: false,
       explain: false,
       hasManyMax: 5,

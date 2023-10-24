@@ -5,8 +5,14 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon -e ts,js -w ./src -x \"ts-node src/index --log-error --project tsconfig.json\"",
-    "build": "tsc"
+    "build": "tsc",
+    "start:prod": "node dist/index"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "knex": "^3.0.1",
+    "object-hash": "^3.0.0"
+  }
 }

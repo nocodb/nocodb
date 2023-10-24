@@ -45,7 +45,9 @@ app.post('/query', async (req, res) => {
         result = responses;
       } catch (e) {
         await trx.rollback();
-        return res.status(500).send(e);
+        return res.status(500).send({
+          error: e.message
+        });
       }
     } else {
       if (raw) {
@@ -64,7 +66,9 @@ app.post('/query', async (req, res) => {
     console.log(query);
     console.log(e);
     console.log('\n');
-    return res.status(500).send(e);
+    return res.status(500).send({
+      error: e.message
+    });
   }
   res.send(result);
 });

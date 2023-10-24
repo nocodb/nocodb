@@ -147,7 +147,12 @@ export class DatasService {
         dbDriver: await NcConnectionMgrv2.get(source),
       }));
 
-    const { ast, dependencyFields } = await getAst({ model, query, view, throwErrorIfInvalidParams: param.throwErrorIfInvalidParams });
+    const { ast, dependencyFields } = await getAst({
+      model,
+      query,
+      view,
+      throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
+    });
 
     const listArgs: any = dependencyFields;
     try {

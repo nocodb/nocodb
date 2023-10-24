@@ -14,6 +14,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
 import { jdbcToXcConfig } from '~/utils/nc-config/helpers';
 import { packageVersion } from '~/utils/packageVersion';
+import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 
 const versionCache = {
   releaseVersion: null,
@@ -391,11 +392,8 @@ export class UtilsService {
       connectToExternalDB: !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
       version: packageVersion,
       defaultLimit: Math.max(
-        Math.min(
-          +process.env.DB_QUERY_LIMIT_DEFAULT || 25,
-          +process.env.DB_QUERY_LIMIT_MAX || 100,
-        ),
-        +process.env.DB_QUERY_LIMIT_MIN || 1,
+        Math.min(defaultLimitConfig.limitDefault, defaultLimitConfig.limitMax),
+        defaultLimitConfig.limitMin,
       ),
       timezone: defaultConnectionConfig.timezone,
       ncMin: !!process.env.NC_MIN,

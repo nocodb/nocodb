@@ -27,7 +27,23 @@ export class GlobalExceptionFilter extends GlobalExceptionFilterCE {
         id: (request as any).user?.id,
         path: (request as any).path,
         clientId: (request as any).headers?.['nc-client-id'],
+        reqId: (request as any).headers?.['nc-req-id'],
       },
     });
+  }
+
+  protected logError(exception: any, request: any) {
+    this.logger.error(
+      {
+        msg: exception.message,
+        workspaceId: (request as any).ncWorkspaceId,
+        projectId: (request as any).ncProjectId,
+        ip: (request as any).clientIp,
+        id: (request as any).user?.id,
+        path: (request as any).path,
+        clientId: (request as any).headers?.['nc-client-id'],
+      },
+      exception.stack,
+    );
   }
 }

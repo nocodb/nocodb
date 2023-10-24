@@ -13,6 +13,7 @@
   "dependencies": {
     "express": "^4.18.2",
     "knex": "^3.0.1",
-    "object-hash": "^3.0.0"
+    "object-hash": "^3.0.0",
+    "pg": "^8.11.3"
   }
 }

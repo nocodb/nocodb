@@ -5037,7 +5037,7 @@ export function extractCondition(
 
       validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
     } else if (throwErrorIfInvalid) {
-      NcError.badRequest(`Column '${alias}' not found.`);
+      NcError.unprocessableEntity(`Column '${alias}' not found.`);
     }
 
     return new Filter({

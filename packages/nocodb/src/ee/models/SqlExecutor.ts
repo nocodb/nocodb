@@ -224,7 +224,8 @@ export default class SqlExecutor {
     let suitableSqlExecutor: SqlExecutor;
 
     if (!sqlExecutors.length) {
-      suitableSqlExecutor = await this.createNextSqlExecutor(ncMeta);
+      NcError.badRequest('There is no SQL Executor available');
+      // suitableSqlExecutor = await this.createNextSqlExecutor(ncMeta);
     } else {
       for (const sqlExecutor of sqlExecutors) {
         if (sqlExecutor.sourceCount < NC_SQL_EXECUTOR_MAX_DB_COUNT) {
@@ -235,7 +236,8 @@ export default class SqlExecutor {
     }
 
     if (!suitableSqlExecutor) {
-      suitableSqlExecutor = await this.createNextSqlExecutor(ncMeta);
+      NcError.badRequest('There is no SQL Executor available');
+      // suitableSqlExecutor = await this.createNextSqlExecutor(ncMeta);
     }
 
     await this.bindSource(suitableSqlExecutor.id, source.id, ncMeta);
@@ -243,6 +245,7 @@ export default class SqlExecutor {
     return suitableSqlExecutor;
   }
 
+  /*
   public static async createNextSqlExecutor(ncMeta = Noco.ncMeta) {
     const count = +(await ncMeta.metaCount(null, null, MetaTable.SQL_EXECUTOR));
 
@@ -255,6 +258,7 @@ export default class SqlExecutor {
 
     return sqlExecutor;
   }
+  */
 
   public static async sourceCount(sqlExecutorId: string, ncMeta = Noco.ncMeta) {
     if (!sqlExecutorId) NcError.badRequest('SqlExecutor id is required');

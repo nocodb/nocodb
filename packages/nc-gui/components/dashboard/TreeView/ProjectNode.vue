@@ -365,10 +365,6 @@ const projectDelete = () => {
   isProjectDeleteDialogVisible.value = true
   $e('c:project:delete')
 }
-
-const onOpenTable = (scrollDown: boolean) => {
-  emit('openTable', scrollDown)
-}
 </script>
 
 <template>
@@ -588,7 +584,7 @@ const onOpenTable = (scrollDown: boolean) => {
           <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
             <div v-if="base?.sources?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">
-                <DashboardTreeViewTableList :base="base" :source-index="0" @open-table="onOpenTable" />
+                <DashboardTreeViewTableList :base="base" :source-index="0" />
               </div>
             </div>
 
@@ -702,7 +698,7 @@ const onOpenTable = (scrollDown: boolean) => {
                         :key="`sortable-${source.id}-${source.id && source.id in keys ? keys[source.id] : '0'}`"
                         :nc-source="source.id"
                       >
-                        <DashboardTreeViewTableList :base="base" :source-index="sourceIndex" @open-table="onOpenTable" />
+                        <DashboardTreeViewTableList :base="base" :source-index="sourceIndex" />
                       </div>
                     </a-collapse-panel>
                   </a-collapse>

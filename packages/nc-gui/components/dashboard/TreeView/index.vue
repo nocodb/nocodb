@@ -223,10 +223,6 @@ watch(
     immediate: true,
   },
 )
-
-const onOpenTable = (scrollDown: boolean) => {
-  emit('openTable', scrollDown)
-}
 </script>
 
 <template>
@@ -235,7 +231,7 @@ const onOpenTable = (scrollDown: boolean) => {
     <div mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
       <template v-if="basesList?.length">
         <ProjectWrapper v-for="base of basesList" :key="base.id" :base-role="base.project_role" :base="base">
-          <DashboardTreeViewProjectNode @open-table="onOpenTable" />
+          <DashboardTreeViewProjectNode />
         </ProjectWrapper>
       </template>
 

@@ -122,8 +122,6 @@ const onOpenTable = async () => {
     if (isMobileMode.value) {
       isLeftSidebarOpen.value = false
     }
-
-    if (!showCreateViewAllTimes.value) emit('openTable', true)
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

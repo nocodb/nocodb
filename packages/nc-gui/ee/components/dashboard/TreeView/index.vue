@@ -196,10 +196,6 @@ provide(TreeViewInj, {
 })
 
 useEventListener(document, 'contextmenu', handleContext, true)
-
-const onOpenTable = (scrollDown: boolean) => {
-  emit('openTable', scrollDown)
-}
 </script>
 
 <template>
@@ -215,7 +211,7 @@ const onOpenTable = (scrollDown: boolean) => {
           :base-role="base.project_role || base.workspace_role"
           :base="base"
         >
-          <DashboardTreeViewProjectNode @open-table="onOpenTable" />
+          <DashboardTreeViewProjectNode />
         </ProjectWrapper>
       </template>
       <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
@@ -228,7 +224,7 @@ const onOpenTable = (scrollDown: boolean) => {
           :base-role="base.project_role || stringifyRolesObj(workspaceRoles)"
           :base="base"
         >
-          <DashboardTreeViewProjectNode @open-table="onOpenTable" />
+          <DashboardTreeViewProjectNode />
         </ProjectWrapper>
       </template>
 

@@ -161,8 +161,9 @@ export default class Source implements SourceType {
     // call before reorder to update cache
     const returnBase = await this.get(oldBase.id, false, ncMeta);
 
-    if (!source.skipReorder)
+    if (!source.skipReorder && source.order && source.order !== oldBase.order) {
       await this.reorderBases(source.baseId, returnBase.id, ncMeta);
+    }
 
     return returnBase;
   }

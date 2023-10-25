@@ -55,7 +55,7 @@ export function generateNestedRowSelectQuery({
     ...columns.flatMap((c) => [
       sanitize(c.title),
       sanitize(alias),
-      handleDots(sanitize(c.title), knex),
+      sanitizeAndEscapeDots(c.title, knex),
     ]),
     title,
   ];
@@ -324,13 +324,18 @@ export async function extractColumn({
                            sanitize(pkColumn.title),
                            alias2,
                            sanitize(pkColumn.column_name),
-                           handleDots(sanitize(column.title), knex),
+                           sanitizeAndEscapeDots(column.title, knex),
                          ]),
                        )
                        .toQuery()}) as ?? ON true`,
                 [alias1],
               );
-              qb.select(knex.raw('??.??', [alias1, handleDots(sanitize(column.title),knex)]));
+              qb.select(
+                knex.raw('??.??', [
+                  alias1,
+                  sanitizeAndEscapeDots(column.title, knex),
+                ]),
+              );
             }
             break;
           case RelationTypes.HAS_MANY:
@@ -387,7 +392,12 @@ export async function extractColumn({
                   .toQuery()}) as ?? ON true`,
                 [alias1],
               );
-              qb.select(knex.raw('??.??', [alias1, handleDots(sanitize(column.title), knex)]));
+              qb.select(
+                knex.raw('??.??', [
+                  alias1,
+                  sanitizeAndEscapeDots(column.title, knex),
+                ]),
+              );
             }
             break;
         }
@@ -505,7 +515,7 @@ export async function extractColumn({
                    knex.raw(`??.?? as ??`, [
                      alias2,
                      sanitize(lookupColumn.title),
-                     handleDots(sanitize(column.title), knex),
+                     sanitizeAndEscapeDots(column.title, knex),
                    ]),
                  )
                  .toQuery()}) as ?? ON true`,
@@ -519,11 +529,16 @@ export async function extractColumn({
               .select(
                 knex.raw(`json_arrayagg(??) as ??`, [
                   alias,
-                  handleDots(sanitize(column.title), knex),
+                  sanitizeAndEscapeDots(column.title, knex),
                 ]),
               )
               .toQuery()},json_array_elements(??.??) as ?? ) as ?? ON true`,
-            [alias2, handleDots(sanitize(lookupColumn.title), knex), alias, lookupTableAlias],
+            [
+              alias2,
+              sanitizeAndEscapeDots(lookupColumn.title, knex),
+              alias,
+              lookupTableAlias,
+            ],
           );
         } else {
           qb.joinRaw(
@@ -533,7 +548,7 @@ export async function extractColumn({
                 knex.raw(`json_arrayagg(??.??) as ??`, [
                   alias2,
                   sanitize(lookupColumn.title),
-                  handleDots(sanitize(column.title), knex)  ,
+                  sanitizeAndEscapeDots(column.title, knex),
                 ]),
               )
               .toQuery()}) as ?? ON true`,
@@ -541,7 +556,10 @@ export async function extractColumn({
           );
         }
         qb.select(
-          knex.raw('??.??', [lookupTableAlias, handleDots(sanitize(column.title), knex)]),
+          knex.raw('??.??', [
+            lookupTableAlias,
+            sanitizeAndEscapeDots(column.title, knex),
+          ]),
         );
       }
       break;
@@ -557,7 +575,10 @@ export async function extractColumn({
           model,
         );
         qb.select(
-          knex.raw(`?? as ??`, [selectQb.builder, handleDots(sanitize(column.title), knex)]),
+          knex.raw(`?? as ??`, [
+            selectQb.builder,
+            sanitizeAndEscapeDots(sanitize(column.title), knex),
+          ]),
         );
       }
       break;
@@ -619,7 +640,7 @@ export async function extractColumn({
           knex.raw(`CAST(??.?? as JSON) as ??`, [
             rootAlias,
             sanitize(column.column_name),
-            handleDots(sanitize(column.title), knex),
+            sanitizeAndEscapeDots(column.title, knex),
           ]),
         );
       }
@@ -637,7 +658,7 @@ export async function extractColumn({
         qb.select(
           knex.raw(`CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00') as ??`, [
             `${sanitize(rootAlias)}.${column.column_name}`,
-            handleDots(sanitize(column.title), knex),
+            sanitizeAndEscapeDots(column.title, knex),
           ]),
         );
       }
@@ -651,7 +672,11 @@ export async function extractColumn({
               `encode(??.??, '${
                 column.meta?.format === 'hex' ? 'hex' : 'escape'
               }') as ??`,
-              [rootAlias, sanitize(column.column_name), handleDots(sanitize(column.title), knex)],
+              [
+                rootAlias,
+                sanitize(column.column_name),
+                sanitizeAndEscapeDots(column.title, knex),
+              ],
             ),
           );
         } else {
@@ -659,7 +684,7 @@ export async function extractColumn({
             knex.raw(`??.?? as ??`, [
               rootAlias,
               sanitize(column.column_name),
-              handleDots(sanitize(column.title), knex),
+              sanitizeAndEscapeDots(column.title, knex),
             ]),
           );
         }
@@ -1141,8 +1166,12 @@ export async function isMysqlVersionSupported(source: Source) {
   return +meta.dbVersion.split('.')[0] >= 8;
 }
 
-
-function handleDots(alias: string, knex) {
-  if (!alias.includes('.')) return alias;
-  return knex.raw(knex.raw('??', alias).toQuery().replace(/`\.`/g, '.'));
+function sanitizeAndEscapeDots(alias: string, knex) {
+  const sanitizedAlias = sanitize(alias);
+  // if alias does not contain any dot then return as it is
+  if (!sanitizedAlias.includes('.')) return sanitizedAlias;
+  // if alias contains dot then return knex.raw with escaped dot
+  return knex.raw(
+    knex.raw('??', sanitizedAlias).toQuery().replace(/`\.`/g, '.'),
+  );
 }

@@ -370,7 +370,12 @@ export async function extractColumn({
                   .toQuery()}) as ?? ON true`,
                 [alias1],
               );
-              qb.select(knex.raw('??.??', [alias1, handleDots(sanitize(column.title), knex)]));
+              qb.select(
+                knex.raw('??.??', [
+                  alias1,
+                  sanitizeAndEscapeDots(column.title, knex),
+                ]),
+              );
             }
             break;
         }
@@ -421,7 +426,8 @@ export async function extractColumn({
                   relTableAlias,
                   sanitize(parentColumn.column_name),
                   alias4,
-                  sanitize(mmParentColumn.column_name), knex,
+                  sanitize(mmParentColumn.column_name),
+                  knex,
                 ]),
               );
             }
@@ -491,7 +497,7 @@ export async function extractColumn({
                    knex.raw(`??.?? as ??`, [
                      alias2,
                      sanitize(lookupColumn.title),
-                     handleDots(sanitize(column.title), knex),
+                     sanitizeAndEscapeDots(column.title, knex),
                    ]),
                  )
                  .toQuery()}) as ?? ON true`,
@@ -519,7 +525,7 @@ export async function extractColumn({
                 knex.raw(`coalesce(json_agg(??.??),'[]'::json) as ??`, [
                   alias2,
                   sanitize(lookupColumn.title),
-                  handleDots(sanitize(column.title), knex),
+                  sanitizeAndEscapeDots(column.title, knex),
                 ]),
               )
               .toQuery()}) as ?? ON true`,
@@ -527,7 +533,10 @@ export async function extractColumn({
           );
         }
         qb.select(
-          knex.raw('??.??', [lookupTableAlias, handleDots(sanitize(column.title), knex)]),
+          knex.raw('??.??', [
+            lookupTableAlias,
+            sanitizeAndEscapeDots(column.title, knex),
+          ]),
         );
       }
       break;
@@ -543,7 +552,10 @@ export async function extractColumn({
           model,
         );
         qb.select(
-          knex.raw(`?? as ??`, [selectQb.builder, handleDots(sanitize(column.title), knex)]),
+          knex.raw(`?? as ??`, [
+            selectQb.builder,
+            sanitizeAndEscapeDots(column.title, knex),
+          ]),
         );
       }
       break;
@@ -605,7 +617,7 @@ export async function extractColumn({
           knex.raw(`??.??::json as ??`, [
             rootAlias,
             sanitize(column.column_name),
-            handleDots(sanitize(column.title), knex),
+            sanitizeAndEscapeDots(column.title, knex),
           ]),
         );
       }
@@ -621,7 +633,11 @@ export async function extractColumn({
         qb.select(
           knex.raw(
             `??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC' as ??`,
-            [rootAlias, sanitize(column.column_name), handleDots(sanitize(column.title), knex)],
+            [
+              rootAlias,
+              sanitize(column.column_name),
+              sanitizeAndEscapeDots(column.title, knex),
+            ],
           ),
         );
         break;
@@ -639,7 +655,7 @@ export async function extractColumn({
               [
                 rootAlias,
                 sanitize(column.column_name),
-                handleDots(sanitize(column.title), knex),
+                sanitizeAndEscapeDots(column.title, knex),
               ],
             ),
           );
@@ -648,7 +664,7 @@ export async function extractColumn({
             knex.raw(`??.?? as ??`, [
               rootAlias,
               sanitize(column.column_name),
-              handleDots(sanitize(column.title), knex),
+              sanitizeAndEscapeDots(column.title, knex),
             ]),
           );
         }
@@ -1093,7 +1109,12 @@ export function getSingleQueryReadFn(source: Source) {
   return singleQueryRead;
 }
 
-function handleDots(alias: string, knex) {
-  if (!alias.includes('.')) return alias;
-  return knex.raw(knex.raw('??', alias).toQuery().replace(/"\."/g, '.'));
+function sanitizeAndEscapeDots(alias: string, knex) {
+  const sanitizedAlias = sanitize(alias);
+  // if alias does not contain any dot then return as it is
+  if (!sanitizedAlias.includes('.')) return sanitizedAlias;
+  // if alias contains dot then return knex.raw with escaped dot
+  return knex.raw(
+    knex.raw('??', sanitizedAlias).toQuery().replace(/"\."/g, '.'),
+  );
 }

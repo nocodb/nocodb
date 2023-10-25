@@ -31,6 +31,14 @@ onMounted(() => {
 onUnmounted(() => {
   treeViewDom.value?.removeEventListener('scroll', checkScrollTopMoreThanZero)
 })
+
+const onOpenTable = (scrollDown: boolean) => {
+  if (scrollDown && treeViewDom.value && !isMobileMode.value) {
+    nextTick(() => {
+      treeViewDom.value!.scrollTop = treeViewDom.value!.scrollTop - 8
+    })
+  }
+}
 </script>
 
 <template>
@@ -54,7 +62,7 @@ onUnmounted(() => {
         'pt-0.25': isSharedBase,
       }"
     >
-      <DashboardTreeView v-if="!isWorkspaceLoading" />
+      <DashboardTreeView v-if="!isWorkspaceLoading" @open-table="onOpenTable" />
     </div>
     <div v-if="!isSharedBase">
       <DashboardSidebarUserInfo />

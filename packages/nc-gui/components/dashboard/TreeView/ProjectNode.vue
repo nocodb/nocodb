@@ -35,6 +35,10 @@ import {
 import type { NcProject } from '#imports'
 import { useNuxtApp } from '#app'
 
+const emit = defineEmits<{
+  (event: 'openTable', scrollDown: boolean): void
+}>()
+
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
   style: {
@@ -361,6 +365,10 @@ const projectDelete = () => {
   isProjectDeleteDialogVisible.value = true
   $e('c:project:delete')
 }
+
+const onOpenTable = (scrollDown: boolean) => {
+  emit('openTable', scrollDown)
+}
 </script>
 
 <template>
@@ -580,7 +588,7 @@ const projectDelete = () => {
           <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
             <div v-if="base?.sources?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">
-                <DashboardTreeViewTableList :base="base" :source-index="0" />
+                <DashboardTreeViewTableList :base="base" :source-index="0" @open-table="onOpenTable" />
               </div>
             </div>
 
@@ -694,7 +702,7 @@ const projectDelete = () => {
                         :key="`sortable-${source.id}-${source.id && source.id in keys ? keys[source.id] : '0'}`"
                         :nc-source="source.id"
                       >
-                        <DashboardTreeViewTableList :base="base" :source-index="sourceIndex" />
+                        <DashboardTreeViewTableList :base="base" :source-index="sourceIndex" @open-table="onOpenTable" />
                       </div>
                     </a-collapse-panel>
                   </a-collapse>

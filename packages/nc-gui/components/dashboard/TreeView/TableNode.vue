@@ -16,6 +16,10 @@ const props = withDefaults(
   { sourceIndex: 0 },
 )
 
+const emit = defineEmits<{
+  (event: 'openTable', scrollDown: boolean): void
+}>()
+
 const base = toRef(props, 'base')
 const table = toRef(props, 'table')
 const sourceIndex = toRef(props, 'sourceIndex')
@@ -48,8 +52,12 @@ const { loadViews: _loadViews } = useViewsStore()
 const { activeView } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
+const { viewsByTable } = storeToRefs(useViewsStore())
+
+const views = computed(() => viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? [])
+
 // todo: temp
-const { baseTables } = storeToRefs(useTablesStore())
+const { baseTables, activeTableId } = storeToRefs(useTablesStore())
 const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
 
 const openedTableId = computed(() => route.params.viewId)
@@ -113,6 +121,8 @@ const onOpenTable = async () => {
     if (isMobileMode.value) {
       isLeftSidebarOpen.value = false
     }
+
+    emit('openTable', true)
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -137,6 +147,12 @@ watch(
 
 const isTableOpened = computed(() => {
   return openedTableId.value === table.value?.id && activeView.value?.is_default
+})
+
+watch(activeTableId, () => {
+  if (activeTableId.value !== table.value.id && views.value.length === 0) {
+    isExpanded.value = false
+  }
 })
 </script>
 
@@ -169,7 +185,6 @@ const isTableOpened = computed(() => {
       >
         <div class="flex flex-row h-full items-center">
           <NcButton
-            v-if="(table.meta as any)?.hasNonDefaultViews"
             v-e="['c:table:toggle-expand']"
             type="text"
             size="xxsmall"
@@ -182,7 +197,7 @@ const isTableOpened = computed(() => {
               :class="{ '!rotate-180': isExpanded }"
             />
           </NcButton>
-          <div v-else class="sm:min-w-5.75 xs:min-w-7.5 h-2"></div>
+          <!-- <div v-else class="sm:min-w-5.75 xs:min-w-7.5 h-2"></div> -->
           <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
             <div
               class="flex items-center nc-table-icon"

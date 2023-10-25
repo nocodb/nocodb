@@ -16,10 +16,13 @@ import {
   useNuxtApp,
   useRoles,
   useTablesStore,
-
 } from '#imports'
 
 import { useRouter } from '#app'
+
+const emit = defineEmits<{
+  (event: 'openTable', scrollDown: boolean): void
+}>()
 
 const { isUIAllowed } = useRoles()
 
@@ -193,6 +196,10 @@ provide(TreeViewInj, {
 })
 
 useEventListener(document, 'contextmenu', handleContext, true)
+
+const onOpenTable = (scrollDown: boolean) => {
+  emit('openTable', scrollDown)
+}
 </script>
 
 <template>
@@ -208,7 +215,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
           :base-role="base.project_role || base.workspace_role"
           :base="base"
         >
-          <DashboardTreeViewProjectNode />
+          <DashboardTreeViewProjectNode @open-table="onOpenTable" />
         </ProjectWrapper>
       </template>
       <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
@@ -221,7 +228,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
           :base-role="base.project_role || stringifyRolesObj(workspaceRoles)"
           :base="base"
         >
-          <DashboardTreeViewProjectNode />
+          <DashboardTreeViewProjectNode @open-table="onOpenTable" />
         </ProjectWrapper>
       </template>
 

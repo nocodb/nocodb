@@ -388,7 +388,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     await Workspace.updateStatusAndPlan(param.workspaceId, {
       plan: WorkspacePlan.BUSINESS,
-      status: WorkspaceStatus.CREATING,
+      // status: WorkspaceStatus.CREATING,
     });
 
     return workspace;

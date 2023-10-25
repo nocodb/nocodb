@@ -704,6 +704,15 @@ const deleteSelectedRangeOfRows = () => {
   })
 }
 
+const selectColumn = (columnId: string) => {
+  const colIndex = fields.value.findIndex((col) => col.id === columnId)
+  if (colIndex !== -1) {
+    makeActive(0, colIndex)
+    selectedRange.startRange({ row: 0, col: colIndex })
+    selectedRange.endRange({ row: dataRef.value.length - 1, col: colIndex })
+  }
+}
+
 /** On clicking outside of table reset active cell  */
 onClickOutside(tableBodyEl, (e) => {
   // do nothing if mousedown on the scrollbar (scrolling)
@@ -1266,6 +1275,7 @@ const loaderText = computed(() => {
                   @xcstartresizing="onXcStartResizing(col.id, $event)"
                   @xcresize="onresize(col.id, $event)"
                   @xcresizing="onXcResizing(col.id, $event)"
+                  @click="selectColumn(col.id!)"
                 >
                   <div class="w-full h-full flex items-center">
                     <LazySmartsheetHeaderVirtualCell

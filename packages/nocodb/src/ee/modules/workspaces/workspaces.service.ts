@@ -379,10 +379,12 @@ export class WorkspacesService implements OnApplicationBootstrap {
       NcError.notFound('Workspace is already upgraded');
     }
 
-    await this.createWorkspaceSubdomain({
-      titleOrId: workspace.id,
-      user: param.user?.email ?? param.user?.id,
-    });
+    /*
+      await this.createWorkspaceSubdomain({
+        titleOrId: workspace.id,
+        user: param.user?.email ?? param.user?.id,
+      });
+    */
 
     await Workspace.updateStatusAndPlan(param.workspaceId, {
       plan: WorkspacePlan.BUSINESS,

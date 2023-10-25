@@ -370,7 +370,7 @@ export async function extractColumn({
                   .toQuery()}) as ?? ON true`,
                 [alias1],
               );
-              qb.select(knex.raw('??.??', [alias1, column.title]));
+              qb.select(knex.raw('??.??', [alias1, handleDots(sanitize(column.title), knex)]));
             }
             break;
         }
@@ -421,7 +421,7 @@ export async function extractColumn({
                   relTableAlias,
                   sanitize(parentColumn.column_name),
                   alias4,
-                  sanitize(mmParentColumn.column_name),
+                  sanitize(mmParentColumn.column_name), knex,
                 ]),
               );
             }
@@ -491,7 +491,7 @@ export async function extractColumn({
                    knex.raw(`??.?? as ??`, [
                      alias2,
                      sanitize(lookupColumn.title),
-                     sanitize(column.title),
+                     handleDots(sanitize(column.title), knex),
                    ]),
                  )
                  .toQuery()}) as ?? ON true`,
@@ -519,7 +519,7 @@ export async function extractColumn({
                 knex.raw(`coalesce(json_agg(??.??),'[]'::json) as ??`, [
                   alias2,
                   sanitize(lookupColumn.title),
-                  sanitize(column.title),
+                  handleDots(sanitize(column.title), knex),
                 ]),
               )
               .toQuery()}) as ?? ON true`,
@@ -527,7 +527,7 @@ export async function extractColumn({
           );
         }
         qb.select(
-          knex.raw('??.??', [lookupTableAlias, sanitize(column.title)]),
+          knex.raw('??.??', [lookupTableAlias, handleDots(sanitize(column.title), knex)]),
         );
       }
       break;
@@ -543,7 +543,7 @@ export async function extractColumn({
           model,
         );
         qb.select(
-          knex.raw(`?? as ??`, [selectQb.builder, sanitize(column.title)]),
+          knex.raw(`?? as ??`, [selectQb.builder, handleDots(sanitize(column.title), knex)]),
         );
       }
       break;
@@ -605,7 +605,7 @@ export async function extractColumn({
           knex.raw(`??.??::json as ??`, [
             rootAlias,
             sanitize(column.column_name),
-            sanitize(column.title),
+            handleDots(sanitize(column.title), knex),
           ]),
         );
       }
@@ -621,7 +621,7 @@ export async function extractColumn({
         qb.select(
           knex.raw(
             `??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC' as ??`,
-            [rootAlias, sanitize(column.column_name), sanitize(column.title)],
+            [rootAlias, sanitize(column.column_name), handleDots(sanitize(column.title), knex)],
           ),
         );
         break;
@@ -636,7 +636,11 @@ export async function extractColumn({
               `encode(??.??, '${
                 column.meta?.format === 'hex' ? 'hex' : 'escape'
               }') as ??`,
-              [rootAlias, sanitize(column.column_name), sanitize(column.title)],
+              [
+                rootAlias,
+                sanitize(column.column_name),
+                handleDots(sanitize(column.title), knex),
+              ],
             ),
           );
         } else {
@@ -644,7 +648,7 @@ export async function extractColumn({
             knex.raw(`??.?? as ??`, [
               rootAlias,
               sanitize(column.column_name),
-              sanitize(column.title),
+              handleDots(sanitize(column.title), knex),
             ]),
           );
         }
@@ -1087,4 +1091,9 @@ export function getSingleQueryReadFn(source: Source) {
     return mysqlSingleQueryRead;
   }
   return singleQueryRead;
+}
+
+function handleDots(str: string, knex) {
+  if (!str.includes('.')) return str;
+  return knex.raw(knex.raw('??', str).toQuery().replace(/"\."/g, '.'));
 }

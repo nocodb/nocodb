@@ -821,6 +821,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                     val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
                   }
                 }
+                if (this.isPg && col.uidt === UITypes.Checkbox) {
+                  val = val ? true : false;
+                }
                 insertObj[sanitize(col.column_name)] = val;
               }
             }

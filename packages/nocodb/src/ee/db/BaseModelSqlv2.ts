@@ -238,16 +238,24 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           if (this.isSqlite) {
             // sqlite doesnt return id after insert
             id = (
-              await this.dbDriver(this.tnPath)
-                .select(ai.column_name)
-                .max(ai.column_name, { as: 'id' })
-            )[0].id;
+              await this.execAndParse(
+                this.dbDriver(this.tnPath)
+                  .select(ai.column_name)
+                  .max(ai.column_name, { as: 'id' }),
+                null,
+                { first: true },
+              )
+            ).id;
           } else if (this.isSnowflake) {
             id = (
-              (await this.dbDriver(this.tnPath).max(ai.column_name, {
-                as: 'id',
-              })) as any
-            )[0].id;
+              await this.execAndParse(
+                this.dbDriver(this.tnPath).max(ai.column_name, {
+                  as: 'id',
+                }),
+                null,
+                { first: true },
+              )
+            ).id;
           }
           response = await this.readByPk(
             id,

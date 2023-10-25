@@ -16,6 +16,10 @@
     "knex": "^3.0.1",
     "mysql2": "^3.6.2",
     "object-hash": "^3.0.0",
-    "pg": "^8.11.3"
+    "pg": "^8.11.3",
+    "process": "^0.11.10"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.8"
   }
 }

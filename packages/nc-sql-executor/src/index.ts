@@ -57,9 +57,14 @@ app.post('/query', async (req, res) => {
 
   const connectionKey = hash(config);
 
+  let fromPool = true;
+
   if (!connectionPools[connectionKey]) {
     connectionPools[connectionKey] = knex(config);
+    fromPool = false;
   }
+
+  console.log(`\n${dayjs().format('YYYY-MM-DD HH:mm:ssZ')} (${fromPool ? 'pool' : 'fresh'}): ${query}\n`);
 
   let result;
 

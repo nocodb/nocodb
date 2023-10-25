@@ -71,6 +71,36 @@ export default defineNuxtConfig({
           name: 'description',
           content: process.env.npm_package_description || '',
         },
+        // Open Graph
+        { hid: 'og:site_name', property: 'og:site_name', content: 'NocoDB' },
+        { hid: 'og:type', property: 'og:type', content: 'website' },
+        { hid: 'og:title', property: 'og:title', content: 'NocoDB' },
+        {
+          hid: 'og:description',
+          property: 'og:description',
+          content:
+            'NocoDB provides an intuitive spreadsheet interface for creating online databases, either from scratch or by connecting to any Postgres/MySQL. Access your data through interactive UIs or via API and SQL. Get started for free.',
+        },
+        {
+          hid: 'og:image',
+          property: 'og:image',
+          content: 'https://uploads-ssl.webflow.com/650a7aeba6c28976499496bb/6525509952f7acbb92bc7b08_Cloud%20Thumbnail.webp',
+        },
+        { hid: 'og:url', property: 'og:url', content: 'https://nocodb.com' },
+        // Twitter
+        { hid: 'twitter:card', name: 'twitter:card', content: 'summary_large_image' },
+        { hid: 'twitter:title', name: 'twitter:title', content: 'NocoDB' },
+        {
+          hid: 'twitter:description',
+          name: 'twitter:description',
+          content:
+            'NocoDB provides an intuitive spreadsheet interface for creating online databases, either from scratch or by connecting to any Postgres/MySQL. Access your data through interactive UIs or via API and SQL. Get started for free.',
+        },
+        {
+          hid: 'twitter:image',
+          name: 'twitter:image',
+          content: 'https://uploads-ssl.webflow.com/650a7aeba6c28976499496bb/6525509952f7acbb92bc7b08_Cloud%20Thumbnail.webp',
+        },
       ],
     },
   },

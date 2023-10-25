@@ -21,6 +21,9 @@ export const useConfigStore = defineStore('configStore', () => {
     isMobileMode.value = isViewPortMobile()
   }
 
+  // Feature flag for create view all times
+  const showCreateViewAllTimes = ref(false)
+
   window.addEventListener('DOMContentLoaded', onViewPortResize)
   window.addEventListener('resize', onViewPortResize)
 
@@ -67,6 +70,7 @@ export const useConfigStore = defineStore('configStore', () => {
     isViewPortMobile,
     handleSidebarOpenOnMobileForNonViews,
     projectPageTab,
+    showCreateViewAllTimes,
   }
 })
 

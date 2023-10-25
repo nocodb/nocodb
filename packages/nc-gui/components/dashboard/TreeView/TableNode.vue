@@ -51,6 +51,7 @@ const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeVie
 const { loadViews: _loadViews } = useViewsStore()
 const { activeView } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+const { showCreateViewAllTimes } = storeToRefs(useConfigStore())
 
 const { viewsByTable } = storeToRefs(useViewsStore())
 
@@ -122,7 +123,7 @@ const onOpenTable = async () => {
       isLeftSidebarOpen.value = false
     }
 
-    emit('openTable', true)
+    if (!showCreateViewAllTimes.value) emit('openTable', true)
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -150,6 +151,8 @@ const isTableOpened = computed(() => {
 })
 
 watch(activeTableId, () => {
+  if (showCreateViewAllTimes.value) return
+
   if (activeTableId.value !== table.value.id && views.value.length === 0) {
     isExpanded.value = false
   }

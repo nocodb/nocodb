@@ -33,6 +33,8 @@ const table = inject(SidebarTableInj)!
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
+const { showCreateViewAllTimes } = storeToRefs(useConfigStore())
+
 const { activeTableId } = storeToRefs(useTablesStore())
 
 const { isUIAllowed } = useRoles()
@@ -387,7 +389,7 @@ function onOpenModal({
     <DashboardTreeViewCreateViewBtn
       v-if="isUIAllowed('viewCreateOrEdit')"
       :class="{
-        'hidden': activeTableId !== table.id && views.length,
+        'hidden': activeTableId !== table.id && views.length && !showCreateViewAllTimes,
         '!ml-18 !xs:(ml-19.75)': isDefaultSource,
         '!ml-23.5 !xs:(ml-27)': !isDefaultSource,
       }"

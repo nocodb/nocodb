@@ -6,7 +6,7 @@ import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { SourcesService } from '~/services/sources.service';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
-import { Workspace } from '~/models';
+import { SqlExecutor, Workspace } from '~/models';
 import { WorkspacesService } from '~/modules/workspaces/workspaces.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
@@ -47,6 +47,8 @@ export class SourceCreateProcessor {
       logger: logBasic,
       req: {},
     });
+
+    await SqlExecutor.bindToSuitableSqlExecutor(createdBase.id);
 
     if (createdBase.isMeta()) {
       delete createdBase.config;

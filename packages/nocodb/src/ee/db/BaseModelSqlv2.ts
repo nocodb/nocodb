@@ -45,9 +45,12 @@ async function runExternal(query: string | string[], config: any) {
     console.log(query);
     throw new Error('External DB config not found');
   }
-  const { data } = await axios.post(`http://localhost:9000/query`, {
+
+  const { sqlExecutor, ...rest } = config;
+
+  const { data } = await axios.post(`${sqlExecutor}/query`, {
     query,
-    config,
+    config: rest,
   });
   return data;
 }

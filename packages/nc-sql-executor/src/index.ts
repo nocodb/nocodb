@@ -114,7 +114,7 @@ app.post('/query', async (req, res) => {
   res.send(result);
 });
 
-app.listen(9000, () => {
-  console.log('Server is listening on port 9000');
+app.listen(process.env.PORT || 9000, () => {
+  console.log(`Server listening on port ${process.env.PORT || 9000}`);
 });
 

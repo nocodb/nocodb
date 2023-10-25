@@ -11,6 +11,8 @@ import {
 } from '~/utils/nc-config';
 import { XKnex } from '~/db/CustomKnex';
 import Noco from '~/Noco';
+import { SqlExecutor } from '~/models';
+import { NcError } from '~/helpers/catchError';
 
 export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
   protected static dataKnex?: XKnex;
@@ -54,11 +56,30 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
 
     const { client, connection, searchPath: _searchPath, pool } = finalConfig;
 
+    let se;
+
+    if ((source as any).fk_sql_executor_id) {
+      se = await SqlExecutor.get((source as any).fk_sql_executor_id);
+    } else {
+      se = await SqlExecutor.bindToSuitableSqlExecutor(source.id);
+    }
+
+    if (!se) {
+      NcError.internalServerError('There is no SQL Executor available!');
+    }
+
+    if (se.status === 'inactive') {
+      NcError.internalServerError(
+        'SQL Executor is not active yet. Please try again later!',
+      );
+    }
+
     this.connectionRefs[source.base_id][source.id] = XKnex(
       {
         client,
       },
       {
+        sqlExecutor: se.domain,
         client,
         connection,
         // searchPath,

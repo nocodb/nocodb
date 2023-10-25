@@ -6,9 +6,10 @@ import Debug from '~/db/util/Debug';
 const log = new Debug('MysqlClient');
 
 async function runExternal(query: string, config: any) {
-  const { data } = await axios.post(`http://localhost:9000/query`, {
+  const { sqlExecutor, ...rest } = config;
+  const { data } = await axios.post(`${sqlExecutor}/query`, {
     query,
-    config,
+    config: rest,
     raw: true,
   });
   return data;

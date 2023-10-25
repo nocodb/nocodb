@@ -125,6 +125,7 @@ export default class Source implements SourceType {
       'enabled',
       'meta',
       'deleted',
+      'fk_sql_executor_id',
     ]);
 
     if (updateObj.config) {

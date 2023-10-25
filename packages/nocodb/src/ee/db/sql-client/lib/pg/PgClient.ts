@@ -8,9 +8,10 @@ import Result from '~/db/util/Result';
 const log = new Debug('PGClient');
 
 async function runExternal(query: string, config: any) {
-  const { data } = await axios.post(`http://localhost:9000/query`, {
+  const { sqlExecutor, ...rest } = config;
+  const { data } = await axios.post(`${sqlExecutor}/query`, {
     query,
-    config,
+    config: rest,
     raw: true,
   });
   return data;

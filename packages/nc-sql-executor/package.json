@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dayjs": "^1.11.10",
     "express": "^4.18.2",
     "knex": "^3.0.1",
     "mysql2": "^3.6.2",

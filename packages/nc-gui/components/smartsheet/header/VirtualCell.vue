@@ -128,13 +128,22 @@ const openHeaderMenu = () => {
     editColumnDropdown.value = true
   }
 }
+
+const openDropDown = (e: Event) => {
+  if (isForm.value || isExpandedForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value)) return
+
+  e.preventDefault()
+  e.stopPropagation()
+
+  isDropDownOpen.value = !isDropDownOpen.value
+}
 </script>
 
 <template>
   <div
     class="flex items-center w-full h-full text-xs text-gray-500 font-weight-medium"
     @dblclick="openHeaderMenu"
-    @click.right="isDropDownOpen = !isDropDownOpen"
+    @click.right="openDropDown"
   >
     <LazySmartsheetHeaderVirtualCellIcon v-if="column && !props.hideIcon" />
 

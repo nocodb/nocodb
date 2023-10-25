@@ -80,14 +80,14 @@ export default class Source implements SourceType {
       insertObj,
     );
 
+    // call before reorder to update cache
+    const returnBase = await this.get(id, false, ncMeta);
+
     await NocoCache.appendToList(
       CacheScope.BASE,
       [source.baseId],
       `${CacheScope.BASE}:${id}`,
     );
-
-    // call before reorder to update cache
-    const returnBase = await this.get(id, false, ncMeta);
 
     await this.reorderBases(source.baseId);
 
@@ -108,11 +108,7 @@ export default class Source implements SourceType {
 
     if (!oldBase) NcError.badRequest('Wrong source id!');
 
-    await NocoCache.deepDel(
-      CacheScope.BASE,
-      `${CacheScope.BASE}:${sourceId}`,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
+    await NocoCache.del(`${CacheScope.BASE}:${sourceId}`);
 
     const updateObj = extractProps(source, [
       'alias',
@@ -150,12 +146,6 @@ export default class Source implements SourceType {
       MetaTable.BASES,
       updateObj,
       oldBase.id,
-    );
-
-    await NocoCache.appendToList(
-      CacheScope.BASE,
-      [source.baseId],
-      `${CacheScope.BASE}:${oldBase.id}`,
     );
 
     // call before reorder to update cache
@@ -314,12 +304,6 @@ export default class Source implements SourceType {
 
     // update order for sources
     for (const [i, b] of Object.entries(sources)) {
-      await NocoCache.deepDel(
-        CacheScope.BASE,
-        `${CacheScope.BASE}:${b.id}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
-
       b.order = parseInt(i) + 1;
 
       await ncMeta.metaUpdate(
@@ -330,12 +314,6 @@ export default class Source implements SourceType {
           order: b.order,
         },
         b.id,
-      );
-
-      await NocoCache.appendToList(
-        CacheScope.BASE,
-        [b.base_id],
-        `${CacheScope.BASE}:${b.id}`,
       );
 
       await NocoCache.set(`${CacheScope.BASE}:${b.id}`, b);

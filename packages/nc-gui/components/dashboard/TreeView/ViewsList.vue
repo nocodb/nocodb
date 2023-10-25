@@ -394,7 +394,7 @@ function onOpenModal({
         '!ml-23.5 !xs:(ml-27)': !isDefaultSource,
       }"
     >
-      <div role="button" class="flex flex-row items-center hover:text-brand-500 text-gray-500 cursor-pointer rounded-md">
+      <div role="button" class="flex flex-row items-center hover:text-brand-500 text-gray-500 cursor-pointer rounded-md max-w-40">
         <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
           <GeneralIcon icon="plus" />
           <div class="pl-1.75">

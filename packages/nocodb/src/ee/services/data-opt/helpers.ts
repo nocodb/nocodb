@@ -1093,7 +1093,7 @@ export function getSingleQueryReadFn(source: Source) {
   return singleQueryRead;
 }
 
-function handleDots(str: string, knex) {
-  if (!str.includes('.')) return str;
-  return knex.raw(knex.raw('??', str).toQuery().replace(/"\."/g, '.'));
+function handleDots(alias: string, knex) {
+  if (!alias.includes('.')) return alias;
+  return knex.raw(knex.raw('??', alias).toQuery().replace(/"\."/g, '.'));
 }

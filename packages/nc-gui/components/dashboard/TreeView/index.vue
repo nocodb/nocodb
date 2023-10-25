@@ -23,10 +23,6 @@ import {
 
 import { useRouter } from '#app'
 
-const emit = defineEmits<{
-  (event: 'openTable', scrollDown: boolean): void
-}>()
-
 const { isUIAllowed } = useRoles()
 
 const { $e } = useNuxtApp()

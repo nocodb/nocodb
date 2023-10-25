@@ -16,10 +16,6 @@ const props = withDefaults(
   },
 )
 
-const emit = defineEmits<{
-  (event: 'openTable', scrollDown: boolean): void
-}>()
-
 const base = toRef(props, 'base')
 const sourceIndex = toRef(props, 'sourceIndex')
 

@@ -51,7 +51,7 @@ app.post('/query', async (req, res) => {
   const { query, config, raw = false } = req.body;
 
   config.pool = {
-    min: 2,
+    min: 0,
     max: 5,
   }
 
@@ -85,6 +85,7 @@ app.post('/query', async (req, res) => {
         result = responses;
       } catch (e) {
         await trx.rollback();
+        console.error(e);
         return res.status(500).send({
           error: e.message
         });

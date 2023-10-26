@@ -10,6 +10,7 @@ import {
 import { AppEvents } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
+import { AttachmentsService } from './attachments.service';
 import type { MetaService } from '~/meta/meta.service';
 import type { LinkToAnotherRecordColumn, User, View } from '~/models';
 import type {
@@ -36,6 +37,7 @@ export class TablesService {
     protected readonly metaDiffService: MetaDiffsService,
     protected readonly appHooksService: AppHooksService,
     protected readonly columnsService: ColumnsService,
+    protected readonly attachmentsService: AttachmentsService,
   ) {}
 
   async tableUpdate(param: {
@@ -161,6 +163,8 @@ export class TablesService {
     const base = await Base.getWithInfo(table.base_id);
     const source = base.sources.find((b) => b.id === table.source_id);
 
+    const mediaDirectory = `nc/uploads/noco/${table.base_id}/${table.id}`;
+
     const relationColumns = table.columns.filter((c) => isLinksOrLTAR(c));
 
     if (relationColumns?.length && !source.isMeta()) {
@@ -228,6 +232,9 @@ export class TablesService {
       });
 
       result = await table.delete(ncMeta);
+
+      this.attachmentsService.fileDelete(mediaDirectory);
+
       await ncMeta.commit();
     } catch (e) {
       await ncMeta.rollback();

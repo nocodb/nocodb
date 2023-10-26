@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { nocoExecute } from 'nc-help';
+import { AttachmentsService } from 'src/services/attachments.service';
 import type { OldPathParams } from '~/modules/datas/helpers';
 import getAst from '~/helpers/getAst';
 import { NcError } from '~/helpers/catchError';
@@ -8,6 +9,8 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class OldDatasService {
+  constructor(private readonly attachmentService: AttachmentsService) {}
+
   async dataList(param: OldPathParams & { query: any }) {
     const { model, view } = await this.getViewAndModelFromRequest(param);
     const source = await Source.get(model.source_id);
@@ -121,7 +124,15 @@ export class OldDatasService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    return await baseModel.delByPk(param.rowId, null, param.cookie);
+    const { data, deletedXcFiles } = await baseModel.delByPk(
+      param.rowId,
+      null,
+      param.cookie,
+    );
+
+    await this.attachmentService.xcFilesDelete(deletedXcFiles);
+
+    return data;
   }
 
   async getViewAndModelFromRequest(req) {

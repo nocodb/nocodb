@@ -6,6 +6,7 @@ import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import type { Readable } from 'stream';
+import { deleteFolderRecursively } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { getToolDir } from '~/utils/nc-config';
 
@@ -99,9 +100,13 @@ export default class Local implements IStorageAdapterV2 {
     return fs.promises.readdir(destDir);
   }
 
-  // todo: implement
-  fileDelete(_path: string): Promise<any> {
-    return Promise.resolve(undefined);
+  async fileDelete(path: string): Promise<any> {
+    try {
+      const mediaDirectory = this.validateAndNormalisePath(path);
+      deleteFolderRecursively(mediaDirectory);
+    } catch (e) {
+      throw e;
+    }
   }
 
   public async fileRead(filePath: string): Promise<any> {

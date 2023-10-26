@@ -3,6 +3,7 @@ import { AppEvents } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import slash from 'slash';
+import type { XcFile } from '~/interface/IStorageAdapter';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Local from '~/plugins/storage/Local';
@@ -158,6 +159,22 @@ export class AttachmentsService {
       true,
     );
     return { img, type };
+  }
+
+  async fileDelete(path: string) {
+    const storageAdapter = new Local();
+    return storageAdapter.fileDelete(path);
+  }
+
+  async xcFilesDelete(files: XcFile[]) {
+    await Promise.all(
+      files.map((file) =>
+        this.fileDelete(
+          // In the DB, the file path is stored under 'download/'. However, for deletion, we use the write path located at 'nc/uploads'.
+          String(file.path).replace(/download/g, 'nc/uploads'),
+        ),
+      ),
+    );
   }
 
   sanitizeUrlPath(paths) {

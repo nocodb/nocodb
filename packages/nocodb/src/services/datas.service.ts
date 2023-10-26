@@ -3,6 +3,7 @@ import { isSystemColumn } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
 import { nocoExecute } from 'nc-help';
+import { AttachmentsService } from './attachments.service';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/modules/datas/helpers';
 import { getDbRows, getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
@@ -16,7 +17,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 export class DatasService {
   protected logger = new Logger(DatasService.name);
 
-  constructor() {}
+  constructor(protected readonly attachmentService: AttachmentsService) {}
 
   async dataList(
     param: PathParams & { query: any; disableOptimization?: boolean },
@@ -125,7 +126,15 @@ export class DatasService {
       }
     }
 
-    return await baseModel.delByPk(param.rowId, null, param.cookie);
+    const { data, deletedXcFiles } = await baseModel.delByPk(
+      param.rowId,
+      null,
+      param.cookie,
+    );
+
+    await this.attachmentService.xcFilesDelete(deletedXcFiles);
+
+    return data;
   }
 
   async getDataList(param: {
@@ -755,7 +764,15 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    return await baseModel.delByPk(param.rowId, null, param.cookie);
+    const { data, deletedXcFiles } = await baseModel.delByPk(
+      param.rowId,
+      null,
+      param.cookie,
+    );
+
+    await this.attachmentService.xcFilesDelete(deletedXcFiles);
+
+    return data;
   }
 
   async relationDataDelete(param: {

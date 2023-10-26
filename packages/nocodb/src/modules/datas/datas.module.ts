@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
+import { AttachmentsService } from 'src/services/attachments.service';
 import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import { DataTableController } from '~/controllers/data-table.controller';
 import { DataTableService } from '~/services/data-table.service';
@@ -51,6 +52,7 @@ export const dataModuleMetadata = {
     OldDatasService,
     PublicDatasService,
     PublicDatasExportService,
+    AttachmentsService,
   ],
   exports: [
     DatasService,

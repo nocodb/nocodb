@@ -169,7 +169,6 @@ const isTableOpened = computed(() => {
       >
         <div class="flex flex-row h-full items-center">
           <NcButton
-            v-if="(table.meta as any)?.hasNonDefaultViews"
             v-e="['c:table:toggle-expand']"
             type="text"
             size="xxsmall"
@@ -182,7 +181,6 @@ const isTableOpened = computed(() => {
               :class="{ '!rotate-180': isExpanded }"
             />
           </NcButton>
-          <div v-else class="sm:min-w-5.75 xs:min-w-7.5 h-2"></div>
           <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
             <div
               class="flex items-center nc-table-icon"
@@ -296,19 +294,6 @@ const isTableOpened = computed(() => {
               </NcMenu>
             </template>
           </NcDropdown>
-          <DashboardTreeViewCreateViewBtn v-if="isUIAllowed('viewCreateOrEdit')">
-            <NcButton
-              v-e="['c:view:create']"
-              type="text"
-              size="xxsmall"
-              class="nc-create-view-btn nc-sidebar-node-btn"
-              :class="{
-                '!md:(visible opacity-100)': openedTableId === table.id,
-              }"
-            >
-              <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
-            </NcButton>
-          </DashboardTreeViewCreateViewBtn>
         </div>
       </div>
       <DlgTableDelete

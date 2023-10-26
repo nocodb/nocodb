@@ -6,6 +6,7 @@ import Sortable from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
 import {
   extractSdkResponseErrorMsg,
+  isDefaultBase,
   message,
   onMounted,
   parseProp,
@@ -31,6 +32,10 @@ const base = inject(ProjectInj)!
 const table = inject(SidebarTableInj)!
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
+const { activeTableId } = storeToRefs(useTablesStore())
+
+const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
@@ -76,6 +81,13 @@ function markItem(id: string) {
     isMarked.value = false
   }, 300)
 }
+
+const isDefaultSource = computed(() => {
+  const source = base.value?.sources?.find((b) => b.id === table.value.source_id)
+  if (!source) return false
+
+  return isDefaultBase(source)
+})
 
 /** validate view title */
 function validate(view: ViewType) {
@@ -367,31 +379,61 @@ function onOpenModal({
 
 <template>
   <a-menu
-    v-if="views.length"
     ref="menuRef"
     :class="{ dragging }"
     class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
     :selected-keys="selected"
   >
-    <DashboardTreeViewViewsNode
-      v-for="view of views"
-      :id="view.id"
-      :key="view.id"
-      :view="view"
-      :on-validate="validate"
-      class="nc-view-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
+    <DashboardTreeViewCreateViewBtn
+      v-if="isUIAllowed('viewCreateOrEdit')"
       :class="{
-        'bg-gray-200': isMarked === view.id,
-        'active': activeView?.id === view.id,
-        [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
+        '!pl-18 !xs:(pl-19.75)': isDefaultSource,
+        '!pl-23.5 !xs:(pl-27)': !isDefaultSource,
       }"
-      :data-view-id="view.id"
-      @change-view="changeView"
-      @open-modal="onOpenModal"
-      @delete="openDeleteDialog"
-      @rename="onRename"
-      @select-icon="setIcon($event, view)"
-    />
+      :align-left-level="isDefaultSource ? 1 : 2"
+    >
+      <div
+        role="button"
+        class="nc-create-view-btn flex flex-row items-center cursor-pointer rounded-md w-full"
+        :class="{
+          'text-brand-500 hover:text-brand-600': activeTableId === table.id,
+          'text-gray-500 hover:text-brand-500': activeTableId !== table.id,
+        }"
+      >
+        <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
+          <GeneralIcon icon="plus" />
+          <div class="pl-1.75">
+            {{
+              $t('general.createEntity', {
+                entity: $t('objects.view'),
+              })
+            }}
+          </div>
+        </div>
+      </div>
+    </DashboardTreeViewCreateViewBtn>
+
+    <template v-if="views.length">
+      <DashboardTreeViewViewsNode
+        v-for="view of views"
+        :id="view.id"
+        :key="view.id"
+        :view="view"
+        :on-validate="validate"
+        class="nc-view-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
+        :class="{
+          'bg-gray-200': isMarked === view.id,
+          'active': activeView?.id === view.id,
+          [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
+        }"
+        :data-view-id="view.id"
+        @change-view="changeView"
+        @open-modal="onOpenModal"
+        @delete="openDeleteDialog"
+        @rename="onRename"
+        @select-icon="setIcon($event, view)"
+      />
+    </template>
   </a-menu>
 </template>
 

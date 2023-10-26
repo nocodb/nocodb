@@ -316,7 +316,7 @@ useMenuCloseOnEsc(open)
       <div class="p-4 pr-0 bg-white w-90 rounded-2xl nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
         <div
           v-if="!filterQuery && !isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
-          class="flex flex-col gap-y-2 pr-6 mb-6"
+          class="flex flex-col gap-y-2 pr-4 mb-6"
         >
           <div class="flex text-sm select-none">Select cover image field</div>
           <a-select
@@ -330,17 +330,17 @@ useMenuCloseOnEsc(open)
           </a-select>
         </div>
 
-        <div class="pr-6" @click.stop>
+        <div class="pr-4" @click.stop>
           <a-input v-model:value="filterQuery" :placeholder="$t('placeholder.searchFields')" class="!rounded-lg">
             <template #prefix> <img src="~/assets/nc-icons/search.svg" class="h-3.5 w-3.5 mr-1" /> </template
           ></a-input>
         </div>
 
-        <div v-if="!filterQuery" class="pr-6">
+        <div v-if="!filterQuery" class="pr-4">
           <div class="pt-0.25 w-full bg-gray-50"></div>
         </div>
 
-        <div class="flex flex-col my-1.5 nc-scrollbar-md max-h-[47.5vh] pr-5">
+        <div class="flex flex-col my-1.5 nc-scrollbar-md max-h-[47.5vh] pr-3">
           <div class="nc-fields-list">
             <div
               v-if="!fields?.filter((el) => el.title.toLowerCase().includes(filterQuery.toLowerCase())).length"
@@ -421,7 +421,7 @@ useMenuCloseOnEsc(open)
             </Draggable>
           </div>
         </div>
-        <div class="flex pr-6 mt-1 gap-2">
+        <div class="flex pr-4 mt-1 gap-2">
           <NcButton
             v-if="!filterQuery"
             type="ghost"

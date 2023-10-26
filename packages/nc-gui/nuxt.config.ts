@@ -71,6 +71,36 @@ export default defineNuxtConfig({
           name: 'description',
           content: process.env.npm_package_description || '',
         },
+        // Open Graph
+        { hid: 'og:site_name', property: 'og:site_name', content: 'NocoDB' },
+        { hid: 'og:type', property: 'og:type', content: 'website' },
+        { hid: 'og:title', property: 'og:title', content: 'NocoDB' },
+        {
+          hid: 'og:description',
+          property: 'og:description',
+          content:
+            'NocoDB provides an intuitive spreadsheet interface for creating online databases, either from scratch or by connecting to any Postgres/MySQL. Access your data through interactive UIs or via API and SQL. Get started for free.',
+        },
+        { hid: 'og:url', property: 'og:url', content: 'https://nocodb.com' },
+        // Twitter
+        { hid: 'twitter:card', name: 'twitter:card', content: 'summary_large_image' },
+        { hid: 'twitter:title', name: 'twitter:title', content: 'NocoDB' },
+        {
+          hid: 'twitter:description',
+          name: 'twitter:description',
+          content:
+            'NocoDB provides an intuitive spreadsheet interface for creating online databases, either from scratch or by connecting to any Postgres/MySQL. Access your data through interactive UIs or via API and SQL. Get started for free.',
+        },
+        {
+          hid: 'twitter:image',
+          name: 'twitter:image',
+          content: './link-preview.webp',
+        },
+        {
+          hid: 'og:image',
+          property: 'og:image',
+          content: './link-preview.webp',
+        },
       ],
     },
   },

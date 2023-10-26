@@ -15,6 +15,7 @@ import * as nc_014_notification from './v3/nc_014_notification';
 import * as nc_015_filter_value from './v3/nc_015_filter_value';
 import * as nc_016_rename_project_and_base from './v3/nc_016_rename_project_and_base';
 import * as nc_017_model_stat from './v3/nc_017_model_stat';
+import * as nc_018_sql_executor from './v3/nc_018_sql_executor';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
@@ -41,6 +42,7 @@ export default class XcMigrationSourcev3 {
       'nc_015_filter_value',
       'nc_016_rename_project_and_base',
       'nc_017_model_stat',
+      'nc_018_sql_executor',
     ]);
   }
 
@@ -84,6 +86,8 @@ export default class XcMigrationSourcev3 {
         return nc_016_rename_project_and_base;
       case 'nc_017_model_stat':
         return nc_017_model_stat;
+      case 'nc_018_sql_executor':
+        return nc_018_sql_executor;
     }
   }
 }

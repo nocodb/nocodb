@@ -1,0 +1,60 @@
+name: "Cloud : SQL Executor Docker Build"
+
+on:
+  # Triggered manually
+  workflow_dispatch:
+    inputs:
+      staging:
+        description: 'Staging (ws-pre-release)'
+        required: false
+        default: 'true'
+      tag:
+        description: "Any additional Tag"
+        required: false
+
+jobs:
+  cloud-docker-build:
+    runs-on: [self-hosted, docker-build]
+    env:
+      working-directory: ./packages/nc-sql-executor 
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3    
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.14.0
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: nc-sql-executor
+          IMAGE_TAG: ${{ github.event.inputs.tag }}
+          CUSTOM_IMAGE_TAG_ARG: ${{ github.event.inputs.tag && format('-t {0}/nocohub:{1}', steps.login-ecr.outputs.registry, github.event.inputs.tag) || '' }}
+          STAGING_IMAGE_TAG_ARG: ${{ (github.event.inputs.staging == 'true' || github.event_name == 'schedule') && format('-t {0}/nocohub:ws-pre-release', steps.login-ecr.outputs.registry) || '' }}
+          COMMIT_HASH: ${{ github.sha }}
+        run: |
+          cd packages/nc-sql-executor 
+          docker build . $CUSTOM_IMAGE_TAG_ARG $STAGING_IMAGE_TAG_ARG  -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH 
+          [[ ! -z "$IMAGE_TAG" ]] && docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Push staging image to ECR
+        if: ${{ github.event.inputs.staging == 'true' || github.event_name == 'schedule' }}
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: nc-sql-executor
+        run: |
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:ws-pre-release
+      - name: Publish to staging
+        if: ${{ github.event.inputs.staging == 'true' || github.event_name == 'schedule' }}
+        run: |
+           ./scripts/release/staging_executors.sh 

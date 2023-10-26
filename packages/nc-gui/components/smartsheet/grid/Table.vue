@@ -1207,7 +1207,7 @@ const loaderText = computed(() => {
 
 <template>
   <div :class="`${headerOnly !== true ? 'h-full w-full' : ''}`" class="flex flex-col">
-    <div data-testid="drag-icon-placeholder" class="absolute w-1 h-1 pointer-events-none"></div>
+    <div data-testid="drag-icon-placeholder" class="absolute w-1 h-1 pointer-events-none opacity-0"></div>
     <div
       ref="dragColPlaceholderDomRef"
       :class="{
@@ -1317,13 +1317,10 @@ const loaderText = computed(() => {
                   </div>
                   <div
                     :class="{
-                      'w-3': toBeDroppedColId === col.id,
+                      'w-0.75': toBeDroppedColId === col.id,
                       'hidden': toBeDroppedColId !== col.id,
                     }"
-                    :style="{
-                      'background-color': 'rgba(54, 191, 255, 0.5)',
-                    }"
-                    class="absolute -right-1.5 -bottom-2 h-2 z-10 rounded-b-lg"
+                    class="absolute -right-0.25 -top-0.1 h-[calc(100%+0.1rem)] z-10 bg-blue-500"
                   ></div>
                 </th>
                 <th
@@ -1540,6 +1537,8 @@ const loaderText = computed(() => {
                           (isLookup(columnObj) || isRollup(columnObj) || isFormula(columnObj)) &&
                           hasEditPermission &&
                           isCellSelected(rowIndex, colIndex),
+
+                        '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
                       }"
                       :data-col="columnObj.id"
                       :data-col-index="colIndex"

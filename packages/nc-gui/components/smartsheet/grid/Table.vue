@@ -183,6 +183,7 @@ const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value 
 const { onDrag, onDragStart, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
   fields,
   tableBodyEl,
+  gridWrapper,
 })
 
 // #Variables

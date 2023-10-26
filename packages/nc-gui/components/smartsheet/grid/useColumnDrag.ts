@@ -3,12 +3,15 @@ import type { ColumnType } from 'nocodb-sdk'
 export const useColumnDrag = ({
   fields,
   tableBodyEl,
+  gridWrapper,
 }: {
   fields: Ref<ColumnType[]>
   tableBodyEl: Ref<HTMLElement | undefined>
+  gridWrapper: Ref<HTMLElement | undefined>
 }) => {
   const { updateGridViewColumn, gridViewCols } = useViewColumnsOrThrow()
   const { leftSidebarWidth } = storeToRefs(useSidebarStore())
+  const { width } = useWindowSize()
 
   const draggedCol = ref<ColumnType | null>(null)
   const dragColPlaceholderDomRef = ref<HTMLElement | null>(null)
@@ -71,6 +74,18 @@ export const useColumnDrag = ({
 
     if (x >= 0) {
       dragColPlaceholderDomRef.value.style.left = `${x.toString()}px`
+    }
+
+    const remInPx = parseFloat(getComputedStyle(document.documentElement).fontSize)
+
+    if (x > width.value * 0.5) {
+      setTimeout(() => {
+        gridWrapper.value!.scrollLeft += 2.5
+      }, 250)
+    } else if (x < leftSidebarWidth.value + 10 * remInPx) {
+      setTimeout(() => {
+        gridWrapper.value!.scrollLeft -= 2.5
+      }, 250)
     }
   }
 

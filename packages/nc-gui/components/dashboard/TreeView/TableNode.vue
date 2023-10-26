@@ -47,14 +47,9 @@ const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeVie
 const { loadViews: _loadViews } = useViewsStore()
 const { activeView } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
-const { showCreateViewAllTimes } = storeToRefs(useConfigStore())
-
-const { viewsByTable } = storeToRefs(useViewsStore())
-
-const views = computed(() => viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? [])
 
 // todo: temp
-const { baseTables, activeTableId } = storeToRefs(useTablesStore())
+const { baseTables } = storeToRefs(useTablesStore())
 const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
 
 const openedTableId = computed(() => route.params.viewId)
@@ -142,14 +137,6 @@ watch(
 
 const isTableOpened = computed(() => {
   return openedTableId.value === table.value?.id && activeView.value?.is_default
-})
-
-watch(activeTableId, () => {
-  if (showCreateViewAllTimes.value) return
-
-  if (activeTableId.value !== table.value.id && views.value.length === 0) {
-    isExpanded.value = false
-  }
 })
 </script>
 

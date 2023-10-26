@@ -7,21 +7,11 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { isViewsLoading } = storeToRefs(useViewsStore())
 
-const { showCreateViewAllTimes } = storeToRefs(useConfigStore())
-
 const { isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
 const { allowCSVDownload } = useSharedView()
-
-const toggleCreateViewAllTimes = () => {
-  showCreateViewAllTimes.value = !showCreateViewAllTimes.value
-
-  message.info({
-    content: showCreateViewAllTimes.value ? 'Create View All Times' : 'Create View Once',
-  })
-}
 </script>
 
 <template>
@@ -53,8 +43,6 @@ const toggleCreateViewAllTimes = () => {
 
         <div class="flex-1" />
       </template>
-
-      <div class="h-6 w-6 xs:hidden" @dblclick="toggleCreateViewAllTimes"></div>
 
       <LazySmartsheetToolbarSearchData
         v-if="(isGrid || isGallery || isKanban) && !isPublic"

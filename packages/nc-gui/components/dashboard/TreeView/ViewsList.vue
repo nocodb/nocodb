@@ -33,8 +33,6 @@ const table = inject(SidebarTableInj)!
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-const { showCreateViewAllTimes } = storeToRefs(useConfigStore())
-
 const { activeTableId } = storeToRefs(useTablesStore())
 
 const { isUIAllowed } = useRoles()
@@ -389,12 +387,18 @@ function onOpenModal({
     <DashboardTreeViewCreateViewBtn
       v-if="isUIAllowed('viewCreateOrEdit')"
       :class="{
-        'hidden': activeTableId !== table.id && views.length && !showCreateViewAllTimes,
         '!ml-18 !xs:(ml-19.75)': isDefaultSource,
         '!ml-23.5 !xs:(ml-27)': !isDefaultSource,
       }"
     >
-      <div role="button" class="flex flex-row items-center hover:text-brand-500 text-gray-500 cursor-pointer rounded-md max-w-40">
+      <div
+        role="button"
+        class="flex flex-row items-center cursor-pointer rounded-md max-w-40"
+        :class="{
+          'text-brand-500 hover:text-brand-600': activeTableId === table.id,
+          'text-gray-500 hover:text-brand-500': activeTableId !== table.id,
+        }"
+      >
         <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
           <GeneralIcon icon="plus" />
           <div class="pl-1.75">

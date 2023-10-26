@@ -55,6 +55,19 @@ async function runExternal(query: string | string[], config: any) {
   return data;
 }
 
+async function execAndGetRows(
+  baseModel: BaseModelSqlv2,
+  query: string,
+  kn?: Knex | CustomKnex,
+) {
+  kn = kn || baseModel.dbDriver;
+  return baseModel.isPg || baseModel.isSnowflake
+    ? (await kn.raw(query))?.rows
+    : query.slice(0, 6) === 'select' && !baseModel.isMssql
+    ? await kn.from(kn.raw(query).wrap('(', ') __nc_alias'))
+    : await kn.raw(query);
+}
+
 /**
  * Base class for models
  *
@@ -139,14 +152,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         (this.dbDriver as any).extDb,
       );
     } else {
-      data =
-        this.isPg || this.isSnowflake
-          ? (await this.dbDriver.raw(query))?.rows
-          : query.slice(0, 6) === 'select' && !this.isMssql
-          ? await this.dbDriver.from(
-              this.dbDriver.raw(query).wrap('(', ') __nc_alias'),
-            )
-          : await this.dbDriver.raw(query);
+      data = await execAndGetRows(this, query);
     }
 
     // update attachment fields
@@ -968,7 +974,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         try {
           responses = [];
           for (const q of queries) {
-            responses.push(await trx.raw(q));
+            responses.push(...(await execAndGetRows(this, q, trx)));
           }
           await trx.commit();
         } catch (e) {
@@ -1380,7 +1386,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         try {
           responses = [];
           for (const q of queries) {
-            responses.push(await trx.raw(q));
+            responses.push(...(await execAndGetRows(this, q, trx)));
           }
           await trx.commit();
         } catch (e) {

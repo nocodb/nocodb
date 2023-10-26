@@ -45,13 +45,19 @@ export const useColumnDrag = ({
 
     draggedCol.value = fields.value.find((f) => f.id === colId) ?? null
     dragColPlaceholderDomRef.value!.style.height = `${tableBodyEl.value?.getBoundingClientRect().height}px`
+
+    const x = e.clientX - leftSidebarWidth.value
+
+    if (x >= 0 && dragColPlaceholderDomRef.value) {
+      dragColPlaceholderDomRef.value.style.left = `${x.toString()}px`
+    }
   }
 
   const onDrag = (e: DragEvent) => {
+    e.preventDefault()
+
     if (!e.dataTransfer) return
     if (!draggedCol.value) return
-
-    e.preventDefault()
 
     if (!dragColPlaceholderDomRef.value) return
 

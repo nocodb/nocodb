@@ -30,6 +30,8 @@ const column = toRef(props, 'column')
 
 const hideMenu = toRef(props, 'hideMenu')
 
+const { isMobileMode } = useGlobal()
+
 const editColumnDropdown = ref(false)
 
 const isDropDownOpen = ref(false)
@@ -120,10 +122,29 @@ const closeAddColumnDropdown = () => {
   columnOrder.value = null
   editColumnDropdown.value = false
 }
+
+const openHeaderMenu = () => {
+  if (!isForm.value && !isExpandedForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value) {
+    editColumnDropdown.value = true
+  }
+}
+
+const openDropDown = (e: Event) => {
+  if (isForm.value || isExpandedForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value)) return
+
+  e.preventDefault()
+  e.stopPropagation()
+
+  isDropDownOpen.value = !isDropDownOpen.value
+}
 </script>
 
 <template>
-  <div class="flex items-center w-full text-xs text-gray-500 font-weight-medium" @click.right="isDropDownOpen = !isDropDownOpen">
+  <div
+    class="flex items-center w-full h-full text-xs text-gray-500 font-weight-medium"
+    @dblclick="openHeaderMenu"
+    @click.right="openDropDown"
+  >
     <LazySmartsheetHeaderVirtualCellIcon v-if="column && !props.hideIcon" />
 
     <a-tooltip placement="bottom">

@@ -144,6 +144,9 @@ export class GridPage extends BasePage {
       await this.rootPage.waitForTimeout(300);
     }
 
+    await this.rootPage.keyboard.press('Escape');
+    await this.rootPage.waitForTimeout(300);
+
     await this.dashboard.waitForLoaderToDisappear();
   }
 
@@ -179,6 +182,9 @@ export class GridPage extends BasePage {
       await clickOnColumnHeaderToSave();
       await this.rootPage.waitForTimeout(300);
     }
+
+    await this.rootPage.keyboard.press('Escape');
+    await this.rootPage.waitForTimeout(300);
 
     await this.dashboard.waitForLoaderToDisappear();
   }

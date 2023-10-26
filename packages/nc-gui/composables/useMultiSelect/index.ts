@@ -680,6 +680,14 @@ export function useMultiSelect(
             }
           }
 
+          // Handle escape
+          if (e.key === 'Escape') {
+            selectedRange.clear()
+
+            activeCell.col = null
+            activeCell.row = null
+          }
+
           if (unref(editEnabled) || e.ctrlKey || e.altKey || e.metaKey) {
             return true
           }

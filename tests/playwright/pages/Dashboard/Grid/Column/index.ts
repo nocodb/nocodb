@@ -439,7 +439,14 @@ export class ColumnPageObject extends BasePage {
       this.rootPage.locator(`[data-title="${dst}"] >> .resizer`),
     ]);
 
+    await fromStack.scrollIntoViewIfNeeded();
+    await fromStack.hover();
     await fromStack.dragTo(toStack);
+
+    await this.rootPage.waitForTimeout(500);
+    await fromStack.click({
+      force: true,
+    });
   }
 
   async getWidth(param: { title: string }) {

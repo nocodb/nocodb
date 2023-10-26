@@ -3,6 +3,8 @@ import axios from 'axios'
 import { nextTick } from '@vue/runtime-core'
 import type { ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { useColumnDrag } from './useColumnDrag'
+
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -178,6 +180,12 @@ const gridRect = useElementBounding(gridWrapper)
 const { isUIAllowed } = useRoles()
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
+
+const { onDrag, onDragStart, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
+  fields,
+  tableBodyEl,
+  gridWrapper,
+})
 
 // #Variables
 const addColumnDropdown = ref(false)
@@ -1200,6 +1208,24 @@ const loaderText = computed(() => {
 
 <template>
   <div class="flex flex-col" :class="`${headerOnly !== true ? 'h-full w-full' : ''}`">
+    <div data-testid="drag-icon-placeholder" class="absolute w-1 h-1 pointer-events-none opacity-0"></div>
+    <div
+      ref="dragColPlaceholderDomRef"
+      :class="{
+        'hidden w-0 !h-0 left-0 !max-h-0 !max-w-0': !draggedCol,
+      }"
+      class="absolute flex items-center z-40 top-0 h-full bg-gray-50 pointer-events-none opacity-60"
+    >
+      <div
+        v-if="draggedCol"
+        :style="{
+                'min-width': gridViewCols[draggedCol.id!]?.width || '200px',
+                'max-width': gridViewCols[draggedCol.id!]?.width || '200px',
+                'width': gridViewCols[draggedCol.id!]?.width || '200px',
+              }"
+        class="border-r-1 border-l-1 border-gray-200 h-full"
+      ></div>
+    </div>
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative" :class="gridWrapperClass">
       <div
         v-show="showSkeleton && !isPaginationLoading && showLoaderAfterDelay"
@@ -1272,12 +1298,21 @@ const loaderText = computed(() => {
                     'max-width': gridViewCols[col.id]?.width || '200px',
                     'width': gridViewCols[col.id]?.width || '200px',
                   }"
+                  class="nc-grid-column-header"
+                  :class="{
+                    '!border-r-blue-400 !border-r-3': toBeDroppedColId === col.id,
+                  }"
                   @xcstartresizing="onXcStartResizing(col.id, $event)"
                   @xcresize="onresize(col.id, $event)"
                   @xcresizing="onXcResizing(col.id, $event)"
                   @click="selectColumn(col.id!)"
                 >
-                  <div class="w-full h-full flex items-center">
+                  <div
+                    class="w-full h-full flex items-center"
+                    :draggable="isMobileMode ? 'false' : 'true'"
+                    @dragstart.stop="onDragStart(col.id!, $event)"
+                    @drag.stop="onDrag($event)"
+                  >
                     <LazySmartsheetHeaderVirtualCell
                       v-if="isVirtualCol(col)"
                       :column="col"
@@ -1501,6 +1536,7 @@ const loaderText = computed(() => {
                           (isLookup(columnObj) || isRollup(columnObj) || isFormula(columnObj)) &&
                           hasEditPermission &&
                           isCellSelected(rowIndex, colIndex),
+                        '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
                       }"
                       :style="{
                         'min-width': gridViewCols[columnObj.id]?.width || '200px',

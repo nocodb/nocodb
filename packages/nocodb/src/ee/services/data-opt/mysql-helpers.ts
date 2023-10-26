@@ -25,7 +25,7 @@ import {
 import conditionV2 from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
-import { sanitize } from '~/helpers/sqlSanitize';
+import {sanitize, sanitizeAndEscapeDots} from '~/helpers/sqlSanitize';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import getAst from '~/helpers/getAst';
@@ -1164,14 +1164,4 @@ export async function isMysqlVersionSupported(source: Source) {
 
   // check if version is >= 8.0.0
   return +meta.dbVersion.split('.')[0] >= 8;
-}
-
-function sanitizeAndEscapeDots(alias: string, knex) {
-  const sanitizedAlias = sanitize(alias);
-  // if alias does not contain any dot then return as it is
-  if (!sanitizedAlias.includes('.')) return sanitizedAlias;
-  // if alias contains dot then return knex.raw with escaped dot
-  return knex.raw(
-    knex.raw('??', sanitizedAlias).toQuery().replace(/`\.`/g, '.'),
-  );
 }

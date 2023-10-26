@@ -16,7 +16,6 @@ import {
   useNuxtApp,
   useRoles,
   useTablesStore,
-
 } from '#imports'
 
 import { useRouter } from '#app'

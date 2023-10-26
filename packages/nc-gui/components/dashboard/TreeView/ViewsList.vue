@@ -387,13 +387,14 @@ function onOpenModal({
     <DashboardTreeViewCreateViewBtn
       v-if="isUIAllowed('viewCreateOrEdit')"
       :class="{
-        '!ml-18 !xs:(ml-19.75)': isDefaultSource,
-        '!ml-23.5 !xs:(ml-27)': !isDefaultSource,
+        '!pl-18 !xs:(pl-19.75)': isDefaultSource,
+        '!pl-23.5 !xs:(pl-27)': !isDefaultSource,
       }"
+      :align-left-level="isDefaultSource ? 1 : 2"
     >
       <div
         role="button"
-        class="flex flex-row items-center cursor-pointer rounded-md max-w-40"
+        class="flex flex-row items-center cursor-pointer rounded-md w-full"
         :class="{
           'text-brand-500 hover:text-brand-600': activeTableId === table.id,
           'text-gray-500 hover:text-brand-500': activeTableId !== table.id,

@@ -58,6 +58,11 @@ jobs:
         working-directory: ./packages/nocodb/tests/pg-cy-quick/
         run: |
           sudo -u postgres psql -U postgres -f 01-cy-quick.sql
+      - name: run sql-executor
+        working-directory: ./packages/nc-sql-executor
+        run: |
+          npm install
+          npm run dev &
       - name: run frontend
         working-directory: ./packages/nc-gui
         run: pnpm run ci:run:ee

@@ -64,7 +64,18 @@ app.post('/query', async (req, res) => {
     fromPool = false;
   }
 
-  console.log(`\n${dayjs().format('YYYY-MM-DD HH:mm:ssZ')} (${fromPool ? 'pool' : 'fresh'}): ${query}\n`);
+  const pool = connectionPools[connectionKey].client.pool;
+
+  // returns the number of non-free resources
+  console.log('\nConnections in use: ', pool.numUsed())
+  // returns the number of free resources
+  console.log('Connections free: ', pool.numFree())
+  // how many acquires are waiting for a resource to be released
+  console.log('Acquiring: ', pool.numPendingAcquires())
+  // how many asynchronous create calls are running
+  console.log('Creating: ', pool.numPendingCreates())
+
+  console.log(`${dayjs().format('YYYY-MM-DD HH:mm:ssZ')} (${fromPool ? 'pool' : 'fresh'})\n`);
 
   let result;
 

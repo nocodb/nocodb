@@ -1299,7 +1299,7 @@ const loaderText = computed(() => {
                     'width': gridViewCols[col.id]?.width || '200px',
                   }"
                   class="nc-grid-column-header relative"
-                  draggable="true"
+                  :draggable="isMobileMode ? 'false' : 'true'"
                   @click="selectColumn(col.id!)"
                   @xcresize="onresize(col.id, $event)"
                   @xcresizing="onXcResizing(col.id, $event)"

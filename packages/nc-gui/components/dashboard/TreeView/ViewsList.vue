@@ -5,8 +5,8 @@ import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
 import {
-  isDefaultBase as _isDefaultBase,
   extractSdkResponseErrorMsg,
+  isDefaultBase,
   message,
   onMounted,
   parseProp,
@@ -86,7 +86,7 @@ const isDefaultSource = computed(() => {
   const source = base.value?.sources?.find((b) => b.id === table.value.source_id)
   if (!source) return false
 
-  return _isDefaultBase(source)
+  return isDefaultBase(source)
 })
 
 /** validate view title */

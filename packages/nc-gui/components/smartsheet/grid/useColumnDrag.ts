@@ -9,6 +9,8 @@ export const useColumnDrag = ({
   tableBodyEl: Ref<HTMLElement | undefined>
   gridWrapper: Ref<HTMLElement | undefined>
 }) => {
+  const { eventBus } = useSmartsheetStoreOrThrow()
+
   const { updateGridViewColumn, gridViewCols } = useViewColumnsOrThrow()
   const { leftSidebarWidth } = storeToRefs(useSidebarStore())
   const { width } = useWindowSize()
@@ -29,6 +31,8 @@ export const useColumnDrag = ({
     col.order = newOrder
 
     await updateGridViewColumn(colId, { order: newOrder } as any)
+
+    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
   }
 
   const onDragStart = (colId: string, e: DragEvent) => {

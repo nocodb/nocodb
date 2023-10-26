@@ -49,6 +49,8 @@ export const useColumnDrag = ({
 
   const onDrag = (e: DragEvent) => {
     if (!e.dataTransfer) return
+    if (!draggedCol.value) return
+
     e.preventDefault()
 
     if (!dragColPlaceholderDomRef.value) return

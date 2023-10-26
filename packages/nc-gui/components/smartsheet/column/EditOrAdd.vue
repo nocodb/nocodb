@@ -87,12 +87,17 @@ const showDeprecated = ref(false)
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
     ...uiTypes
-      .filter((t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual) && (!t.deprecated || showDeprecated.value))
-      .filter((t) => !(t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id))),
+      .filter(
+        (type) => geoDataToggleCondition(type) && (!isEdit.value || !type.virtual) && (!type.deprecated || showDeprecated.value),
+      )
+      .map((type) => ({
+        ...type,
+        name: t(`datatype.${type.name}`),
+      })),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
           {
-            name: UITypes.ID,
+            name: t(`datatype.${UITypes.ID}`),
             icon: MdiIdentifierIcon,
             virtual: 0,
           },

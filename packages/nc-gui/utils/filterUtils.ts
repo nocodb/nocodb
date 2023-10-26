@@ -1,6 +1,8 @@
 import { UITypes, isNumericCol, numericUITypes } from 'nocodb-sdk'
+import { getI18n } from '../plugins/a.i18n'
 
 const getEqText = (fieldUiType: UITypes) => {
+  const { t } = getI18n().global
   if (isNumericCol(fieldUiType) || fieldUiType === UITypes.Time) {
     return '='
   } else if (
@@ -10,10 +12,11 @@ const getEqText = (fieldUiType: UITypes) => {
   ) {
     return 'is'
   }
-  return 'is equal'
+  return t('filterOperation.isEqual')
 }
 
 const getNeqText = (fieldUiType: UITypes) => {
+  const { t } = getI18n().global
   if (isNumericCol(fieldUiType) || fieldUiType === UITypes.Time) {
     return '!='
   } else if (
@@ -23,21 +26,23 @@ const getNeqText = (fieldUiType: UITypes) => {
   ) {
     return 'is not'
   }
-  return 'is not equal'
+  return t('filterOperation.isNotEqual')
 }
 
 const getLikeText = (fieldUiType: UITypes) => {
+  const { t } = getI18n().global
   if (fieldUiType === UITypes.Attachment) {
     return 'filenames contain'
   }
-  return 'is like'
+  return t('filterOperation.isLike')
 }
 
 const getNotLikeText = (fieldUiType: UITypes) => {
+  const { t } = getI18n().global
   if (fieldUiType === UITypes.Attachment) {
     return "filenames doesn't contain"
   }
-  return 'is not like'
+  return t('filterOperation.isNotlike')
 }
 
 const getGtText = (fieldUiType: UITypes) => {
@@ -66,6 +71,21 @@ const getLteText = (fieldUiType: UITypes) => {
     return 'is on or before'
   }
   return '<='
+}
+
+const getEmptyText = () => {
+  const { t } = getI18n().global
+  return t('filterOperation.isEmpty')
+}
+
+const getIsBlankText = () => {
+  const { t } = getI18n().global
+  return t('filterOperation.isBlank')
+}
+
+const getIsNotBlankText = () => {
+  const { t } = getI18n().global
+  return t('filterOperation.isNotBlank')
 }
 
 export const comparisonOpList = (
@@ -132,7 +152,7 @@ export const comparisonOpList = (
     ],
   },
   {
-    text: 'is empty',
+    text: getEmptyText(),
     value: 'empty',
     ignoreVal: true,
     excludedTypes: [
@@ -258,13 +278,13 @@ export const comparisonOpList = (
     includedTypes: [UITypes.Date, UITypes.DateTime],
   },
   {
-    text: 'is blank',
+    text: getIsBlankText(),
     value: 'blank',
     ignoreVal: true,
     excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
   },
   {
-    text: 'is not blank',
+    text: getIsNotBlankText(),
     value: 'notblank',
     ignoreVal: true,
     excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],

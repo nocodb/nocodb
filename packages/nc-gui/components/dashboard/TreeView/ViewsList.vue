@@ -394,7 +394,7 @@ function onOpenModal({
     >
       <div
         role="button"
-        class="flex flex-row items-center cursor-pointer rounded-md w-full"
+        class="nc-create-view-btn flex flex-row items-center cursor-pointer rounded-md w-full"
         :class="{
           'text-brand-500 hover:text-brand-600': activeTableId === table.id,
           'text-gray-500 hover:text-brand-500': activeTableId !== table.id,

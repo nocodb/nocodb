@@ -169,7 +169,7 @@ async function onOpenModal({
 
 <style lang="scss">
 .nc-view-create-dropdown {
-  @apply !max-w-46 !min-w-46;
+  @apply !max-w-43 !min-w-43;
 }
 
 .nc-view-create-dropdown-left-1 {

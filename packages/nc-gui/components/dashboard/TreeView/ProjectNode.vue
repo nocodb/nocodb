@@ -35,10 +35,6 @@ import {
 import type { NcProject } from '#imports'
 import { useNuxtApp } from '#app'
 
-const emit = defineEmits<{
-  (event: 'openTable', scrollDown: boolean): void
-}>()
-
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
   style: {

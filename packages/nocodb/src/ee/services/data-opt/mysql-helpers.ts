@@ -514,7 +514,7 @@ export async function extractColumn({
                  .select(
                    knex.raw(`??.?? as ??`, [
                      alias2,
-                     sanitize(lookupColumn.title),
+                     sanitizeAndEscapeDots(lookupColumn.title, knex),
                      sanitizeAndEscapeDots(column.title, knex),
                    ]),
                  )
@@ -547,7 +547,7 @@ export async function extractColumn({
               .select(
                 knex.raw(`json_arrayagg(??.??) as ??`, [
                   alias2,
-                  sanitize(lookupColumn.title),
+                  sanitizeAndEscapeDots(lookupColumn.title, knex),
                   sanitizeAndEscapeDots(column.title, knex),
                 ]),
               )

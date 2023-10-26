@@ -496,7 +496,7 @@ export async function extractColumn({
                  .select(
                    knex.raw(`??.?? as ??`, [
                      alias2,
-                     sanitize(lookupColumn.title),
+                     sanitizeAndEscapeDots(lookupColumn.title, knex),
                      sanitizeAndEscapeDots(column.title, knex),
                    ]),
                  )
@@ -511,7 +511,7 @@ export async function extractColumn({
               .select(
                 knex.raw(`coalesce(json_agg(??),'[]'::json) as ??`, [
                   alias,
-                  sanitize(column.title),
+                  sanitizeAndEscapeDots(column.title, knex),
                 ]),
               )
               .toQuery()},json_array_elements(??.??) as ?? ) as ?? ON true`,
@@ -524,7 +524,7 @@ export async function extractColumn({
               .select(
                 knex.raw(`coalesce(json_agg(??.??),'[]'::json) as ??`, [
                   alias2,
-                  sanitize(lookupColumn.title),
+                  sanitizeAndEscapeDots(lookupColumn.title, knex),
                   sanitizeAndEscapeDots(column.title, knex),
                 ]),
               )
@@ -1101,6 +1101,10 @@ export async function singleQueryList(ctx: {
     },
   );
 }
+
+
+
+
 
 export function getSingleQueryReadFn(source: Source) {
   if (['mysql', 'mysql2'].includes(source.type)) {

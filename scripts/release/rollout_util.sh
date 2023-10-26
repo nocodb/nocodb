@@ -94,7 +94,7 @@ function perform_rollout(){
         ${SCRIPT_DIR}/image_promote.sh "${PRE_REL_STAGE_TAG}" "${STAGE_TAG}"
     fi
 
-    latest_remote_digest=$(aws ecr batch-get-image --region us-east-2 --repository-name nocohub --image-ids imageTag=${STAGE_TAG} --output text --query images[].imageId )
+    latest_remote_digest=$(aws ecr batch-get-image --region us-east-2 --repository-name ${REPO_NAME:-nocohub} --image-ids imageTag=${STAGE_TAG} --output text --query images[].imageId )
     message "${ENVIRONMENT}: Image with tag:${STAGE_TAG} will be launched. digest: ${latest_remote_digest}"
 
     # TODO: prewarm ASG to have additional instances. update only desired 

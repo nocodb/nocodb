@@ -55,6 +55,7 @@ export enum MetaTable {
   COWRITER = 'cowriter',
   NOTIFICATION = 'notification',
   MODEL_STAT = 'nc_model_stats_v2',
+  SQL_EXECUTOR = 'nc_sql_executor_v2',
 }
 
 export const orderedMetaTables = [
@@ -158,4 +159,5 @@ export enum CacheScope {
   BASE_TO_WORKSPACE = 'baseToWorkspace',
   WORKSPACE_CREATE_DELETE_COUNTER = 'workspace_cd_counter',
   WORKSPACE_UPDATED_MODELS = 'workspace_updated_models',
+  SQL_EXECUTOR = 'sqlExecutor',
 }

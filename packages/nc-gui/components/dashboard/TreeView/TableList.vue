@@ -16,6 +16,10 @@ const props = withDefaults(
   },
 )
 
+const emit = defineEmits<{
+  (event: 'openTable', scrollDown: boolean): void
+}>()
+
 const base = toRef(props, 'base')
 const sourceIndex = toRef(props, 'sourceIndex')
 
@@ -127,6 +131,10 @@ watchEffect(() => {
 const availableTables = computed(() => {
   return tables.value.filter((table) => table.source_id === base.value?.sources?.[sourceIndex.value].id)
 })
+
+const onOpenTable = (scrollDown: boolean) => {
+  emit('openTable', scrollDown)
+}
 </script>
 
 <template>
@@ -160,6 +168,7 @@ const availableTables = computed(() => {
           :data-title="table.title"
           :data-source-id="source?.id"
           :data-type="table.type"
+          @open-table="onOpenTable"
         >
         </TableNode>
       </div>

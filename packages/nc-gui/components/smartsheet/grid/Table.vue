@@ -4,7 +4,7 @@ import { nextTick } from '@vue/runtime-core'
 import type { ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { useColumnDrag } from './useColumnDrag'
-import type { CellRange, Row } from '#imports'
+
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -41,6 +41,7 @@ import {
   useViewsStore,
   watch,
 } from '#imports'
+import type { CellRange, Row } from '#imports'
 
 const props = defineProps<{
   data: Row[]
@@ -1206,7 +1207,7 @@ const loaderText = computed(() => {
 </script>
 
 <template>
-  <div :class="`${headerOnly !== true ? 'h-full w-full' : ''}`" class="flex flex-col">
+  <div class="flex flex-col" :class="`${headerOnly !== true ? 'h-full w-full' : ''}`">
     <div data-testid="drag-icon-placeholder" class="absolute w-1 h-1 pointer-events-none opacity-0"></div>
     <div
       ref="dragColPlaceholderDomRef"
@@ -1225,8 +1226,7 @@ const loaderText = computed(() => {
         class="border-r-1 border-l-1 border-gray-200 h-full"
       ></div>
     </div>
-
-    <div ref="gridWrapper" :class="gridWrapperClass" class="nc-grid-wrapper min-h-0 flex-1 relative">
+    <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative" :class="gridWrapperClass">
       <div
         v-show="showSkeleton && !isPaginationLoading && showLoaderAfterDelay"
         class="flex items-center justify-center absolute l-0 t-0 w-full h-full z-10 pb-10"
@@ -1241,14 +1241,14 @@ const loaderText = computed(() => {
         :trigger="isSqlView ? [] : ['contextmenu']"
         overlay-class-name="nc-dropdown-grid-context-menu"
       >
-        <div :class="{ 'nc-grid-skelton-loader': showSkeleton }" class="table-overlay">
+        <div class="table-overlay" :class="{ 'nc-grid-skelton-loader': showSkeleton }">
           <table
             ref="smartTable"
+            class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white relative pr-60 pb-12"
             :class="{
               mobile: isMobileMode,
               desktop: !isMobileMode,
             }"
-            class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white relative pr-60 pb-12"
             @contextmenu="showContextMenu"
           >
             <thead v-show="hideHeader !== true" ref="tableHeadEl">
@@ -1256,15 +1256,15 @@ const loaderText = computed(() => {
                 <td
                   v-for="(col, colIndex) of dummyColumnDataForLoading"
                   :key="colIndex"
-                  :class="{ 'min-w-50': colIndex !== 0, 'min-w-21.25': colIndex === 0 }"
                   class="!bg-gray-50 h-full border-b-1 border-r-1"
+                  :class="{ 'min-w-50': colIndex !== 0, 'min-w-21.25': colIndex === 0 }"
                 >
                   <a-skeleton
                     :active="true"
-                    :class="{ 'max-w-32': colIndex !== 0, 'max-w-5 !ml-3.5': colIndex === 0 }"
-                    :paragraph="false"
                     :title="true"
+                    :paragraph="false"
                     class="ml-2 -mt-2"
+                    :class="{ 'max-w-32': colIndex !== 0, 'max-w-5 !ml-3.5': colIndex === 0 }"
                   />
                 </td>
               </tr>
@@ -1272,7 +1272,7 @@ const loaderText = computed(() => {
                 <th class="w-[85px] min-w-[85px]" data-testid="grid-id-column" @dblclick="() => {}">
                   <div class="w-full h-full flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                     <template v-if="!readOnly">
-                      <div :class="{ hidden: vSelectedAllRecords }" class="nc-no-label text-gray-500">#</div>
+                      <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
                       <div
                         :class="{ hidden: !vSelectedAllRecords, flex: vSelectedAllRecords }"
                         class="nc-check-all w-full items-center"
@@ -1298,16 +1298,21 @@ const loaderText = computed(() => {
                     'max-width': gridViewCols[col.id]?.width || '200px',
                     'width': gridViewCols[col.id]?.width || '200px',
                   }"
-                  class="nc-grid-column-header relative"
-                  :draggable="isMobileMode ? 'false' : 'true'"
-                  @click="selectColumn(col.id!)"
+                  class="nc-grid-column-header"
+                  :class="{
+                    '!border-r-blue-400 !border-r-3': toBeDroppedColId === col.id,
+                  }"
+                  @xcstartresizing="onXcStartResizing(col.id, $event)"
                   @xcresize="onresize(col.id, $event)"
                   @xcresizing="onXcResizing(col.id, $event)"
-                  @xcstartresizing="onXcStartResizing(col.id, $event)"
-                  @dragstart.stop="onDragStart(col.id!, $event)"
-                  @drag.stop="onDrag($event)"
+                  @click="selectColumn(col.id!)"
                 >
-                  <div class="w-full h-full flex items-center">
+                  <div
+                    class="w-full h-full flex items-center"
+                    :draggable="isMobileMode ? 'false' : 'true'"
+                    @dragstart.stop="onDragStart(col.id!, $event)"
+                    @drag.stop="onDrag($event)"
+                  >
                     <LazySmartsheetHeaderVirtualCell
                       v-if="isVirtualCol(col)"
                       :column="col"
@@ -1315,21 +1320,14 @@ const loaderText = computed(() => {
                     />
                     <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly || isMobileMode" />
                   </div>
-                  <div
-                    :class="{
-                      'w-0.75': toBeDroppedColId === col.id,
-                      'hidden': toBeDroppedColId !== col.id,
-                    }"
-                    class="absolute -right-0.25 -top-0.1 h-[calc(100%+0.1rem)] z-10 bg-blue-500"
-                  ></div>
                 </th>
                 <th
                   v-if="isAddingColumnAllowed"
                   v-e="['c:column:add']"
+                  class="cursor-pointer !border-0 relative !xs:hidden"
                   :style="{
                     borderWidth: '0px !important',
                   }"
-                  class="cursor-pointer !border-0 relative !xs:hidden"
                   @click.stop="addColumnDropdown = true"
                 >
                   <div class="absolute top-0 left-0 h-10.25 border-b-1 border-r-1 border-gray-200 nc-grid-add-edit-column group">
@@ -1340,7 +1338,7 @@ const loaderText = computed(() => {
                       @visible-change="persistMenu = altModifier"
                     >
                       <div class="h-full w-[60px] flex items-center justify-center">
-                        <GeneralIcon v-if="isEeUI && (altModifier || persistMenu)" class="text-sm text-orange-400" icon="magic" />
+                        <GeneralIcon v-if="isEeUI && (altModifier || persistMenu)" icon="magic" class="text-sm text-orange-400" />
                         <component :is="iconMap.plus" class="text-base nc-column-add text-gray-500 !group-hover:text-black" />
                       </div>
 
@@ -1417,14 +1415,14 @@ const loaderText = computed(() => {
                       <template v-else #overlay>
                         <SmartsheetColumnEditOrAddProvider
                           v-if="addColumnDropdown"
-                          :class="{ hidden: isJsonExpand }"
-                          :column-position="columnOrder"
                           :preload="preloadColumn"
-                          @cancel="closeAddColumnDropdown()"
-                          @mounted="preloadColumn = undefined"
+                          :column-position="columnOrder"
+                          :class="{ hidden: isJsonExpand }"
                           @submit="closeAddColumnDropdown(true)"
+                          @cancel="closeAddColumnDropdown()"
                           @click.stop
                           @keydown.stop
+                          @mounted="preloadColumn = undefined"
                         />
                       </template>
                     </a-dropdown>
@@ -1438,35 +1436,35 @@ const loaderText = computed(() => {
                   <td
                     v-for="(col, colIndex) of dummyColumnDataForLoading"
                     :key="colIndex"
-                    :class="{ 'min-w-50': colIndex !== 0, 'min-w-21.25': colIndex === 0 }"
                     class="border-b-1 border-r-1"
+                    :class="{ 'min-w-50': colIndex !== 0, 'min-w-21.25': colIndex === 0 }"
                   ></td>
                 </tr>
               </template>
               <LazySmartsheetRow
                 v-for="(row, rowIndex) of dataRef"
                 v-show="!showSkeleton"
-                :key="rowIndex"
                 ref="rowRefs"
+                :key="rowIndex"
                 :row="row"
               >
                 <template #default="{ state }">
                   <tr
-                    :data-testid="`grid-row-${rowIndex}`"
-                    :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
                     class="nc-grid-row !xs:h-14"
+                    :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
+                    :data-testid="`grid-row-${rowIndex}`"
                   >
                     <td
                       key="row-index"
-                      :data-testid="`cell-Id-${rowIndex}`"
                       class="caption nc-grid-cell pl-5 pr-1"
+                      :data-testid="`cell-Id-${rowIndex}`"
                       @contextmenu="contextMenuTarget = null"
                     >
                       <div class="items-center flex gap-1 min-w-[60px]">
                         <div
                           v-if="!readOnly || !isLocked || isMobileMode"
-                          :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
                           class="nc-row-no sm:min-w-4 text-xs text-gray-500"
+                          :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
                         >
                           {{ ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 }}
                         </div>
@@ -1481,21 +1479,21 @@ const loaderText = computed(() => {
 
                         <div
                           v-if="isUIAllowed('expandedForm')"
-                          :class="{ 'nc-comment': row.rowMeta?.commentCount }"
-                          :data-testid="`nc-expand-${rowIndex}`"
                           class="nc-expand"
+                          :data-testid="`nc-expand-${rowIndex}`"
+                          :class="{ 'nc-comment': row.rowMeta?.commentCount }"
                         >
                           <a-spin
                             v-if="row.rowMeta.saving"
-                            :data-testid="`row-save-spinner-${rowIndex}`"
                             class="!flex items-center"
+                            :data-testid="`row-save-spinner-${rowIndex}`"
                           />
                           <template v-else-if="!isLocked">
                             <span
                               v-if="row.rowMeta?.commentCount && expandForm"
                               v-e="['c:expanded-form:open']"
-                              :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
                               class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
+                              :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
                               @click="expandAndLooseFocus(row, state)"
                             >
                               {{ row.rowMeta.commentCount }}
@@ -1519,6 +1517,7 @@ const loaderText = computed(() => {
                     <SmartsheetTableDataCell
                       v-for="(columnObj, colIndex) of fields"
                       :key="columnObj.id"
+                      class="cell relative nc-grid-cell"
                       :class="{
                         'cursor-pointer': hasEditPermission,
                         'active': hasEditPermission && isCellSelected(rowIndex, colIndex),
@@ -1537,35 +1536,33 @@ const loaderText = computed(() => {
                           (isLookup(columnObj) || isRollup(columnObj) || isFormula(columnObj)) &&
                           hasEditPermission &&
                           isCellSelected(rowIndex, colIndex),
-
                         '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
                       }"
-                      :data-col="columnObj.id"
-                      :data-col-index="colIndex"
-                      :data-key="`data-key-${rowIndex}-${columnObj.id}`"
-                      :data-row-index="rowIndex"
-                      :data-testid="`cell-${columnObj.title}-${rowIndex}`"
-                      :data-title="columnObj.title"
                       :style="{
                         'min-width': gridViewCols[columnObj.id]?.width || '200px',
                         'max-width': gridViewCols[columnObj.id]?.width || '200px',
                         'width': gridViewCols[columnObj.id]?.width || '200px',
                       }"
-                      class="cell relative nc-grid-cell"
-                      @click="handleCellClick($event, rowIndex, colIndex)"
-                      @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
-                      @dblclick="makeEditable(row, columnObj)"
+                      :data-testid="`cell-${columnObj.title}-${rowIndex}`"
+                      :data-key="`data-key-${rowIndex}-${columnObj.id}`"
+                      :data-col="columnObj.id"
+                      :data-title="columnObj.title"
+                      :data-row-index="rowIndex"
+                      :data-col-index="colIndex"
                       @mousedown="handleMouseDown($event, rowIndex, colIndex)"
                       @mouseover="handleMouseOver($event, rowIndex, colIndex)"
+                      @click="handleCellClick($event, rowIndex, colIndex)"
+                      @dblclick="makeEditable(row, columnObj)"
+                      @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
                     >
                       <div v-if="!switchingTab" class="w-full h-full">
                         <LazySmartsheetVirtualCell
                           v-if="isVirtualCol(columnObj) && columnObj.title"
                           v-model="row.row[columnObj.title]"
-                          :active="activeCell.col === colIndex && activeCell.row === rowIndex"
                           :column="columnObj"
-                          :read-only="readOnly"
+                          :active="activeCell.col === colIndex && activeCell.row === rowIndex"
                           :row="row"
+                          :read-only="readOnly"
                           @navigate="onNavigate"
                           @save="updateOrSaveRow?.(row, '', state)"
                         />
@@ -1573,17 +1570,17 @@ const loaderText = computed(() => {
                         <LazySmartsheetCell
                           v-else-if="columnObj.title"
                           v-model="row.row[columnObj.title]"
-                          :active="activeCell.col === colIndex && activeCell.row === rowIndex"
                           :column="columnObj"
                           :edit-enabled="
                             !!hasEditPermission && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
                           "
-                          :read-only="readOnly"
                           :row-index="rowIndex"
-                          @cancel="editEnabled = false"
-                          @navigate="onNavigate"
-                          @save="updateOrSaveRow?.(row, columnObj.title, state)"
+                          :active="activeCell.col === colIndex && activeCell.row === rowIndex"
+                          :read-only="readOnly"
                           @update:edit-enabled="editEnabled = $event"
+                          @save="updateOrSaveRow?.(row, columnObj.title, state)"
+                          @navigate="onNavigate"
+                          @cancel="editEnabled = false"
                         />
                       </div>
                     </SmartsheetTableDataCell>
@@ -1594,12 +1591,12 @@ const loaderText = computed(() => {
               <tr
                 v-if="isAddingEmptyRowAllowed && !isGroupBy"
                 v-e="['c:row:add:grid-bottom']"
+                class="text-left nc-grid-add-new-cell cursor-pointer group relative z-3 xs:hidden"
                 :class="{
                   '!border-r-2 !border-r-gray-100': visibleColLength === 1,
                 }"
-                class="text-left nc-grid-add-new-cell cursor-pointer group relative z-3 xs:hidden"
-                @click="addEmptyRow()"
                 @mouseup.stop
+                @click="addEmptyRow()"
               >
                 <div
                   class="h-10.5 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
@@ -1610,7 +1607,7 @@ const loaderText = computed(() => {
                     class="text-pint-500 text-base ml-2 mt-0 text-gray-600 group-hover:text-black"
                   />
                 </div>
-                <td :colspan="visibleColLength" class="!border-gray-100"></td>
+                <td class="!border-gray-100" :colspan="visibleColLength"></td>
               </tr>
             </tbody>
           </table>
@@ -1619,13 +1616,13 @@ const loaderText = computed(() => {
           <div
             v-show="showFillHandle"
             ref="fillHandle"
+            class="nc-fill-handle"
             :class="
               (!selectedRange.isEmpty() && selectedRange.end.col !== 0) || (selectedRange.isEmpty() && activeCell.col !== 0)
                 ? 'z-3'
                 : 'z-4'
             "
             :style="{ top: `${fillHandleTop}px`, left: `${fillHandleLeft}px`, cursor: 'crosshair' }"
-            class="nc-fill-handle"
           />
         </div>
 
@@ -1698,7 +1695,7 @@ const loaderText = computed(() => {
               class="nc-base-menu-item"
               @click="clearSelectedRangeOfCells()"
             >
-              <GeneralIcon class="text-gray-500" icon="closeBox" />
+              <GeneralIcon icon="closeBox" class="text-gray-500" />
 
               {{ $t('general.clear') }}
             </NcMenuItem>
@@ -1719,7 +1716,7 @@ const loaderText = computed(() => {
                 class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
                 @click="deleteSelectedRangeOfRows"
               >
-                <GeneralIcon class="text-gray-500 text-red-600" icon="delete" />
+                <GeneralIcon icon="delete" class="text-gray-500 text-red-600" />
                 <!-- Delete Rows -->
                 {{ $t('activity.deleteRows') }}
               </NcMenuItem>
@@ -1733,13 +1730,13 @@ const loaderText = computed(() => {
       v-if="headerOnly !== true"
       :key="isMobileMode"
       v-model:pagination-data="paginationDataRef"
-      :align-left="isGroupBy"
-      :change-page="changePage"
-      :extra-style="paginationStyleRef?.extraStyle"
-      :fixed-size="paginationStyleRef?.fixedSize"
-      :hide-sidebars="paginationStyleRef?.hideSidebars === true"
       :show-api-timing="!isGroupBy"
       align-count-on-right
+      :align-left="isGroupBy"
+      :change-page="changePage"
+      :hide-sidebars="paginationStyleRef?.hideSidebars === true"
+      :fixed-size="paginationStyleRef?.fixedSize"
+      :extra-style="paginationStyleRef?.extraStyle"
     >
       <template #add-record>
         <div v-if="isAddingEmptyRowAllowed" class="flex ml-1">
@@ -1759,7 +1756,7 @@ const loaderText = computed(() => {
             placement="top"
             @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
           >
-            <div class="flex items-center px-2 text-gray-600 hover:text-black" data-testid="nc-pagination-add-record">
+            <div data-testid="nc-pagination-add-record" class="flex items-center px-2 text-gray-600 hover:text-black">
               <span>
                 <template v-if="isAddNewRecordGridMode"> {{ $t('activity.newRecord') }} </template>
                 <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }} </template>
@@ -1769,12 +1766,12 @@ const loaderText = computed(() => {
             <template #overlay>
               <div class="relative overflow-visible min-h-17 w-10">
                 <div
+                  class="absolute -top-19 flex flex-col h-34.5 w-70 bg-white rounded-lg justify-start overflow-hidden"
+                  style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
                   :class="{
                     '-left-44': !isAddNewRecordGridMode,
                     '-left-32': isAddNewRecordGridMode,
                   }"
-                  class="absolute -top-19 flex flex-col h-34.5 w-70 bg-white rounded-lg justify-start overflow-hidden"
-                  style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
                 >
                   <div
                     v-e="['c:row:add:grid']"
@@ -1839,14 +1836,13 @@ const loaderText = computed(() => {
 }
 </style>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
 .nc-grid-wrapper {
   @apply h-full w-full;
 
   .nc-grid-add-edit-column {
     @apply bg-gray-50;
   }
-
   .nc-grid-add-new-cell:hover td {
     @apply text-black !bg-gray-50;
   }
@@ -1967,7 +1963,6 @@ const loaderText = computed(() => {
     thead th:nth-child(2) {
       @apply border-r-1 !border-r-gray-50;
     }
-
     tbody td:nth-child(2) {
       @apply border-r-1 !border-r-gray-50;
     }

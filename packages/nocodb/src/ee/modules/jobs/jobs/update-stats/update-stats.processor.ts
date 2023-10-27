@@ -31,14 +31,18 @@ export class UpdateStatsProcessor {
     }
 
     if (row_count === undefined) {
-      const model = await Model.get(fk_model_id);
-      const source = await Source.get(model.source_id);
+      try {
+        const model = await Model.get(fk_model_id);
+        const source = await Source.get(model.source_id);
 
-      const baseModel = await Model.getBaseModelSQL({
-        id: model.id,
-        dbDriver: await NcConnectionMgrv2.get(source),
-      });
-      row_count = await baseModel.count();
+        const baseModel = await Model.getBaseModelSQL({
+          id: model.id,
+          dbDriver: await NcConnectionMgrv2.get(source),
+        });
+        row_count = await baseModel.count();
+      } catch (e) {
+        this.debugLog(`Failed to get row count for model ${fk_model_id}`);
+      }
     }
 
     const stat = await ModelStat.get(fk_workspace_id, fk_model_id);

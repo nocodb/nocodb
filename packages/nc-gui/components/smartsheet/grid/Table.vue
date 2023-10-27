@@ -1309,7 +1309,7 @@ const loaderText = computed(() => {
                 >
                   <div
                     class="w-full h-full flex items-center"
-                    :draggable="isMobileMode || index === 0 ? 'false' : 'true'"
+                    :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission ? 'false' : 'true'"
                     @dragstart.stop="onDragStart(col.id!, $event)"
                     @drag.stop="onDrag($event)"
                   >

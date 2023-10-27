@@ -125,7 +125,7 @@ const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } },
     fields.value.map(async (field, index) => {
       if (field.order !== index + 1) {
         field.order = index + 1
-        saveOrUpdate(field, index, true)
+        await saveOrUpdate(field, index, true)
       }
     }),
   )

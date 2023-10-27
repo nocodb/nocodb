@@ -2590,23 +2590,22 @@ class BaseModelSqlv2 {
         !response ||
         (typeof response?.[0] !== 'object' && response?.[0] !== null)
       ) {
-        let id;
         if (response?.length) {
-          id = response[0];
+          rowId = response[0];
         } else {
-          id = (await query)[0];
+          rowId = (await query)[0];
         }
 
         if (ai) {
           if (this.isSqlite) {
             // sqlite doesnt return id after insert
-            id = (
+            rowId = (
               await this.dbDriver(this.tnPath)
                 .select(ai.column_name)
                 .max(ai.column_name, { as: 'id' })
             )[0].id;
           } else if (this.isSnowflake) {
-            id = (
+            rowId = (
               (await this.dbDriver(this.tnPath).max(ai.column_name, {
                 as: 'id',
               })) as any
@@ -2622,19 +2621,19 @@ class BaseModelSqlv2 {
           response = data;
         }
       } else if (ai) {
-        id = Array.isArray(response)
-            ? response?.[0]?.[ai.title]
-            : response?.[ai.title];
+        rowId = Array.isArray(response)
+          ? response?.[0]?.[ai.title]
+          : response?.[ai.title];
       }
-        rowId = id;
 
       await Promise.all(postInsertOps.map((f) => f()));
 
-      const response = this.readByPk(rowId,
+       response = this.readByPk(
+        rowId,
         false,
         {},
         { ignoreView: true, getHiddenColumn: true },
-        );
+      );
 
       await this.afterInsert(response, this.dbDriver, cookie);
 

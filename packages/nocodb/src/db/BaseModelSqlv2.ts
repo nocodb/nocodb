@@ -2612,29 +2612,29 @@ class BaseModelSqlv2 {
               })) as any
             ).rows[0].id;
           }
-          response = await this.readByPk(
-            id,
-            false,
-            {},
-            { ignoreView: true, getHiddenColumn: true },
-          );
+          // response = await this.readByPk(
+          //   id,
+          //   false,
+          //   {},
+          //   { ignoreView: true, getHiddenColumn: true },
+          // );
         } else {
           response = data;
         }
       } else if (ai) {
-        response = await this.readByPk(
-          Array.isArray(response)
+        id = Array.isArray(response)
             ? response?.[0]?.[ai.title]
-            : response?.[ai.title],
-        );
+            : response?.[ai.title];
       }
-      response = Array.isArray(response) ? response[0] : response;
-      if (response)
-        rowId =
-          response[this.model.primaryKey.title] ||
-          response[this.model.primaryKey.column_name];
+        rowId = id;
 
       await Promise.all(postInsertOps.map((f) => f()));
+
+      const response = this.readByPk(rowId,
+        false,
+        {},
+        { ignoreView: true, getHiddenColumn: true },
+        );
 
       await this.afterInsert(response, this.dbDriver, cookie);
 

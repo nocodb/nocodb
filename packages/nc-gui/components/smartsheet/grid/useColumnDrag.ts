@@ -10,8 +10,11 @@ export const useColumnDrag = ({
   gridWrapper: Ref<HTMLElement | undefined>
 }) => {
   const { eventBus } = useSmartsheetStoreOrThrow()
+  const { addUndo, defineViewScope } = useUndoRedo()
 
-  const { updateGridViewColumn, gridViewCols } = useViewColumnsOrThrow()
+  const { activeView } = storeToRefs(useViewsStore())
+
+  const { gridViewCols, updateGridViewColumn } = useViewColumnsOrThrow()
   const { leftSidebarWidth } = storeToRefs(useSidebarStore())
   const { width } = useWindowSize()
 
@@ -20,17 +23,48 @@ export const useColumnDrag = ({
   const toBeDroppedColId = ref<string | null>(null)
 
   const reorderColumn = async (colId: string, toColId: string) => {
-    const col = gridViewCols.value[colId]
-    const toCol = gridViewCols.value[toColId]!
+    const toBeReorderedViewCol = gridViewCols.value[colId]
+
+    const toViewCol = gridViewCols.value[toColId]!
     const toColIndex = fields.value.findIndex((f) => f.id === toColId)
+
     const nextToColField = toColIndex < fields.value.length - 1 ? fields.value[toColIndex + 1] : null
-    const nextToCol = nextToColField ? gridViewCols.value[nextToColField.id!] : null
+    const nextToViewCol = nextToColField ? gridViewCols.value[nextToColField.id!] : null
 
-    const newOrder = nextToCol ? toCol.order! + (nextToCol.order! - toCol.order!) / 2 : toCol.order! + 1
+    const newOrder = nextToViewCol
+      ? toViewCol.order! + (nextToViewCol.order! - toViewCol.order!) / 2
+      : toBeReorderedViewCol.order! + 1
+    const oldOrder = toBeReorderedViewCol.order
 
-    col.order = newOrder
+    toBeReorderedViewCol.order = newOrder
 
-    await updateGridViewColumn(colId, { order: newOrder } as any)
+    addUndo({
+      undo: {
+        fn: async () => {
+          if (!fields.value) return
+
+          toBeReorderedViewCol.order = oldOrder
+          await updateGridViewColumn(colId, { order: oldOrder } as any)
+
+          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+        },
+        args: [],
+      },
+      redo: {
+        fn: async () => {
+          if (!fields.value) return
+
+          toBeReorderedViewCol.order = newOrder
+          await updateGridViewColumn(colId, { order: newOrder } as any)
+
+          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+        },
+        args: [],
+      },
+      scope: defineViewScope({ view: activeView.value }),
+    })
+
+    await updateGridViewColumn(colId, { order: newOrder } as any, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
   }

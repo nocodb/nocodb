@@ -48,7 +48,11 @@ export const useColumnDrag = ({
     e.dataTransfer.setData('text/plain', colId)
 
     draggedCol.value = fields.value.find((f) => f.id === colId) ?? null
-    dragColPlaceholderDomRef.value!.style.height = `${tableBodyEl.value?.getBoundingClientRect().height}px`
+
+    const remInPx = parseFloat(getComputedStyle(document.documentElement).fontSize)
+
+    const placeholderHeight = tableBodyEl.value?.getBoundingClientRect().height ?? 6.1 * remInPx
+    dragColPlaceholderDomRef.value!.style.height = `${placeholderHeight}px`
 
     const x = e.clientX - leftSidebarWidth.value
 

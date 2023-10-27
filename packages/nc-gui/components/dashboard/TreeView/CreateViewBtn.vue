@@ -83,6 +83,7 @@ async function onOpenModal({
         view,
         tableId: table.value.id!,
         baseId: base.value.id!,
+        doNotSwitchTab: true,
       })
 
       $e('a:view:create', { view: view.type })

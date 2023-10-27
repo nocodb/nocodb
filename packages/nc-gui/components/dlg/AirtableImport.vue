@@ -309,6 +309,8 @@ onMounted(async () => {
   <a-modal
     v-model:visible="dialogShow"
     :class="{ active: dialogShow }"
+    :closable="step !== 2"
+    :keyboard="step !== 2"
     :mask-closable="step !== 2"
     width="max(30vw, 600px)"
     class="p-2"

@@ -155,7 +155,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       $e('a:fields:show-all')
     }
 
-    const saveOrUpdate = async (field: any, index: number) => {
+    const saveOrUpdate = async (field: any, index: number, disableDataReload: boolean = false) => {
       if (isLocalMode.value && fields.value) {
         fields.value[index] = field
         meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {
@@ -185,8 +185,10 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         }
       }
 
-      await loadViewColumns()
-      reloadData?.()
+      if (!disableDataReload) {
+        await loadViewColumns()
+        reloadData?.()
+      }
     }
 
     const showSystemFields = computed({

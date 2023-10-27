@@ -27,6 +27,8 @@ const activeView = inject(ActiveViewInj, ref())
 
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj, undefined)!
 
+const reloadViewDataHook = inject(ReloadViewDataHookInj, undefined)!
+
 const rootFields = inject(FieldsInj)
 
 const { isMobileMode } = useGlobal()
@@ -79,7 +81,7 @@ const gridDisplayValueField = computed(() => {
   return filteredFieldList.value?.find((field) => field.fk_column_id === pvCol?.id)
 })
 
-const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }, undo = false) => {
+const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } }, undo = false) => {
   // todo : sync with server
   if (!fields.value) return
 
@@ -119,12 +121,17 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }, undo 
 
   if (fields.value.length < 2) return
 
-  fields.value.forEach((field, index) => {
-    if (field.order !== index + 1) {
-      field.order = index + 1
-      saveOrUpdate(field, index)
-    }
-  })
+  await Promise.all(
+    fields.value.map(async (field, index) => {
+      if (field.order !== index + 1) {
+        field.order = index + 1
+        saveOrUpdate(field, index, true)
+      }
+    }),
+  )
+
+  await loadViewColumns()
+  reloadViewDataHook?.trigger()
 
   $e('a:fields:reorder')
 }

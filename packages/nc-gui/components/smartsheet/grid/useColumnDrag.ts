@@ -31,9 +31,10 @@ export const useColumnDrag = ({
     const nextToColField = toColIndex < fields.value.length - 1 ? fields.value[toColIndex + 1] : null
     const nextToViewCol = nextToColField ? gridViewCols.value[nextToColField.id!] : null
 
-    const newOrder = nextToViewCol
-      ? toViewCol.order! + (nextToViewCol.order! - toViewCol.order!) / 2
-      : toBeReorderedViewCol.order! + 1
+    const lastCol = fields.value[fields.value.length - 1]
+    const lastViewCol = gridViewCols.value[lastCol.id!]
+
+    const newOrder = nextToViewCol ? toViewCol.order! + (nextToViewCol.order! - toViewCol.order!) / 2 : lastViewCol.order! + 1
     const oldOrder = toBeReorderedViewCol.order
 
     toBeReorderedViewCol.order = newOrder
@@ -128,13 +129,13 @@ export const useColumnDrag = ({
 
     const remInPx = parseFloat(getComputedStyle(document.documentElement).fontSize)
 
-    if (x > width.value * 0.5) {
-      setTimeout(() => {
-        gridWrapper.value!.scrollLeft += 2.5
-      }, 250)
-    } else if (x < leftSidebarWidth.value + 10 * remInPx) {
+    if (x < leftSidebarWidth.value + 1 * remInPx) {
       setTimeout(() => {
         gridWrapper.value!.scrollLeft -= 2.5
+      }, 250)
+    } else if (width.value - x - leftSidebarWidth.value < 15 * remInPx) {
+      setTimeout(() => {
+        gridWrapper.value!.scrollLeft += 2.5
       }, 250)
     }
   }

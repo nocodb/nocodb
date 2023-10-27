@@ -31,18 +31,14 @@ export class UpdateStatsProcessor {
     }
 
     if (row_count === undefined) {
-      try {
-        const model = await Model.get(fk_model_id);
-        const source = await Source.get(model.source_id);
+      const model = await Model.get(fk_model_id);
+      const source = await Source.get(model.source_id);
 
-        const baseModel = await Model.getBaseModelSQL({
-          id: model.id,
-          dbDriver: await NcConnectionMgrv2.get(source),
-        });
-        row_count = await baseModel.count();
-      } catch (e) {
-        this.debugLog(`Failed to get row count for model ${fk_model_id}`);
-      }
+      const baseModel = await Model.getBaseModelSQL({
+        id: model.id,
+        dbDriver: await NcConnectionMgrv2.get(source),
+      });
+      row_count = await baseModel.count();
     }
 
     const stat = await ModelStat.get(fk_workspace_id, fk_model_id);
@@ -94,12 +90,16 @@ export class UpdateStatsProcessor {
           continue;
         }
 
-        await this.updateModelStat({
-          data: {
-            fk_workspace_id,
-            fk_model_id,
-          },
-        } as any);
+        try {
+          await this.updateModelStat({
+            data: {
+              fk_workspace_id,
+              fk_model_id,
+            },
+          } as any);
+        } catch (e) {
+          this.debugLog(`Failed to update stats for model ${fk_model_id}`);
+        }
       }
     } else {
       const bases = await Base.listByWorkspace(workspace.id);
@@ -110,13 +110,17 @@ export class UpdateStatsProcessor {
           source_id: base.sources[0].id,
         });
 
-        for (const model of models) {
-          await this.updateModelStat({
-            data: {
-              fk_workspace_id,
-              fk_model_id: model.id,
-            },
-          } as any);
+        try {
+          for (const model of models) {
+            await this.updateModelStat({
+              data: {
+                fk_workspace_id,
+                fk_model_id: model.id,
+              },
+            } as any);
+          }
+        } catch (e) {
+          this.debugLog(`Failed to update stats for base ${base.id}`);
         }
       }
     }
@@ -171,13 +175,17 @@ export class UpdateStatsProcessor {
         continue;
       }
 
-      for (const model of models) {
-        await this.updateModelStat({
-          data: {
-            fk_workspace_id: workspaceId,
-            fk_model_id: model.id,
-          },
-        } as any);
+      try {
+        for (const model of models) {
+          await this.updateModelStat({
+            data: {
+              fk_workspace_id: workspaceId,
+              fk_model_id: model.id,
+            },
+          } as any);
+        }
+      } catch (e) {
+        this.debugLog(`Failed to update stats for source ${source.id}`);
       }
     }
 

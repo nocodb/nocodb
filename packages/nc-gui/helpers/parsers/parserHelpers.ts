@@ -174,3 +174,20 @@ export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {
   // TODO(import): date / datetime
   return colProps
 }
+
+export const filterNullOrUndefinedObjectProperties = <T extends Record<string, any>>(obj: T): T => {
+  return Object.keys(obj).reduce((result, propName) => {
+    const value = obj[propName]
+
+    if (value !== null && value !== undefined) {
+      if (!Array.isArray(value) && typeof value === 'object') {
+        // Recursively filter nested objects
+        result[propName] = filterNullOrUndefinedObjectProperties(value)
+      } else {
+        result[propName] = value
+      }
+    }
+
+    return result
+  }, {} as Record<string, any>) as T
+}

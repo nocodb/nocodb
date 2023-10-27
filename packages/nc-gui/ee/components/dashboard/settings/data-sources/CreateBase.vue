@@ -435,6 +435,8 @@ const createSource = async () => {
   }
 }
 
+const testConnectionError = ref()
+
 const testConnection = async () => {
   try {
     await validate()
@@ -472,8 +474,7 @@ const testConnection = async () => {
     }
   } catch (e: any) {
     testSuccess.value = false
-
-    message.error(await extractSdkResponseErrorMsg(e))
+    testConnectionError.value = await extractSdkResponseErrorMsg(e)
   }
 
   testingConnection.value = false
@@ -508,7 +509,10 @@ const handleOk = () => {
 // reset test status on config change
 watch(
   () => formState.value.dataSource,
-  () => (testSuccess.value = false),
+  () => {
+    testSuccess.value = false
+    testConnectionError.value = null
+  },
   { deep: true },
 )
 
@@ -563,8 +567,7 @@ const toggleModal = (val: boolean) => {
           </h1>
           <DashboardSettingsDataSourcesInfo />
 
-
-          <a-alert type="error" message="Error text" banner class="my-1" />
+          <a-alert v-if="testConnectionError" type="error" :message="testConnectionError" banner class="!mb-2 !-mt-2" />
           <a-form
             ref="form"
             :model="formState"

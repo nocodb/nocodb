@@ -309,6 +309,7 @@ onMounted(async () => {
   <a-modal
     v-model:visible="dialogShow"
     :class="{ active: dialogShow }"
+    :mask-closable="step !== 2"
     width="max(30vw, 600px)"
     class="p-2"
     wrap-class-name="nc-modal-airtable-import"

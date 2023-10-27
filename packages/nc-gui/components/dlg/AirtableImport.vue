@@ -324,7 +324,7 @@ onMounted(async () => {
           <span class="mr-3 pt-2 text-gray-500 text-xs">{{ $t('general.credentials') }}</span>
           <!--          Where to find this? -->
           <a
-            href="https://docs.nocodb.com/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free/#get-airtable-credentials"
+            href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
             class="prose-sm underline text-grey text-xs"
             target="_blank"
           >

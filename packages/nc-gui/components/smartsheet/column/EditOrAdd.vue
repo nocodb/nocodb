@@ -230,7 +230,7 @@ if (props.fromTableExplorer) {
             <input
               ref="antInput"
               v-model="formState.title"
-              class="flex flex-grow text-lg font-bold outline-none bg-inherit"
+              class="flex flex-grow nc-fields-input text-lg font-bold outline-none bg-inherit"
               :contenteditable="true"
             />
           </div>

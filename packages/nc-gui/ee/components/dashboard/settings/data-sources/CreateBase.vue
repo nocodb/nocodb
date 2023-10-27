@@ -563,6 +563,8 @@ const toggleModal = (val: boolean) => {
           </h1>
           <DashboardSettingsDataSourcesInfo />
 
+
+          <a-alert type="error" message="Error text" banner class="my-1" />
           <a-form
             ref="form"
             :model="formState"

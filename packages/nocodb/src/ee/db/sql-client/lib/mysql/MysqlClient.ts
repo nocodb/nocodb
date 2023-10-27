@@ -25,9 +25,9 @@ class MysqlClient extends MysqlClientCE {
 
       const version = versionQueryResult?.[0]?.[0]?.version;
 
-      if (/Vitess$/i.test(version)) {
+      if (/\b(Tidb|Vitess)\b/i.test(version)) {
         result.code = -1;
-        result.message = 'Vitess/Planetscale is not supported';
+        result.message = 'Vitess/Planetscale/TiDB is not supported';
       }
     } catch (e) {
       // log.ppe(e);

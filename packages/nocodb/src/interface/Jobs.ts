@@ -9,6 +9,7 @@ export enum JobTypes {
   BaseDelete = 'base-delete',
   UpdateModelStat = 'update-model-stat',
   UpdateWsStat = 'update-ws-stats',
+  UpdateSrcStat = 'update-source-stat',
 }
 
 export enum JobStatus {

@@ -47,5 +47,9 @@ export class QueueService extends QueueServiceCE {
       this: this.updateStatsProcessor,
       fn: this.updateStatsProcessor.updateWorkspaceStat,
     },
+    [JobTypes.UpdateSrcStat]: {
+      this: this.updateStatsProcessor,
+      fn: this.updateStatsProcessor.UpdateSrcStat,
+    },
   };
 }

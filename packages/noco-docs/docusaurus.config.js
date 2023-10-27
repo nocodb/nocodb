@@ -11,7 +11,7 @@ const config = {
   favicon: "img/favicon.ico",
 
   // Set the production url of your site here
-  url: "https://nocodb.com",
+  url: "https://docs.nocodb.com",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: "/",
@@ -101,7 +101,7 @@ const config = {
         // Replace this with the name of your index/collection.
         // It should match the "index_name" entry in the scraper's "config.json" file.
         typesenseCollectionName: 'nocodb-oss-docs-index',
-  
+
         typesenseServerConfig: {
           nodes: [
             {
@@ -112,10 +112,10 @@ const config = {
           ],
           apiKey: 'lNKDTZdJrE76Sg8WEyeN9mXT29l1xq7Q',
         },
-  
+
         // Optional: Typesense search parameters: https://typesense.org/docs/0.24.0/api/search.html#search-parameters
         typesenseSearchParameters: {},
-  
+
         // Optional
         contextualSearch: true,
       },

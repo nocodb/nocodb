@@ -2198,6 +2198,14 @@ class SqliteClient extends KnexClient {
     }
     return result;
   }
+
+  genValue(value): any {
+    if (value === 'CURRENT_TIMESTAMP') {
+      return value;
+    }
+
+    return super.genValue(value);
+  }
 }
 
 export default SqliteClient;

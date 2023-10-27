@@ -2521,6 +2521,7 @@ export class AtImportProcessor {
         this.telemetryService.sendEvent({
           evt_type: 'a:airtable-import:error',
           user_id: syncDB.user.id,
+          email: syncDB.user.email,
           data: { error: e.message },
         });
         console.log(e);

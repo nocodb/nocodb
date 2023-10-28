@@ -120,12 +120,6 @@ onMounted(() => {
   }
 })
 
-const optionChanged = (changedId: string) => {
-  if (changedId && changedId === defaultOption.value?.id) {
-    vModel.value.cdf = defaultOption.value.title
-  }
-}
-
 const getNextColor = () => {
   let tempColor = colors.value[0]
   if (options.value.length && options.value[options.value.length - 1].color) {
@@ -189,6 +183,13 @@ const removeRenderedOption = (index: number) => {
     defaultOption.value = null
     vModel.value.cdf = null
   }
+}
+
+const optionChanged = (changedId: string) => {
+  if (changedId && changedId === defaultOption.value?.id) {
+    vModel.value.cdf = defaultOption.value.title
+  }
+  syncOptions()
 }
 
 const undoRemoveRenderedOption = (index: number) => {

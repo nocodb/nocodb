@@ -10,8 +10,11 @@ export const useColumnDrag = ({
   gridWrapper: Ref<HTMLElement | undefined>
 }) => {
   const { eventBus } = useSmartsheetStoreOrThrow()
+  const { addUndo, defineViewScope } = useUndoRedo()
 
-  const { updateGridViewColumn, gridViewCols } = useViewColumnsOrThrow()
+  const { activeView } = storeToRefs(useViewsStore())
+
+  const { gridViewCols, updateGridViewColumn } = useViewColumnsOrThrow()
   const { leftSidebarWidth } = storeToRefs(useSidebarStore())
   const { width } = useWindowSize()
 
@@ -20,17 +23,49 @@ export const useColumnDrag = ({
   const toBeDroppedColId = ref<string | null>(null)
 
   const reorderColumn = async (colId: string, toColId: string) => {
-    const col = gridViewCols.value[colId]
-    const toCol = gridViewCols.value[toColId]!
+    const toBeReorderedViewCol = gridViewCols.value[colId]
+
+    const toViewCol = gridViewCols.value[toColId]!
     const toColIndex = fields.value.findIndex((f) => f.id === toColId)
+
     const nextToColField = toColIndex < fields.value.length - 1 ? fields.value[toColIndex + 1] : null
-    const nextToCol = nextToColField ? gridViewCols.value[nextToColField.id!] : null
+    const nextToViewCol = nextToColField ? gridViewCols.value[nextToColField.id!] : null
 
-    const newOrder = nextToCol ? toCol.order! + (nextToCol.order! - toCol.order!) / 2 : toCol.order! + 1
+    const lastCol = fields.value[fields.value.length - 1]
+    const lastViewCol = gridViewCols.value[lastCol.id!]
 
-    col.order = newOrder
+    const newOrder = nextToViewCol ? toViewCol.order! + (nextToViewCol.order! - toViewCol.order!) / 2 : lastViewCol.order! + 1
+    const oldOrder = toBeReorderedViewCol.order
 
-    await updateGridViewColumn(colId, { order: newOrder } as any)
+    toBeReorderedViewCol.order = newOrder
+
+    addUndo({
+      undo: {
+        fn: async () => {
+          if (!fields.value) return
+
+          toBeReorderedViewCol.order = oldOrder
+          await updateGridViewColumn(colId, { order: oldOrder } as any)
+
+          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+        },
+        args: [],
+      },
+      redo: {
+        fn: async () => {
+          if (!fields.value) return
+
+          toBeReorderedViewCol.order = newOrder
+          await updateGridViewColumn(colId, { order: newOrder } as any)
+
+          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+        },
+        args: [],
+      },
+      scope: defineViewScope({ view: activeView.value }),
+    })
+
+    await updateGridViewColumn(colId, { order: newOrder } as any, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
   }
@@ -94,13 +129,13 @@ export const useColumnDrag = ({
 
     const remInPx = parseFloat(getComputedStyle(document.documentElement).fontSize)
 
-    if (x > width.value * 0.5) {
-      setTimeout(() => {
-        gridWrapper.value!.scrollLeft += 2.5
-      }, 250)
-    } else if (x < leftSidebarWidth.value + 10 * remInPx) {
+    if (x < leftSidebarWidth.value + 1 * remInPx) {
       setTimeout(() => {
         gridWrapper.value!.scrollLeft -= 2.5
+      }, 250)
+    } else if (width.value - x - leftSidebarWidth.value < 15 * remInPx) {
+      setTimeout(() => {
+        gridWrapper.value!.scrollLeft += 2.5
       }, 250)
     }
   }

@@ -39,11 +39,6 @@ jobs:
     - name: install dependencies nocodb
       working-directory: ./packages/nocodb
       run: npm ci
-    - name: run sql-executor
-        working-directory: ./packages/nc-sql-executor
-        run: |
-          npm install
-          npm run dev &
     - name: run unit tests
       working-directory: ./packages/nocodb
       run: npm run unit-test

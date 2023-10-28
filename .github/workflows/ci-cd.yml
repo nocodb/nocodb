@@ -70,6 +70,11 @@ jobs:
         run: |
           pnpm run generate:sdk:ee
           pnpm run build:ee:main
+      - name: run sql-executor
+        working-directory: ./packages/nc-sql-executor
+        run: |
+          npm install
+          npm run dev &
       - name: run unit tests
         working-directory: ./packages/nocodb
         run: pnpm run test:unit:pg:ee

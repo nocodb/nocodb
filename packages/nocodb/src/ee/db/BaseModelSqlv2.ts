@@ -40,7 +40,13 @@ import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
-async function runExternal(query: string | string[], config: any) {
+async function runExternal(
+  query: string | string[],
+  config: any,
+  extraOptions: {
+    raw?: boolean;
+  } = {},
+) {
   if (!config) {
     console.log(query);
     throw new Error('External DB config not found');
@@ -51,6 +57,7 @@ async function runExternal(query: string | string[], config: any) {
   const { data } = await axios.post(`${sqlExecutor}/query`, {
     query,
     config: rest,
+    ...extraOptions,
   });
   return data;
 }
@@ -1380,13 +1387,16 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       let responses;
 
       if ((this.dbDriver as any).isExternal) {
-        responses = await runExternal(queries, (this.dbDriver as any).extDb);
+        responses = await runExternal(queries, (this.dbDriver as any).extDb, {
+          raw: true,
+        });
       } else {
         const trx = await this.dbDriver.transaction();
         try {
           responses = [];
           for (const q of queries) {
-            responses.push(...(await execAndGetRows(this, q, trx)));
+            const res = await trx.raw(q);
+            responses.push(res);
           }
           await trx.commit();
         } catch (e) {
@@ -1395,7 +1405,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
-      const count = responses.pop();
+      const count = responses.pop()?.rowCount;
 
       await this.afterBulkDelete(count, this.dbDriver, cookie, true);
 

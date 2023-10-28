@@ -3,6 +3,7 @@ import { diff } from 'deep-object-diff'
 import { message } from 'ant-design-vue'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
+import { onKeyDown, useMagicKeys } from '@vueuse/core'
 import type { ColumnType, SelectOptionsType } from 'nocodb-sdk'
 import { Icon } from '@iconify/vue'
 import { type Field, getUniqueColumnName, ref, useSmartsheetStoreOrThrow } from '#imports'
@@ -38,6 +39,8 @@ const { $api } = useNuxtApp()
 const { getMeta } = useMetas()
 
 const { meta, view } = useSmartsheetStoreOrThrow()
+
+const { openedViewsTab } = storeToRefs(useViewsStore())
 
 const moveOps = ref<moveOp[]>([])
 
@@ -568,6 +571,33 @@ const toggleVisibility = async (checked: boolean, field: Field) => {
     column: field,
   })
 }
+
+onKeyDown('ArrowDown', () => {
+  const index = fields.value.findIndex((f) => compareCols(f, activeField.value))
+  if (index === -1) changeField(fields.value[0])
+  else if (index === fields.value.length - 1) changeField(fields.value[0])
+  else changeField(fields.value[index + 1])
+})
+onKeyDown('ArrowUp', () => {
+  const index = fields.value.findIndex((f) => compareCols(f, activeField.value))
+  if (index === -1) changeField(fields.value[0])
+  else if (index === 0) changeField(fields.value[fields.value.length - 1])
+  else changeField(fields.value[index - 1])
+})
+
+onKeyDown('Delete', () => {
+  const isDeletedField = fieldStatus(activeField.value) === 'delete'
+  if (!isDeletedField && activeField.value) {
+    onFieldDelete(activeField.value)
+  }
+})
+
+const keys = useMagicKeys()
+
+whenever(keys.alt_c, () => {
+  if (!meta.value?.id) return
+  if (openedViewsTab.value === 'field') addField()
+})
 
 const isColumnsValid = computed(() => fields.value.every((f) => isColumnValid(f)))
 

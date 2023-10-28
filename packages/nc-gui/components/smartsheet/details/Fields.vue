@@ -606,15 +606,39 @@ onKeyDown('ArrowUp', () => {
 })
 
 onKeyDown('Delete', () => {
+  if (document.activeElement?.tagName === 'INPUT') return
   const isDeletedField = fieldStatus(activeField.value) === 'delete'
   if (!isDeletedField && activeField.value) {
     onFieldDelete(activeField.value)
   }
 })
 
+onKeyDown('Backspace', () => {
+  if (document.activeElement?.tagName === 'INPUT') return
+  const isDeletedField = fieldStatus(activeField.value) === 'delete'
+  if (!isDeletedField && activeField.value) {
+    onFieldDelete(activeField.value)
+  }
+})
+
+onKeyDown('ArrowRight', () => {
+  if (document.activeElement?.tagName === 'INPUT') return
+  if (activeField.value) {
+    const input = document.querySelector('.nc-fields-input')
+    if (input) {
+      input.focus()
+    }
+  }
+})
+
 const keys = useMagicKeys()
 
 whenever(keys.altleft_c, () => {
+  if (!meta.value?.id) return
+  if (openedViewsTab.value === 'field') addField()
+})
+
+whenever(keys.option_c, () => {
   if (!meta.value?.id) return
   if (openedViewsTab.value === 'field') addField()
 })

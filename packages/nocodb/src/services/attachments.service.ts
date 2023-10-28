@@ -146,18 +146,21 @@ export class AttachmentsService {
     return attachments;
   }
 
-  async fileRead(param: { path: string }) {
+  async getFile(param: { path: string }): Promise<{
+    path: string;
+    type: string;
+  }> {
     // get the local storage adapter to display local attachments
     const storageAdapter = new Local();
     const type =
       mimetypes[path.extname(param.path).split('/').pop().slice(1)] ||
       'text/plain';
 
-    const img = await storageAdapter.validateAndNormalisePath(
+    const filePath = await storageAdapter.validateAndNormalisePath(
       slash(param.path),
       true,
     );
-    return { img, type };
+    return { path: filePath, type };
   }
 
   sanitizeUrlPath(paths) {

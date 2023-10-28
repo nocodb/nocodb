@@ -60,11 +60,11 @@ export class AttachmentsSecureController {
     try {
       const fpath = await PresignedUrl.getPath(`dltemp/${param}`);
 
-      const { img } = await this.attachmentsService.fileRead({
+      const file = await this.attachmentsService.getFile({
         path: path.join('nc', 'uploads', fpath),
       });
 
-      res.sendFile(img);
+      res.sendFile(file.path);
     } catch (e) {
       res.status(404).send('Not found');
     }

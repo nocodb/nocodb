@@ -760,7 +760,7 @@ onMounted(async () => {
 
                           <a-menu-divider class="my-1" />
 
-                          <NcMenuItem key="table-explorer-delete" @click="onFieldDelete(field)">
+                          <NcMenuItem key="table-explorer-delete" class="!hover:bg-red-50" @click="onFieldDelete(field)">
                             <div class="text-red-500">
                               <GeneralIcon icon="delete" class="group-hover:text-accent" />
                               Delete

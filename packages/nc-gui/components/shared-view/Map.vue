@@ -9,7 +9,7 @@ import {
   useProvideMapViewStore,
 } from '#imports'
 
-const { sharedView, meta, sorts, nestedFilters } = useSharedView()
+const { sharedView, meta, nestedFilters } = useSharedView()
 
 const reloadEventHook = createEventHook()
 

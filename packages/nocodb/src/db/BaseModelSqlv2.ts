@@ -2632,7 +2632,7 @@ class BaseModelSqlv2 {
 
       await Promise.all(postInsertOps.map((f) => f()));
 
-      response = this.readByPk(
+      response = await this.readByPk(
         rowId,
         false,
         {},

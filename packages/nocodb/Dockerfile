@@ -3,7 +3,7 @@ ARG ACCESS_TOKEN
 ###########
 # Litestream Builder
 ###########
-FROM golang:alpine3.14 as lt-builder
+FROM golang:alpine3.18 as lt-builder
 
 WORKDIR /usr/src/
 

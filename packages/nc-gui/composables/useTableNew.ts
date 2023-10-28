@@ -82,7 +82,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
     const views = viewsByTable.value.get(table.id as string) ?? []
 
-    getMeta(table.id as string, (route.value.params?.viewId as string) !== table.id)
+    await getMeta(table.id as string, (route.value.params?.viewId as string) !== table.id)
 
     if (openedViewsTab.value !== 'view' && views.length && views[0].id) {
       await navigateTo({

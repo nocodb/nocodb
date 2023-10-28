@@ -52,7 +52,7 @@ app.post('/query', async (req, res) => {
 
   config.pool = {
     min: 0,
-    max: 5,
+    max: 10,
   }
 
   const connectionKey = hash(config);

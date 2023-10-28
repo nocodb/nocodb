@@ -2517,11 +2517,15 @@ class BaseModelSqlv2 {
             await col.getColOptions<LinkToAnotherRecordColumn>();
 
           // parse data if it's JSON string
-          const nestedData =
-            typeof data[col.title] === 'string'
-              ? JSON.parse(data[col.title])
-              : data[col.title];
-
+          let nestedData;
+          try {
+            nestedData =
+              typeof data[col.title] === 'string'
+                ? JSON.parse(data[col.title])
+                : data[col.title];
+          } catch {
+            continue
+          }
           switch (colOptions.type) {
             case RelationTypes.BELONGS_TO:
               {
@@ -2628,7 +2632,7 @@ class BaseModelSqlv2 {
 
       await Promise.all(postInsertOps.map((f) => f()));
 
-       response = this.readByPk(
+      response = this.readByPk(
         rowId,
         false,
         {},

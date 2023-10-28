@@ -61,7 +61,7 @@ export async function dataInsert(
 }
 
 export async function dataUpdate(
-  param: PathParams & { body: unknown; cookie: any; rowId: string; query?: any } 
+  param: PathParams & { body: unknown; cookie: any; rowId: string; query?: any }
 ) {
   const { model, view } = await getViewAndModelByAliasOrId(param);
   const base = await Base.get(model.base_id);
@@ -76,7 +76,8 @@ export async function dataUpdate(
     param.rowId,
     param.body,
     null,
-    param.cookie
+    param.cookie,
+    param.query
   );
 }
 

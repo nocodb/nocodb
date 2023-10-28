@@ -73,6 +73,7 @@ async function dataUpdate(req: Request, res: Response) {
       body: req.body,
       cookie: req,
       rowId: req.params.rowId,
+      query: req.query,
     })
   );
 }
@@ -176,7 +177,7 @@ router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
   apiMetrics,
   ncMetaAclMw(dataRead, 'dataRead')
-);
+); // ///////////
 
 router.patch(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',

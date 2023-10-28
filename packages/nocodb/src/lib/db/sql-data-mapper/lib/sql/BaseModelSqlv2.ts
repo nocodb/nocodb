@@ -85,6 +85,14 @@ function checkColumnRequired(
   return !fields || fields.includes(column.title);
 }
 
+type RequestQuery = {
+  [fields in 'f' | 'fields']?: string | string[];
+} & {
+  nested?: {
+    [field: string]: RequestQuery;
+  };
+};
+
 /**
  * Base class for models
  *
@@ -118,7 +126,11 @@ class BaseModelSqlv2 {
     autoBind(this);
   }
 
-  public async readByPk(id?: any, validateFormula = false): Promise<any> {
+  public async readByPk(
+    id?: any,
+    validateFormula = false,
+    query?: RequestQuery
+  ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
 
     await this.selectObject({ qb, validateFormula });
@@ -147,7 +159,7 @@ class BaseModelSqlv2 {
       projectName: project.title,
       tableName: this.model.title,
     });
-    const { ast } = await getAst({ model, view });
+    const { ast } = await getAst({ model, view, query });
     data = await nocoExecute(ast, data, {});
     return data;
   }
@@ -1847,7 +1859,7 @@ class BaseModelSqlv2 {
     return res;
   }
 
-  async updateByPk(id, data, trx?, cookie?) {
+  async updateByPk(id, data, trx?, cookie?, requestQuery?: RequestQuery) {
     try {
       const updateObj = await this.model.mapAliasToColumn(data);
 
@@ -1855,7 +1867,8 @@ class BaseModelSqlv2 {
 
       await this.beforeUpdate(data, trx, cookie);
 
-      const prevData = await this.readByPk(id);
+      // pass query for fields in both cases to reduce response wait time
+      const prevData = await this.readByPk(id, false, requestQuery);
 
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
@@ -1863,7 +1876,8 @@ class BaseModelSqlv2 {
 
       await this.execAndParse(query);
 
-      const newData = await this.readByPk(id);
+      // pass query for fields in both cases to reduce response wait time
+      const newData = await this.readByPk(id, false, requestQuery);
       await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
       return newData;
     } catch (e) {
@@ -2468,8 +2482,11 @@ class BaseModelSqlv2 {
     const view = await View.get(this.viewId);
     const project = await Project.get(this.model.project_id);
     const bases = await project.getBases();
-    const  currentBase = bases.find(base => base.id === this.model.base_id);
-    const shouldProceed = currentBase.is_meta || process.env.ESA_SKIP_DB_RECORD_ACTION_EVENT_WATCHER_FOR_WEBHOOK === 'true';
+    const currentBase = bases.find((base) => base.id === this.model.base_id);
+    const shouldProceed =
+      currentBase.is_meta ||
+      process.env.ESA_SKIP_DB_RECORD_ACTION_EVENT_WATCHER_FOR_WEBHOOK ===
+        'true';
     if (!shouldProceed) return;
     // handle form view data submission
     if (
@@ -2545,21 +2562,21 @@ class BaseModelSqlv2 {
     }
 
     // only execute if webhook call wont be handled
-      try {
-        const [event, operation] = hookName.split('.');
-        const hooks = await Hook.list({
-          fk_model_id: this.model.id,
-          event,
-          operation,
-        });
-        for (const hook of hooks) {
-          if (hook.active) {
-            invokeWebhook(hook, this.model, view, prevData, newData, req?.user);
-          }
+    try {
+      const [event, operation] = hookName.split('.');
+      const hooks = await Hook.list({
+        fk_model_id: this.model.id,
+        event,
+        operation,
+      });
+      for (const hook of hooks) {
+        if (hook.active) {
+          invokeWebhook(hook, this.model, view, prevData, newData, req?.user);
         }
-      } catch (e) {
-        console.log('hooks :: error', hookName, e);
       }
+    } catch (e) {
+      console.log('hooks :: error', hookName, e);
+    }
   }
 
   // @ts-ignore

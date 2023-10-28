@@ -304,3 +304,8 @@ Thank you for your contributions! We appreciate all the contributions from the c
 <a href="https://github.com/nocodb/nocodb/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=nocodb/nocodb" />
 </a>
+
+
+# Variables
+
+Set IGNORE_S3_ACCESS_KEY === 'true' to take AWS container AWS crededntials from the environment

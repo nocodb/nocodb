@@ -112,6 +112,12 @@ export default class S3 implements IStorageAdapterV2 {
     s3Options.accessKeyId = this.input.access_key;
     s3Options.secretAccessKey = this.input.access_secret;
 
+    if (process.env.IGNORE_S3_ACCESS_KEY === 'true') {
+      delete s3Options.accessKeyId;
+      delete s3Options.secretAccessKey;
+      delete s3Options.region;
+    }
+
     this.s3Client = new AWS.S3(s3Options);
   }
 

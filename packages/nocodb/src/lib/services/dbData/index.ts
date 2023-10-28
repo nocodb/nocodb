@@ -61,7 +61,7 @@ export async function dataInsert(
 }
 
 export async function dataUpdate(
-  param: PathParams & { body: unknown; cookie: any; rowId: string }
+  param: PathParams & { body: unknown; cookie: any; rowId: string; query?: any } 
 ) {
   const { model, view } = await getViewAndModelByAliasOrId(param);
   const base = await Base.get(model.base_id);
@@ -219,7 +219,7 @@ export async function dataRead(
     dbDriver: await NcConnectionMgrv2.get(base),
   });
 
-  const row = await baseModel.readByPk(param.rowId);
+  const row = await baseModel.readByPk(param.rowId, false, param.query);
 
   if (!row) {
     NcError.notFound('Row not found');

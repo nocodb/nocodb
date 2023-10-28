@@ -111,19 +111,20 @@ class NcPluginMgrv2 {
      * */
 
     if (
-      process.env.NC_S3_BUCKET_NAME &&
-      process.env.NC_S3_REGION &&
-      process.env.NC_S3_ACCESS_KEY &&
-      process.env.NC_S3_ACCESS_SECRET
+      process.env.NC_S3_BUCKET_NAME
+      // &&
+      // process.env.NC_S3_REGION &&
+      // process.env.NC_S3_ACCESS_KEY &&
+      // process.env.NC_S3_ACCESS_SECRET
     ) {
       const s3Plugin = await Plugin.getPluginByTitle(S3PluginConfig.title);
       await Plugin.update(s3Plugin.id, {
         active: true,
         input: JSON.stringify({
           bucket: process.env.NC_S3_BUCKET_NAME,
-          region: process.env.NC_S3_REGION,
-          access_key: process.env.NC_S3_ACCESS_KEY,
-          access_secret: process.env.NC_S3_ACCESS_SECRET,
+          region: process.env.NC_S3_REGION || 'us-east-1',
+          access_key: process.env.NC_S3_ACCESS_KEY || 'ignore',
+          access_secret: process.env.NC_S3_ACCESS_SECRET || 'ignore',
         }),
       });
     }

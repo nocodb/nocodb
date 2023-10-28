@@ -94,7 +94,7 @@ export class BasesService extends BasesServiceCE {
   async baseCreate(param: { base: ProjectReqType; user: any; req: NcRequest }) {
     validatePayload('swagger.json#/components/schemas/ProjectReq', param.base);
 
-    if (process.env.NC_TEST_EE !== 'true') {
+    if (process.env.TEST !== 'true') {
       const fk_workspace_id = (param.base as any)?.fk_workspace_id;
 
       if (!fk_workspace_id) {

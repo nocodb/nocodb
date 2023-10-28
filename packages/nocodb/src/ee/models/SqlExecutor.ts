@@ -113,21 +113,19 @@ export default class SqlExecutor {
   ) {
     if (!SqlExecutorId) NcError.badRequest('SqlExecutor id is required');
 
+    await NocoCache.del(`${CacheScope.SQL_EXECUTOR}:${SqlExecutorId}`);
+
     const updateObject = extractProps(SqlExecutor, ['domain', 'status']);
 
     await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.SQL_EXECUTOR,
-      {
-        id: SqlExecutorId,
-      },
       updateObject,
+      SqlExecutorId,
     );
 
     const sqlExecutor = await this.get(SqlExecutorId);
-
-    await NocoCache.del(`${CacheScope.SQL_EXECUTOR}:${SqlExecutorId}`);
 
     return sqlExecutor;
   }
@@ -224,20 +222,36 @@ export default class SqlExecutor {
     let suitableSqlExecutor: SqlExecutor;
 
     if (!sqlExecutors.length) {
-      NcError.badRequest('There is no SQL Executor available');
+      if (process.env.TEST === 'true') {
+        suitableSqlExecutor = await this.insert({
+          domain: `http://localhost:9000`,
+          status: 'active',
+        });
+      } else {
+        NcError.badRequest('There is no SQL Executor available');
+      }
       // suitableSqlExecutor = await this.createNextSqlExecutor(ncMeta);
     } else {
-      for (const sqlExecutor of sqlExecutors) {
-        if (sqlExecutor.sourceCount < NC_SQL_EXECUTOR_MAX_DB_COUNT) {
-          suitableSqlExecutor = sqlExecutor;
-          break;
+      if (process.env.TEST === 'true') {
+        suitableSqlExecutor = sqlExecutors[0];
+        if (suitableSqlExecutor.domain !== 'http://localhost:9000') {
+          suitableSqlExecutor = await this.update(suitableSqlExecutor.id, {
+            domain: 'http://localhost:9000',
+            status: 'active',
+          });
+        }
+      } else {
+        for (const sqlExecutor of sqlExecutors) {
+          if (sqlExecutor.sourceCount < NC_SQL_EXECUTOR_MAX_DB_COUNT) {
+            suitableSqlExecutor = sqlExecutor;
+            break;
+          }
         }
       }
     }
 
     if (!suitableSqlExecutor) {
       NcError.badRequest('There is no SQL Executor available');
-      // suitableSqlExecutor = await this.createNextSqlExecutor(ncMeta);
     }
 
     await this.bindSource(suitableSqlExecutor.id, source.id, ncMeta);

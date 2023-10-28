@@ -1,7 +1,6 @@
 import axios from 'axios';
 import cors from 'cors';
 import express from 'express';
-import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { User } from '~/models';
 
@@ -23,7 +22,7 @@ process.env[`DEBUG`] = 'xc*';
 process.env[`NC_ALLOW_LOCAL_HOOKS`] = 'true';
 process.env[`NC_ALLOW_LOCAL_EXTERNAL_DBS`] = 'true';
 
-process.env[`NC_TEST_EE`] = 'true';
+process.env[`TEST`] = 'true';
 
 (async () => {
   if (process.env.NC_WORKER_CONTAINER === 'true') {

@@ -18,7 +18,7 @@ export default class S3 implements IStorageAdapterV2 {
 
   async fileCreate(key: string, file: XcFile): Promise<any> {
     const uploadParams: any = {
-      ACL: 'public-read',
+      // ACL: 'public-read',  // ///// change this
       ContentType: file.mimetype,
     };
     return new Promise((resolve, reject) => {

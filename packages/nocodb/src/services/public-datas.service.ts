@@ -14,6 +14,7 @@ import { getColumnByIdOrName } from '~/modules/datas/helpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { mimeIcons } from '~/utils/mimeTypes';
 import { Column, Model, Source, View } from '~/models';
+import { utf8ify } from '~/helpers/stringHelpers';
 
 // todo: move to utils
 export function sanitizeUrlPath(paths) {
@@ -319,7 +320,8 @@ export class PublicDatasService {
         fields[fieldName].uidt === UITypes.Attachment
       ) {
         attachments[fieldName] = attachments[fieldName] || [];
-        const fileName = `${nanoid(18)}${path.extname(file.originalname)}`;
+        const originalName = utf8ify(file.originalname);
+        const fileName = `${nanoid(18)}${path.extname(originalName)}`;
 
         const url = await storageAdapter.fileCreate(
           slash(path.join('nc', 'uploads', ...filePath, fileName)),
@@ -337,11 +339,10 @@ export class PublicDatasService {
         attachments[fieldName].push({
           ...(url ? { url } : {}),
           ...(attachmentPath ? { path: attachmentPath } : {}),
-          title: file.originalname,
+          title: originalName,
           mimetype: file.mimetype,
           size: file.size,
-          icon:
-            mimeIcons[path.extname(file.originalname).slice(1)] || undefined,
+          icon: mimeIcons[path.extname(originalName).slice(1)] || undefined,
         });
       }
     }

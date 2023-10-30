@@ -43,7 +43,7 @@ export default class SqlExecutor {
         );
       }
 
-      await NocoCache.setList(CacheScope.PROJECT, [], sqlExecutorList);
+      await NocoCache.setList(CacheScope.SQL_EXECUTOR, [], sqlExecutorList);
     }
 
     return sqlExecutorList;

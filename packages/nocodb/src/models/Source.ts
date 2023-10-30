@@ -108,8 +108,6 @@ export default class Source implements SourceType {
 
     if (!oldBase) NcError.badRequest('Wrong source id!');
 
-    await NocoCache.del(`${CacheScope.BASE}:${sourceId}`);
-
     const updateObj = extractProps(source, [
       'alias',
       'config',
@@ -147,6 +145,8 @@ export default class Source implements SourceType {
       updateObj,
       oldBase.id,
     );
+
+    await NocoCache.del(`${CacheScope.BASE}:${sourceId}`);
 
     // call before reorder to update cache
     const returnBase = await this.get(oldBase.id, false, ncMeta);

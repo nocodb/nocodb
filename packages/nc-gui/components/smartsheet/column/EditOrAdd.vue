@@ -79,6 +79,8 @@ const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup, UITypes.Links]
 
 const geoDataToggleCondition = (t: { name: UITypes }) => {
+  if (!appInfo.value.ee) return true
+
   return betaFeatureToggleState.show ? betaFeatureToggleState.show : !t.name.includes(UITypes.GeoData)
 }
 

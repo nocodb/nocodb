@@ -213,6 +213,26 @@ export const useTablesStore = defineStore('tablesStore', () => {
     }
   }
 
+  const tableUrl = ({ table, completeUrl }: { table: TableType; completeUrl: boolean }) => {
+    const base = basesStore.bases.get(table.base_id!)
+    if (!base) return
+
+    const nuxtPageName = 'index-typeOrId-baseId-index-index-viewId-viewTitle'
+
+    const url = router.resolve({
+      name: nuxtPageName,
+      params: {
+        typeOrId: workspaceStore.activeWorkspaceId,
+        baseId: base.id,
+        viewId: table.id,
+      },
+    })
+
+    if (completeUrl) return `${window.location.origin}/${url.href}`
+
+    return url.href
+  }
+
   return {
     baseTables,
     loadProjectTables,
@@ -223,6 +243,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
     updateTable,
     activeTableId,
     navigateToTable,
+    tableUrl,
   }
 })
 

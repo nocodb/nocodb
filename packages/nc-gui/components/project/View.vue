@@ -73,9 +73,11 @@ watch(
     >
       <div class="flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />
-        <GeneralProjectIcon :type="openedProject?.type" />
-        <div class="flex font-medium text-sm capitalize">
-          {{ openedProject?.title }}
+        <div class="flex flex-row items-center h-full gap-x-2.5">
+          <GeneralProjectIcon :type="openedProject?.type" />
+          <div class="flex font-medium text-sm capitalize">
+            {{ openedProject?.title }}
+          </div>
         </div>
       </div>
       <LazyGeneralShareProject />

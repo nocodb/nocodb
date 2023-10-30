@@ -2,6 +2,10 @@
 @import '@vue-flow/core/dist/style.css';
 @import '@vue-flow/core/dist/theme-default.css';
 
+html {
+  overflow: hidden;
+}
+
 body {
   line-height: 1.3125rem;
 }
@@ -197,9 +201,6 @@ main {
   }
 }
 
-html {
-  overflow-y: auto !important;
-}
 
 main {
   @apply flex-0 w-full relative scrollbar-thin-dull;
@@ -681,3 +682,5 @@ a {
     @apply xs:(visible opacity-100 !text-gray-500)
   }
 }
+
+

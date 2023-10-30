@@ -75,7 +75,7 @@ const navigateToSettings = () => {
         <div class="gap-x-2 flex flex-row w-full items-center !font-normal">
           <GeneralIcon icon="plus" />
 
-          <div class="flex">{{ $t('title.newProj') }}</div>
+          <div class="flex">{{ $t('title.createBase') }}</div>
         </div>
       </WorkspaceCreateProjectBtn>
     </div>

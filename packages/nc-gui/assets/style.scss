@@ -2,6 +2,10 @@
 @import '@vue-flow/core/dist/style.css';
 @import '@vue-flow/core/dist/theme-default.css';
 
+html {
+  overflow: hidden;
+}
+
 body {
   line-height: 1.3125rem;
 }
@@ -200,10 +204,6 @@ main {
   &::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-300;
   }
-}
-
-html {
-  overflow-y: auto !important;
 }
 
 main {

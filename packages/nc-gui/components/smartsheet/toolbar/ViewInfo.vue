@@ -4,10 +4,21 @@ const { isMobileMode } = useGlobal()
 const { openedViewsTab, activeView } = storeToRefs(useViewsStore())
 
 const { base, isSharedBase } = storeToRefs(useBase())
+const { baseUrl } = useBase()
 
 const { activeTable } = storeToRefs(useTablesStore())
+const { tableUrl } = useTablesStore()
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
+const openedBaseUrl = computed(() => {
+  if (!base.value) return ''
+
+  return `${window.location.origin}/#${baseUrl({
+    id: base.value.id!,
+    type: 'database',
+  })}`
+})
 </script>
 
 <template>
@@ -21,35 +32,40 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
     }"
   >
     <template v-if="!isMobileMode">
-      <NcTooltip
-        class="ml-0.75 max-w-1/4 max-w-"
+      <NuxtLink
+        class="!hover:(text-black underline-gray-600) !underline-transparent ml-0.75 max-w-1/4"
         :class="{
           '!max-w-none': isSharedBase && !isMobileMode,
+          '!text-gray-500': activeTable,
+          '!text-gray-700': !activeTable,
         }"
+        :to="openedBaseUrl"
       >
-        <template #title>
-          {{ base?.title }}
-        </template>
-        <div class="flex flex-row items-center gap-x-1.5">
-          <GeneralProjectIcon
-            :meta="{ type: base?.type }"
-            class="!grayscale"
-            :style="{
-              filter: 'grayscale(100%) brightness(115%)',
-            }"
-          />
-          <div
-            class="hidden !2xl:(flex truncate ml-1)"
-            :class="{
-              '!flex': isSharedBase && !isMobileMode,
-            }"
-          >
-            <span class="truncate text-gray-700">
-              {{ base?.title }}
-            </span>
+        <NcTooltip class="!text-inherit">
+          <template #title>
+            {{ base?.title }}
+          </template>
+          <div class="flex flex-row items-center gap-x-1.5">
+            <GeneralProjectIcon
+              :meta="{ type: base?.type }"
+              class="!grayscale min-w-4"
+              :style="{
+                filter: 'grayscale(100%) brightness(115%)',
+              }"
+            />
+            <div
+              class="hidden !2xl:(flex truncate ml-1)"
+              :class="{
+                '!flex': isSharedBase && !isMobileMode,
+              }"
+            >
+              <span class="truncate !text-inherit">
+                {{ base?.title }}
+              </span>
+            </div>
           </div>
-        </div>
-      </NcTooltip>
+        </NcTooltip>
+      </NuxtLink>
       <div class="px-1.5 text-gray-500">/</div>
     </template>
     <template v-if="!(isMobileMode && !activeView?.is_default)">
@@ -64,32 +80,43 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
           />
         </template>
       </LazyGeneralEmojiPicker>
-      <NcTooltip
-        class="truncate nc-active-table-title"
+      <div
+        v-if="activeTable"
         :class="{
           'max-w-1/2': isMobileMode || activeView?.is_default,
           'max-w-20/100': !isSharedBase && !isMobileMode && !activeView?.is_default,
           'max-w-none': isSharedBase && !isMobileMode,
         }"
       >
-        <template #title>
-          {{ activeTable?.title }}
-        </template>
-        <span
-          class="text-ellipsis overflow-hidden text-gray-500 xs:ml-2"
-          :class="{
-            'text-gray-500': !isMobileMode,
-            'text-gray-700 font-medium': isMobileMode || activeView?.is_default,
-          }"
-          :style="{
-            wordBreak: 'keep-all',
-            whiteSpace: 'nowrap',
-            display: 'inline',
-          }"
-        >
-          {{ activeTable?.title }}
-        </span>
-      </NcTooltip>
+        <NcTooltip class="truncate nc-active-table-title max-w-full">
+          <template #title>
+            {{ activeTable?.title }}
+          </template>
+          <span
+            class="text-ellipsis overflow-hidden text-gray-500 xs:ml-2"
+            :class="{
+              'text-gray-500': !isMobileMode,
+              'text-gray-800 font-medium': isMobileMode || activeView?.is_default,
+            }"
+            :style="{
+              wordBreak: 'keep-all',
+              whiteSpace: 'nowrap',
+              display: 'inline',
+            }"
+          >
+            <template v-if="activeView?.is_default">
+              {{ activeTable?.title }}
+            </template>
+            <NuxtLink
+              v-else
+              class="!text-inherit !underline-transparent !hover:(text-black underline-gray-600)"
+              :to="tableUrl({ table: activeTable, completeUrl: true })"
+            >
+              {{ activeTable?.title }}
+            </NuxtLink>
+          </span>
+        </NcTooltip>
+      </div>
     </template>
 
     <div v-if="!isMobileMode" class="px-1 text-gray-500">/</div>

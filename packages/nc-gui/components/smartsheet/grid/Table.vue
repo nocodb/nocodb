@@ -1288,7 +1288,7 @@ const loaderText = computed(() => {
                   </div>
                 </th>
                 <th
-                  v-for="col in fields"
+                  v-for="(col, index) in fields"
                   :key="col.title"
                   v-xc-ver-resize
                   :data-col="col.id"
@@ -1309,7 +1309,7 @@ const loaderText = computed(() => {
                 >
                   <div
                     class="w-full h-full flex items-center"
-                    :draggable="isMobileMode ? 'false' : 'true'"
+                    :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission ? 'false' : 'true'"
                     @dragstart.stop="onDragStart(col.id!, $event)"
                     @drag.stop="onDrag($event)"
                   >

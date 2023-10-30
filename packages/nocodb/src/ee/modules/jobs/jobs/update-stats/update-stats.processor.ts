@@ -4,6 +4,9 @@ import { Job } from 'bull';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { Base, Model, ModelStat, Source, Workspace } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
+import NocoCache from '~/cache/NocoCache';
+import { CacheGetType } from '~/utils/globals';
 
 @Processor(JOBS_QUEUE)
 export class UpdateStatsProcessor {
@@ -30,10 +33,6 @@ export class UpdateStatsProcessor {
     if (row_count === undefined) {
       const model = await Model.get(fk_model_id);
       const source = await Source.get(model.source_id);
-
-      if (!source || !source.isMeta()) {
-        return false;
-      }
 
       const baseModel = await Model.getBaseModelSQL({
         id: model.id,
@@ -91,12 +90,16 @@ export class UpdateStatsProcessor {
           continue;
         }
 
-        await this.updateModelStat({
-          data: {
-            fk_workspace_id,
-            fk_model_id,
-          },
-        } as any);
+        try {
+          await this.updateModelStat({
+            data: {
+              fk_workspace_id,
+              fk_model_id,
+            },
+          } as any);
+        } catch (e) {
+          this.debugLog(`Failed to update stats for model ${fk_model_id}`);
+        }
       }
     } else {
       const bases = await Base.listByWorkspace(workspace.id);
@@ -107,18 +110,86 @@ export class UpdateStatsProcessor {
           source_id: base.sources[0].id,
         });
 
-        for (const model of models) {
-          await this.updateModelStat({
-            data: {
-              fk_workspace_id,
-              fk_model_id: model.id,
-            },
-          } as any);
+        try {
+          for (const model of models) {
+            await this.updateModelStat({
+              data: {
+                fk_workspace_id,
+                fk_model_id: model.id,
+              },
+            } as any);
+          }
+        } catch (e) {
+          this.debugLog(`Failed to update stats for base ${base.id}`);
         }
       }
     }
 
     this.debugLog(`Finished updating stats for workspace ${fk_workspace_id}`);
+
+    return true;
+  }
+
+  @Process(JobTypes.UpdateSrcStat)
+  async UpdateSrcStat(_job: Job) {
+    this.debugLog(`Start fetching stats for external sources`);
+
+    const lastFetch = await NocoCache.get(
+      'lastFetchExternalSourceStats',
+      CacheGetType.TYPE_STRING,
+    );
+
+    if (lastFetch) {
+      const diff = new Date().getTime() - new Date(lastFetch).getTime();
+      const diffInHours = diff / 1000 / 60 / 60;
+      // if last fetch was less than 2 hours ago, skip
+      if (diffInHours < 2) {
+        this.debugLog(
+          `Skipping external source stats update as it was updated ${diffInHours} hours ago`,
+        );
+        return true;
+      }
+    }
+
+    await NocoCache.set(
+      'lastFetchExternalSourceStats',
+      new Date().toISOString(),
+    );
+
+    const sources = await Source.list({
+      baseId: null,
+    });
+
+    for (const source of sources) {
+      if (source.isMeta()) continue;
+
+      const models = await Model.list({
+        base_id: source.base_id,
+        source_id: source.id,
+      });
+
+      const workspaceId = await getWorkspaceForBase(source.base_id);
+
+      if (!workspaceId) {
+        this.debugLog(`No workspace found for base ${source.base_id}`);
+        continue;
+      }
+
+      try {
+        for (const model of models) {
+          await this.updateModelStat({
+            data: {
+              fk_workspace_id: workspaceId,
+              fk_model_id: model.id,
+            },
+          } as any);
+        }
+      } catch (e) {
+        this.debugLog(`Failed to update stats for source ${source.id}`);
+      }
+    }
+
+    this.debugLog(`Finished updating stats for external sources`);
 
     return true;
   }

@@ -7,7 +7,6 @@ import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 import NocoCache from '~/cache/NocoCache';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
-import Page from '~/models/Page';
 import { Base } from '~/models';
 
 export default class Workspace implements WorkspaceType {
@@ -108,9 +107,11 @@ export default class Workspace implements WorkspaceType {
       insertObject,
     );
 
-    await Page.createPageTable({
-      workspaceId: id,
-    } as any);
+    /* TODO - enable when docs are ready
+      await Page.createPageTable({
+        workspaceId: id,
+      } as any);
+    */
 
     return this.get(id);
   }

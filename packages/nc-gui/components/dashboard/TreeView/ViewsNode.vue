@@ -234,7 +234,7 @@ function onStopEdit() {
 
       <div
         v-else
-        class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none w-full"
+        class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none w-full"
         data-testid="sidebar-view-title"
         :class="{
           'font-medium': activeView?.id === vModel.id,

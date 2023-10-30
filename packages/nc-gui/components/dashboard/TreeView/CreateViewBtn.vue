@@ -2,7 +2,14 @@
 import type { ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 
+const props = defineProps<{
+  // Prop used to align the dropdown to the left in sidebar
+  alignLeftLevel: number | undefined
+}>()
+
 const { $e } = useNuxtApp()
+
+const alignLeftLevel = toRef(props, 'alignLeftLevel')
 
 const { refreshCommandPalette } = useCommandPalette()
 const viewsStore = useViewsStore()
@@ -15,6 +22,14 @@ const isViewListLoading = ref(false)
 const toBeCreateType = ref<ViewTypes>()
 
 const isOpen = ref(false)
+
+const overlayClassName = computed(() => {
+  if (alignLeftLevel.value === 1) return 'nc-view-create-dropdown nc-view-create-dropdown-left-1'
+
+  if (alignLeftLevel.value === 2) return 'nc-view-create-dropdown nc-view-create-dropdown-left-2'
+
+  return 'nc-view-create-dropdown'
+})
 
 async function onOpenModal({
   title = '',
@@ -68,6 +83,7 @@ async function onOpenModal({
         view,
         tableId: table.value.id!,
         baseId: base.value.id!,
+        doNotSwitchTab: true,
       })
 
       $e('a:view:create', { view: view.type })
@@ -84,7 +100,7 @@ async function onOpenModal({
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isOpen" destroy-popup-on-hide @click.stop="isOpen = true">
+  <NcDropdown v-model:visible="isOpen" destroy-popup-on-hide :overlay-class-name="overlayClassName" @click.stop="isOpen = true">
     <slot />
     <template #overlay>
       <NcMenu class="max-w-48">
@@ -149,5 +165,19 @@ async function onOpenModal({
 
 .plus {
   @apply text-brand-400;
+}
+</style>
+
+<style lang="scss">
+.nc-view-create-dropdown {
+  @apply !max-w-43 !min-w-43;
+}
+
+.nc-view-create-dropdown-left-1 {
+  @apply !left-18;
+}
+
+.nc-view-create-dropdown-left-2 {
+  @apply !left-23.5;
 }
 </style>

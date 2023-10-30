@@ -162,6 +162,8 @@ onMounted(() => {
               </NcMenuItem>
             </a>
 
+            <NcDivider />
+
             <nuxt-link v-e="['c:user:settings']" class="!no-underline" to="/account/profile">
               <NcMenuItem> <GeneralIcon icon="settings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
             </nuxt-link>

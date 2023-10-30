@@ -3,6 +3,7 @@ import { diff } from 'deep-object-diff'
 import { message } from 'ant-design-vue'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
+import { onKeyDown, useMagicKeys } from '@vueuse/core'
 import type { ColumnType, SelectOptionsType } from 'nocodb-sdk'
 import { Icon } from '@iconify/vue'
 import { type Field, getUniqueColumnName, ref, useSmartsheetStoreOrThrow } from '#imports'
@@ -38,6 +39,8 @@ const { $api } = useNuxtApp()
 const { getMeta } = useMetas()
 
 const { meta, view } = useSmartsheetStoreOrThrow()
+
+const { openedViewsTab } = storeToRefs(useViewsStore())
 
 const moveOps = ref<moveOp[]>([])
 
@@ -481,7 +484,15 @@ const clearChanges = () => {
   changeField()
 }
 
+const isColumnsValid = computed(() => fields.value.every((f) => isColumnValid(f)))
+
 const saveChanges = async () => {
+  if (!isColumnsValid.value) {
+    message.error('Please complete the configuration of all fields before saving')
+    return
+  } else if (!loading.value && ops.value.length < 1 && moveOps.value.length < 1 && visibilityOps.value.length < 1) {
+    return
+  }
   try {
     if (!meta.value?.id) return
 
@@ -569,7 +580,78 @@ const toggleVisibility = async (checked: boolean, field: Field) => {
   })
 }
 
-const isColumnsValid = computed(() => fields.value.every((f) => isColumnValid(f)))
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (cmdOrCtrl) {
+    switch (e.key.toLowerCase()) {
+      case 's':
+        if (openedViewsTab.value !== 'field') return
+        e.preventDefault()
+        break
+    }
+  }
+})
+
+onKeyDown('ArrowDown', () => {
+  const index = fields.value.findIndex((f) => compareCols(f, activeField.value))
+  if (index === -1) changeField(fields.value[0])
+  else if (index === fields.value.length - 1) changeField(fields.value[0])
+  else changeField(fields.value[index + 1])
+})
+onKeyDown('ArrowUp', () => {
+  const index = fields.value.findIndex((f) => compareCols(f, activeField.value))
+  if (index === -1) changeField(fields.value[0])
+  else if (index === 0) changeField(fields.value[fields.value.length - 1])
+  else changeField(fields.value[index - 1])
+})
+
+onKeyDown('Delete', () => {
+  if (document.activeElement?.tagName === 'INPUT') return
+  const isDeletedField = fieldStatus(activeField.value) === 'delete'
+  if (!isDeletedField && activeField.value) {
+    onFieldDelete(activeField.value)
+  }
+})
+
+onKeyDown('Backspace', () => {
+  if (document.activeElement?.tagName === 'INPUT') return
+  const isDeletedField = fieldStatus(activeField.value) === 'delete'
+  if (!isDeletedField && activeField.value) {
+    onFieldDelete(activeField.value)
+  }
+})
+
+onKeyDown('ArrowRight', () => {
+  if (document.activeElement?.tagName === 'INPUT') return
+  if (activeField.value) {
+    const input = document.querySelector('.nc-fields-input')
+    if (input) {
+      input.focus()
+    }
+  }
+})
+
+const keys = useMagicKeys()
+
+whenever(keys.altleft_c, () => {
+  if (!meta.value?.id) return
+  if (openedViewsTab.value === 'field') addField()
+})
+
+whenever(keys.option_c, () => {
+  if (!meta.value?.id) return
+  if (openedViewsTab.value === 'field') addField()
+})
+
+whenever(keys.meta_s, () => {
+  if (!meta.value?.id) return
+  if (openedViewsTab.value === 'field') saveChanges()
+})
+
+whenever(keys.ctrl_s, () => {
+  if (!meta.value?.id) return
+  if (openedViewsTab.value === 'field') saveChanges()
+})
 
 onMounted(async () => {
   if (!meta.value?.id) return
@@ -647,7 +729,7 @@ onMounted(async () => {
                         visibilityOps.find((op) => op.column.fk_column_id === field.id)?.visible ?? viewFieldsMap[field.id].show
                       "
                       @change="
-                        (event) => {
+                        (event: any) => {
                           toggleVisibility(event.target.checked, viewFieldsMap[field.id])
                         }
                       "
@@ -730,7 +812,7 @@ onMounted(async () => {
 
                           <a-menu-divider class="my-1" />
 
-                          <NcMenuItem key="table-explorer-delete" @click="onFieldDelete(field)">
+                          <NcMenuItem key="table-explorer-delete" class="!hover:bg-red-50" @click="onFieldDelete(field)">
                             <div class="text-red-500">
                               <GeneralIcon icon="delete" class="group-hover:text-accent" />
                               Delete
@@ -748,7 +830,12 @@ onMounted(async () => {
                   </div>
                 </div>
               </template>
-              <template v-if="displayColumn && displayColumn.title.toLowerCase().includes(searchQuery.toLowerCase())" #header>
+              <template
+                v-if="
+                  displayColumn && displayColumn.title && displayColumn.title.toLowerCase().includes(searchQuery.toLowerCase())
+                "
+                #header
+              >
                 <div
                   class="flex px-2 bg-white hover:bg-gray-100 border-b-1 border-gray-200 first:rounded-tl-lg last:border-b-1 pl-5 group"
                   :class="` ${compareCols(displayColumn, activeField) ? 'selected' : ''}`"

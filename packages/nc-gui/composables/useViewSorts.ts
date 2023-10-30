@@ -13,13 +13,10 @@ import {
   useBase,
   useNuxtApp,
   useRoles,
-  useSharedView,
   useSmartsheetStoreOrThrow,
 } from '#imports'
 
 export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () => void) {
-  const { sharedView } = useSharedView()
-
   const { sorts, eventBus } = useSmartsheetStoreOrThrow()
 
   const { $api, $e } = useNuxtApp()
@@ -42,9 +39,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   const loadSorts = async () => {
     if (isPublic.value) {
-      // todo: sorts missing on `ViewType`
-      const sharedSorts = (sharedView.value as any)?.sorts || []
-      sorts.value = [...sharedSorts]
+      sorts.value = []
       return
     }
 

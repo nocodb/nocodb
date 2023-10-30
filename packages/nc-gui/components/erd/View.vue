@@ -59,11 +59,14 @@ const loadMetaOfTablesNotInMetas = async (localTables: TableType[]) => {
 const populateTables = async () => {
   let localTables: TableType[] = []
   if (props.table) {
+    // use getMeta method to load meta since it will get meta if not loaded already
+    const tableMeta = await getMeta(props.table!.id!)
+
     // if table is provided only get the table and its related tables
     localTables = baseTables.value.filter(
       (t) =>
         t.id === props.table?.id ||
-        metas.value[props.table!.id!].columns?.find((column) => {
+        tableMeta.columns?.find((column) => {
           return isLinksOrLTAR(column.uidt) && (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id === t.id
         }),
     )

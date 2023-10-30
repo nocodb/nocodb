@@ -210,7 +210,6 @@ test.describe('Shared view', () => {
      **/
 
     // create new sort & filter criteria in shared view
-    await sharedPage.grid.toolbar.sort.reset();
     await sharedPage.grid.toolbar.sort.add({
       title: 'Address',
       ascending: true,

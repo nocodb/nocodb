@@ -79,6 +79,8 @@ const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup, UITypes.Links]
 
 const geoDataToggleCondition = (t: { name: UITypes }) => {
+  if (!appInfo.value.ee) return true
+
   return betaFeatureToggleState.show ? betaFeatureToggleState.show : !t.name.includes(UITypes.GeoData)
 }
 
@@ -230,7 +232,7 @@ if (props.fromTableExplorer) {
             <input
               ref="antInput"
               v-model="formState.title"
-              class="flex flex-grow text-lg font-bold outline-none bg-inherit"
+              class="flex flex-grow nc-fields-input text-lg font-bold outline-none bg-inherit"
               :contenteditable="true"
             />
           </div>

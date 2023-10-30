@@ -6,7 +6,7 @@ import { JOBS_QUEUE, JobStatus } from '~/interface/Jobs';
 
 @Injectable()
 export class JobsService implements OnModuleInit {
-  constructor(@InjectQueue(JOBS_QUEUE) private readonly jobsQueue: Queue) {}
+  constructor(@InjectQueue(JOBS_QUEUE) protected readonly jobsQueue: Queue) {}
 
   // pause primary instance queue
   async onModuleInit() {

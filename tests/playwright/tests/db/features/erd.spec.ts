@@ -61,6 +61,8 @@ test.describe('Erd', () => {
 
     const erd = dashboard.details.relations;
 
+    await erd.clickShowColumnNames();
+
     if (isPg(context)) {
       await erd.verifyNodesCount(sakilaTables.length);
       await erd.verifyEdgesCount({
@@ -181,7 +183,6 @@ test.describe('Erd', () => {
     await openErdOfATable('Country');
     const erd = dashboard.details.relations;
 
-    await erd.clickShowColumnNames();
     // Verify tables with default config
     await erd.verifyColumns({
       tableName: `country`,
@@ -224,7 +225,6 @@ test.describe('Erd', () => {
     // Verify
     await dashboard.grid.topbar.btn_details.click();
     await openErdOfATable('Country');
-    await erd.clickShowColumnNames();
 
     await erd.verifyNode({
       tableName: `country`,
@@ -245,7 +245,6 @@ test.describe('Erd', () => {
     // Verify
     await dashboard.grid.topbar.btn_details.click();
     await openErdOfATable('Country');
-    await erd.clickShowColumnNames();
 
     await erd.verifyNode({
       tableName: `country`,

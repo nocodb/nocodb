@@ -64,6 +64,7 @@ import {
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
+import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 
 dayjs.extend(utc);
 
@@ -110,11 +111,7 @@ class BaseModelSqlv2 {
   protected _proto: any;
   protected _columns = {};
 
-  public static config: any = {
-    limitDefault: Math.max(+process.env.DB_QUERY_LIMIT_DEFAULT || 25, 1),
-    limitMin: Math.max(+process.env.DB_QUERY_LIMIT_MIN || 1, 1),
-    limitMax: Math.max(+process.env.DB_QUERY_LIMIT_MAX || 1000, 1),
-  };
+  public static config: any = defaultLimitConfig;
 
   public get dbDriver() {
     return this._dbDriver;

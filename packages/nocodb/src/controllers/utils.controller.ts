@@ -71,7 +71,6 @@ export class UtilsController {
     });
   }
 
-  @UseGuards(PublicApiLimiterGuard)
   @Get('/api/v1/health')
   async appHealth() {
     return await this.utilsService.appHealth();

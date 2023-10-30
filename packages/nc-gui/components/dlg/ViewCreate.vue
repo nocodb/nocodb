@@ -110,11 +110,11 @@ watch(
 )
 
 function init() {
-  form.title = `Untitled ${capitalize(typeAlias.value)}`
+  form.title = `${capitalize(typeAlias.value)}`
 
   const repeatCount = views.value.filter((v) => v.title.startsWith(form.title)).length
   if (repeatCount) {
-    form.title = `${form.title} ${repeatCount}`
+    form.title = `${form.title}-${repeatCount}`
   }
 
   if (selectedViewId.value) {

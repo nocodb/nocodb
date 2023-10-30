@@ -21,9 +21,11 @@ export class TelemetryService {
 
   public sendEvent({
     evt_type: event,
+    req,
     ...payload
   }: {
     evt_type: string;
+    req?: any;
     [key: string]: any;
   }) {
     // commented out for now since we are not using kafka for now
@@ -45,10 +47,13 @@ export class TelemetryService {
       return;
     }
 
-    // skip if user id is not present
-    if (payload['userId'] ?? payload['user_id'])
+    const distinctId =
+      req?.headers?.['nc-client-id'] || payload['userId'] || payload['user_id'];
+
+    // skip if client id / user id is not present
+    if (distinctId)
       this.phClient?.capture({
-        distinctId: payload['userId'] ?? payload['user_id'],
+        distinctId,
         event,
         properties: {
           ...payload,

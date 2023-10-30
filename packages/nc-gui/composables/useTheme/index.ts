@@ -7,8 +7,8 @@ export const useTheme = createGlobalState((config?: Partial<ThemeConfig>) => {
   const primaryColor = useCssVar('--color-primary', typeof document !== 'undefined' ? document.documentElement : null)
   const accentColor = useCssVar('--color-accent', typeof document !== 'undefined' ? document.documentElement : null)
   const defaultTheme = {
-    primaryColor: themeV2Colors['royal-blue'].DEFAULT,
-    accentColor: themeV2Colors.pink['500'],
+    primaryColor: themeV2Colors['royal-red'].DEFAULT,
+    accentColor: themeV2Colors.pink['900'],
   }
 
   /** current theme config */
@@ -19,14 +19,14 @@ export const useTheme = createGlobalState((config?: Partial<ThemeConfig>) => {
 
   /** set theme */
   function setTheme(theme?: Partial<ThemeConfig>) {
-    const themePrimary = theme?.primaryColor ? tinycolor(theme.primaryColor) : tinycolor(themeV2Colors['royal-blue'].DEFAULT)
-    const themeAccent = theme?.accentColor ? tinycolor(theme.accentColor) : tinycolor(themeV2Colors.pink['500'])
+    const themePrimary = theme?.primaryColor ? tinycolor(theme.primaryColor) : tinycolor(themeV2Colors['royal-red'].DEFAULT)
+    const themeAccent = theme?.accentColor ? tinycolor(theme.accentColor) : tinycolor(themeV2Colors.pink['900'])
 
     // convert hex colors to rgb values
     primaryColor.value = themePrimary.isValid()
       ? hexToRGB(themePrimary.toHex8String())
       : hexToRGB(themeV2Colors['royal-blue'].DEFAULT)
-    accentColor.value = themeAccent.isValid() ? hexToRGB(themeAccent.toHex8String()) : hexToRGB(themeV2Colors.pink['500'])
+    accentColor.value = themeAccent.isValid() ? hexToRGB(themeAccent.toHex8String()) : hexToRGB(themeV2Colors.pink['900'])
 
     currentTheme.value = {
       primaryColor: themePrimary.toHex8String().toUpperCase().slice(0, -2),

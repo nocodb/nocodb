@@ -106,25 +106,25 @@ onMounted(() => {
               <template v-else> {{ $t('title.copyAuthToken') }} </template>
             </NcMenuItem>
           </template>
-          <NcDivider />
-          <a v-e="['c:nocodb:discord']" href="https://discord.gg/5RgZmkW" target="_blank" class="!underline-transparent">
-            <NcMenuItem class="social-icon-wrapper">
-              <GeneralIcon class="social-icon" icon="discord" />
-              <span class="menu-btn"> {{ $t('labels.community.joinDiscord') }} </span>
-            </NcMenuItem>
-          </a>
-          <a v-e="['c:nocodb:reddit']" href="https://www.reddit.com/r/NocoDB" target="_blank" class="!underline-transparent">
-            <NcMenuItem class="social-icon-wrapper">
-              <GeneralIcon class="social-icon" icon="reddit" />
-              <span class="menu-btn"> {{ $t('labels.community.joinReddit') }} </span>
-            </NcMenuItem>
-          </a>
-          <a v-e="['c:nocodb:twitter']" href="https://twitter.com/nocodb" target="_blank" class="!underline-transparent">
-            <NcMenuItem class="social-icon-wrapper group">
-              <GeneralIcon class="text-gray-500 group-hover:text-gray-800 my-0.5" icon="twitter" />
-              <span class="menu-btn"> {{ $t('labels.twitter') }} </span>
-            </NcMenuItem>
-          </a>
+          <!--          <NcDivider /> -->
+          <!--          <a v-e="['c:nocodb:discord']" href="https://discord.gg/5RgZmkW" target="_blank" class="!underline-transparent"> -->
+          <!--            <NcMenuItem class="social-icon-wrapper"> -->
+          <!--              <GeneralIcon class="social-icon" icon="discord" /> -->
+          <!--              <span class="menu-btn"> {{ $t('labels.community.joinDiscord') }} </span> -->
+          <!--            </NcMenuItem> -->
+          <!--          </a> -->
+          <!--          <a v-e="['c:nocodb:reddit']" href="https://www.reddit.com/r/NocoDB" target="_blank" class="!underline-transparent"> -->
+          <!--            <NcMenuItem class="social-icon-wrapper"> -->
+          <!--              <GeneralIcon class="social-icon" icon="reddit" /> -->
+          <!--              <span class="menu-btn"> {{ $t('labels.community.joinReddit') }} </span> -->
+          <!--            </NcMenuItem> -->
+          <!--          </a> -->
+          <!--          <a v-e="['c:nocodb:twitter']" href="https://twitter.com/nocodb" target="_blank" class="!underline-transparent"> -->
+          <!--            <NcMenuItem class="social-icon-wrapper group"> -->
+          <!--              <GeneralIcon class="text-gray-500 group-hover:text-gray-800 my-0.5" icon="twitter" /> -->
+          <!--              <span class="menu-btn"> {{ $t('labels.twitter') }} </span> -->
+          <!--            </NcMenuItem> -->
+          <!--          </a> -->
           <template v-if="!appInfo.ee">
             <NcDivider />
             <a-popover key="language" class="lang-menu !py-1.5" placement="rightBottom">
@@ -148,12 +148,12 @@ onMounted(() => {
           <template v-if="!isMobileMode">
             <NcDivider />
 
-            <a v-e="['c:nocodb:forum-open']" href="https://community.nocodb.com" target="_blank" class="!underline-transparent">
-              <NcMenuItem>
-                <GeneralIcon icon="help" class="menu-icon mt-0.5" />
-                <span class="menu-btn"> {{ $t('title.forum') }} </span>
-              </NcMenuItem>
-            </a>
+            <!--            <a v-e="['c:nocodb:forum-open']" href="https://community.nocodb.com" target="_blank" class="!underline-transparent"> -->
+            <!--              <NcMenuItem> -->
+            <!--                <GeneralIcon icon="help" class="menu-icon mt-0.5" /> -->
+            <!--                <span class="menu-btn"> {{ $t('title.forum') }} </span> -->
+            <!--              </NcMenuItem> -->
+            <!--            </a> -->
 
             <a v-e="['c:nocodb:docs-open']" href="https://docs.nocodb.com" target="_blank" class="!underline-transparent">
               <NcMenuItem>
@@ -175,20 +175,20 @@ onMounted(() => {
     <template v-if="isMobileMode"></template>
     <div v-else-if="appInfo.ee" class="text-gray-500 text-xs pl-3">© 2023 NocoDB. Inc</div>
     <div v-else-if="isMounted" class="flex flex-row justify-between pt-1 truncate">
-      <div class="flex flex-wrap mb-1">
-        <GithubButton
-          class="px-2 mb-1"
-          href="https://github.com/nocodb/nocodb"
-          data-icon="octicon-star"
-          data-show-count="true"
-          data-size="large"
-        >
-          Star
-        </GithubButton>
-        <div>
-          <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
-        </div>
-      </div>
+      <!--      <div class="flex flex-wrap mb-1"> -->
+      <!--        <GithubButton -->
+      <!--          class="px-2 mb-1" -->
+      <!--          href="https://github.com/nocodb/nocodb" -->
+      <!--          data-icon="octicon-star" -->
+      <!--          data-show-count="true" -->
+      <!--          data-size="large" -->
+      <!--        > -->
+      <!--          Star -->
+      <!--        </GithubButton> -->
+      <!--        <div> -->
+      <!--          <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" /> -->
+      <!--        </div> -->
+      <!--      </div> -->
     </div>
   </div>
 </template>

@@ -41,53 +41,53 @@ onMounted(async () => await fetchReleaseInfo())
 </script>
 
 <template>
-  <div v-if="releaseAlert && !appInfo.ee" class="flex items-center">
-    <a-dropdown :trigger="['click']" placement="bottom" overlay-class-name="nc-dropdown-upgrade-menu">
-      <NcButton class="!bg-primary !border-none !mr-3" size="small">
-        <div class="flex gap-1 items-center text-white">
-          <span class="text-sm font-weight-medium">{{ $t('activity.upgrade.available') }}</span>
-          <mdi-menu-down />
-        </div>
-      </NcButton>
+  <!--  <div v-if="releaseAlert && !appInfo.ee" class="flex items-center"> -->
+  <!--    <a-dropdown :trigger="['click']" placement="bottom" overlay-class-name="nc-dropdown-upgrade-menu"> -->
+  <!--      <NcButton class="!bg-primary !border-none !mr-3" size="small"> -->
+  <!--        <div class="flex gap-1 items-center text-white"> -->
+  <!--          <span class="text-sm font-weight-medium">{{ $t('activity.upgrade.available') }}</span> -->
+  <!--          <mdi-menu-down /> -->
+  <!--        </div> -->
+  <!--      </NcButton> -->
 
-      <template #overlay>
-        <div class="mt-1 bg-white shadow-lg !border">
-          <nuxt-link
-            no-prefetch
-            no-rel
-            class="!text-primary !no-underline"
-            to="https://github.com/nocodb/nocodb/releases"
-            target="_blank"
-          >
-            <div class="nc-menu-item">
-              <mdi-script-text-outline />
-              {{ latestRelease }} {{ $t('activity.upgrade.releaseNote') }}
-            </div>
-          </nuxt-link>
+  <!--      <template #overlay> -->
+  <!--        <div class="mt-1 bg-white shadow-lg !border"> -->
+  <!--          <nuxt-link -->
+  <!--            no-prefetch -->
+  <!--            no-rel -->
+  <!--            class="!text-primary !no-underline" -->
+  <!--            to="https://github.com/nocodb/nocodb/releases" -->
+  <!--            target="_blank" -->
+  <!--          > -->
+  <!--            <div class="nc-menu-item"> -->
+  <!--              <mdi-script-text-outline /> -->
+  <!--              {{ latestRelease }} {{ $t('activity.upgrade.releaseNote') }} -->
+  <!--            </div> -->
+  <!--          </nuxt-link> -->
 
-          <nuxt-link
-            no-prefetch
-            no-rel
-            class="!text-primary !no-underline"
-            to="https://docs.nocodb.com/getting-started/upgrading"
-            target="_blank"
-          >
-            <div class="nc-menu-item">
-              <mdi-rocket-launch-outline />
-              <!-- How to upgrade? -->
-              {{ $t('activity.upgrade.howTo') }}
-            </div>
-          </nuxt-link>
+  <!--          <nuxt-link -->
+  <!--            no-prefetch -->
+  <!--            no-rel -->
+  <!--            class="!text-primary !no-underline" -->
+  <!--            to="https://docs.nocodb.com/getting-started/upgrading" -->
+  <!--            target="_blank" -->
+  <!--          > -->
+  <!--            <div class="nc-menu-item"> -->
+  <!--              <mdi-rocket-launch-outline /> -->
+  <!--              &lt;!&ndash; How to upgrade? &ndash;&gt; -->
+  <!--              {{ $t('activity.upgrade.howTo') }} -->
+  <!--            </div> -->
+  <!--          </nuxt-link> -->
 
-          <a-divider class="!m-0" />
+  <!--          <a-divider class="!m-0" /> -->
 
-          <div class="nc-menu-item" @click="releaseAlert = false">
-            <mdi-close />
-            <!-- Hide menu -->
-            {{ $t('general.hideMenu') }}
-          </div>
-        </div>
-      </template>
-    </a-dropdown>
-  </div>
+  <!--          <div class="nc-menu-item" @click="releaseAlert = false"> -->
+  <!--            <mdi-close /> -->
+  <!--            &lt;!&ndash; Hide menu &ndash;&gt; -->
+  <!--            {{ $t('general.hideMenu') }} -->
+  <!--          </div> -->
+  <!--        </div> -->
+  <!--      </template> -->
+  <!--    </a-dropdown> -->
+  <!--  </div> -->
 </template>

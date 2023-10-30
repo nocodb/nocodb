@@ -18,6 +18,11 @@ export const tableColumns: (Omit<ColumnGroupType<any>, 'children'> & { dataIndex
     key: 'dtxp',
   },
   {
+    name: 'Column Description',
+    dataIndex: 'column_description',
+    key: 'cc',
+  },
+  {
     name: 'Action',
     key: 'action',
     align: 'right',

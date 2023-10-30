@@ -65,9 +65,23 @@ export const themeV2Colors = {
     '800': '#0E1774',
     '900': '#080D42',
   },
+  'royal-red': {
+    'DEFAULT': '#A61421',
+    '50': '#FEE7E9',
+    '100': '#FCD4D8',
+    '200': '#F9B0B6',
+    '300': '#F68C94',
+    '400': '#F36773',
+    '500': '#F14251',
+    '600': '#E81A2B',
+    '700': '#A61421',
+    '800': '#74120E',
+    '900': '#420808',
+  },
 
   /** Accent shades */
   'pink': colors.pink,
+  'red': colors.red,
 }
 
 const isValidHex = (hex: string) => /^#([A-Fa-f0-9]{3,4}){1,2}$/.test(hex)
@@ -91,7 +105,7 @@ export const hexToRGB = (hex: string) => {
 }
 
 export const baseThemeColors = [
-  themeV2Colors['royal-blue'].DEFAULT,
+  themeV2Colors['royal-red'].DEFAULT,
   '#2D7FF9',
   '#18BFFF',
   '#0C4E65',

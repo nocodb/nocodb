@@ -17,8 +17,19 @@ import {
 } from '#imports'
 import type { NcProject, ProjectMetaInfo, ThemeConfig } from '#imports'
 
+interface BackendEnv {
+  PROJECTS_TITLE: string
+  LOGO_URL: string
+  LOGO_WIDTH: string
+  LOGO_HREF: string
+  ICON_URL: string
+  ICON_WIDTH: string
+  LOGO_TEXT: string
+  ICON_TEXT: string
+}
+
 export const useBase = defineStore('baseStore', () => {
-  const { $e } = useNuxtApp()
+  const { $e, $state, $api } = useNuxtApp()
 
   const { api, isLoading } = useApi()
 
@@ -39,6 +50,8 @@ export const useBase = defineStore('baseStore', () => {
   const basesStore = useBases()
 
   const tablesStore = useTablesStore()
+
+  const baseURL = $api.instance.defaults.baseURL
 
   // todo: refactor
   const sharedProject = ref<BaseType>()
@@ -83,6 +96,15 @@ export const useBase = defineStore('baseStore', () => {
     }
     return temp
   })
+
+  const backendEnv = computed(
+    async () =>
+      (await $fetch('/api/v1/db/meta/env', {
+        baseURL,
+        method: 'GET',
+        headers: { 'xc-auth': $state.token.value as string },
+      })) as BackendEnv,
+  )
 
   function getBaseType(sourceId?: string) {
     return sources.value.find((source) => source.id === sourceId)?.type || ClientType.MYSQL
@@ -269,6 +291,7 @@ export const useBase = defineStore('baseStore', () => {
   }
 
   return {
+    backendEnv,
     base,
     sources,
     tables,

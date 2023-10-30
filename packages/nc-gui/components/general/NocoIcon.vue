@@ -1,12 +1,14 @@
 <script lang="ts" setup>
-import { autoResetRef, useThrottleFn } from '#imports'
+import { autoResetRef, useBase, useThrottleFn } from '#imports'
+const { size = 90, animate = false } = defineProps<Props>()
+const backendEnv = await useBase().backendEnv
+const iconURL = backendEnv.ICON_URL || process.env.ICON_URL
+const iconWidth = backendEnv.ICON_WIDTH || process.env.ICON_WIDTH
 
 interface Props {
   size?: number
   animate?: boolean
 }
-
-const { size = 90, animate = false } = defineProps<Props>()
 
 const ping = autoResetRef(false, 1000)
 
@@ -17,13 +19,13 @@ const onClick = useThrottleFn(() => {
 
 <template>
   <div
-    :style="{ left: `calc(50% - ${size / 2}px)`, top: `-${size / 2}px` }"
+    :style="{ left: `calc(50% - ${iconWidth / 2}px)`, top: `-${iconWidth / 2}px` }"
     class="color-transition absolute rounded-lg pt-1 pl-1 -ml-1"
     @click="onClick"
   >
     <div class="relative">
-      <img class="hidden dark:block" :width="size" :height="size" alt="NocoDB" src="~/assets/img/icons/256x256-trans.png" />
-      <img class="dark:hidden" :width="size" :height="size" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+      <img class="hidden dark:block center" :width="iconWidth" style="filter: grayscale(100%)" alt="NocoDB" :src="iconURL" />
+      <img class="dark:hidden center" :width="iconWidth" alt="NocoDB" :src="iconURL" />
 
       <TransitionGroup name="layout" :duration="500">
         <template v-if="animate || ping">

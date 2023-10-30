@@ -1,5 +1,9 @@
 <script lang="ts" setup>
-import { computed, iconMap, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar } from '#imports'
+import { computed, iconMap, navigateTo, ref, useBase, useGlobal, useNuxtApp, useRoute, useSidebar } from '#imports'
+const backendEnv = await useBase().backendEnv
+const logoUrl = backendEnv.LOGO_URL || process.env.LOGO_URL
+const logoWidth = backendEnv.LOGO_WIDTH || process.env.LOGO_WIDTH
+const iconURL = backendEnv.ICON_URL || process.env.ICON_URL
 
 const { signOut, signedIn, isLoading, user, currentVersion, appInfo } = useGlobal()
 
@@ -50,8 +54,8 @@ hooks.hook('page:finish', () => {
               {{ currentVersion }}
             </template>
             <div class="flex items-center gap-2">
-              <img v-if="!isDashboard" width="120" alt="NocoDB" src="~/assets/img/brand/nocodb-full.png" />
-              <img v-else width="25" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+              <img v-if="!isDashboard" :width="logoWidth" alt="NocoDB" :src="logoUrl" />
+              <img v-else width="25" alt="NocoDB" :src="iconURL" />
             </div>
           </a-tooltip>
         </div>
@@ -141,7 +145,7 @@ hooks.hook('page:finish', () => {
 
 <style lang="scss">
 .nc-lang-btn {
-  @apply color-transition flex items-center justify-center fixed bottom-10 right-10 z-99 w-12 h-12 rounded-full shadow-md shadow-gray-500 p-2 !bg-primary text-white ring-opacity-100 active:(ring ring-accent) hover:(ring ring-accent);
+  @apply color-transition flex items-center justify-center fixed bottom-10 right-10 z-99 w-12 h-12 rounded-full shadow-md shadow-gray-400 p-2 !bg-primary text-white ring-opacity-100 active:(ring ring-accent) hover:(ring ring-accent);
 
   &::after {
     @apply rounded-full absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;

@@ -1,7 +1,10 @@
+import dayjs from 'dayjs'
 import { UITypes } from 'nocodb-sdk'
-import isURL from 'validator/lib/isURL'
-const validateEmail = (v: string) =>
-  /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(v)
+import { getDateFormat, isoToDate } from '~/utils'
+import { isValidURL } from '~/utils/urlUtils'
+import { validateEmail } from '~/utils/validation'
+
+export const specialCharRegex = /[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g
 
 const booleanOptions = [
   { checked: true, unchecked: false },
@@ -37,7 +40,7 @@ export const isCheckboxType: any = (values: [], col?: number) => {
       return false
     }
   }
-  return true
+  return options
 }
 
 export const getCheckboxValue = (value: any) => {
@@ -63,9 +66,7 @@ export const extractMultiOrSingleSelectProps = (colData: []) => {
         : [],
     )
 
-    const uniqueVals = [
-      ...new Set(flattenedVals.filter((v) => v !== null && v !== undefined).map((v: any) => v.toString().trim())),
-    ]
+    const uniqueVals = [...new Set(flattenedVals.map((v: any) => v.toString().trim()))]
 
     if (uniqueVals.length > maxSelectOptionsAllowed) {
       // too many options are detected, convert the column to SingleLineText instead
@@ -82,7 +83,7 @@ export const extractMultiOrSingleSelectProps = (colData: []) => {
       colProps.dtxp = `${uniqueVals.map((v) => `'${v.replace(/'/gi, "''")}'`).join(',')}`
     }
   } else {
-    const uniqueVals = [...new Set(colData.filter((v) => v !== null && v !== undefined).map((v: any) => v.toString().trim()))]
+    const uniqueVals = [...new Set(colData.map((v: any) => v.toString().trim()))]
 
     if (uniqueVals.length > maxSelectOptionsAllowed) {
       // too many options are detected, convert the column to SingleLineText instead
@@ -142,7 +143,7 @@ export const isUrlType = (colData: [], col?: number) =>
     const v = getColVal(r, col)
     // convert to string since isURL only accepts string
     // and cell data value can be number or any other types
-    return v && isURL(v.toString())
+    return v && isValidURL(v)
   })
 
 export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {
@@ -159,7 +160,8 @@ export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {
     if (isUrlType(colData)) {
       colProps.uidt = UITypes.URL
     } else {
-      if (isCheckboxType(colData)) {
+      const checkboxType = isCheckboxType(colData)
+      if (checkboxType.length === 1) {
         colProps.uidt = UITypes.Checkbox
       } else {
         Object.assign(colProps, extractMultiOrSingleSelectProps(colData))
@@ -173,4 +175,110 @@ export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {
   // TODO(import): currency
   // TODO(import): date / datetime
   return colProps
+}
+
+export const isDecimalVal = (vals: any[], limitRows: number) =>
+  vals.slice(0, limitRows).some((v) => !v[1].w || v[1].v?.toString().includes('.'))
+
+export const isCurrencyVal = (vals: any[], limitRows: number) =>
+  vals.slice(0, limitRows).every((v) => !v[1].w || v[1].w?.toString().includes('$'))
+
+export const isPercentageVal = (vals: any[], limitRows: number) =>
+  vals.slice(0, limitRows).every((v) => !v[1].w || v[1].w?.toString().includes('%'))
+
+export const isMultiLineTextVal = (vals: any[], limitRows: number) =>
+  isMultiLineTextType(vals.slice(0, limitRows).map((v: any) => v[1].v) as [])
+
+export const isMultiOrSingleSelectVal = (vals: any[], limitRows: number, column: Record<string, any>) => {
+  // TODO: optionally add '.map((v: any) => v[1].w.replace('\\', '_')) as []' to prevent encoding error for mysql set / enum
+  const props = extractMultiOrSingleSelectProps(vals.map((cell: any) => cell[1].w) as [])
+  if (!props) return false
+  Object.assign(column, props)
+  return true
+}
+
+export const isEmailVal = (vals: any[], limitRows: number) => isEmailType(vals.slice(0, limitRows).map((v: any) => v[1].v) as [])
+
+export const isUrlVal = (vals: any[], limitRows: number) => isUrlType(vals.slice(0, limitRows).map((v: any) => v[1].v) as [])
+
+export const isCheckboxVal = (vals: any[], limitRows: number) =>
+  isCheckboxType(vals.slice(0, limitRows).map((v: any) => v[1].v) as []).length === 1
+
+export const isNumberVal = (vals: any[], limitRows: number) =>
+  isUrlType(
+    vals
+      .slice(0, limitRows)
+      .map((v: any) => isNaN(v[1].w) || (v[1].w && !isNaN(Number(v[1].w)) && isNaN(parseFloat(v[1].w)))) as [],
+  )
+
+export const isIsoDateVal = (vals: any[], limitRows: number) => vals.slice(0, limitRows).every((v) => isoToDate(v[1].w))
+
+export const defaultFormatter = (cell: any, defaultVal: any = null) => cell.v || defaultVal
+
+export const decimalFormatter = (cell: any, defaultVal = 0.0) => parseFloat(cell.v) || defaultVal
+
+export const numberFormatter = (cell: any, defaultVal = 0) => parseInt(cell.v) || defaultVal
+
+export const defaultRawFormatter = (cell: any, defaultVal: any = null) => cell.w || defaultVal
+
+export const dateFormatter = (cell: any, format: string, defaultVal: Date | null = null) =>
+  cell.v ? dayjs(cell.v).format(format) : defaultVal
+
+export const dateTimeFormatter = (cell: any, defaultVal: Date | null = null) => cell.v || defaultVal
+
+export const checkBoxFormatter = (cell: any, defaultVal: boolean | null = null) => getCheckboxValue(cell.v) || defaultVal
+
+export const currencyFormatter = (cell: any, defaultVal: string | null = null) => cell.w?.replace(/[^\d.]+/g, '') || defaultVal
+
+export const percentFormatter = (cell: any, defaultVal: string | null = null) =>
+  parseFloat(cell.w?.slice(0, -1)) / 100 || defaultVal
+
+export const multiOrSingleSelectFormatter = (cell: any, defaultVal: string | null = null) =>
+  cell.w?.replace('\\', '_').trim() || defaultVal
+
+export const isAllDate = (vals: any[], column: Record<string, any>) => {
+  const dateFormats: Record<string, number> = {}
+  const isOnlyDate = vals.every(([_, cell]) => {
+    // TODO: more date types and more checks!
+    const onlyDate = !cell.w || cell.w?.split(' ').length === 1
+    if (onlyDate) {
+      const format = getDateFormat(cell.w)
+      dateFormats[format] = (dateFormats[format] || 0) + 1
+    }
+    return onlyDate
+  })
+  if (isOnlyDate) {
+    column.uidt = UITypes.Date
+    // take the date format with the max occurrence
+    column.meta.date_format = Object.keys(dateFormats).reduce((x, y) => (dateFormats[x] > dateFormats[y] ? x : y)) || 'YYYY/MM/DD'
+    return isOnlyDate
+  }
+
+  column.uidt = UITypes.DateTime
+  return isOnlyDate
+}
+
+export function findMaxOccurrence(arr: number[]): number {
+  const occurrenceMap = new Map<number, number>()
+
+  // Count the occurrences of each value in the array
+  arr.forEach((val) => {
+    if (occurrenceMap.has(val)) {
+      occurrenceMap.set(val, occurrenceMap.get(val)! + 1)
+    } else {
+      occurrenceMap.set(val, 1)
+    }
+  })
+
+  // Find the value with the maximum occurrence
+  let maxVal = 0
+  let maxOccurrence = 0
+  occurrenceMap.forEach((occurrence, val) => {
+    if (occurrence > maxOccurrence) {
+      maxVal = val
+      maxOccurrence = occurrence
+    }
+  })
+
+  return maxVal
 }

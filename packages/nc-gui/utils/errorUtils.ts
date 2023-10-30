@@ -1,4 +1,13 @@
-export async function extractSdkResponseErrorMsg(e: Error & { response: any }) {
+function limitString(msg: string): string {
+  if (msg.length > 1000) {
+    const first100 = msg.slice(0, 100)
+    const last100 = msg.slice(-100)
+    return `${first100}...${last100}`
+  }
+  return msg
+}
+
+export async function extractSdkResponseErrorMsg(e: Error & { response: any }, extra?: String) {
   if (!e || !e.response) return e.message
   let msg
   let errors: any[] | null = null
@@ -19,5 +28,5 @@ export async function extractSdkResponseErrorMsg(e: Error & { response: any }) {
     return errors.map((e: any) => (e.instancePath ? `${e.instancePath} - ` : '') + e.message).join(', ')
   }
 
-  return msg || 'Some error occurred'
+  return (limitString(msg) || 'Some error occurred') + (extra ? ` - ${extra}` : '')
 }

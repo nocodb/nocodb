@@ -134,6 +134,18 @@ const exportFile = async (exportType: ExportTypes) => {
             </div>
 
             <div
+              v-if="isUIAllowed('excelImport') && !isView && !isPublicView"
+              v-e="['a:actions:upload-excel']"
+              class="nc-menu-item"
+              :class="{ disabled: isLocked }"
+              @click="!isLocked ? (quickImportDialog = true) : {}"
+            >
+              <MdiUploadOutline class="text-gray-500" />
+              <!-- Upload CSV -->
+              {{ $t('activity.uploadExcel') }}
+            </div>
+
+            <div
               v-if="isUIAllowed('csvImport') && !isView && !isPublicView"
               v-e="['a:actions:upload-csv']"
               class="nc-menu-item"

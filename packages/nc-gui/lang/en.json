@@ -740,6 +740,7 @@
     "downloadCSV": "Download as CSV",
     "downloadExcel": "Download as XLSX",
     "uploadCSV": "Upload CSV",
+    "uploadExcel": "Upload XLSX",
     "import": "Import",
     "importMetadata": "Import Metadata",
     "exportMetadata": "Export Metadata",

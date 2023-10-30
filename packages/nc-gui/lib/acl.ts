@@ -82,6 +82,7 @@ const rolePermissions = {
       filterChildrenRead: true,
       viewFieldEdit: true,
       csvTableImport: true,
+      excelTableImport: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

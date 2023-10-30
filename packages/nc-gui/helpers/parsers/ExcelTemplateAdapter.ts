@@ -1,14 +1,31 @@
 import { UITypes } from 'nocodb-sdk'
-import { getDateFormat } from '../../utils/dateTimeUtils'
 import TemplateGenerator from './TemplateGenerator'
 import {
-  extractMultiOrSingleSelectProps,
-  getCheckboxValue,
-  isCheckboxType,
-  isEmailType,
-  isMultiLineTextType,
-  isUrlType,
+  checkBoxFormatter,
+  currencyFormatter,
+  dateFormatter,
+  dateTimeFormatter,
+  decimalFormatter,
+  defaultFormatter,
+  defaultRawFormatter,
+  findMaxOccurrence,
+  isAllDate,
+  isCheckboxVal,
+  isCurrencyVal,
+  isDecimalVal,
+  isEmailVal,
+  isIsoDateVal,
+  isMultiLineTextVal,
+  isMultiOrSingleSelectVal,
+  isNumberVal,
+  isPercentageVal,
+  isUrlVal,
+  multiOrSingleSelectFormatter,
+  numberFormatter,
+  percentFormatter,
+  specialCharRegex,
 } from './parserHelpers'
+import { isoToDate } from '~/utils'
 
 const excelTypeToUidt: Record<string, UITypes> = {
   d: UITypes.DateTime,
@@ -16,13 +33,24 @@ const excelTypeToUidt: Record<string, UITypes> = {
   n: UITypes.Number,
   s: UITypes.SingleLineText,
 }
+interface ParserConfig {
+  firstRowAsHeaders: boolean
+  autoSelectFieldTypes: boolean
+  maxRowsToParse: number
+  shouldImportData: boolean
+  normalizedNested?: boolean
+  dynamicHeaders?: boolean // TODO: not passed from Editor.vue
+  skipEmptyColumns?: boolean // TODO: not passed from Editor.vue
+  decimalSeparator?: string // TODO: not used
+  thousandsSeparator?: string // TODO: not used
+}
 
 export default class ExcelTemplateAdapter extends TemplateGenerator {
-  config: Record<string, any>
+  config: ParserConfig
 
   excelData: any
 
-  base: {
+  project: {
     tables: Record<string, any>[]
   }
 
@@ -32,19 +60,52 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
   xlsx: typeof import('xlsx')
 
-  constructor(data = {}, parserConfig = {}, xlsx: any = null, progressCallback?: (msg: string) => void) {
-    super(progressCallback)
-    this.config = parserConfig
+  basedate: Date
+  dnthresh: number
+  day_ms: number
+  maxSkippedCellCount: number
+
+  constructor(
+    data = {},
+    parserConfig: ParserConfig = {
+      firstRowAsHeaders: true,
+      autoSelectFieldTypes: true,
+      maxRowsToParse: 500,
+      dynamicHeaders: true,
+      skipEmptyColumns: true,
+      shouldImportData: true,
+      normalizedNested: false,
+    },
+  ) {
+    super()
+    this.config = Object.assign(
+      {
+        firstRowAsHeaders: true,
+        autoSelectFieldTypes: true,
+        maxRowsToParse: 500,
+        dynamicHeaders: true,
+        shouldImportData: true,
+        normalizedNested: false,
+      },
+      parserConfig,
+    )
+    this.maxSkippedCellCount = 0
     this.excelData = data
-    this.base = {
+    this.project = {
       tables: [],
     }
-    this.xlsx = xlsx || ({} as any)
+    this.xlsx = {} as any
+    // fix precision bug & timezone offset issues introduced by xlsx
+    this.basedate = new Date(1899, 11, 30, 0, 0, 0)
+    // number of milliseconds since base date
+    this.dnthresh = this.basedate.getTime() + (new Date().getTimezoneOffset() - this.basedate.getTimezoneOffset()) * 60000
+
+    // number of milliseconds in a day
+    this.day_ms = 24 * 60 * 60 * 1000
   }
 
   async init() {
-    this.progress('Initializing excel parser')
-    this.xlsx = this.xlsx || (await import('xlsx'))
+    this.xlsx = await import('xlsx')
 
     const options = {
       cellText: true,
@@ -57,225 +118,242 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
     })
   }
 
+  getCellRange = (ws: any) => {
+    let start_range = { c: -1, r: -1 }
+    let iter = 0
+    while ((start_range.c === -1 && start_range.r === -1) || iter > Object.keys(ws).length) {
+      start_range = this.xlsx.utils.decode_cell(Object.keys(ws).slice(iter, iter + 1)[0])
+      iter++
+    }
+
+    let end_range = { c: -1, r: -1 }
+    iter = 0
+    while ((end_range.c === -1 && end_range.r === -1) || iter > Object.keys(ws).length) {
+      end_range = this.xlsx.utils.decode_cell(Object.keys(ws).slice(-2 - iter, -1 - iter)[0])
+      iter++
+    }
+    return { s: start_range, e: end_range }
+  }
+
+  // handle date1904 property
+  // fixImportedDate = (date: any) => {
+  //   if (!(date instanceof Date)) return date
+  //   const parsed = this.xlsx.SSF.parse_date_code((date.getTime() - this.dnthresh) / this.day_ms, {
+  //     date1904: this.wb.Workbook.WBProps.date1904,
+  //   })
+  //   return new Date(parsed.y, parsed.m, parsed.d, parsed.H, parsed.M, parsed.S)
+  // }
+
+  getCellObj = (ws: any, col: number, row: number) => {
+    const cellId = this.xlsx.utils.encode_cell({
+      c: col,
+      r: row,
+    })
+
+    return ws[cellId] || {}
+  }
+
+  addDataRows = (tableName: string, columnName: string, vals: any[], formatter: any, ...args: any[]) => {
+    for (const [key, cell] of vals) {
+      const rowIdx = this.xlsx.utils.decode_cell(key).r - +this.config.firstRowAsHeaders - this.maxSkippedCellCount
+      this.data[tableName][rowIdx][columnName] = formatter(cell, ...args)
+    }
+  }
+
   async parse() {
-    this.progress('Parsing excel file')
     const tableNamePrefixRef: Record<string, any> = {}
     await Promise.all(
       this.wb.SheetNames.map((sheetName: string) =>
         (async (sheet) => {
-          this.progress(`Parsing sheet ${sheetName}`)
-
           await new Promise((resolve) => {
             const columnNamePrefixRef: Record<string, any> = { id: 0 }
-            let tn: string = (sheet || 'table').replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_').trim()
+            let tableName: string = (sheet || 'table').replace(specialCharRegex, '_').trim()
 
-            while (tn in tableNamePrefixRef) {
-              tn = `${tn}${++tableNamePrefixRef[tn]}`
+            while (tableName in tableNamePrefixRef) {
+              tableName = `${tableName}${++tableNamePrefixRef[tableName]}`
             }
-            tableNamePrefixRef[tn] = 0
+            tableNamePrefixRef[tableName] = 0
 
-            const table = { table_name: tn, ref_table_name: tn, columns: [] as any[] }
+            const table = { table_name: tableName, ref_table_name: tableName, columns: [] as any[] }
+            this.project.tables.push(table)
             const ws: any = this.wb.Sheets[sheet]
 
-            // if sheet is empty, skip it
-            if (!ws || !ws['!ref']) {
-              return resolve(true)
+            // sometimes the '!ref' is wrong (e.g. the max cell is much more than the actual max cell), so we need to calculate the range of the actual max cell
+            const range = this.getCellRange(ws)
+
+            const skippedCellCount: number[] = []
+            if (this.config.dynamicHeaders) {
+              // The dynamicHeaders property is likely used when the Excel file does not have a fixed header row, or when the location of the header row may vary.
+              for (let col = 0; col < range.e.c; col++) {
+                let skip = 0
+                let cell
+                while (true) {
+                  cell = this.getCellObj(ws, range.s.c + col, skip)
+                  if (Object.keys(cell).length || skip > this.config.maxRowsToParse) {
+                    break
+                  }
+                  skip++
+                }
+                if (skip) {
+                  skippedCellCount.push(skip)
+                }
+              }
             }
 
-            const range = this.xlsx.utils.decode_range(ws['!ref'])
-            let rows: any = this.xlsx.utils.sheet_to_json(ws, {
-              // header has to be 1 disregarding this.config.firstRowAsHeaders
-              // so that it generates an array of arrays
-              header: 1,
-              blankrows: false,
-              defval: null,
-            })
+            // typescript code for maximal occurent value in array
+            this.maxSkippedCellCount = findMaxOccurrence(skippedCellCount)
 
-            // fix precision bug & timezone offset issues introduced by xlsx
-            const basedate = new Date(1899, 11, 30, 0, 0, 0)
-            // number of milliseconds since base date
-            const dnthresh = basedate.getTime() + (new Date().getTimezoneOffset() - basedate.getTimezoneOffset()) * 60000
-            // number of milliseconds in a day
-            const day_ms = 24 * 60 * 60 * 1000
-            // handle date1904 property
-            const fixImportedDate = (date: Date) => {
-              const parsed = this.xlsx.SSF.parse_date_code((date.getTime() - dnthresh) / day_ms, {
-                date1904: this.wb.Workbook.WBProps.date1904,
-              })
-              return new Date(parsed.y, parsed.m, parsed.d, parsed.H, parsed.M, parsed.S)
-            }
+            this.data[tableName] = []
+            const headerRanges: number[] = []
 
-            // fix imported date
-            rows = rows.map((r: any) =>
-              r.map((v: any) => {
-                return v instanceof Date ? fixImportedDate(v) : v
-              }),
-            )
+            Object.entries(ws as Record<string, any>)
+              .filter(([key, _]) => this.xlsx.utils.decode_cell(key).r === this.maxSkippedCellCount)
+              .forEach(([cellChar, headerCell]) => {
+                const cellIdx = this.xlsx.utils.decode_cell(cellChar)
+                if (headerRanges.includes(cellIdx.c)) {
+                  return
+                }
+                headerRanges.push(cellIdx.c)
+                if (cellIdx.r < 0) {
+                  return
+                }
+                const vals = Object.entries(ws as Record<string, any>)
+                  .filter(([key, _]) => {
+                    const range = this.xlsx.utils.decode_cell(key)
+                    return range.c === cellIdx.c
+                  })
+                  .slice(+this.config.firstRowAsHeaders)
 
-            for (let col = 0; col < rows[0].length; col++) {
-              let cn: string = (
-                (this.config.firstRowAsHeaders && rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
-                `field_${col + 1}`
-              )
-                .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
-                .trim()
+                const maxCellIdx = vals.reduce((a: number, [v, _]) => {
+                  const newIdx = this.xlsx.utils.decode_cell(v).r
+                  return newIdx > a ? newIdx : a
+                }, 0)
 
-              while (cn in columnNamePrefixRef) {
-                cn = `${cn}${++columnNamePrefixRef[cn]}`
-              }
-              columnNamePrefixRef[cn] = 0
+                if (maxCellIdx > this.data[tableName].length) {
+                  // prefill
+                  this.data[tableName].push(
+                    ...Array(
+                      maxCellIdx - this.data[tableName].length - +!this.config.firstRowAsHeaders - this.maxSkippedCellCount,
+                    )
+                      .fill(null)
+                      .map(() => ({})),
+                  )
+                }
 
-              const column: Record<string, any> = {
-                column_name: cn,
-                ref_column_name: cn,
-                meta: {},
-                uidt: UITypes.SingleLineText,
-              }
+                let columnName = ((this.config.firstRowAsHeaders && headerCell.v?.toString().trim()) || `field_${cellIdx.c + 1}`)
+                  .replace(specialCharRegex, '_')
+                  .trim()
 
-              if (this.config.autoSelectFieldTypes) {
-                const cellId = this.xlsx.utils.encode_cell({
-                  c: range.s.c + col,
-                  r: +this.config.firstRowAsHeaders,
-                })
-                const cellProps = ws[cellId] || {}
-                column.uidt = excelTypeToUidt[cellProps.t] || UITypes.SingleLineText
+                while (columnName in columnNamePrefixRef) {
+                  columnName = `${columnName}${++columnNamePrefixRef[columnName]}`
+                }
+                columnNamePrefixRef[columnName] = 0
+                const column: Record<string, any> = {
+                  column_name: columnName,
+                  ref_column_name: columnName,
+                  meta: {},
+                  uidt: UITypes.SingleLineText,
+                }
 
-                if (column.uidt === UITypes.SingleLineText) {
-                  // check for long text
-                  if (isMultiLineTextType(rows, col)) {
-                    column.uidt = UITypes.LongText
-                  } else if (isEmailType(rows, col)) {
-                    column.uidt = UITypes.Email
-                  } else if (isUrlType(rows, col)) {
-                    column.uidt = UITypes.URL
-                  } else {
-                    const vals = rows
-                      .slice(+this.config.firstRowAsHeaders)
-                      .map((r: any) => r[col])
-                      .filter((v: any) => v !== null && v !== undefined && v.toString().trim() !== '')
+                if (vals.length === 0) {
+                  if (!this.config.skipEmptyColumns) table.columns.push(column)
+                  return
+                }
 
-                    if (isCheckboxType(vals, col)) {
+                table.columns.push(column)
+
+                if (!this.config.autoSelectFieldTypes) {
+                  this.addDataRows(tableName, columnName, vals, defaultRawFormatter)
+                }
+
+                // parse each column
+                column.uidt = excelTypeToUidt[vals[0][1].t] || UITypes.SingleLineText
+
+                switch (column.uidt) {
+                  case UITypes.Number:
+                    if (isDecimalVal(vals, this.config.maxRowsToParse)) {
+                      column.uidt = UITypes.Decimal
+                      this.addDataRows(tableName, columnName, vals, decimalFormatter)
+                      break
+                    }
+
+                    if (isCurrencyVal(vals, this.config.maxRowsToParse)) {
+                      // TODO: more currency types!
+                      column.uidt = UITypes.Currency
+                      this.addDataRows(tableName, columnName, vals, currencyFormatter)
+                      break
+                    }
+
+                    if (isPercentageVal(vals, this.config.maxRowsToParse)) {
+                      column.uidt = UITypes.Percent
+                      this.addDataRows(tableName, columnName, vals, percentFormatter)
+                      break
+                    }
+
+                    // fallback to SingleLineText -> i think this is not really required
+                    if (!isNumberVal(vals, this.config.maxRowsToParse)) {
+                      column.uidt = UITypes.SingleLineText
+                    }
+
+                    column.uidt = UITypes.Number
+                    this.addDataRows(tableName, columnName, vals, numberFormatter)
+
+                    break
+
+                  case UITypes.DateTime:
+                    // TODO(import): centralise
+                    // hold the possible date format found in the date
+                    // for (const [_, cell] of vals) {
+                    //   cell.v = this.fixImportedDate(cell.v)
+                    // }
+                    if (isAllDate(vals, column)) {
+                      this.addDataRows(tableName, columnName, vals, dateFormatter, column.meta.date_format)
+                      break
+                    }
+                    column.uidt = UITypes.DateTime
+                    this.addDataRows(tableName, columnName, vals, dateTimeFormatter)
+                    break
+
+                  default:
+                    if (isMultiLineTextVal(vals, this.config.maxRowsToParse)) {
+                      column.uidt = UITypes.LongText
+                      this.addDataRows(tableName, columnName, vals, defaultFormatter)
+                      break
+                    }
+                    if (isEmailVal(vals, this.config.maxRowsToParse)) {
+                      column.uidt = UITypes.Email
+                      this.addDataRows(tableName, columnName, vals, defaultFormatter)
+                      break
+                    }
+                    if (isUrlVal(vals, this.config.maxRowsToParse)) {
+                      column.uidt = UITypes.URL
+                      this.addDataRows(tableName, columnName, vals, defaultFormatter)
+                      break
+                    }
+                    if (isCheckboxVal(vals, this.config.maxRowsToParse)) {
                       column.uidt = UITypes.Checkbox
-                    } else {
-                      // Single Select / Multi Select
-                      Object.assign(column, extractMultiOrSingleSelectProps(vals))
+                      this.addDataRows(tableName, columnName, vals, checkBoxFormatter)
+                      break
                     }
-                  }
-                } else if (column.uidt === UITypes.Number) {
-                  if (
-                    rows.slice(1, this.config.maxRowsToParse).some((v: any) => {
-                      return v && v[col] && parseInt(v[col]) !== +v[col]
-                    })
-                  ) {
-                    column.uidt = UITypes.Decimal
-                  }
-                  if (
-                    rows.slice(1, this.config.maxRowsToParse).every((v: any, i: any) => {
-                      const cellId = this.xlsx.utils.encode_cell({
-                        c: range.s.c + col,
-                        r: i + +this.config.firstRowAsHeaders,
-                      })
-
-                      const cellObj = ws[cellId]
-
-                      return !cellObj || (cellObj.w && cellObj.w.startsWith('$'))
-                    })
-                  ) {
-                    column.uidt = UITypes.Currency
-                  }
-                  if (
-                    rows.slice(1, this.config.maxRowsToParse).some((v: any, i: any) => {
-                      const cellId = this.xlsx.utils.encode_cell({
-                        c: range.s.c + col,
-                        r: i + +this.config.firstRowAsHeaders,
-                      })
-
-                      const cellObj = ws[cellId]
-                      return !cellObj || (cellObj.w && !(!isNaN(Number(cellObj.w)) && !isNaN(parseFloat(cellObj.w))))
-                    })
-                  ) {
-                    // fallback to SingleLineText
-                    column.uidt = UITypes.SingleLineText
-                  }
-                } else if (column.uidt === UITypes.DateTime) {
-                  // TODO(import): centralise
-                  // hold the possible date format found in the date
-                  const dateFormat: Record<string, number> = {}
-                  if (
-                    rows.slice(1, this.config.maxRowsToParse).every((v: any, i: any) => {
-                      const cellId = this.xlsx.utils.encode_cell({
-                        c: range.s.c + col,
-                        r: i + +this.config.firstRowAsHeaders,
-                      })
-
-                      const cellObj = ws[cellId]
-                      const isDate = !cellObj || (cellObj.w && cellObj.w.split(' ').length === 1)
-                      if (isDate && cellObj) {
-                        dateFormat[getDateFormat(cellObj.w)] = (dateFormat[getDateFormat(cellObj.w)] || 0) + 1
+                    if (isMultiOrSingleSelectVal(vals, this.config.maxRowsToParse, column)) {
+                      this.addDataRows(tableName, columnName, vals, multiOrSingleSelectFormatter)
+                      break
+                    }
+                    if (isIsoDateVal(vals, this.config.maxRowsToParse)) {
+                      for (const [_, cell] of vals) {
+                        cell.v = this.fixImportedDate(isoToDate(cell.w) as Date)
                       }
-                      return isDate
-                    })
-                  ) {
-                    column.uidt = UITypes.Date
-                    // take the date format with the max occurrence
-                    column.meta.date_format =
-                      Object.keys(dateFormat).reduce((x, y) => (dateFormat[x] > dateFormat[y] ? x : y)) || 'YYYY/MM/DD'
-                  }
-                }
-              }
-              table.columns.push(column)
-            }
-            this.base.tables.push(table)
-
-            this.data[tn] = []
-            if (this.config.shouldImportData) {
-              this.progress(`Parsing data from ${tn}`)
-              let rowIndex = 0
-              for (const row of rows.slice(1)) {
-                const rowData: Record<string, any> = {}
-                for (let i = 0; i < table.columns.length; i++) {
-                  if (!this.config.autoSelectFieldTypes) {
-                    // take raw data instead of data parsed by xlsx
-                    const cellId = this.xlsx.utils.encode_cell({
-                      c: range.s.c + i,
-                      r: rowIndex + +this.config.firstRowAsHeaders,
-                    })
-                    const cellObj = ws[cellId]
-                    rowData[table.columns[i].column_name] = (cellObj && cellObj.w) || row[i]
-                  } else {
-                    if (table.columns[i].uidt === UITypes.Checkbox) {
-                      rowData[table.columns[i].column_name] = getCheckboxValue(row[i])
-                    } else if (table.columns[i].uidt === UITypes.Currency) {
-                      const cellId = this.xlsx.utils.encode_cell({
-                        c: range.s.c + i,
-                        r: rowIndex + +this.config.firstRowAsHeaders,
-                      })
-
-                      const cellObj = ws[cellId]
-                      rowData[table.columns[i].column_name] =
-                        (cellObj && cellObj.w && cellObj.w.replace(/[^\d.]+/g, '')) || row[i]
-                    } else if (table.columns[i].uidt === UITypes.SingleSelect || table.columns[i].uidt === UITypes.MultiSelect) {
-                      rowData[table.columns[i].column_name] = (row[i] || '').toString().trim() || null
-                    } else if (table.columns[i].uidt === UITypes.Date) {
-                      const cellId = this.xlsx.utils.encode_cell({
-                        c: range.s.c + i,
-                        r: rowIndex + +this.config.firstRowAsHeaders,
-                      })
-                      const cellObj = ws[cellId]
-                      rowData[table.columns[i].column_name] = (cellObj && cellObj.w) || row[i]
-                    } else if (table.columns[i].uidt === UITypes.SingleLineText || table.columns[i].uidt === UITypes.LongText) {
-                      rowData[table.columns[i].column_name] = row[i] === null || row[i] === undefined ? null : `${row[i]}`
-                    } else {
-                      // TODO: do parsing if necessary based on type
-                      rowData[table.columns[i].column_name] = row[i]
+                      if (isAllDate(vals, column)) {
+                        this.addDataRows(tableName, columnName, vals, dateFormatter, column.meta.date_format)
+                        break
+                      }
+                      this.addDataRows(tableName, columnName, vals, dateTimeFormatter)
+                      break
                     }
-                  }
+                    this.addDataRows(tableName, columnName, vals, defaultFormatter)
+                    break
                 }
-                this.data[tn].push(rowData)
-                rowIndex++
-              }
-            }
-
+              })
             resolve(true)
           })
         })(sheetName),
@@ -284,7 +362,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   getTemplate() {
-    return this.base
+    return this.project
   }
 
   getData() {
@@ -292,6 +370,6 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   getColumns() {
-    return this.base.tables.map((t: Record<string, any>) => t.columns)
+    return this.project.tables.map((t: Record<string, any>) => t.columns)
   }
 }

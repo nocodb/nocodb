@@ -104,12 +104,12 @@ const openedBaseUrl = computed(() => {
               display: 'inline',
             }"
           >
+            <template v-if="activeView?.is_default">
+              {{ activeTable?.title }}
+            </template>
             <NuxtLink
-              class="!text-inherit !underline-transparent"
-              :class="{
-                '!hover:(underline-transparent text-gray-800)': activeView?.is_default,
-                '!hover:(text-black underline-gray-600)': !activeView?.is_default,
-              }"
+              v-else
+              class="!text-inherit !underline-transparent !hover:(text-black underline-gray-600)"
               :to="tableUrl({ table: activeTable, completeUrl: true })"
             >
               {{ activeTable?.title }}

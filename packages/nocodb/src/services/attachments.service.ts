@@ -8,6 +8,7 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Local from '~/plugins/storage/Local';
 import mimetypes, { mimeIcons } from '~/utils/mimeTypes';
 import { PresignedUrl } from '~/models';
+import { utf8ify } from '~/helpers/stringHelpers';
 
 @Injectable()
 export class AttachmentsService {
@@ -28,7 +29,8 @@ export class AttachmentsService {
 
     const attachments = await Promise.all(
       param.files?.map(async (file: any) => {
-        const fileName = `${nanoid(18)}${path.extname(file.originalname)}`;
+        const originalName = utf8ify(file.originalname);
+        const fileName = `${nanoid(18)}${path.extname(originalName)}`;
 
         const url = await storageAdapter.fileCreate(
           slash(path.join(destPath, fileName)),
@@ -46,11 +48,10 @@ export class AttachmentsService {
           signedUrl?: string;
         } = {
           ...(url ? { url } : {}),
-          title: file.originalname,
+          title: originalName,
           mimetype: file.mimetype,
           size: file.size,
-          icon:
-            mimeIcons[path.extname(file.originalname).slice(1)] || undefined,
+          icon: mimeIcons[path.extname(originalName).slice(1)] || undefined,
         };
 
         const promises = [];

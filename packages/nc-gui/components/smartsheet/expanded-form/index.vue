@@ -416,7 +416,22 @@ const showRightSections = computed(() => {
   return !isNew.value && commentsDrawer.value && isUIAllowed('commentList')
 })
 
-const preventModalStatus = computed(() => isCloseModalOpen.value || isPreventChangeModalOpen.value)
+const preventModalStatus = computed({
+  get: () => isCloseModalOpen.value || isPreventChangeModalOpen.value,
+  set: (v) => {
+    isCloseModalOpen.value = v
+  },
+})
+
+const onIsExpandedUpdate = (v: boolean) => {
+  if (changedColumns.value.size === 0 && !isUnsavedFormExist.value) {
+    isExpanded.value = v
+  } else if (!v) {
+    preventModalStatus.value = true
+  } else {
+    isExpanded.value = v
+  }
+}
 </script>
 
 <script lang="ts">
@@ -427,7 +442,7 @@ export default {
 
 <template>
   <NcModal
-    v-model:visible="isExpanded"
+    :visible="isExpanded"
     :footer="null"
     :width="commentsDrawer && isUIAllowed('commentList') ? 'min(80vw,1280px)' : 'min(80vw,1280px)'"
     :body-style="{ padding: 0 }"
@@ -435,6 +450,7 @@ export default {
     size="small"
     class="nc-drawer-expanded-form"
     :class="{ active: isExpanded }"
+    @update:visible="onIsExpandedUpdate"
   >
     <div class="h-[85vh] xs:(max-h-full) max-h-215 flex flex-col p-6">
       <div class="flex h-9.5 flex-shrink-0 w-full items-center nc-expanded-form-header relative mb-4 justify-between">

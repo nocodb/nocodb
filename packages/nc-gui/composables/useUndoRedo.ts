@@ -26,6 +26,16 @@ export const useUndoRedo = createSharedComposable(() => {
   })
 
   const isSameScope = (sc: { key: string; param: string | string[] }[]) => {
+    // TODO - improve this logic
+    // for now we disable undo/redo for webhook, field, api, relation
+    const slugs = scope.value.find((s) => s.key === 'slugs')
+    if (slugs) {
+      const params = Array.isArray(slugs.param) ? slugs.param : slugs.param.split(',')
+      if (params.some((el) => ['webhook', 'field', 'api', 'relation'].includes(el))) {
+        return false
+      }
+    }
+
     return sc.every((s) => {
       return scope.value.some(
         // viewTitle is optional for default view

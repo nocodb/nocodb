@@ -8,38 +8,55 @@ import { defaults, types } from 'pg';
 
 const app = express();
 const connectionPools: { [key: string]: Knex; } = {};
+const dynamicPoolSize = process.env.DYNAMIC_POOL_SIZE === 'true';
+const dynamicPoolPercent = process.env.DYNAMIC_POOL_PERCENT ? parseInt(process.env.DYNAMIC_POOL_PERCENT) : 50;
 
 app.use(express.json());
 
 app.post('/query', async (req, res) => {
   const { query, config, raw = false } = req.body;
 
-  config.pool = {
-    min: 0,
-    max: 10,
-  }
+  const { pool, ...configWithoutPool } = config;
 
-  const connectionKey = hash(config);
+  const connectionKey = hash(configWithoutPool);
 
   let fromPool = true;
 
   if (!connectionPools[connectionKey]) {
-    connectionPools[connectionKey] = knex(config);
+    if (dynamicPoolSize) {
+      // mysql SHOW VARIABLES LIKE 'max_connections'; { Variable_name: 'max_connections', Value: '151' }
+      // pg SHOW max_connections; { max_connections: '100' }
+      const tempKnex = knex({ ...config, pool: { min:0, max: 1 } });
+      let maxConnections;
+      if (config.client === 'mysql2' || config.client === 'mysql') {
+        maxConnections = (await tempKnex.raw('SHOW VARIABLES LIKE \'max_connections\''))?.[0]?.[0]?.Value;
+      } else if (config.client === 'pg') {
+        maxConnections = (await tempKnex.raw('SHOW max_connections')).rows?.[0]?.max_connections;
+      }
+      tempKnex.destroy();
+
+      // use dynamicPoolPercent of maxConnections
+      const poolSize = Math.floor((parseInt(maxConnections || 20) * dynamicPoolPercent) / 100);
+
+      console.log('Max connections: ', maxConnections);
+      console.log('Pool size: ', poolSize);
+
+      connectionPools[connectionKey] = knex({ ...config, pool: { min: 0, max: poolSize } });
+    } else {
+      connectionPools[connectionKey] = knex(config);
+    }
     fromPool = false;
   }
 
-  const pool = connectionPools[connectionKey].client.pool;
+  const knexPool = connectionPools[connectionKey].client.pool;
 
-  // returns the number of non-free resources
-  console.log('\nConnections in use: ', pool.numUsed())
-  // returns the number of free resources
-  console.log('Connections free: ', pool.numFree())
-  // how many acquires are waiting for a resource to be released
-  console.log('Acquiring: ', pool.numPendingAcquires())
-  // how many asynchronous create calls are running
-  console.log('Creating: ', pool.numPendingCreates())
-
-  console.log(`${dayjs().format('YYYY-MM-DD HH:mm:ssZ')} (${fromPool ? 'pool' : 'fresh'})\n`);
+  console.log(`\n
+    Connections in use: ${knexPool.numUsed()}\n
+    Connections free: ${knexPool.numFree()}\n
+    Acquiring: ${knexPool.numPendingAcquires()}\n
+    Creating: ${knexPool.numPendingCreates()}\n
+    ${dayjs().format('YYYY-MM-DD HH:mm:ssZ')} (${fromPool ? 'pool' : 'fresh'})\n
+  `);
 
   let result;
 
@@ -91,6 +108,7 @@ app.post('/query', async (req, res) => {
       error: e.message
     });
   }
+
   res.send(result);
 });
 

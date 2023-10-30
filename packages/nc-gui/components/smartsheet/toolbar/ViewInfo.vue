@@ -6,6 +6,7 @@ const { openedViewsTab, activeView } = storeToRefs(useViewsStore())
 const { base, isSharedBase } = storeToRefs(useBase())
 
 const { activeTable } = storeToRefs(useTablesStore())
+const { tableUrl } = useTablesStore()
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 </script>
@@ -33,7 +34,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
         <div class="flex flex-row items-center gap-x-1.5">
           <GeneralProjectIcon
             :meta="{ type: base?.type }"
-            class="!grayscale"
+            class="!grayscale min-w-4"
             :style="{
               filter: 'grayscale(100%) brightness(115%)',
             }"
@@ -64,32 +65,39 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
           />
         </template>
       </LazyGeneralEmojiPicker>
-      <NcTooltip
-        class="truncate nc-active-table-title"
+      <div
+        v-if="activeTable"
         :class="{
           'max-w-1/2': isMobileMode || activeView?.is_default,
           'max-w-20/100': !isSharedBase && !isMobileMode && !activeView?.is_default,
           'max-w-none': isSharedBase && !isMobileMode,
         }"
       >
-        <template #title>
-          {{ activeTable?.title }}
-        </template>
-        <span
-          class="text-ellipsis overflow-hidden text-gray-500 xs:ml-2"
-          :class="{
-            'text-gray-500': !isMobileMode,
-            'text-gray-700 font-medium': isMobileMode || activeView?.is_default,
-          }"
-          :style="{
-            wordBreak: 'keep-all',
-            whiteSpace: 'nowrap',
-            display: 'inline',
-          }"
-        >
-          {{ activeTable?.title }}
-        </span>
-      </NcTooltip>
+        <NcTooltip class="truncate nc-active-table-title max-w-full">
+          <template #title>
+            {{ activeTable?.title }}
+          </template>
+          <span
+            class="text-ellipsis overflow-hidden text-gray-500 xs:ml-2"
+            :class="{
+              'text-gray-500': !isMobileMode,
+              'text-gray-700 font-medium': isMobileMode || activeView?.is_default,
+            }"
+            :style="{
+              wordBreak: 'keep-all',
+              whiteSpace: 'nowrap',
+              display: 'inline',
+            }"
+          >
+            <NuxtLink
+              class="!hover:(text-black underline-gray-600) !text-inherit !underline-transparent"
+              :to="tableUrl({ table: activeTable, completeUrl: true })"
+            >
+              {{ activeTable?.title }}
+            </NuxtLink>
+          </span>
+        </NcTooltip>
+      </div>
     </template>
 
     <div v-if="!isMobileMode" class="px-1 text-gray-500">/</div>

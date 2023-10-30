@@ -101,6 +101,7 @@ export default class Source implements SourceType {
       skipReorder?: boolean;
       meta?: any;
       deleted?: boolean;
+      fk_sql_executor_id?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {

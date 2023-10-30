@@ -14,6 +14,8 @@ export default class SqlExecutor {
   id?: string;
   domain?: string;
   status?: string;
+  priority?: number;
+  capacity?: number;
   sourceCount?: number;
 
   constructor(SqlExecutor: SqlExecutor) {
@@ -29,11 +31,6 @@ export default class SqlExecutor {
         null,
         null,
         MetaTable.SQL_EXECUTOR,
-        {
-          orderBy: {
-            domain: 'asc',
-          },
-        },
       );
 
       for (const sqlExecutor of sqlExecutorList) {
@@ -45,6 +42,8 @@ export default class SqlExecutor {
 
       await NocoCache.setList(CacheScope.SQL_EXECUTOR, [], sqlExecutorList);
     }
+
+    sqlExecutorList.sort((a, b) => a.priority - b.priority);
 
     return sqlExecutorList;
   }
@@ -85,8 +84,33 @@ export default class SqlExecutor {
     SqlExecutor: Partial<SqlExecutor>,
     ncMeta = Noco.ncMeta,
   ) {
+    const NC_SQL_EXECUTOR_MAX_DB_COUNT =
+      +process.env.NC_SQL_EXECUTOR_MAX_DB_COUNT || 10;
+
     // extract props which is allowed to be inserted
-    const insertObject = extractProps(SqlExecutor, ['domain', 'status']);
+    const insertObject = extractProps(SqlExecutor, [
+      'domain',
+      'status',
+      'priority',
+      'capacity',
+    ]);
+
+    if (!insertObject.domain) {
+      NcError.badRequest('Domain is required');
+    }
+
+    if (!insertObject.status) {
+      insertObject.status = 'inactive';
+    }
+
+    if (!insertObject.priority) {
+      const sqlExecutors = await this.list(ncMeta);
+      insertObject.priority = (sqlExecutors.length + 1) * 10;
+    }
+
+    if (!insertObject.capacity) {
+      insertObject.capacity = NC_SQL_EXECUTOR_MAX_DB_COUNT;
+    }
 
     const { id } = await ncMeta.metaInsert2(
       null,
@@ -115,7 +139,12 @@ export default class SqlExecutor {
 
     await NocoCache.del(`${CacheScope.SQL_EXECUTOR}:${SqlExecutorId}`);
 
-    const updateObject = extractProps(SqlExecutor, ['domain', 'status']);
+    const updateObject = extractProps(SqlExecutor, [
+      'domain',
+      'status',
+      'priority',
+      'capacity',
+    ]);
 
     await ncMeta.metaUpdate(
       null,
@@ -136,6 +165,24 @@ export default class SqlExecutor {
     const SqlExecutor = await this.get(id, ncMeta);
 
     if (!SqlExecutor) NcError.notFound('SqlExecutor not found');
+
+    // unbind all sources
+    const sources = await ncMeta.metaList2(null, null, MetaTable.BASES, {
+      condition: {
+        fk_sql_executor_id: id,
+      },
+    });
+
+    for (const source of sources) {
+      await Source.updateBase(
+        source.id,
+        {
+          baseId: source.base_id,
+          fk_sql_executor_id: null,
+        },
+        ncMeta,
+      );
+    }
 
     await NocoCache.del(`${CacheScope.SQL_EXECUTOR}:${id}`);
 
@@ -167,8 +214,9 @@ export default class SqlExecutor {
     await Source.updateBase(
       sourceId,
       {
+        baseId: source.base_id,
         fk_sql_executor_id: SqlExecutor.id,
-      } as any,
+      },
       ncMeta,
     );
 
@@ -196,8 +244,9 @@ export default class SqlExecutor {
     await Source.updateBase(
       sourceId,
       {
+        baseId: source.base_id,
         fk_sql_executor_id: null,
-      } as any,
+      },
       ncMeta,
     );
 
@@ -210,9 +259,6 @@ export default class SqlExecutor {
     sourceId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const NC_SQL_EXECUTOR_MAX_DB_COUNT =
-      +process.env.NC_SQL_EXECUTOR_MAX_DB_COUNT || 10;
-
     const source = await Source.get(sourceId, false, ncMeta);
 
     if (!source) NcError.notFound('Source not found');
@@ -242,7 +288,7 @@ export default class SqlExecutor {
         }
       } else {
         for (const sqlExecutor of sqlExecutors) {
-          if (sqlExecutor.sourceCount < NC_SQL_EXECUTOR_MAX_DB_COUNT) {
+          if (sqlExecutor.sourceCount < sqlExecutor.capacity) {
             suitableSqlExecutor = sqlExecutor;
             break;
           }

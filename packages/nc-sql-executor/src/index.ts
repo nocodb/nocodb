@@ -112,6 +112,14 @@ app.post('/query', async (req, res) => {
   res.send(result);
 });
 
+app.get('/health', async (req, res) => {
+  res.status(200).send({
+    uptime: process.uptime(),
+    message: 'OK',
+    date: new Date()
+  });
+});
+
 app.listen(process.env.PORT || 9000, () => {
   console.log(`Server listening on port ${process.env.PORT || 9000}`);
 });

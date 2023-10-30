@@ -1,5 +1,6 @@
 import { promisify } from 'util';
 import fs from 'fs';
+import axios from 'axios';
 import { default as NcConnectionMgrv2CE } from 'src/utils/common/NcConnectionMgrv2';
 import type { Knex } from 'knex';
 import type Source from '~/models/Source';
@@ -69,9 +70,22 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
     }
 
     if (se.status === 'inactive') {
-      NcError.internalServerError(
-        'SQL Executor is not active yet. Please try again later!',
-      );
+      try {
+        const res = await axios.get(`${se.domain}/health`);
+        if (res.status !== 200) {
+          NcError.internalServerError(
+            'SQL Executor is not active yet. Please try again later!',
+          );
+        }
+
+        await SqlExecutor.update(se.id, {
+          status: 'active',
+        });
+      } catch (e) {
+        NcError.internalServerError(
+          'SQL Executor is not active yet. Please try again later!',
+        );
+      }
     }
 
     this.connectionRefs[source.base_id][source.id] = XKnex(

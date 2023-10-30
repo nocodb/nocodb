@@ -526,6 +526,7 @@ export function useMultiSelect(
         break
       /** on delete key press clear cell */
       case 'Delete':
+      case 'Backspace':
         e.preventDefault()
 
         if (selectedRange.isSingleCell()) {

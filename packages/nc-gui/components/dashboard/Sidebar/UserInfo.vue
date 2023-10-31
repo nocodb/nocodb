@@ -85,7 +85,7 @@ onMounted(() => {
         class="flex flex-row py-2 px-3 gap-x-2 items-center hover:bg-gray-200 rounded-lg cursor-pointer h-10"
         data-testid="nc-sidebar-userinfo"
       >
-        <GeneralUserIcon :email="user?.email" size="base" />
+        <GeneralUserIcon :email="user?.email" size="base" :name="user?.display_name" />
         <div class="flex truncate">
           {{ name ? name : user?.email }}
         </div>

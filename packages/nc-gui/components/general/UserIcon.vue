@@ -12,22 +12,20 @@ const props = withDefaults(
   },
 )
 
-const emailProp = toRef(props, 'email')
+const size = computed(() => props.size || 'medium')
+
+const displayName = computed(() => props.name ?? '')
+
+const email = computed(() => props?.email ?? '')
 
 const backgroundColor = computed(() => {
   // in comments we need to generate user icon from email
-  if (emailProp.value.length) {
-    return stringToColor(emailProp.value)
+  if (email.value.length) {
+    return stringToColor(email.value)
   }
 
-  return props.email ? stringToColor(props.email) : '#FFFFFF'
+  return email.value ? stringToColor(email.value) : '#FFFFFF'
 })
-
-const size = computed(() => props.size || 'medium')
-
-const displayName = computed(() => props.email ?? '')
-
-const email = computed(() => props.name ?? props?.email ?? '')
 
 const usernameInitials = computed(() => {
   const displayNameSplit = displayName.value?.split(' ').filter((name) => name) ?? []

@@ -190,7 +190,7 @@ onMounted(async () => {
               class="user-row flex flex-row border-b-1 py-1 min-h-14 items-center"
             >
               <div class="flex gap-3 items-center users-email-grid">
-                <GeneralUserIcon size="base" :name="collab.email" :email="collab.email" />
+                <GeneralUserIcon size="base" :email="collab.email" />
                 <span class="truncate">
                   {{ collab.email }}
                 </span>

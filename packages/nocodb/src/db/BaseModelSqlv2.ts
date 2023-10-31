@@ -138,9 +138,11 @@ class BaseModelSqlv2 {
     {
       ignoreView = false,
       getHiddenColumn = false,
+      throwErrorIfInvalidParams = false,
     }: {
       ignoreView?: boolean;
       getHiddenColumn?: boolean;
+      throwErrorIfInvalidParams?: boolean;
     } = {},
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
@@ -150,6 +152,7 @@ class BaseModelSqlv2 {
       model: this.model,
       view: ignoreView ? null : this.viewId && (await View.get(this.viewId)),
       getHiddenColumn,
+      throwErrorIfInvalidParams
     });
 
     await this.selectObject({
@@ -366,6 +369,7 @@ class BaseModelSqlv2 {
   public async count(
     args: { where?: string; limit?; filterArr?: Filter[] } = {},
     ignoreViewFilterAndSort = false,
+    throwErrorIfInvalidParams = false,
   ): Promise<any> {
     await this.model.getColumns();
     const { where } = this._getListArgs(args);
@@ -374,7 +378,7 @@ class BaseModelSqlv2 {
 
     // qb.xwhere(where, await this.model.getAliasColMapping());
     const aliasColObjMap = await this.model.getAliasColObjMap();
-    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap,throwErrorIfInvalidParams);
 
     if (!ignoreViewFilterAndSort && this.viewId) {
       await conditionV2(
@@ -398,6 +402,8 @@ class BaseModelSqlv2 {
           ...(args.filterArr || []),
         ],
         qb,
+        undefined,
+        throwErrorIfInvalidParams
       );
     } else {
       await conditionV2(
@@ -416,6 +422,8 @@ class BaseModelSqlv2 {
           ...(args.filterArr || []),
         ],
         qb,
+        undefined,
+        throwErrorIfInvalidParams
       );
     }
 

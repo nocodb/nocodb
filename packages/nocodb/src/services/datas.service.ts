@@ -133,6 +133,7 @@ export class DatasService {
     view?: View;
     query: any;
     baseModel?: BaseModelSqlv2;
+    throwErrorIfInvalidParams?: boolean;
   }) {
     const { model, view, query = {} } = param;
 
@@ -146,7 +147,7 @@ export class DatasService {
         dbDriver: await NcConnectionMgrv2.get(source),
       }));
 
-    const { ast, dependencyFields } = await getAst({ model, query, view });
+    const { ast, dependencyFields } = await getAst({ model, query, view, throwErrorIfInvalidParams: param.throwErrorIfInvalidParams });
 
     const listArgs: any = dependencyFields;
     try {

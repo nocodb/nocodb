@@ -25,6 +25,7 @@ export class DataTableService {
       model,
       view,
       query: param.query,
+      throwErrorIfInvalidParams: true,
     });
   }
 
@@ -45,7 +46,9 @@ export class DataTableService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    const row = await baseModel.readByPk(param.rowId, false, param.query);
+    const row = await baseModel.readByPk(param.rowId, false, param.query, {
+      throwErrorIfInvalidParams: true,
+    });
 
     if (!row) {
       NcError.notFound('Row not found');
@@ -167,7 +170,7 @@ export class DataTableService {
       countArgs.filterArr = JSON.parse(countArgs.filterArrJson);
     } catch (e) {}
 
-    const count: number = await baseModel.count(countArgs);
+    const count: number = await baseModel.count(countArgs, false, true);
 
     return { count };
   }

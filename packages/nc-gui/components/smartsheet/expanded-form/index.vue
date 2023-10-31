@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import MdiChevronDown from '~icons/mdi/chevron-down'
@@ -432,6 +432,10 @@ const onIsExpandedUpdate = (v: boolean) => {
     isExpanded.value = v
   }
 }
+
+const isReadOnlyVirtualCell = (column: ColumnType) => {
+  return isRollup(column) || isFormula(column) || isBarcode(column) || isLookup(column) || isQrCode(column)
+}
 </script>
 
 <script lang="ts">
@@ -633,9 +637,20 @@ export default {
                   <SmartsheetDivDataCell
                     v-if="col.title"
                     :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                    class="!bg-white rounded-lg !w-[20rem] !xs:w-full border-1 border-gray-200 overflow-hidden px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
+                    class="bg-white rounded-lg !w-[20rem] !xs:w-full border-1 border-gray-200 overflow-hidden px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
+                    :class="{
+                      '!bg-gray-50 !px-0 !select-text': isReadOnlyVirtualCell(col),
+                    }"
                   >
-                    <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="_row.row[col.title]" :row="_row" :column="col" />
+                    <LazySmartsheetVirtualCell
+                      v-if="isVirtualCol(col)"
+                      v-model="_row.row[col.title]"
+                      :row="_row"
+                      :column="col"
+                      :class="{
+                        'px-1': isReadOnlyVirtualCell(col),
+                      }"
+                    />
 
                     <LazySmartsheetCell
                       v-else

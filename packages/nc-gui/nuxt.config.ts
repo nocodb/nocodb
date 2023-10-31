@@ -94,12 +94,12 @@ export default defineNuxtConfig({
         {
           hid: 'twitter:image',
           name: 'twitter:image',
-          content: process.env.NC_CDN_URL ? new URL('/link-preview.webp', process.env.NC_CDN_URL).href : './link-preview.webp',
+          content: './link-preview.webp',
         },
         {
           hid: 'og:image',
           property: 'og:image',
-          content: process.env.NC_CDN_URL ? new URL('/link-preview.webp', process.env.NC_CDN_URL).href : './link-preview.webp',
+          content: './link-preview.webp',
         },
       ],
     },

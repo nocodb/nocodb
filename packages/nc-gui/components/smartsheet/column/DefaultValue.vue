@@ -24,6 +24,8 @@ useProvideSmartsheetRowStore(meta, rowRef)
 
 const cdfValue = ref<string | null>(null)
 
+const editEnabled = ref(false)
+
 const updateCdfValue = (cdf: string | null) => {
   vModel.value.cdf = cdf
   cdfValue.value = vModel.value.cdf
@@ -37,13 +39,20 @@ onMounted(() => {
 <template>
   <div class="!my-3 text-xs">{{ $t('placeholder.defaultValue') }}</div>
   <div class="flex flex-row gap-2">
-    <div class="border-1 flex items-center w-full px-3 my-[-4px] border-gray-300 rounded-md">
+    <div
+      class="border-1 flex items-center w-full px-3 my-[-4px] border-gray-300 rounded-md"
+      :class="{
+        '!border-brand-500': editEnabled,
+      }"
+    >
       <LazySmartsheetCell
+        :edit-enabled="true"
         :model-value="cdfValue"
         :column="vModel"
-        :edit-enabled="true"
         class="!border-none"
         @update:cdf="updateCdfValue"
+        @update:edit-enabled="editEnabled = $event"
+        @click="editEnabled = true"
       />
       <component
         :is="iconMap.close"

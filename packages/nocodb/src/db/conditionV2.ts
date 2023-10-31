@@ -2,6 +2,7 @@ import { isNumericCol, RelationTypes, UITypes } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import { NcError } from '~/helpers/catchError'
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type { Knex } from 'knex';
 import type Column from '~/models/Column';
@@ -114,7 +115,7 @@ const parseConditionV2 = async (
     const column = await filter.getColumn();
     if (!column) {
       if (throwErrorIfInvalid) {
-        throw new Error(`Invalid column id '${filter.fk_column_id}' in filter`);
+        NcError.unprocessableEntity(`Invalid column id '${filter.fk_column_id}' in filter`);
       }
       return;
     }

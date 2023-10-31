@@ -413,9 +413,12 @@ export async function invokeWebhook(
     }
   } catch (e) {
     if (e.response) {
-      logger.log(e.response.data);
-      logger.log(e.response.status);
-      logger.log(e.response.headers);
+      logger.log({
+        data: e.response.data,
+        status: e.response.status,
+        url: e.response.config?.url,
+        message: e.message,
+      });
     } else {
       logger.log(e.message, e.stack);
     }

@@ -67,7 +67,7 @@ const getAst = async ({
   if (fields && fields !== '*') {
     fields = Array.isArray(fields) ? fields : fields.split(',');
     if (throwErrorIfInvalidParams) {
-      const colAliasMap = model.getColAliasMapping();
+      const colAliasMap = await model.getColAliasMapping();
       const invalidFields = fields.filter((f) => !colAliasMap[f]);
       if (invalidFields.length) {
         NcError.unprocessableEntity(

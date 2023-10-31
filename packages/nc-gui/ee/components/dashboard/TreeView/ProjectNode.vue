@@ -455,7 +455,7 @@ const duplicateProject = (base: BaseType) => {
             v-if="editMode"
             ref="input"
             v-model="tempTitle"
-            class="flex-grow leading-1 outline-0 ring-none !text-inherit !bg-transparent w-4/5"
+            class="flex-grow leading-1 outline-0 ring-none capitalize !text-inherit !bg-transparent w-4/5"
             :class="{ 'text-black font-semibold': activeProjectId === base.id && baseViewOpen }"
             @click.stop
             @keyup.enter="updateProjectTitle"
@@ -464,7 +464,7 @@ const duplicateProject = (base: BaseType) => {
           />
           <span
             v-else
-            class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none"
+            class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             :class="{ 'text-black font-semibold': activeProjectId === base.id && baseViewOpen && !isMobileMode }"
             @click="onProjectClick(base)"
@@ -654,7 +654,7 @@ const duplicateProject = (base: BaseType) => {
                             <GeneralBaseLogo class="min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
                             <div
                               :data-testid="`nc-sidebar-base-${source.alias}`"
-                              class="nc-sidebar-node-title flex text-ellipsis overflow-hidden select-none"
+                              class="nc-sidebar-node-title flex capitalize text-ellipsis overflow-hidden select-none"
                               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
                             >
                               {{ source.alias || '' }}

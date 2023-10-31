@@ -228,7 +228,7 @@ test.describe('View', () => {
 
     await dashboard.viewSidebar.copyView({ title: 'Film Kanban' });
     await dashboard.viewSidebar.verifyView({
-      title: 'Untitled Kanban',
+      title: 'Kanban',
       index: 1,
     });
     const kanban = dashboard.kanban;
@@ -254,12 +254,12 @@ test.describe('View', () => {
       });
 
     await dashboard.viewSidebar.changeViewIcon({
-      title: 'Untitled Kanban',
+      title: 'Kanban',
       icon: 'american-football',
       iconDisplay: '🏈',
     });
 
-    await dashboard.viewSidebar.deleteView({ title: 'Untitled Kanban' });
+    await dashboard.viewSidebar.deleteView({ title: 'Kanban' });
     ///////////////////////////////////////////////
 
     await dashboard.viewSidebar.openView({ title: 'Film Kanban' });

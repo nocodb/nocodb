@@ -93,7 +93,10 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
           />
         </template>
       </a-carousel>
-      <div v-else-if="attachment" class="h-24 w-24 !flex flex-row items-center !rounded-l-xl justify-center">
+      <div
+        v-else-if="attachment"
+        class="h-24 w-24 !min-h-24 !min-w-24 !max-h-24 !max-w-24 !flex flex-row items-center !rounded-l-xl justify-center"
+      >
         <GeneralIcon class="w-full h-full !text-6xl !leading-10 !text-transparent rounded-lg" icon="fileImage" />
       </div>
 
@@ -168,3 +171,9 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
     </NcButton>
   </a-card>
 </template>
+
+<style lang="scss" scoped>
+:deep(.slick-list) {
+  @apply rounded-lg;
+}
+</style>

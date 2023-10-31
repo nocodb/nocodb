@@ -865,16 +865,19 @@ function textBased() {
       query: {
         sort: 'abc',
       },
+      status: 422,
     });
     await ncAxiosGet({
       query: {
         where: 'abc',
       },
+      status: 422,
     });
     await ncAxiosGet({
       query: {
         fields: 'abc',
       },
+      status: 422,
     });
   });
 
@@ -2109,7 +2112,23 @@ function linkBased() {
         linkId: getColumnId(columnsActor, 'Films'),
         rowId: 1,
       },
-      body: [{Id:1}, {Id:3}, {Id:5}, {Id:7}, {Id:9}, {Id:11}, {Id:13}, {Id:15}, {Id:17}, {Id:19}, {Id:21}, {Id:23}, {Id:25}, {Id:27}, {Id:29}],
+      body: [
+        { Id: 1 },
+        { Id: 3 },
+        { Id: 5 },
+        { Id: 7 },
+        { Id: 9 },
+        { Id: 11 },
+        { Id: 13 },
+        { Id: 15 },
+        { Id: 17 },
+        { Id: 19 },
+        { Id: 21 },
+        { Id: 23 },
+        { Id: 25 },
+        { Id: 27 },
+        { Id: 29 },
+      ],
     });
 
     // verify in Actor table
@@ -2159,7 +2178,7 @@ function linkBased() {
         linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 1,
       },
-      body: [{Id:1}, {Id:2}, {Id:3}],
+      body: [{ Id: 1 }, { Id: 2 }, { Id: 3 }],
     });
 
     // update the link
@@ -2169,7 +2188,7 @@ function linkBased() {
         linkId: getColumnId(columnsCountry, 'Cities'),
         rowId: 2,
       },
-      body: [{Id:2}, {Id:3}],
+      body: [{ Id: 2 }, { Id: 3 }],
     });
 
     // verify record 1

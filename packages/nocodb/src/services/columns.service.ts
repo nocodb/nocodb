@@ -1214,6 +1214,13 @@ export class ColumnsService {
           if (
             [UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)
           ) {
+            if (!colBody.colOptions?.options) {
+              colBody.colOptions = {
+                ...colBody.colOptions,
+                options: [],
+              };
+            }
+
             const dbDriver = await NcConnectionMgrv2.get(source);
             const driverType = dbDriver.clientType();
             const optionTitles = colBody.colOptions.options.map((el) =>

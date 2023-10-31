@@ -169,7 +169,12 @@ export class DatasService {
         try {
           data = await nocoExecute(
             ast,
-            await baseModel.list(listArgs, false, false, throwErrorIfInvalidParams),
+            await baseModel.list(
+              listArgs,
+              false,
+              false,
+              param.throwErrorIfInvalidParams,
+            ),
             {},
             listArgs,
           );

@@ -2991,7 +2991,7 @@ class BaseModelSqlv2 {
         const { where } = this._getListArgs(args);
         const qb = this.dbDriver(this.tnPath);
         const aliasColObjMap = await this.model.getAliasColObjMap();
-        const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
+        const filterObj = extractFilterFromXwhere(where, aliasColObjMap, true);
 
         const conditionObj = [
           new Filter({
@@ -4869,6 +4869,7 @@ export function extractSortsObject(
 export function extractFilterFromXwhere(
   str,
   aliasColObjMap: { [columnAlias: string]: Column },
+  throwErrorIfInvalid = false,
 ) {
   if (!str) {
     return [];
@@ -4890,7 +4891,11 @@ export function extractFilterFromXwhere(
       nestedArrayConditions = str.split(
         /(?=~(?:or(?:not)?|and(?:not)?|not)\()/,
       );
-    return extractCondition(nestedArrayConditions || [], aliasColObjMap);
+    return extractCondition(
+      nestedArrayConditions || [],
+      aliasColObjMap,
+      throwErrorIfInvalid,
+    );
   }
 
   // iterate until finding right closing
@@ -4918,7 +4923,11 @@ export function extractFilterFromXwhere(
   const lhsOfNestedQuery = str.substring(0, openIndex);
 
   nestedArrayConditions.push(
-    ...extractFilterFromXwhere(lhsOfNestedQuery, aliasColObjMap),
+    ...extractFilterFromXwhere(
+      lhsOfNestedQuery,
+      aliasColObjMap,
+      throwErrorIfInvalid,
+    ),
     // calling recursively for nested query
     new Filter({
       is_group: true,
@@ -4929,7 +4938,11 @@ export function extractFilterFromXwhere(
       ),
     }),
     // RHS of nested query(recursion)
-    ...extractFilterFromXwhere(str.substring(closingIndex + 2), aliasColObjMap),
+    ...extractFilterFromXwhere(
+      str.substring(closingIndex + 2),
+      aliasColObjMap,
+      throwErrorIfInvalid,
+    ),
   );
   return nestedArrayConditions;
 }
@@ -4956,7 +4969,11 @@ function validateFilterComparison(uidt: UITypes, op: any, sub_op?: any) {
   }
 }
 
-export function extractCondition(nestedArrayConditions, aliasColObjMap) {
+export function extractCondition(
+  nestedArrayConditions,
+  aliasColObjMap,
+  throwErrorIfInvalid,
+) {
   return nestedArrayConditions?.map((str) => {
     let [logicOp, alias, op, value] =
       str.match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)?.slice(1) || [];
@@ -4983,6 +5000,8 @@ export function extractCondition(nestedArrayConditions, aliasColObjMap) {
       }
 
       validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
+    } else if (throwErrorIfInvalid) {
+      NcError.badRequest(`Column ${alias} not found.`);
     }
 
     return new Filter({

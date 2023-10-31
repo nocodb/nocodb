@@ -3177,7 +3177,7 @@ class BaseModelSqlv2 {
       const { where } = this._getListArgs(args);
       const qb = this.dbDriver(this.tnPath);
       const aliasColObjMap = await this.model.getAliasColObjMap();
-      const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
+      const filterObj = extractFilterFromXwhere(where, aliasColObjMap, true);
 
       await conditionV2(
         this,
@@ -3194,6 +3194,8 @@ class BaseModelSqlv2 {
           }),
         ],
         qb,
+        undefined,
+        true
       );
       const execQueries: ((trx: Knex.Transaction, qb: any) => Promise<any>)[] =
         [];
@@ -5001,7 +5003,7 @@ export function extractCondition(
 
       validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
     } else if (throwErrorIfInvalid) {
-      NcError.badRequest(`Column ${alias} not found.`);
+      NcError.badRequest(`Column '${alias}' not found.`);
     }
 
     return new Filter({

@@ -7,7 +7,7 @@ import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/modules/datas/helpers';
 import { getDbRows, getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
 import { Base, Column, Model, Source, View } from '~/models';
-import { NcError } from '~/helpers/catchError';
+import { NcBaseError, NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -133,6 +133,7 @@ export class DatasService {
     view?: View;
     query: any;
     baseModel?: BaseModelSqlv2;
+    throwErrorIfInvalidParams?: boolean;
   }) {
     const { model, view, query = {} } = param;
 
@@ -146,7 +147,12 @@ export class DatasService {
         dbDriver: await NcConnectionMgrv2.get(source),
       }));
 
-    const { ast, dependencyFields } = await getAst({ model, query, view });
+    const { ast, dependencyFields } = await getAst({
+      model,
+      query,
+      view,
+      throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
+    });
 
     const listArgs: any = dependencyFields;
     try {
@@ -163,11 +169,17 @@ export class DatasService {
         try {
           data = await nocoExecute(
             ast,
-            await baseModel.list(listArgs),
+            await baseModel.list(
+              listArgs,
+              false,
+              false,
+              param.throwErrorIfInvalidParams,
+            ),
             {},
             listArgs,
           );
         } catch (e) {
+          if (e instanceof NcBaseError) throw e;
           this.logger.log(e);
           NcError.internalServerError(
             'Please check server log for more details',

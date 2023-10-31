@@ -436,23 +436,29 @@ export default function (
   };
 }
 
-export class BadRequest extends Error {}
+export class NcBaseError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}
 
-export class NotAllowed extends Error {}
+export class BadRequest extends NcBaseError {}
 
-export class Unauthorized extends Error {}
+export class NotAllowed extends NcBaseError {}
 
-export class Forbidden extends Error {}
+export class Unauthorized extends NcBaseError {}
 
-export class NotFound extends Error {}
+export class Forbidden extends NcBaseError {}
 
-export class InternalServerError extends Error {}
+export class NotFound extends NcBaseError {}
 
-export class NotImplemented extends Error {}
+export class InternalServerError extends NcBaseError {}
 
-export class UnprocessableEntity extends Error {}
+export class NotImplemented extends NcBaseError {}
 
-export class AjvError extends Error {
+export class UnprocessableEntity extends NcBaseError {}
+
+export class AjvError extends NcBaseError {
   constructor(param: { message: string; errors: ErrorObject[] }) {
     super(param.message);
     this.errors = param.errors;

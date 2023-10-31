@@ -7,6 +7,7 @@ import type {
   LookupColumn,
   RollupColumn,
 } from '~/models';
+import { NcError } from '~/helpers/catchError';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { sanitize } from '~/helpers/sqlSanitize';
@@ -17,6 +18,7 @@ export default async function sortV2(
   sortList: Sort[],
   qb: Knex.QueryBuilder,
   alias?: string,
+  throwErrorIfInvalid = false,
 ) {
   const knex = baseModelSqlv2.dbDriver;
 
@@ -32,7 +34,14 @@ export default async function sortV2(
       sort = new Sort(_sort);
     }
     const column = await sort.getColumn();
-    if (!column) continue;
+    if (!column) {
+      if (throwErrorIfInvalid) {
+        NcError.unprocessableEntity(
+          `Invalid column id '${sort.fk_column_id}' in sort`,
+        );
+      }
+      continue;
+    }
     const model = await column.getModel();
 
     const nulls = sort.direction === 'desc' ? 'LAST' : 'FIRST';

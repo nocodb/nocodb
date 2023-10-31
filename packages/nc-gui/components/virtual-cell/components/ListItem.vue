@@ -82,20 +82,24 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
     :hoverable="false"
   >
     <div class="flex flex-row items-center justify-start w-full">
-      <a-carousel v-if="attachment && attachments && attachments.length" autoplay class="!w-24 !h-24">
+      <a-carousel v-if="attachment && attachments && attachments.length" autoplay class="!w-24 !h-24 !max-h-24 !max-w-24">
         <template #customPaging> </template>
         <template v-for="(attachmentObj, index) in attachments">
           <LazyCellAttachmentImage
             v-if="isImage(attachmentObj.title, attachmentObj.mimetype ?? attachmentObj.type)"
             :key="`carousel-${attachmentObj.title}-${index}`"
-            class="!h-24 !w-24 object-cover !rounded-l-xl"
+            class="!h-24 !w-24 !max-h-24 !max-w-24 object-cover !rounded-l-xl"
             :srcs="getPossibleAttachmentSrc(attachmentObj)"
           />
         </template>
       </a-carousel>
-      <div v-else-if="attachment" class="h-24 w-24 w-full !flex flex-row items-center !rounded-l-xl justify-center">
-        <img class="object-contain h-24 w-24" src="~assets/icons/FileIconImageBox.png" />
+      <div
+        v-else-if="attachment"
+        class="h-24 w-24 !min-h-24 !min-w-24 !max-h-24 !max-w-24 !flex flex-row items-center !rounded-l-xl justify-center"
+      >
+        <GeneralIcon class="w-full h-full !text-6xl !leading-10 !text-transparent rounded-lg" icon="fileImage" />
       </div>
+
       <div class="flex flex-col m-[.75rem] gap-1 flex-grow justify-center overflow-hidden">
         <div class="flex justify-between xs:gap-x-2">
           <span class="font-semibold text-gray-800 nc-display-value xs:(truncate)">
@@ -167,3 +171,9 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
     </NcButton>
   </a-card>
 </template>
+
+<style lang="scss" scoped>
+:deep(.slick-list) {
+  @apply rounded-lg;
+}
+</style>

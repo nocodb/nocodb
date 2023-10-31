@@ -89,6 +89,7 @@ import BelongsToSolidIcon from '~icons/nc-icons/bt-solid'
 import Record from '~icons/nc-icons/record'
 import Project from '~icons/nc-icons/project'
 import LookupIcon from '~icons/nc-icons/lookup'
+import FileImageIcon from '~icons/nc-icons/file-image'
 
 // Roles
 import SuperAdmin from '~icons/nc-icons/super-admin'
@@ -450,6 +451,7 @@ export const iconMap = {
   role_super: SuperAdmin,
   role_no_access: NoAccess,
   commentHere: NcCommentHere,
+  fileImage: FileImageIcon,
 }
 
 export const getMdiIcon = (type: string): any => {

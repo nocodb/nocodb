@@ -93,7 +93,7 @@ onMounted(() => {
     return navigateTo(route.value.query.continueAfterSignIn as string)
   } else {
     const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
-
+    localStorage.removeItem('continueAfterSignIn')
     if (continueAfterSignIn) {
       return navigateTo({
         path: continueAfterSignIn,

@@ -1582,5 +1582,66 @@ class PGClient extends PGClientCE {
 
     return result;
   }
+
+  /**
+   * @param {Object} args
+   * @returns {Object} result
+   * @returns {Number} code
+   * @returns {String} message
+   */
+  async testConnection(args: any = {}) {
+    const _func = this.testConnection.name;
+    const result = new Result();
+    log.api(`${_func}:args:`, args);
+
+    let unsupportedVariant = false;
+    const defaultParseVersionFn = this.sqlClient.client.__proto__._parseVersion;
+
+    try {
+      // override parseVersion to handle unsupported variants and return 0.0.0
+      // so that the version check does not end up crashing the app
+      this.sqlClient.client.__proto__._parseVersion = (v) => {
+        try {
+          return defaultParseVersionFn(v);
+        } catch {
+          unsupportedVariant = v.split(' ')[0];
+          return '0.0.0';
+        }
+      };
+
+      await this.raw('SELECT 1+1 as data');
+    } catch (e1) {
+      const connectionParamsWithoutDb = JSON.parse(
+        JSON.stringify(this.connectionConfig),
+      );
+      connectionParamsWithoutDb.connection.database = 'postgres';
+      const tempSqlClient = knex({
+        ...connectionParamsWithoutDb,
+        pool: { min: 0, max: 1 },
+      });
+      try {
+        await tempSqlClient.raw('SELECT 1+1 as data');
+        await tempSqlClient.destroy();
+      } catch (e) {
+        if (!/^database "[\w\d_]+" does not exist$/.test(e.message)) {
+          log.ppe(e);
+          result.code = -1;
+          // send back original error message
+          result.message = e1.message;
+        }
+      }
+    } finally {
+      log.api(`${_func}:result:`, result);
+      this.sqlClient.client.__proto__._parseVersion = defaultParseVersionFn;
+    }
+
+    // if unsupported variant is found, return error message
+    if (unsupportedVariant) {
+      result.code = -1;
+      result.message = `${unsupportedVariant} Postgres variant is not supported at the moment`;
+    }
+
+    return result;
+  }
 }
 export default PGClient;

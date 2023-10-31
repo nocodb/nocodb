@@ -2,13 +2,13 @@ import { isNumericCol, RelationTypes, UITypes } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import { NcError } from '~/helpers/catchError'
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type { Knex } from 'knex';
 import type Column from '~/models/Column';
 import type LookupColumn from '~/models/LookupColumn';
 import type RollupColumn from '~/models/RollupColumn';
 import type FormulaColumn from '~/models/FormulaColumn';
+import { NcError } from '~/helpers/catchError';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { sanitize } from '~/helpers/sqlSanitize';
@@ -115,7 +115,9 @@ const parseConditionV2 = async (
     const column = await filter.getColumn();
     if (!column) {
       if (throwErrorIfInvalid) {
-        NcError.unprocessableEntity(`Invalid column id '${filter.fk_column_id}' in filter`);
+        NcError.unprocessableEntity(
+          `Invalid column id '${filter.fk_column_id}' in filter`,
+        );
       }
       return;
     }

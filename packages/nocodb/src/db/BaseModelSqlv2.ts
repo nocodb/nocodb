@@ -152,7 +152,7 @@ class BaseModelSqlv2 {
       model: this.model,
       view: ignoreView ? null : this.viewId && (await View.get(this.viewId)),
       getHiddenColumn,
-      throwErrorIfInvalidParams
+      throwErrorIfInvalidParams,
     });
 
     await this.selectObject({
@@ -378,7 +378,11 @@ class BaseModelSqlv2 {
 
     // qb.xwhere(where, await this.model.getAliasColMapping());
     const aliasColObjMap = await this.model.getAliasColObjMap();
-    const filterObj = extractFilterFromXwhere(where, aliasColObjMap,throwErrorIfInvalidParams);
+    const filterObj = extractFilterFromXwhere(
+      where,
+      aliasColObjMap,
+      throwErrorIfInvalidParams,
+    );
 
     if (!ignoreViewFilterAndSort && this.viewId) {
       await conditionV2(
@@ -403,7 +407,7 @@ class BaseModelSqlv2 {
         ],
         qb,
         undefined,
-        throwErrorIfInvalidParams
+        throwErrorIfInvalidParams,
       );
     } else {
       await conditionV2(
@@ -423,7 +427,7 @@ class BaseModelSqlv2 {
         ],
         qb,
         undefined,
-        throwErrorIfInvalidParams
+        throwErrorIfInvalidParams,
       );
     }
 

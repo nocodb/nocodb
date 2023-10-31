@@ -229,7 +229,7 @@ const isTableOpened = computed(() => {
         </div>
 
         <span
-          class="nc-tbl-title nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none"
+          class="nc-tbl-title nc-sidebar-node-title text-ellipsis overflow-hidden select-none"
           :class="{
             'text-black !font-medium': isTableOpened,
           }"

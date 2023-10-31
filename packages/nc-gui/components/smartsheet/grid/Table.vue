@@ -379,7 +379,7 @@ const gridWrapperClass = computed<string>(() => {
   const classes = []
   if (headerOnly !== true) {
     if (!scrollParent.value) {
-      classes.push('nc-scrollbar-x-md overflow-auto')
+      classes.push('nc-scrollbar-x-lg overflow-auto')
     }
   } else {
     classes.push('overflow-visible')

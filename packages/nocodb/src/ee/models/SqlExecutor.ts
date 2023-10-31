@@ -5,6 +5,7 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  SqlExecutorStatus,
 } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 import NocoCache from '~/cache/NocoCache';
@@ -100,7 +101,7 @@ export default class SqlExecutor {
     }
 
     if (!insertObject.status) {
-      insertObject.status = 'inactive';
+      insertObject.status = SqlExecutorStatus.INACTIVE;
     }
 
     if (!insertObject.priority) {
@@ -271,7 +272,7 @@ export default class SqlExecutor {
       if (process.env.TEST === 'true') {
         suitableSqlExecutor = await this.insert({
           domain: `http://localhost:9000`,
-          status: 'active',
+          status: SqlExecutorStatus.ACTIVE,
         });
       } else {
         NcError.badRequest('There is no SQL Executor available');
@@ -283,7 +284,7 @@ export default class SqlExecutor {
         if (suitableSqlExecutor.domain !== 'http://localhost:9000') {
           suitableSqlExecutor = await this.update(suitableSqlExecutor.id, {
             domain: 'http://localhost:9000',
-            status: 'active',
+            status: SqlExecutorStatus.ACTIVE,
           });
         }
       } else {
@@ -311,7 +312,7 @@ export default class SqlExecutor {
 
     const sqlExecutor = await this.insert({
       domain: `http://staging-se-${(count + 1).toString().padStart(5, '0')}`,
-      status: 'inactive',
+      status: SqlExecutorStatus.INACTIVE,
     });
 
     // TODO - create sql executor instance

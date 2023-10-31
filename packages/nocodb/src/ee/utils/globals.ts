@@ -161,3 +161,9 @@ export enum CacheScope {
   WORKSPACE_UPDATED_MODELS = 'workspace_updated_models',
   SQL_EXECUTOR = 'sqlExecutor',
 }
+
+export enum SqlExecutorStatus {
+  ACTIVE = 'active',
+  DEPLOYING = 'deploying',
+  INACTIVE = 'inactive',
+}

@@ -14,6 +14,7 @@ import { XKnex } from '~/db/CustomKnex';
 import Noco from '~/Noco';
 import { SqlExecutor } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { SqlExecutorStatus } from '~/utils/globals';
 
 export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
   protected static dataKnex?: XKnex;
@@ -69,7 +70,10 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
       NcError.internalServerError('There is no SQL Executor available!');
     }
 
-    if (se.status === 'inactive') {
+    if (
+      se.status === SqlExecutorStatus.INACTIVE ||
+      se.status === SqlExecutorStatus.DEPLOYING
+    ) {
       try {
         const res = await axios.get(`${se.domain}/health`);
         if (res.status !== 200) {
@@ -79,7 +83,7 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
         }
 
         await SqlExecutor.update(se.id, {
-          status: 'active',
+          status: SqlExecutorStatus.ACTIVE,
         });
       } catch (e) {
         NcError.internalServerError(

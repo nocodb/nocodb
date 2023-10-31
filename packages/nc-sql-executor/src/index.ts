@@ -7,9 +7,11 @@ import timezone from 'dayjs/plugin/timezone';
 import { defaults, types } from 'pg';
 
 const app = express();
-const connectionPools: { [key: string]: Knex; } = {};
+const connectionPools: { [key: string]: Knex } = {};
 const dynamicPoolSize = process.env.DYNAMIC_POOL_SIZE === 'true';
-const dynamicPoolPercent = process.env.DYNAMIC_POOL_PERCENT ? parseInt(process.env.DYNAMIC_POOL_PERCENT) : 50;
+const dynamicPoolPercent = process.env.DYNAMIC_POOL_PERCENT
+  ? parseInt(process.env.DYNAMIC_POOL_PERCENT)
+  : 50;
 
 app.use(express.json());
 
@@ -26,22 +28,30 @@ app.post('/query', async (req, res) => {
     if (dynamicPoolSize) {
       // mysql SHOW VARIABLES LIKE 'max_connections'; { Variable_name: 'max_connections', Value: '151' }
       // pg SHOW max_connections; { max_connections: '100' }
-      const tempKnex = knex({ ...config, pool: { min:0, max: 1 } });
+      const tempKnex = knex({ ...config, pool: { min: 0, max: 1 } });
       let maxConnections;
       if (config.client === 'mysql2' || config.client === 'mysql') {
-        maxConnections = (await tempKnex.raw('SHOW VARIABLES LIKE \'max_connections\''))?.[0]?.[0]?.Value;
+        maxConnections = (
+          await tempKnex.raw("SHOW VARIABLES LIKE 'max_connections'")
+        )?.[0]?.[0]?.Value;
       } else if (config.client === 'pg') {
-        maxConnections = (await tempKnex.raw('SHOW max_connections')).rows?.[0]?.max_connections;
+        maxConnections = (await tempKnex.raw('SHOW max_connections')).rows?.[0]
+          ?.max_connections;
       }
       tempKnex.destroy();
 
       // use dynamicPoolPercent of maxConnections
-      const poolSize = Math.floor((parseInt(maxConnections || 20) * dynamicPoolPercent) / 100);
+      const poolSize = Math.floor(
+        (parseInt(maxConnections || 20) * dynamicPoolPercent) / 100,
+      );
 
       console.log('Max connections: ', maxConnections);
       console.log('Pool size: ', poolSize);
 
-      connectionPools[connectionKey] = knex({ ...config, pool: { min: 0, max: poolSize } });
+      connectionPools[connectionKey] = knex({
+        ...config,
+        pool: { min: 0, max: poolSize },
+      });
     } else {
       connectionPools[connectionKey] = knex(config);
     }
@@ -73,8 +83,8 @@ app.post('/query', async (req, res) => {
               config.client === 'pg' || config.client === 'snowflake'
                 ? (await trx.raw(q))?.rows
                 : q.slice(0, 6) === 'select' && config.client !== 'mssql'
-                  ? await trx.from(trx.raw(q).wrap('(', ') __nc_alias'))
-                  : await trx.raw(q)
+                ? await trx.from(trx.raw(q).wrap('(', ') __nc_alias'))
+                : await trx.raw(q),
             );
           }
         }
@@ -84,7 +94,7 @@ app.post('/query', async (req, res) => {
         await trx.rollback();
         console.error(e);
         return res.status(500).send({
-          error: e.message
+          error: e.message,
         });
       }
     } else {
@@ -95,8 +105,12 @@ app.post('/query', async (req, res) => {
           config.client === 'pg' || config.client === 'snowflake'
             ? (await connectionPools[connectionKey].raw(query))?.rows
             : query.slice(0, 6) === 'select' && config.client !== 'mssql'
-              ? await connectionPools[connectionKey].from(connectionPools[connectionKey].raw(query).wrap('(', ') __nc_alias'))
-              : await connectionPools[connectionKey].raw(query);
+            ? await connectionPools[connectionKey].from(
+                connectionPools[connectionKey]
+                  .raw(query)
+                  .wrap('(', ') __nc_alias'),
+              )
+            : await connectionPools[connectionKey].raw(query);
       }
     }
   } catch (e) {
@@ -105,7 +119,7 @@ app.post('/query', async (req, res) => {
     console.log(e);
     console.log('\n');
     return res.status(500).send({
-      error: e.message
+      error: e.message,
     });
   }
 
@@ -116,7 +130,7 @@ app.get('/health', async (req, res) => {
   res.status(200).send({
     uptime: process.uptime(),
     message: 'OK',
-    date: new Date()
+    date: new Date(),
   });
 });
 

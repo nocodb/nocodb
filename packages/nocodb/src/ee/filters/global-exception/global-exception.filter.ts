@@ -8,6 +8,14 @@ export class GlobalExceptionFilter extends GlobalExceptionFilterCE {
     @Optional() @InjectSentry() protected readonly sentryClient: SentryService,
   ) {
     super(sentryClient);
+
+    process.on('uncaughtExceptionMonitor', (err, origin) => {
+      console.error('### UNCAUGHT EXCEPTION ###');
+      console.error(origin);
+      console.error(err);
+
+      this.sentryClient?.instance()?.captureException(err);
+    });
   }
 
   protected captureException(exception: any, request: any) {

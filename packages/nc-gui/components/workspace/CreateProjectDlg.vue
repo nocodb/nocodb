@@ -72,7 +72,7 @@ watch(dialogShow, async (n, o) => {
     form.value?.resetFields()
 
     formState.value = {
-      title: 'Untitled Base',
+      title: 'Base',
     }
 
     await nextTick()

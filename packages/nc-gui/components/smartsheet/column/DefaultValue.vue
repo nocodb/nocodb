@@ -24,7 +24,7 @@ useProvideSmartsheetRowStore(meta, rowRef)
 
 const cdfValue = ref<string | null>(null)
 
-const editEnabled = ref(true)
+const editEnabled = ref(false)
 
 const updateCdfValue = (cdf: string | null) => {
   vModel.value.cdf = cdf

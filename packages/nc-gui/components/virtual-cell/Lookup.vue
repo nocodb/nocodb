@@ -25,9 +25,13 @@ const meta = inject(MetaInj, ref())
 
 const cellValue = inject(CellValueInj, ref())
 
+// Change the row height of the child cell under lookup
+// Other wise things like text will can take multi line tag
+const providedHeightRef = ref(1) as any
+
 const rowHeight = inject(RowHeightInj, ref(1) as any)
 
-provide(RowHeightInj, ref(1) as any)
+provide(RowHeightInj, providedHeightRef)
 
 const relationColumn = computed(
   () =>
@@ -60,6 +64,14 @@ const lookupColumn = computed(
       | undefined,
 )
 
+watch([lookupColumn, rowHeight], () => {
+  if (lookupColumn.value && !isAttachment(lookupColumn.value)) {
+    providedHeightRef.value = 1
+  } else {
+    providedHeightRef.value = rowHeight.value
+  }
+})
+
 const arrValue = computed(() => {
   if (!cellValue.value) return []
 
@@ -68,7 +80,8 @@ const arrValue = computed(() => {
   if (lookupColumn.value?.uidt === UITypes.Attachment && relationColumn.value?.colOptions?.type === RelationTypes.BELONGS_TO)
     return [cellValue.value]
 
-  if (Array.isArray(cellValue.value)) return cellValue.value
+  // TODO: We are filtering null as cell value can be null. Find the root cause and fix it
+  if (Array.isArray(cellValue.value)) return cellValue.value.filter((v) => v !== null)
 
   return [cellValue.value]
 })
@@ -86,7 +99,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
 <template>
   <div
     class="h-full w-full"
-    :style="{ height: rowHeight && rowHeight !== 1 ? `${rowHeight * 1.8}rem` : `2.5rem` }"
+    :style="{ height: rowHeight && rowHeight !== 1 ? `${rowHeight * 2}rem` : `2.85rem` }"
     @dblclick="activateShowEditNonEditableFieldWarning"
   >
     <div
@@ -130,25 +143,27 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
             <div
               class="max-h-full max-w-full w-full"
               :class="{
-                'nc-scrollbar-md ': rowHeight !== 1,
+                'nc-scrollbar-md ': rowHeight !== 1 && !isAttachment(lookupColumn),
               }"
             >
               <div
                 class="flex gap-1.5 w-full"
                 :class="{
-                  'flex-wrap ': rowHeight !== 1,
-                  '!overflow-x-auto nc-scrollbar-x-md !overflow-y-hidden': rowHeight === 1,
+                  'flex-wrap': rowHeight !== 1 && !isAttachment(lookupColumn),
+                  '!overflow-x-auto nc-scrollbar-x-md !overflow-y-hidden': rowHeight === 1 || isAttachment(lookupColumn),
                 }"
               >
                 <div
                   v-for="(v, i) of arrValue"
                   :key="i"
-                  class="min-h-7.5 pt-0.75"
                   :class="{
-                    'bg-gray-100 px-1 rounded-full': !isAttachment(lookupColumn),
-                    'border-gray-200 rounded border-1': ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(
-                      lookupColumn.uidt,
-                    ),
+                    'bg-gray-100 px-1 rounded-full min-h-7.5': !isAttachment(lookupColumn),
+                    'border-gray-200 rounded border-1 pt-0.75': ![
+                      UITypes.Attachment,
+                      UITypes.MultiSelect,
+                      UITypes.SingleSelect,
+                    ].includes(lookupColumn.uidt),
+                    'min-h-0 min-w-0': isAttachment(lookupColumn),
                   }"
                 >
                   <LazySmartsheetCell
@@ -157,7 +172,11 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
                     :edit-enabled="false"
                     :virtual="true"
                     :read-only="true"
-                    class="!max-w-40 !min-w-20 !w-auto px-2"
+                    class=""
+                    :class="{
+                      'min-h-0 min-w-0': isAttachment(lookupColumn),
+                      '!max-w-40 !min-w-20 !w-auto px-2': !isAttachment(lookupColumn),
+                    }"
                   />
                 </div>
               </div>

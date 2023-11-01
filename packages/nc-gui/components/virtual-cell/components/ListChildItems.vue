@@ -69,6 +69,8 @@ watch(
   (nextVal) => {
     if ((nextVal[0] || nextVal[1]) && !isNew.value) {
       loadChildrenList()
+    } else {
+      isChildrenLoading.value = false
     }
   },
   { immediate: true },

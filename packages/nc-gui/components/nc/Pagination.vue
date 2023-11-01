@@ -42,7 +42,10 @@ const goToFirstPage = () => {
 }
 
 const pagesList = computed(() => {
-  return Array.from({ length: totalPages.value }, (_, i) => i + 1)
+  return Array.from({ length: totalPages.value }, (_, i) => ({
+    value: i + 1,
+    label: i + 1,
+  }))
 })
 </script>
 
@@ -71,11 +74,10 @@ const pagesList = computed(() => {
       <GeneralIcon icon="arrowLeft" />
     </NcButton>
     <div v-if="!isMobileMode" class="text-gray-600">
-      <a-select v-model:value="current" class="!mr-[2px]" virtual>
+      <a-select v-model:value="current" class="!mr-[2px]" :options="pagesList">
         <template #suffixIcon>
           <GeneralIcon icon="arrowDown" class="text-gray-500 nc-select-expand-btn" />
         </template>
-        <a-select-option v-for="p of pagesList" :key="`p-${p}`" @click="changePage({ set: p })">{{ p }}</a-select-option>
       </a-select>
       <span class="mx-1"> {{ mode !== 'full' ? '/' : 'of' }} </span>
       <span class="total">

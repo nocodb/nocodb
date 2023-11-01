@@ -1,3 +1,4 @@
+import AWS from 'aws-sdk';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
 import {
@@ -10,6 +11,9 @@ import {
 import { NcError } from '~/helpers/catchError';
 import NocoCache from '~/cache/NocoCache';
 import { Source } from '~/models';
+
+const SE_SEAT_THRESHOLD_TO_TRIGGER_ACTIVATE =
+  +process.env.SE_SEAT_THRESHOLD_TO_TRIGGER_ACTIVATE || 2;
 
 export default class SqlExecutor {
   id?: string;
@@ -277,7 +281,6 @@ export default class SqlExecutor {
       } else {
         NcError.badRequest('There is no SQL Executor available');
       }
-      // suitableSqlExecutor = await this.createNextSqlExecutor(ncMeta);
     } else {
       if (process.env.TEST === 'true') {
         suitableSqlExecutor = sqlExecutors[0];
@@ -303,23 +306,10 @@ export default class SqlExecutor {
 
     await this.bindSource(suitableSqlExecutor.id, source.id, ncMeta);
 
+    this.activateIfRequired(ncMeta);
+
     return suitableSqlExecutor;
   }
-
-  /*
-  public static async createNextSqlExecutor(ncMeta = Noco.ncMeta) {
-    const count = +(await ncMeta.metaCount(null, null, MetaTable.SQL_EXECUTOR));
-
-    const sqlExecutor = await this.insert({
-      domain: `http://staging-se-${(count + 1).toString().padStart(5, '0')}`,
-      status: SqlExecutorStatus.INACTIVE,
-    });
-
-    // TODO - create sql executor instance
-
-    return sqlExecutor;
-  }
-  */
 
   public static async sourceCount(sqlExecutorId: string, ncMeta = Noco.ncMeta) {
     if (!sqlExecutorId) NcError.badRequest('SqlExecutor id is required');
@@ -331,5 +321,92 @@ export default class SqlExecutor {
         },
       }) || 0
     );
+  }
+
+  public static async availableSeatCount(ncMeta = Noco.ncMeta) {
+    const sqlExecutors = await this.list(ncMeta);
+
+    let count = 0;
+
+    for (const sqlExecutor of sqlExecutors) {
+      if (sqlExecutor.status === SqlExecutorStatus.INACTIVE) continue;
+      count += sqlExecutor.capacity - sqlExecutor.sourceCount;
+    }
+
+    return count;
+  }
+
+  static async activate(param: { sqlExecutorId: string }) {
+    const appConfig = (await import('~/app.config')).default;
+
+    const snsConfig = appConfig.workspace.sns;
+
+    if (
+      !snsConfig.topicArn ||
+      !snsConfig.credentials ||
+      !snsConfig.credentials.secretAccessKey ||
+      !snsConfig.credentials.accessKeyId
+    ) {
+      console.error('SNS is not configured');
+      NcError.notImplemented('Not available');
+    }
+
+    const sqlExecutor = await this.get(param.sqlExecutorId);
+
+    if (!sqlExecutor) NcError.notFound('SqlExecutor not found');
+
+    // Create publish parameters
+    const params = {
+      Message: JSON.stringify({
+        operation: 'activate',
+        serviceName: sqlExecutor.domain,
+      }) /* required */,
+      // TODO - get topic arn from config
+      TopicArn:
+        'arn:aws:sns:us-east-2:249717198246:nocohub-es-operator-staging',
+    };
+
+    // Create promise and SNS service object
+    const publishTextPromise = new AWS.SNS({
+      apiVersion: snsConfig.apiVersion,
+      region: snsConfig.region,
+      credentials: {
+        accessKeyId: snsConfig.credentials.accessKeyId,
+        secretAccessKey: snsConfig.credentials.secretAccessKey,
+      },
+    })
+      .publish(params)
+      .promise();
+    try {
+      // Handle promise's fulfilled/rejected states
+      const data = await publishTextPromise;
+      console.log(
+        `Message ${params.Message} sent to the topic ${params.TopicArn}`,
+      );
+      console.log('MessageID is ' + data.MessageId);
+    } catch (err) {
+      console.error(err, err.stack);
+      NcError.internalServerError('Error while activating SQL Executor');
+    }
+  }
+
+  static async activateIfRequired(ncMeta = Noco.ncMeta) {
+    if (process.env.TEST === 'true') return;
+
+    const availableSeatCount = await this.availableSeatCount(ncMeta);
+
+    if (availableSeatCount > SE_SEAT_THRESHOLD_TO_TRIGGER_ACTIVATE) {
+      return;
+    }
+
+    const sqlExecutors = await this.list(ncMeta);
+
+    const firstInactiveSqlExecutor = sqlExecutors.find(
+      (sqlExecutor) => sqlExecutor.status === SqlExecutorStatus.INACTIVE,
+    );
+
+    if (!firstInactiveSqlExecutor) return;
+
+    await this.activate({ sqlExecutorId: firstInactiveSqlExecutor.id });
   }
 }

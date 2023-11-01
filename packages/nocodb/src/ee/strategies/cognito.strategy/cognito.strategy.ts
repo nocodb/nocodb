@@ -3728,12 +3728,7 @@ export function isDisposableEmail(email:string) {
 
   // check for exact host name match
   if(disposableEmailDomains.includes(hostName)) {
-    return NcError.badRequest('Disposable email is not allowed'));
-  }
-
-  // check for wildcard host name match
-  if(disposableWildcardEmailDomains.some((host) => hostName.endsWith(host))) {
-    return NcError.badRequest('Disposable email is not allowed'));
+    return NcError.badRequest('Disposable email is not allowed');
   }
 }
 

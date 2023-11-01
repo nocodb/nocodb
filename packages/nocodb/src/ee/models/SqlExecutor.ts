@@ -355,11 +355,13 @@ export default class SqlExecutor {
 
     if (!sqlExecutor) NcError.notFound('SqlExecutor not found');
 
+    const serviceName = sqlExecutor.domain.replace(/https?:\/\//, '');
+
     // Create publish parameters
     const params = {
       Message: JSON.stringify({
         operation: 'activate',
-        serviceName: sqlExecutor.domain,
+        serviceName,
       }) /* required */,
       // TODO - get topic arn from config
       TopicArn:
@@ -406,6 +408,10 @@ export default class SqlExecutor {
     );
 
     if (!firstInactiveSqlExecutor) return;
+
+    await this.update(firstInactiveSqlExecutor.id, {
+      status: SqlExecutorStatus.DEPLOYING,
+    });
 
     await this.activate({ sqlExecutorId: firstInactiveSqlExecutor.id });
   }

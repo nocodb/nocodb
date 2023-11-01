@@ -10,6 +10,9 @@ import type { AppConfig } from '~/interface/config';
 import { sanitiseUserObj } from '~/utils';
 import { UsersService } from '~/services/users/users.service';
 import { User } from '~/models';
+import {NcError} from "~/helpers/catchError";
+import disposableEmailDomains from 'disposable-email-domains';
+import disposableWildcardEmailDomains from 'disposable-email-domains/wildcard.json';
 
 @Injectable()
 export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
@@ -50,6 +53,9 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
         if (/\+/.test(email.split('@')[0])) {
           return callback(new Error("Emails with '+' are not allowed"));
         }
+
+        // check if email is disposable and throw error
+        isDisposableEmail(email)
 
         // get user by email
         await User.getByEmail(email).then(async (user) => {
@@ -100,3 +106,18 @@ export const CognitoStrategyProvider: FactoryProvider = {
     return new CognitoStrategy(config, usersService);
   },
 };
+
+// validate is email is temporary disposable email
+export function isDisposableEmail(email:string) {
+  const hostName = email.split('@')[1];
+
+  // check for exact host name match
+  if(disposableEmailDomains.includes(hostName)) {
+    return NcError.badRequest('Disposable email is not allowed'));
+  }
+
+  // check for wildcard host name match
+  if(disposableWildcardEmailDomains.some((host) => hostName.endsWith(host))) {
+    return NcError.badRequest('Disposable email is not allowed'));
+  }
+}

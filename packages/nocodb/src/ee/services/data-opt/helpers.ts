@@ -24,7 +24,7 @@ import {
 import conditionV2 from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
-import { sanitize } from '~/helpers/sqlSanitize';
+import {sanitize, sanitizeAndEscapeDots} from '~/helpers/sqlSanitize';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import getAst from '~/helpers/getAst';
@@ -370,7 +370,12 @@ export async function extractColumn({
                   .toQuery()}) as ?? ON true`,
                 [alias1],
               );
-              qb.select(knex.raw('??.??', [alias1, column.title]));
+              qb.select(
+                knex.raw('??.??', [
+                  alias1,
+                  sanitizeAndEscapeDots(column.title, knex),
+                ]),
+              );
             }
             break;
         }
@@ -490,8 +495,8 @@ export async function extractColumn({
                  .select(
                    knex.raw(`??.?? as ??`, [
                      alias2,
-                     sanitize(lookupColumn.title),
-                     sanitize(column.title),
+                     sanitizeAndEscapeDots(lookupColumn.title, knex),
+                     sanitizeAndEscapeDots(column.title, knex),
                    ]),
                  )
                  .toQuery()}) as ?? ON true`,
@@ -505,7 +510,7 @@ export async function extractColumn({
               .select(
                 knex.raw(`coalesce(json_agg(??),'[]'::json) as ??`, [
                   alias,
-                  sanitize(column.title),
+                  sanitizeAndEscapeDots(column.title, knex),
                 ]),
               )
               .toQuery()},json_array_elements(??.??) as ?? ) as ?? ON true`,
@@ -518,8 +523,8 @@ export async function extractColumn({
               .select(
                 knex.raw(`coalesce(json_agg(??.??),'[]'::json) as ??`, [
                   alias2,
-                  sanitize(lookupColumn.title),
-                  sanitize(column.title),
+                  sanitizeAndEscapeDots(lookupColumn.title, knex),
+                  sanitizeAndEscapeDots(column.title, knex),
                 ]),
               )
               .toQuery()}) as ?? ON true`,
@@ -527,7 +532,10 @@ export async function extractColumn({
           );
         }
         qb.select(
-          knex.raw('??.??', [lookupTableAlias, sanitize(column.title)]),
+          knex.raw('??.??', [
+            lookupTableAlias,
+            sanitizeAndEscapeDots(column.title, knex),
+          ]),
         );
       }
       break;
@@ -543,7 +551,10 @@ export async function extractColumn({
           model,
         );
         qb.select(
-          knex.raw(`?? as ??`, [selectQb.builder, sanitize(column.title)]),
+          knex.raw(`?? as ??`, [
+            selectQb.builder,
+            sanitizeAndEscapeDots(column.title, knex),
+          ]),
         );
       }
       break;
@@ -605,7 +616,7 @@ export async function extractColumn({
           knex.raw(`??.??::json as ??`, [
             rootAlias,
             sanitize(column.column_name),
-            sanitize(column.title),
+            sanitizeAndEscapeDots(column.title, knex),
           ]),
         );
       }
@@ -621,7 +632,11 @@ export async function extractColumn({
         qb.select(
           knex.raw(
             `??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC' as ??`,
-            [rootAlias, sanitize(column.column_name), sanitize(column.title)],
+            [
+              rootAlias,
+              sanitize(column.column_name),
+              sanitizeAndEscapeDots(column.title, knex),
+            ],
           ),
         );
         break;
@@ -636,7 +651,11 @@ export async function extractColumn({
               `encode(??.??, '${
                 column.meta?.format === 'hex' ? 'hex' : 'escape'
               }') as ??`,
-              [rootAlias, sanitize(column.column_name), sanitize(column.title)],
+              [
+                rootAlias,
+                sanitize(column.column_name),
+                sanitizeAndEscapeDots(column.title, knex),
+              ],
             ),
           );
         } else {
@@ -644,7 +663,7 @@ export async function extractColumn({
             knex.raw(`??.?? as ??`, [
               rootAlias,
               sanitize(column.column_name),
-              sanitize(column.title),
+              sanitizeAndEscapeDots(column.title, knex),
             ]),
           );
         }

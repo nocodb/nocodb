@@ -427,7 +427,6 @@ export async function extractColumn({
                   sanitize(parentColumn.column_name),
                   alias4,
                   sanitize(mmParentColumn.column_name),
-                  knex,
                 ]),
               );
             }

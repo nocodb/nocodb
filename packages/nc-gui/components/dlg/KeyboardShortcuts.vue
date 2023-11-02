@@ -54,19 +54,19 @@ const shortcutList = [
     shortcuts: [
       {
         keys: [renderAltOrOptlKey(), '←'],
-        behaviour: 'Navigate to previous page',
+        behaviour: 'Jump to previous page in this view',
       },
       {
         keys: [renderAltOrOptlKey(), '→'],
-        behaviour: 'Navigate to next page',
+        behaviour: 'Jump to next page in this view',
       },
       {
         keys: [renderAltOrOptlKey(), '↑'],
-        behaviour: 'Navigate to last page',
+        behaviour: 'Jump to last page in this view',
       },
       {
         keys: [renderAltOrOptlKey(), '↓'],
-        behaviour: 'Navigate to first page',
+        behaviour: 'Jump to first page in this view',
       },
       {
         keys: [renderCmdOrCtrlKey(), '←'],

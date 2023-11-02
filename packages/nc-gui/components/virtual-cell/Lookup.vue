@@ -105,7 +105,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
     <div
       class="h-full w-full flex gap-1 p-1"
       :class="{
-        '!overflow-x-auto nc-scrollbar-x-md !overflow-y-hidden': rowHeight === 1,
+        '!overflow-x-auto nc-cell-lookup-scroll nc-scrollbar-x-md !overflow-y-hidden': rowHeight === 1,
       }"
     >
       <template v-if="lookupColumn">
@@ -141,7 +141,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
           <!-- For attachment cell avoid adding chip style -->
           <template v-else>
             <div
-              class="max-h-full max-w-full w-full"
+              class="max-h-full max-w-full w-full nc-cell-lookup-scroll"
               :class="{
                 'nc-scrollbar-md ': rowHeight !== 1 && !isAttachment(lookupColumn),
               }"
@@ -150,7 +150,8 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
                 class="flex gap-1.5 w-full"
                 :class="{
                   'flex-wrap': rowHeight !== 1 && !isAttachment(lookupColumn),
-                  '!overflow-x-auto nc-scrollbar-x-md !overflow-y-hidden': rowHeight === 1 || isAttachment(lookupColumn),
+                  '!overflow-x-auto nc-cell-lookup-scroll nc-scrollbar-x-md !overflow-y-hidden':
+                    rowHeight === 1 || isAttachment(lookupColumn),
                 }"
               >
                 <div
@@ -193,3 +194,16 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
     </div>
   </div>
 </template>
+
+<style lang="scss">
+.nc-cell-lookup-scroll {
+  &::-webkit-scrollbar-thumb {
+    @apply bg-transparent;
+  }
+}
+.nc-cell-lookup-scroll:hover {
+  &::-webkit-scrollbar-thumb {
+    @apply bg-gray-200;
+  }
+}
+</style>

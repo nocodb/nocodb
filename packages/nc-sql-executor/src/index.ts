@@ -43,7 +43,9 @@ fastify.post(
     },
   },
   async (req, res) => {
-    const { query, config, raw = false } = req.body as any;
+    const { query: queries, config, raw = false } = req.body as any;
+
+    const query = queries.length === 1 ? queries[0] : queries;
 
     const { pool, ...configWithoutPool } = config;
 

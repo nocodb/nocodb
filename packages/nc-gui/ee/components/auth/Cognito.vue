@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import '@aws-amplify/ui-vue/styles.css'
-import { Authenticator } from '@aws-amplify/ui-vue'
 import { isFirstTimeUser } from '#imports'
 
 const initialState = isFirstTimeUser() ? 'signUp' : 'signIn'
@@ -10,6 +9,13 @@ const services = {
     if (/\+/.test(formData.email?.split('@')[0])) {
       return {
         email: "Email with '+' is not allowed.",
+      }
+    }
+    const { isDisposableEmail } = await import('~/helpers/isDisposableEmail')
+    if (isDisposableEmail(formData.email?.toLowerCase())) {
+      return {
+        email:
+          'For the security and integrity of NocoDB platform, we require users to sign up with a permanent email address. Please provide a valid, long-term email address to continue.',
       }
     }
   },

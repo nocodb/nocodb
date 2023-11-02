@@ -5,6 +5,7 @@ import type { ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } fr
 import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { useColumnDrag } from './useColumnDrag'
 
+import usePaginationShortcuts from './usePaginationShortcuts'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -185,6 +186,11 @@ const { onDrag, onDragStart, draggedCol, dragColPlaceholderDomRef, toBeDroppedCo
   fields,
   tableBodyEl,
   gridWrapper,
+})
+
+const { onLeft, onRight, onUp, onDown } = usePaginationShortcuts({
+  paginationDataRef,
+  changePage: changePage as any,
 })
 
 // #Variables
@@ -1204,6 +1210,12 @@ const loaderText = computed(() => {
     }
   }
 })
+
+// Keyboard shortcuts for pagination
+onKeyStroke('ArrowLeft', onLeft)
+onKeyStroke('ArrowRight', onRight)
+onKeyStroke('ArrowUp', onUp)
+onKeyStroke('ArrowDown', onDown)
 </script>
 
 <template>

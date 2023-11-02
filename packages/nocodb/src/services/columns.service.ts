@@ -760,7 +760,7 @@ export class ColumnsService {
                 await dbDriver.raw(
                   `UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`,
                   [
-                    table.table_name,
+                    baseModel.getTnPath(table.table_name),
                     column.column_name,
                     column.column_name,
                     option.title,
@@ -848,7 +848,7 @@ export class ColumnsService {
               await dbDriver.raw(
                 `UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`,
                 [
-                  table.table_name,
+                  baseModel.getTnPath(table.table_name),
                   column.column_name,
                   column.column_name,
                   ch.temp_title,

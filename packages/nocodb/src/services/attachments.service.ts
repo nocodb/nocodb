@@ -18,6 +18,7 @@ export class AttachmentsService {
     path?: string;
     // todo: proper type
     files: unknown[];
+    req: any;
   }) {
     // TODO: add getAjvValidatorMw
     const filePath = this.sanitizeUrlPath(
@@ -86,6 +87,7 @@ export class AttachmentsService {
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'file',
+      req: param.req,
     });
 
     return attachments;
@@ -99,6 +101,7 @@ export class AttachmentsService {
       mimetype?: string;
       size?: string | number;
     }[];
+    req: any;
   }) {
     // TODO: add getAjvValidatorMw
     const filePath = this.sanitizeUrlPath(
@@ -143,6 +146,7 @@ export class AttachmentsService {
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'url',
+      req: param.req,
     });
     return attachments;
   }

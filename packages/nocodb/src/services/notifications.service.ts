@@ -15,8 +15,11 @@ import { Notification } from '~/models';
 export class NotificationsService implements OnModuleInit, OnModuleDestroy {
   constructor(protected readonly appHooks: AppHooksService) {}
 
-  protected async insertNotification(insertData: Partial<Notification>) {
-    this.appHooks.emit('notification' as any, insertData);
+  protected async insertNotification(
+    insertData: Partial<Notification>,
+    req: any,
+  ) {
+    this.appHooks.emit('notification' as any, { ...insertData, req } as any);
 
     await Notification.insert(insertData);
   }
@@ -28,6 +31,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     event: AppEvents;
     data: any;
   }) {
+    const { req } = data;
     switch (event) {
       case AppEvents.PROJECT_INVITE:
         {
@@ -41,19 +45,20 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
               title: base.title,
               type: base.type,
               invited_by: invitedBy.email,
-            },
-          });
+            }
+          },
+            req,);
         }
         break;
       case AppEvents.WELCOME:
         {
-          const { user } = data as WelcomeEvent;
+          const { user, req } = data as WelcomeEvent;
 
           await this.insertNotification({
             fk_user_id: user.id,
             type: AppEvents.WELCOME,
             body: {},
-          });
+          }, req);
         }
         break;
     }

@@ -46,10 +46,10 @@ export class WorkspacesService implements OnApplicationBootstrap {
   ) {}
 
   async onApplicationBootstrap() {
-    await this.prepopulateWorkspaces();
+    await this.prepopulateWorkspaces(null);
   }
 
-  async prepopulateWorkspaces() {
+  async prepopulateWorkspaces(req: any) {
     if (process.env.NC_SEED_WORKSPACE === 'true') {
       const templateBase = await Base.get(process.env.NC_SEED_BASE_ID_SOURCE);
 
@@ -64,7 +64,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       });
 
       while (preWorkspacesCount < preCount) {
-        await this.createPrepopulatedWorkspace(templateBase);
+        await this.createPrepopulatedWorkspace(templateBase, req: any);
         preWorkspacesCount = await Workspace.count({
           fk_user_id: mockUser.id,
         });
@@ -72,7 +72,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     }
   }
 
-  async createPrepopulatedWorkspace(templateBase: Base) {
+  async createPrepopulatedWorkspace(templateBase: Base, req: any) {
     const workspace = await Workspace.insert({
       title: 'Untitled Workspace',
       fk_user_id: mockUser.id,
@@ -96,6 +96,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
         type: 'database',
       } as any,
       user: mockUser,
+      req
     });
 
     await this.jobsService.add(JobTypes.DuplicateBase, {
@@ -129,6 +130,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
   async create(param: {
     user: UserType;
     workspaces: WorkspaceType | WorkspaceType[];
+    req: any;
   }) {
     const userFreeWorkspacesCount = await Workspace.count({
       fk_user_id: param.user.id,
@@ -161,6 +163,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
         const transferred = await this.transferOwnership({
           user: param.user,
           workspace: prepopulatedWorkspace,
+          req:param.req
         });
         if (transferred) {
           await Workspace.update(prepopulatedWorkspace.id, {
@@ -195,6 +198,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       this.appHooksService.emit(AppEvents.WORKSPACE_CREATE, {
         workspace,
         user: param.user,
+        req: param.req,
       });
 
       // Create a default base for single workspace creation
@@ -206,6 +210,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
             type: 'database',
           } as any,
           user: param.user,
+          req: param.req,
         });
 
         const sqlUI = SqlUiFactory.create({ client: base.sources[0].type });
@@ -231,7 +236,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     return isBulkMode ? workspaces : workspaces[0];
   }
 
-  async transferOwnership(param: { user: UserType; workspace: WorkspaceType }) {
+  async transferOwnership(param: { user: UserType; workspace: WorkspaceType; req:any}) {
     const user = await User.get(param.user.id);
 
     if (!user) NcError.notFound('User not found');
@@ -296,7 +301,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
       if (workspace.fk_user_id === mockUser.id) {
         // prepopulate more workspaces if required
-        this.prepopulateWorkspaces();
+        this.prepopulateWorkspaces(param.req);
       }
     } catch (e) {
       await ncMeta.rollback();
@@ -387,6 +392,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     user: UserType;
     workspaceId: string;
     workspace: WorkspaceType;
+    req: any;
   }) {
     const { workspace, user, workspaceId } = param;
 
@@ -419,12 +425,15 @@ export class WorkspacesService implements OnApplicationBootstrap {
         ...workspace,
       },
       user: param.user,
+      req: param.req
     });
 
     return updatedWorkspace;
   }
 
-  async delete(param: { user: UserType; workspaceId: string }) {
+  async delete(param: { user: UserType; workspaceId: string;
+   req: any;
+  }) {
     const workspace = await Workspace.get(param.workspaceId);
 
     if (!workspace) NcError.badRequest('Workspace not found');
@@ -439,6 +448,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     this.appHooksService.emit(AppEvents.WORKSPACE_DELETE, {
       workspace,
       user: param.user,
+      req: param.req,
     });
 
     return true;

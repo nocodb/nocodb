@@ -91,7 +91,9 @@ export class ViewsService {
     return filteredViewList;
   }
 
-  async shareView(param: { viewId: string; user: UserType }) {
+  async shareView(param: { viewId: string; user: UserType
+    req: any;
+  }) {
     const res = await View.share(param.viewId);
 
     const view = await View.get(param.viewId);
@@ -103,6 +105,7 @@ export class ViewsService {
     this.appHooksService.emit(AppEvents.SHARED_VIEW_CREATE, {
       user: param.user,
       view,
+      req: param.req
     });
 
     return res;
@@ -112,6 +115,7 @@ export class ViewsService {
     viewId: string;
     view: ViewUpdateReqType;
     user: UserType;
+    req: any;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewUpdateReq',
@@ -132,11 +136,15 @@ export class ViewsService {
         ...param.view,
       },
       user: param.user,
+
+      req: param.req
     });
     return result;
   }
 
-  async viewDelete(param: { viewId: string; user: UserType }) {
+  async viewDelete(param: { viewId: string; user: UserType
+    req: any;
+  }) {
     const view = await View.get(param.viewId);
 
     if (!view) {
@@ -148,6 +156,7 @@ export class ViewsService {
     this.appHooksService.emit(AppEvents.VIEW_DELETE, {
       view,
       user: param.user,
+      req: param.req,
     });
 
     return true;
@@ -157,6 +166,7 @@ export class ViewsService {
     viewId: string;
     sharedView: SharedViewReqType;
     user: UserType;
+    req: any;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/SharedViewReq',
@@ -174,12 +184,13 @@ export class ViewsService {
     this.appHooksService.emit(AppEvents.SHARED_VIEW_UPDATE, {
       user: param.user,
       view,
+      req: param.req
     });
 
     return result;
   }
 
-  async shareViewDelete(param: { viewId: string; user: UserType }) {
+  async shareViewDelete(param: { viewId: string; user: UserType; req: any }) {
     const view = await View.get(param.viewId);
 
     if (!view) {
@@ -190,6 +201,7 @@ export class ViewsService {
     this.appHooksService.emit(AppEvents.SHARED_VIEW_DELETE, {
       user: param.user,
       view,
+      req: param.req
     });
 
     return true;

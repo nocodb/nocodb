@@ -1014,6 +1014,7 @@ export class ColumnsService {
       column,
       user: param.req?.user,
       ip: param.req?.clientIp,
+      req: param.req,
     });
 
     return table;
@@ -1150,6 +1151,7 @@ export class ColumnsService {
             base_id: base.id,
             source_id: source.id,
           },
+          req: param.req,
         });
         break;
 
@@ -1410,6 +1412,7 @@ export class ColumnsService {
       },
       user: param.req?.user,
       ip: param.req?.clientIp,
+      req: param.req,
     });
 
     return table;
@@ -1590,6 +1593,7 @@ export class ColumnsService {
         }
         this.appHooksService.emit(AppEvents.RELATION_DELETE, {
           column,
+          req: param.req,
         });
         break;
       case UITypes.ForeignKey: {
@@ -1651,6 +1655,7 @@ export class ColumnsService {
       column,
       user: param.req?.user,
       ip: param.req?.clientIp,
+      req: param.req,
     });
 
     return table;

@@ -5,6 +5,7 @@ import {
   HttpCode,
   Param,
   Patch,
+  Req,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -47,8 +48,9 @@ export class PluginsController {
   @Acl('pluginTest', {
     scope: 'org',
   })
-  async pluginTest(@Body() body: any) {
-    return await this.pluginsService.pluginTest({ body: body });
+  async pluginTest(@Body() body: any,
+                   @Req() req: any,) {
+    return await this.pluginsService.pluginTest({ body: body, req });
   }
 
   @Get(['/api/v1/db/meta/plugins/:pluginId', '/api/v2/meta/plugins/:pluginId'])
@@ -66,10 +68,12 @@ export class PluginsController {
   @Acl('pluginUpdate', {
     scope: 'org',
   })
-  async pluginUpdate(@Body() body: any, @Param('pluginId') pluginId: string) {
+  async pluginUpdate(@Body() body: any, @Param('pluginId') pluginId: string,
+                     @Req() req: any,) {
     const plugin = await this.pluginsService.pluginUpdate({
       pluginId: pluginId,
       plugin: body,
+      req
     });
     return plugin;
   }

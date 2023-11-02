@@ -16,7 +16,7 @@ export class SortsService extends SortsServiceCE {
     super(appHooksService);
   }
 
-  async sortCreate(param: { viewId: any; sort: SortReqType }) {
+  async sortCreate(param: { viewId: any; sort: SortReqType ; req: any}) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
     const view = await View.get(param.viewId);

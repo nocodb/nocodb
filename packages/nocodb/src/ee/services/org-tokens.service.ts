@@ -12,7 +12,7 @@ export class OrgTokensService extends OrgTokensServiceCE {
     super(appHooksService);
   }
 
-  async apiTokenCreate(param: { user: User; apiToken: ApiTokenReqType }) {
+  async apiTokenCreate(param: { user: User; apiToken: ApiTokenReqType; req: any }) {
     if (await ApiToken.count({ fk_user_id: param.user.id })) {
       NcError.badRequest('Only one token per user is allowed');
     }

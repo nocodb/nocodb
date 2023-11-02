@@ -41,6 +41,7 @@ export class MapsController {
       tableId,
       map: body,
       user: req.user,
+      req
     });
     return view;
   }
@@ -50,10 +51,13 @@ export class MapsController {
   async mapViewUpdate(
     @Param('mapViewId') mapViewId: string,
     @Body() body: MapUpdateReqType,
+
+    @Req() req: any,
   ) {
     return await this.mapsService.mapViewUpdate({
       mapViewId: mapViewId,
       map: body,
+      req
     });
   }
 }

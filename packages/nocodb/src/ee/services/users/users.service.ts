@@ -38,6 +38,7 @@ export class UsersService extends UsersServiceCE {
     salt,
     password,
     email_verification_token,
+    req
   }: {
     avatar;
     display_name;
@@ -46,6 +47,7 @@ export class UsersService extends UsersServiceCE {
     salt: any;
     password;
     email_verification_token;
+    req:any
   }) {
     this.validateEmailPattern(email);
 
@@ -162,9 +164,10 @@ export class UsersService extends UsersServiceCE {
         salt,
         password,
         email_verification_token,
+        req: param.req
       });
 
-      createdWorkspace = await this.createDefaultWorkspace(user);
+      createdWorkspace = await this.createDefaultWorkspace(user, param.req);
     }
     user = await User.getByEmail(email);
 
@@ -201,16 +204,18 @@ export class UsersService extends UsersServiceCE {
     this.appHooksService.emit(AppEvents.USER_SIGNUP, {
       user: user,
       ip: param.req?.clientIp,
+      req: param.req,
     });
 
     this.appHooksService.emit(AppEvents.WELCOME, {
       user,
+      req: param.req,
     });
 
-    return { ...(await this.login(user)), createdWorkspace };
+    return { ...(await this.login(user, param.req)), createdWorkspace };
   }
 
-  private async createDefaultWorkspace(user: User) {
+  private async createDefaultWorkspace(user: User, req:any) {
     const title = `${user.email?.split('@')?.[0]}`;
 
     let createdWorkspace;
@@ -224,6 +229,7 @@ export class UsersService extends UsersServiceCE {
       transferred = await this.workspaceService.transferOwnership({
         user,
         workspace: prepopulatedWorkspace,
+        req
       });
       if (transferred) {
         await Workspace.update(prepopulatedWorkspace.id, {
@@ -240,22 +246,23 @@ export class UsersService extends UsersServiceCE {
         workspaces: {
           title,
         },
+        req
       });
     }
 
     return createdWorkspace;
   }
 
-  async login(user: UserType) {
+  async login(user: UserType, req: any): Promise<any> {
     const workspaces = await WorkspaceUser.workspaceList({
       fk_user_id: user.id,
     });
 
     if (workspaces.length === 0) {
-      await this.createDefaultWorkspace(user);
+      await this.createDefaultWorkspace(user, req);
     }
 
-    return await super.login(user);
+    return await super.login(user, req);
   }
 
   protected clearCookie(param: { res: any; req: any }) {

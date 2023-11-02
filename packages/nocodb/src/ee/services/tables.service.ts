@@ -82,6 +82,7 @@ export class TablesService extends TableServiceCE {
     tableName: string;
     title: string;
     user?: UserType;
+    req: any;
   }) {
     const tableCreateBody = {
       tableName: param.tableName,
@@ -189,6 +190,7 @@ export class TablesService extends TableServiceCE {
     await this.metaDiffServiceEE.baseMetaDiffSync({
       baseId: base.id,
       sourceId: source.id,
+      req: param.req,
     });
 
     const table = await Model.getByIdOrName({
@@ -200,6 +202,7 @@ export class TablesService extends TableServiceCE {
     this.appHooksServiceEE.emit(AppEvents.TABLE_CREATE, {
       table,
       user: param.user,
+      req: param.req,
     });
 
     return table;
@@ -210,6 +213,7 @@ export class TablesService extends TableServiceCE {
     sourceId: string;
     schemaName: string;
     title: string;
+    req: any;
   }) {
     const base = await Base.getWithInfo(param.baseId);
     let source = base.sources[0];
@@ -311,6 +315,7 @@ export class TablesService extends TableServiceCE {
       await this.metaDiffServiceEE.baseMetaDiffSync({
         baseId: base.id,
         sourceId: source.id,
+        req: param.req,
       });
 
       return true;

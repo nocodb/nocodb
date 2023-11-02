@@ -362,6 +362,7 @@ export default class SqlExecutor {
       Message: JSON.stringify({
         operation: 'activate',
         serviceName,
+        sqlExecutorId: sqlExecutor.id,
       }) /* required */,
       // TODO - get topic arn from config
       TopicArn:

@@ -582,11 +582,22 @@ const toggleVisibility = async (checked: boolean, field: Field) => {
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  const altOrOptionKey = e.altKey
+
   if (cmdOrCtrl) {
     switch (e.key.toLowerCase()) {
       case 's':
         if (openedViewsTab.value !== 'field') return
         e.preventDefault()
+        break
+    }
+  }
+  if (altOrOptionKey) {
+    switch (e.key.toLowerCase()) {
+      case 'c':
+        if (openedViewsTab.value !== 'field') return
+        e.preventDefault()
+        addField()
         break
     }
   }
@@ -632,16 +643,6 @@ onKeyDown('ArrowRight', () => {
 })
 
 const keys = useMagicKeys()
-
-whenever(keys.altleft_c, () => {
-  if (!meta.value?.id) return
-  if (openedViewsTab.value === 'field') addField()
-})
-
-whenever(keys.option_c, () => {
-  if (!meta.value?.id) return
-  if (openedViewsTab.value === 'field') addField()
-})
 
 whenever(keys.meta_s, () => {
   if (!meta.value?.id) return

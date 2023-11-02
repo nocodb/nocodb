@@ -603,6 +603,14 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
+const renderCmdOrCtrlKey = () => {
+  return isMac() ? '⌘' : 'Ctrl'
+}
+
+const renderAltOrOptlKey = () => {
+  return isMac() ? '⌥' : 'ALT'
+}
+
 onKeyDown('ArrowDown', () => {
   const index = fields.value.findIndex((f) => compareCols(f, activeField.value))
   if (index === -1) changeField(fields.value[0])
@@ -698,12 +706,15 @@ onMounted(async () => {
             </template>
           </a-input>
           <div class="flex gap-2">
-            <NcButton type="secondary" size="small" class="mr-1" :disabled="loading" @click="addField()">
-              <div class="flex items-center gap-2">
-                <GeneralIcon icon="plus" class="h-3.5 mb-1 w-3.5" />
-                New field
-              </div>
-            </NcButton>
+            <NcTooltip>
+              <template #title> {{ `${renderAltOrOptlKey()} + C` }} </template>
+              <NcButton type="secondary" size="small" class="mr-1" :disabled="loading" @click="addField()">
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="plus" class="h-3.5 mb-1 w-3.5" />
+                  New field
+                </div>
+              </NcButton>
+            </NcTooltip>
             <NcButton
               type="secondary"
               size="small"
@@ -712,15 +723,19 @@ onMounted(async () => {
             >
               Reset
             </NcButton>
-            <NcButton
-              type="primary"
-              size="small"
-              :loading="loading"
-              :disabled="isColumnsValid ? !loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1 : true"
-              @click="saveChanges()"
-            >
-              Save changes
-            </NcButton>
+            <NcTooltip>
+              <template #title> {{ `${renderCmdOrCtrlKey()} + S` }} </template>
+
+              <NcButton
+                type="primary"
+                size="small"
+                :loading="loading"
+                :disabled="isColumnsValid ? !loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1 : true"
+                @click="saveChanges()"
+              >
+                Save changes
+              </NcButton>
+            </NcTooltip>
           </div>
         </div>
         <div class="flex flex-row rounded-lg border-1 border-gray-200">

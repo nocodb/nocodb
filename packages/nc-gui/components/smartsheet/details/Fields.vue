@@ -582,7 +582,6 @@ const toggleVisibility = async (checked: boolean, field: Field) => {
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
-  const altOrOptionKey = e.altKey
 
   if (cmdOrCtrl) {
     switch (e.key.toLowerCase()) {
@@ -592,14 +591,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         break
     }
   }
-  if (altOrOptionKey) {
-    switch (e.key.toLowerCase()) {
-      case 'c':
-        if (openedViewsTab.value !== 'field') return
-        e.preventDefault()
-        addField()
-        break
-    }
+
+  if (e.altKey && e.code === 'KeyC') {
+    if (openedViewsTab.value !== 'field') return
+
+    e.preventDefault()
+    addField()
   }
 })
 

@@ -662,6 +662,12 @@ watch(
   },
   { deep: true },
 )
+
+onMounted(async () => {
+  if (meta.value && meta.value.id) {
+    columnsHash.value = (await $api.dbTableColumn.hash(meta.value.id)).hash
+  }
+})
 </script>
 
 <template>

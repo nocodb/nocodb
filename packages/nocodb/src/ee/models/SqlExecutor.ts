@@ -159,6 +159,27 @@ export default class SqlExecutor {
       SqlExecutorId,
     );
 
+    if (updateObject.status === SqlExecutorStatus.INACTIVE) {
+      const sources = await ncMeta.metaList2(null, null, MetaTable.BASES, {
+        condition: {
+          fk_sql_executor_id: SqlExecutorId,
+        },
+      });
+
+      await Promise.all(
+        sources.map((source) =>
+          Source.updateBase(
+            source.id,
+            {
+              baseId: source.base_id,
+              fk_sql_executor_id: null,
+            },
+            ncMeta,
+          ),
+        ),
+      );
+    }
+
     const sqlExecutor = await this.get(SqlExecutorId);
 
     return sqlExecutor;
@@ -306,7 +327,11 @@ export default class SqlExecutor {
 
     await this.bindSource(suitableSqlExecutor.id, source.id, ncMeta);
 
-    this.activateIfRequired(ncMeta);
+    const availableSeatCount = this.availableSeatCount(sqlExecutors) - 1;
+
+    if (availableSeatCount <= SE_SEAT_THRESHOLD_TO_TRIGGER_ACTIVATE) {
+      await this.activateFirstInactive(sqlExecutors);
+    }
 
     return suitableSqlExecutor;
   }
@@ -323,9 +348,7 @@ export default class SqlExecutor {
     );
   }
 
-  public static async availableSeatCount(ncMeta = Noco.ncMeta) {
-    const sqlExecutors = await this.list(ncMeta);
-
+  public static availableSeatCount(sqlExecutors: SqlExecutor[]) {
     let count = 0;
 
     for (const sqlExecutor of sqlExecutors) {
@@ -336,7 +359,7 @@ export default class SqlExecutor {
     return count;
   }
 
-  static async activate(param: { sqlExecutorId: string }) {
+  static async activate(sqlExecutor: SqlExecutor) {
     const appConfig = (await import('~/app.config')).default;
 
     const snsConfig = appConfig.workspace.sns;
@@ -350,8 +373,6 @@ export default class SqlExecutor {
       console.error('SNS is not configured');
       NcError.notImplemented('Not available');
     }
-
-    const sqlExecutor = await this.get(param.sqlExecutorId);
 
     if (!sqlExecutor) NcError.notFound('SqlExecutor not found');
 
@@ -393,17 +414,7 @@ export default class SqlExecutor {
     }
   }
 
-  static async activateIfRequired(ncMeta = Noco.ncMeta) {
-    if (process.env.TEST === 'true') return;
-
-    const availableSeatCount = await this.availableSeatCount(ncMeta);
-
-    if (availableSeatCount > SE_SEAT_THRESHOLD_TO_TRIGGER_ACTIVATE) {
-      return;
-    }
-
-    const sqlExecutors = await this.list(ncMeta);
-
+  static async activateFirstInactive(sqlExecutors: SqlExecutor[]) {
     const firstInactiveSqlExecutor = sqlExecutors.find(
       (sqlExecutor) => sqlExecutor.status === SqlExecutorStatus.INACTIVE,
     );
@@ -414,6 +425,6 @@ export default class SqlExecutor {
       status: SqlExecutorStatus.DEPLOYING,
     });
 
-    await this.activate({ sqlExecutorId: firstInactiveSqlExecutor.id });
+    await this.activate(firstInactiveSqlExecutor);
   }
 }

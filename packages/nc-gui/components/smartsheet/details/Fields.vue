@@ -653,10 +653,15 @@ whenever(keys.ctrl_s, () => {
   if (openedViewsTab.value === 'field') saveChanges()
 })
 
-onMounted(async () => {
-  if (!meta.value?.id) return
-  columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
-})
+watch(
+  meta,
+  async (newMeta) => {
+    if (newMeta?.id) {
+      columnsHash.value = (await $api.dbTableColumn.hash(newMeta.id)).hash
+    }
+  },
+  { deep: true },
+)
 </script>
 
 <template>

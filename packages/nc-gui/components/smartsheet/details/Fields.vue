@@ -706,8 +706,8 @@ onMounted(async () => {
               <template #title> {{ `${renderAltOrOptlKey()} + C` }} </template>
               <NcButton type="secondary" size="small" class="mr-1" :disabled="loading" @click="addField()">
                 <div class="flex items-center gap-2">
-                  <GeneralIcon icon="plus" class="h-3.5 mb-1 w-3.5" />
-                  New field
+                  <GeneralIcon icon="plus" class="w-3" />
+                  New Field
                 </div>
               </NcButton>
             </NcTooltip>

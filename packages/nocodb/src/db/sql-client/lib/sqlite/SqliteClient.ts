@@ -1633,10 +1633,18 @@ class SqliteClient extends KnexClient {
       const splitQueries = (query) => {
         const queries = [];
         let quotationCount = 0;
+        let quotationMode: 'double' | 'single' | undefined = undefined;
         let currentQuery = '';
 
         for (let i = 0; i < query.length; i++) {
-          if (query[i] === '"' || query[i] === "'") {
+          if (!quotationMode && (query[i] === '"' || query[i] === "'")) {
+            quotationMode = query[i] === '"' ? 'double' : 'single';
+          }
+
+          if (
+            (quotationMode === 'double' && query[i] === '"') ||
+            (quotationMode === 'single' && query[i] === "'")
+          ) {
             // Ignore if quotation is escaped
             if (i > 0 && query[i - 1] !== '\\') {
               quotationCount++;
@@ -1646,6 +1654,7 @@ class SqliteClient extends KnexClient {
           if (query[i] === ';' && quotationCount % 2 === 0) {
             queries.push(currentQuery);
             currentQuery = '';
+            quotationMode = undefined;
           } else {
             currentQuery += query[i];
           }

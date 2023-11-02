@@ -583,19 +583,18 @@ const toggleVisibility = async (checked: boolean, field: Field) => {
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
 
-  if (cmdOrCtrl) {
-    switch (e.key.toLowerCase()) {
-      case 's':
-        if (openedViewsTab.value !== 'field') return
-        e.preventDefault()
-        break
-    }
+  if (cmdOrCtrl && e.key.toLowerCase() === 's') {
+    if (openedViewsTab.value !== 'field') return
+    e.preventDefault()
+
+    return
   }
 
-  if (e.altKey && e.code === 'KeyC') {
+  // For Windows and mac
+  if ((e.altKey && e.key.toLowerCase() === 'c') || (e.altKey && e.code === 'KeyC')) {
     if (openedViewsTab.value !== 'field') return
-
     e.preventDefault()
+
     addField()
   }
 })

@@ -45,6 +45,7 @@ export class SourceCreateProcessor {
       baseId,
       source,
       logger: logBasic,
+      req: {}
     });
 
     if (createdBase.isMeta()) {

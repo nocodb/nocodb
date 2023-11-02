@@ -39,7 +39,7 @@ export class AuthController extends AuthControllerCE {
       ...(await this.usersService.login({
         ...req.user,
         provider: 'openid',
-      })),
+      }, req)),
       extra: { ...req.extra },
     });
   }
@@ -136,8 +136,9 @@ export class AuthController extends AuthControllerCE {
       ...(await this.usersService.login({
         ...req.user,
         provider: 'cognito',
-      })),
-      extra: { ...req.extra },
+      },
+        req)),
+      extra: { ...req.extra }
     });
   }
 }

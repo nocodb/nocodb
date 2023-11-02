@@ -72,6 +72,7 @@ export class DuplicateController {
         ...(body.base || {}),
       },
       user: { id: req.user.id },
+      req
     });
 
     const job = await this.jobsService.add(JobTypes.DuplicateBase, {
@@ -141,6 +142,7 @@ export class DuplicateController {
         ...(body.base || {}),
       },
       user: { id: req.user.id },
+      req
     });
 
     const job = await this.jobsService.add(JobTypes.DuplicateBase, {

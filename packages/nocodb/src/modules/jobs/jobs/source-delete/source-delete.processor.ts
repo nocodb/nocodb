@@ -18,6 +18,7 @@ export class SourceDeleteProcessor {
 
     await this.sourcesService.baseDelete({
       sourceId,
+      req: {}
     });
 
     this.debugLog(`job completed for ${job.id}`);

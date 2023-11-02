@@ -21,11 +21,12 @@ export class MetaSyncProcessor {
     } = job.data;
 
     if (info.sourceId === 'all') {
-      await this.metaDiffsService.metaDiffSync({ baseId: info.baseId });
+      await this.metaDiffsService.metaDiffSync({ baseId: info.baseId, req: {} });
     } else {
       await this.metaDiffsService.baseMetaDiffSync({
         baseId: info.baseId,
         sourceId: info.sourceId,
+        req: {}
       });
     }
 

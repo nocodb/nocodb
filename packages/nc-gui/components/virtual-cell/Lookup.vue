@@ -25,6 +25,10 @@ const meta = inject(MetaInj, ref())
 
 const cellValue = inject(CellValueInj, ref())
 
+const rowHeight = inject(RowHeightInj, ref(1) as any)
+
+provide(RowHeightInj, ref(1) as any)
+
 const relationColumn = computed(
   () =>
     meta.value?.columns?.find((c: ColumnType) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id) as
@@ -80,8 +84,17 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
 </script>
 
 <template>
-  <div class="h-full" @dblclick="activateShowEditNonEditableFieldWarning">
-    <div class="h-full flex gap-1 overflow-x-auto p-1">
+  <div
+    class="h-full w-full"
+    :style="{ height: rowHeight && rowHeight !== 1 ? `${rowHeight * 1.8}rem` : `2.5rem` }"
+    @dblclick="activateShowEditNonEditableFieldWarning"
+  >
+    <div
+      class="h-full w-full flex gap-1 p-1"
+      :class="{
+        '!overflow-x-auto nc-scrollbar-x-md !overflow-y-hidden': rowHeight === 1,
+      }"
+    >
       <template v-if="lookupColumn">
         <!-- Render virtual cell -->
         <div v-if="isVirtualCol(lookupColumn)">
@@ -114,14 +127,25 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
           </div>
           <!-- For attachment cell avoid adding chip style -->
           <template v-else>
-            <div class="flex flex-col">
-              <div class="flex gap-1.5">
+            <div
+              class="max-h-full max-w-full w-full"
+              :class="{
+                'nc-scrollbar-md ': rowHeight !== 1,
+              }"
+            >
+              <div
+                class="flex gap-1.5 w-full"
+                :class="{
+                  'flex-wrap ': rowHeight !== 1,
+                  '!overflow-x-auto nc-scrollbar-x-md !overflow-y-hidden': rowHeight === 1,
+                }"
+              >
                 <div
                   v-for="(v, i) of arrValue"
                   :key="i"
-                  class="min-w-max"
+                  class="min-h-7.5 pt-0.75"
                   :class="{
-                    'bg-gray-100 px-1 rounded-full flex-1': !isAttachment(lookupColumn),
+                    'bg-gray-100 px-1 rounded-full': !isAttachment(lookupColumn),
                     'border-gray-200 rounded border-1': ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(
                       lookupColumn.uidt,
                     ),
@@ -133,6 +157,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
                     :edit-enabled="false"
                     :virtual="true"
                     :read-only="true"
+                    class="!max-w-40 !min-w-20 !w-auto px-2"
                   />
                 </div>
               </div>

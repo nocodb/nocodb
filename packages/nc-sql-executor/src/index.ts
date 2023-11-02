@@ -20,13 +20,8 @@ const BodyJsonSchema = {
   required: ['query', 'config'],
   properties: {
     query: {
-      oneOf: [
-        { type: 'string' },
-        {
-          type: 'array',
-          items: { type: 'string' },
-        },
-      ],
+      type: 'array',
+      items: { type: 'string' },
     },
     config: {
       type: 'object',

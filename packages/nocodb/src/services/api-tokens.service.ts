@@ -14,7 +14,11 @@ export class ApiTokensService {
   async apiTokenList(param: { userId: string }) {
     return await ApiToken.list(param.userId);
   }
-  async apiTokenCreate(param: { userId: string; tokenBody: ApiTokenReqType; req:any }) {
+  async apiTokenCreate(param: {
+    userId: string;
+    tokenBody: ApiTokenReqType;
+    req: any;
+  }) {
     validatePayload(
       'swagger.json#/components/schemas/ApiTokenReq',
       param.tokenBody,
@@ -23,7 +27,7 @@ export class ApiTokensService {
     this.appHooksService.emit(AppEvents.API_TOKEN_CREATE, {
       userId: param.userId,
       tokenBody: param.tokenBody,
-      req: param.req
+      req: param.req,
     });
 
     return await ApiToken.insert({
@@ -32,7 +36,7 @@ export class ApiTokensService {
     });
   }
 
-  async apiTokenDelete(param: { token; user: User; req:any }) {
+  async apiTokenDelete(param: { token; user: User; req: any }) {
     const apiToken = await ApiToken.getByToken(param.token);
     if (
       !extractRolesObj(param.user.roles)[OrgUserRoles.SUPER_ADMIN] &&
@@ -44,7 +48,7 @@ export class ApiTokensService {
     this.appHooksService.emit(AppEvents.API_TOKEN_DELETE, {
       userId: param.user?.id,
       token: param.token,
-      req:param.req
+      req: param.req,
     });
 
     // todo: verify token belongs to the user

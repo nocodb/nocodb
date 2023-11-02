@@ -26,7 +26,7 @@ export class SharedBasesService {
     password: string;
     siteUrl: string;
 
-    req: any
+    req: any;
   }): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SharedBaseReq', param);
 
@@ -74,7 +74,7 @@ export class SharedBasesService {
     roles: string;
     password: string;
     siteUrl: string;
-    req:any
+    req: any;
   }): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SharedBaseReq', param);
 
@@ -110,7 +110,7 @@ export class SharedBasesService {
     this.appHooksService.emit(AppEvents.SHARED_BASE_GENERATE_LINK, {
       link: data.url,
       base,
-      req: param.req
+      req: param.req,
     });
     return data;
   }
@@ -130,8 +130,9 @@ export class SharedBasesService {
     return `${siteUrl}${config.dashboardPath}#/base/${base.uuid}`;
   }
 
-  async disableSharedBaseLink(param: { baseId: string
-   req:any
+  async disableSharedBaseLink(param: {
+    baseId: string;
+    req: any;
   }): Promise<any> {
     const base = await Base.get(param.baseId);
 

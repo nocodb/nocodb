@@ -50,7 +50,7 @@ export class OrgTokensController {
     return await this.orgTokensService.apiTokenCreate({
       apiToken: body,
       user: req['user'],
-      req
+      req,
     });
   }
 
@@ -64,7 +64,7 @@ export class OrgTokensController {
     await this.orgTokensService.apiTokenDelete({
       token,
       user: req['user'],
-      req
+      req,
     });
   }
 }

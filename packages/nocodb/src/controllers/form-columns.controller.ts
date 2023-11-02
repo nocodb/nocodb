@@ -1,4 +1,11 @@
-import { Body, Controller, Param, Patch, UseGuards , Request} from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Param,
+  Patch,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { FormColumnsService } from '~/services/form-columns.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -25,7 +32,7 @@ export class FormColumnsController {
     return await this.formColumnsService.columnUpdate({
       formViewColumnId,
       formViewColumn: formViewColumnbody,
-      req
+      req,
     });
   }
 }

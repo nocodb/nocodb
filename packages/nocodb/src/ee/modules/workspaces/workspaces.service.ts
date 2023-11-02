@@ -64,7 +64,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       });
 
       while (preWorkspacesCount < preCount) {
-        await this.createPrepopulatedWorkspace(templateBase, req: any);
+        await this.createPrepopulatedWorkspace(templateBase, req);
         preWorkspacesCount = await Workspace.count({
           fk_user_id: mockUser.id,
         });
@@ -96,7 +96,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
         type: 'database',
       } as any,
       user: mockUser,
-      req
+      req,
     });
 
     await this.jobsService.add(JobTypes.DuplicateBase, {
@@ -163,7 +163,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
         const transferred = await this.transferOwnership({
           user: param.user,
           workspace: prepopulatedWorkspace,
-          req:param.req
+          req: param.req,
         });
         if (transferred) {
           await Workspace.update(prepopulatedWorkspace.id, {
@@ -236,7 +236,11 @@ export class WorkspacesService implements OnApplicationBootstrap {
     return isBulkMode ? workspaces : workspaces[0];
   }
 
-  async transferOwnership(param: { user: UserType; workspace: WorkspaceType; req:any}) {
+  async transferOwnership(param: {
+    user: UserType;
+    workspace: WorkspaceType;
+    req: any;
+  }) {
     const user = await User.get(param.user.id);
 
     if (!user) NcError.notFound('User not found');
@@ -425,15 +429,13 @@ export class WorkspacesService implements OnApplicationBootstrap {
         ...workspace,
       },
       user: param.user,
-      req: param.req
+      req: param.req,
     });
 
     return updatedWorkspace;
   }
 
-  async delete(param: { user: UserType; workspaceId: string;
-   req: any;
-  }) {
+  async delete(param: { user: UserType; workspaceId: string; req: any }) {
     const workspace = await Workspace.get(param.workspaceId);
 
     if (!workspace) NcError.badRequest('Workspace not found');

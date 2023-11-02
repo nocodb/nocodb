@@ -2,7 +2,8 @@ import {
   Body,
   Controller,
   Param,
-  Post, Req,
+  Post,
+  Req,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -37,7 +38,7 @@ export class TablesController extends TablesControllerCE {
       title: body.title,
       tableName: body.table_name,
       user: req.user,
-      req
+      req,
     });
   }
 
@@ -50,14 +51,14 @@ export class TablesController extends TablesControllerCE {
     @Param('baseId') baseId: string,
     @Param('sourceId') sourceId: string,
     @Body() body: any,
-    @Req() req: any
+    @Req() req: any,
   ) {
     return await this.tablesServiceEE.schemaMagic({
       baseId: baseId,
       sourceId: sourceId,
       title: body.title,
       schemaName: body.schema_name,
-      req
+      req,
     });
   }
 }

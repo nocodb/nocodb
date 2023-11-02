@@ -38,7 +38,7 @@ export class UsersService extends UsersServiceCE {
     salt,
     password,
     email_verification_token,
-    req
+    req: _req,
   }: {
     avatar;
     display_name;
@@ -47,7 +47,7 @@ export class UsersService extends UsersServiceCE {
     salt: any;
     password;
     email_verification_token;
-    req:any
+    req: any;
   }) {
     this.validateEmailPattern(email);
 
@@ -164,7 +164,7 @@ export class UsersService extends UsersServiceCE {
         salt,
         password,
         email_verification_token,
-        req: param.req
+        req: param.req,
       });
 
       createdWorkspace = await this.createDefaultWorkspace(user, param.req);
@@ -215,7 +215,7 @@ export class UsersService extends UsersServiceCE {
     return { ...(await this.login(user, param.req)), createdWorkspace };
   }
 
-  private async createDefaultWorkspace(user: User, req:any) {
+  private async createDefaultWorkspace(user: User, req: any) {
     const title = `${user.email?.split('@')?.[0]}`;
 
     let createdWorkspace;
@@ -229,7 +229,7 @@ export class UsersService extends UsersServiceCE {
       transferred = await this.workspaceService.transferOwnership({
         user,
         workspace: prepopulatedWorkspace,
-        req
+        req,
       });
       if (transferred) {
         await Workspace.update(prepopulatedWorkspace.id, {
@@ -246,7 +246,7 @@ export class UsersService extends UsersServiceCE {
         workspaces: {
           title,
         },
-        req
+        req,
       });
     }
 

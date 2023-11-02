@@ -91,9 +91,7 @@ export class ViewsService {
     return filteredViewList;
   }
 
-  async shareView(param: { viewId: string; user: UserType
-    req: any;
-  }) {
+  async shareView(param: { viewId: string; user: UserType; req: any }) {
     const res = await View.share(param.viewId);
 
     const view = await View.get(param.viewId);
@@ -105,7 +103,7 @@ export class ViewsService {
     this.appHooksService.emit(AppEvents.SHARED_VIEW_CREATE, {
       user: param.user,
       view,
-      req: param.req
+      req: param.req,
     });
 
     return res;
@@ -137,14 +135,12 @@ export class ViewsService {
       },
       user: param.user,
 
-      req: param.req
+      req: param.req,
     });
     return result;
   }
 
-  async viewDelete(param: { viewId: string; user: UserType
-    req: any;
-  }) {
+  async viewDelete(param: { viewId: string; user: UserType; req: any }) {
     const view = await View.get(param.viewId);
 
     if (!view) {
@@ -184,7 +180,7 @@ export class ViewsService {
     this.appHooksService.emit(AppEvents.SHARED_VIEW_UPDATE, {
       user: param.user,
       view,
-      req: param.req
+      req: param.req,
     });
 
     return result;
@@ -201,7 +197,7 @@ export class ViewsService {
     this.appHooksService.emit(AppEvents.SHARED_VIEW_DELETE, {
       user: param.user,
       view,
-      req: param.req
+      req: param.req,
     });
 
     return true;

@@ -56,27 +56,30 @@ export class SyncController {
       sourceId: sourceId,
       userId: (req as any).user.id,
       syncPayload: body,
-      req
+      req,
     });
   }
 
   @Delete(['/api/v1/db/meta/syncs/:syncId', '/api/v2/meta/syncs/:syncId'])
   @Acl('syncSourceDelete')
-  async syncDelete(@Param('syncId') syncId: string,@Req() req: any) {
+  async syncDelete(@Param('syncId') syncId: string, @Req() req: any) {
     return await this.syncService.syncDelete({
       syncId: syncId,
-      req
+      req,
     });
   }
 
   @Patch(['/api/v1/db/meta/syncs/:syncId', '/api/v2/meta/syncs/:syncId'])
   @Acl('syncSourceUpdate')
-  async syncUpdate(@Param('syncId') syncId: string, @Body() body: any,
-                   @Req() req: any,) {
+  async syncUpdate(
+    @Param('syncId') syncId: string,
+    @Body() body: any,
+    @Req() req: any,
+  ) {
     return await this.syncService.syncUpdate({
       syncId: syncId,
       syncPayload: body,
-      req
+      req,
     });
   }
 }

@@ -36,10 +36,13 @@ export class AuthController extends AuthControllerCE {
   async oidcSignin(@Request() req, @Response() res) {
     await this.setRefreshToken({ req, res });
     res.json({
-      ...(await this.usersService.login({
-        ...req.user,
-        provider: 'openid',
-      }, req)),
+      ...(await this.usersService.login(
+        {
+          ...req.user,
+          provider: 'openid',
+        },
+        req,
+      )),
       extra: { ...req.extra },
     });
   }
@@ -133,12 +136,14 @@ export class AuthController extends AuthControllerCE {
   async cognitoSignin(@Request() req, @Response() res) {
     await this.setRefreshToken({ req, res });
     res.json({
-      ...(await this.usersService.login({
-        ...req.user,
-        provider: 'cognito',
-      },
-        req)),
-      extra: { ...req.extra }
+      ...(await this.usersService.login(
+        {
+          ...req.user,
+          provider: 'cognito',
+        },
+        req,
+      )),
+      extra: { ...req.extra },
     });
   }
 }

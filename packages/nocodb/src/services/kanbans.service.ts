@@ -22,7 +22,7 @@ export class KanbansService {
     tableId: string;
     kanban: ViewCreateReqType;
     user: UserType;
-     req: any;
+    req: any;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
@@ -41,7 +41,7 @@ export class KanbansService {
       showAs: 'kanban',
       user: param.user,
 
-      req: param.req
+      req: param.req,
     });
 
     return view;
@@ -68,7 +68,7 @@ export class KanbansService {
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view,
       showAs: 'kanban',
-      req: param.req
+      req: param.req,
     });
 
     return res;

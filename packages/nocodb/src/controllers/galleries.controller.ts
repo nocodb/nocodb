@@ -65,7 +65,7 @@ export class GalleriesController {
     return await this.galleriesService.galleryViewUpdate({
       galleryViewId,
       gallery: body,
-      req
+      req,
     });
   }
 }

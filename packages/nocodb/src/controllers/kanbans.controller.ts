@@ -46,7 +46,7 @@ export class KanbansController {
       tableId,
       kanban: body,
       user: req.user,
-      req
+      req,
     });
   }
 
@@ -64,7 +64,7 @@ export class KanbansController {
     return await this.kanbansService.kanbanViewUpdate({
       kanbanViewId,
       kanban: body,
-      req
+      req,
     });
   }
 }

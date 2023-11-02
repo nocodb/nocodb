@@ -36,7 +36,7 @@ export class AttachmentsController {
     const attachments = await this.attachmentsService.upload({
       files: files,
       path: req.query?.path as string,
-      req
+      req,
     });
 
     return attachments;
@@ -46,12 +46,15 @@ export class AttachmentsController {
   @HttpCode(200)
   @UseInterceptors(UploadAllowedInterceptor)
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  async uploadViaURL(@Body() body: any, @Query('path') path: string,
-  @Request() req: any,) {
+  async uploadViaURL(
+    @Body() body: any,
+    @Query('path') path: string,
+    @Request() req: any,
+  ) {
     const attachments = await this.attachmentsService.uploadViaURL({
       urls: body,
       path,
-      req
+      req,
     });
 
     return attachments;

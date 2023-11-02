@@ -35,7 +35,9 @@ export class OrgTokensService {
     );
   }
 
-  async apiTokenCreate(param: { user: User; apiToken: ApiTokenReqType
+  async apiTokenCreate(param: {
+    user: User;
+    apiToken: ApiTokenReqType;
     req: any;
   }) {
     validatePayload(
@@ -52,15 +54,13 @@ export class OrgTokensService {
       tokenBody: param.apiToken,
       userId: param.user?.id,
 
-      req: param.req
+      req: param.req,
     });
 
     return apiToken;
   }
 
-  async apiTokenDelete(param: { user: User; token: string;
-    req: any;
-  }) {
+  async apiTokenDelete(param: { user: User; token: string; req: any }) {
     const fk_user_id = param.user.id;
     const apiToken = await ApiToken.getByToken(param.token);
     if (

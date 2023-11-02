@@ -48,7 +48,7 @@ export class BasesController extends BasesControllerCE {
     const base = await this.projectsService.baseCreate({
       base: baseBody,
       user: req['user'],
-      req
+      req,
     });
 
     return base;

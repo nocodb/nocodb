@@ -82,7 +82,7 @@ export class BasesController {
       baseId,
       base: body,
       user: req.user,
-      req
+      req,
     });
 
     return base;
@@ -94,7 +94,7 @@ export class BasesController {
     const deleted = await this.projectsService.baseSoftDelete({
       baseId,
       user: req.user,
-      req
+      req,
     });
 
     return deleted;

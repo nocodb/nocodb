@@ -41,7 +41,7 @@ export class MapsController {
       tableId,
       map: body,
       user: req.user,
-      req
+      req,
     });
     return view;
   }
@@ -57,7 +57,7 @@ export class MapsController {
     return await this.mapsService.mapViewUpdate({
       mapViewId: mapViewId,
       map: body,
-      req
+      req,
     });
   }
 }

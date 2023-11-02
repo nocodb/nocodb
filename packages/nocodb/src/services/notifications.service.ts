@@ -37,28 +37,33 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         {
           const { base, user, invitedBy } = data as ProjectInviteEvent;
 
-          await this.insertNotification({
-            fk_user_id: user.id,
-            type: AppEvents.PROJECT_INVITE,
-            body: {
-              id: base.id,
-              title: base.title,
-              type: base.type,
-              invited_by: invitedBy.email,
-            }
-          },
-            req,);
+          await this.insertNotification(
+            {
+              fk_user_id: user.id,
+              type: AppEvents.PROJECT_INVITE,
+              body: {
+                id: base.id,
+                title: base.title,
+                type: base.type,
+                invited_by: invitedBy.email,
+              },
+            },
+            req,
+          );
         }
         break;
       case AppEvents.WELCOME:
         {
           const { user, req } = data as WelcomeEvent;
 
-          await this.insertNotification({
-            fk_user_id: user.id,
-            type: AppEvents.WELCOME,
-            body: {},
-          }, req);
+          await this.insertNotification(
+            {
+              fk_user_id: user.id,
+              type: AppEvents.WELCOME,
+              body: {},
+            },
+            req,
+          );
         }
         break;
     }

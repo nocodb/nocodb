@@ -11,7 +11,11 @@ export class ApiTokensService extends ApiTokensServiceCE {
     super(appHooksService);
   }
 
-  async apiTokenCreate(param: { userId: string; tokenBody: ApiTokenReqType; req: any }) {
+  async apiTokenCreate(param: {
+    userId: string;
+    tokenBody: ApiTokenReqType;
+    req: any;
+  }) {
     if (await ApiToken.count({ fk_user_id: param.userId })) {
       NcError.badRequest('Only one token per user is allowed');
     }

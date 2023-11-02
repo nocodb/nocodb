@@ -79,7 +79,7 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
                 user_name: null,
                 display_name: (payload as any)['name'],
                 salt,
-                req
+                req,
               });
 
               return callback(null, {

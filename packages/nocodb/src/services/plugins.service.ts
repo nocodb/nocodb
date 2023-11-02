@@ -14,7 +14,7 @@ export class PluginsService {
     return await Plugin.list();
   }
 
-  async pluginTest(param: { body: PluginTestReqType; req: any}) {
+  async pluginTest(param: { body: PluginTestReqType; req: any }) {
     validatePayload(
       'swagger.json#/components/schemas/PluginTestReq',
       param.body,
@@ -22,7 +22,7 @@ export class PluginsService {
 
     this.appHooksService.emit(AppEvents.PLUGIN_TEST, {
       testBody: param.body,
-      req: param.req
+      req: param.req,
     });
     return await NcPluginMgrv2.test(param.body);
   }
@@ -30,7 +30,11 @@ export class PluginsService {
   async pluginRead(param: { pluginId: string }) {
     return await Plugin.get(param.pluginId);
   }
-  async pluginUpdate(param: { pluginId: string; plugin: PluginType; req: any }) {
+  async pluginUpdate(param: {
+    pluginId: string;
+    plugin: PluginType;
+    req: any;
+  }) {
     validatePayload('swagger.json#/components/schemas/PluginReq', param.plugin);
 
     const plugin = await Plugin.update(param.pluginId, param.plugin);
@@ -39,7 +43,7 @@ export class PluginsService {
       plugin.active ? AppEvents.PLUGIN_INSTALL : AppEvents.PLUGIN_UNINSTALL,
       {
         plugin,
-        req: param.req
+        req: param.req,
       },
     );
 

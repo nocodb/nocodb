@@ -1,4 +1,12 @@
-import { Body, Controller, Get,Request, Param, Patch, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { BaseReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -43,7 +51,7 @@ export class SourcesController {
       sourceId,
       source: body,
       baseId,
-      req
+      req,
     });
 
     return source;

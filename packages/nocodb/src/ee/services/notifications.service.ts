@@ -31,43 +31,53 @@ export class NotificationsService
         {
           const { base, user, invitedBy, req } = data as ProjectInviteEvent;
 
-          await this.insertNotification({
-            fk_user_id: user.id,
-            type: AppEvents.PROJECT_INVITE,
-            body: {
-              id: base.id,
-              title: base.title,
-              type: base.type,
-              invited_by: invitedBy.email,
-              workspace_id: (base as Base).fk_workspace_id,
+          await this.insertNotification(
+            {
+              fk_user_id: user.id,
+              type: AppEvents.PROJECT_INVITE,
+              body: {
+                id: base.id,
+                title: base.title,
+                type: base.type,
+                invited_by: invitedBy.email,
+                workspace_id: (base as Base).fk_workspace_id,
+              },
             },
-          }, req);
+            req,
+          );
         }
         break;
       case AppEvents.WORKSPACE_INVITE:
         {
-          const { workspace, user, invitedBy, req } = data as WorkspaceInviteEvent;
+          const { workspace, user, invitedBy, req } =
+            data as WorkspaceInviteEvent;
 
-          await this.insertNotification({
-            fk_user_id: user.id,
-            type: AppEvents.WORKSPACE_INVITE,
-            body: {
-              id: workspace.id,
-              invited_by: invitedBy.email,
-              title: workspace.title,
+          await this.insertNotification(
+            {
+              fk_user_id: user.id,
+              type: AppEvents.WORKSPACE_INVITE,
+              body: {
+                id: workspace.id,
+                invited_by: invitedBy.email,
+                title: workspace.title,
+              },
             },
-          }, req);
+            req,
+          );
         }
         break;
       case AppEvents.WELCOME:
         {
           const { user, req } = data as WelcomeEvent;
 
-          await this.insertNotification({
-            fk_user_id: user.id,
-            type: AppEvents.WELCOME,
-            body: {},
-          }, req);
+          await this.insertNotification(
+            {
+              fk_user_id: user.id,
+              type: AppEvents.WELCOME,
+              body: {},
+            },
+            req,
+          );
         }
         break;
     }

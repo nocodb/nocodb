@@ -49,7 +49,7 @@ export class SortsController {
     const sort = await this.sortsService.sortCreate({
       sort: body,
       viewId,
-      req
+      req,
     });
     return sort;
   }
@@ -73,7 +73,7 @@ export class SortsController {
     const sort = await this.sortsService.sortUpdate({
       sortId,
       sort: body,
-      req
+      req,
     });
     return sort;
   }
@@ -83,7 +83,7 @@ export class SortsController {
   async sortDelete(@Param('sortId') sortId: string, @Req() req) {
     const sort = await this.sortsService.sortDelete({
       sortId,
-      req
+      req,
     });
     return sort;
   }

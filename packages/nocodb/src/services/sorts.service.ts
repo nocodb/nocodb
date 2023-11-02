@@ -14,9 +14,7 @@ export class SortsService {
     return Sort.get(param.sortId);
   }
 
-  async sortDelete(param: { sortId: string
-    req: any
-  }) {
+  async sortDelete(param: { sortId: string; req: any }) {
     const sort = await Sort.get(param.sortId);
 
     if (!sort) {
@@ -27,14 +25,12 @@ export class SortsService {
 
     this.appHooksService.emit(AppEvents.SORT_CREATE, {
       sort,
-      req: param.req
+      req: param.req,
     });
     return true;
   }
 
-  async sortUpdate(param: { sortId: any; sort: SortReqType
-    req: any
-  }) {
+  async sortUpdate(param: { sortId: any; sort: SortReqType; req: any }) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
     const sort = await Sort.get(param.sortId);
@@ -48,15 +44,13 @@ export class SortsService {
     this.appHooksService.emit(AppEvents.SORT_UPDATE, {
       sort,
 
-      req: param.req
+      req: param.req,
     });
 
     return res;
   }
 
-  async sortCreate(param: { viewId: any; sort: SortReqType
-    req: any
-  }) {
+  async sortCreate(param: { viewId: any; sort: SortReqType; req: any }) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
     const sort = await Sort.insert({

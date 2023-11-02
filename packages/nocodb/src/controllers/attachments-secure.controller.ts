@@ -35,7 +35,7 @@ export class AttachmentsSecureController {
     const attachments = await this.attachmentsService.upload({
       files: files,
       path: path,
-      req
+      req,
     });
 
     return attachments;
@@ -51,7 +51,7 @@ export class AttachmentsSecureController {
     const attachments = await this.attachmentsService.uploadViaURL({
       urls: body,
       path,
-      req
+      req,
     });
 
     return attachments;

@@ -63,7 +63,7 @@ export class BasesService {
     baseId: string;
     base: ProjectUpdateReqType;
     user: UserType;
-    req:any
+    req: any;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUpdateReq',

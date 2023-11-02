@@ -90,7 +90,7 @@ export class BasesService extends BasesServiceCE {
     return bases;
   }
 
-  async baseCreate(param: { base: ProjectReqType; user: any; req: any }){
+  async baseCreate(param: { base: ProjectReqType; user: any; req: any }) {
     validatePayload('swagger.json#/components/schemas/ProjectReq', param.base);
 
     if (process.env.NC_TEST_EE !== 'true') {

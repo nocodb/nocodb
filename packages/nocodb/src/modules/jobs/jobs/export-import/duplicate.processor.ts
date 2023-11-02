@@ -104,14 +104,14 @@ export class DuplicateProcessor {
           status: null,
         },
         user: req.user,
-        req
+        req,
       });
     } catch (e) {
       if (dupProject?.id) {
         await this.projectsService.baseSoftDelete({
           baseId: dupProject.id,
           user: req.user,
-          req
+          req,
         });
       }
       throw e;

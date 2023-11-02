@@ -18,7 +18,7 @@ export class MapsService {
     tableId: string;
     map: ViewCreateReqType;
     user: UserType;
-      req: any;
+    req: any;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
@@ -35,14 +35,16 @@ export class MapsService {
       view,
       showAs: 'map',
 
-      req: param.req
+      req: param.req,
     });
 
     return view;
   }
 
-  async mapViewUpdate(param: { mapViewId: string; map: MapUpdateReqType;
-  req: any;
+  async mapViewUpdate(param: {
+    mapViewId: string;
+    map: MapUpdateReqType;
+    req: any;
   }) {
     validatePayload('swagger.json#/components/schemas/MapUpdateReq', param.map);
 

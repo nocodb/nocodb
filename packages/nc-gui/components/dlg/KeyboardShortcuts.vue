@@ -53,6 +53,22 @@ const shortcutList = [
     title: 'Grid View',
     shortcuts: [
       {
+        keys: [renderAltOrOptlKey(), '←'],
+        behaviour: 'Navigate to previous page',
+      },
+      {
+        keys: [renderAltOrOptlKey(), '→'],
+        behaviour: 'Navigate to next page',
+      },
+      {
+        keys: [renderAltOrOptlKey(), '↑'],
+        behaviour: 'Navigate to last page',
+      },
+      {
+        keys: [renderAltOrOptlKey(), '↓'],
+        behaviour: 'Navigate to first page',
+      },
+      {
         keys: [renderCmdOrCtrlKey(), '←'],
         behaviour: 'Jump to leftmost column in this row',
       },

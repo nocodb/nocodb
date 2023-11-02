@@ -35,7 +35,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { $e } = useNuxtApp()
 
-  const { appInfo, ncNavigateTo } = useGlobal()
+  const { appInfo, ncNavigateTo, lastUsedWorkspaceId, storage } = useGlobal()
 
   const workspaceUserCount = ref<number | undefined>(undefined)
 
@@ -57,7 +57,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   )
 
   const activeWorkspaceId = computed(() => {
-    return (route.value.query.workspaceId ?? route.value.params.typeOrId ?? workspacesList.value?.[0]?.id) as string | undefined
+    if (route.value.query.workspaceId) return route.value.query.workspaceId as string
+
+    if (route.value.params.typeOrId) return route.value.params.typeOrId as string
+
+    const lastLoadedWorkspace = workspacesList.value.find((w) => w.id === lastUsedWorkspaceId.value)
+    if (lastLoadedWorkspace) return lastLoadedWorkspace.id
+
+    return workspacesList.value?.[0]?.id
   })
 
   const activeWorkspace = computed(() => {
@@ -413,6 +420,18 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const getPlanLimit = (limitType: PlanLimitTypes) => {
     return activeWorkspace.value?.limits?.[limitType] ?? 0
   }
+
+  watch(
+    activeWorkspaceId,
+    () => {
+      if (!activeWorkspaceId.value) return
+
+      storage.value.lastUsedWorkspaceId = activeWorkspaceId.value
+    },
+    {
+      immediate: true,
+    },
+  )
 
   return {
     loadWorkspaces,

@@ -25,9 +25,9 @@ const up = async (knex: Knex) => {
   for (let i = 0; i < 30; i++) {
     predefinedSqlExecutors.push({
       id: `nc${nanoidv2()}`,
-      domain: `http://${
+      domain: `http://se-${(i + 1).toString().padStart(5, '0')}.${
         process.env.NC_ENV === 'prod' ? 'prod' : 'staging'
-      }-se-${(i + 1).toString().padStart(5, '0')}`,
+      }.internal`,
       status: 'inactive',
       priority: i + 1,
       capacity: 10,

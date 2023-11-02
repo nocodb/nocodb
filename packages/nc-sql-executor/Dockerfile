@@ -12,11 +12,13 @@ COPY . .
 RUN npm install typescript
 # Install application dependencies
 RUN npm install
-# Build the NestJS application
+# Build the application
 RUN npm run build
 
 # Expose the port that the application will run on
-EXPOSE 3000
+EXPOSE 9000
+
+ENV HOST=0.0.0.0 PORT=9000 NODE_ENV=production
 
 # Define the command to start the application
 CMD [ "npm", "run", "start:prod" ]

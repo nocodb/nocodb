@@ -75,7 +75,7 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
       se.status === SqlExecutorStatus.DEPLOYING
     ) {
       try {
-        const res = await axios.get(`${se.domain}/health`);
+        const res = await axios.get(`${se.domain}/api/v1/health`);
         if (res.status !== 200) {
           NcError.internalServerError(
             'SQL Executor is not active yet. Please try again later!',

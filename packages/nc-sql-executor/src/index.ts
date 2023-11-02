@@ -159,7 +159,7 @@ fastify.post(
   },
 );
 
-fastify.get('/health', async (req, res) => {
+fastify.get('/api/v1/health', async (req, res) => {
   res.status(200).send({
     uptime: process.uptime(),
     message: 'OK',

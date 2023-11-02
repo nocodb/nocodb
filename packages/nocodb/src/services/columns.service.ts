@@ -757,10 +757,11 @@ export class ColumnsService {
                   );
                 }
               } else if (driverType === 'pg') {
+                const schema = source.getConfig()?.schema;
                 await dbDriver.raw(
                   `UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`,
                   [
-                    table.table_name,
+                    schema ? `${schema}.${table.table_name}` : table.table_name,
                     column.column_name,
                     column.column_name,
                     option.title,
@@ -845,10 +846,11 @@ export class ColumnsService {
                 );
               }
             } else if (driverType === 'pg') {
+              const schema = source.getConfig()?.schema;
               await dbDriver.raw(
                 `UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`,
                 [
-                  table.table_name,
+                  schema ? `${schema}.${table.table_name}` : table.table_name,
                   column.column_name,
                   column.column_name,
                   ch.temp_title,

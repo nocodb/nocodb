@@ -60,8 +60,6 @@ const {
   displayValueProp,
 } = useLTARStoreOrThrow()
 
-isChildrenLoading.value = true
-
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
 
 watch(

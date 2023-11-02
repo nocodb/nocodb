@@ -295,7 +295,7 @@ export class ColumnsService {
             await dbDriver.raw(
               `UPDATE ?? SET ?? = SUBSTRING_INDEX(??, ',', 1) WHERE ?? LIKE '%,%';`,
               [
-                table.table_name,
+                baseModel.getTnPath(table.table_name),
                 column.column_name,
                 column.column_name,
                 column.column_name,
@@ -303,7 +303,7 @@ export class ColumnsService {
             );
           } else if (driverType === 'pg') {
             await dbDriver.raw(`UPDATE ?? SET ?? = split_part(??, ',', 1);`, [
-              table.table_name,
+              baseModel.getTnPath(table.table_name),
               column.column_name,
               column.column_name,
             ]);
@@ -311,7 +311,7 @@ export class ColumnsService {
             await dbDriver.raw(
               `UPDATE ?? SET ?? = LEFT(cast(?? as varchar(max)), CHARINDEX(',', ??) - 1) WHERE CHARINDEX(',', ??) > 0;`,
               [
-                table.table_name,
+                baseModel.getTnPath(table.table_name),
                 column.column_name,
                 column.column_name,
                 column.column_name,
@@ -322,7 +322,7 @@ export class ColumnsService {
             await dbDriver.raw(
               `UPDATE ?? SET ?? = substr(??, 1, instr(??, ',') - 1) WHERE ?? LIKE '%,%';`,
               [
-                table.table_name,
+                baseModel.getTnPath(table.table_name),
                 column.column_name,
                 column.column_name,
                 column.column_name,
@@ -535,7 +535,7 @@ export class ColumnsService {
             if (column.uidt === UITypes.SingleSelect) {
               if (driverType === 'mssql') {
                 await dbDriver.raw(`UPDATE ?? SET ?? = NULL WHERE ?? LIKE ?`, [
-                  table.table_name,
+                  baseModel.getTnPath(table.table_name),
                   column.column_name,
                   column.column_name,
                   option.title,
@@ -553,7 +553,7 @@ export class ColumnsService {
                   await dbDriver.raw(
                     `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), ',')) WHERE FIND_IN_SET(?, ??)`,
                     [
-                      table.table_name,
+                      baseModel.getTnPath(table.table_name),
                       column.column_name,
                       column.column_name,
                       option.title,
@@ -565,7 +565,7 @@ export class ColumnsService {
                   await dbDriver.raw(
                     `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), ','))`,
                     [
-                      table.table_name,
+                      baseModel.getTnPath(table.table_name),
                       column.column_name,
                       column.column_name,
                       option.title,
@@ -576,7 +576,7 @@ export class ColumnsService {
                 await dbDriver.raw(
                   `UPDATE ?? SET ??  = array_to_string(array_remove(string_to_array(??, ','), ?), ',')`,
                   [
-                    table.table_name,
+                    baseModel.getTnPath(table.table_name),
                     column.column_name,
                     column.column_name,
                     option.title,
@@ -586,7 +586,7 @@ export class ColumnsService {
                 await dbDriver.raw(
                   `UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), ','), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), ',')) - 2)`,
                   [
-                    table.table_name,
+                    baseModel.getTnPath(table.table_name),
                     column.column_name,
                     column.column_name,
                     option.title,
@@ -598,7 +598,7 @@ export class ColumnsService {
                 await dbDriver.raw(
                   `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ','), ',')`,
                   [
-                    table.table_name,
+                    baseModel.getTnPath(table.table_name),
                     column.column_name,
                     column.column_name,
                     option.title,
@@ -716,7 +716,7 @@ export class ColumnsService {
             if (column.uidt === UITypes.SingleSelect) {
               if (driverType === 'mssql') {
                 await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [
-                  table.table_name,
+                  baseModel.getTnPath(table.table_name),
                   column.column_name,
                   newOp.title,
                   column.column_name,
@@ -735,7 +735,7 @@ export class ColumnsService {
                   await dbDriver.raw(
                     `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`,
                     [
-                      table.table_name,
+                      baseModel.getTnPath(table.table_name),
                       column.column_name,
                       column.column_name,
                       option.title,
@@ -748,7 +748,7 @@ export class ColumnsService {
                   await dbDriver.raw(
                     `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ',')))`,
                     [
-                      table.table_name,
+                      baseModel.getTnPath(table.table_name),
                       column.column_name,
                       column.column_name,
                       option.title,
@@ -760,7 +760,7 @@ export class ColumnsService {
                 await dbDriver.raw(
                   `UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`,
                   [
-                    table.table_name,
+                    baseModel.getTnPath(table.table_name),
                     column.column_name,
                     column.column_name,
                     option.title,
@@ -771,7 +771,7 @@ export class ColumnsService {
                 await dbDriver.raw(
                   `UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`,
                   [
-                    table.table_name,
+                    baseModel.getTnPath(table.table_name),
                     column.column_name,
                     column.column_name,
                     option.title,
@@ -785,7 +785,7 @@ export class ColumnsService {
                 await dbDriver.raw(
                   `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`,
                   [
-                    table.table_name,
+                    baseModel.getTnPath(table.table_name),
                     column.column_name,
                     column.column_name,
                     option.title,
@@ -802,7 +802,7 @@ export class ColumnsService {
           if (column.uidt === UITypes.SingleSelect) {
             if (driverType === 'mssql') {
               await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [
-                table.table_name,
+                baseModel.getTnPath(table.table_name),
                 column.column_name,
                 newOp.title,
                 column.column_name,
@@ -821,7 +821,7 @@ export class ColumnsService {
                 await dbDriver.raw(
                   `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`,
                   [
-                    table.table_name,
+                    baseModel.getTnPath(table.table_name),
                     column.column_name,
                     column.column_name,
                     ch.temp_title,
@@ -834,7 +834,7 @@ export class ColumnsService {
                 await dbDriver.raw(
                   `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ',')))`,
                   [
-                    table.table_name,
+                    baseModel.getTnPath(table.table_name),
                     column.column_name,
                     column.column_name,
                     ch.temp_title,
@@ -848,7 +848,7 @@ export class ColumnsService {
               await dbDriver.raw(
                 `UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`,
                 [
-                  table.table_name,
+                  baseModel.getTnPath(table.table_name),
                   column.column_name,
                   column.column_name,
                   ch.temp_title,
@@ -859,7 +859,7 @@ export class ColumnsService {
               await dbDriver.raw(
                 `UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`,
                 [
-                  table.table_name,
+                  baseModel.getTnPath(table.table_name),
                   column.column_name,
                   column.column_name,
                   ch.temp_title,
@@ -873,7 +873,7 @@ export class ColumnsService {
               await dbDriver.raw(
                 `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`,
                 [
-                  table.table_name,
+                  baseModel.getTnPath(table.table_name),
                   column.column_name,
                   column.column_name,
                   ch.temp_title,

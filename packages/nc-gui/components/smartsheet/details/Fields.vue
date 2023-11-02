@@ -582,15 +582,30 @@ const toggleVisibility = async (checked: boolean, field: Field) => {
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
-  if (cmdOrCtrl) {
-    switch (e.key.toLowerCase()) {
-      case 's':
-        if (openedViewsTab.value !== 'field') return
-        e.preventDefault()
-        break
-    }
+
+  if (cmdOrCtrl && e.key.toLowerCase() === 's') {
+    if (openedViewsTab.value !== 'field') return
+    e.preventDefault()
+
+    return
+  }
+
+  // For Windows and mac
+  if ((e.altKey && e.key.toLowerCase() === 'c') || (e.altKey && e.code === 'KeyC')) {
+    if (openedViewsTab.value !== 'field') return
+    e.preventDefault()
+
+    addField()
   }
 })
+
+const renderCmdOrCtrlKey = () => {
+  return isMac() ? '⌘' : 'Ctrl'
+}
+
+const renderAltOrOptlKey = () => {
+  return isMac() ? '⌥' : 'ALT'
+}
 
 onKeyDown('ArrowDown', () => {
   const index = fields.value.findIndex((f) => compareCols(f, activeField.value))
@@ -633,16 +648,6 @@ onKeyDown('ArrowRight', () => {
 
 const keys = useMagicKeys()
 
-whenever(keys.altleft_c, () => {
-  if (!meta.value?.id) return
-  if (openedViewsTab.value === 'field') addField()
-})
-
-whenever(keys.option_c, () => {
-  if (!meta.value?.id) return
-  if (openedViewsTab.value === 'field') addField()
-})
-
 whenever(keys.meta_s, () => {
   if (!meta.value?.id) return
   if (openedViewsTab.value === 'field') saveChanges()
@@ -653,9 +658,20 @@ whenever(keys.ctrl_s, () => {
   if (openedViewsTab.value === 'field') saveChanges()
 })
 
+watch(
+  meta,
+  async (newMeta) => {
+    if (newMeta?.id) {
+      columnsHash.value = (await $api.dbTableColumn.hash(newMeta.id)).hash
+    }
+  },
+  { deep: true },
+)
+
 onMounted(async () => {
-  if (!meta.value?.id) return
-  columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
+  if (meta.value && meta.value.id) {
+    columnsHash.value = (await $api.dbTableColumn.hash(meta.value.id)).hash
+  }
 })
 </script>
 
@@ -686,12 +702,15 @@ onMounted(async () => {
             </template>
           </a-input>
           <div class="flex gap-2">
-            <NcButton type="secondary" size="small" class="mr-1" :disabled="loading" @click="addField()">
-              <div class="flex items-center gap-2">
-                <GeneralIcon icon="plus" class="h-3.5 mb-1 w-3.5" />
-                New field
-              </div>
-            </NcButton>
+            <NcTooltip>
+              <template #title> {{ `${renderAltOrOptlKey()} + C` }} </template>
+              <NcButton type="secondary" size="small" class="mr-1" :disabled="loading" @click="addField()">
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="plus" class="w-3" />
+                  New Field
+                </div>
+              </NcButton>
+            </NcTooltip>
             <NcButton
               type="secondary"
               size="small"
@@ -700,15 +719,19 @@ onMounted(async () => {
             >
               Reset
             </NcButton>
-            <NcButton
-              type="primary"
-              size="small"
-              :loading="loading"
-              :disabled="isColumnsValid ? !loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1 : true"
-              @click="saveChanges()"
-            >
-              Save changes
-            </NcButton>
+            <NcTooltip>
+              <template #title> {{ `${renderCmdOrCtrlKey()} + S` }} </template>
+
+              <NcButton
+                type="primary"
+                size="small"
+                :loading="loading"
+                :disabled="isColumnsValid ? !loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1 : true"
+                @click="saveChanges()"
+              >
+                Save changes
+              </NcButton>
+            </NcTooltip>
           </div>
         </div>
         <div class="flex flex-row rounded-lg border-1 border-gray-200">

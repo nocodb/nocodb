@@ -20,16 +20,6 @@ export class GlobalExceptionFilter extends GlobalExceptionFilterCE {
     });
   }
 
-  catch(exception: any, host: ArgumentsHost) {
-    const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
-
-    // set request id in response header
-    response.header('nc-req-id', (request as any).id);
-
-    return super.catch(exception, host);
-  }
   protected captureException(exception: any, request: any) {
     this.sentryClient?.instance()?.captureException(exception, {
       extra: {

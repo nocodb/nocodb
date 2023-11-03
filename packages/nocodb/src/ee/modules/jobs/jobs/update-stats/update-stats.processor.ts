@@ -142,8 +142,8 @@ export class UpdateStatsProcessor {
     if (lastFetch) {
       const diff = new Date().getTime() - new Date(lastFetch).getTime();
       const diffInHours = diff / 1000 / 60 / 60;
-      // if last fetch was less than 2 hours ago, skip
-      if (diffInHours < 2) {
+      // if last fetch was less than 4 hours ago, skip
+      if (diffInHours < 4) {
         this.debugLog(
           `Skipping external source stats update as it was updated ${diffInHours} hours ago`,
         );
@@ -177,6 +177,9 @@ export class UpdateStatsProcessor {
 
       try {
         for (const model of models) {
+          // TODO - remove this on next release
+          await ModelStat.delete(workspaceId, model.id);
+
           await this.updateModelStat({
             data: {
               fk_workspace_id: workspaceId,

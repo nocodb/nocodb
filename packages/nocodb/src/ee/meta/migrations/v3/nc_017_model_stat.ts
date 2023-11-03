@@ -8,10 +8,8 @@ const up = async (knex: Knex) => {
     table.integer('row_count').defaultTo(0);
     table.timestamps(true, true);
 
-    table.primary(['fk_workspace_id', 'fk_model_id']);
-
     table.index('fk_workspace_id');
-    table.index(['fk_workspace_id', 'fk_model_id']);
+    table.primary(['fk_workspace_id', 'fk_model_id']);
   });
 };
 

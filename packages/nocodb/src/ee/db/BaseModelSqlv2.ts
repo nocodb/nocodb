@@ -14,7 +14,7 @@ import {
 } from 'src/db/BaseModelSqlv2';
 import DOMPurify from 'isomorphic-dompurify';
 import type { Column, Model } from '~/models';
-import { Audit, ModelStat, Source, View } from '~/models';
+import { Audit, ModelStat, Source } from '~/models';
 import { getSingleQueryReadFn } from '~/services/data-opt/helpers';
 import { canUseOptimisedQuery } from '~/utils';
 import { extractProps } from '~/helpers/extractProps';
@@ -293,6 +293,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   public async beforeInsert(data: any, _trx: any, req): Promise<void> {
+    /*
     const workspaceId = await getWorkspaceForBase(this.model.base_id);
 
     const modelStats = await ModelStat.get(workspaceId, this.model.id);
@@ -324,6 +325,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         `Only ${modelRowLimit} records are allowed in your table, for more please upgrade your plan`,
       );
     }
+    */
 
     await this.handleHooks('before.insert', null, data, req);
   }

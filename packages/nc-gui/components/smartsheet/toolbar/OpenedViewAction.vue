@@ -218,7 +218,12 @@ watch(isDropdownOpen, () => {
       <GeneralIcon icon="info" class="cursor-pointer" />
     </NcTooltip>
   </div>
-  <NcDropdown v-else v-model:visible="isDropdownOpen">
+  <NcDropdown
+    v-else
+    v-model:visible="isDropdownOpen"
+    class="!xs:pointer-events-none nc-actions-menu-btn"
+    overlay-class-name="nc-dropdown-actions-menu"
+  >
     <div
       class="truncate nc-active-view-title !hover:(bg-gray-100 text-gray-800) ml-0.25 pl-1 pr-0.25 rounded-md py-1 cursor-pointer"
       :class="{
@@ -240,7 +245,7 @@ watch(isDropdownOpen, () => {
       <GeneralIcon icon="arrowDown" class="ml-1" />
     </div>
     <template #overlay>
-      <NcMenu class="min-w-84">
+      <NcMenu class="min-w-84" data-testid="toolbar-actions">
         <NcTooltip>
           <template #title> Click to copy View ID </template>
           <div class="flex items-center justify-between py-2 px-2 cursor-pointer hover:bg-gray-100 group" @click="onViewIdCopy">
@@ -264,74 +269,72 @@ watch(isDropdownOpen, () => {
           <NcDivider />
         </template>
 
-        <NcMenuItem-group>
-          <template v-if="isUIAllowed('csvTableImport') && !isPublicView && !isSqlView">
-            <NcSubMenu key="upload">
-              <template #title>
-                <div v-e="['c:navdraw:preview-as']" class="nc-base-menu-item group">
-                  <UploadIcon class="w-4 h-4" />
-                  {{ $t('general.upload') }}
+        <template v-if="isUIAllowed('csvTableImport') && !isPublicView && !isSqlView">
+          <NcSubMenu key="upload">
+            <template #title>
+              <div v-e="['c:navdraw:preview-as']" class="nc-base-menu-item group">
+                <UploadIcon class="w-4 h-4" />
+                {{ $t('general.upload') }}
+              </div>
+            </template>
+
+            <template #expandIcon></template>
+            <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">Upload Data</div>
+
+            <template v-for="(dialog, type) in quickImportDialogs">
+              <NcMenuItem v-if="isUIAllowed(`${type}TableImport`) && !isPublicView" :key="type" @click="onImportClick(dialog)">
+                <div v-e="[`a:upload:${type}`]" class="nc-base-menu-item" :class="{ disabled: isLocked }">
+                  <component :is="iconMap.upload" />
+                  {{ `${$t('general.upload')} ${type.toUpperCase()}` }}
                 </div>
-              </template>
-
-              <template #expandIcon></template>
-              <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">Upload Data</div>
-
-              <template v-for="(dialog, type) in quickImportDialogs">
-                <NcMenuItem v-if="isUIAllowed(`${type}TableImport`) && !isPublicView" :key="type" @click="onImportClick(dialog)">
-                  <div v-e="[`a:upload:${type}`]" class="nc-base-menu-item" :class="{ disabled: isLocked }">
-                    <component :is="iconMap.upload" />
-                    {{ `${$t('general.upload')} ${type.toUpperCase()}` }}
-                  </div>
-                </NcMenuItem>
-              </template>
-            </NcSubMenu>
+              </NcMenuItem>
+            </template>
+          </NcSubMenu>
+        </template>
+        <NcSubMenu key="download">
+          <template #title>
+            <div v-e="['c:download']" class="nc-base-menu-item group">
+              <DownloadIcon class="w-4 h-4" />
+              {{ $t('general.download') }}
+            </div>
           </template>
-          <NcSubMenu key="download">
-            <template #title>
-              <div v-e="['c:download']" class="nc-base-menu-item group">
-                <DownloadIcon class="w-4 h-4" />
-                {{ $t('general.download') }}
+
+          <template #expandIcon></template>
+
+          <LazySmartsheetToolbarExportSubActions />
+        </NcSubMenu>
+
+        <NcDivider />
+
+        <NcSubMenu
+          v-if="isUIAllowed('viewCreateOrEdit')"
+          key="lock-type"
+          class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0"
+        >
+          <template #title>
+            <div v-e="['c:navdraw:preview-as']" class="flex flex-row items-center gap-x-3">
+              <div>View Settings</div>
+              <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-brand-50">
+                <LazySmartsheetToolbarLockType
+                  hide-tick
+                  :type="lockType"
+                  class="flex nc-view-actions-lock-type !text-brand-500 !flex-shrink"
+                />
               </div>
-            </template>
+              <div class="flex flex-grow"></div>
+            </div>
+          </template>
 
-            <template #expandIcon></template>
+          <template #expandIcon></template>
+          <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">View Settings</div>
+          <NcMenuItem class="nc-view-action-lock-subaction" @click="changeLockType(LockType.Collaborative)">
+            <LazySmartsheetToolbarLockType :type="LockType.Collaborative" />
+          </NcMenuItem>
 
-            <LazySmartsheetToolbarExportSubActions />
-          </NcSubMenu>
-
-          <NcDivider />
-
-          <NcSubMenu
-            v-if="isUIAllowed('viewCreateOrEdit')"
-            key="lock-type"
-            class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0"
-          >
-            <template #title>
-              <div v-e="['c:navdraw:preview-as']" class="flex flex-row items-center gap-x-3">
-                <div>View Settings</div>
-                <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-brand-50">
-                  <LazySmartsheetToolbarLockType
-                    hide-tick
-                    :type="lockType"
-                    class="flex nc-view-actions-lock-type !text-brand-500 !flex-shrink"
-                  />
-                </div>
-                <div class="flex flex-grow"></div>
-              </div>
-            </template>
-
-            <template #expandIcon></template>
-            <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">View Settings</div>
-            <NcMenuItem class="nc-view-action-lock-subaction" @click="changeLockType(LockType.Collaborative)">
-              <LazySmartsheetToolbarLockType :type="LockType.Collaborative" />
-            </NcMenuItem>
-
-            <NcMenuItem @click="changeLockType(LockType.Locked)">
-              <LazySmartsheetToolbarLockType :type="LockType.Locked" />
-            </NcMenuItem>
-          </NcSubMenu>
-        </NcMenuItem-group>
+          <NcMenuItem @click="changeLockType(LockType.Locked)">
+            <LazySmartsheetToolbarLockType :type="LockType.Locked" />
+          </NcMenuItem>
+        </NcSubMenu>
       </NcMenu>
     </template>
   </NcDropdown>

@@ -1,6 +1,8 @@
 import { Catch, Optional } from '@nestjs/common';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import { GlobalExceptionFilter as GlobalExceptionFilterCE } from 'src/filters/global-exception/global-exception.filter';
+import type { ArgumentsHost } from '@nestjs/common';
+import type { Request, Response } from 'express';
 
 @Catch()
 export class GlobalExceptionFilter extends GlobalExceptionFilterCE {
@@ -18,6 +20,16 @@ export class GlobalExceptionFilter extends GlobalExceptionFilterCE {
     });
   }
 
+  catch(exception: any, host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
+
+    // set request id in response header
+    response.header('nc-req-id', (request as any).id);
+
+    return super.catch(exception, host);
+  }
   protected captureException(exception: any, request: any) {
     this.sentryClient?.instance()?.captureException(exception, {
       extra: {

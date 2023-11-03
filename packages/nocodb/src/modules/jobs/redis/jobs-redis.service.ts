@@ -7,9 +7,29 @@ export class JobsRedisService {
   private redisSubscriber: Redis;
   private unsubscribeCallbacks: { [key: string]: () => void } = {};
 
+  public workerCallbacks: { [key: string]: () => void } = {};
+  public instanceCallbacks: { [key: string]: () => void } = {};
+
   constructor() {
     this.redisClient = new Redis(process.env.NC_REDIS_JOB_URL);
     this.redisSubscriber = new Redis(process.env.NC_REDIS_JOB_URL);
+
+    if (process.env.NC_WORKER_CONTAINER === 'true') {
+      this.redisSubscriber.subscribe('workers');
+    } else {
+      this.redisSubscriber.subscribe('instances');
+    }
+
+    const onMessage = (channel, message) => {
+      console.log('onMessage', channel, message);
+      if (channel === 'workers') {
+        this.workerCallbacks[message] && this.workerCallbacks[message]();
+      } else if (channel === 'instances') {
+        this.instanceCallbacks[message] && this.instanceCallbacks[message]();
+      }
+    };
+
+    this.redisSubscriber.on('message', onMessage);
   }
 
   publish(channel: string, message: string | any) {
@@ -46,5 +66,21 @@ export class JobsRedisService {
       this.unsubscribeCallbacks[channel]();
       delete this.unsubscribeCallbacks[channel];
     }
+  }
+
+  workerCount(): Promise<number> {
+    return new Promise((resolve, reject) => {
+      this.redisClient.publish(
+        'workers',
+        'count',
+        (error, numberOfSubscribers) => {
+          if (error) {
+            reject(0);
+          } else {
+            resolve(numberOfSubscribers);
+          }
+        },
+      );
+    });
   }
 }

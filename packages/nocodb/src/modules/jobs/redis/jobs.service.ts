@@ -3,30 +3,48 @@ import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
 import type { OnModuleInit } from '@nestjs/common';
 import { JOBS_QUEUE, JobStatus } from '~/interface/Jobs';
+import { JobsRedisService } from '~/modules/jobs/redis/jobs-redis.service';
 
 @Injectable()
 export class JobsService implements OnModuleInit {
-  constructor(@InjectQueue(JOBS_QUEUE) protected readonly jobsQueue: Queue) {}
+  constructor(
+    @InjectQueue(JOBS_QUEUE) protected readonly jobsQueue: Queue,
+    protected readonly jobsRedisService: JobsRedisService,
+  ) {}
 
   // pause primary instance queue
   async onModuleInit() {
     if (process.env.NC_WORKER_CONTAINER !== 'true') {
-      // await this.jobsQueue.pause(true);
+      await this.jobsQueue.pause(true);
+      this.jobsRedisService.publish('workers', 'pause');
+    } else {
+      this.jobsRedisService.workerCallbacks['resumeLocal'] = async () => {
+        await this.jobsQueue.resume(true);
+      };
+      this.jobsRedisService.workerCallbacks['pauseLocal'] = async () => {
+        await this.jobsQueue.pause(true);
+      };
+      this.jobsRedisService.workerCallbacks['resume'] = async () => {
+        await this.jobsQueue.resume();
+      };
+      this.jobsRedisService.workerCallbacks['pause'] = async () => {
+        await this.jobsQueue.pause();
+      };
     }
   }
 
   async add(name: string, data: any) {
     // resume primary instance queue if there is no worker
-    /* const workerCount = (await this.jobsQueue.getWorkers()).length;
+    const workerCount = await this.jobsRedisService.workerCount();
     const localWorkerPaused = await this.jobsQueue.isPaused(true);
 
     // if there is no worker and primary instance queue is paused, resume it
     // if there is any worker and primary instance queue is not paused, pause it
-    if (workerCount === 1 && localWorkerPaused) {
+    if (workerCount === 0 && localWorkerPaused) {
       await this.jobsQueue.resume(true);
-    } else if (workerCount > 1 && !localWorkerPaused) {
+    } else if (workerCount > 0 && !localWorkerPaused) {
       await this.jobsQueue.pause(true);
-    } */
+    }
 
     const job = await this.jobsQueue.add(name, data);
 
@@ -71,5 +89,13 @@ export class JobsService implements OnModuleInit {
     });
 
     return job;
+  }
+
+  async resumeQueue() {
+    await this.jobsQueue.resume();
+  }
+
+  async pauseQueue() {
+    await this.jobsQueue.pause();
   }
 }

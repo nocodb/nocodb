@@ -25,33 +25,39 @@ process.env[`NC_ALLOW_LOCAL_EXTERNAL_DBS`] = 'true';
 process.env[`NC_TEST_EE`] = 'true';
 
 (async () => {
-  const httpServer = server.listen(process.env.PORT || 8080, async () => {
-    server.use(await Noco.init({}, httpServer, server));
+  if (process.env.NC_WORKER_CONTAINER === 'true') {
+    await await Noco.init({}, null, null);
+  } else {
+    const httpServer = server.listen(process.env.PORT || 8080, async () => {
+      server.use(await Noco.init({}, httpServer, server));
 
-    if (!(await User.getByEmail('user@nocodb.com'))) {
-      const response = await axios.post(
-        `http://localhost:${process.env.PORT || 8080}/api/v1/auth/user/signup`,
-        {
-          email: 'user@nocodb.com',
-          password: 'Password123.',
-        },
-      );
-      console.log(response.data);
-    }
-
-    for (let i = 0; i < 8; i++) {
-      if (!(await User.getByEmail(`user-${i}@nocodb.com`))) {
+      if (!(await User.getByEmail('user@nocodb.com'))) {
         const response = await axios.post(
           `http://localhost:${
             process.env.PORT || 8080
           }/api/v1/auth/user/signup`,
           {
-            email: `user-${i}@nocodb.com`,
+            email: 'user@nocodb.com',
             password: 'Password123.',
           },
         );
         console.log(response.data);
       }
-    }
-  });
+
+      for (let i = 0; i < 8; i++) {
+        if (!(await User.getByEmail(`user-${i}@nocodb.com`))) {
+          const response = await axios.post(
+            `http://localhost:${
+              process.env.PORT || 8080
+            }/api/v1/auth/user/signup`,
+            {
+              email: `user-${i}@nocodb.com`,
+              password: 'Password123.',
+            },
+          );
+          console.log(response.data);
+        }
+      }
+    });
+  }
 })().catch((e) => console.log(e));

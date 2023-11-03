@@ -11,6 +11,7 @@ import {
 import { OnEvent } from '@nestjs/event-emitter';
 import { customAlphabet } from 'nanoid';
 import { ModuleRef } from '@nestjs/core';
+import { AuthGuard } from '@nestjs/passport';
 import { JobsRedisService } from './redis/jobs-redis.service';
 import type { OnModuleInit } from '@nestjs/common';
 import { JobStatus } from '~/interface/Jobs';
@@ -172,6 +173,28 @@ export class JobsController implements OnModuleInit {
     }
 
     return res;
+  }
+
+  // reference: https://github.com/OptimalBits/bull/blob/develop/REFERENCE.md#queueresume
+  @Post('/internal/workers/resume')
+  @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
+  async resumeWorkers(@Body() body: { global?: boolean }) {
+    if (body.global === true) {
+      await this.jobsService.resumeQueue();
+    } else {
+      await this.jobsRedisService.publish('workers', 'resumeLocal');
+    }
+  }
+
+  // reference: https://github.com/OptimalBits/bull/blob/develop/REFERENCE.md#queuepause
+  @Post('/internal/workers/pause')
+  @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
+  async pauseWorkers(@Body() body: { global?: boolean }) {
+    if (body.global === true) {
+      await this.jobsService.pauseQueue();
+    } else {
+      await this.jobsRedisService.publish('workers', 'pauseLocal');
+    }
   }
 
   @OnEvent(JobEvents.STATUS)

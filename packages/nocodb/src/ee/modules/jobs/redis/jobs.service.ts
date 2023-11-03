@@ -4,11 +4,15 @@ import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
 import type { OnModuleInit } from '@nestjs/common';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
+import { JobsRedisService } from '~/modules/jobs/redis/jobs-redis.service';
 
 @Injectable()
 export class JobsService extends JobsServiceCE implements OnModuleInit {
-  constructor(@InjectQueue(JOBS_QUEUE) protected readonly jobsQueue: Queue) {
-    super(jobsQueue);
+  constructor(
+    @InjectQueue(JOBS_QUEUE) protected readonly jobsQueue: Queue,
+    protected readonly jobsRedisService: JobsRedisService,
+  ) {
+    super(jobsQueue, jobsRedisService);
   }
 
   // pause primary instance queue
@@ -20,8 +24,6 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
       {},
       { repeat: { cron: '0 */8 * * *' } },
     );
-    if (process.env.NC_WORKER_CONTAINER !== 'true') {
-      // await this.jobsQueue.pause(true);
-    }
+    super.onModuleInit();
   }
 }

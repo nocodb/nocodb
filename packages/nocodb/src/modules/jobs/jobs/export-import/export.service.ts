@@ -78,15 +78,20 @@ export class ExportService {
           if (source.type === 'pg') {
             if (column.ai) {
               try {
+                const baseModel = await Model.getBaseModelSQL({
+                  id: model.id,
+                  viewId: null,
+                  dbDriver: await NcConnectionMgrv2.get(source),
+                });
                 const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
-                const seq = await sqlClient.knex.raw(
+                const seq = await sqlClient.raw(
                   `SELECT pg_get_serial_sequence('??', ?) as seq;`,
-                  [model.table_name, column.column_name],
+                  [baseModel.getTnPath(model.table_name), column.column_name],
                 );
                 if (seq.rows.length > 0) {
                   const seqName = seq.rows[0].seq;
 
-                  const res = await sqlClient.knex.raw(
+                  const res = await sqlClient.raw(
                     `SELECT last_value as last FROM ${seqName};`,
                   );
 

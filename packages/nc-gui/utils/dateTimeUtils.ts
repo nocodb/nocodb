@@ -10,6 +10,10 @@ export const timeAgo = (date: any) => {
   return dayjs(date).fromNow()
 }
 
+export const dateMonthFormats = ['YYYY-MM', 'YYYY MM']
+
+export const isDateMonthFormat = (format: string) => dateMonthFormats.includes(format)
+
 export const dateFormats = [
   'YYYY-MM-DD',
   'YYYY/MM/DD',
@@ -20,6 +24,7 @@ export const dateFormats = [
   'DD MM YYYY',
   'MM DD YYYY',
   'YYYY MM DD',
+  ...dateMonthFormats,
 ]
 
 export const timeFormats = ['HH:mm', 'HH:mm:ss']

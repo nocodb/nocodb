@@ -202,4 +202,15 @@ export class WorkspacesController {
 
     return true;
   }
+
+  @Post('/internal/workspaces/deprecate')
+  @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
+  async deleteDeprecatedWorkspaces() {
+    try {
+      await this.workspacesService.deleteDeprecatedWorkspaces();
+    } catch (e) {
+      NcError.internalServerError(e);
+    }
+    return true;
+  }
 }

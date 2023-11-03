@@ -46,39 +46,6 @@ export class WorkspacesService implements OnApplicationBootstrap {
   ) {}
 
   async onApplicationBootstrap() {
-    /*
-    // TODO: move this to on demand
-
-    const deprecatedWorkspaceTemplates = await Workspace.count({
-      fk_user_id: 'DEPRECATED',
-    });
-
-    if (deprecatedWorkspaceTemplates) {
-      const list = await Noco.ncMeta.metaList2(
-        null,
-        null,
-        MetaTable.WORKSPACE,
-        {
-          condition: {
-            fk_user_id: 'DEPRECATED',
-          },
-        },
-      );
-
-      for (const workspace of list) {
-        const ncMeta = await Noco.ncMeta.startTransaction();
-        try {
-          await Workspace.delete(workspace.id, ncMeta);
-          await ncMeta.commit();
-          console.log(`[TEMPLATES] ${workspace.id} deleted`);
-        } catch (e) {
-          console.log(`[TEMPLATES] ${workspace.id} failed to delete`);
-          await ncMeta.rollback();
-        }
-      }
-    }
-    */
-
     await this.prepopulateWorkspaces();
   }
 
@@ -581,6 +548,37 @@ export class WorkspacesService implements OnApplicationBootstrap {
     } catch (err) {
       console.error(err, err.stack);
       NcError.internalServerError('Error while upgrading workspace');
+    }
+  }
+
+  async deleteDeprecatedWorkspaces() {
+    const deprecatedWorkspaceTemplates = await Workspace.count({
+      fk_user_id: 'DEPRECATED',
+    });
+
+    if (deprecatedWorkspaceTemplates) {
+      const list = await Noco.ncMeta.metaList2(
+        null,
+        null,
+        MetaTable.WORKSPACE,
+        {
+          condition: {
+            fk_user_id: 'DEPRECATED',
+          },
+        },
+      );
+
+      for (const workspace of list) {
+        const ncMeta = await Noco.ncMeta.startTransaction();
+        try {
+          await Workspace.delete(workspace.id, ncMeta);
+          await ncMeta.commit();
+          console.log(`[TEMPLATES] ${workspace.id} deleted`);
+        } catch (e) {
+          console.log(`[TEMPLATES] ${workspace.id} failed to delete`);
+          await ncMeta.rollback();
+        }
+      }
     }
   }
 }

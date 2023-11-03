@@ -10,7 +10,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 # sends message to slack channel nocohub-deploy
 function message(){
 	echo $@
-	curl -X POST -H "Content-type: application/json" --data "{\"text\":\"${@}\"}" https://hooks.slack.com/services/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
+	curl -s -X POST -H "Content-type: application/json" --data "{\"text\":\"${@}\"}" https://hooks.slack.com/services/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
 }
 
 function log_and_exit(){
@@ -56,6 +56,8 @@ function checkStatus(){
     if [[ ! "${CLUSTER}" ]]; then echo "CLUSTER and service variable must be set for check status"; log_and_exit  ; fi
 
     local STATUS=$(aws ecs describe-services --cluster ${CLUSTER} --service ${service} --region us-east-2 | jq .services[].deployments[].rolloutState -r)        
+    echo "First Check: ECS deployment status: ${STATUS} for ${service}. Retry after 30 seconds. Retry count: ${global_retry_count}"
+
     while [[ ${global_retry_count} -lt 20 &&  "${STATUS}" == *"IN_PROGRESS"* ]]
     do 
         STATUS=$(aws ecs describe-services --cluster ${CLUSTER} --service ${service} --region us-east-2 | jq .services[].deployments[].rolloutState -r)    

@@ -2,6 +2,7 @@ import Handlebars from 'handlebars';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
+import { Logger } from '@nestjs/common';
 import NcPluginMgrv2 from './NcPluginMgrv2';
 import type { Column, FormView, Hook, Model, View } from '~/models';
 import type { HookLogType } from 'nocodb-sdk';
@@ -10,6 +11,8 @@ import { Filter, HookLog } from '~/models';
 Handlebars.registerHelper('json', function (context) {
   return JSON.stringify(context);
 });
+
+const logger = new Logger('webhookHelpers');
 
 export function parseBody(template: string, data: any): string {
   if (!template) {
@@ -409,7 +412,16 @@ export async function invokeWebhook(
         break;
     }
   } catch (e) {
-    console.log(e);
+    if (e.response) {
+      logger.log({
+        data: e.response.data,
+        status: e.response.status,
+        url: e.response.config?.url,
+        message: e.message,
+      });
+    } else {
+      logger.log(e.message, e.stack);
+    }
     if (['ERROR', 'ALL'].includes(process.env.NC_AUTOMATION_LOG_LEVEL)) {
       hookLog = {
         ...hook,

@@ -58,7 +58,7 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
 
     const { client, connection, searchPath: _searchPath, pool } = finalConfig;
 
-    let se;
+    let se: SqlExecutor;
 
     if ((source as any).fk_sql_executor_id) {
       se = await SqlExecutor.get((source as any).fk_sql_executor_id);
@@ -82,7 +82,7 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
           );
         }
 
-        await SqlExecutor.update(se.id, {
+        await se.update({
           status: SqlExecutorStatus.ACTIVE,
         });
       } catch (e) {

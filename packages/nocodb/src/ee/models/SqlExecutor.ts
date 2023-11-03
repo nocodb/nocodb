@@ -1,6 +1,8 @@
 import AWS from 'aws-sdk';
+import axios from 'axios';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -135,16 +137,10 @@ export default class SqlExecutor {
     return sqlExecutor;
   }
 
-  public static async update(
-    SqlExecutorId: string,
-    SqlExecutor: Partial<SqlExecutor>,
-    ncMeta = Noco.ncMeta,
-  ) {
-    if (!SqlExecutorId) NcError.badRequest('SqlExecutor id is required');
+  public async update(sqlExecutor: Partial<SqlExecutor>, ncMeta = Noco.ncMeta) {
+    await NocoCache.del(`${CacheScope.SQL_EXECUTOR}:${this.id}`);
 
-    await NocoCache.del(`${CacheScope.SQL_EXECUTOR}:${SqlExecutorId}`);
-
-    const updateObject = extractProps(SqlExecutor, [
+    const updateObject = extractProps(sqlExecutor, [
       'domain',
       'status',
       'priority',
@@ -156,18 +152,18 @@ export default class SqlExecutor {
       null,
       MetaTable.SQL_EXECUTOR,
       updateObject,
-      SqlExecutorId,
+      this.id,
     );
 
     if (updateObject.status === SqlExecutorStatus.INACTIVE) {
       const sources = await ncMeta.metaList2(null, null, MetaTable.BASES, {
         condition: {
-          fk_sql_executor_id: SqlExecutorId,
+          fk_sql_executor_id: this.id,
         },
       });
 
-      await Promise.all(
-        sources.map((source) =>
+      await Promise.all([
+        ...sources.map((source) =>
           Source.updateBase(
             source.id,
             {
@@ -177,25 +173,18 @@ export default class SqlExecutor {
             ncMeta,
           ),
         ),
-      );
+        ...sources.map((source) => NcConnectionMgrv2.deleteAwait(source)),
+      ]);
     }
 
-    const sqlExecutor = await this.get(SqlExecutorId);
-
-    return sqlExecutor;
+    return SqlExecutor.get(this.id);
   }
 
-  public static async delete(id: string, ncMeta = Noco.ncMeta) {
-    if (!id) NcError.badRequest('SqlExecutor id is required');
-
-    const SqlExecutor = await this.get(id, ncMeta);
-
-    if (!SqlExecutor) NcError.notFound('SqlExecutor not found');
-
+  public async delete(ncMeta = Noco.ncMeta) {
     // unbind all sources
     const sources = await ncMeta.metaList2(null, null, MetaTable.BASES, {
       condition: {
-        fk_sql_executor_id: id,
+        fk_sql_executor_id: this.id,
       },
     });
 
@@ -210,28 +199,19 @@ export default class SqlExecutor {
       );
     }
 
-    await NocoCache.del(`${CacheScope.SQL_EXECUTOR}:${id}`);
+    await NocoCache.del(`${CacheScope.SQL_EXECUTOR}:${this.id}`);
 
     await NocoCache.deepDel(
       CacheScope.SQL_EXECUTOR,
-      `${CacheScope.SQL_EXECUTOR}:${id}`,
+      `${CacheScope.SQL_EXECUTOR}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
-    return await ncMeta.metaDelete(null, null, MetaTable.SQL_EXECUTOR, id);
+    return await ncMeta.metaDelete(null, null, MetaTable.SQL_EXECUTOR, this.id);
   }
 
-  public static async bindSource(
-    SqlExecutorId: string,
-    sourceId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    if (!SqlExecutorId) NcError.badRequest('SqlExecutor id is required');
+  public async bindSource(sourceId: string, ncMeta = Noco.ncMeta) {
     if (!sourceId) NcError.badRequest('Source id is required');
-
-    const SqlExecutor = await this.get(SqlExecutorId, ncMeta);
-
-    if (!SqlExecutor) NcError.notFound('SqlExecutor not found');
 
     const source = await Source.get(sourceId, false, ncMeta);
 
@@ -241,44 +221,14 @@ export default class SqlExecutor {
       sourceId,
       {
         baseId: source.base_id,
-        fk_sql_executor_id: SqlExecutor.id,
+        fk_sql_executor_id: this.id,
       },
       ncMeta,
     );
 
-    await NocoCache.del(`${CacheScope.SQL_EXECUTOR}:${SqlExecutor.id}`);
+    await NocoCache.del(`${CacheScope.SQL_EXECUTOR}:${this.id}`);
 
-    return this.get(SqlExecutorId);
-  }
-
-  public static async unbindSource(
-    SqlExecutorId: string,
-    sourceId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    if (!SqlExecutorId) NcError.badRequest('SqlExecutor id is required');
-    if (!sourceId) NcError.badRequest('Source id is required');
-
-    const SqlExecutor = await this.get(SqlExecutorId, ncMeta);
-
-    if (!SqlExecutor) NcError.notFound('SqlExecutor not found');
-
-    const source = await Source.get(sourceId, false, ncMeta);
-
-    if (!source) NcError.notFound('Source not found');
-
-    await Source.updateBase(
-      sourceId,
-      {
-        baseId: source.base_id,
-        fk_sql_executor_id: null,
-      },
-      ncMeta,
-    );
-
-    await NocoCache.del(`${CacheScope.SQL_EXECUTOR}:${SqlExecutor.id}`);
-
-    return this.get(SqlExecutorId);
+    return SqlExecutor.get(this.id, ncMeta);
   }
 
   public static async bindToSuitableSqlExecutor(
@@ -306,7 +256,7 @@ export default class SqlExecutor {
       if (process.env.TEST === 'true') {
         suitableSqlExecutor = sqlExecutors[0];
         if (suitableSqlExecutor.domain !== 'http://localhost:9000') {
-          suitableSqlExecutor = await this.update(suitableSqlExecutor.id, {
+          suitableSqlExecutor = await suitableSqlExecutor.update({
             domain: 'http://localhost:9000',
             status: SqlExecutorStatus.ACTIVE,
           });
@@ -325,8 +275,21 @@ export default class SqlExecutor {
       NcError.badRequest('There is no SQL Executor available');
     }
 
-    await this.bindSource(suitableSqlExecutor.id, source.id, ncMeta);
+    await suitableSqlExecutor.bindSource(source.id, ncMeta);
 
+    // check if sql executor is active
+    if (suitableSqlExecutor.status === SqlExecutorStatus.INACTIVE) {
+      const res = await axios.get(
+        `${suitableSqlExecutor.domain}/api/v1/health`,
+      );
+      if (res.status === 200) {
+        await suitableSqlExecutor.update({
+          status: SqlExecutorStatus.ACTIVE,
+        });
+      }
+    }
+
+    // check if we need to activate another sql executor
     const availableSeatCount = this.availableSeatCount(sqlExecutors) - 1;
 
     if (availableSeatCount <= SE_SEAT_THRESHOLD_TO_TRIGGER_ACTIVATE) {
@@ -348,7 +311,7 @@ export default class SqlExecutor {
     );
   }
 
-  public static availableSeatCount(sqlExecutors: SqlExecutor[]) {
+  private static availableSeatCount(sqlExecutors: SqlExecutor[]) {
     let count = 0;
 
     for (const sqlExecutor of sqlExecutors) {
@@ -359,7 +322,7 @@ export default class SqlExecutor {
     return count;
   }
 
-  static async activate(sqlExecutor: SqlExecutor) {
+  private static async activate(sqlExecutor: SqlExecutor) {
     const appConfig = (await import('~/app.config')).default;
 
     const snsConfig = appConfig.workspace.sns;
@@ -421,7 +384,7 @@ export default class SqlExecutor {
 
     if (!firstInactiveSqlExecutor) return;
 
-    await this.update(firstInactiveSqlExecutor.id, {
+    await firstInactiveSqlExecutor.update({
       status: SqlExecutorStatus.DEPLOYING,
     });
 

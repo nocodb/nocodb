@@ -25,6 +25,6 @@ export class SqlExecutorsController {
 
     if (!sqlExecutor) NcError.notFound('SqlExecutor not found');
 
-    return await SqlExecutor.update(sqlExecutor.id, body);
+    return await sqlExecutor.update(body);
   }
 }

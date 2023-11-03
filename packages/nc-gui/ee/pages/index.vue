@@ -139,8 +139,8 @@ onMounted(async () => {
     return await navigateTo(route.value.query.continueAfterSignIn as string)
   } else {
     const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
-
     if (continueAfterSignIn) {
+      localStorage.removeItem('continueAfterSignIn')
       return await navigateTo({
         path: continueAfterSignIn,
         query: route.value.query,

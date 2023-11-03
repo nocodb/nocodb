@@ -44,7 +44,7 @@ export interface StoredState {
   latestRelease: string | null
   hiddenRelease: string | null
   isMobileMode: boolean | null
-  lastUsedWorkspaceId: string | null
+  lastOpenedWorkspaceId: string | null
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {

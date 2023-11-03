@@ -175,6 +175,7 @@ export default class SqlExecutor {
             ncMeta,
           ),
         ),
+        // TODO - handle for all machines (REDIS?)
         ...sources.map((source) => NcConnectionMgrv2.deleteAwait(source)),
       ]);
     }
@@ -241,7 +242,7 @@ export default class SqlExecutor {
 
     if (!source) NcError.notFound('Source not found');
 
-    const sqlExecutors = await this.list(ncMeta);
+    let sqlExecutors = await this.list(ncMeta);
 
     let suitableSqlExecutor: SqlExecutor;
 
@@ -288,6 +289,8 @@ export default class SqlExecutor {
         await suitableSqlExecutor.update({
           status: SqlExecutorStatus.ACTIVE,
         });
+
+        sqlExecutors = await this.list(ncMeta);
       }
     }
 

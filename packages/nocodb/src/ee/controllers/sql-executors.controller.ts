@@ -19,8 +19,6 @@ export class SqlExecutorsController {
     },
     @Param('sqlExecutorId') sqlExecutorId: string,
   ) {
-    if (!body.status) NcError.badRequest('Missing status in body');
-
     const sqlExecutor = await SqlExecutor.get(sqlExecutorId);
 
     if (!sqlExecutor) NcError.notFound('SqlExecutor not found');

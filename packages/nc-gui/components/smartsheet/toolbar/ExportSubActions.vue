@@ -35,10 +35,14 @@ const selectedView = inject(ActiveViewInj)
 
 const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
+const isExportingType = ref<ExportTypes | undefined>(undefined)
+
 const exportFile = async (exportType: ExportTypes) => {
   let offset = 0
   let c = 1
   const responseType = exportType === ExportTypes.EXCEL ? 'base64' : 'blob'
+
+  isExportingType.value = exportType
 
   const XLSX = await import('xlsx')
   const FileSaver = await import('file-saver')
@@ -84,13 +88,10 @@ const exportFile = async (exportType: ExportTypes) => {
       }
 
       offset = +headers['nc-export-offset']
-      if (offset > -1) {
-        // Downloading more files
-        message.info(t('msg.info.downloadingMoreFiles'))
-      } else {
-        // Successfully exported all table data
-        message.success(t('msg.success.tableDataExported'))
-      }
+
+      setTimeout(() => {
+        isExportingType.value = undefined
+      }, 200)
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -101,19 +102,26 @@ const exportFile = async (exportType: ExportTypes) => {
 <template>
   <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">Download Data</div>
 
-  <NcMenuItem>
-    <div v-e="['a:download:csv']" class="nc-base-menu-item !py-0" @click="exportFile(ExportTypes.CSV)">
-      <component :is="iconMap.csv" />
-      <!-- Download as CSV -->
-      {{ $t('activity.downloadCSV') }}
+  <NcMenuItem @click="exportFile(ExportTypes.CSV)">
+    <div class="flex flex-row items-center justify-between">
+      <div v-e="['a:download:csv']" class="nc-base-menu-item !py-0">
+        <GeneralLoader v-if="isExportingType === ExportTypes.CSV" class="!max-h-4.5 !-mt-1 !mr-0.75" />
+        <component :is="iconMap.csv" v-else />
+        <!-- Download as CSV -->
+        {{ $t('activity.downloadCSV') }}
+      </div>
     </div>
   </NcMenuItem>
 
-  <NcMenuItem>
-    <div v-e="['a:download:excel']" class="nc-base-menu-item !py-0" @click="exportFile(ExportTypes.EXCEL)">
-      <component :is="iconMap.excel" />
-      <!-- Download as XLSX -->
-      {{ $t('activity.downloadExcel') }}
+  <NcMenuItem @click="exportFile(ExportTypes.EXCEL)">
+    <div class="flex flex-row items-center justify-between">
+      <div v-e="['a:download:excel']" class="nc-base-menu-item !py-0">
+        <GeneralLoader v-if="isExportingType === ExportTypes.EXCEL" class="!max-h-4.5 !-mt-1 !mr-0.75" />
+        <component :is="iconMap.excel" v-else />
+
+        <!-- Download as XLSX -->
+        {{ $t('activity.downloadExcel') }}
+      </div>
     </div>
   </NcMenuItem>
 </template>

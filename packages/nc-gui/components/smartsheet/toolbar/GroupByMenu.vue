@@ -15,6 +15,7 @@ import {
   useNuxtApp,
   useSmartsheetStoreOrThrow,
   useViewColumnsOrThrow,
+  watch,
 } from '#imports'
 
 const groupingUidt = [
@@ -205,6 +206,10 @@ const loadBtLookups = async () => {
 }
 
 onMounted(async () => {
+  await loadBtLookups()
+})
+
+watch(meta, async () => {
   await loadBtLookups()
 })
 </script>

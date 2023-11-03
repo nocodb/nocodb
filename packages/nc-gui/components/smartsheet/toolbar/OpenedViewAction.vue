@@ -156,17 +156,27 @@ watch(isDropdownOpen, () => {
       <GeneralIcon icon="arrowDown" class="ml-1" />
     </div>
     <template #overlay>
-      <NcMenu class="min-w-72">
-        <div class="flex items-center justify-between py-2 px-2">
-          <div class="flex text-xs font-bold text-gray-500 ml-1">VIEW ID: {{ activeView?.id }}</div>
-          <NcTooltip>
-            <template #title>Click to copy View ID</template>
-            <NcButton size="xsmall" type="secondary" @click="onViewIdCopy">
+      <NcMenu class="min-w-84">
+        <NcTooltip>
+          <template #title>
+            <div>
+              <div class="flex flex-row items-center gap-x-1">
+                <GeneralViewIcon class="-ml-0.5" :meta="{ type: ViewTypes.GRID }" />
+                <div class="text-base">
+                  {{ activeView?.title }}
+                </div>
+              </div>
+              <div class="flex">Click to copy View ID</div>
+            </div>
+          </template>
+          <div class="flex items-center justify-between py-2 px-2 cursor-pointer hover:bg-gray-100 group" @click="onViewIdCopy">
+            <div class="flex text-xs font-bold text-gray-500 ml-1">VIEW ID: {{ activeView?.id }}</div>
+            <NcButton size="xsmall" type="secondary" class="!group-hover:bg-gray-100">
               <GeneralIcon v-if="isViewIdCopied" icon="check" class="max-h-4 min-w-4" />
               <GeneralIcon v-else else icon="copy" class="max-h-4 min-w-4" />
             </NcButton>
-          </NcTooltip>
-        </div>
+          </div>
+        </NcTooltip>
         <NcDivider />
         <template v-if="!activeView?.is_default">
           <NcMenuItem>

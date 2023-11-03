@@ -43,6 +43,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
             id: req.id,
             method: req.method,
             url: req.url,
+            clientId: req.headers?.['nc-client-id'],
           }),
         },
         // Define a custom request id function

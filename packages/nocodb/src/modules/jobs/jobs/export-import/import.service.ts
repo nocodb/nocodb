@@ -158,10 +158,19 @@ export class ImportService {
         if (source.type === 'pg') {
           if (modelData.pgSerialLastVal) {
             if (col.ai) {
+              const baseModel = await Model.getBaseModelSQL({
+                id: table.id,
+                viewId: null,
+                dbDriver: await NcConnectionMgrv2.get(source),
+              });
               const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
-              await sqlClient.knex.raw(
+              await sqlClient.raw(
                 `SELECT setval(pg_get_serial_sequence('??', ?), ?);`,
-                [table.table_name, col.column_name, modelData.pgSerialLastVal],
+                [
+                  baseModel.getTnPath(table.table_name),
+                  col.column_name,
+                  modelData.pgSerialLastVal,
+                ],
               );
             }
           }

@@ -198,14 +198,24 @@ export default class Column<T = any> implements ColumnType {
     );
 
     if (column.view_id) {
-      await View.insertOrUpdateColumn(
-        column.view_id,
-        row.id,
+      const viewColId = await View.getViewColumnId(
         {
-          show: true,
+          viewId: column.view_id,
+          colId: row.id,
         },
         ncMeta,
       );
+
+      if (viewColId) {
+        await View.updateColumn(
+          column.view_id,
+          viewColId,
+          {
+            show: true,
+          },
+          ncMeta,
+        );
+      }
     }
 
     return col;

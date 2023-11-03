@@ -52,7 +52,9 @@ export default class SqlExecutor {
 
     sqlExecutorList.sort((a, b) => a.priority - b.priority);
 
-    return sqlExecutorList;
+    return sqlExecutorList.map(
+      (sqlExecutor) => sqlExecutor && new SqlExecutor(sqlExecutor),
+    );
   }
 
   public static async get(SqlExecutorId: string, ncMeta = Noco.ncMeta) {

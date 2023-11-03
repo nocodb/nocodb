@@ -36,8 +36,15 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
       : []),
     LoggerModule.forRoot({
       pinoHttp: {
-        quietReqLogger: true,
+        // quietReqLogger: true,
         autoLogging: false,
+        serializers: {
+          req: (req) => ({
+            id: req.id,
+            method: req.method,
+            url: req.url,
+          }),
+        },
       },
     }),
   ],

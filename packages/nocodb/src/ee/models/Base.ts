@@ -6,7 +6,7 @@ import DashboardProjectDBProject from '~/models/DashboardProjectDBProject';
 import Noco from '~/Noco';
 
 import Source from '~/models/Source';
-import { BaseUser } from '~/models';
+import { BaseUser, ModelStat } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 
 import {
@@ -239,7 +239,19 @@ export default class Base extends BaseCE {
 
   // @ts-ignore
   static async softDelete(baseId: string, ncMeta = Noco.ncMeta): Promise<any> {
+    const base = (await this.get(baseId, ncMeta)) as Base;
+
     await this.clearConnectionPool(baseId, ncMeta);
+
+    const models = await ncMeta.metaList2(null, null, MetaTable.MODELS, {
+      condition: {
+        base_id: baseId,
+      },
+    });
+
+    await Promise.all(
+      models.map((model) => ModelStat.delete(base.fk_workspace_id, model.id)),
+    );
 
     // get existing cache
     const key = `${CacheScope.PROJECT}:${baseId}`;

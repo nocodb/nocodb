@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { isMobileMode } = useGlobal()
 
-const { openedViewsTab, activeView } = storeToRefs(useViewsStore())
+const { activeView } = storeToRefs(useViewsStore())
 
 const { base, isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
@@ -130,7 +130,5 @@ const openedBaseUrl = computed(() => {
 
       <SmartsheetToolbarOpenedViewAction />
     </template>
-
-    <LazySmartsheetToolbarReload v-if="openedViewsTab === 'view' && !isMobileMode" />
   </div>
 </template>

@@ -5,7 +5,7 @@ import { LockType } from '~/lib'
 import UploadIcon from '~icons/nc-icons/upload'
 import DownloadIcon from '~icons/nc-icons/download'
 
-const { activeView, views } = storeToRefs(useViewsStore())
+const { activeView, views, openedViewsTab } = storeToRefs(useViewsStore())
 const { loadViews, navigateToView } = useViewsStore()
 
 const { isMobileMode } = useGlobal()
@@ -37,6 +37,14 @@ const lockType = computed(() => (activeView.value?.lock_type as LockType) || Loc
 const quickImportDialogTypes: QuickImportDialogType[] = ['csv', 'excel']
 
 const isViewIdCopied = ref(false)
+
+const isRenaming = ref(false)
+
+const renameInputDom = ref()
+
+const viewRenameTitle = ref('')
+
+const error = ref<string | undefined>()
 
 const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<boolean>> = quickImportDialogTypes.reduce(
   (acc: any, curr) => {
@@ -126,6 +134,56 @@ const onImportClick = (dialog: any) => {
   dialog.value = true
 }
 
+const onRenameMenuClick = () => {
+  isRenaming.value = true
+  isDropdownOpen.value = false
+  viewRenameTitle.value = activeView.value!.title
+
+  setTimeout(() => {
+    renameInputDom.value.focus()
+  })
+}
+
+watch(renameInputDom, () => {
+  renameInputDom.value?.focus()
+})
+
+const onRenameBlur = async () => {
+  if (validate()) {
+    activeView.value!.title = viewRenameTitle.value
+    isRenaming.value = false
+    error.value = undefined
+
+    await $api.dbView.update(activeView.value!.id!, {
+      title: viewRenameTitle.value,
+    })
+  } else {
+    renameInputDom.value?.focus()
+  }
+}
+
+/** validate view title */
+function validate() {
+  if (!viewRenameTitle.value || viewRenameTitle.value.trim().length < 0) {
+    error.value = t('msg.error.viewNameRequired')
+
+    return false
+  }
+
+  if (views.value.some((v) => v.title === viewRenameTitle.value && v.id !== activeView.value!.id)) {
+    error.value = t('msg.error.viewNameDuplicate')
+    return false
+  }
+
+  return true
+}
+
+watch(viewRenameTitle, () => {
+  if (error.value) {
+    error.value = undefined
+  }
+})
+
 watch(isDropdownOpen, () => {
   setTimeout(() => {
     isViewIdCopied.value = false
@@ -134,7 +192,33 @@ watch(isDropdownOpen, () => {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isDropdownOpen">
+  <div
+    v-if="isRenaming"
+    class="h-6 relative"
+    :class="{
+      'max-w-2/5': !isSharedBase && !isMobileMode && activeView?.is_default,
+      'max-w-3/5': !isSharedBase && !isMobileMode && !activeView?.is_default,
+    }"
+  >
+    <input
+      ref="renameInputDom"
+      v-model="viewRenameTitle"
+      class="ml-0.25 w-full px-1 py-0.5 rounded-md font-medium text-gray-800"
+      :class="{
+        'outline-brand-500': !error,
+        'outline-red-500': error,
+      }"
+      @blur="onRenameBlur"
+      @keydown.enter="onRenameBlur"
+    />
+    <NcTooltip v-if="error" class="absolute top-0.25 -right-0.5">
+      <template #title>
+        {{ error }}
+      </template>
+      <GeneralIcon icon="info" class="cursor-pointer" />
+    </NcTooltip>
+  </div>
+  <NcDropdown v-else v-model:visible="isDropdownOpen">
     <div
       class="truncate nc-active-view-title !hover:(bg-gray-100 text-gray-800) ml-0.25 pl-1 pr-0.25 rounded-md py-1 cursor-pointer"
       :class="{
@@ -179,7 +263,7 @@ watch(isDropdownOpen, () => {
         </NcTooltip>
         <NcDivider />
         <template v-if="!activeView?.is_default">
-          <NcMenuItem>
+          <NcMenuItem @click="onRenameMenuClick">
             <GeneralIcon icon="edit" />
             Rename View
           </NcMenuItem>
@@ -261,6 +345,8 @@ watch(isDropdownOpen, () => {
       </NcMenu>
     </template>
   </NcDropdown>
+
+  <LazySmartsheetToolbarReload v-if="openedViewsTab === 'view' && !isMobileMode && !isRenaming" />
 
   <template v-if="currentBaseId">
     <LazyDlgQuickImport

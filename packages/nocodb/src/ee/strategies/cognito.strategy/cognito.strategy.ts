@@ -10,6 +10,8 @@ import type { AppConfig } from '~/interface/config';
 import { sanitiseUserObj } from '~/utils';
 import { UsersService } from '~/services/users/users.service';
 import { User } from '~/models';
+import { NcError } from '~/helpers/catchError';
+import { isDisposableEmail } from '~/helpers';
 
 @Injectable()
 export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
@@ -49,6 +51,13 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
 
         if (/\+/.test(email.split('@')[0])) {
           return callback(new Error("Emails with '+' are not allowed"));
+        }
+
+        // check if email is disposable and throw error
+        if (isDisposableEmail(email)) {
+          NcError.badRequest(
+            'For the security and integrity of NocoDB platform, we require users to sign up with a permanent email address. Please provide a valid, long-term email address to continue.',
+          );
         }
 
         // get user by email

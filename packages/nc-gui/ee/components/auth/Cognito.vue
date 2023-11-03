@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import '@aws-amplify/ui-vue/styles.css'
 import { Authenticator } from '@aws-amplify/ui-vue'
+import isEmail from 'validator/es/lib/isEmail'
 import { isFirstTimeUser } from '#imports'
 
 const initialState = isFirstTimeUser() ? 'signUp' : 'signIn'
@@ -10,6 +11,16 @@ const services = {
     if (/\+/.test(formData.email?.split('@')[0])) {
       return {
         email: "Email with '+' is not allowed.",
+      }
+    }
+    if (!isEmail(formData.email?.toLowerCase() || '')) {
+      return
+    }
+    const { isDisposableEmail } = await import('~/helpers/isDisposableEmail')
+    if (isDisposableEmail(formData.email?.toLowerCase())) {
+      return {
+        email:
+          'For the security and integrity of NocoDB platform, we require users to sign up with a permanent email address. Please provide a valid, long-term email address to continue.',
       }
     }
   },
@@ -120,6 +131,7 @@ const formFields = {
 .amplify-field__show-password {
   @apply border-l-0 !rounded-l-none hover:bg-white focus:bg-white focus:ring-0 border-1 border-gray-200;
 }
+
 .amplify-input {
   @apply border-1 border-gray-200 rounded-lg;
 }
@@ -143,12 +155,15 @@ const formFields = {
 .amplify-divider {
   @apply uppercase !text-gray-800;
 }
+
 .amplify-authenticator__font {
   font-family: 'Manrope', sans-serif;
 }
+
 [data-amplify-authenticator] [data-amplify-router] {
   @apply !rounded-2xl overflow-hidden;
 }
+
 .amplify-tabs[data-indicator-position='top'] {
   @apply !border-t-1 border-brand-500;
 }

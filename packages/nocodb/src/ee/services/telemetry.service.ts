@@ -22,10 +22,12 @@ export class TelemetryService {
   public sendEvent({
     evt_type: event,
     req,
+    clientId,
     ...payload
   }: {
     evt_type: string;
     req?: any;
+    clientId?: any;
     [key: string]: any;
   }) {
     // commented out for now since we are not using kafka for now
@@ -48,7 +50,10 @@ export class TelemetryService {
     }
 
     const distinctId =
-      req?.headers?.['nc-client-id'] || payload['userId'] || payload['user_id'];
+      clientId ||
+      req?.headers?.['nc-client-id'] ||
+      payload['userId'] ||
+      payload['user_id'];
 
     // skip if client id / user id is not present
     if (distinctId)

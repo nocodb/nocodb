@@ -51,7 +51,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
           const existingID = req.id ?? req.headers['x-request-id'];
           if (existingID) return existingID;
           const id = uuidv4();
-          res.setHeader('X-Request-Id', id);
+          res.setHeader('x-request-id', id);
           return id;
         },
       },

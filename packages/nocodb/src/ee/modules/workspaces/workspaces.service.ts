@@ -573,9 +573,9 @@ export class WorkspacesService implements OnApplicationBootstrap {
         try {
           await Workspace.delete(workspace.id, ncMeta);
           await ncMeta.commit();
-          console.log(`[TEMPLATES] ${workspace.id} deleted`);
+          this.logger.log(`[TEMPLATES] ${workspace.id} deleted`);
         } catch (e) {
-          console.log(`[TEMPLATES] ${workspace.id} failed to delete`);
+          this.logger.log(`[TEMPLATES] ${workspace.id} failed to delete`);
           await ncMeta.rollback();
         }
       }

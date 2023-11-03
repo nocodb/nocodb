@@ -22,6 +22,8 @@ const { $api, $e } = useNuxtApp()
 
 const isDropdownOpen = ref(false)
 
+const currentBaseId = computed(() => activeTable.value?.source_id)
+
 const isPublicView = inject(IsPublicInj, ref(false))
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -117,6 +119,13 @@ function onDuplicate() {
   }
 }
 
+const onImportClick = (dialog: any) => {
+  if (isLocked.value) return
+
+  isDropdownOpen.value = false
+  dialog.value = true
+}
+
 watch(isDropdownOpen, () => {
   setTimeout(() => {
     isViewIdCopied.value = false
@@ -185,13 +194,8 @@ watch(isDropdownOpen, () => {
               <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">Upload Data</div>
 
               <template v-for="(dialog, type) in quickImportDialogs">
-                <NcMenuItem v-if="isUIAllowed(`${type}TableImport`) && !isPublicView" :key="type">
-                  <div
-                    v-e="[`a:upload:${type}`]"
-                    class="nc-base-menu-item"
-                    :class="{ disabled: isLocked }"
-                    @click="!isLocked ? (dialog.value = true) : {}"
-                  >
+                <NcMenuItem v-if="isUIAllowed(`${type}TableImport`) && !isPublicView" :key="type" @click="onImportClick(dialog)">
+                  <div v-e="[`a:upload:${type}`]" class="nc-base-menu-item" :class="{ disabled: isLocked }">
                     <component :is="iconMap.upload" />
                     {{ `${$t('general.upload')} ${type.toUpperCase()}` }}
                   </div>
@@ -247,6 +251,17 @@ watch(isDropdownOpen, () => {
       </NcMenu>
     </template>
   </NcDropdown>
+
+  <template v-if="currentBaseId">
+    <LazyDlgQuickImport
+      v-for="tp in quickImportDialogTypes"
+      :key="tp"
+      v-model="quickImportDialogs[tp].value"
+      :import-type="tp"
+      :source-id="currentBaseId"
+      :import-data-only="true"
+    />
+  </template>
 </template>
 
 <style lang="scss" scoped>

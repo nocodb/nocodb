@@ -51,19 +51,22 @@ import { CommandPaletteController } from '~/controllers/command-palette.controll
     // ClickhouseService,
     // ...(enableThrottler ? [ThrottlerExpiryListenerService] : []),
   ],
-  controllers: [
-    ...metaModuleMetadata.controllers,
+  controllers:
+    process.env.NC_WORKER_CONTAINER !== 'true'
+      ? [
+          ...metaModuleMetadata.controllers,
 
-    DocsPagesHistoryController,
-    DocsPagesController,
-    DocsPublicController,
+          DocsPagesHistoryController,
+          DocsPagesController,
+          DocsPublicController,
 
-    WidgetsController,
-    LayoutsController,
-    LayoutFilterController,
+          WidgetsController,
+          LayoutsController,
+          LayoutFilterController,
 
-    CommandPaletteController,
-    TelemetryController,
-  ],
+          CommandPaletteController,
+          TelemetryController,
+        ]
+      : [],
 })
 export class MetasModule {}

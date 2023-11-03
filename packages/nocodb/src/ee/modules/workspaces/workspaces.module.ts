@@ -7,7 +7,8 @@ import { JobsModule } from '~/modules/jobs/jobs.module';
 
 @Module({
   imports: [MetasModule, JobsModule, forwardRef(() => WorkspaceUsersModule)],
-  controllers: [WorkspacesController],
+  controllers:
+    process.env.NC_WORKER_CONTAINER !== 'true' ? [WorkspacesController] : [],
   providers: [WorkspacesService],
   exports: [WorkspacesService],
 })

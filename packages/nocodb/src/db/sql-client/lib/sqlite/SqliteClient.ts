@@ -1630,8 +1630,45 @@ class SqliteClient extends KnexClient {
 
       const trx = await this.sqlClient.transaction();
 
+      const splitQueries = (query) => {
+        const queries = [];
+        let quotationCount = 0;
+        let quotationMode: 'double' | 'single' | undefined = undefined;
+        let currentQuery = '';
+
+        for (let i = 0; i < query.length; i++) {
+          if (!quotationMode && (query[i] === '"' || query[i] === "'")) {
+            quotationMode = query[i] === '"' ? 'double' : 'single';
+          }
+
+          if (
+            (quotationMode === 'double' && query[i] === '"') ||
+            (quotationMode === 'single' && query[i] === "'")
+          ) {
+            // Ignore if quotation is escaped
+            if (i > 0 && query[i - 1] !== '\\') {
+              quotationCount++;
+            }
+          }
+
+          if (query[i] === ';' && quotationCount % 2 === 0) {
+            queries.push(currentQuery);
+            currentQuery = '';
+            quotationMode = undefined;
+          } else {
+            currentQuery += query[i];
+          }
+        }
+
+        if (currentQuery.trim() !== '') {
+          queries.push(currentQuery);
+        }
+
+        return queries;
+      };
+
       try {
-        const queries = upQuery.split(';');
+        const queries = splitQueries(upQuery);
         for (let i = 0; i < queries.length; i++) {
           if (queries[i].trim() !== '') {
             await trx.raw(queries[i]);

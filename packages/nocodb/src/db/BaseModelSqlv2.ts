@@ -4304,10 +4304,7 @@ class BaseModelSqlv2 {
         }
       }
 
-      if (
-        this.isPg &&
-        (col.dt === 'timestamp with time zone' || col.dt === 'timestamptz')
-      ) {
+      if (this.isPg) {
         // postgres - timezone already attached to input
         // e.g. 2023-05-11 16:16:51+08:00
         keepLocalTime = false;

@@ -1,4 +1,11 @@
-import {Controller, Delete, Inject, Param, Req, UseGuards} from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Inject,
+  Param,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
@@ -19,7 +26,7 @@ export class SourceDeleteController {
     '/api/v2/meta/bases/:baseId/sources/:sourceId',
   ])
   @Acl('baseDelete')
-  async baseDelete(@Param('sourceId') sourceId: string,@Req() req){
+  async baseDelete(@Param('sourceId') sourceId: string, @Req() req) {
     const jobs = await this.jobsService.jobList();
     const fnd = jobs.find(
       (j) => j.name === JobTypes.BaseDelete && j.data.sourceId === sourceId,

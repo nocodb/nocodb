@@ -25,7 +25,7 @@ import {
 import conditionV2 from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
-import {sanitize, sanitizeAndEscapeDots} from '~/helpers/sqlSanitize';
+import { sanitize, sanitizeAndEscapeDots } from '~/helpers/sqlSanitize';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import getAst from '~/helpers/getAst';

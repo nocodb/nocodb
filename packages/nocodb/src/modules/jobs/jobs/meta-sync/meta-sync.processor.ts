@@ -17,8 +17,8 @@ export class MetaSyncProcessor {
     const info: {
       baseId: string;
       sourceId: string;
-      user: any
-      req:any;
+      user: any;
+      req: any;
     } = job.data;
 
     if (info.sourceId === 'all') {

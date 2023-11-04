@@ -38,7 +38,7 @@ export class MetaSyncController {
       baseId,
       sourceId: 'all',
       user: req.user,
-      req:  {
+      req: {
         user: req.user,
         clientIp: req.clientIp,
         headers: req.headers,
@@ -75,7 +75,7 @@ export class MetaSyncController {
       baseId,
       sourceId,
       user: req.user,
-      req:  {
+      req: {
         user: req.user,
         clientIp: req.clientIp,
         headers: req.headers,

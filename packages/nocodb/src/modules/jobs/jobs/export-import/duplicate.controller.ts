@@ -87,6 +87,7 @@ export class DuplicateController {
       req: {
         user: req.user,
         clientIp: req.clientIp,
+        headers: req.headers,
       },
     });
 
@@ -150,9 +151,10 @@ export class DuplicateController {
       sourceId: source.id,
       dupProjectId: dupProject.id,
       options: body.options || {},
-      req: {
+      req:  {
         user: req.user,
         clientIp: req.clientIp,
+        headers: req.headers,
       },
     });
 
@@ -205,9 +207,10 @@ export class DuplicateController {
       modelId: model.id,
       title: uniqueTitle,
       options: body.options || {},
-      req: {
+      req:  {
         user: req.user,
         clientIp: req.clientIp,
+        headers: req.headers,
       },
     });
 

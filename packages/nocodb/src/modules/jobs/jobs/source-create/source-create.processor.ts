@@ -18,7 +18,7 @@ export class SourceCreateProcessor {
   async job(job: Job) {
     this.debugLog(`job started for ${job.id}`);
 
-    const { baseId, source } = job.data;
+    const { baseId, source, req } = job.data;
 
     const logBasic = (log) => {
       this.jobsLogService.sendLog(job, { message: log });
@@ -29,6 +29,7 @@ export class SourceCreateProcessor {
       baseId,
       source,
       logger: logBasic,
+      req,
     });
 
     if (createdBase.isMeta()) {

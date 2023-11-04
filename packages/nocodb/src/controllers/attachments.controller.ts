@@ -60,14 +60,12 @@ export class AttachmentsController {
   // This route will match any URL that starts with
   async fileRead(@Param('filename') filename: string, @Response() res) {
     try {
-      const { img, type } = await this.attachmentsService.fileRead({
+      const file = await this.attachmentsService.getFile({
         path: path.join('nc', 'uploads', filename),
       });
 
-      res.writeHead(200, { 'Content-Type': type });
-      res.end(img, 'binary');
+      res.sendFile(file.path);
     } catch (e) {
-      console.log(e);
       res.status(404).send('Not found');
     }
   }
@@ -82,7 +80,7 @@ export class AttachmentsController {
     @Response() res,
   ) {
     try {
-      const { img, type } = await this.attachmentsService.fileRead({
+      const file = await this.attachmentsService.getFile({
         path: path.join(
           'nc',
           param1,
@@ -92,8 +90,7 @@ export class AttachmentsController {
         ),
       });
 
-      res.writeHead(200, { 'Content-Type': type });
-      res.end(img, 'binary');
+      res.sendFile(file.path);
     } catch (e) {
       res.status(404).send('Not found');
     }
@@ -104,11 +101,11 @@ export class AttachmentsController {
     try {
       const fpath = await PresignedUrl.getPath(`dltemp/${param}`);
 
-      const { img } = await this.attachmentsService.fileRead({
+      const file = await this.attachmentsService.getFile({
         path: path.join('nc', 'uploads', fpath),
       });
 
-      res.sendFile(img);
+      res.sendFile(file.path);
     } catch (e) {
       res.status(404).send('Not found');
     }

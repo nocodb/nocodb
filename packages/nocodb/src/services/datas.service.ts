@@ -63,7 +63,7 @@ export class DatasService {
 
   async dataInsert(
     param: PathParams & {
-      body: unknown;
+      body: any;
       cookie: any;
       disableOptimization?: boolean;
     },
@@ -77,6 +77,10 @@ export class DatasService {
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
+
+    if (param?.body?.Id) {
+      delete param?.body?.Id
+    }
 
     return await baseModel.insert(param.body, null, param.cookie);
   }
@@ -933,7 +937,7 @@ export class DatasService {
           .sort((c1, c2) =>
             Array.isArray(fields)
               ? fields.indexOf(c1.title as any) -
-                fields.indexOf(c2.title as any)
+              fields.indexOf(c2.title as any)
               : 0,
           )
           .filter(

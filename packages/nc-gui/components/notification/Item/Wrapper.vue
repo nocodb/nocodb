@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { timeAgo } from '#imports'
+import { timeAgo } from 'nocodb-sdk'
 
 const props = defineProps<{
   item: {

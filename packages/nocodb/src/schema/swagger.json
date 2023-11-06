@@ -14939,15 +14939,30 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/AttachmentReq"
+                "type":"object",
+                "properties":{
+                  "files":{
+                    "type": "array",
+                    "required": true,
+                    "items": {
+                      "$ref": "#/components/schemas/FileReq"
+                    }
+                  }
+                }
               },
               "examples": {
                 "Example 1": {
                   "value": {
-                    "mimetype": "image/jpeg",
-                    "path": "download/noco/jango_fett/Table1/attachment/uVbjPVQxC_SSfs8Ctx.jpg",
-                    "size": 13052,
-                    "title": "22bc-kavypmq4869759 (1).jpg"
+                    "files": [
+                      {
+                        "mimetype": "image/jpeg",
+                        "fieldname":"files",
+                        "originalname": "22bc-kavypmq4869759 (1).jpg",
+                        "encoding":"7bit",
+                        "size": 13052,
+                        "buffer": "<Buffer 89 50 4e 47 0d 0a 1a 0a 00 00 00 0d 49 48 44 52 00 00 03 20 00 00 02 58 08 02 00 00 00 15 14 15 27 00 00 00 09 70 48 59 73 00 00 0b 13 00 00 0b 13 01 >"
+                      }
+                    ]
                   }
                 }
               }
@@ -16478,10 +16493,57 @@
           "url": {
             "type": "string",
             "description": "Attachment URL to be uploaded via upload-by-url"
+          },
+          "fileName":{
+            "type": "string",
+            "description": "The name of the attachment file name"
           }
         },
         "x-stoplight": {
           "id": "6cr1iwhbyxncd"
+        }
+      },
+      "FileReq": {
+        "description": "Model for File Request",
+        "type": "object",
+        "x-examples": {
+          "Example 1": {
+            "mimetype": "image/jpeg",
+            "fieldname":"files",
+            "originalname": "22bc-kavypmq4869759 (1).jpg",
+            "encoding":"7bit",
+            "size": 13052,
+            "buffer": "<Buffer 89 50 4e 47 0d 0a 1a 0a 00 00 00 0d 49 48 44 52 00 00 03 20 00 00 02 58 08 02 00 00 00 15 14 15 27 00 00 00 09 70 48 59 73 00 00 0b 13 00 00 0b 13 01 >"
+          }
+        },
+        "title": "File Request Model",
+        "properties": {
+          "mimetype": {
+            "type": "string",
+            "description": "The mimetype of the file"
+          },
+          "fieldname": {
+            "type": "string",
+            "description": "The name of the input used to upload the file"
+          },
+          "originalname": {
+            "type": "string",
+            "description": "The original name of the file"
+          },
+          "size": {
+            "type": "number",
+            "description": "The size of the file"
+          },
+          "encoding": {
+            "type": "string",
+            "description": "The encoding of the file"
+          },
+          "buffer": {
+            "description": "An buffer array containing the file content"
+          }
+        },
+        "x-stoplight": {
+          "id": null
         }
       },
       "Audit": {

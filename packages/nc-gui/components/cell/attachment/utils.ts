@@ -195,7 +195,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           },
           {
             files,
-            json: '{}',
           },
         )
         newAttachments.push(...data)

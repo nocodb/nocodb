@@ -53,7 +53,7 @@ export class SourcesService {
     return sources;
   }
 
-  async baseDelete(param: { sourceId: string; req:any}) {
+  async baseDelete(param: { sourceId: string; req: any}) {
     try {
       const source = await Source.get(param.sourceId, true);
       await source.delete();

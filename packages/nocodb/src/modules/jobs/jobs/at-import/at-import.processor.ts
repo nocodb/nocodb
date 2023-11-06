@@ -1527,8 +1527,8 @@ export class AtImportProcessor {
                     url: attachment.url,
                     size: attachment.size,
                     mimetype: attachment.type,
-                    req:{}
-                  })),
+                  })),                    req:{}
+
                 });
               } catch (e) {
                 console.log(e);

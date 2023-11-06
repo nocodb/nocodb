@@ -247,11 +247,17 @@ watch(isDropdownOpen, () => {
       <GeneralIcon icon="arrowDown" class="ml-1" />
     </div>
     <template #overlay>
-      <NcMenu class="min-w-84" data-testid="toolbar-actions">
+      <NcMenu class="!min-w-84" data-testid="toolbar-actions">
         <NcTooltip>
-          <template #title> Click to copy View ID </template>
+          <template #title> {{ $t('msg.clickToCopyViewID') }} </template>
           <div class="flex items-center justify-between py-2 px-2 cursor-pointer hover:bg-gray-100 group" @click="onViewIdCopy">
-            <div class="flex text-xs font-bold text-gray-500 ml-1">VIEW ID: {{ activeView?.id }}</div>
+            <div class="flex text-xs font-bold text-gray-500 ml-1">
+              {{
+                $t('labels.viewIdColon', {
+                  viewId: activeView?.id,
+                })
+              }}
+            </div>
             <NcButton size="xsmall" type="secondary" class="!group-hover:bg-gray-100">
               <GeneralIcon v-if="isViewIdCopied" icon="check" class="max-h-4 min-w-4" />
               <GeneralIcon v-else else icon="copy" class="max-h-4 min-w-4" />
@@ -262,11 +268,11 @@ watch(isDropdownOpen, () => {
         <template v-if="!activeView?.is_default">
           <NcMenuItem @click="onRenameMenuClick">
             <GeneralIcon icon="edit" />
-            Rename View
+            {{ $t('activity.renameView') }}
           </NcMenuItem>
           <NcMenuItem @click="onDuplicate">
-            <GeneralIcon icon="copy" />
-            Duplicate View
+            <GeneralIcon icon="duplicate" />
+            {{ $t('labels.duplicateView') }}
           </NcMenuItem>
           <NcDivider />
         </template>
@@ -281,7 +287,7 @@ watch(isDropdownOpen, () => {
             </template>
 
             <template #expandIcon></template>
-            <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">Upload Data</div>
+            <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('activity.uploadData') }}</div>
 
             <template v-for="(dialog, type) in quickImportDialogs">
               <NcMenuItem v-if="isUIAllowed(`${type}TableImport`) && !isPublicView" :key="type" @click="onImportClick(dialog)">
@@ -315,7 +321,9 @@ watch(isDropdownOpen, () => {
         >
           <template #title>
             <div v-e="['c:navdraw:preview-as']" class="flex flex-row items-center gap-x-3">
-              <div>View Settings</div>
+              <div>
+                {{ $t('labels.viewSettings') }}
+              </div>
               <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-brand-50">
                 <LazySmartsheetToolbarLockType
                   hide-tick
@@ -328,7 +336,7 @@ watch(isDropdownOpen, () => {
           </template>
 
           <template #expandIcon></template>
-          <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">View Settings</div>
+          <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('labels.viewSettings') }}</div>
           <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">
             <LazySmartsheetToolbarLockType :type="LockType.Collaborative" @click="changeLockType(LockType.Collaborative)" />
           </a-menu-item>

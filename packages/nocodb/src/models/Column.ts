@@ -99,6 +99,7 @@ export default class Column<T = any> implements ColumnType {
       [key: string]: any;
       fk_model_id: string;
       uidt: UITypes | string;
+      view_id?: string;
     } & Pick<ColumnReqType, 'column_order'>,
     ncMeta = Noco.ncMeta,
   ) {
@@ -185,7 +186,7 @@ export default class Column<T = any> implements ColumnType {
       {
         fk_column_id: row.id,
         fk_model_id: column.fk_model_id,
-        show: true,
+        show: false,
         column_order: column.column_order,
       },
       ncMeta,
@@ -195,6 +196,17 @@ export default class Column<T = any> implements ColumnType {
       CacheScope.SINGLE_QUERY,
       `${column.fk_model_id}:default:*`,
     );
+
+    if (column.view_id) {
+      await View.insertOrUpdateColumn(
+        column.view_id,
+        row.id,
+        {
+          show: true,
+        },
+        ncMeta,
+      );
+    }
 
     return col;
   }

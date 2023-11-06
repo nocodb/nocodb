@@ -31,7 +31,6 @@ import { JOBS_QUEUE } from '~/interface/Jobs';
 import { MetasModule } from '~/modules/metas/metas.module';
 import { DatasModule } from '~/modules/datas/datas.module';
 import { GlobalModule } from '~/modules/global/global.module';
-import { WorkerController } from '~/modules/jobs/worker/worker.controller';
 
 export const JobsModuleMetadata = {
   imports: [
@@ -51,7 +50,6 @@ export const JobsModuleMetadata = {
   ],
   controllers: [
     JobsController,
-    WorkerController,
     ...(process.env.NC_WORKER_CONTAINER !== 'true'
       ? [
           DuplicateController,

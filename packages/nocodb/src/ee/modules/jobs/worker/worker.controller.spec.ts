@@ -1,5 +1,5 @@
 import { Test } from '@nestjs/testing';
-import { UtilsService } from '../../../services/utils.service';
+import { UtilsService } from '../../../../services/utils.service';
 import { WorkerController } from './worker.controller';
 import type { TestingModule } from '@nestjs/testing';
 

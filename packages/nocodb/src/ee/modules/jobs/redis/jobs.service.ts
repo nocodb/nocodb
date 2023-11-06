@@ -9,7 +9,7 @@ import { JobsRedisService } from '~/modules/jobs/redis/jobs-redis.service';
 @Injectable()
 export class JobsService extends JobsServiceCE implements OnModuleInit {
   constructor(
-    @InjectQueue(JOBS_QUEUE) protected readonly jobsQueue: Queue,
+    @InjectQueue(JOBS_QUEUE) public readonly jobsQueue: Queue,
     protected readonly jobsRedisService: JobsRedisService,
   ) {
     super(jobsQueue, jobsRedisService);

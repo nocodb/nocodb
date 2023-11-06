@@ -10,7 +10,7 @@ export class JobsService implements OnModuleInit {
   private logger = new Logger(JobsService.name);
 
   constructor(
-    @InjectQueue(JOBS_QUEUE) protected readonly jobsQueue: Queue,
+    @InjectQueue(JOBS_QUEUE) public readonly jobsQueue: Queue,
     protected readonly jobsRedisService: JobsRedisService,
   ) {}
 

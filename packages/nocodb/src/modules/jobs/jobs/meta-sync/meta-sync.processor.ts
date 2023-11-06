@@ -17,19 +17,20 @@ export class MetaSyncProcessor {
     const info: {
       baseId: string;
       sourceId: string;
-      user: any;
+      user: any
+      req:any;
     } = job.data;
 
     if (info.sourceId === 'all') {
       await this.metaDiffsService.metaDiffSync({
         baseId: info.baseId,
-        req: {},
+        req: info.req,
       });
     } else {
       await this.metaDiffsService.baseMetaDiffSync({
         baseId: info.baseId,
         sourceId: info.sourceId,
-        req: {},
+        req: info.req,
       });
     }
 

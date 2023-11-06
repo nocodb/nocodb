@@ -846,7 +846,7 @@ export class ImportService {
             ...{
               formula_raw: colOptions.formula_raw,
             },
-          }),
+          }) as any,
           req: param.req,
           user: param.user,
         });
@@ -883,6 +883,7 @@ export class ImportService {
           viewData,
           table.views,
           param.user,
+          param.req,
         );
 
         if (!vw) continue;
@@ -1072,7 +1073,7 @@ export class ImportService {
         const gview = await this.gridsService.gridViewCreate({
           tableId: md.id,
           grid: vw as ViewCreateReqType,
-          req: param.req,
+          req,
         });
         const gridData = withoutNull(vw.view);
         if (gridData) {

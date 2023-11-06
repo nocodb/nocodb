@@ -19,7 +19,7 @@ aws autoscaling set-desired-capacity --auto-scaling-group-name ${ASG_NAME} --des
 # Wait for the new instances to launch with doubled count
 timeout=10
 while [[ $timeout -gt 0 ]]; do
-    current_count=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${ASG_NAME} --query 'AutoScalingGroups[0].DesiredCapacity' --output text)
+    current_count=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${ASG_NAME} --query 'AutoScalingGroups[0].Instances[?LifecycleState==`InService`].InstanceId' --output text | wc -w)
     
     if [[ $current_count -eq $new_count ]]; then
         break

@@ -2,7 +2,7 @@ import { Injectable, Optional } from '@nestjs/common';
 import { DatasService as DatasServiceCE } from 'src/services/datas.service';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import type { PathParams } from '~/modules/datas/helpers';
-import { InternalServerError, NcError } from '~/helpers/catchError';
+import { NcError } from '~/helpers/catchError';
 import { getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Model, Source } from '~/models';
@@ -26,31 +26,24 @@ export class DatasService extends DatasServiceCE {
     let responseData;
     const source = await Source.get(model.source_id);
 
-    try {
-      if (
-        ((['mysql', 'mysql2'].includes(source.type) &&
-          (await isMysqlVersionSupported(source))) ||
-          ['pg'].includes(source.type)) &&
-        !param.disableOptimization
-      ) {
-        responseData = await this.dataOptService.list({
-          model,
-          view,
-          params: param.query,
-          source,
-        });
-      } else {
-        responseData = await this.getDataList({
-          model,
-          view,
-          query: param.query,
-        });
-      }
-    } catch (e) {
-      this.sentryClient?.instance().captureException(e);
-      // if not internal server error log and throw internal server error
-      if (!(e instanceof InternalServerError)) console.error(e);
-      NcError.internalServerError('Please contact server admin');
+    if (
+      ((['mysql', 'mysql2'].includes(source.type) &&
+        (await isMysqlVersionSupported(source))) ||
+        ['pg'].includes(source.type)) &&
+      !param.disableOptimization
+    ) {
+      responseData = await this.dataOptService.list({
+        model,
+        view,
+        params: param.query,
+        source,
+      });
+    } else {
+      responseData = await this.getDataList({
+        model,
+        view,
+        query: param.query,
+      });
     }
 
     return responseData;
@@ -69,33 +62,26 @@ export class DatasService extends DatasServiceCE {
     const source = await Source.get(model.source_id);
 
     let row;
-    try {
-      if (
-        ['pg', 'mysql', 'mysql2'].includes(source.type) &&
-        !param.disableOptimization
-      ) {
-        row = await this.dataOptService.read({
-          model,
-          view,
-          params: param.query,
-          source,
-          id: param.rowId,
-        });
-      } else {
-        const baseModel = await Model.getBaseModelSQL({
-          id: model.id,
-          viewId: view?.id,
-          dbDriver: await NcConnectionMgrv2.get(source),
-        });
-        row = await baseModel.readByPk(param.rowId, false, param.query, {
-          getHiddenColumn: param.getHiddenColumn,
-        });
-      }
-    } catch (e) {
-      this.sentryClient?.instance().captureException(e);
-      // if not internal server error log and throw internal server error
-      if (!(e instanceof InternalServerError)) console.error(e);
-      NcError.internalServerError('Please contact server admin');
+    if (
+      ['pg', 'mysql', 'mysql2'].includes(source.type) &&
+      !param.disableOptimization
+    ) {
+      row = await this.dataOptService.read({
+        model,
+        view,
+        params: param.query,
+        source,
+        id: param.rowId,
+      });
+    } else {
+      const baseModel = await Model.getBaseModelSQL({
+        id: model.id,
+        viewId: view?.id,
+        dbDriver: await NcConnectionMgrv2.get(source),
+      });
+      row = await baseModel.readByPk(param.rowId, false, param.query, {
+        getHiddenColumn: param.getHiddenColumn,
+      });
     }
 
     if (!row) {

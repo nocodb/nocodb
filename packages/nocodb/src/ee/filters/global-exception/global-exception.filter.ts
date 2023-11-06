@@ -1,6 +1,8 @@
 import { Catch, Optional } from '@nestjs/common';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import { GlobalExceptionFilter as GlobalExceptionFilterCE } from 'src/filters/global-exception/global-exception.filter';
+import type { ArgumentsHost } from '@nestjs/common';
+import type { Request, Response } from 'express';
 
 @Catch()
 export class GlobalExceptionFilter extends GlobalExceptionFilterCE {
@@ -27,7 +29,23 @@ export class GlobalExceptionFilter extends GlobalExceptionFilterCE {
         id: (request as any).user?.id,
         path: (request as any).path,
         clientId: (request as any).headers?.['nc-client-id'],
+        reqId: (request as any).headers?.['nc-req-id'],
       },
     });
+  }
+
+  protected logError(exception: any, request: any) {
+    this.logger.error(
+      {
+        msg: exception.message,
+        workspaceId: (request as any).ncWorkspaceId,
+        projectId: (request as any).ncProjectId,
+        ip: (request as any).clientIp,
+        id: (request as any).user?.id,
+        path: (request as any).path,
+        clientId: (request as any).headers?.['nc-client-id'],
+      },
+      exception.stack,
+    );
   }
 }

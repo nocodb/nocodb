@@ -3,6 +3,7 @@ import { AppEvents } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import slash from 'slash';
+import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Local from '~/plugins/storage/Local';
@@ -14,12 +15,7 @@ import { utf8ify } from '~/helpers/stringHelpers';
 export class AttachmentsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
-  async upload(param: {
-    path?: string;
-    // todo: proper type
-    files: unknown[];
-    req: any;
-  }) {
+  async upload(param: { path?: string; files: FileType[]; req: any }) {
     // TODO: add getAjvValidatorMw
     const filePath = this.sanitizeUrlPath(
       param.path?.toString()?.split('/') || [''],
@@ -29,7 +25,7 @@ export class AttachmentsService {
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
     const attachments = await Promise.all(
-      param.files?.map(async (file: any) => {
+      param.files?.map(async (file) => {
         const originalName = utf8ify(file.originalname);
         const fileName = `${nanoid(18)}${path.extname(originalName)}`;
 
@@ -87,7 +83,6 @@ export class AttachmentsService {
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'file',
-      req: param.req,
     });
 
     return attachments;
@@ -95,12 +90,7 @@ export class AttachmentsService {
 
   async uploadViaURL(param: {
     path?: string;
-    urls: {
-      url: string;
-      fileName: string;
-      mimetype?: string;
-      size?: string | number;
-    }[];
+    urls: AttachmentReqType[];
     req: any;
   }) {
     // TODO: add getAjvValidatorMw
@@ -119,12 +109,13 @@ export class AttachmentsService {
           _fileName || url.split('/').pop(),
         )}`;
 
-        const attachmentUrl = await (storageAdapter as any).fileCreateByUrl(
-          slash(path.join(destPath, fileName)),
-          url,
-        );
+        const attachmentUrl: string | null =
+          await storageAdapter.fileCreateByUrl(
+            slash(path.join(destPath, fileName)),
+            url,
+          );
 
-        let attachmentPath;
+        let attachmentPath: string | undefined;
 
         // if `attachmentUrl` is null, then it is local attachment
         if (!attachmentUrl) {

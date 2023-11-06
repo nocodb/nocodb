@@ -186,7 +186,7 @@ export default class Column<T = any> implements ColumnType {
       {
         fk_column_id: row.id,
         fk_model_id: column.fk_model_id,
-        show: false,
+        show: column.view_id ? false : true,
         column_order: column.column_order,
       },
       ncMeta,

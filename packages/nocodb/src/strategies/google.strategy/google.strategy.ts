@@ -53,6 +53,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
           email: profile.emails[0].value,
           password: '',
           salt,
+          req,
         });
         return done(null, sanitiseUserObj(user));
       }

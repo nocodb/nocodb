@@ -249,7 +249,7 @@ watch(isDropdownOpen, () => {
     <template #overlay>
       <NcMenu class="!min-w-84" data-testid="toolbar-actions">
         <NcTooltip>
-          <template #title> {{ $t('msg.clickToCopyViewID') }} </template>
+          <template #title> {{ $t('labels.clickToCopyViewID') }} </template>
           <div class="flex items-center justify-between py-2 px-2 cursor-pointer hover:bg-gray-100 group" @click="onViewIdCopy">
             <div class="flex text-xs font-bold text-gray-500 ml-1">
               {{

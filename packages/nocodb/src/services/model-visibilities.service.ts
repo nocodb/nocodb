@@ -13,6 +13,7 @@ export class ModelVisibilitiesService {
   async xcVisibilityMetaSetAll(param: {
     visibilityRule: VisibilityRuleReqType;
     baseId: string;
+    req: any;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/VisibilityRuleReq',
@@ -58,6 +59,7 @@ export class ModelVisibilitiesService {
     }
     this.appHooksService.emit(AppEvents.UI_ACL_UPDATE, {
       base,
+      req: param.req,
     });
 
     return true;

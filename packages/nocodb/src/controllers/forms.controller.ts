@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Request,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -44,6 +45,7 @@ export class FormsController {
       body,
       tableId,
       user: req.user,
+      req
     });
     return view;
   }
@@ -52,10 +54,12 @@ export class FormsController {
     '/api/v2/meta/forms/:formViewId',
   ])
   @Acl('formViewUpdate')
-  async formViewUpdate(@Param('formViewId') formViewId: string, @Body() body) {
+  async formViewUpdate(@Param('formViewId') formViewId: string, @Body() body,
+                       @Request() req: any,) {
     return await this.formsService.formViewUpdate({
       formViewId,
       form: body,
+      req
     });
   }
 }

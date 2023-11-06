@@ -148,6 +148,7 @@ export class OrgUsersService {
             user,
             count,
             ip: param.req.clientIp,
+            req: param.req,
           });
 
           // in case of single user check for smtp failure
@@ -232,6 +233,7 @@ export class OrgUsersService {
       invitedBy: param.req.user,
       user,
       ip: param.req.clientIp,
+      req: param.req,
     });
 
     return true;

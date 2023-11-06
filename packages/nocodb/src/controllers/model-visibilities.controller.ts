@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Req,
   HttpCode,
   Param,
   Post,
@@ -29,10 +30,12 @@ export class ModelVisibilitiesController {
   async xcVisibilityMetaSetAll(
     @Param('baseId') baseId: string,
     @Body() body: any,
+    @Req() req: any,
   ) {
     await this.modelVisibilitiesService.xcVisibilityMetaSetAll({
       visibilityRule: body,
       baseId,
+      req
     });
 
     return { msg: 'UI ACL has been created successfully' };

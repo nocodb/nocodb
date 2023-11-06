@@ -22,6 +22,7 @@ export class KanbansService {
     tableId: string;
     kanban: ViewCreateReqType;
     user: UserType;
+     req: any;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
@@ -39,6 +40,8 @@ export class KanbansService {
       view,
       showAs: 'kanban',
       user: param.user,
+
+      req: param.req
     });
 
     return view;
@@ -47,6 +50,7 @@ export class KanbansService {
   async kanbanViewUpdate(param: {
     kanbanViewId: string;
     kanban: KanbanUpdateReqType;
+    req: any;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/KanbanUpdateReq',
@@ -64,6 +68,7 @@ export class KanbansService {
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view,
       showAs: 'kanban',
+      req: param.req
     });
 
     return res;

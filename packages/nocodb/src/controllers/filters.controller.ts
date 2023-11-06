@@ -50,6 +50,7 @@ export class FiltersController {
       filter: body,
       viewId: viewId,
       user: req.user,
+      req
     });
     return filter;
   }
@@ -69,6 +70,7 @@ export class FiltersController {
       filter: body,
       hookId,
       user: req.user,
+      req
     });
     return filter;
   }
@@ -105,7 +107,7 @@ export class FiltersController {
     const filter = await this.filtersService.filterUpdate({
       filterId: filterId,
       filter: body,
-      user: req.user,
+      user: req.user,req
     });
     return filter;
   }
@@ -115,8 +117,9 @@ export class FiltersController {
     '/api/v2/meta/filters/:filterId',
   ])
   @Acl('filterDelete')
-  async filterDelete(@Param('filterId') filterId: string, @Req() _req) {
+  async filterDelete(@Param('filterId') filterId: string, @Req() req) {
     const filter = await this.filtersService.filterDelete({
+      req,
       filterId,
     });
     return filter;

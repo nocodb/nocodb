@@ -22,6 +22,8 @@ export class GalleriesService {
     tableId: string;
     gallery: ViewCreateReqType;
     user: UserType;
+
+    req: any;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
@@ -38,6 +40,7 @@ export class GalleriesService {
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
       view,
       showAs: 'gallery',
+      req: param.req,
     });
     return view;
   }
@@ -45,6 +48,7 @@ export class GalleriesService {
   async galleryViewUpdate(param: {
     galleryViewId: string;
     gallery: GalleryUpdateReqType;
+    req: any;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/GalleryUpdateReq',
@@ -62,6 +66,7 @@ export class GalleriesService {
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view,
       showAs: 'gallery',
+      req: param.req,
     });
 
     return res;

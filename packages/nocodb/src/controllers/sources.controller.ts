@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get,Request, Param, Patch, UseGuards } from '@nestjs/common';
 import { BaseReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -37,11 +37,13 @@ export class SourcesController {
     @Param('sourceId') sourceId: string,
     @Param('baseId') baseId: string,
     @Body() body: BaseReqType,
+    @Request() req: any,
   ) {
     const source = await this.sourcesService.baseUpdate({
       sourceId,
       source: body,
       baseId,
+      req
     });
 
     return source;

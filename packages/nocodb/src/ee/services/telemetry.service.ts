@@ -30,20 +30,6 @@ export class TelemetryService {
     clientId?: any;
     [key: string]: any;
   }) {
-    // commented out for now since we are not using kafka for now
-    // this.producer
-    //   .sendMessage(
-    //     'cloud-telemetry',
-    //     JSON.stringify({
-    //       timestamp: Date.now(),
-    //       event,
-    //       ...this.defaultPayload,
-    //       ...payload,
-    //     }),
-    //   )
-    //   .catch((err) => {
-    //     this.logger.error(err);
-    //   });
 
     if (!process.env.NC_CLOUD_POSTHOG_API_KEY) {
       return;

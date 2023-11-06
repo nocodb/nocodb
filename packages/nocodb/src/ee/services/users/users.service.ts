@@ -38,7 +38,7 @@ export class UsersService extends UsersServiceCE {
     salt,
     password,
     email_verification_token,
-    req: _req,
+    req,
   }: {
     avatar;
     display_name;
@@ -75,6 +75,17 @@ export class UsersService extends UsersServiceCE {
       email_verification_token,
       roles,
       token_version,
+    });
+
+    this.appHooksService.emit(AppEvents.USER_SIGNUP, {
+      user: user,
+      ip: req?.clientIp,
+      req: req,
+    });
+
+    this.appHooksService.emit(AppEvents.WELCOME, {
+      user,
+      req: req,
     });
 
     return user;
@@ -152,6 +163,17 @@ export class UsersService extends UsersServiceCE {
           invite_token_expires: null,
           email: user.email,
         });
+
+        this.appHooksService.emit(AppEvents.USER_SIGNUP, {
+          user: user,
+          ip: param.req?.clientIp,
+          req: param.req,
+        });
+
+        this.appHooksService.emit(AppEvents.WELCOME, {
+          user,
+          req: param.req,
+        });
       } else {
         NcError.badRequest('User already exist');
       }
@@ -200,17 +222,6 @@ export class UsersService extends UsersServiceCE {
     });
 
     setTokenCookie(param.res, refreshToken);
-
-    this.appHooksService.emit(AppEvents.USER_SIGNUP, {
-      user: user,
-      ip: param.req?.clientIp,
-      req: param.req,
-    });
-
-    this.appHooksService.emit(AppEvents.WELCOME, {
-      user,
-      req: param.req,
-    });
 
     return { ...(await this.login(user, param.req)), createdWorkspace };
   }

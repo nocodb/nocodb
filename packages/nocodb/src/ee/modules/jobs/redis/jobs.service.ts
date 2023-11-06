@@ -18,12 +18,12 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
   // pause primary instance queue
   async onModuleInit() {
     // run initially and then every 8 hours
-    this.jobsQueue.add(JobTypes.UpdateSrcStat, {});
-    this.jobsQueue.add(
-      JobTypes.UpdateSrcStat,
-      {},
-      { repeat: { cron: '0 */8 * * *' } },
-    );
+    // this.jobsQueue.add(JobTypes.UpdateSrcStat, {});
+    // this.jobsQueue.add(
+    //   JobTypes.UpdateSrcStat,
+    //   {},
+    //   { repeat: { cron: '0 */8 * * *' } },
+    // );
     super.onModuleInit();
   }
 }

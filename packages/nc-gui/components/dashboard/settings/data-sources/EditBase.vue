@@ -61,8 +61,8 @@ const formState = ref<ProjectCreateForm>({
   title: '',
   dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
   inflection: {
-    inflectionColumn: 'camelize',
-    inflectionTable: 'camelize',
+    inflectionColumn: 'none',
+    inflectionTable: 'none',
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
@@ -72,8 +72,8 @@ const customFormState = ref<ProjectCreateForm>({
   title: '',
   dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
   inflection: {
-    inflectionColumn: 'camelize',
-    inflectionTable: 'camelize',
+    inflectionColumn: 'none',
+    inflectionTable: 'none',
   },
   sslUse: SSLUsage.No,
   extraParameters: [],

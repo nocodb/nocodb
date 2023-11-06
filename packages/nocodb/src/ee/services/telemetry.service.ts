@@ -30,7 +30,6 @@ export class TelemetryService {
     clientId?: any;
     [key: string]: any;
   }) {
-
     if (!process.env.NC_CLOUD_POSTHOG_API_KEY) {
       return;
     }
@@ -47,6 +46,14 @@ export class TelemetryService {
         distinctId,
         event,
         properties: {
+          created_at: Date.now(),
+          email: req?.user?.email,
+          ip: req?.clientIp,
+          user_agent: req?.headers?.['user-agent'],
+          workspace_id: req?.ncWorkspaceId,
+          project_id: req?.ncProjectId,
+          req_id: req?.id,
+          backend: true,
           ...payload,
         },
       });

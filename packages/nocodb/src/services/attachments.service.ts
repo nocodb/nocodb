@@ -83,6 +83,7 @@ export class AttachmentsService {
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'file',
+      req: param.req,
     });
 
     return attachments;

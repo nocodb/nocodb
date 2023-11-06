@@ -22,6 +22,6 @@ export class ToolbarActionsPage extends BasePage {
   }
 
   async clickDownloadSubmenu(label: string) {
-    await this.rootPage.locator(`div[class="nc-base-menu-item"]:has-text("${label}")`).first().click();
+    await this.rootPage.locator(`div.nc-base-menu-item:has-text("${label}")`).first().click();
   }
 }

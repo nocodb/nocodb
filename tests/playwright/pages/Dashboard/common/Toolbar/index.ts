@@ -65,7 +65,7 @@ export class ToolbarPage extends BasePage {
   async clickActions() {
     const menuOpen = await this.actions.get().isVisible();
 
-    await this.get().locator(`button.nc-actions-menu-btn`).click();
+    await this.rootPage.locator(`div.nc-view-context-btn`).click();
 
     // Wait for the menu to close
     if (menuOpen) await this.fields.get().waitFor({ state: 'hidden' });
@@ -161,7 +161,7 @@ export class ToolbarPage extends BasePage {
   }
 
   async clickDownload(type: string, verificationFile = 'expectedData.txt') {
-    await this.get().locator(`.nc-actions-menu-btn`).click();
+    await this.rootPage.locator(`.nc-view-context-btn`).click();
 
     const [download] = await Promise.all([
       // Start waiting for the download
@@ -195,7 +195,13 @@ export class ToolbarPage extends BasePage {
   }
 
   async verifyDownloadDisabled() {
-    await this.get().locator(`nc-actions-menu-btn`).waitFor({ state: 'hidden' });
+    await this.rootPage.locator(`.nc-view-context-btn`).click();
+
+    await this.rootPage.waitForTimeout(500);
+
+    await this.rootPage.locator(`.nc-view-context-download-option`).waitFor({ state: 'hidden' });
+
+    await this.rootPage.locator(`.nc-view-context-btn`).click();
   }
 
   async clickAddEditStack() {

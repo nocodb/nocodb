@@ -36,7 +36,7 @@ export class SharedBasesController {
       roles: body?.roles,
       password: body?.password,
       siteUrl: req.ncSiteUrl,
-      req
+      req,
     });
 
     return sharedBase;
@@ -57,7 +57,7 @@ export class SharedBasesController {
       roles: body?.roles,
       password: body?.password,
       siteUrl: req.ncSiteUrl,
-      req
+      req,
     });
 
     return sharedBase;
@@ -68,11 +68,13 @@ export class SharedBasesController {
     '/api/v2/meta/bases/:baseId/shared',
   ])
   @Acl('disableSharedBaseLink')
-  async disableSharedBaseLink(@Param('baseId') baseId: string,
-                              @Request() req: any,): Promise<any> {
+  async disableSharedBaseLink(
+    @Param('baseId') baseId: string,
+    @Request() req: any,
+  ): Promise<any> {
     const sharedBase = await this.sharedBasesService.disableSharedBaseLink({
       baseId,
-      req
+      req,
     });
 
     return sharedBase;

@@ -48,7 +48,7 @@ export class ViewsController {
       viewId,
       view: body,
       user: req.user,
-      req
+      req,
     });
     return result;
   }
@@ -59,7 +59,7 @@ export class ViewsController {
     const result = await this.viewsService.viewDelete({
       viewId,
       user: req.user,
-      req
+      req,
     });
     return result;
   }
@@ -132,7 +132,7 @@ export class ViewsController {
       viewId,
       sharedView: body,
       user: req.user,
-      req
+      req,
     });
   }
 
@@ -142,6 +142,10 @@ export class ViewsController {
   ])
   @Acl('shareViewDelete')
   async shareViewDelete(@Param('viewId') viewId: string, @Request() req) {
-    return await this.viewsService.shareViewDelete({ viewId, user: req.user , req});
+    return await this.viewsService.shareViewDelete({
+      viewId,
+      user: req.user,
+      req,
+    });
   }
 }

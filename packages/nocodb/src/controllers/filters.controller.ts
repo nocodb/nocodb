@@ -50,7 +50,7 @@ export class FiltersController {
       filter: body,
       viewId: viewId,
       user: req.user,
-      req
+      req,
     });
     return filter;
   }
@@ -70,7 +70,7 @@ export class FiltersController {
       filter: body,
       hookId,
       user: req.user,
-      req
+      req,
     });
     return filter;
   }
@@ -107,7 +107,8 @@ export class FiltersController {
     const filter = await this.filtersService.filterUpdate({
       filterId: filterId,
       filter: body,
-      user: req.user,req
+      user: req.user,
+      req,
     });
     return filter;
   }

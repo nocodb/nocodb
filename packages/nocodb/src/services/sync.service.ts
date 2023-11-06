@@ -33,15 +33,13 @@ export class SyncService {
 
     this.appHooksService.emit(AppEvents.SYNC_SOURCE_CREATE, {
       syncSource: sync,
-      req: param.req
+      req: param.req,
     });
 
     return sync;
   }
 
-  async syncDelete(param: { syncId: string
-    req: any
-   }) {
+  async syncDelete(param: { syncId: string; req: any }) {
     const syncSource = await SyncSource.get(param.syncId);
 
     if (!syncSource) {
@@ -52,7 +50,7 @@ export class SyncService {
 
     this.appHooksService.emit(AppEvents.SYNC_SOURCE_DELETE, {
       syncSource,
-      req: param.req
+      req: param.req,
     });
     return res;
   }
@@ -73,7 +71,7 @@ export class SyncService {
     this.appHooksService.emit(AppEvents.SYNC_SOURCE_UPDATE, {
       syncSource,
 
-      req: param.req
+      req: param.req,
     });
 
     return res;

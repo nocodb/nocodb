@@ -2,11 +2,11 @@ import {
   Body,
   Controller,
   Get,
-  Req,
   HttpCode,
   Param,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -35,7 +35,7 @@ export class ModelVisibilitiesController {
     await this.modelVisibilitiesService.xcVisibilityMetaSetAll({
       visibilityRule: body,
       baseId,
-      req
+      req,
     });
 
     return { msg: 'UI ACL has been created successfully' };

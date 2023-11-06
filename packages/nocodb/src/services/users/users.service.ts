@@ -91,7 +91,7 @@ export class UsersService {
     salt,
     password,
     email_verification_token,
-    req
+    req,
   }: {
     email: string;
     salt: any;
@@ -353,7 +353,7 @@ export class UsersService {
     this.appHooksService.emit(AppEvents.USER_EMAIL_VERIFICATION, {
       user: user,
       ip: req?.clientIp,
-      req
+      req,
     });
 
     return true;
@@ -545,11 +545,11 @@ export class UsersService {
     param.res.clearCookie('refresh_token');
   }
 
-  private async createDefaultProject(user: User,req:any) {
+  private async createDefaultProject(user: User, req: any) {
     // create new base for user
     const base = await this.basesService.createDefaultBase({
       user,
-      req
+      req,
     });
 
     return base;

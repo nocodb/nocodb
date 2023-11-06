@@ -5,8 +5,8 @@ import {
   HttpCode,
   Param,
   Patch,
-  Req,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -48,8 +48,7 @@ export class PluginsController {
   @Acl('pluginTest', {
     scope: 'org',
   })
-  async pluginTest(@Body() body: any,
-                   @Req() req: any,) {
+  async pluginTest(@Body() body: any, @Req() req: any) {
     return await this.pluginsService.pluginTest({ body: body, req });
   }
 
@@ -68,12 +67,15 @@ export class PluginsController {
   @Acl('pluginUpdate', {
     scope: 'org',
   })
-  async pluginUpdate(@Body() body: any, @Param('pluginId') pluginId: string,
-                     @Req() req: any,) {
+  async pluginUpdate(
+    @Body() body: any,
+    @Param('pluginId') pluginId: string,
+    @Req() req: any,
+  ) {
     const plugin = await this.pluginsService.pluginUpdate({
       pluginId: pluginId,
       plugin: body,
-      req
+      req,
     });
     return plugin;
   }

@@ -52,7 +52,11 @@ export class FormsService {
     return view;
   }
 
-  async formViewUpdate(param: { formViewId: string; form: FormUpdateReqType; req: any }) {
+  async formViewUpdate(param: {
+    formViewId: string;
+    form: FormUpdateReqType;
+    req: any;
+  }) {
     validatePayload(
       'swagger.json#/components/schemas/FormUpdateReq',
       param.form,
@@ -68,7 +72,7 @@ export class FormsService {
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view,
       showAs: 'form',
-      req: param.req
+      req: param.req,
     });
 
     return res;

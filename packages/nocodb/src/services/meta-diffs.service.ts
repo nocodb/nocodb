@@ -896,7 +896,11 @@ export class MetaDiffsService {
     return true;
   }
 
-  async baseMetaDiffSync(param: { baseId: string; sourceId: string, req: any }) {
+  async baseMetaDiffSync(param: {
+    baseId: string;
+    sourceId: string;
+    req: any;
+  }) {
     const base = await Base.getWithInfo(param.baseId);
     const source = await Source.get(param.sourceId);
 

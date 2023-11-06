@@ -26,7 +26,7 @@ export class GridColumnsService {
     const res = await GridViewColumn.update(param.gridViewColumnId, param.grid);
 
     this.appHooksService.emit(AppEvents.GRID_COLUMN_UPDATE, {
-      req: param.req
+      req: param.req,
     });
 
     return res;

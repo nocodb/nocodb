@@ -57,6 +57,15 @@ export class WorkerController implements OnModuleInit {
     }
   }
 
+  @Post('/internal/workers/pause-and-exit')
+  @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
+  async pauseAndExit() {
+    await this.jobsRedisService.publish(
+      InstanceTypes.WORKER,
+      WorkerCommands.RESET,
+    );
+  }
+
   @Get('/internal/workers/status')
   @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
   async workerStatus() {

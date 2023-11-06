@@ -7,7 +7,7 @@ import { JobsRedisService } from '~/modules/jobs/redis/jobs-redis.service';
 
 @Injectable()
 export class JobsService implements OnModuleInit {
-  private logger = new Logger(JobsService.name);
+  protected logger = new Logger(JobsService.name);
 
   constructor(
     @InjectQueue(JOBS_QUEUE) public readonly jobsQueue: Queue,

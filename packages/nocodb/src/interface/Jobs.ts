@@ -35,4 +35,5 @@ export enum InstanceTypes {
 export enum WorkerCommands {
   RESUME_LOCAL = 'resumeLocal',
   PAUSE_LOCAL = 'pauseLocal',
+  RESET = 'reset',
 }

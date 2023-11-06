@@ -3,7 +3,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
 import type { OnModuleInit } from '@nestjs/common';
-import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
+import { JOBS_QUEUE, JobTypes, WorkerCommands } from '~/interface/Jobs';
 import { JobsRedisService } from '~/modules/jobs/redis/jobs-redis.service';
 
 @Injectable()
@@ -24,6 +24,16 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
     //   {},
     //   { repeat: { cron: '0 */8 * * *' } },
     // );
+    if (process.env.NC_WORKER_CONTAINER === 'true') {
+      this.jobsRedisService.workerCallbacks[WorkerCommands.RESET] =
+        async () => {
+          this.logger.log('Pausing local queue and stopping worker');
+          await this.jobsQueue.pause(true);
+          this.jobsQueue.whenCurrentJobsFinished().then(() => {
+            process.exit(0);
+          });
+        };
+    }
     super.onModuleInit();
   }
 }

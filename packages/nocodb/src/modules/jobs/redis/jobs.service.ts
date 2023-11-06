@@ -33,16 +33,19 @@ export class JobsService implements OnModuleInit {
   }
 
   async add(name: string, data: any) {
-    // resume primary instance queue if there is no worker
-    const workerCount = await this.jobsRedisService.workerCount();
-    const localWorkerPaused = await this.jobsQueue.isPaused(true);
+    // if NC_WORKER_CONTAINER is false, then skip dynamic queue pause/resume
+    if (process.env.NC_WORKER_CONTAINER !== 'false') {
+      // resume primary instance queue if there is no worker
+      const workerCount = await this.jobsRedisService.workerCount();
+      const localWorkerPaused = await this.jobsQueue.isPaused(true);
 
-    // if there is no worker and primary instance queue is paused, resume it
-    // if there is any worker and primary instance queue is not paused, pause it
-    if (workerCount === 0 && localWorkerPaused) {
-      await this.jobsQueue.resume(true);
-    } else if (workerCount > 0 && !localWorkerPaused) {
-      await this.jobsQueue.pause(true);
+      // if there is no worker and primary instance queue is paused, resume it
+      // if there is any worker and primary instance queue is not paused, pause it
+      if (workerCount === 0 && localWorkerPaused) {
+        await this.jobsQueue.resume(true);
+      } else if (workerCount > 0 && !localWorkerPaused) {
+        await this.jobsQueue.pause(true);
+      }
     }
 
     const job = await this.jobsQueue.add(name, data);

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import updateLocale from 'dayjs/plugin/updateLocale'
 import {
   ActiveCellInj,
   CellClickHookInj,
@@ -22,8 +23,11 @@ interface Props {
 }
 
 const { modelValue, isPk } = defineProps<Props>()
-
 const emit = defineEmits(['update:modelValue'])
+dayjs.extend(updateLocale)
+dayjs.updateLocale('en', {
+  weekStart: 1,
+})
 
 const { t } = useI18n()
 

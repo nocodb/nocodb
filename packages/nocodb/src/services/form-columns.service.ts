@@ -12,6 +12,7 @@ export class FormColumnsService {
     formViewColumnId: string;
     // todo: replace with FormColumnReq
     formViewColumn: FormViewColumn;
+    req: any;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/FormColumnReq',
@@ -23,7 +24,9 @@ export class FormColumnsService {
       param.formViewColumn,
     );
 
-    this.appHooksService.emit(AppEvents.FORM_COLUMN_UPDATE, {});
+    this.appHooksService.emit(AppEvents.FORM_COLUMN_UPDATE, {
+      req: param.req,
+    });
 
     return res;
   }

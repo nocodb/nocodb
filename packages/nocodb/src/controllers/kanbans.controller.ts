@@ -46,6 +46,7 @@ export class KanbansController {
       tableId,
       kanban: body,
       user: req.user,
+      req,
     });
   }
 
@@ -57,10 +58,13 @@ export class KanbansController {
   async kanbanViewUpdate(
     @Param('kanbanViewId') kanbanViewId: string,
     @Body() body,
+
+    @Req() req: any,
   ) {
     return await this.kanbansService.kanbanViewUpdate({
       kanbanViewId,
       kanban: body,
+      req,
     });
   }
 }

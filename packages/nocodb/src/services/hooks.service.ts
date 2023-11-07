@@ -37,7 +37,7 @@ export class HooksService {
     return await HookLog.list({ fk_hook_id: param.hookId }, param.query);
   }
 
-  async hookCreate(param: { tableId: string; hook: HookReqType }) {
+  async hookCreate(param: { tableId: string; hook: HookReqType; req: any }) {
     validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
 
     this.validateHookPayload(param.hook.notification);
@@ -49,12 +49,13 @@ export class HooksService {
 
     this.appHooksService.emit(AppEvents.WEBHOOK_CREATE, {
       hook,
+      req: param.req,
     });
 
     return hook;
   }
 
-  async hookDelete(param: { hookId: string }) {
+  async hookDelete(param: { hookId: string; req: any }) {
     const hook = await Hook.get(param.hookId);
 
     if (!hook) {
@@ -64,11 +65,12 @@ export class HooksService {
     await Hook.delete(param.hookId);
     this.appHooksService.emit(AppEvents.WEBHOOK_DELETE, {
       hook,
+      req: param.req,
     });
     return true;
   }
 
-  async hookUpdate(param: { hookId: string; hook: HookReqType }) {
+  async hookUpdate(param: { hookId: string; hook: HookReqType; req: any }) {
     validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
 
     const hook = await Hook.get(param.hookId);
@@ -86,12 +88,17 @@ export class HooksService {
         ...hook,
         ...param.hook,
       },
+      req: param.req,
     });
 
     return res;
   }
 
-  async hookTest(param: { tableId: string; hookTest: HookTestReqType }) {
+  async hookTest(param: {
+    tableId: string;
+    hookTest: HookTestReqType;
+    req: any;
+  }) {
     validatePayload(
       'swagger.json#/components/schemas/HookTestReq',
       param.hookTest,
@@ -122,6 +129,7 @@ export class HooksService {
     } finally {
       this.appHooksService.emit(AppEvents.WEBHOOK_TEST, {
         hook,
+        req: param.req,
       });
     }
 

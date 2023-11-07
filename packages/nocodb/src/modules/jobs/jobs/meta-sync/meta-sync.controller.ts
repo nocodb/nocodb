@@ -38,6 +38,11 @@ export class MetaSyncController {
       baseId,
       sourceId: 'all',
       user: req.user,
+      req: {
+        user: req.user,
+        clientIp: req.clientIp,
+        headers: req.headers,
+      },
     });
 
     return { id: job.id };
@@ -70,6 +75,11 @@ export class MetaSyncController {
       baseId,
       sourceId,
       user: req.user,
+      req: {
+        user: req.user,
+        clientIp: req.clientIp,
+        headers: req.headers,
+      },
     });
 
     return { id: job.id };

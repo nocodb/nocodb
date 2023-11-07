@@ -170,9 +170,10 @@ const duplicateColumn = async () => {
     await $api.dbTableColumn.create(meta!.value!.id!, {
       ...columnCreatePayload,
       pv: false,
+      view_id: view.value!.id as string,
       column_order: {
         order: newColumnOrder,
-        view_id: view.value?.id as string,
+        view_id: view.value!.id as string,
       },
     } as ColumnReqType)
     await getMeta(meta!.value!.id!, true)

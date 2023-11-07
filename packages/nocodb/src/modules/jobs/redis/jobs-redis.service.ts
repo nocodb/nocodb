@@ -22,7 +22,6 @@ export class JobsRedisService {
     }
 
     const onMessage = (channel, message) => {
-      console.log('onMessage', channel, message);
       if (channel === InstanceTypes.WORKER) {
         this.workerCallbacks[message] && this.workerCallbacks[message]();
       } else if (channel === InstanceTypes.PRIMARY) {

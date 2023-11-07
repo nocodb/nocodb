@@ -686,13 +686,11 @@ onMounted(async () => {
   }
 })
 
-watch(isColOptionDropdownOpen, () => {
-  if (isColOptionDropdownOpen.value === true) return
-
+const onFieldOptionUpdate = () => {
   setTimeout(() => {
     isFieldIdCopied.value = false
   }, 200)
-})
+}
 </script>
 
 <template>
@@ -840,9 +838,9 @@ watch(isColOptionDropdownOpen, () => {
                     </NcButton>
                     <NcDropdown
                       v-else
-                      v-model:visible="isColOptionDropdownOpen"
                       :trigger="['click']"
                       overlay-class-name="nc-dropdown-table-explorer"
+                      @update:visible="onFieldOptionUpdate"
                       @click.stop
                     >
                       <NcButton
@@ -976,6 +974,7 @@ watch(isColOptionDropdownOpen, () => {
                       v-else
                       :trigger="['click']"
                       overlay-class-name="nc-dropdown-table-explorer-display-column"
+                      @update:visible="onFieldOptionUpdate"
                       @click.stop
                     >
                       <NcButton

@@ -76,6 +76,7 @@ export class WorkspacesController {
     return await this.workspacesService.create({
       workspaces: body,
       user: req.user,
+      req,
     });
   }
 
@@ -94,6 +95,7 @@ export class WorkspacesController {
       workspaceId,
       workspace: body,
       user: req.user,
+      req,
     });
   }
 
@@ -122,6 +124,7 @@ export class WorkspacesController {
     return await this.workspacesService.delete({
       workspaceId,
       user: req.user,
+      req,
     });
   }
 

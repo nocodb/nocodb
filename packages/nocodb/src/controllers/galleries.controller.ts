@@ -46,6 +46,7 @@ export class GalleriesController {
       gallery: body,
       // todo: sanitize
       tableId,
+      req,
       user: req.user,
     });
   }
@@ -58,10 +59,13 @@ export class GalleriesController {
   async galleryViewUpdate(
     @Param('galleryViewId') galleryViewId: string,
     @Body() body: GalleryUpdateReqType,
+
+    @Req() req: any,
   ) {
     return await this.galleriesService.galleryViewUpdate({
       galleryViewId,
       gallery: body,
+      req,
     });
   }
 }

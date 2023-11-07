@@ -21,36 +21,39 @@ export class TelemetryService {
 
   public sendEvent({
     evt_type: event,
+    req,
+    clientId,
     ...payload
   }: {
     evt_type: string;
+    req?: any;
+    clientId?: any;
     [key: string]: any;
   }) {
-    // commented out for now since we are not using kafka for now
-    // this.producer
-    //   .sendMessage(
-    //     'cloud-telemetry',
-    //     JSON.stringify({
-    //       timestamp: Date.now(),
-    //       event,
-    //       ...this.defaultPayload,
-    //       ...payload,
-    //     }),
-    //   )
-    //   .catch((err) => {
-    //     this.logger.error(err);
-    //   });
-
     if (!process.env.NC_CLOUD_POSTHOG_API_KEY) {
       return;
     }
 
-    // skip if user id is not present
-    if (payload['userId'] ?? payload['user_id'])
+    const distinctId =
+      clientId ||
+      req?.headers?.['nc-client-id'] ||
+      payload['userId'] ||
+      payload['user_id'];
+
+    // skip if client id / user id is not present
+    if (distinctId)
       this.phClient?.capture({
-        distinctId: payload['userId'] ?? payload['user_id'],
+        distinctId,
         event,
         properties: {
+          created_at: Date.now(),
+          email: req?.user?.email,
+          ip: req?.clientIp,
+          user_agent: req?.headers?.['user-agent'],
+          workspace_id: req?.ncWorkspaceId,
+          project_id: req?.ncProjectId,
+          req_id: req?.id,
+          backend: true,
           ...payload,
         },
       });

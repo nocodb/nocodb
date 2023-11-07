@@ -20,6 +20,7 @@ export class SyncService {
     sourceId?: string;
     userId: string;
     syncPayload: Partial<SyncSource>;
+    req: any;
   }) {
     const base = await Base.getWithInfo(param.baseId);
 
@@ -32,12 +33,13 @@ export class SyncService {
 
     this.appHooksService.emit(AppEvents.SYNC_SOURCE_CREATE, {
       syncSource: sync,
+      req: param.req,
     });
 
     return sync;
   }
 
-  async syncDelete(param: { syncId: string }) {
+  async syncDelete(param: { syncId: string; req: any }) {
     const syncSource = await SyncSource.get(param.syncId);
 
     if (!syncSource) {
@@ -48,6 +50,7 @@ export class SyncService {
 
     this.appHooksService.emit(AppEvents.SYNC_SOURCE_DELETE, {
       syncSource,
+      req: param.req,
     });
     return res;
   }
@@ -55,6 +58,7 @@ export class SyncService {
   async syncUpdate(param: {
     syncId: string;
     syncPayload: Partial<SyncSource>;
+    req: any;
   }) {
     const syncSource = await SyncSource.get(param.syncId);
 
@@ -66,6 +70,8 @@ export class SyncService {
 
     this.appHooksService.emit(AppEvents.SYNC_SOURCE_UPDATE, {
       syncSource,
+
+      req: param.req,
     });
 
     return res;

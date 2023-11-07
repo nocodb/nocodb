@@ -46,7 +46,7 @@ export function reverseGet(map: Map<string, string>, vl: string) {
   return undefined;
 }
 
-export function withoutId(obj: any) {
+export function withoutId(obj: any): any {
   const { id, ...rest } = obj;
   return rest;
 }

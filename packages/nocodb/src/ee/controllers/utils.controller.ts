@@ -87,6 +87,7 @@ export class UtilsController extends UtilsControllerCE {
           client: body.client,
           message: result.message,
         },
+        req,
       });
       NcError.unprocessableEntity(result.message);
     }

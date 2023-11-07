@@ -48,6 +48,7 @@ export class ViewsController {
       viewId,
       view: body,
       user: req.user,
+      req,
     });
     return result;
   }
@@ -58,6 +59,7 @@ export class ViewsController {
     const result = await this.viewsService.viewDelete({
       viewId,
       user: req.user,
+      req,
     });
     return result;
   }
@@ -100,7 +102,7 @@ export class ViewsController {
   @HttpCode(200)
   @Acl('shareView')
   async shareView(@Param('viewId') viewId: string, @Request() req) {
-    return await this.viewsService.shareView({ viewId, user: req.user });
+    return await this.viewsService.shareView({ viewId, user: req.user, req });
   }
 
   @Get([
@@ -130,6 +132,7 @@ export class ViewsController {
       viewId,
       sharedView: body,
       user: req.user,
+      req,
     });
   }
 
@@ -139,6 +142,10 @@ export class ViewsController {
   ])
   @Acl('shareViewDelete')
   async shareViewDelete(@Param('viewId') viewId: string, @Request() req) {
-    return await this.viewsService.shareViewDelete({ viewId, user: req.user });
+    return await this.viewsService.shareViewDelete({
+      viewId,
+      user: req.user,
+      req,
+    });
   }
 }

@@ -41,6 +41,7 @@ export class ApiTokensController {
     return await this.apiTokensService.apiTokenCreate({
       tokenBody: body,
       userId: req['user'].id,
+      req,
     });
   }
 
@@ -53,6 +54,7 @@ export class ApiTokensController {
     return await this.apiTokensService.apiTokenDelete({
       token,
       user: req['user'],
+      req,
     });
   }
 }

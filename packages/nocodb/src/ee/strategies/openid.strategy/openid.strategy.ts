@@ -57,6 +57,8 @@ export class OpenidStrategy extends PassportStrategy(
               user_name: null,
               display_name: profile._json?.name,
               salt,
+              // todo: check if req available
+              req: null,
             })
             .then((user) => {
               done(null, { ...sanitiseUserObj(user), provider: 'openid' });

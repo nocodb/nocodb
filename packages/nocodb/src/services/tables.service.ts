@@ -43,6 +43,7 @@ export class TablesService {
     table: TableReqType & { base_id?: string };
     baseId?: string;
     user: UserType;
+    req: any;
   }) {
     const model = await Model.get(param.tableId);
 
@@ -145,6 +146,7 @@ export class TablesService {
     this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
       table: model,
       user: param.user,
+      req: param.req,
     });
 
     return true;
@@ -225,6 +227,7 @@ export class TablesService {
         table,
         user: param.user,
         ip: param.req?.clientIp,
+        req: param.req,
       });
 
       result = await table.delete(ncMeta);
@@ -528,6 +531,7 @@ export class TablesService {
       table: result,
       user: param.user,
       ip: param.req?.clientIp,
+      req: param.req,
     });
 
     return result;

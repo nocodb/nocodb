@@ -20,6 +20,7 @@ export class FiltersService extends FiltersServiceCE {
     filter: FilterReqType;
     viewId: string;
     user: UserType;
+    req: any;
   }) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 

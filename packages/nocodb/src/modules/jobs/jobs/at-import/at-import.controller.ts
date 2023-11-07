@@ -53,6 +53,11 @@ export class AtImportController {
       authToken: '',
       baseURL,
       user: user,
+      req: {
+        user: req.user,
+        clientIp: req.clientIp,
+        headers: req.headers,
+      },
     });
 
     return { id: job.id };

@@ -5,6 +5,7 @@ import {
   Inject,
   Param,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { BaseReqType } from 'nocodb-sdk';
@@ -25,7 +26,11 @@ export class SourceCreateController {
   ])
   @HttpCode(200)
   @Acl('baseCreate')
-  async baseCreate(@Param('baseId') baseId: string, @Body() body: BaseReqType) {
+  async baseCreate(
+    @Param('baseId') baseId: string,
+    @Body() body: BaseReqType,
+    @Req() req,
+  ) {
     const jobs = await this.jobsService.jobList();
     const fnd = jobs.find(
       (j) => j.name === JobTypes.BaseCreate && j.data.baseId === baseId,
@@ -40,6 +45,11 @@ export class SourceCreateController {
     const job = await this.jobsService.add(JobTypes.BaseCreate, {
       baseId,
       source: body,
+      req: {
+        user: req.user,
+        clientIp: req.clientIp,
+        headers: req.headers,
+      },
     });
 
     return { id: job.id };

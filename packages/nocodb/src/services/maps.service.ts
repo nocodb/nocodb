@@ -18,6 +18,7 @@ export class MapsService {
     tableId: string;
     map: ViewCreateReqType;
     user: UserType;
+    req: any;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
@@ -33,12 +34,18 @@ export class MapsService {
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
       view,
       showAs: 'map',
+
+      req: param.req,
     });
 
     return view;
   }
 
-  async mapViewUpdate(param: { mapViewId: string; map: MapUpdateReqType }) {
+  async mapViewUpdate(param: {
+    mapViewId: string;
+    map: MapUpdateReqType;
+    req: any;
+  }) {
     validatePayload('swagger.json#/components/schemas/MapUpdateReq', param.map);
 
     const view = await View.get(param.mapViewId);
@@ -52,6 +59,7 @@ export class MapsService {
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view,
       showAs: 'map',
+      req: param.req,
     });
 
     return res;

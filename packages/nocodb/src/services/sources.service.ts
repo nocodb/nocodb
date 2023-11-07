@@ -24,6 +24,7 @@ export class SourcesService {
     sourceId: string;
     source: BaseReqType;
     baseId: string;
+    req: any;
   }) {
     validatePayload('swagger.json#/components/schemas/BaseReq', param.source);
 
@@ -40,6 +41,7 @@ export class SourcesService {
 
     this.appHooksService.emit(AppEvents.BASE_UPDATE, {
       source,
+      req: param.req,
     });
 
     return source;
@@ -51,12 +53,13 @@ export class SourcesService {
     return sources;
   }
 
-  async baseDelete(param: { sourceId: string }) {
+  async baseDelete(param: { sourceId: string; req: any }) {
     try {
       const source = await Source.get(param.sourceId, true);
       await source.delete();
       this.appHooksService.emit(AppEvents.BASE_DELETE, {
         source,
+        req: param.req,
       });
     } catch (e) {
       NcError.badRequest(e);
@@ -78,6 +81,7 @@ export class SourcesService {
     baseId: string;
     source: BaseReqType;
     logger?: (message: string) => void;
+    req: any;
   }) {
     validatePayload('swagger.json#/components/schemas/BaseReq', param.source);
 
@@ -103,12 +107,14 @@ export class SourcesService {
 
     this.appHooksService.emit(AppEvents.APIS_CREATED, {
       info,
+      req: param.req,
     });
 
     delete source.config;
 
     this.appHooksService.emit(AppEvents.BASE_CREATE, {
       source,
+      req: param.req,
     });
 
     return source;

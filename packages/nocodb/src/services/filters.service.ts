@@ -14,6 +14,7 @@ export class FiltersService {
     filter: FilterReqType;
     hookId: any;
     user: UserType;
+    req: any;
   }) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 
@@ -31,6 +32,7 @@ export class FiltersService {
     this.appHooksService.emit(AppEvents.FILTER_CREATE, {
       filter,
       hook,
+      req: param.req,
     });
     return filter;
   }
@@ -39,7 +41,7 @@ export class FiltersService {
     return Filter.rootFilterListByHook({ hookId: param.hookId });
   }
 
-  async filterDelete(param: { filterId: string }) {
+  async filterDelete(param: { filterId: string; req: any }) {
     const filter = await Filter.get(param.filterId);
 
     if (!filter) {
@@ -50,6 +52,7 @@ export class FiltersService {
 
     this.appHooksService.emit(AppEvents.FILTER_DELETE, {
       filter,
+      req: param.req,
     });
 
     return true;
@@ -59,6 +62,7 @@ export class FiltersService {
     filter: FilterReqType;
     viewId: string;
     user: UserType;
+    req: any;
   }) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 
@@ -72,6 +76,7 @@ export class FiltersService {
     this.appHooksService.emit(AppEvents.FILTER_CREATE, {
       filter,
       view,
+      req: param.req,
     });
 
     return filter;
@@ -81,6 +86,7 @@ export class FiltersService {
     filter: FilterReqType;
     filterId: string;
     user: UserType;
+    req: any;
   }) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 
@@ -94,6 +100,7 @@ export class FiltersService {
 
     this.appHooksService.emit(AppEvents.FILTER_UPDATE, {
       filter,
+      req: param.req,
     });
 
     return res;

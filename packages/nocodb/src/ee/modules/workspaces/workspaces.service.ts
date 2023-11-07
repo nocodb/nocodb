@@ -379,17 +379,21 @@ export class WorkspacesService implements OnApplicationBootstrap {
       NcError.notFound('Workspace is already upgraded');
     }
 
-    /*
+    if (process.env.NC_COMPUTE_FOR_EXT_DB_AS_SINGLE_TENANT === 'true') {
       await this.createWorkspaceSubdomain({
         titleOrId: workspace.id,
         user: param.user?.email ?? param.user?.id,
       });
-    */
 
-    await Workspace.updateStatusAndPlan(param.workspaceId, {
-      plan: WorkspacePlan.BUSINESS,
-      // status: WorkspaceStatus.CREATING,
-    });
+      await Workspace.updateStatusAndPlan(param.workspaceId, {
+        plan: WorkspacePlan.BUSINESS,
+        status: WorkspaceStatus.CREATING,
+      });
+    } else {
+      await Workspace.updateStatusAndPlan(param.workspaceId, {
+        plan: WorkspacePlan.BUSINESS,
+      });
+    }
 
     return workspace;
   }

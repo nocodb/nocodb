@@ -251,12 +251,14 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.badRequest('Invalid workspace id');
       }
 
-      if (workspace.plan && workspace.plan !== WorkspacePlan.FREE) {
-        /*
+      if (
+        workspace.plan &&
+        workspace.plan !== WorkspacePlan.FREE &&
+        process.env.NC_COMPUTE_FOR_EXT_DB_AS_SINGLE_TENANT === 'true'
+      ) {
         logger.error(
           `id: ${workspace.id} - status: ${workspace.status} - plan: ${workspace.plan} request reached to multi tenant server`,
         );
-        */
       }
     }
     next();

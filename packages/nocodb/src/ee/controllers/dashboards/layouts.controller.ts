@@ -7,9 +7,10 @@ import {
   Param,
   Patch,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { LayoutReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -27,7 +28,7 @@ export class LayoutsController {
     '/api/v1/layouts/:layoutId',
   ])
   @Acl('layoutGet')
-  async layoutGet(@Param('layoutId') layoutId: string, @Request() _req) {
+  async layoutGet(@Param('layoutId') layoutId: string) {
     const layout = await this.layoutService.getLayout({
       layoutId,
     });
@@ -51,7 +52,7 @@ export class LayoutsController {
 
   @Get(['/api/v1/dashboards/:dashboardId/layouts'])
   @Acl('layoutList')
-  async layoutList(@Param('dashboardId') dashboardId: string, @Request() _req) {
+  async layoutList(@Param('dashboardId') dashboardId: string) {
     return new PagedResponseImpl(
       await this.layoutService.getLayouts({
         dashboardId,
@@ -83,7 +84,6 @@ export class LayoutsController {
   async layoutUpdate(
     @Param('layoutId') layoutId: string,
     @Body() body: LayoutReqType,
-    @Request() _req,
   ) {
     const result = await this.layoutService.layoutUpdate({
       layoutId,

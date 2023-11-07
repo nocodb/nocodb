@@ -5,9 +5,10 @@ import {
   HttpCode,
   Post,
   Query,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { PagedResponseImpl } from 'src/helpers/PagedResponse';
 import { ProjectReqType } from 'nocodb-sdk';
 import { BasesController as BasesControllerCE } from 'src/controllers/bases.controller';

@@ -7,10 +7,11 @@ import {
   Param,
   Post,
   Put,
-  Request,
-  Response,
+  Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { DocsPageHistoryService } from '~/services/docs/history/docs-page-history.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -101,7 +102,7 @@ export class DocsPagesController {
   async gpt(
     @Param('id') id: string,
     @Param('baseId') baseId: string,
-    @Response() response,
+    @Res() response:Response,
     @Req() req: Request,
   ) {
     let body: {

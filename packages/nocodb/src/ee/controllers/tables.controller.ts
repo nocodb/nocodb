@@ -4,9 +4,9 @@ import {
   Param,
   Post,
   Req,
-  Request,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { TableReqType } from 'nocodb-sdk';
 import { TablesController as TablesControllerCE } from 'src/controllers/tables.controller';
 import { GlobalGuard } from '~/guards/global/global.guard';

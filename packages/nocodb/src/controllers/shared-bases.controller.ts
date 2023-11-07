@@ -7,9 +7,10 @@ import {
   Param,
   Patch,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { SharedBasesService } from '~/services/shared-bases.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -27,7 +28,7 @@ export class SharedBasesController {
   @HttpCode(200)
   @Acl('createSharedBaseLink')
   async createSharedBaseLink(
-    @Request() req,
+    @Req() req:Request,
     @Body() body: any,
     @Param('baseId') baseId: string,
   ): Promise<any> {
@@ -48,7 +49,7 @@ export class SharedBasesController {
   ])
   @Acl('updateSharedBaseLink')
   async updateSharedBaseLink(
-    @Request() req,
+    @Req() req:Request,
     @Body() body: any,
     @Param('baseId') baseId: string,
   ): Promise<any> {
@@ -86,7 +87,7 @@ export class SharedBasesController {
   ])
   @Acl('getSharedBaseLink')
   async getSharedBaseLink(
-    @Request() req,
+    @Req() req:Request,
     @Param('baseId') baseId: string,
   ): Promise<any> {
     const sharedBase = await this.sharedBasesService.getSharedBaseLink({

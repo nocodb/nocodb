@@ -1,4 +1,5 @@
-import { Controller, HttpCode, Post, Request, UseGuards } from '@nestjs/common';
+import { Controller, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
+import { Request } from 'express';
 import type { UserType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { CommandPaletteService } from '~/services/command-palette.service';

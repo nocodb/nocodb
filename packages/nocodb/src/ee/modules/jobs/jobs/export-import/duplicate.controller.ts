@@ -5,9 +5,10 @@ import {
   Inject,
   Param,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ProjectStatus } from 'nocodb-sdk';
 import { DuplicateController as DuplicateControllerCE } from 'src/modules/jobs/jobs/export-import/duplicate.controller';
 import { GlobalGuard } from '~/guards/global/global.guard';

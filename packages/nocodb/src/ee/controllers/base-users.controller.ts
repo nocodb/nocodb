@@ -4,9 +4,10 @@ import {
   HttpCode,
   Param,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ProjectUserReqType } from 'nocodb-sdk';
 import { BaseUsersController as BaseUsersControllerCE } from 'src/controllers/base-users.controller';
 import { GlobalGuard } from '~/guards/global/global.guard';

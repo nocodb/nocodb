@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { WorkspaceUsersService } from './workspace-users.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';

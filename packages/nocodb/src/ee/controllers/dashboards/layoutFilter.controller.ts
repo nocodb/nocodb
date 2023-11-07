@@ -28,12 +28,10 @@ export class LayoutFilterController {
   async filterList(
     @Param('layoutId') layoutId: string,
     @Param('widgetId') widgetId: string,
-    @Req() req: Request,
   ) {
     return new PagedResponseImpl(
       await this.dashboardFilterService.getFilters({
         widgetId,
-        req
       }),
     );
   }

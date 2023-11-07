@@ -8,9 +8,10 @@ import {
   Patch,
   Post,
   Query,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ViewUpdateReqType } from 'nocodb-sdk';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -101,7 +102,7 @@ export class ViewsController {
   ])
   @HttpCode(200)
   @Acl('shareView')
-  async shareView(@Param('viewId') viewId: string, @Request() req) {
+  async shareView(@Param('viewId') viewId: string, @Req() req:Request) {
     return await this.viewsService.shareView({ viewId, user: req.user, req });
   }
 
@@ -126,7 +127,7 @@ export class ViewsController {
   async shareViewUpdate(
     @Param('viewId') viewId: string,
     @Body() body: ViewUpdateReqType,
-    @Request() req,
+    @Req() req:Request,
   ) {
     return await this.viewsService.shareViewUpdate({
       viewId,
@@ -141,7 +142,7 @@ export class ViewsController {
     '/api/v2/meta/views/:viewId/share',
   ])
   @Acl('shareViewDelete')
-  async shareViewDelete(@Param('viewId') viewId: string, @Request() req) {
+  async shareViewDelete(@Param('viewId') viewId: string, @Req() req:Request) {
     return await this.viewsService.shareViewDelete({
       viewId,
       user: req.user,

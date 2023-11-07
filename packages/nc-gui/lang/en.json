@@ -444,6 +444,7 @@
     "inUI": "in UI Dashboard",
     "projectSettings": "Base Settings",
     "clickToHide": "Click to hide",
+    "clickToDownload": "Click to download",
     "forRole": "for role",
     "searchUsers": "Search Users",
     "superAdmin": "Super Admin",
@@ -1009,7 +1010,8 @@
       },
       "nonEditableFields": {
         "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
-        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed.",
+        "barcodeFieldsCannotBeDirectlyChanged": "Warning: Barcode fields cannot be directly changed."
       },
       "duplicateProject": "Are you sure you want to duplicate the base?",
       "duplicateTable": "Are you sure you want to duplicate the table?"

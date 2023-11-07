@@ -89,6 +89,8 @@ function handleMouseMove(e: MouseEvent) {
 
 function onWindowResize() {
   viewportWidth.value = window.innerWidth
+
+  onResize(currentSidebarSize.value)
 }
 
 onMounted(() => {
@@ -122,25 +124,56 @@ watch(sidebarState, () => {
 onMounted(() => {
   handleSidebarOpenOnMobileForNonViews()
 })
+
+function onResize(widthPercent: any) {
+  if (isMobileMode.value) return
+
+  const width = (widthPercent * viewportWidth.value) / 100
+
+  const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
+
+  const widthRem = width / fontSize
+
+  if (widthRem < 16) {
+    currentSidebarSize.value = ((16 * fontSize) / viewportWidth.value) * 100
+    return
+  } else if (widthRem > 23.5) {
+    currentSidebarSize.value = ((23.5 * fontSize) / viewportWidth.value) * 100
+    return
+  }
+
+  console.log('onResize', widthRem, fontSize)
+  currentSidebarSize.value = widthPercent
+}
+
+watch(
+  () => sideBarSize.value.current,
+  () => {
+    console.log('sidebarState', sideBarSize.value.current)
+  },
+)
 </script>
 
 <template>
   <Splitpanes
-    class="nc-sidebar-content-resizable-wrapper w-full h-full"
+    class="nc-sidebar-content-resizable-wrapper !w-screen h-full"
     :class="{
       'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart',
     }"
-    @resize="currentSidebarSize = $event[0].size"
+    @resize="(event: any) => onResize(event[0].size)"
   >
     <Pane
       min-size="15%"
       :size="mobileNormalizedSidebarSize"
       max-size="40%"
-      class="nc-sidebar-splitpane relative !overflow-visible"
+      class="nc-sidebar-splitpane !sm:(min-w-64 max-w-94) relative !overflow-visible"
+      :style="{
+        width: `${mobileNormalizedSidebarSize}%`,
+      }"
     >
       <div
         ref="wrapperRef"
-        class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !min-w-12 absolute overflow-visible"
+        class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !sm:(min-w-64 max-w-94) absolute overflow-visible"
         :class="{
           'mobile': isMobileMode,
           'minimized-height': !isLeftSidebarOpen,
@@ -153,7 +186,12 @@ onMounted(() => {
         <slot name="sidebar" />
       </div>
     </Pane>
-    <Pane :size="mobileNormalizedContentSize">
+    <Pane
+      :size="mobileNormalizedContentSize"
+      :style="{
+        width: `${100 - mobileNormalizedSidebarSize}%`,
+      }"
+    >
       <slot name="content" />
     </Pane>
   </Splitpanes>

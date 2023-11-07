@@ -57,6 +57,29 @@ const dateTimeData = [
   },
 ];
 
+const dateData = [
+  {
+    dateFormat: 'YYYY-MM-DD',
+    date: '2022-12-12',
+    output: '2022-12-12',
+  },
+  {
+    dateFormat: 'YYYY/MM/DD',
+    date: '2022-12-13',
+    output: '2022/12/13',
+  },
+  {
+    dateFormat: 'DD-MM-YYYY',
+    date: '2022-12-10',
+    output: '10-12-2022',
+  },
+  {
+    dateFormat: 'YYYY-MM',
+    date: '2022-12-26',
+    output: '2022-12',
+  },
+];
+
 test.describe('DateTime Column', () => {
   if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage;
@@ -113,6 +136,58 @@ test.describe('DateTime Column', () => {
         index: 0,
         columnHeader: 'NC_DATETIME_0',
         value: dateTimeData[i].output,
+      });
+    }
+  });
+});
+
+test.describe('Date Column', () => {
+  // if (enableQuickRun()) test.skip();
+  let dashboard: DashboardPage;
+  let context: NcContext;
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, context.base);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
+  test('Create Date Column', async () => {
+    await dashboard.treeView.createTable({ title: 'test_date', baseTitle: context.base.title });
+    // Create DateTime column
+    await dashboard.grid.column.create({
+      title: 'NC_DATE_0',
+      type: 'Date',
+      dateFormat: dateData[0].dateFormat,
+    });
+
+    for (let i = 0; i < dateData.length; i++) {
+      // Edit DateTime column
+      await dashboard.grid.column.openEdit({
+        title: 'NC_DATE_0',
+        type: 'Date',
+        dateFormat: dateData[i].dateFormat,
+      });
+
+      await dashboard.grid.column.save({ isUpdated: true });
+
+      await dashboard.grid.cell.dateTime.open({
+        index: 0,
+        columnHeader: 'NC_DATE_0',
+      });
+
+      await dashboard.grid.cell.dateTime.selectDate({
+        date: dateData[i].date,
+        skipDate: dateData[i].dateFormat === 'YYYY-MM',
+      });
+
+      await dashboard.grid.cell.verifyDateCell({
+        index: 0,
+        columnHeader: 'NC_DATE_0',
+        value: dateData[i].output,
       });
     }
   });

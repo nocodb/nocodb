@@ -54,6 +54,7 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
     />
   </a-modal>
   <div
+    v-if="!tooManyCharsForBarcode"
     class="flex ml-2 w-full items-center"
     :class="{
       'justify-start': isExpandedFormOpen,

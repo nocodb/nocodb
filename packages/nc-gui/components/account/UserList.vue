@@ -157,7 +157,7 @@ const openDeleteModal = (user: UserType) => {
 <template>
   <div data-testid="nc-super-user-list" class="h-full">
     <div class="max-w-195 mx-auto h-full">
-      <div class="text-2xl text-left font-weight-bold mb-4" data-rec="true">{{ $t('title.userManagement') }}</div>
+      <div class="text-2xl text-left font-weight-bold mb-4" data-rec="true">{{ $t('title.userMgmt') }}</div>
       <div class="py-2 flex gap-4 items-center justify-between">
         <a-input v-model:value="searchText" class="!max-w-90 !rounded-md" placeholder="Search members" @change="loadUsers()">
           <template #prefix>

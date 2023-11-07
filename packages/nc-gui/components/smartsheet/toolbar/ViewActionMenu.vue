@@ -1,10 +1,15 @@
 <script lang="ts" setup>
-import type { ViewType } from 'nocodb-sdk'
+import type { TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { LockType } from '~/lib'
 
 import UploadIcon from '~icons/nc-icons/upload'
 import DownloadIcon from '~icons/nc-icons/download'
+
+const props = defineProps<{
+  view: ViewType
+  table: TableType
+}>()
 
 const emits = defineEmits(['rename', 'closeModal'])
 
@@ -18,20 +23,24 @@ const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { activeView, views } = storeToRefs(useViewsStore())
+const view = computed(() => props.view)
+
+const table = computed(() => props.table)
+
+const { viewsByTable } = storeToRefs(useViewsStore())
 const { loadViews, navigateToView } = useViewsStore()
 
 const { base } = storeToRefs(useBase())
 
-const { activeTable } = storeToRefs(useTablesStore())
-
 const { refreshCommandPalette } = useCommandPalette()
 
-const lockType = computed(() => (activeView.value?.lock_type as LockType) || LockType.Collaborative)
+const lockType = computed(() => (view.value?.lock_type as LockType) || LockType.Collaborative)
+
+const views = computed(() => viewsByTable.value.get(table.value.id!))
 
 const isViewIdCopied = ref(false)
 
-const currentBaseId = computed(() => activeTable.value?.source_id)
+const currentBaseId = computed(() => table.value?.source_id)
 
 const onRenameMenuClick = () => {
   emits('rename')
@@ -57,15 +66,15 @@ const onImportClick = (dialog: any) => {
 async function changeLockType(type: LockType) {
   $e('a:grid:lockmenu', { lockType: type })
 
-  if (!activeView.value) return
+  if (!view.value) return
 
   if (type === 'personal') {
     // Coming soon
     return message.info(t('msg.toast.futureRelease'))
   }
   try {
-    activeView.value.lock_type = type
-    await $api.dbView.update(activeView.value.id as string, {
+    view.value.lock_type = type
+    await $api.dbView.update(view.value.id as string, {
       lock_type: type,
     })
 
@@ -86,11 +95,11 @@ function onDuplicate() {
 
   const { close } = useDialog(resolveComponent('DlgViewCreate'), {
     'modelValue': isOpen,
-    'title': activeView.value!.title,
-    'type': activeView.value!.type as ViewTypes,
-    'tableId': activeTable.value!.id,
-    'selectedViewId': activeView.value!.id,
-    'groupingFieldColumnId': activeView.value!.view!.fk_grp_col_id,
+    'title': view.value!.title,
+    'type': view.value!.type as ViewTypes,
+    'tableId': table.value!.id,
+    'selectedViewId': view.value!.id,
+    'groupingFieldColumnId': view.value!.view!.fk_grp_col_id,
     'views': views,
     'onUpdate:modelValue': closeDialog,
     'onCreated': async (view: ViewType) => {
@@ -100,12 +109,12 @@ function onDuplicate() {
 
       await loadViews({
         force: true,
-        tableId: activeTable.value!.id!,
+        tableId: table.value!.id!,
       })
 
       navigateToView({
         view,
-        tableId: activeTable.value!.id!,
+        tableId: table.value!.id!,
         baseId: base.value.id!,
         hardReload: view.type === ViewTypes.FORM,
       })
@@ -120,6 +129,13 @@ function onDuplicate() {
     close(1000)
   }
 }
+
+const { copy } = useCopy()
+
+const onViewIdCopy = async () => {
+  await copy(view.value!.id!)
+  isViewIdCopied.value = true
+}
 </script>
 
 <template>
@@ -130,7 +146,7 @@ function onDuplicate() {
         <div class="flex text-xs font-bold text-gray-500 ml-1">
           {{
             $t('labels.viewIdColon', {
-              viewId: activeView?.id,
+              viewId: view?.id,
             })
           }}
         </div>
@@ -141,7 +157,7 @@ function onDuplicate() {
       </div>
     </NcTooltip>
     <NcDivider />
-    <template v-if="!activeView?.is_default">
+    <template v-if="!view?.is_default">
       <NcMenuItem @click="onRenameMenuClick">
         <GeneralIcon icon="edit" />
         {{ $t('activity.renameView') }}

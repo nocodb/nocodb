@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
+import type { TableType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import {
   IsLockedInj,
@@ -16,6 +16,7 @@ import {
 
 interface Props {
   view: ViewType
+  table: TableType
   onValidate: (view: ViewType) => boolean | string
 }
 
@@ -48,6 +49,8 @@ const { isUIAllowed } = useRoles()
 const base = inject(ProjectInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
+
+const table = computed(() => props.table)
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -120,28 +123,6 @@ onKeyStroke('Enter', (event) => {
 })
 
 const focusInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
-
-/** Duplicate a view */
-// todo: This is not really a duplication, maybe we need to implement a true duplication?
-function onDuplicate() {
-  isDropdownOpen.value = false
-
-  emits('openModal', {
-    type: vModel.value.type!,
-    title: vModel.value.title,
-    copyViewId: vModel.value.id,
-    groupingFieldColumnId: (vModel.value.view as KanbanType).fk_grp_col_id!,
-  })
-
-  $e('c:view:copy', { view: vModel.value.type })
-}
-
-/** Delete a view */
-async function onDelete() {
-  isDropdownOpen.value = false
-
-  emits('delete', vModel.value)
-}
 
 /** Rename a view */
 async function onRename() {
@@ -262,25 +243,13 @@ function onStopEdit() {
           </NcButton>
 
           <template #overlay>
-            <NcMenu class="min-w-27" :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`">
-              <NcMenuItem v-e="['c:view:rename']" @click.stop="onDblClick">
-                <GeneralIcon icon="edit" />
-                <div class="-ml-0.25">{{ $t('general.rename') }}</div>
-              </NcMenuItem>
-              <NcMenuItem v-e="['c:view:duplicate']" @click.stop="onDuplicate">
-                <GeneralIcon icon="duplicate" class="nc-view-copy-icon" />
-                {{ $t('general.duplicate') }}
-              </NcMenuItem>
-
-              <NcDivider />
-
-              <template v-if="!vModel.is_default">
-                <NcMenuItem v-e="['c:view:delete']" class="!text-red-500 !hover:bg-red-50" @click.stop="onDelete">
-                  <GeneralIcon icon="delete" class="text-sm nc-view-delete-icon" />
-                  <div class="-ml-0.25">{{ $t('general.delete') }}</div>
-                </NcMenuItem>
-              </template>
-            </NcMenu>
+            <SmartsheetToolbarViewActionMenu
+              :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`"
+              :view="vModel"
+              :table="table"
+              @close-modal="isDropdownOpen = false"
+              @rename="onRename"
+            />
           </template>
         </NcDropdown>
       </template>

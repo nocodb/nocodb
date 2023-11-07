@@ -420,6 +420,7 @@ function onOpenModal({
         :key="view.id"
         :view="view"
         :on-validate="validate"
+        :table="table"
         class="nc-view-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
         :class="{
           'bg-gray-200': isMarked === view.id,

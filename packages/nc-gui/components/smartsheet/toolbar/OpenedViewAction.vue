@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 const { activeView, views, openedViewsTab } = storeToRefs(useViewsStore())
 
+const { activeTable } = storeToRefs(useTablesStore())
+
 const { isMobileMode } = useGlobal()
 
 const { isSharedBase } = storeToRefs(useBase())
@@ -144,7 +146,12 @@ const resetViewRename = () => {
       <GeneralIcon icon="arrowDown" class="ml-1" />
     </div>
     <template #overlay>
-      <SmartsheetToolbarViewActionMenu @close-modal="isDropdownOpen = false" @rename="onRenameMenuClick" />
+      <SmartsheetToolbarViewActionMenu
+        :table="activeTable"
+        :view="activeView"
+        @close-modal="isDropdownOpen = false"
+        @rename="onRenameMenuClick"
+      />
     </template>
   </NcDropdown>
 

@@ -72,7 +72,7 @@ export default class KinesisConsumerServer
           const readRecords = () => {
             this.kinesis.getRecords(params, async (err, data) => {
               if (err) {
-                this.logger.log(err, err.stack);
+                this.logger.error(err, err.stack);
               } else {
                 const records = data.Records;
                 if (records.length > 0) {

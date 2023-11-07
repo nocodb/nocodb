@@ -558,7 +558,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       );
       this.logger.log('MessageID is ' + data.MessageId);
     } catch (err) {
-      console.error(err, err.stack);
+      this.logger.error(err.message, err.stack);
       NcError.internalServerError('Error while upgrading workspace');
     }
   }
@@ -587,7 +587,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
           await ncMeta.commit();
           this.logger.log(`[TEMPLATES] ${workspace.id} deleted`);
         } catch (e) {
-          this.logger.log(`[TEMPLATES] ${workspace.id} failed to delete`);
+          this.logger.error(`[TEMPLATES] ${workspace.id} failed to delete`);
           await ncMeta.rollback();
         }
       }

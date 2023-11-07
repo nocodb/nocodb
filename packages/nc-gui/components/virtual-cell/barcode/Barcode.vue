@@ -46,7 +46,12 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
     :footer="null"
     @ok="handleModalOkClick"
   >
-    <JsBarcodeWrapper v-if="showBarcode" :barcode-value="barcodeValue" :barcode-format="barcodeMeta.barcodeFormat" />
+    <JsBarcodeWrapper
+      v-if="showBarcode"
+      :barcode-value="barcodeValue"
+      :barcode-format="barcodeMeta.barcodeFormat"
+      show-download
+    />
   </a-modal>
   <div
     class="flex ml-2 w-full items-center"

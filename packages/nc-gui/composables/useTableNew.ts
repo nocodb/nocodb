@@ -113,17 +113,29 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
     }
 
     const sqlUi = await basesStore.getSqlUi(baseId, sourceId)
+    const source = bases.value.get(baseId)?.sources?.find((s) => s.id === sourceId)
 
     if (!sqlUi) return
-    const columns = sqlUi?.getNewTableColumns().filter((col: ColumnType) => {
-      if (col.column_name === 'id' && table.columns.includes('id_ag')) {
-        Object.assign(col, sqlUi?.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
-        col.dtxp = sqlUi?.getDefaultLengthForDatatype(col.dt)
-        col.dtxs = sqlUi?.getDefaultScaleForDatatype(col.dt)
-        return true
-      }
-      return table.columns.includes(col.column_name!)
-    })
+    const columns = sqlUi
+      ?.getNewTableColumns()
+      .filter((col: ColumnType) => {
+        if (col.column_name === 'id' && table.columns.includes('id_ag')) {
+          Object.assign(col, sqlUi?.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
+          col.dtxp = sqlUi?.getDefaultLengthForDatatype(col.dt)
+          col.dtxs = sqlUi?.getDefaultScaleForDatatype(col.dt)
+          return true
+        }
+        return table.columns.includes(col.column_name!)
+      })
+      .map((column) => {
+        if (!source) return column
+
+        if (source.inflection_column !== 'camelize') {
+          column.title = column.column_name
+        }
+
+        return column
+      })
 
     try {
       const tableMeta = await $api.source.tableCreate(baseId, sourceId!, {

@@ -104,7 +104,7 @@ const logout = async () => {
               <template #icon>
                 <MdiAccountSupervisorOutline />
               </template>
-              <template #title>Users</template>
+              <template #title>{{ $t('objects.users') }}</template>
 
               <NcMenuItem
                 v-if="isUIAllowed('superAdminUserManagement') && !isEeUI"

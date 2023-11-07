@@ -504,6 +504,7 @@ export type ColumnReqType = (
     view_id?: string;
   };
   title: string;
+  view_id?: string;
 };
 
 /**

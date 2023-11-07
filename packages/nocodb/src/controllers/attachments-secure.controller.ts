@@ -6,8 +6,8 @@ import {
   HttpCode,
   Param,
   Post,
-  Request,
-  Response,
+  Req,
+  Res,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -15,8 +15,7 @@ import {
 import hash from 'object-hash';
 import moment from 'moment';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { Response as ResponseType } from 'express';
-import type { Request as RequestType } from 'express';
+import { Request, Response } from 'express';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { AttachmentsService } from '~/services/attachments.service';
@@ -34,7 +33,7 @@ export class AttachmentsSecureController {
   @UseInterceptors(UploadAllowedInterceptor, AnyFilesInterceptor())
   async upload(
     @UploadedFiles() files: Array<FileType>,
-    @Request() req: RequestType & { user: { id: string } },
+    @Req() req: Request & { user: { id: string } },
   ) {
     const path = `${moment().format('YYYY/MM/DD')}/${hash(req.user.id)}`;
 
@@ -53,7 +52,7 @@ export class AttachmentsSecureController {
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   async uploadViaURL(
     @Body() body: Array<AttachmentReqType>,
-    @Request() req: RequestType & { user: { id: string } },
+    @Req() req: Request & { user: { id: string } },
   ) {
     const path = `${moment().format('YYYY/MM/DD')}/${hash(req.user.id)}`;
 
@@ -69,7 +68,7 @@ export class AttachmentsSecureController {
   @Get('/dltemp/:param(*)')
   async fileReadv3(
     @Param('param') param: string,
-    @Response() res: ResponseType,
+    @Res() res: Response,
   ) {
     try {
       const fpath = await PresignedUrl.getPath(`dltemp/${param}`);

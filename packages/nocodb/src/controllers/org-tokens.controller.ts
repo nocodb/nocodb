@@ -30,7 +30,7 @@ export class OrgTokensController {
     scope: 'org',
     blockApiTokenAccess: true,
   })
-  async apiTokenList(@Request() req) {
+  async apiTokenList(@Req() req: Request) {
     return await getConditionalHandler(
       this.orgTokensService.apiTokenList,
       this.orgTokensEeService.apiTokenListEE,

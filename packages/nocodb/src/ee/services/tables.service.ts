@@ -16,6 +16,7 @@ import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
+import {NcRequest} from "~/interface/config";
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -38,7 +39,7 @@ export class TablesService extends TableServiceCE {
     sourceId?: string;
     table: TableReqType;
     user: User | UserType;
-    req?: any;
+    req?: NcRequest;
   }) {
     const base = await Base.getWithInfo(param.baseId);
     let source = base.sources[0];
@@ -82,7 +83,7 @@ export class TablesService extends TableServiceCE {
     tableName: string;
     title: string;
     user?: UserType;
-    req: any;
+    req: NcRequest;
   }) {
     const tableCreateBody = {
       tableName: param.tableName,
@@ -213,7 +214,7 @@ export class TablesService extends TableServiceCE {
     sourceId: string;
     schemaName: string;
     title: string;
-    req: any;
+    req: NcRequest;
   }) {
     const base = await Base.getWithInfo(param.baseId);
     let source = base.sources[0];

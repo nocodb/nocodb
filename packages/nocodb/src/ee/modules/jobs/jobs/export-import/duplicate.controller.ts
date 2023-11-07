@@ -36,7 +36,7 @@ export class DuplicateController extends DuplicateControllerCE {
     scope: 'workspace',
   })
   public async duplicateSharedBase(
-    @Request() req,
+    @Req() req: Request,
     @Param('workspaceId') workspaceId: string,
     @Param('sharedBaseId') sharedBaseId: string,
     @Body()

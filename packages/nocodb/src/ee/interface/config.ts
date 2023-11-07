@@ -1,3 +1,5 @@
+import {Request} from 'express';
+
 export interface AppConfig {
   cognito: {
     aws_project_region: string;

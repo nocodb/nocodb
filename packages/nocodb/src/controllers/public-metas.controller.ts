@@ -12,7 +12,7 @@ export class PublicMetasController {
     '/api/v2/public/shared-view/:sharedViewUuid/meta',
   ])
   async viewMetaGet(
-    @Request() req,
+    @Req() req: Request,
     @Param('sharedViewUuid') sharedViewUuid: string,
   ) {
     return await this.publicMetasService.viewMetaGet({

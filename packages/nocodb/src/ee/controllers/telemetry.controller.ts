@@ -11,7 +11,7 @@ export class TelemetryController {
   @Post('/api/v1/tele')
   async trackEvents(
     @Body() body: { clientId: string; events: any[] },
-    @Req() req,
+    @Req() req: Request,
   ) {
     await this.telemetryService.trackEvents({ body, req });
   }

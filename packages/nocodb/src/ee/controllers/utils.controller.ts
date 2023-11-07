@@ -40,7 +40,7 @@ export class UtilsController extends UtilsControllerCE {
     scope: 'org',
   })
   @HttpCode(200)
-  async testConnection(@Body() body: any, @Request() req: any) {
+  async testConnection(@Body() body: any, @Req() req: Request) {
     if (process.env.NC_ALLOW_LOCAL_EXTERNAL_DBS !== 'true') {
       if (!body?.connection || !body?.connection.host) {
         NcError.badRequest('Connection missing host name or IP address');

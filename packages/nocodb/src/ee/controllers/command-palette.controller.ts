@@ -15,7 +15,7 @@ export class CommandPaletteController {
     scope: 'org',
   })
   @HttpCode(200)
-  async commandPalette(@Request() req) {
+  async commandPalette(@Req() req: Request) {
     const data = this.commandPaletteService.commandPalette({
       user: req?.user as UserType,
       body: req.body,

@@ -24,7 +24,7 @@ export class AtImportController {
   ])
   @Acl('airtableImport')
   @HttpCode(200)
-  async triggerSync(@Request() req) {
+  async triggerSync(@Req() req: Request) {
     const jobs = await this.jobsService.jobList();
     const fnd = jobs.find((j) => j.data.syncId === req.params.syncId);
 

@@ -28,7 +28,7 @@ export class BasesController extends BasesControllerCE {
     scope: 'workspace',
   })
   @Get(['/api/v1/db/meta/projects/', '/api/v2/meta/bases/'])
-  async list(@Query() queryParams: Record<string, any>, @Request() req) {
+  async list(@Query() queryParams: Record<string, any>, @Req() req: Request) {
     const bases = await this.projectsService.baseList({
       user: req.user,
       query: queryParams,
@@ -44,7 +44,7 @@ export class BasesController extends BasesControllerCE {
   })
   @Post(['/api/v1/db/meta/projects', '/api/v2/meta/bases'])
   @HttpCode(200)
-  async baseCreate(@Body() baseBody: ProjectReqType, @Request() req) {
+  async baseCreate(@Body() baseBody: ProjectReqType, @Req() req: Request) {
     const base = await this.projectsService.baseCreate({
       base: baseBody,
       user: req['user'],

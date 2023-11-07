@@ -1,3 +1,4 @@
+import type { ReqId } from 'pino-http';
 import type { Handler } from 'express';
 import type * as e from 'express';
 import type { Knex } from 'knex';
@@ -318,4 +319,12 @@ export interface AppConfig {
   };
   mainSubDomain: string;
   dashboardPath: string;
+}
+
+export interface NcRequest {
+  id?: ReqId;
+  user?: Record<string, any>;
+  ncWorkspaceId?: string;
+  ncProjectId?: string;
+  headers?: Record<string, string | undefined> | IncomingHttpHeaders;
 }

@@ -29,7 +29,7 @@ export class OrgUsersController {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
-  async userList(@Request() req) {
+  async userList(@Req() req: Request) {
     return new PagedResponseImpl(
       await this.orgUsersService.userList({
         query: req.query,

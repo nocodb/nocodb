@@ -48,7 +48,7 @@ export class PluginsController {
   @Acl('pluginTest', {
     scope: 'org',
   })
-  async pluginTest(@Body() body: any, @Req() req: any) {
+  async pluginTest(@Body() body: any, @Req() req: Request) {
     return await this.pluginsService.pluginTest({ body: body, req });
   }
 
@@ -70,7 +70,7 @@ export class PluginsController {
   async pluginUpdate(
     @Body() body: any,
     @Param('pluginId') pluginId: string,
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     const plugin = await this.pluginsService.pluginUpdate({
       pluginId: pluginId,

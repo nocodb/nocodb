@@ -31,7 +31,7 @@ export class BaseUsersController extends BaseUsersControllerCE {
   @Acl('userInvite')
   async userInvite(
     @Param('baseId') baseId: string,
-    @Request() req,
+    @Req() req: Request,
     @Body() body: ProjectUserReqType,
   ): Promise<any> {
     // todo: move this to a service

@@ -34,7 +34,7 @@ export class DuplicateController {
     scope: 'org',
   })
   public async duplicateSharedBase(
-    @Request() req,
+    @Req() req: Request,
     @Param('workspaceId') _workspaceId: string,
     @Param('sharedBaseId') sharedBaseId: string,
     @Body()
@@ -101,7 +101,7 @@ export class DuplicateController {
   @HttpCode(200)
   @Acl('duplicateBase')
   async duplicateBase(
-    @Request() req,
+    @Req() req: Request,
     @Param('baseId') baseId: string,
     @Param('sourceId') sourceId?: string,
     @Body()
@@ -168,7 +168,7 @@ export class DuplicateController {
   @HttpCode(200)
   @Acl('duplicateModel')
   async duplicateModel(
-    @Request() req,
+    @Req() req: Request,
     @Param('baseId') baseId: string,
     @Param('modelId') modelId?: string,
     @Body()

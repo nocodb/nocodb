@@ -40,7 +40,7 @@ export class LayoutsController {
     '/api/v1/layouts/:layoutId',
   ])
   @Acl('layoutDelete')
-  async layoutDelete(@Param('layoutId') layoutId: string, @Request() req) {
+  async layoutDelete(@Param('layoutId') layoutId: string, @Req() req: Request) {
     const result = await this.layoutService.layoutDelete({
       layoutId: layoutId,
       user: (req as any).user,

@@ -26,6 +26,7 @@
       "src/*": ["./src/*"],
       "~/*": ["./src/*"],
       "@/*": ["./src/*"]
-    }
+    },
+    "typeRoots": ["./src/types","./node_modules/@types", ]
   }
 }

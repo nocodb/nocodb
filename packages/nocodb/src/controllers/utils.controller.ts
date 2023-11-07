@@ -63,7 +63,7 @@ export class UtilsController {
     '/api/v2/meta/nocodb/info',
     '/api/v1/meta/nocodb/info',
   ])
-  async appInfo(@Request() req) {
+  async appInfo(@Req() req: Request) {
     return await this.utilsService.appInfo({
       req: {
         ncSiteUrl: (req as any).ncSiteUrl,

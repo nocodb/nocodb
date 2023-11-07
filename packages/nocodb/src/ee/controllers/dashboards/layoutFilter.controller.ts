@@ -5,9 +5,10 @@ import {
   HttpCode,
   Param,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { FilterReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -27,11 +28,12 @@ export class LayoutFilterController {
   async filterList(
     @Param('layoutId') layoutId: string,
     @Param('widgetId') widgetId: string,
-    @Request() _req,
+    @Req() req: Request,
   ) {
     return new PagedResponseImpl(
       await this.dashboardFilterService.getFilters({
         widgetId,
+        req
       }),
     );
   }
@@ -45,13 +47,13 @@ export class LayoutFilterController {
     @Param('layoutId') layoutId: string,
     @Param('widgetId') widgetId: string,
     @Body() dashboardFilterReq: FilterReqType,
-    @Request() _req,
+    @Req() req: Request,
   ) {
     const result = await this.dashboardFilterService.filterCreate({
       layoutId,
       widgetId,
       dashboardFilterReq,
-      // user: req.user,
+      req,
     });
 
     return result;

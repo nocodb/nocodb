@@ -30,7 +30,7 @@ export class TablesController extends TablesControllerCE {
     @Param('baseId') baseId: string,
     @Param('sourceId') sourceId: string,
     @Body() body: TableReqType,
-    @Request() req,
+    @Req() req: Request,
   ) {
     return await this.tablesServiceEE.tableCreateMagic({
       baseId,
@@ -51,7 +51,7 @@ export class TablesController extends TablesControllerCE {
     @Param('baseId') baseId: string,
     @Param('sourceId') sourceId: string,
     @Body() body: any,
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     return await this.tablesServiceEE.schemaMagic({
       baseId: baseId,

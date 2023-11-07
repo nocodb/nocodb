@@ -42,7 +42,7 @@ export class DocsPagesHistoryController {
   async sync(
     @Param('pageId') pageId: string,
     @Param('baseId') baseId: string,
-    @Request() req,
+    @Req() req: Request,
   ) {
     const page = await this.pageDao.get({
       id: pageId,
@@ -66,7 +66,7 @@ export class DocsPagesHistoryController {
     @Param('pageId') pageId: string,
     @Param('baseId') baseId: string,
     @Param('snapshotId') snapshotId: string,
-    @Request() req,
+    @Req() req: Request,
   ) {
     return await this.pagesHistoryService.restore({
       pageId,

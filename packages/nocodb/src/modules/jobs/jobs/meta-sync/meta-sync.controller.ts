@@ -24,7 +24,7 @@ export class MetaSyncController {
   ])
   @HttpCode(200)
   @Acl('metaDiffSync')
-  async metaDiffSync(@Param('baseId') baseId: string, @Request() req) {
+  async metaDiffSync(@Param('baseId') baseId: string, @Req() req: Request) {
     const jobs = await this.jobsService.jobList();
     const fnd = jobs.find(
       (j) => j.name === JobTypes.MetaSync && j.data.baseId === baseId,
@@ -57,7 +57,7 @@ export class MetaSyncController {
   async baseMetaDiffSync(
     @Param('baseId') baseId: string,
     @Param('sourceId') sourceId: string,
-    @Request() req,
+    @Req() req: Request,
   ) {
     const jobs = await this.jobsService.jobList();
     const fnd = jobs.find(

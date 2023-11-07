@@ -7,9 +7,10 @@ import {
   Param,
   Patch,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ProjectUserReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
@@ -27,7 +28,7 @@ export class BaseUsersController {
     '/api/v2/meta/bases/:baseId/users',
   ])
   @Acl('userList')
-  async userList(@Param('baseId') baseId: string, @Request() req) {
+  async userList(@Param('baseId') baseId: string, @Req() req: Request) {
     return {
       users: await this.baseUsersService.userList({
         baseId,
@@ -44,7 +45,7 @@ export class BaseUsersController {
   @Acl('userInvite')
   async userInvite(
     @Param('baseId') baseId: string,
-    @Request() req,
+    @Req() req: Request,
     @Body() body: ProjectUserReqType,
   ): Promise<any> {
     // todo: move this to a service
@@ -66,7 +67,7 @@ export class BaseUsersController {
   async baseUserUpdate(
     @Param('baseId') baseId: string,
     @Param('userId') userId: string,
-    @Request() req,
+    @Req() req: Request,
     @Body()
     body: ProjectUserReqType & {
       base_id: string;
@@ -91,7 +92,7 @@ export class BaseUsersController {
   async baseUserDelete(
     @Param('baseId') baseId: string,
     @Param('userId') userId: string,
-    @Request() req,
+    @Req() req: Request,
   ): Promise<any> {
     await this.baseUsersService.baseUserDelete({
       baseId,
@@ -112,7 +113,7 @@ export class BaseUsersController {
   async baseUserInviteResend(
     @Param('baseId') baseId: string,
     @Param('userId') userId: string,
-    @Request() req,
+    @Req() req: Request,
     @Body() body: ProjectUserReqType,
   ): Promise<any> {
     await this.baseUsersService.baseUserInviteResend({
@@ -133,7 +134,7 @@ export class BaseUsersController {
   @Acl('baseUserMetaUpdate')
   async baseUserMetaUpdate(
     @Param('baseId') baseId: string,
-    @Request() req,
+    @Req() req: Request,
     @Body() body: ProjectUserReqType,
   ): Promise<any> {
     return await this.baseUsersService.baseUserMetaUpdate({

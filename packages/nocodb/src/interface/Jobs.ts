@@ -26,3 +26,14 @@ export enum JobEvents {
   STATUS = 'job.status',
   LOG = 'job.log',
 }
+
+export enum InstanceTypes {
+  PRIMARY = 'primary',
+  WORKER = 'worker',
+}
+
+export enum WorkerCommands {
+  RESUME_LOCAL = 'resumeLocal',
+  PAUSE_LOCAL = 'pauseLocal',
+  RESET = 'reset',
+}

@@ -5,7 +5,10 @@ import { WorkspaceUsersService } from './workspace-users.service';
 import { WorkspaceUsersController } from './workspace-users.controller';
 
 @Module({
-  controllers: [WorkspaceUsersController],
+  controllers:
+    process.env.NC_WORKER_CONTAINER !== 'true'
+      ? [WorkspaceUsersController]
+      : [],
   providers: [WorkspaceUsersService],
   imports: [forwardRef(() => UsersModule)],
   exports: [WorkspaceUsersService],

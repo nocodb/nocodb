@@ -107,35 +107,33 @@ export default class Noco {
         throw new Error('NC_REDIS_URL is required');
       }
       process.env.NC_DISABLE_TELE = 'true';
-
-      nestApp.init();
-    } else {
-      nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
-
-      this._httpServer = nestApp.getHttpAdapter().getInstance();
-      this._server = server;
-
-      nestApp.use(requestIp.mw());
-      nestApp.use(cookieParser());
-
-      nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
-
-      nestApp.use(
-        express.json({ limit: process.env.NC_REQUEST_BODY_SIZE || '50mb' }),
-      );
-
-      await nestApp.init();
-
-      const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
-      server.use(NcToolGui.expressMiddleware(dashboardPath));
-      server.use(express.static(path.join(__dirname, 'public')));
-
-      if (dashboardPath !== '/' && dashboardPath !== '') {
-        server.get('/', (_req, res) => res.redirect(dashboardPath));
-      }
-
-      return nestApp.getHttpAdapter().getInstance();
     }
+
+    nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
+
+    this._httpServer = nestApp.getHttpAdapter().getInstance();
+    this._server = server;
+
+    nestApp.use(requestIp.mw());
+    nestApp.use(cookieParser());
+
+    nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
+
+    nestApp.use(
+      express.json({ limit: process.env.NC_REQUEST_BODY_SIZE || '50mb' }),
+    );
+
+    await nestApp.init();
+
+    const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
+    server.use(NcToolGui.expressMiddleware(dashboardPath));
+    server.use(express.static(path.join(__dirname, 'public')));
+
+    if (dashboardPath !== '/' && dashboardPath !== '') {
+      server.get('/', (_req, res) => res.redirect(dashboardPath));
+    }
+
+    return nestApp.getHttpAdapter().getInstance();
   }
 
   public static get httpServer(): http.Server {

@@ -60,6 +60,8 @@ const newFields = ref<TableExplorerColumn[]>([])
 
 const isFieldIdCopied = ref(false)
 
+const isColOptionDropdownOpen = ref(false)
+
 const compareCols = (a?: TableExplorerColumn, b?: TableExplorerColumn) => {
   if (a?.id && b?.id) {
     return a.id === b.id
@@ -683,6 +685,14 @@ onMounted(async () => {
     columnsHash.value = (await $api.dbTableColumn.hash(meta.value.id)).hash
   }
 })
+
+watch(isColOptionDropdownOpen, () => {
+  if (isColOptionDropdownOpen.value === true) return
+
+  setTimeout(() => {
+    isFieldIdCopied.value = false
+  }, 200)
+})
 </script>
 
 <template>
@@ -828,7 +838,13 @@ onMounted(async () => {
                         Restore
                       </div>
                     </NcButton>
-                    <NcDropdown v-else :trigger="['click']" overlay-class-name="nc-dropdown-table-explorer" @click.stop>
+                    <NcDropdown
+                      v-else
+                      v-model:visible="isColOptionDropdownOpen"
+                      :trigger="['click']"
+                      overlay-class-name="nc-dropdown-table-explorer"
+                      @click.stop
+                    >
                       <NcButton
                         size="xsmall"
                         type="text"
@@ -842,25 +858,27 @@ onMounted(async () => {
                       </NcButton>
 
                       <template #overlay>
-                        <NcMenu>
-                          <NcTooltip placement="top">
-                            <template #title>Click to copy Field Id</template>
+                        <NcMenu style="padding-top: 0.45rem !important">
+                          <template v-if="fieldStatus(field) !== 'add'">
+                            <NcTooltip placement="top">
+                              <template #title>Click to copy Field Id</template>
 
-                            <div
-                              class="flex flex-row px-3 py-2 w-42 justify-between items-start hover:bg-gray-100 cursor-pointer"
-                              @click="onClickCopyFieldUrl(field)"
-                            >
-                              <div class="flex flex-col gap-y-1">
-                                <div class="text-gray-700">Field Id:</div>
-                                <div class="flex flex-row text-gray-500 text-xs">
-                                  {{ field.id }}
+                              <div
+                                class="flex flex-row px-3 py-2 w-42 justify-between items-start hover:bg-gray-100 cursor-pointer"
+                                @click="onClickCopyFieldUrl(field)"
+                              >
+                                <div class="flex flex-col gap-y-1">
+                                  <div class="text-gray-700">Field Id:</div>
+                                  <div class="flex flex-row text-gray-500 text-xs">
+                                    {{ field.id }}
+                                  </div>
                                 </div>
+                                <GeneralIcon v-if="isFieldIdCopied" icon="check" class="mt-0.75" />
+                                <GeneralIcon v-else icon="copy" class="mt-0.75" />
                               </div>
-                              <GeneralIcon v-if="isFieldIdCopied" icon="check" class="mt-0.75" />
-                              <GeneralIcon v-else icon="copy" class="mt-0.75" />
-                            </div>
-                          </NcTooltip>
-                          <a-menu-divider class="mb-1" />
+                            </NcTooltip>
+                            <a-menu-divider class="mb-1.5" />
+                          </template>
 
                           <NcMenuItem key="table-explorer-duplicate" @click="duplicateField(field)">
                             <Icon class="iconify text-gray-800" icon="lucide:copy" /><span>Duplicate</span>
@@ -872,7 +890,7 @@ onMounted(async () => {
                             <Icon class="iconify text-gray-800" icon="lucide:arrow-down" /><span>Insert below</span>
                           </NcMenuItem>
 
-                          <a-menu-divider class="my-1" />
+                          <a-menu-divider class="my-1.5" />
 
                           <NcMenuItem key="table-explorer-delete" class="!hover:bg-red-50" @click="onFieldDelete(field)">
                             <div class="text-red-500">

@@ -237,15 +237,17 @@ const onDelete = async () => {
         <LazySmartsheetToolbarLockType :type="LockType.Locked" @click="changeLockType(LockType.Locked)" />
       </a-menu-item>
     </NcSubMenu>
-    <NcDivider />
-    <NcMenuItem class="!hover:bg-red-50 !text-red-500" @click="onDelete">
-      <GeneralIcon icon="delete" />
-      {{
-        $t('general.deleteEntity', {
-          entity: $t('objects.view'),
-        })
-      }}
-    </NcMenuItem>
+    <template v-if="!view.is_default">
+      <NcDivider />
+      <NcMenuItem class="!hover:bg-red-50 !text-red-500" @click="onDelete">
+        <GeneralIcon icon="delete" />
+        {{
+          $t('general.deleteEntity', {
+            entity: $t('objects.view'),
+          })
+        }}
+      </NcMenuItem>
+    </template>
     <template v-if="currentBaseId">
       <LazyDlgQuickImport
         v-for="tp in quickImportDialogTypes"

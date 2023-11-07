@@ -2,7 +2,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bull';
 import type { OnModuleInit } from '@nestjs/common';
-import { JOBS_QUEUE, JobStatus } from '~/interface/Jobs';
+import { JOBS_QUEUE, JobStatus, WorkerCommands } from '~/interface/Jobs';
 import { JobsRedisService } from '~/modules/jobs/redis/jobs-redis.service';
 
 @Injectable()
@@ -19,14 +19,16 @@ export class JobsService implements OnModuleInit {
     if (process.env.NC_WORKER_CONTAINER !== 'true') {
       await this.jobsQueue.pause(true);
     } else {
-      this.jobsRedisService.workerCallbacks['resumeLocal'] = async () => {
-        this.logger.log('Resuming local queue');
-        await this.jobsQueue.resume(true);
-      };
-      this.jobsRedisService.workerCallbacks['pauseLocal'] = async () => {
-        this.logger.log('Pausing local queue');
-        await this.jobsQueue.pause(true);
-      };
+      this.jobsRedisService.workerCallbacks[WorkerCommands.RESUME_LOCAL] =
+        async () => {
+          this.logger.log('Resuming local queue');
+          await this.jobsQueue.resume(true);
+        };
+      this.jobsRedisService.workerCallbacks[WorkerCommands.PAUSE_LOCAL] =
+        async () => {
+          this.logger.log('Pausing local queue');
+          await this.jobsQueue.pause(true);
+        };
     }
   }
 

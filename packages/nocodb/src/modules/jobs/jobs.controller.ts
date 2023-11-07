@@ -14,7 +14,7 @@ import { ModuleRef } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { JobsRedisService } from './redis/jobs-redis.service';
 import type { OnModuleInit } from '@nestjs/common';
-import { JobStatus } from '~/interface/Jobs';
+import { InstanceTypes, JobStatus, WorkerCommands } from '~/interface/Jobs';
 import { JobEvents } from '~/interface/Jobs';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import NocoCache from '~/cache/NocoCache';
@@ -182,7 +182,10 @@ export class JobsController implements OnModuleInit {
     if (body.global === true) {
       await this.jobsService.resumeQueue();
     } else {
-      await this.jobsRedisService.publish('workers', 'resumeLocal');
+      await this.jobsRedisService.publish(
+        InstanceTypes.WORKER,
+        WorkerCommands.RESUME_LOCAL,
+      );
     }
   }
 
@@ -193,7 +196,10 @@ export class JobsController implements OnModuleInit {
     if (body.global === true) {
       await this.jobsService.pauseQueue();
     } else {
-      await this.jobsRedisService.publish('workers', 'pauseLocal');
+      await this.jobsRedisService.publish(
+        InstanceTypes.WORKER,
+        WorkerCommands.PAUSE_LOCAL,
+      );
     }
   }
 

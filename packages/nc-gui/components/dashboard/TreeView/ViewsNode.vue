@@ -48,9 +48,15 @@ const { isUIAllowed } = useRoles()
 
 const base = inject(ProjectInj, ref())
 
-const activeView = inject(ActiveViewInj, ref())
+const { activeView } = storeToRefs(useViewsStore())
+
+const { getMeta } = useMetas()
 
 const table = computed(() => props.table)
+const injectedTable = ref(table.value)
+
+provide(ActiveViewInj, vModel)
+provide(MetaInj, injectedTable)
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -170,6 +176,12 @@ function onStopEdit() {
     isStopped.value = false
   }, 250)
 }
+
+watch(isDropdownOpen, async () => {
+  if (!isDropdownOpen.value) return
+
+  injectedTable.value = (await getMeta(table.value.id!)) as any
+})
 </script>
 
 <template>

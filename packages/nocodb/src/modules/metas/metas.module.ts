@@ -123,7 +123,7 @@ export const metaModuleMetadata = {
           SharedBasesController,
           NotificationsController,
         ]
-      : []),
+      : [UtilsController]),
   ],
   providers: [
     /** Services */

@@ -9,17 +9,17 @@ const emit = defineEmits(['select'])
 
 const types = {
   [LockType.Personal]: {
-    title: 'title.personalView',
+    title: 'title.personal',
     icon: iconMap.account,
     subtitle: 'msg.info.personalView',
   },
   [LockType.Collaborative]: {
-    title: 'title.collabView',
+    title: 'title.collaborative',
     icon: UsersIcon,
     subtitle: 'msg.info.collabView',
   },
   [LockType.Locked]: {
-    title: 'title.lockedView',
+    title: 'title.locked',
     icon: LockIcon,
     subtitle: 'msg.info.lockedView',
   },
@@ -29,7 +29,7 @@ const selectedView = inject(ActiveViewInj)
 </script>
 
 <template>
-  <div class="nc-locked-menu-item !px-1 min-w-50 text-gray-800" @click="emit('select', type)">
+  <div class="nc-locked-menu-item !px-1 text-gray-800" @click="emit('select', type)">
     <div :class="{ 'show-tick': !hideTick }">
       <div class="flex flex-col gap-y-1">
         <div class="flex items-center gap-2 flex-grow">
@@ -37,7 +37,7 @@ const selectedView = inject(ActiveViewInj)
           <div class="flex">
             {{ $t(types[type].title) }}
           </div>
-          <div class="flex flex-grow"></div>
+          <div v-if="!hideTick" class="flex flex-grow"></div>
           <template v-if="!hideTick">
             <GeneralIcon v-if="selectedView?.lock_type === type" icon="check" class="!text-brand-500" />
             <span v-else />

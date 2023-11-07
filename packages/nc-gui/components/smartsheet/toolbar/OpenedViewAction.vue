@@ -247,10 +247,10 @@ watch(isDropdownOpen, () => {
       <GeneralIcon icon="arrowDown" class="ml-1" />
     </div>
     <template #overlay>
-      <NcMenu class="!min-w-84" data-testid="toolbar-actions">
+      <NcMenu class="!min-w-70" data-testid="toolbar-actions">
         <NcTooltip>
           <template #title> {{ $t('labels.clickToCopyViewID') }} </template>
-          <div class="flex items-center justify-between py-2 px-2 cursor-pointer hover:bg-gray-100 group" @click="onViewIdCopy">
+          <div class="flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-gray-100 group" @click="onViewIdCopy">
             <div class="flex text-xs font-bold text-gray-500 ml-1">
               {{
                 $t('labels.viewIdColon', {
@@ -322,7 +322,7 @@ watch(isDropdownOpen, () => {
           <template #title>
             <div v-e="['c:navdraw:preview-as']" class="flex flex-row items-center gap-x-3">
               <div>
-                {{ $t('labels.viewSettings') }}
+                {{ $t('labels.viewMode') }}
               </div>
               <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-brand-50">
                 <LazySmartsheetToolbarLockType
@@ -336,7 +336,7 @@ watch(isDropdownOpen, () => {
           </template>
 
           <template #expandIcon></template>
-          <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('labels.viewSettings') }}</div>
+          <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('labels.viewMode') }}</div>
           <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">
             <LazySmartsheetToolbarLockType :type="LockType.Collaborative" @click="changeLockType(LockType.Collaborative)" />
           </a-menu-item>

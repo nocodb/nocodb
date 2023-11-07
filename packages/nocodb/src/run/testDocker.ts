@@ -27,7 +27,9 @@ process.env[`NC_ALLOW_LOCAL_HOOKS`] = 'true';
 
 (async () => {
   if (process.env.NC_WORKER_CONTAINER === 'true') {
-    await await Noco.init({}, null, null);
+    const httpServer = server.listen(process.env.PORT || 8080, async () => {
+      server.use(await Noco.init({}, httpServer, server));
+    });
   } else {
     const httpServer = server.listen(process.env.PORT || 8080, async () => {
       server.use(await Noco.init({}, httpServer, server));

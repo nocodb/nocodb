@@ -36,7 +36,7 @@ import {
 
 // import worker script according to the doc of Vite
 import importWorkerUrl from '~/workers/importWorker?worker&url'
-import { useNuxtApp } from '#app'
+import { useNuxtApp } from '#imports'
 
 interface Props {
   modelValue: boolean

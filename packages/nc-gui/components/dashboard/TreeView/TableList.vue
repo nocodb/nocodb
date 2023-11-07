@@ -3,7 +3,7 @@ import type { BaseType, TableType } from 'nocodb-sdk'
 import { storeToRefs } from 'pinia'
 import Sortable from 'sortablejs'
 import TableNode from './TableNode.vue'
-import { useNuxtApp } from '#app'
+import { useNuxtApp } from '#imports'
 import { toRef } from '#imports'
 
 const props = withDefaults(

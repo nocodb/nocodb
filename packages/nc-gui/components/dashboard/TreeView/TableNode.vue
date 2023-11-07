@@ -4,7 +4,7 @@ import { toRef } from '@vue/reactivity'
 import { message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
 
-import { useNuxtApp } from '#app'
+import { useNuxtApp } from '#imports'
 import { ProjectRoleInj, TreeViewInj, useRoles, useTabs } from '#imports'
 
 const props = withDefaults(

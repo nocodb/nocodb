@@ -87,6 +87,7 @@
     "action": "Action",
     "insert": "Insert",
     "delete": "Delete",
+    "deleteEntity": "Delete {entity}",
     "bulkInsert": "Bulk Insert",
     "bulkDelete": "Bulk Delete",
     "bulkUpdate": "Bulk Update",

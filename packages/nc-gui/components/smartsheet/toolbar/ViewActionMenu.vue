@@ -11,7 +11,7 @@ const props = defineProps<{
   table: TableType
 }>()
 
-const emits = defineEmits(['rename', 'closeModal'])
+const emits = defineEmits(['rename', 'closeModal', 'delete'])
 
 const { isUIAllowed } = useRoles()
 
@@ -136,6 +136,10 @@ const onViewIdCopy = async () => {
   await copy(view.value!.id!)
   isViewIdCopied.value = true
 }
+
+const onDelete = async () => {
+  emits('delete')
+}
 </script>
 
 <template>
@@ -233,6 +237,15 @@ const onViewIdCopy = async () => {
         <LazySmartsheetToolbarLockType :type="LockType.Locked" @click="changeLockType(LockType.Locked)" />
       </a-menu-item>
     </NcSubMenu>
+    <NcDivider />
+    <NcMenuItem class="!hover:bg-red-50 !text-red-500" @click="onDelete">
+      <GeneralIcon icon="delete" />
+      {{
+        $t('general.deleteEntity', {
+          entity: $t('objects.view'),
+        })
+      }}
+    </NcMenuItem>
     <template v-if="currentBaseId">
       <LazyDlgQuickImport
         v-for="tp in quickImportDialogTypes"

@@ -73,12 +73,12 @@ export default class SqlExecutor {
         },
       );
 
-      SqlExecutorData.sourceCount = await this.sourceCount(
-        SqlExecutorId,
-        ncMeta,
-      );
-
       if (SqlExecutorData) {
+        SqlExecutorData.sourceCount = await this.sourceCount(
+          SqlExecutorId,
+          ncMeta,
+        );
+
         await NocoCache.set(
           `${CacheScope.SQL_EXECUTOR}:${SqlExecutorData.id}`,
           SqlExecutorData,

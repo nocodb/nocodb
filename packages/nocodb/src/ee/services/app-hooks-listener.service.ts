@@ -314,7 +314,6 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
             description: `User has signed up`,
             ip: param.ip,
           });
-
           this.telemetryService.sendEvent({
             evt_type: 'signup',
             req,

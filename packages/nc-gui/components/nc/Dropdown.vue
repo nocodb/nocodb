@@ -47,6 +47,14 @@ onClickOutside(overlayWrapperDomRef, () => {
 
   visible.value = false
 })
+
+const onVisibleUpdate = (event: any) => {
+  if (visible !== undefined) {
+    visible.value = event
+  } else {
+    emits('update:visible', event)
+  }
+}
 </script>
 
 <template>
@@ -54,7 +62,7 @@ onClickOutside(overlayWrapperDomRef, () => {
     :visible="visible"
     :trigger="trigger"
     :overlay-class-name="overlayClassNameComputed"
-    @update:visible="visible !== undefined ? (visible = $event) : undefined"
+    @update:visible="onVisibleUpdate"
   >
     <slot />
 

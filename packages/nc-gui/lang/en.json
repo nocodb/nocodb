@@ -419,6 +419,7 @@
     "headerName": "Header Name",
     "icon": "Icon",
     "max": "Max",
+    "idColon": "Id:",
     "copiedRecordURL": "Copied Record URL",
     "copyRecordURL": "Copy Record URL",
     "duplicateRecord": "Duplicate record",
@@ -901,6 +902,7 @@
     "key": "Key"
   },
   "msg": {
+    "clickToCopyFieldId": "Click to copy Field Id",
     "enterPassword": "Enter password",
     "bySigningUp": "By signing up, you agree to the",
     "subscribeToOurWeeklyNewsletter": "Subscribe to our weekly newsletter",

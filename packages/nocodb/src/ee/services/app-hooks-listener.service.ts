@@ -318,6 +318,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
             evt_type: 'signup',
             req,
             clientId,
+            email: param.user?.email,
           });
         }
         break;

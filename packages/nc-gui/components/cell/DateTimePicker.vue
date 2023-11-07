@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { isSystemColumn } from 'nocodb-sdk'
-import updateLocale from 'dayjs/plugin/updateLocale'
 import {
   ActiveCellInj,
   CellClickHookInj,
@@ -27,10 +26,6 @@ interface Props {
 
 const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
-dayjs.extend(updateLocale)
-dayjs.updateLocale('en', {
-  weekStart: 1,
-})
 
 const { isMssql, isXcdbBase } = useBase()
 

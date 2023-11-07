@@ -59,8 +59,20 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     @ok="handleModalOkClick"
   >
     <template #footer>
-      <div class="mr-4 overflow-scroll p-2" data-testid="nc-qr-code-large-value-label">
-        {{ qrValue }}
+      <div class="flex flex-row">
+        <div class="flex flex-row flex-grow mr-2 !overflow-y-auto py-2" data-testid="nc-qr-code-large-value-label">
+          {{ qrValue }}
+        </div>
+        <a v-if="showQrCode" :href="qrCodeLarge" :download="`${qrValue}.png`">
+          <NcTooltip>
+            <template #title>
+              {{ $t('labels.clickToDownload') }}
+            </template>
+            <NcButton size="small" type="secondary">
+              <GeneralIcon icon="download" class="w-4 h-4" />
+            </NcButton>
+          </NcTooltip>
+        </a>
       </div>
     </template>
     <img v-if="showQrCode" :src="qrCodeLarge" :alt="$t('title.qrCode')" />

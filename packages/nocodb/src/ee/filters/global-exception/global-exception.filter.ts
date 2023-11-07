@@ -1,8 +1,6 @@
 import { Catch, Optional } from '@nestjs/common';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import { GlobalExceptionFilter as GlobalExceptionFilterCE } from 'src/filters/global-exception/global-exception.filter';
-import type { ArgumentsHost } from '@nestjs/common';
-import type { Request, Response } from 'express';
 
 @Catch()
 export class GlobalExceptionFilter extends GlobalExceptionFilterCE {

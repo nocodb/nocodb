@@ -16,7 +16,7 @@ export class HooksService extends HooksServiceCE {
     super(appHooksService);
   }
 
-  async hookCreate(param: { tableId: string; hook: HookReqType }) {
+  async hookCreate(param: { tableId: string; hook: HookReqType; req: any }) {
     validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
 
     const model = await Model.get(param.tableId);

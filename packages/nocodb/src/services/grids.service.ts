@@ -10,7 +10,11 @@ import { GridView, View } from '~/models';
 export class GridsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
-  async gridViewCreate(param: { tableId: string; grid: ViewCreateReqType }) {
+  async gridViewCreate(param: {
+    tableId: string;
+    grid: ViewCreateReqType;
+    req: any;
+  }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.grid,
@@ -26,16 +30,17 @@ export class GridsService {
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
       view,
       showAs: 'grid',
-    });
-
-    this.appHooksService.emit(AppEvents.VIEW_CREATE, {
-      view,
+      req: param.req,
     });
 
     return view;
   }
 
-  async gridViewUpdate(param: { viewId: string; grid: GridUpdateReqType }) {
+  async gridViewUpdate(param: {
+    viewId: string;
+    grid: GridUpdateReqType;
+    req: any;
+  }) {
     validatePayload(
       'swagger.json#/components/schemas/GridUpdateReq',
       param.grid,
@@ -52,6 +57,7 @@ export class GridsService {
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view,
       showAs: 'map',
+      req: param.req,
     });
 
     return res;

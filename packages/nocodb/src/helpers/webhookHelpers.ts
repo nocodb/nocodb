@@ -413,14 +413,14 @@ export async function invokeWebhook(
     }
   } catch (e) {
     if (e.response) {
-      logger.log({
+      logger.error({
         data: e.response.data,
         status: e.response.status,
         url: e.response.config?.url,
         message: e.message,
       });
     } else {
-      logger.log(e.message, e.stack);
+      logger.error(e.message, e.stack);
     }
     if (['ERROR', 'ALL'].includes(process.env.NC_AUTOMATION_LOG_LEVEL)) {
       hookLog = {

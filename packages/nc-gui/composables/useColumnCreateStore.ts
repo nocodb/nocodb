@@ -50,6 +50,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const sqlUi = ref(meta.value?.source_id ? sqlUis.value[meta.value?.source_id] : Object.values(sqlUis.value)[0])
 
+    const { activeView } = storeToRefs(useViewsStore())
+
     const isEdit = computed(() => !!column?.value?.id)
 
     const isMysql = computed(() => isMysqlFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
@@ -275,7 +277,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             //   };
             // }
           }
-          await $api.dbTableColumn.create(meta.value?.id as string, { ...formState.value, ...columnPosition })
+          await $api.dbTableColumn.create(meta.value?.id as string, {
+            ...formState.value,
+            ...columnPosition,
+            view_id: activeView.value!.id as string,
+          })
 
           /** if LTAR column then force reload related table meta */
           if (isLinksOrLTAR(formState.value) && meta.value?.id !== formState.value.childId) {

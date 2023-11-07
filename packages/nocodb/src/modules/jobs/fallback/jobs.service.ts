@@ -48,4 +48,12 @@ export class JobsService {
 
     return job;
   }
+
+  async resumeQueue() {
+    await this.fallbackQueueService.queue.start();
+  }
+
+  async pauseQueue() {
+    await this.fallbackQueueService.queue.pause();
+  }
 }

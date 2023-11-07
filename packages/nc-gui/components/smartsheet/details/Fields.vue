@@ -48,6 +48,8 @@ const visibilityOps = ref<fieldsVisibilityOps[]>([])
 
 const fieldsListWrapperDomRef = ref<HTMLElement>()
 
+const { copy } = useClipboard()
+
 const { fields: viewFields, toggleFieldVisibility, loadViewColumns, isViewColumnsLoading } = useViewColumnsOrThrow()
 
 const loading = ref(false)
@@ -55,6 +57,10 @@ const loading = ref(false)
 const columnsHash = ref<string>()
 
 const newFields = ref<TableExplorerColumn[]>([])
+
+const isFieldIdCopied = ref(false)
+
+const isColOptionDropdownOpen = ref(false)
 
 const compareCols = (a?: TableExplorerColumn, b?: TableExplorerColumn) => {
   if (a?.id && b?.id) {
@@ -646,6 +652,12 @@ onKeyDown('ArrowRight', () => {
   }
 })
 
+const onClickCopyFieldUrl = async (field: ColumnType) => {
+  await copy(field.id!)
+
+  isFieldIdCopied.value = true
+}
+
 const keys = useMagicKeys()
 
 whenever(keys.meta_s, () => {
@@ -673,6 +685,12 @@ onMounted(async () => {
     columnsHash.value = (await $api.dbTableColumn.hash(meta.value.id)).hash
   }
 })
+
+const onFieldOptionUpdate = () => {
+  setTimeout(() => {
+    isFieldIdCopied.value = false
+  }, 200)
+}
 </script>
 
 <template>
@@ -818,11 +836,50 @@ onMounted(async () => {
                         Restore
                       </div>
                     </NcButton>
-                    <NcDropdown v-else :trigger="['click']" overlay-class-name="nc-dropdown-table-explorer" @click.stop>
-                      <GeneralIcon icon="threeDotVertical" class="no-action opacity-0 group-hover:(opacity-100) text-gray-500" />
+                    <NcDropdown
+                      v-else
+                      :trigger="['click']"
+                      overlay-class-name="nc-dropdown-table-explorer"
+                      @update:visible="onFieldOptionUpdate"
+                      @click.stop
+                    >
+                      <NcButton
+                        size="xsmall"
+                        type="text"
+                        class="!opacity-0 !group-hover:(opacity-100)"
+                        :class="{
+                          '!hover:(text-brand-700 bg-brand-100) !group-hover:(text-brand-500)': compareCols(field, activeField),
+                          '!hover:(text-gray-700 bg-gray-200) !group-hover:(text-gray-500)': !compareCols(field, activeField),
+                        }"
+                      >
+                        <GeneralIcon icon="threeDotVertical" class="no-action text-inherit" />
+                      </NcButton>
 
                       <template #overlay>
-                        <NcMenu>
+                        <NcMenu style="padding-top: 0.45rem !important">
+                          <template v-if="fieldStatus(field) !== 'add'">
+                            <NcTooltip placement="top">
+                              <template #title>{{ $t('msg.clickToCopyFieldId') }}</template>
+
+                              <div
+                                class="flex flex-row px-3 py-2 w-46 justify-between items-center group hover:bg-gray-100 cursor-pointer"
+                                @click="onClickCopyFieldUrl(field)"
+                              >
+                                <div class="flex flex-row items-baseline gap-x-1 font-bold text-xs">
+                                  <div class="text-gray-600">{{ $t('labels.idColon') }}</div>
+                                  <div class="flex flex-row text-gray-600 text-xs">
+                                    {{ field.id }}
+                                  </div>
+                                </div>
+                                <NcButton size="xsmall" type="secondary" class="!group-hover:bg-gray-100">
+                                  <GeneralIcon v-if="isFieldIdCopied" icon="check" />
+                                  <GeneralIcon v-else icon="copy" />
+                                </NcButton>
+                              </div>
+                            </NcTooltip>
+                            <a-menu-divider class="my-1.5" />
+                          </template>
+
                           <NcMenuItem key="table-explorer-duplicate" @click="duplicateField(field)">
                             <Icon class="iconify text-gray-800" icon="lucide:copy" /><span>Duplicate</span>
                           </NcMenuItem>
@@ -833,11 +890,11 @@ onMounted(async () => {
                             <Icon class="iconify text-gray-800" icon="lucide:arrow-down" /><span>Insert below</span>
                           </NcMenuItem>
 
-                          <a-menu-divider class="my-1" />
+                          <a-menu-divider class="my-1.5" />
 
                           <NcMenuItem key="table-explorer-delete" class="!hover:bg-red-50" @click="onFieldDelete(field)">
                             <div class="text-red-500">
-                              <GeneralIcon icon="delete" class="group-hover:text-accent" />
+                              <GeneralIcon icon="delete" class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" />
                               Delete
                             </div>
                           </NcMenuItem>
@@ -915,6 +972,55 @@ onMounted(async () => {
                         Restore
                       </div>
                     </NcButton>
+                    <NcDropdown
+                      v-else
+                      :trigger="['click']"
+                      overlay-class-name="nc-dropdown-table-explorer-display-column"
+                      @update:visible="onFieldOptionUpdate"
+                      @click.stop
+                    >
+                      <NcButton
+                        size="xsmall"
+                        type="text"
+                        class="!opacity-0 !group-hover:(opacity-100)"
+                        :class="{
+                          '!hover:(text-brand-700 bg-brand-100) !group-hover:(text-brand-500)': compareCols(
+                            displayColumn,
+                            activeField,
+                          ),
+                          '!hover:(text-gray-700 bg-gray-200) !group-hover:(text-gray-500)': !compareCols(
+                            displayColumn,
+                            activeField,
+                          ),
+                        }"
+                      >
+                        <GeneralIcon icon="threeDotVertical" class="no-action text-inherit" />
+                      </NcButton>
+
+                      <template #overlay>
+                        <NcMenu>
+                          <NcTooltip placement="top">
+                            <template #title>{{ $t('msg.clickToCopyFieldId') }}</template>
+
+                            <div
+                              class="flex flex-row px-3 py-2 w-46 justify-between items-center group hover:bg-gray-100 cursor-pointer"
+                              @click="onClickCopyFieldUrl(displayColumn)"
+                            >
+                              <div class="flex flex-row items-baseline gap-x-1 font-bold text-xs">
+                                <div class="text-gray-600">{{ $t('labels.idColon') }}</div>
+                                <div class="flex flex-row text-gray-600 text-xs">
+                                  {{ displayColumn.id }}
+                                </div>
+                              </div>
+                              <NcButton size="xsmall" type="secondary" class="!group-hover:bg-gray-100">
+                                <GeneralIcon v-if="isFieldIdCopied" icon="check" />
+                                <GeneralIcon v-else icon="copy" />
+                              </NcButton>
+                            </div>
+                          </NcTooltip>
+                        </NcMenu>
+                      </template>
+                    </NcDropdown>
                     <MdiChevronRight
                       class="text-brand-500 opacity-0"
                       :class="{
@@ -954,7 +1060,26 @@ onMounted(async () => {
   </div>
 </template>
 
+<style lang="scss">
+.nc-dropdown-table-explorer {
+  @apply !overflow-hidden;
+}
+.nc-dropdown-table-explorer > div > ul.ant-dropdown-menu.nc-menu {
+  @apply !pt-0;
+}
+
+.nc-dropdown-table-explorer-display-column {
+  @apply !overflow-hidden;
+}
+.nc-dropdown-table-explorer-display-column > div > ul.ant-dropdown-menu.nc-menu {
+  @apply !py-1.5;
+}
+</style>
+
 <style lang="scss" scoped>
+:deep(ul.ant-dropdown-menu.nc-menu) {
+  @apply !pt-0;
+}
 .add {
   background-color: #e6ffed !important;
   border-color: #b7eb8f;

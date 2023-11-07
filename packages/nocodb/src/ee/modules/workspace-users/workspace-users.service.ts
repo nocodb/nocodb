@@ -253,6 +253,7 @@ export class WorkspaceUsersService {
           user_name: null,
           display_name: '',
           salt,
+          req: param.req,
         });
       }
 
@@ -293,6 +294,7 @@ export class WorkspaceUsersService {
         workspace,
         user,
         invitedBy: param.invitedBy,
+        req: param.req,
       });
     }
 

@@ -35,7 +35,11 @@ export class OrgTokensService {
     );
   }
 
-  async apiTokenCreate(param: { user: User; apiToken: ApiTokenReqType }) {
+  async apiTokenCreate(param: {
+    user: User;
+    apiToken: ApiTokenReqType;
+    req: any;
+  }) {
     validatePayload(
       'swagger.json#/components/schemas/ApiTokenReq',
       param.apiToken,
@@ -49,12 +53,14 @@ export class OrgTokensService {
     this.appHooksService.emit(AppEvents.ORG_API_TOKEN_CREATE, {
       tokenBody: param.apiToken,
       userId: param.user?.id,
+
+      req: param.req,
     });
 
     return apiToken;
   }
 
-  async apiTokenDelete(param: { user: User; token: string }) {
+  async apiTokenDelete(param: { user: User; token: string; req: any }) {
     const fk_user_id = param.user.id;
     const apiToken = await ApiToken.getByToken(param.token);
     if (
@@ -68,6 +74,7 @@ export class OrgTokensService {
     this.appHooksService.emit(AppEvents.ORG_API_TOKEN_DELETE, {
       token: param.token,
       userId: param.user?.id,
+      req: param['req'],
     });
 
     return res;

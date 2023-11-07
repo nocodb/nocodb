@@ -53,17 +53,20 @@ import { CommandPaletteController } from '~/controllers/command-palette.controll
   ],
   controllers: [
     ...metaModuleMetadata.controllers,
+    ...(process.env.NC_WORKER_CONTAINER !== 'true'
+      ? [
+          DocsPagesHistoryController,
+          DocsPagesController,
+          DocsPublicController,
 
-    DocsPagesHistoryController,
-    DocsPagesController,
-    DocsPublicController,
+          WidgetsController,
+          LayoutsController,
+          LayoutFilterController,
 
-    WidgetsController,
-    LayoutsController,
-    LayoutFilterController,
-
-    CommandPaletteController,
-    TelemetryController,
+          CommandPaletteController,
+          TelemetryController,
+        ]
+      : []),
   ],
 })
 export class MetasModule {}

@@ -41,24 +41,30 @@ export class HooksController {
   async hookCreate(
     @Param('tableId') tableId: string,
     @Body() body: HookReqType,
+    @Request() req: any,
   ) {
     const hook = await this.hooksService.hookCreate({
       hook: body,
       tableId,
+      req,
     });
     return hook;
   }
 
   @Delete(['/api/v1/db/meta/hooks/:hookId', '/api/v2/meta/hooks/:hookId'])
   @Acl('hookDelete')
-  async hookDelete(@Param('hookId') hookId: string) {
-    return await this.hooksService.hookDelete({ hookId });
+  async hookDelete(@Param('hookId') hookId: string, @Request() req: any) {
+    return await this.hooksService.hookDelete({ hookId, req });
   }
 
   @Patch(['/api/v1/db/meta/hooks/:hookId', '/api/v2/meta/hooks/:hookId'])
   @Acl('hookUpdate')
-  async hookUpdate(@Param('hookId') hookId: string, @Body() body: HookReqType) {
-    return await this.hooksService.hookUpdate({ hookId, hook: body });
+  async hookUpdate(
+    @Param('hookId') hookId: string,
+    @Body() body: HookReqType,
+    @Request() req: any,
+  ) {
+    return await this.hooksService.hookUpdate({ hookId, hook: body, req });
   }
 
   @Post([
@@ -78,6 +84,7 @@ export class HooksController {
           },
         },
         tableId: req.params.tableId,
+        req,
       });
       return { msg: 'The hook has been tested successfully' };
     } catch (e) {

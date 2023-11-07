@@ -180,7 +180,7 @@ export class DatasService {
           );
         } catch (e) {
           if (e instanceof NcBaseError) throw e;
-          this.logger.log(e);
+          this.logger.error(e);
           NcError.internalServerError(
             'Please check server log for more details',
           );

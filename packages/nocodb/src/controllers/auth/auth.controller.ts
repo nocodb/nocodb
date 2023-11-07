@@ -83,7 +83,7 @@ export class AuthController {
       NcError.forbidden('Email authentication is disabled');
     }
     await this.setRefreshToken({ req, res });
-    res.json(await this.usersService.login(req.user));
+    res.json(await this.usersService.login(req.user, req));
   }
 
   @UseGuards(GlobalGuard)
@@ -106,7 +106,7 @@ export class AuthController {
   @UseGuards(PublicApiLimiterGuard, AuthGuard('google'))
   async googleSignin(@Request() req, @Response() res) {
     await this.setRefreshToken({ req, res });
-    res.json(await this.usersService.login(req.user));
+    res.json(await this.usersService.login(req.user, req));
   }
 
   @Get('/auth/google')

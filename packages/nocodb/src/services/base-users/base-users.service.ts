@@ -128,6 +128,7 @@ export class BaseUsersService {
           user,
           invitedBy: param.req.user,
           ip: param.req.clientIp,
+          req: param.req,
         });
 
         const cachedUser = await NocoCache.get(
@@ -165,6 +166,7 @@ export class BaseUsersService {
             user,
             invitedBy: param.req.user,
             ip: param.req.clientIp,
+            req: param.req,
           });
 
           // in case of single user check for smtp failure
@@ -271,6 +273,7 @@ export class BaseUsersService {
       updatedBy: param.req.user,
       ip: param.req.clientIp,
       baseUser: param.baseUser,
+      req: param.req,
     });
 
     return {
@@ -356,6 +359,7 @@ export class BaseUsersService {
       invitedBy: param.req.user,
       ip: param.req.clientIp,
       baseUser: param.baseUser,
+      req: param.req,
     });
 
     return true;

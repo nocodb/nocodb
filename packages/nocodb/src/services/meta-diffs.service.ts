@@ -882,7 +882,7 @@ export class MetaDiffsService {
     await this.extractAndGenerateManyToManyRelations(await source.getModels());
   }
 
-  async metaDiffSync(param: { baseId: string }) {
+  async metaDiffSync(param: { baseId: string; req: any }) {
     const base = await Base.getWithInfo(param.baseId);
     for (const source of base.sources) {
       await this.syncBaseMeta(base, source);
@@ -890,12 +890,17 @@ export class MetaDiffsService {
 
     this.appHooksService.emit(AppEvents.META_DIFF_SYNC, {
       base,
+      req: param.req,
     });
 
     return true;
   }
 
-  async baseMetaDiffSync(param: { baseId: string; sourceId: string }) {
+  async baseMetaDiffSync(param: {
+    baseId: string;
+    sourceId: string;
+    req: any;
+  }) {
     const base = await Base.getWithInfo(param.baseId);
     const source = await Source.get(param.sourceId);
 
@@ -904,6 +909,7 @@ export class MetaDiffsService {
     this.appHooksService.emit(AppEvents.META_DIFF_SYNC, {
       base,
       source,
+      req: param.req,
     });
 
     return true;

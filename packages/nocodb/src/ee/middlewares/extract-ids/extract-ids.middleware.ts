@@ -103,9 +103,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     ) {
       const view = await View.get(
         params.formViewId ||
-        params.gridViewId ||
-        params.kanbanViewId ||
-        params.galleryViewId,
+          params.gridViewId ||
+          params.kanbanViewId ||
+          params.galleryViewId,
       );
       req.ncProjectId = view?.base_id;
     } else if (params.publicDataUuid) {
@@ -264,7 +264,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     await this.use(
       context.switchToHttp().getRequest(),
       context.switchToHttp().getResponse(),
-      () => { },
+      () => {},
     );
     return true;
   }
@@ -282,7 +282,7 @@ function getUserRoleForScope(user: any, scope: string) {
 
 @Injectable()
 export class AclMiddleware implements NestInterceptor {
-  constructor(private reflector: Reflector) { }
+  constructor(private reflector: Reflector) {}
 
   async intercept(
     context: ExecutionContext,
@@ -381,14 +381,14 @@ export const Acl =
       blockApiTokenAccess?: boolean;
     } = {},
   ) =>
-    (target: any, key?: string, descriptor?: PropertyDescriptor) => {
-      SetMetadata('permission', permissionName)(target, key, descriptor);
-      SetMetadata('scope', scope)(target, key, descriptor);
-      SetMetadata('allowedRoles', allowedRoles)(target, key, descriptor);
-      SetMetadata('blockApiTokenAccess', blockApiTokenAccess)(
-        target,
-        key,
-        descriptor,
-      );
-      UseInterceptors(AclMiddleware)(target, key, descriptor);
-    };
+  (target: any, key?: string, descriptor?: PropertyDescriptor) => {
+    SetMetadata('permission', permissionName)(target, key, descriptor);
+    SetMetadata('scope', scope)(target, key, descriptor);
+    SetMetadata('allowedRoles', allowedRoles)(target, key, descriptor);
+    SetMetadata('blockApiTokenAccess', blockApiTokenAccess)(
+      target,
+      key,
+      descriptor,
+    );
+    UseInterceptors(AclMiddleware)(target, key, descriptor);
+  };

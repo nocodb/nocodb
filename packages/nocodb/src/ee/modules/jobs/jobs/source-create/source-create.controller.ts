@@ -39,7 +39,7 @@ export class SourceCreateController {
   ) {
     const jobs = await this.jobsService.jobList();
     const fnd = jobs.find(
-      (j) => j.name === JobTypes.BaseCreate && j.data.baseId === baseId,
+      (j) => j.name === JobTypes.SourceCreate && j.data.baseId === baseId,
     );
 
     if (fnd) {
@@ -104,7 +104,7 @@ export class SourceCreateController {
       }
     }
 
-    const job = await this.jobsService.add(JobTypes.BaseCreate, {
+    const job = await this.jobsService.add(JobTypes.SourceCreate, {
       baseId,
       source: body,
       user: req.user,

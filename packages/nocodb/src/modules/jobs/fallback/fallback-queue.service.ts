@@ -76,11 +76,11 @@ export class QueueService {
       this: this.metaSyncProcessor,
       fn: this.metaSyncProcessor.job,
     },
-    [JobTypes.BaseCreate]: {
+    [JobTypes.SourceCreate]: {
       this: this.sourceCreateProcessor,
       fn: this.sourceCreateProcessor.job,
     },
-    [JobTypes.BaseDelete]: {
+    [JobTypes.SourceDelete]: {
       this: this.sourceDeleteProcessor,
       fn: this.sourceDeleteProcessor.job,
     },

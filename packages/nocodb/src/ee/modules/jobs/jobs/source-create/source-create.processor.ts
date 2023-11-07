@@ -20,7 +20,7 @@ export class SourceCreateProcessor {
     private readonly jobsLogService: JobsLogService,
   ) {}
 
-  @Process(JobTypes.BaseCreate)
+  @Process(JobTypes.SourceCreate)
   async job(job: Job) {
     this.debugLog(`job started for ${job.id}`);
 

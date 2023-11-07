@@ -46,7 +46,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       this.logError(exception, request);
 
     if (exception instanceof ThrottlerException) {
-      this.logger.log(
+      this.logger.warn(
         `${exception.message}, Path : ${request.path}, Workspace ID : ${
           (request as any).ncWorkspaceId
         }, Project ID : ${(request as any).ncProjectId}`,

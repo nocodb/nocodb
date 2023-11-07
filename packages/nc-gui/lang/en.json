@@ -1182,6 +1182,7 @@
       "nameMinLength": "Name must be at least 2 characters long",
       "nameMaxLength": "Name must be at most 60 characters long",
       "viewNameRequired": "View name is required",
+      "nameMaxLength256": "Name must be at most 256 characters long",
       "viewNameUnique": "View name should be unique",
       "searchProject": "Your search for {search} found no results",
       "invalidChar": "Invalid character in folder path.",

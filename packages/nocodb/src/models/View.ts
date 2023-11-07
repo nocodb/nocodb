@@ -735,7 +735,7 @@ export default class View implements ViewType {
 
     await NocoCache.set(key, viewColumn.id);
 
-    return viewColumn?.id;
+    return viewColumn.id;
   }
 
   static async updateColumn(

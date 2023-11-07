@@ -186,7 +186,7 @@ export default class Column<T = any> implements ColumnType {
       {
         fk_column_id: row.id,
         fk_model_id: column.fk_model_id,
-        show: column.view_id ? false : true,
+        show: false,
         column_order: column.column_order,
       },
       ncMeta,
@@ -198,24 +198,14 @@ export default class Column<T = any> implements ColumnType {
     );
 
     if (column.view_id) {
-      const viewColId = await View.getViewColumnId(
+      await View.insertOrUpdateColumn(
+        column.view_id,
+        row.id,
         {
-          viewId: column.view_id,
-          colId: row.id,
+          show: true,
         },
         ncMeta,
       );
-
-      if (viewColId) {
-        await View.updateColumn(
-          column.view_id,
-          viewColId,
-          {
-            show: true,
-          },
-          ncMeta,
-        );
-      }
     }
 
     return col;

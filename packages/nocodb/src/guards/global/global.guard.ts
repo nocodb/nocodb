@@ -4,6 +4,7 @@ import { lastValueFrom, Observable } from 'rxjs';
 import { extractRolesObj } from 'nocodb-sdk';
 import type { ExecutionContext } from '@nestjs/common';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
+import {Request} from 'express'
 
 @Injectable()
 export class GlobalGuard extends AuthGuard(['jwt']) {
@@ -75,7 +76,7 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
   }
 
   private async authenticate(
-    req: any,
+    req: Request,
     user: any = {
       roles: {
         guest: true,

@@ -3,6 +3,7 @@ import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
+import {NcRequest} from "~/interface/config";
 
 @Processor(JOBS_QUEUE)
 export class MetaSyncProcessor {
@@ -18,7 +19,7 @@ export class MetaSyncProcessor {
       baseId: string;
       sourceId: string;
       user: any;
-      req: any;
+      req: NcRequest;
     } = job.data;
 
     if (info.sourceId === 'all') {

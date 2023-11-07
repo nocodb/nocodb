@@ -47,6 +47,7 @@ import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
+import {NcRequest} from "~/interface/config";
 
 // todo: move
 export enum Altered {
@@ -1030,7 +1031,7 @@ export class ColumnsService {
   }
 
   async columnAdd(param: {
-    req: any;
+    req: NcRequest;
     tableId: string;
     column: ColumnReqType;
     user: UserType;
@@ -2194,7 +2195,7 @@ export class ColumnsService {
         column: Partial<Column>;
       }[];
     },
-    req: any,
+    req: NcRequest,
   ) {
     // TODO validatePayload
 

@@ -24,6 +24,7 @@ import { MetaTable } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { TablesService } from '~/services/tables.service';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import {NcRequest} from "~/interface/config";
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -78,7 +79,7 @@ export class BasesService extends BasesServiceCE {
   }
 
   async baseList(param: {
-    user: { id: string; roles: Record<string, boolean> };
+    user: { id: string; roles?: Record<string, boolean> | string };
     query?: any;
   }) {
     const bases =
@@ -90,7 +91,7 @@ export class BasesService extends BasesServiceCE {
     return bases;
   }
 
-  async baseCreate(param: { base: ProjectReqType; user: any; req: any }) {
+  async baseCreate(param: { base: ProjectReqType; user: any; req: NcRequest }) {
     validatePayload('swagger.json#/components/schemas/ProjectReq', param.base);
 
     if (process.env.NC_TEST_EE !== 'true') {

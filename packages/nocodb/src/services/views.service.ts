@@ -9,6 +9,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { Model, ModelRoleVisibility, View } from '~/models';
+import {NcRequest} from "~/interface/config";
 
 // todo: move
 async function xcVisibilityMetaGet(param: {
@@ -69,8 +70,8 @@ export class ViewsService {
   async viewList(param: {
     tableId: string;
     user: {
-      roles: Record<string, boolean>;
-      base_roles: Record<string, boolean>;
+      roles?: Record<string, boolean> | string,
+      base_roles?: Record<string, boolean>;
     };
   }) {
     const model = await Model.get(param.tableId);
@@ -91,7 +92,7 @@ export class ViewsService {
     return filteredViewList;
   }
 
-  async shareView(param: { viewId: string; user: UserType; req: any }) {
+  async shareView(param: { viewId: string; user: UserType; req: NcRequest }) {
     const res = await View.share(param.viewId);
 
     const view = await View.get(param.viewId);
@@ -113,7 +114,7 @@ export class ViewsService {
     viewId: string;
     view: ViewUpdateReqType;
     user: UserType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewUpdateReq',
@@ -140,7 +141,7 @@ export class ViewsService {
     return result;
   }
 
-  async viewDelete(param: { viewId: string; user: UserType; req: any }) {
+  async viewDelete(param: { viewId: string; user: UserType; req: NcRequest }) {
     const view = await View.get(param.viewId);
 
     if (!view) {
@@ -162,7 +163,7 @@ export class ViewsService {
     viewId: string;
     sharedView: SharedViewReqType;
     user: UserType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/SharedViewReq',
@@ -186,7 +187,7 @@ export class ViewsService {
     return result;
   }
 
-  async shareViewDelete(param: { viewId: string; user: UserType; req: any }) {
+  async shareViewDelete(param: { viewId: string; user: UserType; req: NcRequest }) {
     const view = await View.get(param.viewId);
 
     if (!view) {

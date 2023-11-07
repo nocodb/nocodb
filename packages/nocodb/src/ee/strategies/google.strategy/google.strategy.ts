@@ -9,6 +9,7 @@ import Noco from '~/Noco';
 import { UsersService } from '~/services/users/users.service';
 import { BaseUser, Plugin, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
+import {Request} from 'express'
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -20,7 +21,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   }
 
   async validate(
-    req: any,
+    req: Request,
     accessToken: string,
     refreshToken: string,
     profile: any,
@@ -75,7 +76,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     return params;
   }
 
-  async authenticate(req: any, options?: any): Promise<void> {
+  async authenticate(req: Request, options?: any): Promise<void> {
     const googlePlugin = await Plugin.getPluginByTitle('Google');
 
     if (googlePlugin && googlePlugin.input) {

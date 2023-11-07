@@ -5,6 +5,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { GridView, View } from '~/models';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class GridsService {
@@ -13,7 +14,7 @@ export class GridsService {
   async gridViewCreate(param: {
     tableId: string;
     grid: ViewCreateReqType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
@@ -39,7 +40,7 @@ export class GridsService {
   async gridViewUpdate(param: {
     viewId: string;
     grid: GridUpdateReqType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/GridUpdateReq',

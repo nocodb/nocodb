@@ -5,6 +5,7 @@ import type { ApiTokenReqType } from 'nocodb-sdk';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { ApiToken } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class OrgTokensService extends OrgTokensServiceCE {
@@ -15,7 +16,7 @@ export class OrgTokensService extends OrgTokensServiceCE {
   async apiTokenCreate(param: {
     user: User;
     apiToken: ApiTokenReqType;
-    req: any;
+    req: NcRequest;
   }) {
     if (await ApiToken.count({ fk_user_id: param.user.id })) {
       NcError.badRequest('Only one token per user is allowed');

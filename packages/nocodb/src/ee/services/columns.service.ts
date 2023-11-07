@@ -10,6 +10,7 @@ import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
 import { NcError } from '~/helpers/catchError';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class ColumnsService extends ColumnsServiceCE {
@@ -21,7 +22,7 @@ export class ColumnsService extends ColumnsServiceCE {
   }
 
   async columnAdd(param: {
-    req: any;
+    req: NcRequest;
     tableId: string;
     column: ColumnReqType;
     user: UserType;

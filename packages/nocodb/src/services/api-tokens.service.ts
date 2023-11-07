@@ -6,6 +6,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
 import { ApiToken } from '~/models';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class ApiTokensService {
@@ -17,7 +18,7 @@ export class ApiTokensService {
   async apiTokenCreate(param: {
     userId: string;
     tokenBody: ApiTokenReqType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ApiTokenReq',
@@ -36,7 +37,7 @@ export class ApiTokensService {
     });
   }
 
-  async apiTokenDelete(param: { token; user: User; req: any }) {
+  async apiTokenDelete(param: { token; user: User; req: NcRequest }) {
     const apiToken = await ApiToken.getByToken(param.token);
     if (
       !extractRolesObj(param.user.roles)[OrgUserRoles.SUPER_ADMIN] &&

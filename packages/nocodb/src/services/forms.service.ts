@@ -9,6 +9,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { FormView, View } from '~/models';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class FormsService {
@@ -23,7 +24,7 @@ export class FormsService {
     tableId: string;
     body: ViewCreateReqType;
     user: UserType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
@@ -55,7 +56,7 @@ export class FormsService {
   async formViewUpdate(param: {
     formViewId: string;
     form: FormUpdateReqType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/FormUpdateReq',

@@ -9,6 +9,7 @@ import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class SortsService extends SortsServiceCE {
@@ -16,7 +17,7 @@ export class SortsService extends SortsServiceCE {
     super(appHooksService);
   }
 
-  async sortCreate(param: { viewId: any; sort: SortReqType; req: any }) {
+  async sortCreate(param: { viewId: any; sort: SortReqType; req: NcRequest }) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
     const view = await View.get(param.viewId);

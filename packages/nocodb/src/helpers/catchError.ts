@@ -1,4 +1,5 @@
 import type { ErrorObject } from 'ajv';
+import {NextFunction,Request,Response} from "express";
 
 export enum DBError {
   TABLE_EXIST = 'TABLE_EXIST',
@@ -384,9 +385,9 @@ export function extractDBError(error): {
 }
 
 export default function (
-  requestHandler: (req: any, res: any, next?: any) => any,
+  requestHandler: (req: Request, res: Response, next?: NextFunction) => any,
 ) {
-  return async function (req: any, res: any, next: any) {
+  return async function (req: Request, res: Response, next?: NextFunction) {
     try {
       return await requestHandler(req, res, next);
     } catch (e) {

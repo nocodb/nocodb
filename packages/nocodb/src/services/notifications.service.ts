@@ -10,6 +10,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Notification } from '~/models';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class NotificationsService implements OnModuleInit, OnModuleDestroy {
@@ -17,7 +18,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
 
   protected async insertNotification(
     insertData: Partial<Notification>,
-    req: any,
+    req: NcRequest,
   ) {
     this.appHooks.emit('notification' as any, { ...insertData, req } as any);
 

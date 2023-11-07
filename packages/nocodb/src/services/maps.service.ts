@@ -5,6 +5,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { MapView, View } from '~/models';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class MapsService {
@@ -18,7 +19,7 @@ export class MapsService {
     tableId: string;
     map: ViewCreateReqType;
     user: UserType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
@@ -44,7 +45,7 @@ export class MapsService {
   async mapViewUpdate(param: {
     mapViewId: string;
     map: MapUpdateReqType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload('swagger.json#/components/schemas/MapUpdateReq', param.map);
 

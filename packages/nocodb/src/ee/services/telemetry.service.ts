@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { packageInfo } from 'nc-help';
 import { PostHog } from 'posthog-node';
 import { Producer } from './producer/producer';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class TelemetryService {
@@ -61,7 +62,7 @@ export class TelemetryService {
 
   async trackEvents(param: {
     body: { clientId: string; events: any[] };
-    req: any;
+    req: NcRequest;
   }) {
     if (!process.env.NC_CLOUD_POSTHOG_API_KEY) return;
 

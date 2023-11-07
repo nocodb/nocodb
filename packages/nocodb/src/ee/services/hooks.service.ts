@@ -9,6 +9,7 @@ import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class HooksService extends HooksServiceCE {
@@ -16,7 +17,7 @@ export class HooksService extends HooksServiceCE {
     super(appHooksService);
   }
 
-  async hookCreate(param: { tableId: string; hook: HookReqType; req: any }) {
+  async hookCreate(param: { tableId: string; hook: HookReqType; req: NcRequest }) {
     validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
 
     const model = await Model.get(param.tableId);

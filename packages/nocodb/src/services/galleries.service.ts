@@ -9,6 +9,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { GalleryView, View } from '~/models';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class GalleriesService {
@@ -23,7 +24,7 @@ export class GalleriesService {
     gallery: ViewCreateReqType;
     user: UserType;
 
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
@@ -48,7 +49,7 @@ export class GalleriesService {
   async galleryViewUpdate(param: {
     galleryViewId: string;
     gallery: GalleryUpdateReqType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/GalleryUpdateReq',

@@ -12,7 +12,7 @@ import AWS from 'aws-sdk';
 import { ConfigService } from '@nestjs/config';
 import type { OnApplicationBootstrap } from '@nestjs/common';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
-import type { AppConfig } from '~/interface/config';
+import type {AppConfig, NcRequest} from '~/interface/config';
 import { getLimit, getLimitsForPlan, PlanLimitTypes } from '~/plan-limits';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -49,7 +49,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     await this.prepopulateWorkspaces(null);
   }
 
-  async prepopulateWorkspaces(req: any) {
+  async prepopulateWorkspaces(req: NcRequest) {
     if (process.env.NC_SEED_WORKSPACE === 'true') {
       const templateBase = await Base.get(process.env.NC_SEED_BASE_ID_SOURCE);
 
@@ -72,7 +72,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     }
   }
 
-  async createPrepopulatedWorkspace(templateBase: Base, req: any) {
+  async createPrepopulatedWorkspace(templateBase: Base, req: NcRequest) {
     const workspace = await Workspace.insert({
       title: 'Untitled Workspace',
       fk_user_id: mockUser.id,
@@ -114,7 +114,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
   async list(param: {
     user: {
       id: string;
-      roles: string[];
+      roles?: string;
     };
   }) {
     const workspaces = await WorkspaceUser.workspaceList({
@@ -130,7 +130,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
   async create(param: {
     user: UserType;
     workspaces: WorkspaceType | WorkspaceType[];
-    req: any;
+    req: NcRequest;
   }) {
     const userFreeWorkspacesCount = await Workspace.count({
       fk_user_id: param.user.id,
@@ -239,7 +239,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
   async transferOwnership(param: {
     user: UserType;
     workspace: WorkspaceType;
-    req: any;
+    req: NcRequest;
   }) {
     const user = await User.get(param.user.id);
 
@@ -344,7 +344,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
   async get(param: {
     user: {
       id: string;
-      roles: string[];
+      roles?: string;
     };
     workspaceId: string;
   }) {
@@ -367,7 +367,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     user: {
       email: string;
       id: string;
-      roles: string[];
+      roles?: string;
     };
     workspaceId: string;
   }) {
@@ -396,7 +396,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     user: UserType;
     workspaceId: string;
     workspace: WorkspaceType;
-    req: any;
+    req: NcRequest;
   }) {
     const { workspace, user, workspaceId } = param;
 
@@ -435,7 +435,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     return updatedWorkspace;
   }
 
-  async delete(param: { user: UserType; workspaceId: string; req: any }) {
+  async delete(param: { user: UserType; workspaceId: string; req: NcRequest }) {
     const workspace = await Workspace.get(param.workspaceId);
 
     if (!workspace) NcError.badRequest('Workspace not found');
@@ -459,7 +459,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
   async moveProject(param: {
     user: {
       id: string;
-      roles: string[];
+      roles?: string;
     };
     workspaceId: string;
     baseId: string;
@@ -499,7 +499,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
   async getProjectList(param: {
     user: {
       id: string;
-      roles: string[];
+      roles?: string;
     };
     workspaceId: string;
   }) {

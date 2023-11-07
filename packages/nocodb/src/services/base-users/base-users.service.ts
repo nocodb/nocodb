@@ -23,6 +23,7 @@ import { Base, BaseUser, User } from '~/models';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { getProjectRolePower } from '~/utils/roleHelper';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class BaseUsersService {
@@ -47,7 +48,7 @@ export class BaseUsersService {
   async userInvite(param: {
     baseId: string;
     baseUser: ProjectUserReqType;
-    req: any;
+    req: NcRequest;
   }): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUserReq',

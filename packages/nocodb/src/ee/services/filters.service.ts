@@ -9,6 +9,7 @@ import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class FiltersService extends FiltersServiceCE {
@@ -20,7 +21,7 @@ export class FiltersService extends FiltersServiceCE {
     filter: FilterReqType;
     viewId: string;
     user: UserType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 

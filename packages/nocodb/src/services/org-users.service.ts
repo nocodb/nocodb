@@ -19,6 +19,7 @@ import { BaseUser, Store, SyncSource, User } from '~/models';
 
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class OrgUsersService {
@@ -91,7 +92,7 @@ export class OrgUsersService {
   async userAdd(param: {
     user: UserType;
     // todo: refactor
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload('swagger.json#/components/schemas/OrgUserReq', param.user);
 
@@ -193,7 +194,7 @@ export class OrgUsersService {
     NcError.notImplemented();
   }
 
-  async userInviteResend(param: { userId: string; req: any }): Promise<any> {
+  async userInviteResend(param: { userId: string; req: NcRequest }): Promise<any> {
     const user = await User.get(param.userId);
 
     if (!user) {

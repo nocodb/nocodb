@@ -13,6 +13,7 @@ import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
 import { UsersService } from '~/services/users/users.service';
 import { sanitiseUserObj } from '~/utils';
+import {Request} from 'express'
 
 @Injectable()
 export class OpenidStrategy extends PassportStrategy(
@@ -71,7 +72,7 @@ export class OpenidStrategy extends PassportStrategy(
       });
   }
 
-  async authenticate(req: any, options?: any): Promise<void> {
+  async authenticate(req: Request, options?: any): Promise<void> {
     let callbackURL = req.ncSiteUrl + Noco.getConfig().dashboardPath;
     if (process.env.NC_BASE_APP_URL) {
       const url = new URL(req.ncSiteUrl);

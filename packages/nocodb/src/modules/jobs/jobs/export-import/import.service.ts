@@ -35,6 +35,7 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { sanitizeColumnName } from '~/helpers';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class ImportService {
@@ -64,7 +65,7 @@ export class ImportService {
     data:
       | { models: { model: any; views: any[]; hooks?: any[] }[] }
       | { model: any; views: any[]; hooks?: any[] }[];
-    req: any;
+    req: NcRequest;
     externalModels?: Model[];
   }) {
     const hrTime = initTime();
@@ -1051,7 +1052,7 @@ export class ImportService {
     vw: Partial<View>,
     views: View[],
     user: UserType,
-    req: any,
+    req: NcRequest,
   ): Promise<View> {
     if (vw.is_default) {
       const view = views.find((a) => a.is_default);
@@ -1197,7 +1198,7 @@ export class ImportService {
       url?: string;
       file?: any;
     };
-    req: any;
+    req: NcRequest;
   }) {
     const hrTime = initTime();
 

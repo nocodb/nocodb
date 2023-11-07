@@ -4,11 +4,12 @@ import { extractRolesObj, ProjectRoles } from 'nocodb-sdk';
 import { Strategy } from 'passport-custom';
 import { ApiToken, BaseUser, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
+import {Request} from 'express'
 
 @Injectable()
 export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
   // eslint-disable-next-line @typescript-eslint/ban-types
-  async validate(req: any, callback: Function) {
+  async validate(req: Request, callback: Function) {
     try {
       let user;
       if (req.headers['xc-token']) {

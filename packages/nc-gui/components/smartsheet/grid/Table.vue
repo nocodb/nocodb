@@ -1256,10 +1256,11 @@ onKeyStroke('ArrowDown', onDown)
         <div class="table-overlay" :class="{ 'nc-grid-skelton-loader': showSkeleton }">
           <table
             ref="smartTable"
-            class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white relative pr-60 pb-12"
+            class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white relative"
             :class="{
-              mobile: isMobileMode,
-              desktop: !isMobileMode,
+              'mobile': isMobileMode,
+              'desktop': !isMobileMode,
+              'pr-60 pb-12': !headerOnly,
             }"
             @contextmenu="showContextMenu"
           >

@@ -30,7 +30,7 @@ export class SourceDeleteController {
   async baseDelete(@Param('sourceId') sourceId: string, @Req() req: Request) {
     const jobs = await this.jobsService.jobList();
     const fnd = jobs.find(
-      (j) => j.name === JobTypes.BaseDelete && j.data.sourceId === sourceId,
+      (j) => j.name === JobTypes.SourceDelete && j.data.sourceId === sourceId,
     );
 
     if (fnd) {
@@ -39,7 +39,7 @@ export class SourceDeleteController {
 
     await this.sourcesService.baseSoftDelete({ sourceId });
 
-    const job = await this.jobsService.add(JobTypes.BaseDelete, {
+    const job = await this.jobsService.add(JobTypes.SourceDelete, {
       sourceId,
       req: {
         user: req.user,

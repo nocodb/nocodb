@@ -16,7 +16,7 @@ export * from './types'
  *
  * @example
  * ```js
- * import { useNuxtApp } from '#app'
+ * import { useNuxtApp } from '#imports'
  *
  * const { $state } = useNuxtApp()
  *

@@ -15,10 +15,10 @@ import {
   timeAgo,
   useBases,
   useGlobal,
+  useNuxtApp,
   useRoles,
   useWorkspace,
 } from '#imports'
-import { useNuxtApp } from '#app'
 
 const workspaceStore = useWorkspace()
 

@@ -69,6 +69,7 @@
     "hex": "Hex",
     "clear": "Clear",
     "slack": "Slack",
+    "comment": "Comment",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",

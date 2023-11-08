@@ -2,7 +2,7 @@
   "name": "nc-sql-executor",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "dev": "nodemon -e ts,js -w ./src -x \"ts-node src/index --log-error --project tsconfig.json\"",
     "build": "tsc",

@@ -30,7 +30,7 @@ const up = async (knex: Knex) => {
       }.internal`,
       status: 'inactive',
       priority: i + 1,
-      capacity: 10,
+      capacity: 25,
     });
   }
 

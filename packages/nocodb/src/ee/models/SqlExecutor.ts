@@ -94,7 +94,7 @@ export default class SqlExecutor {
     ncMeta = Noco.ncMeta,
   ) {
     const NC_SQL_EXECUTOR_MAX_DB_COUNT =
-      +process.env.NC_SQL_EXECUTOR_MAX_DB_COUNT || 10;
+      +process.env.NC_SQL_EXECUTOR_MAX_DB_COUNT || 25;
 
     // extract props which is allowed to be inserted
     const insertObject = extractProps(SqlExecutor, [

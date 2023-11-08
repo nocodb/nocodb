@@ -90,6 +90,8 @@ const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
 
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+
 // override cell click hook to avoid unexpected behavior at form fields
 provide(CellClickHookInj, undefined)
 
@@ -283,6 +285,9 @@ const cellWrapperEl = ref()
 onMounted(async () => {
   isRecordLinkCopied.value = false
   isLoading.value = true
+
+  const focusFirstCell = !isExpandedFormCommentMode.value
+
   if (props.loadRow) {
     await _loadRow()
     await loadCommentsAndLogs()
@@ -302,9 +307,11 @@ onMounted(async () => {
 
   isLoading.value = false
 
-  setTimeout(() => {
-    cellWrapperEl.value?.$el?.querySelector('input,select,textarea')?.focus()
-  }, 300)
+  if (focusFirstCell) {
+    setTimeout(() => {
+      cellWrapperEl.value?.$el?.querySelector('input,select,textarea')?.focus()
+    }, 300)
+  }
 })
 
 const addNewRow = () => {

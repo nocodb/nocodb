@@ -13,6 +13,9 @@ export const useConfigStore = defineStore('configStore', () => {
 
   const isViewPortMobile = () => width.value < MAX_WIDTH_FOR_MOBILE_MODE
 
+  // When set to true expanded form will auto focus on comment input and state will be set to false after focussing
+  const isExpandedFormCommentMode = ref(false)
+
   const isMobileMode = ref(isViewPortMobile())
 
   const projectPageTab = ref<'allTable' | 'collaborator' | 'data-source'>('allTable')
@@ -67,6 +70,7 @@ export const useConfigStore = defineStore('configStore', () => {
     isViewPortMobile,
     handleSidebarOpenOnMobileForNonViews,
     projectPageTab,
+    isExpandedFormCommentMode,
   }
 })
 

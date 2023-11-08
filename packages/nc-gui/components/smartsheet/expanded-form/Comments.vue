@@ -10,6 +10,8 @@ const props = defineProps<{
 
 const { loadCommentsAndLogs, commentsAndLogs, saveComment: _saveComment, comment, updateComment } = useExpandedFormStoreOrThrow()
 
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+
 const commentsWrapperEl = ref<HTMLDivElement>()
 
 const { user, appInfo } = useGlobal()
@@ -25,6 +27,8 @@ const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
 const editLog = ref<AuditType>()
 
 const isEditing = ref<boolean>(false)
+
+const commentInputDomRef = ref<HTMLInputElement>()
 
 const focusInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
@@ -123,6 +127,15 @@ const onClickAudit = () => {
 
   tab.value = 'audits'
 }
+
+watch(commentInputDomRef, () => {
+  if (commentInputDomRef.value && isExpandedFormCommentMode.value) {
+    setTimeout(() => {
+      commentInputDomRef.value?.focus()
+      isExpandedFormCommentMode.value = false
+    }, 400)
+  }
+})
 </script>
 
 <template>
@@ -240,9 +253,11 @@ const onClickAudit = () => {
           <div class="h-14 flex flex-row w-full bg-white py-2.75 px-1.5 items-center rounded-xl border-1 border-gray-200">
             <GeneralUserIcon size="base" class="!w-10" :email="user?.email" :name="user?.display_name" />
             <a-input
+              ref="commentInputDomRef"
               v-model:value="comment"
               class="!rounded-lg border-1 bg-white !px-2.5 !py-2 !border-gray-200 nc-comment-box !outline-none"
               placeholder="Start typing..."
+              data-testid="expanded-form-comment-input"
               :bordered="false"
               @keyup.enter.prevent="saveComment"
             >

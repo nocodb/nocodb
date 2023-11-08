@@ -1,4 +1,5 @@
-import { Controller, Get, Param, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
+import { Request } from 'express';
 import { PublicMetasService } from '~/services/public-metas.service';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 

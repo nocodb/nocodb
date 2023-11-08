@@ -18,9 +18,10 @@ import { Express } from 'express-serve-static-core';
 // }
 declare module 'express-serve-static-core' {
   interface Request {
-    // id?: string;
-    // ncWorkspaceId?: string;
-    // ncProjectId?: string;
+    ncWorkspaceId?: string;
+    ncProjectId?: string;
     user: any;
+    ncSiteUrl: string;
+    clientIp: string;
   }
 }

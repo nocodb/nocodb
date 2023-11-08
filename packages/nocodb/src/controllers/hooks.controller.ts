@@ -7,9 +7,10 @@ import {
   Param,
   Patch,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { HookReqType, HookTestReqType } from 'nocodb-sdk';
 import type { HookType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';

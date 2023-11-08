@@ -3,9 +3,10 @@ import {
   HttpCode,
   Inject,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { SyncSource } from '~/models';
@@ -69,7 +70,7 @@ export class AtImportController {
   ])
   @Acl('airtableImport')
   @HttpCode(200)
-  async abortImport(@Request() _) {
+  async abortImport() {
     return {};
   }
 }

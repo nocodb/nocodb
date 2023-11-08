@@ -948,9 +948,13 @@ export default async function formulaQueryBuilderv2(
   try {
     // dry run qb.builder to see if it will break the grid view or not
     // if so, set formula error and show empty selectQb instead
-    await knex(baseModelSqlv2.getTnPath(model, tableAlias))
-      .select(knex.raw(`?? as ??`, [qb.builder, '__dry_run_alias']))
-      .as('dry-run-only');
+    await baseModelSqlv2.execAndParse(
+      knex(baseModelSqlv2.getTnPath(model, tableAlias))
+        .select(knex.raw(`?? as ??`, [qb.builder, '__dry_run_alias']))
+        .as('dry-run-only'),
+      null,
+      { raw: true },
+    );
 
     // if column is provided, i.e. formula has been created
     if (column) {

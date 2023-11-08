@@ -2963,7 +2963,7 @@ class BaseModelSqlv2 {
 
         for (const insertData of insertDatas) {
           const query = trx(this.tnPath).insert(insertData);
-          const id = await query;
+          const id = (await query)[0];
           response.push(aiPkCol ? { [aiPkCol.title]: id } : id);
         }
       } else {
@@ -3158,10 +3158,14 @@ class BaseModelSqlv2 {
         await conditionV2(this, conditionObj, qb);
 
         count = (
-          await this.execAndParse(qb.clone().count(), null, {
-            raw: true,
-            first: true,
-          })
+          await this.execAndParse(
+            qb.clone().count('*', { as: 'count' }),
+            null,
+            {
+              raw: true,
+              first: true,
+            },
+          )
         )?.count;
 
         qb.update(updateData);

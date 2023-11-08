@@ -35,7 +35,7 @@ export class MapsController {
   async mapViewCreate(
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     const view = await this.mapsService.mapViewCreate({
       tableId,
@@ -52,7 +52,7 @@ export class MapsController {
     @Param('mapViewId') mapViewId: string,
     @Body() body: MapUpdateReqType,
 
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     return await this.mapsService.mapViewUpdate({
       mapViewId: mapViewId,

@@ -22,7 +22,7 @@ export class NotificationsController {
 
   @Get('/api/v1/notifications')
   // @Acl('notificationList')
-  async notificationList(@Request() req) {
+  async notificationList(@Req() req: Request) {
     return this.notificationsService.notificationList({
       user: req.user,
       is_deleted: false,

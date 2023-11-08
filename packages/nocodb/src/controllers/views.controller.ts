@@ -28,7 +28,7 @@ export class ViewsController {
     '/api/v2/meta/tables/:tableId/views',
   ])
   @Acl('viewList')
-  async viewList(@Param('tableId') tableId: string, @Request() req) {
+  async viewList(@Param('tableId') tableId: string, @Req() req: Request) {
     return new PagedResponseImpl(
       await this.viewsService.viewList({
         tableId,
@@ -42,7 +42,7 @@ export class ViewsController {
   async viewUpdate(
     @Param('viewId') viewId: string,
     @Body() body: ViewUpdateReqType,
-    @Request() req,
+    @Req() req: Request,
   ) {
     const result = await this.viewsService.viewUpdate({
       viewId,
@@ -55,7 +55,7 @@ export class ViewsController {
 
   @Delete(['/api/v1/db/meta/views/:viewId', '/api/v2/meta/views/:viewId'])
   @Acl('viewDelete')
-  async viewDelete(@Param('viewId') viewId: string, @Request() req) {
+  async viewDelete(@Param('viewId') viewId: string, @Req() req: Request) {
     const result = await this.viewsService.viewDelete({
       viewId,
       user: req.user,

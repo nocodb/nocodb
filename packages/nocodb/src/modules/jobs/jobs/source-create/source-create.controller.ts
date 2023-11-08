@@ -29,7 +29,7 @@ export class SourceCreateController {
   async baseCreate(
     @Param('baseId') baseId: string,
     @Body() body: BaseReqType,
-    @Req() req,
+    @Req() req: Request,
   ) {
     const jobs = await this.jobsService.jobList();
     const fnd = jobs.find(

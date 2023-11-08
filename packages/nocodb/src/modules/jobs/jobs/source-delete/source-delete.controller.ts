@@ -26,7 +26,7 @@ export class SourceDeleteController {
     '/api/v2/meta/bases/:baseId/sources/:sourceId',
   ])
   @Acl('baseDelete')
-  async baseDelete(@Param('sourceId') sourceId: string, @Req() req) {
+  async baseDelete(@Param('sourceId') sourceId: string, @Req() req: Request) {
     const jobs = await this.jobsService.jobList();
     const fnd = jobs.find(
       (j) => j.name === JobTypes.BaseDelete && j.data.sourceId === sourceId,

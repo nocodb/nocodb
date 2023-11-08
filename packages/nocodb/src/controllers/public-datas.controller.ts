@@ -4,10 +4,11 @@ import {
   HttpCode,
   Param,
   Post,
-  Request,
+  Req,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { PublicDatasService } from '~/services/public-datas.service';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
@@ -22,7 +23,7 @@ export class PublicDatasController {
     '/api/v2/public/shared-view/:sharedViewUuid/rows',
   ])
   async dataList(
-    @Request() req,
+    @Req() req: Request,
     @Param('sharedViewUuid') sharedViewUuid: string,
   ) {
     const pagedResponse = await this.publicDatasService.dataList({
@@ -38,7 +39,7 @@ export class PublicDatasController {
     '/api/v2/public/shared-view/:sharedViewUuid/groupby',
   ])
   async dataGroupBy(
-    @Request() req,
+    @Req() req: Request,
     @Param('sharedViewUuid') sharedViewUuid: string,
   ) {
     return await this.publicDatasService.dataGroupBy({
@@ -53,7 +54,7 @@ export class PublicDatasController {
     '/api/v2/public/shared-view/:sharedViewUuid/group/:columnId',
   ])
   async groupedDataList(
-    @Request() req,
+    @Req() req: Request,
     @Param('sharedViewUuid') sharedViewUuid: string,
     @Param('columnId') columnId: string,
   ) {
@@ -73,7 +74,7 @@ export class PublicDatasController {
   @HttpCode(200)
   @UseInterceptors(AnyFilesInterceptor())
   async dataInsert(
-    @Request() req,
+    @Req() req: Request,
     @Param('sharedViewUuid') sharedViewUuid: string,
   ) {
     const insertResult = await this.publicDatasService.dataInsert({
@@ -81,7 +82,7 @@ export class PublicDatasController {
       password: req.headers?.['xc-password'] as string,
       body: req.body?.data,
       siteUrl: (req as any).ncSiteUrl,
-      files: req.files,
+      files: req.files as any[],
     });
 
     return insertResult;
@@ -92,7 +93,7 @@ export class PublicDatasController {
     '/api/v2/public/shared-view/:sharedViewUuid/nested/:columnId',
   ])
   async relDataList(
-    @Request() req,
+    @Req() req: Request,
     @Param('sharedViewUuid') sharedViewUuid: string,
     @Param('columnId') columnId: string,
   ) {
@@ -111,7 +112,7 @@ export class PublicDatasController {
     '/api/v2/public/shared-view/:sharedViewUuid/rows/:rowId/mm/:columnId',
   ])
   async publicMmList(
-    @Request() req,
+    @Req() req: Request,
     @Param('sharedViewUuid') sharedViewUuid: string,
     @Param('rowId') rowId: string,
     @Param('columnId') columnId: string,
@@ -131,7 +132,7 @@ export class PublicDatasController {
     '/api/v2/public/shared-view/:sharedViewUuid/rows/:rowId/hm/:columnId',
   ])
   async publicHmList(
-    @Request() req,
+    @Req() req: Request,
     @Param('sharedViewUuid') sharedViewUuid: string,
     @Param('rowId') rowId: string,
     @Param('columnId') columnId: string,

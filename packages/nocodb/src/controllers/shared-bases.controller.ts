@@ -70,7 +70,7 @@ export class SharedBasesController {
   @Acl('disableSharedBaseLink')
   async disableSharedBaseLink(
     @Param('baseId') baseId: string,
-    @Request() req: any,
+    @Req() req: Request,
   ): Promise<any> {
     const sharedBase = await this.sharedBasesService.disableSharedBaseLink({
       baseId,

@@ -47,7 +47,7 @@ export class JobsController implements OnModuleInit {
   @HttpCode(200)
   async listen(
     @Response() res,
-    @Request() req,
+    @Req() req: Request,
     @Body() body: { _mid: number; data: { id: string } },
   ) {
     const { _mid = 0, data } = body;

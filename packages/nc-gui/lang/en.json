@@ -621,6 +621,8 @@
     "newFormLoaded": "New form will be loaded after"
   },
   "activity": {
+    "openInANewTab": "Open in a new tab",
+    "copyIFrameCode": "Copy IFrame code",
     "onCondition": "On Condition",
     "bulkDownload": "Bulk Download",
     "attachFile": "Attach File",

@@ -1731,7 +1731,7 @@ onKeyStroke('ArrowDown', onDown)
 
               {{ $t('general.clear') }}
             </NcMenuItem>
-            <template v-if="contextMenuTarget && isUIAllowed('commentEdit') && !isMobileMode">
+            <template v-if="contextMenuTarget && selectedRange.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode">
               <NcDivider />
               <NcMenuItem v-e="['a:row:comment']" class="nc-base-menu-item" @click="commentRow(contextMenuTarget.row)">
                 <MdiMessageOutline class="h-4 w-4" />

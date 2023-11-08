@@ -7,9 +7,10 @@ import {
   Patch,
   Post,
   Query,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { AuditsService } from '~/services/audits.service';
@@ -24,7 +25,7 @@ export class AuditsController {
   @Post(['/api/v1/db/meta/audits/comments', '/api/v2/meta/audits/comments'])
   @HttpCode(200)
   @Acl('commentRow')
-  async commentRow(@Request() req) {
+  async commentRow(@Req() req: Request) {
     return await this.auditsService.commentRow({
       user: (req as any).user,
       body: req.body,
@@ -46,7 +47,7 @@ export class AuditsController {
 
   @Get(['/api/v1/db/meta/audits/comments', '/api/v2/meta/audits/comments'])
   @Acl('commentList')
-  async commentList(@Request() req) {
+  async commentList(@Req() req: Request) {
     return new PagedResponseImpl(
       await this.auditsService.commentList({ query: req.query }),
     );
@@ -59,7 +60,7 @@ export class AuditsController {
   @Acl('commentUpdate')
   async commentUpdate(
     @Param('auditId') auditId: string,
-    @Request() req,
+    @Req() req: Request,
     @Body() body: any,
   ) {
     return await this.auditsService.commentUpdate({
@@ -74,14 +75,14 @@ export class AuditsController {
     '/api/v2/meta/bases/:baseId/audits/',
   ])
   @Acl('auditList')
-  async auditList(@Request() req, @Param('baseId') baseId: string) {
+  async auditList(@Req() req: Request, @Param('baseId') baseId: string) {
     return new PagedResponseImpl(
       await this.auditsService.auditList({
         query: req.query,
         baseId,
       }),
       {
-        count: this.auditsService.auditCount({ baseId }),
+        count: await this.auditsService.auditCount({ baseId }),
         ...req.query,
       },
     );

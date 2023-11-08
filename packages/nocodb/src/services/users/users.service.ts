@@ -13,6 +13,7 @@ import type {
   SignUpReqType,
   UserType,
 } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { genJwt, setTokenCookie } from '~/services/users/helpers';
 import { NC_APP_SETTINGS } from '~/constants';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -97,7 +98,7 @@ export class UsersService {
     salt: any;
     password;
     email_verification_token;
-    req: any;
+    req: NcRequest;
   }) {
     this.validateEmailPattern(email);
 
@@ -149,7 +150,7 @@ export class UsersService {
   async passwordChange(param: {
     body: PasswordChangeReqType;
     user: UserType;
-    req: any;
+    req: NcRequest;
   }): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/PasswordChangeReq',
@@ -202,7 +203,7 @@ export class UsersService {
   async passwordForgot(param: {
     body: PasswordForgotReqType;
     siteUrl: string;
-    req: any;
+    req: NcRequest;
   }): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/PasswordForgotReq',
@@ -279,7 +280,7 @@ export class UsersService {
   async passwordReset(param: {
     body: PasswordResetReqType;
     token: string;
-    req: any;
+    req: NcRequest;
   }): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/PasswordResetReq',
@@ -332,7 +333,7 @@ export class UsersService {
   async emailVerification(param: {
     token: string;
     // todo: exclude
-    req: any;
+    req: NcRequest;
   }): Promise<any> {
     const { token, req } = param;
 

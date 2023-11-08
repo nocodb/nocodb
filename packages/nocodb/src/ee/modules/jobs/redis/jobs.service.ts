@@ -3,7 +3,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
 import type { OnModuleInit } from '@nestjs/common';
-import { JOBS_QUEUE, JobTypes, WorkerCommands } from '~/interface/Jobs';
+import { JOBS_QUEUE, WorkerCommands } from '~/interface/Jobs';
 import { JobsRedisService } from '~/modules/jobs/redis/jobs-redis.service';
 
 @Injectable()

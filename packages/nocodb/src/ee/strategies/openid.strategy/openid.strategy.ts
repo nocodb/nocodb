@@ -5,6 +5,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconnect';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
+import type { Request } from 'express';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 import type { AppConfig } from '~/interface/config';
 import { User } from '~/models';
@@ -71,7 +72,7 @@ export class OpenidStrategy extends PassportStrategy(
       });
   }
 
-  async authenticate(req: any, options?: any): Promise<void> {
+  async authenticate(req: Request, options?: any): Promise<void> {
     let callbackURL = req.ncSiteUrl + Noco.getConfig().dashboardPath;
     if (process.env.NC_BASE_APP_URL) {
       const url = new URL(req.ncSiteUrl);

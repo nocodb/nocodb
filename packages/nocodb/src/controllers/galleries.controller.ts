@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { GalleryUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { GalleriesService } from '~/services/galleries.service';
@@ -40,7 +41,7 @@ export class GalleriesController {
   async galleryViewCreate(
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     return await this.galleriesService.galleryViewCreate({
       gallery: body,
@@ -60,7 +61,7 @@ export class GalleriesController {
     @Param('galleryViewId') galleryViewId: string,
     @Body() body: GalleryUpdateReqType,
 
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     return await this.galleriesService.galleryViewUpdate({
       galleryViewId,

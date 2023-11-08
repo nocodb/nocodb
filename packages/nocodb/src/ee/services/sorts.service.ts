@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { SortsService as SortsServiceCE } from 'src/services/sorts.service';
 import type { SortReqType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -16,7 +17,7 @@ export class SortsService extends SortsServiceCE {
     super(appHooksService);
   }
 
-  async sortCreate(param: { viewId: any; sort: SortReqType; req: any }) {
+  async sortCreate(param: { viewId: any; sort: SortReqType; req: NcRequest }) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
     const view = await View.get(param.viewId);

@@ -3,10 +3,11 @@ import {
   Get,
   HttpCode,
   Post,
-  Request,
-  Response,
+  Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { AuthController as AuthControllerCE } from 'src/controllers/auth/auth.controller';
@@ -33,7 +34,7 @@ export class AuthController extends AuthControllerCE {
   /* OpenID Connect APIs */
   @Post('/auth/oidc/genTokenByCode')
   @UseGuards(PublicApiLimiterGuard, AuthGuard('openid'))
-  async oidcSignin(@Request() req, @Response() res) {
+  async oidcSignin(@Req() req: Request & { extra: any }, @Res() res: Response) {
     await this.setRefreshToken({ req, res });
     res.json({
       ...(await this.usersService.login(
@@ -55,7 +56,7 @@ export class AuthController extends AuthControllerCE {
 
   @Get('/auth/oidc/redirect')
   @UseGuards(PublicApiLimiterGuard)
-  async redirect(@Request() req, @Response() res) {
+  async redirect(@Req() req: Request, @Res() res: Response) {
     const key = `oidc:${req.query.state}`;
     const state = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     if (!state) {
@@ -75,7 +76,7 @@ export class AuthController extends AuthControllerCE {
 
   @Get('/auth/oidc/logout-redirect')
   @UseGuards(PublicApiLimiterGuard)
-  async logoutRedirect(@Request() req, @Response() res) {
+  async logoutRedirect(@Req() req: Request, @Res() res: Response) {
     const host = req.query.state;
 
     const dashboardPath = this.config.get('dashboardPath', {
@@ -92,7 +93,7 @@ export class AuthController extends AuthControllerCE {
   @UseGuards(PublicApiLimiterGuard, GlobalGuard)
   @Post(['/api/v1/auth/user/signout'])
   @HttpCode(200)
-  async signOut(@Request() req, @Response() res): Promise<any> {
+  async signOut(@Req() req: Request, @Res() res: Response): Promise<any> {
     if (!(req as any).isAuthenticated()) {
       NcError.forbidden('Not allowed');
     }
@@ -133,7 +134,10 @@ export class AuthController extends AuthControllerCE {
   /* OpenID Connect APIs */
   @Post('/auth/cognito')
   @UseGuards(PublicApiLimiterGuard, AuthGuard('cognito'))
-  async cognitoSignin(@Request() req, @Response() res) {
+  async cognitoSignin(
+    @Req() req: Request & { extra: any },
+    @Res() res: Response,
+  ) {
     await this.setRefreshToken({ req, res });
     res.json({
       ...(await this.usersService.login(

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { FiltersService as FiltersServiceCE } from 'src/services/filters.service';
 import type { FilterReqType, UserType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -20,7 +21,7 @@ export class FiltersService extends FiltersServiceCE {
     filter: FilterReqType;
     viewId: string;
     user: UserType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 

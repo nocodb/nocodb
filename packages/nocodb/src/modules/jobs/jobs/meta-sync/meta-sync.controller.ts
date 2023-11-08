@@ -4,9 +4,10 @@ import {
   Inject,
   Param,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
@@ -24,7 +25,7 @@ export class MetaSyncController {
   ])
   @HttpCode(200)
   @Acl('metaDiffSync')
-  async metaDiffSync(@Param('baseId') baseId: string, @Request() req) {
+  async metaDiffSync(@Param('baseId') baseId: string, @Req() req: Request) {
     const jobs = await this.jobsService.jobList();
     const fnd = jobs.find(
       (j) => j.name === JobTypes.MetaSync && j.data.baseId === baseId,
@@ -57,7 +58,7 @@ export class MetaSyncController {
   async baseMetaDiffSync(
     @Param('baseId') baseId: string,
     @Param('sourceId') sourceId: string,
-    @Request() req,
+    @Req() req: Request,
   ) {
     const jobs = await this.jobsService.jobList();
     const fnd = jobs.find(

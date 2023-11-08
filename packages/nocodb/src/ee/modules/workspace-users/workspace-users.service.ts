@@ -8,7 +8,7 @@ import { AppEvents, extractRolesObj, WorkspaceUserRoles } from 'nocodb-sdk';
 import * as ejs from 'ejs';
 import { ConfigService } from '@nestjs/config';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
-import type { AppConfig } from '~/interface/config';
+import type { AppConfig, NcRequest } from '~/interface/config';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import validateParams from '~/helpers/validateParams';
@@ -63,7 +63,7 @@ export class WorkspaceUsersService {
     userId: string;
     roles: WorkspaceUserRoles;
     siteUrl: string;
-    req: any;
+    req: NcRequest;
   }) {
     const workspaceUser = await WorkspaceUser.get(
       param.workspaceId,
@@ -162,7 +162,7 @@ export class WorkspaceUsersService {
     body: any;
     invitedBy?: UserType;
     siteUrl: string;
-    req: any;
+    req: NcRequest;
   }) {
     validateParams(['email', 'roles'], param.body);
 

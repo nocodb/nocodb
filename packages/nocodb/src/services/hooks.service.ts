@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -37,7 +38,11 @@ export class HooksService {
     return await HookLog.list({ fk_hook_id: param.hookId }, param.query);
   }
 
-  async hookCreate(param: { tableId: string; hook: HookReqType; req: any }) {
+  async hookCreate(param: {
+    tableId: string;
+    hook: HookReqType;
+    req: NcRequest;
+  }) {
     validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
 
     this.validateHookPayload(param.hook.notification);
@@ -55,7 +60,7 @@ export class HooksService {
     return hook;
   }
 
-  async hookDelete(param: { hookId: string; req: any }) {
+  async hookDelete(param: { hookId: string; req: NcRequest }) {
     const hook = await Hook.get(param.hookId);
 
     if (!hook) {
@@ -70,7 +75,11 @@ export class HooksService {
     return true;
   }
 
-  async hookUpdate(param: { hookId: string; hook: HookReqType; req: any }) {
+  async hookUpdate(param: {
+    hookId: string;
+    hook: HookReqType;
+    req: NcRequest;
+  }) {
     validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
 
     const hook = await Hook.get(param.hookId);
@@ -97,7 +106,7 @@ export class HooksService {
   async hookTest(param: {
     tableId: string;
     hookTest: HookTestReqType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/HookTestReq',

@@ -7,9 +7,10 @@ import {
   Param,
   Patch,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { OrgUserRoles } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -29,7 +30,7 @@ export class OrgUsersController {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
-  async userList(@Request() req) {
+  async userList(@Req() req: Request) {
     return new PagedResponseImpl(
       await this.orgUsersService.userList({
         query: req.query,
@@ -75,7 +76,7 @@ export class OrgUsersController {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
-  async userAdd(@Body() body, @Request() req) {
+  async userAdd(@Body() body, @Req() req: Request) {
     const result = await this.orgUsersService.userAdd({
       user: req.body,
       req,
@@ -104,7 +105,7 @@ export class OrgUsersController {
     blockApiTokenAccess: true,
   })
   async userInviteResend(
-    @Request() req,
+    @Req() req: Request,
     @Param('userId') userId: string,
   ): Promise<any> {
     await this.orgUsersService.userInviteResend({
@@ -122,7 +123,7 @@ export class OrgUsersController {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
-  async generateResetUrl(@Request() req, @Param('userId') userId: string) {
+  async generateResetUrl(@Req() req: Request, @Param('userId') userId: string) {
     const result = await this.orgUsersService.generateResetUrl({
       siteUrl: req.ncSiteUrl,
       userId,

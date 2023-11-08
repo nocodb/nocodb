@@ -10,6 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { FilterReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -44,7 +45,7 @@ export class FiltersController {
   async filterCreate(
     @Param('viewId') viewId: string,
     @Body() body: FilterReqType,
-    @Req() req,
+    @Req() req: Request,
   ) {
     const filter = await this.filtersService.filterCreate({
       filter: body,
@@ -64,7 +65,7 @@ export class FiltersController {
   async hookFilterCreate(
     @Param('hookId') hookId: string,
     @Body() body: FilterReqType,
-    @Req() req,
+    @Req() req: Request,
   ) {
     const filter = await this.filtersService.hookFilterCreate({
       filter: body,
@@ -102,7 +103,7 @@ export class FiltersController {
   async filterUpdate(
     @Param('filterId') filterId: string,
     @Body() body: FilterReqType,
-    @Req() req,
+    @Req() req: Request,
   ) {
     const filter = await this.filtersService.filterUpdate({
       filterId: filterId,
@@ -118,7 +119,7 @@ export class FiltersController {
     '/api/v2/meta/filters/:filterId',
   ])
   @Acl('filterDelete')
-  async filterDelete(@Param('filterId') filterId: string, @Req() req) {
+  async filterDelete(@Param('filterId') filterId: string, @Req() req: Request) {
     const filter = await this.filtersService.filterDelete({
       req,
       filterId,

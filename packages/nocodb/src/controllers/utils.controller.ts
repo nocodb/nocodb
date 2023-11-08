@@ -6,9 +6,10 @@ import {
   Get,
   HttpCode,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { UtilsService } from '~/services/utils.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -48,7 +49,7 @@ export class UtilsController {
     scope: 'org',
   })
   @HttpCode(200)
-  async testConnection(@Body() body: any, @Request() _req: any) {
+  async testConnection(@Body() body: any, @Req() _req: Request) {
     body.pool = {
       min: 0,
       max: 1,
@@ -63,7 +64,7 @@ export class UtilsController {
     '/api/v2/meta/nocodb/info',
     '/api/v1/meta/nocodb/info',
   ])
-  async appInfo(@Request() req) {
+  async appInfo(@Req() req: Request) {
     return await this.utilsService.appInfo({
       req: {
         ncSiteUrl: (req as any).ncSiteUrl,

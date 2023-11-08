@@ -7,9 +7,10 @@ import {
   Param,
   Patch,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { DatasService } from '~/services/datas.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -22,7 +23,7 @@ export class DatasController {
 
   @Get('/data/:viewId/')
   @Acl('dataList')
-  async dataList(@Request() req, @Param('viewId') viewId: string) {
+  async dataList(@Req() req: Request, @Param('viewId') viewId: string) {
     return await this.datasService.dataListByViewId({
       viewId: viewId,
       query: req.query,
@@ -32,7 +33,7 @@ export class DatasController {
   @Get('/data/:viewId/:rowId/mm/:colId')
   @Acl('mmList')
   async mmList(
-    @Request() req,
+    @Req() req: Request,
     @Param('viewId') viewId: string,
     @Param('colId') colId: string,
     @Param('rowId') rowId: string,
@@ -48,7 +49,7 @@ export class DatasController {
   @Get('/data/:viewId/:rowId/mm/:colId/exclude')
   @Acl('mmExcludedList')
   async mmExcludedList(
-    @Request() req,
+    @Req() req: Request,
     @Param('viewId') viewId: string,
     @Param('colId') colId: string,
     @Param('rowId') rowId: string,
@@ -64,7 +65,7 @@ export class DatasController {
   @Get('/data/:viewId/:rowId/hm/:colId/exclude')
   @Acl('hmExcludedList')
   async hmExcludedList(
-    @Request() req,
+    @Req() req: Request,
     @Param('viewId') viewId: string,
     @Param('colId') colId: string,
     @Param('rowId') rowId: string,
@@ -80,7 +81,7 @@ export class DatasController {
   @Get('/data/:viewId/:rowId/bt/:colId/exclude')
   @Acl('btExcludedList')
   async btExcludedList(
-    @Request() req,
+    @Req() req: Request,
     @Param('viewId') viewId: string,
     @Param('colId') colId: string,
     @Param('rowId') rowId: string,
@@ -96,7 +97,7 @@ export class DatasController {
   @Get('/data/:viewId/:rowId/hm/:colId')
   @Acl('hmList')
   async hmList(
-    @Request() req,
+    @Req() req: Request,
     @Param('viewId') viewId: string,
     @Param('colId') colId: string,
     @Param('rowId') rowId: string,
@@ -112,7 +113,7 @@ export class DatasController {
   @Get('/data/:viewId/:rowId')
   @Acl('dataRead')
   async dataRead(
-    @Request() req,
+    @Req() req: Request,
     @Param('viewId') viewId: string,
     @Param('rowId') rowId: string,
   ) {
@@ -127,7 +128,7 @@ export class DatasController {
   @HttpCode(200)
   @Acl('dataInsert')
   async dataInsert(
-    @Request() req,
+    @Req() req: Request,
     @Param('viewId') viewId: string,
     @Body() body: any,
   ) {
@@ -141,7 +142,7 @@ export class DatasController {
   @Patch('/data/:viewId/:rowId')
   @Acl('dataUpdate')
   async dataUpdate(
-    @Request() req,
+    @Req() req: Request,
     @Param('viewId') viewId: string,
     @Param('rowId') rowId: string,
     @Body() body: any,
@@ -157,7 +158,7 @@ export class DatasController {
   @Delete('/data/:viewId/:rowId')
   @Acl('dataDelete')
   async dataDelete(
-    @Request() req,
+    @Req() req: Request,
     @Param('viewId') viewId: string,
     @Param('rowId') rowId: string,
   ) {
@@ -171,7 +172,7 @@ export class DatasController {
   @Delete('/data/:viewId/:rowId/:relationType/:colId/:childId')
   @Acl('relationDataDelete')
   async relationDataDelete(
-    @Request() req,
+    @Req() req: Request,
     @Param('viewId') viewId: string,
     @Param('rowId') rowId: string,
     @Param('relationType') relationType: string,
@@ -193,7 +194,7 @@ export class DatasController {
   @HttpCode(200)
   @Acl('relationDataAdd')
   async relationDataAdd(
-    @Request() req,
+    @Req() req: Request,
     @Param('viewId') viewId: string,
     @Param('rowId') rowId: string,
     @Param('relationType') relationType: string,

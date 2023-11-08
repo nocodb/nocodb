@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { WorkspaceUsersService } from './workspace-users.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -51,7 +52,7 @@ export class WorkspaceUsersController {
     @Param('workspaceId') workspaceId: string,
     @Param('userId') userId: string,
     @Body() body: any,
-    @Req() req,
+    @Req() req: Request,
   ) {
     return await this.workspaceUsersService.update({
       workspaceId,
@@ -83,7 +84,7 @@ export class WorkspaceUsersController {
   async invite(
     @Param('workspaceId') workspaceId: string,
     @Body() body: any,
-    @Req() req,
+    @Req() req: Request,
   ) {
     return await this.workspaceUsersService.invite({
       workspaceId,

@@ -7,10 +7,11 @@ import {
   Param,
   Post,
   Put,
-  Request,
-  Response,
+  Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { DocsPageHistoryService } from '~/services/docs/history/docs-page-history.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -49,7 +50,7 @@ export class DocsPagesController {
   async create(
     @Param('baseId') baseId: string,
     @Body() body: { attributes: any },
-    @Request() req,
+    @Req() req: Request,
   ) {
     const page = await this.pagesService.create({
       attributes: body.attributes,
@@ -76,7 +77,7 @@ export class DocsPagesController {
     @Param('id') id: string,
     @Param('baseId') baseId: string,
     @Body() body: { attributes: any },
-    @Request() req,
+    @Req() req: Request,
   ) {
     return await this.pagesService.update({
       pageId: id,
@@ -101,8 +102,8 @@ export class DocsPagesController {
   async gpt(
     @Param('id') id: string,
     @Param('baseId') baseId: string,
-    @Response() response,
-    @Request() req,
+    @Res() response: Response,
+    @Req() req: Request,
   ) {
     let body: {
       promptText: string;
@@ -140,7 +141,7 @@ export class DocsPagesController {
   async gptCreatePages(
     @Param('baseId') baseId: string,
     @Body() body: { text: string },
-    @Request() req,
+    @Req() req: Request,
   ) {
     return await this.pagesService.magicCreatePages({
       baseId,
@@ -162,7 +163,7 @@ export class DocsPagesController {
       repo: string;
       branch: string;
     },
-    @Request() req,
+    @Req() req: Request,
   ) {
     return await this.pagesService.directoryImport({
       baseId,

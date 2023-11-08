@@ -5,6 +5,7 @@ import { Configuration, OpenAIApi } from 'openai';
 import { TablesService as TableServiceCE } from 'src/services/tables.service';
 import type { TableReqType, UserType } from 'nocodb-sdk';
 import type { User } from '~/models';
+import type { NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import getTableNameAlias from '~/helpers/getTableName';
 import { Base, Model } from '~/models';
@@ -38,7 +39,7 @@ export class TablesService extends TableServiceCE {
     sourceId?: string;
     table: TableReqType;
     user: User | UserType;
-    req?: any;
+    req?: NcRequest;
   }) {
     const base = await Base.getWithInfo(param.baseId);
     let source = base.sources[0];
@@ -82,7 +83,7 @@ export class TablesService extends TableServiceCE {
     tableName: string;
     title: string;
     user?: UserType;
-    req: any;
+    req: NcRequest;
   }) {
     const tableCreateBody = {
       tableName: param.tableName,
@@ -213,7 +214,7 @@ export class TablesService extends TableServiceCE {
     sourceId: string;
     schemaName: string;
     title: string;
-    req: any;
+    req: NcRequest;
   }) {
     const base = await Base.getWithInfo(param.baseId);
     let source = base.sources[0];

@@ -13,6 +13,7 @@ import type {
   ProjectUpdateReqType,
   UserType,
 } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -36,7 +37,7 @@ export class BasesService {
   ) {}
 
   async baseList(param: {
-    user: { id: string; roles: Record<string, boolean> };
+    user: { id: string; roles?: string | Record<string, boolean> };
     query?: any;
   }) {
     const bases = extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN]
@@ -63,7 +64,7 @@ export class BasesService {
     baseId: string;
     base: ProjectUpdateReqType;
     user: UserType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUpdateReq',
@@ -101,7 +102,7 @@ export class BasesService {
     }
   }
 
-  async baseSoftDelete(param: { baseId: any; user: UserType; req: any }) {
+  async baseSoftDelete(param: { baseId: any; user: UserType; req: NcRequest }) {
     const base = await Base.getWithInfo(param.baseId);
 
     if (!base) {
@@ -119,7 +120,7 @@ export class BasesService {
     return true;
   }
 
-  async baseCreate(param: { base: ProjectReqType; user: any; req: any }) {
+  async baseCreate(param: { base: ProjectReqType; user: any; req: NcRequest }) {
     validatePayload('swagger.json#/components/schemas/ProjectReq', param.base);
 
     const baseId = await this.metaService.genNanoid(MetaTable.PROJECT);
@@ -225,7 +226,7 @@ export class BasesService {
     return base;
   }
 
-  async createDefaultBase(param: { user: UserType; req: any }) {
+  async createDefaultBase(param: { user: UserType; req: NcRequest }) {
     const base = await this.baseCreate({
       base: {
         title: 'Getting Started',

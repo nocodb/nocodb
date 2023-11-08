@@ -37,7 +37,7 @@ export class GridColumnsController {
     @Param('gridViewColumnId') gridViewColumnId: string,
     @Body() body: GridColumnReqType,
 
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     return this.gridColumnsService.gridColumnUpdate({
       gridViewColumnId,

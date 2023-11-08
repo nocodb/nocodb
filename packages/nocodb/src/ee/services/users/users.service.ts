@@ -8,7 +8,9 @@ import { T } from 'nc-help';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
 import { setTokenCookie } from './helpers';
+import type { Request } from 'express';
 import type { SignUpReqType, UserType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { NC_APP_SETTINGS } from '~/constants';
 import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
@@ -47,7 +49,7 @@ export class UsersService extends UsersServiceCE {
     salt: any;
     password;
     email_verification_token;
-    req: any;
+    req: NcRequest;
   }) {
     this.validateEmailPattern(email);
 
@@ -93,7 +95,7 @@ export class UsersService extends UsersServiceCE {
 
   async signup(param: {
     body: SignUpReqType;
-    req: any;
+    req: Request;
     res: any;
   }): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SignUpReq', param.body);
@@ -226,7 +228,7 @@ export class UsersService extends UsersServiceCE {
     return { ...(await this.login(user, param.req)), createdWorkspace };
   }
 
-  private async createDefaultWorkspace(user: User, req: any) {
+  private async createDefaultWorkspace(user: User, req: NcRequest) {
     const title = `${user.email?.split('@')?.[0]}`;
 
     let createdWorkspace;
@@ -264,7 +266,10 @@ export class UsersService extends UsersServiceCE {
     return createdWorkspace;
   }
 
-  async login(user: UserType, req: any): Promise<any> {
+  async login(
+    user: UserType & { provider?: string },
+    req: NcRequest,
+  ): Promise<any> {
     const workspaces = await WorkspaceUser.workspaceList({
       fk_user_id: user.id,
     });
@@ -276,7 +281,7 @@ export class UsersService extends UsersServiceCE {
     return await super.login(user, req);
   }
 
-  protected clearCookie(param: { res: any; req: any }) {
+  protected clearCookie(param: { res: any; req: NcRequest }) {
     param.res.clearCookie('refresh_token', {
       httpOnly: true,
       domain: process.env.NC_BASE_HOST_NAME || undefined,

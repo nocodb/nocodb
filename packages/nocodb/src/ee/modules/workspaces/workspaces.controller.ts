@@ -7,9 +7,9 @@ import {
   Patch,
   Post,
   Req,
-  Request,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { WorkspacePlan } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import { WorkspacesService } from './workspaces.service';
@@ -37,7 +37,7 @@ export class WorkspacesController {
     scope: 'org',
     blockApiTokenAccess: true,
   })
-  async list(@Request() req) {
+  async list(@Req() req: Request) {
     return await this.workspacesService.list({
       user: req.user,
     });
@@ -49,7 +49,7 @@ export class WorkspacesController {
     scope: 'workspace',
     blockApiTokenAccess: true,
   })
-  async get(@Param('workspaceId') workspaceId: string, @Request() req) {
+  async get(@Param('workspaceId') workspaceId: string, @Req() req: Request) {
     const workspace: WorkspaceType & {
       roles?: any;
     } = await this.workspacesService.get({
@@ -72,7 +72,7 @@ export class WorkspacesController {
     scope: 'org',
     blockApiTokenAccess: true,
   })
-  async create(@Body() body: any, @Request() req) {
+  async create(@Body() body: any, @Req() req: Request) {
     return await this.workspacesService.create({
       workspaces: body,
       user: req.user,
@@ -89,7 +89,7 @@ export class WorkspacesController {
   async update(
     @Param('workspaceId') workspaceId: string,
     @Body() body: any,
-    @Request() req,
+    @Req() req: Request,
   ) {
     return await this.workspacesService.update({
       workspaceId,
@@ -106,7 +106,7 @@ export class WorkspacesController {
     scope: 'workspace',
     blockApiTokenAccess: true,
   })
-  async upgrade(@Param('workspaceId') workspaceId: string, @Request() req) {
+  async upgrade(@Param('workspaceId') workspaceId: string, @Req() req: Request) {
     return await this.workspacesService.upgrade({
       workspaceId,
       user: req.user,
@@ -120,7 +120,7 @@ export class WorkspacesController {
     scope: 'workspace',
     blockApiTokenAccess: true,
   })
-  async delete(@Param('workspaceId') workspaceId: string, @Request() req) {
+  async delete(@Param('workspaceId') workspaceId: string, @Req() req: Request) {
     return await this.workspacesService.delete({
       workspaceId,
       user: req.user,
@@ -137,7 +137,7 @@ export class WorkspacesController {
   async moveProjectToWorkspace(
     @Param('workspaceId') workspaceId: string,
     @Param('baseId') baseId: string,
-    @Request() req,
+    @Req() req: Request,
   ) {
     return await this.workspacesService.moveProject({
       workspaceId,
@@ -154,7 +154,7 @@ export class WorkspacesController {
   })
   async listProjects(
     @Param('workspaceId') workspaceId: string,
-    @Request() req,
+    @Req() req: Request,
   ) {
     return await this.workspacesService.getProjectList({
       workspaceId,
@@ -165,7 +165,7 @@ export class WorkspacesController {
   @Patch('/api/v1/workspaces/:workspaceId/status')
   @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
   async updateStatus(
-    @Req() req,
+    @Req() req: Request,
     @Body() body,
     @Param('workspaceId') workspaceId: string,
   ) {

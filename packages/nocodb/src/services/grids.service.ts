@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import type { GridUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -13,7 +14,7 @@ export class GridsService {
   async gridViewCreate(param: {
     tableId: string;
     grid: ViewCreateReqType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
@@ -39,7 +40,7 @@ export class GridsService {
   async gridViewUpdate(param: {
     viewId: string;
     grid: GridUpdateReqType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/GridUpdateReq',

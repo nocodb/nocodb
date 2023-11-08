@@ -1,4 +1,5 @@
-import { Controller, HttpCode, Post, Request, UseGuards } from '@nestjs/common';
+import { Controller, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
+import { Request } from 'express';
 import type { UserType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { CommandPaletteService } from '~/services/command-palette.service';
@@ -15,7 +16,7 @@ export class CommandPaletteController {
     scope: 'org',
   })
   @HttpCode(200)
-  async commandPalette(@Request() req) {
+  async commandPalette(@Req() req: Request) {
     const data = this.commandPaletteService.commandPalette({
       user: req?.user as UserType,
       body: req.body,

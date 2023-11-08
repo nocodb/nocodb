@@ -30,7 +30,7 @@ export class ModelVisibilitiesController {
   async xcVisibilityMetaSetAll(
     @Param('baseId') baseId: string,
     @Body() body: any,
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     await this.modelVisibilitiesService.xcVisibilityMetaSetAll({
       visibilityRule: body,

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents, extractRolesObj, OrgUserRoles } from 'nocodb-sdk';
 import type { User } from '~/models';
 import type { ApiTokenReqType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
@@ -17,7 +18,7 @@ export class ApiTokensService {
   async apiTokenCreate(param: {
     userId: string;
     tokenBody: ApiTokenReqType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ApiTokenReq',
@@ -36,7 +37,7 @@ export class ApiTokensService {
     });
   }
 
-  async apiTokenDelete(param: { token; user: User; req: any }) {
+  async apiTokenDelete(param: { token; user: User; req: NcRequest }) {
     const apiToken = await ApiToken.getByToken(param.token);
     if (
       !extractRolesObj(param.user.roles)[OrgUserRoles.SUPER_ADMIN] &&

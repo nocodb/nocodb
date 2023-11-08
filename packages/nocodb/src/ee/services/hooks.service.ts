@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { HooksService as HooksServiceCE } from 'src/services/hooks.service';
 import type { HookReqType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -16,7 +17,11 @@ export class HooksService extends HooksServiceCE {
     super(appHooksService);
   }
 
-  async hookCreate(param: { tableId: string; hook: HookReqType; req: any }) {
+  async hookCreate(param: {
+    tableId: string;
+    hook: HookReqType;
+    req: NcRequest;
+  }) {
     validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
 
     const model = await Model.get(param.tableId);

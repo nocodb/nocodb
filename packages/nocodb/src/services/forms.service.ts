@@ -5,6 +5,7 @@ import type {
   UserType,
   ViewCreateReqType,
 } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -23,7 +24,7 @@ export class FormsService {
     tableId: string;
     body: ViewCreateReqType;
     user: UserType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
@@ -55,7 +56,7 @@ export class FormsService {
   async formViewUpdate(param: {
     formViewId: string;
     form: FormUpdateReqType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/FormUpdateReq',

@@ -6,10 +6,11 @@ import {
   Param,
   Patch,
   Post,
-  Request,
-  Response,
+  Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -24,8 +25,8 @@ export class BulkDataAliasController {
   @HttpCode(200)
   @Acl('bulkDataInsert')
   async bulkDataInsert(
-    @Request() req,
-    @Response() res,
+    @Req() req: Request,
+    @Res() res: Response,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Body() body: any,
@@ -43,7 +44,7 @@ export class BulkDataAliasController {
   @Patch(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName'])
   @Acl('bulkDataUpdate')
   async bulkDataUpdate(
-    @Request() req,
+    @Req() req: Request,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Body() body: any,
@@ -60,7 +61,7 @@ export class BulkDataAliasController {
   @Patch(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName/all'])
   @Acl('bulkDataUpdateAll')
   async bulkDataUpdateAll(
-    @Request() req,
+    @Req() req: Request,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Body() body: any,
@@ -77,7 +78,7 @@ export class BulkDataAliasController {
   @Delete(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName'])
   @Acl('bulkDataDelete')
   async bulkDataDelete(
-    @Request() req,
+    @Req() req: Request,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Body() body: any,
@@ -95,7 +96,7 @@ export class BulkDataAliasController {
   @Delete(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName/all'])
   @Acl('bulkDataDeleteAll')
   async bulkDataDeleteAll(
-    @Request() req,
+    @Req() req: Request,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
   ) {

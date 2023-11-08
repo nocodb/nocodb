@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
-import type { AppConfig } from '~/interface/config';
+import type { AppConfig, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -26,7 +26,7 @@ export class SharedBasesService {
     password: string;
     siteUrl: string;
 
-    req: any;
+    req: NcRequest;
   }): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SharedBaseReq', param);
 
@@ -74,7 +74,7 @@ export class SharedBasesService {
     roles: string;
     password: string;
     siteUrl: string;
-    req: any;
+    req: NcRequest;
   }): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SharedBaseReq', param);
 
@@ -132,7 +132,7 @@ export class SharedBasesService {
 
   async disableSharedBaseLink(param: {
     baseId: string;
-    req: any;
+    req: NcRequest;
   }): Promise<any> {
     const base = await Base.get(param.baseId);
 

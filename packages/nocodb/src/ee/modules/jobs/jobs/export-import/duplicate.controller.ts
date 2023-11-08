@@ -5,9 +5,10 @@ import {
   Inject,
   Param,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ProjectStatus } from 'nocodb-sdk';
 import { DuplicateController as DuplicateControllerCE } from 'src/modules/jobs/jobs/export-import/duplicate.controller';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -36,7 +37,7 @@ export class DuplicateController extends DuplicateControllerCE {
     scope: 'workspace',
   })
   public async duplicateSharedBase(
-    @Request() req,
+    @Req() req: Request,
     @Param('workspaceId') workspaceId: string,
     @Param('sharedBaseId') sharedBaseId: string,
     @Body()

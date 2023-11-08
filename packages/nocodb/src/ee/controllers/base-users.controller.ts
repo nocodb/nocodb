@@ -4,9 +4,10 @@ import {
   HttpCode,
   Param,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ProjectUserReqType } from 'nocodb-sdk';
 import { BaseUsersController as BaseUsersControllerCE } from 'src/controllers/base-users.controller';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -31,7 +32,7 @@ export class BaseUsersController extends BaseUsersControllerCE {
   @Acl('userInvite')
   async userInvite(
     @Param('baseId') baseId: string,
-    @Request() req,
+    @Req() req: Request,
     @Body() body: ProjectUserReqType,
   ): Promise<any> {
     // todo: move this to a service

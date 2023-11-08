@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ColumnsService as ColumnsServiceCE } from 'src/services/columns.service';
 import type { ColumnReqType, UserType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MetaService } from '~/meta/meta.service';
 import { validatePayload } from '~/helpers';
@@ -21,7 +22,7 @@ export class ColumnsService extends ColumnsServiceCE {
   }
 
   async columnAdd(param: {
-    req: any;
+    req: NcRequest;
     tableId: string;
     column: ColumnReqType;
     user: UserType;

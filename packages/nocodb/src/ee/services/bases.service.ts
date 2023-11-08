@@ -6,6 +6,7 @@ import { customAlphabet } from 'nanoid';
 import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
 import { extractRolesObj } from 'nocodb-sdk';
 import type { ProjectReqType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import syncMigration from '~/helpers/syncMigration';
@@ -78,7 +79,7 @@ export class BasesService extends BasesServiceCE {
   }
 
   async baseList(param: {
-    user: { id: string; roles: Record<string, boolean> };
+    user: { id: string; roles?: Record<string, boolean> | string };
     query?: any;
   }) {
     const bases =
@@ -90,7 +91,7 @@ export class BasesService extends BasesServiceCE {
     return bases;
   }
 
-  async baseCreate(param: { base: ProjectReqType; user: any; req: any }) {
+  async baseCreate(param: { base: ProjectReqType; user: any; req: NcRequest }) {
     validatePayload('swagger.json#/components/schemas/ProjectReq', param.base);
 
     if (process.env.NC_TEST_EE !== 'true') {

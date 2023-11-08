@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -20,7 +21,7 @@ export class SyncService {
     sourceId?: string;
     userId: string;
     syncPayload: Partial<SyncSource>;
-    req: any;
+    req: NcRequest;
   }) {
     const base = await Base.getWithInfo(param.baseId);
 
@@ -39,7 +40,7 @@ export class SyncService {
     return sync;
   }
 
-  async syncDelete(param: { syncId: string; req: any }) {
+  async syncDelete(param: { syncId: string; req: NcRequest }) {
     const syncSource = await SyncSource.get(param.syncId);
 
     if (!syncSource) {
@@ -58,7 +59,7 @@ export class SyncService {
   async syncUpdate(param: {
     syncId: string;
     syncPayload: Partial<SyncSource>;
-    req: any;
+    req: NcRequest;
   }) {
     const syncSource = await SyncSource.get(param.syncId);
 

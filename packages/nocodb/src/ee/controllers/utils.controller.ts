@@ -5,9 +5,10 @@ import {
   Controller,
   HttpCode,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { UtilsController as UtilsControllerCE } from 'src/controllers/utils.controller';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -40,7 +41,7 @@ export class UtilsController extends UtilsControllerCE {
     scope: 'org',
   })
   @HttpCode(200)
-  async testConnection(@Body() body: any, @Request() req: any) {
+  async testConnection(@Body() body: any, @Req() req: Request) {
     if (process.env.NC_ALLOW_LOCAL_EXTERNAL_DBS !== 'true') {
       if (!body?.connection || !body?.connection.host) {
         NcError.badRequest('Connection missing host name or IP address');

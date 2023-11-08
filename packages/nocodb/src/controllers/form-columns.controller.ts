@@ -1,11 +1,5 @@
-import {
-  Body,
-  Controller,
-  Param,
-  Patch,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Param, Patch, Req, UseGuards } from '@nestjs/common';
+import { Request } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { FormColumnsService } from '~/services/form-columns.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -27,7 +21,7 @@ export class FormColumnsController {
     @Param('formViewColumnId') formViewColumnId: string,
     @Body() formViewColumnbody: FormColumnUpdateReqType,
 
-    @Request() req: any,
+    @Req() req: Request,
   ) {
     return await this.formColumnsService.columnUpdate({
       formViewColumnId,

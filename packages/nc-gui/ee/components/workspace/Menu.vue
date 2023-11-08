@@ -98,6 +98,7 @@ const onWorkspaceCreateClick = () => {
           class="w-24 min-w-10 transition-all duration-200 p-1 transform"
           href="https://github.com/nocodb/nocodb"
           target="_blank"
+          rel="noopener noreferrer"
         >
           <img alt="NocoDB" src="~/assets/img/brand/nocodb.png" />
         </a>

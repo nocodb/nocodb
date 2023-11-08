@@ -224,7 +224,7 @@ const onMouseOver = (e: any, index: number) => {
 
 const openLink = () => {
   if (href.value) {
-    window.open(href.value, '_blank')
+    window.open(href.value, '_blank', 'noopener,noreferrer')
   }
 }
 </script>

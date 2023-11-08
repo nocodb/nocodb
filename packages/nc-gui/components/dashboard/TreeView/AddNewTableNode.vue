@@ -250,6 +250,7 @@ function openTableCreateMagicDialog(sourceId?: string) {
               href="https://github.com/nocodb/nocodb/issues/2052"
               target="_blank"
               class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-base-menu-item group after:(!rounded-b)"
+              rel="noopener noreferrer"
             >
               <GeneralIcon icon="openInNew" class="group-hover:text-accent" />
               <!-- Request a data source you need? -->

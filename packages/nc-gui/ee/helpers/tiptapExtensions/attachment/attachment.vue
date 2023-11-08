@@ -12,7 +12,7 @@ const indicator = h(LoadingOutlined, {
 })
 
 const handleClick = () => {
-  window.open(node.attrs.url, '_blank')
+  window.open(node.attrs.url, '_blank', 'noopener,noreferrer')
 }
 </script>
 

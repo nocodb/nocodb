@@ -31,7 +31,7 @@ const copyUrl = async () => {
 }
 
 const openUrl = async () => {
-  window.open(baseUrl(base.value.id!, { completeUrl: true, publicMode: true }), '_blank')
+  window.open(baseUrl(base.value.id!, { completeUrl: true, publicMode: true }), '_blank', 'noopener,noreferrer')
 }
 
 const embedHtml = async () => {

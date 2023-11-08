@@ -249,6 +249,7 @@ function openTableCreateMagicDialog(sourceId?: string) {
               v-e="['e:datasource:import-request']"
               href="https://github.com/nocodb/nocodb/issues/2052"
               target="_blank"
+              rel="noopener noreferrer"
               class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-base-menu-item group after:(!rounded-b)"
             >
               <GeneralIcon icon="openInNew" class="group-hover:text-accent" />

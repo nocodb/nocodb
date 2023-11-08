@@ -17,6 +17,7 @@ export class TelemetryService {
     if (process.env.NC_CLOUD_POSTHOG_API_KEY)
       this.phClient = new PostHog(process.env.NC_CLOUD_POSTHOG_API_KEY, {
         host: 'https://app.posthog.com',
+        disableGeoip: false,
       });
   }
 

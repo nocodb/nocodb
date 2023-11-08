@@ -5,6 +5,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { Sort } from '~/models';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class SortsService {
@@ -14,7 +15,7 @@ export class SortsService {
     return Sort.get(param.sortId);
   }
 
-  async sortDelete(param: { sortId: string; req: any }) {
+  async sortDelete(param: { sortId: string; req: NcRequest }) {
     const sort = await Sort.get(param.sortId);
 
     if (!sort) {
@@ -30,7 +31,7 @@ export class SortsService {
     return true;
   }
 
-  async sortUpdate(param: { sortId: any; sort: SortReqType; req: any }) {
+  async sortUpdate(param: { sortId: any; sort: SortReqType; req: NcRequest }) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
     const sort = await Sort.get(param.sortId);
@@ -50,7 +51,7 @@ export class SortsService {
     return res;
   }
 
-  async sortCreate(param: { viewId: any; sort: SortReqType; req: any }) {
+  async sortCreate(param: { viewId: any; sort: SortReqType; req: NcRequest }) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
     const sort = await Sort.insert({

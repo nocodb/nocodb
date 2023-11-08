@@ -7,6 +7,7 @@ import { populateRollupColumnAndHideLTAR } from '~/helpers/populateMeta';
 import { syncBaseMigration } from '~/helpers/syncMigration';
 import { Base, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class SourcesService {
@@ -24,7 +25,7 @@ export class SourcesService {
     sourceId: string;
     source: BaseReqType;
     baseId: string;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload('swagger.json#/components/schemas/BaseReq', param.source);
 
@@ -53,7 +54,7 @@ export class SourcesService {
     return sources;
   }
 
-  async baseDelete(param: { sourceId: string; req: any }) {
+  async baseDelete(param: { sourceId: string; req: NcRequest }) {
     try {
       const source = await Source.get(param.sourceId, true);
       await source.delete();
@@ -81,7 +82,7 @@ export class SourcesService {
     baseId: string;
     source: BaseReqType;
     logger?: (message: string) => void;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload('swagger.json#/components/schemas/BaseReq', param.source);
 

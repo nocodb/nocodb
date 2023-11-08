@@ -2,6 +2,8 @@ import type { ReqId } from 'pino-http';
 import type { Handler } from 'express';
 import type * as e from 'express';
 import type { Knex } from 'knex';
+import {UserType} from "nocodb-sdk";
+import {User} from "~/models";
 
 export interface Route {
   path: string;
@@ -323,8 +325,9 @@ export interface AppConfig {
 
 export interface NcRequest {
   id?: ReqId;
-  user?: Record<string, any>;
+  user?: UserType | User;
   ncWorkspaceId?: string;
   ncProjectId?: string;
   headers?: Record<string, string | undefined> | IncomingHttpHeaders;
+  clientIp?: string;
 }

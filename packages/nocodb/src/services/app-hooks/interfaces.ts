@@ -18,7 +18,7 @@ import type {
 } from 'nocodb-sdk';
 
 export interface NcBaseEvent extends NcBaseEvent {
-  req: any;
+  req: NcRequest;
   clientId?: string;
 }
 

@@ -5,6 +5,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { Plugin } from '~/models';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class PluginsService {
@@ -14,7 +15,7 @@ export class PluginsService {
     return await Plugin.list();
   }
 
-  async pluginTest(param: { body: PluginTestReqType; req: any }) {
+  async pluginTest(param: { body: PluginTestReqType; req: NcRequest }) {
     validatePayload(
       'swagger.json#/components/schemas/PluginTestReq',
       param.body,
@@ -33,7 +34,7 @@ export class PluginsService {
   async pluginUpdate(param: {
     pluginId: string;
     plugin: PluginType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload('swagger.json#/components/schemas/PluginReq', param.plugin);
 

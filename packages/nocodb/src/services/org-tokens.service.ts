@@ -7,6 +7,7 @@ import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { ApiToken } from '~/models';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class OrgTokensService {
@@ -38,7 +39,7 @@ export class OrgTokensService {
   async apiTokenCreate(param: {
     user: User;
     apiToken: ApiTokenReqType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ApiTokenReq',
@@ -60,7 +61,7 @@ export class OrgTokensService {
     return apiToken;
   }
 
-  async apiTokenDelete(param: { user: User; token: string; req: any }) {
+  async apiTokenDelete(param: { user: User; token: string; req: NcRequest }) {
     const fk_user_id = param.user.id;
     const apiToken = await ApiToken.getByToken(param.token);
     if (

@@ -1,5 +1,7 @@
 import * as express from 'express';
 import { Express } from 'express-serve-static-core';
+import type { UserType } from 'nocodb-sdk';
+import { User } from '~/models';
 
 // declare global {
 //   namespace Express {
@@ -20,7 +22,11 @@ declare module 'express-serve-static-core' {
   interface Request {
     ncWorkspaceId?: string;
     ncProjectId?: string;
-    user: any;
+    user: UserType & {
+      base_roles?: Record<string, boolean>;
+      workspace_roles?: Record<string, boolean>;
+      provider?: string;
+    };
     ncSiteUrl: string;
     clientIp: string;
   }

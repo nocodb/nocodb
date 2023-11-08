@@ -4,6 +4,7 @@ import type { ViewColumnReqType, ViewColumnUpdateReqType } from 'nocodb-sdk';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { View } from '~/models';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class ViewColumnsService {
@@ -15,7 +16,7 @@ export class ViewColumnsService {
   async columnAdd(param: {
     viewId: string;
     column: ViewColumnReqType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewColumnReq',
@@ -42,7 +43,7 @@ export class ViewColumnsService {
     viewId: string;
     columnId: string;
     column: ViewColumnUpdateReqType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewColumnUpdateReq',

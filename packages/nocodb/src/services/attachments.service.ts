@@ -10,12 +10,13 @@ import Local from '~/plugins/storage/Local';
 import mimetypes, { mimeIcons } from '~/utils/mimeTypes';
 import { PresignedUrl } from '~/models';
 import { utf8ify } from '~/helpers/stringHelpers';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class AttachmentsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
-  async upload(param: { path?: string; files: FileType[]; req: any }) {
+  async upload(param: { path?: string; files: FileType[]; req: NcRequest }) {
     // TODO: add getAjvValidatorMw
     const filePath = this.sanitizeUrlPath(
       param.path?.toString()?.split('/') || [''],
@@ -92,7 +93,7 @@ export class AttachmentsService {
   async uploadViaURL(param: {
     path?: string;
     urls: AttachmentReqType[];
-    req: any;
+    req: NcRequest;
   }) {
     // TODO: add getAjvValidatorMw
     const filePath = this.sanitizeUrlPath(

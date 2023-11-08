@@ -29,6 +29,7 @@ import { Base, Column, Model, ModelRoleVisibility } from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { sanitizeColumnName, validatePayload } from '~/helpers';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class TablesService {
@@ -43,7 +44,7 @@ export class TablesService {
     table: TableReqType & { base_id?: string };
     baseId?: string;
     user: UserType;
-    req: any;
+    req: NcRequest;
   }) {
     const model = await Model.get(param.tableId);
 

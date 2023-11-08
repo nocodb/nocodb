@@ -4,6 +4,7 @@ import type { GridColumnReqType } from 'nocodb-sdk';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { GridViewColumn } from '~/models';
+import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class GridColumnsService {
@@ -16,7 +17,7 @@ export class GridColumnsService {
   async gridColumnUpdate(param: {
     gridViewColumnId: string;
     grid: GridColumnReqType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/GridColumnReq',

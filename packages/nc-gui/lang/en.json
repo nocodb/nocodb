@@ -69,6 +69,7 @@
     "hex": "Hex",
     "clear": "Clear",
     "slack": "Slack",
+    "comment": "Comment",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -620,6 +621,8 @@
     "newFormLoaded": "New form will be loaded after"
   },
   "activity": {
+    "openInANewTab": "Open in a new tab",
+    "copyIFrameCode": "Copy IFrame code",
     "onCondition": "On Condition",
     "bulkDownload": "Bulk Download",
     "attachFile": "Attach File",
@@ -994,6 +997,7 @@
     "createWebhookMsg2": "Create web-hooks to power you automations,",
     "createWebhookMsg3": "Get notified as soon as there are changes in your data",
     "areYouSureUWantTo": "Are you sure you want to delete the following",
+    "areYouSureUWantToDeleteLabel": "Are you sure you want to {deleteLabel} the following",
     "idColumnRequired": "ID field is required, you can rename this later if required.",
     "length59Required": "The length exceeds the max 59 characters",
     "noNewNotifications": "You have no new notifications",

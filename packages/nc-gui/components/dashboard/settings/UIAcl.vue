@@ -16,6 +16,8 @@ import {
   useNuxtApp,
 } from '#imports'
 
+type Role = 'editor' | 'commenter' | 'viewer'
+
 const props = defineProps<{
   sourceId: string
 }>()
@@ -38,6 +40,12 @@ const isLoading = ref(false)
 const tables = ref<any[]>([])
 
 const searchInput = ref('')
+
+const selectAll = ref({
+  editor: false,
+  commenter: false,
+  viewer: false,
+})
 
 const filteredTables = computed(() =>
   tables.value.filter(
@@ -80,14 +88,20 @@ async function saveUIAcl() {
   $e('a:proj-meta:ui-acl')
 }
 
-const onRoleCheck = (record: any, role: string) => {
+const onRoleCheck = (record: any, role: Role) => {
   record.disabled[role] = !record.disabled[role]
   record.edited = true
+
+  selectAll.value[role as Role] = filteredTables.value.every((t) => !t.disabled[role])
 }
 
 onMounted(async () => {
   if (tables.value.length === 0) {
     await loadTableList()
+  }
+
+  for (const role of roles.value) {
+    selectAll.value[role as Role] = filteredTables.value.every((t) => !t.disabled[role])
   }
 })
 
@@ -96,11 +110,11 @@ const tableHeaderRenderer = (label: string) => () => h('div', { class: 'text-gra
 const columns = [
   {
     title: tableHeaderRenderer(t('labels.tableName')),
-    name: 'table_name',
+    name: 'Table Name',
   },
   {
     title: tableHeaderRenderer(t('labels.viewName')),
-    name: 'view_name',
+    name: 'View Name',
   },
   {
     title: tableHeaderRenderer(t('objects.roleType.editor')),
@@ -118,6 +132,16 @@ const columns = [
     width: 120,
   },
 ]
+
+const toggleSelectAll = (role: Role) => {
+  selectAll.value[role] = !selectAll.value[role]
+  const enabled = selectAll.value[role]
+
+  filteredTables.value.forEach((t) => {
+    t.disabled[role] = !enabled
+    t.edited = true
+  })
+}
 </script>
 
 <template>
@@ -163,12 +187,23 @@ const columns = [
             })
           "
         >
+          <template #headerCell="{ column }">
+            <template v-if="['editor', 'commenter', 'viewer'].includes(column.name)">
+              <div class="flex flex-row gap-x-1">
+                <NcCheckbox :checked="selectAll[column.name as Role]" @change="() => toggleSelectAll(column.name)" />
+                <div class="flex capitalize">
+                  {{ column.name }}
+                </div>
+              </div>
+            </template>
+            <template v-else>{{ column.name }}</template>
+          </template>
           <template #emptyText>
             <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
           </template>
 
           <template #bodyCell="{ record, column }">
-            <div v-if="column.name === 'table_name'">
+            <div v-if="column.name === 'Table Name'">
               <div class="flex items-center gap-1">
                 <div class="min-w-5 flex items-center justify-center">
                   <GeneralTableIcon :meta="{ meta: record.table_meta, type: record.ptype }" class="text-gray-500" />
@@ -179,7 +214,7 @@ const columns = [
               </div>
             </div>
 
-            <div v-if="column.name === 'view_name'">
+            <div v-if="column.name === 'View Name'">
               <div class="flex items-center gap-1">
                 <div class="min-w-5 flex items-center justify-center">
                   <GeneralViewIcon :meta="record" class="text-gray-500"></GeneralViewIcon>
@@ -202,10 +237,10 @@ const columns = [
                     >
                   </template>
 
-                  <a-checkbox
+                  <NcCheckbox
                     :checked="!record.disabled[role]"
-                    :class="`nc-acl-${record.title}-${role}-chkbox`"
-                    @change="onRoleCheck(record, role)"
+                    :class="`nc-acl-${record.title}-${role}-chkbox !ml-0.25`"
+                    @change="onRoleCheck(record, role as Role)"
                   />
                 </a-tooltip>
               </div>

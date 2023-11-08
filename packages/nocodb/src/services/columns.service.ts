@@ -293,7 +293,7 @@ export class ColumnsService {
         ) {
           // MultiSelect to SingleSelect
           if (driverType === 'mysql' || driverType === 'mysql2') {
-            await dbDriver.raw(
+            await sqlClient.raw(
               `UPDATE ?? SET ?? = SUBSTRING_INDEX(??, ',', 1) WHERE ?? LIKE '%,%';`,
               [
                 baseModel.getTnPath(table.table_name),
@@ -303,13 +303,13 @@ export class ColumnsService {
               ],
             );
           } else if (driverType === 'pg') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = split_part(??, ',', 1);`, [
+            await sqlClient.raw(`UPDATE ?? SET ?? = split_part(??, ',', 1);`, [
               baseModel.getTnPath(table.table_name),
               column.column_name,
               column.column_name,
             ]);
           } else if (driverType === 'mssql') {
-            await dbDriver.raw(
+            await sqlClient.raw(
               `UPDATE ?? SET ?? = LEFT(cast(?? as varchar(max)), CHARINDEX(',', ??) - 1) WHERE CHARINDEX(',', ??) > 0;`,
               [
                 baseModel.getTnPath(table.table_name),
@@ -320,7 +320,7 @@ export class ColumnsService {
               ],
             );
           } else if (driverType === 'sqlite3') {
-            await dbDriver.raw(
+            await sqlClient.raw(
               `UPDATE ?? SET ?? = substr(??, 1, instr(??, ',') - 1) WHERE ?? LIKE '%,%';`,
               [
                 baseModel.getTnPath(table.table_name),
@@ -352,7 +352,7 @@ export class ColumnsService {
           );
 
           const data = await baseModel.execAndParse(
-            dbDriver.raw('SELECT DISTINCT ?? FROM ??', [
+            sqlClient.raw('SELECT DISTINCT ?? FROM ??', [
               column.column_name,
               baseModel.getTnPath(table.table_name),
             ]),
@@ -535,7 +535,7 @@ export class ColumnsService {
             }
             if (column.uidt === UITypes.SingleSelect) {
               if (driverType === 'mssql') {
-                await dbDriver.raw(`UPDATE ?? SET ?? = NULL WHERE ?? LIKE ?`, [
+                await sqlClient.raw(`UPDATE ?? SET ?? = NULL WHERE ?? LIKE ?`, [
                   baseModel.getTnPath(table.table_name),
                   column.column_name,
                   column.column_name,
@@ -551,7 +551,7 @@ export class ColumnsService {
             } else if (column.uidt === UITypes.MultiSelect) {
               if (driverType === 'mysql' || driverType === 'mysql2') {
                 if (colBody.dt === 'set') {
-                  await dbDriver.raw(
+                  await sqlClient.raw(
                     `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), ',')) WHERE FIND_IN_SET(?, ??)`,
                     [
                       baseModel.getTnPath(table.table_name),
@@ -563,7 +563,7 @@ export class ColumnsService {
                     ],
                   );
                 } else {
-                  await dbDriver.raw(
+                  await sqlClient.raw(
                     `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), ','))`,
                     [
                       baseModel.getTnPath(table.table_name),
@@ -574,7 +574,7 @@ export class ColumnsService {
                   );
                 }
               } else if (driverType === 'pg') {
-                await dbDriver.raw(
+                await sqlClient.raw(
                   `UPDATE ?? SET ??  = array_to_string(array_remove(string_to_array(??, ','), ?), ',')`,
                   [
                     baseModel.getTnPath(table.table_name),
@@ -584,7 +584,7 @@ export class ColumnsService {
                   ],
                 );
               } else if (driverType === 'mssql') {
-                await dbDriver.raw(
+                await sqlClient.raw(
                   `UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), ','), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), ',')) - 2)`,
                   [
                     baseModel.getTnPath(table.table_name),
@@ -596,7 +596,7 @@ export class ColumnsService {
                   ],
                 );
               } else if (driverType === 'sqlite3') {
-                await dbDriver.raw(
+                await sqlClient.raw(
                   `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ','), ',')`,
                   [
                     baseModel.getTnPath(table.table_name),
@@ -716,7 +716,7 @@ export class ColumnsService {
 
             if (column.uidt === UITypes.SingleSelect) {
               if (driverType === 'mssql') {
-                await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [
+                await sqlClient.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [
                   baseModel.getTnPath(table.table_name),
                   column.column_name,
                   newOp.title,
@@ -733,7 +733,7 @@ export class ColumnsService {
             } else if (column.uidt === UITypes.MultiSelect) {
               if (driverType === 'mysql' || driverType === 'mysql2') {
                 if (colBody.dt === 'set') {
-                  await dbDriver.raw(
+                  await sqlClient.raw(
                     `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`,
                     [
                       baseModel.getTnPath(table.table_name),
@@ -746,7 +746,7 @@ export class ColumnsService {
                     ],
                   );
                 } else {
-                  await dbDriver.raw(
+                  await sqlClient.raw(
                     `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ',')))`,
                     [
                       baseModel.getTnPath(table.table_name),
@@ -758,7 +758,7 @@ export class ColumnsService {
                   );
                 }
               } else if (driverType === 'pg') {
-                await dbDriver.raw(
+                await sqlClient.raw(
                   `UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`,
                   [
                     baseModel.getTnPath(table.table_name),
@@ -769,7 +769,7 @@ export class ColumnsService {
                   ],
                 );
               } else if (driverType === 'mssql') {
-                await dbDriver.raw(
+                await sqlClient.raw(
                   `UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`,
                   [
                     baseModel.getTnPath(table.table_name),
@@ -783,7 +783,7 @@ export class ColumnsService {
                   ],
                 );
               } else if (driverType === 'sqlite3') {
-                await dbDriver.raw(
+                await sqlClient.raw(
                   `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`,
                   [
                     baseModel.getTnPath(table.table_name),
@@ -802,7 +802,7 @@ export class ColumnsService {
           const newOp = ch.def_option;
           if (column.uidt === UITypes.SingleSelect) {
             if (driverType === 'mssql') {
-              await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [
+              await sqlClient.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [
                 baseModel.getTnPath(table.table_name),
                 column.column_name,
                 newOp.title,
@@ -819,7 +819,7 @@ export class ColumnsService {
           } else if (column.uidt === UITypes.MultiSelect) {
             if (driverType === 'mysql' || driverType === 'mysql2') {
               if (colBody.dt === 'set') {
-                await dbDriver.raw(
+                await sqlClient.raw(
                   `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`,
                   [
                     baseModel.getTnPath(table.table_name),
@@ -832,7 +832,7 @@ export class ColumnsService {
                   ],
                 );
               } else {
-                await dbDriver.raw(
+                await sqlClient.raw(
                   `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ',')))`,
                   [
                     baseModel.getTnPath(table.table_name),
@@ -846,7 +846,7 @@ export class ColumnsService {
                 );
               }
             } else if (driverType === 'pg') {
-              await dbDriver.raw(
+              await sqlClient.raw(
                 `UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`,
                 [
                   baseModel.getTnPath(table.table_name),
@@ -857,7 +857,7 @@ export class ColumnsService {
                 ],
               );
             } else if (driverType === 'mssql') {
-              await dbDriver.raw(
+              await sqlClient.raw(
                 `UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`,
                 [
                   baseModel.getTnPath(table.table_name),
@@ -871,7 +871,7 @@ export class ColumnsService {
                 ],
               );
             } else if (driverType === 'sqlite3') {
-              await dbDriver.raw(
+              await sqlClient.raw(
                 `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`,
                 [
                   baseModel.getTnPath(table.table_name),

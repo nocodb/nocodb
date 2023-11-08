@@ -102,7 +102,7 @@ export class ViewsController {
   ])
   @HttpCode(200)
   @Acl('shareView')
-  async shareView(@Param('viewId') viewId: string, @Req() req:Request) {
+  async shareView(@Param('viewId') viewId: string, @Req() req: Request) {
     return await this.viewsService.shareView({ viewId, user: req.user, req });
   }
 
@@ -127,7 +127,7 @@ export class ViewsController {
   async shareViewUpdate(
     @Param('viewId') viewId: string,
     @Body() body: ViewUpdateReqType,
-    @Req() req:Request,
+    @Req() req: Request,
   ) {
     return await this.viewsService.shareViewUpdate({
       viewId,
@@ -142,7 +142,7 @@ export class ViewsController {
     '/api/v2/meta/views/:viewId/share',
   ])
   @Acl('shareViewDelete')
-  async shareViewDelete(@Param('viewId') viewId: string, @Req() req:Request) {
+  async shareViewDelete(@Param('viewId') viewId: string, @Req() req: Request) {
     return await this.viewsService.shareViewDelete({
       viewId,
       user: req.user,

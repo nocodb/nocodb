@@ -5,11 +5,11 @@ import type {
   UserType,
   ViewCreateReqType,
 } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { KanbanView, View } from '~/models';
-import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class KanbansService {

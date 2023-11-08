@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Param,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { TableReqType } from 'nocodb-sdk';
 import { TablesController as TablesControllerCE } from 'src/controllers/tables.controller';

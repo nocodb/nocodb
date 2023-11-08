@@ -21,6 +21,7 @@ import type {
 import type CustomKnex from '~/db/CustomKnex';
 import type SqlClient from '~/db/sql-client/lib/SqlClient';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -47,7 +48,6 @@ import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
-import {NcRequest} from "~/interface/config";
 
 // todo: move
 export enum Altered {

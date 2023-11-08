@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ColumnsService as ColumnsServiceCE } from 'src/services/columns.service';
 import type { ColumnReqType, UserType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MetaService } from '~/meta/meta.service';
 import { validatePayload } from '~/helpers';
@@ -10,7 +11,6 @@ import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
 import { NcError } from '~/helpers/catchError';
-import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class ColumnsService extends ColumnsServiceCE {

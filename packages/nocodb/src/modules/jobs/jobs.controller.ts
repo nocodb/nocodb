@@ -8,11 +8,12 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Request } from 'express';
 import { OnEvent } from '@nestjs/event-emitter';
 import { customAlphabet } from 'nanoid';
 import { ModuleRef } from '@nestjs/core';
 import { JobsRedisService } from './redis/jobs-redis.service';
+import type { Response } from 'express';
 import type { OnModuleInit } from '@nestjs/common';
 import { JobStatus } from '~/interface/Jobs';
 import { JobEvents } from '~/interface/Jobs';
@@ -47,7 +48,7 @@ export class JobsController implements OnModuleInit {
   @Post('/jobs/listen')
   @HttpCode(200)
   async listen(
-    @Res() res:Response &{resId?:string},
+    @Res() res: Response & { resId?: string },
     @Req() req: Request,
     @Body() body: { _mid: number; data: { id: string } },
   ) {

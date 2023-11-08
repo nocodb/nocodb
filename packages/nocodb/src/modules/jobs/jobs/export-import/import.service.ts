@@ -7,6 +7,7 @@ import { elapsedTime, initTime } from '../../helpers';
 import type { Readable } from 'stream';
 import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn, User, View } from '~/models';
+import type { NcRequest } from '~/interface/config';
 import {
   findWithIdentifier,
   generateUniqueName,
@@ -35,7 +36,6 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { sanitizeColumnName } from '~/helpers';
-import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class ImportService {

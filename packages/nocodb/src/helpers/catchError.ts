@@ -1,5 +1,5 @@
+import type { NextFunction, Request, Response } from 'express';
 import type { ErrorObject } from 'ajv';
-import {NextFunction,Request,Response} from "express";
 
 export enum DBError {
   TABLE_EXIST = 'TABLE_EXIST',

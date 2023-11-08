@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Param,
-  Patch,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Param, Patch, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { FormColumnsService } from '~/services/form-columns.service';

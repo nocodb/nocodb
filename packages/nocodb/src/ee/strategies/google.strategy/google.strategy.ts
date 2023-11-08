@@ -3,13 +3,13 @@ import { Injectable, Optional } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-google-oauth20';
 import bcrypt from 'bcryptjs';
+import type { Request } from 'express';
 import type { VerifyCallback } from 'passport-google-oauth20';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 import Noco from '~/Noco';
 import { UsersService } from '~/services/users/users.service';
 import { BaseUser, Plugin, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
-import {Request} from 'express'
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {

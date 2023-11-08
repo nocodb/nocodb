@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { FiltersService as FiltersServiceCE } from 'src/services/filters.service';
 import type { FilterReqType, UserType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -9,7 +10,6 @@ import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
-import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class FiltersService extends FiltersServiceCE {

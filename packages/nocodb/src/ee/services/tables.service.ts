@@ -5,6 +5,7 @@ import { Configuration, OpenAIApi } from 'openai';
 import { TablesService as TableServiceCE } from 'src/services/tables.service';
 import type { TableReqType, UserType } from 'nocodb-sdk';
 import type { User } from '~/models';
+import type { NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import getTableNameAlias from '~/helpers/getTableName';
 import { Base, Model } from '~/models';
@@ -16,7 +17,6 @@ import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import {NcRequest} from "~/interface/config";
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,

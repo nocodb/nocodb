@@ -2,9 +2,8 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-custom';
 import { extractRolesObj } from 'nocodb-sdk';
+import type { Request } from 'express';
 import { Base } from '~/models';
-import {Request} from 'express'
-
 
 @Injectable()
 export class BaseViewStrategy extends PassportStrategy(Strategy, 'base-view') {

@@ -6,6 +6,7 @@ import { customAlphabet } from 'nanoid';
 import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
 import { extractRolesObj } from 'nocodb-sdk';
 import type { ProjectReqType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import syncMigration from '~/helpers/syncMigration';
@@ -24,7 +25,6 @@ import { MetaTable } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { TablesService } from '~/services/tables.service';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
-import {NcRequest} from "~/interface/config";
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 

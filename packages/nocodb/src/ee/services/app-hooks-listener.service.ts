@@ -53,8 +53,6 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
             description: `invited ${param.user.email} to ${param.base.id} base `,
             ip: param.ip,
           });
-
-          const count = await User.count();
         }
         break;
       case AppEvents.PROJECT_USER_UPDATE:

@@ -4,13 +4,13 @@ import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import slash from 'slash';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Local from '~/plugins/storage/Local';
 import mimetypes, { mimeIcons } from '~/utils/mimeTypes';
 import { PresignedUrl } from '~/models';
 import { utf8ify } from '~/helpers/stringHelpers';
-import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class AttachmentsService {

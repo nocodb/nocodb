@@ -2,7 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { packageInfo } from 'nc-help';
 import { PostHog } from 'posthog-node';
 import { Producer } from './producer/producer';
-import {NcRequest} from "~/interface/config";
+import type { NcRequest } from '~/interface/config';
 
 @Injectable()
 export class TelemetryService {

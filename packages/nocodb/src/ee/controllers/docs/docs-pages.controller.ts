@@ -102,7 +102,7 @@ export class DocsPagesController {
   async gpt(
     @Param('id') id: string,
     @Param('baseId') baseId: string,
-    @Res() response:Response,
+    @Res() response: Response,
     @Req() req: Request,
   ) {
     let body: {

@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { OrgTokensService as OrgTokensServiceCE } from 'src/services/org-tokens.service';
 import type { User } from '~/models';
 import type { ApiTokenReqType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { ApiToken } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class OrgTokensService extends OrgTokensServiceCE {

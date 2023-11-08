@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type { PluginTestReqType, PluginType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { Plugin } from '~/models';
-import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class PluginsService {

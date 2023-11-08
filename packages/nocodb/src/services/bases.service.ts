@@ -13,6 +13,7 @@ import type {
   ProjectUpdateReqType,
   UserType,
 } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -24,7 +25,6 @@ import { getToolDir } from '~/utils/nc-config';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable } from '~/utils/globals';
 import { TablesService } from '~/services/tables.service';
-import {NcRequest} from "~/interface/config";
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -37,7 +37,7 @@ export class BasesService {
   ) {}
 
   async baseList(param: {
-    user: { id: string; roles?: string  | Record<string, boolean>};
+    user: { id: string; roles?: string | Record<string, boolean> };
     query?: any;
   }) {
     const bases = extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN]

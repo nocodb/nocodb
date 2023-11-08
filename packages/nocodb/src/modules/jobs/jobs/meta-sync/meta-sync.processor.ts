@@ -1,9 +1,9 @@
 import debug from 'debug';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
+import type { NcRequest } from '~/interface/config';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
-import {NcRequest} from "~/interface/config";
 
 @Processor(JOBS_QUEUE)
 export class MetaSyncProcessor {

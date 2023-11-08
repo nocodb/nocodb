@@ -12,7 +12,7 @@ import AWS from 'aws-sdk';
 import { ConfigService } from '@nestjs/config';
 import type { OnApplicationBootstrap } from '@nestjs/common';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
-import type {AppConfig, NcRequest} from '~/interface/config';
+import type { AppConfig, NcRequest } from '~/interface/config';
 import { getLimit, getLimitsForPlan, PlanLimitTypes } from '~/plan-limits';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';

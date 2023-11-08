@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as ejs from 'ejs';
 import validator from 'validator';
 import type { ProjectUserReqType, UserType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
@@ -23,7 +24,6 @@ import { Base, BaseUser, User } from '~/models';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { getProjectRolePower } from '~/utils/roleHelper';
-import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class BaseUsersService {

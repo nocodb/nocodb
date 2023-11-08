@@ -6,11 +6,11 @@ import type {
 } from '~/services/app-hooks/interfaces';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type { UserType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Notification } from '~/models';
-import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class NotificationsService implements OnModuleInit, OnModuleDestroy {

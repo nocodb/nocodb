@@ -18,6 +18,7 @@ import type {
   TableReqType,
   UserType,
 } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -29,7 +30,6 @@ import { Base, Column, Model, ModelRoleVisibility } from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { sanitizeColumnName, validatePayload } from '~/helpers';
-import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class TablesService {

@@ -5,11 +5,11 @@ import type {
   UserType,
   ViewUpdateReqType,
 } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { Model, ModelRoleVisibility, View } from '~/models';
-import {NcRequest} from "~/interface/config";
 
 // todo: move
 async function xcVisibilityMetaGet(param: {
@@ -70,7 +70,7 @@ export class ViewsService {
   async viewList(param: {
     tableId: string;
     user: {
-      roles?: Record<string, boolean> | string,
+      roles?: Record<string, boolean> | string;
       base_roles?: Record<string, boolean>;
     };
   }) {
@@ -187,7 +187,11 @@ export class ViewsService {
     return result;
   }
 
-  async shareViewDelete(param: { viewId: string; user: UserType; req: NcRequest }) {
+  async shareViewDelete(param: {
+    viewId: string;
+    user: UserType;
+    req: NcRequest;
+  }) {
     const view = await View.get(param.viewId);
 
     if (!view) {

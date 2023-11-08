@@ -8,6 +8,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import type { UserType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { NC_APP_SETTINGS } from '~/constants';
@@ -19,7 +20,6 @@ import { BaseUser, Store, SyncSource, User } from '~/models';
 
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class OrgUsersService {
@@ -194,7 +194,10 @@ export class OrgUsersService {
     NcError.notImplemented();
   }
 
-  async userInviteResend(param: { userId: string; req: NcRequest }): Promise<any> {
+  async userInviteResend(param: {
+    userId: string;
+    req: NcRequest;
+  }): Promise<any> {
     const user = await User.get(param.userId);
 
     if (!user) {

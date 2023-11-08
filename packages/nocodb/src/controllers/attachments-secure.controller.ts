@@ -15,7 +15,8 @@ import {
 import hash from 'object-hash';
 import moment from 'moment';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import type { Request } from 'express';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { AttachmentsService } from '~/services/attachments.service';
@@ -66,10 +67,7 @@ export class AttachmentsSecureController {
   }
 
   @Get('/dltemp/:param(*)')
-  async fileReadv3(
-    @Param('param') param: string,
-    @Res() res: Response,
-  ) {
+  async fileReadv3(@Param('param') param: string, @Res() res: Response) {
     try {
       const fpath = await PresignedUrl.getPath(`dltemp/${param}`);
 

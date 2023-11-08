@@ -28,7 +28,7 @@ export class SharedBasesController {
   @HttpCode(200)
   @Acl('createSharedBaseLink')
   async createSharedBaseLink(
-    @Req() req:Request,
+    @Req() req: Request,
     @Body() body: any,
     @Param('baseId') baseId: string,
   ): Promise<any> {
@@ -49,7 +49,7 @@ export class SharedBasesController {
   ])
   @Acl('updateSharedBaseLink')
   async updateSharedBaseLink(
-    @Req() req:Request,
+    @Req() req: Request,
     @Body() body: any,
     @Param('baseId') baseId: string,
   ): Promise<any> {
@@ -87,7 +87,7 @@ export class SharedBasesController {
   ])
   @Acl('getSharedBaseLink')
   async getSharedBaseLink(
-    @Req() req:Request,
+    @Req() req: Request,
     @Param('baseId') baseId: string,
   ): Promise<any> {
     const sharedBase = await this.sharedBasesService.getSharedBaseLink({

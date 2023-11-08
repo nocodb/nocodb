@@ -47,7 +47,7 @@ export class OrgTokensController {
     scope: 'org',
     blockApiTokenAccess: true,
   })
-  async apiTokenCreate(@Req() req:Request, @Body() body: ApiTokenReqType) {
+  async apiTokenCreate(@Req() req: Request, @Body() body: ApiTokenReqType) {
     return await this.orgTokensService.apiTokenCreate({
       apiToken: body,
       user: req['user'],
@@ -61,7 +61,7 @@ export class OrgTokensController {
     // allowedRoles: [OrgUserRoles.SUPER],
     blockApiTokenAccess: true,
   })
-  async apiTokenDelete(@Req() req:Request, @Param('token') token: string) {
+  async apiTokenDelete(@Req() req: Request, @Param('token') token: string) {
     await this.orgTokensService.apiTokenDelete({
       token,
       user: req['user'],

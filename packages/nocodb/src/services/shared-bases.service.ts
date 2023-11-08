@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
-import type {AppConfig, NcRequest} from '~/interface/config';
+import type { AppConfig, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';

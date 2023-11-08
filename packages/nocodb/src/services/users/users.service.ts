@@ -13,6 +13,7 @@ import type {
   SignUpReqType,
   UserType,
 } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { genJwt, setTokenCookie } from '~/services/users/helpers';
 import { NC_APP_SETTINGS } from '~/constants';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -26,7 +27,6 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { BasesService } from '~/services/bases.service';
 import { extractProps } from '~/helpers/extractProps';
-import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class UsersService {

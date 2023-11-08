@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type { BaseReqType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { populateMeta, validatePayload } from '~/helpers';
 import { populateRollupColumnAndHideLTAR } from '~/helpers/populateMeta';
 import { syncBaseMigration } from '~/helpers/syncMigration';
 import { Base, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class SourcesService {

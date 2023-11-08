@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Base, SyncSource } from '~/models';
-import {NcRequest} from "~/interface/config";
 
 @Injectable()
 export class SyncService {

@@ -37,7 +37,7 @@ export class NotificationsController {
   async notificationUpdate(
     @Param('notificationId') notificationId,
     @Body() body,
-    @Req() req:Request,
+    @Req() req: Request,
   ) {
     return this.notificationsService.notificationUpdate({
       notificationId,
@@ -48,7 +48,7 @@ export class NotificationsController {
 
   @Post('/api/v1/notifications/mark-all-read')
   @HttpCode(200)
-  async markAllRead(@Req() req:Request) {
+  async markAllRead(@Req() req: Request) {
     return this.notificationsService.markAllRead({
       user: req.user,
     });
@@ -58,7 +58,7 @@ export class NotificationsController {
   // @Acl('notificationDelete')
   async notificationDelete(
     @Param('notificationId') notificationId,
-    @Req() req:Request,
+    @Req() req: Request,
   ) {
     return this.notificationsService.notificationUpdate({
       notificationId,

@@ -30,10 +30,7 @@ export class AttachmentsController {
   @Post(['/api/v1/db/storage/upload', '/api/v2/storage/upload'])
   @HttpCode(200)
   @UseInterceptors(UploadAllowedInterceptor, AnyFilesInterceptor())
-  async upload(
-    @UploadedFiles() files: Array<FileType>,
-    @Req() req: Request,
-  ) {
+  async upload(@UploadedFiles() files: Array<FileType>, @Req() req: Request) {
     const attachments = await this.attachmentsService.upload({
       files: files,
       path: req.query?.path?.toString(),
@@ -65,10 +62,7 @@ export class AttachmentsController {
   // , getCacheMiddleware(), catchError(fileRead));
   @Get('/download/:filename(*)')
   // This route will match any URL that starts with
-  async fileRead(
-    @Param('filename') filename: string,
-    @Res() res: Response,
-  ) {
+  async fileRead(@Param('filename') filename: string, @Res() res: Response) {
     try {
       const file = await this.attachmentsService.getFile({
         path: path.join('nc', 'uploads', filename),
@@ -107,10 +101,7 @@ export class AttachmentsController {
   }
 
   @Get('/dltemp/:param(*)')
-  async fileReadv3(
-    @Param('param') param: string,
-    @Res() res: Response,
-  ) {
+  async fileReadv3(@Param('param') param: string, @Res() res: Response) {
     try {
       const fpath = await PresignedUrl.getPath(`dltemp/${param}`);
 

@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { extractRolesObj, ProjectRoles } from 'nocodb-sdk';
 import { Strategy } from 'passport-custom';
+import type { Request } from 'express';
 import { ApiToken, BaseUser, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
-import {Request} from 'express'
 
 @Injectable()
 export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {

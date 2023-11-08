@@ -1,9 +1,9 @@
+import type { UserType } from 'nocodb-sdk';
 import type { ReqId } from 'pino-http';
 import type { Handler } from 'express';
 import type * as e from 'express';
 import type { Knex } from 'knex';
-import {UserType} from "nocodb-sdk";
-import {User} from "~/models";
+import type { User } from '~/models';
 
 export interface Route {
   path: string;

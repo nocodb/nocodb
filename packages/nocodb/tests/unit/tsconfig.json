@@ -50,9 +50,9 @@
       "dom"
     ],
     "types": [
-      "mocha", "node"
+      "mocha",
+      "node"
     ],
-
     "typeRoots": [
       "../../src/types",
       "../../node_modules/@types"

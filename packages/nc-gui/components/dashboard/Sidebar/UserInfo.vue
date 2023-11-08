@@ -107,13 +107,25 @@ onMounted(() => {
             </NcMenuItem>
           </template>
           <NcDivider />
-          <a v-e="['c:nocodb:discord']" href="https://discord.gg/5RgZmkW" target="_blank" class="!underline-transparent">
+          <a
+            v-e="['c:nocodb:discord']"
+            href="https://discord.gg/5RgZmkW"
+            target="_blank"
+            class="!underline-transparent"
+            rel="noopener noreferrer"
+          >
             <NcMenuItem class="social-icon-wrapper">
               <GeneralIcon class="social-icon" icon="discord" />
               <span class="menu-btn"> {{ $t('labels.community.joinDiscord') }} </span>
             </NcMenuItem>
           </a>
-          <a v-e="['c:nocodb:reddit']" href="https://www.reddit.com/r/NocoDB" target="_blank" class="!underline-transparent">
+          <a
+            v-e="['c:nocodb:reddit']"
+            href="https://www.reddit.com/r/NocoDB"
+            target="_blank"
+            class="!underline-transparent"
+            rel="noopener noreferrer"
+          >
             <NcMenuItem class="social-icon-wrapper">
               <GeneralIcon class="social-icon" icon="reddit" />
               <span class="menu-btn"> {{ $t('labels.community.joinReddit') }} </span>
@@ -148,14 +160,26 @@ onMounted(() => {
           <template v-if="!isMobileMode">
             <NcDivider />
 
-            <a v-e="['c:nocodb:forum-open']" href="https://community.nocodb.com" target="_blank" class="!underline-transparent">
+            <a
+              v-e="['c:nocodb:forum-open']"
+              href="https://community.nocodb.com"
+              target="_blank"
+              class="!underline-transparent"
+              rel="noopener"
+            >
               <NcMenuItem>
                 <GeneralIcon icon="help" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('title.forum') }} </span>
               </NcMenuItem>
             </a>
 
-            <a v-e="['c:nocodb:docs-open']" href="https://docs.nocodb.com" target="_blank" class="!underline-transparent">
+            <a
+              v-e="['c:nocodb:docs-open']"
+              href="https://docs.nocodb.com"
+              target="_blank"
+              class="!underline-transparent"
+              rel="noopener"
+            >
               <NcMenuItem>
                 <GeneralIcon icon="doc" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('title.docs') }} </span>

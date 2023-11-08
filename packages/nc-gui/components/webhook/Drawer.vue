@@ -50,6 +50,7 @@ async function addHook() {
           href="https://angel.co/company/nocodb"
           target="_blank"
           size="large"
+          rel="noopener noreferrer"
         >
           🚀 {{ $t('labels.weAreHiring') }}! 🚀
         </a-button>

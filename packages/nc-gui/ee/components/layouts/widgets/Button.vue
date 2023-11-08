@@ -16,7 +16,7 @@ const dataLinkConfigIsMissing = computed(() => {
 const handleButtonClick = () => {
   switch (widgetConfig.value.data_config.actionType) {
     case ButtonActionType.OPEN_EXTERNAL_URL: {
-      window.open(widgetConfig.value.data_config.url, '_blank')
+      window.open(widgetConfig.value.data_config.url, '_blank', 'noopener,noreferrer')
     }
   }
 }

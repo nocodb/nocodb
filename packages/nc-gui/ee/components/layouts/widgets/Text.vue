@@ -44,7 +44,7 @@ const { showContextMenuButtonRef, isContextMenuVisible, showContextMenu } = useL
 <template>
   <div class="flex justify-between">
     <component :is="elementTag" class="nc-layout-text-element">
-      <a v-if="isLink" :href="url" target="_blank">{{ text }}</a>
+      <a v-if="isLink" :href="url" target="_blank" rel="noopener noreferrer">{{ text }}</a>
       <span v-else>
         {{ text }}
       </span>

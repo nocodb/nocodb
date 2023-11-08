@@ -6,8 +6,10 @@ import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone';
 import { defaults, types } from 'pg';
 
+const DEBUG = process.env.DEBUG === 'true';
+
 const fastify = Fastify({
-  logger: true,
+  logger: DEBUG,
 });
 const connectionPools: { [key: string]: Knex } = {};
 const dynamicPoolSize = process.env.DYNAMIC_POOL_SIZE === 'true';
@@ -74,8 +76,8 @@ fastify.post(
           (parseInt(maxConnections || 20) * dynamicPoolPercent) / 100,
         );
 
-        console.log('Max connections: ', maxConnections);
-        console.log('Pool size: ', poolSize);
+        // console.log('Max connections: ', maxConnections);
+        // console.log('Pool size: ', poolSize);
 
         connectionPools[connectionKey] = knex({
           ...config,
@@ -87,15 +89,17 @@ fastify.post(
       fromPool = false;
     }
 
+    /*
     const knexPool = connectionPools[connectionKey].client.pool;
 
     console.log(`\n
-    Connections in use: ${knexPool.numUsed()}\n
-    Connections free: ${knexPool.numFree()}\n
-    Acquiring: ${knexPool.numPendingAcquires()}\n
-    Creating: ${knexPool.numPendingCreates()}\n
-    ${dayjs().format('YYYY-MM-DD HH:mm:ssZ')} (${fromPool ? 'pool' : 'fresh'})\n
-  `);
+      Connections in use: ${knexPool.numUsed()}\n
+      Connections free: ${knexPool.numFree()}\n
+      Acquiring: ${knexPool.numPendingAcquires()}\n
+      Creating: ${knexPool.numPendingCreates()}\n
+      ${dayjs().format('YYYY-MM-DD HH:mm:ssZ')} (${fromPool ? 'pool' : 'fresh'})\n
+    `);
+    */
 
     let result;
 
@@ -143,10 +147,10 @@ fastify.post(
         }
       }
     } catch (e) {
-      console.log('\nQuery failed with error:');
-      console.log(query);
-      console.log(e);
-      console.log('\n');
+      console.error('\nQuery failed with error:');
+      console.error(query);
+      console.error(e);
+      console.error('\n');
       return res.status(500).send({
         error: e.message,
       });
@@ -164,12 +168,20 @@ fastify.get('/api/v1/health', async (req, res) => {
   });
 });
 
-fastify.listen({ port: +process.env.PORT || 9000, host: process.env.HOST || 'localhost' }, function (err) {
-  if (err) {
-    fastify.log.error(err);
-    process.exit(1);
-  }
-});
+fastify.listen(
+  { port: +process.env.PORT || 9000, host: process.env.HOST || 'localhost' },
+  function (err) {
+    if (err) {
+      fastify.log.error(err);
+      process.exit(1);
+    }
+    console.log(
+      `Server listening on ${process.env.HOST || 'localhost'}:${
+        +process.env.PORT || 9000
+      }`,
+    );
+  },
+);
 
 // Custom Knex
 

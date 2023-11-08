@@ -18,7 +18,7 @@ import {
   useRoles,
   useWorkspace,
 } from '#imports'
-import { useNuxtApp } from '#app'
+import { useNuxtApp } from '#imports'
 
 const workspaceStore = useWorkspace()
 

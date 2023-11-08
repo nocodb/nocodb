@@ -33,7 +33,7 @@ import {
   useToggle,
 } from '#imports'
 import type { NcProject } from '#imports'
-import { useNuxtApp } from '#app'
+import { useNuxtApp } from '#imports'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',

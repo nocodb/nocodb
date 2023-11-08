@@ -21,7 +21,7 @@ import {
   useTablesStore,
 } from '#imports'
 
-import { useRouter } from '#app'
+import { useRouter } from '#imports'
 
 const { isUIAllowed } = useRoles()
 

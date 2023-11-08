@@ -88,7 +88,7 @@ onBeforeMount(async () => {
       </span>
       <span>
         For additional configuration options, please refer the documentation
-        <a href="https://docs.nocodb.com/developer-resources/webhooks#call-log" target="_blank">here</a>.
+        <a href="https://docs.nocodb.com/developer-resources/webhooks#call-log" target="_blank" rel="noopener">here</a>.
       </span>
     </a-card>
 

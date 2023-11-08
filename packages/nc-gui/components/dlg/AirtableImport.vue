@@ -330,6 +330,7 @@ onMounted(async () => {
             href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
             class="prose-sm underline text-grey text-xs"
             target="_blank"
+            rel="noopener"
           >
             {{ $t('msg.info.airtable.credentials') }}
           </a>
@@ -414,7 +415,7 @@ onMounted(async () => {
 
         <!--        Questions / Help - Reach out here -->
         <div>
-          <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank">
+          <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank" rel="noopener noreferrer">
             {{ $t('general.questions') }} / {{ $t('general.help') }} - {{ $t('general.reachOut') }}</a
           >
 
@@ -422,7 +423,12 @@ onMounted(async () => {
           <!--          This feature is currently in beta and more information can be found here -->
           <div>
             {{ $t('general.betaNote') }}
-            <a class="prose-sm" href="https://github.com/nocodb/nocodb/discussions/2122" target="_blank">
+            <a
+              class="prose-sm"
+              href="https://github.com/nocodb/nocodb/discussions/2122"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {{ $t('general.moreInfo') }}
             </a>
             .

@@ -13,7 +13,7 @@ const isCopied = ref({
 })
 
 const openUrl = async () => {
-  window.open(url.value, '_blank')
+  window.open(url.value, '_blank', 'noopener,noreferrer')
 }
 
 const embedHtml = async () => {

@@ -25,7 +25,6 @@ import { Audit } from '~/models';
 import { Producer } from '~/services/producer/producer';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { User } from '~/models';
 
 @Injectable()
 export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {

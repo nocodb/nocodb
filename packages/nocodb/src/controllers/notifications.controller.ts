@@ -7,9 +7,10 @@ import {
   Param,
   Patch,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { NotificationsService } from '~/services/notifications.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { extractProps } from '~/helpers/extractProps';
@@ -22,7 +23,7 @@ export class NotificationsController {
 
   @Get('/api/v1/notifications')
   // @Acl('notificationList')
-  async notificationList(@Request() req) {
+  async notificationList(@Req() req: Request) {
     return this.notificationsService.notificationList({
       user: req.user,
       is_deleted: false,
@@ -36,7 +37,7 @@ export class NotificationsController {
   async notificationUpdate(
     @Param('notificationId') notificationId,
     @Body() body,
-    @Request() req,
+    @Req() req: Request,
   ) {
     return this.notificationsService.notificationUpdate({
       notificationId,
@@ -47,7 +48,7 @@ export class NotificationsController {
 
   @Post('/api/v1/notifications/mark-all-read')
   @HttpCode(200)
-  async markAllRead(@Request() req) {
+  async markAllRead(@Req() req: Request) {
     return this.notificationsService.markAllRead({
       user: req.user,
     });
@@ -57,7 +58,7 @@ export class NotificationsController {
   // @Acl('notificationDelete')
   async notificationDelete(
     @Param('notificationId') notificationId,
-    @Request() req,
+    @Req() req: Request,
   ) {
     return this.notificationsService.notificationUpdate({
       notificationId,

@@ -4,9 +4,10 @@ import {
   Get,
   Param,
   Patch,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { BaseReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -45,7 +46,7 @@ export class SourcesController {
     @Param('sourceId') sourceId: string,
     @Param('baseId') baseId: string,
     @Body() body: BaseReqType,
-    @Request() req: any,
+    @Req() req: Request,
   ) {
     const source = await this.sourcesService.baseUpdate({
       sourceId,

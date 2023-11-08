@@ -6,6 +6,7 @@ import type {
 } from '~/services/app-hooks/interfaces';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type { UserType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -17,7 +18,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
 
   protected async insertNotification(
     insertData: Partial<Notification>,
-    req: any,
+    req: NcRequest,
   ) {
     this.appHooks.emit('notification' as any, { ...insertData, req } as any);
 

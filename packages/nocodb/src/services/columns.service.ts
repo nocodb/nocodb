@@ -21,6 +21,7 @@ import type {
 import type CustomKnex from '~/db/CustomKnex';
 import type SqlClient from '~/db/sql-client/lib/SqlClient';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -1030,7 +1031,7 @@ export class ColumnsService {
   }
 
   async columnAdd(param: {
-    req: any;
+    req: NcRequest;
     tableId: string;
     column: ColumnReqType;
     user: UserType;
@@ -2194,7 +2195,7 @@ export class ColumnsService {
         column: Partial<Column>;
       }[];
     },
-    req: any,
+    req: NcRequest,
   ) {
     // TODO validatePayload
 

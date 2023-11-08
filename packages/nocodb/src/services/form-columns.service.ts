@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { FormViewColumn } from '~/models';
@@ -12,7 +13,7 @@ export class FormColumnsService {
     formViewColumnId: string;
     // todo: replace with FormColumnReq
     formViewColumn: FormViewColumn;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/FormColumnReq',

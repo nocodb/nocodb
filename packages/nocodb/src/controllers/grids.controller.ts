@@ -28,7 +28,7 @@ export class GridsController {
   async gridViewCreate(
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     const view = await this.gridsService.gridViewCreate({
       grid: body,
@@ -42,7 +42,7 @@ export class GridsController {
   async gridViewUpdate(
     @Param('viewId') viewId: string,
     @Body() body,
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     return await this.gridsService.gridViewUpdate({
       viewId,

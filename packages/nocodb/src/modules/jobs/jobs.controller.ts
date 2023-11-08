@@ -4,14 +4,16 @@ import {
   HttpCode,
   Inject,
   Post,
-  Request,
-  Response,
+  Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { OnEvent } from '@nestjs/event-emitter';
 import { customAlphabet } from 'nanoid';
 import { ModuleRef } from '@nestjs/core';
 import { JobsRedisService } from './redis/jobs-redis.service';
+import type { Response } from 'express';
 import type { OnModuleInit } from '@nestjs/common';
 import { JobStatus } from '~/interface/Jobs';
 import { JobEvents } from '~/interface/Jobs';
@@ -46,8 +48,8 @@ export class JobsController implements OnModuleInit {
   @Post('/jobs/listen')
   @HttpCode(200)
   async listen(
-    @Response() res,
-    @Request() req,
+    @Res() res: Response & { resId?: string },
+    @Req() req: Request,
     @Body() body: { _mid: number; data: { id: string } },
   ) {
     const { _mid = 0, data } = body;
@@ -134,7 +136,7 @@ export class JobsController implements OnModuleInit {
     res.on('close', () => {
       if (jobId && this.jobRooms[jobId]?.listeners) {
         this.jobRooms[jobId].listeners = this.jobRooms[jobId].listeners.filter(
-          (r) => r.resId !== res.resId,
+          (r) => r.resId !== (res as any).resId,
         );
       }
     });

@@ -48,7 +48,7 @@ export class SyncController {
   async syncCreate(
     @Param('baseId') baseId: string,
     @Body() body: any,
-    @Req() req,
+    @Req() req: Request,
     @Param('sourceId') sourceId?: string,
   ) {
     return await this.syncService.syncCreate({
@@ -62,7 +62,7 @@ export class SyncController {
 
   @Delete(['/api/v1/db/meta/syncs/:syncId', '/api/v2/meta/syncs/:syncId'])
   @Acl('syncSourceDelete')
-  async syncDelete(@Param('syncId') syncId: string, @Req() req: any) {
+  async syncDelete(@Param('syncId') syncId: string, @Req() req: Request) {
     return await this.syncService.syncDelete({
       syncId: syncId,
       req,
@@ -74,7 +74,7 @@ export class SyncController {
   async syncUpdate(
     @Param('syncId') syncId: string,
     @Body() body: any,
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     return await this.syncService.syncUpdate({
       syncId: syncId,

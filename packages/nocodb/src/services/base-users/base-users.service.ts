@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as ejs from 'ejs';
 import validator from 'validator';
 import type { ProjectUserReqType, UserType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
@@ -47,7 +48,7 @@ export class BaseUsersService {
   async userInvite(param: {
     baseId: string;
     baseUser: ProjectUserReqType;
-    req: any;
+    req: NcRequest;
   }): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUserReq',

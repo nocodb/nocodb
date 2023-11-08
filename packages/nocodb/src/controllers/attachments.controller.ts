@@ -7,14 +7,14 @@ import {
   Param,
   Post,
   Query,
-  Request,
-  Response,
+  Req,
+  Res,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { Request as RequestType, Response as ResponseType } from 'express';
+import { Request, Response } from 'express';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import { UploadAllowedInterceptor } from '~/interceptors/is-upload-allowed/is-upload-allowed.interceptor';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -30,10 +30,7 @@ export class AttachmentsController {
   @Post(['/api/v1/db/storage/upload', '/api/v2/storage/upload'])
   @HttpCode(200)
   @UseInterceptors(UploadAllowedInterceptor, AnyFilesInterceptor())
-  async upload(
-    @UploadedFiles() files: Array<FileType>,
-    @Request() req: RequestType,
-  ) {
+  async upload(@UploadedFiles() files: Array<FileType>, @Req() req: Request) {
     const attachments = await this.attachmentsService.upload({
       files: files,
       path: req.query?.path?.toString(),
@@ -50,7 +47,7 @@ export class AttachmentsController {
   async uploadViaURL(
     @Body() body: Array<AttachmentReqType>,
     @Query('path') path: string,
-    @Request() req: any,
+    @Req() req: Request,
   ) {
     const attachments = await this.attachmentsService.uploadViaURL({
       urls: body,
@@ -65,10 +62,7 @@ export class AttachmentsController {
   // , getCacheMiddleware(), catchError(fileRead));
   @Get('/download/:filename(*)')
   // This route will match any URL that starts with
-  async fileRead(
-    @Param('filename') filename: string,
-    @Response() res: ResponseType,
-  ) {
+  async fileRead(@Param('filename') filename: string, @Res() res: Response) {
     try {
       const file = await this.attachmentsService.getFile({
         path: path.join('nc', 'uploads', filename),
@@ -87,7 +81,7 @@ export class AttachmentsController {
     @Param('param1') param1: string,
     @Param('param2') param2: string,
     @Param('filename') filename: string,
-    @Response() res: ResponseType,
+    @Res() res: Response,
   ) {
     try {
       const file = await this.attachmentsService.getFile({
@@ -107,10 +101,7 @@ export class AttachmentsController {
   }
 
   @Get('/dltemp/:param(*)')
-  async fileReadv3(
-    @Param('param') param: string,
-    @Response() res: ResponseType,
-  ) {
+  async fileReadv3(@Param('param') param: string, @Res() res: Response) {
     try {
       const fpath = await PresignedUrl.getPath(`dltemp/${param}`);
 

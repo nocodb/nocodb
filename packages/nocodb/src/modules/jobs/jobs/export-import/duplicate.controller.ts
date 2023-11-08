@@ -5,9 +5,10 @@ import {
   Inject,
   Param,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ProjectStatus } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -34,7 +35,7 @@ export class DuplicateController {
     scope: 'org',
   })
   public async duplicateSharedBase(
-    @Request() req,
+    @Req() req: Request,
     @Param('workspaceId') _workspaceId: string,
     @Param('sharedBaseId') sharedBaseId: string,
     @Body()
@@ -101,7 +102,7 @@ export class DuplicateController {
   @HttpCode(200)
   @Acl('duplicateBase')
   async duplicateBase(
-    @Request() req,
+    @Req() req: Request,
     @Param('baseId') baseId: string,
     @Param('sourceId') sourceId?: string,
     @Body()
@@ -168,7 +169,7 @@ export class DuplicateController {
   @HttpCode(200)
   @Acl('duplicateModel')
   async duplicateModel(
-    @Request() req,
+    @Req() req: Request,
     @Param('baseId') baseId: string,
     @Param('modelId') modelId?: string,
     @Body()

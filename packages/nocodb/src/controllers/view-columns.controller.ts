@@ -43,7 +43,7 @@ export class ViewColumnsController {
   async columnAdd(
     @Param('viewId') viewId: string,
     @Body() body: ViewColumnReqType,
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     const viewColumn = await this.viewColumnsService.columnAdd({
       viewId,
@@ -62,7 +62,7 @@ export class ViewColumnsController {
     @Param('viewId') viewId: string,
     @Param('columnId') columnId: string,
     @Body() body: ViewColumnReqType,
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     const result = await this.viewColumnsService.columnUpdate({
       viewId,

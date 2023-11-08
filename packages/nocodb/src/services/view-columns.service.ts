@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type { ViewColumnReqType, ViewColumnUpdateReqType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { View } from '~/models';
@@ -15,7 +16,7 @@ export class ViewColumnsService {
   async columnAdd(param: {
     viewId: string;
     column: ViewColumnReqType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewColumnReq',
@@ -42,7 +43,7 @@ export class ViewColumnsService {
     viewId: string;
     columnId: string;
     column: ViewColumnUpdateReqType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewColumnUpdateReq',

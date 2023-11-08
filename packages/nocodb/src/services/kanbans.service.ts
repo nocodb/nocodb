@@ -5,6 +5,7 @@ import type {
   UserType,
   ViewCreateReqType,
 } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -22,7 +23,7 @@ export class KanbansService {
     tableId: string;
     kanban: ViewCreateReqType;
     user: UserType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
@@ -50,7 +51,7 @@ export class KanbansService {
   async kanbanViewUpdate(param: {
     kanbanViewId: string;
     kanban: KanbanUpdateReqType;
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/KanbanUpdateReq',

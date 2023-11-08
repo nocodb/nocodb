@@ -7,6 +7,7 @@ import { elapsedTime, initTime } from '../../helpers';
 import type { Readable } from 'stream';
 import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn, User, View } from '~/models';
+import type { NcRequest } from '~/interface/config';
 import {
   findWithIdentifier,
   generateUniqueName,
@@ -64,7 +65,7 @@ export class ImportService {
     data:
       | { models: { model: any; views: any[]; hooks?: any[] }[] }
       | { model: any; views: any[]; hooks?: any[] }[];
-    req: any;
+    req: NcRequest;
     externalModels?: Model[];
   }) {
     const hrTime = initTime();
@@ -1051,7 +1052,7 @@ export class ImportService {
     vw: Partial<View>,
     views: View[],
     user: UserType,
-    req: any,
+    req: NcRequest,
   ): Promise<View> {
     if (vw.is_default) {
       const view = views.find((a) => a.is_default);
@@ -1197,7 +1198,7 @@ export class ImportService {
       url?: string;
       file?: any;
     };
-    req: any;
+    req: NcRequest;
   }) {
     const hrTime = initTime();
 

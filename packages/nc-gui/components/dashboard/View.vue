@@ -125,6 +125,11 @@ onMounted(() => {
   handleSidebarOpenOnMobileForNonViews()
 })
 
+const remToPx = (rem: number) => {
+  const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
+  return rem * fontSize
+}
+
 function onResize(widthPercent: any) {
   if (isMobileMode.value) return
 
@@ -135,23 +140,31 @@ function onResize(widthPercent: any) {
   const widthRem = width / fontSize
 
   if (widthRem < 16) {
-    currentSidebarSize.value = ((16 * fontSize) / viewportWidth.value) * 100
+    sideBarSize.value.old = ((16 * fontSize) / viewportWidth.value) * 100
+    if (isLeftSidebarOpen.value) sideBarSize.value.current = sideBarSize.value.old
     return
   } else if (widthRem > 23.5) {
-    currentSidebarSize.value = ((23.5 * fontSize) / viewportWidth.value) * 100
+    sideBarSize.value.old = ((23.5 * fontSize) / viewportWidth.value) * 100
+    if (isLeftSidebarOpen.value) sideBarSize.value.current = sideBarSize.value.old
+
     return
   }
 
-  console.log('onResize', widthRem, fontSize)
-  currentSidebarSize.value = widthPercent
+  sideBarSize.value.old = widthPercent
+  sideBarSize.value.current = sideBarSize.value.old
 }
 
-watch(
-  () => sideBarSize.value.current,
-  () => {
-    console.log('sidebarState', sideBarSize.value.current)
-  },
-)
+const normalizedWidth = computed(() => {
+  const maxSize = remToPx(23.5)
+  const minSize = remToPx(16)
+  if (sidebarWidth.value > maxSize) {
+    return maxSize
+  } else if (sidebarWidth.value < minSize) {
+    return minSize
+  } else {
+    return sidebarWidth.value
+  }
+})
 </script>
 
 <template>
@@ -166,14 +179,14 @@ watch(
       min-size="15%"
       :size="mobileNormalizedSidebarSize"
       max-size="40%"
-      class="nc-sidebar-splitpane !sm:(min-w-64 max-w-94) relative !overflow-visible"
+      class="nc-sidebar-splitpane !sm:max-w-94 relative !overflow-visible flex"
       :style="{
         width: `${mobileNormalizedSidebarSize}%`,
       }"
     >
       <div
         ref="wrapperRef"
-        class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !sm:(min-w-64 max-w-94) absolute overflow-visible"
+        class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !sm:(max-w-94) absolute overflow-visible"
         :class="{
           'mobile': isMobileMode,
           'minimized-height': !isLeftSidebarOpen,
@@ -181,6 +194,7 @@ watch(
         }"
         :style="{
           width: sidebarState === 'hiddenEnd' ? '0px' : `${sidebarWidth}px`,
+          minWidth: sidebarState === 'hiddenEnd' ? '0px' : `${normalizedWidth}px`,
         }"
       >
         <slot name="sidebar" />
@@ -188,8 +202,9 @@ watch(
     </Pane>
     <Pane
       :size="mobileNormalizedContentSize"
+      class="flex-grow"
       :style="{
-        width: `${100 - mobileNormalizedSidebarSize}%`,
+        'min-width': `${100 - mobileNormalizedSidebarSize}%`,
       }"
     >
       <slot name="content" />

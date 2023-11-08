@@ -19,8 +19,8 @@ import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
+import { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
-import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type {
   XcFilter,
@@ -65,6 +65,7 @@ import {
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
+import Transaction = Knex.Transaction;
 
 dayjs.extend(utc);
 
@@ -2616,7 +2617,7 @@ class BaseModelSqlv2 {
     data: Record<string, any>;
     insertObj: Record<string, any>;
   }) {
-    const postInsertOps: ((rowId: any) => Promise<void>)[] = [];
+    const postInsertOps: ((rowId: any, trx?: any) => Promise<void>)[] = [];
     for (const col of nestedCols) {
       if (col.title in data) {
         const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>();
@@ -2645,36 +2646,46 @@ class BaseModelSqlv2 {
               const childModel = await childCol.getModel();
               await childModel.getColumns();
 
-              postInsertOps.push(async (rowId) => {
-                await this.dbDriver(this.getTnPath(childModel.table_name))
-                  .update({
-                    [childCol.column_name]: rowId,
-                  })
-                  .whereIn(
-                    childModel.primaryKey.column_name,
-                    nestedData?.map((r) => r[childModel.primaryKey.title]),
-                  );
-              });
+              postInsertOps.push(
+                async (
+                  rowId,
+                  // todo: use transaction type
+                  trx?: any = this.dbDriver,
+                ) => {
+                  await trx(this.getTnPath(childModel.table_name))
+                    .update({
+                      [childCol.column_name]: rowId,
+                    })
+                    .whereIn(
+                      childModel.primaryKey.column_name,
+                      nestedData?.map((r) => r[childModel.primaryKey.title]),
+                    );
+                },
+              );
             }
             break;
           case RelationTypes.MANY_TO_MANY: {
-            postInsertOps.push(async (rowId) => {
-              const parentModel = await colOptions
-                .getParentColumn()
-                .then((c) => c.getModel());
-              await parentModel.getColumns();
-              const parentMMCol = await colOptions.getMMParentColumn();
-              const childMMCol = await colOptions.getMMChildColumn();
-              const mmModel = await colOptions.getMMModel();
+            postInsertOps.push(
+              async (
+                rowId,
+                // todo: use transaction type
+                trx?: any = this.dbDriver,
+              ) => {
+                const parentModel = await colOptions
+                  .getParentColumn()
+                  .then((c) => c.getModel());
+                await parentModel.getColumns();
+                const parentMMCol = await colOptions.getMMParentColumn();
+                const childMMCol = await colOptions.getMMChildColumn();
+                const mmModel = await colOptions.getMMModel();
 
-              const rows = nestedData.map((r) => ({
-                [parentMMCol.column_name]: r[parentModel.primaryKey.title],
-                [childMMCol.column_name]: rowId,
-              }));
-              await this.dbDriver(this.getTnPath(mmModel.table_name)).insert(
-                rows,
-              );
-            });
+                const rows = nestedData.map((r) => ({
+                  [parentMMCol.column_name]: r[parentModel.primaryKey.title],
+                  [childMMCol.column_name]: rowId,
+                }));
+                await trx(this.getTnPath(mmModel.table_name)).insert(rows);
+              },
+            );
           }
         }
       }
@@ -2706,7 +2717,7 @@ class BaseModelSqlv2 {
     try {
       // TODO: ag column handling for raw bulk insert
       const insertDatas = raw ? datas : [];
-      const postInsertOps: ((rowId: any) => Promise<void>)[][] = [];
+      let postInsertOps: ((rowId: any, trx?: any) => Promise<void>)[] = [];
 
       if (!raw) {
         const nestedCols = (await this.model.getColumns()).filter((c) =>
@@ -2839,13 +2850,14 @@ class BaseModelSqlv2 {
 
           await this.prepareAttachmentData(insertObj);
 
-          postInsertOps.push(
-            await this.prepareNestedLinkQb({
+          // prepare nested link data for insert only if it is single record insertion
+          if (isSingleRecordInsertion) {
+            postInsertOps = await this.prepareNestedLinkQb({
               nestedCols,
-              d,
+              data: d,
               insertObj,
-            }),
-          );
+            });
+          }
 
           insertDatas.push(insertObj);
         }
@@ -2891,7 +2903,10 @@ class BaseModelSqlv2 {
           this.isPg || this.isMssql
             ? await trx
                 .batchInsert(this.tnPath, insertDatas, chunkSize)
-                .returning(this.model.primaryKey?.column_name)
+                .returning({
+                  [this.model.primaryKey?.title]:
+                    this.model.primaryKey?.column_name,
+                })
             : await trx.batchInsert(this.tnPath, insertDatas, chunkSize);
       }
 
@@ -2901,6 +2916,12 @@ class BaseModelSqlv2 {
         } else if (this.isMySQL) {
           await trx.raw('SET foreign_key_checks = 1;');
         }
+      }
+
+      // insert nested link data for single record insertion
+      if (isSingleRecordInsertion) {
+        const rowId = response[0][this.model.primaryKey?.title];
+        await Promise.all(postInsertOps.map((f) => f(rowId, trx)));
       }
 
       await trx.commit();

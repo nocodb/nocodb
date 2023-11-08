@@ -330,10 +330,11 @@ export default class SqlExecutor {
   private static async activate(sqlExecutor: SqlExecutor) {
     const appConfig = (await import('~/app.config')).default;
 
-    const snsConfig = appConfig.workspace.sns;
+    const snsConfig = appConfig.sns;
+    const sqlExecutorSnsTopic = appConfig.sqlExecutor.sns.topicArn;
 
     if (
-      !snsConfig.topicArn ||
+      !sqlExecutorSnsTopic ||
       !snsConfig.credentials ||
       !snsConfig.credentials.secretAccessKey ||
       !snsConfig.credentials.accessKeyId
@@ -353,9 +354,7 @@ export default class SqlExecutor {
         serviceName,
         sqlExecutorId: sqlExecutor.id,
       }) /* required */,
-      // TODO - get topic arn from config
-      TopicArn:
-        'arn:aws:sns:us-east-2:249717198246:nocohub-es-operator-staging',
+      TopicArn: sqlExecutorSnsTopic,
     };
 
     // Create promise and SNS service object

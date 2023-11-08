@@ -522,12 +522,15 @@ export class WorkspacesService implements OnApplicationBootstrap {
     titleOrId: string;
     user: string;
   }) {
-    const snsConfig = this.configService.get('workspace.sns', {
+    const snsConfig = this.configService.get('sns', {
+      infer: true,
+    });
+    const workspaceSnsTopic = this.configService.get('workspace.sns.topicArn', {
       infer: true,
     });
 
     if (
-      !snsConfig.topicArn ||
+      !workspaceSnsTopic ||
       !snsConfig.credentials ||
       !snsConfig.credentials.secretAccessKey ||
       !snsConfig.credentials.accessKeyId
@@ -542,7 +545,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
         WS_NAME: param.titleOrId,
         user: param.user,
       }) /* required */,
-      TopicArn: snsConfig.topicArn,
+      TopicArn: workspaceSnsTopic,
     };
 
     // Create promise and SNS service object

@@ -110,11 +110,11 @@ const tableHeaderRenderer = (label: string) => () => h('div', { class: 'text-gra
 const columns = [
   {
     title: tableHeaderRenderer(t('labels.tableName')),
-    name: 'table_name',
+    name: 'Table Name',
   },
   {
     title: tableHeaderRenderer(t('labels.viewName')),
-    name: 'view_name',
+    name: 'View Name',
   },
   {
     title: tableHeaderRenderer(t('objects.roleType.editor')),
@@ -203,7 +203,7 @@ const toggleSelectAll = (role: Role) => {
           </template>
 
           <template #bodyCell="{ record, column }">
-            <div v-if="column.name === 'table_name'">
+            <div v-if="column.name === 'Table Name'">
               <div class="flex items-center gap-1">
                 <div class="min-w-5 flex items-center justify-center">
                   <GeneralTableIcon :meta="{ meta: record.table_meta, type: record.ptype }" class="text-gray-500" />
@@ -214,7 +214,7 @@ const toggleSelectAll = (role: Role) => {
               </div>
             </div>
 
-            <div v-if="column.name === 'view_name'">
+            <div v-if="column.name === 'View Name'">
               <div class="flex items-center gap-1">
                 <div class="min-w-5 flex items-center justify-center">
                   <GeneralViewIcon :meta="record" class="text-gray-500"></GeneralViewIcon>

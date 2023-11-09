@@ -381,25 +381,25 @@ export class CellPageObject extends BasePage {
 
   async verifyRoleAccess(param: { role: string }) {
     const role = param.role.toLowerCase();
-    const count = role === 'creator' || role === 'editor' || role === 'owner' ? 1 : 0;
+    const isEditAccess = role === 'creator' || role === 'editor' || role === 'owner';
     // normal text cell
     const cell = this.get({ index: 0, columnHeader: 'Country' });
     // editable cell
     await cell.dblclick();
-    await expect(cell.locator(`input`)).toHaveCount(count);
+    await expect(cell.locator(`input`)).toHaveCount(isEditAccess ? 1 : 0);
 
     // press escape to close the input
     await cell.press('Escape');
     await cell.press('Escape');
 
     await cell.click({ button: 'right', clickCount: 1 });
-    await expect(this.rootPage.locator(`.nc-dropdown-grid-context-menu:visible`)).toHaveCount(count);
+    await expect(this.rootPage.locator(`.nc-dropdown-grid-context-menu:visible`)).toHaveCount(1);
 
     // virtual cell
     const vCell = this.get({ index: 0, columnHeader: 'Cities' });
     await vCell.hover();
     // in-cell add
-    await expect(vCell.locator('.nc-action-icon.nc-plus:visible')).toHaveCount(count);
+    await expect(vCell.locator('.nc-action-icon.nc-plus:visible')).toHaveCount(isEditAccess ? 1 : 0);
 
     // virtual cell link text
     const linkText = await getTextExcludeIconText(vCell);

@@ -1748,28 +1748,35 @@ class BaseModelSqlv2 {
                 (await column.getColOptions()) as LinkToAnotherRecordColumn;
 
               if (colOptions?.type === 'hm') {
-                const listLoader = new DataLoader(async (ids: string[]) => {
-                  if (ids.length > 1) {
-                    const data = await this.multipleHmList(
-                      {
-                        colId: column.id,
-                        ids,
-                      },
-                      (listLoader as any).args,
-                    );
-                    return ids.map((id: string) => (data[id] ? data[id] : []));
-                  } else {
-                    return [
-                      await this.hmList(
+                const listLoader = new DataLoader(
+                  async (ids: string[]) => {
+                    if (ids.length > 1) {
+                      const data = await this.multipleHmList(
                         {
                           colId: column.id,
-                          id: ids[0],
+                          ids,
                         },
                         (listLoader as any).args,
-                      ),
-                    ];
-                  }
-                });
+                      );
+                      return ids.map((id: string) =>
+                        data[id] ? data[id] : [],
+                      );
+                    } else {
+                      return [
+                        await this.hmList(
+                          {
+                            colId: column.id,
+                            id: ids[0],
+                          },
+                          (listLoader as any).args,
+                        ),
+                      ];
+                    }
+                  },
+                  {
+                    cache: false,
+                  },
+                );
                 const self: BaseModelSqlv2 = this;
 
                 proto[
@@ -1783,29 +1790,34 @@ class BaseModelSqlv2 {
                   );
                 };
               } else if (colOptions.type === 'mm') {
-                const listLoader = new DataLoader(async (ids: string[]) => {
-                  if (ids?.length > 1) {
-                    const data = await this.multipleMmList(
-                      {
-                        parentIds: ids,
-                        colId: column.id,
-                      },
-                      (listLoader as any).args,
-                    );
-
-                    return data;
-                  } else {
-                    return [
-                      await this.mmList(
+                const listLoader = new DataLoader(
+                  async (ids: string[]) => {
+                    if (ids?.length > 1) {
+                      const data = await this.multipleMmList(
                         {
-                          parentId: ids[0],
+                          parentIds: ids,
                           colId: column.id,
                         },
                         (listLoader as any).args,
-                      ),
-                    ];
-                  }
-                });
+                      );
+
+                      return data;
+                    } else {
+                      return [
+                        await this.mmList(
+                          {
+                            parentId: ids[0],
+                            colId: column.id,
+                          },
+                          (listLoader as any).args,
+                        ),
+                      ];
+                    }
+                  },
+                  {
+                    cache: false,
+                  },
+                );
 
                 const self: BaseModelSqlv2 = this;
                 proto[
@@ -1833,55 +1845,62 @@ class BaseModelSqlv2 {
                 // it takes individual keys and callback is invoked with an array of values and we can get the
                 // result for all those together and return the value in the same order as in the array
                 // this way all parents data extracted together
-                const readLoader = new DataLoader(async (_ids: string[]) => {
-                  // handle binary(16) foreign keys
-                  const ids = _ids.map((id) => {
-                    if (pCol.ct !== 'binary(16)') return id;
+                const readLoader = new DataLoader(
+                  async (_ids: string[]) => {
+                    // handle binary(16) foreign keys
+                    const ids = _ids.map((id) => {
+                      if (pCol.ct !== 'binary(16)') return id;
 
-                    // Cast the id to string.
-                    const idAsString = id + '';
-                    // Check if the id is a UUID and the column is binary(16)
-                    const isUUIDBinary16 =
-                      idAsString.length === 36 || idAsString.length === 32;
-                    // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
-                    const idAsUUID = isUUIDBinary16
-                      ? idAsString.length === 32
-                        ? idAsString.replace(
-                            /(.{8})(.{4})(.{4})(.{4})(.{12})/,
-                            '$1-$2-$3-$4-$5',
-                          )
-                        : idAsString
-                      : null;
+                      // Cast the id to string.
+                      const idAsString = id + '';
+                      // Check if the id is a UUID and the column is binary(16)
+                      const isUUIDBinary16 =
+                        idAsString.length === 36 || idAsString.length === 32;
+                      // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
+                      const idAsUUID = isUUIDBinary16
+                        ? idAsString.length === 32
+                          ? idAsString.replace(
+                              /(.{8})(.{4})(.{4})(.{4})(.{12})/,
+                              '$1-$2-$3-$4-$5',
+                            )
+                          : idAsString
+                        : null;
 
-                    return idAsUUID
-                      ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
-                      : id;
-                  });
+                      return idAsUUID
+                        ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
+                        : id;
+                    });
 
-                  const data = await (
-                    await Model.getBaseModelSQL({
-                      id: pCol.fk_model_id,
-                      dbDriver: this.dbDriver,
-                    })
-                  ).list(
-                    {
-                      fieldsSet: (readLoader as any).args?.fieldsSet,
-                      filterArr: [
-                        new Filter({
-                          id: null,
-                          fk_column_id: pCol.id,
-                          fk_model_id: pCol.fk_model_id,
-                          value: ids as any[],
-                          comparison_op: 'in',
-                        }),
-                      ],
-                    },
-                    true,
-                  );
+                    const data = await (
+                      await Model.getBaseModelSQL({
+                        id: pCol.fk_model_id,
+                        dbDriver: this.dbDriver,
+                      })
+                    ).list(
+                      {
+                        fieldsSet: (readLoader as any).args?.fieldsSet,
+                        filterArr: [
+                          new Filter({
+                            id: null,
+                            fk_column_id: pCol.id,
+                            fk_model_id: pCol.fk_model_id,
+                            value: ids as any[],
+                            comparison_op: 'in',
+                          }),
+                        ],
+                      },
+                      true,
+                    );
 
-                  const groupedList = groupBy(data, pCol.title);
-                  return _ids.map(async (id: string) => groupedList?.[id]?.[0]);
-                });
+                    const groupedList = groupBy(data, pCol.title);
+                    return _ids.map(
+                      async (id: string) => groupedList?.[id]?.[0],
+                    );
+                  },
+                  {
+                    cache: false,
+                  },
+                );
 
                 // defining BelongsTo read resolver method
                 proto[column.title] = async function (args?: any) {
@@ -4464,7 +4483,7 @@ class BaseModelSqlv2 {
   }
 
   async addLinks({
-    cookie: _cookie,
+    cookie,
     childIds,
     colId,
     rowId,
@@ -4480,10 +4499,11 @@ class BaseModelSqlv2 {
     if (!column || !isLinksOrLTAR(column))
       NcError.notFound(`Link column ${colId} not found`);
 
-    const row = await this.execAndParse(
-      this.dbDriver(this.tnPath).where(await this._wherePk(rowId)),
-      null,
-      { raw: true, first: true },
+    const row = await this.readByPk(
+      rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
     );
 
     // validate rowId
@@ -4694,9 +4714,16 @@ class BaseModelSqlv2 {
         break;
     }
 
-    // const response = await this.readByPk(rowId);
-    // await this.afterInsert(response, this.dbDriver, cookie);
-    // await this.afterAddChild(rowId, childId, cookie);
+    const response = await this.readByPk(
+      rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
+    await this.afterUpdate(row, response, this.dbDriver, cookie);
+    for (const childId of childIds) {
+      await this.afterAddChild(rowId, childId, cookie);
+    }
   }
 
   async removeLinks({

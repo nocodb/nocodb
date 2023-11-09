@@ -106,7 +106,15 @@ onClickOutside(inputWrapperRef, (e) => {
 
       <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
-      <LazyCellClampedText v-else-if="rowHeight" :value="vModel" :lines="rowHeight" class="mr-7" />
+      <LazyCellClampedText
+        v-else-if="rowHeight"
+        :value="vModel"
+        :lines="rowHeight"
+        class="mr-7 nc-text-area-clamped-text"
+        :style="{
+          'word-break': 'break-word',
+        }"
+      />
 
       <span v-else>{{ vModel }}</span>
 

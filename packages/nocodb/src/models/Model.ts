@@ -121,6 +121,7 @@ export default class Model implements TableType {
       'order',
       'type',
       'id',
+      'meta',
     ]);
 
     insertObj.mm = !!insertObj.mm;

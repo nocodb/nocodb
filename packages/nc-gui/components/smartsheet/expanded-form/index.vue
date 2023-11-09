@@ -129,7 +129,6 @@ const {
   primaryKey,
   saveRowAndStay,
   row: _row,
-  syncLTARRefs,
   save: _save,
   loadCommentsAndLogs,
   clearColumns,

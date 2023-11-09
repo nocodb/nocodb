@@ -60,8 +60,6 @@ const newFields = ref<TableExplorerColumn[]>([])
 
 const isFieldIdCopied = ref(false)
 
-const isColOptionDropdownOpen = ref(false)
-
 const compareCols = (a?: TableExplorerColumn, b?: TableExplorerColumn) => {
   if (a?.id && b?.id) {
     return a.id === b.id

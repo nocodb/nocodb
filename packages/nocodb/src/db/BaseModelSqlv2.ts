@@ -2635,6 +2635,7 @@ class BaseModelSqlv2 {
         switch (colOptions.type) {
           case RelationTypes.BELONGS_TO:
             {
+              if (typeof nestedData !== 'object') continue;
               const childCol = await colOptions.getChildColumn();
               const parentCol = await colOptions.getParentColumn();
               insertObj[childCol.column_name] = nestedData?.[parentCol.title];
@@ -2642,6 +2643,7 @@ class BaseModelSqlv2 {
             break;
           case RelationTypes.HAS_MANY:
             {
+              if (!Array.isArray(nestedData)) continue;
               const childCol = await colOptions.getChildColumn();
               const childModel = await childCol.getModel();
               await childModel.getColumns();
@@ -2665,6 +2667,7 @@ class BaseModelSqlv2 {
             }
             break;
           case RelationTypes.MANY_TO_MANY: {
+            if (!Array.isArray(nestedData)) continue;
             postInsertOps.push(
               async (
                 rowId,

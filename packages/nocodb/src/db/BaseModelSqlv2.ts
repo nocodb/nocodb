@@ -5013,6 +5013,29 @@ export function extractCondition(
       [logicOp, alias, op, value] =
         str.match(/(?:~(and|or|not))?\((.*?),(\w+)\)/)?.slice(1) || [];
     }
+
+    // handle isblank and isnotblank filter format
+    switch (op) {
+      case 'is':
+        if (value === 'blank') {
+          op = 'blank';
+          value = undefined;
+        } else if (value === 'notblank') {
+          op = 'notblank';
+          value = undefined;
+        }
+        break;
+      case 'isblank':
+      case 'is_blank':
+        op = 'blank';
+        break;
+      case 'isnotblank':
+      case 'is_not_blank':
+      case 'is_notblank':
+        op = 'notblank';
+        break;
+    }
+
     let sub_op = null;
 
     if (aliasColObjMap[alias]) {

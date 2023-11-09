@@ -72,13 +72,13 @@ const onClickSetCurrentLocation = () => {
 const openInGoogleMaps = () => {
   const [latitude, longitude] = (vModel.value || '').split(';')
   const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
-  window.open(url, '_blank')
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 const openInOSM = () => {
   const [latitude, longitude] = (vModel.value || '').split(';')
   const url = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=15/${latitude}/${longitude}`
-  window.open(url, '_blank')
+  window.open(url, '_blank', "'noopener,noreferrer'")
 }
 </script>
 

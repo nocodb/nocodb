@@ -1590,7 +1590,7 @@ onKeyStroke('ArrowDown', onDown)
                           :column="columnObj"
                           :active="activeCell.col === colIndex && activeCell.row === rowIndex"
                           :row="row"
-                          :read-only="readOnly"
+                          :read-only="!hasEditPermission"
                           @navigate="onNavigate"
                           @save="updateOrSaveRow?.(row, '', state)"
                         />
@@ -1604,7 +1604,7 @@ onKeyStroke('ArrowDown', onDown)
                           "
                           :row-index="rowIndex"
                           :active="activeCell.col === colIndex && activeCell.row === rowIndex"
-                          :read-only="readOnly"
+                          :read-only="!hasEditPermission"
                           @update:edit-enabled="editEnabled = $event"
                           @save="updateOrSaveRow?.(row, columnObj.title, state)"
                           @navigate="onNavigate"

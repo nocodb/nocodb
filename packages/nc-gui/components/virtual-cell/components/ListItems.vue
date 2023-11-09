@@ -112,7 +112,8 @@ const newRowState = computed(() => {
   if (isNew.value) return {}
   const colOpt = (injectedColumn?.value as ColumnType)?.colOptions as LinkToAnotherRecordType
   const colInRelatedTable: ColumnType | undefined = relatedTableMeta?.value?.columns?.find((col) => {
-    if (col.uidt !== UITypes.LinkToAnotherRecord) return false
+    // Links as for the case of 'mm' we need the 'Links' column
+    if (col.uidt !== UITypes.LinkToAnotherRecord && col.uidt !== UITypes.Links) return false
     const colOpt1 = col?.colOptions as LinkToAnotherRecordType
     if (colOpt1?.fk_related_model_id !== meta.value.id) return false
 

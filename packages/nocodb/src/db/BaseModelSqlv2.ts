@@ -2670,7 +2670,7 @@ class BaseModelSqlv2 {
     data: Record<string, any>;
     insertObj: Record<string, any>;
   }) {
-    const postInsertOps: ((rowId: any, trx: any) => Promise<void>)[] = [];
+    const postInsertOps: ((rowId: any, trx?: any) => Promise<void>)[] = [];
     for (const col of nestedCols) {
       if (col.title in data) {
         const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>();

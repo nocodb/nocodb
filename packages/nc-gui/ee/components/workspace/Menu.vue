@@ -144,7 +144,7 @@ const onWorkspaceCreateClick = () => {
           <a-menu-item-group class="!border-t-0 w-full">
             <div class="flex gap-x-3 min-w-0 px-4 w-full py-3 items-center">
               <GeneralWorkspaceIcon :workspace="activeWorkspace" size="large" />
-              <div class="flex flex-col gap-y-0 max-w-[calc(100%-3.5rem)]">
+              <div class="flex flex-col gap-y-0 max-w-[calc(100%-5.4rem)]">
                 <div
                   class="mt-0.5 flex w-full capitalize mb-0 nc-workspace-title truncate min-w-10 text-sm text-black font-medium"
                   style="line-height: 1.5rem"
@@ -164,6 +164,18 @@ const onWorkspaceCreateClick = () => {
                   </template>
                 </div>
               </div>
+              <NcTooltip
+                v-if="activeWorkspace.roles === WorkspaceUserRoles.OWNER"
+                class="!z-1 cursor-pointer"
+                placement="bottomRight"
+              >
+                <template #title>
+                  {{ $t('objects.roleType.owner') }}
+                </template>
+                <div class="h-6.5 px-1 py-0.25 rounded-lg bg-purple-50">
+                  <GeneralIcon icon="role_owner" class="min-w-4.5 min-h-4.5 text-xl !text-purple-700 !hover:text-purple-700" />
+                </div>
+              </NcTooltip>
             </div>
 
             <NcDivider v-if="!isMobileMode" class="!mb-0" />

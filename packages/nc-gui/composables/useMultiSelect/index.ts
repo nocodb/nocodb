@@ -116,6 +116,8 @@ export function useMultiSelect(
 
     if (typeof textToCopy === 'object') {
       textToCopy = JSON.stringify(textToCopy)
+    } else {
+      textToCopy = textToCopy.toString()
     }
 
     if (columnObj.uidt === UITypes.Formula) {

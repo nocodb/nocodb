@@ -123,6 +123,14 @@ const localState = computed({
 
 const open = ref(false)
 
+const isOpen = computed(() => {
+  if (readOnly.value) return false
+
+  return readOnly.value || (localState.value && isPk) || isLockedMode.value
+    ? false
+    : open.value && (active.value || editable.value)
+})
+
 const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
 watch(
   open,
@@ -270,7 +278,7 @@ const isColDisabled = computed(() => {
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
     :dropdown-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''}`"
-    :open="readOnly || (localState && isPk) || isLockedMode ? false : open && (active || editable)"
+    :open="isOpen"
     @click="clickHandler"
     @ok="open = !open"
   >

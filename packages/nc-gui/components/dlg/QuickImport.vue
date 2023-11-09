@@ -31,12 +31,12 @@ import {
   useBase,
   useGlobal,
   useI18n,
+  useNuxtApp,
   useVModel,
 } from '#imports'
 
 // import worker script according to the doc of Vite
 import importWorkerUrl from '~/workers/importWorker?worker&url'
-import { useNuxtApp } from '#app'
 
 interface Props {
   modelValue: boolean

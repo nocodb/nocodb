@@ -40,18 +40,29 @@ const copyUrl = async () => {
       <div class="overflow-hidden whitespace-nowrap text-gray-500">{{ url }}</div>
     </div>
     <div class="flex flex-row gap-x-1">
-      <div class="button" @click="openUrl">
-        <RiExternalLinkLine class="h-3.75" />
-      </div>
-      <div
-        class="button"
-        :class="{
-          '!text-gray-300 !border-gray-200 !cursor-not-allowed': isCopied.embed,
-        }"
-        @click="embedHtml"
-      >
-        <MdiCodeTags class="h-4" />
-      </div>
+      <NcTooltip>
+        <template #title>
+          {{ $t('activity.openInANewTab') }}
+        </template>
+
+        <div class="button" @click="openUrl">
+          <RiExternalLinkLine class="h-3.75" />
+        </div>
+      </NcTooltip>
+      <NcTooltip>
+        <template #title>
+          {{ $t('activity.copyIFrameCode') }}
+        </template>
+        <div
+          class="button"
+          :class="{
+            '!text-gray-300 !border-gray-200 !cursor-not-allowed': isCopied.embed,
+          }"
+          @click="embedHtml"
+        >
+          <MdiCodeTags class="h-4" />
+        </div>
+      </NcTooltip>
       <div class="button" data-testid="docs-share-page-copy-link" @click="copyUrl">
         <MdiCheck v-if="isCopied.link" class="h-3.5" />
         <MdiContentCopy v-else class="h-3.5" />

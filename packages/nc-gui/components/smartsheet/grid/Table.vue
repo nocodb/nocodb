@@ -144,6 +144,8 @@ const { addUndo, clone, defineViewScope } = useUndoRedo()
 
 const { isViewColumnsLoading, updateGridViewColumn, gridViewCols, resizingColOldWith } = useViewColumnsOrThrow()
 
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+
 const {
   predictingNextColumn,
   predictedNextColumn,
@@ -705,6 +707,23 @@ const confirmDeleteRow = (row: number) => {
       activeCell.row = null
       activeCell.col = null
     }
+  } catch (e: any) {
+    message.error(e.message)
+  }
+}
+
+const commentRow = (rowId: number) => {
+  try {
+    isExpandedFormCommentMode.value = true
+
+    const row = dataRef.value[rowId]
+    if (expandForm) {
+      expandForm(row)
+    }
+
+    activeCell.row = null
+    activeCell.col = null
+    selectedRange.clear()
   } catch (e: any) {
     message.error(e.message)
   }
@@ -1712,6 +1731,14 @@ onKeyStroke('ArrowDown', onDown)
 
               {{ $t('general.clear') }}
             </NcMenuItem>
+            <template v-if="contextMenuTarget && selectedRange.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode">
+              <NcDivider />
+              <NcMenuItem v-e="['a:row:comment']" class="nc-base-menu-item" @click="commentRow(contextMenuTarget.row)">
+                <MdiMessageOutline class="h-4 w-4" />
+
+                {{ $t('general.comment') }}
+              </NcMenuItem>
+            </template>
             <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected))" />
             <NcMenuItem
               v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"

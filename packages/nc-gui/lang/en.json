@@ -69,6 +69,7 @@
     "hex": "Hex",
     "clear": "Clear",
     "slack": "Slack",
+    "comment": "Comment",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -444,6 +445,7 @@
     "inUI": "in UI Dashboard",
     "projectSettings": "Base Settings",
     "clickToHide": "Click to hide",
+    "clickToDownload": "Click to download",
     "forRole": "for role",
     "searchUsers": "Search Users",
     "superAdmin": "Super Admin",
@@ -620,6 +622,8 @@
     "newFormLoaded": "New form will be loaded after"
   },
   "activity": {
+    "openInANewTab": "Open in a new tab",
+    "copyIFrameCode": "Copy IFrame code",
     "onCondition": "On Condition",
     "bulkDownload": "Bulk Download",
     "attachFile": "Attach File",
@@ -994,6 +998,7 @@
     "createWebhookMsg2": "Create web-hooks to power you automations,",
     "createWebhookMsg3": "Get notified as soon as there are changes in your data",
     "areYouSureUWantTo": "Are you sure you want to delete the following",
+    "areYouSureUWantToDeleteLabel": "Are you sure you want to {deleteLabel} the following",
     "idColumnRequired": "ID field is required, you can rename this later if required.",
     "length59Required": "The length exceeds the max 59 characters",
     "noNewNotifications": "You have no new notifications",
@@ -1009,7 +1014,8 @@
       },
       "nonEditableFields": {
         "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
-        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed.",
+        "barcodeFieldsCannotBeDirectlyChanged": "Warning: Barcode fields cannot be directly changed."
       },
       "duplicateProject": "Are you sure you want to duplicate the base?",
       "duplicateTable": "Are you sure you want to duplicate the table?"

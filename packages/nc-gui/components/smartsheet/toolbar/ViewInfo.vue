@@ -43,7 +43,9 @@ const openedBaseUrl = computed(() => {
       >
         <NcTooltip class="!text-inherit">
           <template #title>
-            {{ base?.title }}
+            <span class="capitalize">
+              {{ base?.title }}
+            </span>
           </template>
           <div class="flex flex-row items-center gap-x-1.5">
             <GeneralProjectIcon
@@ -59,7 +61,7 @@ const openedBaseUrl = computed(() => {
                 '!flex': isSharedBase && !isMobileMode,
               }"
             >
-              <span class="truncate !text-inherit">
+              <span class="truncate !text-inherit capitalize">
                 {{ base?.title }}
               </span>
             </div>

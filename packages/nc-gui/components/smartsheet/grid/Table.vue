@@ -1484,8 +1484,6 @@ onKeyStroke('ArrowDown', onDown)
                     :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
                     :data-testid="`grid-row-${rowIndex}`"
                   >
-                    <td>{{
-row.row}}</td>
                     <td
                       key="row-index"
                       class="caption nc-grid-cell pl-5 pr-1"

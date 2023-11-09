@@ -2670,7 +2670,7 @@ class BaseModelSqlv2 {
     data: Record<string, any>;
     insertObj: Record<string, any>;
   }) {
-    const postInsertOps: ((rowId: any, trx?: any) => Promise<void>)[] = [];
+    const postInsertOps: ((rowId: any, trx: any) => Promise<void>)[] = [];
     for (const col of nestedCols) {
       if (col.title in data) {
         const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>();
@@ -2703,7 +2703,7 @@ class BaseModelSqlv2 {
                 async (
                   rowId,
                   // todo: use transaction type
-                  trx?: any = this.dbDriver,
+                  trx: any = this.dbDriver,
                 ) => {
                   await trx(this.getTnPath(childModel.table_name))
                     .update({
@@ -2722,7 +2722,7 @@ class BaseModelSqlv2 {
               async (
                 rowId,
                 // todo: use transaction type
-                trx?: any = this.dbDriver,
+                trx: any = this.dbDriver,
               ) => {
                 const parentModel = await colOptions
                   .getParentColumn()

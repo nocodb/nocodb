@@ -2577,83 +2577,15 @@ class BaseModelSqlv2 {
       );
 
       let rowId = null;
-      const postInsertOps = [];
 
       const nestedCols = (await this.model.getColumns()).filter((c) =>
         isLinksOrLTAR(c),
       );
-
-      for (const col of nestedCols) {
-        if (col.title in data) {
-          const colOptions =
-            await col.getColOptions<LinkToAnotherRecordColumn>();
-
-          // parse data if it's JSON string
-          let nestedData;
-          try {
-            nestedData =
-              typeof data[col.title] === 'string'
-                ? JSON.parse(data[col.title])
-                : data[col.title];
-          } catch {
-            continue;
-          }
-          switch (colOptions.type) {
-            case RelationTypes.BELONGS_TO:
-              {
-                const childCol = await colOptions.getChildColumn();
-                const parentCol = await colOptions.getParentColumn();
-                insertObj[childCol.column_name] = nestedData?.[parentCol.title];
-              }
-              break;
-            case RelationTypes.HAS_MANY:
-              {
-                const childCol = await colOptions.getChildColumn();
-                const childModel = await childCol.getModel();
-                await childModel.getColumns();
-
-                postInsertOps.push(async () => {
-                  await this.execAndParse(
-                    this.dbDriver(this.getTnPath(childModel.table_name))
-                      .update({
-                        [childCol.column_name]: rowId,
-                      })
-                      .whereIn(
-                        childModel.primaryKey.column_name,
-                        nestedData?.map((r) => r[childModel.primaryKey.title]),
-                      ),
-                    null,
-                    { raw: true },
-                  );
-                });
-              }
-              break;
-            case RelationTypes.MANY_TO_MANY: {
-              postInsertOps.push(async () => {
-                const parentModel = await colOptions
-                  .getParentColumn()
-                  .then((c) => c.getModel());
-                await parentModel.getColumns();
-                const parentMMCol = await colOptions.getMMParentColumn();
-                const childMMCol = await colOptions.getMMChildColumn();
-                const mmModel = await colOptions.getMMModel();
-
-                const rows = nestedData.map((r) => ({
-                  [parentMMCol.column_name]: r[parentModel.primaryKey.title],
-                  [childMMCol.column_name]: rowId,
-                }));
-                await this.execAndParse(
-                  this.dbDriver(this.getTnPath(mmModel.table_name)).insert(
-                    rows,
-                  ),
-                  null,
-                  { raw: true },
-                );
-              });
-            }
-          }
-        }
-      }
+      const postInsertOps = await this.prepareNestedLinkQb({
+        nestedCols,
+        data,
+        insertObj,
+      });
 
       await this.validate(insertObj);
 
@@ -2710,7 +2642,7 @@ class BaseModelSqlv2 {
           : response?.[ai.title];
       }
 
-      await Promise.all(postInsertOps.map((f) => f()));
+      await Promise.all(postInsertOps.map((f) => f(rowId)));
 
       response = await this.readByPk(
         rowId,
@@ -2726,6 +2658,81 @@ class BaseModelSqlv2 {
       console.log(e);
       throw e;
     }
+  }
+
+  private async prepareNestedLinkQb({
+    nestedCols,
+    data,
+    insertObj,
+  }: {
+    nestedCols: Column[];
+    data: Record<string, any>;
+    insertObj: Record<string, any>;
+  }) {
+    const postInsertOps: ((rowId: any) => Promise<void>)[] = [];
+    for (const col of nestedCols) {
+      if (col.title in data) {
+        const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>();
+
+        // parse data if it's JSON string
+        let nestedData;
+        try {
+          nestedData =
+            typeof data[col.title] === 'string'
+              ? JSON.parse(data[col.title])
+              : data[col.title];
+        } catch {
+          continue;
+        }
+        switch (colOptions.type) {
+          case RelationTypes.BELONGS_TO:
+            {
+              const childCol = await colOptions.getChildColumn();
+              const parentCol = await colOptions.getParentColumn();
+              insertObj[childCol.column_name] = nestedData?.[parentCol.title];
+            }
+            break;
+          case RelationTypes.HAS_MANY:
+            {
+              const childCol = await colOptions.getChildColumn();
+              const childModel = await childCol.getModel();
+              await childModel.getColumns();
+
+              postInsertOps.push(async (rowId) => {
+                await this.dbDriver(this.getTnPath(childModel.table_name))
+                  .update({
+                    [childCol.column_name]: rowId,
+                  })
+                  .whereIn(
+                    childModel.primaryKey.column_name,
+                    nestedData?.map((r) => r[childModel.primaryKey.title]),
+                  );
+              });
+            }
+            break;
+          case RelationTypes.MANY_TO_MANY: {
+            postInsertOps.push(async (rowId) => {
+              const parentModel = await colOptions
+                .getParentColumn()
+                .then((c) => c.getModel());
+              await parentModel.getColumns();
+              const parentMMCol = await colOptions.getMMParentColumn();
+              const childMMCol = await colOptions.getMMChildColumn();
+              const mmModel = await colOptions.getMMModel();
+
+              const rows = nestedData.map((r) => ({
+                [parentMMCol.column_name]: r[parentModel.primaryKey.title],
+                [childMMCol.column_name]: rowId,
+              }));
+              await this.dbDriver(this.getTnPath(mmModel.table_name)).insert(
+                rows,
+              );
+            });
+          }
+        }
+      }
+    }
+    return postInsertOps;
   }
 
   async bulkInsert(
@@ -2752,8 +2759,13 @@ class BaseModelSqlv2 {
     try {
       // TODO: ag column handling for raw bulk insert
       const insertDatas = raw ? datas : [];
+      const postInsertOps: ((rowId: any) => Promise<void>)[][] = [];
 
       if (!raw) {
+        const nestedCols = (await this.model.getColumns()).filter((c) =>
+          isLinksOrLTAR(c),
+        );
+
         await this.model.getColumns();
 
         for (const d of datas) {
@@ -2879,6 +2891,14 @@ class BaseModelSqlv2 {
           }
 
           await this.prepareAttachmentData(insertObj);
+
+          postInsertOps.push(
+            await this.prepareNestedLinkQb({
+              nestedCols,
+              d,
+              insertObj,
+            }),
+          );
 
           insertDatas.push(insertObj);
         }

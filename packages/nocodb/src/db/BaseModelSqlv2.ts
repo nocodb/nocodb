@@ -1,5 +1,4 @@
 import autoBind from 'auto-bind';
-
 import groupBy from 'lodash/groupBy';
 import DataLoader from 'dataloader';
 import dayjs from 'dayjs';
@@ -19,7 +18,7 @@ import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
 import type { XKnex } from '~/db/CustomKnex';
 import type {
@@ -65,7 +64,6 @@ import {
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
-import Transaction = Knex.Transaction;
 
 dayjs.extend(utc);
 

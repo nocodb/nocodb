@@ -379,7 +379,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       NcError.notFound('Workspace is already upgraded');
     }
 
-    if (process.env.NC_COMPUTE_FOR_EXT_DB_AS_SINGLE_TENANT === 'true') {
+    if (process.env.NC_DISABLE_MUX === 'true') {
       await this.createWorkspaceSubdomain({
         titleOrId: workspace.id,
         user: param.user?.email ?? param.user?.id,

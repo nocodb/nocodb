@@ -3088,10 +3088,14 @@ class BaseModelSqlv2 {
         await conditionV2(this, conditionObj, qb);
 
         count = (
-          await this.execAndParse(qb.clone().count(), null, {
-            raw: true,
-            first: true,
-          })
+          await this.execAndParse(
+            qb.clone().count('*', { as: 'count' }),
+            null,
+            {
+              raw: true,
+              first: true,
+            },
+          )
         )?.count;
 
         qb.update(updateData);

@@ -34,7 +34,7 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
       return this.connectionRefs?.[source.base_id]?.[source.id];
     }
 
-    if (process.env.NC_COMPUTE_FOR_EXT_DB_AS_SINGLE_TENANT === 'true') {
+    if (process.env.NC_DISABLE_MUX === 'true') {
       this.connectionRefs[source.base_id] =
         this.connectionRefs?.[source.base_id] || {};
 

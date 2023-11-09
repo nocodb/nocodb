@@ -1074,9 +1074,7 @@ function CustomKnex(
     },
     isExternal: {
       enumerable: false,
-      value:
-        !!extDb &&
-        process.env.NC_COMPUTE_FOR_EXT_DB_AS_SINGLE_TENANT !== 'true',
+      value: !!extDb && process.env.NC_DISABLE_MUX !== 'true',
     },
   });
 

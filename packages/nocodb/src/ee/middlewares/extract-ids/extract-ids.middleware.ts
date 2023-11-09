@@ -254,7 +254,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       if (
         workspace.plan &&
         workspace.plan !== WorkspacePlan.FREE &&
-        process.env.NC_COMPUTE_FOR_EXT_DB_AS_SINGLE_TENANT === 'true'
+        process.env.NC_DISABLE_MUX === 'true'
       ) {
         logger.error(
           `id: ${workspace.id} - status: ${workspace.status} - plan: ${workspace.plan} request reached to multi tenant server`,

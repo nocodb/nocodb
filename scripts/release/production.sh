@@ -11,10 +11,18 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source ${SCRIPT_DIR}/rollout_util.sh
 PROMOTE_IMAGE_BEFORE_ROLLOUT="${1:-false}"
 ENVIRONMENT="Production"
+ECR_REPO_NAME=nocohub
 PRE_REL_STAGE_TAG="ws-pre-release"
 STAGE_TAG="ws"
-EXCLUDED_SVC=" nocohub-service nocohub-001-prod nocohub-001-ingester nocohub-001-prod-ingester "
+WORKERS_SERVICE_NAME=nocohub-nocodb_ai_worker
+EXCLUDED_SVC=" ${WORKERS_SERVICE_NAME} nocohub-service nocohub-001-prod nocohub-001-ingester nocohub-001-prod-ingester "
 CLUSTER="nocohub-001-a"
+HOST_NAME="https://app.nocodb.com"
+# TODO: move this to github secrets
+API_CREDENTIALS="defaultusername:defaultpassword"
+ASG_NAME=nocohub-nocodb_ai_main
 
 # function call in rollout_util.sh file
 perform_rollout "${PROMOTE_IMAGE_BEFORE_ROLLOUT}"
+
+pause_workers_and_gracefully_shutdown

@@ -181,7 +181,7 @@ const gridRect = useElementBounding(gridWrapper)
 
 // #Permissions
 const { isUIAllowed } = useRoles()
-const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
+const hasEditPermission = computed(() => isUIAllowed('dataEdit') && !isLocked.value)
 const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
 const { onDrag, onDragStart, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
@@ -223,9 +223,7 @@ const _contextMenu = ref(false)
 const contextMenu = computed({
   get: () => _contextMenu.value,
   set: (val) => {
-    if (hasEditPermission.value) {
-      _contextMenu.value = val
-    }
+    _contextMenu.value = val
   },
 })
 const contextMenuClosing = ref(false)
@@ -1549,14 +1547,12 @@ onKeyStroke('ArrowDown', onDown)
                     <SmartsheetTableDataCell
                       v-for="(columnObj, colIndex) of fields"
                       :key="columnObj.id"
-                      class="cell relative nc-grid-cell"
+                      class="cell relative nc-grid-cell cursor-pointer"
                       :class="{
-                        'cursor-pointer': hasEditPermission,
-                        'active': hasEditPermission && isCellSelected(rowIndex, colIndex),
+                        'active': isCellSelected(rowIndex, colIndex),
                         'active-cell':
-                          hasEditPermission &&
-                          ((activeCell.row === rowIndex && activeCell.col === colIndex) ||
-                            (selectedRange._start?.row === rowIndex && selectedRange._start?.col === colIndex)),
+                          (activeCell.row === rowIndex && activeCell.col === colIndex) ||
+                          (selectedRange._start?.row === rowIndex && selectedRange._start?.col === colIndex),
                         'last-cell':
                           rowIndex === (isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) &&
                           colIndex === (isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col),
@@ -1594,7 +1590,7 @@ onKeyStroke('ArrowDown', onDown)
                           :column="columnObj"
                           :active="activeCell.col === colIndex && activeCell.row === rowIndex"
                           :row="row"
-                          :read-only="readOnly"
+                          :read-only="!hasEditPermission"
                           @navigate="onNavigate"
                           @save="updateOrSaveRow?.(row, '', state)"
                         />
@@ -1608,7 +1604,7 @@ onKeyStroke('ArrowDown', onDown)
                           "
                           :row-index="rowIndex"
                           :active="activeCell.col === colIndex && activeCell.row === rowIndex"
-                          :read-only="readOnly"
+                          :read-only="!hasEditPermission"
                           @update:edit-enabled="editEnabled = $event"
                           @save="updateOrSaveRow?.(row, columnObj.title, state)"
                           @navigate="onNavigate"
@@ -1658,7 +1654,7 @@ onKeyStroke('ArrowDown', onDown)
           />
         </div>
 
-        <template v-if="!isLocked && hasEditPermission" #overlay>
+        <template #overlay>
           <NcMenu class="!rounded !py-0" @click="contextMenu = false">
             <NcMenuItem
               v-if="isEeUI && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
@@ -1709,6 +1705,7 @@ onKeyStroke('ArrowDown', onDown)
             <NcMenuItem
               v-if="
                 contextMenuTarget &&
+                hasEditPermission &&
                 selectedRange.isSingleCell() &&
                 (isLinksOrLTAR(fields[contextMenuTarget.col]) || !isVirtualCol(fields[contextMenuTarget.col]))
               "
@@ -1722,7 +1719,7 @@ onKeyStroke('ArrowDown', onDown)
 
             <!--            Clear cell -->
             <NcMenuItem
-              v-else-if="contextMenuTarget"
+              v-else-if="contextMenuTarget && hasEditPermission"
               v-e="['a:row:clear-range']"
               class="nc-base-menu-item"
               @click="clearSelectedRangeOfCells()"
@@ -1731,7 +1728,9 @@ onKeyStroke('ArrowDown', onDown)
 
               {{ $t('general.clear') }}
             </NcMenuItem>
-            <template v-if="contextMenuTarget && selectedRange.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode">
+            <template
+              v-if="contextMenuTarget && !isLocked && selectedRange.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode"
+            >
               <NcDivider />
               <NcMenuItem v-e="['a:row:comment']" class="nc-base-menu-item" @click="commentRow(contextMenuTarget.row)">
                 <MdiMessageOutline class="h-4 w-4" />
@@ -1739,28 +1738,30 @@ onKeyStroke('ArrowDown', onDown)
                 {{ $t('general.comment') }}
               </NcMenuItem>
             </template>
-            <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected))" />
-            <NcMenuItem
-              v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
-              v-e="['a:row:delete']"
-              class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
-              @click="confirmDeleteRow(contextMenuTarget.row)"
-            >
-              <GeneralIcon icon="delete" />
-              <!-- Delete Row -->
-              {{ $t('activity.deleteRow') }}
-            </NcMenuItem>
-            <div v-else-if="contextMenuTarget && deleteRangeOfRows">
+            <template v-if="hasEditPermission">
+              <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected))" />
               <NcMenuItem
+                v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
                 v-e="['a:row:delete']"
                 class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
-                @click="deleteSelectedRangeOfRows"
+                @click="confirmDeleteRow(contextMenuTarget.row)"
               >
-                <GeneralIcon icon="delete" class="text-gray-500 text-red-600" />
-                <!-- Delete Rows -->
-                {{ $t('activity.deleteRows') }}
+                <GeneralIcon icon="delete" />
+                <!-- Delete Row -->
+                {{ $t('activity.deleteRow') }}
               </NcMenuItem>
-            </div>
+              <div v-else-if="contextMenuTarget && deleteRangeOfRows">
+                <NcMenuItem
+                  v-e="['a:row:delete']"
+                  class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+                  @click="deleteSelectedRangeOfRows"
+                >
+                  <GeneralIcon icon="delete" class="text-gray-500 text-red-600" />
+                  <!-- Delete Rows -->
+                  {{ $t('activity.deleteRows') }}
+                </NcMenuItem>
+              </div>
+            </template>
           </NcMenu>
         </template>
       </NcDropdown>

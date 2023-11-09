@@ -1,10 +1,51 @@
 import MysqlClientCE from 'src/db/sql-client/lib/mysql/MysqlClient';
+import axios from 'axios';
 import Result from '~/db/util/Result';
 import Debug from '~/db/util/Debug';
 
 const log = new Debug('MysqlClient');
 
+async function runExternal(query: string, config: any) {
+  const { sqlExecutor, ...rest } = config;
+  const { data } = await axios.post(`${sqlExecutor}/query`, {
+    query,
+    config: rest,
+    raw: true,
+  });
+  return data;
+}
+
 class MysqlClient extends MysqlClientCE {
+  constructor(connectionConfig) {
+    super(connectionConfig);
+
+    const knexRaw = this.sqlClient.raw;
+
+    const self = this;
+
+    Object.defineProperties(this.sqlClient, {
+      raw: {
+        enumerable: true,
+        value: function (...args) {
+          const builder = knexRaw.apply(this, args);
+
+          const originalThen = builder.then;
+
+          builder.then = function (onFulfilled, onRejected) {
+            if (self.sqlClient && self.sqlClient.isExternal) {
+              return runExternal(builder.toQuery(), self.sqlClient.extDb)
+                .then(onFulfilled)
+                .catch(onRejected);
+            }
+            return originalThen.call(builder, onFulfilled, onRejected);
+          };
+
+          return builder;
+        },
+      },
+    });
+  }
+
   /**
    *
    *

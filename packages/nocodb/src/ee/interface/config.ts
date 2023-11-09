@@ -33,15 +33,24 @@ export interface AppConfig {
     password: string;
   };
 
+  sns: {
+    apiVersion: string;
+    region?: string;
+    credentials?: {
+      accessKeyId: string;
+      secretAccessKey: string;
+    };
+  };
+
   workspace: {
     sns: {
       topicArn: string;
-      region?: string;
-      apiVersion?: string;
-      credentials?: {
-        accessKeyId: string;
-        secretAccessKey: string;
-      };
+    };
+  };
+
+  sqlExecutor: {
+    sns: {
+      topicArn: string;
     };
   };
 

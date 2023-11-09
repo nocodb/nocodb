@@ -2,4 +2,5 @@ packages:
   - 'packages/nocodb-sdk'
   - 'packages/nc-gui'
   - 'packages/nocodb'
+  - 'packages/nc-sql-executor'
   - 'tests/playwright'

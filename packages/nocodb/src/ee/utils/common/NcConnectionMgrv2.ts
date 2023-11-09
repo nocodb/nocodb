@@ -1,5 +1,6 @@
 import { promisify } from 'util';
 import fs from 'fs';
+import axios from 'axios';
 import { default as NcConnectionMgrv2CE } from 'src/utils/common/NcConnectionMgrv2';
 import type { Knex } from 'knex';
 import type Source from '~/models/Source';
@@ -11,6 +12,9 @@ import {
 } from '~/utils/nc-config';
 import { XKnex } from '~/db/CustomKnex';
 import Noco from '~/Noco';
+import { SqlExecutor } from '~/models';
+import { NcError } from '~/helpers/catchError';
+import { SqlExecutorStatus } from '~/utils/globals';
 
 export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
   protected static dataKnex?: XKnex;
@@ -29,12 +33,48 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
     if (this.connectionRefs?.[source.base_id]?.[source.id]) {
       return this.connectionRefs?.[source.base_id]?.[source.id];
     }
+
+    if (process.env.NC_DISABLE_MUX === 'true') {
+      this.connectionRefs[source.base_id] =
+        this.connectionRefs?.[source.base_id] || {};
+
+      const connectionConfig = await source.getConnectionConfig();
+
+      this.connectionRefs[source.base_id][source.id] = XKnex({
+        ...defaultConnectionOptions,
+        ...connectionConfig,
+        connection: {
+          ...defaultConnectionConfig,
+          ...connectionConfig.connection,
+          typeCast(field, next) {
+            const res = next();
+
+            // mysql `bit` datatype returns value as Buffer, convert it to integer number
+            if (field.type == 'BIT' && res && res instanceof Buffer) {
+              return parseInt(
+                [...res].map((v) => ('00' + v.toString(16)).slice(-2)).join(''),
+                16,
+              );
+            }
+
+            // mysql `decimal` datatype returns value as string, convert it to float number
+            if (field.type == 'NEWDECIMAL') {
+              return res && parseFloat(res);
+            }
+
+            return res;
+          },
+        },
+      } as any);
+      return this.connectionRefs[source.base_id][source.id];
+    }
+
     this.connectionRefs[source.base_id] =
       this.connectionRefs?.[source.base_id] || {};
 
     const connectionConfig = await source.getConnectionConfig();
 
-    this.connectionRefs[source.base_id][source.id] = XKnex({
+    const finalConfig = {
       ...defaultConnectionOptions,
       ...connectionConfig,
       connection: {
@@ -50,7 +90,57 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
           return res;
         },
       },
-    } as any);
+    } as any;
+
+    const { client, connection, searchPath: _searchPath, pool } = finalConfig;
+
+    let se: SqlExecutor;
+
+    if ((source as any).fk_sql_executor_id) {
+      se = await SqlExecutor.get((source as any).fk_sql_executor_id);
+    } else {
+      se = await SqlExecutor.bindToSuitableSqlExecutor(source.id);
+    }
+
+    if (!se) {
+      NcError.internalServerError('There is no SQL Executor available!');
+    }
+
+    if (
+      se.status === SqlExecutorStatus.INACTIVE ||
+      se.status === SqlExecutorStatus.DEPLOYING
+    ) {
+      try {
+        const res = await axios.get(`${se.domain}/api/v1/health`);
+        if (res.status !== 200) {
+          NcError.internalServerError(
+            'SQL Executor is not active yet. Please try again later!',
+          );
+        }
+
+        await se.update({
+          status: SqlExecutorStatus.ACTIVE,
+        });
+      } catch (e) {
+        NcError.internalServerError(
+          'SQL Executor is not active yet. Please try again later!',
+        );
+      }
+    }
+
+    this.connectionRefs[source.base_id][source.id] = XKnex(
+      {
+        client,
+      },
+      {
+        sqlExecutor: se.domain,
+        client,
+        connection,
+        // searchPath,
+        pool,
+      },
+    );
+
     return this.connectionRefs[source.base_id][source.id];
   }
 

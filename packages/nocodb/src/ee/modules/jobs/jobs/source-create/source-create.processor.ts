@@ -54,7 +54,7 @@ export class SourceCreateProcessor {
 
     logBasic('🚀 Your data source schema is loaded successfully!');
 
-    if (process.env.NC_TEST_EE !== 'true') {
+    if (process.env.TEST !== 'true') {
       if (needUpgrade) {
         logBasic(' ');
         logBasic(

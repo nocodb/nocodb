@@ -49,14 +49,14 @@ export default class Source extends SourceCE implements SourceType {
       insertObj,
     );
 
+    // call before reorder to update cache
+    const returnBase = await this.get(id, false, ncMeta);
+
     await NocoCache.appendToList(
       CacheScope.BASE,
       [source.baseId],
       `${CacheScope.BASE}:${id}`,
     );
-
-    // call before reorder to update cache
-    const returnBase = await this.get(id, false, ncMeta);
 
     await this.reorderBases(source.baseId);
 

@@ -35,19 +35,25 @@ const config: AppConfig = {
     username: process.env.NC_HTTP_BASIC_USER ?? 'defaultusername',
     password: process.env.NC_HTTP_BASIC_PASS ?? 'defaultpassword',
   },
+  sns: {
+    apiVersion: '2010-03-31',
+    region: process.env.NC_SNS_REGION,
+    credentials: {
+      accessKeyId:
+        process.env.NC_SNS_ACCESS_KEY_ID ?? process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey:
+        process.env.NC_SNS_SECRET_ACCESS_KEY ??
+        process.env.AWS_SECRET_ACCESS_KEY,
+    },
+  },
   workspace: {
     sns: {
-      apiVersion: '2010-03-31',
       topicArn: process.env.NC_WORKSPACE_SNS_TOPIC_ARN,
-      region: process.env.NC_WORKSPACE_SNS_REGION,
-      credentials: {
-        accessKeyId:
-          process.env.NC_WORKSPACE_SNS_ACCESS_KEY_ID ??
-          process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey:
-          process.env.NC_WORKSPACE_SNS_SECRET_ACCESS_KEY ??
-          process.env.AWS_SECRET_ACCESS_KEY,
-      },
+    },
+  },
+  sqlExecutor: {
+    sns: {
+      topicArn: process.env.NC_SQL_EX_SNS_TOPIC_ARN,
     },
   },
   auth: {

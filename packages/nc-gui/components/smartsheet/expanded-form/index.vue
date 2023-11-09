@@ -187,7 +187,7 @@ const onDuplicateRow = () => {
 const save = async () => {
   if (isNew.value) {
     const data = await _save(rowState.value)
-    await syncLTARRefs(data)
+    // await syncLTARRefs(data)
     reloadTrigger?.trigger()
   } else {
     let kanbanClbk
@@ -348,7 +348,7 @@ useActiveKeyupListener(
 
       if (isNew.value) {
         const data = await _save(rowState.value)
-        await syncLTARRefs(data)
+        // await syncLTARRefs(data)
         reloadHook?.trigger(null)
       } else {
         await save()
@@ -383,7 +383,7 @@ useActiveKeyupListener(
           cancelText: t('labels.discard'),
           onOk: async () => {
             const data = await _save(rowState.value)
-            await syncLTARRefs(data)
+            // await syncLTARRefs(data)
             reloadHook?.trigger(null)
             addNewRow()
           },

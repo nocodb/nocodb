@@ -4714,20 +4714,20 @@ class BaseModelSqlv2 {
         break;
     }
 
-    const response = await this.readByPk(
+    const updatedRow = await this.readByPk(
       rowId,
       false,
       {},
       { ignoreView: true, getHiddenColumn: true },
     );
-    await this.afterUpdate(row, response, this.dbDriver, cookie);
+    await this.afterUpdate(row, updatedRow, this.dbDriver, cookie);
     for (const childId of childIds) {
       await this.afterAddChild(rowId, childId, cookie);
     }
   }
 
   async removeLinks({
-    cookie: _cookie,
+    cookie,
     childIds,
     colId,
     rowId,
@@ -4743,10 +4743,11 @@ class BaseModelSqlv2 {
     if (!column || !isLinksOrLTAR(column))
       NcError.notFound(`Link column ${colId} not found`);
 
-    const row = await this.execAndParse(
-      this.dbDriver(this.tnPath).where(await this._wherePk(rowId)),
-      null,
-      { raw: true, first: true },
+    const row = await this.readByPk(
+      rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
     );
 
     // validate rowId
@@ -4934,9 +4935,16 @@ class BaseModelSqlv2 {
         break;
     }
 
-    // const newData = await this.readByPk(rowId);
-    // await this.afterUpdate(prevData, newData, this.dbDriver, cookie);
-    // await this.afterRemoveChild(rowId, childIds, cookie);
+    const updatedRow = await this.readByPk(
+      rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
+    await this.afterUpdate(row, updatedRow, this.dbDriver, cookie);
+    for (const childId of childIds) {
+      await this.afterRemoveChild(rowId, childId, cookie);
+    }
   }
 
   async btRead(

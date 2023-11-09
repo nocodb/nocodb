@@ -747,7 +747,12 @@ onMounted(() => {
           placeholder2: '{column_name}',
         })
       }}
-      <a class="prose-sm" href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features" target="_blank">
+      <a
+        class="prose-sm"
+        href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features"
+        target="_blank"
+        rel="noopener"
+      >
         {{ $t('msg.formula.hintEnd') }}
       </a>
     </div>

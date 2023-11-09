@@ -204,7 +204,7 @@ function clickListener(e) {
     url.searchParams.append('search', searchInput.value)
     url.searchParams.append('origin', location.hostname)
 
-    window.open(url.toString(), '_blank')
+    window.open(url.toString(), '_blank', 'noopener,noreferrer')
   }
 }
 
@@ -228,7 +228,7 @@ function keydownListener(e) {
       e.preventDefault()
       e.stopPropagation()
 
-      window.open(url.toString(), '_blank')
+      window.open(url.toString(), '_blank', 'noopener,noreferrer')
     }
   }
 }

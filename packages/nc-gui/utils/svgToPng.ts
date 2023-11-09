@@ -25,6 +25,7 @@ function triggerDownload(imgURI: string, fileName: string) {
   a.setAttribute('download', fileName)
   a.setAttribute('href', imgURI)
   a.setAttribute('target', '_blank')
+  a.setAttribute('rel', 'noopener,noreferrer')
   a.dispatchEvent(evt)
 }
 

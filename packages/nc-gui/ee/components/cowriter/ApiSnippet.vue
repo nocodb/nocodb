@@ -195,6 +195,7 @@ watch(activeLang, (newLang) => {
               class="px-4 py-2 ! rounded shadow"
               href="https://angel.co/company/nocodb"
               target="_blank"
+              rel="noopener noreferrer"
               @click.stop
             >
               🚀 {{ $t('labels.weAreHiring') }}! 🚀

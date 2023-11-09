@@ -1,6 +1,6 @@
 import type { Api } from 'nocodb-sdk'
 import JSONTemplateAdapter from './JSONTemplateAdapter'
-// import { useNuxtApp } from '#app'
+// import { useNuxtApp } from '#imports'
 
 export default class JSONUrlTemplateAdapter extends JSONTemplateAdapter {
   url: string

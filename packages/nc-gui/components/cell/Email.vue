@@ -86,6 +86,7 @@ watch(
 
   <nuxt-link
     v-else-if="validEmail"
+    no-ref
     class="text-sm underline hover:opacity-75 inline-block"
     :href="`mailto:${vModel}`"
     target="_blank"

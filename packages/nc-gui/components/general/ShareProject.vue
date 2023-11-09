@@ -40,7 +40,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 const copySharedBase = async () => {
   const baseUrl = getMainUrl()
-  window.open(`${baseUrl || ''}#/copy-shared-base?base=${route.params.baseId}`, '_blank')
+  window.open(`${baseUrl || ''}#/copy-shared-base?base=${route.params.baseId}`, '_blank', 'noopener,noreferrer')
 }
 </script>
 

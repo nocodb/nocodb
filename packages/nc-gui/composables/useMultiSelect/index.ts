@@ -108,10 +108,11 @@ export function useMultiSelect(
   }
 
   const valueToCopy = (rowObj: Row, columnObj: ColumnType) => {
-    let textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
+    const valueToCopy = columnObj.title && rowObj.row[columnObj.title]
+    let textToCopy: string = String(columnObj.title && rowObj.row[columnObj.title]) || ''
 
     if (columnObj.uidt === UITypes.Checkbox) {
-      textToCopy = !!textToCopy
+      textToCopy = String(!!valueToCopy)
     }
 
     if (typeof textToCopy === 'object') {

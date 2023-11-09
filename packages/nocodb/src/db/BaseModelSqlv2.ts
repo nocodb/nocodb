@@ -19,8 +19,8 @@ import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
+import { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
-import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type {
   XcFilter,
@@ -65,6 +65,7 @@ import {
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
+import Transaction = Knex.Transaction;
 
 dayjs.extend(utc);
 
@@ -1736,28 +1737,35 @@ class BaseModelSqlv2 {
                 (await column.getColOptions()) as LinkToAnotherRecordColumn;
 
               if (colOptions?.type === 'hm') {
-                const listLoader = new DataLoader(async (ids: string[]) => {
-                  if (ids.length > 1) {
-                    const data = await this.multipleHmList(
-                      {
-                        colId: column.id,
-                        ids,
-                      },
-                      (listLoader as any).args,
-                    );
-                    return ids.map((id: string) => (data[id] ? data[id] : []));
-                  } else {
-                    return [
-                      await this.hmList(
+                const listLoader = new DataLoader(
+                  async (ids: string[]) => {
+                    if (ids.length > 1) {
+                      const data = await this.multipleHmList(
                         {
                           colId: column.id,
-                          id: ids[0],
+                          ids,
                         },
                         (listLoader as any).args,
-                      ),
-                    ];
-                  }
-                });
+                      );
+                      return ids.map((id: string) =>
+                        data[id] ? data[id] : [],
+                      );
+                    } else {
+                      return [
+                        await this.hmList(
+                          {
+                            colId: column.id,
+                            id: ids[0],
+                          },
+                          (listLoader as any).args,
+                        ),
+                      ];
+                    }
+                  },
+                  {
+                    cache: false,
+                  },
+                );
                 const self: BaseModelSqlv2 = this;
 
                 proto[
@@ -1771,29 +1779,34 @@ class BaseModelSqlv2 {
                   );
                 };
               } else if (colOptions.type === 'mm') {
-                const listLoader = new DataLoader(async (ids: string[]) => {
-                  if (ids?.length > 1) {
-                    const data = await this.multipleMmList(
-                      {
-                        parentIds: ids,
-                        colId: column.id,
-                      },
-                      (listLoader as any).args,
-                    );
-
-                    return data;
-                  } else {
-                    return [
-                      await this.mmList(
+                const listLoader = new DataLoader(
+                  async (ids: string[]) => {
+                    if (ids?.length > 1) {
+                      const data = await this.multipleMmList(
                         {
-                          parentId: ids[0],
+                          parentIds: ids,
                           colId: column.id,
                         },
                         (listLoader as any).args,
-                      ),
-                    ];
-                  }
-                });
+                      );
+
+                      return data;
+                    } else {
+                      return [
+                        await this.mmList(
+                          {
+                            parentId: ids[0],
+                            colId: column.id,
+                          },
+                          (listLoader as any).args,
+                        ),
+                      ];
+                    }
+                  },
+                  {
+                    cache: false,
+                  },
+                );
 
                 const self: BaseModelSqlv2 = this;
                 proto[
@@ -1821,55 +1834,62 @@ class BaseModelSqlv2 {
                 // it takes individual keys and callback is invoked with an array of values and we can get the
                 // result for all those together and return the value in the same order as in the array
                 // this way all parents data extracted together
-                const readLoader = new DataLoader(async (_ids: string[]) => {
-                  // handle binary(16) foreign keys
-                  const ids = _ids.map((id) => {
-                    if (pCol.ct !== 'binary(16)') return id;
+                const readLoader = new DataLoader(
+                  async (_ids: string[]) => {
+                    // handle binary(16) foreign keys
+                    const ids = _ids.map((id) => {
+                      if (pCol.ct !== 'binary(16)') return id;
 
-                    // Cast the id to string.
-                    const idAsString = id + '';
-                    // Check if the id is a UUID and the column is binary(16)
-                    const isUUIDBinary16 =
-                      idAsString.length === 36 || idAsString.length === 32;
-                    // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
-                    const idAsUUID = isUUIDBinary16
-                      ? idAsString.length === 32
-                        ? idAsString.replace(
-                            /(.{8})(.{4})(.{4})(.{4})(.{12})/,
-                            '$1-$2-$3-$4-$5',
-                          )
-                        : idAsString
-                      : null;
+                      // Cast the id to string.
+                      const idAsString = id + '';
+                      // Check if the id is a UUID and the column is binary(16)
+                      const isUUIDBinary16 =
+                        idAsString.length === 36 || idAsString.length === 32;
+                      // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
+                      const idAsUUID = isUUIDBinary16
+                        ? idAsString.length === 32
+                          ? idAsString.replace(
+                              /(.{8})(.{4})(.{4})(.{4})(.{12})/,
+                              '$1-$2-$3-$4-$5',
+                            )
+                          : idAsString
+                        : null;
 
-                    return idAsUUID
-                      ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
-                      : id;
-                  });
+                      return idAsUUID
+                        ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
+                        : id;
+                    });
 
-                  const data = await (
-                    await Model.getBaseModelSQL({
-                      id: pCol.fk_model_id,
-                      dbDriver: this.dbDriver,
-                    })
-                  ).list(
-                    {
-                      fieldsSet: (readLoader as any).args?.fieldsSet,
-                      filterArr: [
-                        new Filter({
-                          id: null,
-                          fk_column_id: pCol.id,
-                          fk_model_id: pCol.fk_model_id,
-                          value: ids as any[],
-                          comparison_op: 'in',
-                        }),
-                      ],
-                    },
-                    true,
-                  );
+                    const data = await (
+                      await Model.getBaseModelSQL({
+                        id: pCol.fk_model_id,
+                        dbDriver: this.dbDriver,
+                      })
+                    ).list(
+                      {
+                        fieldsSet: (readLoader as any).args?.fieldsSet,
+                        filterArr: [
+                          new Filter({
+                            id: null,
+                            fk_column_id: pCol.id,
+                            fk_model_id: pCol.fk_model_id,
+                            value: ids as any[],
+                            comparison_op: 'in',
+                          }),
+                        ],
+                      },
+                      true,
+                    );
 
-                  const groupedList = groupBy(data, pCol.title);
-                  return _ids.map(async (id: string) => groupedList?.[id]?.[0]);
-                });
+                    const groupedList = groupBy(data, pCol.title);
+                    return _ids.map(
+                      async (id: string) => groupedList?.[id]?.[0],
+                    );
+                  },
+                  {
+                    cache: false,
+                  },
+                );
 
                 // defining BelongsTo read resolver method
                 proto[column.title] = async function (args?: any) {
@@ -2530,71 +2550,15 @@ class BaseModelSqlv2 {
       );
 
       let rowId = null;
-      const postInsertOps = [];
 
       const nestedCols = (await this.model.getColumns()).filter((c) =>
         isLinksOrLTAR(c),
       );
-
-      for (const col of nestedCols) {
-        if (col.title in data) {
-          const colOptions =
-            await col.getColOptions<LinkToAnotherRecordColumn>();
-
-          // parse data if it's JSON string
-          const nestedData =
-            typeof data[col.title] === 'string'
-              ? JSON.parse(data[col.title])
-              : data[col.title];
-
-          switch (colOptions.type) {
-            case RelationTypes.BELONGS_TO:
-              {
-                const childCol = await colOptions.getChildColumn();
-                const parentCol = await colOptions.getParentColumn();
-                insertObj[childCol.column_name] = nestedData?.[parentCol.title];
-              }
-              break;
-            case RelationTypes.HAS_MANY:
-              {
-                const childCol = await colOptions.getChildColumn();
-                const childModel = await childCol.getModel();
-                await childModel.getColumns();
-
-                postInsertOps.push(async () => {
-                  await this.dbDriver(this.getTnPath(childModel.table_name))
-                    .update({
-                      [childCol.column_name]: rowId,
-                    })
-                    .whereIn(
-                      childModel.primaryKey.column_name,
-                      nestedData?.map((r) => r[childModel.primaryKey.title]),
-                    );
-                });
-              }
-              break;
-            case RelationTypes.MANY_TO_MANY: {
-              postInsertOps.push(async () => {
-                const parentModel = await colOptions
-                  .getParentColumn()
-                  .then((c) => c.getModel());
-                await parentModel.getColumns();
-                const parentMMCol = await colOptions.getMMParentColumn();
-                const childMMCol = await colOptions.getMMChildColumn();
-                const mmModel = await colOptions.getMMModel();
-
-                const rows = nestedData.map((r) => ({
-                  [parentMMCol.column_name]: r[parentModel.primaryKey.title],
-                  [childMMCol.column_name]: rowId,
-                }));
-                await this.dbDriver(this.getTnPath(mmModel.table_name)).insert(
-                  rows,
-                );
-              });
-            }
-          }
-        }
-      }
+      const postInsertOps = await this.prepareNestedLinkQb({
+        nestedCols,
+        data,
+        insertObj,
+      });
 
       await this.validate(insertObj);
 
@@ -2615,51 +2579,50 @@ class BaseModelSqlv2 {
         !response ||
         (typeof response?.[0] !== 'object' && response?.[0] !== null)
       ) {
-        let id;
         if (response?.length) {
-          id = response[0];
+          rowId = response[0];
         } else {
-          id = (await query)[0];
+          rowId = (await query)[0];
         }
 
         if (ai) {
           if (this.isSqlite) {
             // sqlite doesnt return id after insert
-            id = (
+            rowId = (
               await this.dbDriver(this.tnPath)
                 .select(ai.column_name)
                 .max(ai.column_name, { as: 'id' })
             )[0].id;
           } else if (this.isSnowflake) {
-            id = (
+            rowId = (
               (await this.dbDriver(this.tnPath).max(ai.column_name, {
                 as: 'id',
               })) as any
             ).rows[0].id;
           }
-          response = await this.readByPk(
-            id,
-            false,
-            {},
-            { ignoreView: true, getHiddenColumn: true },
-          );
+          // response = await this.readByPk(
+          //   id,
+          //   false,
+          //   {},
+          //   { ignoreView: true, getHiddenColumn: true },
+          // );
         } else {
           response = data;
         }
       } else if (ai) {
-        response = await this.readByPk(
-          Array.isArray(response)
-            ? response?.[0]?.[ai.title]
-            : response?.[ai.title],
-        );
+        rowId = Array.isArray(response)
+          ? response?.[0]?.[ai.title]
+          : response?.[ai.title];
       }
-      response = Array.isArray(response) ? response[0] : response;
-      if (response)
-        rowId =
-          response[this.model.primaryKey.title] ||
-          response[this.model.primaryKey.column_name];
 
-      await Promise.all(postInsertOps.map((f) => f()));
+      await Promise.all(postInsertOps.map((f) => f(rowId)));
+
+      response = await this.readByPk(
+        rowId,
+        false,
+        {},
+        { ignoreView: true, getHiddenColumn: true },
+      );
 
       await this.afterInsert(response, this.dbDriver, cookie);
 
@@ -2668,6 +2631,94 @@ class BaseModelSqlv2 {
       console.log(e);
       throw e;
     }
+  }
+
+  private async prepareNestedLinkQb({
+    nestedCols,
+    data,
+    insertObj,
+  }: {
+    nestedCols: Column[];
+    data: Record<string, any>;
+    insertObj: Record<string, any>;
+  }) {
+    const postInsertOps: ((rowId: any, trx?: any) => Promise<void>)[] = [];
+    for (const col of nestedCols) {
+      if (col.title in data) {
+        const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>();
+
+        // parse data if it's JSON string
+        let nestedData;
+        try {
+          nestedData =
+            typeof data[col.title] === 'string'
+              ? JSON.parse(data[col.title])
+              : data[col.title];
+        } catch {
+          continue;
+        }
+        switch (colOptions.type) {
+          case RelationTypes.BELONGS_TO:
+            {
+              if (typeof nestedData !== 'object') continue;
+              const childCol = await colOptions.getChildColumn();
+              const parentCol = await colOptions.getParentColumn();
+              insertObj[childCol.column_name] = nestedData?.[parentCol.title];
+            }
+            break;
+          case RelationTypes.HAS_MANY:
+            {
+              if (!Array.isArray(nestedData)) continue;
+              const childCol = await colOptions.getChildColumn();
+              const childModel = await childCol.getModel();
+              await childModel.getColumns();
+
+              postInsertOps.push(
+                async (
+                  rowId,
+                  // todo: use transaction type
+                  trx: any = this.dbDriver,
+                ) => {
+                  await trx(this.getTnPath(childModel.table_name))
+                    .update({
+                      [childCol.column_name]: rowId,
+                    })
+                    .whereIn(
+                      childModel.primaryKey.column_name,
+                      nestedData?.map((r) => r[childModel.primaryKey.title]),
+                    );
+                },
+              );
+            }
+            break;
+          case RelationTypes.MANY_TO_MANY: {
+            if (!Array.isArray(nestedData)) continue;
+            postInsertOps.push(
+              async (
+                rowId,
+                // todo: use transaction type
+                trx: any = this.dbDriver,
+              ) => {
+                const parentModel = await colOptions
+                  .getParentColumn()
+                  .then((c) => c.getModel());
+                await parentModel.getColumns();
+                const parentMMCol = await colOptions.getMMParentColumn();
+                const childMMCol = await colOptions.getMMChildColumn();
+                const mmModel = await colOptions.getMMModel();
+
+                const rows = nestedData.map((r) => ({
+                  [parentMMCol.column_name]: r[parentModel.primaryKey.title],
+                  [childMMCol.column_name]: rowId,
+                }));
+                await trx(this.getTnPath(mmModel.table_name)).insert(rows);
+              },
+            );
+          }
+        }
+      }
+    }
+    return postInsertOps;
   }
 
   async bulkInsert(
@@ -2694,8 +2745,13 @@ class BaseModelSqlv2 {
     try {
       // TODO: ag column handling for raw bulk insert
       const insertDatas = raw ? datas : [];
+      let postInsertOps: ((rowId: any, trx?: any) => Promise<void>)[] = [];
 
       if (!raw) {
+        const nestedCols = (await this.model.getColumns()).filter((c) =>
+          isLinksOrLTAR(c),
+        );
+
         await this.model.getColumns();
 
         for (const d of datas) {
@@ -2822,6 +2878,15 @@ class BaseModelSqlv2 {
 
           await this.prepareAttachmentData(insertObj);
 
+          // prepare nested link data for insert only if it is single record insertion
+          if (isSingleRecordInsertion) {
+            postInsertOps = await this.prepareNestedLinkQb({
+              nestedCols,
+              data: d,
+              insertObj,
+            });
+          }
+
           insertDatas.push(insertObj);
         }
       }
@@ -2866,7 +2931,10 @@ class BaseModelSqlv2 {
           this.isPg || this.isMssql
             ? await trx
                 .batchInsert(this.tnPath, insertDatas, chunkSize)
-                .returning(this.model.primaryKey?.column_name)
+                .returning({
+                  [this.model.primaryKey?.title]:
+                    this.model.primaryKey?.column_name,
+                })
             : await trx.batchInsert(this.tnPath, insertDatas, chunkSize);
       }
 
@@ -2876,6 +2944,12 @@ class BaseModelSqlv2 {
         } else if (this.isMySQL) {
           await trx.raw('SET foreign_key_checks = 1;');
         }
+      }
+
+      // insert nested link data for single record insertion
+      if (isSingleRecordInsertion) {
+        const rowId = response[0][this.model.primaryKey?.title];
+        await Promise.all(postInsertOps.map((f) => f(rowId, trx)));
       }
 
       await trx.commit();
@@ -3605,6 +3679,12 @@ class BaseModelSqlv2 {
 
     const childTn = this.getTnPath(childTable);
     const parentTn = this.getTnPath(parentTable);
+    const prevData = await this.readByPk(
+      rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
 
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
@@ -3682,7 +3762,7 @@ class BaseModelSqlv2 {
       {},
       { ignoreView: true, getHiddenColumn: true },
     );
-    await this.afterInsert(response, this.dbDriver, cookie);
+    await this.afterUpdate(prevData, response, this.dbDriver, cookie);
     await this.afterAddChild(rowId, childId, cookie);
   }
 
@@ -4347,7 +4427,7 @@ class BaseModelSqlv2 {
   }
 
   async addLinks({
-    cookie: _cookie,
+    cookie,
     childIds,
     colId,
     rowId,
@@ -4363,9 +4443,12 @@ class BaseModelSqlv2 {
     if (!column || !isLinksOrLTAR(column))
       NcError.notFound(`Link column ${colId} not found`);
 
-    const row = await this.dbDriver(this.tnPath)
-      .where(await this._wherePk(rowId))
-      .first();
+    const row = await this.readByPk(
+      rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
 
     // validate rowId
     if (!row) {
@@ -4569,13 +4652,20 @@ class BaseModelSqlv2 {
         break;
     }
 
-    // const response = await this.readByPk(rowId);
-    // await this.afterInsert(response, this.dbDriver, cookie);
-    // await this.afterAddChild(rowId, childId, cookie);
+    const updatedRow = await this.readByPk(
+      rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
+    await this.afterUpdate(row, updatedRow, this.dbDriver, cookie);
+    for (const childId of childIds) {
+      await this.afterAddChild(rowId, childId, cookie);
+    }
   }
 
   async removeLinks({
-    cookie: _cookie,
+    cookie,
     childIds,
     colId,
     rowId,
@@ -4591,9 +4681,12 @@ class BaseModelSqlv2 {
     if (!column || !isLinksOrLTAR(column))
       NcError.notFound(`Link column ${colId} not found`);
 
-    const row = await this.dbDriver(this.tnPath)
-      .where(await this._wherePk(rowId))
-      .first();
+    const row = await this.readByPk(
+      rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
 
     // validate rowId
     if (!row) {
@@ -4772,9 +4865,16 @@ class BaseModelSqlv2 {
         break;
     }
 
-    // const newData = await this.readByPk(rowId);
-    // await this.afterUpdate(prevData, newData, this.dbDriver, cookie);
-    // await this.afterRemoveChild(rowId, childIds, cookie);
+    const updatedRow = await this.readByPk(
+      rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
+    await this.afterUpdate(row, updatedRow, this.dbDriver, cookie);
+    for (const childId of childIds) {
+      await this.afterRemoveChild(rowId, childId, cookie);
+    }
   }
 
   async btRead(

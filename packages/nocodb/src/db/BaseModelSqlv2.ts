@@ -2577,7 +2577,7 @@ class BaseModelSqlv2 {
                 ? JSON.parse(data[col.title])
                 : data[col.title];
           } catch {
-            continue
+            continue;
           }
           switch (colOptions.type) {
             case RelationTypes.BELONGS_TO:
@@ -3655,6 +3655,12 @@ class BaseModelSqlv2 {
 
     const childTn = this.getTnPath(childTable);
     const parentTn = this.getTnPath(parentTable);
+    const prevData = await this.readByPk(
+      rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
 
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
@@ -3748,7 +3754,7 @@ class BaseModelSqlv2 {
       {},
       { ignoreView: true, getHiddenColumn: true },
     );
-    await this.afterInsert(response, this.dbDriver, cookie);
+    await this.afterUpdate(prevData, response, this.dbDriver, cookie);
     await this.afterAddChild(rowId, childId, cookie);
   }
 

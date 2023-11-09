@@ -9,6 +9,7 @@ import DownloadIcon from '~icons/nc-icons/download'
 const props = defineProps<{
   view: ViewType
   table: TableType
+  inSidebar: boolean
 }>()
 
 const emits = defineEmits(['rename', 'closeModal', 'delete'])
@@ -64,7 +65,7 @@ const onImportClick = (dialog: any) => {
 }
 
 async function changeLockType(type: LockType) {
-  $e('a:grid:lockmenu', { lockType: type })
+  $e('a:grid:lockmenu', { lockType: type, sidebar: props.inSidebar })
 
   if (!view.value) return
 
@@ -119,7 +120,7 @@ function onDuplicate() {
         hardReload: view.type === ViewTypes.FORM,
       })
 
-      $e('a:view:create', { view: view.type })
+      $e('a:view:create', { view: view.type, sidebar: props.inSidebar })
     },
   })
 
@@ -176,7 +177,15 @@ const onDelete = async () => {
     <template v-if="isUIAllowed('csvTableImport') && !isPublicView">
       <NcSubMenu key="upload">
         <template #title>
-          <div v-e="['c:navdraw:preview-as']" class="nc-base-menu-item group">
+          <div
+            v-e="[
+              'c:navdraw:preview-as',
+              {
+                sidebar: props.inSidebar,
+              },
+            ]"
+            class="nc-base-menu-item group"
+          >
             <UploadIcon class="w-4 h-4" />
             {{ $t('general.upload') }}
           </div>
@@ -187,7 +196,16 @@ const onDelete = async () => {
 
         <template v-for="(dialog, type) in quickImportDialogs">
           <NcMenuItem v-if="isUIAllowed(`${type}TableImport`) && !isPublicView" :key="type" @click="onImportClick(dialog)">
-            <div v-e="[`a:upload:${type}`]" class="nc-base-menu-item" :class="{ disabled: isLocked }">
+            <div
+              v-e="[
+                `a:upload:${type}`,
+                {
+                  sidebar: props.inSidebar,
+                },
+              ]"
+              class="nc-base-menu-item"
+              :class="{ disabled: isLocked }"
+            >
               <component :is="iconMap.upload" />
               {{ `${$t('general.upload')} ${type.toUpperCase()}` }}
             </div>
@@ -197,7 +215,15 @@ const onDelete = async () => {
     </template>
     <NcSubMenu key="download">
       <template #title>
-        <div v-e="['c:download']" class="nc-base-menu-item group nc-view-context-download-option">
+        <div
+          v-e="[
+            'c:download',
+            {
+              sidebar: props.inSidebar,
+            },
+          ]"
+          class="nc-base-menu-item group nc-view-context-download-option"
+        >
           <DownloadIcon class="w-4 h-4" />
           {{ $t('general.download') }}
         </div>
@@ -212,7 +238,15 @@ const onDelete = async () => {
 
     <NcSubMenu v-if="isUIAllowed('viewCreateOrEdit')" key="lock-type" class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0">
       <template #title>
-        <div v-e="['c:navdraw:preview-as']" class="flex flex-row items-center gap-x-3">
+        <div
+          v-e="[
+            'c:navdraw:preview-as',
+            {
+              sidebar: props.inSidebar,
+            },
+          ]"
+          class="flex flex-row items-center gap-x-3"
+        >
           <div>
             {{ $t('labels.viewMode') }}
           </div>

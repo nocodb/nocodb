@@ -265,6 +265,7 @@ watch(isDropdownOpen, async () => {
               :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`"
               :view="vModel"
               :table="table"
+              in-sidebar
               @close-modal="isDropdownOpen = false"
               @rename="onRename"
               @delete="onDelete"

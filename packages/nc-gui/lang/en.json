@@ -410,6 +410,7 @@
     }
   },
   "labels": {
+    "downloadData": "Download Data",
     "noToken": "No Token",
     "tokenLimit": "Only one token per user is allowed",
     "duplicateAttachment": "File with name {filename} already attached",

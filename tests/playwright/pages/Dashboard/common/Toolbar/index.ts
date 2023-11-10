@@ -161,7 +161,7 @@ export class ToolbarPage extends BasePage {
   }
 
   async clickDownload(type: string, verificationFile = 'expectedData.txt') {
-    await this.rootPage.locator(`.nc-view-context-btn`).click();
+    await this.get().locator(`.nc-toolbar-btn.nc-actions-menu-btn`).click();
 
     const [download] = await Promise.all([
       // Start waiting for the download

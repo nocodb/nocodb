@@ -42,6 +42,16 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const leftSidebarWidth = computed(() => (width.value * mobileNormalizedSidebarSize.value) / 100)
 
+  const nonHiddenMobileSidebarSize = computed(() => {
+    if (isMobileMode.value) {
+      return 100
+    }
+
+    return leftSideBarSize.value.current ?? leftSideBarSize.value.old
+  })
+
+  const nonHiddenLeftSidebarWidth = computed(() => (width.value * nonHiddenMobileSidebarSize.value) / 100)
+
   return {
     isLeftSidebarOpen,
     isRightSidebarOpen,
@@ -50,6 +60,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     leftSidebarState,
     leftSidebarWidth,
     mobileNormalizedSidebarSize,
+    nonHiddenLeftSidebarWidth,
   }
 })
 

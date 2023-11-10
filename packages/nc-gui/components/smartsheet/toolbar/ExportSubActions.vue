@@ -13,12 +13,8 @@ import {
   ref,
   storeToRefs,
   useBase,
-  useI18n,
   useNuxtApp,
-  useSmartsheetStoreOrThrow,
 } from '#imports'
-
-const { t } = useI18n()
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
@@ -33,7 +29,7 @@ const meta = inject(MetaInj, ref())
 
 const selectedView = inject(ActiveViewInj)
 
-const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
+const { activeNestedFilters: nestedFilters, activeSorts: sorts } = storeToRefs(useViewsStore())
 
 const isExportingType = ref<ExportTypes | undefined>(undefined)
 

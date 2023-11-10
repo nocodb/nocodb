@@ -242,17 +242,7 @@ watch(isDropdownOpen, () => {
     <template #overlay>
       <NcMenu class="min-w-84">
         <NcTooltip>
-          <template #title>
-            <div>
-              <div class="flex flex-row items-center gap-x-1">
-                <GeneralViewIcon class="-ml-0.5" :meta="{ type: ViewTypes.GRID }" />
-                <div class="text-base">
-                  {{ activeView?.title }}
-                </div>
-              </div>
-              <div class="flex">Click to copy View ID</div>
-            </div>
-          </template>
+          <template #title> Click to copy View ID </template>
           <div class="flex items-center justify-between py-2 px-2 cursor-pointer hover:bg-gray-100 group" @click="onViewIdCopy">
             <div class="flex text-xs font-bold text-gray-500 ml-1">VIEW ID: {{ activeView?.id }}</div>
             <NcButton size="xsmall" type="secondary" class="!group-hover:bg-gray-100">

@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import type { WorkspaceType } from 'nocodb-sdk'
+import { type WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const workspaceStore = useWorkspace()
 
 const { activeWorkspace, workspacesList, workspaceUserCount } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
-const { leftSidebarState, isLeftSidebarOpen, leftSidebarWidth } = storeToRefs(useSidebarStore())
+const { leftSidebarState, isLeftSidebarOpen, nonHiddenLeftSidebarWidth: leftSidebarWidth } = storeToRefs(useSidebarStore())
 const viewportWidth = ref(window.innerWidth)
 
 const { navigateToTable } = useTablesStore()
@@ -142,9 +142,9 @@ const onWorkspaceCreateClick = () => {
           @click="isWorkspaceDropdownOpen = false"
         >
           <a-menu-item-group class="!border-t-0 w-full">
-            <div class="flex gap-x-3 min-w-0 px-4 w-full py-3 items-center">
+            <div class="flex gap-x-3 min-w-0 pl-4 pr-3 w-full py-3 items-center">
               <GeneralWorkspaceIcon :workspace="activeWorkspace" size="large" />
-              <div class="flex flex-col gap-y-0 max-w-[calc(100%-3.5rem)]">
+              <div class="flex flex-col gap-y-0 max-w-[calc(100%-7.1rem)]">
                 <div
                   class="mt-0.5 flex w-full capitalize mb-0 nc-workspace-title truncate min-w-10 text-sm text-black font-medium"
                   style="line-height: 1.5rem"
@@ -164,6 +164,19 @@ const onWorkspaceCreateClick = () => {
                   </template>
                 </div>
               </div>
+              <div class="flex flex-grow"></div>
+              <NcTooltip
+                v-if="activeWorkspace.roles === WorkspaceUserRoles.OWNER"
+                class="!z-1 cursor-pointer"
+                placement="bottomRight"
+              >
+                <template #title>
+                  {{ $t('objects.roleType.owner') }}
+                </template>
+                <div class="h-6.5 px-1 py-0.25 rounded-lg bg-purple-50">
+                  <GeneralIcon icon="role_owner" class="min-w-4.5 min-h-4.5 text-xl !text-purple-700 !hover:text-purple-700" />
+                </div>
+              </NcTooltip>
             </div>
 
             <NcDivider v-if="!isMobileMode" class="!mb-0" />
@@ -178,12 +191,26 @@ const onWorkspaceCreateClick = () => {
                 <div
                   class="nc-workspace-menu-item group capitalize max-w-[calc(100%-3.5rem)] flex"
                   data-testid="nc-workspace-list"
-                  :style="`width: ${leftSidebarWidth}px`"
+                  :style="`width: ${leftSidebarWidth + 26}px`"
                 >
-                  <GeneralWorkspaceIcon :workspace="workspace" hide-label size="small" />
-                  <span class="mt-0.5 capitalize mb-0 nc-workspace-title truncate min-w-10">
-                    {{ workspace?.title }}
-                  </span>
+                  <div class="flex flex-row w-[calc(100%-2rem)] truncate items-center gap-2">
+                    <GeneralWorkspaceIcon :workspace="workspace" hide-label size="small" />
+                    <span class="capitalize mb-0 nc-workspace-title truncate min-w-10">
+                      {{ workspace?.title }}
+                    </span>
+                  </div>
+
+                  <NcTooltip v-if="workspace.roles === WorkspaceUserRoles.OWNER" class="!z-1" placement="bottomRight">
+                    <template #title>
+                      {{ $t('objects.roleType.owner') }}
+                    </template>
+                    <div class="h-6.5 px-1 py-0.25 rounded-lg bg-purple-50">
+                      <GeneralIcon
+                        icon="role_owner"
+                        class="min-w-4.5 min-h-4.5 text-xl !text-purple-700 !hover:text-purple-700"
+                      />
+                    </div>
+                  </NcTooltip>
                 </div>
               </NcMenuItem>
             </div>
@@ -208,8 +235,12 @@ const onWorkspaceCreateClick = () => {
   @apply z-40;
 }
 
+:deep(.ant-dropdown-menu-title-content) {
+  @apply !flex !w-full;
+}
+
 .nc-workspace-menu-item {
-  @apply flex items-center !py-0 !pl-1 gap-2 text-sm hover:text-black;
+  @apply flex items-center !py-0 !pl-1 text-sm hover:text-black;
 }
 
 .nc-workspace-dropdown-active-workspace-info {

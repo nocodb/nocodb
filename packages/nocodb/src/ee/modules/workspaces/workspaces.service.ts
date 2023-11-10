@@ -356,8 +356,11 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     const stats = await ModelStat.getWorkspaceSum(workspace.id);
 
+    const workspaceRoles = await WorkspaceUser.get(workspace.id, param.user.id);
+
     return {
       ...workspace,
+      roles: workspaceRoles?.roles,
       limits,
       stats,
     } as Workspace;

@@ -576,17 +576,19 @@ class PGClient extends KnexClient {
 
       if (exists.rows.length === 0) {
         const data = await this.sqlClient.raw(
-          this.sqlClient.schema.createTable(args.tn, function (table) {
-            table.increments();
-            table.string('title').notNullable();
-            table.string('titleDown').nullable();
-            table.string('description').nullable();
-            table.integer('batch').nullable();
-            table.string('checksum').nullable();
-            table.integer('status').nullable();
-            table.dateTime('created');
-            table.timestamps();
-          }),
+          this.sqlClient.schema
+            .createTable(args.tn, function (table) {
+              table.increments();
+              table.string('title').notNullable();
+              table.string('titleDown').nullable();
+              table.string('description').nullable();
+              table.integer('batch').nullable();
+              table.string('checksum').nullable();
+              table.integer('status').nullable();
+              table.dateTime('created');
+              table.timestamps();
+            })
+            .toQuery(),
         );
         log.debug('Table created:', `${args.tn}`, data);
       } else {
@@ -1039,12 +1041,11 @@ class PGClient extends KnexClient {
       // const self = this;
 
       await this.sqlClient.raw(
-        this.sqlClient.schema.table(
-          args.childTableWithSchema,
-          function (table) {
+        this.sqlClient.schema
+          .table(args.childTableWithSchema, function (table) {
             table.dropForeign(args.childColumn, foreignKeyName);
-          },
-        ),
+          })
+          .toQuery(),
       );
 
       const upStatement =
@@ -2509,19 +2510,21 @@ class PGClient extends KnexClient {
 
       for (const relation of relationsList) {
         const query = this.sqlClient.raw(
-          this.sqlClient.schema.table(relation.tn, function (table) {
-            table = table
-              .foreign(relation.cn, null)
-              .references(relation.rcn)
-              .on(relation.rtn);
+          this.sqlClient.schema
+            .table(relation.tn, function (table) {
+              table = table
+                .foreign(relation.cn, null)
+                .references(relation.rcn)
+                .on(relation.rtn);
 
-            if (relation.ur) {
-              table = table.onUpdate(relation.ur);
-            }
-            if (relation.dr) {
-              table.onDelete(relation.dr);
-            }
-          }),
+              if (relation.ur) {
+                table = table.onUpdate(relation.ur);
+              }
+              if (relation.dr) {
+                table.onDelete(relation.dr);
+              }
+            })
+            .toQuery(),
         );
 
         downQuery += this.querySeparator() + query;
@@ -2995,10 +2998,12 @@ class PGClient extends KnexClient {
 
       /** ************** create table *************** */
       await this.sqlClient.raw(
-        this.sqlClient.schema.renameTable(
-          this.sqlClient.raw('??.??', [this.schema, args.tn_old]),
-          args.tn,
-        ),
+        this.sqlClient.schema
+          .renameTable(
+            this.sqlClient.raw('??.??', [this.schema, args.tn_old]),
+            args.tn,
+          )
+          .toQuery(),
       );
 
       /** ************** create up & down statements *************** */

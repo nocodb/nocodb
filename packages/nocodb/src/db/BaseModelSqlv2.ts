@@ -2271,11 +2271,11 @@ class BaseModelSqlv2 {
               await this.execAndParse(
                 this.dbDriver(this.tnPath)
                   .select(ai.column_name)
-                  .max(ai.column_name, { as: 'id' }),
+                  .max(ai.column_name, { as: '__nc_ai_id' }),
                 null,
-                { raw: true },
+                { raw: true, first: true },
               )
-            )[0].id;
+            )?.__nc_ai_id;
           } else if (this.isSnowflake) {
             id = (
               await this.execAndParse(
@@ -2608,23 +2608,40 @@ class BaseModelSqlv2 {
         if (response?.length) {
           rowId = response[0];
         } else {
-          rowId = (await query)[0];
+          rowId = await this.execAndParse(query, null, {
+            raw: true,
+            first: true,
+          });
+          if (this.isMySQL) {
+            rowId = rowId?.insertId;
+          }
         }
 
         if (ai) {
           if (this.isSqlite) {
             // sqlite doesnt return id after insert
             rowId = (
-              await this.dbDriver(this.tnPath)
-                .select(ai.column_name)
-                .max(ai.column_name, { as: 'id' })
-            )[0].id;
+              await this.execAndParse(
+                this.dbDriver(this.tnPath)
+                  .select(ai.column_name)
+                  .max(ai.column_name, { as: '__nc_ai_id' }),
+                null,
+                {
+                  raw: true,
+                  first: true,
+                },
+              )
+            )?.__nc_ai_id;
           } else if (this.isSnowflake) {
             rowId = (
-              (await this.dbDriver(this.tnPath).max(ai.column_name, {
-                as: 'id',
-              })) as any
-            ).rows[0].id;
+              await this.execAndParse(
+                this.dbDriver(this.tnPath).max(ai.column_name, {
+                  as: 'id',
+                }),
+                null,
+                { raw: true, first: true },
+              )
+            )?.id;
           }
           // response = await this.readByPk(
           //   id,
@@ -2949,7 +2966,7 @@ class BaseModelSqlv2 {
 
         for (const insertData of insertDatas) {
           const query = trx(this.tnPath).insert(insertData);
-          const id = await query;
+          const id = (await query)[0];
           response.push(aiPkCol ? { [aiPkCol.title]: id } : id);
         }
       } else {

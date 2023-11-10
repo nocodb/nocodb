@@ -78,7 +78,7 @@ jobs:
           # remove nocodb-sdk since it's packed with the build
           pnpm uninstall --save-prod nocodb-sdk
 
-      - name: Configure AWS credentials
+      - name: Configure AWS and Api admin credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -128,9 +128,12 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: nocohub
+          API_CREDENTIALS: ${{ secrets.STAGING_ADMIN }}
         run: |
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:ws-pre-release
       - name: Publish to staging
         if: ${{ github.event.inputs.staging == 'true' || github.event_name == 'schedule' }}
+        env:
+          API_CREDENTIALS: ${{ secrets.STAGING_ADMIN }}        
         run: |
            ./scripts/release/staging.sh

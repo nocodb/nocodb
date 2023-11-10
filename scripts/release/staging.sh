@@ -18,8 +18,7 @@ WORKERS_SERVICE_NAME=nocohub-noco_to_worker
 EXCLUDED_SVC=" ${WORKERS_SERVICE_NAME} nocohub-service nocohub-001-prod nocohub-001-ingester nocohub-001-prod-ingester "
 CLUSTER="nocodb-staging"
 HOST_NAME="https://staging.noco.to"
-# TODO: move this to github secrets
-API_CREDENTIALS="defaultusername:defaultpassword"
+API_CREDENTIALS=${API_CREDENTIALS}
 ASG_NAME=nocohub-noco_to_main
 
 prewarm_asg

@@ -18,6 +18,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-2
       PROMOTE_READY_BEFORE_ROLLOUT: ${{ github.event.inputs.promote }}
+      API_CREDENTIALS: ${{ secrets.PROD_ADMIN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3

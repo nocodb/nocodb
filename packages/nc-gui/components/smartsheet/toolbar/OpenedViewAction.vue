@@ -1,15 +1,20 @@
 <script lang="ts" setup>
-const { activeView, views, openedViewsTab } = storeToRefs(useViewsStore())
-
 const { activeTable } = storeToRefs(useTablesStore())
 
 const { isMobileMode } = useGlobal()
 
-const { isSharedBase } = storeToRefs(useBase())
+const { isSharedBase, base } = storeToRefs(useBase())
 
 const { t } = useI18n()
 
 const { $api } = useNuxtApp()
+
+const { refreshCommandPalette } = useCommandPalette()
+
+const { activeView, views, openedViewsTab, viewsByTable } = storeToRefs(useViewsStore())
+const { loadViews, removeFromRecentViews } = useViewsStore()
+
+const { navigateToTable } = useTablesStore()
 
 const isDropdownOpen = ref(false)
 
@@ -89,6 +94,47 @@ const resetViewRename = () => {
   viewRenameTitle.value = activeView.value!.title
   isRenaming.value = false
 }
+
+function openDeleteDialog() {
+  const isOpen = ref(true)
+  isDropdownOpen.value = false
+
+  const { close } = useDialog(resolveComponent('DlgViewDelete'), {
+    'modelValue': isOpen,
+    'view': activeView.value,
+    'onUpdate:modelValue': closeDialog,
+    'onDeleted': async () => {
+      closeDialog()
+
+      removeFromRecentViews({ viewId: activeView.value!.id, tableId: activeView.value!.fk_model_id, baseId: base.value.id })
+      refreshCommandPalette()
+      if (activeView.value?.id === activeView.value!.id) {
+        navigateToTable({
+          tableId: activeTable.value!.id!,
+          baseId: base.value.id!,
+        })
+      }
+
+      await loadViews({
+        tableId: activeTable.value!.id!,
+        force: true,
+      })
+
+      const activeNonDefaultViews = viewsByTable.value.get(activeTable!.value!.id!)?.filter((v) => !v.is_default) ?? []
+
+      activeTable!.value!.meta = {
+        ...(activeTable!.value!.meta as object),
+        hasNonDefaultViews: activeNonDefaultViews.length > 1,
+      }
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
 </script>
 
 <template>
@@ -151,6 +197,7 @@ const resetViewRename = () => {
         :view="activeView"
         @close-modal="isDropdownOpen = false"
         @rename="onRenameMenuClick"
+        @delete="openDeleteDialog"
       />
     </template>
   </NcDropdown>

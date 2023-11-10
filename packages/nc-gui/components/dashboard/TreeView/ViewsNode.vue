@@ -177,6 +177,12 @@ function onStopEdit() {
   }, 250)
 }
 
+const onDelete = () => {
+  isDropdownOpen.value = false
+
+  emits('delete', vModel.value)
+}
+
 watch(isDropdownOpen, async () => {
   if (!isDropdownOpen.value) return
 
@@ -261,6 +267,7 @@ watch(isDropdownOpen, async () => {
               :table="table"
               @close-modal="isDropdownOpen = false"
               @rename="onRename"
+              @delete="onDelete"
             />
           </template>
         </NcDropdown>

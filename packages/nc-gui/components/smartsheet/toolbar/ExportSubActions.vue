@@ -99,19 +99,21 @@ const exportFile = async (exportType: ExportTypes) => {
 </script>
 
 <template>
-  <a-menu-item>
-    <div v-e="['a:download:csv']" class="nc-base-menu-item" @click="exportFile(ExportTypes.CSV)">
+  <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">Download Data</div>
+
+  <NcMenuItem>
+    <div v-e="['a:download:csv']" class="nc-base-menu-item !py-0" @click="exportFile(ExportTypes.CSV)">
       <component :is="iconMap.csv" />
       <!-- Download as CSV -->
       {{ $t('activity.downloadCSV') }}
     </div>
-  </a-menu-item>
+  </NcMenuItem>
 
-  <a-menu-item>
-    <div v-e="['a:download:excel']" class="nc-base-menu-item" @click="exportFile(ExportTypes.EXCEL)">
+  <NcMenuItem>
+    <div v-e="['a:download:excel']" class="nc-base-menu-item !py-0" @click="exportFile(ExportTypes.EXCEL)">
       <component :is="iconMap.excel" />
       <!-- Download as XLSX -->
       {{ $t('activity.downloadExcel') }}
     </div>
-  </a-menu-item>
+  </NcMenuItem>
 </template>

@@ -2612,6 +2612,9 @@ class BaseModelSqlv2 {
             raw: true,
             first: true,
           });
+          if (this.isMySQL) {
+            rowId = rowId?.insertId;
+          }
         }
 
         if (ai) {

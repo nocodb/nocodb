@@ -163,7 +163,7 @@ export class DatasService {
     } catch (e) {}
 
     const [count, data] = await Promise.all([
-      baseModel.count(listArgs),
+      baseModel.count(listArgs, false, param.throwErrorIfInvalidParams),
       (async () => {
         let data = [];
         try {

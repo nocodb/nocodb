@@ -52,7 +52,7 @@ test.describe('Grid view locked', () => {
 
     await dashboard.grid.toolbar.viewsMenu.click({
       menu: 'Download',
-      subMenu: 'Download as CSV',
+      subMenu: 'Download CSV',
       verificationInfo: {
         verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.txt' : null,
       },
@@ -72,7 +72,7 @@ test.describe('Grid view locked', () => {
 
     await dashboard.grid.toolbar.viewsMenu.click({
       menu: 'Download',
-      subMenu: 'Download as XLSX',
+      subMenu: 'Download Excel',
       verificationInfo: {
         verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.txt' : null,
       },

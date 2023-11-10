@@ -118,6 +118,8 @@ export class ExportService {
               case 'fk_relation_column_id':
               case 'fk_lookup_column_id':
               case 'fk_rollup_column_id':
+              case 'fk_qr_value_column_id':
+              case 'fk_barcode_value_column_id':
                 column.colOptions[k] = idMap.get(v as string);
                 break;
               case 'options':

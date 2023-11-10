@@ -168,6 +168,7 @@ function openDeleteDialog() {
   <NcDropdown
     v-else
     v-model:visible="isDropdownOpen"
+    v-e="['c:breadcrumb:view-actions']"
     class="!xs:pointer-events-none nc-actions-menu-btn nc-view-context-btn"
     overlay-class-name="nc-dropdown-actions-menu"
   >

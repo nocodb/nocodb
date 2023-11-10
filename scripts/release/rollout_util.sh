@@ -151,7 +151,7 @@ function perform_rollout(){
 
     # TODO: prewarm ASG to have additional instances. update only desired 
     ALL_SVS=$( aws ecs list-services --cluster ${CLUSTER}  --region=us-east-2  | jq -r '.serviceArns[] | split("/") | .[2]')
-    # update_workspace 
-    # check_status_all_workspaces 
-    message "${ENVIRONMENT}: deployment script executed successfully."
+    update_workspace 
+    check_status_all_workspaces 
+    message "${ENVIRONMENT}: main pod deployment executed successfully."
 }

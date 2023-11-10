@@ -2271,11 +2271,11 @@ class BaseModelSqlv2 {
               await this.execAndParse(
                 this.dbDriver(this.tnPath)
                   .select(ai.column_name)
-                  .max(ai.column_name, { as: 'id' }),
+                  .max(ai.column_name, { as: '__nc_ai_id' }),
                 null,
-                { raw: true },
+                { raw: true, first: true },
               )
-            )[0].id;
+            )?.__nc_ai_id;
           } else if (this.isSnowflake) {
             id = (
               await this.execAndParse(
@@ -2624,14 +2624,14 @@ class BaseModelSqlv2 {
               await this.execAndParse(
                 this.dbDriver(this.tnPath)
                   .select(ai.column_name)
-                  .max(ai.column_name, { as: 'id' }),
+                  .max(ai.column_name, { as: '__nc_ai_id' }),
                 null,
                 {
                   raw: true,
                   first: true,
                 },
               )
-            )?.id;
+            )?.__nc_ai_id;
           } else if (this.isSnowflake) {
             rowId = (
               await this.execAndParse(

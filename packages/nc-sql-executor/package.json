@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@fastify/static": "^6.12.0",
     "dayjs": "^1.11.10",
     "fastify": "^4.24.3",
     "knex": "^3.0.1",

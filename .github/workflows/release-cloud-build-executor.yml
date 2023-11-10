@@ -32,6 +32,14 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
+      - name: Add nc.txt to public folder
+        run: |
+          echo "User: ${{ github.actor }}" >> packages/nc-sql-executor/src/public/nc.txt
+          echo "Commit: ${{ github.sha }}" >> packages/nc-sql-executor/src/public/nc.txt
+          echo "Branch: ${{ github.ref }}" >> packages/nc-sql-executor/src/public/nc.txt
+          echo "Action ID: ${{ github.run_id }}" >> packages/nc-sql-executor/src/public/nc.txt
+          date >> packages/nc-sql-executor/src/public/nc.txt
+
       - name: Build, tag, and push image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}

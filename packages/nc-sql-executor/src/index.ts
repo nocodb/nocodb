@@ -5,12 +5,19 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone';
 import { defaults, types } from 'pg';
+import path from 'path';
+import fastifyStatic from '@fastify/static';
 
 const DEBUG = process.env.DEBUG === 'true';
 
 const fastify = Fastify({
   logger: DEBUG,
 });
+
+fastify.register(fastifyStatic, {
+  root: path.join(__dirname, 'public'),
+})
+
 const connectionPools: { [key: string]: Knex } = {};
 const dynamicPoolSize = process.env.DYNAMIC_POOL_SIZE === 'true';
 const dynamicPoolPercent = process.env.DYNAMIC_POOL_PERCENT

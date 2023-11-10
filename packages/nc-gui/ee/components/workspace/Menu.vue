@@ -142,9 +142,9 @@ const onWorkspaceCreateClick = () => {
           @click="isWorkspaceDropdownOpen = false"
         >
           <a-menu-item-group class="!border-t-0 w-full">
-            <div class="flex gap-x-3 min-w-0 px-4 w-full py-3 items-center">
+            <div class="flex gap-x-3 min-w-0 pl-4 pr-3 w-full py-3 items-center">
               <GeneralWorkspaceIcon :workspace="activeWorkspace" size="large" />
-              <div class="flex flex-col gap-y-0 max-w-[calc(100%-5.4rem)]">
+              <div class="flex flex-col gap-y-0 max-w-[calc(100%-7.1rem)]">
                 <div
                   class="mt-0.5 flex w-full capitalize mb-0 nc-workspace-title truncate min-w-10 text-sm text-black font-medium"
                   style="line-height: 1.5rem"
@@ -164,6 +164,7 @@ const onWorkspaceCreateClick = () => {
                   </template>
                 </div>
               </div>
+              <div class="flex flex-grow"></div>
               <NcTooltip
                 v-if="activeWorkspace.roles === WorkspaceUserRoles.OWNER"
                 class="!z-1 cursor-pointer"

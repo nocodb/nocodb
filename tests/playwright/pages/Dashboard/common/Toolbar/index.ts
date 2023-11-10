@@ -161,7 +161,7 @@ export class ToolbarPage extends BasePage {
   }
 
   async clickDownload(type: string, verificationFile = 'expectedData.txt') {
-    await this.get().locator(`.nc-toolbar-btn.nc-actions-menu-btn`).click();
+    await this.get().locator(`.nc-actions-menu-btn`).click();
 
     const [download] = await Promise.all([
       // Start waiting for the download
@@ -195,7 +195,7 @@ export class ToolbarPage extends BasePage {
   }
 
   async verifyDownloadDisabled() {
-    await this.get().locator(`.nc-toolbar-btn.nc-actions-menu-btn`).waitFor({ state: 'hidden' });
+    await this.get().locator(`nc-actions-menu-btn`).waitFor({ state: 'hidden' });
   }
 
   async clickAddEditStack() {

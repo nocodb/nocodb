@@ -75,6 +75,8 @@ async function changeLockType(type: LockType) {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
+
+  isDropdownOpen.value = false
 }
 
 const { copy } = useCopy()
@@ -221,7 +223,7 @@ watch(isDropdownOpen, () => {
   <NcDropdown
     v-else
     v-model:visible="isDropdownOpen"
-    class="!xs:pointer-events-none nc-actions-menu-btn"
+    class="!xs:pointer-events-none nc-actions-menu-btn nc-view-context-btn"
     overlay-class-name="nc-dropdown-actions-menu"
   >
     <div
@@ -293,7 +295,7 @@ watch(isDropdownOpen, () => {
         </template>
         <NcSubMenu key="download">
           <template #title>
-            <div v-e="['c:download']" class="nc-base-menu-item group">
+            <div v-e="['c:download']" class="nc-base-menu-item group nc-view-context-download-option">
               <DownloadIcon class="w-4 h-4" />
               {{ $t('general.download') }}
             </div>
@@ -327,13 +329,13 @@ watch(isDropdownOpen, () => {
 
           <template #expandIcon></template>
           <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">View Settings</div>
-          <NcMenuItem class="nc-view-action-lock-subaction" @click="changeLockType(LockType.Collaborative)">
-            <LazySmartsheetToolbarLockType :type="LockType.Collaborative" />
-          </NcMenuItem>
+          <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">
+            <LazySmartsheetToolbarLockType :type="LockType.Collaborative" @click="changeLockType(LockType.Collaborative)" />
+          </a-menu-item>
 
-          <NcMenuItem @click="changeLockType(LockType.Locked)">
-            <LazySmartsheetToolbarLockType :type="LockType.Locked" />
-          </NcMenuItem>
+          <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">
+            <LazySmartsheetToolbarLockType :type="LockType.Locked" @click="changeLockType(LockType.Locked)" />
+          </a-menu-item>
         </NcSubMenu>
       </NcMenu>
     </template>

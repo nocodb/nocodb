@@ -12,7 +12,7 @@ export class ToolbarViewMenuPage extends BasePage {
   constructor(toolbar: ToolbarPage) {
     super(toolbar.rootPage);
     this.toolbar = toolbar;
-    this.viewsMenuBtn = this.toolbar.get().locator(`.nc-actions-menu-btn`);
+    this.viewsMenuBtn = this.rootPage.locator('.nc-view-context-btn');
   }
 
   get() {

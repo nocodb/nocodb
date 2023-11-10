@@ -143,7 +143,7 @@ const onDelete = async () => {
 </script>
 
 <template>
-  <NcMenu class="!min-w-70" data-testid="toolbar-actions">
+  <NcMenu class="!min-w-70" data-id="toolbar-actions" :data-testid="`view-sidebar-view-actions-${view!.alias || view!.title}`">
     <NcTooltip>
       <template #title> {{ $t('labels.clickToCopyViewID') }} </template>
       <div class="flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-gray-100 group" @click="onViewIdCopy">
@@ -167,7 +167,7 @@ const onDelete = async () => {
         {{ $t('activity.renameView') }}
       </NcMenuItem>
       <NcMenuItem @click="onDuplicate">
-        <GeneralIcon icon="duplicate" />
+        <GeneralIcon icon="duplicate" class="nc-view-copy-icon" />
         {{ $t('labels.duplicateView') }}
       </NcMenuItem>
       <NcDivider />
@@ -240,7 +240,7 @@ const onDelete = async () => {
     <template v-if="!view.is_default">
       <NcDivider />
       <NcMenuItem class="!hover:bg-red-50 !text-red-500" @click="onDelete">
-        <GeneralIcon icon="delete" />
+        <GeneralIcon icon="delete" class="nc-view-delete-icon" />
         {{
           $t('general.deleteEntity', {
             entity: $t('objects.view'),

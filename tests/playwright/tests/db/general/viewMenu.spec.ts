@@ -23,8 +23,8 @@ test.describe('Grid view locked', () => {
 
     // enable view lock
     await dashboard.grid.toolbar.viewsMenu.click({
-      menu: 'Collaborative View',
-      subMenu: 'Locked View',
+      menu: 'Collaborative',
+      subMenu: 'Locked',
     });
 
     // verify view lock
@@ -32,8 +32,8 @@ test.describe('Grid view locked', () => {
 
     // enable collaborative view
     await dashboard.grid.toolbar.viewsMenu.click({
-      menu: 'Locked View',
-      subMenu: 'Collaborative View',
+      menu: 'Locked',
+      subMenu: 'Collaborative',
     });
 
     await dashboard.grid.verifyCollaborativeMode();

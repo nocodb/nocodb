@@ -137,7 +137,7 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
         data: { token, extra },
       } = await api.instance.post(`/auth/${authProvider}/genTokenByCode${window.location.search}`)
 
-      extraProps = extra
+      extraProps = extra || {}
 
       signIn(token)
     } catch (e: any) {
@@ -148,7 +148,7 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
     window.history.pushState(
       'object',
       document.title,
-      `${extraProps.continueAfterSignIn ? `${newURL}#/?continueAfterSignIn=${extraProps.continueAfterSignIn}` : newURL}`,
+      `${extraProps?.continueAfterSignIn ? `${newURL}#/?continueAfterSignIn=${extraProps.continueAfterSignIn}` : newURL}`,
     )
     window.location.reload()
   }

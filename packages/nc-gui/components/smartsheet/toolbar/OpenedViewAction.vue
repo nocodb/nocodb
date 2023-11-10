@@ -20,6 +20,8 @@ const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
+const isOpen = ref(false)
+
 const isPublicView = inject(IsPublicInj, ref(false))
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -112,10 +114,16 @@ function onDuplicate() {
     close(1000)
   }
 }
+
+watch(isOpen, () => {
+  setTimeout(() => {
+    isViewIdCopied.value = false
+  }, 250)
+})
 </script>
 
 <template>
-  <NcDropdown>
+  <NcDropdown v-model:visible="isOpen">
     <div
       class="truncate nc-active-view-title !hover:(bg-gray-100 text-gray-800) ml-0.25 pl-1 pr-0.25 rounded-md py-1 cursor-pointer"
       :class="{
@@ -143,21 +151,23 @@ function onDuplicate() {
           <NcTooltip>
             <template #title>Click to copy View ID</template>
             <NcButton size="xsmall" type="secondary" @click="onViewIdCopy">
-              <GeneralIcon v-if="isViewIdCopied" icon="check" />
-              <GeneralIcon v-else else icon="copy" />
+              <GeneralIcon v-if="isViewIdCopied" icon="check" class="max-h-4 min-w-4" />
+              <GeneralIcon v-else else icon="copy" class="max-h-4 min-w-4" />
             </NcButton>
           </NcTooltip>
         </div>
         <NcDivider />
-        <NcMenuItem>
-          <GeneralIcon icon="edit" />
-          Rename View
-        </NcMenuItem>
-        <NcMenuItem @click="onDuplicate">
-          <GeneralIcon icon="copy" />
-          Duplicate View
-        </NcMenuItem>
-        <NcDivider />
+        <template v-if="!activeView?.is_default">
+          <NcMenuItem>
+            <GeneralIcon icon="edit" />
+            Rename View
+          </NcMenuItem>
+          <NcMenuItem @click="onDuplicate">
+            <GeneralIcon icon="copy" />
+            Duplicate View
+          </NcMenuItem>
+          <NcDivider />
+        </template>
 
         <NcMenuItem-group>
           <template v-if="isUIAllowed('csvTableImport') && !isPublicView && !isSqlView">

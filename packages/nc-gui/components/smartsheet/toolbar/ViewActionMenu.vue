@@ -174,67 +174,68 @@ const onDelete = async () => {
       <NcDivider />
     </template>
 
-    <template v-if="isUIAllowed('csvTableImport') && !isPublicView">
-      <NcSubMenu key="upload">
-        <template #title>
-          <div
-            v-e="[
-              'c:navdraw:preview-as',
-              {
-                sidebar: props.inSidebar,
-              },
-            ]"
-            class="nc-base-menu-item group"
-          >
-            <UploadIcon class="w-4 h-4" />
-            {{ $t('general.upload') }}
-          </div>
-        </template>
-
-        <template #expandIcon></template>
-        <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('activity.uploadData') }}</div>
-
-        <template v-for="(dialog, type) in quickImportDialogs">
-          <NcMenuItem v-if="isUIAllowed(`${type}TableImport`) && !isPublicView" :key="type" @click="onImportClick(dialog)">
+    <template v-if="view.type !== ViewTypes.FORM">
+      <template v-if="isUIAllowed('csvTableImport') && !isPublicView">
+        <NcSubMenu key="upload">
+          <template #title>
             <div
               v-e="[
-                `a:upload:${type}`,
+                'c:navdraw:preview-as',
                 {
                   sidebar: props.inSidebar,
                 },
               ]"
-              class="nc-base-menu-item"
-              :class="{ disabled: isLocked }"
+              class="nc-base-menu-item group"
             >
-              <component :is="iconMap.upload" />
-              {{ `${$t('general.upload')} ${type.toUpperCase()}` }}
+              <UploadIcon class="w-4 h-4" />
+              {{ $t('general.upload') }}
             </div>
-          </NcMenuItem>
-        </template>
-      </NcSubMenu>
-    </template>
-    <NcSubMenu key="download">
-      <template #title>
-        <div
-          v-e="[
-            'c:download',
-            {
-              sidebar: props.inSidebar,
-            },
-          ]"
-          class="nc-base-menu-item group nc-view-context-download-option"
-        >
-          <DownloadIcon class="w-4 h-4" />
-          {{ $t('general.download') }}
-        </div>
+          </template>
+
+          <template #expandIcon></template>
+          <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('activity.uploadData') }}</div>
+
+          <template v-for="(dialog, type) in quickImportDialogs">
+            <NcMenuItem v-if="isUIAllowed(`${type}TableImport`) && !isPublicView" :key="type" @click="onImportClick(dialog)">
+              <div
+                v-e="[
+                  `a:upload:${type}`,
+                  {
+                    sidebar: props.inSidebar,
+                  },
+                ]"
+                class="nc-base-menu-item"
+                :class="{ disabled: isLocked }"
+              >
+                <component :is="iconMap.upload" />
+                {{ `${$t('general.upload')} ${type.toUpperCase()}` }}
+              </div>
+            </NcMenuItem>
+          </template>
+        </NcSubMenu>
       </template>
+      <NcSubMenu key="download">
+        <template #title>
+          <div
+            v-e="[
+              'c:download',
+              {
+                sidebar: props.inSidebar,
+              },
+            ]"
+            class="nc-base-menu-item group nc-view-context-download-option"
+          >
+            <DownloadIcon class="w-4 h-4" />
+            {{ $t('general.download') }}
+          </div>
+        </template>
 
-      <template #expandIcon></template>
+        <template #expandIcon></template>
 
-      <LazySmartsheetToolbarExportSubActions />
-    </NcSubMenu>
-
-    <NcDivider />
+        <LazySmartsheetToolbarExportSubActions />
+      </NcSubMenu>
+      <NcDivider />
+    </template>
 
     <NcSubMenu v-if="isUIAllowed('viewCreateOrEdit')" key="lock-type" class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0">
       <template #title>

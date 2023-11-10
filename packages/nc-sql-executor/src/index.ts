@@ -53,123 +53,119 @@ const BodyJsonSchema = {
   },
 };
 
-fastify.post(
-  '/query/:sourceId',
-  {
-    schema: {
-      body: BodyJsonSchema,
-    },
-  },
-  async (req, res) => {
-    const { query: queries, config, raw = false } = req.body as any;
+async function queryHandler(req, res) {
+  const { query: queries, config, raw = false } = req.body as any;
 
-    const { sourceId } = req.params as any;
+  const { sourceId = null } = req.params as any;
 
-    const query = queries.length === 1 ? queries[0] : queries;
+  const query = queries.length === 1 ? queries[0] : queries;
 
-    const { pool, ...configWithoutPool } = config;
+  const { pool, ...configWithoutPool } = config;
 
-    const connectionKey = hash(configWithoutPool);
+  const connectionKey = hash(configWithoutPool);
 
-    let fromPool = true;
+  let fromPool = true;
 
-    if (!connectionPools[connectionKey]) {
-      if (dynamicPoolSize) {
-        // mysql SHOW VARIABLES LIKE 'max_connections'; { Variable_name: 'max_connections', Value: '151' }
-        // pg SHOW max_connections; { max_connections: '100' }
-        const tempKnex = knex({ ...config, pool: { min: 0, max: 1 } });
-        let maxConnections;
-        if (config.client === 'mysql2' || config.client === 'mysql') {
-          maxConnections = (
-            await tempKnex.raw("SHOW VARIABLES LIKE 'max_connections'")
-          )?.[0]?.[0]?.Value;
-        } else if (config.client === 'pg') {
-          maxConnections = (await tempKnex.raw('SHOW max_connections'))
-            .rows?.[0]?.max_connections;
-        }
-        tempKnex.destroy();
-
-        // use dynamicPoolPercent of maxConnections
-        const poolSize = Math.floor(
-          (parseInt(maxConnections || 20) * dynamicPoolPercent) / 100,
-        );
-
-        // console.log('Max connections: ', maxConnections);
-        // console.log('Pool size: ', poolSize);
-
-        connectionPools[connectionKey] = knex({
-          ...config,
-          pool: { min: 0, max: poolSize },
-        });
-      } else {
-        connectionPools[connectionKey] = knex(config);
+  if (!connectionPools[connectionKey]) {
+    if (dynamicPoolSize) {
+      // mysql SHOW VARIABLES LIKE 'max_connections'; { Variable_name: 'max_connections', Value: '151' }
+      // pg SHOW max_connections; { max_connections: '100' }
+      const tempKnex = knex({ ...config, pool: { min: 0, max: 1 } });
+      let maxConnections;
+      if (config.client === 'mysql2' || config.client === 'mysql') {
+        maxConnections = (
+          await tempKnex.raw("SHOW VARIABLES LIKE 'max_connections'")
+        )?.[0]?.[0]?.Value;
+      } else if (config.client === 'pg') {
+        maxConnections = (await tempKnex.raw('SHOW max_connections'))
+          .rows?.[0]?.max_connections;
       }
-      fromPool = false;
+      tempKnex.destroy();
 
+      // use dynamicPoolPercent of maxConnections
+      const poolSize = Math.floor(
+        (parseInt(maxConnections || 20) * dynamicPoolPercent) / 100,
+      );
+
+      // console.log('Max connections: ', maxConnections);
+      // console.log('Pool size: ', poolSize);
+
+      connectionPools[connectionKey] = knex({
+        ...config,
+        pool: { min: 0, max: poolSize },
+      });
+    } else {
+      connectionPools[connectionKey] = knex(config);
+    }
+    fromPool = false;
+
+    if (sourceId) {
       connectionStats[sourceId] = {
         createdAt: dayjs().format('YYYY-MM-DD HH:mm:ssZ'),
         queries: 0,
       };
     }
+  }
 
-    /*
-    const knexPool = connectionPools[connectionKey].client.pool;
+  /*
+  const knexPool = connectionPools[connectionKey].client.pool;
 
-    console.log(`\n
-      Connections in use: ${knexPool.numUsed()}\n
-      Connections free: ${knexPool.numFree()}\n
-      Acquiring: ${knexPool.numPendingAcquires()}\n
-      Creating: ${knexPool.numPendingCreates()}\n
-      ${dayjs().format('YYYY-MM-DD HH:mm:ssZ')} (${fromPool ? 'pool' : 'fresh'})\n
-    `);
-    */
+  console.log(`\n
+    Connections in use: ${knexPool.numUsed()}\n
+    Connections free: ${knexPool.numFree()}\n
+    Acquiring: ${knexPool.numPendingAcquires()}\n
+    Creating: ${knexPool.numPendingCreates()}\n
+    ${dayjs().format('YYYY-MM-DD HH:mm:ssZ')} (${fromPool ? 'pool' : 'fresh'})\n
+  `);
+  */
 
-    let result;
+  let result;
 
-    try {
-      if (Array.isArray(query)) {
-        const trx = await connectionPools[connectionKey].transaction();
-        const responses = [];
-        try {
-          for (const q of query) {
-            if (raw) {
-              responses.push(await trx.raw(q));
-            } else {
-              responses.push(
-                config.client === 'pg' || config.client === 'snowflake'
-                  ? (await trx.raw(q))?.rows
-                  : q.slice(0, 6) === 'select' && config.client !== 'mssql'
-                    ? await trx.from(trx.raw(q).wrap('(', ') __nc_alias'))
-                    : await trx.raw(q),
-              );
-            }
+  try {
+    if (Array.isArray(query)) {
+      const trx = await connectionPools[connectionKey].transaction();
+      const responses = [];
+      try {
+        for (const q of query) {
+          if (raw) {
+            responses.push(await trx.raw(q));
+          } else {
+            responses.push(
+              config.client === 'pg' || config.client === 'snowflake'
+                ? (await trx.raw(q))?.rows
+                : q.slice(0, 6) === 'select' && config.client !== 'mssql'
+                  ? await trx.from(trx.raw(q).wrap('(', ') __nc_alias'))
+                  : await trx.raw(q),
+            );
           }
-          await trx.commit();
-          result = responses;
-        } catch (e) {
-          await trx.rollback();
-          console.error(e);
-          return res.status(500).send({
-            error: e.message,
-          });
         }
-      } else {
-        if (raw) {
-          result = await connectionPools[connectionKey].raw(query);
-        } else {
-          result =
-            config.client === 'pg' || config.client === 'snowflake'
-              ? (await connectionPools[connectionKey].raw(query))?.rows
-              : query.slice(0, 6) === 'select' && config.client !== 'mssql'
-                ? await connectionPools[connectionKey].from(
-                  connectionPools[connectionKey]
-                    .raw(query)
-                    .wrap('(', ') __nc_alias'),
-                )
-                : await connectionPools[connectionKey].raw(query);
-        }
+        await trx.commit();
+        result = responses;
+      } catch (e) {
+        await trx.rollback();
+        console.error(e);
+        return res.status(500).send({
+          error: e.message,
+        });
       }
+    } else {
+      if (raw) {
+        result = await connectionPools[connectionKey].raw(query);
+      } else {
+        result =
+          config.client === 'pg' || config.client === 'snowflake'
+            ? (await connectionPools[connectionKey].raw(query))?.rows
+            : query.slice(0, 6) === 'select' && config.client !== 'mssql'
+              ? await connectionPools[connectionKey].from(
+                connectionPools[connectionKey]
+                  .raw(query)
+                  .wrap('(', ') __nc_alias'),
+              )
+              : await connectionPools[connectionKey].raw(query);
+      }
+    }
 
+    if (sourceId) {
       if (connectionStats[sourceId]) {
         connectionStats[sourceId].queries++;
         connectionStats[sourceId].lastQueryAt = dayjs().format(
@@ -182,18 +178,38 @@ fastify.post(
           shared: true,
         };
       }
-    } catch (e) {
-      console.error('\nQuery failed with error:');
-      console.error(query);
-      console.error(e);
-      console.error('\n');
-      return res.status(500).send({
-        error: e.message,
-      });
     }
+  } catch (e) {
+    console.error('\nQuery failed with error:');
+    console.error(query);
+    console.error(e);
+    console.error('\n');
+    return res.status(500).send({
+      error: e.message,
+    });
+  }
 
-    res.send(result);
+  res.send(result);
+}
+
+fastify.post(
+  '/query',
+  {
+    schema: {
+      body: BodyJsonSchema,
+    },
   },
+  queryHandler,
+);
+
+fastify.post(
+  '/query/:sourceId',
+  {
+    schema: {
+      body: BodyJsonSchema,
+    },
+  },
+  queryHandler,
 );
 
 fastify.get('/api/v1/health', async (req, res) => {

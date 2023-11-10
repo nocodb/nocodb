@@ -11,7 +11,6 @@ import {
   toRef,
   useProvideSmartsheetRowStore,
   useSmartsheetStoreOrThrow,
-  watch,
 } from '#imports'
 
 const props = defineProps<{

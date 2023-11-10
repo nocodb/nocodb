@@ -2608,23 +2608,37 @@ class BaseModelSqlv2 {
         if (response?.length) {
           rowId = response[0];
         } else {
-          rowId = (await query)[0];
+          rowId = await this.execAndParse(query, null, {
+            raw: true,
+            first: true,
+          });
         }
 
         if (ai) {
           if (this.isSqlite) {
             // sqlite doesnt return id after insert
             rowId = (
-              await this.dbDriver(this.tnPath)
-                .select(ai.column_name)
-                .max(ai.column_name, { as: 'id' })
-            )[0].id;
+              await this.execAndParse(
+                this.dbDriver(this.tnPath)
+                  .select(ai.column_name)
+                  .max(ai.column_name, { as: 'id' }),
+                null,
+                {
+                  raw: true,
+                  first: true,
+                },
+              )
+            )?.id;
           } else if (this.isSnowflake) {
             rowId = (
-              (await this.dbDriver(this.tnPath).max(ai.column_name, {
-                as: 'id',
-              })) as any
-            ).rows[0].id;
+              await this.execAndParse(
+                this.dbDriver(this.tnPath).max(ai.column_name, {
+                  as: 'id',
+                }),
+                null,
+                { raw: true, first: true },
+              )
+            )?.id;
           }
           // response = await this.readByPk(
           //   id,
@@ -3144,14 +3158,10 @@ class BaseModelSqlv2 {
         await conditionV2(this, conditionObj, qb);
 
         count = (
-          await this.execAndParse(
-            qb.clone().count('*', { as: 'count' }),
-            null,
-            {
-              raw: true,
-              first: true,
-            },
-          )
+          await this.execAndParse(qb.clone().count(), null, {
+            raw: true,
+            first: true,
+          })
         )?.count;
 
         qb.update(updateData);

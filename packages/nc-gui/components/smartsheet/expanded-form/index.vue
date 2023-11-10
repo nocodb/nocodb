@@ -41,6 +41,7 @@ interface Props {
   showNextPrevIcons?: boolean
   firstRow?: boolean
   lastRow?: boolean
+  closeAfterSave?: boolean
 }
 
 const props = defineProps<Props>()
@@ -202,6 +203,10 @@ const save = async () => {
     reloadTrigger?.trigger()
   }
   isUnsavedFormExist.value = false
+
+  if (props.closeAfterSave) {
+    isExpanded.value = false
+  }
 }
 
 const isPreventChangeModalOpen = ref(false)

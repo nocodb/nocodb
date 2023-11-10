@@ -52,9 +52,9 @@ async function runExternal(
     throw new Error('External DB config not found');
   }
 
-  const { sqlExecutor, ...rest } = config;
+  const { sqlExecutor, sourceId, ...rest } = config;
 
-  const { data } = await axios.post(`${sqlExecutor}/query`, {
+  const { data } = await axios.post(`${sqlExecutor}/query/${sourceId}`, {
     query,
     config: rest,
     ...extraOptions,

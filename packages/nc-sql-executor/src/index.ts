@@ -16,9 +16,17 @@ const fastify = Fastify({
 
 fastify.register(fastifyStatic, {
   root: path.join(__dirname, 'public'),
-})
+});
 
-const connectionPools: { [key: string]: Knex } = {};
+const connectionPools: { [key: string]: Knex; } = {};
+const connectionStats: {
+  [key: string]: {
+    queries: number;
+    createdAt: string;
+    lastQueryAt?: string;
+    shared?: boolean;
+  };
+} = {};
 const dynamicPoolSize = process.env.DYNAMIC_POOL_SIZE === 'true';
 const dynamicPoolPercent = process.env.DYNAMIC_POOL_PERCENT
   ? parseInt(process.env.DYNAMIC_POOL_PERCENT)
@@ -41,11 +49,12 @@ const BodyJsonSchema = {
       required: ['client', 'connection'],
     },
     raw: { type: 'boolean' },
+    sourceId: { type: 'string' },
   },
 };
 
 fastify.post(
-  '/query',
+  '/query/:sourceId',
   {
     schema: {
       body: BodyJsonSchema,
@@ -53,6 +62,8 @@ fastify.post(
   },
   async (req, res) => {
     const { query: queries, config, raw = false } = req.body as any;
+
+    const { sourceId } = req.params as any;
 
     const query = queries.length === 1 ? queries[0] : queries;
 
@@ -94,6 +105,11 @@ fastify.post(
         connectionPools[connectionKey] = knex(config);
       }
       fromPool = false;
+
+      connectionStats[sourceId] = {
+        createdAt: dayjs().format('YYYY-MM-DD HH:mm:ssZ'),
+        queries: 0,
+      };
     }
 
     /*
@@ -123,8 +139,8 @@ fastify.post(
                 config.client === 'pg' || config.client === 'snowflake'
                   ? (await trx.raw(q))?.rows
                   : q.slice(0, 6) === 'select' && config.client !== 'mssql'
-                  ? await trx.from(trx.raw(q).wrap('(', ') __nc_alias'))
-                  : await trx.raw(q),
+                    ? await trx.from(trx.raw(q).wrap('(', ') __nc_alias'))
+                    : await trx.raw(q),
               );
             }
           }
@@ -145,13 +161,26 @@ fastify.post(
             config.client === 'pg' || config.client === 'snowflake'
               ? (await connectionPools[connectionKey].raw(query))?.rows
               : query.slice(0, 6) === 'select' && config.client !== 'mssql'
-              ? await connectionPools[connectionKey].from(
+                ? await connectionPools[connectionKey].from(
                   connectionPools[connectionKey]
                     .raw(query)
                     .wrap('(', ') __nc_alias'),
                 )
-              : await connectionPools[connectionKey].raw(query);
+                : await connectionPools[connectionKey].raw(query);
         }
+      }
+
+      if (connectionStats[sourceId]) {
+        connectionStats[sourceId].queries++;
+        connectionStats[sourceId].lastQueryAt = dayjs().format(
+          'YYYY-MM-DD HH:mm:ssZ',
+        );
+      } else {
+        connectionStats[sourceId] = {
+          createdAt: dayjs().format('YYYY-MM-DD HH:mm:ssZ'),
+          queries: 1,
+          shared: true,
+        };
       }
     } catch (e) {
       console.error('\nQuery failed with error:');
@@ -175,6 +204,10 @@ fastify.get('/api/v1/health', async (req, res) => {
   });
 });
 
+fastify.get('/metrics', async (req, res) => {
+  res.status(200).send(connectionStats);
+});
+
 fastify.listen(
   { port: +process.env.PORT || 9000, host: process.env.HOST || 'localhost' },
   function (err) {
@@ -183,8 +216,7 @@ fastify.listen(
       process.exit(1);
     }
     console.log(
-      `Server listening on ${process.env.HOST || 'localhost'}:${
-        +process.env.PORT || 9000
+      `Server listening on ${process.env.HOST || 'localhost'}:${+process.env.PORT || 9000
       }`,
     );
   },

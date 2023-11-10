@@ -57,8 +57,6 @@ export class WorkspacesController {
       user: req.user,
     });
 
-    workspace.roles = req.user?.roles;
-
     const workspaceUserCount = await this.workspaceUserService.count({
       workspaceId,
     });

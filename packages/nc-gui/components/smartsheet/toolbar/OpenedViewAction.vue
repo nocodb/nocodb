@@ -20,7 +20,7 @@ const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
-const isOpen = ref(false)
+const isDropdownOpen = ref(false)
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
@@ -77,6 +77,7 @@ const onViewIdCopy = async () => {
 /** Duplicate a view */
 // todo: This is not really a duplication, maybe we need to implement a true duplication?
 function onDuplicate() {
+  isDropdownOpen.value = false
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgViewCreate'), {
@@ -85,6 +86,7 @@ function onDuplicate() {
     'type': activeView.value!.type as ViewTypes,
     'tableId': activeTable.value!.id,
     'selectedViewId': activeView.value!.id,
+    'groupingFieldColumnId': activeView.value!.view!.fk_grp_col_id,
     'views': views,
     'onUpdate:modelValue': closeDialog,
     'onCreated': async (view: ViewType) => {
@@ -115,7 +117,7 @@ function onDuplicate() {
   }
 }
 
-watch(isOpen, () => {
+watch(isDropdownOpen, () => {
   setTimeout(() => {
     isViewIdCopied.value = false
   }, 250)
@@ -123,7 +125,7 @@ watch(isOpen, () => {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isOpen">
+  <NcDropdown v-model:visible="isDropdownOpen">
     <div
       class="truncate nc-active-view-title !hover:(bg-gray-100 text-gray-800) ml-0.25 pl-1 pr-0.25 rounded-md py-1 cursor-pointer"
       :class="{
@@ -232,7 +234,7 @@ watch(isOpen, () => {
             </template>
 
             <template #expandIcon></template>
-            <div class="flex py-3 px-4 font-semibold uppercase text-xs text-gray-500">View Settings</div>
+            <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">View Settings</div>
             <NcMenuItem class="nc-view-action-lock-subaction" @click="changeLockType(LockType.Collaborative)">
               <LazySmartsheetToolbarLockType :type="LockType.Collaborative" />
             </NcMenuItem>

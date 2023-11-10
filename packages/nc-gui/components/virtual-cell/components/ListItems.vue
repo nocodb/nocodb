@@ -354,6 +354,13 @@ const addNewRecord = () => {
         :state="newRowState"
         use-meta-fields
         :close-after-save="isExpandedFormCloseAfterSave"
+        :new-record-header="
+          isExpandedFormCloseAfterSave
+            ? $t('activity.tableNameCreateNewRecord', {
+                tableName: relatedTableMeta?.title,
+              })
+            : undefined
+        "
       />
     </Suspense>
   </NcModal>

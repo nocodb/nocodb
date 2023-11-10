@@ -795,6 +795,7 @@
     "linkRecord": "Link record",
     "addNewRecord": "Add new record",
     "newRecord": "New record",
+    "tableNameCreateNewRecord": "{tableName}: Create new record",
     "useConnectionUrl": "Use Connection URL",
     "toggleCommentsDraw": "Toggle comments draw",
     "expandRecord": "Expand Record",

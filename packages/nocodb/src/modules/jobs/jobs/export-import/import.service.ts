@@ -2,7 +2,7 @@ import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import papaparse from 'papaparse';
 import debug from 'debug';
-import { isLinksOrLTAR } from 'nocodb-sdk';
+import { isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk';
 import { elapsedTime, initTime } from '../../helpers';
 import type { Readable } from 'stream';
 import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
@@ -127,12 +127,7 @@ export class ImportService {
       const modelData = data.model;
 
       const reducedColumnSet = modelData.columns.filter(
-        (a) =>
-          !isLinksOrLTAR(a) &&
-          a.uidt !== UITypes.Lookup &&
-          a.uidt !== UITypes.Rollup &&
-          a.uidt !== UITypes.Formula &&
-          a.uidt !== UITypes.ForeignKey,
+        (a) => !isVirtualCol(a) && a.uidt !== UITypes.ForeignKey,
       );
 
       // create table with static columns
@@ -738,7 +733,9 @@ export class ImportService {
           (a) =>
             a.uidt === UITypes.Lookup ||
             a.uidt === UITypes.Rollup ||
-            a.uidt === UITypes.Formula,
+            a.uidt === UITypes.Formula ||
+            a.uidt === UITypes.QrCode ||
+            a.uidt === UITypes.Barcode,
         ),
       );
     }
@@ -763,6 +760,12 @@ export class ImportService {
             ...col.colOptions.formula.match(/(?<=\{\{).*?(?=\}\})/gm),
           );
         }
+      }
+      if (col.colOptions?.fk_qr_value_column_id) {
+        relatedColIds.push(col.colOptions.fk_qr_value_column_id);
+      }
+      if (col.colOptions?.fk_barcode_value_column_id) {
+        relatedColIds.push(col.colOptions.fk_barcode_value_column_id);
       }
 
       // find the last related column in the sorted array
@@ -846,6 +849,48 @@ export class ImportService {
             ...flatCol,
             ...{
               formula_raw: colOptions.formula_raw,
+            },
+          }) as any,
+          req: param.req,
+          user: param.user,
+        });
+
+        for (const nColumn of freshModelData.columns) {
+          if (nColumn.title === col.title) {
+            idMap.set(col.id, nColumn.id);
+            break;
+          }
+        }
+      } else if (col.uidt === UITypes.QrCode) {
+        const freshModelData = await this.columnsService.columnAdd({
+          tableId: getIdOrExternalId(getParentIdentifier(col.id)),
+          column: withoutId({
+            ...flatCol,
+            ...{
+              fk_qr_value_column_id: getIdOrExternalId(
+                colOptions.fk_qr_value_column_id,
+              ),
+            },
+          }) as any,
+          req: param.req,
+          user: param.user,
+        });
+
+        for (const nColumn of freshModelData.columns) {
+          if (nColumn.title === col.title) {
+            idMap.set(col.id, nColumn.id);
+            break;
+          }
+        }
+      } else if (col.uidt === UITypes.Barcode) {
+        const freshModelData = await this.columnsService.columnAdd({
+          tableId: getIdOrExternalId(getParentIdentifier(col.id)),
+          column: withoutId({
+            ...flatCol,
+            ...{
+              fk_barcode_value_column_id: getIdOrExternalId(
+                colOptions.fk_barcode_value_column_id,
+              ),
             },
           }) as any,
           req: param.req,

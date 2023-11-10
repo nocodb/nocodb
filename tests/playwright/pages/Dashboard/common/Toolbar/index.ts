@@ -195,13 +195,7 @@ export class ToolbarPage extends BasePage {
   }
 
   async verifyDownloadDisabled() {
-    await this.rootPage.locator(`.nc-view-context-btn`).click();
-
-    await this.rootPage.waitForTimeout(500);
-
-    await this.rootPage.locator(`.nc-view-context-download-option`).waitFor({ state: 'hidden' });
-
-    await this.rootPage.locator(`.nc-view-context-btn`).click();
+    await this.get().locator(`.nc-toolbar-btn.nc-actions-menu-btn`).waitFor({ state: 'hidden' });
   }
 
   async clickAddEditStack() {

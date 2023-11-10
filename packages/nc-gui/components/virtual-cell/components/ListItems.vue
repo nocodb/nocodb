@@ -55,6 +55,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const isExpandedFormCloseAfterSave = ref(false)
 
+const createdRecord = ref()
+
 isChildrenExcludedLoading.value = true
 
 const isForm = inject(IsFormInj, ref(false))
@@ -165,6 +167,8 @@ watch(expandedFormDlg, () => {
       loadChildrenList()
     }
     loadChildrenExcludedList(rowState.value)
+  } else {
+    createdRecord.value = undefined
   }
 })
 
@@ -186,6 +190,14 @@ const addNewRecord = () => {
   expandedFormDlg.value = true
   isExpandedFormCloseAfterSave.value = true
 }
+
+const onCreatedRecord = (record: any) => {
+  createdRecord.value = record
+
+  setTimeout(() => {
+    createdRecord.value = undefined
+  }, 2000)
+}
 </script>
 
 <template>
@@ -206,7 +218,23 @@ const addNewRecord = () => {
       :display-value="row.row[displayValueProp]"
       :header="$t('activity.addNewLink')"
     />
-    <div class="!xs:hidden my-3 bg-gray-50 border-gray-50 border-b-2"></div>
+    <div class="relative !xs:hidden my-3 bg-gray-50 border-gray-50 border-b-2">
+      <div v-if="createdRecord" class="absolute flex flex-row justify-center left-0 right-0 -top-3">
+        <div class="flex text-green-500 bg-green-100 pl-1.5 pr-0.75 py-0.5 rounded-md items-center">
+          <div>
+            {{
+              $t('activity.gotSavedLinkedSuccessfully', {
+                tableName: relatedTableMeta?.title,
+                recordTitle: createdRecord?.[relatedTableDisplayValueProp],
+              })
+            }}
+          </div>
+          <NcButton size="xxsmall" type="text" class="ml-1 !h-5.5 !w-4 !hover:(bg-green-200 text-gray-800)">
+            <GeneralIcon icon="close" class="text-gray-500 !text-xs !h-3.5 !w-3.5" @click="createdRecord = undefined" />
+          </NcButton>
+        </div>
+      </div>
+    </div>
     <div class="flex mt-2 mb-2 items-center gap-2">
       <div
         class="flex items-center border-1 p-1 rounded-md w-full border-gray-200"
@@ -361,6 +389,7 @@ const addNewRecord = () => {
               })
             : undefined
         "
+        @created-record="onCreatedRecord"
       />
     </Suspense>
   </NcModal>

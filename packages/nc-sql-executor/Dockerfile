@@ -15,6 +15,8 @@ RUN npm install
 # Build the application
 RUN npm run build
 
+COPY ./src/public ./dist/public
+
 # Expose the port that the application will run on
 EXPOSE 9000
 

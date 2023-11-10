@@ -708,6 +708,8 @@
     "inviteTeam": "Invite Team",
     "inviteUser": "Invite User",
     "inviteToken": "Invite Token",
+    "linkedRecords": "Linked Records",
+    "addNewLink": "Add New Link",
     "newUser": "New User",
     "editUser": "Edit user",
     "deleteUser": "Remove user from base",

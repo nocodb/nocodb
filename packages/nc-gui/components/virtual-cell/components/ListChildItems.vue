@@ -192,7 +192,7 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
       :relation="relation"
       :linked-records="childrenListCount"
       :table-title="meta?.title"
-      :show-header="true"
+      :header="$t('activity.linkedRecords')"
       :related-table-title="relatedTableMeta?.title"
       :display-value="row.row[displayValueProp]"
     />

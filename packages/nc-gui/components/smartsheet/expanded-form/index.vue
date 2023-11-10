@@ -495,13 +495,16 @@ export default {
             <div v-if="isLoading">
               <a-skeleton-input class="!h-8 !sm:mr-14 !w-52 mt-1 !rounded-md !overflow-hidden" active size="small" />
             </div>
+            <div
+              v-if="row.rowMeta?.new || props.newRecordHeader"
+              class="flex items-center truncate font-bold text-gray-800 text-xl"
+            >
+              {{ props.newRecordHeader ?? $t('activity.newRecord') }}
+            </div>
             <div v-else-if="displayValue && !row.rowMeta?.new" class="flex items-center font-bold text-gray-800 text-xl w-64">
               <span class="truncate">
                 {{ displayValue }}
               </span>
-            </div>
-            <div v-if="row.rowMeta?.new" class="flex items-center truncate font-bold text-gray-800 text-xl">
-              {{ props.newRecordHeader ?? $t('activity.newRecord') }}
             </div>
           </div>
           <div class="flex gap-2">

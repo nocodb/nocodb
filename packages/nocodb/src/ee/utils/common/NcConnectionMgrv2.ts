@@ -134,6 +134,7 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
       },
       {
         sqlExecutor: se.domain,
+        sourceId: source.id,
         client,
         connection,
         // searchPath,

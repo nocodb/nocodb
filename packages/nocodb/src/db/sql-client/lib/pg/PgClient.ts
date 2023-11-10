@@ -575,19 +575,20 @@ class PGClient extends KnexClient {
       );
 
       if (exists.rows.length === 0) {
-        const data = await this.sqlClient.schema.createTable(
-          args.tn,
-          function (table) {
-            table.increments();
-            table.string('title').notNullable();
-            table.string('titleDown').nullable();
-            table.string('description').nullable();
-            table.integer('batch').nullable();
-            table.string('checksum').nullable();
-            table.integer('status').nullable();
-            table.dateTime('created');
-            table.timestamps();
-          },
+        const data = await this.sqlClient.raw(
+          this.sqlClient.schema
+            .createTable(args.tn, function (table) {
+              table.increments();
+              table.string('title').notNullable();
+              table.string('titleDown').nullable();
+              table.string('description').nullable();
+              table.integer('batch').nullable();
+              table.string('checksum').nullable();
+              table.integer('status').nullable();
+              table.dateTime('created');
+              table.timestamps();
+            })
+            .toQuery(),
         );
         log.debug('Table created:', `${args.tn}`, data);
       } else {
@@ -1039,11 +1040,12 @@ class PGClient extends KnexClient {
     try {
       // const self = this;
 
-      await this.sqlClient.schema.table(
-        args.childTableWithSchema,
-        function (table) {
-          table.dropForeign(args.childColumn, foreignKeyName);
-        },
+      await this.sqlClient.raw(
+        this.sqlClient.schema
+          .table(args.childTableWithSchema, function (table) {
+            table.dropForeign(args.childColumn, foreignKeyName);
+          })
+          .toQuery(),
       );
 
       const upStatement =
@@ -1056,14 +1058,14 @@ class PGClient extends KnexClient {
 
       const downStatement =
         this.querySeparator() +
-        (await this.sqlClient.schema
+        this.sqlClient.schema
           .table(args.childTableWithSchema, function (table) {
             table
               .foreign(args.childColumn, foreignKeyName)
               .references(args.parentColumn)
               .on(args.parentTableWithSchema);
           })
-          .toQuery());
+          .toQuery();
 
       result.data.object = {
         upStatement: [{ sql: upStatement }],
@@ -2507,9 +2509,8 @@ class PGClient extends KnexClient {
       relationsList = relationsList.data.list;
 
       for (const relation of relationsList) {
-        downQuery +=
-          this.querySeparator() +
-          (await this.sqlClient.schema
+        const query = this.sqlClient.raw(
+          this.sqlClient.schema
             .table(relation.tn, function (table) {
               table = table
                 .foreign(relation.cn, null)
@@ -2523,7 +2524,12 @@ class PGClient extends KnexClient {
                 table.onDelete(relation.dr);
               }
             })
-            .toQuery());
+            .toQuery(),
+        );
+
+        downQuery += this.querySeparator() + query;
+
+        await query;
       }
 
       let indexList: any = await this.indexList(args);
@@ -2565,7 +2571,9 @@ class PGClient extends KnexClient {
       this.emit(`Success : ${upStatement}`);
 
       /** ************** drop tn *************** */
-      await this.sqlClient.schema.dropTable(args.tn);
+      await this.sqlClient.raw(
+        this.sqlClient.schema.dropTable(args.tn).toQuery(),
+      );
 
       /** ************** return files *************** */
       result.data.object = {
@@ -2989,9 +2997,13 @@ class PGClient extends KnexClient {
       args.table = args.tn;
 
       /** ************** create table *************** */
-      await this.sqlClient.schema.renameTable(
-        this.sqlClient.raw('??.??', [this.schema, args.tn_old]),
-        args.tn,
+      await this.sqlClient.raw(
+        this.sqlClient.schema
+          .renameTable(
+            this.sqlClient.raw('??.??', [this.schema, args.tn_old]),
+            args.tn,
+          )
+          .toQuery(),
       );
 
       /** ************** create up & down statements *************** */

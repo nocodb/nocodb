@@ -18,7 +18,7 @@ export class MetaDataPage extends BasePage {
     // todo: Remove this wait
     await this.rootPage.waitForTimeout(100);
     // await this.get().locator(`.animate-spin`).waitFor({state: 'visible'});
-    await this.get().locator(`.animate-spin`).waitFor({ state: 'detached' });
+    await this.get().locator(`.animate-spin`).waitFor({ state: 'detached', timeout: 10000 });
   }
 
   async close() {
@@ -32,7 +32,7 @@ export class MetaDataPage extends BasePage {
     await this.get().locator(`button:has-text("Sync Now")`).click();
     await this.verifyToast({ message: 'Table metadata recreated successfully' });
     await this.get().locator(`.animate-spin`).waitFor({ state: 'visible' });
-    await this.get().locator(`.animate-spin`).waitFor({ state: 'detached' });
+    await this.get().locator(`.animate-spin`).waitFor({ state: 'detached', timeout: 10000 });
   }
 
   async verifyRow({ index, model, state }: { index: number; model: string; state: string }) {

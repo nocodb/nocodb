@@ -9,6 +9,10 @@ export interface AppInfo {
   authType: 'jwt' | 'none'
   connectToExternalDB: boolean
   defaultLimit: number
+  defaultGroupByLimit: {
+    limitGroup: number
+    limitRecord: number
+  }
   firstUser: boolean
   githubAuthEnabled: boolean
   googleAuthEnabled: boolean

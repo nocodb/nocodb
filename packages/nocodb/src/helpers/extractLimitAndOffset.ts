@@ -4,6 +4,11 @@ export const defaultLimitConfig = {
   limitMax: Math.max(+process.env.DB_QUERY_LIMIT_MAX || 1000, 1),
 };
 
+export const defaultGroupByLimitConfig = {
+  limitGroup: Math.max(+process.env.DB_QUERY_LIMIT_GROUP_BY_GROUP || 10, 1),
+  limitRecord: Math.max(+process.env.DB_QUERY_LIMIT_GROUP_BY_RECORD || 10, 1),
+};
+
 export function extractLimitAndOffset(
   args: {
     limit?: number | string;

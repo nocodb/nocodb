@@ -1837,7 +1837,9 @@ export class ColumnsService {
         id: param.source.base_id,
       }),
     );
-    const isLinks = param.column.uidt === UITypes.Links;
+    const isLinks =
+      param.column.uidt === UITypes.Links ||
+      (param.column as LinkToAnotherColumnReqType).type === 'bt';
 
     // if xcdb base then treat as virtual relation to avoid creating foreign key
     if (param.source.isMeta()) {

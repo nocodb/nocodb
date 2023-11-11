@@ -133,10 +133,12 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
         authProvider = 'oidc'
       }
 
+      // `extra` prop is used in our cloud implementation, so we are keeping it
       const {
         data: { token, extra },
       } = await api.instance.post(`/auth/${authProvider}/genTokenByCode${window.location.search}`)
 
+      // if extra prop is null/undefined set it as an empty object as fallback
       extraProps = extra || {}
 
       signIn(token)

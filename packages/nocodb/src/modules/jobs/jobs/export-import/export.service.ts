@@ -577,6 +577,7 @@ export class ExportService {
           view,
           query: { limit, offset, fields },
           baseModel,
+          ignoreViewFilterAndSort: true,
         })
         .then((result) => {
           try {
@@ -625,6 +626,7 @@ export class ExportService {
           view,
           query: { limit, offset, fields },
           baseModel,
+          ignoreViewFilterAndSort: true,
         })
         .then((result) => {
           try {

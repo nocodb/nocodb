@@ -359,7 +359,7 @@ class BaseModelSqlv2 {
       qb.orderBy('created_at');
     }
 
-    if (!ignoreViewFilterAndSort) applyPaginate(qb, rest);
+    applyPaginate(qb, rest);
     const proto = await this.getProto();
 
     let data;

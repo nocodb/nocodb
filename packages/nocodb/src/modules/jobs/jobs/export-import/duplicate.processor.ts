@@ -236,7 +236,7 @@ export class DuplicateProcessor {
 
     const hrTime = initTime();
 
-    const { baseId, sourceId, columnId, req, options } = job.data;
+    const { baseId, sourceId, columnId, extra, req, options } = job.data;
 
     const excludeData = options?.excludeData || false;
 
@@ -308,6 +308,7 @@ export class DuplicateProcessor {
 
     replacedColumn.title = title;
     replacedColumn.column_name = title.toLowerCase().replace(/ /g, '_');
+    Object.assign(replacedColumn, extra);
 
     const idMap = await this.importService.importModels({
       baseId,

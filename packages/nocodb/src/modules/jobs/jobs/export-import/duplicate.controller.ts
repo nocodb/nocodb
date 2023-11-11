@@ -233,6 +233,7 @@ export class DuplicateController {
       options?: {
         excludeData?: boolean;
       };
+      extra?: any;
     },
   ) {
     const base = await Base.get(baseId);
@@ -262,6 +263,7 @@ export class DuplicateController {
       modelId: model.id,
       columnId: column.id,
       options: body.options || {},
+      extra: body.extra || {},
       req: {
         user: req.user,
         clientIp: req.clientIp,

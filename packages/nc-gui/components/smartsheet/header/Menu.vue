@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { ColumnType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   ColumnInj,
@@ -112,12 +112,84 @@ const sortByColumn = async (direction: 'asc' | 'desc') => {
 
 const isDuplicateDlgOpen = ref(false)
 const selectedColumnToDuplicate = ref<ColumnType>()
+const selectedColumnExtra = ref<any>()
 
-const openDuplicateDlg = () => {
-  if (!column?.value) return
-  selectedColumnToDuplicate.value = column.value
-  isDuplicateDlgOpen.value = true
+const duplicateVirtualColumn = async () => {
+  let columnCreatePayload = {}
+
+  // generate duplicate column title
+  const duplicateColumnTitle = getUniqueColumnName(`${column!.value.title} copy`, meta!.value!.columns!)
+
+  columnCreatePayload = {
+    ...column!.value!,
+    ...(column!.value.colOptions ?? {}),
+    title: duplicateColumnTitle,
+    column_name: duplicateColumnTitle.replace(/\s/g, '_'),
+    id: undefined,
+    colOptions: undefined,
+    order: undefined,
+  }
+
+  try {
+    const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
+
+    const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
+    let newColumnOrder
+    if (currentColumnIndex === gridViewColumnList.length - 1) {
+      newColumnOrder = gridViewColumnList[currentColumnIndex].order! + 1
+    } else {
+      newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1].order!) / 2
+    }
+
+    await $api.dbTableColumn.create(meta!.value!.id!, {
+      ...columnCreatePayload,
+      pv: false,
+      view_id: view.value!.id as string,
+      column_order: {
+        order: newColumnOrder,
+        view_id: view.value!.id as string,
+      },
+    } as ColumnReqType)
+    await getMeta(meta!.value!.id!, true)
+
+    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+    reloadDataHook?.trigger()
+
+    // message.success(t('msg.success.columnDuplicated'))
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+  // closing dropdown
   isOpen.value = false
+}
+
+const openDuplicateDlg = async () => {
+  if (!column?.value) return
+  if (column.value.uidt && [UITypes.Formula, UITypes.Lookup, UITypes.Rollup].includes(column.value.uidt as UITypes)) {
+    duplicateVirtualColumn()
+  } else {
+    const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
+
+    const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
+    let newColumnOrder
+    if (currentColumnIndex === gridViewColumnList.length - 1) {
+      newColumnOrder = gridViewColumnList[currentColumnIndex].order! + 1
+    } else {
+      newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1].order!) / 2
+    }
+
+    selectedColumnExtra.value = {
+      pv: false,
+      view_id: view.value!.id as string,
+      column_order: {
+        order: newColumnOrder,
+        view_id: view.value!.id as string,
+      },
+    }
+    selectedColumnToDuplicate.value = column.value
+    isDuplicateDlgOpen.value = true
+    isOpen.value = false
+  }
 }
 
 // add column before or after current column
@@ -266,10 +338,7 @@ const onInsertAfter = () => {
 
         <a-divider class="!my-0" />
 
-        <a-menu-item
-          v-if="!column?.pk && column?.uidt !== UITypes.Lookup && column?.uidt !== UITypes.Rollup"
-          @click="openDuplicateDlg"
-        >
+        <a-menu-item v-if="!column?.pk" @click="openDuplicateDlg">
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item my-0.5">
             <component :is="iconMap.duplicate" class="text-gray-700 mx-0.75" />
             <!-- Duplicate -->
@@ -303,7 +372,12 @@ const onInsertAfter = () => {
     </template>
   </a-dropdown>
   <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal" />
-  <DlgColumnDuplicate v-if="selectedColumnToDuplicate" v-model="isDuplicateDlgOpen" :column="selectedColumnToDuplicate" />
+  <DlgColumnDuplicate
+    v-if="selectedColumnToDuplicate"
+    v-model="isDuplicateDlgOpen"
+    :column="selectedColumnToDuplicate"
+    :extra="selectedColumnExtra"
+  />
 </template>
 
 <style scoped>

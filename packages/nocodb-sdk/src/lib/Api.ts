@@ -5771,6 +5771,7 @@ export class Api<
         options?: {
           excludeData?: boolean;
         };
+        extra?: object;
       },
       params: RequestParams = {}
     ) =>

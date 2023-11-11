@@ -133,11 +133,13 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
         authProvider = 'oidc'
       }
 
+      // `extra` prop is used in our cloud implementation, so we are keeping it
       const {
         data: { token, extra },
       } = await api.instance.post(`/auth/${authProvider}/genTokenByCode${window.location.search}`)
 
-      extraProps = extra
+      // if extra prop is null/undefined set it as an empty object as fallback
+      extraProps = extra || {}
 
       signIn(token)
     } catch (e: any) {
@@ -148,7 +150,7 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
     window.history.pushState(
       'object',
       document.title,
-      `${extraProps.continueAfterSignIn ? `${newURL}#/?continueAfterSignIn=${extraProps.continueAfterSignIn}` : newURL}`,
+      `${extraProps?.continueAfterSignIn ? `${newURL}#/?continueAfterSignIn=${extraProps.continueAfterSignIn}` : newURL}`,
     )
     window.location.reload()
   }

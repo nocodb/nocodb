@@ -265,10 +265,20 @@ class BaseModelSqlv2 {
       sort?: string | string[];
       fieldsSet?: Set<string>;
     } = {},
-    ignoreViewFilterAndSort = false,
-    validateFormula = false,
-    throwErrorIfInvalidParams = false,
+    options: {
+      ignoreViewFilterAndSort?: boolean;
+      ignorePagination?: boolean;
+      validateFormula?: boolean;
+      throwErrorIfInvalidParams?: boolean;
+    } = {},
   ): Promise<any> {
+    const {
+      ignoreViewFilterAndSort = false,
+      ignorePagination = false,
+      validateFormula = false,
+      throwErrorIfInvalidParams = false,
+    } = options;
+
     const { where, fields, ...rest } = this._getListArgs(args as any);
 
     const qb = this.dbDriver(this.tnPath);
@@ -359,7 +369,7 @@ class BaseModelSqlv2 {
       qb.orderBy('created_at');
     }
 
-    applyPaginate(qb, rest);
+    if (!ignorePagination) applyPaginate(qb, rest);
     const proto = await this.getProto();
 
     let data;
@@ -370,7 +380,11 @@ class BaseModelSqlv2 {
       if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
         throw e;
       console.log(e);
-      return this.list(args, ignoreViewFilterAndSort, true);
+      return this.list(args, {
+        ignoreViewFilterAndSort,
+        ignorePagination,
+        validateFormula: true,
+      });
     }
     return data?.map((d) => {
       d.__proto__ = proto;
@@ -1891,7 +1905,10 @@ class BaseModelSqlv2 {
                           }),
                         ],
                       },
-                      true,
+                      {
+                        ignoreViewFilterAndSort: true,
+                        ignorePagination: true,
+                      },
                     );
 
                     const groupedList = groupBy(data, pCol.title);

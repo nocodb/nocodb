@@ -68,11 +68,11 @@ const fieldsToGroupBy = computed(() => {
   const fields = meta.value?.columns || []
 
   return fields.filter((field) => {
-    if (!groupingUidt.includes(field.uidt as UITypes)) return false
-
-    if (field.uidt === UITypes.Lookup) {
-      return btLookups.value.includes(field.id)
-    }
+    // if (!groupingUidt.includes(field.uidt as UITypes)) return false
+    //
+    // if (field.uidt === UITypes.Lookup) {
+    //   return btLookups.value.includes(field.id)
+    // }
 
     return true
   })
@@ -243,7 +243,7 @@ onMounted(async () => {
               v-model="group.fk_column_id"
               class="caption nc-sort-field-select"
               :columns="
-                fieldsToGroupBy.filter((f) => (f.id && !groupedByColumnIds.includes(f.id)) || f.id === group.fk_column_id)
+                fieldsToGroupBy
               "
               :allow-empty="true"
               @change="saveGroupBy"

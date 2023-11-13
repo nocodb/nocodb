@@ -67,32 +67,44 @@ function openQuickImportDialog(type: string) {
 
     <template #expandIcon></template>
 
-    <div v-if="isUIAllowed('airtableImport', { roles: baseRole })" v-e="['c:import:airtable']">
-      <NcMenuItem key="quick-import-airtable" @click="openAirtableImportDialog(source.base_id, source.id)">
+    <NcMenuItem
+      v-if="isUIAllowed('airtableImport', { roles: baseRole })"
+      key="quick-import-airtable"
+      @click="openAirtableImportDialog(source.base_id, source.id)"
+    >
+      <div v-e="['c:import:airtable']" class="flex gap-2 items-center">
         <GeneralIcon icon="airtable" class="max-w-3.75 group-hover:text-black" />
         <div class="ml-0.5">{{ $t('labels.airtable') }}</div>
-      </NcMenuItem>
-    </div>
+      </div>
+    </NcMenuItem>
 
-    <div v-if="isUIAllowed('csvImport', { roles: baseRole })" v-e="['c:import:csv']">
-      <NcMenuItem key="quick-import-csv" @click="openQuickImportDialog('csv')">
+    <NcMenuItem v-if="isUIAllowed('csvImport', { roles: baseRole })" key="quick-import-csv" @click="openQuickImportDialog('csv')">
+      <div v-e="['c:import:csv']" class="flex gap-2 items-center">
         <GeneralIcon icon="csv" class="w-4 group-hover:text-black" />
         {{ $t('labels.csvFile') }}
-      </NcMenuItem>
-    </div>
+      </div>
+    </NcMenuItem>
 
-    <div v-if="isUIAllowed('jsonImport', { roles: baseRole })" v-e="['c:import:json']">
-      <NcMenuItem key="quick-import-json" @click="openQuickImportDialog('json')">
+    <NcMenuItem
+      v-if="isUIAllowed('jsonImport', { roles: baseRole })"
+      key="quick-import-json"
+      @click="openQuickImportDialog('json')"
+    >
+      <div v-e="['c:import:json']" class="flex gap-2 items-center">
         <GeneralIcon icon="code" class="w-4 group-hover:text-black" />
         {{ $t('labels.jsonFile') }}
-      </NcMenuItem>
-    </div>
+      </div>
+    </NcMenuItem>
 
-    <div v-if="isUIAllowed('excelImport', { roles: baseRole })" v-e="['c:import:excel']">
-      <NcMenuItem key="quick-import-excel" @click="openQuickImportDialog('excel')">
+    <NcMenuItem
+      v-if="isUIAllowed('excelImport', { roles: baseRole })"
+      key="quick-import-excel"
+      @click="openQuickImportDialog('excel')"
+    >
+      <div v-e="['c:import:excel']" class="flex gap-2 items-center">
         <GeneralIcon icon="excel" class="max-w-4 group-hover:text-black" />
         {{ $t('labels.microsoftExcel') }}
-      </NcMenuItem>
-    </div>
+      </div>
+    </NcMenuItem>
   </NcSubMenu>
 </template>

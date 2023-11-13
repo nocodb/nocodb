@@ -6,7 +6,9 @@
       <script value="watch:run:ee" />
     </scripts>
     <node-interpreter value="project" />
-    <envs />
+    <envs>
+      <env name="NC_ALLOW_LOCAL_EXTERNAL_DBS" value="true" />
+    </envs>
     <method v="2" />
   </configuration>
 </component>

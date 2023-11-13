@@ -476,6 +476,19 @@ async function importTemplate() {
   } else {
     // check if form is valid
     try {
+      // Truncate and its column names
+      const MAX_COLUMN_LEN = 255
+      // Truncate table name which less as we need to add prefix to it
+      const MAX_TABLE_LEN = 52
+      for (const table of data.tables) {
+        table.table_name = table.table_name?.slice(0, MAX_TABLE_LEN)
+        for (const column of table.columns) {
+          column.column_name = column.column_name?.slice(0, MAX_COLUMN_LEN)
+        }
+      }
+
+      await nextTick()
+
       await validate()
     } catch (errorInfo) {
       isImporting.value = false

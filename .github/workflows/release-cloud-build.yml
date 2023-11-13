@@ -5,12 +5,23 @@ on:
   workflow_dispatch:
     inputs:
       staging:
+        type: choice
         description: 'Staging (ws-pre-release)'
         required: false
         default: 'true'
+        options:
+        - 'true'
+        - 'false'
       tag:
         description: "Any additional Tag"
         required: false
+      services_to_deploy:
+        type: choice
+        description: services to deploy
+        options:
+        - all
+        - main_only
+        - mux_service_only  
   schedule:
     # trigger at 6:00AM IST(0:30 GMT) and 20:00 IST(14:30 GMT)
     - cron:  '30 0,14 * * *'
@@ -57,7 +68,30 @@ jobs:
         id: vars
         run: echo "release_version=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
+      - name: Create nc.txt version identifier file
+        run: |
+          mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
+          echo "User: ${{ github.actor }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Commit: ${{ github.sha }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Branch: ${{ github.ref }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Action ID: ${{ github.run_id }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          date >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          cp packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt ./packages/nocodb/src/public/
+          cp packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt ./packages/nc-sql-executor/src/public/nc.txt
+
+      - name: Configure AWS and Api admin credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1          
+
+      ### main build and deploy starts here ###
       - name: build nc-gui and copy to nocodb
+        if: ${{ ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}      
         env:
           NC_CDN_URL: "${{ secrets.CDN_URL }}/${{ steps.vars.outputs.release_version }}"
         run: |
@@ -69,34 +103,23 @@ jobs:
           # copy build to nocodb
           rsync -rvzh ./ee/dist/ ../nocodb/docker/nc-gui/
 
-
       - name: build nocodb
+        if: ${{ ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}      
         run: |
           # build nocodb ( pack nocodb-sdk and nc-gui )
           cd packages/nocodb &&
           EE=true pnpm exec webpack --config webpack.cloud.config.js &&
           # remove nocodb-sdk since it's packed with the build
           pnpm uninstall --save-prod nocodb-sdk
-
-      - name: Configure AWS and Api admin credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
-
+      
       - name: Move files to release version folder
+        if: ${{ ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}      
         run: |
           mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
           mv packages/nc-gui/ee/dist/* packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
-          echo "User: ${{ github.actor }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
-          echo "Commit: ${{ github.sha }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
-          echo "Branch: ${{ github.ref }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
-          echo "Action ID: ${{ github.run_id }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
-          date >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
-          cp packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt ./packages/nocodb/src/public/
 
-      - name: Deploy
+      - name: Deploy UI assets to CDN
+        if: ${{ ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}      
         uses: pranavxc/s3-deploy@2cdf96df65b6c97ee09a5771958582b77f22b738
         with:
           folder: packages/nc-gui/build/
@@ -104,11 +127,8 @@ jobs:
           dist-id: ${{ secrets.CDN_DIST_ID }}
           invalidation: /${{ steps.vars.outputs.release_version }}/*
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
       - name: Build, tag, and push image to Amazon ECR
+        if: ${{ ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}      
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: nocohub
@@ -123,17 +143,47 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-      - name: Push staging image to ECR
-        if: ${{ github.event.inputs.staging == 'true' || github.event_name == 'schedule' }}
+      - name: Push main image to ECR
+        if: ${{ (github.event.inputs.staging == 'true' || github.event_name == 'schedule') && ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: nocohub
           API_CREDENTIALS: ${{ secrets.STAGING_ADMIN }}
         run: |
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:ws-pre-release
-      - name: Publish to staging
-        if: ${{ github.event.inputs.staging == 'true' || github.event_name == 'schedule' }}
+
+      - name: Publish main to staging
+        if: ${{ (github.event.inputs.staging == 'true' || github.event_name == 'schedule')  && ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
         env:
           API_CREDENTIALS: ${{ secrets.STAGING_ADMIN }}        
         run: |
            ./scripts/release/staging.sh
+      ### mux build and deploy starts here ###
+      - name: Build, tag, and push mux service image (nc-sql-executor) to Amazon ECR
+        if: ${{ github.event.inputs.services_to_deploy == 'mux_service_only' || github.event.inputs.services_to_deploy == 'all' }}
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: nc-sql-executor
+          IMAGE_TAG: ${{ github.event.inputs.tag }}
+          CUSTOM_IMAGE_TAG_ARG: ${{ github.event.inputs.tag && format('-t {0}/nocohub:{1}', steps.login-ecr.outputs.registry, github.event.inputs.tag) || '' }}
+          STAGING_IMAGE_TAG_ARG: ${{ (github.event.inputs.staging == 'true' || github.event_name == 'schedule') && format('-t {0}/nc-sql-executor:ws-pre-release', steps.login-ecr.outputs.registry) || '' }}
+          COMMIT_HASH: ${{ github.sha }}
+        run: |
+          cd packages/nc-sql-executor 
+          docker build . $CUSTOM_IMAGE_TAG_ARG $STAGING_IMAGE_TAG_ARG  -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH 
+          [[ ! -z "$IMAGE_TAG" ]] && docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Push staging image to ECR
+        if: ${{ github.event.inputs.services_to_deploy == 'mux_service_only' || github.event.inputs.services_to_deploy == 'all' }}
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: nc-sql-executor
+        run: |
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:ws-pre-release
+
+      - name: Publish to staging
+        if: ${{ github.event.inputs.services_to_deploy == 'mux_service_only' || github.event.inputs.services_to_deploy == 'all' }}
+        run: |
+           ./scripts/release/staging_executors.sh                       

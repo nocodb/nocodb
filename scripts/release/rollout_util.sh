@@ -89,7 +89,7 @@ function prewarm_asg(){
     # Double the current count
     new_count=$((prev_count * 2))
 
-    message "${ENVIRONMENT}: prewarming initiating. previous_count: ${prev_count} new_count: ${new_count} "
+    echo "${ENVIRONMENT}: prewarming initiating. previous_count: ${prev_count} new_count: ${new_count} "
 
     # Update the desired count to be double
     aws autoscaling set-desired-capacity --auto-scaling-group-name ${ASG_NAME} --desired-capacity $new_count
@@ -138,7 +138,7 @@ function perform_rollout(){
 
     global_retry_count=0
 
-    message "${ENVIRONMENT}: deployment started."
+    echo "${ENVIRONMENT}: deployment started."
 
     if [[ "${PROMOTE_IMAGE_BEFORE_ROLLOUT}" == "true" && ( "${ENVIRONMENT}" == "Production" || "${ENVIRONMENT}" == "Prod-SQL-Executors") ]]
     then    
@@ -153,5 +153,5 @@ function perform_rollout(){
     ALL_SVS=$( aws ecs list-services --cluster ${CLUSTER}  --region=us-east-2  | jq -r '.serviceArns[] | split("/") | .[2]')
     update_workspace 
     check_status_all_workspaces 
-    message "${ENVIRONMENT}: main pod deployment executed successfully."
+    message "${ENVIRONMENT}: deployment executed successfully."
 }

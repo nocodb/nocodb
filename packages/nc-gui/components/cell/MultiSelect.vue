@@ -144,14 +144,14 @@ const selectedTitles = computed(() =>
             }
             return 0
           })
-        : modelValue.split(',').map((el) => el.trim())
-      : modelValue.map((el) => el.trim())
+        : modelValue.split(',')
+      : modelValue
     : [],
 )
 
 onMounted(() => {
   selectedIds.value = selectedTitles.value.flatMap((el) => {
-    const item = options.value.find((op) => op.title === el)
+    const item = options.value.find((op) => op.title === el || op.title === el?.trim())
     const itemIdOrTitle = item?.id || item?.title
     if (itemIdOrTitle) {
       return [itemIdOrTitle]
@@ -165,7 +165,7 @@ watch(
   () => modelValue,
   () => {
     selectedIds.value = selectedTitles.value.flatMap((el) => {
-      const item = options.value.find((op) => op.title === el)
+      const item = options.value.find((op) => op.title === el || op.title === el?.trim())
       if (item && (item.id || item.title)) {
         return [(item.id || item.title)!]
       }

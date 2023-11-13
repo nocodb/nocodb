@@ -4630,6 +4630,9 @@
                         "required": false
                       }
                     }
+                  },
+                  "extra": {
+                    "type": "object"
                   }
                 }
               },

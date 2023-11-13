@@ -2,11 +2,11 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import { useVModel } from '#imports'
-import type { TabType } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
   column: ColumnType
+  extra: any
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -15,27 +15,13 @@ const { api } = useApi()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const { addTab } = useTabs()
-
 const { $e, $poller } = useNuxtApp()
 
 const basesStore = useBases()
 
 const { createProject: _createProject } = basesStore
 
-const { openTable } = useTablesStore()
-
-const baseStore = useBase()
-
-const { loadTables } = baseStore
-
-const { tables } = storeToRefs(baseStore)
-
-const { t } = useI18n()
-
 const { activeTable: _activeTable } = storeToRefs(useTablesStore())
-
-const { refreshCommandPalette } = useCommandPalette()
 
 const reloadDataHook = inject(ReloadViewDataHookInj)
 
@@ -69,6 +55,7 @@ const _duplicate = async () => {
     isLoading.value = true
     const jobData = await api.dbTable.duplicateColumn(props.column.base_id!, props.column.id!, {
       options: optionsToExclude.value,
+      extra: props.extra,
     })
 
     $poller.subscribe(

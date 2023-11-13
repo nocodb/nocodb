@@ -154,7 +154,7 @@ export class OrgUsersService {
           // and send back token if failed
           if (
             emails.length === 1 &&
-            !(await this.baseUsersService.sendInviteEmail(
+            (await this.baseUsersService.sendInviteEmail(
               email,
               invite_token,
               param.req,

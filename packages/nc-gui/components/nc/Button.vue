@@ -186,7 +186,7 @@ useEventListener(NcButton, 'mousedown', () => {
 }
 
 .nc-button.ant-btn-primary {
-  @apply bg-red-900 border-0 text-white xs:(hover:border-0) md:(hover:bg-red-900);
+  @apply bg-brand-500 border-0 text-white xs:(hover:border-0) md:(hover:bg-brand-600);
 }
 
 .nc-button.ant-btn-secondary {

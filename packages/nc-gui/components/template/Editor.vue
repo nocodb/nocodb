@@ -5,6 +5,8 @@ import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { h } from 'vue'
+import { Button } from 'ant-design-vue'
+import { CloseOutlined } from '@ant-design/icons-vue'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import {
   Empty,
@@ -95,6 +97,42 @@ const isImporting = ref(false)
 const importingTips = ref<Record<string, string>>({})
 
 const checkAllRecord = ref<boolean[]>([])
+
+const customErrorMessage = async (e) => {
+  const err_key = `error_message_${Date.now()}`
+  const closeMessage = () => {
+    message.destroy(err_key)
+  }
+  message.error({
+    content: h(
+      'div',
+      {
+        class: 'custom-message',
+        style: {
+          position: 'relative', // Create a positioning context
+          paddingRight: '40px', // Add some padding for the content
+        },
+      },
+      [
+        h('div', ['Error: ', await extractSdkResponseErrorMsg(e)]),
+        h(Button, {
+          onClick: closeMessage,
+          type: 'text',
+          icon: h(CloseOutlined), // Use the CloseOutlined icon
+          style: {
+            position: 'absolute', // Position the button absolutely
+            top: '-5px', // Align to the top of the container
+            right: '0px', // Align to the right of the container
+          },
+        }),
+      ],
+    ),
+    key: err_key,
+    duration: 0, // Make the message persistent
+    onClose: () => {},
+    icon: h(),
+  })
+}
 
 const uiTypeOptions = ref<Option[]>(
   (Object.keys(UITypes) as (keyof typeof UITypes)[])
@@ -399,9 +437,6 @@ function updateImportTips(baseName: string, tableName: string, progress: number,
 }
 
 async function importTemplate() {
-  const successSheets: string[] = []
-  const errorMessages: string[] = []
-
   if (importDataOnly) {
     for (const table of data.tables) {
       // validate required columns
@@ -425,51 +460,46 @@ async function importTemplate() {
             if (!table_names.includes(k)) {
               return
             }
-            try {
-              const data = importData[k]
-              const total = data.length
-              for (let i = 0, progress = 0; i < total; i += maxRowsToParse) {
-                const batchData = data.slice(i, i + maxRowsToParse).map((row: Record<string, any>) =>
-                  srcDestMapping.value[k].reduce((res: Record<string, any>, col: Record<string, any>) => {
-                    if (col.enabled && col.destCn) {
-                      const v = columns.value.find((c: Record<string, any>) => c.title === col.destCn) as Record<string, any>
-                      let input = row[col.srcCn]
-                      // parse potential boolean values
-                      if (v.uidt === UITypes.Checkbox) {
-                        input = input ? input.replace(/["']/g, '').toLowerCase().trim() : 'false'
-                        if (input === 'false' || input === 'no' || input === 'n') {
-                          input = '0'
-                        } else if (input === 'true' || input === 'yes' || input === 'y') {
-                          input = '1'
-                        }
-                      } else if (v.uidt === UITypes.Number) {
-                        if (input === '') {
-                          input = null
-                        }
-                      } else if (v.uidt === UITypes.SingleSelect || v.uidt === UITypes.MultiSelect) {
-                        if (input === '') {
-                          input = null
-                        }
-                      } else if (v.uidt === UITypes.Date) {
-                        if (input) {
-                          input = parseStringDate(input, v.meta.date_format)
-                        }
+            const data = importData[k]
+            const total = data.length
+            for (let i = 0, progress = 0; i < total; i += maxRowsToParse) {
+              const batchData = data.slice(i, i + maxRowsToParse).map((row: Record<string, any>) =>
+                srcDestMapping.value[k].reduce((res: Record<string, any>, col: Record<string, any>) => {
+                  if (col.enabled && col.destCn) {
+                    const v = columns.value.find((c: Record<string, any>) => c.title === col.destCn) as Record<string, any>
+                    let input = row[col.srcCn]
+                    // parse potential boolean values
+                    if (v.uidt === UITypes.Checkbox) {
+                      input = input ? input.replace(/["']/g, '').toLowerCase().trim() : 'false'
+                      if (input === 'false' || input === 'no' || input === 'n') {
+                        input = '0'
+                      } else if (input === 'true' || input === 'yes' || input === 'y') {
+                        input = '1'
                       }
-                      res[col.destCn] = input
+                    } else if (v.uidt === UITypes.Number) {
+                      if (input === '') {
+                        input = null
+                      }
+                    } else if (v.uidt === UITypes.SingleSelect || v.uidt === UITypes.MultiSelect) {
+                      if (input === '') {
+                        input = null
+                      }
+                    } else if (v.uidt === UITypes.Date) {
+                      if (input) {
+                        input = parseStringDate(input, v.meta.date_format)
+                      }
                     }
-                    return res
-                  }, {}),
-                )
-                await $api.dbTableRow.bulkCreate('noco', baseId, tableId!, batchData)
-                updateImportTips(baseId, tableId!, progress, total)
-                progress += batchData.length
+                    res[col.destCn] = input
+                  }
+                  return res
+                }, {}),
+              )
+              await $api.dbTableRow.bulkCreate('noco', baseId, tableId!, batchData)
+              updateImportTips(baseId, tableId!, progress, total)
+              progress += batchData.length
 
-                // Assuming a successful run if no error is thrown
-                successSheets.push(extra)
-              }
-            } catch (e: any) {
-              const errorMsg = await extractSdkResponseErrorMsg(e, extra)
-              errorMessages.push(`[${k}] - ${errorMsg}`)
+              // Assuming a successful run if no error is thrown
+              successSheets.push(extra)
             }
           })(key),
         ),
@@ -477,33 +507,9 @@ async function importTemplate() {
       // reload table
       reloadHook.trigger()
 
-      if (errorMessages.length) {
-        message.error(
-          h('div', null, [
-            'Errors: ',
-            h('br'),
-            ...errorMessages.map((errorMsg, index) => [
-              errorMsg,
-              index < errorMessages.length - 1 ? h('br') : null, // avoid adding a <br /> after the last message
-            ]),
-          ]),
-        )
-        message.success(
-          h('div', null, [
-            'Successfully Imports: ',
-            h('br'),
-            ...successSheets.map((errorMsg, index) => [
-              errorMsg,
-              index < successSheets.length - 1 ? h('br') : null, // avoid adding a <br /> after the last message
-            ]),
-          ]),
-        )
-      } else {
-        // Successfully imported table data
-        message.success(t('msg.success.tableDataImported'))
-      }
+      message.success(t('msg.success.tableDataImported'))
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      await customErrorMessage(e)
     } finally {
       isImporting.value = false
     }
@@ -610,8 +616,11 @@ async function importTemplate() {
         ...tab,
         type: TabType.TABLE,
       })
+
+      // Successfully imported table data
+      message.success(t('msg.success.tableDataImported'))
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      await customErrorMessage(e)
     } finally {
       isImporting.value = false
     }

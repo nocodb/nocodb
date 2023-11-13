@@ -124,6 +124,8 @@ export class BasesService {
     const baseBody: ProjectReqType & Record<string, any> = param.base;
     baseBody.id = baseId;
 
+    const column_inflection = process.env.NC_COLUMN_INFLECTION || 'camelize';
+    const table_inflection = process.env.NC_TABLE_INFLECTION || 'camelize';
     if (!baseBody.external) {
       const ranId = nanoid();
       baseBody.prefix = `nc_${ranId}__`;
@@ -157,8 +159,8 @@ export class BasesService {
                 },
               },
             },
-            inflection_column: 'camelize',
-            inflection_table: 'camelize',
+            inflection_column: column_inflection,
+            inflection_table: table_inflection,
           },
         ];
       } else {
@@ -168,8 +170,8 @@ export class BasesService {
             type: db?.client,
             config: null,
             is_meta: true,
-            inflection_column: 'camelize',
-            inflection_table: 'camelize',
+            inflection_column: column_inflection,
+            inflection_table: table_inflection,
           },
         ];
       }

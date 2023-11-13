@@ -264,13 +264,13 @@ function onStopEdit() {
           <template #overlay>
             <NcMenu class="min-w-27" :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`">
               <NcMenuItem @click.stop="onDblClick">
-                <div class="flex gap-2 items-center" v-e="['c:view:rename']">
+                <div v-e="['c:view:rename']" class="flex gap-2 items-center">
                   <GeneralIcon icon="edit" />
                   <div class="-ml-0.25">{{ $t('general.rename') }}</div>
                 </div>
               </NcMenuItem>
               <NcMenuItem @click.stop="onDuplicate">
-                <div class="flex gap-2 items-center" v-e="['c:view:duplicate']">
+                <div v-e="['c:view:duplicate']" class="flex gap-2 items-center">
                   <GeneralIcon icon="duplicate" class="nc-view-copy-icon" />
                   {{ $t('general.duplicate') }}
                 </div>
@@ -279,7 +279,7 @@ function onStopEdit() {
               <NcDivider />
 
               <NcMenuItem -if="!vModel.is_default" class="!text-red-500 !hover:bg-red-50" @click.stop="onDelete">
-                <div class="flex gap-2 items-center" v-e="['c:view:delete']">
+                <div v-e="['c:view:delete']" class="flex gap-2 items-center">
                   <GeneralIcon icon="delete" class="text-sm nc-view-delete-icon" />
                   <div class="-ml-0.25">{{ $t('general.delete') }}</div>
                 </div>

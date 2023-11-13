@@ -236,7 +236,7 @@ a {
 }
 
 .nc-base-menu-item {
-  @apply cursor-pointer flex items-center gap-2 py-2 after:(content-[''] absolute top-0 left-0 bottom-0 right-0 w-full h-full bg-current opacity-0 transition transition-opacity duration-100) hover:(after:(opacity-5));
+  @apply cursor-pointer flex items-center gap-2 py-2;
 
   // &:hover {
   //   .nc-icon {
@@ -478,6 +478,9 @@ a {
 
 .nc-toolbar-btn {
   @apply !shadow-none rounded hover:(ring-1 ring-gray-200 ring-opacity-100 bg-gray-100 !text-gray-800) focus:(ring-1 ring-gray-300 ring-opacity-100 !text-gray-800 bg-gray-100) text-gray-600 text-xs font-medium px-2 border-0;
+}
+.nc-toolbar-btn[disabled] {
+  @apply !text-gray-400 !cursor-not-allowed !hover:ring-0;
 }
 
 .nc-warning-info {

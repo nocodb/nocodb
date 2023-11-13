@@ -665,7 +665,7 @@ class BaseModelSqlv2 {
 
     // if sort is provided filter out the group by columns sort and apply
     // since we are grouping by the column and applying sort on any other column is not required
-    for (const sort of sorts) {
+    for (const sort of sorts || []) {
       if (!groupByColumns[sort.fk_column_id]) {
         continue;
       }

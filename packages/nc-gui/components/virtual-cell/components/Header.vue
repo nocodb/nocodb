@@ -59,7 +59,7 @@ const relationMeta = computed(() => {
     <div class="flex flex-row sm:w-[calc(100%-16rem)] xs:w-full items-center justify-center gap-2 xs:(h-full)">
       <div class="flex sm:justify-end w-[calc(50%-1.5rem)] xs:(w-[calc(50%-1.5rem)] h-full)">
         <div
-          class="flex max-w-full xs:w-full flex-shrink-0 xs:(h-full) rounded-md gap-1 text-brand-500 items-center bg-gray-100 px-2 py-1"
+          class="flex max-w-full xs:w-full flex-shrink-0 xs:(h-full) rounded-md gap-1 text-gray-700 items-center bg-gray-100 px-2 py-1"
         >
           <FileIcon class="w-4 h-4 min-w-4" />
           <span class="truncate">

@@ -797,6 +797,7 @@
     "newRecord": "New record",
     "tableNameCreateNewRecord": "{tableName}: Create new record",
     "gotSavedLinkedSuccessfully": "{tableName} '{recordTitle}' got saved & linked successfully",
+    "recordCreatedLinked": "Record Created & Linked",
     "useConnectionUrl": "Use Connection URL",
     "toggleCommentsDraw": "Toggle comments draw",
     "expandRecord": "Expand Record",

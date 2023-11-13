@@ -263,23 +263,27 @@ function onStopEdit() {
 
           <template #overlay>
             <NcMenu class="min-w-27" :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`">
-              <NcMenuItem v-e="['c:view:rename']" @click.stop="onDblClick">
-                <GeneralIcon icon="edit" />
-                <div class="-ml-0.25">{{ $t('general.rename') }}</div>
+              <NcMenuItem @click.stop="onDblClick">
+                <div class="flex gap-2 items-center" v-e="['c:view:rename']">
+                  <GeneralIcon icon="edit" />
+                  <div class="-ml-0.25">{{ $t('general.rename') }}</div>
+                </div>
               </NcMenuItem>
-              <NcMenuItem v-e="['c:view:duplicate']" @click.stop="onDuplicate">
-                <GeneralIcon icon="duplicate" class="nc-view-copy-icon" />
-                {{ $t('general.duplicate') }}
+              <NcMenuItem @click.stop="onDuplicate">
+                <div class="flex gap-2 items-center" v-e="['c:view:duplicate']">
+                  <GeneralIcon icon="duplicate" class="nc-view-copy-icon" />
+                  {{ $t('general.duplicate') }}
+                </div>
               </NcMenuItem>
 
               <NcDivider />
 
-              <template v-if="!vModel.is_default">
-                <NcMenuItem v-e="['c:view:delete']" class="!text-red-500 !hover:bg-red-50" @click.stop="onDelete">
+              <NcMenuItem -if="!vModel.is_default" class="!text-red-500 !hover:bg-red-50" @click.stop="onDelete">
+                <div class="flex gap-2 items-center" v-e="['c:view:delete']">
                   <GeneralIcon icon="delete" class="text-sm nc-view-delete-icon" />
                   <div class="-ml-0.25">{{ $t('general.delete') }}</div>
-                </NcMenuItem>
-              </template>
+                </div>
+              </NcMenuItem>
             </NcMenu>
           </template>
         </NcDropdown>

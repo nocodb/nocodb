@@ -655,10 +655,13 @@ class BaseModelSqlv2 {
       qb,
     );
 
-    if (!sorts)
-      sorts = args.sortArr?.length
-        ? args.sortArr
-        : await Sort.list({ viewId: this.viewId });
+    if (!sorts) {
+      if (args.sortArr?.length) {
+        sorts = args.sortArr;
+      } else if (this.viewId) {
+        sorts = await Sort.list({ viewId: this.viewId });
+      }
+    }
 
     // if sort is provided filter out the group by columns sort and apply
     // since we are grouping by the column and applying sort on any other column is not required

@@ -170,12 +170,10 @@ export class DatasService {
         try {
           data = await nocoExecute(
             ast,
-            await baseModel.list(
-              listArgs,
+            await baseModel.list(listArgs, {
               ignoreViewFilterAndSort,
-              false,
-              param.throwErrorIfInvalidParams,
-            ),
+              throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
+            }),
             {},
             listArgs,
           );

@@ -11,6 +11,7 @@ import {
   generateUniqueName,
 } from '~/helpers/exportImportHelpers';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
+import { ColumnsService } from '~/services/columns.service';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
@@ -25,6 +26,7 @@ export class DuplicateProcessor {
     private readonly importService: ImportService,
     private readonly projectsService: BasesService,
     private readonly bulkDataService: BulkDataAliasService,
+    private readonly columnsService: ColumnsService,
   ) {}
 
   @Process(JobTypes.DuplicateBase)
@@ -302,8 +304,15 @@ export class DuplicateProcessor {
       c.id.includes(columnId),
     );
 
+    // save old default value
+    const oldCdf = replacedColumn.cdf;
+
     replacedColumn.title = title;
     replacedColumn.column_name = title.toLowerCase().replace(/ /g, '_');
+
+    // remove default value to avoid filling existing empty rows
+    replacedColumn.cdf = null;
+
     Object.assign(replacedColumn, extra);
 
     const idMap = await this.importService.importModels({
@@ -357,6 +366,21 @@ export class DuplicateProcessor {
 
       elapsedTime(hrTime, 'import model data', 'duplicateColumn');
     }
+
+    const destColumn = await Column.get({
+      source_id: base.id,
+      colId: findWithIdentifier(idMap, sourceColumn.id),
+    });
+
+    // update cdf
+    await this.columnsService.columnUpdate({
+      columnId: findWithIdentifier(idMap, sourceColumn.id),
+      column: {
+        ...destColumn,
+        cdf: oldCdf,
+      },
+      user: req.user,
+    });
 
     this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateModel})`);
 

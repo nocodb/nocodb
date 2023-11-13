@@ -10,7 +10,9 @@ spec:
     requests:
       storage: {{ .Values.storage.size }}
   storageClassName: {{ .Values.storage.storageClassName }}
+  {{ with .Values.storage.accessModes }}
   accessModes:
-    {{- default (toYaml .Values.storage.accessModes) "- ReadWriteMany" | nindent 4 }}
+    {{ toYaml . | nindent 4 }}
+  {{ end }}
   volumeMode: Filesystem
-{{ end }}
+  {{ end }}

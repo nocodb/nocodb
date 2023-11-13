@@ -124,6 +124,11 @@ export class ColumnsService {
       param.column.column_name = sanitizeColumnName(param.column.column_name);
     }
 
+    // trim leading and trailing spaces from column title as knex trim them by default
+    if (param.column.title) {
+      param.column.title = param.column.title.trim();
+    }
+
     if (param.column.column_name) {
       // - 5 is a buffer for suffix
       let colName = param.column.column_name.slice(0, mxColumnLength - 5);
@@ -1066,6 +1071,11 @@ export class ColumnsService {
 
       if (!isVirtualCol(param.column)) {
         param.column.column_name = sanitizeColumnName(param.column.column_name);
+      }
+
+      // trim leading and trailing spaces from column title as knex trim them by default
+      if (param.column.title) {
+        param.column.title = param.column.title.trim();
       }
 
       if (param.column.column_name) {

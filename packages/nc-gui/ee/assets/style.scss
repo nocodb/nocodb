@@ -683,4 +683,6 @@ a {
   }
 }
 
-
+.ant-message-notice-content {
+  @apply !rounded-md;
+}

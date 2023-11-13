@@ -140,7 +140,7 @@ function perform_rollout(){
 
     message "${ENVIRONMENT}: deployment started."
 
-    if [[ "${PROMOTE_IMAGE_BEFORE_ROLLOUT}" == "true" && "${ENVIRONMENT}" == "Production" ]]
+    if [[ "${PROMOTE_IMAGE_BEFORE_ROLLOUT}" == "true" && ( "${ENVIRONMENT}" == "Production" || "${ENVIRONMENT}" == "Prod-SQL-Executors") ]]
     then    
         message "${ENVIRONMENT}: promoting ws-pre-release to ws before rollout."    
         ${SCRIPT_DIR}/image_promote.sh "${ECR_REPO_NAME}" "${PRE_REL_STAGE_TAG}" "${STAGE_TAG}"

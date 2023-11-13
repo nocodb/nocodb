@@ -10,11 +10,11 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 source ${SCRIPT_DIR}/rollout_util.sh
 PROMOTE_IMAGE_BEFORE_ROLLOUT="${1:-false}"
-ENVIRONMENT="Prod-SQL-Executors:"
+ENVIRONMENT="Prod-SQL-Executors"
 PRE_REL_STAGE_TAG="ws-pre-release"
 STAGE_TAG="ws"
 EXCLUDED_SVC=" nocohub-service nocohub-001-prod nocohub-001-ingester nocohub-001-prod-ingester "
-CLUSTER="executors-staging"
+CLUSTER="executors-prod"
 REPO_NAME="nc-sql-executor"
 ASG_NAME=executor-services-prod
 

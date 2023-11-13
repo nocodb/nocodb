@@ -47,7 +47,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
+const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'createdRecord'])
 
 const { activeView } = storeToRefs(useViewsStore())
 
@@ -207,6 +207,8 @@ const save = async () => {
   if (props.closeAfterSave) {
     isExpanded.value = false
   }
+
+  emits('createdRecord', _row.value.row)
 }
 
 const isPreventChangeModalOpen = ref(false)

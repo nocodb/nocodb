@@ -290,10 +290,6 @@ export class DuplicateProcessor {
       throw new Error(`Export failed for model '${sourceModel.id}'`);
     }
 
-    const serializedPrimaryKey = exportedModel.model.columns.find((c) =>
-      c.id.includes(sourceModel.primaryKey.id),
-    );
-
     exportedModel.model.columns = exportedModel.model.columns.filter((c) =>
       c.id.includes(columnId),
     );
@@ -329,7 +325,6 @@ export class DuplicateProcessor {
     if (!excludeData) {
       const fields: Record<string, string[]> = {};
 
-      idMap.set(serializedPrimaryKey.id, sourceModel.primaryKey.id);
       fields[sourceModel.id] = [sourceModel.primaryKey.id];
       fields[sourceModel.id].push(columnId);
 

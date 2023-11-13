@@ -94,6 +94,10 @@ export class ImportService {
 
     param.data = Array.isArray(param.data) ? param.data : param.data.models;
 
+    // allow existing model to be linked
+    if (param.existingModel)
+      param.externalModels = [param.existingModel, ...param.externalModels];
+
     // allow existing models to be linked
     if (param.externalModels) {
       for (const model of param.externalModels) {
@@ -910,6 +914,7 @@ export class ImportService {
           }
         }
       } else if (col.uidt === UITypes.Barcode) {
+        flatCol.validate = null;
         const freshModelData = await this.columnsService.columnAdd({
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({

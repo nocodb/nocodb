@@ -2148,7 +2148,7 @@ class BaseModelSqlv2 {
                   aliasToColumnBuilder,
                 );
                 qb.select({
-                  [column.column_name]: selectQb.builder,
+                  [column.title]: selectQb.builder,
                 });
               } catch {
                 continue;
@@ -2156,7 +2156,7 @@ class BaseModelSqlv2 {
               break;
             default: {
               qb.select({
-                [column.column_name]: barcodeValueColumn.column_name,
+                [column.title]: barcodeValueColumn.column_name,
               });
               break;
             }

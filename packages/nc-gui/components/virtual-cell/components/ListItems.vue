@@ -53,6 +53,8 @@ const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowSt
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const isExpandedFormCloseAfterSave = ref(false)
+
 isChildrenExcludedLoading.value = true
 
 const isForm = inject(IsFormInj, ref(false))
@@ -113,7 +115,7 @@ const newRowState = computed(() => {
   const colOpt = (injectedColumn?.value as ColumnType)?.colOptions as LinkToAnotherRecordType
   const colInRelatedTable: ColumnType | undefined = relatedTableMeta?.value?.columns?.find((col) => {
     // Links as for the case of 'mm' we need the 'Links' column
-    if (col.uidt !== UITypes.LinkToAnotherRecord && col.uidt !== UITypes.Links) return false
+    if (!isLinksOrLTAR(col)) return false
     const colOpt1 = col?.colOptions as LinkToAnotherRecordType
     if (colOpt1?.fk_related_model_id !== meta.value.id) return false
 
@@ -158,6 +160,10 @@ const relation = computed(() => {
 
 watch(expandedFormDlg, () => {
   if (!expandedFormDlg.value) {
+    isExpandedFormCloseAfterSave.value = false
+    if (!isForm.value) {
+      loadChildrenList()
+    }
     loadChildrenExcludedList(rowState.value)
   }
 })
@@ -173,6 +179,12 @@ const onClick = (refRow: any, id: string) => {
   } else {
     linkRow(refRow, Number.parseInt(id))
   }
+}
+
+const addNewRecord = () => {
+  expandedFormRow.value = {}
+  expandedFormDlg.value = true
+  isExpandedFormCloseAfterSave.value = true
 }
 </script>
 
@@ -224,12 +236,7 @@ const onClick = (refRow: any, id: string) => {
         type="secondary"
         :size="isMobileMode ? 'medium' : 'small'"
         class="!text-brand-500"
-        @click="
-          () => {
-            expandedFormRow = {}
-            expandedFormDlg = true
-          }
-        "
+        @click="addNewRecord"
       >
         <div class="flex items-center gap-1 px-4"><MdiPlus v-if="!isMobileMode" /> {{ $t('activity.newRecord') }}</div>
       </NcButton>
@@ -345,6 +352,7 @@ const onClick = (refRow: any, id: string) => {
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         :state="newRowState"
         use-meta-fields
+        :close-after-save="isExpandedFormCloseAfterSave"
       />
     </Suspense>
   </NcModal>

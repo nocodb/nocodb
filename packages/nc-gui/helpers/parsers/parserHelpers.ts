@@ -1,9 +1,9 @@
 import dayjs from 'dayjs'
 import { UITypes } from 'nocodb-sdk'
-import { getDateFormat, isoToDate } from '~/utils'
-import { isValidURL } from '~/utils/urlUtils'
-import { validateEmail } from '~/utils/validation'
-
+import { getDateFormat, isoToDate } from '@/utils/dateTimeUtils'
+import { isValidURL } from '@/utils/urlUtils'
+const validateEmail = (v: string) =>
+  /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(v)
 export const specialCharRegex = /[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g
 
 const booleanOptions = [
@@ -175,6 +175,23 @@ export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {
   // TODO(import): currency
   // TODO(import): date / datetime
   return colProps
+}
+
+export const filterNullOrUndefinedObjectProperties = <T extends Record<string, any>>(obj: T): T => {
+  return Object.keys(obj).reduce((result, propName) => {
+    const value = obj[propName]
+
+    if (value !== null && value !== undefined) {
+      if (!Array.isArray(value) && typeof value === 'object') {
+        // Recursively filter nested objects
+        result[propName] = filterNullOrUndefinedObjectProperties(value)
+      } else {
+        result[propName] = value
+      }
+    }
+
+    return result
+  }, {} as Record<string, any>) as T
 }
 
 export const isDecimalVal = (vals: any[], limitRows: number) =>

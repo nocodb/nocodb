@@ -25,7 +25,7 @@ import {
   percentFormatter,
   specialCharRegex,
 } from './parserHelpers'
-import { isoToDate } from '~/utils'
+import { isoToDate } from '@/utils/dateTimeUtils'
 
 const excelTypeToUidt: Record<string, UITypes> = {
   d: UITypes.DateTime,
@@ -50,7 +50,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
   excelData: any
 
-  project: {
+  base: {
     tables: Record<string, any>[]
   }
 
@@ -76,8 +76,10 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
       shouldImportData: true,
       normalizedNested: false,
     },
+    xlsx: any = null,
+    progressCallback?: (msg: string) => void,
   ) {
-    super()
+    super(progressCallback)
     this.config = Object.assign(
       {
         firstRowAsHeaders: true,
@@ -91,10 +93,10 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
     )
     this.maxSkippedCellCount = 0
     this.excelData = data
-    this.project = {
+    this.base = {
       tables: [],
     }
-    this.xlsx = {} as any
+    this.xlsx = xlsx || ({} as any)
     // fix precision bug & timezone offset issues introduced by xlsx
     this.basedate = new Date(1899, 11, 30, 0, 0, 0)
     // number of milliseconds since base date
@@ -105,7 +107,8 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   async init() {
-    this.xlsx = await import('xlsx')
+    this.progress('Initializing excel parser')
+    this.xlsx = this.xlsx || (await import('xlsx'))
 
     const options = {
       cellText: true,
@@ -161,10 +164,13 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   async parse() {
+    this.progress('Parsing excel file')
     const tableNamePrefixRef: Record<string, any> = {}
     await Promise.all(
       this.wb.SheetNames.map((sheetName: string) =>
         (async (sheet) => {
+          this.progress(`Parsing sheet ${sheetName}`)
+
           await new Promise((resolve) => {
             const columnNamePrefixRef: Record<string, any> = { id: 0 }
             let tableName: string = (sheet || 'table').replace(specialCharRegex, '_').trim()
@@ -175,7 +181,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             tableNamePrefixRef[tableName] = 0
 
             const table = { table_name: tableName, ref_table_name: tableName, columns: [] as any[] }
-            this.project.tables.push(table)
+            this.base.tables.push(table)
             const ws: any = this.wb.Sheets[sheet]
 
             // sometimes the '!ref' is wrong (e.g. the max cell is much more than the actual max cell), so we need to calculate the range of the actual max cell
@@ -341,7 +347,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     }
                     if (isIsoDateVal(vals, this.config.maxRowsToParse)) {
                       for (const [_, cell] of vals) {
-                        cell.v = this.fixImportedDate(isoToDate(cell.w) as Date)
+                        cell.v = isoToDate(cell.w)
                       }
                       if (isAllDate(vals, column)) {
                         this.addDataRows(tableName, columnName, vals, dateFormatter, column.meta.date_format)
@@ -362,7 +368,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   getTemplate() {
-    return this.project
+    return this.base
   }
 
   getData() {
@@ -370,6 +376,6 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   getColumns() {
-    return this.project.tables.map((t: Record<string, any>) => t.columns)
+    return this.base.tables.map((t: Record<string, any>) => t.columns)
   }
 }

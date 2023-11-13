@@ -18,7 +18,7 @@ const { $e } = useNuxtApp()
 const isImportModalOpen = ref(false)
 
 const defaultBase = computed(() => {
-  return openedProject.value?.sources?.[0]
+  return openedProject.value?.sources?.filter((source) => source.enabled)?.[0]
 })
 
 const sources = computed(() => {

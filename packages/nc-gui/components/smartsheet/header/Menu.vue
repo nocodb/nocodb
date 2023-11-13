@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnReqType } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -8,8 +8,6 @@ import {
   MetaInj,
   ReloadViewDataHookInj,
   SmartsheetStoreEvents,
-  extractSdkResponseErrorMsg,
-  getUniqueColumnName,
   iconMap,
   inject,
   message,
@@ -112,80 +110,13 @@ const sortByColumn = async (direction: 'asc' | 'desc') => {
   })
 }
 
-const duplicateColumn = async () => {
-  let columnCreatePayload = {}
+const isDuplicateDlgOpen = ref(false)
+const selectedColumnToDuplicate = ref<ColumnType>()
 
-  // generate duplicate column name
-  const duplicateColumnName = getUniqueColumnName(`${column!.value.title}_copy`, meta!.value!.columns!)
-
-  // construct column create payload
-  switch (column?.value.uidt) {
-    case UITypes.LinkToAnotherRecord:
-    case UITypes.Links:
-    case UITypes.Lookup:
-    case UITypes.Rollup:
-    case UITypes.Formula:
-      return message.info('Not available at the moment')
-    case UITypes.SingleSelect:
-    case UITypes.MultiSelect:
-      columnCreatePayload = {
-        ...column!.value!,
-        title: duplicateColumnName,
-        column_name: duplicateColumnName,
-        id: undefined,
-        order: undefined,
-        colOptions: {
-          options:
-            column.value.colOptions?.options?.map((option: Record<string, any>) => ({
-              ...option,
-              id: undefined,
-            })) ?? [],
-        },
-      }
-      break
-    default:
-      columnCreatePayload = {
-        ...column!.value!,
-        ...(column!.value.colOptions ?? {}),
-        title: duplicateColumnName,
-        column_name: duplicateColumnName,
-        id: undefined,
-        colOptions: undefined,
-        order: undefined,
-      }
-      break
-  }
-
-  try {
-    const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
-
-    const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
-    let newColumnOrder
-    if (currentColumnIndex === gridViewColumnList.length - 1) {
-      newColumnOrder = gridViewColumnList[currentColumnIndex].order! + 1
-    } else {
-      newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1].order!) / 2
-    }
-
-    await $api.dbTableColumn.create(meta!.value!.id!, {
-      ...columnCreatePayload,
-      pv: false,
-      view_id: view.value!.id as string,
-      column_order: {
-        order: newColumnOrder,
-        view_id: view.value!.id as string,
-      },
-    } as ColumnReqType)
-    await getMeta(meta!.value!.id!, true)
-
-    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-    reloadDataHook?.trigger()
-
-    // message.success(t('msg.success.columnDuplicated'))
-  } catch (e) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-  // closing dropdown
+const openDuplicateDlg = () => {
+  if (!column?.value) return
+  selectedColumnToDuplicate.value = column.value
+  isDuplicateDlgOpen.value = true
   isOpen.value = false
 }
 
@@ -336,8 +267,8 @@ const onInsertAfter = () => {
         <a-divider class="!my-0" />
 
         <a-menu-item
-          v-if="column.uidt !== UITypes.LinkToAnotherRecord && column.uidt !== UITypes.Lookup && !column.pk"
-          @click="duplicateColumn"
+          v-if="!column?.pk && column?.uidt !== UITypes.Lookup && column?.uidt !== UITypes.Rollup"
+          @click="openDuplicateDlg"
         >
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item my-0.5">
             <component :is="iconMap.duplicate" class="text-gray-700 mx-0.75" />
@@ -372,6 +303,7 @@ const onInsertAfter = () => {
     </template>
   </a-dropdown>
   <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal" />
+  <DlgColumnDuplicate v-if="selectedColumnToDuplicate" v-model="isDuplicateDlgOpen" :column="selectedColumnToDuplicate" />
 </template>
 
 <style scoped>

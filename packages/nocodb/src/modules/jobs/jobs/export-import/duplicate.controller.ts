@@ -13,7 +13,7 @@ import { ProjectStatus } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BasesService } from '~/services/bases.service';
-import { Base, Model, Source } from '~/models';
+import { Base, Column, Model, Source } from '~/models';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
 import { JobTypes } from '~/interface/Jobs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -207,6 +207,60 @@ export class DuplicateController {
       sourceId: source.id,
       modelId: model.id,
       title: uniqueTitle,
+      options: body.options || {},
+      req: {
+        user: req.user,
+        clientIp: req.clientIp,
+        headers: req.headers,
+      },
+    });
+
+    return { id: job.id };
+  }
+
+  @Post([
+    '/api/v1/db/meta/duplicate/:baseId/column/:columnId',
+    '/api/v2/meta/duplicate/:baseId/column/:columnId',
+  ])
+  @HttpCode(200)
+  @Acl('duplicateColumn')
+  async duplicateColumn(
+    @Req() req: Request,
+    @Param('baseId') baseId: string,
+    @Param('columnId') columnId?: string,
+    @Body()
+    body?: {
+      options?: {
+        excludeData?: boolean;
+      };
+    },
+  ) {
+    const base = await Base.get(baseId);
+
+    if (!base) {
+      throw new Error(`Base not found for id '${baseId}'`);
+    }
+
+    const column = await Column.get({
+      source_id: base.id,
+      colId: columnId,
+    });
+
+    if (!column) {
+      throw new Error(`Column not found!`);
+    }
+
+    const model = await Model.get(column.fk_model_id);
+
+    if (!model) {
+      throw new Error(`Model not found!`);
+    }
+
+    const job = await this.jobsService.add(JobTypes.DuplicateColumn, {
+      baseId: base.id,
+      sourceId: column.source_id,
+      modelId: model.id,
+      columnId: column.id,
       options: body.options || {},
       req: {
         user: req.user,

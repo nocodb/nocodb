@@ -3006,7 +3006,7 @@ class BaseModelSqlv2 {
         }
       } else {
         response =
-          this.isPg || this.isMssql
+          !raw && (this.isPg || this.isMssql)
             ? await trx
                 .batchInsert(this.tnPath, insertDatas, chunkSize)
                 .returning({

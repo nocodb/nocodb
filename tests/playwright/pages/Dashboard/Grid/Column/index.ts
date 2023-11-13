@@ -326,7 +326,7 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.locator('.nc-modal-column-duplicate .nc-button:has-text("Confirm"):visible').click();
 
     // await this.verifyToast({ message: 'Column duplicated successfully' });
-    await this.grid.get().locator(`th[data-title="${expectedTitle}"]`).waitFor({ state: 'visible' });
+    await this.grid.get().locator(`th[data-title="${expectedTitle}"]`).waitFor({ state: 'visible', timeout: 10000 });
   }
 
   async hideColumn({ title, isDisplayValue = false }: { title: string; isDisplayValue?: boolean }) {

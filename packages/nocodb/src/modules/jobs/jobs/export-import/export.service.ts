@@ -408,9 +408,13 @@ export class ExportService {
           .map((c) => c.title)
           .join(',');
 
-    const mmColumns = model.columns.filter(
-      (col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm',
-    );
+    const mmColumns = param._fieldIds
+      ? model.columns
+          .filter((c) => param._fieldIds?.includes(c.id))
+          .filter((col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm')
+      : model.columns.filter(
+          (col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm',
+        );
 
     const hasLink = mmColumns.length > 0;
 

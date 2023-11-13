@@ -35,7 +35,6 @@ import type {
   SelectOption,
 } from '~/models';
 import type { SortType } from 'nocodb-sdk';
-import generateBTLookupSelectQuery from '~/db/generateBTLookupSelectQuery';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import conditionV2 from '~/db/conditionV2';
@@ -770,7 +769,7 @@ class BaseModelSqlv2 {
             }
             case UITypes.Lookup:
               {
-                const _selectQb = await generateBTLookupSelectQuery({
+                const _selectQb = await generateMMLookupSelectQuery({
                   baseModelSqlv2: this,
                   column,
                   alias: null,

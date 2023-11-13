@@ -67,7 +67,7 @@ reloadEventHook.on(async () => {
 
 const { showAll, hideAll, saveOrUpdate } = useViewColumnsOrThrow()
 
-const { syncLTARRefs, row } = useProvideSmartsheetRowStore(
+const { state, row } = useProvideSmartsheetRowStore(
   meta,
   ref({
     row: formState,
@@ -124,11 +124,7 @@ async function submitForm() {
     if (e.errorFields.length) return
   }
 
-  const insertedRowData = await insertRow({ row: formState, oldRow: {}, rowMeta: { new: true } })
-
-  if (insertedRowData) {
-    await syncLTARRefs(insertedRowData)
-  }
+  await insertRow({ row: { ...formState, ...state.value }, oldRow: {}, rowMeta: { new: true } })
 
   submitted.value = true
 }

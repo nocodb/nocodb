@@ -78,7 +78,7 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    return await baseModel.insert(param.body, null, param.cookie);
+    return await baseModel.nestedInsert(param.body, null, param.cookie);
   }
 
   async dataUpdate(
@@ -180,7 +180,7 @@ export class DatasService {
           );
         } catch (e) {
           if (e instanceof NcBaseError) throw e;
-          this.logger.log(e);
+          this.logger.error(e);
           NcError.internalServerError(
             'Please check server log for more details',
           );

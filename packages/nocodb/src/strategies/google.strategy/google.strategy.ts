@@ -3,6 +3,7 @@ import { Injectable, Optional } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-google-oauth20';
 import bcrypt from 'bcryptjs';
+import type { Request } from 'express';
 import type { VerifyCallback } from 'passport-google-oauth20';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 import Noco from '~/Noco';
@@ -20,7 +21,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   }
 
   async validate(
-    req: any,
+    req: Request,
     accessToken: string,
     refreshToken: string,
     profile: any,
@@ -53,6 +54,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
           email: profile.emails[0].value,
           password: '',
           salt,
+          req,
         });
         return done(null, sanitiseUserObj(user));
       }
@@ -71,7 +73,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     return params;
   }
 
-  async authenticate(req: any, options?: any): Promise<void> {
+  async authenticate(req: Request, options?: any): Promise<void> {
     const googlePlugin = await Plugin.getPluginByTitle('Google');
 
     if (googlePlugin && googlePlugin.input) {

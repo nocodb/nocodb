@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type { VisibilityRuleReqType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -13,6 +14,7 @@ export class ModelVisibilitiesService {
   async xcVisibilityMetaSetAll(param: {
     visibilityRule: VisibilityRuleReqType;
     baseId: string;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/VisibilityRuleReq',
@@ -58,6 +60,7 @@ export class ModelVisibilitiesService {
     }
     this.appHooksService.emit(AppEvents.UI_ACL_UPDATE, {
       base,
+      req: param.req,
     });
 
     return true;

@@ -8,10 +8,11 @@ import {
   Patch,
   Post,
   Query,
-  Request,
-  Response,
+  Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -30,8 +31,8 @@ export class DataAliasController {
   ])
   @Acl('dataList')
   async dataList(
-    @Request() req,
-    @Response() res,
+    @Req() req: Request,
+    @Res() res: Response,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
@@ -62,7 +63,7 @@ export class DataAliasController {
   ])
   @Acl('dataFindOne')
   async dataFindOne(
-    @Request() req,
+    @Req() req: Request,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
@@ -81,7 +82,7 @@ export class DataAliasController {
   ])
   @Acl('dataGroupBy')
   async dataGroupBy(
-    @Request() req,
+    @Req() req: Request,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
@@ -100,8 +101,8 @@ export class DataAliasController {
   ])
   @Acl('dataCount')
   async dataCount(
-    @Request() req,
-    @Response() res,
+    @Req() req: Request,
+    @Res() res: Response,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
@@ -123,7 +124,7 @@ export class DataAliasController {
   @HttpCode(200)
   @Acl('dataInsert')
   async dataInsert(
-    @Request() req,
+    @Req() req: Request,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
@@ -146,7 +147,7 @@ export class DataAliasController {
   ])
   @Acl('dataUpdate')
   async dataUpdate(
-    @Request() req,
+    @Req() req: Request,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
@@ -170,7 +171,7 @@ export class DataAliasController {
   ])
   @Acl('dataDelete')
   async dataDelete(
-    @Request() req,
+    @Req() req: Request,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
@@ -191,7 +192,7 @@ export class DataAliasController {
   ])
   @Acl('dataRead')
   async dataRead(
-    @Request() req,
+    @Req() req: Request,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
@@ -216,8 +217,8 @@ export class DataAliasController {
   ])
   @Acl('dataExist')
   async dataExist(
-    @Request() req,
-    @Response() res,
+    @Req() req: Request,
+    @Res() res: Response,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
@@ -242,8 +243,8 @@ export class DataAliasController {
   ])
   @Acl('groupedDataList')
   async groupedDataList(
-    @Request() req,
-    @Response() res,
+    @Req() req: Request,
+    @Res() res: Response,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,

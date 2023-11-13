@@ -8,10 +8,11 @@ import {
   Patch,
   Post,
   Query,
-  Request,
-  Response,
+  Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DataTableService } from '~/services/data-table.service';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
@@ -27,8 +28,8 @@ export class DataTableController {
   @Get('/api/v2/tables/:modelId/records')
   @Acl('dataList')
   async dataList(
-    @Request() req,
-    @Response() res,
+    @Req() req: Request,
+    @Res() res: Response,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
   ) {
@@ -46,8 +47,8 @@ export class DataTableController {
   @Get(['/api/v2/tables/:modelId/records/count'])
   @Acl('dataCount')
   async dataCount(
-    @Request() req,
-    @Response() res,
+    @Req() req: Request,
+    @Res() res: Response,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
   ) {
@@ -64,7 +65,7 @@ export class DataTableController {
   @HttpCode(200)
   @Acl('dataInsert')
   async dataInsert(
-    @Request() req,
+    @Req() req: Request,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
     @Body() body: any,
@@ -80,7 +81,7 @@ export class DataTableController {
   @Patch(['/api/v2/tables/:modelId/records'])
   @Acl('dataUpdate')
   async dataUpdate(
-    @Request() req,
+    @Req() req: Request,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
     @Param('rowId') _rowId: string,
@@ -96,7 +97,7 @@ export class DataTableController {
   @Delete(['/api/v2/tables/:modelId/records'])
   @Acl('dataDelete')
   async dataDelete(
-    @Request() req,
+    @Req() req: Request,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
     @Param('rowId') _rowId: string,
@@ -112,7 +113,7 @@ export class DataTableController {
   @Get(['/api/v2/tables/:modelId/records/:rowId'])
   @Acl('dataRead')
   async dataRead(
-    @Request() req,
+    @Req() req: Request,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
     @Param('rowId') rowId: string,
@@ -128,7 +129,7 @@ export class DataTableController {
   @Get(['/api/v2/tables/:modelId/links/:columnId/records/:rowId'])
   @Acl('nestedDataList')
   async nestedDataList(
-    @Request() req,
+    @Req() req: Request,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
     @Param('columnId') columnId: string,
@@ -146,7 +147,7 @@ export class DataTableController {
   @Post(['/api/v2/tables/:modelId/links/:columnId/records/:rowId'])
   @Acl('nestedDataLink')
   async nestedLink(
-    @Request() req,
+    @Req() req: Request,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
     @Param('columnId') columnId: string,
@@ -168,7 +169,7 @@ export class DataTableController {
   @Delete(['/api/v2/tables/:modelId/links/:columnId/records/:rowId'])
   @Acl('nestedDataUnlink')
   async nestedUnlink(
-    @Request() req,
+    @Req() req: Request,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
     @Param('columnId') columnId: string,

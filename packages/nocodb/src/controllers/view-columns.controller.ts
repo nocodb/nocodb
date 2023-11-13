@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ViewColumnReqType } from 'nocodb-sdk';
@@ -42,10 +43,12 @@ export class ViewColumnsController {
   async columnAdd(
     @Param('viewId') viewId: string,
     @Body() body: ViewColumnReqType,
+    @Req() req: Request,
   ) {
     const viewColumn = await this.viewColumnsService.columnAdd({
       viewId,
       column: body,
+      req,
     });
     return viewColumn;
   }
@@ -59,11 +62,13 @@ export class ViewColumnsController {
     @Param('viewId') viewId: string,
     @Param('columnId') columnId: string,
     @Body() body: ViewColumnReqType,
+    @Req() req: Request,
   ) {
     const result = await this.viewColumnsService.columnUpdate({
       viewId,
       columnId,
       column: body,
+      req,
     });
     return result;
   }

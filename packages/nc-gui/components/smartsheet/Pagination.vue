@@ -62,6 +62,10 @@ const page = computed({
 })
 
 const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Language))
+
+const renderAltOrOptlKey = () => {
+  return isMac() ? '⌥' : 'ALT'
+}
 </script>
 
 <template>
@@ -107,6 +111,10 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
         :class="{ 'rtl-pagination': isRTLLanguage }"
         :total="+count"
         entity-name="grid"
+        :prev-page-tooltip="`${renderAltOrOptlKey()}+←`"
+        :next-page-tooltip="`${renderAltOrOptlKey()}+→`"
+        :first-page-tooltip="`${renderAltOrOptlKey()}+↓`"
+        :last-page-tooltip="`${renderAltOrOptlKey()}+↑`"
       />
       <div v-else class="mx-auto flex items-center mt-n1" style="max-width: 250px">
         <span class="text-xs" style="white-space: nowrap"> Change page:</span>

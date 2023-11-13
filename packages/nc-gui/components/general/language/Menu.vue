@@ -26,6 +26,7 @@ async function changeLanguage(lang: string) {
       href="https://docs.nocodb.com/engineering/translation/#how-to-contribute--for-community-members"
       target="_blank"
       class="caption nc-base-menu-item py-2 text-primary underline hover:opacity-75"
+      rel="noopener"
     >
       {{ $t('activity.translate') }}
     </a>

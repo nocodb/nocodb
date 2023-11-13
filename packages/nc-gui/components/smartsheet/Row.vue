@@ -11,7 +11,6 @@ import {
   toRef,
   useProvideSmartsheetRowStore,
   useSmartsheetStoreOrThrow,
-  watch,
 } from '#imports'
 
 const props = defineProps<{
@@ -23,16 +22,6 @@ const currentRow = toRef(props, 'row')
 const { meta } = useSmartsheetStoreOrThrow()
 
 const { isNew, state, syncLTARRefs, clearLTARCell, addLTARRef } = useProvideSmartsheetRowStore(meta as Ref<TableType>, currentRow)
-
-// on changing isNew(new record insert) status sync LTAR cell values
-watch(isNew, async (nextVal, prevVal) => {
-  if (prevVal && !nextVal) {
-    await syncLTARRefs(currentRow.value.row)
-    // update row values without invoking api
-    currentRow.value.row = { ...currentRow.value.row, ...state.value }
-    currentRow.value.oldRow = { ...currentRow.value.row, ...state.value }
-  }
-})
 
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj)!
 

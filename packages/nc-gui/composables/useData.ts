@@ -91,7 +91,7 @@ export function useData(args: {
         base?.value.id as string,
         metaValue?.id as string,
         viewMetaValue?.id as string,
-        insertObj,
+        { ...insertObj, ...(ltarState || {}) },
       )
 
       if (!undo) {

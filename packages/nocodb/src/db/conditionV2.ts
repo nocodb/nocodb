@@ -257,9 +257,13 @@ const parseConditionV2 = async (
         )(selectQb);
 
         return (qbP: Knex.QueryBuilder) => {
-          if (filter.comparison_op in negatedMapping)
-            qbP.whereNotIn(childColumn.column_name, selectQb);
-          else qbP.whereIn(childColumn.column_name, selectQb);
+          if (filter.comparison_op in negatedMapping) {
+            qbP.where((qb) =>
+              qb
+                .whereNotIn(childColumn.column_name, selectQb)
+                .orWhereNull(childColumn.column_name),
+            );
+          } else qbP.whereIn(childColumn.column_name, selectQb);
         };
       } else if (colOptions.type === RelationTypes.MANY_TO_MANY) {
         const mmModel = await colOptions.getMMModel();
@@ -337,7 +341,11 @@ const parseConditionV2 = async (
 
         return (qbP: Knex.QueryBuilder) => {
           if (filter.comparison_op in negatedMapping)
-            qbP.whereNotIn(childColumn.column_name, selectQb);
+            qbP.where((qb) =>
+              qbP
+                .whereNotIn(childColumn.column_name, selectQb)
+                .orWhereNull(childColumn.column_name),
+            );
           else qbP.whereIn(childColumn.column_name, selectQb);
         };
       }
@@ -954,7 +962,11 @@ async function generateLookupCondition(
 
       return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)
-          qbP.whereNotIn(childColumn.column_name, qb);
+          qbP.where((qb1) =>
+            qb1
+              .whereNotIn(childColumn.column_name, qb)
+              .orWhereNull(childColumn.column_name),
+          );
         else qbP.whereIn(childColumn.column_name, qb);
       };
     } else if (relationColumnOptions.type === RelationTypes.MANY_TO_MANY) {
@@ -992,7 +1004,11 @@ async function generateLookupCondition(
 
       return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)
-          qbP.whereNotIn(childColumn.column_name, qb);
+          qbP.where((qb1) =>
+            qb1
+              .whereNotIn(childColumn.column_name, qb)
+              .orWhereNull(childColumn.column_name),
+          );
         else qbP.whereIn(childColumn.column_name, qb);
       };
     }

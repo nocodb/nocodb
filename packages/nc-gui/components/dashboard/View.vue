@@ -89,6 +89,8 @@ function handleMouseMove(e: MouseEvent) {
 
 function onWindowResize() {
   viewportWidth.value = window.innerWidth
+
+  onResize(currentSidebarSize.value)
 }
 
 onMounted(() => {
@@ -122,25 +124,69 @@ watch(sidebarState, () => {
 onMounted(() => {
   handleSidebarOpenOnMobileForNonViews()
 })
+
+const remToPx = (rem: number) => {
+  const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
+  return rem * fontSize
+}
+
+function onResize(widthPercent: any) {
+  if (isMobileMode.value) return
+
+  const width = (widthPercent * viewportWidth.value) / 100
+
+  const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
+
+  const widthRem = width / fontSize
+
+  if (widthRem < 16) {
+    sideBarSize.value.old = ((16 * fontSize) / viewportWidth.value) * 100
+    if (isLeftSidebarOpen.value) sideBarSize.value.current = sideBarSize.value.old
+    return
+  } else if (widthRem > 23.5) {
+    sideBarSize.value.old = ((23.5 * fontSize) / viewportWidth.value) * 100
+    if (isLeftSidebarOpen.value) sideBarSize.value.current = sideBarSize.value.old
+
+    return
+  }
+
+  sideBarSize.value.old = widthPercent
+  sideBarSize.value.current = sideBarSize.value.old
+}
+
+const normalizedWidth = computed(() => {
+  const maxSize = remToPx(23.5)
+  const minSize = remToPx(16)
+  if (sidebarWidth.value > maxSize) {
+    return maxSize
+  } else if (sidebarWidth.value < minSize) {
+    return minSize
+  } else {
+    return sidebarWidth.value
+  }
+})
 </script>
 
 <template>
   <Splitpanes
-    class="nc-sidebar-content-resizable-wrapper w-full h-full"
+    class="nc-sidebar-content-resizable-wrapper !w-screen h-full"
     :class="{
       'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart',
     }"
-    @resize="currentSidebarSize = $event[0].size"
+    @resize="(event: any) => onResize(event[0].size)"
   >
     <Pane
       min-size="15%"
       :size="mobileNormalizedSidebarSize"
       max-size="40%"
-      class="nc-sidebar-splitpane relative !overflow-visible"
+      class="nc-sidebar-splitpane !sm:max-w-94 relative !overflow-visible flex"
+      :style="{
+        width: `${mobileNormalizedSidebarSize}%`,
+      }"
     >
       <div
         ref="wrapperRef"
-        class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !min-w-12 absolute overflow-visible"
+        class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !sm:(max-w-94) absolute overflow-visible"
         :class="{
           'mobile': isMobileMode,
           'minimized-height': !isLeftSidebarOpen,
@@ -148,12 +194,19 @@ onMounted(() => {
         }"
         :style="{
           width: sidebarState === 'hiddenEnd' ? '0px' : `${sidebarWidth}px`,
+          minWidth: sidebarState === 'hiddenEnd' ? '0px' : `${normalizedWidth}px`,
         }"
       >
         <slot name="sidebar" />
       </div>
     </Pane>
-    <Pane :size="mobileNormalizedContentSize">
+    <Pane
+      :size="mobileNormalizedContentSize"
+      class="flex-grow"
+      :style="{
+        'min-width': `${100 - mobileNormalizedSidebarSize}%`,
+      }"
+    >
       <slot name="content" />
     </Pane>
   </Splitpanes>

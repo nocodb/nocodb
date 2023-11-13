@@ -5,6 +5,7 @@ import type { ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } fr
 import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { useColumnDrag } from './useColumnDrag'
 
+import usePaginationShortcuts from './usePaginationShortcuts'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -143,6 +144,8 @@ const { addUndo, clone, defineViewScope } = useUndoRedo()
 
 const { isViewColumnsLoading, updateGridViewColumn, gridViewCols, resizingColOldWith } = useViewColumnsOrThrow()
 
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+
 const {
   predictingNextColumn,
   predictedNextColumn,
@@ -178,13 +181,18 @@ const gridRect = useElementBounding(gridWrapper)
 
 // #Permissions
 const { isUIAllowed } = useRoles()
-const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
+const hasEditPermission = computed(() => isUIAllowed('dataEdit') && !isLocked.value)
 const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
 const { onDrag, onDragStart, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
   fields,
   tableBodyEl,
   gridWrapper,
+})
+
+const { onLeft, onRight, onUp, onDown } = usePaginationShortcuts({
+  paginationDataRef,
+  changePage: changePage as any,
 })
 
 // #Variables
@@ -215,9 +223,7 @@ const _contextMenu = ref(false)
 const contextMenu = computed({
   get: () => _contextMenu.value,
   set: (val) => {
-    if (hasEditPermission.value) {
-      _contextMenu.value = val
-    }
+    _contextMenu.value = val
   },
 })
 const contextMenuClosing = ref(false)
@@ -379,7 +385,7 @@ const gridWrapperClass = computed<string>(() => {
   const classes = []
   if (headerOnly !== true) {
     if (!scrollParent.value) {
-      classes.push('nc-scrollbar-x-lg overflow-auto')
+      classes.push('nc-scrollbar-x-lg !overflow-auto')
     }
   } else {
     classes.push('overflow-visible')
@@ -699,6 +705,23 @@ const confirmDeleteRow = (row: number) => {
       activeCell.row = null
       activeCell.col = null
     }
+  } catch (e: any) {
+    message.error(e.message)
+  }
+}
+
+const commentRow = (rowId: number) => {
+  try {
+    isExpandedFormCommentMode.value = true
+
+    const row = dataRef.value[rowId]
+    if (expandForm) {
+      expandForm(row)
+    }
+
+    activeCell.row = null
+    activeCell.col = null
+    selectedRange.clear()
   } catch (e: any) {
     message.error(e.message)
   }
@@ -1204,6 +1227,12 @@ const loaderText = computed(() => {
     }
   }
 })
+
+// Keyboard shortcuts for pagination
+onKeyStroke('ArrowLeft', onLeft)
+onKeyStroke('ArrowRight', onRight)
+onKeyStroke('ArrowUp', onUp)
+onKeyStroke('ArrowDown', onDown)
 </script>
 
 <template>
@@ -1244,10 +1273,11 @@ const loaderText = computed(() => {
         <div class="table-overlay" :class="{ 'nc-grid-skelton-loader': showSkeleton }">
           <table
             ref="smartTable"
-            class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white relative pr-60 pb-12"
+            class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white relative"
             :class="{
-              mobile: isMobileMode,
-              desktop: !isMobileMode,
+              'mobile': isMobileMode,
+              'desktop': !isMobileMode,
+              'pr-60 pb-12': !headerOnly,
             }"
             @contextmenu="showContextMenu"
           >
@@ -1517,14 +1547,12 @@ const loaderText = computed(() => {
                     <SmartsheetTableDataCell
                       v-for="(columnObj, colIndex) of fields"
                       :key="columnObj.id"
-                      class="cell relative nc-grid-cell"
+                      class="cell relative nc-grid-cell cursor-pointer"
                       :class="{
-                        'cursor-pointer': hasEditPermission,
-                        'active': hasEditPermission && isCellSelected(rowIndex, colIndex),
+                        'active': isCellSelected(rowIndex, colIndex),
                         'active-cell':
-                          hasEditPermission &&
-                          ((activeCell.row === rowIndex && activeCell.col === colIndex) ||
-                            (selectedRange._start?.row === rowIndex && selectedRange._start?.col === colIndex)),
+                          (activeCell.row === rowIndex && activeCell.col === colIndex) ||
+                          (selectedRange._start?.row === rowIndex && selectedRange._start?.col === colIndex),
                         'last-cell':
                           rowIndex === (isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) &&
                           colIndex === (isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col),
@@ -1562,7 +1590,7 @@ const loaderText = computed(() => {
                           :column="columnObj"
                           :active="activeCell.col === colIndex && activeCell.row === rowIndex"
                           :row="row"
-                          :read-only="readOnly"
+                          :read-only="!hasEditPermission"
                           @navigate="onNavigate"
                           @save="updateOrSaveRow?.(row, '', state)"
                         />
@@ -1576,7 +1604,7 @@ const loaderText = computed(() => {
                           "
                           :row-index="rowIndex"
                           :active="activeCell.col === colIndex && activeCell.row === rowIndex"
-                          :read-only="readOnly"
+                          :read-only="!hasEditPermission"
                           @update:edit-enabled="editEnabled = $event"
                           @save="updateOrSaveRow?.(row, columnObj.title, state)"
                           @navigate="onNavigate"
@@ -1626,7 +1654,7 @@ const loaderText = computed(() => {
           />
         </div>
 
-        <template v-if="!isLocked && hasEditPermission" #overlay>
+        <template #overlay>
           <NcMenu class="!rounded !py-0" @click="contextMenu = false">
             <NcMenuItem
               v-if="isEeUI && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
@@ -1677,6 +1705,7 @@ const loaderText = computed(() => {
             <NcMenuItem
               v-if="
                 contextMenuTarget &&
+                hasEditPermission &&
                 selectedRange.isSingleCell() &&
                 (isLinksOrLTAR(fields[contextMenuTarget.col]) || !isVirtualCol(fields[contextMenuTarget.col]))
               "
@@ -1690,7 +1719,7 @@ const loaderText = computed(() => {
 
             <!--            Clear cell -->
             <NcMenuItem
-              v-else-if="contextMenuTarget"
+              v-else-if="contextMenuTarget && hasEditPermission"
               v-e="['a:row:clear-range']"
               class="nc-base-menu-item"
               @click="clearSelectedRangeOfCells()"
@@ -1699,28 +1728,40 @@ const loaderText = computed(() => {
 
               {{ $t('general.clear') }}
             </NcMenuItem>
-            <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected))" />
-            <NcMenuItem
-              v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
-              v-e="['a:row:delete']"
-              class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
-              @click="confirmDeleteRow(contextMenuTarget.row)"
+            <template
+              v-if="contextMenuTarget && !isLocked && selectedRange.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode"
             >
-              <GeneralIcon icon="delete" />
-              <!-- Delete Row -->
-              {{ $t('activity.deleteRow') }}
-            </NcMenuItem>
-            <div v-else-if="contextMenuTarget && deleteRangeOfRows">
+              <NcDivider />
+              <NcMenuItem v-e="['a:row:comment']" class="nc-base-menu-item" @click="commentRow(contextMenuTarget.row)">
+                <MdiMessageOutline class="h-4 w-4" />
+
+                {{ $t('general.comment') }}
+              </NcMenuItem>
+            </template>
+            <template v-if="hasEditPermission">
+              <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected))" />
               <NcMenuItem
+                v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
                 v-e="['a:row:delete']"
                 class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
-                @click="deleteSelectedRangeOfRows"
+                @click="confirmDeleteRow(contextMenuTarget.row)"
               >
-                <GeneralIcon icon="delete" class="text-gray-500 text-red-600" />
-                <!-- Delete Rows -->
-                {{ $t('activity.deleteRows') }}
+                <GeneralIcon icon="delete" />
+                <!-- Delete Row -->
+                {{ $t('activity.deleteRow') }}
               </NcMenuItem>
-            </div>
+              <div v-else-if="contextMenuTarget && deleteRangeOfRows">
+                <NcMenuItem
+                  v-e="['a:row:delete']"
+                  class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+                  @click="deleteSelectedRangeOfRows"
+                >
+                  <GeneralIcon icon="delete" class="text-gray-500 text-red-600" />
+                  <!-- Delete Rows -->
+                  {{ $t('activity.deleteRows') }}
+                </NcMenuItem>
+              </div>
+            </template>
           </NcMenu>
         </template>
       </NcDropdown>

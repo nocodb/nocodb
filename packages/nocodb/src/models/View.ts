@@ -680,6 +680,64 @@ export default class View implements ViewType {
     return (this.columns = await View.getColumns(this.id, ncMeta));
   }
 
+  static async getViewColumnId(
+    {
+      viewId,
+      colId,
+    }: {
+      viewId: string;
+      colId: string;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const view = await this.get(viewId);
+    if (!view) return undefined;
+
+    let tableName;
+    let cacheScope;
+    switch (view.type) {
+      case ViewTypes.GRID:
+        tableName = MetaTable.GRID_VIEW_COLUMNS;
+        cacheScope = CacheScope.GRID_VIEW_COLUMN;
+
+        break;
+      case ViewTypes.GALLERY:
+        tableName = MetaTable.GALLERY_VIEW_COLUMNS;
+        cacheScope = CacheScope.GALLERY_VIEW_COLUMN;
+
+        break;
+      case ViewTypes.MAP:
+        tableName = MetaTable.MAP_VIEW_COLUMNS;
+        cacheScope = CacheScope.MAP_VIEW_COLUMN;
+
+        break;
+      case ViewTypes.FORM:
+        tableName = MetaTable.FORM_VIEW_COLUMNS;
+        cacheScope = CacheScope.FORM_VIEW_COLUMN;
+
+        break;
+      case ViewTypes.KANBAN:
+        tableName = MetaTable.KANBAN_VIEW_COLUMNS;
+        cacheScope = CacheScope.KANBAN_VIEW_COLUMN;
+
+        break;
+    }
+
+    const key = `${cacheScope}:viewColumnId:${colId}`;
+    const o = await NocoCache.get(key, CacheGetType.TYPE_STRING);
+    if (o) return o;
+
+    const viewColumn = await ncMeta.metaGet2(null, null, tableName, {
+      fk_view_id: viewId,
+      fk_column_id: colId,
+    });
+    if (!viewColumn) return undefined;
+
+    await NocoCache.set(key, viewColumn.id);
+
+    return viewColumn.id;
+  }
+
   static async updateColumn(
     viewId: string,
     colId: string,

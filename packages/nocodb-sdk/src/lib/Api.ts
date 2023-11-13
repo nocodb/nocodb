@@ -85,6 +85,26 @@ export interface AttachmentReqType {
   title?: string;
   /** Attachment URL to be uploaded via upload-by-url */
   url?: string;
+  /** The name of the attachment file name */
+  fileName?: string;
+}
+
+/**
+ * Model for File Request
+ */
+export interface FileReqType {
+  /** The mimetype of the file */
+  mimetype?: string;
+  /** The name of the input used to upload the file */
+  fieldname?: string;
+  /** The original name of the file */
+  originalname?: string;
+  /** The size of the file */
+  size?: number;
+  /** The encoding of the file */
+  encoding?: string;
+  /** An buffer array containing the file content */
+  buffer?: any;
 }
 
 /**
@@ -484,6 +504,7 @@ export type ColumnReqType = (
     view_id?: string;
   };
   title: string;
+  view_id?: string;
 };
 
 /**
@@ -10308,7 +10329,9 @@ export class Api<
          */
         path: string;
       },
-      data: AttachmentReqType,
+      data: {
+        files: FileReqType[];
+      },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({

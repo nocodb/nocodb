@@ -51,13 +51,6 @@ const { allowCSVDownload } = useSharedView()
           'w-full': isMobileMode,
         }"
       />
-
-      <template v-if="!isMobileMode">
-        <LazySmartsheetToolbarViewActions
-          v-if="(isGrid || isGallery || isKanban || isMap) && !isPublic && isUIAllowed('dataInsert')"
-          :show-system-fields="false"
-        />
-      </template>
     </template>
   </div>
 </template>

@@ -7,9 +7,10 @@ import {
   Param,
   Patch,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ColumnReqType } from 'nocodb-sdk';
 import type { Column } from '~/models';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -31,7 +32,7 @@ export class ColumnsController {
   async columnAdd(
     @Param('tableId') tableId: string,
     @Body() body: ColumnReqType,
-    @Request() req: any,
+    @Req() req: Request,
   ) {
     return await this.columnsService.columnAdd({
       tableId,
@@ -49,7 +50,7 @@ export class ColumnsController {
   async columnUpdate(
     @Param('columnId') columnId: string,
     @Body() body: ColumnReqType,
-    @Request() req: any,
+    @Req() req: Request,
   ) {
     return await this.columnsService.columnUpdate({
       columnId: columnId,
@@ -64,7 +65,7 @@ export class ColumnsController {
     '/api/v2/meta/columns/:columnId',
   ])
   @Acl('columnDelete')
-  async columnDelete(@Param('columnId') columnId: string, @Request() req: any) {
+  async columnDelete(@Param('columnId') columnId: string, @Req() req: Request) {
     return await this.columnsService.columnDelete({
       columnId,
       req,
@@ -113,7 +114,7 @@ export class ColumnsController {
         column: Partial<Column>;
       }[];
     },
-    @Request() req: any,
+    @Req() req: Request,
   ) {
     return await this.columnsService.columnBulk(tableId, body, req);
   }

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents, extractRolesObj, OrgUserRoles } from 'nocodb-sdk';
 import type { User } from '~/models';
 import type { ApiTokenReqType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -35,7 +36,11 @@ export class OrgTokensService {
     );
   }
 
-  async apiTokenCreate(param: { user: User; apiToken: ApiTokenReqType }) {
+  async apiTokenCreate(param: {
+    user: User;
+    apiToken: ApiTokenReqType;
+    req: NcRequest;
+  }) {
     validatePayload(
       'swagger.json#/components/schemas/ApiTokenReq',
       param.apiToken,
@@ -49,12 +54,14 @@ export class OrgTokensService {
     this.appHooksService.emit(AppEvents.ORG_API_TOKEN_CREATE, {
       tokenBody: param.apiToken,
       userId: param.user?.id,
+
+      req: param.req,
     });
 
     return apiToken;
   }
 
-  async apiTokenDelete(param: { user: User; token: string }) {
+  async apiTokenDelete(param: { user: User; token: string; req: NcRequest }) {
     const fk_user_id = param.user.id;
     const apiToken = await ApiToken.getByToken(param.token);
     if (
@@ -68,6 +75,7 @@ export class OrgTokensService {
     this.appHooksService.emit(AppEvents.ORG_API_TOKEN_DELETE, {
       token: param.token,
       userId: param.user?.id,
+      req: param['req'],
     });
 
     return res;

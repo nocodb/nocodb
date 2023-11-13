@@ -7,9 +7,10 @@ import {
   Param,
   Patch,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { SharedBasesService } from '~/services/shared-bases.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -27,7 +28,7 @@ export class SharedBasesController {
   @HttpCode(200)
   @Acl('createSharedBaseLink')
   async createSharedBaseLink(
-    @Request() req,
+    @Req() req: Request,
     @Body() body: any,
     @Param('baseId') baseId: string,
   ): Promise<any> {
@@ -36,6 +37,7 @@ export class SharedBasesController {
       roles: body?.roles,
       password: body?.password,
       siteUrl: req.ncSiteUrl,
+      req,
     });
 
     return sharedBase;
@@ -47,7 +49,7 @@ export class SharedBasesController {
   ])
   @Acl('updateSharedBaseLink')
   async updateSharedBaseLink(
-    @Request() req,
+    @Req() req: Request,
     @Body() body: any,
     @Param('baseId') baseId: string,
   ): Promise<any> {
@@ -56,6 +58,7 @@ export class SharedBasesController {
       roles: body?.roles,
       password: body?.password,
       siteUrl: req.ncSiteUrl,
+      req,
     });
 
     return sharedBase;
@@ -66,9 +69,13 @@ export class SharedBasesController {
     '/api/v2/meta/bases/:baseId/shared',
   ])
   @Acl('disableSharedBaseLink')
-  async disableSharedBaseLink(@Param('baseId') baseId: string): Promise<any> {
+  async disableSharedBaseLink(
+    @Param('baseId') baseId: string,
+    @Req() req: Request,
+  ): Promise<any> {
     const sharedBase = await this.sharedBasesService.disableSharedBaseLink({
       baseId,
+      req,
     });
 
     return sharedBase;
@@ -80,7 +87,7 @@ export class SharedBasesController {
   ])
   @Acl('getSharedBaseLink')
   async getSharedBaseLink(
-    @Request() req,
+    @Req() req: Request,
     @Param('baseId') baseId: string,
   ): Promise<any> {
     const sharedBase = await this.sharedBasesService.getSharedBaseLink({

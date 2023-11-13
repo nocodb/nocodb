@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents, extractRolesObj, OrgUserRoles } from 'nocodb-sdk';
 import type { User } from '~/models';
 import type { ApiTokenReqType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
@@ -14,7 +15,11 @@ export class ApiTokensService {
   async apiTokenList(param: { userId: string }) {
     return await ApiToken.list(param.userId);
   }
-  async apiTokenCreate(param: { userId: string; tokenBody: ApiTokenReqType }) {
+  async apiTokenCreate(param: {
+    userId: string;
+    tokenBody: ApiTokenReqType;
+    req: NcRequest;
+  }) {
     validatePayload(
       'swagger.json#/components/schemas/ApiTokenReq',
       param.tokenBody,
@@ -23,6 +28,7 @@ export class ApiTokensService {
     this.appHooksService.emit(AppEvents.API_TOKEN_CREATE, {
       userId: param.userId,
       tokenBody: param.tokenBody,
+      req: param.req,
     });
 
     return await ApiToken.insert({
@@ -31,7 +37,7 @@ export class ApiTokensService {
     });
   }
 
-  async apiTokenDelete(param: { token; user: User }) {
+  async apiTokenDelete(param: { token; user: User; req: NcRequest }) {
     const apiToken = await ApiToken.getByToken(param.token);
     if (
       !extractRolesObj(param.user.roles)[OrgUserRoles.SUPER_ADMIN] &&
@@ -43,6 +49,7 @@ export class ApiTokensService {
     this.appHooksService.emit(AppEvents.API_TOKEN_DELETE, {
       userId: param.user?.id,
       token: param.token,
+      req: param.req,
     });
 
     // todo: verify token belongs to the user

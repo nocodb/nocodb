@@ -1020,7 +1020,10 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
 
 type CustomKnex = Knex;
 
-function CustomKnex(arg: string | Knex.Config<any> | any): CustomKnex {
+function CustomKnex(
+  arg: string | Knex.Config<any> | any,
+  extDb?: any,
+): CustomKnex {
   // sqlite does not support inserting default values and knex fires a warning without this flag
   if (arg?.client === 'sqlite3') {
     arg.useNullAsDefault = true;
@@ -1064,6 +1067,14 @@ function CustomKnex(arg: string | Knex.Config<any> | any): CustomKnex {
       value: () => {
         return arg?.searchPath?.[0];
       },
+    },
+    extDb: {
+      enumerable: true,
+      value: extDb,
+    },
+    isExternal: {
+      enumerable: false,
+      value: !!extDb && process.env.NC_DISABLE_MUX !== 'true',
     },
   });
 

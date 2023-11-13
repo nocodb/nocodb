@@ -7,7 +7,12 @@
         data-testid="nc-workspace-menu"
         class="flex items-center nc-workspace-menu overflow-hidden py-1.25 pr-0.25 justify-center w-full ml-2"
       >
-        <a class="transition-all duration-200 transform w-24 min-w-10" href="https://github.com/nocodb/nocodb" target="_blank">
+        <a
+          class="transition-all duration-200 transform w-24 min-w-10"
+          href="https://github.com/nocodb/nocodb"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <img alt="NocoDB" src="~/assets/img/brand/nocodb.png" />
         </a>
         <div class="flex flex-grow"></div>

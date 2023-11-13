@@ -90,6 +90,8 @@ const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
 
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+
 // override cell click hook to avoid unexpected behavior at form fields
 provide(CellClickHookInj, undefined)
 
@@ -127,7 +129,6 @@ const {
   primaryKey,
   saveRowAndStay,
   row: _row,
-  syncLTARRefs,
   save: _save,
   loadCommentsAndLogs,
   clearColumns,
@@ -185,7 +186,6 @@ const onDuplicateRow = () => {
 const save = async () => {
   if (isNew.value) {
     const data = await _save(rowState.value)
-    await syncLTARRefs(data)
     reloadTrigger?.trigger()
   } else {
     let kanbanClbk
@@ -283,6 +283,9 @@ const cellWrapperEl = ref()
 onMounted(async () => {
   isRecordLinkCopied.value = false
   isLoading.value = true
+
+  const focusFirstCell = !isExpandedFormCommentMode.value
+
   if (props.loadRow) {
     await _loadRow()
     await loadCommentsAndLogs()
@@ -302,9 +305,11 @@ onMounted(async () => {
 
   isLoading.value = false
 
-  setTimeout(() => {
-    cellWrapperEl.value?.$el?.querySelector('input,select,textarea')?.focus()
-  }, 300)
+  if (focusFirstCell) {
+    setTimeout(() => {
+      cellWrapperEl.value?.$el?.querySelector('input,select,textarea')?.focus()
+    }, 300)
+  }
 })
 
 const addNewRow = () => {
@@ -340,8 +345,7 @@ useActiveKeyupListener(
       e.stopPropagation()
 
       if (isNew.value) {
-        const data = await _save(rowState.value)
-        await syncLTARRefs(data)
+        await _save(rowState.value)
         reloadHook?.trigger(null)
       } else {
         await save()
@@ -375,8 +379,7 @@ useActiveKeyupListener(
           okText: t('general.save'),
           cancelText: t('labels.discard'),
           onOk: async () => {
-            const data = await _save(rowState.value)
-            await syncLTARRefs(data)
+            await _save(rowState.value)
             reloadHook?.trigger(null)
             addNewRow()
           },

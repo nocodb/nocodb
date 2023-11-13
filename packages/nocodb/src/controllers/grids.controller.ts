@@ -28,20 +28,26 @@ export class GridsController {
   async gridViewCreate(
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
-    @Req() _req: any,
+    @Req() req: Request,
   ) {
     const view = await this.gridsService.gridViewCreate({
       grid: body,
       tableId,
+      req,
     });
     return view;
   }
   @Patch(['/api/v1/db/meta/grids/:viewId', '/api/v2/meta/grids/:viewId'])
   @Acl('gridViewUpdate')
-  async gridViewUpdate(@Param('viewId') viewId: string, @Body() body) {
+  async gridViewUpdate(
+    @Param('viewId') viewId: string,
+    @Body() body,
+    @Req() req: Request,
+  ) {
     return await this.gridsService.gridViewUpdate({
       viewId,
       grid: body,
+      req,
     });
   }
 }

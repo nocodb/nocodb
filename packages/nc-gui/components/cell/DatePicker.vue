@@ -22,7 +22,6 @@ interface Props {
 }
 
 const { modelValue, isPk } = defineProps<Props>()
-
 const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
@@ -186,6 +185,14 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   }
 })
 
+const isOpen = computed(() => {
+  if (readOnly.value) return false
+
+  return ((readOnly.value || (localState.value && isPk)) && !active.value && !editable.value) || isLockedMode.value
+    ? false
+    : open.value
+})
+
 // use the default date picker open sync only to close the picker
 const updateOpen = (next: boolean) => {
   if (open.value && !next) {
@@ -223,7 +230,7 @@ const clickHandler = () => {
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
     :dropdown-class-name="`${randomClass} nc-picker-date ${open ? 'active' : ''}`"
-    :open="((readOnly || (localState && isPk)) && !active && !editable) || isLockedMode ? false : open"
+    :open="isOpen"
     @click="clickHandler"
     @update:open="updateOpen"
   >

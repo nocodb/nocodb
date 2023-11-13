@@ -8,13 +8,8 @@ import { T } from 'nc-help';
 import type { AuditType } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
-  ApiCreatedEvent,
   ColumnEvent,
-  FilterEvent,
-  MetaDiffEvent,
   OrgUserInviteEvent,
-  PluginEvent,
-  ProjectCreateEvent,
   ProjectInviteEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
@@ -25,7 +20,6 @@ import type {
   UserPasswordResetEvent,
   UserSigninEvent,
   UserSignupEvent,
-  ViewEvent,
 } from '~/services/app-hooks/interfaces';
 import { Audit } from '~/models';
 import { TelemetryService } from '~/services/telemetry.service';
@@ -143,33 +137,6 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           });
         }
         break;
-      case AppEvents.SHARED_VIEW_DELETE:
-        this.telemetryService.sendEvent({ evt_type: 'sharedView:deleted' });
-        break;
-      case AppEvents.SHARED_VIEW_CREATE:
-        this.telemetryService.sendEvent({
-          evt_type: 'sharedView:generated-link',
-        });
-        break;
-      case AppEvents.SHARED_VIEW_UPDATE:
-        this.telemetryService.sendEvent({ evt_type: 'sharedView:updated' });
-        break;
-      case AppEvents.VIEW_UPDATE:
-        {
-          const param = data as ViewEvent;
-
-          this.telemetryService.sendEvent({
-            evt_type: 'vtable:updated',
-            show_as: param.view.type ?? param.showAs,
-          });
-        }
-        break;
-      case AppEvents.VIEW_DELETE:
-        this.telemetryService.sendEvent({ evt_type: 'vtable:deleted' });
-        break;
-      case AppEvents.TABLE_UPDATE:
-        this.telemetryService.sendEvent({ evt_type: 'table:updated' });
-        break;
       case AppEvents.TABLE_CREATE:
         {
           const param = data as TableEvent;
@@ -182,8 +149,6 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
             description: `Table ${param.table.table_name} with alias ${param.table.title} has been created`,
             ip: param.ip,
           });
-
-          this.telemetryService.sendEvent({ evt_type: 'table:created' });
         }
         break;
 
@@ -200,8 +165,6 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
             description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
             ip,
           });
-
-          this.telemetryService.sendEvent({ evt_type: 'table:deleted' });
         }
         break;
       case AppEvents.COLUMN_UPDATE:
@@ -217,8 +180,6 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
             description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been updated`,
             ip,
           });
-
-          this.telemetryService.sendEvent({ evt_type: 'column:updated' });
         }
         break;
       case AppEvents.COLUMN_CREATE:
@@ -232,8 +193,6 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
             description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been created`,
             ip,
           });
-
-          this.telemetryService.sendEvent({ evt_type: 'column:created' });
         }
         break;
       case AppEvents.COLUMN_DELETE:
@@ -248,7 +207,6 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
             description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been deleted`,
             ip,
           });
-          this.telemetryService.sendEvent({ evt_type: 'column:deleted' });
         }
         break;
 
@@ -303,214 +261,6 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
             description: `${param.user.email} has been re-invited`,
             ip: param.ip,
           });
-        }
-        break;
-      case AppEvents.FILTER_CREATE:
-        {
-          const param = data as FilterEvent;
-          this.telemetryService.sendEvent({
-            evt_type: param.hook ? 'hookFilter:created' : 'filter:created',
-          });
-        }
-        break;
-      case AppEvents.FILTER_DELETE:
-        {
-          this.telemetryService.sendEvent({ evt_type: 'filter:deleted' });
-        }
-        break;
-      case AppEvents.FILTER_UPDATE:
-        {
-          this.telemetryService.sendEvent({ evt_type: 'filter:updated' });
-        }
-        break;
-      case AppEvents.SORT_CREATE:
-        {
-          this.telemetryService.sendEvent({ evt_type: 'sort:created' });
-        }
-        break;
-      case AppEvents.SORT_DELETE:
-        {
-          this.telemetryService.sendEvent({ evt_type: 'sort:deleted' });
-        }
-        break;
-      case AppEvents.SORT_UPDATE:
-        {
-          this.telemetryService.sendEvent({ evt_type: 'sort:updated' });
-        }
-        break;
-      case AppEvents.VIEW_COLUMN_CREATE:
-        {
-          this.telemetryService.sendEvent({ evt_type: 'viewColumn:inserted' });
-        }
-        break;
-      case AppEvents.VIEW_COLUMN_UPDATE:
-        {
-          this.telemetryService.sendEvent({ evt_type: 'viewColumn:updated' });
-        }
-        break;
-      case AppEvents.RELATION_CREATE:
-        {
-          this.telemetryService.sendEvent({ evt_type: 'relation:created' });
-        }
-        break;
-      case AppEvents.RELATION_DELETE:
-        {
-          this.telemetryService.sendEvent({ evt_type: 'relation:deleted' });
-        }
-        break;
-      case AppEvents.API_TOKEN_CREATE:
-        {
-          this.telemetryService.sendEvent({ evt_type: 'apiToken:created' });
-        }
-        break;
-      case AppEvents.API_TOKEN_DELETE:
-        {
-          this.telemetryService.sendEvent({ evt_type: 'apiToken:deleted' });
-        }
-        break;
-      case AppEvents.PLUGIN_TEST:
-        {
-          this.telemetryService.sendEvent({ evt_type: 'plugin:tested' });
-        }
-        break;
-      case AppEvents.PLUGIN_INSTALL:
-        {
-          const { plugin } = data as PluginEvent;
-          this.telemetryService.sendEvent({
-            evt_type: 'plugin:installed',
-            title: plugin.title,
-          });
-        }
-        break;
-      case AppEvents.PLUGIN_UNINSTALL:
-        {
-          const { plugin } = data as PluginEvent;
-          this.telemetryService.sendEvent({
-            evt_type: 'plugin:uninstalled',
-            title: plugin.title,
-          });
-        }
-        break;
-
-      case AppEvents.SHARED_BASE_GENERATE_LINK:
-        {
-          this.telemetryService.sendEvent({
-            evt_type: 'sharedBase:generated-link',
-          });
-        }
-        break;
-      case AppEvents.SHARED_BASE_DELETE_LINK:
-        {
-          this.telemetryService.sendEvent({
-            evt_type: 'sharedBase:generated-link',
-          });
-        }
-        break;
-      case AppEvents.BASE_UPDATE:
-        {
-          this.telemetryService.sendEvent({
-            evt_type: 'source:updated',
-          });
-        }
-        break;
-      case AppEvents.BASE_DELETE:
-        {
-          this.telemetryService.sendEvent({ evt_type: 'source:deleted' });
-        }
-        break;
-      case AppEvents.BASE_CREATE:
-        {
-          this.telemetryService.sendEvent({
-            evt_type: 'source:created',
-          });
-        }
-        break;
-      case AppEvents.ATTACHMENT_UPLOAD:
-        {
-          this.telemetryService.sendEvent({
-            evt_type: 'image:uploaded',
-            type: data?.type,
-          });
-        }
-        break;
-      case AppEvents.WEBHOOK_CREATE:
-        this.telemetryService.sendEvent({ evt_type: 'webhooks:created' });
-        break;
-      case AppEvents.WEBHOOK_DELETE:
-        this.telemetryService.sendEvent({ evt_type: 'webhooks:deleted' });
-        break;
-      case AppEvents.WEBHOOK_UPDATE:
-        this.telemetryService.sendEvent({ evt_type: 'webhooks:updated' });
-        break;
-      case AppEvents.FORM_COLUMN_UPDATE:
-        this.telemetryService.sendEvent({ evt_type: 'formViewColumn:updated' });
-        break;
-      case AppEvents.SYNC_SOURCE_CREATE:
-        this.telemetryService.sendEvent({ evt_type: 'syncSource:created' });
-        break;
-      case AppEvents.SYNC_SOURCE_DELETE:
-        this.telemetryService.sendEvent({ evt_type: 'syncSource:deleted' });
-        break;
-      case AppEvents.VIEW_CREATE:
-        {
-          const param = data as ViewEvent;
-          this.telemetryService.sendEvent({
-            evt_type: 'vtable:created',
-            show_as: param.showAs,
-          });
-        }
-        break;
-      case AppEvents.GRID_COLUMN_UPDATE:
-        this.telemetryService.sendEvent({ evt_type: 'gridViewColumn:updated' });
-        break;
-      case AppEvents.WEBHOOK_TEST:
-        this.telemetryService.sendEvent({ evt_type: 'webhooks:tested' });
-        break;
-      case AppEvents.PROJECT_CREATE:
-        {
-          const { xcdb } = data as ProjectCreateEvent;
-          this.telemetryService.sendEvent({
-            evt_type: 'base:created',
-            xcdb,
-          });
-
-          this.telemetryService.sendEvent({ evt_type: 'base:rest' });
-        }
-        break;
-      case AppEvents.PROJECT_DELETE:
-        this.telemetryService.sendEvent({ evt_type: 'base:deleted' });
-        break;
-      case AppEvents.PROJECT_UPDATE:
-        this.telemetryService.sendEvent({ evt_type: 'base:update' });
-        break;
-      case AppEvents.UI_ACL_UPDATE:
-        this.telemetryService.sendEvent({ evt_type: 'uiAcl:updated' });
-        break;
-      case AppEvents.META_DIFF_SYNC:
-        {
-          const param = data as MetaDiffEvent;
-
-          if (param.source) {
-            this.telemetryService.sendEvent({
-              evt_type: 'baseMetaDiff:synced',
-            });
-          } else {
-            this.telemetryService.sendEvent({ evt_type: 'metaDiff:synced' });
-          }
-        }
-        break;
-
-      case AppEvents.ORG_API_TOKEN_DELETE:
-        this.telemetryService.sendEvent({ evt_type: 'org:apiToken:deleted' });
-        break;
-      case AppEvents.ORG_API_TOKEN_CREATE:
-        this.telemetryService.sendEvent({ evt_type: 'org:apiToken:created' });
-        break;
-      case AppEvents.APIS_CREATED:
-        {
-          const _param = data as ApiCreatedEvent;
-          // todo: add to telemetry
-          // T.emit('evt_api_created', param.info);
         }
         break;
     }

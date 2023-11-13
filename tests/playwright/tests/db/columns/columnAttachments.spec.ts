@@ -97,7 +97,7 @@ test.describe('Attachment column', () => {
     await dashboard.grid.toolbar.actions.click('Download');
 
     const csvFileData: string = await dashboard.downloadAndGetFile({
-      downloadUIAction: dashboard.grid.toolbar.actions.clickDownloadSubmenu('Download as CSV'),
+      downloadUIAction: dashboard.grid.toolbar.actions.clickDownloadSubmenu('Download CSV'),
     });
     const csvArray = csvFileData.split('\r\n');
     const columns = csvArray[0];

@@ -1,4 +1,4 @@
-import type { ViewType, ViewTypes } from 'nocodb-sdk'
+import type { FilterType, SortType, ViewType, ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { ViewPageType } from '~/lib'
 
@@ -40,6 +40,12 @@ export const useViewsStore = defineStore('viewsStore', () => {
       viewsByTable.value.set(tablesStore.activeTableId, value)
     },
   })
+
+  // Both are synced with `useSmartsheetStore` state
+  // Sort of active view
+  const activeSorts = ref<SortType[]>([])
+  // Filters of active view (used for local filters)
+  const activeNestedFilters = ref<FilterType[]>([])
 
   const isViewsLoading = ref(true)
   const isViewDataLoading = ref(true)
@@ -304,6 +310,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     navigateToView,
     changeView,
     removeFromRecentViews,
+    activeSorts,
+    activeNestedFilters,
   }
 })
 

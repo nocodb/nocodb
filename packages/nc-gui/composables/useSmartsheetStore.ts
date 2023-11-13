@@ -15,7 +15,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   ) => {
     const { $api } = useNuxtApp()
 
-    const { activeView: view } = storeToRefs(useViewsStore())
+    const { activeView: view, activeNestedFilters, activeSorts } = storeToRefs(useViewsStore())
 
     const baseStore = useBase()
 
@@ -56,6 +56,26 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
     const sorts = ref<SortType[]>(unref(initialSorts) ?? [])
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
+
+    watch(
+      sorts,
+      () => {
+        activeSorts.value = sorts.value
+      },
+      {
+        immediate: true,
+      },
+    )
+
+    watch(
+      nestedFilters,
+      () => {
+        activeNestedFilters.value = nestedFilters.value
+      },
+      {
+        immediate: true,
+      },
+    )
 
     return {
       view,

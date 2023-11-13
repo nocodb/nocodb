@@ -462,9 +462,10 @@ const projectDelete = () => {
                 >
                   <template v-if="!isSharedBase">
                     <NcMenuItem v-if="isUIAllowed('baseRename')" data-testid="nc-sidebar-project-rename" @click="enableEditMode">
-                      <div v-e="['c:base:rename']" class="flex gap-2 items-center"></div>
-                      <GeneralIcon icon="edit" class="group-hover:text-black" />
-                      {{ $t('general.rename') }}
+                      <div v-e="['c:base:rename']" class="flex gap-2 items-center">
+                        <GeneralIcon icon="edit" class="group-hover:text-black" />
+                        {{ $t('general.rename') }}
+                      </div>
                     </NcMenuItem>
 
                     <NcMenuItem

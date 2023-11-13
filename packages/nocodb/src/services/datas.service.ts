@@ -134,8 +134,9 @@ export class DatasService {
     query: any;
     baseModel?: BaseModelSqlv2;
     throwErrorIfInvalidParams?: boolean;
+    ignoreViewFilterAndSort?: boolean;
   }) {
-    const { model, view, query = {} } = param;
+    const { model, view, query = {}, ignoreViewFilterAndSort = false } = param;
 
     const source = await Source.get(model.source_id);
 
@@ -169,12 +170,10 @@ export class DatasService {
         try {
           data = await nocoExecute(
             ast,
-            await baseModel.list(
-              listArgs,
-              false,
-              false,
-              param.throwErrorIfInvalidParams,
-            ),
+            await baseModel.list(listArgs, {
+              ignoreViewFilterAndSort,
+              throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
+            }),
             {},
             listArgs,
           );

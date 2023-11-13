@@ -1127,6 +1127,12 @@ export class ColumnsService {
     }
 
     let colBody: any = param.column;
+
+    const colExtra = {
+      view_id: colBody.view_id,
+      column_order: colBody.column_order,
+    };
+
     switch (colBody.uidt) {
       case UITypes.Rollup:
         {
@@ -1151,7 +1157,13 @@ export class ColumnsService {
 
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
-        await this.createLTARColumn({ ...param, source, base, reuse });
+        await this.createLTARColumn({
+          ...param,
+          source,
+          base,
+          reuse,
+          colExtra,
+        });
 
         this.appHooksService.emit(AppEvents.RELATION_DELETE, {
           column: {
@@ -1818,6 +1830,7 @@ export class ColumnsService {
     source: Source;
     base: Base;
     reuse?: ReusableParams;
+    colExtra?: any;
   }) {
     validateParams(['parentId', 'childId', 'type'], param.column);
 
@@ -1837,7 +1850,9 @@ export class ColumnsService {
         id: param.source.base_id,
       }),
     );
-    const isLinks = param.column.uidt === UITypes.Links;
+    const isLinks =
+      param.column.uidt === UITypes.Links ||
+      (param.column as LinkToAnotherColumnReqType).type === 'bt';
 
     // if xcdb base then treat as virtual relation to avoid creating foreign key
     if (param.source.isMeta()) {
@@ -1941,6 +1956,7 @@ export class ColumnsService {
         null,
         param.column['meta'],
         isLinks,
+        param.colExtra,
       );
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
       const aTn = `${param.base?.prefix ?? ''}_nc_m2m_${randomID()}`;
@@ -2046,6 +2062,9 @@ export class ColumnsService {
         foreignKeyName1,
         (param.column as LinkToAnotherColumnReqType).virtual,
         true,
+        null,
+        false,
+        param.colExtra,
       );
       await createHmAndBtColumn(
         assocModel,
@@ -2056,6 +2075,9 @@ export class ColumnsService {
         foreignKeyName2,
         (param.column as LinkToAnotherColumnReqType).virtual,
         true,
+        null,
+        false,
+        param.colExtra,
       );
 
       await Column.insert({
@@ -2108,6 +2130,9 @@ export class ColumnsService {
           plural: param.column['meta']?.plural || pluralize(child.title),
           singular: param.column['meta']?.singular || singularize(child.title),
         },
+
+        // column_order and view_id if provided
+        ...param.colExtra,
       });
 
       // todo: create index for virtual relations as well

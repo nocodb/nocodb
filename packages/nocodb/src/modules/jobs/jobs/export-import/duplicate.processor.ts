@@ -6,8 +6,12 @@ import debug from 'debug';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import { Base, Column, Model, Source } from '~/models';
 import { BasesService } from '~/services/bases.service';
-import { findWithIdentifier } from '~/helpers/exportImportHelpers';
+import {
+  findWithIdentifier,
+  generateUniqueName,
+} from '~/helpers/exportImportHelpers';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
+import { ColumnsService } from '~/services/columns.service';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
@@ -22,6 +26,7 @@ export class DuplicateProcessor {
     private readonly importService: ImportService,
     private readonly projectsService: BasesService,
     private readonly bulkDataService: BulkDataAliasService,
+    private readonly columnsService: ColumnsService,
   ) {}
 
   @Process(JobTypes.DuplicateBase)
@@ -227,6 +232,164 @@ export class DuplicateProcessor {
     return await Model.get(findWithIdentifier(idMap, sourceModel.id));
   }
 
+  @Process(JobTypes.DuplicateColumn)
+  async duplicateColumn(job: Job) {
+    this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateColumn})`);
+
+    const hrTime = initTime();
+
+    const { baseId, sourceId, columnId, extra, req, options } = job.data;
+
+    const excludeData = options?.excludeData || false;
+
+    const base = await Base.get(baseId);
+
+    const sourceColumn = await Column.get({
+      source_id: sourceId,
+      colId: columnId,
+    });
+
+    const user = (req as any).user;
+
+    const source = await Source.get(sourceColumn.source_id);
+
+    const models = (await source.getModels()).filter(
+      (m) => !m.mm && m.type === 'table',
+    );
+
+    const sourceModel = models.find((m) => m.id === sourceColumn.fk_model_id);
+
+    const columns = await sourceModel.getColumns();
+
+    const title = generateUniqueName(
+      `${sourceColumn.title} copy`,
+      columns.map((p) => p.title),
+    );
+
+    const relatedModelIds = [sourceColumn]
+      .filter((col) => isLinksOrLTAR(col))
+      .map((col) => col.colOptions.fk_related_model_id)
+      .filter((id) => id);
+
+    const relatedModels = models.filter((m) => relatedModelIds.includes(m.id));
+
+    const exportedModel = (
+      await this.exportService.serializeModels({
+        modelIds: [sourceModel.id],
+        excludeData,
+        excludeHooks: true,
+        excludeViews: true,
+      })
+    )[0];
+
+    elapsedTime(
+      hrTime,
+      `serialize model schema for ${sourceModel.id}`,
+      'duplicateColumn',
+    );
+
+    if (!exportedModel) {
+      throw new Error(`Export failed for model '${sourceModel.id}'`);
+    }
+
+    exportedModel.model.columns = exportedModel.model.columns.filter((c) =>
+      c.id.includes(columnId),
+    );
+
+    if (exportedModel.model.columns.length !== 1) {
+      throw new Error(`There was an error duplicating column!`);
+    }
+
+    const replacedColumn = exportedModel.model.columns.find((c) =>
+      c.id.includes(columnId),
+    );
+
+    // save old default value
+    const oldCdf = replacedColumn.cdf;
+
+    replacedColumn.title = title;
+    replacedColumn.column_name = title.toLowerCase().replace(/ /g, '_');
+
+    // remove default value to avoid filling existing empty rows
+    replacedColumn.cdf = null;
+
+    Object.assign(replacedColumn, extra);
+
+    const idMap = await this.importService.importModels({
+      baseId,
+      sourceId: source.id,
+      data: [exportedModel],
+      user,
+      req,
+      externalModels: relatedModels,
+      existingModel: sourceModel,
+    });
+
+    elapsedTime(hrTime, 'import model schema', 'duplicateColumn');
+
+    if (!idMap) {
+      throw new Error(`Import failed for model '${sourceModel.id}'`);
+    }
+
+    if (!excludeData) {
+      const fields: Record<string, string[]> = {};
+
+      fields[sourceModel.id] = [sourceModel.primaryKey.id];
+      fields[sourceModel.id].push(columnId);
+
+      for (const md of relatedModels) {
+        const bts = md.columns
+          .filter(
+            (c) =>
+              isLinksOrLTAR(c) &&
+              c.colOptions.type === 'bt' &&
+              c.colOptions.fk_related_model_id === sourceModel.id,
+          )
+          .map((c) => c.id);
+
+        if (bts.length > 0) {
+          fields[md.id] = [md.primaryKey.id];
+          fields[md.id].push(...bts);
+        }
+      }
+
+      await this.importModelsData({
+        idMap,
+        sourceProject: base,
+        sourceModels: [],
+        destProject: base,
+        destBase: source,
+        hrTime,
+        modelFieldIds: fields,
+        externalModels: [sourceModel, ...relatedModels],
+      });
+
+      elapsedTime(hrTime, 'import model data', 'duplicateColumn');
+    }
+
+    const destColumn = await Column.get({
+      source_id: base.id,
+      colId: findWithIdentifier(idMap, sourceColumn.id),
+    });
+
+    // update cdf
+    await this.columnsService.columnUpdate({
+      columnId: findWithIdentifier(idMap, sourceColumn.id),
+      column: {
+        ...destColumn,
+        cdf: oldCdf,
+      },
+      user: req.user,
+    });
+
+    this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateModel})`);
+
+    return await Column.get({
+      source_id: base.id,
+      colId: findWithIdentifier(idMap, sourceColumn.id),
+    });
+  }
+
   async importModelsData(param: {
     idMap: Map<string, string>;
     sourceProject: Base;
@@ -395,13 +558,17 @@ export class DuplicateProcessor {
                   if (chunk.length > 1000) {
                     parser.pause();
                     try {
-                      await this.bulkDataService.bulkDataUpdate({
-                        baseName: destProject.id,
-                        tableName: model.id,
-                        body: chunk,
-                        cookie: null,
-                        raw: true,
-                      });
+                      // remove empty rows (only pk is present)
+                      chunk = chunk.filter((r) => Object.keys(r).length > 1);
+                      if (chunk.length > 0) {
+                        await this.bulkDataService.bulkDataUpdate({
+                          baseName: destProject.id,
+                          tableName: model.id,
+                          body: chunk,
+                          cookie: null,
+                          raw: true,
+                        });
+                      }
                     } catch (e) {
                       this.debugLog(e);
                     }
@@ -414,13 +581,17 @@ export class DuplicateProcessor {
             complete: async () => {
               if (chunk.length > 0) {
                 try {
-                  await this.bulkDataService.bulkDataUpdate({
-                    baseName: destProject.id,
-                    tableName: model.id,
-                    body: chunk,
-                    cookie: null,
-                    raw: true,
-                  });
+                  // remove empty rows (only pk is present)
+                  chunk = chunk.filter((r) => Object.keys(r).length > 1);
+                  if (chunk.length > 0) {
+                    await this.bulkDataService.bulkDataUpdate({
+                      baseName: destProject.id,
+                      tableName: model.id,
+                      body: chunk,
+                      cookie: null,
+                      raw: true,
+                    });
+                  }
                 } catch (e) {
                   this.debugLog(e);
                 }
@@ -432,6 +603,14 @@ export class DuplicateProcessor {
         });
 
         if (error) throw error;
+
+        handledLinks = await this.importService.importLinkFromCsvStream({
+          idMap,
+          linkStream,
+          destProject,
+          destBase,
+          handledLinks,
+        });
 
         elapsedTime(
           hrTime,

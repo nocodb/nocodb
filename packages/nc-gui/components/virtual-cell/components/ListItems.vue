@@ -196,7 +196,7 @@ const onCreatedRecord = (record: any) => {
 
   setTimeout(() => {
     createdRecord.value = undefined
-  }, 2000)
+  }, 10000)
 }
 </script>
 

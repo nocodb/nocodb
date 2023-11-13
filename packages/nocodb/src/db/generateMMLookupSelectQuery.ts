@@ -11,6 +11,7 @@ import type {
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getAliasGenerator } from '~/utils';
+import { NcError } from '~/helpers/catchError';
 
 export default async function generateMMLookupSelectQuery({
   column,
@@ -82,7 +83,7 @@ export default async function generateMMLookupSelectQuery({
       }
 
       // if not belongs to then throw error as we don't support
-      if (relation.type === RelationTypes.MANY_TO_MANY) {
+      else if (relation.type === RelationTypes.MANY_TO_MANY) {
         const childColumn = await relation.getChildColumn();
         const parentColumn = await relation.getParentColumn();
         const childModel = await childColumn.getModel();
@@ -92,19 +93,9 @@ export default async function generateMMLookupSelectQuery({
 
         selectQb = knex(
           `${baseModelSqlv2.getTnPath(parentModel.table_name)} as ${alias}`,
-        ).where(
-          `${alias}.${parentColumn.column_name}`,
-          knex.raw(`??`, [
-            `${rootAlias || baseModelSqlv2.getTnPath(childModel.table_name)}.${
-              childColumn.column_name
-            }`,
-          ]),
         );
 
-
-
-        /*
-                const mmTableAlias = getAlias();
+        const mmTableAlias = getAlias();
 
         const mmModel = await relation.getMMModel();
         const mmChildCol = await relation.getMMChildColumn();
@@ -117,29 +108,20 @@ export default async function generateMMLookupSelectQuery({
         // )
         selectQb
           .innerJoin(
-            baseModelSqlv2.getTnPath(mmModel.table_name),
-            knex.ref(
-              `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
-                mmParentCol.column_name
-              }`,
-            ),
+            baseModelSqlv2.getTnPath(mmModel.table_name, mmTableAlias),
+            knex.ref(`${mmTableAlias}.${mmParentCol.column_name}`),
             '=',
-            knex.ref(`${nestedAlias}.${parentColumn.column_name}`),
+            knex.ref(`${alias}.${parentColumn.column_name}`),
           )
           .where(
-            knex.ref(
-              `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
-                mmChildCol.column_name
-              }`,
-            ),
+            knex.ref(`${mmTableAlias}.${mmChildCol.column_name}`),
             '=',
             knex.ref(
-              `${alias || baseModelSqlv2.getTnPath(childModel.table_name)}.${
-                childColumn.column_name
-              }`,
+              `${
+                rootAlias || baseModelSqlv2.getTnPath(childModel.table_name)
+              }.${childColumn.column_name}`,
             ),
           );
-        * */
       }
     }
     let lookupColumn = await lookup.getLookupColumn();
@@ -204,21 +186,13 @@ export default async function generateMMLookupSelectQuery({
         // )
         selectQb
           .innerJoin(
-            baseModelSqlv2.getTnPath(mmModel.table_name),
-            knex.ref(
-              `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
-                mmParentCol.column_name
-              }`,
-            ),
+            baseModelSqlv2.getTnPath(mmModel.table_name, mmTableAlias),
+            knex.ref(`${mmTableAlias}.${mmParentCol.column_name}`),
             '=',
             knex.ref(`${nestedAlias}.${parentColumn.column_name}`),
           )
           .where(
-            knex.ref(
-              `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
-                mmChildCol.column_name
-              }`,
-            ),
+            knex.ref(`${mmTableAlias}.${mmChildCol.column_name}`),
             '=',
             knex.ref(
               `${alias || baseModelSqlv2.getTnPath(childModel.table_name)}.${
@@ -294,17 +268,62 @@ export default async function generateMMLookupSelectQuery({
         break;
       default:
         {
-          selectQb.select(`${prevAlias}.${lookupColumn.column_name} as ${lookupColumn.title}`);
+          selectQb.select(
+            `${prevAlias}.${lookupColumn.column_name} as ${lookupColumn.title}`,
+          );
         }
 
         break;
     }
 
-    selectQb.orderBy(`${lookupColumn.title}`, 'asc');
+    const subQueryAlias = getAlias();
 
-     // mysql : https://www.db-fiddle.com/f/qC4hrbSrSp7v3exb4moVCE/1
-const subQueryAlias = getAlias();
-    // return { builder: knex.select(knex.raw('array_agg(??)', [lookupColumn.title])).from(selectQb) };
-    return { builder: knex.select(knex.raw("cast(JSON_ARRAYAGG(??) as NCHAR)", [lookupColumn.title])).from(selectQb.as(subQueryAlias)) };
+    if (baseModelSqlv2.isPg) {
+      selectQb.orderBy(`${lookupColumn.title}`, 'asc');
+      // // alternate approach with array_agg
+      // return {
+      //   builder: knex
+      //     .select(knex.raw('array_agg(??)', [lookupColumn.title]))
+      //     .from(selectQb),
+      // };
+      return {
+        builder: knex
+          .select(
+            knex.raw("STRING_AGG(DISTINCT ??::text, '___')", [
+              lookupColumn.title,
+            ]),
+          )
+          .from(selectQb.as(subQueryAlias)),
+      };
+    } else if (baseModelSqlv2.isMySQL) {
+      // // alternate approach with JSON_ARRAYAGG
+      // return {
+      //   builder: knex
+      //     .select(
+      //       knex.raw('cast(JSON_ARRAYAGG(??) as NCHAR)', [lookupColumn.title]),
+      //     )
+      //     .from(selectQb.as(subQueryAlias)),
+      // };
+
+      return {
+        builder: knex
+          .select(
+            knex.raw(
+              "GROUP_CONCAT(DISTINCT ?? ORDER BY ?? ASC SEPARATOR '___')",
+              [lookupColumn.title, lookupColumn.title],
+            ),
+          )
+          .from(selectQb.as(subQueryAlias)),
+      };
+    } else if (baseModelSqlv2.isSqlite) {
+      selectQb.orderBy(`${lookupColumn.title}`, 'asc');
+      return {
+        builder: knex
+          .select(knex.raw(`group_concat(??)`, [lookupColumn.title]))
+          .from(selectQb.as(subQueryAlias)),
+      };
+    }
+
+    NcError.notImplemented('Database not supported Group by on Lookup');
   }
 }

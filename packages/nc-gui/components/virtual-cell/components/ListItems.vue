@@ -204,6 +204,7 @@ const addNewRecord = () => {
       :table-title="meta?.title"
       :related-table-title="relatedTableMeta?.title"
       :display-value="row.row[displayValueProp]"
+      :header="$t('activity.addNewLink')"
     />
     <div class="!xs:hidden my-3 bg-gray-50 border-gray-50 border-b-2"></div>
     <div class="flex mt-2 mb-2 items-center gap-2">
@@ -211,7 +212,7 @@ const addNewRecord = () => {
         class="flex items-center border-1 p-1 rounded-md w-full border-gray-200"
         :class="{ '!border-primary': childrenExcludedListPagination.query.length !== 0 || isFocused }"
       >
-        <MdiMagnify class="w-5 h-5 ml-2" />
+        <MdiMagnify class="w-5 h-5 ml-2 text-gray-500" />
         <a-input
           ref="filterQueryRef"
           v-model:value="childrenExcludedListPagination.query"

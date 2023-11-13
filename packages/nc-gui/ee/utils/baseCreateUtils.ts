@@ -1,3 +1,5 @@
+import {ClientType} from "~/lib";
+
 export enum NcProjectType {
   DB = 'database',
   DOCS = 'documentation',

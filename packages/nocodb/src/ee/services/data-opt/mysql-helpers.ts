@@ -1122,6 +1122,11 @@ export async function singleQueryList(ctx: {
     dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   }
 
+
+  console.log('finalQb')
+  console.log(finalQb.toQuery())
+  console.log('finalQb')
+
   return new PagedResponseImpl(
     res.map(({ __nc_count, ...rest }) => rest),
     {

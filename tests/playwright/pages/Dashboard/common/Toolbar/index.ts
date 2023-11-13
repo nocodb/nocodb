@@ -65,7 +65,7 @@ export class ToolbarPage extends BasePage {
   async clickActions() {
     const menuOpen = await this.actions.get().isVisible();
 
-    await this.get().locator(`button.nc-actions-menu-btn`).click();
+    await this.rootPage.locator(`div.nc-view-context-btn`).click();
 
     // Wait for the menu to close
     if (menuOpen) await this.fields.get().waitFor({ state: 'hidden' });
@@ -206,8 +206,8 @@ export class ToolbarPage extends BasePage {
     const menuItems = {
       creator: ['Download', 'Upload'],
       editor: ['Download', 'Upload'],
-      commenter: ['Download as CSV', 'Download as XLSX'],
-      viewer: ['Download as CSV', 'Download as XLSX'],
+      commenter: ['Download CSV', 'Download Excel'],
+      viewer: ['Download CSV', 'Download Excel'],
     };
     const vMenu = this.rootPage.locator('.nc-dropdown-actions-menu:visible');
     for (const item of menuItems[param.role.toLowerCase()]) {

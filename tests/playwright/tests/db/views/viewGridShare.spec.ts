@@ -247,7 +247,7 @@ test.describe('Shared view', () => {
 
     // verify download
     await sharedPage.grid.toolbar.clickDownload(
-      'Download as CSV',
+      'Download CSV',
       isSqlite(context) || isPg(context) ? 'expectedDataSqlite.txt' : 'expectedData.txt'
     );
   });

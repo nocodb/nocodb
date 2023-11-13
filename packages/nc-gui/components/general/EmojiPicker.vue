@@ -78,62 +78,60 @@ const showClearButton = computed(() => {
 </script>
 
 <template>
-  <div>
-    <a-dropdown v-model:visible="isOpen" :trigger="['click']" :disabled="readonly">
+  <a-dropdown v-model:visible="isOpen" :trigger="['click']" :disabled="readonly">
+    <div
+      class="flex flex-row justify-center items-center select-none rounded-md nc-emoji"
+      :class="{
+        'hover:bg-gray-500 hover:bg-opacity-15 cursor-pointer': !readonly,
+        'bg-gray-500 bg-opacity-15': isOpen,
+        'h-6 w-6 text-lg': size === 'small',
+        'h-8 w-8 text-xl': size === 'medium',
+        'h-10 w-10 text-2xl': size === 'large',
+        'h-14 w-16 text-5xl': size === 'xlarge',
+      }"
+      @click="onClick"
+    >
+      <template v-if="!emojiRef">
+        <slot name="default" />
+      </template>
+      <template v-else-if="isUnicodeEmoji">
+        {{ emojiRef }}
+      </template>
+      <template v-else>
+        <Icon :data-testid="`nc-icon-${emojiRef}`" class="text-lg" :icon="emojiRef"></Icon>
+      </template>
+    </div>
+    <template #overlay>
       <div
-        class="flex flex-row justify-center items-center select-none rounded-md nc-emoji"
+        class="relative"
         :class="{
-          'hover:bg-gray-500 hover:bg-opacity-15 cursor-pointer': !readonly,
-          'bg-gray-500 bg-opacity-15': isOpen,
-          'h-6 w-6 text-lg': size === 'small',
-          'h-8 w-8 text-xl': size === 'medium',
-          'h-10 w-10 text-2xl': size === 'large',
-          'h-14 w-16 text-5xl': size === 'xlarge',
+          clearable: showClearButton,
         }"
-        @click="onClick"
       >
-        <template v-if="!emojiRef">
-          <slot name="default" />
-        </template>
-        <template v-else-if="isUnicodeEmoji">
-          {{ emojiRef }}
-        </template>
-        <template v-else>
-          <Icon :data-testid="`nc-icon-${emojiRef}`" class="text-lg" :icon="emojiRef"></Icon>
-        </template>
-      </div>
-      <template #overlay>
-        <div
-          class="relative"
-          :class="{
-            clearable: showClearButton,
-          }"
+        <div v-if="!debounceIsOpen" class="h-105 w-90"></div>
+        <Picker
+          v-else
+          :data="emojiIndex"
+          :native="true"
+          :show-preview="false"
+          color="#40444D"
+          :auto-focus="true"
+          @select="selectEmoji"
+          @click.stop="() => {}"
         >
-          <div v-if="!debounceIsOpen" class="h-105 w-90"></div>
-          <Picker
-            v-else
-            :data="emojiIndex"
-            :native="true"
-            :show-preview="false"
-            color="#40444D"
-            :auto-focus="true"
-            @select="selectEmoji"
-            @click.stop="() => {}"
+        </Picker>
+        <div v-if="debounceIsOpen && showClearButton" class="absolute top-10 right-1.5">
+          <div
+            role="button"
+            class="flex flex-row items-center bg-white border-1 border-gray-100 py-0.5 px-2.5 rounded hover:bg-gray-100 cursor-pointer"
+            @click="clearEmoji"
           >
-          </Picker>
-          <div v-if="debounceIsOpen && showClearButton" class="absolute top-10 right-1.5">
-            <div
-              role="button"
-              class="flex flex-row items-center bg-white border-1 border-gray-100 py-0.5 px-2.5 rounded hover:bg-gray-100 cursor-pointer"
-              @click="clearEmoji"
-            >
-              Remove
-            </div>
+            Remove
           </div>
         </div>
-      </template>
-    </a-dropdown>
-  </div>
+      </div>
+    </template>
+  </a-dropdown>
 </template>
 
 <style lang="scss">

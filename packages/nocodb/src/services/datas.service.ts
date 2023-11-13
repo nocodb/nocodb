@@ -933,7 +933,7 @@ export class DatasService {
           .sort((c1, c2) =>
             Array.isArray(fields)
               ? fields.indexOf(c1.title as any) -
-              fields.indexOf(c2.title as any)
+                fields.indexOf(c2.title as any)
               : 0,
           )
           .filter(

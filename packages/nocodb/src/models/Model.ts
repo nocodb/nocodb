@@ -381,12 +381,13 @@ export default class Model implements TableType {
       viewId?: string;
       dbDriver: XKnex;
       model?: Model;
+      extractDefaultView?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<BaseModelSqlv2> {
     const model = args?.model || (await this.get(args.id, ncMeta));
 
-    if (!args?.viewId) {
+    if (!args?.viewId && args.extractDefaultView) {
       const view = await View.getDefaultView(model.id, ncMeta);
       args.viewId = view.id;
     }

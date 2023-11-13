@@ -42,6 +42,7 @@ interface Props {
   firstRow?: boolean
   lastRow?: boolean
   closeAfterSave?: boolean
+  newRecordHeader?: string
 }
 
 const props = defineProps<Props>()
@@ -496,7 +497,9 @@ export default {
                 {{ displayValue }}
               </span>
             </div>
-            <div v-if="row.rowMeta?.new" class="flex items-center truncate font-bold text-gray-800 text-xl">New Record</div>
+            <div v-if="row.rowMeta?.new" class="flex items-center truncate font-bold text-gray-800 text-xl">
+              {{ props.newRecordHeader ?? $t('activity.newRecord') }}
+            </div>
           </div>
           <div class="flex gap-2">
             <NcButton

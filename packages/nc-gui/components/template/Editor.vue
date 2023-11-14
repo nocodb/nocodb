@@ -715,10 +715,6 @@ watch(modelRef, async () => {
     setErrorState(e.errorFields)
   }
 })
-
-watch(formError, () => {
-  console.log('formError', formError)
-})
 </script>
 
 <template>

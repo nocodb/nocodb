@@ -61,7 +61,7 @@ export class UtilsController extends UtilsControllerCE {
             timeout: 100,
           }).catch((err) => {
             if (err.message.includes('DNS lookup')) {
-              NcError.badRequest('Forbidden!!!');
+              NcError.badRequest('Forbidden host name or IP address');
             }
           });
         }

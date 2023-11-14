@@ -7,7 +7,7 @@ import { listRow } from '../../factory/row';
 import { getTable } from '../../factory/table';
 import { getView, updateView } from '../../factory/view';
 import init from '../../init';
-import type { Column, Model, Base, View } from '../../../../src/models';
+import type { Base, Column, Model, View } from '../../../../src/models';
 import 'mocha';
 
 function groupByTests() {
@@ -226,7 +226,9 @@ function groupByTests() {
       ],
     });
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/views/${filmView.id}/groupby`,
+      )
       .set('xc-auth', context.token)
       .query({
         column_name: _lengthColumn.column_name,

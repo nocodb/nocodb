@@ -67,6 +67,7 @@ export class ImportService {
       | { model: any; views: any[]; hooks?: any[] }[];
     req: NcRequest;
     externalModels?: Model[];
+    existingModel?: Model;
   }) {
     const hrTime = initTime();
 
@@ -92,6 +93,10 @@ export class ImportService {
     const linkMap = new Map<string, string>();
 
     param.data = Array.isArray(param.data) ? param.data : param.data.models;
+
+    // allow existing model to be linked
+    if (param.existingModel)
+      param.externalModels = [param.existingModel, ...param.externalModels];
 
     // allow existing models to be linked
     if (param.externalModels) {
@@ -131,43 +136,69 @@ export class ImportService {
       );
 
       // create table with static columns
-      const table = await this.tablesService.tableCreate({
-        baseId: base.id,
-        sourceId: source.id,
-        user: param.user,
-        table: withoutId({
-          ...modelData,
-          columns: reducedColumnSet.map((a) => withoutId(a)),
-        }),
-      });
+      const table =
+        param.existingModel ||
+        (await this.tablesService.tableCreate({
+          baseId: base.id,
+          sourceId: source.id,
+          user: param.user,
+          table: withoutId({
+            ...modelData,
+            columns: reducedColumnSet.map((a) => withoutId(a)),
+          }),
+        }));
 
       idMap.set(modelData.id, table.id);
 
-      // map column id's with new created column id's
-      for (const col of table.columns) {
-        const colRef = modelData.columns.find(
-          (a) => sanitizeColumnName(a.column_name) === col.column_name,
-        );
-        idMap.set(colRef.id, col.id);
+      if (param.existingModel) {
+        if (reducedColumnSet.length) {
+          for (const col of reducedColumnSet) {
+            const freshModelData = await this.columnsService.columnAdd({
+              tableId: getIdOrExternalId(getParentIdentifier(col.id)),
+              column: withoutId({
+                ...col,
+              }) as any,
+              req: param.req,
+              user: param.user,
+            });
 
-        // setval for auto increment column in pg
-        if (source.type === 'pg') {
-          if (modelData.pgSerialLastVal) {
-            if (col.ai) {
-              const baseModel = await Model.getBaseModelSQL({
-                id: table.id,
-                viewId: null,
-                dbDriver: await NcConnectionMgrv2.get(source),
-              });
-              const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
-              await sqlClient.raw(
-                `SELECT setval(pg_get_serial_sequence('??', ?), ?);`,
-                [
-                  baseModel.getTnPath(table.table_name),
-                  col.column_name,
-                  modelData.pgSerialLastVal,
-                ],
-              );
+            for (const nColumn of freshModelData.columns) {
+              if (nColumn.title === col.title) {
+                idMap.set(col.id, nColumn.id);
+                break;
+              }
+            }
+          }
+        }
+      } else {
+        // map column id's with new created column id's
+        for (const col of table.columns) {
+          const colRef = modelData.columns.find(
+            (a) =>
+              a.column_name &&
+              sanitizeColumnName(a.column_name) === col.column_name,
+          );
+          idMap.set(colRef.id, col.id);
+
+          // setval for auto increment column in pg
+          if (source.type === 'pg') {
+            if (modelData.pgSerialLastVal) {
+              if (col.ai) {
+                const baseModel = await Model.getBaseModelSQL({
+                  id: table.id,
+                  viewId: null,
+                  dbDriver: await NcConnectionMgrv2.get(source),
+                });
+                const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
+                await sqlClient.raw(
+                  `SELECT setval(pg_get_serial_sequence('??', ?), ?);`,
+                  [
+                    baseModel.getTnPath(table.table_name),
+                    col.column_name,
+                    modelData.pgSerialLastVal,
+                  ],
+                );
+              }
             }
           }
         }
@@ -883,6 +914,7 @@ export class ImportService {
           }
         }
       } else if (col.uidt === UITypes.Barcode) {
+        flatCol.validate = null;
         const freshModelData = await this.columnsService.columnAdd({
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
@@ -910,6 +942,8 @@ export class ImportService {
 
     // create views
     for (const data of param.data) {
+      if (param.existingModel) break;
+
       const modelData = data.model;
       const viewsData = data.views;
 
@@ -1043,6 +1077,7 @@ export class ImportService {
 
     // create hooks
     for (const data of param.data) {
+      if (param.existingModel) break;
       if (!data?.hooks) break;
       const modelData = data.model;
       const hookData = data.hooks;

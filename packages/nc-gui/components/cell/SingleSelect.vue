@@ -104,7 +104,7 @@ const hasEditRoles = computed(() => isUIAllowed('dataEdit'))
 const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 
 const vModel = computed({
-  get: () => tempSelectedOptState.value ?? modelValue?.trim(),
+  get: () => tempSelectedOptState.value ?? modelValue,
   set: (val) => {
     if (val && isNewOptionCreateEnabled.value && (options.value ?? []).every((op) => op.title !== val)) {
       tempSelectedOptState.value = val
@@ -259,7 +259,7 @@ const handleClose = (e: MouseEvent) => {
 useEventListener(document, 'click', handleClose, true)
 
 const selectedOpt = computed(() => {
-  return options.value.find((o) => o.value === vModel.value)
+  return options.value.find((o) => o.value === vModel.value || o.value === vModel.value?.trim())
 })
 </script>
 

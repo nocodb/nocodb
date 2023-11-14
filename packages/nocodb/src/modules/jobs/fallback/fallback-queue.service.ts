@@ -68,6 +68,10 @@ export class QueueService {
       this: this.duplicateProcessor,
       fn: this.duplicateProcessor.duplicateModel,
     },
+    [JobTypes.DuplicateColumn]: {
+      this: this.duplicateProcessor,
+      fn: this.duplicateProcessor.duplicateColumn,
+    },
     [JobTypes.AtImport]: {
       this: this.atImportProcessor,
       fn: this.atImportProcessor.job,

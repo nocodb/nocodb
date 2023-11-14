@@ -36,6 +36,7 @@ packages/nocodb/tsconfig.ee.json
 packages/nocodb/docker
 components.d.ts
 pnpm-lock.yaml
+pnpm-workspace.yaml
 **/ee/**
 **/components.d.ts
 packages/nocodb-sdk/src/lib/Api.ts

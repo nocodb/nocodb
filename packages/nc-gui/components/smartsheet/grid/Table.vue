@@ -1270,7 +1270,7 @@ onKeyStroke('ArrowDown', onDown)
         :trigger="isSqlView ? [] : ['contextmenu']"
         overlay-class-name="nc-dropdown-grid-context-menu"
       >
-        <div class="table-overlay" :class="{ 'nc-grid-skelton-loader': showSkeleton }">
+        <div class="table-overlay" :class="{ 'nc-grid-skeleton-loader': showSkeleton }">
           <table
             ref="smartTable"
             class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white relative"
@@ -2005,7 +2005,7 @@ onKeyStroke('ArrowDown', onDown)
     }
   }
 
-  .nc-grid-skelton-loader {
+  .nc-grid-skeleton-loader {
     thead th:nth-child(2) {
       @apply border-r-1 !border-r-gray-50;
     }

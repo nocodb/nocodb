@@ -133,7 +133,7 @@ export default async function generateLookupSelectQuery({
       let nestedLookupColOpt: LookupColumn;
 
       if (lookupColumn.uidt === UITypes.Lookup) {
-         nestedLookupColOpt = await lookupColumn.getColOptions<LookupColumn>();
+        nestedLookupColOpt = await lookupColumn.getColOptions<LookupColumn>();
         relationCol = await nestedLookupColOpt.getRelationColumn();
       } else {
         relationCol = lookupColumn;
@@ -309,7 +309,7 @@ export default async function generateLookupSelectQuery({
       return {
         builder: knex
           .select(knex.raw('json_agg(??)::text', [lookupColumn.title]))
-          .from(selectQb),
+          .from(selectQb.as(subQueryAlias)),
       };
       /*
       // alternate approach with array_agg

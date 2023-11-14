@@ -13,6 +13,10 @@ export const validateTableName = {
         return reject(new Error(t('msg.error.tableNameRequired')))
       }
 
+      if (value.length > 52) {
+        return reject(new Error(t('msg.error.columnNameExceedsCharacters', { value: 52 })))
+      }
+
       // exclude . / \
       // rest all characters allowed
       // https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/acreldb/n0rfg6x1shw0ppn1cwhco6yn09f7.htm#:~:text=By%20default%2C%20MySQL%20encloses%20column,not%20truncate%20a%20longer%20name.
@@ -98,17 +102,21 @@ export const fieldRequiredValidator = () => {
   }
 }
 
-export const fieldLengthValidator = () => {
+export const fieldLengthValidator = (sqlClientType: string) => {
   return {
     validator: (rule: any, value: any) => {
       const { t } = getI18n().global
 
-      // mysql allows 64 characters for column_name
-      // postgres allows 59 characters for column_name
-      // mssql allows 128 characters for column_name
-      // sqlite allows any number of characters for column_name
-      // We allow 255 for all databases, truncate will be handled by backend for column_name
-      const fieldLengthLimit = 255
+      // no limit for sqlite but set as 255
+      let fieldLengthLimit = 255
+
+      if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
+        fieldLengthLimit = 64
+      } else if (sqlClientType === 'pg') {
+        fieldLengthLimit = 59
+      } else if (sqlClientType === 'mssql') {
+        fieldLengthLimit = 128
+      }
 
       return new Promise((resolve, reject) => {
         if (value?.length > fieldLengthLimit) {

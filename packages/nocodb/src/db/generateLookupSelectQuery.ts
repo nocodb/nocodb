@@ -16,6 +16,16 @@ import { NcError } from '~/helpers/catchError';
 
 const LOOKUP_VAL_SEPARATOR = '___';
 
+export async function getDisplayValueOfRefTable(
+  relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>,
+) {
+  return await relationCol
+    .getColOptions()
+    .then((colOpt) => colOpt.getRelatedTable())
+    .then((model) => model.getColumns())
+    .then((cols) => cols.find((col) => col.pv));
+}
+
 export default async function generateLookupSelectQuery({
   column,
   baseModelSqlv2,
@@ -36,9 +46,18 @@ export default async function generateLookupSelectQuery({
   {
     let selectQb;
     const alias = getAlias();
-    const lookup = await column.getColOptions<LookupColumn>();
+    let lookupColOpt: LookupColumn;
+    if (column.uidt === UITypes.Lookup) {
+      lookupColOpt = await column.getColOptions<LookupColumn>();
+    } else if (column.uidt !== UITypes.LinkToAnotherRecord) {
+      NcError.badRequest('Invalid column type');
+    }
+
+    await column.getColOptions<LookupColumn>();
     {
-      const relationCol = await lookup.getRelationColumn();
+      const relationCol = lookupColOpt
+        ? await lookupColOpt.getRelationColumn()
+        : column;
       const relation =
         await relationCol.getColOptions<LinkToAnotherRecordColumn>();
 
@@ -121,7 +140,9 @@ export default async function generateLookupSelectQuery({
           );
       }
     }
-    let lookupColumn = await lookup.getLookupColumn();
+    let lookupColumn = lookupColOpt
+      ? await lookupColOpt.getLookupColumn()
+      : await getDisplayValueOfRefTable(column);
     let prevAlias = alias;
     while (
       lookupColumn.uidt === UITypes.Lookup ||
@@ -142,7 +163,7 @@ export default async function generateLookupSelectQuery({
       const relation =
         await relationCol.getColOptions<LinkToAnotherRecordColumn>();
 
-      // if any of the relation in nested lookup is
+      // if any of the relation in nested lookupColOpt is
       // not belongs to then throw error as we don't support
       if (relation.type === RelationTypes.BELONGS_TO) {
         const childColumn = await relation.getChildColumn();
@@ -222,12 +243,7 @@ export default async function generateLookupSelectQuery({
 
       if (lookupColumn.uidt === UITypes.Lookup)
         lookupColumn = await nestedLookupColOpt.getLookupColumn();
-      else
-        lookupColumn = await relationCol
-          .getColOptions()
-          .then((colOpt) => colOpt.getRelatedTable())
-          .then((model) => model.getColumns())
-          .then((cols) => cols.find((col) => col.pv));
+      else lookupColumn = await getDisplayValueOfRefTable(relationCol);
       prevAlias = nestedAlias;
     }
 
@@ -301,12 +317,14 @@ export default async function generateLookupSelectQuery({
         break;
     }
 
+    const subQueryAlias = getAlias();
+
     if (baseModelSqlv2.isPg) {
       // alternate approach with array_agg
       return {
-        builder: selectQb.select(
-          knex.raw('json_agg(??)::text', [lookupColumn.title]),
-        ),
+        builder: knex
+          .select(knex.raw('json_agg(??)::text', [lookupColumn.title]))
+          .from(selectQb.as(subQueryAlias)),
       };
       /*
       // alternate approach with array_agg
@@ -329,9 +347,11 @@ export default async function generateLookupSelectQuery({
     } else if (baseModelSqlv2.isMySQL) {
       // alternate approach with JSON_ARRAYAGG
       return {
-        builder: selectQb.select(
-          knex.raw('cast(JSON_ARRAYAGG(??) as NCHAR)', [lookupColumn.title]),
-        ),
+        builder: knex
+          .select(
+            knex.raw('cast(JSON_ARRAYAGG(??) as NCHAR)', [lookupColumn.title]),
+          )
+          .from(selectQb.as(subQueryAlias)),
       };
 
       // return {
@@ -349,12 +369,14 @@ export default async function generateLookupSelectQuery({
       // ref: https://stackoverflow.com/questions/13382856/sqlite3-join-group-concat-using-distinct-with-custom-separator
       // selectQb.orderBy(`${lookupColumn.title}`, 'asc');
       return {
-        builder: selectQb.select(
-          knex.raw(`group_concat(??, ?)`, [
-            lookupColumn.title,
-            LOOKUP_VAL_SEPARATOR,
-          ]),
-        ),
+        builder: knex
+          .select(
+            knex.raw(`group_concat(??, ?)`, [
+              lookupColumn.title,
+              LOOKUP_VAL_SEPARATOR,
+            ]),
+          )
+          .from(selectQb.as(subQueryAlias)),
       };
     }
 

@@ -63,7 +63,8 @@ import {
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
-import generateLookupSelectQuery from "~/db/generateLookupSelectQuery";
+import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
+import { getAliasGenerator } from '~/utils';
 
 dayjs.extend(utc);
 
@@ -387,9 +388,9 @@ class BaseModelSqlv2 {
       });
     }
 
-    console.log('=======data')
-    console.log(qb.toQuery())
-    console.log('=======data')
+    console.log('=======data');
+    console.log(qb.toQuery());
+    console.log('=======data');
 
     return data?.map((d) => {
       d.__proto__ = proto;
@@ -554,6 +555,7 @@ class BaseModelSqlv2 {
 
     const selectors = [];
     const groupBySelectors = [];
+    const getAlias = getAliasGenerator('__nc_gb');
 
     await Promise.all(
       args.column_name.split(',').map(async (col) => {
@@ -604,12 +606,14 @@ class BaseModelSqlv2 {
             }
             break;
           case UITypes.Lookup:
+          case UITypes.LinkToAnotherRecord:
             {
               const _selectQb = await generateLookupSelectQuery({
                 baseModelSqlv2: this,
                 column,
                 alias: null,
                 model: this.model,
+                getAlias,
               });
 
               const selectQb = this.dbDriver.raw(`?? as ??`, [
@@ -701,9 +705,9 @@ class BaseModelSqlv2 {
 
     applyPaginate(qb, rest);
 
-    console.log('========')
-    console.log(qb.toQuery())
-    console.log('========')
+    console.log('========');
+    console.log(qb.toQuery());
+    console.log('========');
     return await this.execAndParse(qb);
   }
 
@@ -720,6 +724,7 @@ class BaseModelSqlv2 {
 
     const selectors = [];
     const groupBySelectors = [];
+    const getAlias = getAliasGenerator('__nc_gb');
 
     await this.model.getColumns().then((cols) =>
       Promise.all(
@@ -773,12 +778,14 @@ class BaseModelSqlv2 {
               break;
             }
             case UITypes.Lookup:
+            case UITypes.LinkToAnotherRecord:
               {
                 const _selectQb = await generateLookupSelectQuery({
                   baseModelSqlv2: this,
                   column,
                   alias: null,
                   model: this.model,
+                  getAlias,
                 });
 
                 const selectQb = this.dbDriver.raw(`?? as ??`, [

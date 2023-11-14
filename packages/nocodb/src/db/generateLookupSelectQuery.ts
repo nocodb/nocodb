@@ -184,10 +184,15 @@ export default async function generateLookupSelectQuery({
         selectQb
           .innerJoin(
             baseModelSqlv2.getTnPath(mmModel.table_name, mmTableAlias),
-            knex.ref(`${mmTableAlias}.${mmParentCol.column_name}`),
+            knex.ref(`${mmTableAlias}.${mmChildCol.column_name}`),
             '=',
-            knex.ref(`${nestedAlias}.${parentColumn.column_name}`),
+            knex.ref(`${prevAlias}.${childColumn.column_name}`),
           )
+            .innerJoin(knex.raw('?? as ??', [baseModelSqlv2.getTnPath(parentModel.table_name), nestedAlias]),
+                knex.ref(`${mmTableAlias}.${mmParentCol.column_name}`),
+                '=',
+                knex.ref(`${nestedAlias}.${parentColumn.column_name}`),
+                )
           .where(
             knex.ref(`${mmTableAlias}.${mmChildCol.column_name}`),
             '=',
@@ -276,7 +281,7 @@ export default async function generateLookupSelectQuery({
     const subQueryAlias = getAlias();
 
     if (baseModelSqlv2.isPg) {
-      selectQb.orderBy(`${lookupColumn.title}`, 'asc');
+      // selectQb.orderBy(`${lookupColumn.title}`, 'asc');
       // // alternate approach with array_agg
       // return {
       //   builder: knex
@@ -316,7 +321,7 @@ export default async function generateLookupSelectQuery({
       };
     } else if (baseModelSqlv2.isSqlite) {
       // ref: https://stackoverflow.com/questions/13382856/sqlite3-join-group-concat-using-distinct-with-custom-separator
-      selectQb.orderBy(`${lookupColumn.title}`, 'asc');
+      // selectQb.orderBy(`${lookupColumn.title}`, 'asc');
       return {
         builder: knex
           .select(

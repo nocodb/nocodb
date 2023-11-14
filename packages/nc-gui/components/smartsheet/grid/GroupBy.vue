@@ -147,7 +147,7 @@ const parseKey = (group) => {
       return group.key.split('___').join(', ')
     }
   }
-  return key
+  return group.key
 }
 </script>
 

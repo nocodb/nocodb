@@ -29,6 +29,8 @@ const { isSharedBase } = storeToRefs(useBase())
 
 const filterQueryRef = ref()
 
+const { t } = useI18n()
+
 const { $e } = useNuxtApp()
 
 const {
@@ -52,6 +54,8 @@ const {
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
+
+const isExpandedFormCloseAfterSave = ref(false)
 
 isChildrenExcludedLoading.value = true
 
@@ -112,7 +116,8 @@ const newRowState = computed(() => {
   if (isNew.value) return {}
   const colOpt = (injectedColumn?.value as ColumnType)?.colOptions as LinkToAnotherRecordType
   const colInRelatedTable: ColumnType | undefined = relatedTableMeta?.value?.columns?.find((col) => {
-    if (col.uidt !== UITypes.LinkToAnotherRecord) return false
+    // Links as for the case of 'mm' we need the 'Links' column
+    if (!isLinksOrLTAR(col)) return false
     const colOpt1 = col?.colOptions as LinkToAnotherRecordType
     if (colOpt1?.fk_related_model_id !== meta.value.id) return false
 
@@ -157,6 +162,10 @@ const relation = computed(() => {
 
 watch(expandedFormDlg, () => {
   if (!expandedFormDlg.value) {
+    isExpandedFormCloseAfterSave.value = false
+    if (!isForm.value) {
+      loadChildrenList()
+    }
     loadChildrenExcludedList(rowState.value)
   }
 })
@@ -172,6 +181,42 @@ const onClick = (refRow: any, id: string) => {
   } else {
     linkRow(refRow, Number.parseInt(id))
   }
+}
+
+const addNewRecord = () => {
+  expandedFormRow.value = {}
+  expandedFormDlg.value = true
+  isExpandedFormCloseAfterSave.value = true
+}
+
+const onCreatedRecord = (record: any) => {
+  const msgVNode = h(
+    'div',
+    {
+      class: 'ml-1 inline-flex flex-col gap-1 items-start',
+    },
+    [
+      h(
+        'span',
+        {
+          class: 'font-semibold',
+        },
+        t('activity.recordCreatedLinked'),
+      ),
+      h(
+        'span',
+        {
+          class: 'text-gray-500',
+        },
+        t('activity.gotSavedLinkedSuccessfully', {
+          tableName: relatedTableMeta.value?.title,
+          recordTitle: record[relatedTableDisplayValueProp.value],
+        }),
+      ),
+    ],
+  )
+
+  message.success(msgVNode)
 }
 </script>
 
@@ -191,14 +236,14 @@ const onClick = (refRow: any, id: string) => {
       :table-title="meta?.title"
       :related-table-title="relatedTableMeta?.title"
       :display-value="row.row[displayValueProp]"
+      :header="$t('activity.addNewLink')"
     />
-    <div class="!xs:hidden my-3 bg-gray-50 border-gray-50 border-b-2"></div>
     <div class="flex mt-2 mb-2 items-center gap-2">
       <div
         class="flex items-center border-1 p-1 rounded-md w-full border-gray-200"
         :class="{ '!border-primary': childrenExcludedListPagination.query.length !== 0 || isFocused }"
       >
-        <MdiMagnify class="w-5 h-5 ml-2" />
+        <MdiMagnify class="w-5 h-5 ml-2 text-gray-500" />
         <a-input
           ref="filterQueryRef"
           v-model:value="childrenExcludedListPagination.query"
@@ -223,12 +268,7 @@ const onClick = (refRow: any, id: string) => {
         type="secondary"
         :size="isMobileMode ? 'medium' : 'small'"
         class="!text-brand-500"
-        @click="
-          () => {
-            expandedFormRow = {}
-            expandedFormDlg = true
-          }
-        "
+        @click="addNewRecord"
       >
         <div class="flex items-center gap-1 px-4"><MdiPlus v-if="!isMobileMode" /> {{ $t('activity.newRecord') }}</div>
       </NcButton>
@@ -344,6 +384,15 @@ const onClick = (refRow: any, id: string) => {
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         :state="newRowState"
         use-meta-fields
+        :close-after-save="isExpandedFormCloseAfterSave"
+        :new-record-header="
+          isExpandedFormCloseAfterSave
+            ? $t('activity.tableNameCreateNewRecord', {
+                tableName: relatedTableMeta?.title,
+              })
+            : undefined
+        "
+        @created-record="onCreatedRecord"
       />
     </Suspense>
   </NcModal>

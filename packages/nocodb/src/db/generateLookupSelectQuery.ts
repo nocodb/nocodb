@@ -157,9 +157,9 @@ export default async function generateLookupSelectQuery({
 
         selectQb.join(
           `${baseModelSqlv2.getTnPath(
-            parentModel.table_name,
+            childModel.table_name,
           )} as ${nestedAlias}`,
-          `${nestedAlias}.${parentColumn.column_name}`,
+          `${nestedAlias}.${childColumn.column_name}`,
           `${prevAlias}.${parentColumn.column_name}`,
         );
       } else if (relation.type === RelationTypes.MANY_TO_MANY) {

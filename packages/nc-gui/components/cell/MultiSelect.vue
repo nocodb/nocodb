@@ -49,8 +49,6 @@ const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
 
-const isLockedMode = inject(IsLockedInj, ref(false))
-
 const isEditable = inject(EditModeInj, ref(false))
 
 const activeCell = inject(ActiveCellInj, ref(false))
@@ -343,11 +341,7 @@ const selectedOpts = computed(() => {
 </script>
 
 <template>
-  <div
-    class="nc-multi-select h-full w-full flex items-center"
-    :class="{ 'read-only': readOnly || isLockedMode }"
-    @click="toggleMenu"
-  >
+  <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
     <div
       v-if="!active"
       class="flex flex-wrap"
@@ -386,9 +380,9 @@ const selectedOpts = computed(() => {
       :bordered="false"
       clear-icon
       :show-search="!isMobileMode"
-      :show-arrow="editAllowed && !(readOnly || isLockedMode)"
+      :show-arrow="editAllowed && !readOnly"
       :open="isOpen && editAllowed"
-      :disabled="readOnly || !editAllowed || isLockedMode"
+      :disabled="readOnly || !editAllowed"
       :class="{ 'caret-transparent': !hasEditRoles }"
       :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
       @search="search"

@@ -23,7 +23,7 @@ test.describe('Grid view locked', () => {
 
     // enable view lock
     await dashboard.grid.toolbar.viewsMenu.click({
-      menu: 'Collaborative',
+      menu: 'View Mode',
       subMenu: 'Locked',
     });
 
@@ -32,7 +32,7 @@ test.describe('Grid view locked', () => {
 
     // enable collaborative view
     await dashboard.grid.toolbar.viewsMenu.click({
-      menu: 'Locked',
+      menu: 'View Mode',
       subMenu: 'Collaborative',
     });
 

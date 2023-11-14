@@ -75,10 +75,10 @@ export default async function generateLookupSelectQuery({
         selectQb = knex(
           `${baseModelSqlv2.getTnPath(childModel.table_name)} as ${alias}`,
         ).where(
-          `${alias}.${parentColumn.column_name}`,
+          `${alias}.${childColumn.column_name}`,
           knex.raw(`??`, [
             `${rootAlias || baseModelSqlv2.getTnPath(parentModel.table_name)}.${
-              childColumn.column_name
+              parentColumn.column_name
             }`,
           ]),
         );
@@ -103,11 +103,6 @@ export default async function generateLookupSelectQuery({
         const mmChildCol = await relation.getMMChildColumn();
         const mmParentCol = await relation.getMMParentColumn();
 
-        // knex(
-        //   `${baseModelSqlv2.getTnPath(
-        //     parentModel?.table_name,
-        //   )} as ${nestedAlias}`,
-        // )
         selectQb
           .innerJoin(
             baseModelSqlv2.getTnPath(mmModel.table_name, mmTableAlias),
@@ -162,10 +157,10 @@ export default async function generateLookupSelectQuery({
 
         selectQb.join(
           `${baseModelSqlv2.getTnPath(
-            childModel.table_name,
+            parentModel.table_name,
           )} as ${nestedAlias}`,
           `${nestedAlias}.${parentColumn.column_name}`,
-          `${prevAlias}.${childColumn.column_name}`,
+          `${prevAlias}.${parentColumn.column_name}`,
         );
       } else if (relation.type === RelationTypes.MANY_TO_MANY) {
         const childColumn = await relation.getChildColumn();
@@ -226,7 +221,7 @@ export default async function generateLookupSelectQuery({
         break;
       case UITypes.LinkToAnotherRecord:
         {
-          const nestedAlias = `__nc_sort${aliasCount++}`;
+          const nestedAlias = getAlias();
           const relation =
             await lookupColumn.getColOptions<LinkToAnotherRecordColumn>();
           if (relation.type !== 'bt') return;

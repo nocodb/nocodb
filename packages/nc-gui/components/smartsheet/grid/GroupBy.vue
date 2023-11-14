@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
+import { UITypes } from 'nocodb-sdk'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import GroupByTable from './GroupByTable.vue'
@@ -134,6 +135,20 @@ const onScroll = (e: Event) => {
   if (!vGroup.value.root) return
   _scrollLeft.value = (e.target as HTMLElement).scrollLeft
 }
+
+const parseKey = (group) => {
+  // parse json array key if it's a lookup or link to another record
+  if ((group.key && group.column?.uidt === UITypes.Lookup) || group.column?.uidt === UITypes.LinkToAnotherRecord) {
+    try {
+      const parsedKey = JSON.parse(group.key)
+      return parsedKey.join(', ')
+    } catch {
+      // if parsing try to split it by `___` (for sqlite)
+      return group.key.split('___').join(', ')
+    }
+  }
+  return key
+}
 </script>
 
 <template>
@@ -247,7 +262,7 @@ const onScroll = (e: Event) => {
                               'font-weight': 500,
                             }"
                           >
-                            {{ grp.key in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[grp.key] : grp.key.replaceAll('___',', ') }}
+                            {{ grp.key in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[grp.key] : parseKey(grp) }}
                           </span>
                         </a-tag>
                       </div>

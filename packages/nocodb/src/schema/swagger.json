@@ -4589,6 +4589,96 @@
         ]
       }
     },
+    "/api/v1/db/meta/duplicate/{baseId}/column/{columnId}": {
+      "post": {
+        "summary": "Duplicate Column",
+        "operationId": "duplicate-column",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "excludeData": {
+                        "type": "boolean",
+                        "required": false
+                      }
+                    }
+                  },
+                  "extra": {
+                    "type": "object"
+                  }
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "excludeData": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB Table"
+        ],
+        "description": "Duplicate a column",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "p_124hhlkbeasewh",
+              "type": "string"
+            },
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Base ID"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "md_124hhlkbeasewh",
+              "type": "string"
+            },
+            "name": "columnId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Column ID"
+          }
+        ]
+      }
+    },
     "/api/v1/db/meta/projects/{baseId}/{sourceId}/tables": {
       "parameters": [
         {

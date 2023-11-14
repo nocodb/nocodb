@@ -705,9 +705,6 @@ class BaseModelSqlv2 {
 
     applyPaginate(qb, rest);
 
-    console.log('========');
-    console.log(qb.toQuery());
-    console.log('========');
     return await this.execAndParse(qb);
   }
 

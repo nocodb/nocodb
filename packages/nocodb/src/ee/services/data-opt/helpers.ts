@@ -870,9 +870,9 @@ export async function singleQueryRead(ctx: {
     await NocoCache.set(cacheKey, query);
   }
 
-  console.log('query')
-  console.log(query)
-  console.log('query')
+  console.log('query');
+  console.log(query);
+  console.log('query');
 
   // const res = await finalQb;
 
@@ -1076,7 +1076,6 @@ export async function singleQueryList(ctx: {
       skipDateConversion: true,
     });
     dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
-
   } else {
     const { sql, bindings } = finalQb.toSQL();
 
@@ -1107,10 +1106,6 @@ export async function singleQueryList(ctx: {
     );
     dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   }
-
-  console.log('finalQb')
-  console.log(finalQb.toQuery())
-  console.log('finalQb')
 
   return new PagedResponseImpl(
     res.map(({ __nc_count, ...rest }) => rest),

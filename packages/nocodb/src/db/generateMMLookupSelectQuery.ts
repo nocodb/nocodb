@@ -308,10 +308,10 @@ export default async function generateMMLookupSelectQuery({
       return {
         builder: knex
           .select(
-            knex.raw(
-              "GROUP_CONCAT(DISTINCT ?? ORDER BY ?? ASC SEPARATOR '___')",
-              [lookupColumn.title, lookupColumn.title],
-            ),
+            knex.raw("GROUP_CONCAT(?? ORDER BY ?? ASC SEPARATOR '___')", [
+              lookupColumn.title,
+              lookupColumn.title,
+            ]),
           )
           .from(selectQb.as(subQueryAlias)),
       };
@@ -320,11 +320,7 @@ export default async function generateMMLookupSelectQuery({
       selectQb.orderBy(`${lookupColumn.title}`, 'asc');
       return {
         builder: knex
-          .select(
-            knex.raw(`replace(group_concat(distinct ??), ',', '___')`, [
-              lookupColumn.title,
-            ]),
-          )
+          .select(knex.raw(`group_concat(??, '___')`, [lookupColumn.title]))
           .from(selectQb.as(subQueryAlias)),
       };
     }

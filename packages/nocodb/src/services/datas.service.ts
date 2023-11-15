@@ -52,7 +52,7 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    const countArgs: any = { ...param.query };
+    const countArgs: any = { ...param.query, throwErrorIfInvalidParams: true };
     try {
       countArgs.filterArr = JSON.parse(countArgs.filterArrJson);
     } catch (e) {}

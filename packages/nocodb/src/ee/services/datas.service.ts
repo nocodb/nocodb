@@ -37,12 +37,14 @@ export class DatasService extends DatasServiceCE {
         view,
         params: param.query,
         source,
+        throwErrorIfInvalidParams: true,
       });
     } else {
       responseData = await this.getDataList({
         model,
         view,
         query: param.query,
+        throwErrorIfInvalidParams: true,
       });
     }
 

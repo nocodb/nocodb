@@ -871,6 +871,7 @@ export async function singleQueryList(ctx: {
   view: View;
   source: Source;
   params;
+  throwErrorIfInvalidParams?: boolean;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   if (ctx.source.type !== 'pg') {
     throw new Error('Source is not postgres');
@@ -947,10 +948,15 @@ export async function singleQueryList(ctx: {
   countQb.count({ count: ctx.model.primaryKey?.column_name || '*' });
 
   const aliasColObjMap = await ctx.model.getAliasColObjMap();
-  let sorts = extractSortsObject(listArgs?.sort, aliasColObjMap);
+  let sorts = extractSortsObject(
+    listArgs?.sort,
+    aliasColObjMap,
+    ctx.throwErrorIfInvalidParams,
+  );
   const queryFilterObj = extractFilterFromXwhere(
     listArgs?.where,
     aliasColObjMap,
+    ctx.throwErrorIfInvalidParams,
   );
 
   if (!sorts?.['length'] && ctx.params.sortArr?.length) {
@@ -1005,6 +1011,7 @@ export async function singleQueryList(ctx: {
     query: ctx.params,
     model: ctx.model,
     view: ctx.view,
+    throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
   });
 
   await extractColumns({

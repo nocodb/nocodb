@@ -26,14 +26,28 @@ const onToggleLink = () => {
   if (isActiveNodeMarkActive) {
     editor.value!.chain().focus().unsetLink().run()
   } else {
-    editor
-      .value!.chain()
-      .focus()
-      .setLink({
-        href: '',
-      })
-      .selectTextblockEnd()
-      .run()
+    if (editor.value.state.selection.empty) {
+      editor
+        .value!.chain()
+        .focus()
+        .insertContent(' ')
+        .setTextSelection({ from: editor.value!.state.selection.$from.pos, to: editor.value!.state.selection.$from.pos + 1 })
+        .toggleLink({
+          href: '',
+        })
+        .setTextSelection({ from: editor.value!.state.selection.$from.pos, to: editor.value!.state.selection.$from.pos + 1 })
+        .deleteSelection()
+        .run()
+    } else {
+      editor
+        .value!.chain()
+        .focus()
+        .setLink({
+          href: '',
+        })
+        .selectTextblockEnd()
+        .run()
+    }
 
     setTimeout(() => {
       const linkInput = document.querySelector('.docs-link-option-input')

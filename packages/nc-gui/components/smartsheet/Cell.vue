@@ -216,7 +216,7 @@ onUnmounted(() => {
   >
     <template v-if="column">
       <template v-if="intersected">
-        <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" />
+        <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" :virtual="props.virtual" />
         <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
         <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
         <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />

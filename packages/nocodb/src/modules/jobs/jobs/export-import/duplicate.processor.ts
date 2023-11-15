@@ -3,7 +3,7 @@ import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import papaparse from 'papaparse';
 import debug from 'debug';
-import { isLinksOrLTAR } from 'nocodb-sdk';
+import { isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk';
 import { Base, Column, Model, Source } from '~/models';
 import { BasesService } from '~/services/bases.service';
 import {
@@ -373,14 +373,16 @@ export class DuplicateProcessor {
     });
 
     // update cdf
-    await this.columnsService.columnUpdate({
-      columnId: findWithIdentifier(idMap, sourceColumn.id),
-      column: {
-        ...destColumn,
-        cdf: oldCdf,
-      },
-      user: req.user,
-    });
+    if (!isVirtualCol(destColumn)) {
+      await this.columnsService.columnUpdate({
+        columnId: findWithIdentifier(idMap, sourceColumn.id),
+        column: {
+          ...destColumn,
+          cdf: oldCdf,
+        },
+        user: req.user,
+      });
+    }
 
     this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateModel})`);
 

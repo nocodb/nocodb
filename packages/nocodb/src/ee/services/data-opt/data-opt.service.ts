@@ -14,7 +14,7 @@ export class DataOptService {
     view: View;
     source: Source;
     params;
-    throwErrorIfInvalidParams?: boolean,
+    throwErrorIfInvalidParams?: boolean;
   }): Promise<PagedResponseImpl<Record<string, any>>> {
     const params = { ...(ctx.params || {}) };
 
@@ -31,9 +31,9 @@ export class DataOptService {
         } catch (e) {}
     }
     if (['mysql', 'mysql2'].includes(ctx.source.type)) {
-      return mysqlSingleQueryList({ ...ctx, params, throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams });
+      return mysqlSingleQueryList({ ...ctx, params });
     }
-    return singleQueryList({ ...ctx, params, throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams });
+    return singleQueryList({ ...ctx, params });
   }
 
   async read(ctx: {
@@ -42,6 +42,7 @@ export class DataOptService {
     source: Source;
     params;
     id: string;
+    throwErrorIfInvalidParams?: boolean;
   }): Promise<PagedResponseImpl<Record<string, any>>> {
     if (['mysql', 'mysql2'].includes(ctx.source.type)) {
       return mysqlSingleQueryRead(ctx);

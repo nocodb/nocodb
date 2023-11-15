@@ -1471,15 +1471,8 @@ onKeyStroke('ArrowDown', onDown)
                   ></td>
                 </tr>
               </template>
-
-              <LazySmartsheetRow
-                v-for="(row, rowIndex) of dataRef"
-                v-show="!showSkeleton"
-                ref="rowRefs"
-                :key="rowIndex"
-                :row="row"
-              >
-                <template #default="{ state }">
+              <LazySmartsheetRow v-for="(row, rowIndex) of dataRef" ref="rowRefs" :key="rowIndex" :row="row">
+                <template v-show="!showSkeleton" #default="{ state }">
                   <tr
                     class="nc-grid-row !xs:h-14"
                     :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"

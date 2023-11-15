@@ -13,6 +13,7 @@ const props = defineProps<{
   value?: string | null
   readonly?: boolean
   syncValueChange?: boolean
+  showMenu?: boolean
 }>()
 
 const emits = defineEmits(['update:value'])
@@ -70,7 +71,10 @@ onMounted(() => {
 
 <template>
   <div class="h-full">
-    <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" />
+    <div v-if="props.showMenu" class="absolute top-1 z-1000 right-3">
+      <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode />
+    </div>
+    <CellRichTextSelectedBubbleMenuPopup v-if="editor" :editor="editor" />
     <CellRichTextLinkOptions v-if="editor" :editor="editor" />
     <EditorContent :editor="editor" class="nc-textarea-rich w-full h-full nc-text-rich-scroll nc-scrollbar-md" />
   </div>

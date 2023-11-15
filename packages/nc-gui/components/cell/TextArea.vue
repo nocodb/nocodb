@@ -171,7 +171,7 @@ watch(editEnabled, () => {
       </div>
     </div>
     <template #overlay>
-      <div ref="inputWrapperRef" class="flex flex-col min-w-120 min-h-70 py-3 pl-3 pr-1 expanded-cell-input">
+      <div ref="inputWrapperRef" class="flex flex-col min-w-120 min-h-70 py-3 pl-3 pr-1 expanded-cell-input relative">
         <div
           v-if="column"
           class="flex flex-row gap-x-1 items-center font-medium pb-2.5 mb-1 py-1 mr-3 ml-1 border-b-1 border-gray-100"
@@ -201,6 +201,7 @@ watch(editEnabled, () => {
           :style="{
             'max-height': 'calc(min(60vh, 100rem))',
           }"
+          show-menu
         />
       </div>
     </template>

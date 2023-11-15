@@ -16,6 +16,7 @@ import {
 const props = defineProps<{
   modelValue?: string | number
   isFocus?: boolean
+  virtual?: boolean
 }>()
 
 const emits = defineEmits(['update:modelValue'])
@@ -65,6 +66,13 @@ onClickOutside(inputWrapperRef, (e) => {
 
   isVisible.value = false
 })
+
+const onDblClick = () => {
+  if (!props.virtual) return
+
+  isVisible.value = true
+  editEnabled.value = true
+}
 </script>
 
 <template>
@@ -113,7 +121,9 @@ onClickOutside(inputWrapperRef, (e) => {
         class="mr-7 nc-text-area-clamped-text"
         :style="{
           'word-break': 'break-word',
+          'white-space': 'pre-line',
         }"
+        @click="onDblClick"
       />
 
       <span v-else>{{ vModel }}</span>
@@ -148,7 +158,7 @@ onClickOutside(inputWrapperRef, (e) => {
         <a-textarea
           ref="inputRef"
           v-model:value="vModel"
-          class="p-1 !pt-1 !pr-3 !border-0 !border-r-0 !focus:outline-transparent nc-scrollbar-md !text-black"
+          class="p-1 !pt-1 !pr-3 !border-0 !border-r-0 !focus:outline-transparent nc-scrollbar-md !text-black !cursor-text"
           :placeholder="$t('activity.enterText')"
           :bordered="false"
           :auto-size="{ minRows: 20, maxRows: 20 }"

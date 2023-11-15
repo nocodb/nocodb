@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { diff } from 'deep-object-diff'
 import { message } from 'ant-design-vue'
-import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
 import type { ColumnType, SelectOptionsType } from 'nocodb-sdk'
@@ -774,8 +774,15 @@ const onFieldOptionUpdate = () => {
                       "
                     />
                     <NcCheckbox v-else :disabled="true" class="opacity-0" :checked="true" />
+                    <SmartsheetHeaderVirtualCellIcon
+                      v-if="field && isVirtualCol(fieldState(field) || field)"
+                      :column-meta="fieldState(field) || field"
+                      :class="{
+                        'text-brand-500': compareCols(field, activeField),
+                      }"
+                    />
                     <SmartsheetHeaderCellIcon
-                      v-if="field"
+                      v-else
                       :column-meta="fieldState(field) || field"
                       :class="{
                         'text-brand-500': compareCols(field, activeField),

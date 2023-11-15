@@ -27,7 +27,7 @@ export class DatasService {
       model,
       view,
       query: param.query,
-      throwErrorIfInvalidParams: true
+      throwErrorIfInvalidParams: true,
     });
   }
 

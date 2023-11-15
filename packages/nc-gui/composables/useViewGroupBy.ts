@@ -89,6 +89,12 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     if (col.uidt === UITypes.Checkbox) {
       return value ? GROUP_BY_VARS.TRUE : GROUP_BY_VARS.FALSE
     }
+
+    // convert to JSON string if non-string value
+    if(value && typeof value === 'object') {
+      value = JSON.stringify(value)
+    }
+
     return value ?? GROUP_BY_VARS.NULL
   }
 

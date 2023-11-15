@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
-import {isVirtualCol, UITypes} from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import GroupByTable from './GroupByTable.vue'
+import GroupByLabel from './GroupByLabel.vue'
 import { GROUP_BY_VARS, computed, ref } from '#imports'
 import type { Group, Row } from '#imports'
 
@@ -47,6 +48,8 @@ const tableHeader = ref<HTMLElement | undefined>()
 const fullPage = computed<boolean>(() => {
   return props.fullPage ?? (tableHeader.value?.offsetWidth ?? 0) > (props.viewWidth ?? 0)
 })
+
+const { isUIAllowed } = useRoles()
 
 const _activeGroupKeys = ref<string[] | string>()
 
@@ -137,17 +140,19 @@ const onScroll = (e: Event) => {
 }
 
 const parseKey = (group) => {
+  const key = group.key.toString()
+
   // parse json array key if it's a lookup or link to another record
-  if ((group.key && group.column?.uidt === UITypes.Lookup) || group.column?.uidt === UITypes.LinkToAnotherRecord) {
+  if ((key && group.column?.uidt === UITypes.Lookup) || group.column?.uidt === UITypes.LinkToAnotherRecord) {
     try {
-      const parsedKey = JSON.parse(group.key)
-      return parsedKey.join(', ')
+      const parsedKey = JSON.parse(key)
+      return parsedKey
     } catch {
       // if parsing try to split it by `___` (for sqlite)
-      return group.key.split('___').join(', ')
+      return key.split('___')
     }
   }
-  return group.key
+  return [key]
 }
 </script>
 
@@ -262,32 +267,13 @@ const parseKey = (group) => {
                               'font-weight': 500,
                             }"
                           >
-                            {{ grp.key in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[grp.key] : parseKey(grp) }}
+                            <template v-if="grp.key in GROUP_BY_VARS.VAR_TITLES">{{
+                              GROUP_BY_VARS.VAR_TITLES[grp.key]
+                            }}</template>
+
+                            <GroupByLabel v-for="(val, ind) of parseKey(grp)" v-else :key="ind" :model-value="val" :column="grp.column"/>
                           </span>
                         </a-tag>
-
-
-
-<div>
-                        <LazySmartsheetVirtualCell
-                            v-if="isVirtualCol(grp.column)"
-                            v-model="grp.key"
-                            class="!text-gray-600"
-                            :column="grp.column"
-                            :row="record"
-                        />
-
-                        <LazySmartsheetCell
-                            v-else
-                            v-model="grp.key"
-                            class="!text-gray-600"
-                            :column="grp.column"
-                            :edit-enabled="false"
-                            :read-only="true"
-                        />
-
-</div>
-
                       </div>
                     </div>
                   </div>

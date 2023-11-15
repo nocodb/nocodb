@@ -242,9 +242,6 @@ export const getModelPaths = async (ctx: {
                 whereParam,
                 limitParam,
                 offsetParam,
-                {
-                  $ref: '#/components/parameters/xc-auth',
-                },
               ],
               responses: {
                 '200': {
@@ -333,9 +330,6 @@ export const getModelPaths = async (ctx: {
                 'This API endpoint allows you to link records to a specific `Link field` and `Record ID`. The request payload is an array of record-ids from the adjacent table for linking purposes. Note that any existing links, if present, will be unaffected during this operation.',
               parameters: [
                 recordIdParam,
-                {
-                  $ref: '#/components/parameters/xc-auth',
-                },
               ],
             },
             delete: {
@@ -390,12 +384,7 @@ export const getModelPaths = async (ctx: {
               },
               description:
                 'This API endpoint allows you to unlink records from a specific `Link field` and `Record ID`. The request payload is an array of record-ids from the adjacent table for unlinking purposes. Note that, \n- duplicated record-ids will be ignored.\n- non-existent record-ids will be ignored.',
-              parameters: [
-                recordIdParam,
-                {
-                  $ref: '#/components/parameters/xc-auth',
-                },
-              ],
+              parameters: [recordIdParam],
             },
           },
       }

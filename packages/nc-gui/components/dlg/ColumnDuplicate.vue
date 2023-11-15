@@ -17,10 +17,6 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { $e, $poller } = useNuxtApp()
 
-const basesStore = useBases()
-
-const { createProject: _createProject } = basesStore
-
 const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
 const reloadDataHook = inject(ReloadViewDataHookInj)
@@ -101,7 +97,9 @@ onKeyStroke('Enter', () => {
   }
 })
 
-const isEaster = ref(false)
+defineExpose({
+  duplicate: _duplicate,
+})
 </script>
 
 <template>
@@ -118,11 +116,9 @@ const isEaster = ref(false)
     @keydown.esc="dialogShow = false"
   >
     <div>
-      <div class="prose-xl font-bold self-center" @dblclick="isEaster = !isEaster">
-        {{ $t('general.duplicate') }} {{ $t('objects.column') }}
-      </div>
+      <div class="prose-xl font-bold self-center">{{ $t('general.duplicate') }} {{ $t('objects.column') }}</div>
 
-      <div class="mt-4">{{ $t('msg.warning.duplicateProject') }}</div>
+      <div class="mt-4">Are you sure you want to duplicate the field?</div>
 
       <div class="prose-md self-center text-gray-500 mt-4">{{ $t('title.advancedSettings') }}</div>
 

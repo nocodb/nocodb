@@ -870,10 +870,6 @@ export async function singleQueryRead(ctx: {
     await NocoCache.set(cacheKey, query);
   }
 
-  console.log('query');
-  console.log(query);
-  console.log('query');
-
   // const res = await finalQb;
 
   const res = await baseModel.execAndParse(

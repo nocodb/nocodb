@@ -342,7 +342,7 @@ const parseConditionV2 = async (
         return (qbP: Knex.QueryBuilder) => {
           if (filter.comparison_op in negatedMapping)
             qbP.where((qb) =>
-              qbP
+              qb
                 .whereNotIn(childColumn.column_name, selectQb)
                 .orWhereNull(childColumn.column_name),
             );

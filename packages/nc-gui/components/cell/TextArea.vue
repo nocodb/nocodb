@@ -75,7 +75,14 @@ const onTextClick = () => {
 }
 
 const isRichMode = computed(() => {
-  return true
+  let meta: any = {}
+  if (typeof column?.value?.meta === 'string') {
+    meta = JSON.parse(column?.value?.meta)
+  } else {
+    meta = column?.value?.meta ?? {}
+  }
+
+  return meta?.richMode
 })
 
 watch(editEnabled, () => {
@@ -187,7 +194,7 @@ watch(editEnabled, () => {
           @keydown.escape="isVisible = false"
         />
 
-        <CellRichText v-else v-model:value="vModel" class="ml-2 mt-2 max-h-80vh nc-scrollbar-md" />
+        <CellRichText v-else v-model:value="vModel" class="ml-2 mt-2 max-h-70vh nc-scrollbar-md" />
       </div>
     </template>
   </NcDropdown>

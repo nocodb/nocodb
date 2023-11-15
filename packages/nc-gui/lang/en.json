@@ -423,6 +423,7 @@
     "headerName": "Header Name",
     "icon": "Icon",
     "max": "Max",
+    "enableRichText": "Enable Rich Text",
     "idColon": "Id:",
     "copiedRecordURL": "Copied Record URL",
     "copyRecordURL": "Copy Record URL",

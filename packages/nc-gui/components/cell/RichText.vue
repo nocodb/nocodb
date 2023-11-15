@@ -76,5 +76,27 @@ onMounted(() => {
     // remove all border
     outline: none;
   }
+
+  ul {
+    @apply ml-4;
+    li {
+      list-style-type: disc;
+    }
+  }
+
+  ol {
+    @apply -ml-6;
+    li {
+      list-style-type: decimal;
+    }
+  }
+
+  ul[data-type='taskList'] {
+    @apply ml-0;
+    li {
+      @apply flex flex-row items-baseline gap-x-2;
+      list-style-type: none;
+    }
+  }
 }
 </style>

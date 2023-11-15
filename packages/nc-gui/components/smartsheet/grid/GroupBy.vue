@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
-import { UITypes } from 'nocodb-sdk'
+import {isVirtualCol, UITypes} from 'nocodb-sdk'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import GroupByTable from './GroupByTable.vue'
@@ -265,6 +265,29 @@ const parseKey = (group) => {
                             {{ grp.key in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[grp.key] : parseKey(grp) }}
                           </span>
                         </a-tag>
+
+
+
+<div>
+                        <LazySmartsheetVirtualCell
+                            v-if="isVirtualCol(grp.column)"
+                            v-model="grp.key"
+                            class="!text-gray-600"
+                            :column="grp.column"
+                            :row="record"
+                        />
+
+                        <LazySmartsheetCell
+                            v-else
+                            v-model="grp.key"
+                            class="!text-gray-600"
+                            :column="grp.column"
+                            :edit-enabled="false"
+                            :read-only="true"
+                        />
+
+</div>
+
                       </div>
                     </div>
                   </div>

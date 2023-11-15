@@ -18,6 +18,7 @@ on:
       services_to_deploy:
         type: choice
         description: services to deploy
+        default: 'all'
         options:
         - all
         - main_only

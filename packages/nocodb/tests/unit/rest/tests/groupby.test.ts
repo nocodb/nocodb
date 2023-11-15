@@ -299,7 +299,7 @@ function groupByTests() {
     expect(response.body.list.length).to.equal(1);
   });
 
-  it('Check One GroupBy Column with MM Lookup which is not supported', async function () {
+  it.only('Check One GroupBy Column with MM Lookup which is supported', async function () {
     await createLookupColumn(context, {
       base: sakilaProject,
       title: 'ActorNames',
@@ -308,15 +308,17 @@ function groupByTests() {
       relatedTableColumnTitle: 'FirstName',
     });
 
-    const res = await request(context.app)
+    const response = await request(context.app)
       .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: 'ActorNames',
       })
-      .expect(400);
+      .expect(200);
 
-    assert.match(res.body.msg, /not supported/);
+    assert.match(response.body.list[0]['ActorNames'], /ADAM/);
+    expect(+response.body.list[0]['count']).to.gt(1);
+    expect(response.body.list.length).to.equal(25);
   });
 
   it('Check One GroupBy Column with Formula and Formula referring another formula', async function () {

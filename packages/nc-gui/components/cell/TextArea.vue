@@ -171,14 +171,16 @@ watch(editEnabled, () => {
       </div>
     </div>
     <template #overlay>
-      <div ref="inputWrapperRef" class="flex flex-col min-w-120 min-h-70 py-3 pl-3 pr-1 expanded-cell-input relative">
+      <div ref="inputWrapperRef" class="flex flex-col min-w-150 min-h-70 py-3 pl-3 pr-1 expanded-cell-input relative">
         <div
           v-if="column"
           class="flex flex-row gap-x-1 items-center font-medium pb-2.5 mb-1 py-1 mr-3 ml-1 border-b-1 border-gray-100"
         >
           <SmartsheetHeaderCellIcon class="flex" />
-          <div class="flex">
-            {{ column.title }}
+          <div class="flex max-w-38">
+            <span class="truncate">
+              {{ column.title }}
+            </span>
           </div>
         </div>
         <a-textarea

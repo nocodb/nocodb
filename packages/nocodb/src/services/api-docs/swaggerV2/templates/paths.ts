@@ -328,9 +328,7 @@ export const getModelPaths = async (ctx: {
               },
               description:
                 'This API endpoint allows you to link records to a specific `Link field` and `Record ID`. The request payload is an array of record-ids from the adjacent table for linking purposes. Note that any existing links, if present, will be unaffected during this operation.',
-              parameters: [
-                recordIdParam,
-              ],
+              parameters: [recordIdParam],
             },
             delete: {
               summary: 'Unlink Records',

@@ -8,6 +8,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import type { UserType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { NC_APP_SETTINGS } from '~/constants';
@@ -91,7 +92,7 @@ export class OrgUsersService {
   async userAdd(param: {
     user: UserType;
     // todo: refactor
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload('swagger.json#/components/schemas/OrgUserReq', param.user);
 
@@ -148,6 +149,7 @@ export class OrgUsersService {
             user,
             count,
             ip: param.req.clientIp,
+            req: param.req,
           });
 
           // in case of single user check for smtp failure
@@ -192,7 +194,10 @@ export class OrgUsersService {
     NcError.notImplemented();
   }
 
-  async userInviteResend(param: { userId: string; req: any }): Promise<any> {
+  async userInviteResend(param: {
+    userId: string;
+    req: NcRequest;
+  }): Promise<any> {
     const user = await User.get(param.userId);
 
     if (!user) {
@@ -232,6 +237,7 @@ export class OrgUsersService {
       invitedBy: param.req.user,
       user,
       ip: param.req.clientIp,
+      req: param.req,
     });
 
     return true;

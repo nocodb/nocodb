@@ -18,10 +18,9 @@ import {
   useDialog,
   useNuxtApp,
   useRoles,
+  useRouter,
   useTablesStore,
 } from '#imports'
-
-import { useRouter } from '#app'
 
 const { isUIAllowed } = useRoles()
 

@@ -118,6 +118,8 @@ export class ExportService {
               case 'fk_relation_column_id':
               case 'fk_lookup_column_id':
               case 'fk_rollup_column_id':
+              case 'fk_qr_value_column_id':
+              case 'fk_barcode_value_column_id':
                 column.colOptions[k] = idMap.get(v as string);
                 break;
               case 'options':
@@ -138,6 +140,19 @@ export class ExportService {
               case 'fk_column_id':
                 delete column.colOptions[k];
                 break;
+            }
+          }
+        }
+
+        // pg default value fix
+        if (source.type === 'pg') {
+          if (column.cdf) {
+            // check if column.cdf has unmatched single quotes
+            const matches = column.cdf.match(/'/g);
+            if (matches && matches.length % 2 !== 0) {
+              // if so remove after last single quote
+              const lastQuoteIndex = column.cdf.lastIndexOf("'");
+              column.cdf = column.cdf.substring(0, lastQuoteIndex);
             }
           }
         }
@@ -393,9 +408,13 @@ export class ExportService {
           .map((c) => c.title)
           .join(',');
 
-    const mmColumns = model.columns.filter(
-      (col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm',
-    );
+    const mmColumns = param._fieldIds
+      ? model.columns
+          .filter((c) => param._fieldIds?.includes(c.id))
+          .filter((col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm')
+      : model.columns.filter(
+          (col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm',
+        );
 
     const hasLink = mmColumns.length > 0;
 
@@ -562,6 +581,7 @@ export class ExportService {
           view,
           query: { limit, offset, fields },
           baseModel,
+          ignoreViewFilterAndSort: true,
         })
         .then((result) => {
           try {
@@ -610,6 +630,7 @@ export class ExportService {
           view,
           query: { limit, offset, fields },
           baseModel,
+          ignoreViewFilterAndSort: true,
         })
         .then((result) => {
           try {

@@ -504,6 +504,7 @@ export type ColumnReqType = (
     view_id?: string;
   };
   title: string;
+  view_id?: string;
 };
 
 /**
@@ -5738,6 +5739,53 @@ export class Api<
         }
       >({
         path: `/api/v1/db/meta/duplicate/${baseId}/table/${tableId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Duplicate a column
+ * 
+ * @tags DB Table
+ * @name DuplicateColumn
+ * @summary Duplicate Column
+ * @request POST:/api/v1/db/meta/duplicate/{baseId}/column/{columnId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    duplicateColumn: (
+      baseId: IdType,
+      columnId: IdType,
+      data: {
+        options?: {
+          excludeData?: boolean;
+        };
+        extra?: object;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/duplicate/${baseId}/column/${columnId}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,

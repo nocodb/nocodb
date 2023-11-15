@@ -1157,7 +1157,7 @@ class KnexClient extends SqlClient {
   migrationInit(_args) {}
 
   async selectAll(tn) {
-    return await this.sqlClient(tn).select();
+    return await this.sqlClient.raw(this.sqlClient(tn).select().toQuery());
   }
 
   /**
@@ -1180,15 +1180,19 @@ class KnexClient extends SqlClient {
     const result = new Result();
 
     try {
-      const countResult = await this.sqlClient(args.tn).count();
+      const countResult = await this.sqlClient.raw(
+        this.sqlClient(args.tn).count().toQuery(),
+      );
       result.data.count = Object.values(countResult[0])[0];
       const query = this.sqlClient(args.tn)
         .select()
         .limit(size)
         .offset((page - 1) * size);
       if (orderBy && orderBy.length)
-        result.data.list = await query.orderBy(orderBy);
-      else result.data.list = await query;
+        result.data.list = await this.sqlClient.raw(
+          query.orderBy(orderBy).toQuery(),
+        );
+      else result.data.list = await this.sqlClient.raw(query.toQuery());
     } catch (e) {
       console.log(e);
       result.data.list = [];
@@ -1226,26 +1230,32 @@ class KnexClient extends SqlClient {
   // Todo: error handling
   async insert(args) {
     const { tn, data } = args;
-    const res = await this.sqlClient(tn).insert(data);
+    const res = await this.sqlClient.raw(
+      this.sqlClient(tn).insert(data).toQuery(),
+    );
     log.debug(res);
     return res;
   }
 
   async update(args) {
     const { tn, data, whereConditions } = args;
-    const res = await this.sqlClient(tn).where(whereConditions).update(data);
+    const res = await this.sqlClient.raw(
+      this.sqlClient(tn).where(whereConditions).update(data).toQuery(),
+    );
     return res;
   }
 
   async delete(args) {
     const { tn, whereConditions } = args;
-    const res = await this.sqlClient(tn).where(whereConditions).del();
+    const res = await this.sqlClient.raw(
+      this.sqlClient(tn).where(whereConditions).del().toQuery(),
+    );
     log.debug(res);
     return res;
   }
 
   async remove(tn, where) {
-    await this.sqlClient(tn).del().where(where);
+    await this.sqlClient.raw(this.sqlClient(tn).del().where(where).toQuery());
   }
 
   hasTable(_tn) {}
@@ -1712,31 +1722,36 @@ class KnexClient extends SqlClient {
       args.sqlClient = this.sqlClient;
 
       /** ************** create table *************** */
-      await this.sqlClient.schema.createTable(args.table, function (table) {
-        const multiplePks = [];
-        const columns = JSON.parse(JSON.stringify(args.columns));
+      const query = this.sqlClient.schema.createTable(
+        args.table,
+        function (table) {
+          const multiplePks = [];
+          const columns = JSON.parse(JSON.stringify(args.columns));
 
-        // copy PKs to new array and set PK metadata to false in original columns
-        for (let i = 0; i < columns.length; ++i) {
-          if (columns[i].pk) {
-            multiplePks.push(i);
-            columns[i].pk = false;
-            columns[i].ai = false;
-          }
-        }
-
-        if (multiplePks.length > 1) {
+          // copy PKs to new array and set PK metadata to false in original columns
           for (let i = 0; i < columns.length; ++i) {
-            columnCreate(args.sqlClient, table, columns[i]);
+            if (columns[i].pk) {
+              multiplePks.push(i);
+              columns[i].pk = false;
+              columns[i].ai = false;
+            }
           }
 
-          createPks(table, args.columns, multiplePks);
-        } else {
-          for (let i = 0; i < args.columns.length; ++i) {
-            columnCreate(args.sqlClient, table, args.columns[i]);
+          if (multiplePks.length > 1) {
+            for (let i = 0; i < columns.length; ++i) {
+              columnCreate(args.sqlClient, table, columns[i]);
+            }
+
+            createPks(table, args.columns, multiplePks);
+          } else {
+            for (let i = 0; i < args.columns.length; ++i) {
+              columnCreate(args.sqlClient, table, args.columns[i]);
+            }
           }
-        }
-      });
+        },
+      );
+
+      await this.sqlClient.raw(query.toQuery());
 
       /** ************** create up & down statements *************** */
       const upStatement = this.sqlClient.schema
@@ -1799,7 +1814,9 @@ class KnexClient extends SqlClient {
       args.table = args.tn;
 
       /** ************** create table *************** */
-      await this.sqlClient.schema.renameTable(args.tn_old, args.tn);
+      await this.sqlClient.raw(
+        this.sqlClient.schema.renameTable(args.tn_old, args.tn).toQuery(),
+      );
 
       /** ************** create up & down statements *************** */
       const upStatement =
@@ -2013,41 +2030,46 @@ class KnexClient extends SqlClient {
       /** ************** END : has PK changed *************** */
 
       /** ************** update table *************** */
-      await this.sqlClient.schema.alterTable(args.table, function (table) {
-        if (pksChanged) {
-          pkUpdate(table, args.columns, args.originalColumns);
-        } else {
-          for (let i = 0; i < args.columns.length; ++i) {
-            const column = find(originalColumns, {
-              cn: args.columns[i].cno,
-            });
+      const query = this.sqlClient.schema.alterTable(
+        args.table,
+        function (table) {
+          if (pksChanged) {
+            pkUpdate(table, args.columns, args.originalColumns);
+          } else {
+            for (let i = 0; i < args.columns.length; ++i) {
+              const column = find(originalColumns, {
+                cn: args.columns[i].cno,
+              });
 
-            if (args.columns[i].altered & 8) {
-              // TODO: If a column is getting renamed then
-              //            any change to column data type
-              //            or changes to other columns are ignored
-              renamed = true;
-              renamedUpDownStatement = renameColumn(
-                args.sqlClient,
-                args.connectionConfig,
-                table,
-                column,
-                args.columns[i],
-              );
-              result.data.object = renamedUpDownStatement;
-            } else if (args.columns[i].altered & 4) {
-              // col remove
-              removeColumn(table, args.columns[i], column);
-            } else if (args.columns[i].altered & 2) {
-              // col edit
-              columnUpdate(args.sqlClient, table, args.columns[i], column);
-            } else if (args.columns[i].altered & 1) {
-              // col addition
-              columnUpdate(args.sqlClient, table, args.columns[i], null);
+              if (args.columns[i].altered & 8) {
+                // TODO: If a column is getting renamed then
+                //            any change to column data type
+                //            or changes to other columns are ignored
+                renamed = true;
+                renamedUpDownStatement = renameColumn(
+                  args.sqlClient,
+                  args.connectionConfig,
+                  table,
+                  column,
+                  args.columns[i],
+                );
+                result.data.object = renamedUpDownStatement;
+              } else if (args.columns[i].altered & 4) {
+                // col remove
+                removeColumn(table, args.columns[i], column);
+              } else if (args.columns[i].altered & 2) {
+                // col edit
+                columnUpdate(args.sqlClient, table, args.columns[i], column);
+              } else if (args.columns[i].altered & 1) {
+                // col addition
+                columnUpdate(args.sqlClient, table, args.columns[i], null);
+              }
             }
           }
-        }
-      });
+        },
+      );
+
+      await this.sqlClient.raw(query.toQuery());
 
       // log.debug('after column change', r);
 
@@ -2199,7 +2221,9 @@ class KnexClient extends SqlClient {
       this.emit(`Success : ${upStatement}`);
 
       /** ************** drop tn *************** */
-      await this.sqlClient.schema.dropTable(args.tn);
+      await this.sqlClient.raw(
+        this.sqlClient.schema.dropTable(args.tn).toQuery(),
+      );
 
       /** ************** return files *************** */
       result.data.object = {
@@ -2234,13 +2258,15 @@ class KnexClient extends SqlClient {
       args.table = args.tn;
 
       // s = await this.sqlClient.schema.index(Object.keys(args.columns));
-      await this.sqlClient.schema.table(args.table, function (table) {
+      const query = this.sqlClient.schema.table(args.table, function (table) {
         if (args.non_unique) {
           table.index(args.columns, indexName);
         } else {
           table.unique(args.columns, indexName);
         }
       });
+
+      await this.sqlClient.raw(query.toQuery());
 
       const upStatement =
         this.querySeparator() +
@@ -2305,13 +2331,15 @@ class KnexClient extends SqlClient {
       args.table = args.tn;
 
       // s = await this.sqlClient.schema.index(Object.keys(args.columns));
-      await this.sqlClient.schema.table(args.table, function (table) {
+      const query = this.sqlClient.schema.table(args.table, function (table) {
         if (args.non_unique_original) {
           table.dropIndex(args.columns, indexName);
         } else {
           table.dropUnique(args.columns, indexName);
         }
       });
+
+      await this.sqlClient.raw(query.toQuery());
 
       const upStatement =
         this.querySeparator() +
@@ -2385,7 +2413,7 @@ class KnexClient extends SqlClient {
         },
       );
 
-      await upQb;
+      await this.sqlClient.raw(upQb.toQuery());
 
       const upStatement = this.querySeparator() + upQb.toQuery();
 
@@ -2444,9 +2472,14 @@ class KnexClient extends SqlClient {
     try {
       // const self = this;
 
-      await this.sqlClient.schema.table(args.childTable, function (table) {
-        table.dropForeign(args.childColumn, foreignKeyName);
-      });
+      const query = this.sqlClient.schema.table(
+        args.childTable,
+        function (table) {
+          table.dropForeign(args.childColumn, foreignKeyName);
+        },
+      );
+
+      await this.sqlClient.raw(query.toQuery());
 
       const upStatement =
         this.querySeparator() +
@@ -2456,16 +2489,19 @@ class KnexClient extends SqlClient {
           })
           .toQuery();
 
-      const downStatement =
-        this.querySeparator() +
-        (await this.sqlClient.schema
-          .table(args.childTable, function (table) {
-            table
-              .foreign(args.childColumn, foreignKeyName)
-              .references(args.parentColumn)
-              .on(args.parentTable);
-          })
-          .toQuery());
+      const downQuery = this.sqlClient.schema.table(
+        args.childTable,
+        function (table) {
+          table
+            .foreign(args.childColumn, foreignKeyName)
+            .references(args.parentColumn)
+            .on(args.parentTable);
+        },
+      );
+
+      await this.sqlClient.raw(downQuery.toQuery());
+
+      const downStatement = this.querySeparator() + downQuery.toQuery();
 
       // let files = this.evolutionFilesCreate(args, upStatement, downStatement);
       //

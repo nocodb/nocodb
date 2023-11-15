@@ -13,6 +13,7 @@ import type {
   ProjectUpdateReqType,
   UserType,
 } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -36,7 +37,7 @@ export class BasesService {
   ) {}
 
   async baseList(param: {
-    user: { id: string; roles: Record<string, boolean> };
+    user: { id: string; roles?: string | Record<string, boolean> };
     query?: any;
   }) {
     const bases = extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN]
@@ -63,6 +64,7 @@ export class BasesService {
     baseId: string;
     base: ProjectUpdateReqType;
     user: UserType;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUpdateReq',
@@ -84,6 +86,7 @@ export class BasesService {
     this.appHooksService.emit(AppEvents.PROJECT_UPDATE, {
       base,
       user: param.user,
+      req: param.req,
     });
 
     return result;
@@ -99,7 +102,7 @@ export class BasesService {
     }
   }
 
-  async baseSoftDelete(param: { baseId: any; user: UserType }) {
+  async baseSoftDelete(param: { baseId: any; user: UserType; req: NcRequest }) {
     const base = await Base.getWithInfo(param.baseId);
 
     if (!base) {
@@ -111,12 +114,13 @@ export class BasesService {
     this.appHooksService.emit(AppEvents.PROJECT_DELETE, {
       base,
       user: param.user,
+      req: param.req,
     });
 
     return true;
   }
 
-  async baseCreate(param: { base: ProjectReqType; user: any }) {
+  async baseCreate(param: { base: ProjectReqType; user: any; req: NcRequest }) {
     validatePayload('swagger.json#/components/schemas/ProjectReq', param.base);
 
     const baseId = await this.metaService.genNanoid(MetaTable.PROJECT);
@@ -205,6 +209,7 @@ export class BasesService {
 
         this.appHooksService.emit(AppEvents.APIS_CREATED, {
           info,
+          req: param.req,
         });
 
         delete source.config;
@@ -215,18 +220,20 @@ export class BasesService {
       base,
       user: param.user,
       xcdb: !baseBody.external,
+      req: param.req,
     });
 
     return base;
   }
 
-  async createDefaultBase(param: { user: UserType }) {
+  async createDefaultBase(param: { user: UserType; req: NcRequest }) {
     const base = await this.baseCreate({
       base: {
         title: 'Getting Started',
         type: 'database',
       } as any,
       user: param.user,
+      req: param.req,
     });
 
     const sqlUI = SqlUiFactory.create({ client: base.sources[0].type });

@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ViewCreateReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { KanbansService } from '~/services/kanbans.service';
@@ -40,12 +41,13 @@ export class KanbansController {
   async kanbanViewCreate(
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     return await this.kanbansService.kanbanViewCreate({
       tableId,
       kanban: body,
       user: req.user,
+      req,
     });
   }
 
@@ -57,10 +59,13 @@ export class KanbansController {
   async kanbanViewUpdate(
     @Param('kanbanViewId') kanbanViewId: string,
     @Body() body,
+
+    @Req() req: Request,
   ) {
     return await this.kanbansService.kanbanViewUpdate({
       kanbanViewId,
       kanban: body,
+      req,
     });
   }
 }

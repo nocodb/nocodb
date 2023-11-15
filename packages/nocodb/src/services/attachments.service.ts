@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import slash from 'slash';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Local from '~/plugins/storage/Local';
@@ -15,7 +16,7 @@ import { utf8ify } from '~/helpers/stringHelpers';
 export class AttachmentsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
-  async upload(param: { path?: string; files: FileType[] }) {
+  async upload(param: { path?: string; files: FileType[]; req: NcRequest }) {
     // TODO: add getAjvValidatorMw
     const filePath = this.sanitizeUrlPath(
       param.path?.toString()?.split('/') || [''],
@@ -83,12 +84,17 @@ export class AttachmentsService {
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'file',
+      req: param.req,
     });
 
     return attachments;
   }
 
-  async uploadViaURL(param: { path?: string; urls: AttachmentReqType[] }) {
+  async uploadViaURL(param: {
+    path?: string;
+    urls: AttachmentReqType[];
+    req: NcRequest;
+  }) {
     // TODO: add getAjvValidatorMw
     const filePath = this.sanitizeUrlPath(
       param?.path?.toString()?.split('/') || [''],
@@ -133,6 +139,7 @@ export class AttachmentsService {
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'url',
+      req: param.req,
     });
     return attachments;
   }

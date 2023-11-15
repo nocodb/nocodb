@@ -308,7 +308,7 @@ onMounted(async () => {
           <NcSelect
             v-model:value="form.fk_grp_col_id"
             class="w-full nc-kanban-grouping-field-select"
-            :disabled="groupingFieldColumnId || isMetaLoading"
+            :disabled="isMetaLoading"
             :loading="isMetaLoading"
             :options="viewSelectFieldOptions"
             :placeholder="$t('placeholder.selectGroupField')"
@@ -325,7 +325,7 @@ onMounted(async () => {
             v-model:value="form.fk_geo_data_col_id"
             class="w-full"
             :options="viewSelectFieldOptions"
-            :disabled="groupingFieldColumnId || isMetaLoading"
+            :disabled="isMetaLoading"
             :loading="isMetaLoading"
             :placeholder="$t('placeholder.selectGeoField')"
             :not-found-content="$t('placeholder.selectGeoFieldNotFound')"

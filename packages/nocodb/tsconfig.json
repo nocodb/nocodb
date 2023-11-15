@@ -1,6 +1,8 @@
 {
   "ts-node": {
-    "require": ["tsconfig-paths/register"]
+    "require": [
+      "tsconfig-paths/register"
+    ]
   },
   "compilerOptions": {
     "module": "commonjs",
@@ -23,9 +25,19 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "paths": {
-      "src/*": ["./src/*"],
-      "~/*": ["./src/*"],
-      "@/*": ["./src/*"]
-    }
+      "src/*": [
+        "./src/*"
+      ],
+      "~/*": [
+        "./src/*"
+      ],
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    "typeRoots": [
+      "./src/types",
+      "./node_modules/@types"
+    ]
   }
 }

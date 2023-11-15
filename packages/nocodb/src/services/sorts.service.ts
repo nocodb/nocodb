@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type { SortReqType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -14,7 +15,7 @@ export class SortsService {
     return Sort.get(param.sortId);
   }
 
-  async sortDelete(param: { sortId: string }) {
+  async sortDelete(param: { sortId: string; req: NcRequest }) {
     const sort = await Sort.get(param.sortId);
 
     if (!sort) {
@@ -25,11 +26,12 @@ export class SortsService {
 
     this.appHooksService.emit(AppEvents.SORT_CREATE, {
       sort,
+      req: param.req,
     });
     return true;
   }
 
-  async sortUpdate(param: { sortId: any; sort: SortReqType }) {
+  async sortUpdate(param: { sortId: any; sort: SortReqType; req: NcRequest }) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
     const sort = await Sort.get(param.sortId);
@@ -42,12 +44,14 @@ export class SortsService {
 
     this.appHooksService.emit(AppEvents.SORT_UPDATE, {
       sort,
+
+      req: param.req,
     });
 
     return res;
   }
 
-  async sortCreate(param: { viewId: any; sort: SortReqType }) {
+  async sortCreate(param: { viewId: any; sort: SortReqType; req: NcRequest }) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
     const sort = await Sort.insert({
@@ -57,6 +61,7 @@ export class SortsService {
 
     this.appHooksService.emit(AppEvents.SORT_CREATE, {
       sort,
+      req: param.req,
     });
 
     return sort;

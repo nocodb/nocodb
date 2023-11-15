@@ -6,9 +6,10 @@ import {
   HttpCode,
   Param,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ApiTokenReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import { getConditionalHandler } from '~/helpers/getHandler';
@@ -30,7 +31,7 @@ export class OrgTokensController {
     scope: 'org',
     blockApiTokenAccess: true,
   })
-  async apiTokenList(@Request() req) {
+  async apiTokenList(@Req() req: Request) {
     return await getConditionalHandler(
       this.orgTokensService.apiTokenList,
       this.orgTokensEeService.apiTokenListEE,
@@ -46,10 +47,11 @@ export class OrgTokensController {
     scope: 'org',
     blockApiTokenAccess: true,
   })
-  async apiTokenCreate(@Request() req, @Body() body: ApiTokenReqType) {
+  async apiTokenCreate(@Req() req: Request, @Body() body: ApiTokenReqType) {
     return await this.orgTokensService.apiTokenCreate({
       apiToken: body,
       user: req['user'],
+      req,
     });
   }
 
@@ -59,10 +61,11 @@ export class OrgTokensController {
     // allowedRoles: [OrgUserRoles.SUPER],
     blockApiTokenAccess: true,
   })
-  async apiTokenDelete(@Request() req, @Param('token') token: string) {
+  async apiTokenDelete(@Req() req: Request, @Param('token') token: string) {
     await this.orgTokensService.apiTokenDelete({
       token,
       user: req['user'],
+      req,
     });
   }
 }

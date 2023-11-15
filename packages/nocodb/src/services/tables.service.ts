@@ -18,6 +18,7 @@ import type {
   TableReqType,
   UserType,
 } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -43,6 +44,7 @@ export class TablesService {
     table: TableReqType & { base_id?: string };
     baseId?: string;
     user: UserType;
+    req: NcRequest;
   }) {
     const model = await Model.get(param.tableId);
 
@@ -145,6 +147,7 @@ export class TablesService {
     this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
       table: model,
       user: param.user,
+      req: param.req,
     });
 
     return true;
@@ -225,6 +228,7 @@ export class TablesService {
         table,
         user: param.user,
         ip: param.req?.clientIp,
+        req: param.req,
       });
 
       result = await table.delete(ncMeta);
@@ -487,7 +491,7 @@ export class TablesService {
         system?: boolean;
       }
     > = (
-      await sqlClient.columnList({
+      await sqlMgr.sqlOpPlus(source, 'columnList', {
         tn: tableCreatePayLoad.table_name,
         schema: source.getConfig()?.schema,
       })
@@ -528,6 +532,7 @@ export class TablesService {
       table: result,
       user: param.user,
       ip: param.req?.clientIp,
+      req: param.req,
     });
 
     return result;

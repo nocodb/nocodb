@@ -78,7 +78,7 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    return await baseModel.insert(param.body, null, param.cookie);
+    return await baseModel.nestedInsert(param.body, null, param.cookie);
   }
 
   async dataUpdate(
@@ -134,8 +134,9 @@ export class DatasService {
     query: any;
     baseModel?: BaseModelSqlv2;
     throwErrorIfInvalidParams?: boolean;
+    ignoreViewFilterAndSort?: boolean;
   }) {
-    const { model, view, query = {} } = param;
+    const { model, view, query = {}, ignoreViewFilterAndSort = false } = param;
 
     const source = await Source.get(model.source_id);
 
@@ -163,24 +164,22 @@ export class DatasService {
     } catch (e) {}
 
     const [count, data] = await Promise.all([
-      baseModel.count(listArgs),
+      baseModel.count(listArgs, false, param.throwErrorIfInvalidParams),
       (async () => {
         let data = [];
         try {
           data = await nocoExecute(
             ast,
-            await baseModel.list(
-              listArgs,
-              false,
-              false,
-              param.throwErrorIfInvalidParams,
-            ),
+            await baseModel.list(listArgs, {
+              ignoreViewFilterAndSort,
+              throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
+            }),
             {},
             listArgs,
           );
         } catch (e) {
           if (e instanceof NcBaseError) throw e;
-          this.logger.log(e);
+          this.logger.error(e);
           NcError.internalServerError(
             'Please check server log for more details',
           );

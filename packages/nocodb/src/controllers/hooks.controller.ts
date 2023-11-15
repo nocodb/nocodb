@@ -7,9 +7,10 @@ import {
   Param,
   Patch,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { HookReqType, HookTestReqType } from 'nocodb-sdk';
 import type { HookType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -41,24 +42,30 @@ export class HooksController {
   async hookCreate(
     @Param('tableId') tableId: string,
     @Body() body: HookReqType,
+    @Req() req: Request,
   ) {
     const hook = await this.hooksService.hookCreate({
       hook: body,
       tableId,
+      req,
     });
     return hook;
   }
 
   @Delete(['/api/v1/db/meta/hooks/:hookId', '/api/v2/meta/hooks/:hookId'])
   @Acl('hookDelete')
-  async hookDelete(@Param('hookId') hookId: string) {
-    return await this.hooksService.hookDelete({ hookId });
+  async hookDelete(@Param('hookId') hookId: string, @Req() req: Request) {
+    return await this.hooksService.hookDelete({ hookId, req });
   }
 
   @Patch(['/api/v1/db/meta/hooks/:hookId', '/api/v2/meta/hooks/:hookId'])
   @Acl('hookUpdate')
-  async hookUpdate(@Param('hookId') hookId: string, @Body() body: HookReqType) {
-    return await this.hooksService.hookUpdate({ hookId, hook: body });
+  async hookUpdate(
+    @Param('hookId') hookId: string,
+    @Body() body: HookReqType,
+    @Req() req: Request,
+  ) {
+    return await this.hooksService.hookUpdate({ hookId, hook: body, req });
   }
 
   @Post([
@@ -67,7 +74,7 @@ export class HooksController {
   ])
   @HttpCode(200)
   @Acl('hookTest')
-  async hookTest(@Body() body: HookTestReqType, @Request() req: any) {
+  async hookTest(@Body() body: HookTestReqType, @Req() req: Request) {
     try {
       await this.hooksService.hookTest({
         hookTest: {
@@ -78,6 +85,7 @@ export class HooksController {
           },
         },
         tableId: req.params.tableId,
+        req,
       });
       return { msg: 'The hook has been tested successfully' };
     } catch (e) {
@@ -108,7 +116,7 @@ export class HooksController {
     '/api/v2/meta/hooks/:hookId/logs',
   ])
   @Acl('hookLogList')
-  async hookLogList(@Param('hookId') hookId: string, @Request() req: any) {
+  async hookLogList(@Param('hookId') hookId: string, @Req() req: Request) {
     return new PagedResponseImpl(
       await this.hooksService.hookLogList({
         query: req.query,

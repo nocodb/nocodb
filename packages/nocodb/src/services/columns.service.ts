@@ -21,6 +21,7 @@ import type {
 import type CustomKnex from '~/db/CustomKnex';
 import type SqlClient from '~/db/sql-client/lib/SqlClient';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -121,6 +122,11 @@ export class ColumnsService {
 
     if (!isVirtualCol(param.column)) {
       param.column.column_name = sanitizeColumnName(param.column.column_name);
+    }
+
+    // trim leading and trailing spaces from column title as knex trim them by default
+    if (param.column.title) {
+      param.column.title = param.column.title.trim();
     }
 
     if (param.column.column_name) {
@@ -292,7 +298,7 @@ export class ColumnsService {
         ) {
           // MultiSelect to SingleSelect
           if (driverType === 'mysql' || driverType === 'mysql2') {
-            await dbDriver.raw(
+            await sqlClient.raw(
               `UPDATE ?? SET ?? = SUBSTRING_INDEX(??, ',', 1) WHERE ?? LIKE '%,%';`,
               [
                 baseModel.getTnPath(table.table_name),
@@ -302,13 +308,13 @@ export class ColumnsService {
               ],
             );
           } else if (driverType === 'pg') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = split_part(??, ',', 1);`, [
+            await sqlClient.raw(`UPDATE ?? SET ?? = split_part(??, ',', 1);`, [
               baseModel.getTnPath(table.table_name),
               column.column_name,
               column.column_name,
             ]);
           } else if (driverType === 'mssql') {
-            await dbDriver.raw(
+            await sqlClient.raw(
               `UPDATE ?? SET ?? = LEFT(cast(?? as varchar(max)), CHARINDEX(',', ??) - 1) WHERE CHARINDEX(',', ??) > 0;`,
               [
                 baseModel.getTnPath(table.table_name),
@@ -319,7 +325,7 @@ export class ColumnsService {
               ],
             );
           } else if (driverType === 'sqlite3') {
-            await dbDriver.raw(
+            await sqlClient.raw(
               `UPDATE ?? SET ?? = substr(??, 1, instr(??, ',') - 1) WHERE ?? LIKE '%,%';`,
               [
                 baseModel.getTnPath(table.table_name),
@@ -350,12 +356,10 @@ export class ColumnsService {
             }),
           );
 
-          const data = await baseModel.execAndParse(
-            dbDriver.raw('SELECT DISTINCT ?? FROM ??', [
-              column.column_name,
-              baseModel.getTnPath(table.table_name),
-            ]),
-          );
+          const data = await sqlClient.raw('SELECT DISTINCT ?? FROM ??', [
+            column.column_name,
+            baseModel.getTnPath(table.table_name),
+          ]);
 
           if (data.length) {
             const existingOptions = colBody.colOptions.options.map(
@@ -534,7 +538,7 @@ export class ColumnsService {
             }
             if (column.uidt === UITypes.SingleSelect) {
               if (driverType === 'mssql') {
-                await dbDriver.raw(`UPDATE ?? SET ?? = NULL WHERE ?? LIKE ?`, [
+                await sqlClient.raw(`UPDATE ?? SET ?? = NULL WHERE ?? LIKE ?`, [
                   baseModel.getTnPath(table.table_name),
                   column.column_name,
                   column.column_name,
@@ -550,7 +554,7 @@ export class ColumnsService {
             } else if (column.uidt === UITypes.MultiSelect) {
               if (driverType === 'mysql' || driverType === 'mysql2') {
                 if (colBody.dt === 'set') {
-                  await dbDriver.raw(
+                  await sqlClient.raw(
                     `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), ',')) WHERE FIND_IN_SET(?, ??)`,
                     [
                       baseModel.getTnPath(table.table_name),
@@ -562,7 +566,7 @@ export class ColumnsService {
                     ],
                   );
                 } else {
-                  await dbDriver.raw(
+                  await sqlClient.raw(
                     `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), ','))`,
                     [
                       baseModel.getTnPath(table.table_name),
@@ -573,7 +577,7 @@ export class ColumnsService {
                   );
                 }
               } else if (driverType === 'pg') {
-                await dbDriver.raw(
+                await sqlClient.raw(
                   `UPDATE ?? SET ??  = array_to_string(array_remove(string_to_array(??, ','), ?), ',')`,
                   [
                     baseModel.getTnPath(table.table_name),
@@ -583,7 +587,7 @@ export class ColumnsService {
                   ],
                 );
               } else if (driverType === 'mssql') {
-                await dbDriver.raw(
+                await sqlClient.raw(
                   `UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), ','), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), ',')) - 2)`,
                   [
                     baseModel.getTnPath(table.table_name),
@@ -595,7 +599,7 @@ export class ColumnsService {
                   ],
                 );
               } else if (driverType === 'sqlite3') {
-                await dbDriver.raw(
+                await sqlClient.raw(
                   `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ','), ',')`,
                   [
                     baseModel.getTnPath(table.table_name),
@@ -715,7 +719,7 @@ export class ColumnsService {
 
             if (column.uidt === UITypes.SingleSelect) {
               if (driverType === 'mssql') {
-                await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [
+                await sqlClient.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [
                   baseModel.getTnPath(table.table_name),
                   column.column_name,
                   newOp.title,
@@ -732,7 +736,7 @@ export class ColumnsService {
             } else if (column.uidt === UITypes.MultiSelect) {
               if (driverType === 'mysql' || driverType === 'mysql2') {
                 if (colBody.dt === 'set') {
-                  await dbDriver.raw(
+                  await sqlClient.raw(
                     `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`,
                     [
                       baseModel.getTnPath(table.table_name),
@@ -745,7 +749,7 @@ export class ColumnsService {
                     ],
                   );
                 } else {
-                  await dbDriver.raw(
+                  await sqlClient.raw(
                     `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ',')))`,
                     [
                       baseModel.getTnPath(table.table_name),
@@ -757,7 +761,7 @@ export class ColumnsService {
                   );
                 }
               } else if (driverType === 'pg') {
-                await dbDriver.raw(
+                await sqlClient.raw(
                   `UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`,
                   [
                     baseModel.getTnPath(table.table_name),
@@ -768,7 +772,7 @@ export class ColumnsService {
                   ],
                 );
               } else if (driverType === 'mssql') {
-                await dbDriver.raw(
+                await sqlClient.raw(
                   `UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`,
                   [
                     baseModel.getTnPath(table.table_name),
@@ -782,7 +786,7 @@ export class ColumnsService {
                   ],
                 );
               } else if (driverType === 'sqlite3') {
-                await dbDriver.raw(
+                await sqlClient.raw(
                   `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`,
                   [
                     baseModel.getTnPath(table.table_name),
@@ -801,7 +805,7 @@ export class ColumnsService {
           const newOp = ch.def_option;
           if (column.uidt === UITypes.SingleSelect) {
             if (driverType === 'mssql') {
-              await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [
+              await sqlClient.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [
                 baseModel.getTnPath(table.table_name),
                 column.column_name,
                 newOp.title,
@@ -818,7 +822,7 @@ export class ColumnsService {
           } else if (column.uidt === UITypes.MultiSelect) {
             if (driverType === 'mysql' || driverType === 'mysql2') {
               if (colBody.dt === 'set') {
-                await dbDriver.raw(
+                await sqlClient.raw(
                   `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`,
                   [
                     baseModel.getTnPath(table.table_name),
@@ -831,7 +835,7 @@ export class ColumnsService {
                   ],
                 );
               } else {
-                await dbDriver.raw(
+                await sqlClient.raw(
                   `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ',')))`,
                   [
                     baseModel.getTnPath(table.table_name),
@@ -845,7 +849,7 @@ export class ColumnsService {
                 );
               }
             } else if (driverType === 'pg') {
-              await dbDriver.raw(
+              await sqlClient.raw(
                 `UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`,
                 [
                   baseModel.getTnPath(table.table_name),
@@ -856,7 +860,7 @@ export class ColumnsService {
                 ],
               );
             } else if (driverType === 'mssql') {
-              await dbDriver.raw(
+              await sqlClient.raw(
                 `UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`,
                 [
                   baseModel.getTnPath(table.table_name),
@@ -870,7 +874,7 @@ export class ColumnsService {
                 ],
               );
             } else if (driverType === 'sqlite3') {
-              await dbDriver.raw(
+              await sqlClient.raw(
                 `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`,
                 [
                   baseModel.getTnPath(table.table_name),
@@ -1014,6 +1018,7 @@ export class ColumnsService {
       column,
       user: param.req?.user,
       ip: param.req?.clientIp,
+      req: param.req,
     });
 
     return table;
@@ -1029,7 +1034,7 @@ export class ColumnsService {
   }
 
   async columnAdd(param: {
-    req: any;
+    req: NcRequest;
     tableId: string;
     column: ColumnReqType;
     user: UserType;
@@ -1064,6 +1069,11 @@ export class ColumnsService {
 
       if (!isVirtualCol(param.column)) {
         param.column.column_name = sanitizeColumnName(param.column.column_name);
+      }
+
+      // trim leading and trailing spaces from column title as knex trim them by default
+      if (param.column.title) {
+        param.column.title = param.column.title.trim();
       }
 
       if (param.column.column_name) {
@@ -1117,6 +1127,12 @@ export class ColumnsService {
     }
 
     let colBody: any = param.column;
+
+    const colExtra = {
+      view_id: colBody.view_id,
+      column_order: colBody.column_order,
+    };
+
     switch (colBody.uidt) {
       case UITypes.Rollup:
         {
@@ -1141,7 +1157,13 @@ export class ColumnsService {
 
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
-        await this.createLTARColumn({ ...param, source, base, reuse });
+        await this.createLTARColumn({
+          ...param,
+          source,
+          base,
+          reuse,
+          colExtra,
+        });
 
         this.appHooksService.emit(AppEvents.RELATION_DELETE, {
           column: {
@@ -1150,6 +1172,7 @@ export class ColumnsService {
             base_id: base.id,
             source_id: source.id,
           },
+          req: param.req,
         });
         break;
 
@@ -1410,6 +1433,7 @@ export class ColumnsService {
       },
       user: param.req?.user,
       ip: param.req?.clientIp,
+      req: param.req,
     });
 
     return table;
@@ -1590,6 +1614,7 @@ export class ColumnsService {
         }
         this.appHooksService.emit(AppEvents.RELATION_DELETE, {
           column,
+          req: param.req,
         });
         break;
       case UITypes.ForeignKey: {
@@ -1651,6 +1676,7 @@ export class ColumnsService {
       column,
       user: param.req?.user,
       ip: param.req?.clientIp,
+      req: param.req,
     });
 
     return table;
@@ -1804,6 +1830,7 @@ export class ColumnsService {
     source: Source;
     base: Base;
     reuse?: ReusableParams;
+    colExtra?: any;
   }) {
     validateParams(['parentId', 'childId', 'type'], param.column);
 
@@ -1823,7 +1850,9 @@ export class ColumnsService {
         id: param.source.base_id,
       }),
     );
-    const isLinks = param.column.uidt === UITypes.Links;
+    const isLinks =
+      param.column.uidt === UITypes.Links ||
+      (param.column as LinkToAnotherColumnReqType).type === 'bt';
 
     // if xcdb base then treat as virtual relation to avoid creating foreign key
     if (param.source.isMeta()) {
@@ -1927,6 +1956,7 @@ export class ColumnsService {
         null,
         param.column['meta'],
         isLinks,
+        param.colExtra,
       );
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
       const aTn = `${param.base?.prefix ?? ''}_nc_m2m_${randomID()}`;
@@ -2032,6 +2062,9 @@ export class ColumnsService {
         foreignKeyName1,
         (param.column as LinkToAnotherColumnReqType).virtual,
         true,
+        null,
+        false,
+        param.colExtra,
       );
       await createHmAndBtColumn(
         assocModel,
@@ -2042,6 +2075,9 @@ export class ColumnsService {
         foreignKeyName2,
         (param.column as LinkToAnotherColumnReqType).virtual,
         true,
+        null,
+        false,
+        param.colExtra,
       );
 
       await Column.insert({
@@ -2094,6 +2130,9 @@ export class ColumnsService {
           plural: param.column['meta']?.plural || pluralize(child.title),
           singular: param.column['meta']?.singular || singularize(child.title),
         },
+
+        // column_order and view_id if provided
+        ...param.colExtra,
       });
 
       // todo: create index for virtual relations as well
@@ -2189,7 +2228,7 @@ export class ColumnsService {
         column: Partial<Column>;
       }[];
     },
-    req: any,
+    req: NcRequest,
   ) {
     // TODO validatePayload
 

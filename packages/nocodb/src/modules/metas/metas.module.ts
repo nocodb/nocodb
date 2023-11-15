@@ -184,6 +184,7 @@ export const metaModuleMetadata = {
     MetaDiffsService,
     BasesService,
     SourcesService,
+    UtilsService,
   ],
 };
 

@@ -13,6 +13,7 @@ import type {
   SignUpReqType,
   UserType,
 } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { genJwt, setTokenCookie } from '~/services/users/helpers';
 import { NC_APP_SETTINGS } from '~/constants';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -91,11 +92,13 @@ export class UsersService {
     salt,
     password,
     email_verification_token,
+    req,
   }: {
     email: string;
     salt: any;
     password;
     email_verification_token;
+    req: NcRequest;
   }) {
     this.validateEmailPattern(email);
 
@@ -137,7 +140,7 @@ export class UsersService {
     // if first user and super admin, create a base
     if (isFirstUser && process.env.NC_CLOUD !== 'true') {
       // todo: update swagger type
-      (user as any).createdProject = await this.createDefaultProject(user);
+      (user as any).createdProject = await this.createDefaultProject(user, req);
     }
 
     // todo: update swagger type
@@ -147,7 +150,7 @@ export class UsersService {
   async passwordChange(param: {
     body: PasswordChangeReqType;
     user: UserType;
-    req: any;
+    req: NcRequest;
   }): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/PasswordChangeReq',
@@ -191,6 +194,7 @@ export class UsersService {
     this.appHooksService.emit(AppEvents.USER_PASSWORD_CHANGE, {
       user: user,
       ip: param.req?.clientIp,
+      req: param.req,
     });
 
     return true;
@@ -199,7 +203,7 @@ export class UsersService {
   async passwordForgot(param: {
     body: PasswordForgotReqType;
     siteUrl: string;
-    req: any;
+    req: NcRequest;
   }): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/PasswordForgotReq',
@@ -247,6 +251,7 @@ export class UsersService {
       this.appHooksService.emit(AppEvents.USER_PASSWORD_FORGOT, {
         user: user,
         ip: param.req?.clientIp,
+        req: param.req,
       });
     } else {
       return NcError.badRequest('Your email has not been registered.');
@@ -275,7 +280,7 @@ export class UsersService {
   async passwordReset(param: {
     body: PasswordResetReqType;
     token: string;
-    req: any;
+    req: NcRequest;
   }): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/PasswordResetReq',
@@ -319,6 +324,7 @@ export class UsersService {
     this.appHooksService.emit(AppEvents.USER_PASSWORD_RESET, {
       user: user,
       ip: param.req?.clientIp,
+      req: param.req,
     });
 
     return true;
@@ -327,7 +333,7 @@ export class UsersService {
   async emailVerification(param: {
     token: string;
     // todo: exclude
-    req: any;
+    req: NcRequest;
   }): Promise<any> {
     const { token, req } = param;
 
@@ -348,6 +354,7 @@ export class UsersService {
     this.appHooksService.emit(AppEvents.USER_EMAIL_VERIFICATION, {
       user: user,
       ip: req?.clientIp,
+      req,
     });
 
     return true;
@@ -459,6 +466,7 @@ export class UsersService {
           salt,
           password,
           email_verification_token,
+          req: param.req,
         });
       createdProject = _createdProject;
     }
@@ -497,18 +505,21 @@ export class UsersService {
     this.appHooksService.emit(AppEvents.USER_SIGNUP, {
       user: user,
       ip: param.req?.clientIp,
+      req: param.req,
     });
 
     this.appHooksService.emit(AppEvents.WELCOME, {
       user,
+      req: param.req,
     });
 
-    return { ...(await this.login(user)), createdProject };
+    return { ...(await this.login(user, param.req)), createdProject };
   }
 
-  async login(user: UserType & { provider?: string }) {
+  async login(user: UserType & { provider?: string }, req: any) {
     this.appHooksService.emit(AppEvents.USER_SIGNIN, {
       user,
+      req,
     });
     return {
       token: genJwt(user, Noco.getConfig()),
@@ -535,10 +546,11 @@ export class UsersService {
     param.res.clearCookie('refresh_token');
   }
 
-  private async createDefaultProject(user: User) {
+  private async createDefaultProject(user: User, req: any) {
     // create new base for user
     const base = await this.basesService.createDefaultBase({
       user,
+      req,
     });
 
     return base;

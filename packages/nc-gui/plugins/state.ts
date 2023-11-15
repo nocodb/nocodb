@@ -6,7 +6,7 @@ import { loadLocaleMessages, setI18nLanguage } from '~/plugins/a.i18n'
  *
  * @example
  * ```js
- * import { useNuxtApp } from '#app'
+ * import { useNuxtApp } from '#imports'
  *
  * const { $state } = useNuxtApp()
  *

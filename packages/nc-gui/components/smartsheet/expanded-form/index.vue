@@ -41,11 +41,13 @@ interface Props {
   showNextPrevIcons?: boolean
   firstRow?: boolean
   lastRow?: boolean
+  closeAfterSave?: boolean
+  newRecordHeader?: string
 }
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
+const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'createdRecord'])
 
 const { activeView } = storeToRefs(useViewsStore())
 
@@ -90,6 +92,8 @@ const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
 
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+
 // override cell click hook to avoid unexpected behavior at form fields
 provide(CellClickHookInj, undefined)
 
@@ -127,7 +131,6 @@ const {
   primaryKey,
   saveRowAndStay,
   row: _row,
-  syncLTARRefs,
   save: _save,
   loadCommentsAndLogs,
   clearColumns,
@@ -185,7 +188,6 @@ const onDuplicateRow = () => {
 const save = async () => {
   if (isNew.value) {
     const data = await _save(rowState.value)
-    await syncLTARRefs(data)
     reloadTrigger?.trigger()
   } else {
     let kanbanClbk
@@ -201,6 +203,12 @@ const save = async () => {
     reloadTrigger?.trigger()
   }
   isUnsavedFormExist.value = false
+
+  if (props.closeAfterSave) {
+    isExpanded.value = false
+  }
+
+  emits('createdRecord', _row.value.row)
 }
 
 const isPreventChangeModalOpen = ref(false)
@@ -283,6 +291,9 @@ const cellWrapperEl = ref()
 onMounted(async () => {
   isRecordLinkCopied.value = false
   isLoading.value = true
+
+  const focusFirstCell = !isExpandedFormCommentMode.value
+
   if (props.loadRow) {
     await _loadRow()
     await loadCommentsAndLogs()
@@ -302,9 +313,11 @@ onMounted(async () => {
 
   isLoading.value = false
 
-  setTimeout(() => {
-    cellWrapperEl.value?.$el?.querySelector('input,select,textarea')?.focus()
-  }, 300)
+  if (focusFirstCell) {
+    setTimeout(() => {
+      cellWrapperEl.value?.$el?.querySelector('input,select,textarea')?.focus()
+    }, 300)
+  }
 })
 
 const addNewRow = () => {
@@ -340,8 +353,7 @@ useActiveKeyupListener(
       e.stopPropagation()
 
       if (isNew.value) {
-        const data = await _save(rowState.value)
-        await syncLTARRefs(data)
+        await _save(rowState.value)
         reloadHook?.trigger(null)
       } else {
         await save()
@@ -375,8 +387,7 @@ useActiveKeyupListener(
           okText: t('general.save'),
           cancelText: t('labels.discard'),
           onOk: async () => {
-            const data = await _save(rowState.value)
-            await syncLTARRefs(data)
+            await _save(rowState.value)
             reloadHook?.trigger(null)
             addNewRow()
           },
@@ -483,12 +494,17 @@ export default {
             <div v-if="isLoading">
               <a-skeleton-input class="!h-8 !sm:mr-14 !w-52 mt-1 !rounded-md !overflow-hidden" active size="small" />
             </div>
+            <div
+              v-if="row.rowMeta?.new || props.newRecordHeader"
+              class="flex items-center truncate font-bold text-gray-800 text-xl"
+            >
+              {{ props.newRecordHeader ?? $t('activity.newRecord') }}
+            </div>
             <div v-else-if="displayValue && !row.rowMeta?.new" class="flex items-center font-bold text-gray-800 text-xl w-64">
               <span class="truncate">
                 {{ displayValue }}
               </span>
             </div>
-            <div v-if="row.rowMeta?.new" class="flex items-center truncate font-bold text-gray-800 text-xl">New Record</div>
           </div>
           <div class="flex gap-2">
             <NcButton

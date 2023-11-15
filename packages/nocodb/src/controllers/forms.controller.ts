@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ViewCreateReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { FormsService } from '~/services/forms.service';
@@ -38,12 +39,13 @@ export class FormsController {
   async formViewCreate(
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     const view = await this.formsService.formViewCreate({
       body,
       tableId,
       user: req.user,
+      req,
     });
     return view;
   }
@@ -52,10 +54,15 @@ export class FormsController {
     '/api/v2/meta/forms/:formViewId',
   ])
   @Acl('formViewUpdate')
-  async formViewUpdate(@Param('formViewId') formViewId: string, @Body() body) {
+  async formViewUpdate(
+    @Param('formViewId') formViewId: string,
+    @Body() body,
+    @Req() req: Request,
+  ) {
     return await this.formsService.formViewUpdate({
       formViewId,
       form: body,
+      req,
     });
   }
 }

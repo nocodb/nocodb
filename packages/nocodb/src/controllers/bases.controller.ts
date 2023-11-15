@@ -8,9 +8,10 @@ import {
   Patch,
   Post,
   Query,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import isDocker from 'is-docker';
 import { ProjectReqType } from 'nocodb-sdk';
 import type { BaseType } from 'nocodb-sdk';
@@ -32,7 +33,7 @@ export class BasesController {
     scope: 'org',
   })
   @Get(['/api/v1/db/meta/projects/', '/api/v2/meta/bases/'])
-  async list(@Query() queryParams: Record<string, any>, @Request() req) {
+  async list(@Query() queryParams: Record<string, any>, @Req() req: Request) {
     const bases = await this.projectsService.baseList({
       user: req.user,
       query: queryParams,
@@ -76,12 +77,13 @@ export class BasesController {
   async baseUpdate(
     @Param('baseId') baseId: string,
     @Body() body: Record<string, any>,
-    @Request() req,
+    @Req() req: Request,
   ) {
     const base = await this.projectsService.baseUpdate({
       baseId,
       base: body,
       user: req.user,
+      req,
     });
 
     return base;
@@ -89,10 +91,11 @@ export class BasesController {
 
   @Acl('baseDelete')
   @Delete(['/api/v1/db/meta/projects/:baseId', '/api/v2/meta/bases/:baseId'])
-  async baseDelete(@Param('baseId') baseId: string, @Request() req) {
+  async baseDelete(@Param('baseId') baseId: string, @Req() req: Request) {
     const deleted = await this.projectsService.baseSoftDelete({
       baseId,
       user: req.user,
+      req,
     });
 
     return deleted;
@@ -103,9 +106,10 @@ export class BasesController {
   })
   @Post(['/api/v1/db/meta/projects', '/api/v2/meta/bases'])
   @HttpCode(200)
-  async baseCreate(@Body() baseBody: ProjectReqType, @Request() req) {
+  async baseCreate(@Body() baseBody: ProjectReqType, @Req() req: Request) {
     const base = await this.projectsService.baseCreate({
       base: baseBody,
+      req,
       user: req['user'],
     });
 

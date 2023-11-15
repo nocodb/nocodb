@@ -5,10 +5,11 @@ import {
   HttpCode,
   Param,
   Post,
-  Request,
-  Response,
+  Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { extractRolesObj } from 'nocodb-sdk';
@@ -41,7 +42,7 @@ export class AuthController {
   ])
   @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
-  async signup(@Request() req: any, @Response() res: any): Promise<any> {
+  async signup(@Req() req: Request, @Res() res: Response): Promise<any> {
     if (this.config.get('auth', { infer: true }).disableEmailAuth) {
       NcError.forbidden('Email authentication is disabled');
     }
@@ -61,7 +62,7 @@ export class AuthController {
   ])
   @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
-  async refreshToken(@Request() req: any, @Response() res: any): Promise<any> {
+  async refreshToken(@Req() req: Request, @Res() res: Response): Promise<any> {
     res.json(
       await this.usersService.refreshToken({
         body: req.body,
@@ -78,18 +79,18 @@ export class AuthController {
   ])
   @UseGuards(PublicApiLimiterGuard, AuthGuard('local'))
   @HttpCode(200)
-  async signin(@Request() req, @Response() res) {
+  async signin(@Req() req: Request, @Res() res: Response) {
     if (this.config.get('auth', { infer: true }).disableEmailAuth) {
       NcError.forbidden('Email authentication is disabled');
     }
     await this.setRefreshToken({ req, res });
-    res.json(await this.usersService.login(req.user));
+    res.json(await this.usersService.login(req.user, req));
   }
 
   @UseGuards(GlobalGuard)
   @Post('/api/v1/auth/user/signout')
   @HttpCode(200)
-  async signOut(@Request() req, @Response() res): Promise<any> {
+  async signOut(@Req() req: Request, @Res() res: Response): Promise<any> {
     if (!(req as any).isAuthenticated()) {
       NcError.forbidden('Not allowed');
     }
@@ -104,9 +105,9 @@ export class AuthController {
   @Post(`/auth/google/genTokenByCode`)
   @HttpCode(200)
   @UseGuards(PublicApiLimiterGuard, AuthGuard('google'))
-  async googleSignin(@Request() req, @Response() res) {
+  async googleSignin(@Req() req: Request, @Res() res: Response) {
     await this.setRefreshToken({ req, res });
-    res.json(await this.usersService.login(req.user));
+    res.json(await this.usersService.login(req.user, req));
   }
 
   @Get('/auth/google')
@@ -117,7 +118,7 @@ export class AuthController {
 
   @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  async me(@Request() req) {
+  async me(@Req() req: Request) {
     const user = {
       ...req.user,
       roles: extractRolesObj(req.user.roles),
@@ -137,7 +138,7 @@ export class AuthController {
     scope: 'org',
   })
   @HttpCode(200)
-  async passwordChange(@Request() req: any): Promise<any> {
+  async passwordChange(@Req() req: Request): Promise<any> {
     if (!(req as any).isAuthenticated()) {
       NcError.forbidden('Not allowed');
     }
@@ -158,7 +159,7 @@ export class AuthController {
   ])
   @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
-  async passwordForgot(@Request() req: any): Promise<any> {
+  async passwordForgot(@Req() req: Request): Promise<any> {
     await this.usersService.passwordForgot({
       siteUrl: (req as any).ncSiteUrl,
       body: req.body,
@@ -190,7 +191,7 @@ export class AuthController {
   @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
   async passwordReset(
-    @Request() req: any,
+    @Req() req: Request,
     @Param('tokenId') tokenId: string,
     @Body() body: any,
   ): Promise<any> {
@@ -210,7 +211,7 @@ export class AuthController {
   @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
   async emailVerification(
-    @Request() req: any,
+    @Req() req: Request,
     @Param('tokenId') tokenId: string,
   ): Promise<any> {
     await this.usersService.emailVerification({
@@ -227,8 +228,8 @@ export class AuthController {
   ])
   @UseGuards(PublicApiLimiterGuard)
   async renderPasswordReset(
-    @Request() req: any,
-    @Response() res: any,
+    @Req() req: Request,
+    @Res() res: Response,
     @Param('tokenId') tokenId: string,
   ): Promise<any> {
     try {

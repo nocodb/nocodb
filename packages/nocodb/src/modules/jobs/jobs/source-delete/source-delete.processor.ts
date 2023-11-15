@@ -10,14 +10,15 @@ export class SourceDeleteProcessor {
 
   constructor(private readonly sourcesService: SourcesService) {}
 
-  @Process(JobTypes.BaseDelete)
+  @Process(JobTypes.SourceDelete)
   async job(job: Job) {
     this.debugLog(`job started for ${job.id}`);
 
-    const { sourceId } = job.data;
+    const { sourceId, req } = job.data;
 
     await this.sourcesService.baseDelete({
       sourceId,
+      req,
     });
 
     this.debugLog(`job completed for ${job.id}`);

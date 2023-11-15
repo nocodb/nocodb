@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
-import type { AppConfig } from '~/interface/config';
+import type { AppConfig, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -25,6 +25,8 @@ export class SharedBasesService {
     roles: string;
     password: string;
     siteUrl: string;
+
+    req: NcRequest;
   }): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SharedBaseReq', param);
 
@@ -61,6 +63,7 @@ export class SharedBasesService {
     this.appHooksService.emit(AppEvents.SHARED_BASE_GENERATE_LINK, {
       link: data.url,
       base,
+      req: param.req,
     });
 
     return data;
@@ -71,6 +74,7 @@ export class SharedBasesService {
     roles: string;
     password: string;
     siteUrl: string;
+    req: NcRequest;
   }): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SharedBaseReq', param);
 
@@ -106,6 +110,7 @@ export class SharedBasesService {
     this.appHooksService.emit(AppEvents.SHARED_BASE_GENERATE_LINK, {
       link: data.url,
       base,
+      req: param.req,
     });
     return data;
   }
@@ -125,7 +130,10 @@ export class SharedBasesService {
     return `${siteUrl}${config.dashboardPath}#/base/${base.uuid}`;
   }
 
-  async disableSharedBaseLink(param: { baseId: string }): Promise<any> {
+  async disableSharedBaseLink(param: {
+    baseId: string;
+    req: NcRequest;
+  }): Promise<any> {
     const base = await Base.get(param.baseId);
 
     if (!base) {
@@ -139,6 +147,7 @@ export class SharedBasesService {
 
     this.appHooksService.emit(AppEvents.SHARED_BASE_DELETE_LINK, {
       base,
+      req: param.req,
     });
     return { uuid: null };
   }

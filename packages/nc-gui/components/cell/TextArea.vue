@@ -40,7 +40,7 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLTextAreaElement)?.focus()
 
 const height = computed(() => {
-  if (!rowHeight.value) return 60
+  if (!rowHeight.value || rowHeight.value === 1) return 40
 
   return rowHeight.value * 60
 })
@@ -67,12 +67,22 @@ onClickOutside(inputWrapperRef, (e) => {
   isVisible.value = false
 })
 
-const onDblClick = () => {
+const onTextClick = () => {
   if (!props.virtual) return
 
   isVisible.value = true
   editEnabled.value = true
 }
+
+const isRichMode = computed(() => {
+  return true
+})
+
+watch(editEnabled, () => {
+  if (editEnabled.value && isRichMode.value) {
+    isVisible.value = true
+  }
+})
 </script>
 
 <template>
@@ -85,8 +95,17 @@ const onDblClick = () => {
         'h-full': isForm,
       }"
     >
+      <div
+        v-if="isRichMode"
+        class="w-full"
+        :style="{
+          maxHeight: `${height}px !important`,
+        }"
+      >
+        <CellRichText v-model:value="vModel" read-only />
+      </div>
       <textarea
-        v-if="editEnabled && !isVisible"
+        v-else-if="editEnabled && !isVisible"
         :ref="focus"
         v-model="vModel"
         rows="4"
@@ -123,7 +142,7 @@ const onDblClick = () => {
           'word-break': 'break-word',
           'white-space': 'pre-line',
         }"
-        @click="onDblClick"
+        @click="onTextClick"
       />
 
       <span v-else>{{ vModel }}</span>
@@ -156,6 +175,7 @@ const onDblClick = () => {
           </div>
         </div>
         <a-textarea
+          v-if="!isRichMode"
           ref="inputRef"
           v-model:value="vModel"
           class="p-1 !pt-1 !pr-3 !border-0 !border-r-0 !focus:outline-transparent nc-scrollbar-md !text-black !cursor-text"
@@ -166,6 +186,8 @@ const onDblClick = () => {
           @keydown.stop
           @keydown.escape="isVisible = false"
         />
+
+        <CellRichText v-else v-model:value="vModel" class="ml-2 mt-2 max-h-80vh nc-scrollbar-md" />
       </div>
     </template>
   </NcDropdown>

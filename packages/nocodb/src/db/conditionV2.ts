@@ -14,7 +14,7 @@ import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { sanitize } from '~/helpers/sqlSanitize';
 import Filter from '~/models/Filter';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
-import { Model } from '~/models';
+import {BarcodeColumn, Model, QrCodeColumn} from '~/models';
 import { getAliasGenerator } from '~/utils';
 
 // tod: tobe fixed
@@ -135,7 +135,11 @@ const parseConditionV2 = async (
         };
       } else {
         filter.comparison_op = 'eq';
-      }
+        // if qrCode or Barcode replace it with value column
+        if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
+          filter.fk_column_id = await column
+                .getColOptions<BarcodeColumn | QrCodeColumn>()
+                .then((col) => col.fk_column_id)
     }
 
     const column = await filter.getColumn();

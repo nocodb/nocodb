@@ -386,6 +386,11 @@ class BaseModelSqlv2 {
         validateFormula: true,
       });
     }
+
+    console.log('=======data')
+    console.log(qb.toQuery())
+    console.log('=======data')
+
     return data?.map((d) => {
       d.__proto__ = proto;
       return d;

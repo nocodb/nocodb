@@ -315,14 +315,15 @@ export default async function generateMMLookupSelectQuery({
           )
           .from(selectQb.as(subQueryAlias)),
       };
-    } else if (baseModelSqlv2.isSqlite) {
-      selectQb.orderBy(`${lookupColumn.title}`, 'asc');
-      return {
-        builder: knex
-          .select(knex.raw(`group_concat(??)`, [lookupColumn.title]))
-          .from(selectQb.as(subQueryAlias)),
-      };
     }
+    // else if (baseModelSqlv2.isSqlite) {
+    //   selectQb.orderBy(`${lookupColumn.title}`, 'asc');
+    //   return {
+    //     builder: knex
+    //       .select(knex.raw(`group_concat(??, '___')`, [lookupColumn.title]))
+    //       .from(selectQb.as(subQueryAlias)),
+    //   };
+    // }
 
     NcError.notImplemented('Database not supported Group by on Lookup');
   }

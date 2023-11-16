@@ -150,7 +150,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
       } else if ([UITypes.Date, UITypes.DateTime].includes(curr.column_uidt as UITypes)) {
         acc += `${acc.length ? '~and' : ''}(${curr.title},eq,exactDate,${curr.key})`
       } else {
-        acc += `${acc.length ? '~and' : ''}(${curr.title},eq,${curr.key})`
+        acc += `${acc.length ? '~and' : ''}(${curr.title},gb_val,${curr.key})`
       }
       return acc
     }, existing)

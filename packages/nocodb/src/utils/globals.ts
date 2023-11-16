@@ -201,7 +201,9 @@ export const COMPARISON_OPS = <const>[
   'isWithin',
   'btw',
   'nbtw',
-];
+
+  'gb_val'
+] as any;
 
 export const IS_WITHIN_COMPARISON_SUB_OPS = <const>[
   'pastWeek',

@@ -13,6 +13,9 @@ import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { sanitize } from '~/helpers/sqlSanitize';
 import Filter from '~/models/Filter';
+import generateMMLookupSelectQuery from '~/db/generateMMLookupSelectQuery';
+import { Model } from '~/models';
+import { getAliasGenerator } from '~/utils';
 
 // tod: tobe fixed
 // extend(customParseFormat);
@@ -112,6 +115,25 @@ const parseConditionV2 = async (
       });
     };
   } else {
+    // handle group by filter separately
+    if (filter.comparison_op === 'gb_val') {
+      const column = await filter.getColumn();
+      const model = await column.getModel();
+      const lkQb = await generateMMLookupSelectQuery({
+          baseModelSqlv2,
+          alias: alias,
+          model,
+          column,
+          getAlias: getAliasGenerator('__gb_filter_lk'),
+        });
+      return (qb) => {
+        qb.where(
+          knex.raw('?',[filter.value]),
+          lkQb.builder,
+        );
+      };
+    }
+
     const column = await filter.getColumn();
     if (!column) {
       if (throwErrorIfInvalid) {

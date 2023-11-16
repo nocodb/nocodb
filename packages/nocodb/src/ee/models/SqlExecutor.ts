@@ -328,6 +328,8 @@ export default class SqlExecutor {
   }
 
   private static async activate(sqlExecutor: SqlExecutor) {
+    if (process.env.TEST === 'true') return;
+
     const appConfig = (await import('~/app.config')).default;
 
     const snsConfig = appConfig.sns;
@@ -368,6 +370,11 @@ export default class SqlExecutor {
     })
       .publish(params)
       .promise();
+
+    await sqlExecutor.update({
+      status: SqlExecutorStatus.DEPLOYING,
+    });
+
     try {
       // Handle promise's fulfilled/rejected states
       const data = await publishTextPromise;
@@ -387,10 +394,6 @@ export default class SqlExecutor {
     );
 
     if (!firstInactiveSqlExecutor) return;
-
-    await firstInactiveSqlExecutor.update({
-      status: SqlExecutorStatus.DEPLOYING,
-    });
 
     await this.activate(firstInactiveSqlExecutor);
   }

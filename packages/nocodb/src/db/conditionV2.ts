@@ -118,20 +118,21 @@ const parseConditionV2 = async (
     // handle group by filter separately
     if (filter.comparison_op === 'gb_val') {
       const column = await filter.getColumn();
-      const model = await column.getModel();
-      const lkQb = await generateMMLookupSelectQuery({
+      if (column.uidt === UITypes.Lookup) {
+        const model = await column.getModel();
+        const lkQb = await generateMMLookupSelectQuery({
           baseModelSqlv2,
           alias: alias,
           model,
           column,
           getAlias: getAliasGenerator('__gb_filter_lk'),
         });
-      return (qb) => {
-        qb.where(
-          knex.raw('?',[filter.value]),
-          lkQb.builder,
-        );
-      };
+        return (qb) => {
+          qb.where(knex.raw('?', [filter.value]), lkQb.builder);
+        };
+      } else {
+        filter.comparison_op = 'eq';
+      }
     }
 
     const column = await filter.getColumn();

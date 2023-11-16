@@ -176,7 +176,7 @@ export const GROUPBY_COMPARISON_OPS = <const>[
   'gb_eq',
   'gb_null',
 ];
-export const COMPARISON_OPS = (<const>[
+export const COMPARISON_OPS = <const>[
   'eq',
   'neq',
   'not',
@@ -206,7 +206,7 @@ export const COMPARISON_OPS = (<const>[
   'isWithin',
   'btw',
   'nbtw',
-]) as any;
+];
 
 export const IS_WITHIN_COMPARISON_SUB_OPS = <const>[
   'pastWeek',

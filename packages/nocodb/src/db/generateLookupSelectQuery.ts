@@ -9,6 +9,7 @@ import type {
   RollupColumn,
 } from '~/models';
 import type { LinksColumn } from '~/models';
+import type { BarcodeColumn, QrCodeColumn } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getAliasGenerator } from '~/utils';
@@ -143,6 +144,14 @@ export default async function generateLookupSelectQuery({
     let lookupColumn = lookupColOpt
       ? await lookupColOpt.getLookupColumn()
       : await getDisplayValueOfRefTable(column);
+
+    // if lookup column is qr code or barcode extract the referencing column
+    if ([UITypes.QrCode, UITypes.Barcode].includes(lookupColumn.uidt)) {
+      lookupColumn = await lookupColumn
+        .getColOptions<BarcodeColumn | QrCodeColumn>()
+        .then((barcode) => barcode.getValueColumn());
+    }
+
     let prevAlias = alias;
     while (
       lookupColumn.uidt === UITypes.Lookup ||

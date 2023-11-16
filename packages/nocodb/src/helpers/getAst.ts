@@ -68,7 +68,10 @@ const getAst = async ({
     fields = Array.isArray(fields) ? fields : fields.split(',');
     if (throwErrorIfInvalidParams) {
       const colAliasMap = await model.getColAliasMapping();
-      const invalidFields = fields.filter((f) => !colAliasMap[f]);
+      const aliasColMap = await model.getAliasColMapping();
+      const invalidFields = fields.filter(
+        (f) => !colAliasMap[f] && !aliasColMap[f],
+      );
       if (invalidFields.length) {
         NcError.unprocessableEntity(
           `Following fields are invalid: ${invalidFields.join(', ')}`,

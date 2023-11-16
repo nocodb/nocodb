@@ -14,6 +14,7 @@ export class DataOptService {
     view: View;
     source: Source;
     params;
+    throwErrorIfInvalidParams?: boolean;
   }): Promise<PagedResponseImpl<Record<string, any>>> {
     const params = { ...(ctx.params || {}) };
 
@@ -41,6 +42,7 @@ export class DataOptService {
     source: Source;
     params;
     id: string;
+    throwErrorIfInvalidParams?: boolean;
   }): Promise<PagedResponseImpl<Record<string, any>>> {
     if (['mysql', 'mysql2'].includes(ctx.source.type)) {
       return mysqlSingleQueryRead(ctx);

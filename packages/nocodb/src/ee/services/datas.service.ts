@@ -37,12 +37,14 @@ export class DatasService extends DatasServiceCE {
         view,
         params: param.query,
         source,
+        throwErrorIfInvalidParams: true,
       });
     } else {
       responseData = await this.getDataList({
         model,
         view,
         query: param.query,
+        throwErrorIfInvalidParams: true,
       });
     }
 
@@ -72,6 +74,7 @@ export class DatasService extends DatasServiceCE {
         params: param.query,
         source,
         id: param.rowId,
+        throwErrorIfInvalidParams: true,
       });
     } else {
       const baseModel = await Model.getBaseModelSQL({
@@ -81,6 +84,7 @@ export class DatasService extends DatasServiceCE {
       });
       row = await baseModel.readByPk(param.rowId, false, param.query, {
         getHiddenColumn: param.getHiddenColumn,
+        throwErrorIfInvalidParams: true,
       });
     }
 

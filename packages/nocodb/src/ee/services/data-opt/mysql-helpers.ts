@@ -79,6 +79,7 @@ export async function extractColumns({
   alias = ROOT_ALIAS,
   baseModel,
   ast,
+  throwErrorIfInvalidParams,
 }: {
   columns: Column[];
   // allowedCols?: Record<string, boolean>;
@@ -90,6 +91,7 @@ export async function extractColumns({
   baseModel: BaseModelSqlv2;
   // dependencyFields: DependantFields;
   ast: Record<string, any> | boolean;
+  throwErrorIfInvalidParams: boolean;
 }) {
   const extractColumnPromises = [];
   for (const column of columns) {
@@ -110,6 +112,7 @@ export async function extractColumns({
         params: params?.nested?.[column.title],
         baseModel,
         ast: ast?.[column.title],
+        throwErrorIfInvalidParams,
       }),
     );
   }
@@ -128,6 +131,7 @@ export async function extractColumn({
   baseModel,
   // dependencyFields,
   ast,
+  throwErrorIfInvalidParams,
 }: {
   column: Column;
   qb: Knex.QueryBuilder;
@@ -139,6 +143,7 @@ export async function extractColumn({
   baseModel: BaseModelSqlv2;
   // dependencyFields: DependantFields;
   ast: Record<string, any>;
+  throwErrorIfInvalidParams: boolean;
 }) {
   const result = { isArray: false };
   // todo: check system field enabled / not
@@ -182,10 +187,15 @@ export async function extractColumn({
             .filter(Boolean);
         }
 
-        const sorts = extractSortsObject(listArgs?.sort, aliasColObjMap);
+        const sorts = extractSortsObject(
+          listArgs?.sort,
+          aliasColObjMap,
+          throwErrorIfInvalidParams,
+        );
         const queryFilterObj = extractFilterFromXwhere(
           listArgs?.where,
           aliasColObjMap,
+          throwErrorIfInvalidParams,
         );
 
         switch (column.colOptions.type) {
@@ -247,6 +257,7 @@ export async function extractColumn({
                 baseModel,
                 // dependencyFields,
                 ast,
+                throwErrorIfInvalidParams,
               });
 
               qb.joinRaw(
@@ -301,6 +312,7 @@ export async function extractColumn({
                 baseModel,
                 // dependencyFields,
                 ast,
+                throwErrorIfInvalidParams,
               });
 
               btAggQb
@@ -376,6 +388,7 @@ export async function extractColumn({
                 baseModel,
                 // dependencyFields,
                 ast,
+                throwErrorIfInvalidParams,
               });
 
               qb.joinRaw(
@@ -504,6 +517,7 @@ export async function extractColumn({
           baseModel,
           // dependencyFields,
           ast,
+          throwErrorIfInvalidParams,
         });
 
         if (!result.isArray) {
@@ -611,6 +625,7 @@ export async function extractColumn({
           baseModel,
           // dependencyFields,
           ast,
+          throwErrorIfInvalidParams,
         });
       }
       break;
@@ -630,6 +645,7 @@ export async function extractColumn({
           baseModel,
           // dependencyFields,
           ast,
+          throwErrorIfInvalidParams,
         });
       }
       break;
@@ -714,6 +730,7 @@ export async function singleQueryRead(ctx: {
   params;
   id: string;
   getHiddenColumn?: boolean;
+  throwErrorIfInvalidParams?: boolean;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   await ctx.model.getColumns();
 
@@ -795,6 +812,7 @@ export async function singleQueryRead(ctx: {
   const queryFilterObj = extractFilterFromXwhere(
     listArgs?.where,
     aliasColObjMap,
+    ctx.throwErrorIfInvalidParams,
   );
 
   const aggrConditionObj = [
@@ -835,6 +853,7 @@ export async function singleQueryRead(ctx: {
     model: ctx.model,
     view: ctx.view,
     getHiddenColumn: ctx.getHiddenColumn,
+    throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
   });
 
   await extractColumns({
@@ -845,6 +864,7 @@ export async function singleQueryRead(ctx: {
     params: ctx.params,
     baseModel,
     ast,
+    throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
   });
 
   // const dataAlias = getAlias();
@@ -897,6 +917,7 @@ export async function singleQueryList(ctx: {
   view: View;
   source: Source;
   params;
+  throwErrorIfInvalidParams?: boolean;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   if (!['mysql', 'mysql2'].includes(ctx.source.type)) {
     throw new Error('Source is not mysql');
@@ -972,10 +993,15 @@ export async function singleQueryList(ctx: {
   countQb.count({ count: ctx.model.primaryKey?.column_name || '*' });
 
   const aliasColObjMap = await ctx.model.getAliasColObjMap();
-  let sorts = extractSortsObject(listArgs?.sort, aliasColObjMap);
+  let sorts = extractSortsObject(
+    listArgs?.sort,
+    aliasColObjMap,
+    ctx.throwErrorIfInvalidParams,
+  );
   const queryFilterObj = extractFilterFromXwhere(
     listArgs?.where,
     aliasColObjMap,
+    ctx.throwErrorIfInvalidParams,
   );
 
   if (!sorts?.['length'] && ctx.params.sortArr?.length) {
@@ -1028,6 +1054,7 @@ export async function singleQueryList(ctx: {
     query: ctx.params,
     model: ctx.model,
     view: ctx.view,
+    throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
   });
 
   await extractColumns({
@@ -1038,6 +1065,7 @@ export async function singleQueryList(ctx: {
     params: ctx.params,
     baseModel,
     ast,
+    throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
   });
 
   if (skipCache) {

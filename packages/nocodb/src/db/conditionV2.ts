@@ -15,7 +15,6 @@ import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { sanitize } from '~/helpers/sqlSanitize';
 import Filter from '~/models/Filter';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
-import { Model } from '~/models';
 import { getAliasGenerator } from '~/utils';
 
 // tod: tobe fixed
@@ -116,7 +115,9 @@ const parseConditionV2 = async (
       });
     };
   } else {
-    // handle group by filter separately
+    // handle group by filter separately,
+    // `gb_val` is equivalent to `eq` but for lookup it compares on aggregated value returns in group by api
+    // aggregated value will be either json array or `___` separated string
     if (filter.comparison_op === 'gb_val') {
       const column = await filter.getColumn();
       if (

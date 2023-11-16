@@ -110,7 +110,7 @@ watch(editEnabled, () => {
           minHeight: `${height}px !important`,
         }"
       >
-        <CellRichText v-model:value="vModel" sync-value-change readonly class="!pointer-events-none" />
+        <LazyCellRichText v-model:value="vModel" sync-value-change readonly class="!pointer-events-none" />
       </div>
       <textarea
         v-else-if="editEnabled && !isVisible"
@@ -197,7 +197,7 @@ watch(editEnabled, () => {
           @keydown.escape="isVisible = false"
         />
 
-        <CellRichText
+        <LazyCellRichText
           v-else
           :key="String(isVisible)"
           v-model:value="vModel"

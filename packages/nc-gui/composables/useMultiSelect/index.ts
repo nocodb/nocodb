@@ -154,8 +154,8 @@ export function useMultiSelect(
     }
 
     if (columnObj.uidt === UITypes.Date) {
-      const dateFormat = columnObj.meta.date_format
-      if (isDateMonthFormat(dateFormat)) {
+      const dateFormat = columnObj.meta?.date_format
+      if (dateFormat && isDateMonthFormat(dateFormat)) {
         // any date month format (e.g. YYYY-MM) couldn't be stored in database
         // with date type since it is not a valid date
         // therefore, we reformat the value here to display with the formatted one

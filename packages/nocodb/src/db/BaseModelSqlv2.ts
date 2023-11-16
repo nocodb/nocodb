@@ -59,6 +59,7 @@ import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
+  GROUPBY_COMPARISON_OPS,
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
@@ -5284,7 +5285,7 @@ export function extractFilterFromXwhere(
 
 // mark `op` and `sub_op` any for being assignable to parameter of type
 function validateFilterComparison(uidt: UITypes, op: any, sub_op?: any) {
-  if (!COMPARISON_OPS.includes(op)) {
+  if (!COMPARISON_OPS.includes(op) && !GROUPBY_COMPARISON_OPS.includes(op)) {
     NcError.badRequest(`${op} is not supported.`);
   }
 

@@ -1,5 +1,5 @@
 import { getModelPaths } from './templates/paths';
-import type { Base, Model } from '~/models';
+import type { Model } from '~/models';
 import type { SwaggerColumn } from './getSwaggerColumnMetas';
 import type { SwaggerView } from './getSwaggerJSONV2';
 import Noco from '~/Noco';

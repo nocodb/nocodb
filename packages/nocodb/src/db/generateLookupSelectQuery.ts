@@ -301,15 +301,12 @@ export default async function generateLookupSelectQuery({
         break;
     }
 
-    const subQueryAlias = getAlias();
-
     if (baseModelSqlv2.isPg) {
-      selectQb.orderBy(`${lookupColumn.title}`, 'asc');
       // alternate approach with array_agg
       return {
-        builder: knex
-          .select(knex.raw('json_agg(??)::text', [lookupColumn.title]))
-          .from(selectQb.as(subQueryAlias)),
+        builder: selectQb.select(
+          knex.raw('json_agg(??)::text', [lookupColumn.title]),
+        ),
       };
       /*
       // alternate approach with array_agg
@@ -332,11 +329,9 @@ export default async function generateLookupSelectQuery({
     } else if (baseModelSqlv2.isMySQL) {
       // alternate approach with JSON_ARRAYAGG
       return {
-        builder: knex
-          .select(
-            knex.raw('cast(JSON_ARRAYAGG(??) as NCHAR)', [lookupColumn.title]),
-          )
-          .from(selectQb.as(subQueryAlias)),
+        builder: selectQb.select(
+          knex.raw('cast(JSON_ARRAYAGG(??) as NCHAR)', [lookupColumn.title]),
+        ),
       };
 
       // return {
@@ -354,14 +349,12 @@ export default async function generateLookupSelectQuery({
       // ref: https://stackoverflow.com/questions/13382856/sqlite3-join-group-concat-using-distinct-with-custom-separator
       // selectQb.orderBy(`${lookupColumn.title}`, 'asc');
       return {
-        builder: knex
-          .select(
-            knex.raw(`group_concat(??, ?)`, [
-              lookupColumn.title,
-              LOOKUP_VAL_SEPARATOR,
-            ]),
-          )
-          .from(selectQb.as(subQueryAlias)),
+        builder: selectQb.select(
+          knex.raw(`group_concat(??, ?)`, [
+            lookupColumn.title,
+            LOOKUP_VAL_SEPARATOR,
+          ]),
+        ),
       };
     }
 

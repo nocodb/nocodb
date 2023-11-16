@@ -40,6 +40,25 @@ export const getModelSchemas = (ctx: {
       ) || {}),
     },
   },
+  [`${ctx.tableName}IdRequest`]: {
+    title: `${ctx.tableName} Id Request`,
+    type: 'object',
+    description: '',
+    'x-internal': false,
+    properties: {
+      ...(ctx.columns?.reduce(
+        (colsObj, { title, virtual, column, ...fieldProps }) => ({
+          ...colsObj,
+          ...(column.pk
+            ? {
+                [title]: fieldProps,
+              }
+            : {}),
+        }),
+        {},
+      ) || {}),
+    },
+  },
 });
 export const getViewSchemas = (ctx: {
   tableName: string;

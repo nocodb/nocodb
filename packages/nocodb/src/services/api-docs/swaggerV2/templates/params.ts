@@ -112,7 +112,9 @@ export const linkFieldNameParam = (columns: SwaggerColumn[]) => {
 };
 export const viewIdParams = (views: SwaggerView[]) => {
   const viewIds = [];
-  const description = ['Views:'];
+  const description = [
+    'Allows you to fetch records that are currently visible within a specific view.\n\nViews:',
+  ];
 
   for (const { view } of views) {
     viewIds.push(view.id);
@@ -123,6 +125,7 @@ export const viewIdParams = (views: SwaggerView[]) => {
     schema: {
       type: 'string',
       enum: viewIds,
+      default: viewIds[0],
     },
     description: description.join('\n'),
     name: 'viewId',

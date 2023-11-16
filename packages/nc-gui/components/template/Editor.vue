@@ -497,9 +497,6 @@ async function importTemplate() {
               await $api.dbTableRow.bulkCreate('noco', baseId, tableId!, batchData)
               updateImportTips(baseId, tableId!, progress, total)
               progress += batchData.length
-
-              // Assuming a successful run if no error is thrown
-              successSheets.push(extra)
             }
           })(key),
         ),

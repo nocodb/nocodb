@@ -13,6 +13,8 @@ import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getAliasGenerator } from '~/utils';
 import { NcError } from '~/helpers/catchError';
 
+const LOOKUP_VAL_SEPARATOR = '___';
+
 export default async function generateLookupSelectQuery({
   column,
   baseModelSqlv2,
@@ -289,8 +291,9 @@ export default async function generateLookupSelectQuery({
       return {
         builder: knex
           .select(
-            knex.raw("STRING_AGG(??::text, '___')", [
+            knex.raw('STRING_AGG(??::text, ?)', [
               lookupColumn.title,
+              LOOKUP_VAL_SEPARATOR,
             ]),
           )
           .from(selectQb.as(subQueryAlias)),
@@ -308,9 +311,10 @@ export default async function generateLookupSelectQuery({
       return {
         builder: knex
           .select(
-            knex.raw("GROUP_CONCAT(?? ORDER BY ?? ASC SEPARATOR '___')", [
+            knex.raw('GROUP_CONCAT(?? ORDER BY ?? ASC SEPARATOR ?)', [
               lookupColumn.title,
               lookupColumn.title,
+              LOOKUP_VAL_SEPARATOR,
             ]),
           )
           .from(selectQb.as(subQueryAlias)),
@@ -320,7 +324,12 @@ export default async function generateLookupSelectQuery({
       selectQb.orderBy(`${lookupColumn.title}`, 'asc');
       return {
         builder: knex
-          .select(knex.raw(`group_concat(??, '___')`, [lookupColumn.title]))
+          .select(
+            knex.raw(`group_concat(??, ?)`, [
+              lookupColumn.title,
+              LOOKUP_VAL_SEPARATOR,
+            ]),
+          )
           .from(selectQb.as(subQueryAlias)),
       };
     }

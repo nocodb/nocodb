@@ -247,7 +247,7 @@ const onScroll = (e: Event) => {
                               'font-weight': 500,
                             }"
                           >
-                            {{ grp.key in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[grp.key] : grp.key }}
+                            {{ grp.key in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[grp.key] : grp.key.replaceAll('___',', ') }}
                           </span>
                         </a-tag>
                       </div>

@@ -168,11 +168,21 @@ const addNewOption = () => {
 // }
 
 const syncOptions = () => {
-  vModel.value.colOptions.options = renderedOptions.value.filter((op) => op.status !== 'remove')
+  vModel.value.colOptions.options = options.value.filter((op) => op.status !== 'remove')
 }
 
 const removeRenderedOption = (index: number) => {
-  renderedOptions.value[index].status = 'remove'
+  const renderedOption = renderedOptions.value[index]
+  const option = options.value[loadedOptionAnchor.value + index]
+
+  renderedOption.status = 'remove'
+  option.status = 'remove'
+
+  renderedOption.status = 'remove'
+  if (option) {
+    option.status = 'remove'
+  }
+
   syncOptions()
 
   const optionId = renderedOptions.value[index]?.id
@@ -193,7 +203,12 @@ const optionChanged = (changedId: string) => {
 }
 
 const undoRemoveRenderedOption = (index: number) => {
-  renderedOptions.value[index].status = undefined
+  const renderedOption = renderedOptions.value[index]
+  const option = options.value[loadedOptionAnchor.value + index]
+
+  renderedOption.status = undefined
+  option.status = undefined
+
   syncOptions()
 
   const optionId = renderedOptions.value[index]?.id

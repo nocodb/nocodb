@@ -13,7 +13,7 @@ import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { sanitize } from '~/helpers/sqlSanitize';
 import Filter from '~/models/Filter';
-import generateMMLookupSelectQuery from '~/db/generateMMLookupSelectQuery';
+import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { Model } from '~/models';
 import { getAliasGenerator } from '~/utils';
 
@@ -120,7 +120,7 @@ const parseConditionV2 = async (
       const column = await filter.getColumn();
       if (column.uidt === UITypes.Lookup) {
         const model = await column.getModel();
-        const lkQb = await generateMMLookupSelectQuery({
+        const lkQb = await generateLookupSelectQuery({
           baseModelSqlv2,
           alias: alias,
           model,

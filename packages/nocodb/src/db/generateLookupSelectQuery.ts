@@ -13,7 +13,7 @@ import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getAliasGenerator } from '~/utils';
 import { NcError } from '~/helpers/catchError';
 
-export default async function generateMMLookupSelectQuery({
+export default async function generateLookupSelectQuery({
   column,
   baseModelSqlv2,
   alias,
@@ -289,7 +289,7 @@ export default async function generateMMLookupSelectQuery({
       return {
         builder: knex
           .select(
-            knex.raw("STRING_AGG(DISTINCT ??::text, '___')", [
+            knex.raw("STRING_AGG(??::text, '___')", [
               lookupColumn.title,
             ]),
           )

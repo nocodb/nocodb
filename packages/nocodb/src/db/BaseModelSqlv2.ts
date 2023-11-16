@@ -63,7 +63,7 @@ import {
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
-import generateMMLookupSelectQuery from "~/db/generateMMLookupSelectQuery";
+import generateLookupSelectQuery from "~/db/generateLookupSelectQuery";
 
 dayjs.extend(utc);
 
@@ -605,7 +605,7 @@ class BaseModelSqlv2 {
             break;
           case UITypes.Lookup:
             {
-              const _selectQb = await generateMMLookupSelectQuery({
+              const _selectQb = await generateLookupSelectQuery({
                 baseModelSqlv2: this,
                 column,
                 alias: null,
@@ -774,7 +774,7 @@ class BaseModelSqlv2 {
             }
             case UITypes.Lookup:
               {
-                const _selectQb = await generateMMLookupSelectQuery({
+                const _selectQb = await generateLookupSelectQuery({
                   baseModelSqlv2: this,
                   column,
                   alias: null,

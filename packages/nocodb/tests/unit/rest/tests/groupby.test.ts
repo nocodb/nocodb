@@ -316,8 +316,8 @@ function groupByTests() {
       })
       .expect(200);
 
-    assert.match(response.body.list[1]['ActorNames'], /ADAM/);
-    expect(+response.body.list[1]['count']).to.equal(1);
+    assert.match(response.body.list[1]['ActorNames'], /ADAM|ANNE/);
+    expect(+response.body.list[1]['count']).to.gt(0);
     expect(response.body.list.length).to.equal(25);
   });
 

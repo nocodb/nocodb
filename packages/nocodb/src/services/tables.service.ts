@@ -461,9 +461,7 @@ export class TablesService {
       }
 
       if (column.column_name.length > mxColumnLength) {
-        NcError.badRequest(
-          `Column name ${column.column_name} exceeds ${mxColumnLength} characters`,
-        );
+        column.column_name = column.column_name.slice(0, mxColumnLength);
       }
 
       if (column.title && column.title.length > 255) {

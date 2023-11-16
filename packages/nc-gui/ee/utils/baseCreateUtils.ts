@@ -1,4 +1,4 @@
-import {ClientType} from "~/lib";
+import { ClientType } from '~/lib'
 
 export enum NcProjectType {
   DB = 'database',

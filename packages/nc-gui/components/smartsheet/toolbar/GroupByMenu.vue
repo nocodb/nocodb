@@ -158,15 +158,11 @@ const loadAllowedLookups = async () => {
       if (col.uidt !== UITypes.Lookup) continue
 
       let nextCol = col
-
       // check the lookup column is supported type or not
-      while (btLookup && nextCol && nextCol.uidt === UITypes.Lookup) {
+      while (nextCol && nextCol.uidt === UITypes.Lookup) {
         const lookupRelation = (await getMeta(nextCol.fk_model_id))?.columns?.find(
           (c) => c.id === (nextCol.colOptions as LookupType).fk_relation_column_id,
         )
-        if ((lookupRelation.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO) {
-          continue
-        }
 
         const relatedTableMeta = await getMeta((lookupRelation.colOptions as LinkToAnotherRecordType).fk_related_model_id)
 

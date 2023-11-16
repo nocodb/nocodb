@@ -91,7 +91,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     }
 
     // convert to JSON string if non-string value
-    if(value && typeof value === 'object') {
+    if (value && typeof value === 'object') {
       value = JSON.stringify(value)
     }
 

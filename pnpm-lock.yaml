@@ -120,9 +120,6 @@ importers:
       '@tiptap/extension-table-row':
         specifier: 2.0.3
         version: 2.0.3(@tiptap/core@2.1.12)
-      '@tiptap/extension-task-item':
-        specifier: 2.0.3
-        version: 2.0.3(@tiptap/core@2.1.12)(@tiptap/pm@2.1.12)
       '@tiptap/extension-task-list':
         specifier: 2.0.3
         version: 2.0.3(@tiptap/core@2.1.12)
@@ -11367,16 +11364,6 @@ packages:
 
   /@tiptap/extension-table@2.0.3(@tiptap/core@2.1.12)(@tiptap/pm@2.1.12):
     resolution: {integrity: sha512-8swHqm8vRM1w9WzaAhLmY24gGoTozctz4KHKBjvFY/Ka0yXabT0+hoCCdkZLnXWi15H3pbHs2HnDBaTGL9bZTw==}
-    peerDependencies:
-      '@tiptap/core': ^2.0.0
-      '@tiptap/pm': ^2.0.0
-    dependencies:
-      '@tiptap/core': 2.1.12(@tiptap/pm@2.1.12)
-      '@tiptap/pm': 2.1.12
-    dev: false
-
-  /@tiptap/extension-task-item@2.0.3(@tiptap/core@2.1.12)(@tiptap/pm@2.1.12):
-    resolution: {integrity: sha512-13u1Q769WiSNcjFieYAMuJyWXNaY9yOdw6WFg9tQg4EZ5h6+2DaxB0qmu6I3pH+wwSn2UkCkXIirAo/k7wnzbw==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
       '@tiptap/pm': ^2.0.0

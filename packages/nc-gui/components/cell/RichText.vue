@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import StarterKit from '@tiptap/starter-kit'
-import TaskItem from '@tiptap/extension-task-item'
 import TaskList from '@tiptap/extension-task-list'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import TurndownService from 'turndown'
 import { marked } from 'marked'
 import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
+import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
 import { Link } from '@/helpers/dbTiptapExtensions/links'
 
 const props = defineProps<{
@@ -25,10 +25,13 @@ turndownService.addRule('taskList', {
   filter: (node) => {
     return node.nodeName === 'LI' && !!node.getAttribute('data-checked')
   },
-  replacement: (content) => {
+  replacement: (content, node: any) => {
     // Remove the first \n\n and last \n\n
     const processContent = content.replace(/^\n\n/, '').replace(/\n\n$/, '')
-    return `[ ] ${processContent}\n\n`
+
+    const isChecked = node.getAttribute('data-checked') === 'true'
+
+    return `[${isChecked ? 'x' : ' '}] ${processContent}\n\n`
   },
 })
 
@@ -60,15 +63,11 @@ const checkListItem = {
     return false
   },
   renderer(token: any) {
-    return `<ul data-type="taskList">
-      <li data-checked="false">
-        <label>
-          <input type="checkbox" />
-        </label>
-      <div>
-        <p>${(this as any).parser.parseInline(token.tokens)}</p>
-      </div>
-    </ul>` // parseInline to turn child tokens into HTML
+    return `<ul data-type="taskList"><li data-checked="${
+      token.checked ? 'true' : 'false'
+    }" data-type="taskItem"><label><input type="checkbox" ${
+      token.checked ? 'checked="checked"' : ''
+    }><span></span></label><div>${(this as any).parser.parseInline(token.tokens)}</div></li></ul>` // parseInline to turn child tokens into HTML
   },
 }
 

@@ -168,7 +168,7 @@ const addNewOption = () => {
 // }
 
 const syncOptions = () => {
-  vModel.value.colOptions.options = renderedOptions.value.filter((op) => op.status !== 'remove')
+  vModel.value.colOptions.options = options.value.filter((op) => op.status !== 'remove')
 }
 
 const removeRenderedOption = (index: number) => {

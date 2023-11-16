@@ -8,6 +8,7 @@ import type {
   Model,
   RollupColumn,
 } from '~/models';
+import type { LinksColumn } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getAliasGenerator } from '~/utils';
@@ -33,8 +34,7 @@ export default async function generateLookupSelectQuery({
   const rootAlias = alias;
 
   {
-    let aliasCount = 0,
-      selectQb;
+    let selectQb;
     const alias = getAlias();
     const lookup = await column.getColOptions<LookupColumn>();
     {
@@ -123,10 +123,22 @@ export default async function generateLookupSelectQuery({
     }
     let lookupColumn = await lookup.getLookupColumn();
     let prevAlias = alias;
-    while (lookupColumn.uidt === UITypes.Lookup) {
+    while (
+      lookupColumn.uidt === UITypes.Lookup ||
+      lookupColumn.uidt === UITypes.LinkToAnotherRecord
+    ) {
       const nestedAlias = getAlias();
-      const nestedLookup = await lookupColumn.getColOptions<LookupColumn>();
-      const relationCol = await nestedLookup.getRelationColumn();
+
+      let relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>;
+      let nestedLookupColOpt: LookupColumn;
+
+      if (lookupColumn.uidt === UITypes.Lookup) {
+         nestedLookupColOpt = await lookupColumn.getColOptions<LookupColumn>();
+        relationCol = await nestedLookupColOpt.getRelationColumn();
+      } else {
+        relationCol = lookupColumn;
+      }
+
       const relation =
         await relationCol.getColOptions<LinkToAnotherRecordColumn>();
 
@@ -188,11 +200,15 @@ export default async function generateLookupSelectQuery({
             '=',
             knex.ref(`${prevAlias}.${childColumn.column_name}`),
           )
-            .innerJoin(knex.raw('?? as ??', [baseModelSqlv2.getTnPath(parentModel.table_name), nestedAlias]),
-                knex.ref(`${mmTableAlias}.${mmParentCol.column_name}`),
-                '=',
-                knex.ref(`${nestedAlias}.${parentColumn.column_name}`),
-                )
+          .innerJoin(
+            knex.raw('?? as ??', [
+              baseModelSqlv2.getTnPath(parentModel.table_name),
+              nestedAlias,
+            ]),
+            knex.ref(`${mmTableAlias}.${mmParentCol.column_name}`),
+            '=',
+            knex.ref(`${nestedAlias}.${parentColumn.column_name}`),
+          )
           .where(
             knex.ref(`${mmTableAlias}.${mmChildCol.column_name}`),
             '=',
@@ -204,7 +220,14 @@ export default async function generateLookupSelectQuery({
           );
       }
 
-      lookupColumn = await nestedLookup.getLookupColumn();
+      if (lookupColumn.uidt === UITypes.Lookup)
+        lookupColumn = await nestedLookupColOpt.getLookupColumn();
+      else
+        lookupColumn = await relationCol
+          .getColOptions()
+          .then((colOpt) => colOpt.getRelatedTable())
+          .then((model) => model.getColumns())
+          .then((cols) => cols.find((col) => col.pv));
       prevAlias = nestedAlias;
     }
 
@@ -223,7 +246,7 @@ export default async function generateLookupSelectQuery({
           ).builder;
           selectQb.select(builder);
         }
-        break;
+        break; /*
       case UITypes.LinkToAnotherRecord:
         {
           const nestedAlias = getAlias();
@@ -250,7 +273,7 @@ export default async function generateLookupSelectQuery({
             )
             .select(parentModel?.displayValue?.column_name);
         }
-        break;
+        break;*/
       case UITypes.Formula:
         {
           const builder = (

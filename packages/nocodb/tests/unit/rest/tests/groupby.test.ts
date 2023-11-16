@@ -317,7 +317,7 @@ function groupByTests() {
       .expect(200);
 
     assert.match(response.body.list[1]['ActorNames'], /ADAM/);
-    expect(+response.body.list[0]['count']).to.equal(1);
+    expect(+response.body.list[1]['count']).to.equal(1);
     expect(response.body.list.length).to.equal(25);
   });
 

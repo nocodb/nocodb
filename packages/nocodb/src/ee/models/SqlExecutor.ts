@@ -139,9 +139,39 @@ export default class SqlExecutor {
     return sqlExecutor;
   }
 
-  public async update(sqlExecutor: Partial<SqlExecutor>, ncMeta = Noco.ncMeta) {
-    await NocoCache.del(`${CacheScope.SQL_EXECUTOR}:${this.id}`);
+  public static async bulkUpdate(
+    sqlExecutor: Partial<SqlExecutor>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const updateObject = extractProps(sqlExecutor, ['capacity']);
 
+    if (Object.keys(updateObject).length === 0) {
+      NcError.badRequest('Nothing to update');
+    }
+
+    await ncMeta.metaUpdate(null, null, MetaTable.SQL_EXECUTOR, updateObject);
+
+    await NocoCache.deepDel(
+      CacheScope.SQL_EXECUTOR,
+      `${CacheScope.SQL_EXECUTOR}:list`,
+      CacheDelDirection.PARENT_TO_CHILD,
+    );
+
+    return this.list(ncMeta);
+  }
+
+  public async getSources(ncMeta = Noco.ncMeta) {
+    return await ncMeta.metaList2(null, null, MetaTable.BASES, {
+      condition: {
+        fk_sql_executor_id: this.id,
+      },
+    });
+  }
+
+  public async update(
+    sqlExecutor: Partial<SqlExecutor>,
+    ncMeta = Noco.ncMeta,
+  ): Promise<{ se: SqlExecutor; sources: Source[] }> {
     const updateObject = extractProps(sqlExecutor, [
       'domain',
       'status',
@@ -157,12 +187,12 @@ export default class SqlExecutor {
       this.id,
     );
 
+    await NocoCache.del(`${CacheScope.SQL_EXECUTOR}:${this.id}`);
+
+    let sources: Source[] = [];
+
     if (updateObject.status === SqlExecutorStatus.INACTIVE) {
-      const sources = await ncMeta.metaList2(null, null, MetaTable.BASES, {
-        condition: {
-          fk_sql_executor_id: this.id,
-        },
-      });
+      sources = await this.getSources(ncMeta);
 
       await Promise.all([
         ...sources.map((source) =>
@@ -175,12 +205,16 @@ export default class SqlExecutor {
             ncMeta,
           ),
         ),
-        // TODO - handle for all machines (REDIS?)
+        // Delete all connections for this SE on this instance
         ...sources.map((source) => NcConnectionMgrv2.deleteAwait(source)),
       ]);
     }
 
-    return SqlExecutor.get(this.id);
+    // We return updated sources so that we can release them from other instances (both worker and primary)
+    return {
+      se: await SqlExecutor.get(this.id, ncMeta),
+      sources: sources,
+    };
   }
 
   public async delete(ncMeta = Noco.ncMeta) {
@@ -259,10 +293,12 @@ export default class SqlExecutor {
       if (process.env.TEST === 'true') {
         suitableSqlExecutor = sqlExecutors[0];
         if (suitableSqlExecutor.domain !== 'http://localhost:9000') {
-          suitableSqlExecutor = await suitableSqlExecutor.update({
-            domain: 'http://localhost:9000',
-            status: SqlExecutorStatus.ACTIVE,
-          });
+          suitableSqlExecutor = (
+            await suitableSqlExecutor.update({
+              domain: 'http://localhost:9000',
+              status: SqlExecutorStatus.ACTIVE,
+            })
+          ).se;
         }
       } else {
         for (const sqlExecutor of sqlExecutors) {

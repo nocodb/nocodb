@@ -31,10 +31,11 @@ export enum JobEvents {
 export const InstanceTypes = {
   PRIMARY: `${process.env.NC_ENV ?? 'default'}-primary`,
   WORKER: `${process.env.NC_ENV ?? 'default'}-worker`,
-} as const;
+};
 
-export enum WorkerCommands {
+export enum InstanceCommands {
   RESUME_LOCAL = 'resumeLocal',
   PAUSE_LOCAL = 'pauseLocal',
   RESET = 'reset',
+  RELEASE = 'release',
 }

@@ -5,7 +5,7 @@ import type { OnModuleInit } from '@nestjs/common';
 import type { Queue } from 'bull';
 import { JobsRedisService } from '~/modules/jobs/redis/jobs-redis.service';
 import { UtilsService } from '~/services/utils.service';
-import { InstanceTypes, WorkerCommands } from '~/interface/Jobs';
+import { InstanceCommands, InstanceTypes } from '~/interface/Jobs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
@@ -38,7 +38,7 @@ export class WorkerController implements OnModuleInit {
     } else {
       await this.jobsRedisService.publish(
         InstanceTypes.WORKER,
-        WorkerCommands.RESUME_LOCAL,
+        InstanceCommands.RESUME_LOCAL,
       );
     }
   }
@@ -52,7 +52,7 @@ export class WorkerController implements OnModuleInit {
     } else {
       await this.jobsRedisService.publish(
         InstanceTypes.WORKER,
-        WorkerCommands.PAUSE_LOCAL,
+        InstanceCommands.PAUSE_LOCAL,
       );
     }
   }
@@ -62,7 +62,7 @@ export class WorkerController implements OnModuleInit {
   async pauseAndExit() {
     await this.jobsRedisService.publish(
       InstanceTypes.WORKER,
-      WorkerCommands.RESET,
+      InstanceCommands.RESET,
     );
   }
 

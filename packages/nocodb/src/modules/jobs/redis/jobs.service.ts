@@ -2,7 +2,12 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bull';
 import type { OnModuleInit } from '@nestjs/common';
-import { JOBS_QUEUE, JobStatus, WorkerCommands } from '~/interface/Jobs';
+import {
+  InstanceCommands,
+  InstanceTypes,
+  JOBS_QUEUE,
+  JobStatus,
+} from '~/interface/Jobs';
 import { JobsRedisService } from '~/modules/jobs/redis/jobs-redis.service';
 
 @Injectable()
@@ -19,12 +24,12 @@ export class JobsService implements OnModuleInit {
     if (process.env.NC_WORKER_CONTAINER !== 'true') {
       await this.jobsQueue.pause(true);
     } else {
-      this.jobsRedisService.workerCallbacks[WorkerCommands.RESUME_LOCAL] =
+      this.jobsRedisService.workerCallbacks[InstanceCommands.RESUME_LOCAL] =
         async () => {
           this.logger.log('Resuming local queue');
           await this.jobsQueue.resume(true);
         };
-      this.jobsRedisService.workerCallbacks[WorkerCommands.PAUSE_LOCAL] =
+      this.jobsRedisService.workerCallbacks[InstanceCommands.PAUSE_LOCAL] =
         async () => {
           this.logger.log('Pausing local queue');
           await this.jobsQueue.pause(true);
@@ -101,5 +106,15 @@ export class JobsService implements OnModuleInit {
   async pauseQueue() {
     this.logger.log('Pausing global queue');
     await this.jobsQueue.pause();
+  }
+
+  async emitWorkerCommand(command: InstanceCommands, ...args: any[]) {
+    const data = `${command}${args.length ? `:${args.join(':')}` : ''}`;
+    await this.jobsRedisService.publish(InstanceTypes.WORKER, data);
+  }
+
+  async emitPrimaryCommand(command: InstanceCommands, ...args: any[]) {
+    const data = `${command}${args.length ? `:${args.join(':')}` : ''}`;
+    await this.jobsRedisService.publish(InstanceTypes.PRIMARY, data);
   }
 }

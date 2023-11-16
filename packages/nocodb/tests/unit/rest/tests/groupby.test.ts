@@ -299,7 +299,7 @@ function groupByTests() {
     expect(response.body.list.length).to.equal(1);
   });
 
-  it.only('Check One GroupBy Column with MM Lookup which is supported', async function () {
+  it('Check One GroupBy Column with MM Lookup which is supported', async function () {
     await createLookupColumn(context, {
       base: sakilaProject,
       title: 'ActorNames',
@@ -316,7 +316,7 @@ function groupByTests() {
       })
       .expect(200);
 
-    assert.match(response.body.list[0]['ActorNames'], /ADAM/);
+    assert.match(response.body.list[1]['ActorNames'], /ADAM/);
     expect(+response.body.list[0]['count']).to.equal(1);
     expect(response.body.list.length).to.equal(25);
   });

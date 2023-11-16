@@ -20,6 +20,8 @@ const emits = defineEmits(['update:value'])
 
 const turndownService = new TurndownService()
 
+const editorDom = ref<HTMLElement | null>(null)
+
 const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 
 const tiptapExtensions = [
@@ -62,10 +64,15 @@ if (props.syncValueChange) {
   })
 }
 
-onMounted(() => {
+watch(editorDom, () => {
+  if (!editorDom.value) return
+
+  setEditorContent(vModel.value)
+
+  // Focus editor after editor is mounted
   setTimeout(() => {
-    setEditorContent(vModel.value)
-  }, 0)
+    editor.value?.chain().focus().run()
+  }, 50)
 })
 </script>
 
@@ -76,7 +83,7 @@ onMounted(() => {
     </div>
     <CellRichTextSelectedBubbleMenuPopup v-if="editor" :editor="editor" />
     <CellRichTextLinkOptions v-if="editor" :editor="editor" />
-    <EditorContent :editor="editor" class="nc-textarea-rich w-full h-full nc-text-rich-scroll nc-scrollbar-md" />
+    <EditorContent ref="editorDom" :editor="editor" class="nc-textarea-rich w-full h-full nc-text-rich-scroll nc-scrollbar-md" />
   </div>
 </template>
 

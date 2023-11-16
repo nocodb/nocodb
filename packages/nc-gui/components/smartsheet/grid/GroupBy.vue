@@ -137,6 +137,8 @@ const onScroll = (e: Event) => {
   _scrollLeft.value = (e.target as HTMLElement).scrollLeft
 }
 
+// a method to parse group key if grouped column type is LTAR or Lookup
+// in these 2 scenario it will return json array or `___` separated value
 const parseKey = (group) => {
   const key = group.key.toString()
 

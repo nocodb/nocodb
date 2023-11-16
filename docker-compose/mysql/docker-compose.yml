@@ -37,4 +37,3 @@ services:
 volumes: 
   db_data: {}
   nc_data: {}
-

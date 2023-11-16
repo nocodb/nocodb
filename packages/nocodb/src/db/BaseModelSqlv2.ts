@@ -559,13 +559,21 @@ class BaseModelSqlv2 {
 
     await Promise.all(
       args.column_name.split(',').map(async (col) => {
-        const column = cols.find(
-          (c) => c.column_name === col || c.title === col,
-        );
-        groupByColumns[column.id] = column;
+        let column = cols.find((c) => c.column_name === col || c.title === col);
         if (!column) {
           throw NcError.notFound('Column not found');
         }
+
+        // if qrCode or Barcode replace it with value column nd keep the alias
+        if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
+          column = new Column({
+            ...(await column
+              .getColOptions<BarcodeColumn | QrCodeColumn>()
+              .then((col) => col.getValueColumn())),
+            title: column.title,
+          });
+
+        groupByColumns[column.id] = column;
 
         switch (column.uidt) {
           case UITypes.Links:
@@ -723,15 +731,25 @@ class BaseModelSqlv2 {
     const groupBySelectors = [];
     const getAlias = getAliasGenerator('__nc_gb');
 
+    // todo: refactor and avoid duplicate code
     await this.model.getColumns().then((cols) =>
       Promise.all(
         args.column_name.split(',').map(async (col) => {
-          const column = cols.find(
+          let column = cols.find(
             (c) => c.column_name === col || c.title === col,
           );
           if (!column) {
             throw NcError.notFound('Column not found');
           }
+
+          // if qrCode or Barcode replace it with value column nd keep the alias
+          if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
+            column = new Column({
+              ...(await column
+                .getColOptions<BarcodeColumn | QrCodeColumn>()
+                .then((col) => col.getValueColumn())),
+              title: column.title,
+            });
 
           switch (column.uidt) {
             case UITypes.Rollup:

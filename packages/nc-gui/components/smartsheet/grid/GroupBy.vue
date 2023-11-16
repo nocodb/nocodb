@@ -49,8 +49,6 @@ const fullPage = computed<boolean>(() => {
   return props.fullPage ?? (tableHeader.value?.offsetWidth ?? 0) > (props.viewWidth ?? 0)
 })
 
-const { isUIAllowed } = useRoles()
-
 const _activeGroupKeys = ref<string[] | string>()
 
 const activeGroups = computed<string[]>(() => {
@@ -154,6 +152,9 @@ const parseKey = (group) => {
   }
   return [key]
 }
+
+const shouldRenderCell = (column) =>
+  [UITypes.Lookup, UITypes.Attachment, UITypes.Barcode, UITypes.QrCode, UITypes.Links].includes(column?.uidt)
 </script>
 
 <template>
@@ -247,6 +248,9 @@ const parseKey = (group) => {
                             </span>
                           </a-tag>
                         </template>
+                        <div v-else-if="shouldRenderCell(grp.column)" class="flex min-w-[100px] flex-wrap">
+                          <GroupByLabel v-for="(val, ind) of parseKey(grp)" :key="ind" :model-value="val" :column="grp.column" />
+                        </div>
                         <a-tag
                           v-else
                           :key="`panel-tag-${grp.column.id}-${grp.key}`"
@@ -270,8 +274,9 @@ const parseKey = (group) => {
                             <template v-if="grp.key in GROUP_BY_VARS.VAR_TITLES">{{
                               GROUP_BY_VARS.VAR_TITLES[grp.key]
                             }}</template>
-
-                            <GroupByLabel v-for="(val, ind) of parseKey(grp)" v-else :key="ind" :model-value="val" :column="grp.column"/>
+                            <template v-else>
+                              {{ parseKey(grp)?.join(', ') }}
+                            </template>
                           </span>
                         </a-tag>
                       </div>

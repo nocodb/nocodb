@@ -48,9 +48,9 @@ export default async function generateBTLookupSelectQuery({
       const parentModel = await parentColumn.getModel();
       await parentModel.getColumns();
 
+      `${baseModelSqlv2.getTnPath(parentModel.table_name)} as ${alias}`,
+    ).where(
       selectQb = knex(
-        `${baseModelSqlv2.getTnPath(parentModel.table_name)} as ${alias}`,
-      ).where(
         `${alias}.${parentColumn.column_name}`,
         knex.raw(`??`, [
           `${rootAlias || baseModelSqlv2.getTnPath(childModel.table_name)}.${
@@ -86,6 +86,46 @@ export default async function generateBTLookupSelectQuery({
         `${nestedAlias}.${parentColumn.column_name}`,
         `${prevAlias}.${childColumn.column_name}`,
       );
+
+
+
+
+
+      const mmModel = await relationColumnOption.getMMModel();
+      const mmChildCol = await relationColumnOption.getMMChildColumn();
+      const mmParentCol = await relationColumnOption.getMMParentColumn();
+
+   knex(
+            `${baseModelSqlv2.getTnPath(
+                parentModel?.table_name,
+            )} as ${refTableAlias}`,
+        )
+            [columnOptions.rollup_function as string]?.(
+            knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
+        )
+            .innerJoin(
+                baseModelSqlv2.getTnPath(mmModel.table_name),
+                knex.ref(
+                    `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
+                        mmParentCol.column_name
+                    }`,
+                ),
+                '=',
+                knex.ref(`${refTableAlias}.${parentCol.column_name}`),
+            )
+            .where(
+                knex.ref(
+                    `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
+                        mmChildCol.column_name
+                    }`,
+                ),
+                '=',
+                knex.ref(
+                    `${alias || baseModelSqlv2.getTnPath(childModel.table_name)}.${
+                        childCol.column_name
+                    }`,
+                ),
+            )
 
       lookupColumn = await nestedLookup.getLookupColumn();
       prevAlias = nestedAlias;

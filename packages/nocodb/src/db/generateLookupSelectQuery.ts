@@ -48,6 +48,8 @@ export default async function generateLookupSelectQuery({
     let selectQb;
     const alias = getAlias();
     let lookupColOpt: LookupColumn;
+    let isBtLookup = true;
+
     if (column.uidt === UITypes.Lookup) {
       lookupColOpt = await column.getColOptions<LookupColumn>();
     } else if (column.uidt !== UITypes.LinkToAnotherRecord) {
@@ -85,6 +87,7 @@ export default async function generateLookupSelectQuery({
 
       // if not belongs to then throw error as we don't support
       else if (relation.type === RelationTypes.HAS_MANY) {
+        isBtLookup = false;
         const childColumn = await relation.getChildColumn();
         const parentColumn = await relation.getParentColumn();
         const childModel = await childColumn.getModel();
@@ -106,6 +109,7 @@ export default async function generateLookupSelectQuery({
 
       // if not belongs to then throw error as we don't support
       else if (relation.type === RelationTypes.MANY_TO_MANY) {
+        isBtLookup = false;
         const childColumn = await relation.getChildColumn();
         const parentColumn = await relation.getParentColumn();
         const childModel = await childColumn.getModel();
@@ -190,6 +194,7 @@ export default async function generateLookupSelectQuery({
           `${prevAlias}.${childColumn.column_name}`,
         );
       } else if (relation.type === RelationTypes.HAS_MANY) {
+        isBtLookup = false;
         const childColumn = await relation.getChildColumn();
         const parentColumn = await relation.getParentColumn();
         const childModel = await childColumn.getModel();
@@ -205,6 +210,7 @@ export default async function generateLookupSelectQuery({
           `${prevAlias}.${parentColumn.column_name}`,
         );
       } else if (relation.type === RelationTypes.MANY_TO_MANY) {
+        isBtLookup = false;
         const childColumn = await relation.getChildColumn();
         const parentColumn = await relation.getParentColumn();
         const childModel = await childColumn.getModel();
@@ -218,11 +224,6 @@ export default async function generateLookupSelectQuery({
         const mmChildCol = await relation.getMMChildColumn();
         const mmParentCol = await relation.getMMParentColumn();
 
-        // knex(
-        //   `${baseModelSqlv2.getTnPath(
-        //     parentModel?.table_name,
-        //   )} as ${nestedAlias}`,
-        // )
         selectQb
           .innerJoin(
             baseModelSqlv2.getTnPath(mmModel.table_name, mmTableAlias),
@@ -271,34 +272,7 @@ export default async function generateLookupSelectQuery({
           ).builder;
           selectQb.select(builder);
         }
-        break; /*
-      case UITypes.LinkToAnotherRecord:
-        {
-          const nestedAlias = getAlias();
-          const relation =
-            await lookupColumn.getColOptions<LinkToAnotherRecordColumn>();
-          if (relation.type !== 'bt') return;
-
-          const colOptions =
-            (await column.getColOptions()) as LinkToAnotherRecordColumn;
-          const childColumn = await colOptions.getChildColumn();
-          const parentColumn = await colOptions.getParentColumn();
-          const childModel = await childColumn.getModel();
-          await childModel.getColumns();
-          const parentModel = await parentColumn.getModel();
-          await parentModel.getColumns();
-
-          selectQb
-            .join(
-              `${baseModelSqlv2.getTnPath(
-                parentModel.table_name,
-              )} as ${nestedAlias}`,
-              `${nestedAlias}.${parentColumn.column_name}`,
-              `${prevAlias}.${childColumn.column_name}`,
-            )
-            .select(parentModel?.displayValue?.column_name);
-        }
-        break;*/
+        break;
       case UITypes.Formula:
         {
           const builder = (
@@ -324,6 +298,13 @@ export default async function generateLookupSelectQuery({
         }
 
         break;
+    }
+
+    // if all relation are belongs to then we don't need to do the aggregation
+    if (isBtLookup) {
+      return {
+        builder: selectQb,
+      };
     }
 
     const subQueryAlias = getAlias();
@@ -354,7 +335,6 @@ export default async function generateLookupSelectQuery({
       //     .from(selectQb.as(subQueryAlias)),
       // };
     } else if (baseModelSqlv2.isMySQL) {
-      // alternate approach with JSON_ARRAYAGG
       return {
         builder: knex
           .select(

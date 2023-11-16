@@ -118,7 +118,10 @@ const parseConditionV2 = async (
     // handle group by filter separately
     if (filter.comparison_op === 'gb_val') {
       const column = await filter.getColumn();
-      if (column.uidt === UITypes.Lookup) {
+      if (
+        column.uidt === UITypes.Lookup ||
+        column.uidt === UITypes.LinkToAnotherRecord
+      ) {
         const model = await column.getModel();
         const lkQb = await generateLookupSelectQuery({
           baseModelSqlv2,

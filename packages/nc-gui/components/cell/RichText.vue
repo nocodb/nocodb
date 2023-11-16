@@ -14,6 +14,7 @@ const props = defineProps<{
   readonly?: boolean
   syncValueChange?: boolean
   showMenu?: boolean
+  fullMode?: boolean
 }>()
 
 const emits = defineEmits(['update:value'])
@@ -74,16 +75,35 @@ watch(editorDom, () => {
     editor.value?.chain().focus().run()
   }, 50)
 })
+
+const focusEditorEnd = () => {
+  setTimeout(() => {
+    if (!editor.value) return
+    const docSize = editor.value.state.doc.content.size
+
+    editor.value
+      ?.chain()
+      .setTextSelection(docSize - 2)
+      .focus()
+      .run()
+  }, 50)
+}
 </script>
 
 <template>
-  <div class="h-full">
+  <div
+    class="h-full"
+    :class="{
+      'flex flex-col flex-grow': props.fullMode,
+    }"
+  >
     <div v-if="props.showMenu" class="absolute top-1 z-1000 right-3">
       <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode />
     </div>
     <CellRichTextSelectedBubbleMenuPopup v-if="editor" :editor="editor" />
     <CellRichTextLinkOptions v-if="editor" :editor="editor" />
     <EditorContent ref="editorDom" :editor="editor" class="nc-textarea-rich w-full h-full nc-text-rich-scroll nc-scrollbar-md" />
+    <div v-if="props.fullMode" class="flex flex-grow" @click="focusEditorEnd"></div>
   </div>
 </template>
 

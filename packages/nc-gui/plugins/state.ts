@@ -6,7 +6,7 @@ import { loadLocaleMessages, setI18nLanguage } from '~/plugins/a.i18n'
  *
  * @example
  * ```js
- * import { useNuxtApp } from '#app'
+ * import { useNuxtApp } from '#imports'
  *
  * const { $state } = useNuxtApp()
  *
@@ -24,7 +24,7 @@ const statePlugin = async (_nuxtApp) => {
   if (![...Object.keys(Language), ...Object.keys(LanguageAlias)].includes(currentLang)) state.lang.value = currentLang = 'en'
 
   /** force load initial locale messages */
-  await loadLocaleMessages(currentLang)
+  await Promise.all([loadLocaleMessages(currentLang), loadLocaleMessages('en')])
 
   /** set i18n locale to stored language */
   await setI18nLanguage(currentLang)

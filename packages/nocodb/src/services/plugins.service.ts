@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type { PluginTestReqType, PluginType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -14,7 +15,7 @@ export class PluginsService {
     return await Plugin.list();
   }
 
-  async pluginTest(param: { body: PluginTestReqType }) {
+  async pluginTest(param: { body: PluginTestReqType; req: NcRequest }) {
     validatePayload(
       'swagger.json#/components/schemas/PluginTestReq',
       param.body,
@@ -22,6 +23,7 @@ export class PluginsService {
 
     this.appHooksService.emit(AppEvents.PLUGIN_TEST, {
       testBody: param.body,
+      req: param.req,
     });
     return await NcPluginMgrv2.test(param.body);
   }
@@ -29,7 +31,11 @@ export class PluginsService {
   async pluginRead(param: { pluginId: string }) {
     return await Plugin.get(param.pluginId);
   }
-  async pluginUpdate(param: { pluginId: string; plugin: PluginType }) {
+  async pluginUpdate(param: {
+    pluginId: string;
+    plugin: PluginType;
+    req: NcRequest;
+  }) {
     validatePayload('swagger.json#/components/schemas/PluginReq', param.plugin);
 
     const plugin = await Plugin.update(param.pluginId, param.plugin);
@@ -38,6 +44,7 @@ export class PluginsService {
       plugin.active ? AppEvents.PLUGIN_INSTALL : AppEvents.PLUGIN_UNINSTALL,
       {
         plugin,
+        req: param.req,
       },
     );
 

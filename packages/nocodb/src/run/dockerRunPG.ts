@@ -30,11 +30,7 @@ process.env[`NC_DB`] = `pg://localhost:5432?u=postgres&p=password&d=${metaDb}`;
 // process.env[`DEBUG`] = 'xc*';
 
 (async () => {
-  if (process.env.NC_WORKER_CONTAINER === 'true') {
-    await Noco.init({}, null, null);
-  } else {
-    const httpServer = server.listen(process.env.PORT || 8080, async () => {
-      server.use(await Noco.init({}, httpServer, server));
-    });
-  }
+  const httpServer = server.listen(process.env.PORT || 8080, async () => {
+    server.use(await Noco.init({}, httpServer, server));
+  });
 })().catch((e) => console.log(e));

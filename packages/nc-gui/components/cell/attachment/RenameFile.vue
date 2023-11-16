@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onKeyStroke, onMounted, reactive, ref } from '#imports'
+import { onKeyStroke, onMounted, reactive, ref, useI18n } from '#imports'
 
 const props = defineProps<{
   title: string
@@ -9,6 +9,8 @@ const emit = defineEmits<{
   (event: 'rename', value: string): void
   (event: 'cancel'): void
 }>()
+
+const { t } = useI18n()
 
 const inputEl = ref()
 
@@ -29,7 +31,7 @@ function renameFile(fileName: string) {
 // }
 
 const rules = {
-  title: [{ required: true, message: 'title is required.' }],
+  title: [{ required: true, message: t('labels.titleRequired') }],
 }
 
 function onCancel() {

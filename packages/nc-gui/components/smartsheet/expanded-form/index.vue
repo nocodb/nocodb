@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import MdiChevronDown from '~icons/mdi/chevron-down'
@@ -41,11 +41,13 @@ interface Props {
   showNextPrevIcons?: boolean
   firstRow?: boolean
   lastRow?: boolean
+  closeAfterSave?: boolean
+  newRecordHeader?: string
 }
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
+const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'createdRecord'])
 
 const { activeView } = storeToRefs(useViewsStore())
 
@@ -90,6 +92,8 @@ const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
 
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+
 // override cell click hook to avoid unexpected behavior at form fields
 provide(CellClickHookInj, undefined)
 
@@ -127,7 +131,6 @@ const {
   primaryKey,
   saveRowAndStay,
   row: _row,
-  syncLTARRefs,
   save: _save,
   loadCommentsAndLogs,
   clearColumns,
@@ -185,7 +188,6 @@ const onDuplicateRow = () => {
 const save = async () => {
   if (isNew.value) {
     const data = await _save(rowState.value)
-    await syncLTARRefs(data)
     reloadTrigger?.trigger()
   } else {
     let kanbanClbk
@@ -201,6 +203,12 @@ const save = async () => {
     reloadTrigger?.trigger()
   }
   isUnsavedFormExist.value = false
+
+  if (props.closeAfterSave) {
+    isExpanded.value = false
+  }
+
+  emits('createdRecord', _row.value.row)
 }
 
 const isPreventChangeModalOpen = ref(false)
@@ -283,6 +291,9 @@ const cellWrapperEl = ref()
 onMounted(async () => {
   isRecordLinkCopied.value = false
   isLoading.value = true
+
+  const focusFirstCell = !isExpandedFormCommentMode.value
+
   if (props.loadRow) {
     await _loadRow()
     await loadCommentsAndLogs()
@@ -294,8 +305,7 @@ onMounted(async () => {
       await loadCommentsAndLogs()
     } catch (e: any) {
       if (e.response?.status === 404) {
-        // todo: i18n
-        message.error('Record not found')
+        message.error(t('msg.noRecordFound'))
         router.replace({ query: {} })
       } else throw e
     }
@@ -303,9 +313,11 @@ onMounted(async () => {
 
   isLoading.value = false
 
-  setTimeout(() => {
-    cellWrapperEl.value?.$el?.querySelector('input,select,textarea')?.focus()
-  }, 300)
+  if (focusFirstCell) {
+    setTimeout(() => {
+      cellWrapperEl.value?.$el?.querySelector('input,select,textarea')?.focus()
+    }, 300)
+  }
 })
 
 const addNewRow = () => {
@@ -341,8 +353,7 @@ useActiveKeyupListener(
       e.stopPropagation()
 
       if (isNew.value) {
-        const data = await _save(rowState.value)
-        await syncLTARRefs(data)
+        await _save(rowState.value)
         reloadHook?.trigger(null)
       } else {
         await save()
@@ -358,9 +369,9 @@ useActiveKeyupListener(
 
       if (changedColumns.value.size > 0) {
         await Modal.confirm({
-          title: 'Do you want to save the changes?',
-          okText: 'Save',
-          cancelText: 'Discard',
+          title: t('msg.saveChanges'),
+          okText: t('general.save'),
+          cancelText: t('labels.discard'),
           onOk: async () => {
             await save()
             reloadHook?.trigger(null)
@@ -373,11 +384,10 @@ useActiveKeyupListener(
       } else if (isNew.value) {
         await Modal.confirm({
           title: 'Do you want to save the record?',
-          okText: 'Save',
-          cancelText: 'Discard',
+          okText: t('general.save'),
+          cancelText: t('labels.discard'),
           onOk: async () => {
-            const data = await _save(rowState.value)
-            await syncLTARRefs(data)
+            await _save(rowState.value)
             reloadHook?.trigger(null)
             addNewRow()
           },
@@ -402,7 +412,7 @@ const onDeleteRowClick = () => {
 const onConfirmDeleteRowClick = async () => {
   showDeleteRowModal.value = false
   await deleteRowById(primaryKey.value)
-  message.success('Record deleted')
+  message.success(t('msg.rowDeleted'))
   reloadTrigger.trigger()
   onClose()
   showDeleteRowModal.value = false
@@ -417,7 +427,26 @@ const showRightSections = computed(() => {
   return !isNew.value && commentsDrawer.value && isUIAllowed('commentList')
 })
 
-const preventModalStatus = computed(() => isCloseModalOpen.value || isPreventChangeModalOpen.value)
+const preventModalStatus = computed({
+  get: () => isCloseModalOpen.value || isPreventChangeModalOpen.value,
+  set: (v) => {
+    isCloseModalOpen.value = v
+  },
+})
+
+const onIsExpandedUpdate = (v: boolean) => {
+  if (changedColumns.value.size === 0 && !isUnsavedFormExist.value) {
+    isExpanded.value = v
+  } else if (!v) {
+    preventModalStatus.value = true
+  } else {
+    isExpanded.value = v
+  }
+}
+
+const isReadOnlyVirtualCell = (column: ColumnType) => {
+  return isRollup(column) || isFormula(column) || isBarcode(column) || isLookup(column) || isQrCode(column)
+}
 </script>
 
 <script lang="ts">
@@ -428,7 +457,7 @@ export default {
 
 <template>
   <NcModal
-    v-model:visible="isExpanded"
+    :visible="isExpanded"
     :footer="null"
     :width="commentsDrawer && isUIAllowed('commentList') ? 'min(80vw,1280px)' : 'min(80vw,1280px)'"
     :body-style="{ padding: 0 }"
@@ -436,6 +465,7 @@ export default {
     size="small"
     class="nc-drawer-expanded-form"
     :class="{ active: isExpanded }"
+    @update:visible="onIsExpandedUpdate"
   >
     <div class="h-[85vh] xs:(max-h-full) max-h-215 flex flex-col p-6">
       <div class="flex h-9.5 flex-shrink-0 w-full items-center nc-expanded-form-header relative mb-4 justify-between">
@@ -464,12 +494,17 @@ export default {
             <div v-if="isLoading">
               <a-skeleton-input class="!h-8 !sm:mr-14 !w-52 mt-1 !rounded-md !overflow-hidden" active size="small" />
             </div>
+            <div
+              v-if="row.rowMeta?.new || props.newRecordHeader"
+              class="flex items-center truncate font-bold text-gray-800 text-xl"
+            >
+              {{ props.newRecordHeader ?? $t('activity.newRecord') }}
+            </div>
             <div v-else-if="displayValue && !row.rowMeta?.new" class="flex items-center font-bold text-gray-800 text-xl w-64">
               <span class="truncate">
                 {{ displayValue }}
               </span>
             </div>
-            <div v-if="row.rowMeta?.new" class="flex items-center truncate font-bold text-gray-800 text-xl">New Record</div>
           </div>
           <div class="flex gap-2">
             <NcButton
@@ -618,9 +653,20 @@ export default {
                   <SmartsheetDivDataCell
                     v-if="col.title"
                     :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                    class="!bg-white rounded-lg !w-[20rem] !xs:w-full border-1 border-gray-200 overflow-hidden px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
+                    class="bg-white rounded-lg !w-[20rem] !xs:w-full border-1 border-gray-200 overflow-hidden px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
+                    :class="{
+                      '!bg-gray-50 !px-0 !select-text': isReadOnlyVirtualCell(col),
+                    }"
                   >
-                    <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="_row.row[col.title]" :row="_row" :column="col" />
+                    <LazySmartsheetVirtualCell
+                      v-if="isVirtualCol(col)"
+                      v-model="_row.row[col.title]"
+                      :row="_row"
+                      :column="col"
+                      :class="{
+                        'px-1': isReadOnlyVirtualCell(col),
+                      }"
+                    />
 
                     <LazySmartsheetCell
                       v-else

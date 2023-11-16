@@ -5,9 +5,10 @@ import {
   HttpCode,
   Param,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { DataAliasNestedService } from '~/services/data-alias-nested.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -22,7 +23,7 @@ export class DataAliasNestedController {
   @Get(['/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/mm/:columnName'])
   @Acl('mmList')
   async mmList(
-    @Request() req,
+    @Req() req: Request,
     @Param('columnName') columnName: string,
     @Param('rowId') rowId: string,
     @Param('baseName') baseName: string,
@@ -42,7 +43,7 @@ export class DataAliasNestedController {
   ])
   @Acl('mmExcludedList')
   async mmExcludedList(
-    @Request() req,
+    @Req() req: Request,
     @Param('columnName') columnName: string,
     @Param('rowId') rowId: string,
     @Param('baseName') baseName: string,
@@ -62,7 +63,7 @@ export class DataAliasNestedController {
   ])
   @Acl('hmExcludedList')
   async hmExcludedList(
-    @Request() req,
+    @Req() req: Request,
     @Param('columnName') columnName: string,
     @Param('rowId') rowId: string,
     @Param('baseName') baseName: string,
@@ -82,7 +83,7 @@ export class DataAliasNestedController {
   ])
   @Acl('btExcludedList')
   async btExcludedList(
-    @Request() req,
+    @Req() req: Request,
     @Param('columnName') columnName: string,
     @Param('rowId') rowId: string,
     @Param('baseName') baseName: string,
@@ -102,7 +103,7 @@ export class DataAliasNestedController {
   @Get(['/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/hm/:columnName'])
   @Acl('hmList')
   async hmList(
-    @Request() req,
+    @Req() req: Request,
     @Param('columnName') columnName: string,
     @Param('rowId') rowId: string,
     @Param('baseName') baseName: string,
@@ -122,7 +123,7 @@ export class DataAliasNestedController {
   ])
   @Acl('relationDataRemove')
   async relationDataRemove(
-    @Request() req,
+    @Req() req: Request,
     @Param('columnName') columnName: string,
     @Param('rowId') rowId: string,
     @Param('baseName') baseName: string,
@@ -148,7 +149,7 @@ export class DataAliasNestedController {
   @Acl('relationDataAdd')
   @HttpCode(200)
   async relationDataAdd(
-    @Request() req,
+    @Req() req: Request,
     @Param('columnName') columnName: string,
     @Param('rowId') rowId: string,
     @Param('baseName') baseName: string,

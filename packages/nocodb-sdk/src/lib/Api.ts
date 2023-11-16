@@ -85,6 +85,26 @@ export interface AttachmentReqType {
   title?: string;
   /** Attachment URL to be uploaded via upload-by-url */
   url?: string;
+  /** The name of the attachment file name */
+  fileName?: string;
+}
+
+/**
+ * Model for File Request
+ */
+export interface FileReqType {
+  /** The mimetype of the file */
+  mimetype?: string;
+  /** The name of the input used to upload the file */
+  fieldname?: string;
+  /** The original name of the file */
+  originalname?: string;
+  /** The size of the file */
+  size?: number;
+  /** The encoding of the file */
+  encoding?: string;
+  /** An buffer array containing the file content */
+  buffer?: any;
 }
 
 /**
@@ -484,6 +504,7 @@ export type ColumnReqType = (
     view_id?: string;
   };
   title: string;
+  view_id?: string;
 };
 
 /**
@@ -5726,6 +5747,53 @@ export class Api<
       }),
 
     /**
+ * @description Duplicate a column
+ * 
+ * @tags DB Table
+ * @name DuplicateColumn
+ * @summary Duplicate Column
+ * @request POST:/api/v1/db/meta/duplicate/{baseId}/column/{columnId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    duplicateColumn: (
+      baseId: IdType,
+      columnId: IdType,
+      data: {
+        options?: {
+          excludeData?: boolean;
+        };
+        extra?: object;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/duplicate/${baseId}/column/${columnId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Update the order of the given Table
  * 
  * @tags DB Table
@@ -10308,7 +10376,9 @@ export class Api<
          */
         path: string;
       },
-      data: AttachmentReqType,
+      data: {
+        files: FileReqType[];
+      },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({

@@ -152,6 +152,17 @@ export interface DataListPayloadType {
   filters?: FilterType[];
 }
 
+export interface FileType {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  destination: string;
+  filename: string;
+  size: number;
+  path: string;
+}
+
 export interface DataListParamsType {
   limit?: string;
   offset?: string;

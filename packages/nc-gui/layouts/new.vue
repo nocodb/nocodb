@@ -92,27 +92,25 @@ export default {
                   <nuxt-link v-e="['c:navbar:user:email']" class="nc-base-menu-item group !no-underline" to="/account/users">
                     <MdiAccountCircleOutline class="mt-1 group-hover:text-accent" />&nbsp;
                     <div class="prose group-hover:text-primary">
-                      <div>Account</div>
+                      <div>{{ $t('labels.account') }}</div>
                       <div class="text-xs text-gray-500">{{ email }}</div>
                     </div>
                   </nuxt-link>
                 </a-menu-item>
 
                 <a-menu-divider class="!m-0" />
-                <!--                <a-menu-item v-if="isUIAllowed('superAdminAppStore')" key="0" class="!rounded-t">
+                <!-- <a-menu-item v-if="isUIAllowed('superAdminAppStore')" key="0" class="!rounded-t">
                   <nuxt-link
                     v-e="['c:settings:appstore', { page: true }]"
                     class="nc-base-menu-item group !no-underline"
                     to="/admin/users"
                   >
                     <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
-
-                    &lt;!&ndash; todo: i18n &ndash;&gt;
-                    <span class="prose group-hover:text-primary">Account management</span>
+                    <span class="prose group-hover:text-primary">{{ $t('title.accountManagement') }}</span>
                   </nuxt-link>
-                </a-menu-item>
+                </a-menu-item> -->
 
-                <a-menu-divider class="!m-0" /> -->
+                <a-menu-divider class="!m-0" />
 
                 <a-menu-item key="1" class="!rounded-b group" data-testid="nc-menu-accounts__sign-out">
                   <div

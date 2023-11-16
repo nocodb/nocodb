@@ -66,8 +66,8 @@ const formState = ref<ProjectCreateForm>({
   title: '',
   dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
   inflection: {
-    inflectionColumn: 'camelize',
-    inflectionTable: 'camelize',
+    inflectionColumn: 'none',
+    inflectionTable: 'none',
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
@@ -77,8 +77,8 @@ const customFormState = ref<ProjectCreateForm>({
   title: '',
   dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
   inflection: {
-    inflectionColumn: 'camelize',
-    inflectionTable: 'camelize',
+    inflectionColumn: 'none',
+    inflectionTable: 'none',
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
@@ -126,7 +126,7 @@ const validators = computed(() => {
     'title': [
       {
         required: true,
-        message: 'Source name is required',
+        message: t('labels.sourceNameRequired'),
       },
       baseTitleValidator,
     ],
@@ -614,7 +614,6 @@ const toggleModal = (val: boolean) => {
                   </a-form-item>
 
                   <a-divider />
-
                   <a-form-item :label="$t('labels.inflection.tableName')">
                     <a-select
                       v-model:value="formState.inflection.inflectionTable"

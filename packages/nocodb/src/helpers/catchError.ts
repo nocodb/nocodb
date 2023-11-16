@@ -1,3 +1,4 @@
+import type { NextFunction, Request, Response } from 'express';
 import type { ErrorObject } from 'ajv';
 
 export enum DBError {
@@ -384,9 +385,9 @@ export function extractDBError(error): {
 }
 
 export default function (
-  requestHandler: (req: any, res: any, next?: any) => any,
+  requestHandler: (req: Request, res: Response, next?: NextFunction) => any,
 ) {
-  return async function (req: any, res: any, next: any) {
+  return async function (req: Request, res: Response, next?: NextFunction) {
     try {
       return await requestHandler(req, res, next);
     } catch (e) {
@@ -436,23 +437,29 @@ export default function (
   };
 }
 
-export class BadRequest extends Error {}
+export class NcBaseError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}
 
-export class NotAllowed extends Error {}
+export class BadRequest extends NcBaseError {}
 
-export class Unauthorized extends Error {}
+export class NotAllowed extends NcBaseError {}
 
-export class Forbidden extends Error {}
+export class Unauthorized extends NcBaseError {}
 
-export class NotFound extends Error {}
+export class Forbidden extends NcBaseError {}
 
-export class InternalServerError extends Error {}
+export class NotFound extends NcBaseError {}
 
-export class NotImplemented extends Error {}
+export class InternalServerError extends NcBaseError {}
 
-export class UnprocessableEntity extends Error {}
+export class NotImplemented extends NcBaseError {}
 
-export class AjvError extends Error {
+export class UnprocessableEntity extends NcBaseError {}
+
+export class AjvError extends NcBaseError {
   constructor(param: { message: string; errors: ErrorObject[] }) {
     super(param.message);
     this.errors = param.errors;

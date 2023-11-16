@@ -1,4 +1,5 @@
-import { Controller, Get, Request, Response, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import { Request, Response } from 'express';
 import * as XLSX from 'xlsx';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { DatasService } from '~/services/datas.service';
@@ -17,7 +18,7 @@ export class DataAliasExportController {
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/export/excel',
   ])
   @Acl('exportExcel')
-  async excelDataExport(@Request() req, @Response() res) {
+  async excelDataExport(@Req() req: Request, @Res() res: Response) {
     const { model, view } =
       await this.datasService.getViewAndModelFromRequestByAliasOrId(req);
     let targetView = view;
@@ -44,7 +45,7 @@ export class DataAliasExportController {
     '/api/v1/db/data/:orgs/:baseName/:tableName/export/csv',
   ])
   @Acl('exportCsv')
-  async csvDataExport(@Request() req, @Response() res) {
+  async csvDataExport(@Req() req: Request, @Res() res: Response) {
     const { model, view } =
       await this.datasService.getViewAndModelFromRequestByAliasOrId(req);
     let targetView = view;

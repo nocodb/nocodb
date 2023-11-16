@@ -9,7 +9,7 @@ import {
   useProvideMapViewStore,
 } from '#imports'
 
-const { sharedView, meta, sorts, nestedFilters } = useSharedView()
+const { sharedView, meta, nestedFilters } = useSharedView()
 
 const reloadEventHook = createEventHook()
 
@@ -27,7 +27,7 @@ provide(IsPublicInj, ref(true))
 
 useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)
 
-useProvideSmartsheetStore(sharedView, meta, true, sorts, nestedFilters)
+useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
 
 useProvideMapViewStore(meta, sharedView, true)
 </script>

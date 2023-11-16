@@ -45,6 +45,8 @@ jobs:
           uses: actions/checkout@v3
           with:
             fetch-depth: 0
+        - name: remove use-node-version from .npmrc 
+          run:  sed -i '/^use-node-version/d' .npmrc
         - name: Get pnpm store directory
           shell: bash
           run: |
@@ -78,6 +80,8 @@ jobs:
           uses: actions/checkout@v3
           with:
             fetch-depth: 0
+        - name: remove use-node-version from .npmrc 
+          run:  sed -i '/^use-node-version/d' .npmrc           
         - name: Get pnpm store directory
           shell: bash
           run: |

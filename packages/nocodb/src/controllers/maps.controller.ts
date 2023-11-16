@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { MapUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MapsService } from '~/services/maps.service';
@@ -35,12 +36,13 @@ export class MapsController {
   async mapViewCreate(
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     const view = await this.mapsService.mapViewCreate({
       tableId,
       map: body,
       user: req.user,
+      req,
     });
     return view;
   }
@@ -50,10 +52,13 @@ export class MapsController {
   async mapViewUpdate(
     @Param('mapViewId') mapViewId: string,
     @Body() body: MapUpdateReqType,
+
+    @Req() req: Request,
   ) {
     return await this.mapsService.mapViewUpdate({
       mapViewId: mapViewId,
       map: body,
+      req,
     });
   }
 }

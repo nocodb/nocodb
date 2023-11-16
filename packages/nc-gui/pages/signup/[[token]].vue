@@ -238,7 +238,7 @@ onMounted(async () => {
 
       <div class="prose-sm mt-4 text-gray-500">
         {{ $t('msg.bySigningUp') }}
-        <a class="prose-sm !text-gray-500 underline" target="_blank" href="https://nocodb.com/policy-nocodb">
+        <a class="prose-sm !text-gray-500 underline" target="_blank" href="https://nocodb.com/policy-nocodb" rel="noopener">
           {{ $t('title.termsOfService') }}</a
         >
       </div>

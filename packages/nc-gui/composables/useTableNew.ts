@@ -49,6 +49,8 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
   const { loadTables, baseUrl, isXcdbBase } = useBase()
 
+  const { loadViews } = useViewsStore()
+
   const { openedViewsTab, viewsByTable } = storeToRefs(useViewsStore())
 
   const workspaceId = computed(() => route.value.params.typeOrId as string)
@@ -80,11 +82,12 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
       baseIdOrBaseId = route.value.params.baseId as string
     }
 
+    await getMeta(table.id as string, (route.value.params?.viewId as string) !== table.id)
+
+    await loadViews({ tableId: table.id as string })
+
     const views = viewsByTable.value.get(table.id as string) ?? []
-
-    getMeta(table.id as string, (route.value.params?.viewId as string) !== table.id)
-
-    if (openedViewsTab.value !== 'view' && views[0].id) {
+    if (openedViewsTab.value !== 'view' && views.length && views[0].id) {
       await navigateTo({
         path: `/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${views[0].id}/${openedViewsTab.value}`,
         query: route.value.query,
@@ -110,17 +113,29 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
     }
 
     const sqlUi = await basesStore.getSqlUi(baseId, sourceId)
+    const source = bases.value.get(baseId)?.sources?.find((s) => s.id === sourceId)
 
     if (!sqlUi) return
-    const columns = sqlUi?.getNewTableColumns().filter((col: ColumnType) => {
-      if (col.column_name === 'id' && table.columns.includes('id_ag')) {
-        Object.assign(col, sqlUi?.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
-        col.dtxp = sqlUi?.getDefaultLengthForDatatype(col.dt)
-        col.dtxs = sqlUi?.getDefaultScaleForDatatype(col.dt)
-        return true
-      }
-      return table.columns.includes(col.column_name!)
-    })
+    const columns = sqlUi
+      ?.getNewTableColumns()
+      .filter((col: ColumnType) => {
+        if (col.column_name === 'id' && table.columns.includes('id_ag')) {
+          Object.assign(col, sqlUi?.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
+          col.dtxp = sqlUi?.getDefaultLengthForDatatype(col.dt)
+          col.dtxs = sqlUi?.getDefaultScaleForDatatype(col.dt)
+          return true
+        }
+        return table.columns.includes(col.column_name!)
+      })
+      .map((column) => {
+        if (!source) return column
+
+        if (source.inflection_column !== 'camelize') {
+          column.title = column.column_name
+        }
+
+        return column
+      })
 
     try {
       const tableMeta = await $api.source.tableCreate(baseId, sourceId!, {
@@ -145,7 +160,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
   )
 
   const generateUniqueTitle = () => {
-    table.title = generateTitle('Untitled Table', tables.value, 'title')
+    table.title = generateTitle('Table', tables.value, 'title')
   }
 
   const deleteTable = (table: TableType) => {

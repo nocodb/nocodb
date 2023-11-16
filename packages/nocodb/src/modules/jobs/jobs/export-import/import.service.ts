@@ -2,11 +2,12 @@ import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import papaparse from 'papaparse';
 import debug from 'debug';
-import { isLinksOrLTAR } from 'nocodb-sdk';
+import { isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk';
 import { elapsedTime, initTime } from '../../helpers';
 import type { Readable } from 'stream';
 import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn, User, View } from '~/models';
+import type { NcRequest } from '~/interface/config';
 import {
   findWithIdentifier,
   generateUniqueName,
@@ -64,8 +65,9 @@ export class ImportService {
     data:
       | { models: { model: any; views: any[]; hooks?: any[] }[] }
       | { model: any; views: any[]; hooks?: any[] }[];
-    req: any;
+    req: NcRequest;
     externalModels?: Model[];
+    existingModel?: Model;
   }) {
     const hrTime = initTime();
 
@@ -91,6 +93,10 @@ export class ImportService {
     const linkMap = new Map<string, string>();
 
     param.data = Array.isArray(param.data) ? param.data : param.data.models;
+
+    // allow existing model to be linked
+    if (param.existingModel)
+      param.externalModels = [param.existingModel, ...param.externalModels];
 
     // allow existing models to be linked
     if (param.externalModels) {
@@ -126,43 +132,73 @@ export class ImportService {
       const modelData = data.model;
 
       const reducedColumnSet = modelData.columns.filter(
-        (a) =>
-          !isLinksOrLTAR(a) &&
-          a.uidt !== UITypes.Lookup &&
-          a.uidt !== UITypes.Rollup &&
-          a.uidt !== UITypes.Formula &&
-          a.uidt !== UITypes.ForeignKey,
+        (a) => !isVirtualCol(a) && a.uidt !== UITypes.ForeignKey,
       );
 
       // create table with static columns
-      const table = await this.tablesService.tableCreate({
-        baseId: base.id,
-        sourceId: source.id,
-        user: param.user,
-        table: withoutId({
-          ...modelData,
-          columns: reducedColumnSet.map((a) => withoutId(a)),
-        }),
-      });
+      const table =
+        param.existingModel ||
+        (await this.tablesService.tableCreate({
+          baseId: base.id,
+          sourceId: source.id,
+          user: param.user,
+          table: withoutId({
+            ...modelData,
+            columns: reducedColumnSet.map((a) => withoutId(a)),
+          }),
+        }));
 
       idMap.set(modelData.id, table.id);
 
-      // map column id's with new created column id's
-      for (const col of table.columns) {
-        const colRef = modelData.columns.find(
-          (a) => sanitizeColumnName(a.column_name) === col.column_name,
-        );
-        idMap.set(colRef.id, col.id);
+      if (param.existingModel) {
+        if (reducedColumnSet.length) {
+          for (const col of reducedColumnSet) {
+            const freshModelData = await this.columnsService.columnAdd({
+              tableId: getIdOrExternalId(getParentIdentifier(col.id)),
+              column: withoutId({
+                ...col,
+              }) as any,
+              req: param.req,
+              user: param.user,
+            });
 
-        // setval for auto increment column in pg
-        if (source.type === 'pg') {
-          if (modelData.pgSerialLastVal) {
-            if (col.ai) {
-              const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
-              await sqlClient.knex.raw(
-                `SELECT setval(pg_get_serial_sequence('??', ?), ?);`,
-                [table.table_name, col.column_name, modelData.pgSerialLastVal],
-              );
+            for (const nColumn of freshModelData.columns) {
+              if (nColumn.title === col.title) {
+                idMap.set(col.id, nColumn.id);
+                break;
+              }
+            }
+          }
+        }
+      } else {
+        // map column id's with new created column id's
+        for (const col of table.columns) {
+          const colRef = modelData.columns.find(
+            (a) =>
+              a.column_name &&
+              sanitizeColumnName(a.column_name) === col.column_name,
+          );
+          idMap.set(colRef.id, col.id);
+
+          // setval for auto increment column in pg
+          if (source.type === 'pg') {
+            if (modelData.pgSerialLastVal) {
+              if (col.ai) {
+                const baseModel = await Model.getBaseModelSQL({
+                  id: table.id,
+                  viewId: null,
+                  dbDriver: await NcConnectionMgrv2.get(source),
+                });
+                const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
+                await sqlClient.raw(
+                  `SELECT setval(pg_get_serial_sequence('??', ?), ?);`,
+                  [
+                    baseModel.getTnPath(table.table_name),
+                    col.column_name,
+                    modelData.pgSerialLastVal,
+                  ],
+                );
+              }
             }
           }
         }
@@ -382,7 +418,7 @@ export class ImportService {
                       ur: colOptions.ur,
                       dr: colOptions.dr,
                     },
-                  }),
+                  }) as any,
                   req: param.req,
                   user: param.user,
                 });
@@ -499,7 +535,7 @@ export class ImportService {
                       ur: colOptions.ur,
                       dr: colOptions.dr,
                     },
-                  }),
+                  }) as any,
                   req: param.req,
                   user: param.user,
                 });
@@ -621,7 +657,7 @@ export class ImportService {
                       ur: colOptions.ur,
                       dr: colOptions.dr,
                     },
-                  }),
+                  }) as any,
                   req: param.req,
                   user: param.user,
                 });
@@ -728,7 +764,9 @@ export class ImportService {
           (a) =>
             a.uidt === UITypes.Lookup ||
             a.uidt === UITypes.Rollup ||
-            a.uidt === UITypes.Formula,
+            a.uidt === UITypes.Formula ||
+            a.uidt === UITypes.QrCode ||
+            a.uidt === UITypes.Barcode,
         ),
       );
     }
@@ -753,6 +791,12 @@ export class ImportService {
             ...col.colOptions.formula.match(/(?<=\{\{).*?(?=\}\})/gm),
           );
         }
+      }
+      if (col.colOptions?.fk_qr_value_column_id) {
+        relatedColIds.push(col.colOptions.fk_qr_value_column_id);
+      }
+      if (col.colOptions?.fk_barcode_value_column_id) {
+        relatedColIds.push(col.colOptions.fk_barcode_value_column_id);
       }
 
       // find the last related column in the sorted array
@@ -792,7 +836,7 @@ export class ImportService {
                 colOptions.fk_relation_column_id,
               ),
             },
-          }),
+          }) as any,
           req: param.req,
           user: param.user,
         });
@@ -818,7 +862,7 @@ export class ImportService {
               ),
               rollup_function: colOptions.rollup_function,
             },
-          }),
+          }) as any,
           req: param.req,
           user: param.user,
         });
@@ -837,7 +881,50 @@ export class ImportService {
             ...{
               formula_raw: colOptions.formula_raw,
             },
-          }),
+          }) as any,
+          req: param.req,
+          user: param.user,
+        });
+
+        for (const nColumn of freshModelData.columns) {
+          if (nColumn.title === col.title) {
+            idMap.set(col.id, nColumn.id);
+            break;
+          }
+        }
+      } else if (col.uidt === UITypes.QrCode) {
+        const freshModelData = await this.columnsService.columnAdd({
+          tableId: getIdOrExternalId(getParentIdentifier(col.id)),
+          column: withoutId({
+            ...flatCol,
+            ...{
+              fk_qr_value_column_id: getIdOrExternalId(
+                colOptions.fk_qr_value_column_id,
+              ),
+            },
+          }) as any,
+          req: param.req,
+          user: param.user,
+        });
+
+        for (const nColumn of freshModelData.columns) {
+          if (nColumn.title === col.title) {
+            idMap.set(col.id, nColumn.id);
+            break;
+          }
+        }
+      } else if (col.uidt === UITypes.Barcode) {
+        flatCol.validate = null;
+        const freshModelData = await this.columnsService.columnAdd({
+          tableId: getIdOrExternalId(getParentIdentifier(col.id)),
+          column: withoutId({
+            ...flatCol,
+            ...{
+              fk_barcode_value_column_id: getIdOrExternalId(
+                colOptions.fk_barcode_value_column_id,
+              ),
+            },
+          }) as any,
           req: param.req,
           user: param.user,
         });
@@ -855,6 +942,8 @@ export class ImportService {
 
     // create views
     for (const data of param.data) {
+      if (param.existingModel) break;
+
       const modelData = data.model;
       const viewsData = data.views;
 
@@ -874,6 +963,7 @@ export class ImportService {
           viewData,
           table.views,
           param.user,
+          param.req,
         );
 
         if (!vw) continue;
@@ -892,6 +982,7 @@ export class ImportService {
               fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
             }),
             user: param.user,
+            req: param.req,
           });
 
           idMap.set(fl.id, fg.id);
@@ -905,6 +996,7 @@ export class ImportService {
               ...sr,
               fk_column_id: getIdOrExternalId(sr.fk_column_id),
             }),
+            req: param.req,
           });
         }
 
@@ -925,6 +1017,7 @@ export class ImportService {
               show: fcl.show,
               order: fcl.order,
             },
+            req: param.req,
           });
         }
 
@@ -941,6 +1034,7 @@ export class ImportService {
                 grid: {
                   ...withoutNull(rest),
                 },
+                req: param.req,
               });
             }
             break;
@@ -956,6 +1050,7 @@ export class ImportService {
                 formViewColumn: {
                   ...withoutNull(rest),
                 },
+                req: param.req,
               });
             }
             break;
@@ -972,6 +1067,7 @@ export class ImportService {
               order: view.order,
             },
             user: param.user,
+            req: param.req,
           });
         }
       }
@@ -981,6 +1077,7 @@ export class ImportService {
 
     // create hooks
     for (const data of param.data) {
+      if (param.existingModel) break;
       if (!data?.hooks) break;
       const modelData = data.model;
       const hookData = data.hooks;
@@ -998,7 +1095,8 @@ export class ImportService {
           tableId: table.id,
           hook: {
             ...hookData,
-          },
+          } as any,
+          req: param.req,
         });
 
         if (!hk) continue;
@@ -1015,6 +1113,7 @@ export class ImportService {
               fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
             }),
             user: param.user,
+            req: param.req,
           });
 
           idMap.set(fl.id, fg.id);
@@ -1033,6 +1132,7 @@ export class ImportService {
     vw: Partial<View>,
     views: View[],
     user: UserType,
+    req: NcRequest,
   ): Promise<View> {
     if (vw.is_default) {
       const view = views.find((a) => a.is_default);
@@ -1042,6 +1142,7 @@ export class ImportService {
           await this.gridsService.gridViewUpdate({
             viewId: view.id,
             grid: gridData,
+            req,
           });
         }
       }
@@ -1053,12 +1154,14 @@ export class ImportService {
         const gview = await this.gridsService.gridViewCreate({
           tableId: md.id,
           grid: vw as ViewCreateReqType,
+          req,
         });
         const gridData = withoutNull(vw.view);
         if (gridData) {
           await this.gridsService.gridViewUpdate({
             viewId: gview.id,
             grid: gridData,
+            req,
           });
         }
         return gview;
@@ -1068,12 +1171,14 @@ export class ImportService {
           tableId: md.id,
           body: vw as ViewCreateReqType,
           user,
+          req,
         });
         const formData = withoutNull(vw.view);
         if (formData) {
           await this.formsService.formViewUpdate({
             formViewId: fview.id,
             form: formData,
+            req,
           });
         }
         return fview;
@@ -1083,6 +1188,7 @@ export class ImportService {
           tableId: md.id,
           gallery: vw as ViewCreateReqType,
           user,
+          req,
         });
         const galleryData = withoutNull(vw.view);
         if (galleryData) {
@@ -1096,6 +1202,7 @@ export class ImportService {
           await this.galleriesService.galleryViewUpdate({
             galleryViewId: glview.id,
             gallery: galleryData,
+            req,
           });
         }
         return glview;
@@ -1105,6 +1212,7 @@ export class ImportService {
           tableId: md.id,
           kanban: vw as ViewCreateReqType,
           user,
+          req,
         });
         const kanbanData = withoutNull(vw.view);
         if (kanbanData) {
@@ -1150,6 +1258,7 @@ export class ImportService {
           await this.kanbansService.kanbanViewUpdate({
             kanbanViewId: kview.id,
             kanban: kanbanData,
+            req,
           });
         }
         return kview;
@@ -1169,7 +1278,7 @@ export class ImportService {
       url?: string;
       file?: any;
     };
-    req: any;
+    req: NcRequest;
   }) {
     const hrTime = initTime();
 

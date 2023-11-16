@@ -3,9 +3,10 @@ import {
   HttpCode,
   Inject,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { SyncSource } from '~/models';
@@ -24,7 +25,7 @@ export class AtImportController {
   ])
   @Acl('airtableImport')
   @HttpCode(200)
-  async triggerSync(@Request() req) {
+  async triggerSync(@Req() req: Request) {
     const jobs = await this.jobsService.jobList();
     const fnd = jobs.find((j) => j.data.syncId === req.params.syncId);
 
@@ -53,6 +54,11 @@ export class AtImportController {
       authToken: '',
       baseURL,
       user: user,
+      req: {
+        user: req.user,
+        clientIp: req.clientIp,
+        headers: req.headers,
+      },
     });
 
     return { id: job.id };
@@ -64,7 +70,7 @@ export class AtImportController {
   ])
   @Acl('airtableImport')
   @HttpCode(200)
-  async abortImport(@Request() _) {
+  async abortImport() {
     return {};
   }
 }

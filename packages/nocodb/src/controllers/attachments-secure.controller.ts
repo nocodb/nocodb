@@ -6,8 +6,8 @@ import {
   HttpCode,
   Param,
   Post,
-  Request,
-  Response,
+  Req,
+  Res,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -15,6 +15,9 @@ import {
 import hash from 'object-hash';
 import moment from 'moment';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
+import type { Request } from 'express';
+import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { AttachmentsService } from '~/services/attachments.service';
 import { PresignedUrl } from '~/models';
@@ -29,12 +32,16 @@ export class AttachmentsSecureController {
   @Post(['/api/v1/db/storage/upload', '/api/v2/storage/upload'])
   @HttpCode(200)
   @UseInterceptors(UploadAllowedInterceptor, AnyFilesInterceptor())
-  async upload(@UploadedFiles() files: Array<any>, @Request() req) {
+  async upload(
+    @UploadedFiles() files: Array<FileType>,
+    @Req() req: Request & { user: { id: string } },
+  ) {
     const path = `${moment().format('YYYY/MM/DD')}/${hash(req.user.id)}`;
 
     const attachments = await this.attachmentsService.upload({
       files: files,
       path: path,
+      req,
     });
 
     return attachments;
@@ -44,27 +51,31 @@ export class AttachmentsSecureController {
   @HttpCode(200)
   @UseInterceptors(UploadAllowedInterceptor)
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  async uploadViaURL(@Body() body: any, @Request() req) {
+  async uploadViaURL(
+    @Body() body: Array<AttachmentReqType>,
+    @Req() req: Request & { user: { id: string } },
+  ) {
     const path = `${moment().format('YYYY/MM/DD')}/${hash(req.user.id)}`;
 
     const attachments = await this.attachmentsService.uploadViaURL({
       urls: body,
       path,
+      req,
     });
 
     return attachments;
   }
 
   @Get('/dltemp/:param(*)')
-  async fileReadv3(@Param('param') param: string, @Response() res) {
+  async fileReadv3(@Param('param') param: string, @Res() res: Response) {
     try {
       const fpath = await PresignedUrl.getPath(`dltemp/${param}`);
 
-      const { img } = await this.attachmentsService.fileRead({
+      const file = await this.attachmentsService.getFile({
         path: path.join('nc', 'uploads', fpath),
       });
 
-      res.sendFile(img);
+      res.sendFile(file.path);
     } catch (e) {
       res.status(404).send('Not found');
     }

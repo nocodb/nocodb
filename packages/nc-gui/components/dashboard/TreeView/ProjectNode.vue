@@ -26,6 +26,7 @@ import {
   useDialog,
   useGlobal,
   useI18n,
+  useNuxtApp,
   useRoles,
   useRouter,
   useTablesStore,
@@ -33,7 +34,6 @@ import {
   useToggle,
 } from '#imports'
 import type { NcProject } from '#imports'
-import { useNuxtApp } from '#app'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -514,7 +514,7 @@ const projectDelete = () => {
                     @click.stop="
                       () => {
                         $e('c:base:api-docs')
-                        openLink(`/api/v1/db/meta/projects/${base.id}/swagger`, appInfo.ncSiteUrl)
+                        openLink(`/api/v2/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)
                       }
                     "
                   >

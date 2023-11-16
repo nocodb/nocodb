@@ -17,14 +17,19 @@ import type {
   ViewType,
 } from 'nocodb-sdk';
 
-export interface ProjectInviteEvent {
+export interface NcBaseEvent extends NcBaseEvent {
+  req: NcRequest;
+  clientId?: string;
+}
+
+export interface ProjectInviteEvent extends NcBaseEvent {
   base: BaseType;
   user: UserType;
   invitedBy: UserType;
   ip?: string;
 }
 
-export interface ProjectUserUpdateEvent {
+export interface ProjectUserUpdateEvent extends NcBaseEvent {
   base: BaseType;
   user: UserType;
   baseUser: ProjectUserReqType;
@@ -32,7 +37,7 @@ export interface ProjectUserUpdateEvent {
   ip?: string;
 }
 
-export interface ProjectUserResendInviteEvent {
+export interface ProjectUserResendInviteEvent extends NcBaseEvent {
   base: BaseType;
   user: UserType;
   baseUser: ProjectUserReqType;
@@ -40,82 +45,82 @@ export interface ProjectUserResendInviteEvent {
   ip?: string;
 }
 
-export interface ProjectCreateEvent {
+export interface ProjectCreateEvent extends NcBaseEvent {
   base: BaseType;
   user: UserType;
   xcdb: boolean;
 }
 
-export interface ProjectUpdateEvent {
+export interface ProjectUpdateEvent extends NcBaseEvent {
   base: BaseType;
   user: UserType;
 }
 
-export interface ProjectDeleteEvent {
+export interface ProjectDeleteEvent extends NcBaseEvent {
   base: BaseType;
   user: UserType;
 }
 
-export interface WelcomeEvent {
+export interface WelcomeEvent extends NcBaseEvent {
   user: UserType;
 }
 
-export interface UserSignupEvent {
+export interface UserSignupEvent extends NcBaseEvent {
   user: UserType;
   ip?: string;
 }
 
-export interface UserSigninEvent {
+export interface UserSigninEvent extends NcBaseEvent {
   user: UserType;
   ip?: string;
   auditDescription?: string;
 }
 
-export interface ApiCreatedEvent {
+export interface ApiCreatedEvent extends NcBaseEvent {
   info: any;
 }
 
-export interface UserPasswordChangeEvent {
+export interface UserPasswordChangeEvent extends NcBaseEvent {
   user: UserType;
   ip?: string;
 }
 
-export interface UserPasswordForgotEvent {
+export interface UserPasswordForgotEvent extends NcBaseEvent {
   user: UserType;
   ip?: string;
 }
 
-export interface UserPasswordResetEvent {
+export interface UserPasswordResetEvent extends NcBaseEvent {
   user: UserType;
   ip?: string;
 }
 
-export interface UserEmailVerificationEvent {
+export interface UserEmailVerificationEvent extends NcBaseEvent {
   user: UserType;
   ip?: string;
 }
 
-export interface TableEvent {
+export interface TableEvent extends NcBaseEvent {
   table: TableType;
   user: UserType;
   ip?: string;
 }
 
-export interface ViewEvent {
+export interface ViewEvent extends NcBaseEvent {
   view: ViewType;
   user?: UserType;
   ip?: string;
   showAs?: string;
 }
 
-export interface FilterEvent {
+export interface FilterEvent extends NcBaseEvent {
   filter: FilterType;
   ip?: string;
   hook?: HookType;
   view?: ViewType;
 }
 
-export interface ColumnEvent {
+export interface ColumnEvent extends NcBaseEvent {
   table: TableType;
   oldColumn?: ColumnType;
   column: ColumnType;
@@ -123,75 +128,75 @@ export interface ColumnEvent {
   ip?: string;
 }
 
-export interface SortEvent {
+export interface SortEvent extends NcBaseEvent {
   sort: SortType;
   ip?: string;
 }
 
-export interface OrgUserInviteEvent {
+export interface OrgUserInviteEvent extends NcBaseEvent {
   invitedBy: UserType;
   user: UserType;
   count?: number;
   ip?: string;
 }
 
-export interface ViewColumnEvent {
+export interface ViewColumnEvent extends NcBaseEvent {
   // todo: type
   viewColumn: any;
 }
 
-export interface RelationEvent {
+export interface RelationEvent extends NcBaseEvent {
   column: ColumnType;
 }
 
-export interface WebhookEvent {
+export interface WebhookEvent extends NcBaseEvent {
   hook: HookType;
 }
 
-export interface ApiTokenCreateEvent {
+export interface ApiTokenCreateEvent extends NcBaseEvent {
   userId: string;
   tokenBody: ApiTokenReqType;
 }
 
-export interface ApiTokenDeleteEvent {
+export interface ApiTokenDeleteEvent extends NcBaseEvent {
   userId: string;
   token: string;
 }
 
-export interface PluginTestEvent {
+export interface PluginTestEvent extends NcBaseEvent {
   testBody: PluginTestReqType;
 }
 
-export interface PluginEvent {
+export interface PluginEvent extends NcBaseEvent {
   plugin: PluginType;
 }
 
-export interface SharedBaseEvent {
+export interface SharedBaseEvent extends NcBaseEvent {
   link?: string;
   base?: BaseType;
 }
 
-export interface BaseEvent {
+export interface BaseEvent extends NcBaseEvent {
   source: SourceType;
 }
 
-export interface AttachmentEvent {
+export interface AttachmentEvent extends NcBaseEvent {
   type: 'url' | 'file';
 }
 
-export interface FormColumnEvent {}
+export interface FormColumnEvent extends NcBaseEvent {}
 
-export interface GridColumnEvent {}
+export interface GridColumnEvent extends NcBaseEvent {}
 
-export interface MetaDiffEvent {
+export interface MetaDiffEvent extends NcBaseEvent {
   base: BaseType;
   source?: SourceType;
 }
-export interface UIAclEvent {
+export interface UIAclEvent extends NcBaseEvent {
   base: BaseType;
 }
 
-export interface SyncSourceEvent {
+export interface SyncSourceEvent extends NcBaseEvent {
   syncSource: Partial<SyncSource>;
 }
 

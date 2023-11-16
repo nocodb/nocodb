@@ -17,13 +17,15 @@ import {
   useSharedView,
 } from '#imports'
 
-const { sharedView, meta, sorts, nestedFilters } = useSharedView()
+const { sharedView, meta, nestedFilters } = useSharedView()
 
 const { signedIn } = useGlobal()
 
 const { loadProject } = useBase()
 
-const { isLocked } = useProvideSmartsheetStore(sharedView, meta, true, sorts, nestedFilters)
+const { isLocked } = useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
+
+useProvideKanbanViewStore(meta, sharedView)
 
 const reloadEventHook = createEventHook()
 

@@ -50,17 +50,13 @@
       "dom"
     ],
     "types": [
-      "mocha", "node"
+      "mocha",
+      "node"
     ],
     "typeRoots": [
-      "node_modules/@types",
-      "src/types"
+      "../../src/types",
+      "../../node_modules/@types"
     ]
-  },
-  "parserOptions": {
-    "sourceType": "module",
-    "tsconfigRootDir": "./",
-    "project": "./tsconfig.json"
   },
   "include": [
     "./tests/**/**/**.ts",

@@ -175,7 +175,7 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                     v-bind="validateInfos.emails"
                     validate-trigger="onBlur"
                     name="emails"
-                    :rules="[{ required: true, message: 'Please input email' }]"
+                    :rules="[{ required: true, message: $t('msg.plsInputEmail') }]"
                   >
                     <div class="ml-1 mb-1 text-xs text-gray-500" data-rec="true">{{ $t('datatype.Email') }}:</div>
 
@@ -190,9 +190,8 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                 </div>
 
                 <div class="flex flex-col w-2/4">
-                  <a-form-item name="role" :rules="[{ required: true, message: 'Role required' }]">
-                    <div class="ml-1 mb-1 text-xs text-gray-500" data-rec="true">{{ $t('labels.selectUserRole') }}</div>
-
+                  <a-form-item name="role" :rules="[{ required: true, message: $t('msg.roleRequired') }]">
+                    <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
                     <a-select v-model:value="usersData.role" class="nc-user-roles" dropdown-class-name="nc-dropdown-user-role">
                       <a-select-option
                         class="nc-role-option"

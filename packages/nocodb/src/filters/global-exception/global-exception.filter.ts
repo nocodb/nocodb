@@ -18,10 +18,10 @@ import {
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   constructor(
-    @Optional() @InjectSentry() private readonly sentryClient: SentryService,
+    @Optional() @InjectSentry() protected readonly sentryClient: SentryService,
   ) {}
 
-  private logger = new Logger(GlobalExceptionFilter.name);
+  protected logger = new Logger(GlobalExceptionFilter.name);
 
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -43,10 +43,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception instanceof ThrottlerException
       )
     )
-      this.logger.error(exception.message, exception.stack);
+      this.logError(exception, request);
 
     if (exception instanceof ThrottlerException) {
-      this.logger.log(
+      this.logger.warn(
         `${exception.message}, Path : ${request.path}, Workspace ID : ${
           (request as any).ncWorkspaceId
         }, Project ID : ${(request as any).ncProjectId}`,
@@ -106,12 +106,20 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception.getStatus?.()) {
       response.status(exception.getStatus()).json(exception.getResponse());
     } else {
-      this.sentryClient?.instance().captureException(exception);
+      this.captureException(exception, request);
 
       // todo: change the response code
       response.status(400).json({
         msg: exception.message,
       });
     }
+  }
+
+  protected captureException(exception: any, _request: any) {
+    this.sentryClient?.instance().captureException(exception);
+  }
+
+  protected logError(exception: any, _request: any) {
+    this.logger.error(exception.message, exception.stack);
   }
 }

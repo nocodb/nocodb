@@ -51,9 +51,22 @@ const openHeaderMenu = () => {
   }
 }
 
-const openDropDown = () => {
+const openDropDown = (e: Event) => {
   if (isForm.value || isExpandedForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value)) return
+
+  e.preventDefault()
+  e.stopPropagation()
+
   isDropDownOpen.value = !isDropDownOpen.value
+}
+
+const onClick = (e: Event) => {
+  if (isDropDownOpen.value) {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  isDropDownOpen.value = false
 }
 </script>
 
@@ -63,7 +76,7 @@ const openDropDown = () => {
     :class="{ 'h-full': column, '!text-gray-400': isKanban }"
     @dblclick="openHeaderMenu"
     @click.right="openDropDown"
-    @click="isDropDownOpen = false"
+    @click="onClick"
   >
     <SmartsheetHeaderCellIcon
       v-if="column && !props.hideIcon"

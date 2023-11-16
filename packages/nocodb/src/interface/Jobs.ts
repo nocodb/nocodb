@@ -1,14 +1,16 @@
 export const JOBS_QUEUE = 'jobs';
 
 export enum JobTypes {
-  DuplicateBase = 'duplicate-source',
+  DuplicateBase = 'duplicate-base',
   DuplicateModel = 'duplicate-model',
+  DuplicateColumn = 'duplicate-column',
   AtImport = 'at-import',
   MetaSync = 'meta-sync',
-  BaseCreate = 'base-create',
-  BaseDelete = 'base-delete',
+  SourceCreate = 'source-create',
+  SourceDelete = 'source-delete',
   UpdateModelStat = 'update-model-stat',
   UpdateWsStat = 'update-ws-stats',
+  UpdateSrcStat = 'update-source-stat',
 }
 
 export enum JobStatus {
@@ -24,4 +26,15 @@ export enum JobStatus {
 export enum JobEvents {
   STATUS = 'job.status',
   LOG = 'job.log',
+}
+
+export enum InstanceTypes {
+  PRIMARY = 'primary',
+  WORKER = 'worker',
+}
+
+export enum WorkerCommands {
+  RESUME_LOCAL = 'resumeLocal',
+  PAUSE_LOCAL = 'pauseLocal',
+  RESET = 'reset',
 }

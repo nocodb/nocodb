@@ -8,9 +8,10 @@ import {
   Patch,
   Post,
   Query,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ViewUpdateReqType } from 'nocodb-sdk';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -28,7 +29,7 @@ export class ViewsController {
     '/api/v2/meta/tables/:tableId/views',
   ])
   @Acl('viewList')
-  async viewList(@Param('tableId') tableId: string, @Request() req) {
+  async viewList(@Param('tableId') tableId: string, @Req() req: Request) {
     return new PagedResponseImpl(
       await this.viewsService.viewList({
         tableId,
@@ -42,22 +43,24 @@ export class ViewsController {
   async viewUpdate(
     @Param('viewId') viewId: string,
     @Body() body: ViewUpdateReqType,
-    @Request() req,
+    @Req() req: Request,
   ) {
     const result = await this.viewsService.viewUpdate({
       viewId,
       view: body,
       user: req.user,
+      req,
     });
     return result;
   }
 
   @Delete(['/api/v1/db/meta/views/:viewId', '/api/v2/meta/views/:viewId'])
   @Acl('viewDelete')
-  async viewDelete(@Param('viewId') viewId: string, @Request() req) {
+  async viewDelete(@Param('viewId') viewId: string, @Req() req: Request) {
     const result = await this.viewsService.viewDelete({
       viewId,
       user: req.user,
+      req,
     });
     return result;
   }
@@ -99,8 +102,8 @@ export class ViewsController {
   ])
   @HttpCode(200)
   @Acl('shareView')
-  async shareView(@Param('viewId') viewId: string, @Request() req) {
-    return await this.viewsService.shareView({ viewId, user: req.user });
+  async shareView(@Param('viewId') viewId: string, @Req() req: Request) {
+    return await this.viewsService.shareView({ viewId, user: req.user, req });
   }
 
   @Get([
@@ -124,12 +127,13 @@ export class ViewsController {
   async shareViewUpdate(
     @Param('viewId') viewId: string,
     @Body() body: ViewUpdateReqType,
-    @Request() req,
+    @Req() req: Request,
   ) {
     return await this.viewsService.shareViewUpdate({
       viewId,
       sharedView: body,
       user: req.user,
+      req,
     });
   }
 
@@ -138,7 +142,11 @@ export class ViewsController {
     '/api/v2/meta/views/:viewId/share',
   ])
   @Acl('shareViewDelete')
-  async shareViewDelete(@Param('viewId') viewId: string, @Request() req) {
-    return await this.viewsService.shareViewDelete({ viewId, user: req.user });
+  async shareViewDelete(@Param('viewId') viewId: string, @Req() req: Request) {
+    return await this.viewsService.shareViewDelete({
+      viewId,
+      user: req.user,
+      req,
+    });
   }
 }

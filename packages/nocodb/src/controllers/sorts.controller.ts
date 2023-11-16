@@ -44,11 +44,12 @@ export class SortsController {
   async sortCreate(
     @Param('viewId') viewId: string,
     @Body() body: SortReqType,
-    @Req() _req,
+    @Req() req: Request,
   ) {
     const sort = await this.sortsService.sortCreate({
       sort: body,
       viewId,
+      req,
     });
     return sort;
   }
@@ -67,20 +68,22 @@ export class SortsController {
   async sortUpdate(
     @Param('sortId') sortId: string,
     @Body() body: SortReqType,
-    @Req() _req,
+    @Req() req: Request,
   ) {
     const sort = await this.sortsService.sortUpdate({
       sortId,
       sort: body,
+      req,
     });
     return sort;
   }
 
   @Delete(['/api/v1/db/meta/sorts/:sortId', '/api/v2/meta/sorts/:sortId'])
   @Acl('sortDelete')
-  async sortDelete(@Param('sortId') sortId: string, @Req() _req) {
+  async sortDelete(@Param('sortId') sortId: string, @Req() req: Request) {
     const sort = await this.sortsService.sortDelete({
       sortId,
+      req,
     });
     return sort;
   }

@@ -90,8 +90,10 @@ const onStatus = async (status: JobStatus, data?: any) => {
     refreshCommandPalette()
     // TODO: add tab of the first table
   } else if (status === JobStatus.FAILED) {
+    await loadTables()
     goBack.value = true
     pushProgress(data.error.message, status)
+    refreshCommandPalette()
   }
 }
 
@@ -115,7 +117,10 @@ const { validateInfos } = useForm(syncSource, validators)
 
 const disableImportButton = computed(() => !syncSource.value.details.apiKey || !syncSource.value.details.syncSourceUrlOrId)
 
+const isLoading = ref(false)
+
 async function saveAndSync() {
+  isLoading.value = true
   await createOrUpdate()
   await sync()
 }
@@ -178,6 +183,7 @@ async function listenForUpdates(id?: string) {
         }
       } else {
         listeningForUpdates.value = false
+        isLoading.value = false
       }
     },
   )
@@ -309,6 +315,9 @@ onMounted(async () => {
   <a-modal
     v-model:visible="dialogShow"
     :class="{ active: dialogShow }"
+    :closable="step !== 2"
+    :keyboard="step !== 2"
+    :mask-closable="step !== 2"
     width="max(30vw, 600px)"
     class="p-2"
     wrap-class-name="nc-modal-airtable-import"
@@ -324,9 +333,10 @@ onMounted(async () => {
           <span class="mr-3 pt-2 text-gray-500 text-xs">{{ $t('general.credentials') }}</span>
           <!--          Where to find this? -->
           <a
-            href="https://docs.nocodb.com/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free/#get-airtable-credentials"
+            href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
             class="prose-sm underline text-grey text-xs"
             target="_blank"
+            rel="noopener"
           >
             {{ $t('msg.info.airtable.credentials') }}
           </a>
@@ -346,7 +356,7 @@ onMounted(async () => {
             <a-input
               v-model:value="syncSource.details.syncSourceUrlOrId"
               class="nc-input-shared-base"
-              :placeholder="`${$t('labels.sharedBase')} URL`"
+              :placeholder="`${$t('labels.sharedBaseUrl')}`"
               size="large"
             />
           </a-form-item>
@@ -411,7 +421,7 @@ onMounted(async () => {
 
         <!--        Questions / Help - Reach out here -->
         <div>
-          <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank">
+          <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank" rel="noopener noreferrer">
             {{ $t('general.questions') }} / {{ $t('general.help') }} - {{ $t('general.reachOut') }}</a
           >
 
@@ -419,7 +429,12 @@ onMounted(async () => {
           <!--          This feature is currently in beta and more information can be found here -->
           <div>
             {{ $t('general.betaNote') }}
-            <a class="prose-sm" href="https://github.com/nocodb/nocodb/discussions/2122" target="_blank">
+            <a
+              class="prose-sm"
+              href="https://github.com/nocodb/nocodb/discussions/2122"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {{ $t('general.moreInfo') }}
             </a>
             .
@@ -485,6 +500,7 @@ onMounted(async () => {
           v-e="['c:sync-airtable:save-and-sync']"
           type="primary"
           class="nc-btn-airtable-import"
+          :loading="isLoading"
           :disabled="disableImportButton"
           @click="saveAndSync"
         >

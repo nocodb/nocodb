@@ -68,6 +68,10 @@ export class QueueService {
       this: this.duplicateProcessor,
       fn: this.duplicateProcessor.duplicateModel,
     },
+    [JobTypes.DuplicateColumn]: {
+      this: this.duplicateProcessor,
+      fn: this.duplicateProcessor.duplicateColumn,
+    },
     [JobTypes.AtImport]: {
       this: this.atImportProcessor,
       fn: this.atImportProcessor.job,
@@ -76,11 +80,11 @@ export class QueueService {
       this: this.metaSyncProcessor,
       fn: this.metaSyncProcessor.job,
     },
-    [JobTypes.BaseCreate]: {
+    [JobTypes.SourceCreate]: {
       this: this.sourceCreateProcessor,
       fn: this.sourceCreateProcessor.job,
     },
-    [JobTypes.BaseDelete]: {
+    [JobTypes.SourceDelete]: {
       this: this.sourceDeleteProcessor,
       fn: this.sourceDeleteProcessor.job,
     },

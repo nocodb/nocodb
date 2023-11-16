@@ -27,7 +27,7 @@ import {
   MetaTable,
 } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
-import { stringifyMetaProp } from '~/utils/modelUtils';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 const selectColors = [
   '#cfdffe',
@@ -99,6 +99,7 @@ export default class Column<T = any> implements ColumnType {
       [key: string]: any;
       fk_model_id: string;
       uidt: UITypes | string;
+      view_id?: string;
     } & Pick<ColumnReqType, 'column_order'>,
     ncMeta = Noco.ncMeta,
   ) {
@@ -185,7 +186,7 @@ export default class Column<T = any> implements ColumnType {
       {
         fk_column_id: row.id,
         fk_model_id: column.fk_model_id,
-        show: true,
+        show: !column.view_id,
         column_order: column.column_order,
       },
       ncMeta,
@@ -195,6 +196,27 @@ export default class Column<T = any> implements ColumnType {
       CacheScope.SINGLE_QUERY,
       `${column.fk_model_id}:default:*`,
     );
+
+    if (column.view_id) {
+      const viewColId = await View.getViewColumnId(
+        {
+          viewId: column.view_id,
+          colId: row.id,
+        },
+        ncMeta,
+      );
+
+      if (viewColId) {
+        await View.updateColumn(
+          column.view_id,
+          viewColId,
+          {
+            show: true,
+          },
+          ncMeta,
+        );
+      }
+    }
 
     return col;
   }
@@ -496,13 +518,7 @@ export default class Column<T = any> implements ColumnType {
       });
 
       columnsList.forEach((column) => {
-        if (column.meta && typeof column.meta === 'string') {
-          try {
-            column.meta = JSON.parse(column.meta);
-          } catch {
-            column.meta = {};
-          }
-        }
+        column.meta = parseMetaProp(column);
       });
 
       await NocoCache.setList(CacheScope.COLUMN, [fk_model_id], columnsList);
@@ -1277,7 +1293,7 @@ export default class Column<T = any> implements ColumnType {
       null,
       MetaTable.COLUMNS,
       {
-        meta: stringifyMetaProp(meta),
+        meta: stringifyMetaProp({ meta }),
       },
       colId,
     );

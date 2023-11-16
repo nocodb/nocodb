@@ -34,12 +34,13 @@ import {
   useI18n,
   useNuxtApp,
   useTabs,
+  validateTableName,
 } from '#imports'
 
 const { quickImportType, baseTemplate, importData, importColumns, importDataOnly, maxRowsToParse, sourceId, importWorker } =
   defineProps<Props>()
 
-const emit = defineEmits(['import'])
+const emit = defineEmits(['import', 'error', 'change'])
 
 dayjs.extend(utc)
 
@@ -95,6 +96,8 @@ const importingTips = ref<Record<string, string>>({})
 
 const checkAllRecord = ref<boolean[]>([])
 
+const formError = ref()
+
 const uiTypeOptions = ref<Option[]>(
   (Object.keys(UITypes) as (keyof typeof UITypes)[])
     .filter(
@@ -124,11 +127,14 @@ const data = reactive<{
 
 const validators = computed(() =>
   data.tables.reduce<Record<string, [ReturnType<typeof fieldRequiredValidator>]>>((acc: Record<string, any>, table, tableIdx) => {
-    acc[`tables.${tableIdx}.table_name`] = [fieldRequiredValidator()]
+    acc[`tables.${tableIdx}.table_name`] = [validateTableName]
     hasSelectColumn.value[tableIdx] = false
 
     table.columns?.forEach((column, columnIdx) => {
-      acc[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = [fieldRequiredValidator(), fieldLengthValidator()]
+      acc[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = [
+        fieldRequiredValidator(),
+        fieldLengthValidator(base.value?.sources?.[0].type || ClientType.MYSQL),
+      ]
       acc[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = [fieldRequiredValidator()]
       if (isSelect(column)) {
         hasSelectColumn.value[tableIdx] = true
@@ -139,9 +145,11 @@ const validators = computed(() =>
   }, {}),
 )
 
-const { validate, validateInfos } = useForm(data, validators)
+const { validate, validateInfos, modelRef } = useForm(data, validators)
 
 const isValid = ref(!importDataOnly)
+
+const formRef = ref()
 
 watch(
   () => srcDestMapping.value,
@@ -674,6 +682,39 @@ function handleUIDTChange(column, table) {
     ])
   }
 }
+
+const setErrorState = (errorsFields: any[]) => {
+  const errorMap: any = {}
+  for (const error of errorsFields) {
+    errorMap[error.name] = error.errors
+  }
+
+  formError.value = errorMap
+}
+
+watch(formRef, () => {
+  setTimeout(async () => {
+    try {
+      await validate()
+      emit('change')
+      formError.value = null
+    } catch (e: any) {
+      emit('error', e)
+      setErrorState(e.errorFields)
+    }
+  }, 500)
+})
+
+watch(modelRef, async () => {
+  try {
+    await validate()
+    emit('change')
+    formError.value = null
+  } catch (e: any) {
+    emit('error', e)
+    setErrorState(e.errorFields)
+  }
+})
 </script>
 
 <template>
@@ -694,7 +735,7 @@ function handleUIDTChange(column, table) {
       <a-collapse v-if="data.tables && data.tables.length" v-model:activeKey="expansionPanel" class="template-collapse" accordion>
         <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx">
           <template #header>
-            <span class="font-weight-bold text-lg flex items-center gap-2">
+            <span class="font-weight-bold text-lg flex items-center gap-2 truncate">
               <component :is="iconMap.table" class="text-primary" />
               {{ table.table_name }}
             </span>
@@ -703,8 +744,7 @@ function handleUIDTChange(column, table) {
           <template #extra>
             <a-tooltip bottom>
               <template #title>
-                <!-- TODO: i18n -->
-                <span>Delete Table</span>
+                <span>{{ $t('activity.deleteTable') }}</span>
               </template>
               <component
                 :is="iconMap.delete"
@@ -770,7 +810,7 @@ function handleUIDTChange(column, table) {
     </a-card>
 
     <a-card v-else>
-      <a-form :model="data" name="template-editor-form" @keydown.enter="emit('import')">
+      <a-form ref="formRef" :model="data" name="template-editor-form" @keydown.enter="emit('import')">
         <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
           {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
           available for import
@@ -784,29 +824,30 @@ function handleUIDTChange(column, table) {
         >
           <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx">
             <template #header>
-              <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
-                <a-input
-                  v-model:value.lazy="table.table_name"
-                  class="max-w-xs font-weight-bold text-lg"
-                  size="large"
-                  hide-details
-                  :bordered="false"
-                  @click.stop
-                  @blur="handleEditableTnChange(tableIdx)"
-                  @keydown.enter="handleEditableTnChange(tableIdx)"
-                />
+              <a-form-item v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
+                <div class="flex flex-col w-full">
+                  <a-input
+                    v-model:value="table.table_name"
+                    class="font-weight-bold text-lg"
+                    size="large"
+                    hide-details
+                    :bordered="false"
+                    @click.stop
+                    @blur="handleEditableTnChange(tableIdx)"
+                    @keydown.enter="handleEditableTnChange(tableIdx)"
+                    @dblclick="setEditableTn(tableIdx, true)"
+                  />
+                  <div v-if="formError?.[`tables.${tableIdx}.table_name`]" class="text-red-500 ml-3">
+                    {{ formError?.[`tables.${tableIdx}.table_name`].join('\n') }}
+                  </div>
+                </div>
               </a-form-item>
-              <span v-else class="font-weight-bold text-lg flex items-center gap-2" @click="setEditableTn(tableIdx, true)">
-                <component :is="iconMap.table" class="text-primary" />
-                {{ table.table_name }}
-              </span>
             </template>
 
             <template #extra>
               <a-tooltip bottom>
                 <template #title>
-                  <!-- TODO: i18n -->
-                  <span>Delete Table</span>
+                  <span>{{ $t('activity.deleteTable') }}</span>
                 </template>
                 <component
                   :is="iconMap.delete"
@@ -843,8 +884,7 @@ function handleUIDTChange(column, table) {
 
                 <template v-else-if="column.key === 'dtxp' && hasSelectColumn[tableIdx]">
                   <span>
-                    <!-- TODO: i18n -->
-                    Options
+                    {{ $t('general.options') }}
                   </span>
                 </template>
               </template>
@@ -869,7 +909,11 @@ function handleUIDTChange(column, table) {
                       <a-select-option v-for="(option, i) of uiTypeOptions" :key="i" :value="option.value">
                         <a-tooltip placement="right">
                           <template v-if="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)" #title>
-                            The field is too large to be converted to {{ option.label }}
+                            {{
+                              $t('msg.tooLargeFieldEntity', {
+                                entity: option.label,
+                              })
+                            }}
                           </template>
                           {{ option.label }}
                         </a-tooltip>
@@ -887,8 +931,7 @@ function handleUIDTChange(column, table) {
                 <template v-if="column.key === 'action'">
                   <a-tooltip v-if="record.key === 0">
                     <template #title>
-                      <!-- TODO: i18n -->
-                      <span>Primary Value</span>
+                      <span>{{ $t('general.primaryValue') }}</span>
                     </template>
 
                     <div class="flex items-center float-right mr-4">
@@ -898,8 +941,7 @@ function handleUIDTChange(column, table) {
 
                   <a-tooltip v-else>
                     <template #title>
-                      <!-- TODO: i18n -->
-                      <span>Delete Column</span>
+                      <span>{{ $t('activity.column.delete') }}</span>
                     </template>
 
                     <a-button type="text" @click="deleteTableColumn(tableIdx, record.key)">
@@ -915,8 +957,7 @@ function handleUIDTChange(column, table) {
             <div class="mt-5 flex gap-2 justify-center">
               <a-tooltip bottom>
                 <template #title>
-                  <!-- TODO: i18n -->
-                  <span>Add Number Column</span>
+                  <span>{{ $t('activity.column.addNumber') }}</span>
                 </template>
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'Number')">
@@ -928,8 +969,7 @@ function handleUIDTChange(column, table) {
 
               <a-tooltip bottom>
                 <template #title>
-                  <!-- TODO: i18n -->
-                  <span>Add SingleLineText Column</span>
+                  <span>{{ $t('activity.column.addSingleLineText') }}</span>
                 </template>
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">
@@ -941,8 +981,7 @@ function handleUIDTChange(column, table) {
 
               <a-tooltip bottom>
                 <template #title>
-                  <!-- TODO: i18n -->
-                  <span>Add LongText Column</span>
+                  <span>{{ $t('activity.column.addLongText') }}</span>
                 </template>
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'LongText')">
@@ -954,8 +993,7 @@ function handleUIDTChange(column, table) {
 
               <a-tooltip bottom>
                 <template #title>
-                  <!-- TODO: i18n -->
-                  <span>Add Other Column</span>
+                  <span>{{ $t('activity.column.addOther') }}</span>
                 </template>
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">

@@ -116,6 +116,8 @@ export function useMultiSelect(
 
     if (typeof textToCopy === 'object') {
       textToCopy = JSON.stringify(textToCopy)
+    } else {
+      textToCopy = textToCopy.toString()
     }
 
     if (columnObj.uidt === UITypes.Formula) {
@@ -526,6 +528,7 @@ export function useMultiSelect(
         break
       /** on delete key press clear cell */
       case 'Delete':
+      case 'Backspace':
         e.preventDefault()
 
         if (selectedRange.isSingleCell()) {
@@ -678,6 +681,14 @@ export function useMultiSelect(
                 selectedRange.endRange({ row: unref(data).length - 1, col: unref(columnLength.value) - 1 })
                 break
             }
+          }
+
+          // Handle escape
+          if (e.key === 'Escape') {
+            selectedRange.clear()
+
+            activeCell.col = null
+            activeCell.row = null
           }
 
           if (unref(editEnabled) || e.ctrlKey || e.altKey || e.metaKey) {

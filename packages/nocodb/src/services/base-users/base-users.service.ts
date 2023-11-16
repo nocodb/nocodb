@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as ejs from 'ejs';
 import validator from 'validator';
 import type { ProjectUserReqType, UserType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
@@ -47,7 +48,7 @@ export class BaseUsersService {
   async userInvite(param: {
     baseId: string;
     baseUser: ProjectUserReqType;
-    req: any;
+    req: NcRequest;
   }): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUserReq',
@@ -128,6 +129,7 @@ export class BaseUsersService {
           user,
           invitedBy: param.req.user,
           ip: param.req.clientIp,
+          req: param.req,
         });
 
         const cachedUser = await NocoCache.get(
@@ -165,6 +167,7 @@ export class BaseUsersService {
             user,
             invitedBy: param.req.user,
             ip: param.req.clientIp,
+            req: param.req,
           });
 
           // in case of single user check for smtp failure
@@ -271,6 +274,7 @@ export class BaseUsersService {
       updatedBy: param.req.user,
       ip: param.req.clientIp,
       baseUser: param.baseUser,
+      req: param.req,
     });
 
     return {
@@ -356,6 +360,7 @@ export class BaseUsersService {
       invitedBy: param.req.user,
       ip: param.req.clientIp,
       baseUser: param.baseUser,
+      req: param.req,
     });
 
     return true;

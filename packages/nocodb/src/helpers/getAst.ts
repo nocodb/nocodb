@@ -5,6 +5,7 @@ import type {
   LookupColumn,
   Model,
 } from '~/models';
+import { NcError } from '~/helpers/catchError';
 import { GalleryView, KanbanView, View } from '~/models';
 
 const getAst = async ({
@@ -19,6 +20,7 @@ const getAst = async ({
     fieldsSet: new Set(),
   },
   getHiddenColumn = query?.['getHiddenColumn'],
+  throwErrorIfInvalidParams = false,
 }: {
   query?: RequestQuery;
   extractOnlyPrimaries?: boolean;
@@ -27,6 +29,7 @@ const getAst = async ({
   view?: View;
   dependencyFields?: DependantFields;
   getHiddenColumn?: boolean;
+  throwErrorIfInvalidParams?: boolean;
 }) => {
   // set default values of dependencyFields and nested
   dependencyFields.nested = dependencyFields.nested || {};
@@ -63,6 +66,18 @@ const getAst = async ({
   let fields = query?.fields || query?.f;
   if (fields && fields !== '*') {
     fields = Array.isArray(fields) ? fields : fields.split(',');
+    if (throwErrorIfInvalidParams) {
+      const colAliasMap = await model.getColAliasMapping();
+      const aliasColMap = await model.getAliasColMapping();
+      const invalidFields = fields.filter(
+        (f) => !colAliasMap[f] && !aliasColMap[f],
+      );
+      if (invalidFields.length) {
+        NcError.unprocessableEntity(
+          `Following fields are invalid: ${invalidFields.join(', ')}`,
+        );
+      }
+    }
   } else {
     fields = null;
   }
@@ -99,6 +114,7 @@ const getAst = async ({
               nested: {},
               fieldsSet: new Set(),
             }),
+          throwErrorIfInvalidParams,
         });
 
         value = ast;
@@ -126,6 +142,7 @@ const getAst = async ({
               nested: {},
               fieldsSet: new Set(),
             }),
+          throwErrorIfInvalidParams,
         })
       ).ast;
     }

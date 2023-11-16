@@ -70,15 +70,19 @@ watch(
     @keydown.right.stop
     @keydown.up.stop
     @keydown.delete.stop
-    @keydown.ctrl.z.stop
-    @keydown.meta.z.stop
     @selectstart.capture.stop
     @mousedown.stop
   />
 
   <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
-  <a v-else-if="validEmail" class="text-sm underline hover:opacity-75" :href="`tel:${vModel}`" target="_blank">
+  <a
+    v-else-if="validEmail"
+    class="text-sm underline hover:opacity-75"
+    :href="`tel:${vModel}`"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
     <LazyCellClampedText :value="vModel" :lines="rowHeight" />
   </a>
 

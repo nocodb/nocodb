@@ -72,7 +72,7 @@ await loadProfile(route.params.username as string)
           <div v-if="profile.website" class="nc-profile-website my-2">
             <div class="flex items-center mr-4">
               <MdiLinkVariant class="text-lg mr-2" />
-              <a class="!no-underline" :href="profile.website" target="_blank">{{ profile.website }}</a>
+              <a class="!no-underline" :href="profile.website" rel="noopener noreferrer" target="_blank">{{ profile.website }}</a>
             </div>
           </div>
 

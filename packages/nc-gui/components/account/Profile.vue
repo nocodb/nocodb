@@ -69,7 +69,7 @@ const onValidate = async (_: any, valid: boolean) => {
         <div class="flex text-gray-500" data-rec="true">{{ $t('labels.controlAppearance') }}</div>
         <div class="flex flex-row mt-4">
           <div class="flex h-20 mt-1.5">
-            <GeneralUserIcon size="xlarge" :email="user?.email" />
+            <GeneralUserIcon size="xlarge" :email="user?.email" :name="user?.display_name" />
           </div>
           <div class="flex w-10"></div>
           <a-form

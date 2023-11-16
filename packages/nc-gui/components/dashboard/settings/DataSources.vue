@@ -529,7 +529,7 @@ const isEditBaseModalOpen = computed({
                   </NcTooltip>
                   <NcTooltip>
                     <template #title>
-                      {{ $t('general.delete') }}
+                      {{ $t('general.remove') }}
                     </template>
                     <NcButton
                       v-if="!source.is_meta && !source.is_local"
@@ -554,7 +554,7 @@ const isEditBaseModalOpen = computed({
       />
       <GeneralModal v-model:visible="isErdModalOpen" size="large">
         <div class="h-[80vh]">
-          <LazyDashboardSettingsErd :source-id="activeBaseId" />
+          <LazyDashboardSettingsErd :source-id="activeBaseId" :show-all-columns="false" />
         </div>
       </GeneralModal>
       <GeneralModal v-model:visible="isMetaDataModal" size="medium">
@@ -581,7 +581,12 @@ const isEditBaseModalOpen = computed({
           <LazyDashboardSettingsBaseAudit :source-id="activeBaseId" @close="isBaseAuditModalOpen = false" />
         </div>
       </GeneralModal>
-      <GeneralDeleteModal v-model:visible="isDeleteBaseModalOpen" :entity-name="$t('general.datasource')" :on-delete="deleteBase">
+      <GeneralDeleteModal
+        v-model:visible="isDeleteBaseModalOpen"
+        :entity-name="$t('general.datasource')"
+        :on-delete="deleteBase"
+        :delete-label="$t('general.remove')"
+      >
         <template #entity-preview>
           <div v-if="toBeDeletedBase" class="flex flex-row items-center py-2 px-3.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
             <GeneralBaseLogo :source-type="toBeDeletedBase.type" />

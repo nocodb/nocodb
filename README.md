@@ -29,7 +29,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
     <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
 </p>
 
-![All Views](https://user-images.githubusercontent.com/35857179/194825053-3aa3373d-3e0f-4b42-b3f1-42928332054a.gif)
+![video avi](https://github.com/nocodb/nocodb/assets/86527202/e2fad786-f211-4dcb-9bd3-aaece83a6783)
 
 <div align="center">
 
@@ -105,6 +105,8 @@ nocodb/nocodb:latest
 > To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise your data will be lost after recreating the container.
 
 > If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for [MySQL Docker](https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043).
+
+> Different commands just indicate the database that NocoDB will use internally for metadata storage, but that doesn't influence the ability to connect to a different database type. 
 
 ## Binaries
 

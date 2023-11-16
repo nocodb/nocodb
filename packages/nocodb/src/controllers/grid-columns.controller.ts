@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { GridColumnReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { GridColumnsService } from '~/services/grid-columns.service';
@@ -28,10 +36,13 @@ export class GridColumnsController {
   async gridColumnUpdate(
     @Param('gridViewColumnId') gridViewColumnId: string,
     @Body() body: GridColumnReqType,
+
+    @Req() req: Request,
   ) {
     return this.gridColumnsService.gridColumnUpdate({
       gridViewColumnId,
       grid: body,
+      req,
     });
   }
 }

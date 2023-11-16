@@ -120,12 +120,6 @@ onMounted(() => {
   }
 })
 
-const optionChanged = (changedId: string) => {
-  if (changedId && changedId === defaultOption.value?.id) {
-    vModel.value.cdf = defaultOption.value.title
-  }
-}
-
 const getNextColor = () => {
   let tempColor = colors.value[0]
   if (options.value.length && options.value[options.value.length - 1].color) {
@@ -174,11 +168,21 @@ const addNewOption = () => {
 // }
 
 const syncOptions = () => {
-  vModel.value.colOptions.options = renderedOptions.value.filter((op) => op.status !== 'remove')
+  vModel.value.colOptions.options = options.value.filter((op) => op.status !== 'remove')
 }
 
 const removeRenderedOption = (index: number) => {
-  renderedOptions.value[index].status = 'remove'
+  const renderedOption = renderedOptions.value[index]
+  const option = options.value[loadedOptionAnchor.value + index]
+
+  renderedOption.status = 'remove'
+  option.status = 'remove'
+
+  renderedOption.status = 'remove'
+  if (option) {
+    option.status = 'remove'
+  }
+
   syncOptions()
 
   const optionId = renderedOptions.value[index]?.id
@@ -191,8 +195,20 @@ const removeRenderedOption = (index: number) => {
   }
 }
 
+const optionChanged = (changedId: string) => {
+  if (changedId && changedId === defaultOption.value?.id) {
+    vModel.value.cdf = defaultOption.value.title
+  }
+  syncOptions()
+}
+
 const undoRemoveRenderedOption = (index: number) => {
-  renderedOptions.value[index].status = undefined
+  const renderedOption = renderedOptions.value[index]
+  const option = options.value[loadedOptionAnchor.value + index]
+
+  renderedOption.status = undefined
+  option.status = undefined
+
   syncOptions()
 
   const optionId = renderedOptions.value[index]?.id

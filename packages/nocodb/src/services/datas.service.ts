@@ -7,7 +7,7 @@ import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/modules/datas/helpers';
 import { getDbRows, getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
 import { Base, Column, Model, Source, View } from '~/models';
-import { NcError } from '~/helpers/catchError';
+import { NcBaseError, NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -27,6 +27,7 @@ export class DatasService {
       model,
       view,
       query: param.query,
+      throwErrorIfInvalidParams: true,
     });
   }
 
@@ -51,7 +52,7 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    const countArgs: any = { ...param.query };
+    const countArgs: any = { ...param.query, throwErrorIfInvalidParams: true };
     try {
       countArgs.filterArr = JSON.parse(countArgs.filterArrJson);
     } catch (e) {}
@@ -78,7 +79,7 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    return await baseModel.insert(param.body, null, param.cookie);
+    return await baseModel.nestedInsert(param.body, null, param.cookie);
   }
 
   async dataUpdate(
@@ -133,8 +134,10 @@ export class DatasService {
     view?: View;
     query: any;
     baseModel?: BaseModelSqlv2;
+    throwErrorIfInvalidParams?: boolean;
+    ignoreViewFilterAndSort?: boolean;
   }) {
-    const { model, view, query = {} } = param;
+    const { model, view, query = {}, ignoreViewFilterAndSort = false } = param;
 
     const source = await Source.get(model.source_id);
 
@@ -146,7 +149,12 @@ export class DatasService {
         dbDriver: await NcConnectionMgrv2.get(source),
       }));
 
-    const { ast, dependencyFields } = await getAst({ model, query, view });
+    const { ast, dependencyFields } = await getAst({
+      model,
+      query,
+      view,
+      throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
+    });
 
     const listArgs: any = dependencyFields;
     try {
@@ -157,18 +165,22 @@ export class DatasService {
     } catch (e) {}
 
     const [count, data] = await Promise.all([
-      baseModel.count(listArgs),
+      baseModel.count(listArgs, false, param.throwErrorIfInvalidParams),
       (async () => {
         let data = [];
         try {
           data = await nocoExecute(
             ast,
-            await baseModel.list(listArgs),
+            await baseModel.list(listArgs, {
+              ignoreViewFilterAndSort,
+              throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
+            }),
             {},
             listArgs,
           );
         } catch (e) {
-          this.logger.log(e);
+          if (e instanceof NcBaseError) throw e;
+          this.logger.error(e);
           NcError.internalServerError(
             'Please check server log for more details',
           );

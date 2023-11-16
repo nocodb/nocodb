@@ -248,8 +248,14 @@ const shouldRenderCell = (column) =>
                             </span>
                           </a-tag>
                         </template>
-                        <div v-else-if="shouldRenderCell(grp.column)" class="flex min-w-[100px] flex-wrap">
-                          <GroupByLabel v-for="(val, ind) of parseKey(grp)" :key="ind" :model-value="val" :column="grp.column" />
+                        <div
+                          v-else-if="!(grp.key in GROUP_BY_VARS.VAR_TITLES) && shouldRenderCell(grp.column)"
+                          class="flex min-w-[100px] flex-wrap"
+                        >
+                          <template v-for="(val, ind) of parseKey(grp)" :key="ind">
+                            <GroupByLabel v-if="val" :column="grp.column" :model-value="val" />
+                            <span v-else class="text-gray-400">No mapped value</span>
+                          </template>
                         </div>
                         <a-tag
                           v-else

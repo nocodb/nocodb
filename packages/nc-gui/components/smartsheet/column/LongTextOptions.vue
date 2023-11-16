@@ -19,6 +19,10 @@ const richMode = computed({
     vModel.value.meta.richMode = value
   },
 })
+
+watch(richMode, () => {
+  vModel.value.cdf = null
+})
 </script>
 
 <template>

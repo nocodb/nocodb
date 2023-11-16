@@ -1,4 +1,4 @@
-import { getModelSchemas, getViewSchemas } from './templates/schemas';
+import { getModelSchemas } from './templates/schemas';
 import type { Base, Model } from '~/models';
 
 import type { SwaggerColumn } from './getSwaggerColumnMetas';
@@ -9,7 +9,7 @@ export default async function getSchemas(
   {
     base,
     model,
-    columns
+    columns,
   }: {
     base: Base;
     model: Model;

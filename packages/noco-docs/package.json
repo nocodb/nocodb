@@ -30,7 +30,7 @@
   "dependencies": {
     "@docusaurus/core": "2.4.1",
     "@docusaurus/plugin-client-redirects": "2.4.1",
-    "@docusaurus/plugin-ideal-image": "2.4.1",
+    "@docusaurus/plugin-ideal-image": "3.0.0",
     "@docusaurus/plugin-sitemap": "2.4.1",
     "@docusaurus/preset-classic": "2.4.1",
     "@mdx-js/react": "^1.6.22",

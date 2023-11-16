@@ -2,14 +2,15 @@ import { RelationTypes, UITypes } from 'nocodb-sdk';
 import type LookupColumn from '../models/LookupColumn';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type {
+  BarcodeColumn,
   Column,
   FormulaColumn,
+  LinksColumn,
   LinkToAnotherRecordColumn,
-  Model,
+  QrCodeColumn,
   RollupColumn,
 } from '~/models';
-import type { LinksColumn } from '~/models';
-import type { BarcodeColumn, QrCodeColumn } from '~/models';
+import { Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getAliasGenerator } from '~/utils';
@@ -257,52 +258,73 @@ export default async function generateLookupSelectQuery({
       prevAlias = nestedAlias;
     }
 
-    switch (lookupColumn.uidt) {
-      case UITypes.Attachment:
-        NcError.badRequest('Group by using attachment column is not supported');
-        break;
-      case UITypes.Links:
-      case UITypes.Rollup:
-        {
-          const builder = (
-            await genRollupSelectv2({
-              baseModelSqlv2,
-              knex,
-              columnOptions:
-                (await lookupColumn.getColOptions()) as RollupColumn,
-              alias: prevAlias,
-            })
-          ).builder;
-          selectQb.select(builder);
-        }
-        break;
-      case UITypes.Formula:
-        {
-          const builder = (
-            await formulaQueryBuilderv2(
-              baseModelSqlv2,
-              (
-                await column.getColOptions<FormulaColumn>()
-              ).formula,
-              null,
-              model,
-              column,
-            )
-          ).builder;
+    {
+      // get basemodel and model of lookup column
+      const model = await lookupColumn.getModel();
+      const baseModelSqlv2 = await Model.getBaseModelSQL({
+        model,
+        dbDriver: knex,
+      });
 
-          selectQb.select(builder);
-        }
-        break;
-      default:
-        {
-          selectQb.select(
-            `${prevAlias}.${lookupColumn.column_name} as ${lookupColumn.title}`,
+      switch (lookupColumn.uidt) {
+        case UITypes.Attachment:
+          NcError.badRequest(
+            'Group by using attachment column is not supported',
           );
-        }
+          break;
+        case UITypes.Links:
+        case UITypes.Rollup:
+          {
+            const builder = (
+              await genRollupSelectv2({
+                baseModelSqlv2,
+                knex,
+                columnOptions:
+                  (await lookupColumn.getColOptions()) as RollupColumn,
+                alias: prevAlias,
+              })
+            ).builder;
+            selectQb.select(builder);
+          }
+          break;
+        case UITypes.Formula:
+          {
+            const builder = (
+              await formulaQueryBuilderv2(
+                baseModelSqlv2,
+                (
+                  await lookupColumn.getColOptions<FormulaColumn>()
+                ).formula,
+                lookupColumn.title,
+                model,
+                lookupColumn,
+                await model.getAliasColMapping(),
+                prevAlias,
+              )
+            ).builder;
 
-        break;
+            selectQb.select(builder);
+          }
+          break;
+        case UITypes.DateTime:
+          {
+            await baseModelSqlv2.selectObject({
+              qb: selectQb,
+              columns: [lookupColumn],
+              alias: prevAlias,
+            });
+          }
+          break;
+        default:
+          {
+            selectQb.select(
+              `${prevAlias}.${lookupColumn.column_name} as ${lookupColumn.title}`,
+            );
+          }
+
+          break;
+      }
     }
-
     // if all relation are belongs to then we don't need to do the aggregation
     if (isBtLookup) {
       return {

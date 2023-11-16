@@ -184,8 +184,8 @@ const syncOptions = () => {
       return renderA - renderB
     })
     .map((op) => {
-      delete op.index
-      return op
+      const { index: _i, status: _s, ...rest } = op
+      return rest
     })
 }
 

@@ -125,7 +125,6 @@ export const viewIdParams = (views: SwaggerView[]) => {
     schema: {
       type: 'string',
       enum: viewIds,
-      default: viewIds[0],
     },
     description: description.join('\n'),
     name: 'viewId',

@@ -6,8 +6,8 @@ import Debug from '~/db/util/Debug';
 const log = new Debug('MysqlClient');
 
 async function runExternal(query: string, config: any) {
-  const { sqlExecutor, sourceId, ...rest } = config;
-  const { data } = await axios.post(`${sqlExecutor}/query/${sourceId}`, {
+  const { dbMux, sourceId, ...rest } = config;
+  const { data } = await axios.post(`${dbMux}/query/${sourceId}`, {
     query,
     config: rest,
     raw: true,

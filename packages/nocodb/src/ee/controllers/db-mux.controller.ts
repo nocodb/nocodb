@@ -8,34 +8,34 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import type { SqlExecutorStatus } from '~/utils/globals';
+import type { DbMuxStatus } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { SqlExecutor } from '~/models';
+import { DbMux } from '~/models';
 import { InstanceCommands } from '~/interface/Jobs';
 
 @Controller()
-export class SqlExecutorsController {
+export class DbMuxController {
   constructor(@Inject('JobsService') protected readonly jobsService) {}
 
-  @Patch('/internal/sql-executors/:sqlExecutorId')
+  @Patch('/internal/db-mux/:dbMuxId')
   @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
   async updateStatus(
     @Req() req,
     @Body()
     body: {
       domain?: string;
-      status?: SqlExecutorStatus;
+      status?: DbMuxStatus;
       capacity?: number;
       priority?: number;
     },
-    @Param('sqlExecutorId') sqlExecutorId: string,
+    @Param('dbMuxId') dbMuxId: string,
   ) {
-    const sqlExecutor = await SqlExecutor.get(sqlExecutorId);
+    const dbMux = await DbMux.get(dbMuxId);
 
-    if (!sqlExecutor) NcError.notFound('SqlExecutor not found');
+    if (!dbMux) NcError.notFound('DbMux not found');
 
-    const { se, sources } = await sqlExecutor.update(body);
+    const { se, sources } = await dbMux.update(body);
 
     if (sources) {
       await this.jobsService.emitWorkerCommand(
@@ -51,7 +51,7 @@ export class SqlExecutorsController {
     return se;
   }
 
-  @Patch('/internal/sql-executors')
+  @Patch('/internal/db-mux')
   @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
   async bulkUpdate(
     @Req() req,
@@ -60,6 +60,6 @@ export class SqlExecutorsController {
       capacity?: number;
     },
   ) {
-    return await SqlExecutor.bulkUpdate(body);
+    return await DbMux.bulkUpdate(body);
   }
 }

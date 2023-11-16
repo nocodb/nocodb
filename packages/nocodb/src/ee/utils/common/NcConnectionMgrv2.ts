@@ -12,9 +12,9 @@ import {
 } from '~/utils/nc-config';
 import { XKnex } from '~/db/CustomKnex';
 import Noco from '~/Noco';
-import { SqlExecutor } from '~/models';
+import { DbMux } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { SqlExecutorStatus } from '~/utils/globals';
+import { DbMuxStatus } from '~/utils/globals';
 
 export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
   protected static dataKnex?: XKnex;
@@ -94,36 +94,36 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
 
     const { client, connection, searchPath: _searchPath, pool } = finalConfig;
 
-    let se: SqlExecutor;
+    let se: DbMux;
 
     if ((source as any).fk_sql_executor_id) {
-      se = await SqlExecutor.get((source as any).fk_sql_executor_id);
+      se = await DbMux.get((source as any).fk_sql_executor_id);
     } else {
-      se = await SqlExecutor.bindToSuitableSqlExecutor(source.id);
+      se = await DbMux.bindToSuitableDbMux(source.id);
     }
 
     if (!se) {
-      NcError.internalServerError('There is no SQL Executor available!');
+      NcError.internalServerError('There is no DB Mux available!');
     }
 
     if (
-      se.status === SqlExecutorStatus.INACTIVE ||
-      se.status === SqlExecutorStatus.DEPLOYING
+      se.status === DbMuxStatus.INACTIVE ||
+      se.status === DbMuxStatus.DEPLOYING
     ) {
       try {
         const res = await axios.get(`${se.domain}/api/v1/health`);
         if (res.status !== 200) {
           NcError.internalServerError(
-            'SQL Executor is not active yet. Please try again later!',
+            'DB Mux is not active yet. Please try again later!',
           );
         }
 
         await se.update({
-          status: SqlExecutorStatus.ACTIVE,
+          status: DbMuxStatus.ACTIVE,
         });
       } catch (e) {
         NcError.internalServerError(
-          'SQL Executor is not active yet. Please try again later!',
+          'DB Mux is not active yet. Please try again later!',
         );
       }
     }
@@ -133,7 +133,7 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
         client,
       },
       {
-        sqlExecutor: se.domain,
+        dbMux: se.domain,
         sourceId: source.id,
         client,
         connection,

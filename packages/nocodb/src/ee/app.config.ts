@@ -51,7 +51,7 @@ const config: AppConfig = {
       topicArn: process.env.NC_WORKSPACE_SNS_TOPIC_ARN,
     },
   },
-  sqlExecutor: {
+  dbMux: {
     sns: {
       topicArn: process.env.NC_SQL_EX_SNS_TOPIC_ARN,
     },

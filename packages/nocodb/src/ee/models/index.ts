@@ -15,4 +15,4 @@ export { default as Filter } from './Filter';
 export { default as Model } from './Model';
 export { default as ModelStat } from './ModelStat';
 export { default as View } from './View';
-export { default as SqlExecutor } from './SqlExecutor';
+export { default as DbMux } from './DbMux';

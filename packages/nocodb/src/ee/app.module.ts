@@ -12,7 +12,7 @@ import appConfig from '~/app.config';
 import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { ExecutionTimeCalculatorInterceptor } from '~/interceptors/execution-time-calculator/execution-time-calculator.interceptor';
 import { UpdateStatsService } from '~/services/update-stats.service';
-import { SqlExecutorsController } from '~/controllers/sql-executors.controller';
+import { DbMuxController } from 'src/ee/controllers/db-mux.controller';
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
@@ -60,7 +60,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     }),
   ],
 
-  controllers: [SqlExecutorsController],
+  controllers: [DbMuxController],
 
   providers: [
     ...ceModuleConfig.providers.map((x) => {

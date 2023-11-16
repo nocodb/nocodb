@@ -48,7 +48,7 @@ export interface AppConfig {
     };
   };
 
-  sqlExecutor: {
+  dbMux: {
     sns: {
       topicArn: string;
     };

@@ -40,9 +40,9 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLTextAreaElement)?.focus()
 
 const height = computed(() => {
-  if (!rowHeight.value || rowHeight.value === 1) return 40
+  if (!rowHeight.value || rowHeight.value === 1) return 36
 
-  return rowHeight.value * 60
+  return rowHeight.value * 36
 })
 
 const isVisible = ref(false)
@@ -107,6 +107,7 @@ watch(editEnabled, () => {
         class="w-full"
         :style="{
           maxHeight: `${height}px !important`,
+          minHeight: `${height}px !important`,
         }"
       >
         <CellRichText v-model:value="vModel" sync-value-change readonly />

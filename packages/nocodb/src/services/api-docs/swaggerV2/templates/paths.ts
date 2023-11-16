@@ -148,12 +148,12 @@ export const getModelPaths = async (ctx: {
                   schema: {
                     oneOf: [
                       {
-                        $ref: `#/components/schemas/${ctx.tableName}Request`,
+                        $ref: `#/components/schemas/${ctx.tableName}IdRequest`,
                       },
                       {
                         type: 'array',
                         items: {
-                          $ref: `#/components/schemas/${ctx.tableName}Request`,
+                          $ref: `#/components/schemas/${ctx.tableName}IdRequest`,
                         },
                       },
                     ],

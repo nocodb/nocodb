@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { RelationTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import InboxIcon from '~icons/nc-icons/inbox'
 import {

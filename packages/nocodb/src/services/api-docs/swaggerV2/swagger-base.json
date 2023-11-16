@@ -10,7 +10,7 @@
     }
   ],
   "paths": {
-  },
+  },a¯¯¯¯
   "components": {
     "schemas": {
       "Paginated": {
@@ -82,6 +82,38 @@
         "in": "header",
         "name": "xc-token",
         "description": "API token"
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "BadReqeust",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "x-stoplight": {
+                    "id": "p9mk4oi0hbihm"
+                  },
+                  "example": "BadRequest [Error]: <ERROR MESSAGE>"
+                }
+              },
+              "required": [
+                "msg"
+              ]
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "msg": "BadRequest [Error]: <ERROR MESSAGE>"
+                }
+              }
+            }
+          }
+        },
+        "headers": {}
       }
     }
   },

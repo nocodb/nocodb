@@ -15,7 +15,11 @@ export const getModelSchemas = (ctx: {
       ...(ctx.columns?.reduce(
         (colsObj, { title, virtual, column, ...fieldProps }) => ({
           ...colsObj,
-          [title]: fieldProps,
+          ...(column.system
+            ? {}
+            : {
+                [title]: fieldProps,
+              }),
         }),
         {},
       ) || {}),
@@ -30,7 +34,7 @@ export const getModelSchemas = (ctx: {
       ...(ctx.columns?.reduce(
         (colsObj, { title, virtual, column, ...fieldProps }) => ({
           ...colsObj,
-          ...(virtual
+          ...(virtual || column.system
             ? {}
             : {
                 [title]: fieldProps,

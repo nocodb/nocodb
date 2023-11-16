@@ -2529,6 +2529,13 @@ export class AtImportProcessor {
         await generateMigrationStats(aTblSchema);
       }
     } catch (e) {
+      // delete tables that were created
+      for (const table of ncSchema.tables) {
+        await this.tablesService.tableDelete({
+          tableId: table.id,
+          user: syncDB.user,
+        });
+      }
       if (e.message) {
         this.telemetryService.sendEvent({
           evt_type: 'a:airtable-import:error',

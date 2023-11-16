@@ -10,7 +10,6 @@ import type {
 } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
-import { NcError } from '~/helpers/catchError';
 import { getAliasGenerator } from '~/utils';
 
 export default async function generateMMLookupSelectQuery({
@@ -24,7 +23,7 @@ export default async function generateMMLookupSelectQuery({
   baseModelSqlv2: BaseModelSqlv2;
   alias: string;
   model: Model;
-  getAlias: ReturnType<typeof getAliasGenerator>;
+  getAlias?: ReturnType<typeof getAliasGenerator>;
 }): Promise<any> {
   const knex = baseModelSqlv2.dbDriver;
 
@@ -41,26 +40,107 @@ export default async function generateMMLookupSelectQuery({
         await relationCol.getColOptions<LinkToAnotherRecordColumn>();
 
       // if not belongs to then throw error as we don't support
-      if (relation.type !== RelationTypes.BELONGS_TO) {
-        // NcError.badRequest('HasMany/ManyToMany lookup is not supported');
-      }
-      const childColumn = await relation.getChildColumn();
-      const parentColumn = await relation.getParentColumn();
-      const childModel = await childColumn.getModel();
-      await childModel.getColumns();
-      const parentModel = await parentColumn.getModel();
-      await parentModel.getColumns();
+      if (relation.type === RelationTypes.BELONGS_TO) {
+        const childColumn = await relation.getChildColumn();
+        const parentColumn = await relation.getParentColumn();
+        const childModel = await childColumn.getModel();
+        await childModel.getColumns();
+        const parentModel = await parentColumn.getModel();
+        await parentModel.getColumns();
 
-      selectQb = knex(
-        `${baseModelSqlv2.getTnPath(parentModel.table_name)} as ${alias}`,
-      ).where(
-        `${alias}.${parentColumn.column_name}`,
-        knex.raw(`??`, [
-          `${rootAlias || baseModelSqlv2.getTnPath(childModel.table_name)}.${
-            childColumn.column_name
-          }`,
-        ]),
-      );
+        selectQb = knex(
+          `${baseModelSqlv2.getTnPath(parentModel.table_name)} as ${alias}`,
+        ).where(
+          `${alias}.${parentColumn.column_name}`,
+          knex.raw(`??`, [
+            `${rootAlias || baseModelSqlv2.getTnPath(childModel.table_name)}.${
+              childColumn.column_name
+            }`,
+          ]),
+        );
+      }
+
+      // if not belongs to then throw error as we don't support
+      else if (relation.type === RelationTypes.HAS_MANY) {
+        const childColumn = await relation.getChildColumn();
+        const parentColumn = await relation.getParentColumn();
+        const childModel = await childColumn.getModel();
+        await childModel.getColumns();
+        const parentModel = await parentColumn.getModel();
+        await parentModel.getColumns();
+
+        selectQb = knex(
+          `${baseModelSqlv2.getTnPath(childModel.table_name)} as ${alias}`,
+        ).where(
+          `${alias}.${parentColumn.column_name}`,
+          knex.raw(`??`, [
+            `${rootAlias || baseModelSqlv2.getTnPath(parentModel.table_name)}.${
+              childColumn.column_name
+            }`,
+          ]),
+        );
+      }
+
+      // if not belongs to then throw error as we don't support
+      if (relation.type === RelationTypes.MANY_TO_MANY) {
+        const childColumn = await relation.getChildColumn();
+        const parentColumn = await relation.getParentColumn();
+        const childModel = await childColumn.getModel();
+        await childModel.getColumns();
+        const parentModel = await parentColumn.getModel();
+        await parentModel.getColumns();
+
+        selectQb = knex(
+          `${baseModelSqlv2.getTnPath(parentModel.table_name)} as ${alias}`,
+        ).where(
+          `${alias}.${parentColumn.column_name}`,
+          knex.raw(`??`, [
+            `${rootAlias || baseModelSqlv2.getTnPath(childModel.table_name)}.${
+              childColumn.column_name
+            }`,
+          ]),
+        );
+
+
+
+        /*
+                const mmTableAlias = getAlias();
+
+        const mmModel = await relation.getMMModel();
+        const mmChildCol = await relation.getMMChildColumn();
+        const mmParentCol = await relation.getMMParentColumn();
+
+        // knex(
+        //   `${baseModelSqlv2.getTnPath(
+        //     parentModel?.table_name,
+        //   )} as ${nestedAlias}`,
+        // )
+        selectQb
+          .innerJoin(
+            baseModelSqlv2.getTnPath(mmModel.table_name),
+            knex.ref(
+              `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
+                mmParentCol.column_name
+              }`,
+            ),
+            '=',
+            knex.ref(`${nestedAlias}.${parentColumn.column_name}`),
+          )
+          .where(
+            knex.ref(
+              `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
+                mmChildCol.column_name
+              }`,
+            ),
+            '=',
+            knex.ref(
+              `${alias || baseModelSqlv2.getTnPath(childModel.table_name)}.${
+                childColumn.column_name
+              }`,
+            ),
+          );
+        * */
+      }
     }
     let lookupColumn = await lookup.getLookupColumn();
     let prevAlias = alias;
@@ -117,11 +197,12 @@ export default async function generateMMLookupSelectQuery({
         const mmChildCol = await relation.getMMChildColumn();
         const mmParentCol = await relation.getMMParentColumn();
 
-        knex(
-          `${baseModelSqlv2.getTnPath(
-            parentModel?.table_name,
-          )} as ${nestedAlias}`,
-        )
+        // knex(
+        //   `${baseModelSqlv2.getTnPath(
+        //     parentModel?.table_name,
+        //   )} as ${nestedAlias}`,
+        // )
+        selectQb
           .innerJoin(
             baseModelSqlv2.getTnPath(mmModel.table_name),
             knex.ref(
@@ -213,12 +294,17 @@ export default async function generateMMLookupSelectQuery({
         break;
       default:
         {
-          selectQb.select(`${prevAlias}.${lookupColumn.column_name}`);
+          selectQb.select(`${prevAlias}.${lookupColumn.column_name} as ${lookupColumn.title}`);
         }
 
         break;
     }
 
-    return { builder: selectQb };
+    selectQb.orderBy(`${lookupColumn.title}`, 'asc');
+
+     // mysql : https://www.db-fiddle.com/f/qC4hrbSrSp7v3exb4moVCE/1
+const subQueryAlias = getAlias();
+    // return { builder: knex.select(knex.raw('array_agg(??)', [lookupColumn.title])).from(selectQb) };
+    return { builder: knex.select(knex.raw("cast(JSON_ARRAYAGG(??) as NCHAR)", [lookupColumn.title])).from(selectQb.as(subQueryAlias)) };
   }
 }

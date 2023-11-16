@@ -258,6 +258,9 @@ export default async function generateLookupSelectQuery({
     }
 
     switch (lookupColumn.uidt) {
+      case UITypes.Attachment:
+        NcError.badRequest('Group by using attachment column is not supported');
+        break;
       case UITypes.Links:
       case UITypes.Rollup:
         {

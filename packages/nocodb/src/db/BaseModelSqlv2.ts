@@ -572,6 +572,11 @@ class BaseModelSqlv2 {
         groupByColumns[column.id] = column;
 
         switch (column.uidt) {
+          case UITypes.Attachment:
+            NcError.badRequest(
+              'Group by using attachment column is not supported',
+            );
+            break;
           case UITypes.Links:
           case UITypes.Rollup:
             selectors.push(
@@ -748,6 +753,11 @@ class BaseModelSqlv2 {
             });
 
           switch (column.uidt) {
+            case UITypes.Attachment:
+              NcError.badRequest(
+                'Group by using attachment column is not supported',
+              );
+              break;
             case UITypes.Rollup:
             case UITypes.Links:
               selectors.push(

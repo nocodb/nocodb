@@ -189,5 +189,13 @@ const focusEditorEnd = () => {
     font-size: 1.15rem;
     margin-bottom: 0.1em;
   }
+
+  blockquote {
+    border-left: 3px solid #d0d5dd;
+    padding: 0 1em;
+    color: #666;
+    margin: 1em 0;
+    font-style: italic;
+  }
 }
 </style>

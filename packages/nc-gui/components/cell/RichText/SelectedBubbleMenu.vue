@@ -7,6 +7,8 @@ import MdiFormatListCheckbox from '~icons/mdi/format-list-checkbox'
 import MsFormatH1 from '~icons/material-symbols/format-h1'
 import MsFormatH2 from '~icons/material-symbols/format-h2'
 import MsFormatH3 from '~icons/material-symbols/format-h3'
+import TablerBlockQuote from '~icons/tabler/blockquote'
+import MsCode from '~icons/material-symbols/code'
 
 interface Props {
   editor: Editor
@@ -115,6 +117,17 @@ const onToggleLink = () => {
         <MdiFormatStrikeThrough />
       </NcButton>
     </NcTooltip>
+    <NcTooltip>
+      <template #title> {{ $t('general.code') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :class="{ 'is-active': editor.isActive('code') }"
+        @click="editor!.chain().focus().toggleCode().run()"
+      >
+        <MsCode />
+      </NcButton>
+    </NcTooltip>
     <div class="divider"></div>
 
     <template v-if="embedMode">
@@ -154,6 +167,18 @@ const onToggleLink = () => {
 
       <div class="divider"></div>
     </template>
+
+    <NcTooltip v-if="embedMode">
+      <template #title> {{ $t('labels.blockQuote') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :class="{ 'is-active': editor.isActive('blockquote') }"
+        @click="editor!.chain().focus().toggleBlockquote().run()"
+      >
+        <TablerBlockQuote class="-mt-0.25" />
+      </NcButton>
+    </NcTooltip>
 
     <NcTooltip>
       <template #title> {{ $t('labels.taskList') }}</template>

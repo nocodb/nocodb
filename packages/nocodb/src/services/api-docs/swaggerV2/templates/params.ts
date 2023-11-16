@@ -216,7 +216,7 @@ export const getNestedParams = async (
   columns: SwaggerColumn[],
 ): Promise<any[]> => {
   return await columns.reduce(async (paramsArr, { column }) => {
-    if (column.uidt === UITypes.LinkToAnotherRecord) {
+    if (column.uidt === UITypes.LinkToAnotherRecord && !column.system) {
       const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>();
       if (colOpt.type !== RelationTypes.BELONGS_TO) {
         return [

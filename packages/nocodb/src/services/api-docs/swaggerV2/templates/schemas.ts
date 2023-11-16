@@ -1,3 +1,4 @@
+import { isSystemColumn } from 'nocodb-sdk';
 import type { SwaggerColumn } from '../getSwaggerColumnMetas';
 
 export const getModelSchemas = (ctx: {
@@ -34,7 +35,7 @@ export const getModelSchemas = (ctx: {
       ...(ctx.columns?.reduce(
         (colsObj, { title, virtual, column, ...fieldProps }) => ({
           ...colsObj,
-          ...(virtual || column.system
+          ...(virtual || isSystemColumn(column) || column.ai || column.meta?.ag
             ? {}
             : {
                 [title]: fieldProps,

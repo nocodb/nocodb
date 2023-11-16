@@ -315,15 +315,19 @@ export default async function generateMMLookupSelectQuery({
           )
           .from(selectQb.as(subQueryAlias)),
       };
+    } else if (baseModelSqlv2.isSqlite) {
+      // ref: https://stackoverflow.com/questions/13382856/sqlite3-join-group-concat-using-distinct-with-custom-separator
+      selectQb.orderBy(`${lookupColumn.title}`, 'asc');
+      return {
+        builder: knex
+          .select(
+            knex.raw(`replace(group_concat(distinct ??), ',', '___')`, [
+              lookupColumn.title,
+            ]),
+          )
+          .from(selectQb.as(subQueryAlias)),
+      };
     }
-    // else if (baseModelSqlv2.isSqlite) {
-    //   selectQb.orderBy(`${lookupColumn.title}`, 'asc');
-    //   return {
-    //     builder: knex
-    //       .select(knex.raw(`group_concat(??, '___')`, [lookupColumn.title]))
-    //       .from(selectQb.as(subQueryAlias)),
-    //   };
-    // }
 
     NcError.notImplemented('Database not supported Group by on Lookup');
   }

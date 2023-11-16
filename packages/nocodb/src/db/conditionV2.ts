@@ -8,13 +8,14 @@ import type Column from '~/models/Column';
 import type LookupColumn from '~/models/LookupColumn';
 import type RollupColumn from '~/models/RollupColumn';
 import type FormulaColumn from '~/models/FormulaColumn';
+import type { BarcodeColumn, QrCodeColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { sanitize } from '~/helpers/sqlSanitize';
 import Filter from '~/models/Filter';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
-import {BarcodeColumn, Model, QrCodeColumn} from '~/models';
+import { Model } from '~/models';
 import { getAliasGenerator } from '~/utils';
 
 // tod: tobe fixed
@@ -138,8 +139,9 @@ const parseConditionV2 = async (
         // if qrCode or Barcode replace it with value column
         if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
           filter.fk_column_id = await column
-                .getColOptions<BarcodeColumn | QrCodeColumn>()
-                .then((col) => col.fk_column_id)
+            .getColOptions<BarcodeColumn | QrCodeColumn>()
+            .then((col) => col.fk_column_id);
+      }
     }
 
     const column = await filter.getColumn();

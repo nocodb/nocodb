@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
+import type { ColumnReqType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import {
   ActiveViewInj,

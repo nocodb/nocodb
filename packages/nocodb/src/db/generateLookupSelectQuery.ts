@@ -32,7 +32,7 @@ export default async function generateLookupSelectQuery({
   column,
   baseModelSqlv2,
   alias,
-  model,
+  model: _model,
   getAlias = getAliasGenerator('__lk_slt_'),
 }: {
   column: Column;

@@ -116,9 +116,13 @@ const parseConditionV2 = async (
     };
   } else {
     // handle group by filter separately,
-    // `gb_val` is equivalent to `eq` but for lookup it compares on aggregated value returns in group by api
+    // `gb_eq` is equivalent to `eq` but for lookup it compares on aggregated value returns in group by api
     // aggregated value will be either json array or `___` separated string
-    if (filter.comparison_op === 'gb_val') {
+    // `gb_null` is equivalent to `blank` but for lookup it compares on aggregated value is null
+    if (
+      filter.comparison_op === 'gb_eq' ||
+      filter.comparison_op === 'gb_null'
+    ) {
       const column = await filter.getColumn();
       if (
         column.uidt === UITypes.Lookup ||
@@ -133,10 +137,13 @@ const parseConditionV2 = async (
           getAlias: getAliasGenerator('__gb_filter_lk'),
         });
         return (qb) => {
-          qb.where(knex.raw('?', [filter.value]), lkQb.builder);
+          if (filter.comparison_op === 'gb_eq')
+            qb.where(knex.raw('?', [filter.value]), lkQb.builder);
+          else qb.whereNull(knex.raw(lkQb.builder).wrap('(', ')'));
         };
       } else {
-        filter.comparison_op = 'eq';
+        filter.comparison_op =
+          filter.comparison_op === 'gb_eq' ? 'eq' : 'blank';
         // if qrCode or Barcode replace it with value column
         if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
           filter.fk_column_id = await column

@@ -171,7 +171,12 @@ export enum CacheDelDirection {
   CHILD_TO_PARENT = 'CHILD_TO_PARENT',
 }
 
-export const COMPARISON_OPS = <const>[
+export const GROUPBY_COMPARISON_OPS = <const>[
+  // these are used for groupby
+  'gb_eq',
+  'gb_null',
+];
+export const COMPARISON_OPS = (<const>[
   'eq',
   'neq',
   'not',
@@ -201,9 +206,7 @@ export const COMPARISON_OPS = <const>[
   'isWithin',
   'btw',
   'nbtw',
-
-  'gb_val'
-] as any;
+]) as any;
 
 export const IS_WITHIN_COMPARISON_SUB_OPS = <const>[
   'pastWeek',

@@ -15,6 +15,7 @@ import {
   useNuxtApp,
   useSmartsheetStoreOrThrow,
   useViewColumnsOrThrow,
+  watch,
 } from '#imports'
 
 const groupingUidt = [
@@ -28,6 +29,17 @@ const groupingUidt = [
   UITypes.Lookup,
   UITypes.Links,
   UITypes.Formula,
+  UITypes.Email,
+  UITypes.URL,
+  UITypes.PhoneNumber,
+  UITypes.Decimal,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Duration,
+  UITypes.Rating,
+  UITypes.Year,
+  UITypes.DateTime,
+  UITypes.Time,
 ]
 
 const meta = inject(MetaInj, ref())
@@ -205,6 +217,10 @@ const loadBtLookups = async () => {
 }
 
 onMounted(async () => {
+  await loadBtLookups()
+})
+
+watch(meta, async () => {
   await loadBtLookups()
 })
 </script>

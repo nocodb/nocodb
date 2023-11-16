@@ -64,6 +64,7 @@ import {
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
+import generateMMLookupSelectQuery from "~/db/generateMMLookupSelectQuery";
 
 dayjs.extend(utc);
 
@@ -600,7 +601,7 @@ class BaseModelSqlv2 {
             break;
           case UITypes.Lookup:
             {
-              const _selectQb = await generateBTLookupSelectQuery({
+              const _selectQb = await generateMMLookupSelectQuery({
                 baseModelSqlv2: this,
                 column,
                 alias: null,
@@ -695,6 +696,10 @@ class BaseModelSqlv2 {
     qb.groupBy(...groupBySelectors);
 
     applyPaginate(qb, rest);
+
+    console.log('========')
+    console.log(qb.toQuery())
+    console.log('========')
     return await this.execAndParse(qb);
   }
 

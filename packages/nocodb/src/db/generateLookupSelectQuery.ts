@@ -304,44 +304,52 @@ export default async function generateLookupSelectQuery({
     const subQueryAlias = getAlias();
 
     if (baseModelSqlv2.isPg) {
-      // selectQb.orderBy(`${lookupColumn.title}`, 'asc');
-      // // alternate approach with array_agg
-      // return {
-      //   builder: knex
-      //     .select(knex.raw('array_agg(??)', [lookupColumn.title]))
-      //     .from(selectQb),
-      // };
+      selectQb.orderBy(`${lookupColumn.title}`, 'asc');
+      // alternate approach with array_agg
       return {
         builder: knex
-          .select(
-            knex.raw('STRING_AGG(??::text, ?)', [
-              lookupColumn.title,
-              LOOKUP_VAL_SEPARATOR,
-            ]),
-          )
-          .from(selectQb.as(subQueryAlias)),
+          .select(knex.raw('json_agg(??)::text', [lookupColumn.title]))
+          .from(selectQb),
       };
-    } else if (baseModelSqlv2.isMySQL) {
-      // // alternate approach with JSON_ARRAYAGG
+      /*
+      // alternate approach with array_agg
+      return {
+        builder: knex
+          .select(knex.raw('array_agg(??)', [lookupColumn.title]))
+          .from(selectQb),
+      };*/
+      // alternate approach with string aggregation
       // return {
       //   builder: knex
       //     .select(
-      //       knex.raw('cast(JSON_ARRAYAGG(??) as NCHAR)', [lookupColumn.title]),
+      //       knex.raw('STRING_AGG(??::text, ?)', [
+      //         lookupColumn.title,
+      //         LOOKUP_VAL_SEPARATOR,
+      //       ]),
       //     )
       //     .from(selectQb.as(subQueryAlias)),
       // };
-
+    } else if (baseModelSqlv2.isMySQL) {
+      // alternate approach with JSON_ARRAYAGG
       return {
         builder: knex
           .select(
-            knex.raw('GROUP_CONCAT(?? ORDER BY ?? ASC SEPARATOR ?)', [
-              lookupColumn.title,
-              lookupColumn.title,
-              LOOKUP_VAL_SEPARATOR,
-            ]),
+            knex.raw('cast(JSON_ARRAYAGG(??) as NCHAR)', [lookupColumn.title]),
           )
           .from(selectQb.as(subQueryAlias)),
       };
+
+      // return {
+      //   builder: knex
+      //     .select(
+      //       knex.raw('GROUP_CONCAT(?? ORDER BY ?? ASC SEPARATOR ?)', [
+      //         lookupColumn.title,
+      //         lookupColumn.title,
+      //         LOOKUP_VAL_SEPARATOR,
+      //       ]),
+      //     )
+      //     .from(selectQb.as(subQueryAlias)),
+      // };
     } else if (baseModelSqlv2.isSqlite) {
       // ref: https://stackoverflow.com/questions/13382856/sqlite3-join-group-concat-using-distinct-with-custom-separator
       // selectQb.orderBy(`${lookupColumn.title}`, 'asc');

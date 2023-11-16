@@ -72,13 +72,7 @@ const clear = () => {
 
 const formatJson = (json: string) => {
   try {
-    json = json
-      .trim()
-      .replace(/^\{\s*|\s*\}$/g, '')
-      .replace(/\n\s*/g, '')
-    json = `{${json}}`
-
-    return json
+    return JSON.stringify(JSON.parse(json))
   } catch (e) {
     console.log(e)
     return json

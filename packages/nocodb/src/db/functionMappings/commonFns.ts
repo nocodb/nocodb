@@ -53,8 +53,6 @@ export default {
     }
     return { builder: args.knex.raw(`CASE ${query}\n END${args.colAlias}`) };
   },
-  TRUE: 1,
-  FALSE: 0,
   AND: async (args: MapFnArgs) => {
     return {
       builder: args.knex.raw(
@@ -112,8 +110,13 @@ export default {
       builder: (await args.fn(args.pt?.arguments?.[0])).builder.wrap('(', ')'),
     };
   },
-
   BLANK: async (args: MapFnArgs) => {
     return { builder: args.knex.raw(`?`, ['']) };
+  },
+  TRUE: async (args: MapFnArgs) => {
+    return { builder: args.knex.raw(`?`, [1]) };
+  },
+  FALSE: async (args: MapFnArgs) => {
+    return { builder: args.knex.raw(`?`, [0]) };
   },
 };

@@ -160,7 +160,7 @@ const focusEditorEnd = () => {
       'flex flex-col flex-grow': props.fullMode,
     }"
   >
-    <div v-if="props.showMenu" class="absolute top-1 z-1000 right-3">
+    <div v-if="props.showMenu" class="absolute top-1 right-3">
       <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode />
     </div>
     <CellRichTextSelectedBubbleMenuPopup v-if="editor" :editor="editor" />
@@ -185,6 +185,10 @@ const focusEditorEnd = () => {
 .nc-textarea-rich {
   .ProseMirror {
     @apply pt-1;
+
+    > * {
+      @apply ml-1;
+    }
   }
   .ProseMirror-focused {
     // remove all border
@@ -196,14 +200,14 @@ const focusEditorEnd = () => {
   }
 
   ul {
-    @apply ml-4;
     li {
+      @apply ml-4;
       list-style-type: disc;
     }
   }
 
   ol {
-    @apply -ml-6;
+    @apply -ml-6 !pl-4;
     li {
       list-style-type: decimal;
     }
@@ -215,9 +219,9 @@ const focusEditorEnd = () => {
   }
 
   ul[data-type='taskList'] {
-    @apply ml-1;
+    @apply;
     li {
-      @apply flex flex-row gap-x-2;
+      @apply !ml-0 flex flex-row gap-x-2;
       list-style-type: none;
 
       input {

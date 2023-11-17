@@ -193,7 +193,7 @@ const pg = {
     const source = (await fn(pt.arguments[0])).builder;
     const pattern = (await fn(pt.arguments[1])).builder;
     return {
-      builder: knex.raw(`(${source}::text ~ ${pattern}::text) ${colAlias}`),
+      builder: knex.raw(`(${source}::TEXT ~ ${pattern}::TEXT) ${colAlias}`),
     };
   },
   REGEX_EXTRACT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
@@ -202,8 +202,8 @@ const pg = {
     return {
       builder: knex.raw(
         // use `SUBSTRING` since REGEXP_MATCH returns array value
-        // `REGEXP_MATCH(${source}::text, ${pattern}::text) ${colAlias}`,
-        `SUBSTRING(${source}::text from ${pattern}::text) ${colAlias}`,
+        // `REGEXP_MATCH(${source}::TEXT, ${pattern}::TEXT) ${colAlias}`,
+        `SUBSTRING(${source}::TEXT from ${pattern}::TEXT) ${colAlias}`,
       ),
     };
   },
@@ -213,8 +213,20 @@ const pg = {
     const replacement = (await fn(pt.arguments[2])).builder;
     return {
       builder: knex.raw(
-        `REGEXP_REPLACE(${source}::text, ${pattern}::text, ${replacement}::text, 'g') ${colAlias}`,
+        `REGEXP_REPLACE(${source}::TEXT, ${pattern}::TEXT, ${replacement}::TEXT, 'g') ${colAlias}`,
       ),
+    };
+  },
+  XOR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const args = await Promise.all(
+      pt.arguments.map(async (arg) => {
+        return knex.raw(
+          `(${(await fn(pt.arguments[0])).builder} IS NOT NULL)::INTEGER`,
+        );
+      }),
+    );
+    return {
+      builder: knex.raw(`check (${args.join(' + ')} = 1)`),
     };
   },
 };

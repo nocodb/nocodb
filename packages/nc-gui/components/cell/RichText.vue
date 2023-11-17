@@ -19,7 +19,16 @@ const props = defineProps<{
 
 const emits = defineEmits(['update:value'])
 
-const turndownService = new TurndownService()
+const turndownService = new TurndownService({})
+
+turndownService.addRule('lineBreak', {
+  filter: (node) => {
+    return node.nodeName === 'BR'
+  },
+  replacement: () => {
+    return '<br />'
+  },
+})
 
 turndownService.addRule('taskList', {
   filter: (node) => {
@@ -90,7 +99,9 @@ const tiptapExtensions = [
 const editor = useEditor({
   extensions: tiptapExtensions,
   onUpdate: ({ editor }) => {
-    const markdown = turndownService.turndown(editor.getHTML())
+    const markdown = turndownService
+      .turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
+      .replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
 
     vModel.value = markdown
   },

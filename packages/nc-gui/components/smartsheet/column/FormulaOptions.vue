@@ -74,7 +74,7 @@ const validators = {
 
 const availableFunctions = formulaList
 
-const availableBinOps = ['+', '-', '*', '/', '>', '<', '==', '<=', '>=', '!=']
+const availableBinOps = ['+', '-', '*', '/', '>', '<', '==', '<=', '>=', '!=', '&']
 
 const autocomplete = ref(false)
 

@@ -172,6 +172,9 @@ const focusEditorEnd = () => {
 }
 
 .nc-textarea-rich {
+  .ProseMirror {
+    @apply pt-1;
+  }
   .ProseMirror-focused {
     // remove all border
     outline: none;
@@ -195,11 +198,27 @@ const focusEditorEnd = () => {
     }
   }
 
+  ul,
+  ol {
+    @apply !my-0;
+  }
+
   ul[data-type='taskList'] {
-    @apply ml-0;
+    @apply ml-1;
     li {
-      @apply flex flex-row items-baseline gap-x-2;
+      @apply flex flex-row gap-x-2;
       list-style-type: none;
+
+      input {
+        @apply mt-0.75 flex rounded-sm;
+        z-index: -10;
+      }
+      // Unchecked
+      input:not(:checked) {
+        // Add border to checkbox
+        border-width: 1.5px;
+        @apply border-gray-700;
+      }
     }
   }
 

@@ -193,7 +193,7 @@ const pg = {
     const source = (await fn(pt.arguments[0])).builder;
     const pattern = (await fn(pt.arguments[1])).builder;
     return {
-      builder: knex.raw(`${source}::text ~ ${pattern}::text) ${colAlias}`),
+      builder: knex.raw(`(${source}::text ~ ${pattern}::text) ${colAlias}`),
     };
   },
   REGEX_EXTRACT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
@@ -201,7 +201,7 @@ const pg = {
     const pattern = (await fn(pt.arguments[1])).builder;
     return {
       builder: knex.raw(
-        `regexp_matches(${source}::text, ${pattern}::text) ${colAlias}`,
+        `REGEXP_MATCHES(${source}::text, ${pattern}::text) ${colAlias}`,
       ),
     };
   },
@@ -211,7 +211,7 @@ const pg = {
     const replacement = (await fn(pt.arguments[2])).builder;
     return {
       builder: knex.raw(
-        `regexp_matches(${source}::text, ${pattern}::text, ${replacement}::text) ${colAlias}`,
+        `REGEXP_REPLACE(${source}::text, ${pattern}::text, ${replacement}::text, 'g') ${colAlias}`,
       ),
     };
   },

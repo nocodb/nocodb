@@ -442,7 +442,7 @@ const formulas: Record<string, any> = {
   },
 
   REGEX_MATCH: {
-    type: formulaTypes.NUMERIC,
+    type: formulaTypes.STRING,
     validation: {
       args: {
         rqd: 2,

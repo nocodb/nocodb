@@ -4679,7 +4679,7 @@ class BaseModelSqlv2 {
                   `${parentTable.table_name}.${parentColumn.column_name}`,
                 ).andOn(
                   `${vTable.table_name}.${vChildCol.column_name}`,
-                  row[childColumn.column_name],
+                  this.dbDriver.raw('?', [row[childColumn.column_name]]),
                 );
               });
             // .where(_wherePk(parentTable.primaryKeys, childId))

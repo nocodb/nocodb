@@ -144,7 +144,7 @@
     "p-queue": "^6.6.2",
     "papaparse": "^5.4.0",
     "parse-database-url": "^0.3.0",
-    "passport": "^0.4.1",
+    "passport": "^0.6.0",
     "passport-auth-token": "^1.0.1",
     "passport-custom": "^1.1.1",
     "passport-github": "^1.1.0",

@@ -8,11 +8,14 @@ import type Column from '~/models/Column';
 import type LookupColumn from '~/models/LookupColumn';
 import type RollupColumn from '~/models/RollupColumn';
 import type FormulaColumn from '~/models/FormulaColumn';
+import type { BarcodeColumn, QrCodeColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { sanitize } from '~/helpers/sqlSanitize';
 import Filter from '~/models/Filter';
+import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
+import { getAliasGenerator } from '~/utils';
 
 // tod: tobe fixed
 // extend(customParseFormat);
@@ -112,6 +115,43 @@ const parseConditionV2 = async (
       });
     };
   } else {
+    // handle group by filter separately,
+    // `gb_eq` is equivalent to `eq` but for lookup it compares on aggregated value returns in group by api
+    // aggregated value will be either json array or `___` separated string
+    // `gb_null` is equivalent to `blank` but for lookup it compares on aggregated value is null
+    if (
+      (filter.comparison_op as any) === 'gb_eq' ||
+      (filter.comparison_op as any) === 'gb_null'
+    ) {
+      const column = await filter.getColumn();
+      if (
+        column.uidt === UITypes.Lookup ||
+        column.uidt === UITypes.LinkToAnotherRecord
+      ) {
+        const model = await column.getModel();
+        const lkQb = await generateLookupSelectQuery({
+          baseModelSqlv2,
+          alias: alias,
+          model,
+          column,
+          getAlias: getAliasGenerator('__gb_filter_lk'),
+        });
+        return (qb) => {
+          if ((filter.comparison_op as any) === 'gb_eq')
+            qb.where(knex.raw('?', [filter.value]), lkQb.builder);
+          else qb.whereNull(knex.raw(lkQb.builder).wrap('(', ')'));
+        };
+      } else {
+        filter.comparison_op =
+          (filter.comparison_op as any) === 'gb_eq' ? 'eq' : 'blank';
+        // if qrCode or Barcode replace it with value column
+        if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
+          filter.fk_column_id = await column
+            .getColOptions<BarcodeColumn | QrCodeColumn>()
+            .then((col) => col.fk_column_id);
+      }
+    }
+
     const column = await filter.getColumn();
     if (!column) {
       if (throwErrorIfInvalid) {
@@ -342,7 +382,7 @@ const parseConditionV2 = async (
         return (qbP: Knex.QueryBuilder) => {
           if (filter.comparison_op in negatedMapping)
             qbP.where((qb) =>
-              qbP
+              qb
                 .whereNotIn(childColumn.column_name, selectQb)
                 .orWhereNull(childColumn.column_name),
             );

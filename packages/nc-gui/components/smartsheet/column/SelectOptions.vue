@@ -29,7 +29,7 @@ const { optionsMagic: _optionsMagic } = useNocoEe()
 
 const optionsWrapperDomRef = ref<HTMLElement>()
 
-const options = ref<(Option & { status?: 'remove' })[]>([])
+const options = ref<(Option & { status?: 'remove'; index?: number })[]>([])
 
 const isAddingOption = ref(false)
 
@@ -38,7 +38,7 @@ const OPTIONS_PAGE_COUNT = 20
 const loadedOptionAnchor = ref(OPTIONS_PAGE_COUNT)
 const isReverseLazyLoad = ref(false)
 
-const renderedOptions = ref<(Option & { status?: 'remove' })[]>([])
+const renderedOptions = ref<(Option & { status?: 'remove'; index?: number })[]>([])
 const savedDefaultOption = ref<Option | null>(null)
 const savedCdf = ref<string | null>(null)
 
@@ -98,6 +98,12 @@ onMounted(() => {
 
   options.value = vModel.value.colOptions.options
 
+  let indexCounter = 0
+  options.value.map((el) => {
+    el.index = indexCounter++
+    return el
+  })
+
   loadedOptionAnchor.value = Math.min(loadedOptionAnchor.value, options.value.length)
 
   renderedOptions.value = [...options.value].slice(0, loadedOptionAnchor.value)
@@ -135,6 +141,7 @@ const addNewOption = () => {
   const tempOption = {
     title: '',
     color: getNextColor(),
+    index: options.value.length,
   }
   options.value.push(tempOption)
 
@@ -168,11 +175,30 @@ const addNewOption = () => {
 // }
 
 const syncOptions = () => {
-  vModel.value.colOptions.options = renderedOptions.value.filter((op) => op.status !== 'remove')
+  vModel.value.colOptions.options = options.value
+    .filter((op) => op.status !== 'remove')
+    .sort((a, b) => {
+      const renderA = renderedOptions.value.findIndex((el) => a.index !== undefined && el.index === a.index)
+      const renderB = renderedOptions.value.findIndex((el) => a.index !== undefined && el.index === b.index)
+      if (renderA === -1 || renderB === -1) return 0
+      return renderA - renderB
+    })
+    .map((op) => {
+      const { index: _i, status: _s, ...rest } = op
+      return rest
+    })
 }
 
 const removeRenderedOption = (index: number) => {
-  renderedOptions.value[index].status = 'remove'
+  const renderedOption = renderedOptions.value[index]
+
+  if (renderedOption.index === undefined || isNaN(renderedOption.index)) return
+
+  const option = options.value[renderedOption.index]
+
+  renderedOption.status = 'remove'
+  option.status = 'remove'
+
   syncOptions()
 
   const optionId = renderedOptions.value[index]?.id
@@ -193,7 +219,15 @@ const optionChanged = (changedId: string) => {
 }
 
 const undoRemoveRenderedOption = (index: number) => {
-  renderedOptions.value[index].status = undefined
+  const renderedOption = renderedOptions.value[index]
+
+  if (renderedOption.index === undefined || isNaN(renderedOption.index)) return
+
+  const option = options.value[renderedOption.index]
+
+  renderedOption.status = undefined
+  option.status = undefined
+
   syncOptions()
 
   const optionId = renderedOptions.value[index]?.id

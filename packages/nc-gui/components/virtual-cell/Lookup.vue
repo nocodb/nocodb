@@ -98,7 +98,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
 
 <template>
   <div
-    class="h-full w-full"
+    class="h-full w-full nc-lookup-cell"
     :style="{ height: rowHeight && rowHeight !== 1 ? `${rowHeight * 2}rem` : `2.85rem` }"
     @dblclick="activateShowEditNonEditableFieldWarning"
   >
@@ -205,5 +205,9 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
   &::-webkit-scrollbar-thumb {
     @apply bg-gray-200;
   }
+}
+
+.nc-lookup-cell .nc-text-area-clamped-text {
+  @apply !mr-1;
 }
 </style>

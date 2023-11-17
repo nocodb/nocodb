@@ -471,9 +471,20 @@ const formulas: Record<string, any> = {
         rqd: 3,
       },
     },
-    description: '"Substitutes all matching substrings with a replacement string value."',
+    description: 'Substitutes all matching substrings with a replacement string value.',
     syntax: 'REGEX_MATCH(string, regex, replacement)',
     examples: ['REGEX_EXTRACT({title}, "abc.*", "abcd")'],
+  },
+  BLANK: {
+    type: formulaTypes.STRING,
+    validation: {
+      args: {
+        rqd: 0,
+      },
+    },
+    description: 'Returns an empty string.',
+    syntax: 'BLANK()',
+    examples: ['BLANK()'],
   },
 }
 

@@ -47,6 +47,7 @@
   "dependencies": {
     "@aws-sdk/client-kafka": "^3.410.0",
     "@aws-sdk/client-s3": "^3.423.0",
+    "@aws-sdk/lib-storage": "^3.451.0",
     "@aws-sdk/s3-request-presigner": "^3.423.0",
     "@google-cloud/storage": "^7.1.0",
     "@graphql-tools/merge": "^6.0.12",

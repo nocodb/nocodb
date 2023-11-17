@@ -108,7 +108,7 @@ export function substituteColumnIdWithAliasInFormula(
   return jsepTreeToFormula(parsedFormula);
 }
 
-export function jsepTreeToFormula(node) {
+export function jsepTreeToFormula(node, isCallExpId = false) {
   if (node.type === 'BinaryExpression' || node.type === 'LogicalExpression') {
     return (
       '(' +
@@ -135,45 +135,7 @@ export function jsepTreeToFormula(node) {
   }
 
   if (node.type === 'Identifier') {
-    const formulas = [
-      'AVG',
-      'ADD',
-      'DATEADD',
-      'DATETIME_DIFF',
-      'WEEKDAY',
-      'AND',
-      'OR',
-      'CONCAT',
-      'TRIM',
-      'UPPER',
-      'LOWER',
-      'LEN',
-      'MIN',
-      'MAX',
-      'CEILING',
-      'FLOOR',
-      'ROUND',
-      'MOD',
-      'REPEAT',
-      'LOG',
-      'EXP',
-      'POWER',
-      'SQRT',
-      'SQRT',
-      'ABS',
-      'NOW',
-      'REPLACE',
-      'SEARCH',
-      'INT',
-      'RIGHT',
-      'LEFT',
-      'SUBSTR',
-      'MID',
-      'IF',
-      'SWITCH',
-      'URL',
-    ];
-    if (!formulas.includes(node.name.toUpperCase())) return '{' + node.name + '}';
+    if (!isCallExpId) return '{' + node.name + '}';
     return node.name;
   }
 
@@ -186,7 +148,7 @@ export function jsepTreeToFormula(node) {
 
   if (node.type === 'CallExpression') {
     return (
-      jsepTreeToFormula(node.callee) +
+      jsepTreeToFormula(node.callee, true) +
       '(' +
       node.arguments.map(jsepTreeToFormula).join(', ') +
       ')'

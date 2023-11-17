@@ -18,7 +18,7 @@ function groupByTests() {
   let filmView: View;
   let gridViewColumns;
 
-  before(async function () {
+  beforeEach(async function () {
     console.time('GroupBy Tests');
     context = await init();
 

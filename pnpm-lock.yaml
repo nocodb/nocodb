@@ -420,7 +420,7 @@ importers:
         version: 2.0.2(@nestjs/common@10.2.1)(reflect-metadata@0.1.13)
       '@nestjs/passport':
         specifier: ^10.0.1
-        version: 10.0.1(@nestjs/common@10.2.1)(passport@0.4.1)
+        version: 10.0.1(@nestjs/common@10.2.1)(passport@0.6.0)
       '@nestjs/platform-express':
         specifier: ^10.2.1
         version: 10.2.1(@nestjs/common@10.2.1)(@nestjs/core@10.2.1)
@@ -677,8 +677,8 @@ importers:
         specifier: ^0.3.0
         version: 0.3.0
       passport:
-        specifier: ^0.4.1
-        version: 0.4.1
+        specifier: ^0.6.0
+        version: 0.6.0
       passport-auth-token:
         specifier: ^1.0.1
         version: 1.0.1
@@ -5377,14 +5377,14 @@ packages:
       reflect-metadata: 0.1.13
     dev: false
 
-  /@nestjs/passport@10.0.1(@nestjs/common@10.2.1)(passport@0.4.1):
+  /@nestjs/passport@10.0.1(@nestjs/common@10.2.1)(passport@0.6.0):
     resolution: {integrity: sha512-hS22LeNj0LByS9toBPkpKyZhyKAXoHACLS1EQrjbAJJEQjhocOskVGwcMwvMlz+ohN+VU804/nMF1Zlya4+TiQ==}
     peerDependencies:
       '@nestjs/common': ^8.0.0 || ^9.0.0 || ^10.0.0
       passport: ^0.4.0 || ^0.5.0 || ^0.6.0
     dependencies:
       '@nestjs/common': 10.2.1(reflect-metadata@0.1.13)(rxjs@7.2.0)
-      passport: 0.4.1
+      passport: 0.6.0
     dev: false
 
   /@nestjs/platform-express@10.2.1(@nestjs/common@10.2.1)(@nestjs/core@10.2.1):
@@ -20040,12 +20040,13 @@ packages:
     engines: {node: '>= 0.4.0'}
     dev: false
 
-  /passport@0.4.1:
-    resolution: {integrity: sha512-IxXgZZs8d7uFSt3eqNjM9NQ3g3uQCW5avD8mRNoXV99Yig50vjuaez6dQK2qC0kVWPRTujxY0dWgGfT09adjYg==}
+  /passport@0.6.0:
+    resolution: {integrity: sha512-0fe+p3ZnrWRW74fe8+SvCyf4a3Pb2/h7gFkQ8yTJpAO50gDzlfjZUZTO1k5Eg9kUct22OxHLqDZoKUWRHOh9ug==}
     engines: {node: '>= 0.4.0'}
     dependencies:
       passport-strategy: 1.0.0
       pause: 0.0.1
+      utils-merge: 1.0.1
     dev: false
 
   /path-exists@3.0.0:

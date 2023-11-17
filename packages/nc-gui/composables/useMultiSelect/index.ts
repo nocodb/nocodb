@@ -486,6 +486,10 @@ export function useMultiSelect(
       return true
     }
 
+    if (isExpandedCellInputExist()) {
+      return
+    }
+
     if (!isCellActive.value || activeCell.row === null || activeCell.col === null) {
       return
     }

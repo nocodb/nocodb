@@ -497,6 +497,28 @@ const formulas: Record<string, any> = {
     syntax: 'XOR(expression, [exp2, ...])',
     examples: ['XOR(TRUE(), FALSE(), TRUE())'],
   },
+  EVEN: {
+    type: formulaTypes.NUMERIC,
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    description: 'Returns the smallest even integer that is greater than or equal to the specified value.',
+    syntax: 'EVEN(value)',
+    examples: ['EVEN({column})'],
+  },
+  ODD: {
+    type: formulaTypes.NUMERIC,
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    description: 'Rounds positive value up the the nearest odd number and negative value down to the nearest odd number.',
+    syntax: 'ODD(value)',
+    examples: ['ODD({column})'],
+  },
 }
 
 const formulaList = Object.keys(formulas)

@@ -201,7 +201,9 @@ const pg = {
     const pattern = (await fn(pt.arguments[1])).builder;
     return {
       builder: knex.raw(
-        `REGEXP_MATCHES(${source}::text, ${pattern}::text) ${colAlias}`,
+        // use `SUBSTRING` since REGEXP_MATCH returns array value
+        // `REGEXP_MATCH(${source}::text, ${pattern}::text) ${colAlias}`,
+        `SUBSTRING(${source}::text from ${pattern}::text) ${colAlias}`,
       ),
     };
   },

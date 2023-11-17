@@ -84,12 +84,6 @@ const isRichMode = computed(() => {
 
   return meta?.richMode
 })
-
-watch(editEnabled, () => {
-  if (editEnabled.value && isRichMode.value) {
-    isVisible.value = true
-  }
-})
 </script>
 
 <template>
@@ -104,11 +98,12 @@ watch(editEnabled, () => {
     >
       <div
         v-if="isRichMode"
-        class="w-full"
+        class="w-full cursor-pointer"
         :style="{
           maxHeight: `${height}px !important`,
           minHeight: `${height}px !important`,
         }"
+        @click="isVisible = true"
       >
         <LazyCellRichText v-model:value="vModel" sync-value-change readonly class="!pointer-events-none" />
       </div>
@@ -156,10 +151,9 @@ watch(editEnabled, () => {
       <span v-else>{{ vModel }}</span>
 
       <NcTooltip
-        v-if="active && !isExpandedFormOpen"
         placement="bottom"
-        class="!absolute right-0 bottom-1"
-        :class="{ 'right-2 bottom-2': editEnabled }"
+        class="!absolute right-0 bottom-1 !hidden nc-text-area-expand-btn"
+        :class="{ 'right-0 bottom-2': editEnabled }"
       >
         <template #title>{{ $t('title.expand') }}</template>
         <NcButton
@@ -212,6 +206,7 @@ watch(editEnabled, () => {
           }"
           show-menu
           full-mode
+          :read-only="readOnly"
         />
       </div>
     </template>
@@ -221,5 +216,11 @@ watch(editEnabled, () => {
 <style lang="scss">
 textarea:focus {
   box-shadow: none;
+}
+
+.nc-grid-cell:hover {
+  .nc-text-area-expand-btn {
+    @apply !block;
+  }
 }
 </style>

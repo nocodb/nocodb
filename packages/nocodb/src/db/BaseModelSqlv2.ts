@@ -3032,7 +3032,7 @@ class BaseModelSqlv2 {
 
       // insert one by one as fallback to get ids for sqlite and mysql
       if (insertOneByOneAsFallback && (this.isSqlite || this.isMySQL)) {
-        // sqlite and mysql doesnt support returning, so insert one by one and return ids
+        // sqlite and mysql doesn't support returning, so insert one by one and return ids
         response = [];
 
         const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
@@ -5404,7 +5404,7 @@ export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
       }
     }
 
-    return id;
+    return where;
   }
 
   const ids = Array.isArray(id) ? id : (id + '').split('___');

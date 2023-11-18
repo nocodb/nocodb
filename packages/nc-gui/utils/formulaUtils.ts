@@ -583,6 +583,16 @@ const formulas: Record<string, any> = {
     syntax: 'ROUNDUP()',
     examples: ['ROUNDUP()'],
   },
+  VALUE: {
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    description: '',
+    syntax: 'VALUE()',
+    examples: ['VALUE()'],
+  },
 }
 
 const formulaList = Object.keys(formulas)

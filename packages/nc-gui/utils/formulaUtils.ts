@@ -542,7 +542,7 @@ const formulas: Record<string, any> = {
   COUNT: {
     validation: {
       args: {
-        rqd: 0,
+        min: 1,
       },
     },
     description: '',

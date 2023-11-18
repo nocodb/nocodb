@@ -1,4 +1,5 @@
 import type { MapFnArgs } from '../mapFunctionName';
+import { NcError } from '~/helpers/catchError';
 
 export default {
   // todo: handle default case
@@ -132,6 +133,21 @@ export default {
     return {
       builder: args.knex.raw(
         `CASE WHEN ${query} >= 0 THEN CEIL((${query} - 1) / 2.0) * 2 + 1 \n ELSE FLOOR((${query} + 1) / 2.0) * 2 - 1\n END${args.colAlias}`,
+      ),
+    };
+  },
+  RECORD_ID: async (args: MapFnArgs) => {
+    const pkCol = args.model?.primaryKey;
+    if (!pkCol) {
+      NcError.badRequest('Primary key not found');
+    }
+
+    return {
+      builder: args.knex.raw(
+        `${
+          (await args.fn({ type: 'Identifier', name: pkCol.id }, args.a))
+            .builder
+        } ${args.colAlias}`,
       ),
     };
   },

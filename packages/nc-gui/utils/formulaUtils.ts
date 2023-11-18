@@ -519,6 +519,16 @@ const formulas: Record<string, any> = {
     syntax: 'ODD(value)',
     examples: ['ODD({column})'],
   },
+  RECORD_ID: {
+    validation: {
+      args: {
+        rqd: 0,
+      },
+    },
+    description: 'Returns ID of the current record.',
+    syntax: 'RECORD_ID()',
+    examples: ['RECORD_ID()'],
+  },
 }
 
 const formulaList = Object.keys(formulas)

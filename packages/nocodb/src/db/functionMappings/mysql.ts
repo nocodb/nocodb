@@ -121,6 +121,23 @@ const mysql2 = {
       builder: knex.raw(`(${source} REGEXP ${pattern}) ${colAlias}`),
     };
   },
+  REGEX_EXTRACT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    const pattern = (await fn(pt.arguments[1])).builder;
+    return {
+      builder: knex.raw(`REGEXP_SUBSTR(${source}, ${pattern}) ${colAlias}`),
+    };
+  },
+  REGEX_REPLACE: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    const pattern = (await fn(pt.arguments[1])).builder;
+    const replacement = (await fn(pt.arguments[2])).builder;
+    return {
+      builder: knex.raw(
+        `REGEXP_REPLACE(${source}, ${pattern}, ${replacement}) ${colAlias}`,
+      ),
+    };
+  },
 };
 
 export default mysql2;

@@ -88,8 +88,11 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
     const views = viewsByTable.value.get(table.id as string) ?? []
     if (openedViewsTab.value !== 'view' && views.length && views[0].id) {
+      // find the default view and navigate to it, if not found navigate to the first one
+      const defaultView = views.find((v) => v.is_default) || views[0]
+
       await navigateTo({
-        path: `/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${views[0].id}/${openedViewsTab.value}`,
+        path: `/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${defaultView.id}/${openedViewsTab.value}`,
         query: route.value.query,
       })
     } else

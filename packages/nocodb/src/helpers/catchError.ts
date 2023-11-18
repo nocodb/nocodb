@@ -324,7 +324,7 @@ export function extractDBError(error): {
           / Invalid object name '(\w+)'./i,
         );
         const extractMissingColMatch = error.message.match(
-          / Invalid field '(\w+)'./i,
+          / Invalid field: (\w+)./i,
         );
 
         if (extractTableNameMatch && extractTableNameMatch[1]) {

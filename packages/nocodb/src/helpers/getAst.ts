@@ -73,9 +73,7 @@ const getAst = async ({
         (f) => !colAliasMap[f] && !aliasColMap[f],
       );
       if (invalidFields.length) {
-        NcError.unprocessableEntity(
-          `Invalid field '${invalidFields[0]}' in Query`,
-        );
+        NcError.unprocessableEntity(`Invalid field: ${invalidFields[0]}`);
       }
     }
   } else {

@@ -111,7 +111,7 @@ export default {
     };
   },
   BLANK: async (args: MapFnArgs) => {
-    return { builder: args.knex.raw(`?`, ['']) };
+    return { builder: args.knex.raw(`?`, [null]) };
   },
   TRUE: async (args: MapFnArgs) => {
     return { builder: args.knex.raw(`?`, [1]) };

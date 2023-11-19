@@ -41,11 +41,13 @@ interface Props {
   showNextPrevIcons?: boolean
   firstRow?: boolean
   lastRow?: boolean
+  closeAfterSave?: boolean
+  newRecordHeader?: string
 }
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
+const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'createdRecord'])
 
 const { activeView } = storeToRefs(useViewsStore())
 
@@ -201,6 +203,12 @@ const save = async () => {
     reloadTrigger?.trigger()
   }
   isUnsavedFormExist.value = false
+
+  if (props.closeAfterSave) {
+    isExpanded.value = false
+  }
+
+  emits('createdRecord', _row.value.row)
 }
 
 const isPreventChangeModalOpen = ref(false)
@@ -486,12 +494,17 @@ export default {
             <div v-if="isLoading">
               <a-skeleton-input class="!h-8 !sm:mr-14 !w-52 mt-1 !rounded-md !overflow-hidden" active size="small" />
             </div>
+            <div
+              v-if="row.rowMeta?.new || props.newRecordHeader"
+              class="flex items-center truncate font-bold text-gray-800 text-xl"
+            >
+              {{ props.newRecordHeader ?? $t('activity.newRecord') }}
+            </div>
             <div v-else-if="displayValue && !row.rowMeta?.new" class="flex items-center font-bold text-gray-800 text-xl w-64">
               <span class="truncate">
                 {{ displayValue }}
               </span>
             </div>
-            <div v-if="row.rowMeta?.new" class="flex items-center truncate font-bold text-gray-800 text-xl">New Record</div>
           </div>
           <div class="flex gap-2">
             <NcButton

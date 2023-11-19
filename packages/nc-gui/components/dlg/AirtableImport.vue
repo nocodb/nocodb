@@ -90,8 +90,10 @@ const onStatus = async (status: JobStatus, data?: any) => {
     refreshCommandPalette()
     // TODO: add tab of the first table
   } else if (status === JobStatus.FAILED) {
+    await loadTables()
     goBack.value = true
     pushProgress(data.error.message, status)
+    refreshCommandPalette()
   }
 }
 
@@ -115,7 +117,10 @@ const { validateInfos } = useForm(syncSource, validators)
 
 const disableImportButton = computed(() => !syncSource.value.details.apiKey || !syncSource.value.details.syncSourceUrlOrId)
 
+const isLoading = ref(false)
+
 async function saveAndSync() {
+  isLoading.value = true
   await createOrUpdate()
   await sync()
 }
@@ -178,6 +183,7 @@ async function listenForUpdates(id?: string) {
         }
       } else {
         listeningForUpdates.value = false
+        isLoading.value = false
       }
     },
   )
@@ -494,6 +500,7 @@ onMounted(async () => {
           v-e="['c:sync-airtable:save-and-sync']"
           type="primary"
           class="nc-btn-airtable-import"
+          :loading="isLoading"
           :disabled="disableImportButton"
           @click="saveAndSync"
         >

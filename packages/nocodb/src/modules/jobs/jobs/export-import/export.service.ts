@@ -129,6 +129,17 @@ export class ExportService {
                 }
                 break;
               case 'formula':
+                // rewrite formula_raw with aliases
+                column.colOptions['formula_raw'] = column.colOptions[k].replace(
+                  /\{\{.*?\}\}/gm,
+                  (match) => {
+                    const col = model.columns.find(
+                      (c) => c.id === match.slice(2, -2),
+                    );
+                    return `{${col?.title}}`;
+                  },
+                );
+
                 column.colOptions[k] = column.colOptions[k].replace(
                   /(?<=\{\{).*?(?=\}\})/gm,
                   (match) => idMap.get(match),

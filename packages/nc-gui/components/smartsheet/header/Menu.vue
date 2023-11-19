@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
+import type { ColumnReqType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -111,8 +111,8 @@ const sortByColumn = async (direction: 'asc' | 'desc') => {
 }
 
 const isDuplicateDlgOpen = ref(false)
-const selectedColumnToDuplicate = ref<ColumnType>()
 const selectedColumnExtra = ref<any>()
+const duplicateDialogRef = ref<any>()
 
 const duplicateVirtualColumn = async () => {
   let columnCreatePayload = {}
@@ -165,7 +165,7 @@ const duplicateVirtualColumn = async () => {
 
 const openDuplicateDlg = async () => {
   if (!column?.value) return
-  if (column.value.uidt && [UITypes.Formula, UITypes.Lookup, UITypes.Rollup].includes(column.value.uidt as UITypes)) {
+  if (column.value.uidt && [UITypes.Lookup, UITypes.Rollup].includes(column.value.uidt as UITypes)) {
     duplicateVirtualColumn()
   } else {
     const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
@@ -186,8 +186,15 @@ const openDuplicateDlg = async () => {
         view_id: view.value!.id as string,
       },
     }
-    selectedColumnToDuplicate.value = column.value
-    isDuplicateDlgOpen.value = true
+
+    if (column.value.uidt === UITypes.Formula) {
+      nextTick(() => {
+        duplicateDialogRef?.value?.duplicate()
+      })
+    } else {
+      isDuplicateDlgOpen.value = true
+    }
+
     isOpen.value = false
   }
 }
@@ -373,9 +380,10 @@ const onInsertAfter = () => {
   </a-dropdown>
   <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal" />
   <DlgColumnDuplicate
-    v-if="selectedColumnToDuplicate"
+    v-if="column"
+    ref="duplicateDialogRef"
     v-model="isDuplicateDlgOpen"
-    :column="selectedColumnToDuplicate"
+    :column="column"
     :extra="selectedColumnExtra"
   />
 </template>

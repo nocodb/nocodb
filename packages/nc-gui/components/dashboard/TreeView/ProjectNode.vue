@@ -77,7 +77,7 @@ const tempTitle = ref('')
 
 const activeBaseId = ref('')
 
-const isErdModalOpen = ref<Boolean>(false)
+const isErdModalOpen = ref<boolean>(false)
 
 const { t } = useI18n()
 
@@ -116,7 +116,7 @@ const showBaseOption = computed(() => {
   return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission))
 })
 
-const enableEditMode = () => {
+function enableEditMode() {
   editMode.value = true
   tempTitle.value = base.value.title!
   nextTick(() => {
@@ -126,7 +126,7 @@ const enableEditMode = () => {
   })
 }
 
-const updateProjectTitle = async () => {
+async function updateProjectTitle() {
   if (!tempTitle.value) return
 
   try {
@@ -139,14 +139,15 @@ const updateProjectTitle = async () => {
     $e('a:base:rename')
 
     useTitle(`${base.value?.title}`)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
 const { copy } = useCopy(true)
 
-const copyProjectInfo = async () => {
+async function copyProjectInfo() {
   try {
     if (
       await copy(
@@ -158,7 +159,8 @@ const copyProjectInfo = async () => {
       // Copied to clipboard
       message.info(t('msg.info.copiedToClipboard'))
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.error(e)
     message.error(e.message)
   }
@@ -168,7 +170,7 @@ defineExpose({
   enableEditMode,
 })
 
-const setIcon = async (icon: string, base: BaseType) => {
+async function setIcon(icon: string, base: BaseType) {
   try {
     const meta = {
       ...((base.meta as object) || {}),
@@ -178,7 +180,8 @@ const setIcon = async (icon: string, base: BaseType) => {
     basesStore.updateProject(base.id!, { meta: JSON.stringify(meta) })
 
     $e('a:base:icon:navdraw', { icon })
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -224,7 +227,7 @@ function openTableCreateDialog(sourceIndex?: number | undefined) {
 }
 
 const isAddNewProjectChildEntityLoading = ref(false)
-const addNewProjectChildEntity = async () => {
+async function addNewProjectChildEntity() {
   if (isAddNewProjectChildEntityLoading.value) return
 
   isAddNewProjectChildEntityLoading.value = true
@@ -243,12 +246,13 @@ const addNewProjectChildEntity = async () => {
     if (!base.value.isExpanded && base.value.type !== NcProjectType.DB) {
       base.value.isExpanded = true
     }
-  } finally {
+  }
+  finally {
     isAddNewProjectChildEntityLoading.value = false
   }
 }
 
-const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
+async function onProjectClick(base: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) {
   if (!base) {
     return
   }
@@ -260,7 +264,8 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
 
   if (toggleIsExpanded) {
     base.isExpanded = !base.isExpanded
-  } else {
+  }
+  else {
     base.isExpanded = true
   }
 
@@ -310,7 +315,8 @@ function openErdView(source: SourceType) {
 const contextMenuBase = computed(() => {
   if (contextMenuTarget.type === 'source') {
     return contextMenuTarget.value
-  } else if (contextMenuTarget.type === 'table') {
+  }
+  else if (contextMenuTarget.type === 'table') {
     const source = base.value?.sources?.find((b) => b.id === contextMenuTarget.value.source_id)
     if (source) return source
   }
@@ -347,17 +353,17 @@ onKeyStroke('Escape', () => {
 const isDuplicateDlgOpen = ref(false)
 const selectedProjectToDuplicate = ref()
 
-const duplicateProject = (base: BaseType) => {
+function duplicateProject(base: BaseType) {
   selectedProjectToDuplicate.value = base
   isDuplicateDlgOpen.value = true
 }
 
-const tableDelete = () => {
+function tableDelete() {
   isTableDeleteDialogVisible.value = true
   $e('c:table:delete')
 }
 
-const projectDelete = () => {
+function projectDelete() {
   isProjectDeleteDialogVisible.value = true
   $e('c:project:delete')
 }
@@ -449,15 +455,78 @@ const projectDelete = () => {
                 <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
               </NcButton>
 
-              <template #overlay>
-                <NcMenu
-                  class="nc-scrollbar-md"
-                  :style="{
-                    maxHeight: '70vh',
-                    overflow: 'overlay',
-                  }"
-                  :data-testid="`nc-sidebar-base-${base.title}-options`"
-                  @click="isOptionsOpen = false"
+                  <NcMenuItem
+                    v-if="isUIAllowed('baseDuplicate', { roles: [stringifyRolesObj(orgRoles), baseRole].join() })"
+                    data-testid="nc-sidebar-base-duplicate"
+                    @click="duplicateProject(base)"
+                  >
+                    <div v-e="['c:base:duplicate']" class="flex gap-2 items-center">
+                      <GeneralIcon icon="duplicate" class="text-gray-700" />
+                      {{ $t('general.duplicate') }}
+                    </div>
+                  </NcMenuItem>
+
+                  <NcDivider v-if="['baseDuplicate', 'baseRename'].some((permission) => isUIAllowed(permission))" />
+
+                  <!-- Copy Project Info -->
+                  <NcMenuItem
+                    v-if="!isEeUI"
+                    key="copy"
+                    data-testid="nc-sidebar-base-copy-base-info"
+                    @click.stop="copyProjectInfo"
+                  >
+                    <div v-e="['c:base:copy-proj-info']" class="flex gap-2 items-center">
+                      <GeneralIcon icon="copy" class="group-hover:text-black" />
+                      {{ $t('activity.account.projInfo') }}
+                    </div>
+                  </NcMenuItem>
+
+                  <!-- ERD View -->
+                  <NcMenuItem
+                    key="erd"
+                    data-testid="nc-sidebar-base-relations"
+                    @click="openErdView(base?.sources?.[0]!)"
+                  >
+                    <div v-e="['c:base:erd']" class="flex gap-2 items-center">
+                      <GeneralIcon icon="erd" />
+                      {{ $t('title.relations') }}
+                    </div>
+                  </NcMenuItem>
+
+                  <!-- Swagger: Rest APIs -->
+                  <NcMenuItem
+                    v-if="isUIAllowed('apiDocs')"
+                    key="api"
+                    v-e="['c:base:api-docs']"
+                    data-testid="nc-sidebar-base-rest-apis"
+                    @click.stop="
+                      () => {
+                        $e('c:base:api-docs')
+                        openLink(`/api/v2/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)
+                      }
+                    "
+                  >
+                    <div v-e="['c:base:api-docs']" class="flex gap-2 items-center">
+                      <GeneralIcon icon="snippet" class="group-hover:text-black !max-w-3.9" />
+                      {{ $t('activity.account.swagger') }}
+                    </div>
+                  </NcMenuItem>
+                </template>
+
+                <template v-if="base.sources && base.sources[0] && showBaseOption">
+                  <NcDivider />
+                  <DashboardTreeViewBaseOptions v-model:base="base" :source="base.sources[0]" />
+                </template>
+
+                <NcDivider v-if="['baseMiscSettings', 'baseDelete'].some((permission) => isUIAllowed(permission))" />
+
+                <NcMenuItem
+                  v-if="isUIAllowed('baseMiscSettings')"
+                  key="teamAndSettings"
+                  v-e="['c:base:settings']"
+                  data-testid="nc-sidebar-base-settings"
+                  class="nc-sidebar-base-base-settings"
+                  @click="toggleDialog(true, 'teamAndAuth', undefined, base.id)"
                 >
                   <template v-if="!isSharedBase">
                     <NcMenuItem v-if="isUIAllowed('baseRename')" data-testid="nc-sidebar-project-rename" @click="enableEditMode">
@@ -610,6 +679,7 @@ const projectDelete = () => {
                           :class="{ '!rotate-180': isActive }"
                         />
                       </div>
+
                     </template>
                     <a-collapse-panel :key="`collapse-${source.id}`">
                       <template #header>
@@ -703,6 +773,7 @@ const projectDelete = () => {
                         <DashboardTreeViewTableList :base="base" :source-index="sourceIndex" />
                       </div>
                     </a-collapse-panel>
+
                   </a-collapse>
                 </div>
               </div>
@@ -743,6 +814,7 @@ const projectDelete = () => {
         </template>
       </NcMenu>
     </template>
+
   </NcDropdown>
   <DlgTableDelete
     v-if="contextMenuTarget.value?.id && base?.id"
@@ -750,8 +822,11 @@ const projectDelete = () => {
     :table-id="contextMenuTarget.value?.id"
     :base-id="base?.id"
   />
+
   <DlgProjectDelete v-model:visible="isProjectDeleteDialogVisible" :base-id="base?.id" />
+
   <DlgProjectDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
+
   <GeneralModal v-model:visible="isErdModalOpen" size="large">
     <div class="h-[80vh]">
       <LazyDashboardSettingsErd :source-id="activeBaseId" />

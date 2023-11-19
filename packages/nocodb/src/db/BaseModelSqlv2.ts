@@ -35,7 +35,6 @@ import type {
   SelectOption,
 } from '~/models';
 import type { SortType } from 'nocodb-sdk';
-import generateBTLookupSelectQuery from '~/db/generateBTLookupSelectQuery';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import conditionV2 from '~/db/conditionV2';
@@ -60,10 +59,13 @@ import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
+  GROUPBY_COMPARISON_OPS,
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
+import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
+import { getAliasGenerator } from '~/utils';
 
 dayjs.extend(utc);
 
@@ -386,6 +388,7 @@ class BaseModelSqlv2 {
         validateFormula: true,
       });
     }
+
     return data?.map((d) => {
       d.__proto__ = proto;
       return d;
@@ -549,18 +552,32 @@ class BaseModelSqlv2 {
 
     const selectors = [];
     const groupBySelectors = [];
+    const getAlias = getAliasGenerator('__nc_gb');
 
     await Promise.all(
       args.column_name.split(',').map(async (col) => {
-        const column = cols.find(
-          (c) => c.column_name === col || c.title === col,
-        );
-        groupByColumns[column.id] = column;
+        let column = cols.find((c) => c.column_name === col || c.title === col);
         if (!column) {
           throw NcError.notFound('Column not found');
         }
 
+        // if qrCode or Barcode replace it with value column nd keep the alias
+        if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
+          column = new Column({
+            ...(await column
+              .getColOptions<BarcodeColumn | QrCodeColumn>()
+              .then((col) => col.getValueColumn())),
+            title: column.title,
+          });
+
+        groupByColumns[column.id] = column;
+
         switch (column.uidt) {
+          case UITypes.Attachment:
+            NcError.badRequest(
+              'Group by using attachment column is not supported',
+            );
+            break;
           case UITypes.Links:
           case UITypes.Rollup:
             selectors.push(
@@ -599,12 +616,14 @@ class BaseModelSqlv2 {
             }
             break;
           case UITypes.Lookup:
+          case UITypes.LinkToAnotherRecord:
             {
-              const _selectQb = await generateBTLookupSelectQuery({
+              const _selectQb = await generateLookupSelectQuery({
                 baseModelSqlv2: this,
                 column,
                 alias: null,
                 model: this.model,
+                getAlias,
               });
 
               const selectQb = this.dbDriver.raw(`?? as ??`, [
@@ -695,6 +714,7 @@ class BaseModelSqlv2 {
     qb.groupBy(...groupBySelectors);
 
     applyPaginate(qb, rest);
+
     return await this.execAndParse(qb);
   }
 
@@ -711,18 +731,34 @@ class BaseModelSqlv2 {
 
     const selectors = [];
     const groupBySelectors = [];
+    const getAlias = getAliasGenerator('__nc_gb');
 
+    // todo: refactor and avoid duplicate code
     await this.model.getColumns().then((cols) =>
       Promise.all(
         args.column_name.split(',').map(async (col) => {
-          const column = cols.find(
+          let column = cols.find(
             (c) => c.column_name === col || c.title === col,
           );
           if (!column) {
             throw NcError.notFound('Column not found');
           }
 
+          // if qrCode or Barcode replace it with value column nd keep the alias
+          if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
+            column = new Column({
+              ...(await column
+                .getColOptions<BarcodeColumn | QrCodeColumn>()
+                .then((col) => col.getValueColumn())),
+              title: column.title,
+            });
+
           switch (column.uidt) {
+            case UITypes.Attachment:
+              NcError.badRequest(
+                'Group by using attachment column is not supported',
+              );
+              break;
             case UITypes.Rollup:
             case UITypes.Links:
               selectors.push(
@@ -764,12 +800,14 @@ class BaseModelSqlv2 {
               break;
             }
             case UITypes.Lookup:
+            case UITypes.LinkToAnotherRecord:
               {
-                const _selectQb = await generateBTLookupSelectQuery({
+                const _selectQb = await generateLookupSelectQuery({
                   baseModelSqlv2: this,
                   column,
                   alias: null,
                   model: this.model,
+                  getAlias,
                 });
 
                 const selectQb = this.dbDriver.raw(`?? as ??`, [
@@ -2994,7 +3032,7 @@ class BaseModelSqlv2 {
 
       // insert one by one as fallback to get ids for sqlite and mysql
       if (insertOneByOneAsFallback && (this.isSqlite || this.isMySQL)) {
-        // sqlite and mysql doesnt support returning, so insert one by one and return ids
+        // sqlite and mysql doesn't support returning, so insert one by one and return ids
         response = [];
 
         const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
@@ -5156,9 +5194,7 @@ export function extractSortsObject(
     else sort.fk_column_id = aliasColObjMap[s.replace(/^\+/, '')]?.id;
 
     if (throwErrorIfInvalid && !sort.fk_column_id)
-      NcError.unprocessableEntity(
-        `Invalid column '${s.replace(/^[+-]/, '')}' in sort`,
-      );
+      NcError.unprocessableEntity(`Invalid field: ${s.replace(/^[+-]/, '')}`);
 
     return new Sort(sort);
   });
@@ -5247,7 +5283,7 @@ export function extractFilterFromXwhere(
 
 // mark `op` and `sub_op` any for being assignable to parameter of type
 function validateFilterComparison(uidt: UITypes, op: any, sub_op?: any) {
-  if (!COMPARISON_OPS.includes(op)) {
+  if (!COMPARISON_OPS.includes(op) && !GROUPBY_COMPARISON_OPS.includes(op)) {
     NcError.badRequest(`${op} is not supported.`);
   }
 
@@ -5322,7 +5358,7 @@ export function extractCondition(
 
       validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
     } else if (throwErrorIfInvalid) {
-      NcError.unprocessableEntity(`Column '${alias}' not found.`);
+      NcError.unprocessableEntity(`Invalid field: ${alias}`);
     }
 
     return new Filter({
@@ -5366,7 +5402,7 @@ export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
       }
     }
 
-    return id;
+    return where;
   }
 
   const ids = Array.isArray(id) ? id : (id + '').split('___');

@@ -89,6 +89,12 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     if (col.uidt === UITypes.Checkbox) {
       return value ? GROUP_BY_VARS.TRUE : GROUP_BY_VARS.FALSE
     }
+
+    // convert to JSON string if non-string value
+    if (value && typeof value === 'object') {
+      value = JSON.stringify(value)
+    }
+
     return value ?? GROUP_BY_VARS.NULL
   }
 
@@ -144,13 +150,13 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
   const calculateNestedWhere = (nestedIn: GroupNestedIn[], existing = '') => {
     return nestedIn.reduce((acc, curr) => {
       if (curr.key === GROUP_BY_VARS.NULL) {
-        acc += `${acc.length ? '~and' : ''}(${curr.title},blank)`
+        acc += `${acc.length ? '~and' : ''}(${curr.title},gb_null)`
       } else if (curr.column_uidt === UITypes.Checkbox) {
         acc += `${acc.length ? '~and' : ''}(${curr.title},${curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked'})`
       } else if ([UITypes.Date, UITypes.DateTime].includes(curr.column_uidt as UITypes)) {
         acc += `${acc.length ? '~and' : ''}(${curr.title},eq,exactDate,${curr.key})`
       } else {
-        acc += `${acc.length ? '~and' : ''}(${curr.title},eq,${curr.key})`
+        acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,${curr.key})`
       }
       return acc
     }, existing)

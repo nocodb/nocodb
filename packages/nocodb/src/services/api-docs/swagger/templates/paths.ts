@@ -667,6 +667,6 @@ function getPaginatedResponseType(type: string) {
     },
   };
 }
-function isRelationExist(columns: SwaggerColumn[]) {
+export function isRelationExist(columns: SwaggerColumn[]) {
   return columns.some((c) => isLinksOrLTAR(c.column) && !c.column.system);
 }

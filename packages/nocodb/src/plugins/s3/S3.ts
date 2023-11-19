@@ -2,6 +2,7 @@ import fs from 'fs';
 import { promisify } from 'util';
 import { GetObjectCommand, S3 as S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Upload } from '@aws-sdk/lib-storage';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
@@ -60,7 +61,7 @@ export default class S3 implements IStorageAdapterV2 {
         .get(url, {
           httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
           httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-          responseType: 'arraybuffer',
+          responseType: 'stream',
         })
         .then((response) => {
           uploadParams.Body = response.data;
@@ -162,8 +163,13 @@ export default class S3 implements IStorageAdapterV2 {
   private async upload(uploadParams): Promise<any> {
     return new Promise((resolve, reject) => {
       // call S3 to retrieve upload file to specified bucket
-      this.s3Client
-        .putObject({ ...this.defaultParams, ...uploadParams })
+      const upload = new Upload({
+        client: this.s3Client,
+        params: { ...this.defaultParams, ...uploadParams },
+      });
+
+      upload
+        .done()
         .then((data) => {
           if (data) {
             resolve(

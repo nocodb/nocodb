@@ -1,8 +1,10 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
+import { UITypes } from 'nocodb-sdk'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import GroupByTable from './GroupByTable.vue'
+import GroupByLabel from './GroupByLabel.vue'
 import { GROUP_BY_VARS, computed, ref } from '#imports'
 import type { Group, Row } from '#imports'
 
@@ -134,6 +136,27 @@ const onScroll = (e: Event) => {
   if (!vGroup.value.root) return
   _scrollLeft.value = (e.target as HTMLElement).scrollLeft
 }
+
+// a method to parse group key if grouped column type is LTAR or Lookup
+// in these 2 scenario it will return json array or `___` separated value
+const parseKey = (group) => {
+  const key = group.key.toString()
+
+  // parse json array key if it's a lookup or link to another record
+  if ((key && group.column?.uidt === UITypes.Lookup) || group.column?.uidt === UITypes.LinkToAnotherRecord) {
+    try {
+      const parsedKey = JSON.parse(key)
+      return parsedKey
+    } catch {
+      // if parsing try to split it by `___` (for sqlite)
+      return key.split('___')
+    }
+  }
+  return [key]
+}
+
+const shouldRenderCell = (column) =>
+  [UITypes.Lookup, UITypes.Attachment, UITypes.Barcode, UITypes.QrCode, UITypes.Links].includes(column?.uidt)
 </script>
 
 <template>
@@ -227,6 +250,15 @@ const onScroll = (e: Event) => {
                             </span>
                           </a-tag>
                         </template>
+                        <div
+                          v-else-if="!(grp.key in GROUP_BY_VARS.VAR_TITLES) && shouldRenderCell(grp.column)"
+                          class="flex min-w-[100px] flex-wrap"
+                        >
+                          <template v-for="(val, ind) of parseKey(grp)" :key="ind">
+                            <GroupByLabel v-if="val" :column="grp.column" :model-value="val" />
+                            <span v-else class="text-gray-400">No mapped value</span>
+                          </template>
+                        </div>
                         <a-tag
                           v-else
                           :key="`panel-tag-${grp.column.id}-${grp.key}`"
@@ -247,7 +279,12 @@ const onScroll = (e: Event) => {
                               'font-weight': 500,
                             }"
                           >
-                            {{ grp.key in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[grp.key] : grp.key }}
+                            <template v-if="grp.key in GROUP_BY_VARS.VAR_TITLES">{{
+                              GROUP_BY_VARS.VAR_TITLES[grp.key]
+                            }}</template>
+                            <template v-else>
+                              {{ parseKey(grp)?.join(', ') }}
+                            </template>
                           </span>
                         </a-tag>
                       </div>

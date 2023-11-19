@@ -155,9 +155,7 @@ const parseConditionV2 = async (
     const column = await filter.getColumn();
     if (!column) {
       if (throwErrorIfInvalid) {
-        NcError.unprocessableEntity(
-          `Invalid field ID '${filter.fk_column_id}' in Query`,
-        );
+        NcError.unprocessableEntity(`Invalid field: ${filter.fk_column_id}`);
       }
       return;
     }

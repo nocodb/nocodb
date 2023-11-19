@@ -3032,7 +3032,7 @@ class BaseModelSqlv2 {
 
       // insert one by one as fallback to get ids for sqlite and mysql
       if (insertOneByOneAsFallback && (this.isSqlite || this.isMySQL)) {
-        // sqlite and mysql doesnt support returning, so insert one by one and return ids
+        // sqlite and mysql doesn't support returning, so insert one by one and return ids
         response = [];
 
         const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
@@ -5194,9 +5194,7 @@ export function extractSortsObject(
     else sort.fk_column_id = aliasColObjMap[s.replace(/^\+/, '')]?.id;
 
     if (throwErrorIfInvalid && !sort.fk_column_id)
-      NcError.unprocessableEntity(
-        `Invalid column '${s.replace(/^[+-]/, '')}' in sort`,
-      );
+      NcError.unprocessableEntity(`Invalid field: ${s.replace(/^[+-]/, '')}`);
 
     return new Sort(sort);
   });
@@ -5360,7 +5358,7 @@ export function extractCondition(
 
       validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
     } else if (throwErrorIfInvalid) {
-      NcError.unprocessableEntity(`Column '${alias}' not found.`);
+      NcError.unprocessableEntity(`Invalid field: ${alias}`);
     }
 
     return new Filter({
@@ -5404,7 +5402,7 @@ export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
       }
     }
 
-    return id;
+    return where;
   }
 
   const ids = Array.isArray(id) ? id : (id + '').split('___');

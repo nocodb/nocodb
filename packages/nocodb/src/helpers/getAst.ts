@@ -74,7 +74,7 @@ const getAst = async ({
       );
       if (invalidFields.length) {
         NcError.unprocessableEntity(
-          `Following fields are invalid: ${invalidFields.join(', ')}`,
+          `Invalid field '${invalidFields[0]}' in Query`,
         );
       }
     }

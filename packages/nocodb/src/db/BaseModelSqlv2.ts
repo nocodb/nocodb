@@ -5195,7 +5195,7 @@ export function extractSortsObject(
 
     if (throwErrorIfInvalid && !sort.fk_column_id)
       NcError.unprocessableEntity(
-        `Invalid column '${s.replace(/^[+-]/, '')}' in sort`,
+        `Invalid field '${s.replace(/^[+-]/, '')}' in sort`,
       );
 
     return new Sort(sort);
@@ -5360,7 +5360,7 @@ export function extractCondition(
 
       validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
     } else if (throwErrorIfInvalid) {
-      NcError.unprocessableEntity(`Column '${alias}' not found.`);
+      NcError.unprocessableEntity(`Invalid field '${alias}' in Query`);
     }
 
     return new Filter({

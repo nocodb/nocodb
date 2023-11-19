@@ -37,7 +37,7 @@ export default async function sortV2(
     if (!column) {
       if (throwErrorIfInvalid) {
         NcError.unprocessableEntity(
-          `Invalid column id '${sort.fk_column_id}' in sort`,
+          `Invalid field ID '${sort.fk_column_id}' in Query`,
         );
       }
       continue;

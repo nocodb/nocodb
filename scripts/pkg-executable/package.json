@@ -27,9 +27,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1",
-    "nocodb": "0.202.5",
-    "@nestjs/common": "^10.2.1",
-    "@nestjs/core": "^10.2.1"
+    "express": "^4.17.3",
+    "nocodb": "0.202.7",
+    "@nestjs/common": "^10.2.9",
+    "@nestjs/core": "^10.2.9"
   }
 }

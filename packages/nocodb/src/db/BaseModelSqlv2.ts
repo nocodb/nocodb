@@ -5194,9 +5194,7 @@ export function extractSortsObject(
     else sort.fk_column_id = aliasColObjMap[s.replace(/^\+/, '')]?.id;
 
     if (throwErrorIfInvalid && !sort.fk_column_id)
-      NcError.unprocessableEntity(
-        `Invalid column '${s.replace(/^[+-]/, '')}' in sort`,
-      );
+      NcError.unprocessableEntity(`Invalid field: ${s.replace(/^[+-]/, '')}`);
 
     return new Sort(sort);
   });
@@ -5360,7 +5358,7 @@ export function extractCondition(
 
       validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
     } else if (throwErrorIfInvalid) {
-      NcError.unprocessableEntity(`Column '${alias}' not found.`);
+      NcError.unprocessableEntity(`Invalid field: ${alias}`);
     }
 
     return new Filter({

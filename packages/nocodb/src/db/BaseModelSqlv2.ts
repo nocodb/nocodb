@@ -4679,10 +4679,11 @@ class BaseModelSqlv2 {
                   `${parentTable.table_name}.${parentColumn.column_name}`,
                 ).andOn(
                   `${vTable.table_name}.${vChildCol.column_name}`,
-                  row[childColumn.column_name],
+                  this.dbDriver.raw('?', [
+                    row[childColumn.title] ?? row[childColumn.column_name],
+                  ]),
                 );
               });
-            // .where(_wherePk(parentTable.primaryKeys, childId))
 
             if (parentTable.primaryKeys.length > 1) {
               childRowsQb.where((qb) => {
@@ -4900,8 +4901,6 @@ class BaseModelSqlv2 {
 
     const childTn = this.getTnPath(childTable);
     const parentTn = this.getTnPath(parentTable);
-
-    // const prevData = await this.readByPk(rowId);
 
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
@@ -5127,7 +5126,6 @@ class BaseModelSqlv2 {
         parentCol.column_name,
         this.dbDriver(childTn)
           .select(chilCol.column_name)
-          // .where(parentTable.primaryKey.cn, p)
           .where(_wherePk(childTable.primaryKeys, id)),
       );
 

@@ -591,6 +591,7 @@
     "goToDashboard": "Buka Dasbor",
     "importing": "Mengimpor",
     "formatJson": "Format JSON",
+    "autoSelectFieldTypes": "Auto-Select Field Types",
     "firstRowAsHeaders": "Use First Record as Headers",
     "flattenNested": "Ratakan Bersarang",
     "downloadAllowed": "Unduh diizinkan",

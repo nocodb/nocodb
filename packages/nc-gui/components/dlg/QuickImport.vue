@@ -653,7 +653,7 @@ const onChange = () => {
 
             <a-form-item v-if="!importDataOnly" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.autoSelectFieldTypes">
-                <span class="caption">Auto-Select Field Types</span>
+                <span class="caption">{{ $t('labels.autoSelectFieldTypes') }}</span>
               </a-checkbox>
             </a-form-item>
 

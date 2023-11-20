@@ -277,7 +277,7 @@ watch(isDropdownOpen, async () => {
 
               <NcDivider />
 
-              <NcMenuItem -if="!vModel.is_default" class="!text-red-500 !hover:bg-red-50" @click.stop="onDelete">
+              <NcMenuItem v-if="!vModel.is_default" class="!text-red-500 !hover:bg-red-50" @click.stop="onDelete">
                 <div v-e="['c:view:delete']" class="flex gap-2 items-center">
                   <GeneralIcon icon="delete" class="text-sm nc-view-delete-icon" />
                   <div class="-ml-0.25">{{ $t('general.delete') }}</div>

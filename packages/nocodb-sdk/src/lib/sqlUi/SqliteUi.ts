@@ -149,232 +149,7 @@ export class SqliteUi {
     };
   }
 
-  // static getDefaultLengthForDatatype(type) {
-  //   switch (type) {
-  //     case "int":
-  //       return 11;
-  //       break;
-  //     case "tinyint":
-  //       return 1;
-  //       break;
-  //     case "smallint":
-  //       return 5;
-  //       break;
-  //
-  //     case "mediumint":
-  //       return 9;
-  //       break;
-  //     case "bigint":
-  //       return 20;
-  //       break;
-  //     case "bit":
-  //       return 64;
-  //       break;
-  //     case "boolean":
-  //       return '';
-  //       break;
-  //     case "float":
-  //       return 12;
-  //       break;
-  //     case "decimal":
-  //       return 10;
-  //       break;
-  //     case "double":
-  //       return 22;
-  //       break;
-  //     case "serial":
-  //       return 20;
-  //       break;
-  //     case "date":
-  //       return '';
-  //       break;
-  //     case "datetime":
-  //     case "timestamp":
-  //       return 6;
-  //       break;
-  //     case "time":
-  //       return '';
-  //       break;
-  //     case "year":
-  //       return '';
-  //       break;
-  //     case "char":
-  //       return 255;
-  //       break;
-  //     case "varchar":
-  //       return 45;
-  //       break;
-  //     case "nchar":
-  //       return 255;
-  //       break;
-  //     case "text":
-  //       return '';
-  //       break;
-  //     case "tinytext":
-  //       return '';
-  //       break;
-  //     case "mediumtext":
-  //       return '';
-  //       break;
-  //     case "longtext":
-  //       return ''
-  //       break;
-  //     case "binary":
-  //       return 255;
-  //       break;
-  //     case "varbinary":
-  //       return 65500;
-  //       break;
-  //     case "blob":
-  //       return '';
-  //       break;
-  //     case "tinyblob":
-  //       return '';
-  //       break;
-  //     case "mediumblob":
-  //       return '';
-  //       break;
-  //     case "longblob":
-  //       return '';
-  //       break;
-  //     case "enum":
-  //       return '\'a\',\'b\'';
-  //       break;
-  //     case "set":
-  //       return '\'a\',\'b\'';
-  //       break;
-  //     case "geometry":
-  //       return '';
-  //     case "point":
-  //       return '';
-  //     case "linestring":
-  //       return '';
-  //     case "polygon":
-  //       return '';
-  //     case "multipoint":
-  //       return '';
-  //     case "multilinestring":
-  //       return '';
-  //     case "multipolygon":
-  //       return '';
-  //     case "json":
-  //       return ''
-  //       break;
-  //
-  //   }
-  //
-  // }
-
-  static getDefaultLengthForDatatype(type) {
-    switch (type) {
-      case 'int':
-        return '';
-
-      case 'tinyint':
-        return '';
-
-      case 'smallint':
-        return '';
-
-      case 'mediumint':
-        return '';
-
-      case 'bigint':
-        return '';
-
-      case 'bit':
-        return '';
-
-      case 'boolean':
-        return '';
-
-      case 'float':
-        return '';
-
-      case 'decimal':
-        return '';
-
-      case 'double':
-        return '';
-
-      case 'serial':
-        return '';
-
-      case 'date':
-        return '';
-
-      case 'datetime':
-      case 'timestamp':
-        return '';
-
-      case 'time':
-        return '';
-
-      case 'year':
-        return '';
-
-      case 'char':
-        return '';
-
-      case 'varchar':
-        return '';
-
-      case 'nchar':
-        return '';
-
-      case 'text':
-        return '';
-
-      case 'tinytext':
-        return '';
-
-      case 'mediumtext':
-        return '';
-
-      case 'longtext':
-        return '';
-
-      case 'binary':
-        return '';
-
-      case 'varbinary':
-        return '';
-
-      case 'blob':
-        return '';
-
-      case 'tinyblob':
-        return '';
-
-      case 'mediumblob':
-        return '';
-
-      case 'longblob':
-        return '';
-
-      case 'enum':
-        return '';
-
-      case 'set':
-        return '';
-
-      case 'geometry':
-        return '';
-      case 'point':
-        return '';
-      case 'linestring':
-        return '';
-      case 'polygon':
-        return '';
-      case 'multipoint':
-        return '';
-      case 'multilinestring':
-        return '';
-      case 'multipolygon':
-        return '';
-      case 'json':
-        return '';
-    }
+  static getDefaultLengthForDatatype(_type) {
     return '';
   }
 
@@ -413,17 +188,9 @@ export class SqliteUi {
   static getDefaultScaleForDatatype(type): any {
     switch (type) {
       case 'integer':
-        return ' ';
-
       case 'text':
-        return ' ';
-
       case 'numeric':
-        return ' ';
-
       case 'real':
-        return ' ';
-
       case 'blob':
         return ' ';
     }
@@ -444,17 +211,7 @@ export class SqliteUi {
   }
 
   static colPropUNDisabled(_col) {
-    // console.log(col);
     return true;
-    // if (col.dt === 'int' ||
-    //   col.dt === 'tinyint' ||
-    //   col.dt === 'smallint' ||
-    //   col.dt === 'mediumint' ||
-    //   col.dt === 'bigint') {
-    //   return false;
-    // } else {
-    //   return true;
-    // }
   }
 
   static onCheckboxChangeAI(col) {
@@ -467,12 +224,6 @@ export class SqliteUi {
     ) {
       col.altered = col.altered || 2;
     }
-
-    // if (!col.ai) {
-    //   col.dtx = 'specificType'
-    // } else {
-    //   col.dtx = ''
-    // }
   }
 
   static showScale(_columnObj) {
@@ -498,7 +249,7 @@ export class SqliteUi {
     }
   }
 
-  static extractFunctionName(query) {
+  /*static extractFunctionName(query) {
     const reg =
       /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
     const match = query.match(reg);
@@ -510,13 +261,12 @@ export class SqliteUi {
       /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
     const match = query.match(reg);
     return match && match[1];
-  }
-
+  }*/
   static columnEditable(_colObj) {
     return true; // colObj.altered === 1;
   }
 
-  static handleRawOutput(result, headers) {
+  /*static handleRawOutput(result, headers) {
     console.log(result);
     if (Array.isArray(result) && result[0]) {
       const keys = Object.keys(result[0]);
@@ -530,18 +280,18 @@ export class SqliteUi {
   }
 
   static splitQueries(query) {
-    /***
+    /!***
      * we are splitting based on semicolon
      * there are mechanism to escape semicolon within single/double quotes(string)
-     */
+     *!/
     return query.match(/\b("[^"]*;[^"]*"|'[^']*;[^']*'|[^;])*;/g);
   }
 
-  /**
+  /!**
    * if sql statement is SELECT - it limits to a number
    * @param args
    * @returns {string|*}
-   */
+   *!/
   sanitiseQuery(args) {
     let q = args.query.trim().split(';');
 
@@ -658,7 +408,7 @@ export class SqliteUi {
 
   static isValidDate(value) {
     return new Date(value).getTime() > 0;
-  }
+  }*/
 
   static onCheckboxChangeAU(col) {
     console.log(col);
@@ -1121,5 +871,3 @@ export class SqliteUi {
     return ['LOG', 'EXP', 'POWER', 'SQRT'];
   }
 }
-
-// module.exports = PgUiHelp;

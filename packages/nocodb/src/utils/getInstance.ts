@@ -1,6 +1,6 @@
-import Noco from '../Noco';
-import NocoCache from '../cache/NocoCache';
 import { CacheGetType, CacheScope, MetaTable } from './globals';
+import Noco from '~/Noco';
+import NocoCache from '~/cache/NocoCache';
 
 export default async function (force = false, ncMeta = Noco.ncMeta) {
   try {

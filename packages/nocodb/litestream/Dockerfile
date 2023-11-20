@@ -1,4 +1,4 @@
-FROM golang:alpine3.14 as lt
+FROM golang:alpine3.18 as lt
 
 WORKDIR /usr/src/
 
@@ -12,29 +12,32 @@ RUN cp $GOPATH/bin/litestream /usr/src/lt
 
 
 
-FROM node:12 as builder
+FROM node:18.12.1-alpine as builder
 WORKDIR /usr/src/app
 
+# install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 # Copy application dependency manifests to the container image.
-# A wildcard is used to ensure both package.json AND package-lock.json are copied.
-# Copying this separately prevents re-running npm ci on every code change.
 COPY ./package*.json ./
 COPY ./docker/main.js ./docker/main.js
 #COPY ./docker/start.sh /usr/src/appEntry/start.sh
 COPY ./docker/start-litestream.sh /usr/src/appEntry/start.sh
+
+# for pnpm to generate a flat node_modules without symlinks
+# so that modclean could work as expected
+RUN echo "node-linker=hoisted" > .npmrc
+
 # install production dependencies,
 # reduce node_module size with modclean & removing sqlite deps,
 # package built code into app.tar.gz & add execute permission to start.sh
-RUN npm ci --production --quiet
-RUN npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**" --run
+RUN pnpm install --prod --shamefully-hoist --reporter=silent
+RUN pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**" --run
 RUN rm -rf ./node_modules/sqlite3/deps
 RUN tar -czf ../appEntry/app.tar.gz ./*
 RUN chmod +x /usr/src/appEntry/start.sh
 
-
-
-
-FROM alpine:3.14
+FROM alpine:3.18
 
 #ENV AWS_ACCESS_KEY_ID=
 #ENV AWS_SECRET_ACCESS_KEY=
@@ -91,10 +94,3 @@ COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/
 # Run the web service on container startup.
 #CMD [ "node", "docker/index.js" ]
 ENTRYPOINT ["sh", "/usr/src/appEntry/start.sh"]
-
-
-
-
-
-
-

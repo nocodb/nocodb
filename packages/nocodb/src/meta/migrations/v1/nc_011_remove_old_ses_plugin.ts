@@ -5,7 +5,7 @@ const up = async (knex: Knex) => {
   await knex('nc_plugins').del().where({ title: 'SES' });
 };
 
-const down = async (knex: Knex) => {
+const down = async (_: Knex) => {
   // await knex('nc_plugins').insert([ses]);
 };
 

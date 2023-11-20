@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ActiveCellInj, ReadonlyInj, computed, inject, onClickOutside, ref, useSelectedCellKeyupListener, watch } from '#imports'
+import {
+  ActiveCellInj,
+  EditColumnInj,
+  ReadonlyInj,
+  computed,
+  inject,
+  onClickOutside,
+  ref,
+  useSelectedCellKeyupListener,
+  watch,
+} from '#imports'
 
 interface Props {
   modelValue?: number | string | null
@@ -19,9 +29,13 @@ const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
 
-let isYearInvalid = $ref(false)
+const isEditColumn = inject(EditColumnInj, ref(false))
 
-const localState = $computed({
+const isYearInvalid = ref(false)
+
+const { t } = useI18n()
+
+const localState = computed({
   get() {
     if (!modelValue) {
       return undefined
@@ -29,7 +43,7 @@ const localState = $computed({
 
     const yearDate = dayjs(modelValue.toString(), 'YYYY')
     if (!yearDate.isValid()) {
-      isYearInvalid = true
+      isYearInvalid.value = true
       return undefined
     }
 
@@ -42,7 +56,7 @@ const localState = $computed({
     }
 
     if (val?.isValid()) {
-      emit('update:modelValue', Number(val.format('YYYY')))
+      emit('update:modelValue', val.format('YYYY'))
     }
   },
 })
@@ -55,12 +69,30 @@ watch(
   (next) => {
     if (next) {
       onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, () => (open.value = false))
+    } else {
+      editable.value = false
     }
   },
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isYearInvalid ? 'Invalid year' : ''))
+const placeholder = computed(() => {
+  if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
+    return t('labels.optional')
+  } else if (modelValue === null && showNull.value) {
+    return t('general.null')
+  } else if (isYearInvalid.value) {
+    return t('msg.invalidTime')
+  } else {
+    return ''
+  }
+})
+
+const isOpen = computed(() => {
+  if (readOnly.value) return false
+
+  return (readOnly.value || (localState.value && isPk)) && !active.value && !editable.value ? false : open.value
+})
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
@@ -83,15 +115,16 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     v-model:value="localState"
     picker="year"
     :bordered="false"
-    class="!w-full !px-0 !border-none"
+    class="!w-full !px-1 !border-none"
     :class="{ 'nc-null': modelValue === null && showNull }"
     :placeholder="placeholder"
-    :allow-clear="!readOnly && !localState && !isPk"
+    :allow-clear="(!readOnly && !localState && !isPk) || isEditColumn"
     :input-read-only="true"
-    :open="(readOnly || (localState && isPk)) && !active && !editable ? false : open"
+    :open="isOpen"
     :dropdown-class-name="`${randomClass} nc-picker-year ${open ? 'active' : ''}`"
     @click="open = (active || editable) && !open"
     @change="open = (active || editable) && !open"
+    @ok="open = !open"
   >
     <template #suffixIcon></template>
   </a-date-picker>

@@ -1,5 +1,6 @@
 /* eslint-disable no-async-promise-executor */
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, RelationTypes } from 'nocodb-sdk';
+import sizeof from 'object-sizeof';
 import EntityMap from './EntityMap';
 import type { BulkDataAliasService } from '../../../../../services/bulk-data-alias.service';
 import type { TablesService } from '../../../../../services/tables.service';
@@ -7,8 +8,8 @@ import type { TablesService } from '../../../../../services/tables.service';
 import type { AirtableBase } from 'airtable/lib/airtable_base';
 import type { TableType } from 'nocodb-sdk';
 
-const BULK_DATA_BATCH_SIZE = 500;
-const ASSOC_BULK_DATA_BATCH_SIZE = 1000;
+const BULK_DATA_BATCH_COUNT = 20; // check size for every 100 records
+const BULK_DATA_BATCH_SIZE = 50 * 1024; // in bytes
 const BULK_PARALLEL_PROCESS = 5;
 
 interface AirtableImportContext {
@@ -19,12 +20,12 @@ interface AirtableImportContext {
 async function readAllData({
   table,
   fields,
-  base,
+  atBase,
   logBasic = (_str) => {},
 }: {
   table: { title?: string };
   fields?;
-  base: AirtableBase;
+  atBase: AirtableBase;
   logBasic?: (string) => void;
   logDetailed?: (string) => void;
 }): Promise<EntityMap> {
@@ -37,11 +38,17 @@ async function readAllData({
 
     if (fields) selectParams.fields = fields;
 
-    base(table.title)
+    atBase(table.title)
       .select(selectParams)
       .eachPage(
         async function page(records, fetchNextPage) {
           if (!data) {
+            /*
+              EntityMap is a sqlite3 table dynamically populated based on json data provided
+              It is used to store data temporarily and then stream it in bulk to import
+
+              This is done to avoid memory issues - heap out of memory - while importing large data
+            */
             data = new EntityMap();
             await data.init();
           }
@@ -76,19 +83,19 @@ async function readAllData({
 }
 
 export async function importData({
-  projectName,
+  baseName,
   table,
-  base,
+  atBase,
   nocoBaseDataProcessing_v2,
   sDB,
   logDetailed = (_str) => {},
   logBasic = (_str) => {},
   services,
 }: {
-  projectName: string;
+  baseName: string;
   table: { title?: string; id?: string };
   fields?;
-  base: AirtableBase;
+  atBase: AirtableBase;
   logBasic: (string) => void;
   logDetailed: (string) => void;
   nocoBaseDataProcessing_v2;
@@ -96,82 +103,110 @@ export async function importData({
   services: AirtableImportContext;
 }): Promise<EntityMap> {
   try {
-    // @ts-ignore
-    const records = await readAllData({
+    // returns EntityMap which allows us to stream data
+    const records: EntityMap = await readAllData({
       table,
-      base,
+      atBase,
       logDetailed,
       logBasic,
     });
 
-    await new Promise(async (resolve) => {
+    await new Promise(async (resolve, reject) => {
       const readable = records.getStream();
       const allRecordsCount = await records.getCount();
       const promises = [];
+
       let tempData = [];
       let importedCount = 0;
+      let tempCount = 0;
+
+      // we keep track of active process to pause and resume the stream as we have async calls within the stream and we don't want to load all data in memory
       let activeProcess = 0;
+
       readable.on('data', async (record) => {
         promises.push(
-          new Promise(async (resolve) => {
-            activeProcess++;
-            if (activeProcess >= BULK_PARALLEL_PROCESS) readable.pause();
-            const { id: rid, ...fields } = record;
-            const r = await nocoBaseDataProcessing_v2(sDB, table, {
-              id: rid,
-              fields,
-            });
-            tempData.push(r);
+          new Promise(async (resolve, reject) => {
+            try {
+              activeProcess++;
+              if (activeProcess >= BULK_PARALLEL_PROCESS) readable.pause();
 
-            if (tempData.length >= BULK_DATA_BATCH_SIZE) {
-              let insertArray = tempData.splice(0, tempData.length);
-
-              await services.bulkDataService.bulkDataInsert({
-                projectName,
-                tableName: table.title,
-                body: insertArray,
-                cookie: {},
+              const { id: rid, ...fields } = record;
+              const r = await nocoBaseDataProcessing_v2(sDB, table, {
+                id: rid,
+                fields,
               });
+              tempData.push(r);
+              tempCount++;
 
-              logBasic(
-                `:: Importing '${
-                  table.title
-                }' data :: ${importedCount} - ${Math.min(
-                  importedCount + BULK_DATA_BATCH_SIZE,
-                  allRecordsCount,
-                )}`,
-              );
-              importedCount += insertArray.length;
-              insertArray = [];
+              if (tempCount >= BULK_DATA_BATCH_COUNT) {
+                if (sizeof(tempData) >= BULK_DATA_BATCH_SIZE) {
+                  readable.pause();
+
+                  let insertArray = tempData.splice(0, tempData.length);
+
+                  await services.bulkDataService.bulkDataInsert({
+                    baseName,
+                    tableName: table.id,
+                    body: insertArray,
+                    cookie: {},
+                    skip_hooks: true,
+                  });
+
+                  logBasic(
+                    `:: Importing '${
+                      table.title
+                    }' data :: ${importedCount} - ${Math.min(
+                      importedCount + insertArray.length,
+                      allRecordsCount,
+                    )}`,
+                  );
+
+                  importedCount += insertArray.length;
+                  insertArray = [];
+
+                  readable.resume();
+                }
+                tempCount = 0;
+              }
+              activeProcess--;
+              if (activeProcess < BULK_PARALLEL_PROCESS) readable.resume();
+              resolve(true);
+            } catch (e) {
+              reject(e);
             }
-            activeProcess--;
-            if (activeProcess < BULK_PARALLEL_PROCESS) readable.resume();
-            resolve(true);
           }),
         );
       });
       readable.on('end', async () => {
-        await Promise.all(promises);
-        if (tempData.length > 0) {
-          await services.bulkDataService.bulkDataInsert({
-            projectName,
-            tableName: table.title,
-            body: tempData,
-            cookie: {},
-          });
+        try {
+          // ensure all chunks are processed
+          await Promise.all(promises);
 
-          logBasic(
-            `:: Importing '${
-              table.title
-            }' data :: ${importedCount} - ${Math.min(
-              importedCount + BULK_DATA_BATCH_SIZE,
-              allRecordsCount,
-            )}`,
-          );
-          importedCount += tempData.length;
-          tempData = [];
+          // insert remaining data
+          if (tempData.length > 0) {
+            await services.bulkDataService.bulkDataInsert({
+              baseName,
+              tableName: table.id,
+              body: tempData,
+              cookie: {},
+              skip_hooks: true,
+            });
+
+            logBasic(
+              `:: Importing '${
+                table.title
+              }' data :: ${importedCount} - ${Math.min(
+                importedCount + tempData.length,
+                allRecordsCount,
+              )}`,
+            );
+            importedCount += tempData.length;
+            tempData = [];
+          }
+          resolve(true);
+        } catch (e) {
+          return reject(e);
         }
-        resolve(true);
       });
     });
 
@@ -185,8 +220,8 @@ export async function importData({
 export async function importLTARData({
   table,
   fields,
-  base,
-  projectName,
+  atBase,
+  baseName,
   insertedAssocRef = {},
   logDetailed = (_str) => {},
   logBasic = (_str) => {},
@@ -196,10 +231,10 @@ export async function importLTARData({
   syncDB,
   services,
 }: {
-  projectName: string;
+  baseName: string;
   table: { title?: string; id?: string };
   fields;
-  base: AirtableBase;
+  atBase: AirtableBase;
   logDetailed: (string) => void;
   logBasic: (string) => void;
   insertedAssocRef: { [assocTableId: string]: boolean };
@@ -219,12 +254,12 @@ export async function importLTARData({
     curCol: { title?: string };
     refCol: { title?: string };
   }> = [];
-  const allData =
+  const allData: EntityMap =
     records ||
     (await readAllData({
       table,
       fields,
-      base,
+      atBase,
       logDetailed,
       logBasic,
     }));
@@ -238,7 +273,7 @@ export async function importLTARData({
   for (const colMeta of modelMeta.columns) {
     // skip columns which are not LTAR and Many to many
     if (
-      colMeta.uidt !== UITypes.LinkToAnotherRecord ||
+      !isLinksOrLTAR(colMeta.uidt) ||
       colMeta.colOptions.type !== RelationTypes.MANY_TO_MANY
     ) {
       continue;
@@ -277,79 +312,102 @@ export async function importLTARData({
   for await (const assocMeta of assocTableMetas) {
     let assocTableData = [];
     let importedCount = 0;
+    let tempCount = 0;
 
-    //  extract insert data from records
-    await new Promise((resolve) => {
+    //  extract link data from records
+    await new Promise((resolve, reject) => {
       const promises = [];
       const readable = allData.getStream();
-      let activeProcess = 0;
+
       readable.on('data', async (record) => {
         promises.push(
           new Promise(async (resolve) => {
-            activeProcess++;
-            if (activeProcess >= BULK_PARALLEL_PROCESS) readable.pause();
-            const { id: _atId, ...rec } = record;
+            try {
+              const { id: _atId, ...rec } = record;
 
-            // todo: use actual alias instead of sanitized
-            assocTableData.push(
-              ...(
-                rec?.[atNcAliasRef[table.id][assocMeta.colMeta.title]] || []
-              ).map((id) => ({
-                [assocMeta.curCol.title]: record.id,
-                [assocMeta.refCol.title]: id,
-              })),
-            );
-
-            if (assocTableData.length >= ASSOC_BULK_DATA_BATCH_SIZE) {
-              let insertArray = assocTableData.splice(0, assocTableData.length);
-              logBasic(
-                `:: Importing '${
-                  table.title
-                }' LTAR data :: ${importedCount} - ${Math.min(
-                  importedCount + ASSOC_BULK_DATA_BATCH_SIZE,
-                  insertArray.length,
-                )}`,
+              // todo: use actual alias instead of sanitized
+              assocTableData.push(
+                ...(
+                  rec?.[atNcAliasRef[table.id][assocMeta.colMeta.title]] || []
+                ).map((id) => ({
+                  [assocMeta.curCol.title]: record.id,
+                  [assocMeta.refCol.title]: id,
+                })),
               );
+              tempCount++;
 
-              await services.bulkDataService.bulkDataInsert({
-                projectName,
-                tableName: assocMeta.modelMeta.title,
-                body: insertArray,
-                cookie: {},
-              });
+              if (tempCount >= BULK_DATA_BATCH_COUNT) {
+                if (sizeof(assocTableData) >= BULK_DATA_BATCH_SIZE) {
+                  readable.pause();
 
-              importedCount += insertArray.length;
-              insertArray = [];
+                  let insertArray = assocTableData.splice(
+                    0,
+                    assocTableData.length,
+                  );
+
+                  logBasic(
+                    `:: Importing '${
+                      table.title
+                    }' LTAR data :: ${importedCount} - ${Math.min(
+                      importedCount + insertArray.length,
+                      insertArray.length,
+                    )}`,
+                  );
+
+                  await services.bulkDataService.bulkDataInsert({
+                    baseName,
+                    tableName: assocMeta.modelMeta.id,
+                    body: insertArray,
+                    cookie: {},
+                    skip_hooks: true,
+                  });
+
+                  importedCount += insertArray.length;
+                  insertArray = [];
+
+                  readable.resume();
+                }
+                tempCount = 0;
+              }
+              resolve(true);
+            } catch (e) {
+              reject(e);
             }
-            activeProcess--;
-            if (activeProcess < BULK_PARALLEL_PROCESS) readable.resume();
-            resolve(true);
           }),
         );
       });
       readable.on('end', async () => {
-        await Promise.all(promises);
-        if (assocTableData.length >= 0) {
-          logBasic(
-            `:: Importing '${
-              table.title
-            }' LTAR data :: ${importedCount} - ${Math.min(
-              importedCount + ASSOC_BULK_DATA_BATCH_SIZE,
-              assocTableData.length,
-            )}`,
-          );
+        try {
+          // ensure all chunks are processed
+          await Promise.all(promises);
 
-          await services.bulkDataService.bulkDataInsert({
-            projectName,
-            tableName: assocMeta.modelMeta.title,
-            body: assocTableData,
-            cookie: {},
-          });
+          // insert remaining data
+          if (assocTableData.length >= 0) {
+            logBasic(
+              `:: Importing '${
+                table.title
+              }' LTAR data :: ${importedCount} - ${Math.min(
+                importedCount + assocTableData.length,
+                assocTableData.length,
+              )}`,
+            );
 
-          importedCount += assocTableData.length;
-          assocTableData = [];
+            await services.bulkDataService.bulkDataInsert({
+              baseName,
+              tableName: assocMeta.modelMeta.id,
+              body: assocTableData,
+              cookie: {},
+              skip_hooks: true,
+            });
+
+            importedCount += assocTableData.length;
+            assocTableData = [];
+          }
+
+          resolve(true);
+        } catch (e) {
+          reject(e);
         }
-        resolve(true);
       });
     });
 

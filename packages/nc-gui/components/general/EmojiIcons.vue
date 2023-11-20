@@ -8,27 +8,29 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['selectIcon'])
-let search = $ref('')
+const search = ref('')
 
 // keep a variable to load icons with infinite scroll
 // set initial value to 60 to load first 60 icons (index - `0 - 59`)
 // and next value will be 120 and shows first 120 icons ( index - `0 - 129`)
-let toIndex = $ref(60)
+const toIndex = ref(60)
 
 const filteredIcons = computed(() => {
-  return emojiIcons.filter((icon) => !search || icon.toLowerCase().includes(search.toLowerCase())).slice(0, toIndex)
+  return emojiIcons
+    .filter((icon) => !search.value || icon.toLowerCase().includes(search.value.toLowerCase()))
+    .slice(0, toIndex.value)
 })
 
 const load = () => {
   // increment `toIndex` to include next set of icons
-  toIndex += Math.min(filteredIcons.value.length, toIndex + 60)
-  if (toIndex > filteredIcons.value.length) {
-    toIndex = filteredIcons.value.length
+  toIndex.value += Math.min(filteredIcons.value.length, toIndex.value + 60)
+  if (toIndex.value > filteredIcons.value.length) {
+    toIndex.value = filteredIcons.value.length
   }
 }
 
 const selectIcon = (icon?: string) => {
-  search = ''
+  search.value = ''
   emit('selectIcon', icon && `emojione:${icon}`)
 }
 </script>

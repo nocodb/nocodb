@@ -1,8 +1,8 @@
-import { NcError } from '../helpers/catchError';
-import Noco from '../Noco';
-import { MetaTable } from '../utils/globals';
-import { extractProps } from '../helpers/extractProps';
-import User from './User';
+import User from '~/models/User';
+import { NcError } from '~/helpers/catchError';
+import Noco from '~/Noco';
+import { extractProps } from '~/helpers/extractProps';
+import { MetaTable } from '~/utils/globals';
 
 export default class SyncSource {
   id?: string;
@@ -11,8 +11,8 @@ export default class SyncSource {
   details?: any;
   deleted?: boolean;
   order?: number;
-  project_id?: string;
   base_id?: string;
+  source_id?: string;
   fk_user_id?: string;
 
   constructor(syncSource: Partial<SyncSource>) {
@@ -38,10 +38,10 @@ export default class SyncSource {
     return syncSource && new SyncSource(syncSource);
   }
 
-  static async list(projectId: string, baseId?: string, ncMeta = Noco.ncMeta) {
-    const condition = baseId
-      ? { project_id: projectId, base_id: baseId }
-      : { project_id: projectId };
+  static async list(baseId: string, sourceId?: string, ncMeta = Noco.ncMeta) {
+    const condition = sourceId
+      ? { base_id: baseId, source_id: sourceId }
+      : { base_id: baseId };
     const syncSources = await ncMeta.metaList(
       null,
       null,
@@ -73,8 +73,8 @@ export default class SyncSource {
       'title',
       'type',
       'details',
-      'project_id',
       'base_id',
+      'source_id',
       'fk_user_id',
     ]);
 
@@ -104,8 +104,8 @@ export default class SyncSource {
       'details',
       'deleted',
       'order',
-      'project_id',
       'base_id',
+      'source_id',
     ]);
 
     if (updateObj.details && typeof updateObj.details === 'object') {

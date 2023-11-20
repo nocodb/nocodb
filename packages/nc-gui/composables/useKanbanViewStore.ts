@@ -1,6 +1,6 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { Api, ColumnType, KanbanType, SelectOptionType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
-import type { Row, UndoRedoAction } from '~/lib'
+import type { Row, UndoRedoAction } from '#imports'
 import {
   IsPublicInj,
   SharedViewPasswordInj,
@@ -16,14 +16,14 @@ import {
   rowPkData,
   storeToRefs,
   useApi,
+  useBase,
   useFieldQuery,
   useI18n,
   useInjectionState,
   useNuxtApp,
-  useProject,
+  useRoles,
   useSharedView,
   useSmartsheetStoreOrThrow,
-  useUIPermission,
   useUndoRedo,
 } from '#imports'
 
@@ -43,7 +43,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { api } = useApi()
 
-    const { project, sqlUis } = storeToRefs(useProject())
+    const { base, sqlUis } = storeToRefs(useBase())
 
     const { $e, $api } = useNuxtApp()
 
@@ -51,7 +51,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { sharedView, fetchSharedViewData, fetchSharedViewGroupedData } = useSharedView()
 
-    const { isUIAllowed } = useUIPermission()
+    const { isUIAllowed } = useRoles()
 
     const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
 
@@ -65,7 +65,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     const moveHistory = ref<{ op: 'added' | 'removed'; pk: string; stack: string; index: number }[]>([])
 
     const sqlUi = ref(
-      (meta.value as TableType)?.base_id ? sqlUis.value[(meta.value as TableType).base_id!] : Object.values(sqlUis.value)[0],
+      (meta.value as TableType)?.source_id ? sqlUis.value[(meta.value as TableType).source_id!] : Object.values(sqlUis.value)[0],
     )
 
     const xWhere = computed(() => {
@@ -134,7 +134,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }))
 
     async function loadKanbanData() {
-      if ((!project?.value?.id || !meta.value?.id || !viewMeta?.value?.id || !groupingFieldColumn?.value?.id) && !isPublic.value)
+      if ((!base?.value?.id || !meta.value?.id || !viewMeta?.value?.id || !groupingFieldColumn?.value?.id) && !isPublic.value)
         return
 
       // reset formattedData & countByStack to avoid storing previous data after changing grouping field
@@ -151,7 +151,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       } else {
         groupData = await api.dbViewRow.groupedDataList(
           'noco',
-          project.value.id!,
+          base.value.id!,
           meta.value!.id!,
           viewMeta.value!.id!,
           groupingFieldColumn!.value!.id!,
@@ -168,7 +168,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     }
 
     async function loadMoreKanbanData(stackTitle: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
-      if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
+      if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
       let where = `(${groupingField.value},eq,${stackTitle})`
       if (stackTitle === null) {
         where = `(${groupingField.value},is,null)`
@@ -179,7 +179,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
 
       const response = !isPublic.value
-        ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
+        ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
             ...params,
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
@@ -313,7 +313,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     }
 
     async function updateKanbanMeta(updateObj: Partial<KanbanType>) {
-      if (!viewMeta?.value?.id || !isUIAllowed('xcDatatableEditable')) return
+      if (!viewMeta?.value?.id || !isUIAllowed('dataEdit')) return
       await $api.dbView.kanbanUpdate(viewMeta.value.id, updateObj)
     }
 
@@ -339,7 +339,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
         const insertedData = await $api.dbViewRow.create(
           NOCO,
-          project?.value.id as string,
+          base?.value.id as string,
           meta.value?.id as string,
           viewMeta?.value?.id as string,
           insertObj,
@@ -388,7 +388,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
         const updatedRowData = await $api.dbViewRow.update(
           NOCO,
-          project?.value.id as string,
+          base?.value.id as string,
           meta.value?.id as string,
           viewMeta?.value?.id as string,
           id,
@@ -464,7 +464,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         const groupingFieldVal = moveToUncategorizedStack ? null : stackTitle
         await api.dbTableRow.bulkUpdateAll(
           'noco',
-          project.value.id!,
+          base.value.id!,
           meta.value?.id as string,
           {
             [groupingField.value]: groupingFieldVal,
@@ -671,15 +671,15 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
       const res: any = await $api.dbViewRow.delete(
         'noco',
-        project.value.id as string,
+        base.value.id as string,
         meta.value?.id as string,
         viewMeta.value?.id as string,
-        id,
+        encodeURIComponent(id),
       )
 
       if (res.message) {
         message.info(
-          `Row delete failed: ${`Unable to delete row with ID ${id} because of the following:
+          `Record delete failed: ${`Unable to delete record with ID ${id} because of the following:
               \n${res.message.join('\n')}.\n
               Clear the data first & try again`})}`,
         )

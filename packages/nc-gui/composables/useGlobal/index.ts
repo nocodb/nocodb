@@ -16,7 +16,7 @@ export * from './types'
  *
  * @example
  * ```js
- * import { useNuxtApp } from '#app'
+ * import { useNuxtApp } from '#imports'
  *
  * const { $state } = useNuxtApp()
  *
@@ -71,6 +71,7 @@ export const useGlobal = createGlobalState((): UseGlobalReturn => {
           firstname: nextPayload.firstname,
           lastname: nextPayload.lastname,
           roles: nextPayload.roles,
+          display_name: nextPayload.display_name,
         }
       }
     },

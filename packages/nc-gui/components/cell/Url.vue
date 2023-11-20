@@ -3,6 +3,7 @@ import type { VNodeRef } from '@vue/runtime-core'
 import {
   CellUrlDisableOverlayInj,
   ColumnInj,
+  EditColumnInj,
   EditModeInj,
   IsExpandedFormOpenInj,
   IsSurveyFormInj,
@@ -33,10 +34,14 @@ const column = inject(ColumnInj)!
 
 const editEnabled = inject(EditModeInj)!
 
+const isEditColumn = inject(EditColumnInj, ref(false))
+
 const disableOverlay = inject(CellUrlDisableOverlayInj, ref(false))
 
 // Used in the logic of when to display error since we are not storing the url if it's not valid
 const localState = ref(value)
+
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
@@ -65,7 +70,7 @@ const { cellUrlOptions } = useCellUrlConfig(url)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
 
 watch(
   () => editEnabled.value,
@@ -86,7 +91,8 @@ watch(
       v-if="editEnabled"
       :ref="focus"
       v-model="vModel"
-      class="outline-none text-sm w-full px-2 bg-transparent h-full"
+      :placeholder="isEditColumn ? $t('labels.enterDefaultUrlOptional') : ''"
+      class="outline-none text-sm w-full px-2 py-2 bg-transparent h-full"
       @blur="editEnabled = false"
       @keydown.down.stop
       @keydown.left.stop
@@ -97,7 +103,7 @@ watch(
       @mousedown.stop
     />
 
-    <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
+    <span v-else-if="vModel === null && showNull" class="nc-null uppercase"> $t('general.null')</span>
 
     <nuxt-link
       v-else-if="isValid && !cellUrlOptions?.overlay"
@@ -107,7 +113,7 @@ watch(
       :to="url"
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
     >
-      {{ value }}
+      <LazyCellClampedText :value="value" :lines="rowHeight" />
     </nuxt-link>
 
     <nuxt-link
@@ -118,10 +124,10 @@ watch(
       :to="url"
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
     >
-      {{ cellUrlOptions.overlay }}
+      <LazyCellClampedText :value="cellUrlOptions.overlay" :lines="rowHeight" />
     </nuxt-link>
 
-    <span v-else class="w-9/10 overflow-ellipsis overflow-hidden">{{ value }}</span>
+    <span v-else class="w-9/10 overflow-ellipsis overflow-hidden"><LazyCellClampedText :value="value" :lines="rowHeight" /></span>
 
     <div v-if="column.meta?.validate && !isValid && value?.length && !editEnabled" class="mr-1 w-1/10">
       <a-tooltip placement="top">

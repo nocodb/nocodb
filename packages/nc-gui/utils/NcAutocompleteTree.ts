@@ -41,6 +41,9 @@ export class NcAutocompleteTree {
   }
 
   find(word: string) {
+    if (Object.keys(this.trie).length === 0) {
+      this.trie = this.newNode()
+    }
     let root = this.trie
     for (const letter of word) {
       if (letter in root.children) {
@@ -66,7 +69,7 @@ export class NcAutocompleteTree {
     this.suggestions = []
     const root = this.find(word.toLowerCase())
 
-    if (!root) {
+    if (!root || Object.keys(root).length === 0) {
       return this.suggestions
     } // cannot suggest anything
 

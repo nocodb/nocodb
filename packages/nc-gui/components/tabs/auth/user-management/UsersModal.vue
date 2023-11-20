@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Input } from 'ant-design-vue'
+import { ProjectRoles, RoleColors } from 'nocodb-sdk'
 import type { ProjectUserReqType } from 'nocodb-sdk'
 import {
   Form,
@@ -9,29 +10,20 @@ import {
   iconMap,
   message,
   onMounted,
-  projectRoleTagColors,
-  projectRoles,
   ref,
   storeToRefs,
   useActiveKeyupListener,
+  useBase,
   useCopy,
   useDashboard,
   useI18n,
   useNuxtApp,
-  useProject,
 } from '#imports'
-import type { User } from '~/lib'
-import { ProjectRole } from '~/lib'
+import type { User, Users } from '#imports'
 
 interface Props {
   show: boolean
   selectedUser?: User | null
-}
-
-interface Users {
-  emails?: string
-  role: ProjectRole
-  invitationToken?: string
 }
 
 const { show, selectedUser } = defineProps<Props>()
@@ -40,7 +32,7 @@ const emit = defineEmits(['closed', 'reload'])
 
 const { t } = useI18n()
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
 const { isMobileMode } = useGlobal()
 
@@ -48,9 +40,9 @@ const { $api, $e } = useNuxtApp()
 
 const { copy } = useCopy()
 
-const { dashboardUrl } = $(useDashboard())
+const { dashboardUrl } = useDashboard()
 
-let usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })
+const usersData = ref<Users>({ emails: undefined, role: ProjectRoles.VIEWER, invitationToken: undefined })
 
 const formRef = ref()
 
@@ -62,46 +54,46 @@ const validators = computed(() => {
   }
 })
 
-const { validateInfos } = useForm(usersData, validators)
+const { validateInfos } = useForm(usersData.value, validators)
 
 onMounted(() => {
-  if (!usersData.emails && selectedUser?.email) {
-    usersData.emails = selectedUser.email
+  if (!usersData.value.emails && selectedUser?.email) {
+    usersData.value.emails = selectedUser.email
     // todo: types not matching, probably a bug here?
-    usersData.role = selectedUser.roles as any
+    usersData.value.role = selectedUser.roles as any
   }
 })
 
 const close = () => {
   emit('closed')
-  usersData = { role: ProjectRole.Viewer }
+  usersData.value = { role: ProjectRoles.VIEWER }
 }
 
 const saveUser = async () => {
-  $e('a:user:invite', { role: usersData.role })
+  $e('a:user:invite', { role: usersData.value.role })
 
-  if (!project.value.id) return
+  if (!base.value.id) return
 
   await formRef.value?.validateFields()
 
   try {
     if (selectedUser?.id) {
-      await $api.auth.projectUserUpdate(project.value.id, selectedUser.id, {
-        roles: usersData.role,
+      await $api.auth.baseUserUpdate(base.value.id, selectedUser.id, {
+        roles: usersData.value.role as ProjectRoles,
         email: selectedUser.email,
-        project_id: project.value.id,
-        projectName: project.value.title,
+        base_id: base.value.id,
+        baseName: base.value.title,
       })
       close()
     } else {
-      const res = await $api.auth.projectUserAdd(project.value.id, {
-        roles: usersData.role,
-        email: usersData.emails,
+      const res = await $api.auth.baseUserAdd(base.value.id, {
+        roles: usersData.value.role,
+        email: usersData.value.emails,
       } as ProjectUserReqType)
 
       // for inviting one user, invite_token will only be returned when invitation email fails to send
       // for inviting multiple users, invite_token will be returned anyway
-      usersData.invitationToken = res?.invite_token
+      usersData.value.invitationToken = res?.invite_token
     }
     emit('reload')
 
@@ -113,14 +105,16 @@ const saveUser = async () => {
   }
 }
 
-const inviteUrl = $computed(() => (usersData.invitationToken ? `${dashboardUrl}#/signup/${usersData.invitationToken}` : null))
+const inviteUrl = computed(() =>
+  usersData.value.invitationToken ? `${dashboardUrl.value}#/signup/${usersData.value.invitationToken}` : null,
+)
 
 const copyUrl = async () => {
-  if (!inviteUrl) return
+  if (!inviteUrl.value) return
   try {
-    await copy(inviteUrl)
+    await copy(inviteUrl.value)
 
-    // Copied shareable base url to clipboard!
+    // Copied shareable source url to clipboard!
     message.success(t('msg.success.shareableURLCopied'))
   } catch (e: any) {
     message.error(e.message)
@@ -130,9 +124,9 @@ const copyUrl = async () => {
 
 const clickInviteMore = () => {
   $e('c:user:invite-more')
-  usersData.invitationToken = undefined
-  usersData.role = ProjectRole.Viewer
-  usersData.emails = undefined
+  usersData.value.invitationToken = undefined
+  usersData.value.role = ProjectRoles.VIEWER
+  usersData.value.emails = undefined
 }
 
 const emailField = ref<typeof Input>()
@@ -160,32 +154,12 @@ watch(
 </script>
 
 <template>
-  <a-modal
-    :footer="null"
-    centered
-    :visible="show"
-    :class="{ active: show }"
-    :closable="false"
-    width="max(50vw, 44rem)"
-    wrap-class-name="nc-modal-invite-user-and-share-base"
-    @cancel="close"
-  >
-    <div class="flex flex-col" data-testid="invite-user-and-share-base-modal">
-      <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
-        <a-typography-title v-if="!isMobileMode" class="select-none" :level="4">
-          {{ $t('activity.share') }}: {{ project.title }}
-        </a-typography-title>
-
-        <a-button
-          type="text"
-          class="!rounded-md mr-1 -mt-1.5"
-          data-testid="invite-user-and-share-base-modal-close-btn"
-          @click="close"
-        >
-          <template #icon>
-            <MaterialSymbolsCloseRounded class="flex mx-auto" />
-          </template>
-        </a-button>
+  <GeneralModal centered :visible="show" @cancel="close">
+    <div class="flex flex-col p-6" data-testid="invite-user-and-share-base-modal">
+      <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 border-gray-100 w-full">
+        <div v-if="!isMobileMode" class="select-none font-medium">
+          {{ $t('activity.share') }}
+        </div>
       </div>
 
       <div class="px-2 mt-1.5">
@@ -243,7 +217,7 @@ watch(
                     v-bind="validateInfos.emails"
                     validate-trigger="onBlur"
                     name="emails"
-                    :rules="[{ required: true, message: 'Please input email' }]"
+                    :rules="[{ required: true, message: t('msg.plsInputEmail') }]"
                   >
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('datatype.Email') }}:</div>
 
@@ -259,7 +233,7 @@ watch(
                 </div>
 
                 <div class="flex flex-col w-1/4">
-                  <a-form-item name="role" :rules="[{ required: true, message: 'Role required' }]">
+                  <a-form-item name="role" :rules="[{ required: true, message: t('msg.roleRequired') }]">
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
 
                     <a-select
@@ -268,12 +242,9 @@ watch(
                       class="nc-user-roles !rounded-md"
                       dropdown-class-name="nc-dropdown-user-role"
                     >
-                      <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
+                      <a-select-option v-for="(role, index) in ProjectRoles" :key="index" :value="role" class="nc-role-option">
                         <div class="flex flex-row h-full justify-start items-center">
-                          <div
-                            class="px-3 py-1 flex rounded-full text-xs"
-                            :style="{ backgroundColor: projectRoleTagColors[role] }"
-                          >
+                          <div class="px-3 py-1 flex rounded-full text-xs" :style="{ backgroundColor: RoleColors[role] }">
                             {{ role }}
                           </div>
                         </div>
@@ -301,6 +272,12 @@ watch(
           <LazyTabsAuthUserManagementShareBase />
         </div>
       </div>
+
+      <div class="flex flex-row justify-end gap-x-2 border-t-1 border-gray-100 pt-3">
+        <a-button key="back" class="!rounded-md" @click="cancel">{{ $t('general.cancel') }}</a-button>
+        <a-button class="!rounded-md">Manage base access</a-button>
+        <a-button key="submit" class="!rounded-md" type="primary" :loading="loading">{{ $t('activity.share') }}</a-button>
+      </div>
     </div>
-  </a-modal>
+  </GeneralModal>
 </template>

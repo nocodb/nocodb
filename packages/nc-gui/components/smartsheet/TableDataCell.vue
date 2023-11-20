@@ -8,6 +8,8 @@ const cellClickHook = createEventHook()
 provide(CellClickHookInj, cellClickHook)
 
 provide(CurrentCellInj, el)
+
+defineExpose({ el })
 </script>
 
 <template>

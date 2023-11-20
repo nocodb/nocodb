@@ -22,13 +22,14 @@ import CountIcon from '~icons/mdi/counter'
 const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
   switch (column.uidt) {
     case UITypes.LinkToAnotherRecord:
+    case UITypes.Links:
       switch ((column.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
-          return { icon: iconMap.mm, color: 'text-accent' }
+          return { icon: iconMap.mm_solid }
         case RelationTypes.HAS_MANY:
-          return { icon: iconMap.hm, color: 'text-yellow-500' }
+          return { icon: iconMap.hm_solid }
         case RelationTypes.BELONGS_TO:
-          return { icon: iconMap.bt, color: 'text-sky-500' }
+          return { icon: iconMap.bt_solid }
       }
       break
     case UITypes.SpecificDBType:
@@ -38,25 +39,25 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
     case UITypes.QrCode:
       return { icon: iconMap.qrCode, color: 'text-grey' }
     case UITypes.Barcode:
-      return { icon: iconMap.qrCode, color: 'text-grey' }
+      return { icon: iconMap.barCode, color: 'text-grey' }
     case UITypes.Lookup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
-          return { icon: iconMap.lookup, color: 'text-accent' }
+          return { icon: iconMap.lookup, color: 'text-pink-500' }
         case RelationTypes.HAS_MANY:
-          return { icon: iconMap.lookup, color: 'text-yellow-500' }
+          return { icon: iconMap.lookup, color: 'text-orange-500' }
         case RelationTypes.BELONGS_TO:
-          return { icon: iconMap.lookup, color: 'text-sky-500' }
+          return { icon: iconMap.lookup, color: 'text-blue-500' }
       }
       return { icon: iconMap.lookup, color: 'text-grey' }
     case UITypes.Rollup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
-          return { icon: iconMap.rollup, color: 'text-accent' }
+          return { icon: iconMap.rollup, color: 'text-pink-500' }
         case RelationTypes.HAS_MANY:
-          return { icon: iconMap.rollup, color: 'text-yellow-500' }
+          return { icon: iconMap.rollup, color: 'text-orange-500' }
         case RelationTypes.BELONGS_TO:
-          return { icon: iconMap.rollup, color: 'text-sky-500' }
+          return { icon: iconMap.rollup, color: 'text-blue-500' }
       }
       return { icon: iconMap.rollup, color: 'text-grey' }
     case UITypes.Count:

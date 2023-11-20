@@ -3,11 +3,16 @@ import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { CellPageObject, CellProps } from '../common/Cell';
 import { ColumnPageObject } from './Column';
+import { TopbarPage } from '../common/Topbar';
 import { ToolbarPage } from '../common/Toolbar';
+import { FootbarPage } from '../common/Footbar';
 import { ProjectMenuObject } from '../common/ProjectMenu';
 import { QrCodeOverlay } from '../QrCodeOverlay';
 import { BarcodeOverlay } from '../BarcodeOverlay';
 import { RowPageObject } from './Row';
+import { WorkspaceMenuObject } from '../common/WorkspaceMenu';
+import { GroupPageObject } from './Group';
+import { ColumnHeaderPageObject } from './columnHeader';
 
 export class GridPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -15,11 +20,18 @@ export class GridPage extends BasePage {
   readonly dashboardPage: DashboardPage;
   readonly qrCodeOverlay: QrCodeOverlay;
   readonly barcodeOverlay: BarcodeOverlay;
+  readonly columnHeader: ColumnHeaderPageObject;
   readonly column: ColumnPageObject;
   readonly cell: CellPageObject;
+  readonly topbar: TopbarPage;
   readonly toolbar: ToolbarPage;
-  readonly projectMenu: ProjectMenuObject;
+  readonly footbar: FootbarPage;
+  readonly baseMenu: ProjectMenuObject;
+  readonly workspaceMenu: WorkspaceMenuObject;
   readonly rowPage: RowPageObject;
+  readonly groupPage: GroupPageObject;
+
+  readonly btn_addNewRow: Locator;
 
   constructor(dashboardPage: DashboardPage) {
     super(dashboardPage.rootPage);
@@ -28,10 +40,35 @@ export class GridPage extends BasePage {
     this.qrCodeOverlay = new QrCodeOverlay(this);
     this.barcodeOverlay = new BarcodeOverlay(this);
     this.column = new ColumnPageObject(this);
+    this.columnHeader = new ColumnHeaderPageObject(this);
     this.cell = new CellPageObject(this);
+    this.topbar = new TopbarPage(this);
     this.toolbar = new ToolbarPage(this);
-    this.projectMenu = new ProjectMenuObject(this);
+    this.footbar = new FootbarPage(this);
+    this.baseMenu = new ProjectMenuObject(this);
+    this.workspaceMenu = new WorkspaceMenuObject(this);
     this.rowPage = new RowPageObject(this);
+    this.groupPage = new GroupPageObject(this);
+
+    this.btn_addNewRow = this.get().locator('.nc-grid-add-new-cell');
+  }
+
+  async verifyLockMode() {
+    // add new row button
+    expect(await this.btn_addNewRow.count()).toBe(0);
+
+    await this.toolbar.verifyLockMode();
+    await this.footbar.verifyLockMode();
+    await this.columnHeader.verifyLockMode();
+  }
+
+  async verifyCollaborativeMode() {
+    // add new row button
+    await expect(this.btn_addNewRow).toHaveCount(1);
+
+    await this.toolbar.verifyCollaborativeMode();
+    await this.footbar.verifyCollaborativeMode();
+    await this.columnHeader.verifyCollaborativeMode();
   }
 
   get() {
@@ -57,6 +94,7 @@ export class GridPage extends BasePage {
       index,
       columnHeader,
     });
+    await this.rootPage.waitForTimeout(500);
 
     await cell.locator('input').fill(value);
   }
@@ -75,18 +113,23 @@ export class GridPage extends BasePage {
     const rowValue = value ?? `Row ${index}`;
     // wait for render to complete before count
     if (index !== 0) await this.get().locator('.nc-grid-row').nth(0).waitFor({ state: 'attached' });
-    const rowCount = await this.get().locator('.nc-grid-row').count();
 
-    const addNewRowButton: Locator = await this.rootPage.locator(`[data-testid="nc-grid-add-new-row"]`);
-    await addNewRowButton.waitFor({ state: 'visible' });
-    await addNewRowButton.click();
+    await (await this.get().locator('.nc-grid-add-new-cell').elementHandle())?.waitForElementState('stable');
 
-    await expect(await this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
+    await this.rootPage.waitForTimeout(200);
+    await this.rootPage.waitForLoadState('networkidle');
+    await this.rootPage.waitForTimeout(200);
+    await this.rootPage.waitForLoadState('domcontentloaded');
+
+    await this.get().locator('.nc-grid-add-new-cell').click();
+
+    const rowCount = index + 1;
+    await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount);
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 
     const clickOnColumnHeaderToSave = () =>
-      this.get().locator(`[data-title="${columnHeader}"]`).locator(`span[title="${columnHeader}"]`).click();
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[data-test-id="${columnHeader}"]`).click();
 
     if (networkValidation) {
       await this.waitForResponse({
@@ -100,6 +143,9 @@ export class GridPage extends BasePage {
       await clickOnColumnHeaderToSave();
       await this.rootPage.waitForTimeout(300);
     }
+
+    await this.rootPage.keyboard.press('Escape');
+    await this.rootPage.waitForTimeout(300);
 
     await this.dashboard.waitForLoaderToDisappear();
   }
@@ -118,7 +164,7 @@ export class GridPage extends BasePage {
     await this._fillRow({ index, columnHeader, value });
 
     const clickOnColumnHeaderToSave = () =>
-      this.get().locator(`[data-title="${columnHeader}"]`).locator(`span[title="${columnHeader}"]`).click();
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[data-test-id="${columnHeader}"]`).click();
 
     if (networkValidation) {
       await this.waitForResponse({
@@ -136,6 +182,9 @@ export class GridPage extends BasePage {
       await clickOnColumnHeaderToSave();
       await this.rootPage.waitForTimeout(300);
     }
+
+    await this.rootPage.keyboard.press('Escape');
+    await this.rootPage.waitForTimeout(300);
 
     await this.dashboard.waitForLoaderToDisappear();
   }
@@ -156,11 +205,11 @@ export class GridPage extends BasePage {
     });
 
     // Click text=Delete Row
-    await this.rootPage.locator('text=Delete Row').click();
+    await this.rootPage.locator('.ant-dropdown-menu-item:has-text("Delete record")').click();
 
     // todo: improve selector
     await this.rootPage
-      .locator('span.ant-dropdown-menu-title-content > nc-project-menu-item')
+      .locator('span.ant-dropdown-menu-title-content > nc-base-menu-item')
       .waitFor({ state: 'hidden' });
 
     await this.rootPage.waitForTimeout(300);
@@ -170,23 +219,22 @@ export class GridPage extends BasePage {
   async addRowRightClickMenu(index: number, columnHeader = 'Title') {
     const rowCount = await this.get().locator('.nc-grid-row').count();
 
-    const cell = await this.get().locator(`td[data-testid="cell-${columnHeader}-${index}"]`).last();
+    const cell = this.get().locator(`td[data-testid="cell-${columnHeader}-${index}"]`).last();
     await cell.click();
     await cell.click({ button: 'right' });
 
     // Click text=Insert New Row
-    await this.rootPage.locator('text=Insert New Row').click();
-    await expect(await this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
+    await this.rootPage.locator('.insert-row').click();
+    await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
   }
 
   async openExpandedRow({ index }: { index: number }) {
     await this.row(index).locator(`td[data-testid="cell-Id-${index}"]`).hover();
     await this.row(index).locator(`div[data-testid="nc-expand-${index}"]`).click();
-    await (await this.rootPage.locator('.ant-drawer-body').elementHandle())?.waitForElementState('stable');
   }
 
   async selectRow(index: number) {
-    const cell: Locator = await this.get().locator(`td[data-testid="cell-Id-${index}"]`);
+    const cell: Locator = this.get().locator(`td[data-testid="cell-Id-${index}"]`);
     await cell.hover();
     await cell.locator('input[type="checkbox"]').check({ force: true });
   }
@@ -207,17 +255,36 @@ export class GridPage extends BasePage {
     await this.rootPage.waitForTimeout(300);
   }
 
+  async openAllRowContextMenu() {
+    await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
+      button: 'right',
+    });
+  }
+
   async deleteSelectedRows() {
     await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
       button: 'right',
     });
-    await this.rootPage.locator('text=Delete Selected Rows').click();
+    await this.rootPage.locator('[data-testid="nc-delete-row"]').click();
     await this.dashboard.waitForLoaderToDisappear();
   }
 
   async deleteAll() {
     await this.selectAll();
     await this.deleteSelectedRows();
+  }
+
+  async updateSelectedRows() {
+    await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
+      button: 'right',
+    });
+    await this.rootPage.locator('.nc-menu-item:has-text("Update Selected Records")').click();
+    await this.dashboard.waitForLoaderToDisappear();
+  }
+
+  async updateAll() {
+    await this.selectAll();
+    await this.updateSelectedRows();
   }
 
   async verifyTotalRowCount({ count }: { count: number }) {
@@ -239,28 +306,34 @@ export class GridPage extends BasePage {
     expect(parseInt(recordCnt)).toEqual(count);
   }
 
-  private async pagination({ page }: { page: string }) {
-    await this.get().locator(`.nc-pagination`).waitFor();
-
-    if (page === '<') return this.get().locator('.nc-pagination > .ant-pagination-prev');
-    if (page === '>') return this.get().locator('.nc-pagination > .ant-pagination-next');
-
-    return this.get().locator(`.nc-pagination > .ant-pagination-item.ant-pagination-item-${page}`);
+  async verifyPaginationCount({ count }: { count: string }) {
+    await expect(this.get().locator(`.nc-pagination .total`)).toHaveText(count);
   }
 
-  async clickPagination({ page }: { page: string }) {
-    await this.waitForResponse({
-      uiAction: async () => (await this.pagination({ page })).click(),
-      httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: '/views/',
-      responseJsonMatcher: resJson => resJson?.pageInfo,
-    });
+  async clickPagination({
+    type,
+    skipWait = false,
+  }: {
+    type: 'first-page' | 'last-page' | 'next-page' | 'prev-page';
+    skipWait?: boolean;
+  }) {
+    if (!skipWait) {
+      await this.get().locator(`.nc-pagination .${type}`).click();
+      await this.waitLoading();
+    } else {
+      await this.waitForResponse({
+        uiAction: async () => (await this.get().locator(`.nc-pagination .${type}`)).click(),
+        httpMethodsToMatch: ['GET'],
+        requestUrlPathToMatch: '/views/',
+        responseJsonMatcher: resJson => resJson?.pageInfo,
+      });
 
-    await this.waitLoading();
+      await this.waitLoading();
+    }
   }
 
-  async verifyActivePage({ page }: { page: string }) {
-    await expect(await this.pagination({ page })).toHaveClass(/ant-pagination-item-active/);
+  async verifyActivePage({ pageNumber }: { pageNumber: string }) {
+    await expect(this.get().locator(`.nc-pagination .ant-select-selection-item`)).toHaveText(pageNumber);
   }
 
   async waitLoading() {
@@ -274,24 +347,24 @@ export class GridPage extends BasePage {
       index: 0,
       columnHeader: columnHeader,
     });
-    await expect(await cell.locator('input')).not.toBeVisible();
+    await expect(cell.locator('input')).not.toBeVisible();
 
     // right click menu
     await this.get().locator(`td[data-testid="cell-${columnHeader}-0"]`).click({
       button: 'right',
     });
-    await expect(await this.rootPage.locator('text=Insert New Row')).not.toBeVisible();
+    // await expect(this.rootPage.locator('text=Insert New Row')).not.toBeVisible();
 
     // in cell-add
-    await this.cell.get({ index: 0, columnHeader: 'City List' }).hover();
+    await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
     await expect(
-      await this.cell.get({ index: 0, columnHeader: 'City List' }).locator('.nc-action-icon.nc-plus')
+      this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon.nc-plus')
     ).not.toBeVisible();
 
     // expand row
-    await this.cell.get({ index: 0, columnHeader: 'City List' }).hover();
+    await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
     await expect(
-      await this.cell.get({ index: 0, columnHeader: 'City List' }).locator('.nc-action-icon >> nth=0')
+      this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon >> nth=0')
     ).not.toBeVisible();
   }
 
@@ -302,7 +375,7 @@ export class GridPage extends BasePage {
       index: 0,
       columnHeader: columnHeader,
     });
-    await expect(await cell.locator('input')).toBeVisible();
+    await expect(cell.locator('input')).toBeVisible();
 
     // press escape to exit edit mode
     await cell.press('Escape');
@@ -311,33 +384,24 @@ export class GridPage extends BasePage {
     await this.get().locator(`td[data-testid="cell-${columnHeader}-0"]`).click({
       button: 'right',
     });
-    await expect(await this.rootPage.locator('text=Insert New Row')).toBeVisible();
+    // await expect(this.rootPage.locator('text=Insert New Row')).toBeVisible();
 
     // in cell-add
-    await this.cell.get({ index: 0, columnHeader: 'City List' }).hover();
-    await expect(
-      await this.cell.get({ index: 0, columnHeader: 'City List' }).locator('.nc-action-icon.nc-plus')
-    ).toBeVisible();
-
-    // expand row
-    await this.cell.get({ index: 0, columnHeader: 'City List' }).hover();
-    await expect(
-      await this.cell.get({ index: 0, columnHeader: 'City List' }).locator('.nc-action-icon.nc-arrow-expand')
-    ).toBeVisible();
+    await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
+    await expect(this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon.nc-plus')).toBeVisible();
   }
 
-  async validateRoleAccess(param: { role: string }) {
+  async verifyRoleAccess(param: { role: string }) {
     await this.column.verifyRoleAccess(param);
     await this.cell.verifyRoleAccess(param);
-    await expect(this.get().locator('.nc-grid-add-new-cell')).toHaveCount(
-      param.role === 'creator' || param.role === 'editor' ? 1 : 0
-    );
+    await this.toolbar.verifyRoleAccess(param);
+    await this.footbar.verifyRoleAccess(param);
   }
 
   async selectRange({ start, end }: { start: CellProps; end: CellProps }) {
-    const startCell = await this.cell.get({ index: start.index, columnHeader: start.columnHeader });
-    const endCell = await this.cell.get({ index: end.index, columnHeader: end.columnHeader });
-    const page = await this.dashboard.get().page();
+    const startCell = this.cell.get({ index: start.index, columnHeader: start.columnHeader });
+    const endCell = this.cell.get({ index: end.index, columnHeader: end.columnHeader });
+    const page = this.dashboard.get().page();
     await startCell.hover();
     await page.mouse.down();
     await endCell.hover();

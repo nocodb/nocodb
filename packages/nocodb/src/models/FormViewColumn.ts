@@ -1,22 +1,22 @@
-import Noco from '../Noco';
-import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import { deserializeJSON, serializeJSON } from '../utils/serialize';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../helpers/extractProps';
-import View from './View';
 import type {
   BoolType,
   FormColumnType,
   MetaType,
   StringOrNullType,
 } from 'nocodb-sdk';
+import View from '~/models/View';
+import Noco from '~/Noco';
+import NocoCache from '~/cache/NocoCache';
+import { extractProps } from '~/helpers/extractProps';
+import { deserializeJSON, serializeJSON } from '~/utils/serialize';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 
 export default class FormViewColumn implements FormColumnType {
   id?: string;
   fk_view_id?: string;
   fk_column_id?: string;
-  project_id?: string;
   base_id?: string;
+  source_id?: string;
   label?: StringOrNullType;
   help?: StringOrNullType;
   description?: StringOrNullType;
@@ -63,8 +63,8 @@ export default class FormViewColumn implements FormColumnType {
       'fk_view_id',
       'fk_column_id',
       'show',
-      'project_id',
       'base_id',
+      'source_id',
       'label',
       'help',
       'description',
@@ -84,10 +84,10 @@ export default class FormViewColumn implements FormColumnType {
       insertObj.meta = serializeJSON(insertObj.meta);
     }
 
-    if (!(insertObj.project_id && insertObj.base_id)) {
+    if (!(insertObj.base_id && insertObj.source_id)) {
       const viewRef = await View.get(insertObj.fk_view_id, ncMeta);
-      insertObj.project_id = viewRef.project_id;
       insertObj.base_id = viewRef.base_id;
+      insertObj.source_id = viewRef.source_id;
     }
 
     const { id, fk_column_id } = await ncMeta.metaInsert2(

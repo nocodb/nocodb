@@ -1,20 +1,26 @@
 import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
-import type { Language, ProjectRole, User } from '~/lib'
-import type { useCounter } from '#imports'
+import type { ProjectRoles } from 'nocodb-sdk'
+import type { Language, NcProjectType, User, useCounter } from '#imports'
 
 export interface AppInfo {
   ncSiteUrl: string
   authType: 'jwt' | 'none'
   connectToExternalDB: boolean
   defaultLimit: number
+  defaultGroupByLimit: {
+    limitGroup: number
+    limitRecord: number
+  }
   firstUser: boolean
   githubAuthEnabled: boolean
   googleAuthEnabled: boolean
+  oidcAuthEnabled: boolean
+  oidcProviderName: string | null
   ncMin: boolean
   oneClick: boolean
-  projectHasAdmin: boolean
+  baseHasAdmin: boolean
   teleEnabled: boolean
   auditEnabled: boolean
   type: string
@@ -24,6 +30,10 @@ export interface AppInfo {
   ncMaxAttachmentsAllowed: number
   isCloud: boolean
   automationLogLevel: 'OFF' | 'ERROR' | 'ALL'
+  baseHostName?: string
+  disableEmailAuth: boolean
+  mainSubDomain?: string
+  dashboardPath: string
 }
 
 export interface StoredState {
@@ -31,13 +41,14 @@ export interface StoredState {
   lang: keyof typeof Language
   darkMode: boolean
   filterAutoSave: boolean
-  previewAs: ProjectRole | null
+  previewAs: ProjectRoles | null
   includeM2M: boolean
   showNull: boolean
   currentVersion: string | null
   latestRelease: string | null
   hiddenRelease: string | null
   isMobileMode: boolean | null
+  lastOpenedWorkspaceId: string | null
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {
@@ -57,11 +68,22 @@ export interface Getters {
 }
 
 export interface Actions {
-  signOut: () => void
+  signOut: (skipRedirect?: boolean) => void
   signIn: (token: string) => void
   refreshToken: () => void
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
+  navigateToProject: (params: { workspaceId?: string; baseId?: string; type?: NcProjectType; query?: any }) => void
+  ncNavigateTo: (params: {
+    workspaceId?: string
+    baseId?: string
+    type?: NcProjectType
+    query?: any
+    tableId?: string
+    viewId?: string
+  }) => void
+  getBaseUrl: (workspaceId: string) => string | undefined
+  getMainUrl: (workspaceId: string) => string | undefined
 }
 
 export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State, 'token' | 'user'>

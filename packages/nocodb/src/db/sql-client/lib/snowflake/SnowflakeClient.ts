@@ -354,7 +354,8 @@ class SnowflakeClient extends KnexClient {
         log.debug('checking if db exists');
         rows = (
           await this.sqlClient.raw(
-            `SELECT DATABASE_NAME as database FROM SNOWFLAKE.information_schema.DATABASES WHERE DATABASE_NAME = '${args.database}'`,
+            `SELECT DATABASE_NAME as database FROM SNOWFLAKE.information_schema.DATABASES WHERE DATABASE_NAME = ??`,
+            [args.database],
           )
         ).rows;
       } catch (e) {
@@ -1970,23 +1971,24 @@ class SnowflakeClient extends KnexClient {
       relationsList = relationsList.data.list;
 
       for (const relation of relationsList) {
-        downQuery +=
-          this.querySeparator() +
-          (await this.sqlClient.schema
-            .table(relation.tn, function (table) {
-              table = table
-                .foreign(relation.cn, null)
-                .references(relation.rcn)
-                .on(relation.rtn);
+        const downQb = this.sqlClient.schema.table(
+          relation.tn,
+          function (table) {
+            table = table
+              .foreign(relation.cn, null)
+              .references(relation.rcn)
+              .on(relation.rtn);
 
-              if (relation.ur) {
-                table = table.onUpdate(relation.ur);
-              }
-              if (relation.dr) {
-                table = table.onDelete(relation.dr);
-              }
-            })
-            .toQuery());
+            if (relation.ur) {
+              table = table.onUpdate(relation.ur);
+            }
+            if (relation.dr) {
+              table.onDelete(relation.dr);
+            }
+          },
+        );
+        await downQb;
+        downQuery += this.querySeparator() + downQb.toQuery();
       }
 
       let indexList: any = await this.indexList(args);
@@ -2060,8 +2062,6 @@ class SnowflakeClient extends KnexClient {
     const foreignKeyName = args.foreignKeyName || null;
 
     try {
-      // s = await this.sqlClient.schema.index(Object.keys(args.columns));
-
       await this.sqlClient.schema.table(args.childTable, (table) => {
         table = table
           .foreign(args.childColumn, foreignKeyName)
@@ -2072,27 +2072,27 @@ class SnowflakeClient extends KnexClient {
           table = table.onUpdate(args.onUpdate);
         }
         if (args.onDelete) {
-          table = table.onDelete(args.onDelete);
+          table.onDelete(args.onDelete);
         }
       });
 
-      const upStatement =
-        this.querySeparator() +
-        (await this.sqlClient.schema
-          .table(args.childTable, (table) => {
-            table = table
-              .foreign(args.childColumn, foreignKeyName)
-              .references(args.parentColumn)
-              .on(this.getTnPath(args.parentTable));
+      const upQb = this.sqlClient.schema.table(args.childTable, (table) => {
+        table = table
+          .foreign(args.childColumn, foreignKeyName)
+          .references(args.parentColumn)
+          .on(this.getTnPath(args.parentTable));
 
-            if (args.onUpdate) {
-              table = table.onUpdate(args.onUpdate);
-            }
-            if (args.onDelete) {
-              table = table.onDelete(args.onDelete);
-            }
-          })
-          .toQuery());
+        if (args.onUpdate) {
+          table = table.onUpdate(args.onUpdate);
+        }
+        if (args.onDelete) {
+          table.onDelete(args.onDelete);
+        }
+      });
+
+      await upQb;
+
+      const upStatement = this.querySeparator() + upQb.toQuery();
 
       this.emit(`Success : ${upStatement}`);
 
@@ -2100,7 +2100,7 @@ class SnowflakeClient extends KnexClient {
         this.querySeparator() +
         this.sqlClient.schema
           .table(args.childTable, (table) => {
-            table = table.dropForeign(args.childColumn, foreignKeyName);
+            table.dropForeign(args.childColumn, foreignKeyName);
           })
           .toQuery();
 

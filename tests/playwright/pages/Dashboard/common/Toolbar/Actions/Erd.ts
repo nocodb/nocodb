@@ -14,6 +14,6 @@ export class ToolbarActionsErdPage extends ErdBasePage {
   }
 
   async close() {
-    await this.get().locator('.nc-modal-close').click();
+    await this.rootPage.keyboard.press('Escape');
   }
 }

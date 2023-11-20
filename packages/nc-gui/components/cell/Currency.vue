@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { ColumnInj, EditModeInj, IsExpandedFormOpenInj, computed, inject, parseProp, useVModel } from '#imports'
+import { ColumnInj, EditColumnInj, EditModeInj, IsExpandedFormOpenInj, computed, inject, parseProp, useVModel } from '#imports'
 
 interface Props {
   modelValue: number | null | undefined
@@ -15,6 +15,8 @@ const { showNull } = useGlobal()
 const column = inject(ColumnInj)!
 
 const editEnabled = inject(EditModeInj)!
+
+const isEditColumn = inject(EditColumnInj, ref(false))
 
 const _vModel = useVModel(props, 'modelValue', emit)
 
@@ -55,11 +57,11 @@ const currency = computed(() => {
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
 
 const submitCurrency = () => {
   if (lastSaved.value !== vModel.value) {
-    lastSaved.value = vModel.value
+    vModel.value = lastSaved.value = vModel.value ?? null
     emit('save')
   }
   editEnabled.value = false
@@ -76,7 +78,8 @@ onMounted(() => {
     :ref="focus"
     v-model="vModel"
     type="number"
-    class="w-full h-full border-none outline-none px-2"
+    class="w-full h-full text-sm border-none rounded-md outline-none"
+    :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="submitCurrency"
     @keydown.down.stop
     @keydown.left.stop
@@ -88,7 +91,7 @@ onMounted(() => {
     @contextmenu.stop
   />
 
-  <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
   <!-- only show the numeric value as previously string value was accepted -->
   <span v-else-if="!isNaN(vModel)">{{ currency }}</span>

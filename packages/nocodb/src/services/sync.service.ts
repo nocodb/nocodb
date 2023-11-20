@@ -1,45 +1,80 @@
 import { Injectable } from '@nestjs/common';
-import { T } from 'nc-help';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { Project, SyncSource } from '../models';
+import { AppEvents } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { NcError } from '~/helpers/catchError';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { Base, SyncSource } from '~/models';
 
 @Injectable()
 export class SyncService {
-  async syncSourceList(param: { projectId: string; baseId?: string }) {
+  constructor(private readonly appHooksService: AppHooksService) {}
+
+  async syncSourceList(param: { baseId: string; sourceId?: string }) {
     return new PagedResponseImpl(
-      await SyncSource.list(param.projectId, param.baseId),
+      await SyncSource.list(param.baseId, param.sourceId),
     );
   }
 
   async syncCreate(param: {
-    projectId: string;
-    baseId?: string;
+    baseId: string;
+    sourceId?: string;
     userId: string;
     syncPayload: Partial<SyncSource>;
+    req: NcRequest;
   }) {
-    T.emit('evt', { evt_type: 'syncSource:created' });
-    const project = await Project.getWithInfo(param.projectId);
+    const base = await Base.getWithInfo(param.baseId);
 
     const sync = await SyncSource.insert({
       ...param.syncPayload,
       fk_user_id: param.userId,
-      base_id: param.baseId ? param.baseId : project.bases[0].id,
-      project_id: param.projectId,
+      source_id: param.sourceId ? param.sourceId : base.sources[0].id,
+      base_id: param.baseId,
     });
+
+    this.appHooksService.emit(AppEvents.SYNC_SOURCE_CREATE, {
+      syncSource: sync,
+      req: param.req,
+    });
+
     return sync;
   }
 
-  async syncDelete(param: { syncId: string }) {
-    T.emit('evt', { evt_type: 'syncSource:deleted' });
-    return await SyncSource.delete(param.syncId);
+  async syncDelete(param: { syncId: string; req: NcRequest }) {
+    const syncSource = await SyncSource.get(param.syncId);
+
+    if (!syncSource) {
+      NcError.badRequest('Sync source not found');
+    }
+
+    const res = await SyncSource.delete(param.syncId);
+
+    this.appHooksService.emit(AppEvents.SYNC_SOURCE_DELETE, {
+      syncSource,
+      req: param.req,
+    });
+    return res;
   }
 
   async syncUpdate(param: {
     syncId: string;
     syncPayload: Partial<SyncSource>;
+    req: NcRequest;
   }) {
-    T.emit('evt', { evt_type: 'syncSource:updated' });
+    const syncSource = await SyncSource.get(param.syncId);
 
-    return await SyncSource.update(param.syncId, param.syncPayload);
+    if (!syncSource) {
+      NcError.badRequest('Sync source not found');
+    }
+
+    const res = await SyncSource.update(param.syncId, param.syncPayload);
+
+    this.appHooksService.emit(AppEvents.SYNC_SOURCE_UPDATE, {
+      syncSource,
+
+      req: param.req,
+    });
+
+    return res;
   }
 }

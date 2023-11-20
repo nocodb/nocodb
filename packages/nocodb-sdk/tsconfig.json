@@ -39,9 +39,15 @@
 
     "lib": ["es2017","dom"],
     "types": [],
-    "typeRoots": ["node_modules/@types", "src/types"]
+    "typeRoots": ["node_modules/@types", "src/types"],
+    "baseUrl": "./src",
+    "paths": {
+      "~/*" : ["./*"],
+      "@/*" : ["./*"],
+      "src/*" : ["./*"]
+    }
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules/**"],
+  "exclude": ["node_modules/**", "src/ee/**"],
   "compileOnSave": false
 }

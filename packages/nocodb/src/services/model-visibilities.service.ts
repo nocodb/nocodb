@@ -1,27 +1,38 @@
 import { Injectable } from '@nestjs/common';
-import { T } from 'nc-help';
-import { validatePayload } from '../helpers';
-import { NcError } from '../helpers/catchError';
-import { Model, ModelRoleVisibility, View } from '../models';
+import { AppEvents } from 'nocodb-sdk';
 import type { VisibilityRuleReqType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { validatePayload } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import { Base, Model, ModelRoleVisibility, View } from '~/models';
 
 @Injectable()
 export class ModelVisibilitiesService {
+  constructor(private readonly appHooksService: AppHooksService) {}
+
   async xcVisibilityMetaSetAll(param: {
     visibilityRule: VisibilityRuleReqType;
-    projectId: string;
+    baseId: string;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/VisibilityRuleReq',
       param.visibilityRule,
     );
-    T.emit('evt', { evt_type: 'uiAcl:updated' });
+
+    const base = await Base.getWithInfo(param.baseId);
+
+    if (!base) {
+      NcError.badRequest('Base not found');
+    }
+
     for (const d of param.visibilityRule) {
       for (const role of Object.keys(d.disabled)) {
         const view = await View.get(d.id);
 
-        if (view.project_id !== param.projectId) {
-          NcError.badRequest('View does not belong to the project');
+        if (view.base_id !== param.baseId) {
+          NcError.badRequest('View does not belong to the base');
         }
 
         const dataInDb = await ModelRoleVisibility.get({
@@ -47,17 +58,20 @@ export class ModelVisibilitiesService {
         }
       }
     }
-    T.emit('evt', { evt_type: 'uiAcl:updated' });
+    this.appHooksService.emit(AppEvents.UI_ACL_UPDATE, {
+      base,
+      req: param.req,
+    });
 
     return true;
   }
 
   async xcVisibilityMetaGet(param: {
-    projectId: string;
+    baseId: string;
     includeM2M?: boolean;
     models?: Model[];
   }) {
-    const { includeM2M = true, projectId, models: _models } = param ?? {};
+    const { includeM2M = true, baseId, models: _models } = param ?? {};
 
     // todo: move to
     const roles = [
@@ -74,8 +88,8 @@ export class ModelVisibilitiesService {
     let models =
       _models ||
       (await Model.list({
-        project_id: projectId,
-        base_id: undefined,
+        base_id: baseId,
+        source_id: undefined,
       }));
 
     models = includeM2M ? models : (models.filter((t) => !t.mm) as Model[]);
@@ -100,7 +114,7 @@ export class ModelVisibilitiesService {
       return obj;
     }, Promise.resolve({}));
 
-    const disabledList = await ModelRoleVisibility.list(projectId);
+    const disabledList = await ModelRoleVisibility.list(baseId);
 
     for (const d of disabledList) {
       if (result[d.fk_view_id])

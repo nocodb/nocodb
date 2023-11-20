@@ -5,12 +5,13 @@ import { toRef, viewIcons } from '#imports'
 
 const props = defineProps<{
   meta: TableType
+  ignoreColor?: boolean
 }>()
 
 const viewMeta = toRef(props, 'meta')
 </script>
 
-<template v-if="viewMeta">
+<template>
   <IcIcon
     v-if="viewMeta?.meta?.icon"
     :data-testid="`nc-icon-${viewMeta?.meta?.icon}`"
@@ -21,8 +22,15 @@ const viewMeta = toRef(props, 'meta')
     :is="viewIcons[viewMeta.type]?.icon"
     v-else-if="viewMeta?.type"
     class="nc-view-icon group-hover"
-    :style="{ color: viewIcons[viewMeta.type]?.color }"
+    :style="{
+      color: !props.ignoreColor ? viewIcons[viewMeta.type]?.color : undefined,
+      fontWeight: 500,
+    }"
   />
 </template>
 
-<style scoped></style>
+<style>
+.nc-view-icon {
+  font-size: 1.05rem;
+}
+</style>

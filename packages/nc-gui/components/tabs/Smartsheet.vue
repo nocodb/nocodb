@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+
 import {
   ActiveViewInj,
   FieldsInj,
@@ -20,27 +21,39 @@ import {
   useMetas,
   useProvideKanbanViewStore,
   useProvideSmartsheetStore,
-  useUIPermission,
+  useRoles,
+  useSqlEditor,
 } from '#imports'
-import type { TabItem } from '~/lib'
+import type { TabItem } from '#imports'
 
 const props = defineProps<{
   activeTab: TabItem
 }>()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { metas, getMeta } = useMetas()
 
-const activeTab = toRef(props, 'activeTab')
+useSidebar('nc-right-sidebar')
 
-const activeView = ref()
+const activeTab = toRef(props, 'activeTab')
 
 const fields = ref<ColumnType[]>([])
 
-const meta = computed<TableType | undefined>(() => activeTab.value && metas.value[activeTab.value.id!])
+const route = useRoute()
 
+const meta = computed<TableType | undefined>(() => {
+  const viewId = route.params.viewId as string
+  return viewId && metas.value[viewId]
+})
+
+const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
+const { activeTableId } = storeToRefs(useTablesStore())
+
+const { activeView, openedViewsTab, activeViewTitleOrId } = storeToRefs(useViewsStore())
 const { isGallery, isGrid, isForm, isKanban, isLocked, isMap } = useProvideSmartsheetStore(activeView, meta)
+
+useSqlEditor()
 
 const reloadEventHook = createEventHook<void | boolean>()
 
@@ -63,8 +76,10 @@ provide(IsFormInj, isForm)
 provide(TabMetaInj, activeTab)
 provide(
   ReadonlyInj,
-  computed(() => !isUIAllowed('xcDatatableEditable')),
+  computed(() => !isUIAllowed('dataEdit')),
 )
+
+useProvideViewColumns(activeView, meta, () => reloadEventHook?.trigger())
 
 const grid = ref()
 
@@ -72,11 +87,11 @@ const onDrop = async (event: DragEvent) => {
   event.preventDefault()
   try {
     // Access the dropped data
-    const data = JSON.parse(event.dataTransfer?.getData('text/json')!)
+    const data = JSON.parse(event.dataTransfer!.getData('text/json'))
     // Do something with the received data
 
-    // if dragged item is not from the same base, return
-    if (data.baseId !== meta.value?.base_id) return
+    // if dragged item is not from the same source, return
+    if (data.sourceId !== meta.value?.source_id) return
 
     // if dragged item or opened view is not a table, return
     if (data.type !== 'table' || meta.value?.type !== 'table') return
@@ -91,7 +106,7 @@ const onDrop = async (event: DragEvent) => {
 
     // if already a link column exists, create a new Lookup column
     const relationCol = parentMeta.columns?.find((c: ColumnType) => {
-      if (c.uidt !== UITypes.LinkToAnotherRecord) return false
+      if (!isLinksOrLTAR(c)) return false
 
       const ltarOptions = c.colOptions as LinkToAnotherRecordType
 
@@ -99,23 +114,36 @@ const onDrop = async (event: DragEvent) => {
         return false
       }
 
+      if (c.system) return false
+
       if (ltarOptions.fk_related_model_id === childMeta.id) {
         return true
       }
 
       return false
     })
+
     if (relationCol) {
       const lookupCol = childMeta.columns?.find((c) => c.pv) ?? childMeta.columns?.[0]
       grid.value?.openColumnCreate({
         uidt: UITypes.Lookup,
-        title: `${data.title}Lookup`,
+        title: `${data.title} Lookup`,
         fk_relation_column_id: relationCol.id,
         fk_lookup_column_id: lookupCol?.id,
       })
     } else {
+      if (!parentPkCol) {
+        message.error('Parent table does not have a primary key column')
+        return
+      }
+
+      if (!childPkCol) {
+        message.error('Child table does not have a primary key column')
+        return
+      }
+
       grid.value?.openColumnCreate({
-        uidt: UITypes.LinkToAnotherRecord,
+        uidt: UITypes.Links,
         title: `${data.title}List`,
         parentId: parentMeta.id,
         childId: childMeta.id,
@@ -129,36 +157,41 @@ const onDrop = async (event: DragEvent) => {
     console.log('error', e)
   }
 }
+
+watch([activeViewTitleOrId, activeTableId], () => {
+  handleSidebarOpenOnMobileForNonViews()
+})
 </script>
 
 <template>
-  <div class="nc-container flex h-full" @drop="onDrop" @dragover.prevent>
-    <div class="flex flex-col h-full flex-1 min-w-0">
-      <LazySmartsheetToolbar />
+  <div class="nc-container flex flex-col h-full" @drop="onDrop" @dragover.prevent>
+    <LazySmartsheetTopbar />
+    <div style="height: calc(100% - var(--topbar-height))">
+      <div v-if="openedViewsTab === 'view'" class="flex flex-col h-full flex-1 min-w-0">
+        <LazySmartsheetToolbar v-if="!isForm" />
+        <div class="flex flex-row w-full" style="height: calc(100% - var(--topbar-height))">
+          <Transition name="layout" mode="out-in">
+            <template v-if="meta">
+              <div class="flex flex-1 min-h-0 w-3/4">
+                <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-white">
+                  <LazySmartsheetGrid v-if="isGrid" ref="grid" />
 
-      <Transition name="layout" mode="out-in">
-        <template v-if="meta">
-          <div class="flex flex-1 min-h-0">
-            <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-gray-50">
-              <LazySmartsheetGrid v-if="isGrid" ref="grid" />
+                  <LazySmartsheetGallery v-else-if="isGallery" />
 
-              <LazySmartsheetGallery v-else-if="isGallery" />
+                  <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
-              <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
+                  <LazySmartsheetKanban v-else-if="isKanban" />
 
-              <LazySmartsheetKanban v-else-if="isKanban" />
-
-              <LazySmartsheetMap v-else-if="isMap" />
-            </div>
-          </div>
-        </template>
-      </Transition>
+                  <LazySmartsheetMap v-else-if="isMap" />
+                </div>
+              </div>
+            </template>
+          </Transition>
+        </div>
+      </div>
+      <SmartsheetDetails v-else />
     </div>
-
     <LazySmartsheetExpandedFormDetached />
-
-    <!-- Lazy loading the sidebar causes issues when deleting elements, i.e. it appears as if multiple elements are removed when they are not -->
-    <SmartsheetSidebar v-if="meta" class="nc-right-sidebar" />
   </div>
 </template>
 

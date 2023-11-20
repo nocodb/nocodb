@@ -6,12 +6,14 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '../guards/global/global.guard';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { PluginsService } from '../services/plugins.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { PluginsService } from '~/services/plugins.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 // todo: move to a interceptor
 // const blockInCloudMw = (_req, res, next) => {
@@ -21,41 +23,70 @@ import { PluginsService } from '../services/plugins.service';
 // };
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class PluginsController {
   constructor(private readonly pluginsService: PluginsService) {}
 
-  @Get('/api/v1/db/meta/plugins')
-  @Acl('pluginList')
+  @Get(['/api/v1/db/meta/plugins', '/api/v2/meta/plugins'])
+  @Acl('pluginList', {
+    scope: 'org',
+  })
   async pluginList() {
     return new PagedResponseImpl(await this.pluginsService.pluginList());
   }
 
-  @Post('/api/v1/db/meta/plugins/test')
-  @HttpCode(200)
-  @Acl('pluginTest')
-  async pluginTest(@Body() body: any) {
-    return await this.pluginsService.pluginTest({ body: body });
+  @Get(['/api/v1/db/meta/plugins/webhook', '/api/v2/meta/plugins/webhook'])
+  @Acl('webhookPluginList', {
+    scope: 'org',
+  })
+  async webhookPluginList() {
+    return new PagedResponseImpl(await this.pluginsService.webhookPluginList());
   }
 
-  @Get('/api/v1/db/meta/plugins/:pluginId')
-  @Acl('pluginRead')
+  @Post(['/api/v1/db/meta/plugins/test', '/api/v2/meta/plugins/test'])
+  @HttpCode(200)
+  @Acl('pluginTest', {
+    scope: 'org',
+  })
+  async pluginTest(@Body() body: any, @Req() req: Request) {
+    return await this.pluginsService.pluginTest({ body: body, req });
+  }
+
+  @Get(['/api/v1/db/meta/plugins/:pluginId', '/api/v2/meta/plugins/:pluginId'])
+  @Acl('pluginRead', {
+    scope: 'org',
+  })
   async pluginRead(@Param('pluginId') pluginId: string) {
     return await this.pluginsService.pluginRead({ pluginId: pluginId });
   }
 
-  @Patch('/api/v1/db/meta/plugins/:pluginId')
-  @Acl('pluginUpdate')
-  async pluginUpdate(@Body() body: any, @Param('pluginId') pluginId: string) {
+  @Patch([
+    '/api/v1/db/meta/plugins/:pluginId',
+    '/api/v2/meta/plugins/:pluginId',
+  ])
+  @Acl('pluginUpdate', {
+    scope: 'org',
+  })
+  async pluginUpdate(
+    @Body() body: any,
+    @Param('pluginId') pluginId: string,
+    @Req() req: Request,
+  ) {
     const plugin = await this.pluginsService.pluginUpdate({
       pluginId: pluginId,
       plugin: body,
+      req,
     });
     return plugin;
   }
 
-  @Get('/api/v1/db/meta/plugins/:pluginTitle/status')
-  @Acl('isPluginActive')
+  @Get([
+    '/api/v1/db/meta/plugins/:pluginTitle/status',
+    '/api/v2/meta/plugins/:pluginTitle/status',
+  ])
+  @Acl('isPluginActive', {
+    scope: 'org',
+  })
   async isPluginActive(@Param('pluginTitle') pluginTitle: string) {
     return await this.pluginsService.isPluginActive({
       pluginTitle: pluginTitle,

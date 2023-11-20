@@ -70,5 +70,5 @@ jobs:
             })
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
       - run: "npx github-release-notes@0.17.2  release --token ${{ secrets.GITHUB_TOKEN }}  --draft --tags ${{ github.event.inputs.tag || inputs.tag }}..${{ github.event.inputs.prev_tag || inputs.prev_tag }}"

@@ -1,5 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import dagre from 'dagre'
 import type { Edge, EdgeMarker, Elements, Node } from '@vue-flow/core'
 import type { MaybeRef } from '@vueuse/core'
@@ -65,18 +65,17 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
   const { metasWithIdAsKey } = useMetas()
 
   const erdTables = computed(() => unref(tables))
-  const config = $computed(() => unref(props))
+  const config = computed(() => unref(props))
 
   const nodeWidth = 300
-  const nodeHeight = $computed(() => (config.showViews && config.showAllColumns ? 50 : 40))
+  const nodeHeight = computed(() => (config.value.showViews && config.value.showAllColumns ? 50 : 40))
 
   const relations = computed(() =>
     erdTables.value.reduce((acc, table) => {
       const meta = metasWithIdAsKey.value[table.id!]
-      const columns =
-        meta.columns?.filter((column: ColumnType) => column.uidt === UITypes.LinkToAnotherRecord && column.system !== 1) || []
+      const columns = meta.columns?.filter((column: ColumnType) => isLinksOrLTAR(column) && column.system !== 1) || []
 
-      columns.forEach((column: ColumnType) => {
+      for (const column of columns) {
         const colOptions = column.colOptions as LinkToAnotherRecordType
         const source = column.fk_model_id
         const target = colOptions.fk_related_model_id
@@ -97,7 +96,8 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
           if (colOptions.type === 'hm') {
             relation.type = 'hm'
 
-            return acc.push(relation)
+            acc.push(relation)
+            continue
           }
 
           if (colOptions.type === 'mm') {
@@ -112,11 +112,12 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
             if (!correspondingColumn) {
               relation.type = 'mm'
 
-              return acc.push(relation)
+              acc.push(relation)
+              continue
             }
           }
         }
-      })
+      }
 
       return acc
     }, [] as Relation[]),
@@ -146,7 +147,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
     if (!parentCol || !childCol) return ''
 
     if (type === 'mm') {
-      if (config.showJunctionTableNames) {
+      if (config.value.showJunctionTableNames) {
         if (!modelId) return ''
 
         const mmModel = metasWithIdAsKey.value[modelId]
@@ -175,10 +176,12 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
 
       const columns =
         metasWithIdAsKey.value[table.id].columns?.filter(
-          (col) => config.showAllColumns || (!config.showAllColumns && col.uidt === UITypes.LinkToAnotherRecord),
+          (col) => config.value.showAllColumns || (!config.value.showAllColumns && isLinksOrLTAR(col)),
         ) || []
 
-      const pkAndFkColumns = columns.filter(() => config.showPkAndFk).filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
+      const pkAndFkColumns = columns
+        .filter(() => config.value.showPkAndFk)
+        .filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
 
       const nonPkColumns = columns.filter((col) => !col.pk && col.uidt !== UITypes.ForeignKey)
 
@@ -188,8 +191,8 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
           table: metasWithIdAsKey.value[table.id],
           pkAndFkColumns,
           nonPkColumns,
-          showPkAndFk: config.showPkAndFk,
-          showAllColumns: config.showAllColumns,
+          showPkAndFk: config.value.showPkAndFk,
+          showAllColumns: config.value.showAllColumns,
           columnLength: columns.length,
           color: '',
         },
@@ -248,60 +251,61 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
     }, [])
   }
 
-  const boxShadow = (skeleton: boolean, color: string) => ({
-    border: 'none !important',
-    boxShadow: `0 0 0 ${skeleton ? '12' : '2'}px ${color}`,
-  })
+  const boxShadow = (_skeleton: boolean, _color: string) => ({})
 
-  const layout = (skeleton = false) => {
-    elements.value = [...createNodes(), ...createEdges()] as Elements<NodeData | EdgeData>
+  const layout = async (skeleton = false): Promise<void> => {
+    return new Promise((resolve) => {
+      elements.value = [...createNodes(), ...createEdges()] as Elements<NodeData | EdgeData>
 
-    elements.value.forEach((el) => {
-      if (isNode(el)) {
-        const node = el as Node<NodeData>
-        const colLength = node.data!.columnLength
+      for (const el of elements.value) {
+        if (isNode(el)) {
+          const node = el as Node<NodeData>
+          const colLength = node.data!.columnLength
 
-        const width = skeleton ? nodeWidth * 3 : nodeWidth
-        const height = nodeHeight + (skeleton ? 250 : colLength > 0 ? nodeHeight * colLength : nodeHeight)
-        dagreGraph.setNode(el.id, {
-          width,
-          height,
-        })
-      } else if (isEdge(el)) {
-        dagreGraph.setEdge(el.source, el.target)
-      }
-    })
-
-    dagre.layout(dagreGraph)
-
-    elements.value.forEach((el) => {
-      if (isNode(el)) {
-        const color = colorScale(dagreGraph.predecessors(el.id)!.length)
-
-        const nodeWithPosition = dagreGraph.node(el.id)
-
-        el.targetPosition = Position.Left
-        el.sourcePosition = Position.Right
-        el.position = { x: nodeWithPosition.x, y: nodeWithPosition.y }
-        el.class = ['rounded-lg'].join(' ')
-        el.data.color = color
-
-        el.style = (n) => {
-          if (n.selected) {
-            return boxShadow(skeleton, color)
-          }
-
-          return boxShadow(skeleton, '#64748B')
+          const width = skeleton ? nodeWidth * 3 : nodeWidth
+          const height = nodeHeight.value + (skeleton ? 250 : colLength > 0 ? nodeHeight.value * colLength : nodeHeight.value)
+          dagreGraph.setNode(el.id, {
+            width,
+            height,
+          })
+        } else if (isEdge(el)) {
+          dagreGraph.setEdge(el.source, el.target)
         }
-      } else if (isEdge(el)) {
-        const node = elements.value.find((nodes) => nodes.id === el.source)
-        if (node) {
-          const color = node.data!.color
+      }
 
+      dagre.layout(dagreGraph)
+
+      for (const el of elements.value) {
+        if (isNode(el)) {
+          const color = colorScale(dagreGraph.predecessors(el.id)!.length)
+
+          const nodeWithPosition = dagreGraph.node(el.id)
+
+          el.targetPosition = Position.Left
+          el.sourcePosition = Position.Right
+          el.position = { x: nodeWithPosition.x, y: nodeWithPosition.y }
+          el.class = ['rounded-lg border-1 border-gray-200 shadow-lg'].join(' ')
           el.data.color = color
-          ;(el.markerEnd as EdgeMarker).color = `#${tinycolor(color).toHex()}`
+
+          el.style = (n) => {
+            if (n.selected) {
+              return boxShadow(skeleton, color)
+            }
+
+            return boxShadow(skeleton, '#64748B')
+          }
+        } else if (isEdge(el)) {
+          const node = elements.value.find((nodes) => nodes.id === el.source)
+          if (node) {
+            const color = node.data!.color
+
+            el.data.color = color
+            ;(el.markerEnd as EdgeMarker).color = `#${tinycolor(color).toHex()}`
+          }
         }
       }
+
+      resolve()
     })
   }
 

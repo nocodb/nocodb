@@ -4,16 +4,17 @@ import { nanoid } from 'nanoid';
 import { ErrorMessages, UITypes, ViewTypes } from 'nocodb-sdk';
 import slash from 'slash';
 import { nocoExecute } from 'nc-help';
-import { Base, Column, Model, View } from '../models';
 
-import { NcError } from '../helpers/catchError';
-import getAst from '../helpers/getAst';
-import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { mimeIcons } from '../utils/mimeTypes';
-import { getColumnByIdOrName } from '../modules/datas/helpers';
-import type { LinkToAnotherRecordColumn } from '../models';
+import type { LinkToAnotherRecordColumn } from '~/models';
+import { NcError } from '~/helpers/catchError';
+import getAst from '~/helpers/getAst';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { getColumnByIdOrName } from '~/modules/datas/helpers';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { mimeIcons } from '~/utils/mimeTypes';
+import { Column, Model, Source, View } from '~/models';
+import { utf8ify } from '~/helpers/stringHelpers';
 
 // todo: move to utils
 export function sanitizeUrlPath(paths) {
@@ -27,7 +28,8 @@ export class PublicDatasService {
     password?: string;
     query: any;
   }) {
-    const view = await View.getByUUID(param.sharedViewUuid);
+    const { sharedViewUuid, password, query = {} } = param;
+    const view = await View.getByUUID(sharedViewUuid);
 
     if (!view) NcError.notFound('Not found');
     if (
@@ -39,7 +41,7 @@ export class PublicDatasService {
       NcError.notFound('Not found');
     }
 
-    if (view.password && view.password !== param.password) {
+    if (view.password && view.password !== password) {
       return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
     }
 
@@ -47,32 +49,31 @@ export class PublicDatasService {
       id: view?.fk_model_id,
     });
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    const listArgs: any = { ...param.query };
+    const { ast, dependencyFields } = await getAst({
+      model,
+      query: {},
+      view,
+    });
+
+    const listArgs: any = { ...query, ...dependencyFields };
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
     try {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
-
     let data = [];
     let count = 0;
 
     try {
-      const { ast } = await getAst({
-        query: param.query,
-        model,
-        view,
-      });
-
       data = await nocoExecute(
         ast,
         await baseModel.list(listArgs),
@@ -130,12 +131,12 @@ export class PublicDatasService {
     groupColumnId: string;
   }) {
     const { model, view, query = {}, groupColumnId } = param;
-    const base = await Base.get(param.model.base_id);
+    const source = await Source.get(param.model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const { ast } = await getAst({ model, query: param.query, view });
@@ -187,6 +188,64 @@ export class PublicDatasService {
     return data;
   }
 
+  async dataGroupBy(param: {
+    sharedViewUuid: string;
+    password?: string;
+    query: any;
+  }) {
+    const view = await View.getByUUID(param.sharedViewUuid);
+
+    if (!view) NcError.notFound('Not found');
+
+    if (view.type !== ViewTypes.GRID) {
+      NcError.notFound('Not found');
+    }
+
+    if (view.password && view.password !== param.password) {
+      return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+    }
+
+    const model = await Model.getByIdOrName({
+      id: view?.fk_model_id,
+    });
+
+    return await this.getDataGroupBy({ model, view, query: param.query });
+  }
+
+  async getDataGroupBy(param: { model: Model; view: View; query?: any }) {
+    try {
+      const { model, view, query = {} } = param;
+
+      const source = await Source.get(model.source_id);
+
+      const baseModel = await Model.getBaseModelSQL({
+        id: model.id,
+        viewId: view?.id,
+        dbDriver: await NcConnectionMgrv2.get(source),
+      });
+
+      const listArgs: any = { ...query };
+
+      try {
+        listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+      } catch (e) {}
+      try {
+        listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+      } catch (e) {}
+
+      const data = await baseModel.groupBy(listArgs);
+      const count = await baseModel.groupByCount(listArgs);
+
+      return new PagedResponseImpl(data, {
+        ...query,
+        count,
+      });
+    } catch (e) {
+      console.log(e);
+      NcError.internalServerError('Please check server log for more details');
+    }
+  }
+
   async dataInsert(param: {
     sharedViewUuid: string;
     password?: string;
@@ -207,13 +266,13 @@ export class PublicDatasService {
       id: view?.fk_model_id,
     });
 
-    const base = await Base.get(model.base_id);
-    const project = await base.getProject();
+    const source = await Source.get(model.source_id);
+    const base = await source.getProject();
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     await view.getViewWithInfo();
@@ -251,7 +310,7 @@ export class PublicDatasService {
 
       const filePath = sanitizeUrlPath([
         'noco',
-        project.title,
+        base.title,
         model.title,
         fieldName,
       ]);
@@ -261,7 +320,8 @@ export class PublicDatasService {
         fields[fieldName].uidt === UITypes.Attachment
       ) {
         attachments[fieldName] = attachments[fieldName] || [];
-        const fileName = `${nanoid(18)}${path.extname(file.originalname)}`;
+        const originalName = utf8ify(file.originalname);
+        const fileName = `${nanoid(18)}${path.extname(originalName)}`;
 
         const url = await storageAdapter.fileCreate(
           slash(path.join('nc', 'uploads', ...filePath, fileName)),
@@ -279,11 +339,10 @@ export class PublicDatasService {
         attachments[fieldName].push({
           ...(url ? { url } : {}),
           ...(attachmentPath ? { path: attachmentPath } : {}),
-          title: file.originalname,
+          title: originalName,
           mimetype: file.mimetype,
           size: file.size,
-          icon:
-            mimeIcons[path.extname(file.originalname).slice(1)] || undefined,
+          icon: mimeIcons[path.extname(originalName).slice(1)] || undefined,
         });
       }
     }
@@ -318,12 +377,12 @@ export class PublicDatasService {
 
     const model = await colOptions.getRelatedTable();
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const { ast, dependencyFields } = await getAst({
@@ -343,7 +402,7 @@ export class PublicDatasService {
         {},
         dependencyFields,
       );
-      count = await baseModel.count(dependencyFields);
+      count = await baseModel.count(dependencyFields as any);
     } catch (e) {
       console.log(e);
       NcError.internalServerError('Please check server log for more details');
@@ -382,12 +441,12 @@ export class PublicDatasService {
     if (column.fk_model_id !== view.fk_model_id)
       NcError.badRequest("Column doesn't belongs to the model");
 
-    const base = await Base.get(view.base_id);
+    const source = await Source.get(view.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: view.fk_model_id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const key = `List`;
@@ -415,10 +474,13 @@ export class PublicDatasService {
       )
     )?.[key];
 
-    const count: any = await baseModel.mmListCount({
-      colId: param.columnId,
-      parentId: param.rowId,
-    });
+    const count: any = await baseModel.mmListCount(
+      {
+        colId: param.columnId,
+        parentId: param.rowId,
+      },
+      param.query,
+    );
 
     return new PagedResponseImpl(data, { ...param.query, count });
   }
@@ -453,12 +515,12 @@ export class PublicDatasService {
     if (column.fk_model_id !== view.fk_model_id)
       NcError.badRequest("Column doesn't belongs to the model");
 
-    const base = await Base.get(view.base_id);
+    const source = await Source.get(view.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: view.fk_model_id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const key = `List`;
@@ -485,10 +547,13 @@ export class PublicDatasService {
       )
     )?.[key];
 
-    const count = await baseModel.hmListCount({
-      colId: param.columnId,
-      id: param.rowId,
-    });
+    const count = await baseModel.hmListCount(
+      {
+        colId: param.columnId,
+        id: param.rowId,
+      },
+      param.query,
+    );
 
     return new PagedResponseImpl(data, { ...param.query, count });
   }

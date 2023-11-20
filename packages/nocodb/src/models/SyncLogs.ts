@@ -1,10 +1,10 @@
-import Noco from '../Noco';
-import { MetaTable } from '../utils/globals';
-import { extractProps } from '../helpers/extractProps';
+import Noco from '~/Noco';
+import { extractProps } from '~/helpers/extractProps';
+import { MetaTable } from '~/utils/globals';
 
 export default class SyncLogs {
   id?: string;
-  project_id?: string;
+  base_id?: string;
   fk_sync_source_id?: string;
   time_taken?: string;
   status?: string;
@@ -14,10 +14,10 @@ export default class SyncLogs {
     Object.assign(this, syncLog);
   }
 
-  static async list(projectId: string, ncMeta = Noco.ncMeta) {
+  static async list(baseId: string, ncMeta = Noco.ncMeta) {
     const syncLogs = await ncMeta.metaList(null, null, MetaTable.SYNC_LOGS, {
       condition: {
-        project_id: projectId,
+        base_id: baseId,
       },
       orderBy: {
         created_at: 'asc',
@@ -28,7 +28,7 @@ export default class SyncLogs {
 
   public static async insert(syncLog: Partial<SyncLogs>, ncMeta = Noco.ncMeta) {
     const insertObj = extractProps(syncLog, [
-      'project_id',
+      'base_id',
       'fk_sync_source_id',
       'time_taken',
       'status',

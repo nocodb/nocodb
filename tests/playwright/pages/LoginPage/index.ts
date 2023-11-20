@@ -1,4 +1,4 @@
-import { expect, Page } from '@playwright/test';
+import { Page } from '@playwright/test';
 import BasePage from '../Base';
 
 export class LoginPage extends BasePage {
@@ -11,7 +11,7 @@ export class LoginPage extends BasePage {
     return `nc_test_${parallelId}_${email}`;
   }
 
-  goto() {
+  async goto() {
     return this.rootPage.goto('/#/signin');
   }
 
@@ -32,15 +32,21 @@ export class LoginPage extends BasePage {
 
   async submit() {
     await this.get().locator(`[data-testid="nc-form-signin__submit"]`).click();
-
-    // todo: Login api can take some time to respond if server is under load
-    await expect(this.rootPage).toHaveURL('http://localhost:3000/#/', {
-      timeout: 15000,
-    });
+    await this.rootPage.locator('.nc-treeview-container').waitFor({ timeout: 10000 });
   }
 
-  async signIn({ email, password, withoutPrefix }: { email: string; password: string; withoutPrefix?: boolean }) {
-    await this.goto();
+  async signIn({
+    email,
+    password,
+    withoutPrefix,
+    skipReload = false,
+  }: {
+    email: string;
+    password: string;
+    withoutPrefix?: boolean;
+    skipReload?: boolean;
+  }) {
+    if (!skipReload) await this.goto();
 
     // todo: Login page is sometimes not loaded. Probably because of lazy loading
     await this.rootPage.waitForTimeout(1500);

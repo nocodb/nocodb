@@ -53,7 +53,7 @@ export function useDialog(
   const closeHook = createEventHook<void>()
   const mountedHook = createEventHook<void>()
 
-  const isMounted = $ref(false)
+  const isMounted = ref(false)
 
   const domNode = document.createElement('div')
 
@@ -90,7 +90,7 @@ export function useDialog(
       // wrap in suspense to resolve potential promises
       render(h(Suspense, vNode), domNode)
 
-      if (!isMounted) mountedHook.trigger()
+      if (!isMounted.value) mountedHook.trigger()
     },
     { deep: true, immediate: true, flush: 'post' },
   )

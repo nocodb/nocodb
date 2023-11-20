@@ -46,20 +46,17 @@
     // "emitDecoratorMetadata": true /* Enables experimental support for emitting type metadata for decorators. */,
 
     "lib": [
-      "es2017"
+      "es2017",
+      "dom"
     ],
     "types": [
-      "mocha", "node"
+      "mocha",
+      "node"
     ],
     "typeRoots": [
-      "node_modules/@types",
-      "src/types"
+      "../../src/types",
+      "../../node_modules/@types"
     ]
-  },
-  "parserOptions": {
-    "sourceType": "module",
-    "tsconfigRootDir": "./",
-    "project": "./tsconfig.json"
   },
   "include": [
     "./tests/**/**/**.ts",

@@ -1,6 +1,7 @@
 import MdiCheckBold from '~icons/mdi/check-bold'
 import MdiCropSquare from '~icons/mdi/crop-square'
 import MdiCheckCircleOutline from '~icons/mdi/check-circle-outline'
+import MdiCheckboxMarkedCircle from '~icons/mdi/checkbox-marked-circle'
 import MdiCheckboxBlankCircleOutline from '~icons/mdi/checkbox-blank-circle-outline'
 import MdiStar from '~icons/mdi/star'
 import MdiStarOutline from '~icons/mdi/star-outline'
@@ -12,22 +13,98 @@ import MdiThumbUp from '~icons/mdi/thumb-up'
 import MdiThumbUpOutline from '~icons/mdi/thumb-up-outline'
 import MdiFlag from '~icons/mdi/flag'
 import MdiFlagOutline from '~icons/mdi/flag-outline'
+import MsMove from '~icons/material-symbols/drive-file-move-outline'
+import MSCloseRounded from '~icons/material-symbols/close-rounded'
 import MdiTableLarge from '~icons/mdi/table-large'
+import TablerColumnInsertLeft from '~icons/tabler/column-insert-left'
+import TablerColumnInsertRight from '~icons/tabler/column-insert-right'
 import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
+import NcEye from '~icons/nc-icons/eye'
+import MsGroup from '~icons/material-symbols/groups-outline-rounded'
+import MsAddBoxOutline from '~icons/nc-icons/add-box'
+import MsDownloadRounded from '~icons/nc-icons/download'
+import LogosAirtable from '~icons/logos/airtable'
+import NcStar from '~icons/nc-icons/star'
+import NcUnStar from '~icons/nc-icons/star-remove'
+import MsSort from '~icons/material-symbols/sort'
+import MaterialSymbolsEdit from '~icons/material-symbols/edit-outline-rounded'
+import MaterialDuplicate from '~icons/material-symbols/file-copy-outline-rounded'
+import MaterialSymbolsWarningOutlineRounded from '~icons/material-symbols/warning-outline-rounded'
+import MaterialSymbolsDragIndicator from '~icons/ri/draggable'
+import NcSearch from '~icons/nc-icons/search'
+import NcCreditCard from '~icons/nc-icons/credit-card'
+import NcLayers from '~icons/nc-icons/layers'
+import NcUsers from '~icons/nc-icons/users'
+import NcCheck from '~icons/nc-icons/check'
+import PlusSquare from '~icons/nc-icons/plus-square'
+import MobileShare from '~icons/nc-icons/share'
+import PhLayout from '~icons/ph/layout'
+import Delete from '~icons/material-symbols/delete-outline-rounded'
+import Minus from '~icons/material-symbols/remove-rounded'
+import Code from '~icons/material-symbols/code-rounded'
+import Palette from '~icons/material-symbols/palette-outline'
+import MsSync from '~icons/material-symbols/sync-rounded'
+import MdiRefresh from '~icons/mdi/refresh'
+import ApiSnippet from '~icons/material-symbols/settings-ethernet-rounded'
+import Phishing from '~icons/material-symbols/phishing-outline-rounded'
 import MdiAccountGroup from '~icons/mdi/account-group'
-import PhDotsThreeOutlineVerticalThin from '~icons/ph/dots-three-outline-vertical-light'
-import PhDotsThreeOutlineThin from '~icons/ph/dots-three-outline-light'
+import MdiDotsVertical from '~icons/mdi/dots-vertical'
+import MdiDotsHorizontal from '~icons/mdi/dots-horizontal'
 import PhExcelThin from '~icons/ph/microsoft-excel-logo-light'
-import PhCsvThin from '~icons/ph/file-csv-light'
-import PhSplitVerticalThin from '~icons/ph/split-vertical-light'
-import PhDiscordLogoLight from '~icons/ph/discord-logo-light'
-import PhRedditLogoLight from '~icons/ph/reddit-logo-light'
-import PhTwitterLogoLight from '~icons/ph/twitter-logo-light'
+import VscodeIconsExcelColored from '~icons/vscode-icons/file-type-excel'
+import PhCsvThin from '~icons/ph/file-csv'
+import PhSplitVerticalThin from '~icons/material-symbols/height-rounded'
+import LogosDiscordIcon from '~icons/logos/discord-icon'
+import LogosRedditIcon from '~icons/logos/reddit-icon'
+import RiTwitterXFill from '~icons/ri/twitter-x-line'
 import PhGithubLogoLight from '~icons/ph/github-logo-light'
 import NcIconsRowHeightMedium from '~icons/nc-icons/row-height-medium'
 import NcIconsRowHeightShort from '~icons/nc-icons/row-height-short'
 import NcIconsRowHeightTall from '~icons/nc-icons/row-height-tall'
 import NcIconsRowHeightExtraTall from '~icons/nc-icons/row-height-extra-tall'
+import MsInfo from '~icons/material-symbols/info-outline-rounded'
+import PhSparkleFill from '~icons/ph/sparkle-fill'
+import NcArticle from '~icons/nc-icons/article'
+import MsDatabase from '~icons/mdi/database-outline'
+import MdiDatabaseSearch from '~icons/mdi/database-search'
+import MdiMagicStaff from '~icons/mdi/magic-staff'
+import PhCaretDoubleLeftThin from '~icons/ph/caret-double-left-light'
+import NcNotification from '~icons/material-symbols/notifications-outline'
+import Right from '~icons/material-symbols/chevron-right-rounded'
+import Left from '~icons/material-symbols/chevron-left-rounded'
+import Up from '~icons/material-symbols/keyboard-arrow-up-rounded'
+import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
+import PhTriangleFill from '~icons/ph/triangle-fill'
+import LcSend from '~icons/lucide/send'
+import NcCommentHere from '~icons/nc-icons/comment-here'
+import NcAddDataSource from '~icons/nc-icons/add-data-source'
+import NcDatabaseIcon from '~icons/nc-icons/database'
+
+import HasManyIcon from '~icons/nc-icons/hasmany'
+import ManytoManyIcon from '~icons/nc-icons/manytomany'
+import BelongsToIcon from '~icons/nc-icons/belongsto'
+import HasManySolidIcon from '~icons/nc-icons/hm-solid'
+import ManytoManySolidIcon from '~icons/nc-icons/mm-solid'
+import BelongsToSolidIcon from '~icons/nc-icons/bt-solid'
+import Record from '~icons/nc-icons/record'
+import Project from '~icons/nc-icons/project'
+import LookupIcon from '~icons/nc-icons/lookup'
+import FileImageIcon from '~icons/nc-icons/file-image'
+
+// Roles
+import SuperAdmin from '~icons/nc-icons/super-admin'
+import Owner from '~icons/nc-icons/owner'
+import Creator from '~icons/nc-icons/creator'
+import Editor from '~icons/nc-icons/editor'
+import Commentor from '~icons/nc-icons/commentor'
+import Viewer from '~icons/nc-icons/viewer'
+import NoAccess from '~icons/nc-icons/no-access'
+
+// toolbar
+import Fields from '~icons/nc-icons/fields'
+import Filter from '~icons/nc-icons/filter'
+import Group from '~icons/nc-icons/group'
+import Sort from '~icons/nc-icons/sort'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -66,10 +143,10 @@ import NcIconsRowHeightExtraTall from '~icons/nc-icons/row-height-extra-tall'
   keyboard: PhKeyboardLight,
   accountPlus: PhUserPlusLight,
   database: PhDatabaseLight,
-  discord: PhDiscordLogoLight,
-  reddit: PhRedditLogoLight,
+  discord: LogosDiscordIcon,
+  reddit: LogosRedditIcon,
   github: PhGithubLogoLight,
-  twitter: PhTwitterLogoLight,
+  twitter: RiTwitterXFill,
   at: PhAtLight,
   plusCircle: PhPlusCircleLight,
   minusCircle: PhMinusCircleLight,
@@ -96,8 +173,8 @@ import NcIconsRowHeightExtraTall from '~icons/nc-icons/row-height-extra-tall'
   arrowDown: PhCaretDownLight,
   arrowRight: PhCaretRightLight,
   sidebarMinimise: PhCaretDoubleLeftLight,
-  threeDotVertical: PhDotsThreeOutlineVerticalThin,
-  threeDotHorizontal: PhDotsThreeOutlineThin,
+  threeDotVertical: MdiDotsVertical,
+  threeDotHorizontal: MdiDotsHorizontal,
   table: PhTableThin,
   excel: PhExcelThin,
   csv: PhCsvThin,
@@ -177,152 +254,204 @@ import NcIconsRowHeightExtraTall from '~icons/nc-icons/row-height-extra-tall'
 } as const */
 
 export const iconMap = {
-  info: h('span', { class: 'material-symbols-outlined' }, 'info'),
-  loading: h('span', { class: 'material-symbols-outlined' }, 'autorenew'),
-  arrowCollapse: h('span', { class: 'material-symbols-outlined' }, 'keyboard_arrow_up'),
-  markerAlert: h('span', { class: 'material-symbols-outlined' }, 'warning'),
-  appStore: h('span', { class: 'material-symbols-outlined' }, 'apps'),
-  chevronLeft: h('span', { class: 'material-symbols-outlined' }, 'chevron_left'),
-  chevronRight: h('span', { class: 'material-symbols-outlined' }, 'chevron_right'),
-  imagePlaceholder: h('span', { class: 'material-symbols-outlined' }, 'insert_photo'),
-  linkRemove: h('span', { class: 'material-symbols-outlined' }, 'link_off'),
-  closeThick: h('span', { class: 'material-symbols-outlined' }, 'cancel'),
-  role: h('span', { class: 'material-symbols-outlined' }, 'badge'),
-  tableKey: h('span', { class: 'material-symbols-outlined' }, 'table_rows'),
-  export: h('span', { class: 'material-symbols-outlined' }, 'get_app'),
-  colInsertAfter: h('span', { class: 'material-symbols-outlined' }, 'add_box'),
-  colInsertBefore: h('span', { class: 'material-symbols-outlined' }, 'indeterminate_check_box'),
-  star: h('span', { class: 'material-symbols-outlined' }, 'star'),
-  sortDesc: h('span', { class: 'material-symbols-outlined' }, 'sort'),
-  sortAsc: h('span', { class: 'material-symbols-outlined', style: { transform: 'scaleY(-1)' } }, 'sort'),
-  contentSaveExit: h('span', { class: 'material-symbols-outlined' }, 'save'),
-  contentSaveStay: h('span', { class: 'material-symbols-outlined' }, 'save_as'),
-  exit: h('span', { class: 'material-symbols-outlined' }, 'exit_to_app'),
-  snippet: h('span', { class: 'material-symbols-outlined' }, 'code'),
-  embed: h('span', { class: 'material-symbols-outlined' }, 'code'),
-  list: h('span', { class: 'material-symbols-outlined' }, 'view_list'),
-  cloud: h('span', { class: 'material-symbols-outlined' }, 'cloud'),
-  apiAndSupport: h('span', { class: 'material-symbols-outlined' }, 'api'),
-  sort: h('span', { class: 'material-symbols-outlined', style: { transform: 'scaleY(-1)' } }, 'sort'),
-  translate: h('span', { class: 'material-symbols-outlined' }, 'translate'),
-  preview: h('span', { class: 'material-symbols-outlined' }, 'visibility'),
-  link: h('span', { class: 'material-symbols-outlined' }, 'link'),
-  returnKey: h('span', { class: 'material-symbols-outlined' }, 'keyboard_return'),
-  keyboard: h('span', { class: 'material-symbols-outlined' }, 'keyboard'),
-  accountPlus: h('span', { class: 'material-symbols-outlined' }, 'person_add'),
-  database: h('span', { class: 'material-symbols-outlined' }, 'storage'),
-  discord: PhDiscordLogoLight,
-  reddit: PhRedditLogoLight,
+  sort: Sort,
+  group: Group,
+  filter: Filter,
+  fields: Fields,
+  mm: ManytoManyIcon,
+  hm: HasManyIcon,
+  bt: BelongsToIcon,
+  mm_solid: ManytoManySolidIcon,
+  hm_solid: HasManySolidIcon,
+  bt_solid: BelongsToSolidIcon,
+  workspaceDefault: MsGroup,
+  project: Project,
+  search: NcSearch,
+  error: h('span', { class: 'material-symbols' }, 'error'),
+  info: h(MsInfo, {}, () => 'info'),
+  inbox: h('span', { class: 'material-symbols' }, 'inbox'),
+  addOutlineBox: MsAddBoxOutline,
+  loading: h('span', { class: 'material-symbols' }, 'autorenew'),
+  arrowCollapse: Up,
+  markerAlert: h('span', { class: 'material-symbols' }, 'warning'),
+  appStore: h('span', { class: 'material-symbols' }, 'apps'),
+  chevronLeft: h('span', { class: 'material-symbols' }, 'chevron_left'),
+  chevronRight: h('span', { class: 'material-symbols' }, 'chevron_right'),
+  imagePlaceholder: h('span', { class: 'material-symbols' }, 'insert_photo'),
+  linkRemove: h('span', { class: 'material-symbols' }, 'link_off'),
+  closeThick: h('span', { class: 'material-symbols' }, 'cancel'),
+  role: h('span', { class: 'material-symbols' }, 'badge'),
+  tableKey: h('span', { class: 'material-symbols' }, 'table_rows'),
+  export: h('span', { class: 'material-symbols' }, 'get_app'),
+  colInsertAfter: TablerColumnInsertRight,
+  colInsertBefore: TablerColumnInsertLeft,
+  star: NcStar,
+  unStar: NcUnStar,
+  sortDesc: MsSort,
+  article: NcArticle,
+  triangleFill: PhTriangleFill,
+  sortAsc: h('span', { class: 'material-symbols', style: { transform: 'scaleY(-1)' } }, 'sort'),
+  contentSaveExit: h('span', { class: 'material-symbols' }, 'save'),
+  contentSaveStay: h('span', { class: 'material-symbols' }, 'save_as'),
+  exit: h('span', { class: 'material-symbols' }, 'exit_to_app'),
+  snippet: ApiSnippet,
+  embed: h('span', { class: 'material-symbols' }, 'code'),
+  list: h('span', { class: 'material-symbols' }, 'list'),
+  viewList: h('span', { class: 'material-symbols' }, 'view_list'),
+  cloud: h('span', { class: 'material-symbols' }, 'cloud'),
+  apiAndSupport: h('span', { class: 'material-symbols' }, 'api'),
+  translate: h('span', { class: 'material-symbols' }, 'translate'),
+  preview: h('span', { class: 'material-symbols' }, 'visibility'),
+  link: h('span', { class: 'material-symbols' }, 'link'),
+  returnKey: h('span', { class: 'material-symbols' }, 'keyboard_return'),
+  keyboard: h('span', { class: 'material-symbols' }, 'keyboard'),
+  accountPlus: h('span', { class: 'material-symbols' }, 'person_add'),
+  database: MsDatabase,
+  discord: LogosDiscordIcon,
+  reddit: LogosRedditIcon,
   github: PhGithubLogoLight,
-  twitter: PhTwitterLogoLight,
-  at: h('span', { class: 'material-symbols-outlined' }, 'alternate_email'),
-  plusCircle: h('span', { class: 'material-symbols-outlined' }, 'add_circle'),
-  minusCircle: h('span', { class: 'material-symbols-outlined' }, 'remove_circle'),
-  save: h('span', { class: 'material-symbols-outlined' }, 'save'),
-  signin: h('span', { class: 'material-symbols-outlined' }, 'login'),
-  signout: h('span', { class: 'material-symbols-outlined' }, 'logout'),
-  lock: h('span', { class: 'material-symbols-outlined' }, 'lock'),
-  account: h('span', { class: 'material-symbols-outlined' }, 'person'),
-  accountCircle: h('span', { class: 'material-symbols-outlined' }, 'account_circle'),
-  users: h('span', { class: 'material-symbols-outlined' }, 'people'),
-  download: h('span', { class: 'material-symbols-outlined' }, 'cloud_download'),
-  upload: h('span', { class: 'material-symbols-outlined' }, 'cloud_upload'),
-  hook: h('span', { class: 'material-symbols-outlined' }, 'compare_arrows'),
-  erd: h('span', { class: 'material-symbols-outlined' }, 'account_tree'),
-  plus: h('span', { class: 'material-symbols-outlined' }, 'add'),
-  search: h('span', { class: 'material-symbols-outlined' }, 'search'),
-  copy: h('span', { class: 'material-symbols-outlined' }, 'content_copy'),
-  duplicate: h('span', { class: 'material-symbols-outlined' }, 'file_copy'),
-  clipboard: h('span', { class: 'material-symbols-outlined' }, 'content_paste'),
-  settings: h('span', { class: 'material-symbols-outlined' }, 'settings'),
-  image: h('span', { class: 'material-symbols-outlined' }, 'image'),
-  datasource: h('span', { class: 'material-symbols-outlined' }, 'hard_drive'),
-  book: h('span', { class: 'material-symbols-outlined' }, 'menu_book'),
-  arrowDown: h('span', { class: 'material-symbols-outlined', style: { fontSize: '.8rem' } }, 'keyboard_arrow_down'),
-  arrowRight: h('span', { class: 'material-symbols-outlined' }, 'keyboard_arrow_right'),
-  sidebarMinimise: h('span', { class: 'material-symbols-outlined' }, 'left_panel_close'),
-  // threeDotVertical: h('span', { class: 'material-symbols-outlined' }, 'more_vert'),
-  // threeDotHorizontal: h('span', { class: 'material-symbols-outlined' }, 'more_horiz'),
-  threeDotVertical: PhDotsThreeOutlineVerticalThin,
-  threeDotHorizontal: PhDotsThreeOutlineThin,
-  table: h('span', { class: 'material-symbols-outlined' }, 'table_chart'),
-  excel: PhExcelThin, // h('span', { class: 'material-symbols-outlined' }, 'grid_on'),
-  csv: PhCsvThin, // h('span', { class: 'material-symbols-outlined' }, 'grid_on'),
-  code: h('span', { class: 'material-symbols-outlined' }, 'code'),
-  delete: h('span', { class: 'material-symbols-outlined' }, 'delete'),
-  edit: h('span', { class: 'material-symbols-outlined' }, 'edit'),
-  lookup: h('span', { class: 'material-symbols-outlined' }, 'search'),
-  text: h('span', { class: 'material-symbols-outlined' }, 'text_fields'),
-  longText: h('span', { class: 'material-symbols-outlined' }, 'text_format'),
-  clock: h('span', { class: 'material-symbols-outlined' }, 'access_time'),
-  web: h('span', { class: 'material-symbols-outlined' }, 'web'),
-  boolean: h('span', { class: 'material-symbols-outlined' }, 'check_box'),
-  calendar: h('span', { class: 'material-symbols-outlined' }, 'event_note'),
-  singleSelect: h('span', { class: 'material-symbols-outlined' }, 'radio_button_checked'),
-  multiSelect: h('span', { class: 'material-symbols-outlined' }, 'check_box_outline_blank'),
-  datetime: h('span', { class: 'material-symbols-outlined' }, 'date_range'),
-  geoData: h('span', { class: 'material-symbols-outlined' }, 'place'),
-  rating: h('span', { class: 'material-symbols-outlined' }, 'star_half'),
-  generic: h('span', { class: 'material-symbols-outlined' }, 'toc'),
-  number: h('span', { class: 'material-symbols-outlined' }, 'looks_one'),
-  email: h('span', { class: 'material-symbols-outlined' }, 'email'),
-  sendEmail: h('span', { class: 'material-symbols-outlined' }, 'email'),
-  currency: h('span', { class: 'material-symbols-outlined' }, 'attach_money'),
-  percent: h('span', { class: 'material-symbols-outlined' }, 'percent'),
-  decimal: h('span', { class: 'material-symbols-outlined' }, 'decimal_increase'),
-  specificDbType: h('span', { class: 'material-symbols-outlined' }, 'inbox_customize'),
-  duration: h('span', { class: 'material-symbols-outlined' }, 'timer'),
-  phone: h('span', { class: 'material-symbols-outlined' }, 'phone'),
-  formula: h('span', { class: 'material-symbols-outlined' }, 'function'),
-  function: h('span', { class: 'material-symbols-outlined' }, 'functions'),
-  key: h('span', { class: 'material-symbols-outlined' }, 'key'),
-  json: h('span', { class: 'material-symbols-outlined' }, 'code'),
-  qrCode: h('span', { class: 'material-symbols-outlined' }, 'qr_code'),
-  qrCodeScan: h('span', { class: 'material-symbols-outlined' }, 'qr_code_scanner'),
-  barCode: h('span', { class: 'material-symbols-outlined' }, 'barcode'),
-  calculator: h('span', { class: 'material-symbols-outlined' }, 'calculate'),
-  rollup: h('span', { class: 'material-symbols-outlined' }, 'group_work'),
-  eye: h('span', { class: 'material-symbols-outlined' }, 'visibility'),
-  eyeSlash: h('span', { class: 'material-symbols-outlined' }, 'visibility_off'),
-  expand: h('span', { class: 'material-symbols-outlined' }, 'open_in_full'),
-  check: h('span', { class: 'material-symbols-outlined' }, 'check'),
-  acl: h('span', { class: 'material-symbols-outlined' }, 'shield'),
-  sync: h('span', { class: 'material-symbols-outlined' }, 'sync'),
-  warning: h('span', { class: 'material-symbols-outlined' }, 'warning'),
-  share: h('span', { class: 'material-symbols-outlined' }, 'share'),
-  reload: h('span', { class: 'material-symbols-outlined' }, 'refresh'),
-  xml: h('span', { class: 'material-symbols-outlined' }, 'code'),
-  airtable: h('span', { class: 'material-symbols-outlined' }, 'grid_on'),
-  grid: h('span', { class: 'material-symbols-outlined' }, 'grid_on'),
-  gallery: h('span', { class: 'material-symbols-outlined' }, 'image'),
-  form: h('span', { class: 'material-symbols-outlined' }, 'receipt'),
-  map: h('span', { class: 'material-symbols-outlined' }, 'map'),
-  kanban: h('span', { class: 'material-symbols-outlined' }, 'view_column'),
-  view: h('span', { class: 'material-symbols-outlined' }, 'visibility'),
-  // rowHeight: h('span', { class: 'material-symbols-outlined' }, 'height'),
+  twitter: RiTwitterXFill,
+  at: h('span', { class: 'material-symbols' }, 'alternate_email'),
+  plusCircle: h('span', { class: 'material-symbols' }, 'add_circle'),
+  minusCircle: h('span', { class: 'material-symbols' }, 'remove_circle'),
+  save: h('span', { class: 'material-symbols' }, 'save'),
+  signin: h('span', { class: 'material-symbols' }, 'login'),
+  signout: h('span', { class: 'material-symbols' }, 'logout'),
+  lock: h('span', { class: 'material-symbols' }, 'lock'),
+  account: h('span', { class: 'material-symbols' }, 'person'),
+  accountCircle: h('span', { class: 'material-symbols' }, 'account_circle'),
+  users: NcUsers,
+  cloudDownload: h('span', { class: 'material-symbols' }, 'cloud_download'),
+  download: MsDownloadRounded,
+  upload: h('span', { class: 'material-symbols' }, 'cloud_upload'),
+  hook: Phishing,
+  erd: h('span', { class: 'material-symbols' }, 'account_tree'),
+  plus: h('span', { class: 'material-symbols', style: '-webkit-text-stroke: 0.3px' }, 'add'),
+  plusSquare: PlusSquare,
+  minus: Minus,
+  help: h('span', { class: 'material-symbols' }, 'help'),
+  copy: h('span', { class: 'material-symbols' }, 'content_copy'),
+  duplicate: MaterialDuplicate,
+  clipboard: h('span', { class: 'material-symbols' }, 'content_paste'),
+  settings: h('span', { class: 'material-symbols' }, 'settings'),
+  image: h('span', { class: 'material-symbols' }, 'image'),
+  datasource: h('span', { class: 'material-symbols' }, 'hard_drive'),
+  book: h('span', { class: 'material-symbols' }, 'menu_book'),
+  arrowDown: Down,
+  arrowRight: Right,
+  arrowLeft: Left,
+  arrowUp: Up,
+  layout: PhLayout,
+  doubleRightArrow: h('span', { class: 'material-symbols', style: '-webkit-text-stroke: 0.5px' }, 'keyboard_double_arrow_right'),
+  doubleLeftArrow: h('span', { class: 'material-symbols', style: '-webkit-text-stroke: 0.5px' }, 'keyboard_double_arrow_left'),
+  sidebarMinimise: PhCaretDoubleLeftThin, // h('span', { class: 'material-symbols' }, 'left_panel_close'),
+  // threeDotVertical: h('span', { class: 'material-symbols' }, 'more_vert'),
+  // threeDotHorizontal: h('span', { class: 'material-symbols' }, 'more_horiz'),
+  threeDotVertical: MdiDotsVertical,
+  threeDotHorizontal: MdiDotsHorizontal,
+  table: Record,
+  excel: PhExcelThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
+  csv: PhCsvThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
+  code: Code,
+  palette: h(Palette, {}, () => 'palette'),
+  delete: Delete,
+  deleteListItem: h('span', { class: 'material-symbols' }, 'delete'),
+  import: h('span', { class: 'material-symbols' }, 'system_update_alt'),
+  edit: MaterialSymbolsEdit,
+  lookup: LookupIcon,
+  text: h('span', { class: 'material-symbols' }, 'text_fields'),
+  longText: h('span', { class: 'material-symbols' }, 'view_headline'),
+  clock: h('span', { class: 'material-symbols' }, 'access_time'),
+  web: h('span', { class: 'material-symbols' }, 'web'),
+  webhook: h('span', { class: 'material-symbols' }, 'webhook'),
+  boolean: h('span', { class: 'material-symbols' }, 'check_box'),
+  calendar: h('span', { class: 'material-symbols' }, 'event_note'),
+  singleSelect: h('span', { class: 'material-symbols' }, 'radio_button_checked'),
+  multiSelect: h('span', { class: 'material-symbols' }, 'check_box_outline_blank'),
+  datetime: h('span', { class: 'material-symbols' }, 'date_range'),
+  geoData: h('span', { class: 'material-symbols' }, 'place'),
+  rating: h('span', { class: 'material-symbols' }, 'star_half'),
+  generic: h('span', { class: 'material-symbols' }, 'toc'),
+  number: h('span', { class: 'material-symbols' }, 'looks_one'),
+  email: h('span', { class: 'material-symbols' }, 'email'),
+  sendEmail: h('span', { class: 'material-symbols' }, 'email'),
+  send: LcSend,
+  dataSource: NcAddDataSource,
+  currency: h('span', { class: 'material-symbols' }, 'attach_money'),
+  percent: h('span', { class: 'material-symbols' }, 'percent'),
+  decimal: h('span', { class: 'material-symbols' }, 'decimal_increase'),
+  specificDbType: h('span', { class: 'material-symbols' }, 'inbox_customize'),
+  duration: h('span', { class: 'material-symbols' }, 'timer'),
+  phone: h('span', { class: 'material-symbols' }, 'phone'),
+  formula: h('span', { class: 'material-symbols' }, 'function'),
+  function: h('span', { class: 'material-symbols' }, 'functions'),
+  key: h('span', { class: 'material-symbols' }, 'key'),
+  json: h('span', { class: 'material-symbols' }, 'code'),
+  qrCode: h('span', { class: 'material-symbols' }, 'qr_code'),
+  qrCodeScan: h('span', { class: 'material-symbols' }, 'qr_code_scanner'),
+  barCode: h('span', { class: 'material-symbols' }, 'barcode'),
+  calculator: h('span', { class: 'material-symbols' }, 'calculate'),
+  rollup: h('span', { class: 'material-symbols' }, 'group_work'),
+  eye: NcEye,
+  eyeSlash: h('span', { class: 'material-symbols' }, 'visibility_off'),
+  expand: h('span', { class: 'material-symbols' }, 'open_in_full'),
+  shrink: h('span', { class: 'material-symbols' }, 'close_fullscreen'),
+  check: NcCheck,
+  circleCheck: MdiCheckboxMarkedCircle,
+  acl: h('span', { class: 'material-symbols' }, 'shield'),
+  sync: MsSync,
+  warning: MaterialSymbolsWarningOutlineRounded,
+  share: h('span', { class: 'material-symbols' }, 'share'),
+  mobileShare: MobileShare,
+  reload: MdiRefresh,
+  xml: h('span', { class: 'material-symbols' }, 'code'),
+  airtable: LogosAirtable,
+  excelColored: VscodeIconsExcelColored,
+  grid: h('span', { class: 'material-symbols' }, 'grid_view'),
+  gallery: h('span', { class: 'material-symbols' }, 'image'),
+  form: h('span', { class: 'material-symbols' }, 'article'),
+  map: h('span', { class: 'material-symbols' }, 'map'),
+  kanban: h('span', { class: 'material-symbols' }, 'view_kanban'),
+  view: h('span', { class: 'material-symbols' }, 'visibility'),
+  // rowHeight: h('span', { class: 'material-symbols' }, 'height'),
   rowHeight: h(PhSplitVerticalThin, { style: { fontSize: '14px' } }),
-  filter: h('span', { class: 'material-symbols-outlined' }, 'filter_list'),
-  closeCircle: h('span', { class: 'material-symbols-outlined' }, 'cancel'),
-  closeBox: h('span', { class: 'material-symbols-outlined' }, 'close'),
-  close: h('span', { class: 'material-symbols-outlined' }, 'close'),
-  openInNew: h('span', { class: 'material-symbols-outlined' }, 'open_in_new'),
-  mm: h('span', { class: 'material-symbols-outlined' }, 'table_rows'),
-  hm: h('span', { class: 'material-symbols-outlined' }, 'table_rows'),
-  bt: h('span', { class: 'material-symbols-outlined' }, 'subdirectory_arrow_right'),
-  passwordChange: h('span', { class: 'material-symbols-outlined' }, 'vpn_key'),
-  mapMarker: h('span', { class: 'material-symbols-outlined' }, 'room'),
-  currentLocation: h('span', { class: 'material-symbols-outlined' }, 'my_location'),
-  plusThick: h('span', { class: 'material-symbols-outlined' }, 'add_box'),
-  dragVertical: h('span', { class: 'material-symbols-outlined' }, 'drag_indicator'),
-  databaseSync: h('span', { class: 'material-symbols-outlined' }, 'sync_alt'),
-  fileUpload: h('span', { class: 'material-symbols-outlined' }, 'cloud_upload'),
-  drag: h('span', { class: 'material-symbols-outlined' }, 'drag_handle'),
-  comment: h('span', { class: 'material-symbols-outlined' }, 'comment'),
-
+  closeCircle: h('span', { class: 'material-symbols' }, 'cancel'),
+  closeBox: h('span', { class: 'material-symbols' }, 'close'),
+  close: MSCloseRounded,
+  openInNew: h('span', { class: 'material-symbols' }, 'open_in_new'),
+  passwordChange: h('span', { class: 'material-symbols' }, 'vpn_key'),
+  mapMarker: h('span', { class: 'material-symbols' }, 'room'),
+  currentLocation: h('span', { class: 'material-symbols' }, 'my_location'),
+  plusThick: h('span', { class: 'material-symbols' }, 'add_box'),
+  dragVertical: h('span', { class: 'material-symbols' }, 'drag_indicator'),
+  databaseSync: h('span', { class: 'material-symbols' }, 'sync_alt'),
+  fileUpload: h('span', { class: 'material-symbols' }, 'cloud_upload'),
+  drag: MaterialSymbolsDragIndicator,
+  comment: h('span', { class: 'material-symbols' }, 'comment'),
+  doc: h('span', { class: 'material-symbols' }, 'menu_book'),
+  menu: h('span', { class: 'material-symbols' }, 'menu'),
+  move: MsMove,
+  creditCard: NcCreditCard,
   heightShort: NcIconsRowHeightShort,
   heightMedium: NcIconsRowHeightMedium,
   heightTall: NcIconsRowHeightTall,
   heightExtra: NcIconsRowHeightExtraTall,
+  databaseSearch: MdiDatabaseSearch,
+  layers: NcLayers,
+  ncDatabase: NcDatabaseIcon,
+  magic: PhSparkleFill,
+  magic1: MdiMagicStaff,
+  workspace: h('span', { class: 'material-symbols' }, 'dataset'),
+  notification: NcNotification,
+  role_owner: Owner,
+  role_creator: Creator,
+  role_editor: Editor,
+  role_commenter: Commentor,
+  role_viewer: Viewer,
+  role_super: SuperAdmin,
+  role_no_access: NoAccess,
+  commentHere: NcCommentHere,
+  fileImage: FileImageIcon,
 }
 
 export const getMdiIcon = (type: string): any => {

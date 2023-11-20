@@ -1,0 +1,23 @@
+name: "Dispatch OSS"
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ develop ]
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.OSS_DISPATCH }}
+        script: |
+          const result = await github.rest.repos.createDispatchEvent({
+            owner: 'nocodb',
+            repo: 'nocohub',
+            event_type: 'OSS',
+            client_payload: {
+              push: ${{ toJSON(github.event) }}
+            }
+          })

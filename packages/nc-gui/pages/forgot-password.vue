@@ -6,11 +6,13 @@ definePageMeta({
   requiresAuth: false,
 })
 
+const route = useRoute()
+
 const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 
-let success = $ref(false)
+const success = ref(false)
 
 const formValidator = ref()
 
@@ -41,12 +43,19 @@ async function resetPassword() {
   resetError()
 
   await api.auth.passwordForgot(form).then(() => {
-    success = true
+    success.value = true
   })
 }
 
 function resetError() {
   if (error.value) error.value = null
+}
+
+function navigateSignIn() {
+  navigateTo({
+    path: '/signin',
+    query: route.query,
+  })
 }
 </script>
 
@@ -71,7 +80,7 @@ function resetError() {
               {{ $t('msg.info.passwordRecovery.success') }} <ClaritySuccessLine />
             </div>
 
-            <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
+            <nuxt-link @click="navigateSignIn">{{ $t('general.signIn') }}</nuxt-link>
           </template>
         </div>
 
@@ -99,7 +108,7 @@ function resetError() {
 
             <div class="text-end prose-sm">
               {{ $t('msg.info.signUp.alreadyHaveAccount') }}
-              <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
+              <nuxt-link @click="navigateSignIn">{{ $t('general.signIn') }}</nuxt-link>
             </div>
           </div>
         </a-form>

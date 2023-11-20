@@ -11,31 +11,29 @@ import {
   nextTick,
   onMounted,
   ref,
-  storeToRefs,
-  useGlobal,
   useNuxtApp,
-  useProject,
   watch,
 } from '#imports'
 
-const { modelValue, baseId } = defineProps<{
+const { modelValue, baseId, sourceId } = defineProps<{
   modelValue: boolean
   baseId: string
+  sourceId: string
 }>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { appInfo } = $(useGlobal())
+const { $api } = useNuxtApp()
 
-const baseURL = appInfo.ncSiteUrl
+const baseURL = $api.instance.defaults.baseURL
 
-const { $state, $jobs } = useNuxtApp()
+const { $state, $poller } = useNuxtApp()
 
-const projectStore = useProject()
+const baseStore = useBase()
 
-const { loadTables } = projectStore
+const { refreshCommandPalette } = useCommandPalette()
 
-const { project } = storeToRefs(projectStore)
+const { loadTables } = baseStore
 
 const showGoToDashboardButton = ref(false)
 
@@ -47,6 +45,10 @@ const logRef = ref<typeof AntCard>()
 
 const enableAbort = ref(false)
 
+const goBack = ref(false)
+
+const listeningForUpdates = ref(false)
+
 const syncSource = ref({
   id: '',
   type: 'Airtable',
@@ -55,6 +57,7 @@ const syncSource = ref({
     syncDirection: 'Airtable to NocoDB',
     syncRetryCount: 1,
     apiKey: '',
+    appId: '',
     shareId: '',
     syncSourceUrlOrId: '',
     options: {
@@ -64,6 +67,7 @@ const syncSource = ref({
       syncLookup: true,
       syncFormula: false,
       syncAttachment: true,
+      syncUsers: true,
     },
   },
 })
@@ -78,18 +82,18 @@ const pushProgress = async (message: string, status: JobStatus | 'progress') => 
   })
 }
 
-const onSubscribe = () => {
-  step.value = 2
-}
-
 const onStatus = async (status: JobStatus, data?: any) => {
   if (status === JobStatus.COMPLETED) {
     showGoToDashboardButton.value = true
     await loadTables()
     pushProgress('Done!', status)
+    refreshCommandPalette()
     // TODO: add tab of the first table
   } else if (status === JobStatus.FAILED) {
+    await loadTables()
+    goBack.value = true
     pushProgress(data.error.message, status)
+    refreshCommandPalette()
   }
 }
 
@@ -113,7 +117,10 @@ const { validateInfos } = useForm(syncSource, validators)
 
 const disableImportButton = computed(() => !syncSource.value.details.apiKey || !syncSource.value.details.syncSourceUrlOrId)
 
+const isLoading = ref(false)
+
 async function saveAndSync() {
+  isLoading.value = true
   await createOrUpdate()
   await sync()
 }
@@ -130,7 +137,7 @@ async function createOrUpdate() {
         body: payload,
       })
     } else {
-      syncSource.value = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs/${baseId}`, {
+      syncSource.value = await $fetch(`/api/v1/db/meta/projects/${baseId}/syncs/${sourceId}`, {
         baseURL,
         method: 'POST',
         headers: { 'xc-auth': $state.token.value as string },
@@ -142,8 +149,48 @@ async function createOrUpdate() {
   }
 }
 
+async function listenForUpdates(id?: string) {
+  if (listeningForUpdates.value) return
+
+  listeningForUpdates.value = true
+
+  const job = id ? { id } : await $api.jobs.status({ syncId: syncSource.value.id })
+
+  if (!job) {
+    listeningForUpdates.value = false
+    return
+  }
+
+  $poller.subscribe(
+    { id: job.id },
+    (data: {
+      id: string
+      status?: string
+      data?: {
+        error?: {
+          message: string
+        }
+        message?: string
+        result?: any
+      }
+    }) => {
+      if (data.status !== 'close') {
+        step.value = 2
+        if (data.status) {
+          onStatus(data.status as JobStatus, data.data)
+        } else {
+          onLog(data.data as any)
+        }
+      } else {
+        listeningForUpdates.value = false
+        isLoading.value = false
+      }
+    },
+  )
+}
+
 async function loadSyncSrc() {
-  const data: any = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs/${baseId}`, {
+  const data: any = await $fetch(`/api/v1/db/meta/projects/${baseId}/syncs/${sourceId}`, {
     baseURL,
     method: 'GET',
     headers: { 'xc-auth': $state.token.value as string },
@@ -154,8 +201,9 @@ async function loadSyncSrc() {
   if (srcs && srcs[0]) {
     srcs[0].details = srcs[0].details || {}
     syncSource.value = migrateSync(srcs[0])
-    syncSource.value.details.syncSourceUrlOrId = srcs[0].details.shareId
-    $jobs.subscribe({ syncId: syncSource.value.id }, onSubscribe, onStatus, onLog)
+    syncSource.value.details.syncSourceUrlOrId =
+      srcs[0].details.appId && srcs[0].details.appId.length > 0 ? srcs[0].details.syncSourceUrlOrId : srcs[0].details.shareId
+    listenForUpdates()
   } else {
     syncSource.value = {
       id: '',
@@ -165,6 +213,7 @@ async function loadSyncSrc() {
         syncDirection: 'Airtable to NocoDB',
         syncRetryCount: 1,
         apiKey: '',
+        appId: '',
         shareId: '',
         syncSourceUrlOrId: '',
         options: {
@@ -174,6 +223,7 @@ async function loadSyncSrc() {
           syncLookup: true,
           syncFormula: false,
           syncAttachment: true,
+          syncUsers: true,
         },
       },
     }
@@ -182,12 +232,12 @@ async function loadSyncSrc() {
 
 async function sync() {
   try {
-    await $fetch(`/api/v1/db/meta/syncs/${syncSource.value.id}/trigger`, {
+    const jobData: any = await $fetch(`/api/v1/db/meta/syncs/${syncSource.value.id}/trigger`, {
       baseURL,
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
     })
-    $jobs.subscribe({ syncId: syncSource.value.id }, onSubscribe, onStatus, onLog)
+    listenForUpdates(jobData.id)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -207,11 +257,21 @@ async function abort() {
           headers: { 'xc-auth': $state.token.value as string },
         })
         step.value = 1
+        progress.value = []
+        goBack.value = false
+        enableAbort.value = false
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
     },
   })
+}
+
+function cancel() {
+  step.value = 1
+  progress.value = []
+  goBack.value = false
+  enableAbort.value = false
 }
 
 function migrateSync(src: any) {
@@ -237,15 +297,16 @@ watch(
     if (syncSource.value.details) {
       const m = v && v.match(/(exp|shr).{14}/g)
       syncSource.value.details.shareId = m ? m[0] : ''
+      const m2 = v && v.match(/(app).{14}/g)
+      syncSource.value.details.appId = m2 ? m2[0] : ''
     }
   },
 )
 
 onMounted(async () => {
   if (syncSource.value.id) {
-    $jobs.subscribe({ syncId: syncSource.value.id }, onSubscribe, onStatus, onLog)
+    listenForUpdates()
   }
-
   await loadSyncSrc()
 })
 </script>
@@ -254,6 +315,9 @@ onMounted(async () => {
   <a-modal
     v-model:visible="dialogShow"
     :class="{ active: dialogShow }"
+    :closable="step !== 2"
+    :keyboard="step !== 2"
+    :mask-closable="step !== 2"
     width="max(30vw, 600px)"
     class="p-2"
     wrap-class-name="nc-modal-airtable-import"
@@ -261,7 +325,7 @@ onMounted(async () => {
   >
     <div class="px-5">
       <!--      Quick Import -->
-      <div class="mt-5 prose-xl font-weight-bold" @dblclick="enableAbort = true">{{ $t('title.quickImport') }} - AIRTABLE</div>
+      <div class="mt-5 prose-xl font-weight-bold" @dblclick="enableAbort = true">{{ $t('title.quickImportAirtable') }}</div>
 
       <div v-if="step === 1">
         <div class="mb-4">
@@ -269,9 +333,10 @@ onMounted(async () => {
           <span class="mr-3 pt-2 text-gray-500 text-xs">{{ $t('general.credentials') }}</span>
           <!--          Where to find this? -->
           <a
-            href="https://docs.nocodb.com/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free/#get-airtable-credentials"
+            href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
             class="prose-sm underline text-grey text-xs"
             target="_blank"
+            rel="noopener"
           >
             {{ $t('msg.info.airtable.credentials') }}
           </a>
@@ -282,7 +347,7 @@ onMounted(async () => {
             <a-input-password
               v-model:value="syncSource.details.apiKey"
               class="nc-input-api-key"
-              :placeholder="$t('labels.apiKey')"
+              :placeholder="`${$t('labels.apiKey')} / ${$t('labels.personalAccessToken')}`"
               size="large"
             />
           </a-form-item>
@@ -291,7 +356,7 @@ onMounted(async () => {
             <a-input
               v-model:value="syncSource.details.syncSourceUrlOrId"
               class="nc-input-shared-base"
-              :placeholder="`${$t('labels.sharedBase')} ID / URL`"
+              :placeholder="`${$t('labels.sharedBaseUrl')}`"
               size="large"
             />
           </a-form-item>
@@ -334,10 +399,17 @@ onMounted(async () => {
             </a-checkbox>
           </div>
 
+          <!--          Import Users Columns -->
+          <div class="my-2">
+            <a-checkbox v-model:checked="syncSource.details.options.syncUsers">
+              {{ $t('labels.importUsers') }}
+            </a-checkbox>
+          </div>
+
           <!--          Import Formula Columns -->
           <a-tooltip placement="top">
             <template #title>
-              <span>Coming Soon!</span>
+              <span>{{ $t('title.comingSoon') }}</span>
             </template>
             <a-checkbox v-model:checked="syncSource.details.options.syncFormula" disabled>
               {{ $t('labels.importFormulaColumns') }}
@@ -349,7 +421,7 @@ onMounted(async () => {
 
         <!--        Questions / Help - Reach out here -->
         <div>
-          <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank">
+          <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank" rel="noopener noreferrer">
             {{ $t('general.questions') }} / {{ $t('general.help') }} - {{ $t('general.reachOut') }}</a
           >
 
@@ -357,7 +429,12 @@ onMounted(async () => {
           <!--          This feature is currently in beta and more information can be found here -->
           <div>
             {{ $t('general.betaNote') }}
-            <a class="prose-sm" href="https://github.com/nocodb/nocodb/discussions/2122" target="_blank">
+            <a
+              class="prose-sm"
+              href="https://github.com/nocodb/nocodb/discussions/2122"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {{ $t('general.moreInfo') }}
             </a>
             .
@@ -404,7 +481,12 @@ onMounted(async () => {
           <a-button v-if="showGoToDashboardButton" class="mt-4" size="large" @click="dialogShow = false">
             {{ $t('labels.goToDashboard') }}
           </a-button>
-          <a-button v-else-if="enableAbort" class="mt-4" size="large" danger @click="abort()">ABORT</a-button>
+          <a-button v-else-if="goBack" class="mt-4 uppercase" size="large" danger @click="cancel()">{{
+            $t('general.cancel')
+          }}</a-button>
+          <a-button v-else-if="enableAbort" class="mt-4 uppercase" size="large" danger @click="abort()">{{
+            $t('general.abort')
+          }}</a-button>
         </div>
       </div>
     </div>
@@ -418,6 +500,7 @@ onMounted(async () => {
           v-e="['c:sync-airtable:save-and-sync']"
           type="primary"
           class="nc-btn-airtable-import"
+          :loading="isLoading"
           :disabled="disableImportButton"
           @click="saveAndSync"
         >

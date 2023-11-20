@@ -9,7 +9,7 @@ import {
   useProvideKanbanViewStore,
 } from '#imports'
 
-const { sharedView, meta, sorts, nestedFilters } = useSharedView()
+const { sharedView, meta, nestedFilters } = useSharedView()
 
 const reloadEventHook = createEventHook()
 
@@ -25,7 +25,9 @@ provide(FieldsInj, ref(meta.value?.columns || []))
 
 provide(IsPublicInj, ref(true))
 
-useProvideSmartsheetStore(sharedView, meta, true, sorts, nestedFilters)
+useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)
+
+useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
 
 useProvideKanbanViewStore(meta, sharedView, true)
 </script>

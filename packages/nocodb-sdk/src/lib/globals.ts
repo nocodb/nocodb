@@ -1,9 +1,18 @@
+import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from "./enums";
+
 export enum ViewTypes {
   FORM = 1,
   GALLERY = 2,
   GRID = 3,
   KANBAN = 4,
   MAP = 5,
+}
+
+export enum ProjectTypes {
+  DATABASE = 'database',
+  DOCUMENTATION = 'documentation',
+  COWRITER = 'cowriter',
+  DASHBOARD = 'dashboard',
 }
 
 export enum RelationTypes {
@@ -76,3 +85,48 @@ export enum ModelTypes {
 export enum ProjectStatus {
   JOB = 'job',
 }
+
+export enum TiptapNodesTypes {
+  doc = 'doc',
+  sec = 'sec',
+  paragraph = 'paragraph',
+  text = 'text',
+  heading = 'heading',
+  bullet = 'bullet',
+  ordered = 'ordered',
+  task = 'task',
+  quote = 'quote',
+  divider = 'divider',
+  codeBlock = 'codeBlock',
+  image = 'image',
+  callout = 'callout',
+  tipCallout = 'tipCallout',
+  table = 'table',
+  tableRow = 'tableRow',
+  tableCell = 'tableCell',
+  embed = 'embed',
+  collapsable = 'collapsable',
+  collapsableContent = 'collapsable_content',
+  collapsableHeader = 'collapsable_header',
+  column = 'column',
+  columnContent = 'columnContent',
+  linkToPage = 'linkToPage',
+  attachment = 'attachment',
+}
+
+export enum TiptapMarksTypes {
+  strike = 'strike',
+  bold = 'bold',
+  italic = 'italic',
+  link = 'link',
+  code = 'code',
+  underline = 'underline',
+}
+
+type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
+
+type RolesObj = Partial<Record<Roles, boolean>>;
+
+type RolesType = RolesObj | string[] | string;
+
+export { Roles, RolesObj, RolesType };

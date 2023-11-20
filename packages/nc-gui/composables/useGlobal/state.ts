@@ -12,11 +12,11 @@ import {
   usePreferredLanguages,
   useTimestamp,
 } from '#imports'
-import type { Language, User } from '~/lib'
+import type { Language, User } from '#imports'
 
 export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** get the preferred languages of a user, according to browser settings */
-  const preferredLanguages = $(usePreferredLanguages())
+  const preferredLanguages = usePreferredLanguages()
   /** todo: reimplement; get the preferred dark mode setting, according to browser settings */
   //   const prefersDarkMode = $(usePreferredDark())
   const prefersDarkMode = false
@@ -33,7 +33,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
    * If the user has not set a preferred language, we fall back to 'en'.
    * If the user has set a preferred language, we try to find a matching locale in the available locales.
    */
-  const preferredLanguage = preferredLanguages.reduce<keyof typeof Language>((locale, language) => {
+  const preferredLanguage = preferredLanguages.value.reduce<keyof typeof Language>((locale, language) => {
     /** split language to language and code, e.g. en-GB -> [en, GB] */
     const [lang, code] = language.split(/[_-]/)
 
@@ -67,6 +67,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     latestRelease: null,
     hiddenRelease: null,
     isMobileMode: null,
+    lastOpenedWorkspaceId: null,
   }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */
@@ -78,7 +79,9 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** current token ref, used by `useJwt` to reactively parse our token payload */
   const token = computed({
     get: () => storage.value.token || '',
-    set: (val) => (storage.value.token = val),
+    set: (val) => {
+      storage.value.token = val
+    },
   })
 
   const config = useRuntimeConfig()
@@ -90,10 +93,12 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     defaultLimit: 0,
     firstUser: true,
     githubAuthEnabled: false,
-    googleAuthEnabled: true,
+    googleAuthEnabled: false,
+    oidcAuthEnabled: false,
+    oidcProviderName: null,
     ncMin: false,
     oneClick: false,
-    projectHasAdmin: false,
+    baseHasAdmin: false,
     teleEnabled: true,
     auditEnabled: true,
     type: 'nocodb',
@@ -102,6 +107,8 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     ncMaxAttachmentsAllowed: 10,
     isCloud: false,
     automationLogLevel: 'OFF',
+    disableEmailAuth: false,
+    dashboardPath: '/dashboard',
   })
 
   /** reactive token payload */

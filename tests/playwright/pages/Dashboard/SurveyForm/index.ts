@@ -51,7 +51,7 @@ export class SurveyFormPage extends BasePage {
     fieldLabel = fieldLabel.replace(/\u00A0/g, ' ');
     fieldText = fieldText.replace(/\u00A0/g, ' ');
 
-    await expect(fieldText).toBe(fieldLabel);
+    expect(fieldText).toBe(fieldLabel);
 
     // parse footer text ("1 / 3") to identify if last slide
     let isLastSlide = false;
@@ -76,7 +76,7 @@ export class SurveyFormPage extends BasePage {
       await this.get().locator(`[data-testid="nc-survey-form__input-${param.fieldLabel}"] >> input`).press('Enter');
     } else if (param.type === 'DateTime') {
       await this.get().locator(`[data-testid="nc-survey-form__input-${param.fieldLabel}"] >> input`).click();
-      const modal = await this.rootPage.locator('.nc-picker-datetime');
+      const modal = this.rootPage.locator('.nc-picker-datetime');
       await expect(modal).toBeVisible();
       await modal.locator('.ant-picker-now-btn').click();
       await modal.locator('.ant-picker-ok').click();

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
-import { IsKanbanInj, enumColor, iconMap, onMounted, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
+import InfiniteLoading from 'v3-infinite-loading'
+
+import { IsKanbanInj, enumColor, iconMap, onMounted, useColumnCreateStoreOrThrow, useVModel } from '#imports'
 
 interface Option {
   color: string
@@ -19,50 +21,71 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-const { setAdditionalValidations, validateInfos, isPg, isMysql } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
 
-let options = $ref<(Option & { status?: 'remove' })[]>([])
-let renderedOptions = $ref<(Option & { status?: 'remove' })[]>([])
-let savedDefaultOption = $ref<Option | null>(null)
-let savedCdf = $ref<string | null>(null)
+// const { base } = storeToRefs(useBase())
 
-const colorMenus = $ref<any>({})
+const { optionsMagic: _optionsMagic } = useNocoEe()
 
-const colors = $ref(enumColor.light)
+const optionsWrapperDomRef = ref<HTMLElement>()
 
-const inputs = ref()
+const options = ref<(Option & { status?: 'remove'; index?: number })[]>([])
+
+const isAddingOption = ref(false)
+
+// TODO: Implement proper top and bottom virtual scrolling
+const OPTIONS_PAGE_COUNT = 20
+const loadedOptionAnchor = ref(OPTIONS_PAGE_COUNT)
+const isReverseLazyLoad = ref(false)
+
+const renderedOptions = ref<(Option & { status?: 'remove'; index?: number })[]>([])
+const savedDefaultOption = ref<Option | null>(null)
+const savedCdf = ref<string | null>(null)
+
+const colorMenus = ref<any>({})
+
+const colors = ref(enumColor.light)
+
 const defaultOption = ref()
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
-const validators = {
-  'colOptions.options': [
-    {
-      validator: (_: any, _opt: any) => {
-        return new Promise<void>((resolve, reject) => {
-          for (const opt of options) {
-            if ((opt as any).status === 'remove') continue
+const { t } = useI18n()
 
-            if (!opt.title.length) {
-              return reject(new Error("Select options can't be null"))
-            }
-            if (vModel.value.uidt === UITypes.MultiSelect && opt.title.includes(',')) {
-              return reject(new Error("MultiSelect columns can't have commas(',')"))
-            }
-            if (options.filter((el) => el.title === opt.title && (el as any).status !== 'remove').length > 1) {
-              return reject(new Error("Select options can't have duplicates"))
-            }
-          }
-          resolve()
-        })
+const validators = {
+  colOptions: [
+    {
+      type: 'object',
+      fields: {
+        options: {
+          validator: (_: any, _opt: any) => {
+            return new Promise<void>((resolve, reject) => {
+              for (const opt of options.value) {
+                if ((opt as any).status === 'remove') continue
+
+                if (!opt.title.length) {
+                  return reject(new Error(t('msg.selectOption.cantBeNull')))
+                }
+                if (vModel.value.uidt === UITypes.MultiSelect && opt.title.includes(',')) {
+                  return reject(new Error(t('msg.selectOption.multiSelectCantHaveCommas')))
+                }
+                if (options.value.filter((el) => el.title === opt.title && (el as any).status !== 'remove').length > 1) {
+                  return reject(new Error(t('msg.selectOption.cantHaveDuplicates')))
+                }
+              }
+              resolve()
+            })
+          },
+        },
       },
     },
   ],
 }
 
+// we use a correct syntax from async-validator but causes a type mismatch on antdv so we cast any
 setAdditionalValidations({
   ...validators,
-})
+} as any)
 
 onMounted(() => {
   if (!vModel.value.colOptions?.options) {
@@ -70,103 +93,237 @@ onMounted(() => {
       options: [],
     }
   }
-  options = vModel.value.colOptions.options
 
-  renderedOptions = [...options]
+  isReverseLazyLoad.value = false
+
+  options.value = vModel.value.colOptions.options
+
+  let indexCounter = 0
+  options.value.map((el) => {
+    el.index = indexCounter++
+    return el
+  })
+
+  loadedOptionAnchor.value = Math.min(loadedOptionAnchor.value, options.value.length)
+
+  renderedOptions.value = [...options.value].slice(0, loadedOptionAnchor.value)
 
   // Support for older options
-  for (const op of options.filter((el) => el.order === null)) {
+  for (const op of options.value.filter((el) => el.order === null)) {
     op.title = op.title.replace(/^'/, '').replace(/'$/, '')
   }
 
   if (vModel.value.cdf) {
-    // Postgres returns default value wrapped with single quotes & casted with type so we have to get value between single quotes to keep it unified for all databases
-    if (isPg.value) {
-      vModel.value.cdf = vModel.value.cdf.substring(vModel.value.cdf.indexOf(`'`) + 1, vModel.value.cdf.lastIndexOf(`'`))
-    }
-
-    // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
-    if (!isMysql.value) {
-      vModel.value.cdf = vModel.value.cdf.replace(/''/g, "'")
+    const fndDefaultOption = options.value.find((el) => el.title === vModel.value.cdf)
+    if (!fndDefaultOption) {
+      vModel.value.cdf = vModel.value.cdf.replace(/^'/, '').replace(/'$/, '')
     }
   }
 
-  const fndDefaultOption = options.find((el) => el.title === vModel.value.cdf)
+  const fndDefaultOption = options.value.find((el) => el.title === vModel.value.cdf)
   if (fndDefaultOption) {
     defaultOption.value = fndDefaultOption
   }
 })
 
-const optionChanged = (changedId: string) => {
-  if (changedId && changedId === defaultOption.value?.id) {
-    vModel.value.cdf = defaultOption.value.title
-  }
-}
-
 const getNextColor = () => {
-  let tempColor = colors[0]
-  if (options.length && options[options.length - 1].color) {
-    const lastColor = colors.indexOf(options[options.length - 1].color)
-    tempColor = colors[(lastColor + 1) % colors.length]
+  let tempColor = colors.value[0]
+  if (options.value.length && options.value[options.value.length - 1].color) {
+    const lastColor = colors.value.indexOf(options.value[options.value.length - 1].color)
+    tempColor = colors.value[(lastColor + 1) % colors.value.length]
   }
   return tempColor
 }
 
 const addNewOption = () => {
+  isAddingOption.value = true
+
   const tempOption = {
     title: '',
     color: getNextColor(),
+    index: options.value.length,
   }
-  renderedOptions.push(tempOption)
-  options.push(tempOption)
+  options.value.push(tempOption)
+
+  isReverseLazyLoad.value = true
+
+  loadedOptionAnchor.value = options.value.length - OPTIONS_PAGE_COUNT
+  loadedOptionAnchor.value = Math.max(loadedOptionAnchor.value, 0)
+
+  renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)
+
+  optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
+
+  nextTick(() => {
+    // Last child doesnt work for query selector
+    setTimeout(() => {
+      const doms = document.querySelectorAll(`.nc-col-option-select-option .nc-select-col-option-select-option`)
+      const dom = doms[doms.length - 1] as HTMLInputElement
+
+      if (dom) {
+        dom.focus()
+      }
+    }, 150)
+
+    optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
+    isAddingOption.value = false
+  })
 }
 
+// const optionsMagic = async () => {
+//   await _optionsMagic(base, formState, getNextColor, options.value, renderedOptions.value)
+// }
+
 const syncOptions = () => {
-  vModel.value.colOptions.options = renderedOptions.filter((op) => op.status !== 'remove')
+  vModel.value.colOptions.options = options.value
+    .filter((op) => op.status !== 'remove')
+    .sort((a, b) => {
+      const renderA = renderedOptions.value.findIndex((el) => a.index !== undefined && el.index === a.index)
+      const renderB = renderedOptions.value.findIndex((el) => a.index !== undefined && el.index === b.index)
+      if (renderA === -1 || renderB === -1) return 0
+      return renderA - renderB
+    })
+    .map((op) => {
+      const { index: _i, status: _s, ...rest } = op
+      return rest
+    })
 }
 
 const removeRenderedOption = (index: number) => {
-  renderedOptions[index].status = 'remove'
+  const renderedOption = renderedOptions.value[index]
+
+  if (renderedOption.index === undefined || isNaN(renderedOption.index)) return
+
+  const option = options.value[renderedOption.index]
+
+  renderedOption.status = 'remove'
+  option.status = 'remove'
+
   syncOptions()
 
-  const optionId = renderedOptions[index]?.id
+  const optionId = renderedOptions.value[index]?.id
 
   if (optionId === defaultOption.value?.id) {
-    savedDefaultOption = { ...defaultOption.value }
-    savedCdf = vModel.value.cdf
+    savedDefaultOption.value = { ...defaultOption.value }
+    savedCdf.value = vModel.value.cdf
     defaultOption.value = null
     vModel.value.cdf = null
   }
 }
 
+const optionChanged = (changedId: string) => {
+  if (changedId && changedId === defaultOption.value?.id) {
+    vModel.value.cdf = defaultOption.value.title
+  }
+  syncOptions()
+}
+
 const undoRemoveRenderedOption = (index: number) => {
-  renderedOptions[index].status = undefined
+  const renderedOption = renderedOptions.value[index]
+
+  if (renderedOption.index === undefined || isNaN(renderedOption.index)) return
+
+  const option = options.value[renderedOption.index]
+
+  renderedOption.status = undefined
+  option.status = undefined
+
   syncOptions()
 
-  const optionId = renderedOptions[index]?.id
+  const optionId = renderedOptions.value[index]?.id
 
-  if (optionId === savedDefaultOption?.id) {
-    defaultOption.value = { ...savedDefaultOption }
-    vModel.value.cdf = savedCdf
-    savedDefaultOption = null
-    savedCdf = null
+  if (optionId === savedDefaultOption.value?.id) {
+    defaultOption.value = { ...savedDefaultOption.value }
+    vModel.value.cdf = savedCdf.value
+    savedDefaultOption.value = null
+    savedCdf.value = null
   }
 }
 
 // focus last created input
-watch(inputs, () => {
-  if (inputs.value?.$el) {
-    inputs.value.$el.focus()
-  }
+// watch(inputs, () => {
+//   if (inputs.value?.$el) {
+//     inputs.value.$el.focus()
+//   }
+// })
+
+// Removes the Select Option from cdf if the option is removed
+watch(vModel.value, (next) => {
+  const cdfs = (next.cdf ?? '').split(',')
+  const values = (next.colOptions.options ?? []).map((col) => {
+    return col.title.replace(/^'/, '').replace(/'$/, '')
+  })
+  const newCdf = cdfs.filter((c: string) => values.includes(c)).join(',')
+  next.cdf = newCdf.length === 0 ? null : newCdf
 })
+
+const loadListDataReverse = async ($state: any) => {
+  if (isAddingOption.value) return
+
+  if (loadedOptionAnchor.value === 0) {
+    $state.complete()
+    return
+  }
+  $state.loading()
+
+  loadedOptionAnchor.value -= OPTIONS_PAGE_COUNT
+  loadedOptionAnchor.value = Math.max(loadedOptionAnchor.value, 0)
+
+  renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)
+
+  optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollTop + 100
+
+  if (loadedOptionAnchor.value === 0) {
+    $state.complete()
+    return
+  }
+  $state.loaded()
+}
+
+const loadListData = async ($state: any) => {
+  if (isAddingOption.value) return
+
+  if (loadedOptionAnchor.value === options.value.length) {
+    return $state.complete()
+  }
+
+  $state.loading()
+
+  loadedOptionAnchor.value += OPTIONS_PAGE_COUNT
+  loadedOptionAnchor.value = Math.min(loadedOptionAnchor.value, options.value.length)
+
+  renderedOptions.value = options.value.slice(0, loadedOptionAnchor.value)
+
+  if (loadedOptionAnchor.value === options.value.length) {
+    return $state.complete()
+  }
+
+  $state.loaded()
+}
 </script>
 
 <template>
   <div class="w-full">
-    <div class="max-h-[250px] overflow-x-auto scrollbar-thin-dull pr-3">
+    <div
+      ref="optionsWrapperDomRef"
+      class="nc-col-option-select-option overflow-x-auto scrollbar-thin-dull"
+      :style="{
+        maxHeight: 'calc(min(30vh, 250px))',
+      }"
+    >
+      <InfiniteLoading v-if="isReverseLazyLoad" v-bind="$attrs" @infinite="loadListDataReverse">
+        <template #spinner>
+          <div class="flex flex-row w-full justify-center mt-2">
+            <GeneralLoader />
+          </div>
+        </template>
+        <template #complete>
+          <span></span>
+        </template>
+      </InfiniteLoading>
       <Draggable :list="renderedOptions" item-key="id" handle=".nc-child-draggable-icon" @change="syncOptions">
         <template #item="{ element, index }">
-          <div class="flex p-1 items-center nc-select-option">
+          <div class="flex py-1 items-center nc-select-option">
             <div
               class="flex items-center w-full"
               :data-testid="`select-column-option-${index}`"
@@ -188,20 +345,20 @@ watch(inputs, () => {
                   <LazyGeneralColorPicker
                     v-model="element.color"
                     :pick-button="true"
-                    @update:model-value="colorMenus[index] = false"
+                    @close-modal="colorMenus[index] = false"
+                    @input="(el:string) => (element.color = el)"
                   />
                 </template>
                 <MdiArrowDownDropCircle
-                  class="mr-2 text-[1.5em] outline-0 hover:!text-[1.75em]"
+                  class="mr-2 text-[1.5em] outline-0 hover:!text-[1.75em] cursor-pointer"
                   :class="{ 'text-[1.75em]': colorMenus[index] }"
                   :style="{ color: element.color }"
                 />
               </a-dropdown>
 
               <a-input
-                ref="inputs"
                 v-model:value="element.title"
-                class="caption"
+                class="caption !rounded-lg nc-select-col-option-select-option"
                 :data-testid="`select-column-option-input-${index}`"
                 :disabled="element.status === 'remove'"
                 @keydown.enter.prevent="element.title?.trim() && addNewOption()"
@@ -209,13 +366,14 @@ watch(inputs, () => {
               />
             </div>
 
-            <component
-              :is="iconMap.close"
+            <div
               v-if="element.status !== 'remove'"
-              class="ml-2 hover:!text-black-500 text-gray-500 cursor-pointer"
               :data-testid="`select-column-option-remove-${index}`"
+              class="ml-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-50 py-1 px-1.5 rounded-md"
               @click="removeRenderedOption(index)"
-            />
+            >
+              <component :is="iconMap.close" class="-mt-0.25" />
+            </div>
 
             <MdiArrowULeftBottom
               v-else
@@ -226,10 +384,20 @@ watch(inputs, () => {
           </div>
         </template>
       </Draggable>
+      <InfiniteLoading v-if="!isReverseLazyLoad" v-bind="$attrs" @infinite="loadListData">
+        <template #spinner>
+          <div class="flex flex-row w-full justify-center mt-2">
+            <GeneralLoader />
+          </div>
+        </template>
+        <template #complete>
+          <span></span>
+        </template>
+      </InfiniteLoading>
     </div>
 
-    <div v-if="validateInfos?.['colOptions.options']?.help?.[0]?.[0]" class="text-error text-[10px] mb-1 mt-2">
-      {{ validateInfos['colOptions.options'].help[0][0] }}
+    <div v-if="validateInfos?.colOptions?.help?.[0]?.[0]" class="text-error text-[10px] mb-1 mt-2">
+      {{ validateInfos.colOptions.help[0][0] }}
     </div>
     <a-button type="dashed" class="w-full caption mt-2" @click="addNewOption()">
       <div class="flex items-center">
@@ -237,6 +405,9 @@ watch(inputs, () => {
         <span class="flex-auto">Add option</span>
       </div>
     </a-button>
+    <!-- <div v-if="isEeUI" class="w-full cursor-pointer" @click="optionsMagic()">
+      <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
+    </div> -->
   </div>
 </template>
 

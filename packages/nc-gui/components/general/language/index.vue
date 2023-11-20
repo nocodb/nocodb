@@ -9,7 +9,7 @@
     </div>
 
     <template #overlay>
-      <a-menu class="scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0 rounded">
+      <a-menu class="nc-scrollbar-dark-md min-w-50 max-h-90vh overflow-auto !p-1 m-1 rounded-md">
         <GeneralLanguageMenu />
       </a-menu>
     </template>

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { Language } from '~/lib'
-import { useGlobal, useI18n, useNuxtApp } from '#imports'
+import { Language, useGlobal, useI18n, useNuxtApp } from '#imports'
 import { setI18nLanguage } from '~/plugins/a.i18n'
 
 const { $e } = useNuxtApp()
@@ -9,7 +8,7 @@ const { lang: currentLang } = useGlobal()
 
 const { locale } = useI18n()
 
-const languages = $computed(() => Object.entries(Language).sort() as [keyof typeof Language, Language][])
+const languages = computed(() => Object.entries(Language).sort() as [keyof typeof Language, Language][])
 
 async function changeLanguage(lang: string) {
   const nextLang = lang as keyof typeof Language
@@ -26,7 +25,8 @@ async function changeLanguage(lang: string) {
     <a
       href="https://docs.nocodb.com/engineering/translation/#how-to-contribute--for-community-members"
       target="_blank"
-      class="caption nc-project-menu-item py-2 text-primary underline hover:opacity-75"
+      class="caption nc-base-menu-item py-2 text-primary underline hover:opacity-75"
+      rel="noopener"
     >
       {{ $t('activity.translate') }}
     </a>
@@ -40,7 +40,7 @@ async function changeLanguage(lang: string) {
     :value="key"
     @click="changeLanguage(key)"
   >
-    <div :class="key === locale ? '!font-semibold !text-primary' : ''" class="nc-project-menu-item capitalize">
+    <div :class="key === locale ? '!font-semibold !text-primary' : ''" class="nc-base-menu-item capitalize">
       {{ Language[key] || lang }}
     </div>
   </a-menu-item>

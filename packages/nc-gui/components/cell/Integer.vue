@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, IsExpandedFormOpenInj, inject, useVModel } from '#imports'
+import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, inject, useVModel } from '#imports'
 
 interface Props {
   // when we set a number, then it is number type
@@ -21,7 +21,17 @@ const { showNull } = useGlobal()
 
 const editEnabled = inject(EditModeInj)
 
+const isEditColumn = inject(EditColumnInj, ref(false))
+
 const _vModel = useVModel(props, 'modelValue', emits)
+
+const displayValue = computed(() => {
+  if (_vModel.value === null) return null
+
+  if (isNaN(Number(_vModel.value))) return null
+
+  return Number(_vModel.value)
+})
 
 const vModel = computed({
   get: () => _vModel.value,
@@ -38,10 +48,35 @@ const vModel = computed({
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
 
-function onKeyDown(evt: KeyboardEvent) {
-  return evt.key === '.' && evt.preventDefault()
+function onKeyDown(e: any) {
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (cmdOrCtrl && !e.altKey) {
+    switch (e.keyCode) {
+      case 90: {
+        e.stopPropagation()
+        break
+      }
+    }
+  }
+  if (e.key === '.') {
+    return e.preventDefault()
+  }
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    // Move the cursor to the end of the input
+    e.target.type = 'text'
+    e.target?.setSelectionRange(e.target.value.length, e.target.value.length)
+    e.target.type = 'number'
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+
+    e.target.type = 'text'
+    e.target?.setSelectionRange(0, 0)
+    e.target.type = 'number'
+  }
 }
 </script>
 
@@ -50,8 +85,13 @@ function onKeyDown(evt: KeyboardEvent) {
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="outline-none p-0 border-none w-full h-full text-sm"
+    class="outline-none py-2 px-1 border-none w-full h-full text-sm"
     type="number"
+    :class="{
+      'pl-2': isExpandedFormOpen,
+    }"
+    style="letter-spacing: 0.06rem"
+    :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown="onKeyDown"
     @keydown.down.stop
@@ -62,12 +102,24 @@ function onKeyDown(evt: KeyboardEvent) {
     @selectstart.capture.stop
     @mousedown.stop
   />
-  <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
-  <span v-else class="text-sm">{{ vModel }}</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
+  <span v-else class="text-sm">{{ displayValue }}</span>
 </template>
 
 <style scoped lang="scss">
 input[type='number']:focus {
   @apply ring-transparent;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type='number'] {
+  -moz-appearance: textfield;
 }
 </style>

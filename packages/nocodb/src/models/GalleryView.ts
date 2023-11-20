@@ -1,15 +1,15 @@
 import { UITypes } from 'nocodb-sdk';
-import Noco from '../Noco';
-import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../helpers/extractProps';
-import View from './View';
 import type {
   BoolType,
   GalleryColumnType,
   GalleryType,
   MetaType,
 } from 'nocodb-sdk';
+import View from '~/models/View';
+import Noco from '~/Noco';
+import NocoCache from '~/cache/NocoCache';
+import { extractProps } from '~/helpers/extractProps';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 
 export default class GalleryView implements GalleryType {
   fk_view_id?: string;
@@ -27,8 +27,8 @@ export default class GalleryView implements GalleryType {
   show_all_fields?: BoolType;
   fk_cover_image_col_id?: string;
 
-  project_id?: string;
   base_id?: string;
+  source_id?: string;
 
   columns?: GalleryColumnType[];
   meta?: MetaType;
@@ -60,8 +60,8 @@ export default class GalleryView implements GalleryType {
       .then((m) => m.getColumns(ncMeta));
 
     const insertObj = extractProps(view, [
-      'project_id',
       'base_id',
+      'source_id',
       'fk_view_id',
       'next_enabled',
       'prev_enabled',
@@ -76,10 +76,10 @@ export default class GalleryView implements GalleryType {
       view?.fk_cover_image_col_id ||
       columns?.find((c) => c.uidt === UITypes.Attachment)?.id;
 
-    if (!(view.project_id && view.base_id)) {
+    if (!(view.base_id && view.source_id)) {
       const viewRef = await View.get(view.fk_view_id);
-      insertObj.project_id = viewRef.project_id;
       insertObj.base_id = viewRef.base_id;
+      insertObj.source_id = viewRef.source_id;
     }
 
     await ncMeta.metaInsert2(

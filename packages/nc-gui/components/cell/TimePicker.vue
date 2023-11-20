@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ActiveCellInj, ReadonlyInj, inject, onClickOutside, useProject, useSelectedCellKeyupListener, watch } from '#imports'
+import {
+  ActiveCellInj,
+  EditColumnInj,
+  ReadonlyInj,
+  inject,
+  onClickOutside,
+  useBase,
+  useSelectedCellKeyupListener,
+  watch,
+} from '#imports'
 
 interface Props {
   modelValue?: string | null | undefined
@@ -11,7 +20,7 @@ const { modelValue, isPk } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { isMysql } = useProject()
+const { isMysql } = useBase()
 
 const { showNull } = useGlobal()
 
@@ -21,13 +30,17 @@ const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
 
+const isEditColumn = inject(EditColumnInj, ref(false))
+
 const column = inject(ColumnInj)!
 
-let isTimeInvalid = $ref(false)
+const isTimeInvalid = ref(false)
 
-const dateFormat = isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
+const dateFormat = isMysql(column.value.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
-const localState = $computed({
+const { t } = useI18n()
+
+const localState = computed({
   get() {
     if (!modelValue) {
       return undefined
@@ -41,7 +54,7 @@ const localState = $computed({
       dateTime = dayjs(`1999-01-01 ${modelValue}`)
     }
     if (!dateTime.isValid()) {
-      isTimeInvalid = true
+      isTimeInvalid.value = true
       return undefined
     }
 
@@ -69,12 +82,30 @@ watch(
   (next) => {
     if (next) {
       onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, () => (open.value = false))
+    } else {
+      editable.value = false
     }
   },
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isTimeInvalid ? 'Invalid time' : ''))
+const placeholder = computed(() => {
+  if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
+    return t('labels.optional')
+  } else if (modelValue === null && showNull.value) {
+    return t('general.null')
+  } else if (isTimeInvalid.value) {
+    return t('msg.invalidTime')
+  } else {
+    return ''
+  }
+})
+
+const isOpen = computed(() => {
+  if (readOnly.value) return false
+
+  return (readOnly.value || (localState.value && isPk)) && !active.value && !editable.value ? false : open.value
+})
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
@@ -99,12 +130,12 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :bordered="false"
     use12-hours
     format="HH:mm"
-    class="!w-full !px-0 !border-none"
+    class="!w-full !px-1 !border-none"
     :class="{ 'nc-null': modelValue === null && showNull }"
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
-    :open="(readOnly || (localState && isPk)) && !active && !editable ? false : open"
+    :open="isOpen"
     :popup-class-name="`${randomClass} nc-picker-time ${open ? 'active' : ''}`"
     @click="open = (active || editable) && !open"
     @ok="open = !open"

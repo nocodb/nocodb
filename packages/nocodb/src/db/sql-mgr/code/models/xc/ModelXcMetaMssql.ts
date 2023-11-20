@@ -590,7 +590,7 @@ class ModelXcMetaMssql extends BaseModelXcMeta {
       case 'set':
         return 'MultiSelect';
       case 'json':
-        return 'LongText';
+        return 'JSON';
       case 'blob':
         return 'LongText';
       case 'geometry':

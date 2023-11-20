@@ -34,22 +34,22 @@ export class AttachmentColumnPageObject extends BasePage {
     //     Checkbox order: Application, Audio, Image, Video, Misc
 
     if (fileCount) {
-      const inputMaxCount = await this.column.get().locator(`.nc-attachment-max-count`);
+      const inputMaxCount = this.column.get().locator(`.nc-attachment-max-count`);
       await inputMaxCount.locator(`input`).fill(fileCount.toString());
     }
 
     if (fileSize) {
-      const inputMaxSize = await this.column.get().locator(`.nc-attachment-max-size`);
+      const inputMaxSize = this.column.get().locator(`.nc-attachment-max-size`);
       await inputMaxSize.locator(`input`).fill(fileSize.toString());
     }
 
     if (fileTypesExcludeList) {
       // click on nc-allow-all-mime-type-checkbox
-      const allowAllMimeCheckbox = await this.column.get().locator(`.nc-allow-all-mime-type-checkbox`);
+      const allowAllMimeCheckbox = this.column.get().locator(`.nc-allow-all-mime-type-checkbox`);
       await allowAllMimeCheckbox.click();
 
-      const treeList = await this.column.get().locator(`.ant-tree-list`);
-      const checkboxList = await treeList.locator(`.ant-tree-treenode`);
+      const treeList = this.column.get().locator(`.ant-tree-list`);
+      const checkboxList = treeList.locator(`.ant-tree-treenode`);
 
       for (let i = 0; i < fileTypesExcludeList.length; i++) {
         const fileType = fileTypesExcludeList[i];

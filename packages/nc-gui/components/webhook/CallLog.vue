@@ -16,11 +16,11 @@ const activeKey = ref()
 
 const { appInfo } = useGlobal()
 
-let totalRows = $ref(0)
+const totalRows = ref(0)
 
-const currentPage = $ref(1)
+const currentPage = ref(1)
 
-const currentLimit = $ref(10)
+const currentLimit = ref(10)
 
 const showLogs = computed(
   () =>
@@ -30,7 +30,7 @@ const showLogs = computed(
     ),
 )
 
-async function loadHookLogs(page = currentPage, limit = currentLimit) {
+async function loadHookLogs(page = currentPage.value, limit = currentLimit.value) {
   try {
     // cater empty records
     page = page || 1
@@ -39,7 +39,7 @@ async function loadHookLogs(page = currentPage, limit = currentLimit) {
       limit,
     })
     hookLogs.value = parseHookLog(list)
-    totalRows = pageInfo.totalRows ?? 0
+    totalRows.value = pageInfo.totalRows ?? 0
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -65,7 +65,7 @@ function parseHookLog(hookLogs: any) {
 
 onBeforeMount(async () => {
   if (showLogs.value) {
-    await loadHookLogs(currentPage, currentLimit)
+    await loadHookLogs(currentPage.value, currentLimit.value)
   }
 })
 </script>
@@ -88,7 +88,7 @@ onBeforeMount(async () => {
       </span>
       <span>
         For additional configuration options, please refer the documentation
-        <a href="https://docs.nocodb.com/developer-resources/webhooks#call-log" target="_blank">here</a>.
+        <a href="https://docs.nocodb.com/developer-resources/webhooks#call-log" target="_blank" rel="noopener">here</a>.
       </span>
     </a-card>
 
@@ -160,7 +160,7 @@ onBeforeMount(async () => {
           <a-pagination
             v-model:current="currentPage"
             v-model:page-size="currentLimit"
-            :total="totalRows"
+            :total="+totalRows"
             show-less-items
             @change="loadHookLogs"
           />

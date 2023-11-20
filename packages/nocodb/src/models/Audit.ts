@@ -1,9 +1,9 @@
 import { AuditOperationTypes } from 'nocodb-sdk';
-import { MetaTable } from '../utils/globals';
-import Noco from '../Noco';
-import { extractProps } from '../helpers/extractProps';
-import Model from './Model';
 import type { AuditType } from 'nocodb-sdk';
+import Model from '~/models/Model';
+import Noco from '~/Noco';
+import { extractProps } from '~/helpers/extractProps';
+import { MetaTable } from '~/utils/globals';
 
 const opTypes = <const>[
   'COMMENT',
@@ -50,8 +50,8 @@ export default class Audit implements AuditType {
   id?: string;
   user?: string;
   ip?: string;
+  source_id?: string;
   base_id?: string;
-  project_id?: string;
   fk_model_id?: string;
   row_id?: string;
   op_type?: (typeof opTypes)[number];
@@ -89,8 +89,8 @@ export default class Audit implements AuditType {
       const insertObj = extractProps(audit, [
         'user',
         'ip',
+        'source_id',
         'base_id',
-        'project_id',
         'row_id',
         'fk_model_id',
         'op_type',
@@ -99,10 +99,17 @@ export default class Audit implements AuditType {
         'description',
         'details',
       ]);
-      if (!insertObj.project_id && insertObj.fk_model_id) {
-        insertObj.project_id = (
-          await Model.getByIdOrName({ id: insertObj.fk_model_id }, ncMeta)
-        ).project_id;
+      if (
+        (!insertObj.base_id || !insertObj.source_id) &&
+        insertObj.fk_model_id
+      ) {
+        const model = await Model.getByIdOrName(
+          { id: insertObj.fk_model_id },
+          ncMeta,
+        );
+
+        insertObj.base_id = model.base_id;
+        insertObj.source_id = model.source_id;
       }
 
       return await ncMeta.metaInsert2(null, null, MetaTable.AUDIT, insertObj);
@@ -133,6 +140,12 @@ export default class Audit implements AuditType {
   public static async commentsList(args) {
     const query = Noco.ncMeta
       .knex(MetaTable.AUDIT)
+      .join(
+        MetaTable.USERS,
+        `${MetaTable.USERS}.email`,
+        `${MetaTable.AUDIT}.user`,
+      )
+      .select(`${MetaTable.AUDIT}.*`, `${MetaTable.USERS}.display_name`)
       .where('row_id', args.row_id)
       .where('fk_model_id', args.fk_model_id)
       .orderBy('created_at', 'desc');
@@ -145,9 +158,23 @@ export default class Audit implements AuditType {
     return audits?.map((a) => new Audit(a));
   }
 
-  static async projectAuditList(projectId: string, { limit = 25, offset = 0 }) {
+  static async baseAuditList(
+    baseId: string,
+    {
+      limit = 25,
+      offset = 0,
+      sourceId,
+    }: {
+      limit?: number;
+      offset?: number;
+      sourceId?: string;
+    },
+  ) {
     return await Noco.ncMeta.metaList2(null, null, MetaTable.AUDIT, {
-      condition: { project_id: projectId },
+      condition: {
+        base_id: baseId,
+        ...(sourceId ? { source_id: sourceId } : {}),
+      },
       orderBy: {
         created_at: 'desc',
       },
@@ -156,11 +183,17 @@ export default class Audit implements AuditType {
     });
   }
 
-  static async projectAuditCount(projectId: string): Promise<number> {
+  static async baseAuditCount(
+    baseId: string,
+    sourceId?: string,
+  ): Promise<number> {
     return (
       await Noco.ncMeta
         .knex(MetaTable.AUDIT)
-        .where({ project_id: projectId })
+        .where({
+          base_id: baseId,
+          ...(sourceId ? { source_id: sourceId } : {}),
+        })
         .count('id', { as: 'count' })
         .first()
     )?.count;
@@ -185,5 +218,26 @@ export default class Audit implements AuditType {
       updateObj,
       auditId,
     );
+  }
+
+  static async sourceAuditList(sourceId: string, { limit = 25, offset = 0 }) {
+    return await Noco.ncMeta.metaList2(null, null, MetaTable.AUDIT, {
+      condition: { source_id: sourceId },
+      orderBy: {
+        created_at: 'desc',
+      },
+      limit,
+      offset,
+    });
+  }
+
+  static async sourceAuditCount(sourceId: string) {
+    return (
+      await Noco.ncMeta
+        .knex(MetaTable.AUDIT)
+        .where({ source_id: sourceId })
+        .count('id', { as: 'count' })
+        .first()
+    )?.count;
   }
 }

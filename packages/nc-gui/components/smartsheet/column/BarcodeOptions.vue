@@ -10,17 +10,13 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-const meta = inject(MetaInj, ref())
-
-const activeView = inject(ActiveViewInj, ref())
-
-const reloadDataHook = inject(ReloadViewDataHookInj)!
-
-const { fields, metaColumnById } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
+const { fields, metaColumnById } = useViewColumnsOrThrow()
 
 const vModel = useVModel(props, 'modelValue', emit)
 
 const { setAdditionalValidations, validateInfos, column } = useColumnCreateStoreOrThrow()
+
+const { t } = useI18n()
 
 const columnsAllowedAsBarcodeValue = computed<SelectProps['options']>(() => {
   return fields.value
@@ -57,18 +53,19 @@ onMounted(() => {
     ...vModel.value.meta,
   }
   vModel.value.fk_barcode_value_column_id =
-    (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id || columnsAllowedAsBarcodeValue.value?.[0]
+    (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id ||
+    columnsAllowedAsBarcodeValue.value?.[0]?.value
 })
 
 watch(columnsAllowedAsBarcodeValue, (newColumnsAllowedAsBarcodeValue) => {
-  if (vModel.value.fk_barcode_value_column_id == null) {
+  if (vModel.value.fk_barcode_value_column_id === null) {
     vModel.value.fk_barcode_value_column_id = newColumnsAllowedAsBarcodeValue?.[0]?.value
   }
 })
 
 setAdditionalValidations({
-  fk_barcode_value_column_id: [{ required: true, message: 'Required' }],
-  barcode_format: [{ required: true, message: 'Required' }],
+  fk_barcode_value_column_id: [{ required: true, message: t('general.required') }],
+  barcode_format: [{ required: true, message: t('general.required') }],
 })
 
 const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeValue.value?.length)
@@ -86,16 +83,15 @@ const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeVa
           <a-select
             v-model:value="vModel.fk_barcode_value_column_id"
             :options="columnsAllowedAsBarcodeValue"
-            placeholder="Select a column for the Barcode value"
-            not-found-content="No valid Column Type can be found."
+            :placeholder="$t('placeholder.barcodeColumn')"
+            :not-found-content="$t('placeholder.notFoundContent')"
             @click.stop
           />
           <div v-if="showBarcodeValueColumnInfoIcon" class="pl-2">
             <a-tooltip placement="bottom">
               <template #title>
                 <span>
-                  The valid Column Types for a Barcode Column are: Number, Single Line Text, Long Text, Phone Number, URL, Email,
-                  Decimal. Please create one first.
+                  {{ $t('msg.validColumnsForBarCode') }}
                 </span>
               </template>
               <component :is="iconMap.info" class="cursor-pointer" />
@@ -111,7 +107,7 @@ const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeVa
         <a-select
           v-model:value="vModel.meta.barcodeFormat"
           :options="supportedBarcodeFormats"
-          placeholder="Select a Barcode format"
+          :placeholder="$t('placeholder.selectBarcodeFormat')"
           @click.stop
         />
       </a-form-item>

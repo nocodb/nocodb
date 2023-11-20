@@ -1,28 +1,35 @@
 <script lang="ts" setup>
-import { Modal, message } from 'ant-design-vue'
+import { OrgUserRoles } from 'nocodb-sdk'
 import type { OrgUserReqType, RequestParams, UserType } from 'nocodb-sdk'
-import { Role, extractSdkResponseErrorMsg, iconMap, useApi, useCopy, useDashboard, useNuxtApp } from '#imports'
-import type { User } from '~/lib'
+import type { User } from '#imports'
+import { extractSdkResponseErrorMsg, iconMap, useApi, useCopy, useDashboard, useDebounceFn, useNuxtApp } from '#imports'
 
 const { api, isLoading } = useApi()
+
+// for loading screen
+isLoading.value = true
 
 const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { dashboardUrl } = $(useDashboard())
+const { dashboardUrl } = useDashboard()
+
+const { user: loggedInUser } = useGlobal()
 
 const { copy } = useCopy()
 
-let users = $ref<UserType[]>([])
+const users = ref<UserType[]>([])
 
-let currentPage = $ref(1)
+const currentPage = ref(1)
 
-const currentLimit = $ref(10)
+const currentLimit = ref(10)
 
 const showUserModal = ref(false)
 
 const userMadalKey = ref(0)
+
+const isOpen = ref(false)
 
 const searchText = ref<string>('')
 
@@ -32,8 +39,8 @@ const pagination = reactive({
   position: ['bottomCenter'],
 })
 
-const loadUsers = async (page = currentPage, limit = currentLimit) => {
-  currentPage = page
+const loadUsers = useDebounceFn(async (page = currentPage.value, limit = currentLimit.value) => {
+  currentPage.value = page
   try {
     const response: any = await api.orgUsers.list({
       query: {
@@ -49,15 +56,17 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
 
     pagination.pageSize = 10
 
-    users = response.list as UserType[]
+    users.value = response.list as UserType[]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
-}
+}, 500)
 
-loadUsers()
+onMounted(() => {
+  loadUsers()
+})
 
-const updateRole = async (userId: string, roles: Role) => {
+const updateRole = async (userId: string, roles: string) => {
   try {
     await api.orgUsers.update(userId, {
       roles,
@@ -69,25 +78,31 @@ const updateRole = async (userId: string, roles: Role) => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
-const deleteUser = async (userId: string) => {
-  Modal.confirm({
-    title: 'Are you sure you want to delete this user?',
-    type: 'warn',
-    content: 'Upon deletion, the user will be removed from the installation.',
-    onOk: async () => {
-      try {
-        await api.orgUsers.delete(userId)
-        message.success(t('msg.success.userDeleted'))
-        await loadUsers()
-        $e('a:org-user:user-deleted')
-      } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
-      }
-    },
-  })
+
+const deleteModalInfo = ref<UserType | null>(null)
+
+const deleteUser = async () => {
+  try {
+    await api.orgUsers.delete(deleteModalInfo.value?.id as string)
+    message.success(t('msg.success.userDeleted'))
+
+    await loadUsers()
+
+    if (!users.value.length && currentPage.value !== 1) {
+      currentPage.value--
+      loadUsers(currentPage.value)
+    }
+    $e('a:org-user:user-deleted')
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    // closing the modal
+    isOpen.value = false
+    deleteModalInfo.value = null
+  }
 }
 
-const resendInvite = async (user: User) => {
+const resendInvite = async (user: UserType) => {
   try {
     await api.orgUsers.resendInvite(user.id)
 
@@ -104,7 +119,7 @@ const resendInvite = async (user: User) => {
 const copyInviteUrl = async (user: User) => {
   if (!user.invite_token) return
   try {
-    await copy(`${dashboardUrl}#/signup/${user.invite_token}`)
+    await copy(`${dashboardUrl.value}#/signup/${user.invite_token}`)
 
     // Invite URL copied to clipboard
     message.success(t('msg.success.inviteURLCopied'))
@@ -114,7 +129,7 @@ const copyInviteUrl = async (user: User) => {
   $e('c:user:copy-url')
 }
 
-const copyPasswordResetUrl = async (user: User) => {
+const copyPasswordResetUrl = async (user: UserType) => {
   try {
     const { reset_password_url } = await api.orgUsers.generatePasswordResetToken(user.id)
 
@@ -127,163 +142,181 @@ const copyPasswordResetUrl = async (user: User) => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+const openInviteModal = () => {
+  showUserModal.value = true
+  userMadalKey.value++
+}
+
+const openDeleteModal = (user: UserType) => {
+  deleteModalInfo.value = user
+  isOpen.value = true
+}
 </script>
 
 <template>
-  <div data-testid="nc-super-user-list">
-    <div class="max-w-[900px] mx-auto">
-      <div class="text-xl my-4 text-left font-weight-bold">User Management</div>
-      <div class="py-2 flex gap-4 items-center">
-        <a-input-search
-          v-model:value="searchText"
-          size="middle"
-          class="max-w-[300px]"
-          placeholder="Search Users"
-          @blur="loadUsers"
-          @keydown.enter="loadUsers"
-        >
-        </a-input-search>
-        <div class="flex-grow"></div>
-        <component :is="iconMap.reload" class="cursor-pointer" @click="loadUsers" />
-        <a-button
-          data-testid="nc-super-user-invite"
-          size="middle"
-          class="!rounded-md"
-          type="primary"
-          @click="
-            () => {
-              showUserModal = true
-              userMadalKey++
-            }
-          "
-        >
-          <div class="flex items-center gap-1">
-            <component :is="iconMap.plus" />
-            Invite new user
-          </div>
-        </a-button>
-      </div>
-      <a-table
-        :row-key="(record) => record.id"
-        :data-source="users"
-        :pagination="pagination"
-        :loading="isLoading"
-        size="small"
-        @change="loadUsers($event.current)"
-      >
-        <template #emptyText>
-          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
-        </template>
-
-        <!-- Email -->
-        <a-table-column key="email" :title="$t('labels.email')" data-index="email">
-          <template #default="{ text }">
-            <div>
-              {{ text }}
-            </div>
+  <div data-testid="nc-super-user-list" class="h-full">
+    <div class="max-w-195 mx-auto h-full">
+      <div class="text-2xl text-left font-weight-bold mb-4" data-rec="true">{{ $t('title.userMgmt') }}</div>
+      <div class="py-2 flex gap-4 items-center justify-between">
+        <a-input v-model:value="searchText" class="!max-w-90 !rounded-md" placeholder="Search members" @change="loadUsers()">
+          <template #prefix>
+            <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
           </template>
-        </a-table-column>
-
-        <!-- Role -->
-        <a-table-column key="roles" :title="$t('objects.role')" data-index="roles">
-          <template #default="{ record }">
-            <div>
-              <div v-if="record.roles.includes('super')" class="font-weight-bold">Super Admin</div>
-              <a-select
+        </a-input>
+        <div class="flex gap-3 items-center justify-center">
+          <component :is="iconMap.reload" class="cursor-pointer" @click="loadUsers(currentPage, currentLimit)" />
+          <NcButton data-testid="nc-super-user-invite" size="small" type="primary" @click="openInviteModal">
+            <div class="flex items-center gap-1" data-rec="true">
+              <component :is="iconMap.plus" />
+              {{ $t('activity.inviteUser') }}
+            </div>
+          </NcButton>
+        </div>
+      </div>
+      <div class="w-full rounded-md max-w-250 h-[calc(100%-12rem)] rounded-md overflow-hidden mt-5">
+        <div class="flex w-full bg-gray-50 border-1 rounded-t-md">
+          <div class="py-3.5 text-gray-500 font-medium text-3.5 w-2/3 text-start pl-6" data-rec="true">
+            {{ $t('labels.email') }}
+          </div>
+          <div class="py-3.5 text-gray-500 font-medium text-3.5 w-1/3 text-start" data-rec="true">{{ $t('objects.role') }}</div>
+          <div class="flex py-3.5 text-gray-500 font-medium text-3.5 w-28 justify-end mr-4" data-rec="true">
+            {{ $t('labels.action') }}
+          </div>
+        </div>
+        <div v-if="isLoading" class="flex items-center justify-center text-center h-[513px]">
+          <GeneralLoader size="xlarge" />
+        </div>
+        <!-- if users are empty -->
+        <div v-else-if="!users.length" class="flex items-center justify-center text-center h-full">
+          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+        </div>
+        <section v-else class="tbody h-[calc(100%-4rem)] nc-scrollbar-md border-t-0 !overflow-auto">
+          <div
+            v-for="el of users"
+            :key="el.id"
+            data-testid="nc-token-list"
+            class="user flex py-3 justify-around px-1 border-b-1 border-l-1 border-r-1"
+            :class="{
+              'py-4': el.roles?.includes('super'),
+            }"
+          >
+            <div class="text-3.5 text-start w-2/3 pl-5 flex items-center">
+              <GeneralTruncateText length="29">
+                {{ el.email }}
+              </GeneralTruncateText>
+            </div>
+            <div class="text-3.5 text-start w-1/3">
+              <div v-if="el?.roles?.includes('super')" class="font-weight-bold" data-rec="true">
+                {{ $t('labels.superAdmin') }}
+              </div>
+              <NcSelect
                 v-else
-                v-model:value="record.roles"
-                class="w-[220px] nc-user-roles"
+                v-model:value="el.roles"
+                class="w-55 nc-user-roles"
                 :dropdown-match-select-width="false"
-                @change="updateRole(record.id, record.roles)"
+                @change="updateRole(el.id, el.roles as string)"
               >
                 <a-select-option
                   class="nc-users-list-role-option"
-                  :value="Role.OrgLevelCreator"
+                  :value="OrgUserRoles.CREATOR"
                   :label="$t(`objects.roleType.orgLevelCreator`)"
                 >
-                  <div>{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
-                  <span class="text-gray-500 text-xs whitespace-normal">
+                  <div data-rec="true">{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
+                  <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">
                     {{ $t('msg.info.roles.orgCreator') }}
                   </span>
                 </a-select-option>
 
                 <a-select-option
                   class="nc-users-list-role-option"
-                  :value="Role.OrgLevelViewer"
+                  :value="OrgUserRoles.VIEWER"
                   :label="$t(`objects.roleType.orgLevelViewer`)"
                 >
-                  <div>{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
-                  <span class="text-gray-500 text-xs whitespace-normal">
+                  <div data-rec="true">{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
+                  <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">
                     {{ $t('msg.info.roles.orgViewer') }}
                   </span>
                 </a-select-option>
-              </a-select>
+              </NcSelect>
             </div>
-          </template>
-        </a-table-column>
+            <span class="w-26 flex items-center justify-end mr-4">
+              <div
+                class="flex items-center gap-2"
+                :class="{
+                  'opacity-0': el.roles?.includes('super'),
+                }"
+              >
+                <NcDropdown :trigger="['click']">
+                  <NcButton size="xsmall" type="ghost">
+                    <MdiDotsVertical
+                      class="text-gray-600 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
+                    />
+                  </NcButton>
 
-        <!--        &lt;!&ndash; Projects &ndash;&gt;
-        <a-table-column key="projectsCount" :title="$t('objects.projects')" data-index="projectsCount">
-          <template #default="{ text }">
-            <div>
-              {{ text }}
-            </div>
-          </template>
-        </a-table-column> -->
-
-        <!-- Actions -->
-
-        <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
-          <template #default="{ text, record }">
-            <div v-if="!record.roles.includes('super')" class="flex items-center gap-2">
-              <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
-                <div class="flex flex-row items-center">
-                  <a-button type="text" class="!px-0">
-                    <div class="flex flex-row items-center h-[1.2rem]">
-                      <component :is="iconMap.threeDotHorizontal" class="nc-user-row-action" />
-                    </div>
-                  </a-button>
-                </div>
-
-                <template #overlay>
-                  <a-menu>
-                    <template v-if="record.invite_token">
-                      <a-menu-item>
+                  <template #overlay>
+                    <NcMenu>
+                      <template v-if="!el.roles?.includes('super')">
                         <!-- Resend invite Email -->
-                        <div class="flex flex-row items-center py-3" @click="resendInvite(record)">
-                          <component :is="iconMap.email" class="flex h-[1rem] text-gray-500" />
-                          <div class="text-xs pl-2">{{ $t('activity.resendInvite') }}</div>
-                        </div>
-                      </a-menu-item>
-                      <a-menu-item>
-                        <div class="flex flex-row items-center py-3" @click="copyInviteUrl(record)">
-                          <component :is="iconMap.copy" class="flex h-[1rem] text-gray-500" />
-                          <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
-                        </div>
-                      </a-menu-item>
-                    </template>
-                    <a-menu-item>
-                      <div class="flex flex-row items-center py-3" @click="copyPasswordResetUrl(record)">
-                        <component :is="iconMap.copy" class="flex h-[1rem] text-gray-500" />
-                        <div class="text-xs pl-2">{{ $t('activity.copyPasswordResetURL') }}</div>
-                      </div>
-                    </a-menu-item>
-                    <a-menu-item>
-                      <div class="flex flex-row items-center py-3" @click="deleteUser(text)">
-                        <component :is="iconMap.delete" data-testid="nc-super-user-delete" class="flex h-[1rem] text-gray-500" />
-                        <div class="text-xs pl-2">{{ $t('general.delete') }}</div>
-                      </div>
-                    </a-menu-item>
-                  </a-menu>
-                </template>
-              </a-dropdown>
+                        <NcMenuItem @click="resendInvite(el)">
+                          <component :is="iconMap.email" class="flex text-gray-600" />
+                          <div data-rec="true">{{ $t('activity.resendInvite') }}</div>
+                        </NcMenuItem>
+                        <NcMenuItem @click="copyInviteUrl(el)">
+                          <component :is="iconMap.copy" class="flex text-gray-600" />
+                          <div data-rec="true">{{ $t('activity.copyInviteURL') }}</div>
+                        </NcMenuItem>
+                        <NcMenuItem @click="copyPasswordResetUrl(el)">
+                          <component :is="iconMap.copy" class="flex text-gray-600" />
+                          <div>{{ $t('activity.copyPasswordResetURL') }}</div>
+                        </NcMenuItem>
+                      </template>
+                      <template v-if="el.id !== loggedInUser?.id">
+                        <NcDivider v-if="!el.roles?.includes('super')" />
+                        <NcMenuItem data-rec="true" class="!text-red-500 !hover:bg-red-50" @click="openDeleteModal(el)">
+                          <MaterialSymbolsDeleteOutlineRounded />
+                          {{ $t('general.remove') }} {{ $t('objects.user') }}
+                        </NcMenuItem>
+                      </template>
+                    </NcMenu>
+                  </template>
+                </NcDropdown>
+              </div>
+            </span>
+          </div>
+        </section>
+      </div>
+      <div v-if="pagination.total > 10" class="flex items-center justify-center mt-4">
+        <a-pagination
+          v-model:current="currentPage"
+          :total="pagination.total"
+          show-less-items
+          @change="loadUsers(currentPage, currentLimit)"
+        />
+      </div>
+      <GeneralDeleteModal v-model:visible="isOpen" entity-name="User" :on-delete="() => deleteUser()">
+        <template #entity-preview>
+          <span>
+            <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
+              <GeneralIcon icon="account" class="nc-view-icon"></GeneralIcon>
+              <div
+                class="text-ellipsis overflow-hidden select-none w-full pl-1.75"
+                :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+              >
+                {{ deleteModalInfo?.email }}
+              </div>
             </div>
-            <span v-else></span>
-          </template>
-        </a-table-column>
-      </a-table>
+          </span>
+        </template>
+      </GeneralDeleteModal>
 
       <LazyAccountUsersModal :key="userMadalKey" :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
     </div>
   </div>
 </template>
+
+<style scoped>
+.user:last-child {
+  @apply rounded-b-md;
+}
+</style>

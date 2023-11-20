@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { LockType } from '~/lib'
-import { ActiveViewInj, iconMap, inject } from '#imports'
+import { ActiveViewInj, LockType, iconMap, inject } from '#imports'
+import UsersIcon from '~icons/nc-icons/users'
+import LockIcon from '~icons/nc-icons/lock'
 
 const { type, hideTick } = defineProps<{ hideTick?: boolean; type: LockType }>()
 
@@ -8,18 +9,18 @@ const emit = defineEmits(['select'])
 
 const types = {
   [LockType.Personal]: {
-    title: 'title.personalView',
+    title: 'title.personal',
     icon: iconMap.account,
     subtitle: 'msg.info.personalView',
   },
   [LockType.Collaborative]: {
-    title: 'title.collabView',
-    icon: iconMap.users,
+    title: 'title.collaborative',
+    icon: UsersIcon,
     subtitle: 'msg.info.collabView',
   },
   [LockType.Locked]: {
-    title: 'title.lockedView',
-    icon: iconMap.lock,
+    title: 'title.locked',
+    icon: LockIcon,
     subtitle: 'msg.info.lockedView',
   },
 }
@@ -28,21 +29,21 @@ const selectedView = inject(ActiveViewInj)
 </script>
 
 <template>
-  <div class="nc-locked-menu-item" @click="emit('select', type)">
+  <div class="nc-locked-menu-item !px-1 text-gray-800" @click="emit('select', type)">
     <div :class="{ 'show-tick': !hideTick }">
-      <template v-if="!hideTick">
-        <GeneralIcon v-if="selectedView?.lock_type === type" icon="check" />
-
-        <span v-else />
-      </template>
-
-      <div>
-        <div class="flex items-center gap-1">
-          <component :is="types[type].icon" class="text-gray-500" />
-
-          {{ $t(types[type].title) }}
+      <div class="flex flex-col gap-y-1">
+        <div class="flex items-center gap-2 flex-grow">
+          <component :is="types[type].icon" class="!w-4 !min-w-4 text-inherit !h-4" />
+          <div class="flex">
+            {{ $t(types[type].title) }}
+          </div>
+          <div v-if="!hideTick" class="flex flex-grow"></div>
+          <template v-if="!hideTick">
+            <GeneralIcon v-if="selectedView?.lock_type === type" icon="check" class="!text-brand-500" />
+            <span v-else />
+          </template>
         </div>
-        <div class="nc-subtitle whitespace-normal">
+        <div v-if="!hideTick" class="nc-subtitle max-w-120 text-sm text-gray-500 whitespace-normal ml-6">
           {{ $t(types[type].subtitle) }}
         </div>
       </div>
@@ -52,14 +53,10 @@ const selectedView = inject(ActiveViewInj)
 
 <style scoped lang="scss">
 .nc-locked-menu-item > div {
-  @apply p-2 items-center min-w-[350px] max-w-[350px];
+  @apply !py-0 items-center;
 
   &.show-tick {
-    @apply grid gap-2  grid-cols-[30px,auto];
-  }
-
-  .nc-subtitle {
-    @apply text-xs text-gray-500 font-weight-light;
+    @apply flex gap-2;
   }
 }
 </style>

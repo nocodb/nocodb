@@ -1,5 +1,5 @@
-import { MetaTable } from '../utils/globals';
 import type { NcUpgraderCtx } from './NcUpgrader';
+import { MetaTable } from '~/utils/globals';
 
 export default async function ({ ncMeta }: NcUpgraderCtx) {
   const actions = [];

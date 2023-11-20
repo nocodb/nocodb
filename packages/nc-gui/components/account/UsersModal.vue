@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import type { OrgUserReqType } from 'nocodb-sdk'
+import { OrgUserRoles } from 'nocodb-sdk'
+import type { User, Users } from '#imports'
 import {
   Form,
   computed,
@@ -14,18 +16,10 @@ import {
   useI18n,
   useNuxtApp,
 } from '#imports'
-import type { User } from '~/lib'
-import { Role } from '~/lib'
 
 interface Props {
   show: boolean
   selectedUser?: User
-}
-
-interface Users {
-  emails: string
-  role: Role.OrgLevelCreator | Role.OrgLevelViewer
-  invitationToken?: string
 }
 
 const { show } = defineProps<Props>()
@@ -38,9 +32,9 @@ const { $api, $e } = useNuxtApp()
 
 const { copy } = useCopy()
 
-const { dashboardUrl } = $(useDashboard())
+const { dashboardUrl } = useDashboard()
 
-const usersData = $ref<Users>({ emails: '', role: Role.OrgLevelViewer, invitationToken: undefined })
+const usersData = ref<Users>({ emails: '', role: OrgUserRoles.VIEWER, invitationToken: undefined })
 
 const formRef = ref()
 
@@ -52,20 +46,20 @@ const validators = computed(() => {
   }
 })
 
-const { validateInfos } = useForm(usersData, validators)
+const { validateInfos } = useForm(usersData.value, validators)
 
 const saveUser = async () => {
-  $e('a:org-user:invite', { role: usersData.role })
+  $e('a:org-user:invite', { role: usersData.value.role })
 
   await formRef.value?.validateFields()
 
   try {
     const res = await $api.orgUsers.add({
-      roles: usersData.role,
-      email: usersData.emails,
+      roles: usersData.value.role,
+      email: usersData.value.emails,
     } as unknown as OrgUserReqType)
 
-    usersData.invitationToken = res.invite_token
+    usersData.value.invitationToken = res.invite_token
     emit('reload')
 
     // Successfully updated the user details
@@ -76,15 +70,17 @@ const saveUser = async () => {
   }
 }
 
-const inviteUrl = $computed(() => (usersData.invitationToken ? `${dashboardUrl}#/signup/${usersData.invitationToken}` : null))
+const inviteUrl = computed(() =>
+  usersData.value.invitationToken ? `${dashboardUrl.value}#/signup/${usersData.value.invitationToken}` : null,
+)
 
 const copyUrl = async () => {
-  if (!inviteUrl) return
+  if (!inviteUrl.value) return
   try {
-    await copy(inviteUrl)
+    await copy(inviteUrl.value)
 
-    // Copied shareable base url to clipboard!
-    message.success(t('msg.success.shareableURLCopied'))
+    // Copied shareable source url to clipboard!
+    message.success(t('msg.toast.inviteUrlCopy'))
   } catch (e: any) {
     message.error(e.message)
   }
@@ -93,9 +89,9 @@ const copyUrl = async () => {
 
 const clickInviteMore = () => {
   $e('c:user:invite-more')
-  usersData.invitationToken = undefined
-  usersData.role = Role.OrgLevelViewer
-  usersData.emails = ''
+  usersData.value.invitationToken = undefined
+  usersData.value.role = OrgUserRoles.VIEWER
+  usersData.value.emails = ''
 }
 
 const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
@@ -114,7 +110,7 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
   >
     <div class="flex flex-col">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
-        <a-typography-title class="select-none" :level="4"> {{ $t('activity.inviteUser') }}</a-typography-title>
+        <a-typography-title class="select-none" :level="4" data-rec="true"> {{ $t('activity.inviteUser') }}</a-typography-title>
 
         <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="emit('closed')">
           <template #icon>
@@ -128,13 +124,13 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
           <div class="flex flex-col mt-1 pb-5">
             <div class="flex flex-row items-center pl-1.5 pb-1 h-[1.1rem]">
               <component :is="iconMap.account" />
-              <div class="text-xs ml-0.5 mt-0.5">Copy Invite Token</div>
+              <div class="text-xs ml-0.5 mt-0.5" data-rec="true">{{ $t('activity.copyInviteURL') }}</div>
             </div>
 
             <a-alert class="!mt-2" type="success" show-icon>
               <template #message>
                 <div class="flex flex-row justify-between items-center py-1">
-                  <div class="flex pl-2 text-green-700 text-xs">
+                  <div class="flex pl-2 text-green-700 text-xs" data-rec="true">
                     {{ inviteUrl }}
                   </div>
 
@@ -147,7 +143,7 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
               </template>
             </a-alert>
 
-            <div class="flex text-xs text-gray-500 mt-2 justify-start ml-2">
+            <div class="flex text-xs text-gray-500 mt-2 justify-start ml-2" data-rec="true">
               {{ $t('msg.info.userInviteNoSMTP') }}
               {{ usersData.invitationToken && usersData.emails }}
             </div>
@@ -157,7 +153,7 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                 <div class="flex flex-row justify-center items-center space-x-0.5">
                   <MaterialSymbolsSendOutline class="flex mx-auto text-gray-600 h-[0.8rem]" />
 
-                  <div class="text-xs text-gray-600">{{ $t('activity.inviteMore') }}</div>
+                  <div class="text-xs text-gray-600" data-rec="true">{{ $t('activity.inviteMore') }}</div>
                 </div>
               </a-button>
             </div>
@@ -179,9 +175,9 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                     v-bind="validateInfos.emails"
                     validate-trigger="onBlur"
                     name="emails"
-                    :rules="[{ required: true, message: 'Please input email' }]"
+                    :rules="[{ required: true, message: $t('msg.plsInputEmail') }]"
                   >
-                    <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('datatype.Email') }}:</div>
+                    <div class="ml-1 mb-1 text-xs text-gray-500" data-rec="true">{{ $t('datatype.Email') }}:</div>
 
                     <a-input
                       :ref="emailInput"
@@ -194,28 +190,27 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                 </div>
 
                 <div class="flex flex-col w-2/4">
-                  <a-form-item name="role" :rules="[{ required: true, message: 'Role required' }]">
+                  <a-form-item name="role" :rules="[{ required: true, message: $t('msg.roleRequired') }]">
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
-
                     <a-select v-model:value="usersData.role" class="nc-user-roles" dropdown-class-name="nc-dropdown-user-role">
                       <a-select-option
                         class="nc-role-option"
-                        :value="Role.OrgLevelCreator"
+                        :value="OrgUserRoles.CREATOR"
                         :label="$t(`objects.roleType.orgLevelCreator`)"
                       >
-                        <div>{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
-                        <span class="text-gray-500 text-xs whitespace-normal">
+                        <div data-rec="true">{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
+                        <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">
                           {{ $t('msg.info.roles.orgCreator') }}
                         </span>
                       </a-select-option>
 
                       <a-select-option
                         class="nc-role-option"
-                        :value="Role.OrgLevelViewer"
+                        :value="OrgUserRoles.VIEWER"
                         :label="$t(`objects.roleType.orgLevelViewer`)"
                       >
-                        <div>{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
-                        <span class="text-gray-500 text-xs whitespace-normal">
+                        <div data-rec="true">{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
+                        <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">
                           {{ $t('msg.info.roles.orgViewer') }}
                         </span>
                       </a-select-option>
@@ -228,7 +223,7 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                 <a-button type="primary" class="!rounded-md" html-type="submit">
                   <div class="flex flex-row justify-center items-center space-x-1.5">
                     <MaterialSymbolsSendOutline class="flex h-[0.8rem]" />
-                    <div>{{ $t('activity.invite') }}</div>
+                    <div data-rec="true">{{ $t('activity.invite') }}</div>
                   </div>
                 </a-button>
               </div>

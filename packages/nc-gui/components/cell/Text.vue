@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, IsExpandedFormOpenInj, ReadonlyInj, RowHeightInj, inject, ref, useVModel } from '#imports'
+import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, ReadonlyInj, RowHeightInj, inject, ref, useVModel } from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -12,7 +12,9 @@ const emits = defineEmits(['update:modelValue'])
 
 const { showNull } = useGlobal()
 
-const editEnabled = inject(EditModeInj)
+const editEnabled = inject(EditModeInj, ref(false))
+
+const isEditColumn = inject(EditColumnInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
@@ -22,7 +24,7 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
@@ -30,8 +32,11 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputEle
     v-if="!readonly && editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="h-full w-full outline-none bg-transparent"
-    :class="{ '!px-2': editEnabled }"
+    class="h-full w-full outline-none p-2 bg-transparent"
+    :placeholder="isEditColumn ? $t('labels.optional') : ''"
+    :class="{
+      'px-1': isExpandedFormOpen,
+    }"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop
@@ -42,7 +47,7 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLInputEle
     @mousedown.stop
   />
 
-  <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
   <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" />
 </template>

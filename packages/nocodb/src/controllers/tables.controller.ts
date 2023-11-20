@@ -11,61 +11,58 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { TableReqType } from 'nocodb-sdk';
-import { GlobalGuard } from '../guards/global/global.guard';
-import extractRolesObj from '../utils/extractRolesObj';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import {
-  ExtractProjectIdMiddleware,
-  UseAclMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
-import { TablesService } from '../services/tables.service';
+import { extractRolesObj, TableReqType } from 'nocodb-sdk';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { TablesService } from '~/services/tables.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class TablesController {
   constructor(private readonly tablesService: TablesService) {}
 
   @Get([
-    '/api/v1/db/meta/projects/:projectId/tables',
-    '/api/v1/db/meta/projects/:projectId/:baseId/tables',
+    '/api/v1/db/meta/projects/:baseId/tables',
+    '/api/v1/db/meta/projects/:baseId/:sourceId/tables',
+    '/api/v2/meta/bases/:baseId/tables',
+    '/api/v2/meta/bases/:baseId/:sourceId/tables',
   ])
-  @UseAclMiddleware({
-    permissionName: 'tableList',
-  })
+  @Acl('tableList')
   async tableList(
-    @Param('projectId') projectId: string,
     @Param('baseId') baseId: string,
+    @Param('sourceId') sourceId: string,
     @Query('includeM2M') includeM2M: string,
     @Request() req,
   ) {
     return new PagedResponseImpl(
       await this.tablesService.getAccessibleTables({
-        projectId,
         baseId,
+        sourceId,
         includeM2M: includeM2M === 'true',
-        roles: extractRolesObj(req.user.roles),
+        roles: extractRolesObj(req.user.base_roles),
       }),
     );
   }
 
   @Post([
-    '/api/v1/db/meta/projects/:projectId/tables',
-    '/api/v1/db/meta/projects/:projectId/:baseId/tables',
+    '/api/v1/db/meta/projects/:baseId/tables',
+    '/api/v1/db/meta/projects/:baseId/:sourceId/tables',
+    '/api/v2/meta/bases/:baseId/tables',
+    '/api/v2/meta/bases/:baseId/:sourceId/tables',
   ])
   @HttpCode(200)
-  @UseAclMiddleware({
-    permissionName: 'tableCreate',
-  })
+  @Acl('tableCreate')
   async tableCreate(
-    @Param('projectId') projectId: string,
     @Param('baseId') baseId: string,
+    @Param('sourceId') sourceId: string,
     @Body() body: TableReqType,
     @Request() req,
   ) {
     const result = await this.tablesService.tableCreate({
-      projectId: projectId,
       baseId: baseId,
+      sourceId: sourceId,
       table: body,
       user: req.user,
     });
@@ -73,10 +70,8 @@ export class TablesController {
     return result;
   }
 
-  @Get('/api/v1/db/meta/tables/:tableId')
-  @UseAclMiddleware({
-    permissionName: 'tableGet',
-  })
+  @Get(['/api/v1/db/meta/tables/:tableId', '/api/v2/meta/tables/:tableId'])
+  @Acl('tableGet')
   async tableGet(@Param('tableId') tableId: string, @Request() req) {
     const table = await this.tablesService.getTableWithAccessibleViews({
       tableId: req.params.tableId,
@@ -86,10 +81,8 @@ export class TablesController {
     return table;
   }
 
-  @Patch('/api/v1/db/meta/tables/:tableId')
-  @UseAclMiddleware({
-    permissionName: 'tableUpdate',
-  })
+  @Patch(['/api/v1/db/meta/tables/:tableId', '/api/v2/meta/tables/:tableId'])
+  @Acl('tableUpdate')
   async tableUpdate(
     @Param('tableId') tableId: string,
     @Body() body: TableReqType,
@@ -98,15 +91,15 @@ export class TablesController {
     await this.tablesService.tableUpdate({
       tableId: tableId,
       table: body,
-      projectId: req.ncProjectId,
+      baseId: req.ncProjectId,
+      user: req.ncProjectId,
+      req,
     });
     return { msg: 'The table has been updated successfully' };
   }
 
-  @Delete('/api/v1/db/meta/tables/:tableId')
-  @UseAclMiddleware({
-    permissionName: 'tableDelete',
-  })
+  @Delete(['/api/v1/db/meta/tables/:tableId', '/api/v2/meta/tables/:tableId'])
+  @Acl('tableDelete')
   async tableDelete(@Param('tableId') tableId: string, @Request() req) {
     const result = await this.tablesService.tableDelete({
       tableId: req.params.tableId,
@@ -117,10 +110,11 @@ export class TablesController {
     return result;
   }
 
-  @Post('/api/v1/db/meta/tables/:tableId/reorder')
-  @UseAclMiddleware({
-    permissionName: 'tableReorder',
-  })
+  @Post([
+    '/api/v1/db/meta/tables/:tableId/reorder',
+    '/api/v2/meta/tables/:tableId/reorder',
+  ])
+  @Acl('tableReorder')
   @HttpCode(200)
   async tableReorder(
     @Param('tableId') tableId: string,

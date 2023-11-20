@@ -11,6 +11,8 @@ const emits = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)!
 
+const readonly = inject(ReadonlyInj, ref(false))
+
 const ratingMeta = computed(() => {
   return {
     icon: {
@@ -37,7 +39,12 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
 </script>
 
 <template>
-  <a-rate v-model:value="vModel" :count="ratingMeta.max" :style="`color: ${ratingMeta.color}; padding: 0px 5px`">
+  <a-rate
+    v-model:value="vModel"
+    :disabled="readonly"
+    :count="ratingMeta.max"
+    :style="`color: ${ratingMeta.color}; padding: 0px 5px`"
+  >
     <template #character>
       <MdiStar v-if="ratingMeta.icon.full === 'mdi-star'" class="text-sm" />
       <MdiHeart v-if="ratingMeta.icon.full === 'mdi-heart'" class="text-sm" />

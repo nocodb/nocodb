@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { SqlClientFactory } from '../../db/sql-client/lib/SqlClientFactory';
 import { GqlApiBuilder } from './gql/GqlApiBuilder';
 import { RestApiBuilder } from './rest/RestApiBuilder';
-import type Noco from '../../Noco';
-import type { NcConfig } from '../../interface/config';
+import type Noco from '~/Noco';
+import type { NcConfig } from '~/interface/config';
+import { SqlClientFactory } from '~/db/sql-client/lib/SqlClientFactory';
 
 export default class NcProjectBuilder {
   public readonly id: string;
@@ -20,15 +20,15 @@ export default class NcProjectBuilder {
   protected aggregatedApiInfo: any;
   protected authHook: any;
 
-  constructor(app: Noco, appConfig: NcConfig, project: any) {
+  constructor(app: Noco, appConfig: NcConfig, base: any) {
     this.app = app;
     this.appConfig = appConfig;
 
-    if (project) {
-      this.id = project.id;
-      this.title = project.title;
-      this.description = project.description;
-      this._config = { ...this.appConfig, ...JSON.parse(project.config) };
+    if (base) {
+      this.id = base.id;
+      this.title = base.title;
+      this.description = base.description;
+      this._config = { ...this.appConfig, ...JSON.parse(base.config) };
       this.router = Router();
     }
   }
@@ -39,7 +39,7 @@ export default class NcProjectBuilder {
 
       this.startTime = Date.now();
       const allRoutesInfo: any[] = [];
-      // await this.app.ncMeta.projectStatusUpdate(this.id, 'starting');
+      // await this.app.ncMeta.baseStatusUpdate(this.id, 'starting');
       // await this.syncMigration();
       await this._createApiBuilder();
       // this.initApiInfoRoute();
@@ -62,12 +62,12 @@ export default class NcProjectBuilder {
         // this.progress(routeInfo, allRoutesInfo, isFirstTime);
       }
 
-      // this.app.projectRouter.use(`/nc/${this.id}`, this.router);
-      // await this.app.ncMeta.projectStatusUpdate(this.id, 'started');
+      // this.app.baseRouter.use(`/nc/${this.id}`, this.router);
+      // await this.app.ncMeta.baseStatusUpdate(this.id, 'started');
     } catch (e) {
       console.log(e);
       throw e;
-      // await this.app.ncMeta.projectStatusUpdate(this.id, 'stopped');
+      // await this.app.ncMeta.baseStatusUpdate(this.id, 'stopped');
     }
   }
 

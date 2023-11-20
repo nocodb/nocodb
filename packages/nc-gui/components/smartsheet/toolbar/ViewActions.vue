@@ -1,30 +1,29 @@
 <script lang="ts" setup>
 import type { Ref } from '@vue/reactivity'
+import UploadIcon from '~icons/nc-icons/upload'
+import DownloadIcon from '~icons/nc-icons/download'
 import {
   ActiveViewInj,
   IsLockedInj,
   IsPublicInj,
+  LockType,
   MetaInj,
   extractSdkResponseErrorMsg,
   iconMap,
   inject,
   message,
   ref,
-  storeToRefs,
+  useBase,
   useI18n,
   useMenuCloseOnEsc,
   useNuxtApp,
-  useProject,
+  useRoles,
   useSmartsheetStoreOrThrow,
-  useUIPermission,
 } from '#imports'
-import { LockType } from '~/lib'
 
 const { t } = useI18n()
 
 const sharedViewListDlg = ref(false)
-
-const { isMobileMode } = useGlobal()
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
@@ -49,7 +48,7 @@ type QuickImportDialogType = 'csv' | 'excel' | 'json'
 // TODO: add 'json' when it's ready
 const quickImportDialogTypes: QuickImportDialogType[] = ['csv', 'excel']
 
-const quickImportDialogs: Record<typeof quickImportDialogTypes[number], Ref<boolean>> = quickImportDialogTypes.reduce(
+const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<boolean>> = quickImportDialogTypes.reduce(
   (acc: any, curr) => {
     acc[curr] = ref(false)
     return acc
@@ -57,14 +56,15 @@ const quickImportDialogs: Record<typeof quickImportDialogTypes[number], Ref<bool
   {},
 ) as Record<QuickImportDialogType, Ref<boolean>>
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
-const { isSharedBase } = storeToRefs(useProject())
+useBase()
 
 const meta = inject(MetaInj, ref())
 
-const currentBaseId = computed(() => meta.value?.base_id)
+const currentBaseId = computed(() => meta.value?.source_id)
 
+/*
 const Icon = computed(() => {
   switch (selectedView.value?.lock_type) {
     case LockType.Personal:
@@ -76,8 +76,9 @@ const Icon = computed(() => {
       return iconMap.users
   }
 })
+*/
 
-const lockType = $computed(() => (selectedView.value?.lock_type as LockType) || LockType.Collaborative)
+const lockType = computed(() => (selectedView.value?.lock_type as LockType) || LockType.Collaborative)
 
 async function changeLockType(type: LockType) {
   $e('a:grid:lockmenu', { lockType: type })
@@ -107,34 +108,68 @@ useMenuCloseOnEsc(open)
 
 <template>
   <div>
-    <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
-      <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
-        <div class="flex gap-2 items-center">
-          <GeneralViewIcon :meta="selectedView"></GeneralViewIcon>
-
-          <span class="!text-xs font-weight-normal">
-            <GeneralTruncateText :key="selectedView?.title">{{ selectedView?.title }}</GeneralTruncateText>
-          </span>
-
-          <component :is="Icon" class="text-gray-500" :class="`nc-icon-${selectedView?.lock_type}`" />
-
-          <component :is="iconMap.arrowDown" class="text-grey" />
-        </div>
+    <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu" placement="bottomRight">
+      <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn !border-1 !border-gray-200 !rounded-md !py-1 !px-2">
+        <MdiDotsHorizontal class="!w-4 !h-4" />
       </a-button>
 
       <template #overlay>
-        <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded" data-testid="toolbar-actions" @click="open = false">
+        <a-menu class="!py-0 !rounded !text-gray-800 text-sm" data-testid="toolbar-actions" @click="open = false">
           <a-menu-item-group>
+            <template v-if="isUIAllowed('csvTableImport') && !isView && !isPublicView && !isSqlView">
+              <a-sub-menu key="upload">
+                <template #title>
+                  <div v-e="['c:navdraw:preview-as']" class="nc-base-menu-item group">
+                    <UploadIcon class="w-4 h-4" />
+                    {{ $t('general.upload') }}
+                    <div class="flex-1" />
+
+                    <component :is="iconMap.arrowRight" />
+                  </div>
+                </template>
+
+                <template #expandIcon></template>
+                <template v-for="(dialog, type) in quickImportDialogs">
+                  <a-menu-item v-if="isUIAllowed(`${type}TableImport`) && !isView && !isPublicView" :key="type">
+                    <div
+                      v-e="[`a:upload:${type}`]"
+                      class="nc-base-menu-item"
+                      :class="{ disabled: isLocked }"
+                      @click="!isLocked ? (dialog.value = true) : {}"
+                    >
+                      <component :is="iconMap.upload" />
+                      {{ `${$t('general.upload')} ${type.toUpperCase()}` }}
+                    </div>
+                  </a-menu-item>
+                </template>
+              </a-sub-menu>
+            </template>
+            <a-sub-menu key="download">
+              <template #title>
+                <div v-e="['c:download']" class="nc-base-menu-item group">
+                  <DownloadIcon class="w-4 h-4" />
+                  {{ $t('general.download') }}
+                  <div class="flex-1" />
+
+                  <component :is="iconMap.arrowRight" />
+                </div>
+              </template>
+
+              <template #expandIcon></template>
+
+              <LazySmartsheetToolbarExportSubActions />
+            </a-sub-menu>
+
             <a-sub-menu
-              v-if="isUIAllowed('view-type')"
+              v-if="isUIAllowed('viewCreateOrEdit')"
               key="lock-type"
-              class="scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0"
+              class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0"
             >
               <template #title>
-                <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0 !py-0">
+                <div v-e="['c:navdraw:preview-as']" class="nc-base-menu-item group px-0 !py-0">
                   <LazySmartsheetToolbarLockType hide-tick :type="lockType" />
 
-                  <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 text-accent) text-gray-400" />
+                  <component :is="iconMap.arrowRight" />
                 </div>
               </template>
 
@@ -147,115 +182,25 @@ useMenuCloseOnEsc(open)
                 <LazySmartsheetToolbarLockType :type="LockType.Locked" />
               </a-menu-item>
 
-              <a-menu-item @click="changeLockType(LockType.Personal)">
+              <!--    <a-menu-item @click="changeLockType(LockType.Personal)">
                 <LazySmartsheetToolbarLockType :type="LockType.Personal" />
-              </a-menu-item>
+              </a-menu-item> -->
             </a-sub-menu>
-
-            <a-menu-divider />
-
-            <a-sub-menu key="download">
-              <template #title>
-                <!--                Download -->
-                <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                  <component :is="iconMap.download" class="group-hover:text-accent text-gray-500" />
-                  {{ $t('general.download') }}
-                  <div class="flex-1" />
-
-                  <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 text-accent) text-gray-400" />
-                </div>
-              </template>
-
-              <template #expandIcon></template>
-
-              <LazySmartsheetToolbarExportSubActions />
-            </a-sub-menu>
-
-            <template v-if="isUIAllowed('csvImport') && !isView && !isPublicView && !isSqlView">
-              <a-sub-menu key="upload">
-                <!--                Upload -->
-                <template #title>
-                  <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                    <component :is="iconMap.upload" class="group-hover:text-accent text-gray-500" />
-                    {{ $t('general.upload') }}
-                    <div class="flex-1" />
-
-                    <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 text-accent) text-gray-400" />
-                  </div>
-                </template>
-
-                <template #expandIcon></template>
-                <template v-for="(dialog, type) in quickImportDialogs">
-                  <a-menu-item v-if="isUIAllowed(`${type}Import`) && !isView && !isPublicView" :key="type">
-                    <div
-                      v-e="[`a:actions:upload-${type}`]"
-                      class="nc-project-menu-item"
-                      :class="{ disabled: isLocked }"
-                      @click="!isLocked ? (dialog.value = true) : {}"
-                    >
-                      <component :is="iconMap.upload" class="text-gray-500" />
-                      {{ `${$t('general.upload')} ${type.toUpperCase()}` }}
-                      <div class="flex items-center text-gray-400"><MdiAlpha />version</div>
-                    </div>
-                  </a-menu-item>
-                </template>
-              </a-sub-menu>
-            </template>
-
-            <a-menu-divider />
-
-            <a-menu-item v-if="isUIAllowed('SharedViewList') && !isView && !isPublicView">
-              <div v-e="['a:actions:shared-view-list']" class="py-2 flex gap-2 items-center" @click="sharedViewListDlg = true">
-                <component :is="iconMap.list" class="text-gray-500" />
-                <!-- Shared View List -->
-                {{ $t('activity.listSharedView') }}
-              </div>
-            </a-menu-item>
-
-            <a-menu-item v-if="!isSqlView && !isMobileMode">
-              <div
-                v-if="isUIAllowed('webhook') && !isView && !isPublicView"
-                v-e="['c:actions:webhook']"
-                class="py-2 flex gap-2 items-center"
-                @click="showWebhookDrawer = true"
-              >
-                <component :is="iconMap.hook" class="text-gray-500" />
-                {{ $t('objects.webhooks') }}
-              </div>
-            </a-menu-item>
-
-            <a-menu-item v-if="!isSharedBase && !isPublicView && !isMobileMode">
-              <div v-e="['c:snippet:open']" class="py-2 flex gap-2 items-center" @click="showApiSnippetDrawer = true">
-                <component :is="iconMap.snippet" class="text-gray-500" />
-                <!-- Get API Snippet -->
-                {{ $t('activity.getApiSnippet') }}
-              </div>
-            </a-menu-item>
-
-            <a-menu-item>
-              <div
-                v-if="!isMobileMode"
-                v-e="['c:erd:open']"
-                class="py-2 flex gap-2 items-center nc-view-action-erd"
-                @click="showErd = true"
-              >
-                <component :is="iconMap.erd" class="text-gray-500" />
-                {{ $t('title.erdView') }}
-              </div>
-            </a-menu-item>
           </a-menu-item-group>
         </a-menu>
       </template>
     </a-dropdown>
 
-    <LazyDlgQuickImport
-      v-for="type in quickImportDialogTypes"
-      :key="type"
-      v-model="quickImportDialogs[type].value"
-      :import-type="type"
-      :base-id="currentBaseId"
-      :import-data-only="true"
-    />
+    <template v-if="currentBaseId">
+      <LazyDlgQuickImport
+        v-for="tp in quickImportDialogTypes"
+        :key="tp"
+        v-model="quickImportDialogs[tp].value"
+        :import-type="tp"
+        :source-id="currentBaseId"
+        :import-data-only="true"
+      />
+    </template>
 
     <LazyWebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 

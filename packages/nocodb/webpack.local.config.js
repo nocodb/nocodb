@@ -2,6 +2,7 @@ const path = require('path');
 const nodeExternals = require('webpack-node-externals');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
+const { resolveTsAliases } = require('./build-utils/resolveTsAliases');
 
 module.exports = {
   entry: './src/run/local.ts',
@@ -23,7 +24,13 @@ module.exports = {
 
   optimization: {
     minimize: true, //Update this to true or false
-    minimizer: [new TerserPlugin()],
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          keep_classnames: true,
+        },
+      }),
+    ],
     nodeEnv: false,
   },
   externals: [
@@ -33,7 +40,9 @@ module.exports = {
   ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json'],
+    alias: resolveTsAliases(path.resolve('tsconfig.json')),
   },
+  mode: 'production',
   output: {
     filename: 'main.js',
     path: path.resolve(__dirname, 'docker'),

@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { computed, useRoute, useTheme } from '#imports'
+import { applyNonSelectable, computed, useRouter, useTheme } from '#imports'
 
-const route = useRoute()
+const router = useRouter()
 
-const disableBaseLayout = computed(() => route.path.startsWith('/nc/view') || route.path.startsWith('/nc/form'))
+const route = router.currentRoute
+
+const disableBaseLayout = computed(() => route.value.path.startsWith('/nc/view') || route.value.path.startsWith('/nc/form'))
 
 useTheme()
 
+applyNonSelectable()
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (cmdOrCtrl) {

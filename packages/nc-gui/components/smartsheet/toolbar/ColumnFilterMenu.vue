@@ -1,16 +1,14 @@
 <script setup lang="ts">
-import type ColumnFilter from './ColumnFilter.vue'
 import {
   ActiveViewInj,
+  AllFiltersInj,
   IsLockedInj,
-  IsPublicInj,
   computed,
   iconMap,
   inject,
   ref,
   useGlobal,
   useMenuCloseOnEsc,
-  useNuxtApp,
   useSmartsheetStoreOrThrow,
   useViewFilters,
   watch,
@@ -20,13 +18,9 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const activeView = inject(ActiveViewInj, ref())
 
-const isPublic = inject(IsPublicInj, ref(false))
-
-const { filterAutoSave, isMobileMode } = useGlobal()
+const { isMobileMode } = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
-
-const { $e } = useNuxtApp()
 
 const { nestedFilters } = useSmartsheetStoreOrThrow()
 
@@ -53,67 +47,43 @@ watch(
   { immediate: true },
 )
 
-const applyChanges = async () => await filterComp.value?.applyChanges()
-
-const filterAutoSaveLoc = computed({
-  get() {
-    return filterAutoSave.value
-  },
-  set(val) {
-    $e('a:filter:auto-apply', { flag: val })
-    filterAutoSave.value = val
-  },
-})
-
 const open = ref(false)
+
+const allFilters = ref({})
+
+provide(AllFiltersInj, allFilters)
 
 useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-filter-menu">
+  <NcDropdown
+    v-model:visible="open"
+    :trigger="['click']"
+    overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown"
+    class="!xs:hidden"
+  >
     <div :class="{ 'nc-active-btn': filtersLength }">
       <a-button v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
-        <div class="flex items-center gap-1">
-          <component :is="iconMap.filter" />
+        <div class="flex items-center gap-2">
+          <component :is="iconMap.filter" class="h-4 w-4" />
           <!-- Filter -->
-          <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.filter') }}</span>
-          <component :is="iconMap.arrowDown" class="text-grey" />
+          <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.filter') }}</span>
 
-          <span v-if="filtersLength" class="nc-count-badge">{{ filtersLength }}</span>
+          <span v-if="filtersLength" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{ filtersLength }}</span>
         </div>
       </a-button>
     </div>
 
     <template #overlay>
-      <LazySmartsheetToolbarColumnFilter
+      <SmartsheetToolbarColumnFilter
         ref="filterComp"
-        class="nc-table-toolbar-menu shadow-lg"
-        :auto-save="filterAutoSave"
+        class="nc-table-toolbar-menu"
+        :auto-save="true"
         data-testid="nc-filter-menu"
         @update:filters-length="filtersLength = $event"
       >
-        <div v-if="!isPublic" class="flex items-end mt-2 min-h-[30px]" @click.stop>
-          <a-checkbox id="col-filter-checkbox" v-model:checked="filterAutoSaveLoc" class="col-filter-checkbox" hide-details dense>
-            <span class="text-grey text-xs">
-              {{ $t('msg.info.filterAutoApply') }}
-              <!-- Auto apply -->
-            </span>
-          </a-checkbox>
-
-          <div class="flex-1" />
-
-          <a-button
-            v-show="!filterAutoSave"
-            v-e="['a:filter:auto-apply']"
-            size="small"
-            class="text-xs ml-2"
-            @click="applyChanges"
-          >
-            Apply changes
-          </a-button>
-        </div>
-      </LazySmartsheetToolbarColumnFilter>
+      </SmartsheetToolbarColumnFilter>
     </template>
-  </a-dropdown>
+  </NcDropdown>
 </template>

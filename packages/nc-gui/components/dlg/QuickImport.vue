@@ -2,11 +2,18 @@
 import type { TableType } from 'nocodb-sdk'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
+import { toRaw, unref } from '@vue/runtime-core'
+import type { ImportWorkerPayload, importFileList, streamImportFileList } from '#imports'
 import {
+  BASE_FALLBACK_URL,
   CSVTemplateAdapter,
   ExcelTemplateAdapter,
   ExcelUrlTemplateAdapter,
   Form,
+  ImportSource,
+  ImportType,
+  ImportWorkerOperations,
+  ImportWorkerResponse,
   JSONTemplateAdapter,
   JSONUrlTemplateAdapter,
   computed,
@@ -16,30 +23,47 @@ import {
   importCsvUrlValidator,
   importExcelUrlValidator,
   importUrlValidator,
+  initWorker,
   message,
   reactive,
   ref,
   storeToRefs,
+  useBase,
+  useGlobal,
   useI18n,
-  useProject,
+  useNuxtApp,
   useVModel,
 } from '#imports'
-import type { importFileList, streamImportFileList } from '~/lib'
+
+// import worker script according to the doc of Vite
+import importWorkerUrl from '~/workers/importWorker?worker&url'
 
 interface Props {
   modelValue: boolean
   importType: 'csv' | 'json' | 'excel'
-  baseId: string
+  sourceId: string
   importDataOnly?: boolean
 }
 
-const { importType, importDataOnly = false, baseId, ...rest } = defineProps<Props>()
+const { importType, importDataOnly = false, sourceId, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
+const { $api } = useNuxtApp()
+
+const { appInfo } = useGlobal()
+
+const config = useRuntimeConfig()
+
+const isWorkerSupport = typeof Worker !== 'undefined'
+
+let importWorker: Worker | null
+
 const { t } = useI18n()
 
-const { tables } = storeToRefs(useProject())
+const progressMsg = ref('Parsing Data ...')
+
+const { tables } = storeToRefs(useBase())
 
 const activeKey = ref('uploadTab')
 
@@ -77,6 +101,8 @@ const defaultImportState = {
 }
 const importState = reactive(defaultImportState)
 
+const { token } = useGlobal()
+
 const isImportTypeJson = computed(() => importType === 'json')
 
 const isImportTypeCsv = computed(() => importType === 'csv')
@@ -93,7 +119,7 @@ const { validate, validateInfos } = useForm(importState, validators)
 const importMeta = computed(() => {
   if (IsImportTypeExcel.value) {
     return {
-      header: `${t('title.quickImport')} - EXCEL`,
+      header: `${t('title.quickImportExcel')}`,
       uploadHint: t('msg.info.excelSupport'),
       urlInputLabel: t('msg.info.excelURL'),
       loadUrlDirective: ['c:quick-import:excel:load-url'],
@@ -101,7 +127,7 @@ const importMeta = computed(() => {
     }
   } else if (isImportTypeCsv.value) {
     return {
-      header: `${t('title.quickImport')} - CSV`,
+      header: `${t('title.quickImportCSV')}`,
       uploadHint: '',
       urlInputLabel: t('msg.info.csvURL'),
       loadUrlDirective: ['c:quick-import:csv:load-url'],
@@ -109,7 +135,7 @@ const importMeta = computed(() => {
     }
   } else if (isImportTypeJson.value) {
     return {
-      header: `${t('title.quickImport')} - JSON`,
+      header: `${t('title.quickImportJSON')}`,
       uploadHint: '',
       acceptTypes: '.json',
     }
@@ -118,6 +144,21 @@ const importMeta = computed(() => {
 })
 
 const dialogShow = useVModel(rest, 'modelValue', emit)
+
+// watch dialogShow to init or terminate worker
+if (isWorkerSupport) {
+  watch(
+    dialogShow,
+    async (val) => {
+      if (val) {
+        importWorker = await initWorker(importWorkerUrl)
+      } else {
+        importWorker?.terminate()
+      }
+    },
+    { immediate: true },
+  )
+}
 
 const disablePreImportButton = computed(() => {
   if (activeKey.value === 'uploadTab') {
@@ -131,7 +172,9 @@ const disablePreImportButton = computed(() => {
   }
 })
 
-const disableImportButton = computed(() => !templateEditorRef.value?.isValid)
+const isError = ref(false)
+
+const disableImportButton = computed(() => !templateEditorRef.value?.isValid || isError.value)
 
 const disableFormatJsonButton = computed(() => !jsonEditorRef.value?.isValid)
 
@@ -150,7 +193,7 @@ async function handlePreImport() {
   isParsingData.value = true
 
   if (activeKey.value === 'uploadTab') {
-    if (isImportTypeCsv.value) {
+    if (isImportTypeCsv.value || (isWorkerSupport && importWorker)) {
       await parseAndExtractData(importState.fileList as streamImportFileList)
     } else {
       await parseAndExtractData((importState.fileList as importFileList)[0].data)
@@ -169,7 +212,7 @@ async function handlePreImport() {
 
 async function handleImport() {
   try {
-    if (!templateGenerator) {
+    if (!templateGenerator && !importWorker) {
       message.error(t('msg.error.templateGeneratorNotFound'))
       return
     }
@@ -185,45 +228,6 @@ async function handleImport() {
   dialogShow.value = false
 }
 
-// UploadFile[] for csv import (streaming)
-// ArrayBuffer for excel import
-// string for json import
-async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
-  try {
-    templateData.value = null
-    importData.value = null
-    importColumns.value = []
-
-    templateGenerator = getAdapter(val)
-
-    if (!templateGenerator) {
-      message.error(t('msg.error.templateGeneratorNotFound'))
-      return
-    }
-
-    await templateGenerator.init()
-
-    await templateGenerator.parse()
-
-    templateData.value = templateGenerator!.getTemplate()
-    if (importDataOnly) importColumns.value = templateGenerator!.getColumns()
-    else {
-      // ensure the target table name not exist in current table list
-      templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => ({
-        ...table,
-        table_name: populateUniqueTableName(table.table_name),
-      }))
-    }
-    importData.value = templateGenerator!.getData()
-    templateEditorModal.value = true
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    isParsingData.value = false
-    preImportLoading.value = false
-  }
-}
-
 function rejectDrop(fileList: UploadFile[]) {
   fileList.map((file) => {
     return message.error(`${t('msg.error.fileUploadFailed')} ${file.name}`)
@@ -233,7 +237,7 @@ function rejectDrop(fileList: UploadFile[]) {
 function handleChange(info: UploadChangeParam) {
   const status = info.file.status
   if (status && status !== 'uploading' && status !== 'removed') {
-    if (isImportTypeCsv.value) {
+    if (isImportTypeCsv.value || (isWorkerSupport && importWorker)) {
       if (!importState.fileList.find((f) => f.uid === info.file.uid)) {
         ;(importState.fileList as streamImportFileList).push({
           ...info.file,
@@ -307,14 +311,14 @@ function getAdapter(val: any) {
       case 'uploadTab':
         return new ExcelTemplateAdapter(val, importState.parserConfig)
       case 'urlTab':
-        return new ExcelUrlTemplateAdapter(val, importState.parserConfig)
+        return new ExcelUrlTemplateAdapter(val, importState.parserConfig, $api)
     }
   } else if (isImportTypeJson.value) {
     switch (activeKey.value) {
       case 'uploadTab':
         return new JSONTemplateAdapter(val, importState.parserConfig)
       case 'urlTab':
-        return new JSONUrlTemplateAdapter(val, importState.parserConfig)
+        return new JSONUrlTemplateAdapter(val, importState.parserConfig, $api)
       case 'jsonEditorTab':
         return new JSONTemplateAdapter(val, importState.parserConfig)
     }
@@ -346,6 +350,196 @@ const beforeUpload = (file: UploadFile) => {
   }
   return !exceedLimit || Upload.LIST_IGNORE
 }
+
+// UploadFile[] for csv import (streaming)
+// ArrayBuffer for excel import
+function extractImportWorkerPayload(value: UploadFile[] | ArrayBuffer | string) {
+  let payload: ImportWorkerPayload
+  if (isImportTypeCsv.value) {
+    switch (activeKey.value) {
+      case 'uploadTab':
+        payload = {
+          config: {
+            ...importState.parserConfig,
+            importFromURL: false,
+          },
+          value,
+          importType: ImportType.CSV,
+          importSource: ImportSource.FILE,
+        }
+        break
+      case 'urlTab':
+        payload = {
+          config: {
+            ...importState.parserConfig,
+            importFromURL: true,
+          },
+          value,
+          importType: ImportType.CSV,
+          importSource: ImportSource.FILE,
+        }
+        break
+    }
+  } else if (IsImportTypeExcel.value) {
+    switch (activeKey.value) {
+      case 'uploadTab':
+        payload = {
+          config: toRaw(importState.parserConfig),
+          value,
+          importType: ImportType.EXCEL,
+          importSource: ImportSource.FILE,
+        }
+        break
+      case 'urlTab':
+        payload = {
+          config: toRaw(importState.parserConfig),
+          value,
+          importType: ImportType.EXCEL,
+          importSource: ImportSource.URL,
+        }
+        break
+    }
+  } else if (isImportTypeJson.value) {
+    switch (activeKey.value) {
+      case 'uploadTab':
+        payload = {
+          config: toRaw(importState.parserConfig),
+          value,
+          importType: ImportType.JSON,
+          importSource: ImportSource.FILE,
+        }
+        break
+      case 'urlTab':
+        payload = {
+          config: toRaw(importState.parserConfig),
+          value,
+          importType: ImportType.JSON,
+          importSource: ImportSource.URL,
+        }
+        break
+      case 'jsonEditorTab':
+        payload = {
+          config: toRaw(importState.parserConfig),
+          value,
+          importType: ImportType.JSON,
+          importSource: ImportSource.STRING,
+        }
+        break
+    }
+  }
+  return payload
+}
+
+// string for json import
+async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
+  templateData.value = null
+  importData.value = null
+  importColumns.value = []
+  try {
+    // if the browser supports web worker, use it to parse the file and process the data
+    if (isWorkerSupport && importWorker) {
+      importWorker.postMessage([
+        ImportWorkerOperations.INIT_SDK,
+        {
+          baseURL: config.public.ncBackendUrl || appInfo.value.ncSiteUrl || BASE_FALLBACK_URL,
+          token: token.value,
+        },
+      ])
+
+      let value = toRaw(val)
+
+      // if array, iterate and unwrap proxy
+      if (Array.isArray(value)) value = value.map((v) => toRaw(v))
+
+      const payload = extractImportWorkerPayload(value)
+
+      importWorker.postMessage([
+        ImportWorkerOperations.SET_TABLES,
+        unref(tables).map((t) => ({
+          table_name: t.table_name,
+          title: t.title,
+        })),
+      ])
+      importWorker.postMessage([
+        ImportWorkerOperations.SET_CONFIG,
+        {
+          importDataOnly,
+          importColumns: !!importColumns.value,
+          importData: !!importData.value,
+        },
+      ])
+
+      const response: {
+        templateData: any
+        importColumns: any
+        importData: any
+      } = await new Promise((resolve, reject) => {
+        const handler = (e: MessageEvent) => {
+          const [type, payload] = e.data
+          switch (type) {
+            case ImportWorkerResponse.PROCESSED_DATA:
+              resolve(payload)
+              importWorker?.removeEventListener('message', handler, false)
+              break
+            case ImportWorkerResponse.PROGRESS:
+              progressMsg.value = payload
+              break
+            case ImportWorkerResponse.ERROR:
+              reject(payload)
+              importWorker?.removeEventListener('message', handler, false)
+              break
+          }
+        }
+        importWorker?.addEventListener('message', handler, false)
+
+        importWorker?.postMessage([ImportWorkerOperations.PROCESS, payload])
+      })
+      templateData.value = response.templateData
+      importColumns.value = response.importColumns
+      importData.value = response.importData
+    }
+    // otherwise, use the main thread to parse the file and process the data
+    else {
+      templateGenerator = getAdapter(val)
+
+      if (!templateGenerator) {
+        message.error(t('msg.error.templateGeneratorNotFound'))
+        return
+      }
+
+      await templateGenerator.init()
+
+      await templateGenerator.parse()
+
+      templateData.value = templateGenerator!.getTemplate()
+      if (importDataOnly) importColumns.value = templateGenerator!.getColumns()
+      else {
+        // ensure the target table name not exist in current table list
+        templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => ({
+          ...table,
+          table_name: populateUniqueTableName(table.table_name),
+        }))
+      }
+      importData.value = templateGenerator!.getData()
+    }
+
+    templateEditorModal.value = true
+  } catch (e: any) {
+    console.log(e)
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isParsingData.value = false
+    preImportLoading.value = false
+  }
+}
+
+const onError = () => {
+  isError.value = true
+}
+
+const onChange = () => {
+  isError.value = false
+}
 </script>
 
 <template>
@@ -356,7 +550,7 @@ const beforeUpload = (file: UploadFile) => {
     wrap-class-name="nc-modal-quick-import"
     @keydown.esc="dialogShow = false"
   >
-    <a-spin :spinning="isParsingData" tip="Parsing Data ..." size="large">
+    <a-spin :spinning="isParsingData" :tip="progressMsg" size="large">
       <div class="px-5">
         <div class="prose-xl font-weight-bold my-5">{{ importMeta.header }}</div>
 
@@ -364,15 +558,18 @@ const beforeUpload = (file: UploadFile) => {
           <LazyTemplateEditor
             v-if="templateEditorModal"
             ref="templateEditorRef"
-            :project-template="templateData"
+            :base-template="templateData"
             :import-data="importData"
             :import-columns="importColumns"
             :import-data-only="importDataOnly"
             :quick-import-type="importType"
             :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
-            :base-id="baseId"
+            :source-id="sourceId"
+            :import-worker="importWorker"
             class="nc-quick-import-template-editor"
             @import="handleImport"
+            @error="onError"
+            @change="onChange"
           />
 
           <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" tab-position="top">
@@ -415,7 +612,7 @@ const beforeUpload = (file: UploadFile) => {
               <template #tab>
                 <span class="flex items-center gap-2">
                   <component :is="iconMap.json" />
-                  JSON Editor
+                  {{ $t('title.jsonEditor') }}
                 </span>
               </template>
 
@@ -428,7 +625,7 @@ const beforeUpload = (file: UploadFile) => {
               <template #tab>
                 <span class="flex items-center gap-2">
                   <component :is="iconMap.link" />
-                  URL
+                  {{ $t('datatype.URL') }}
                 </span>
               </template>
 
@@ -456,13 +653,13 @@ const beforeUpload = (file: UploadFile) => {
 
             <a-form-item v-if="!importDataOnly" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.autoSelectFieldTypes">
-                <span class="caption">Auto-Select Field Types</span>
+                <span class="caption">{{ $t('labels.autoSelectFieldTypes') }}</span>
               </a-checkbox>
             </a-form-item>
 
             <a-form-item v-if="isImportTypeCsv || IsImportTypeExcel" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.firstRowAsHeaders">
-                <span class="caption">Use First Row as Headers</span>
+                <span class="caption">{{ $t('labels.firstRowAsHeaders') }}</span>
               </a-checkbox>
             </a-form-item>
 
@@ -475,16 +672,18 @@ const beforeUpload = (file: UploadFile) => {
 
             <!-- Import Data -->
             <a-form-item v-if="!importDataOnly" class="!my-2">
-              <a-checkbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }}</a-checkbox>
+              <a-checkbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }} </a-checkbox>
             </a-form-item>
           </div>
         </div>
       </div>
     </a-spin>
     <template #footer>
-      <a-button v-if="templateEditorModal" key="back" class="!rounded-md" @click="templateEditorModal = false">Back</a-button>
+      <a-button v-if="templateEditorModal" key="back" class="!rounded-md" @click="templateEditorModal = false"
+        >{{ $t('general.back') }}
+      </a-button>
 
-      <a-button v-else key="cancel" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+      <a-button v-else key="cancel" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }} </a-button>
 
       <a-button
         v-if="activeKey === 'jsonEditorTab' && !templateEditorModal"
@@ -493,7 +692,7 @@ const beforeUpload = (file: UploadFile) => {
         :disabled="disableFormatJsonButton"
         @click="formatJson"
       >
-        Format JSON
+        {{ $t('labels.formatJson') }}
       </a-button>
 
       <a-button

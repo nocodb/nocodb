@@ -1,15 +1,15 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
-import NocoCache from '../cache/NocoCache';
-import { MetaTable } from '../meta/meta.service';
-import { Base } from '../models';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { CacheGetType, CacheScope } from '../utils/globals';
-import { Model } from '../models';
-import type { LinkToAnotherRecordColumn } from '../models';
-import type { MetaService } from '../meta/meta.service';
+import type { LinkToAnotherRecordColumn } from '~/models';
+import type { MetaService } from '~/meta/meta.service';
 import type { NcUpgraderCtx } from './NcUpgrader';
+import { MetaTable } from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
+import { Source } from '~/models';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { CacheGetType, CacheScope } from '~/utils/globals';
+import { Model } from '~/models';
 
-// An upgrader for upgrading LTAR relations in XCDB bases
+// An upgrader for upgrading LTAR relations in XCDB sources
 // it will delete all the foreign keys and create a new index
 // and treat all the LTAR as virtual
 
@@ -31,6 +31,7 @@ async function upgradeModelRelations({
     rtn: string;
     cn: string;
     rcn: string;
+    cstn?: string;
   }[];
 }) {
   // Iterate over each column and upgrade LTAR
@@ -42,6 +43,11 @@ async function upgradeModelRelations({
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       ncMeta,
     );
+
+    // if colOptions not found then skip
+    if (!colOptions) {
+      continue;
+    }
 
     switch (colOptions.type) {
       case RelationTypes.HAS_MANY:
@@ -74,18 +80,19 @@ async function upgradeModelRelations({
               childColumn: relation.cn,
               parentTable: relation.rtn,
               childTable: relation.tn,
+              foreignKeyName: relation.cstn,
             });
-          }
 
-          // skip postgres since we were already creating the index while creating the relation
-          if (ncMeta.knex.clientType() !== 'pg') {
-            // create a new index for the column
-            const indexArgs = {
-              columns: [relation.cn],
-              tn: relation.tn,
-              non_unique: true,
-            };
-            await sqlClient.indexCreate(indexArgs);
+            // skip postgres since we were already creating the index while creating the relation
+            if (ncMeta.knex.clientType() !== 'pg') {
+              // create a new index for the column
+              const indexArgs = {
+                columns: [relation.cn],
+                tn: relation.tn,
+                non_unique: true,
+              };
+              await sqlClient.indexCreate(indexArgs);
+            }
           }
         }
         break;
@@ -118,20 +125,17 @@ async function upgradeModelRelations({
 // An upgrader for upgrading any existing relation in xcdb
 async function upgradeBaseRelations({
   ncMeta,
-  base,
+  source,
+  relations,
 }: {
   ncMeta: MetaService;
-  base: any;
+  source: any;
+  relations: any;
 }) {
-  // const sqlMgr = ProjectMgrv2.getSqlMgr({ id: base.project_id }, ncMeta);
-
-  const sqlClient = await NcConnectionMgrv2.getSqlClient(base, ncMeta.knex);
-
-  // get all relations
-  const relations = (await sqlClient.relationListAll())?.data?.list;
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(source, ncMeta.knex);
 
   // get models for the base
-  const models = await ncMeta.metaList2(null, base.id, MetaTable.MODELS);
+  const models = await ncMeta.metaList2(null, source.id, MetaTable.MODELS);
 
   // get all columns and filter out relations and upgrade
   for (const model of models) {
@@ -146,19 +150,30 @@ async function upgradeBaseRelations({
 
 // database to virtual relation and create an index for it
 export default async function ({ ncMeta }: NcUpgraderCtx) {
-  // get all xcdb bases
-  const bases = await ncMeta.metaList2(null, null, MetaTable.BASES, {
+  // get all xcdb sources
+  const sources = await ncMeta.metaList2(null, null, MetaTable.BASES, {
     condition: {
       is_meta: 1,
     },
     orderBy: {},
   });
 
+  if (!sources.length) return;
+
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(
+    new Source(sources[0]),
+    ncMeta.knex,
+  );
+
+  // get all relations
+  const relations = (await sqlClient.relationListAll())?.data?.list;
+
   // iterate and upgrade each base
-  for (const base of bases) {
+  for (const source of sources) {
     await upgradeBaseRelations({
       ncMeta,
-      base: new Base(base),
+      source: new Source(source),
+      relations,
     });
   }
 }

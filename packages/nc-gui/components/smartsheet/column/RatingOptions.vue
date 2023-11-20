@@ -71,7 +71,7 @@ watch(
 <template>
   <a-row :gutter="8">
     <a-col :span="12">
-      <a-form-item label="Icon">
+      <a-form-item :label="$t('labels.icon')">
         <a-select v-model:value="vModel.meta.iconIdx" class="w-52" dropdown-class-name="nc-dropdown-rating-icon">
           <a-select-option v-for="(icon, i) of iconList" :key="i" :value="i">
             <div class="flex items-center">
@@ -95,7 +95,7 @@ watch(
       </a-form-item>
     </a-col>
     <a-col :span="12">
-      <a-form-item label="Max">
+      <a-form-item :label="$t('labels.max')">
         <a-select v-model:value="vModel.meta.max" class="w-52" dropdown-class-name="nc-dropdown-rating-color">
           <a-select-option v-for="(v, i) in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" :key="i" :value="v">
             {{ v }}
@@ -109,7 +109,8 @@ watch(
     <LazyGeneralColorPicker
       v-model="picked"
       :row-size="8"
-      :colors="['#fcb401', '#faa307', '#f48c06', '#e85d04', '#dc2f02', '#d00000', '#9d0208', '#777']"
+      :colors="['#FF94B6', '#6A8D9D', '#6DAE42', '#4AC0BF', '#905FB3', '#FF8320', '#6BCC72', '#FF4138']"
+      @input="(el:string) => (vModel.meta.color = el)"
     />
   </a-row>
 </template>

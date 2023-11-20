@@ -1,24 +1,42 @@
 import { Knex, knex } from 'knex';
 import { SnowflakeClient } from 'nc-help';
-import { types } from 'pg';
+import { defaults, types } from 'pg';
 import dayjs from 'dayjs';
-import Filter from '../models/Filter';
 import type { FilterType } from 'nocodb-sdk';
-import type { BaseModelSql } from './BaseModelSql';
+import type { BaseModelSql } from '~/db/BaseModelSql';
+import Filter from '~/models/Filter';
 
-// For the code, check out
-// https://raw.githubusercontent.com/brianc/node-pg-types/master/lib/builtins.js
+// refer : https://github.com/brianc/node-pg-types/blob/master/lib/builtins.js
+const pgTypes = {
+  FLOAT4: 700,
+  FLOAT8: 701,
+  DATE: 1082,
+  TIMESTAMP: 1114,
+  TIMESTAMPTZ: 1184,
+  NUMERIC: 1700,
+};
 
 // override parsing date column to Date()
-types.setTypeParser(1082, (val) => val);
+types.setTypeParser(pgTypes.DATE, (val) => val);
 // override timestamp
-types.setTypeParser(1114, (val) => {
-  return dayjs(val).format('YYYY-MM-DD HH:mm:ss');
+types.setTypeParser(pgTypes.TIMESTAMP, (val) => {
+  return dayjs.utc(val).format('YYYY-MM-DD HH:mm:ssZ');
 });
 // override timestampz
-types.setTypeParser(1184, (val) => {
-  return dayjs(val).format('YYYY-MM-DD HH:mm:ssZ');
+types.setTypeParser(pgTypes.TIMESTAMPTZ, (val) => {
+  return dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
 });
+
+const parseFloatVal = (val: string) => {
+  return parseFloat(val);
+};
+
+// parse integer values
+defaults.parseInt8 = true;
+
+// parse float values
+types.setTypeParser(pgTypes.FLOAT8, parseFloatVal);
+types.setTypeParser(pgTypes.NUMERIC, parseFloatVal);
 
 const opMappingGen = {
   eq: '=',
@@ -1002,7 +1020,10 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
 
 type CustomKnex = Knex;
 
-function CustomKnex(arg: string | Knex.Config<any> | any): CustomKnex {
+function CustomKnex(
+  arg: string | Knex.Config<any> | any,
+  extDb?: any,
+): CustomKnex {
   // sqlite does not support inserting default values and knex fires a warning without this flag
   if (arg?.client === 'sqlite3') {
     arg.useNullAsDefault = true;
@@ -1046,6 +1067,14 @@ function CustomKnex(arg: string | Knex.Config<any> | any): CustomKnex {
       value: () => {
         return arg?.searchPath?.[0];
       },
+    },
+    extDb: {
+      enumerable: true,
+      value: extDb,
+    },
+    isExternal: {
+      enumerable: false,
+      value: !!extDb && process.env.NC_DISABLE_MUX !== 'true',
     },
   });
 

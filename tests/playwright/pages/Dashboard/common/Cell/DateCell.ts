@@ -22,7 +22,7 @@ export class DateCellPageObject extends BasePage {
   }
 
   async verify({ index, columnHeader, date }: { index: number; columnHeader: string; date: string }) {
-    const cell = await this.get({ index, columnHeader });
+    const cell = this.get({ index, columnHeader });
     await cell.scrollIntoViewIfNeeded();
     await expect(cell.locator(`[title="${date}"]`)).toBeVisible();
   }

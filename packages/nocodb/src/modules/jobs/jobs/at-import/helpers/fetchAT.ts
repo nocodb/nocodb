@@ -4,9 +4,14 @@ const info: any = {
   initialized: false,
 };
 
-async function initialize(shareId) {
+async function initialize(shareId, appId?: string) {
   info.cookie = '';
-  const url = `https://airtable.com/${shareId}`;
+
+  if (!appId || appId === '') {
+    appId = null;
+  }
+
+  const url = `https://airtable.com/${appId ? `${appId}/` : ''}${shareId}`;
 
   try {
     const hreq = await axios
@@ -48,7 +53,9 @@ async function initialize(shareId) {
     info.headers = JSON.parse(
       hreq.match(/(?<=var headers =)(.*)(?=;)/g)[0].trim(),
     );
-    info.link = unicodeToChar(hreq.match(/(?<=fetch\(")(.*)(?=")/g)[0].trim());
+    info.link = unicodeToChar(
+      hreq.match(/(?<=fetch\(")(\\.*)(?=")/g)[0].trim(),
+    );
     info.baseInfo = decodeURIComponent(info.link)
       .match(/{(.*)}/g)[0]
       .split('&')

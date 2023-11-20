@@ -1,9 +1,9 @@
 import { UITypes } from 'nocodb-sdk';
-import { MetaTable } from '../utils/globals';
-import Column from '../models/Column';
-import Filter from '../models/Filter';
-import type { MetaService } from '../meta/meta.service';
+import type { MetaService } from '~/meta/meta.service';
 import type { NcUpgraderCtx } from './NcUpgrader';
+import { MetaTable } from '~/utils/globals';
+import Column from '~/models/Column';
+import Filter from '~/models/Filter';
 
 // as of 0.105.3, year, time, date and datetime filters include `is like` and `is not like` which are not practical
 // `removeLikeAndNlikeFilters` in this upgrader is simply to remove them

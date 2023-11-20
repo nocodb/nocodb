@@ -1,0 +1,50 @@
+name: pre-build-for-playwright
+
+on:
+  workflow_call:
+  
+jobs:
+  playwright:
+    runs-on: [self-hosted, v3]
+    timeout-minutes: 100
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.14.0
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: remove use-node-version from .npmrc 
+        run:  sed -i '/^use-node-version/d' .npmrc                   
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV          
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - name: install dependencies
+        run: pnpm bootstrap
+      - name: build frontend (nc-gui)
+        working-directory: ./packages/nc-gui
+        run: |
+          pnpm run build
+        timeout-minutes: 20
+      - name: upload frontend (nc-gui) build to artf server
+        working-directory: ./
+        run: |
+          # expects the variables to be available in runner context.
+          FILE="$(echo ${GITHUB_REPOSITORY} | sed "s,/,-,g")-${GITHUB_RUN_ID}.zip"
+          cd ./packages/nc-gui/
+          zip -r ${FILE} .output || echo "UI build directory does not exists" >&2
+          echo "uploading  ${FILE} to http://65.21.27.147/upload/${FILE}"
+          time curl -T "${FILE}" http://65.21.27.147/upload/${FILE} -n
+          

@@ -13,6 +13,7 @@ export const replaceUrlsWithLink = (text: string): boolean | string => {
     a.textContent = url
     a.setAttribute('href', url)
     a.setAttribute('target', '_blank')
+    a.setAttribute('rel', 'noopener,noreferrer')
     return a.outerHTML
   })
 
@@ -25,5 +26,5 @@ export const isValidURL = (str: string) => {
 
 export const openLink = (path: string, baseURL?: string, target = '_blank') => {
   const url = new URL(path, baseURL)
-  window.open(url.href, target)
+  window.open(url.href, target, 'noopener,noreferrer')
 }

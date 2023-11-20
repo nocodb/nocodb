@@ -1,4 +1,6 @@
+import { computed } from 'vue'
 import dayjs from 'dayjs'
+import type { Ref } from 'vue'
 import type { MaybeRef } from '@vueuse/core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
@@ -6,12 +8,13 @@ import { parse } from 'papaparse'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import convertCellData from './convertCellData'
-import type { Nullable, Row } from '~/lib'
+import type { Nullable, Row } from '#imports'
 import {
   dateFormats,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
   isDrawerOrModalExist,
+  isExpandedCellInputExist,
   isMac,
   isTypableInputColumn,
   message,
@@ -19,13 +22,12 @@ import {
   ref,
   timeFormats,
   unref,
+  useBase,
   useCopy,
   useEventListener,
   useGlobal,
   useI18n,
   useMetas,
-  useProject,
-  useUIPermission,
 } from '#imports'
 
 const MAIN_MOUSE_PRESSED = 0
@@ -39,6 +41,7 @@ export function useMultiSelect(
   data: MaybeRef<Row[]>,
   _editEnabled: MaybeRef<boolean>,
   isPkAvail: MaybeRef<boolean | undefined>,
+  contextMenu: Ref<boolean>,
   clearCell: Function,
   clearSelectedRangeOfCells: Function,
   makeEditable: Function,
@@ -46,6 +49,7 @@ export function useMultiSelect(
   keyEventHandler?: Function,
   syncCellData?: Function,
   bulkUpdateRows?: Function,
+  fillHandle?: MaybeRef<HTMLElement | undefined>,
 ) {
   const meta = ref(_meta)
 
@@ -57,29 +61,33 @@ export function useMultiSelect(
 
   const { appInfo } = useGlobal()
 
-  const { isMysql } = useProject()
+  const { isMysql, isPg } = useBase()
 
   const editEnabled = ref(_editEnabled)
 
-  let isMouseDown = $ref(false)
+  const isMouseDown = ref(false)
+
+  const isFillMode = ref(false)
 
   const selectedRange = reactive(new CellRange())
 
+  const fillRange = reactive(new CellRange())
+
   const activeCell = reactive<Nullable<Cell>>({ row: null, col: null })
 
-  const columnLength = $computed(() => unref(fields)?.length)
+  const columnLength = computed(() => unref(fields)?.length)
 
   const isCellActive = computed(
     () => !(activeCell.row === null || activeCell.col === null || isNaN(activeCell.row) || isNaN(activeCell.col)),
   )
 
-  const { isUIAllowed } = useUIPermission()
-  const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
-
   function makeActive(row: number, col: number) {
     if (activeCell.row === row && activeCell.col === col) {
       return
     }
+
+    // disable edit mode if active cell is changed
+    editEnabled.value = false
 
     activeCell.row = row
     activeCell.col = col
@@ -108,6 +116,8 @@ export function useMultiSelect(
 
     if (typeof textToCopy === 'object') {
       textToCopy = JSON.stringify(textToCopy)
+    } else {
+      textToCopy = textToCopy.toString()
     }
 
     if (columnObj.uidt === UITypes.Formula) {
@@ -118,12 +128,12 @@ export function useMultiSelect(
       })
     }
 
-    if (columnObj.uidt === UITypes.DateTime || columnObj.uidt === UITypes.Time) {
+    if (columnObj.uidt === UITypes.DateTime) {
       // remove `"`
       // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
       textToCopy = textToCopy.replace(/["']/g, '')
 
-      const isMySQL = isMysql(columnObj.base_id)
+      const isMySQL = isMysql(columnObj.source_id)
 
       let d = dayjs(textToCopy)
 
@@ -137,40 +147,78 @@ export function useMultiSelect(
       // users can change the datetime format in UI
       // `textToCopy` would be always in YYYY-MM-DD HH:mm:ss(Z / +xx:yy) format
       // therefore, here we reformat to the correct datetime format based on the meta
-      textToCopy = d.format(
-        columnObj.uidt === UITypes.DateTime ? constructDateTimeFormat(columnObj) : constructTimeFormat(columnObj),
-      )
+      textToCopy = d.format(constructDateTimeFormat(columnObj))
 
       if (!dayjs(textToCopy).isValid()) {
-        // return empty string for invalid datetime / time
+        // return empty string for invalid datetime
         return ''
       }
     }
 
+    if (columnObj.uidt === UITypes.Time) {
+      // remove `"`
+      // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
+      textToCopy = textToCopy.replace(/["']/g, '')
+
+      const isMySQL = isMysql(columnObj.source_id)
+      const isPostgres = isPg(columnObj.source_id)
+
+      let d = dayjs(textToCopy)
+
+      if (!d.isValid()) {
+        // insert a datetime value, copy the value without refreshing
+        // e.g. textToCopy = 2023-05-12T03:49:25.000Z
+        // feed custom parse format
+        d = dayjs(textToCopy, isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
+      }
+
+      if (!d.isValid()) {
+        // MySQL and Postgres store time in HH:mm:ss format so we need to feed custom parse format
+        d = isMySQL || isPostgres ? dayjs(textToCopy, 'HH:mm:ss') : dayjs(textToCopy)
+      }
+
+      if (!d.isValid()) {
+        // return empty string for invalid time
+        return ''
+      }
+
+      textToCopy = d.format(constructTimeFormat(columnObj))
+    }
+
     if (columnObj.uidt === UITypes.LongText) {
-      textToCopy = `"${textToCopy.replace(/\"/g, '""')}"`
+      textToCopy = `"${textToCopy.replace(/"/g, '\\"')}"`
     }
 
     return textToCopy
   }
 
-  const copyTable = async (rows: Row[], cols: ColumnType[]) => {
-    let copyHTML = '<table>'
-    let copyPlainText = ''
+  const serializeRange = (rows: Row[], cols: ColumnType[]) => {
+    let html = '<table>'
+    let text = ''
+    const json: string[][] = []
 
     rows.forEach((row, i) => {
       let copyRow = '<tr>'
+      const jsonRow: string[] = []
       cols.forEach((col, i) => {
         const value = valueToCopy(row, col)
         copyRow += `<td>${value}</td>`
-        copyPlainText = `${copyPlainText}${value}${cols.length - 1 !== i ? '\t' : ''}`
+        text = `${text}${value}${cols.length - 1 !== i ? '\t' : ''}`
+        jsonRow.push(value)
       })
-      copyHTML += `${copyRow}</tr>`
+      html += `${copyRow}</tr>`
       if (rows.length - 1 !== i) {
-        copyPlainText = `${copyPlainText}\n`
+        text = `${text}\n`
       }
+      json.push(jsonRow)
     })
-    copyHTML += '</table>'
+    html += '</table>'
+
+    return { html, text, json }
+  }
+
+  const copyTable = async (rows: Row[], cols: ColumnType[]) => {
+    const { html: copyHTML, text: copyPlainText } = serializeRange(rows, cols)
 
     const blobHTML = new Blob([copyHTML], { type: 'text/html' })
     const blobPlainText = new Blob([copyPlainText], { type: 'text/plain' })
@@ -207,28 +255,85 @@ export function useMultiSelect(
     }
   }
 
-  function handleMouseOver(row: number, col: number) {
-    if (!isMouseDown) {
-      return
-    }
-    selectedRange.endRange({ row, col })
-  }
-
   function isCellSelected(row: number, col: number) {
     if (activeCell.col === col && activeCell.row === row) {
       return true
     }
 
-    if (selectedRange.start === null || selectedRange.end === null) {
+    return selectedRange.isCellInRange({ row, col })
+  }
+
+  function isCellInFillRange(row: number, col: number) {
+    if (fillRange._start === null || fillRange._end === null) {
       return false
     }
 
-    return (
-      col >= selectedRange.start.col &&
-      col <= selectedRange.end.col &&
-      row >= selectedRange.start.row &&
-      row <= selectedRange.end.row
-    )
+    if (selectedRange.isCellInRange({ row, col })) {
+      return false
+    }
+
+    return fillRange.isCellInRange({ row, col })
+  }
+
+  const isPasteable = (row?: Row, col?: ColumnType, showInfo = false) => {
+    if (!row || !col) {
+      if (showInfo) {
+        message.info('Please select a cell to paste')
+      }
+      return false
+    }
+
+    // skip pasting virtual columns (including LTAR columns for now) and system columns
+    if (isVirtualCol(col) || isSystemColumn(col)) {
+      if (showInfo) {
+        message.info(t('msg.info.pasteNotSupported'))
+      }
+      return false
+    }
+
+    // skip pasting auto increment columns
+    if (col.ai) {
+      if (showInfo) {
+        message.info(t('msg.info.autoIncFieldNotEditable'))
+      }
+      return false
+    }
+
+    // skip pasting primary key columns
+    if (col.pk && !row.rowMeta.new) {
+      if (showInfo) {
+        message.info(t('msg.info.editingPKnotSupported'))
+      }
+      return false
+    }
+
+    return true
+  }
+
+  function handleMouseOver(event: MouseEvent, row: number, col: number) {
+    if (isFillMode.value) {
+      const rw = unref(data)[row]
+
+      if (!selectedRange._start || !selectedRange._end) return
+
+      // fill is not supported for new rows yet
+      if (rw.rowMeta.new) return
+
+      fillRange.endRange({ row, col: selectedRange._end.col })
+      scrollToCell?.(row, col)
+      return
+    }
+
+    if (!isMouseDown.value) {
+      return
+    }
+
+    // extend the selection and scroll to the cell
+    selectedRange.endRange({ row, col })
+    scrollToCell?.(row, col)
+
+    // avoid selecting text
+    event.preventDefault()
   }
 
   function handleMouseDown(event: MouseEvent, row: number, col: number) {
@@ -240,11 +345,26 @@ export function useMultiSelect(
       return
     }
 
-    isMouseDown = true
+    // if edit is enabled, don't start the selection (some cells shrink after edit mode, which causes the selection to expand if flag is set)
+    if (!editEnabled.value) isMouseDown.value = true
 
-    // if shift key is pressed, don't restart the selection
-    if (event.shiftKey) return
+    contextMenu.value = false
 
+    // avoid text selection
+    event.preventDefault()
+
+    // if shift key is pressed, extend the selection
+    if (event.shiftKey) {
+      // if shift key is pressed, don't restart the selection (unless there is no active cell)
+      if (activeCell.col === null || activeCell.row === null) {
+        selectedRange.startRange({ row, col })
+      }
+
+      selectedRange.endRange({ row, col })
+      return
+    }
+
+    // start a new selection
     selectedRange.startRange({ row, col })
 
     if (activeCell.row !== row || activeCell.col !== col) {
@@ -255,42 +375,108 @@ export function useMultiSelect(
   }
 
   const handleCellClick = (event: MouseEvent, row: number, col: number) => {
-    isMouseDown = true
-
-    // if shift key is pressed, prevent selecting text
-    if (event.shiftKey && !unref(editEnabled)) {
-      event.preventDefault()
-    }
-
-    // if shift key is pressed, don't restart the selection (unless there is no active cell)
+    // if shift key is pressed, don't change the active cell (unless there is no active cell)
     if (!event.shiftKey || activeCell.col === null || activeCell.row === null) {
-      selectedRange.startRange({ row, col })
       makeActive(row, col)
     }
 
-    selectedRange.endRange({ row, col })
     scrollToCell?.(row, col)
-    isMouseDown = false
   }
 
-  const handleMouseUp = (event: MouseEvent) => {
-    if (isMouseDown) {
-      isMouseDown = false
+  const handleMouseUp = (_event: MouseEvent) => {
+    if (isFillMode.value) {
+      isFillMode.value = false
 
+      if (fillRange._start === null || fillRange._end === null) return
+
+      if (selectedRange._start !== null && selectedRange._end !== null) {
+        const tempActiveCell = { row: selectedRange._start.row, col: selectedRange._start.col }
+
+        const cprows = unref(data).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy
+        const cpcols = unref(fields).slice(selectedRange.start.col, selectedRange.end.col + 1) // slice the selected cols for copy
+
+        const rawMatrix = serializeRange(cprows, cpcols).json
+
+        const fillDirection = fillRange._start.row <= fillRange._end.row ? 1 : -1
+
+        let fillIndex = fillDirection === 1 ? 0 : rawMatrix.length - 1
+
+        const rowsToPaste: Row[] = []
+        const propsToPaste: string[] = []
+
+        for (
+          let row = fillRange._start.row;
+          fillDirection === 1 ? row <= fillRange._end.row : row >= fillRange._end.row;
+          row += fillDirection
+        ) {
+          if (isCellSelected(row, selectedRange.start.col)) {
+            continue
+          }
+
+          const rowObj = unref(data)[row]
+
+          let pasteIndex = 0
+
+          for (let col = fillRange.start.col; col <= fillRange.end.col; col++) {
+            const colObj = unref(fields)[col]
+
+            if (!isPasteable(rowObj, colObj)) {
+              pasteIndex++
+              continue
+            }
+
+            propsToPaste.push(colObj.title!)
+
+            const pasteValue = convertCellData(
+              {
+                value: rawMatrix[fillIndex][pasteIndex],
+                to: colObj.uidt as UITypes,
+                column: colObj,
+                appInfo: unref(appInfo),
+              },
+              isMysql(meta.value?.source_id),
+              true,
+            )
+
+            if (pasteValue !== undefined) {
+              rowObj.row[colObj.title!] = pasteValue
+              rowsToPaste.push(rowObj)
+            }
+
+            pasteIndex++
+          }
+
+          if (fillDirection === 1) {
+            fillIndex = fillIndex < rawMatrix.length - 1 ? fillIndex + 1 : 0
+          } else {
+            fillIndex = fillIndex >= 1 ? fillIndex - 1 : rawMatrix.length - 1
+          }
+        }
+
+        bulkUpdateRows?.(rowsToPaste, propsToPaste).then(() => {
+          if (fillRange._start === null || fillRange._end === null) return
+          selectedRange.startRange(tempActiveCell)
+          selectedRange.endRange(fillRange._end)
+          makeActive(tempActiveCell.row, tempActiveCell.col)
+          fillRange.clear()
+        })
+      } else {
+        fillRange.clear()
+      }
+      return
+    }
+
+    if (isMouseDown.value) {
+      isMouseDown.value = false
       // timeout is needed, because we want to set cell as active AFTER all the child's click handler's called
       // this is needed e.g. for date field edit, where two clicks had to be done - one to select cell, and another one to open date dropdown
       setTimeout(() => {
-        // if shift key is pressed, don't change the active cell
-        if (event.shiftKey) return
         if (selectedRange._start) {
-          makeActive(selectedRange._start.row, selectedRange._start.col)
+          if (activeCell.row !== selectedRange._start.row || activeCell.col !== selectedRange._start.col) {
+            makeActive(selectedRange._start.row, selectedRange._start.col)
+          }
         }
       }, 0)
-
-      // if the editEnabled is false, prevent selecting text on mouseUp
-      if (!unref(editEnabled)) {
-        event.preventDefault()
-      }
     }
   }
 
@@ -318,11 +504,11 @@ export function useMultiSelect(
             editEnabled.value = false
           } else if (activeCell.row > 0) {
             activeCell.row--
-            activeCell.col = unref(columnLength) - 1
+            activeCell.col = unref(columnLength.value) - 1
             editEnabled.value = false
           }
         } else {
-          if (activeCell.col < unref(columnLength) - 1) {
+          if (activeCell.col < unref(columnLength.value) - 1) {
             activeCell.col++
             editEnabled.value = false
           } else if (activeCell.row < unref(data).length - 1) {
@@ -342,6 +528,7 @@ export function useMultiSelect(
         break
       /** on delete key press clear cell */
       case 'Delete':
+      case 'Backspace':
         e.preventDefault()
 
         if (selectedRange.isSingleCell()) {
@@ -361,10 +548,10 @@ export function useMultiSelect(
             editEnabled.value = false
             selectedRange.endRange({
               row: selectedRange._end?.row ?? activeCell.row,
-              col: unref(columnLength) - 1,
+              col: unref(columnLength.value) - 1,
             })
             scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
-          } else if ((selectedRange._end?.col ?? activeCell.col) < unref(columnLength) - 1) {
+          } else if ((selectedRange._end?.col ?? activeCell.col) < unref(columnLength.value) - 1) {
             editEnabled.value = false
             selectedRange.endRange({
               row: selectedRange._end?.row ?? activeCell.row,
@@ -375,7 +562,7 @@ export function useMultiSelect(
         } else {
           selectedRange.clear()
 
-          if (activeCell.col < unref(columnLength) - 1) {
+          if (activeCell.col < unref(columnLength.value) - 1) {
             activeCell.col++
             selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
             scrollToCell?.()
@@ -491,9 +678,17 @@ export function useMultiSelect(
               // select all - ctrl/cmd +a
               case 65:
                 selectedRange.startRange({ row: 0, col: 0 })
-                selectedRange.endRange({ row: unref(data).length - 1, col: unref(columnLength) - 1 })
+                selectedRange.endRange({ row: unref(data).length - 1, col: unref(columnLength.value) - 1 })
                 break
             }
+          }
+
+          // Handle escape
+          if (e.key === 'Escape') {
+            selectedRange.clear()
+
+            activeCell.col = null
+            activeCell.row = null
           }
 
           if (unref(editEnabled) || e.ctrlKey || e.altKey || e.metaKey) {
@@ -520,43 +715,8 @@ export function useMultiSelect(
 
   const clearSelectedRange = selectedRange.clear.bind(selectedRange)
 
-  const isPasteable = (row?: Row, col?: ColumnType, showInfo = false) => {
-    if (!row || !col) {
-      if (showInfo) {
-        message.info('Please select a cell to paste')
-      }
-      return false
-    }
-
-    // skip pasting virtual columns (including LTAR columns for now) and system columns
-    if (isVirtualCol(col) || isSystemColumn(col)) {
-      if (showInfo) {
-        message.info(t('msg.info.pasteNotSupported'))
-      }
-      return false
-    }
-
-    // skip pasting auto increment columns
-    if (col.ai) {
-      if (showInfo) {
-        message.info(t('msg.info.autoIncFieldNotEditable'))
-      }
-      return false
-    }
-
-    // skip pasting primary key columns
-    if (col.pk && !row.rowMeta.new) {
-      if (showInfo) {
-        message.info(t('msg.info.editingPKnotSupported'))
-      }
-      return false
-    }
-
-    return true
-  }
-
   const handlePaste = async (e: ClipboardEvent) => {
-    if (isDrawerOrModalExist()) {
+    if (isDrawerOrModalExist() || isExpandedCellInputExist()) {
       return
     }
 
@@ -574,12 +734,13 @@ export function useMultiSelect(
 
     e.preventDefault()
 
+    // Replace \" with " in clipboard data
     const clipboardData = e.clipboardData?.getData('text/plain') || ''
 
     try {
       if (clipboardData?.includes('\n') || clipboardData?.includes('\t')) {
         // if the clipboard data contains new line or tab, then it is a matrix or LongText
-        const parsedClipboard = parse(clipboardData, { delimiter: '\t' })
+        const parsedClipboard = parse(clipboardData, { delimiter: '\t', escapeChar: '\\' })
 
         if (parsedClipboard.errors.length > 0) {
           throw new Error(parsedClipboard.errors[0].message)
@@ -620,7 +781,7 @@ export function useMultiSelect(
                 column: pasteCol,
                 appInfo: unref(appInfo),
               },
-              isMysql(meta.value?.base_id),
+              isMysql(meta.value?.source_id),
               true,
             )
 
@@ -655,7 +816,7 @@ export function useMultiSelect(
                 column: columnObj,
                 appInfo: unref(appInfo),
               },
-              isMysql(meta.value?.base_id),
+              isMysql(meta.value?.source_id),
             )
 
             const foreignKeyColumn = meta.value?.columns?.find(
@@ -682,7 +843,7 @@ export function useMultiSelect(
               column: columnObj,
               appInfo: unref(appInfo),
             },
-            isMysql(meta.value?.base_id),
+            isMysql(meta.value?.source_id),
           )
 
           if (pasteValue !== undefined) {
@@ -723,7 +884,7 @@ export function useMultiSelect(
                   column: col,
                   appInfo: unref(appInfo),
                 },
-                isMysql(meta.value?.base_id),
+                isMysql(meta.value?.source_id),
                 true,
               )
 
@@ -737,13 +898,31 @@ export function useMultiSelect(
         }
       }
     } catch (error: any) {
+      console.error(error)
       message.error(await extractSdkResponseErrorMsg(error))
     }
+  }
+
+  function fillHandleMouseDown(event: MouseEvent) {
+    if (event?.button !== MAIN_MOUSE_PRESSED) {
+      return
+    }
+
+    isFillMode.value = true
+
+    if (selectedRange._start && selectedRange._end) {
+      fillRange.startRange({ row: selectedRange._start?.row, col: selectedRange._start.col })
+      fillRange.endRange({ row: selectedRange._end?.row, col: selectedRange._end.col })
+    }
+
+    event.preventDefault()
   }
 
   useEventListener(document, 'keydown', handleKeyDown)
   useEventListener(document, 'mouseup', handleMouseUp)
   useEventListener(document, 'paste', handlePaste)
+
+  useEventListener(fillHandle, 'mousedown', fillHandleMouseDown)
 
   return {
     isCellActive,
@@ -757,5 +936,8 @@ export function useMultiSelect(
     resetSelectedRange,
     selectedRange,
     makeActive,
+    isCellInFillRange,
+    isMouseDown,
+    isFillMode,
   }
 }

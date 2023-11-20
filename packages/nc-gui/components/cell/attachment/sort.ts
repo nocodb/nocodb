@@ -10,18 +10,18 @@ export function useSortable(
   updateModelValue: (data: string | Record<string, any>[]) => void,
   isReadonly: MaybeRef<boolean> = false,
 ) {
-  let dragging = $ref(false)
+  const dragging = ref(false)
 
   function onSortStart(evt: SortableEvent) {
     evt.stopImmediatePropagation()
     evt.preventDefault()
-    dragging = true
+    dragging.value = true
   }
 
   async function onSortEnd(evt: SortableEvent) {
     evt.stopImmediatePropagation()
     evt.preventDefault()
-    dragging = false
+    dragging.value = false
 
     const _items = unref(items)
 
@@ -59,7 +59,7 @@ export function useSortable(
   })
 
   return {
-    dragging: $$(dragging),
+    dragging,
     initSortable,
   }
 }

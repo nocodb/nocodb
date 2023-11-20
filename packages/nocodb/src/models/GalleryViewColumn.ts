@@ -1,9 +1,9 @@
-import Noco from '../Noco';
-import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../helpers/extractProps';
-import View from './View';
 import type { BoolType } from 'nocodb-sdk';
+import View from '~/models/View';
+import Noco from '~/Noco';
+import NocoCache from '~/cache/NocoCache';
+import { extractProps } from '~/helpers/extractProps';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 
 export default class GalleryViewColumn {
   id: string;
@@ -13,8 +13,8 @@ export default class GalleryViewColumn {
 
   fk_view_id: string;
   fk_column_id: string;
-  project_id?: string;
   base_id?: string;
+  source_id?: string;
 
   constructor(data: GalleryViewColumn) {
     Object.assign(this, data);
@@ -49,8 +49,8 @@ export default class GalleryViewColumn {
       'fk_view_id',
       'fk_column_id',
       'show',
-      'project_id',
       'base_id',
+      'source_id',
     ]);
 
     insertObj.order = await ncMeta.metaGetNextOrder(
@@ -60,10 +60,10 @@ export default class GalleryViewColumn {
       },
     );
 
-    if (!(column.project_id && column.base_id)) {
+    if (!(column.base_id && column.source_id)) {
       const viewRef = await View.get(column.fk_view_id, ncMeta);
-      insertObj.project_id = viewRef.project_id;
       insertObj.base_id = viewRef.base_id;
+      insertObj.source_id = viewRef.source_id;
     }
 
     const { id, fk_column_id } = await ncMeta.metaInsert2(
@@ -89,6 +89,15 @@ export default class GalleryViewColumn {
         [column.fk_view_id],
         `${CacheScope.GALLERY_VIEW_COLUMN}:${id}`,
       );
+
+    // on new view column, delete any optimised single query cache
+    {
+      const view = await View.get(column.fk_view_id, ncMeta);
+      await NocoCache.delAll(
+        CacheScope.SINGLE_QUERY,
+        `${view.fk_model_id}:${view.id}:*`,
+      );
+    }
 
     return this.get(id, ncMeta);
   }

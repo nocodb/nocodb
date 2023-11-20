@@ -1,4 +1,6 @@
-module.exports = {
+const { DOCKER_DB_HOST, DOCKER_DB_PORT } = process.env;
+
+export default {
   title: 'default',
   envs: {
     _noco: {
@@ -6,8 +8,8 @@ module.exports = {
         {
           client: 'mysql2',
           connection: {
-            host: process.env.DOCKER_DB_HOST || 'localhost',
-            port: process.env.DOCKER_DB_PORT || 3306,
+            host: DOCKER_DB_HOST || 'localhost',
+            port: DOCKER_DB_PORT || 3306,
             user: 'root',
             password: 'password',
             database: 'default_dev',

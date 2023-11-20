@@ -1,110 +1,110 @@
-Country,City List
-Afghanistan,Kabul
-Algeria,"Batna, Bchar, Skikda"
-American Samoa,Tafuna
-Angola,"Benguela, Namibe"
-Anguilla,South Hill
-Argentina,"Almirante Brown, Avellaneda, Baha Blanca, Crdoba, Escobar, Ezeiza, La Plata, Merlo, Quilmes, San Miguel de Tucumn, Santa F, Tandil, Vicente Lpez"
-Armenia,Yerevan
-Australia,Woodridge
-Austria,"Graz, Linz, Salzburg"
-Azerbaijan,"Baku, Sumqayit"
-Bahrain,al-Manama
-Bangladesh,"Dhaka, Jamalpur, Tangail"
-Belarus,"Mogiljov, Molodetno"
-Bolivia,"El Alto, Sucre"
-Brazil,"Alvorada, Angra dos Reis, Anpolis, Aparecida de Goinia, Araatuba, Bag, Belm, Blumenau, Boa Vista, Braslia, Goinia, Guaruj, guas Lindas de Gois, Ibirit, Juazeiro do Norte, Juiz de Fora, Luzinia, Maring, Po, Poos de Caldas, Rio Claro, Santa Brbara dOeste, Santo Andr, So Bernardo do Campo, So Leopoldo"
-Brunei,Bandar Seri Begawan
-Bulgaria,"Ruse, Stara Zagora"
-Cambodia,"Battambang, Phnom Penh"
-Cameroon,"Bamenda, Yaound"
-Canada,"Gatineau, Halifax, Lethbridge, London, Oshawa, Richmond Hill, Vancouver"
-Chad,NDjamna
-Chile,"Antofagasta, Coquimbo, Rancagua"
-China,"Baicheng, Baiyin, Binzhou, Changzhou, Datong, Daxian, Dongying, Emeishan, Enshi, Ezhou, Fuyu, Fuzhou, Haining, Hami, Hohhot, Huaian, Jinchang, Jining, Jinzhou, Junan, Korla, Laiwu, Laohekou, Lengshuijiang, Leshan"
-Colombia,"Buenaventura, Dos Quebradas, Florencia, Pereira, Sincelejo, Sogamoso"
-"Congo, The Democratic Republic of the","Lubumbashi, Mwene-Ditu"
-Czech Republic,Olomouc
-Dominican Republic,"La Romana, San Felipe de Puerto Plata, Santiago de los Caballeros"
-Ecuador,"Loja, Portoviejo, Robamba"
-Egypt,"Bilbays, Idfu, Mit Ghamr, Qalyub, Sawhaj, Shubra al-Khayma"
-Estonia,Tartu
-Ethiopia,Addis Abeba
-Faroe Islands,Trshavn
-Finland,Oulu
-France,"Brest, Le Mans, Toulon, Toulouse"
-French Guiana,Cayenne
-French Polynesia,"Faaa, Papeete"
-Gambia,Banjul
-Germany,"Duisburg, Erlangen, Halle/Saale, Mannheim, Saarbrcken, Siegen, Witten"
-Greece,"Athenai, Patras"
-Greenland,Nuuk
-Holy See (Vatican City State),Citt del Vaticano
-Hong Kong,Kowloon and New Kowloon
-Hungary,Szkesfehrvr
-India,"Adoni, Ahmadnagar, Allappuzha (Alleppey), Ambattur, Amroha, Balurghat, Berhampore (Baharampur), Bhavnagar, Bhilwara, Bhimavaram, Bhopal, Bhusawal, Bijapur, Chandrapur, Chapra, Dhule (Dhulia), Etawah, Firozabad, Gandhinagar, Gulbarga, Haldia, Halisahar, Hoshiarpur, Hubli-Dharwad, Jaipur"
-Indonesia,"Cianjur, Ciomas, Ciparay, Gorontalo, Jakarta, Lhokseumawe, Madiun, Pangkal Pinang, Pemalang, Pontianak, Probolinggo, Purwakarta, Surakarta, Tegal"
-Iran,"Arak, Esfahan, Kermanshah, Najafabad, Qomsheh, Shahr-e Kord, Sirjan, Tabriz"
-Iraq,Mosul
-Israel,"Ashdod, Ashqelon, Bat Yam, Tel Aviv-Jaffa"
-Italy,"Alessandria, Bergamo, Brescia, Brindisi, Livorno, Syrakusa, Udine"
-Japan,"Akishima, Fukuyama, Higashiosaka, Hino, Hiroshima, Isesaki, Iwaki, Iwakuni, Iwatsuki, Izumisano, Kakamigahara, Kamakura, Kanazawa, Koriyama, Kurashiki, Kuwana, Matsue, Miyakonojo, Nagareyama, Okayama, Okinawa, Omiya, Onomichi, Otsu, Sagamihara"
-Kazakstan,"Pavlodar, Zhezqazghan"
-Kenya,"Kisumu, Nyeri"
-Kuwait,Jalib al-Shuyukh
-Latvia,"Daugavpils, Liepaja"
-Liechtenstein,Vaduz
-Lithuania,Vilnius
-Madagascar,Mahajanga
-Malawi,Lilongwe
-Malaysia,"Ipoh, Kuching, Sungai Petani"
-Mexico,"Acua, Allende, Atlixco, Carmen, Celaya, Coacalco de Berriozbal, Coatzacoalcos, Cuauhtmoc, Cuautla, Cuernavaca, El Fuerte, Guadalajara, Hidalgo, Huejutla de Reyes, Huixquilucan, Jos Azueta, Jurez, La Paz, Matamoros, Mexicali, Monclova, Nezahualcyotl, Pachuca de Soto, Salamanca, San Felipe del Progreso"
-Moldova,Chisinau
-Morocco,"Beni-Mellal, Nador, Sal"
-Mozambique,"Beira, Naala-Porto, Tete"
-Myanmar,"Monywa, Myingyan"
-Nauru,Yangor
-Nepal,Birgunj
-Netherlands,"Amersfoort, Apeldoorn, Ede, Emmen, s-Hertogenbosch"
-New Zealand,Hamilton
-Nigeria,"Benin City, Deba Habe, Effon-Alaiye, Ife, Ikerre, Ilorin, Kaduna, Ogbomosho, Ondo, Owo, Oyo, Sokoto, Zaria"
-North Korea,Pyongyang
-Oman,"Masqat, Salala"
-Pakistan,"Dadu, Mandi Bahauddin, Mardan, Okara, Shikarpur"
-Paraguay,"Asuncin, Ciudad del Este, San Lorenzo"
-Peru,"Callao, Hunuco, Lima, Sullana"
-Philippines,"Baybay, Bayugan, Bislig, Cabuyao, Cavite, Davao, Gingoog, Hagonoy, Iligan, Imus, Lapu-Lapu, Mandaluyong, Ozamis, Santa Rosa, Taguig, Talavera, Tanauan, Tanza, Tarlac, Tuguegarao"
-Poland,"Bydgoszcz, Czestochowa, Jastrzebie-Zdrj, Kalisz, Lublin, Plock, Tychy, Wroclaw"
-Puerto Rico,"Arecibo, Ponce"
-Romania,"Botosani, Bucuresti"
-Runion,Saint-Denis
-Russian Federation,"Atinsk, Balaiha, Dzerzinsk, Elista, Ivanovo, Jaroslavl, Jelets, Kaliningrad, Kamyin, Kirovo-Tepetsk, Kolpino, Korolev, Kurgan, Kursk, Lipetsk, Ljubertsy, Maikop, Moscow, Nabereznyje Telny, Niznekamsk, Novoterkassk, Pjatigorsk, Serpuhov, Smolensk, Syktyvkar"
-Saint Vincent and the Grenadines,Kingstown
-Saudi Arabia,"Abha, al-Hawiya, al-Qatif, Jedda, Tabuk"
-Senegal,Ziguinchor
-Slovakia,Bratislava
-South Africa,"Boksburg, Botshabelo, Chatsworth, Johannesburg, Kimberley, Klerksdorp, Newcastle, Paarl, Rustenburg, Soshanguve, Springs"
-South Korea,"Cheju, Kimchon, Naju, Tonghae, Uijongbu"
-Spain,"A Corua (La Corua), Donostia-San Sebastin, Gijn, Ourense (Orense), Santiago de Compostela"
-Sri Lanka,Jaffna
-Sudan,"al-Qadarif, Omdurman"
-Sweden,Malm
-Switzerland,"Basel, Bern, Lausanne"
-Taiwan,"Changhwa, Chiayi, Chungho, Fengshan, Hsichuh, Lungtan, Nantou, Tanshui, Touliu, Tsaotun"
-Tanzania,"Mwanza, Tabora, Zanzibar"
-Thailand,"Nakhon Sawan, Pak Kret, Songkhla"
-Tonga,Nukualofa
-Tunisia,Sousse
-Turkey,"Adana, Balikesir, Batman, Denizli, Eskisehir, Gaziantep, Inegl, Kilis, Ktahya, Osmaniye, Sivas, Sultanbeyli, Tarsus, Tokat, Usak"
-Turkmenistan,Ashgabat
-Tuvalu,Funafuti
-Ukraine,"Kamjanets-Podilskyi, Konotop, Mukateve, ostka, Simferopol, Sumy"
-United Arab Emirates,"Abu Dhabi, al-Ayn, Sharja"
-United Kingdom,"Bradford, Dundee, London, Southampton, Southend-on-Sea, Southport, Stockport, York"
-United States,"Akron, Arlington, Augusta-Richmond County, Aurora, Bellevue, Brockton, Cape Coral, Citrus Heights, Clarksville, Compton, Dallas, Dayton, El Monte, Fontana, Garden Grove, Garland, Grand Prairie, Greensboro, Joliet, Kansas City, Lancaster, Laredo, Lincoln, Manchester, Memphis"
-Venezuela,"Barcelona, Caracas, Cuman, Maracabo, Ocumare del Tuy, Valencia, Valle de la Pascua"
-Vietnam,"Cam Ranh, Haiphong, Hanoi, Nam Dinh, Nha Trang, Vinh"
-"Virgin Islands, U.S.",Charlotte Amalie
-Yemen,"Aden, Hodeida, Sanaa, Taizz"
-Yugoslavia,"Kragujevac, Novi Sad"
-Zambia,Kitwe
+Country,Cities
+Afghanistan,1
+Algeria,3
+American Samoa,1
+Angola,2
+Anguilla,1
+Argentina,13
+Armenia,1
+Australia,1
+Austria,3
+Azerbaijan,2
+Bahrain,1
+Bangladesh,3
+Belarus,2
+Bolivia,2
+Brazil,28
+Brunei,1
+Bulgaria,2
+Cambodia,2
+Cameroon,2
+Canada,7
+Chad,1
+Chile,3
+China,53
+Colombia,6
+"Congo, The Democratic Republic of the",2
+Czech Republic,1
+Dominican Republic,3
+Ecuador,3
+Egypt,6
+Estonia,1
+Ethiopia,1
+Faroe Islands,1
+Finland,1
+France,4
+French Guiana,1
+French Polynesia,2
+Gambia,1
+Germany,7
+Greece,2
+Greenland,1
+Holy See (Vatican City State),1
+Hong Kong,1
+Hungary,1
+India,60
+Indonesia,14
+Iran,8
+Iraq,1
+Israel,4
+Italy,7
+Japan,31
+Kazakstan,2
+Kenya,2
+Kuwait,1
+Latvia,2
+Liechtenstein,1
+Lithuania,1
+Madagascar,1
+Malawi,1
+Malaysia,3
+Mexico,30
+Moldova,1
+Morocco,3
+Mozambique,3
+Myanmar,2
+Nauru,1
+Nepal,1
+Netherlands,5
+New Zealand,1
+Nigeria,13
+North Korea,1
+Oman,2
+Pakistan,5
+Paraguay,3
+Peru,4
+Philippines,20
+Poland,8
+Puerto Rico,2
+Romania,2
+Runion,1
+Russian Federation,28
+Saint Vincent and the Grenadines,1
+Saudi Arabia,5
+Senegal,1
+Slovakia,1
+South Africa,11
+South Korea,5
+Spain,5
+Sri Lanka,1
+Sudan,2
+Sweden,1
+Switzerland,3
+Taiwan,10
+Tanzania,3
+Thailand,3
+Tonga,1
+Tunisia,1
+Turkey,15
+Turkmenistan,1
+Tuvalu,1
+Ukraine,6
+United Arab Emirates,3
+United Kingdom,8
+United States,35
+Venezuela,7
+Vietnam,6
+"Virgin Islands, U.S.",1
+Yemen,4
+Yugoslavia,2
+Zambia,1

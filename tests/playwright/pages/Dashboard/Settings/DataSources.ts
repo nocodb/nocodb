@@ -3,7 +3,7 @@ import { defaultBaseName } from '../../../constants';
 import BasePage from '../../Base';
 import { AclPage } from './Acl';
 import { SettingsErdPage } from './Erd';
-import { MetaDataPage } from './Metadata';
+import { MetaDataPage } from '../ProjectView/Metadata';
 
 export class DataSourcesPage extends BasePage {
   private readonly settings: SettingsPage;

@@ -4,10 +4,15 @@ import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 
 import { v4 as uuidv4 } from 'uuid';
-import Noco from '../Noco';
-import { genJwt } from './users/helpers';
-import { UsersService } from './users/users.service';
-import type { CreateUserDto } from '../controllers/auth.controller';
+import Noco from '~/Noco';
+import { genJwt } from '~/services/users/helpers';
+import { UsersService } from '~/services/users/users.service';
+
+export class CreateUserDto {
+  readonly username: string;
+  readonly email: string;
+  readonly password: string;
+}
 
 @Injectable()
 export class AuthService {
@@ -40,8 +45,8 @@ export class AuthService {
       email: _email,
       firstname,
       lastname,
-      token,
-      ignore_subscribe,
+      // token,
+      // ignore_subscribe,
     } = createUserDto as any;
 
     let { password } = createUserDto;
@@ -141,15 +146,7 @@ export class AuthService {
     //
     // user = (param.req as any).user;
 
-    // await Audit.insert({
-    //   op_type: 'AUTHENTICATION',
-    //   op_sub_type: 'SIGNUP',
-    //   user: user.email,
-    //   description: `signed up `,
-    //   ip: (param.req as any).clientIp,
-    // });
-
-    return this.login(user);
+    return await this.login(user);
   }
 
   async registerNewUserIfAllowed({
@@ -174,7 +171,7 @@ export class AuthService {
     //   // todo: update in nc_store
     //   // roles = 'owner,creator,editor'
     //   T.emit('evt', {
-    //     evt_type: 'project:invite',
+    //     evt_type: 'base:invite',
     //     count: 1,
     //   });
     // } else {

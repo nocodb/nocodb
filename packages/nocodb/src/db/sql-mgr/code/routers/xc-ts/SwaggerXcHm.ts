@@ -58,7 +58,7 @@ class SwaggerXcHm extends BaseRender {
         },
       ],
       paths: {
-        [`/nc/${this.ctx.project_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/has/${this.ctx._ctn}`]:
+        [`/nc/${this.ctx.base_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/has/${this.ctx._ctn}`]:
           {
             get: {
               tags: [`${this.ctx._tn}HasMany${this.ctx._ctn}`],
@@ -113,7 +113,7 @@ class SwaggerXcHm extends BaseRender {
               },
             },
           },
-        [`/nc/${this.ctx.project_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/{${this.ctx._tn}Id}/${this.ctx._ctn}`]:
+        [`/nc/${this.ctx.base_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/{${this.ctx._tn}Id}/${this.ctx._ctn}`]:
           {
             get: {
               tags: [`${this.ctx._tn}HasMany${this.ctx._ctn}`],
@@ -215,7 +215,7 @@ class SwaggerXcHm extends BaseRender {
               },
             },
           },
-        [`/nc/${this.ctx.project_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/{${this.ctx._tn}Id}/${this.ctx._ctn}/{${this.ctx._ctn}Id}`]:
+        [`/nc/${this.ctx.base_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/{${this.ctx._tn}Id}/${this.ctx._ctn}/{${this.ctx._ctn}Id}`]:
           {
             get: {
               tags: [`${this.ctx._tn}HasMany${this.ctx._ctn}`],
@@ -325,7 +325,7 @@ class SwaggerXcHm extends BaseRender {
               },
             },
           },
-        [`/nc/${this.ctx.project_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/{${this.ctx._tn}Id}/${this.ctx._ctn}/{${this.ctx._ctn}Id}/exists`]:
+        [`/nc/${this.ctx.base_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/{${this.ctx._tn}Id}/${this.ctx._ctn}/{${this.ctx._ctn}Id}/exists`]:
           {
             get: {
               tags: [`${this.ctx._tn}HasMany${this.ctx._ctn}`],
@@ -361,7 +361,7 @@ class SwaggerXcHm extends BaseRender {
               },
             },
           },
-        [`/nc/${this.ctx.project_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/{${this.ctx._tn}Id}/${this.ctx._ctn}/findOne`]:
+        [`/nc/${this.ctx.base_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/{${this.ctx._tn}Id}/${this.ctx._ctn}/findOne`]:
           {
             get: {
               tags: [`${this.ctx._tn}HasMany${this.ctx._ctn}`],
@@ -421,7 +421,7 @@ class SwaggerXcHm extends BaseRender {
               },
             },
           },
-        [`/nc/${this.ctx.project_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/{${this.ctx._tn}Id}/${this.ctx._ctn}/count`]:
+        [`/nc/${this.ctx.base_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/{${this.ctx._tn}Id}/${this.ctx._ctn}/count`]:
           {
             get: {
               tags: [`${this.ctx._tn}HasMany${this.ctx._ctn}`],

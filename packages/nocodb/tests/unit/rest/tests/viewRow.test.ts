@@ -1,9 +1,10 @@
 import 'mocha';
+// @ts-ignore
 import request from 'supertest';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import init from '../../init';
-import { createProject, createSakilaProject } from '../../factory/project';
+import { createProject, createSakilaProject } from '../../factory/base';
 import { createTable, getTable } from '../../factory/table';
 import { createView } from '../../factory/view';
 import {
@@ -22,75 +23,9 @@ import {
 import type { ColumnType } from 'nocodb-sdk';
 import type View from '../../../../src/models/View';
 import type Model from '../../../../src/models/Model';
-import type Project from '../../../../src/models/Project';
+import type Base from '~/models/Base';
 
 // Test case list
-// 1. Get view row list g
-// 2. Get view row list
-// 3. Get view row lis
-// 4. Get view row lis
-// 5. Get view data list with required columns g
-// 6. Get view data list with required column
-// 7. Get view data list with required column
-// 8. Get grouped view data list with required columns
-// 9. Get desc sorted table data list with required columns gallery
-// 10. Get desc sorted table data list with required columns form
-// 11. Get desc sorted table data list with required columns grid
-// 12. Get desc sorted table data list with required columns kanban
-// 13. Get asc sorted view data list with required columns gallery
-// 14. Get asc sorted view data list with required columns form
-// 15. Get asc sorted view data list with required columns grid
-// 16. Get asc sorted table data list with required columns kanban
-// 17. Get nested sorted filtered table data list with a lookup column gallery
-// 18. Get nested sorted filtered table data list with a lookup column grid
-// 19. Get nested sorted filtered table with nested fields data list with a rollup column in customer table vie
-// 20. Create table row grid
-// 21. Create table row gallery
-// 22. Create table row form
-// 23. Create table row kanban
-// 24. Create table row grid wrong grid id
-// 25. Create table row wrong gallery id
-// 26. Create table row wrong form id
-// 27. Create table row wrong kanban id
-// 28. Find one sorted data list with required columns gallery
-// 29. Find one sorted data list with required columns form
-// 30. Find one sorted data list with required columns grid
-// 31. Find one view sorted filtered view with nested fields data list with a rollup column in customer table GRID
-// 32. Groupby desc sorted and with rollup view data  list with required columns GRID
-// 33. Groupby desc sorted and with rollup view data  list with required columns FORM
-// 34. Groupby desc sorted and with rollup view data  list with required columns GALLERY
-// 35. Groupby desc sorted and with rollup view data  list with required columns GALLERY
-// 36. Groupby desc sorted and with rollup view data  list with required columns FORM
-// 37. Groupby desc sorted and with rollup view data  list with required columns GRID
-// 38. Count view data  list with required columns GRID
-// 39. Count view data  list with required columns FORM
-// 40. Count view data  list with required columns GALLERY
-// 41. Read view row GALLERY
-// 42. Read view row FORM
-// 43. Read view row GRID
-// 44. Update view row GALLERY
-// 45. Update view row GRID
-// 46. Update view row FORM
-// 47. Update view row with validation and invalid data GALLERY
-// 48. Update view row with validation and invalid data GRID
-// 49. Update view row with validation and invalid data FORM
-// 50. Update view row with validation and valid data GALLERY
-// 51. Update view row with validation and valid data GRID
-// 52. Update view row with validation and valid data FORM
-// 53. Delete view row GALLERY
-// 54. Delete view row GRID
-// 55. Delete view row FORM
-// 56. Delete view row with ltar foreign key constraint GALLERY
-// 57. Delete view row with ltar foreign key constraint GRID
-// 58. Delete view row with ltar foreign key constraint FORM
-// 59. Exist should be true view row when it exists GALLERY
-// 60. Exist should be true view row when it exists GRID
-// 61. Exist should be true view row when it exists FORM
-// 62. Exist should be false view row when it does not exist GALLERY
-// 63. Exist should be false view row when it does not exist GRID
-// 64. Exist should be false view row when it does not exist FORM
-// 65. Export csv GRID
-// 66. Export excel GRID
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
@@ -101,30 +36,73 @@ const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   return responseColumnsListStr === customerColumnsListStr;
 };
 
-function viewRowTests() {
-  let context;
-  // projects
-  let project: Project;
-  let sakilaProject: Project;
-  // models
-  let customerTable: Model;
-  let filmTable: Model;
-  // columns
-  let customerColumns;
-  let filmColumns;
-  // views
-  let customerGridView: View;
-  let customerGalleryView: View;
-  let customerFormView: View;
-  // use film table because it has single select field
-  let filmKanbanView: View;
+let context;
+// bases
+let base: Base;
+let sakilaProject: Base;
+// models
+let customerTable: Model;
+let filmTable: Model;
+// columns
+let customerColumns;
+let filmColumns;
+// views
+let customerGridView: View;
+let customerGalleryView: View;
+let customerFormView: View;
+// use film table because it has single select field
+let filmKanbanView: View;
 
-  beforeEach(async function () {
+const testGetViewRowList = async (view: View) => {
+  const response = await request(context.app)
+    .get(
+      `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
+    )
+    .set('xc-auth', context.token)
+    .expect(200);
+
+  const pageInfo = response.body.pageInfo;
+  if (pageInfo.totalRows !== 599 || response.body.list[0]['CustomerId'] !== 1) {
+    throw new Error('View row list is not correct');
+  }
+};
+
+const testGetViewRowListKanban = async (view: View) => {
+  const ratingColumn = filmColumns.find((c) => c.column_name === 'rating');
+
+  const response = await request(context.app)
+    .get(
+      `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`,
+    )
+    .set('xc-auth', context.token)
+    .expect(200);
+
+  expect(response.body).to.be.an('array');
+  // PG, R, NC-17, G, PG-17, null (uncategorized)
+  expect(response.body).to.be.have.length(6);
+  expect(response.body[0]).to.have.property('key');
+  expect(response.body[0]).to.have.property('value');
+  expect(response.body[0])
+    .to.have.property('value')
+    .and.to.be.an('object')
+    .and.to.have.property('list')
+    .and.to.be.an('array');
+  expect(response.body[0]).to.have.property('key').and.to.be.a('string');
+  expect(response.body[0].value)
+    .to.have.property('pageInfo')
+    .and.to.be.an('object')
+    .and.to.have.property('totalRows')
+    .and.to.be.a('number');
+};
+
+function viewRowStaticTests() {
+  before(async function () {
+    console.time('#### viewRowTests');
     context = await init();
     sakilaProject = await createSakilaProject(context);
-    project = await createProject(context);
+    base = await createProject(context);
     customerTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'customer',
     });
     customerColumns = await customerTable.getColumns();
@@ -145,7 +123,7 @@ function viewRowTests() {
     });
 
     filmTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'film',
     });
     filmColumns = await filmTable.getColumns();
@@ -154,65 +132,18 @@ function viewRowTests() {
       table: filmTable,
       type: ViewTypes.KANBAN,
     });
+    console.timeEnd('#### viewRowTests');
   });
-
-  const testGetViewRowList = async (view: View) => {
-    const response = await request(context.app)
-      .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
-      )
-      .set('xc-auth', context.token)
-      .expect(200);
-
-    const pageInfo = response.body.pageInfo;
-    if (
-      pageInfo.totalRows !== 599 ||
-      response.body.list[0]['CustomerId'] !== 1
-    ) {
-      throw new Error('View row list is not correct');
-    }
-  };
-
-  const testGetViewRowListKanban = async (view: View) => {
-    const ratingColumn = filmColumns.find((c) => c.column_name === 'rating');
-
-    const response = await request(context.app)
-      .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`,
-      )
-      .set('xc-auth', context.token)
-      .expect(200);
-
-    expect(response.body).to.be.an('array');
-    // PG, R, NC-17, G, PG-17, null (uncategorized)
-    expect(response.body).to.be.have.length(6);
-    expect(response.body[0]).to.have.property('key');
-    expect(response.body[0]).to.have.property('value');
-    expect(response.body[0])
-      .to.have.property('value')
-      .and.to.be.an('object')
-      .and.to.have.property('list')
-      .and.to.be.an('array');
-    expect(response.body[0]).to.have.property('key').and.to.be.a('string');
-    expect(response.body[0].value)
-      .to.have.property('pageInfo')
-      .and.to.be.an('object')
-      .and.to.have.property('totalRows')
-      .and.to.be.a('number');
-  };
 
   it('Get view row list gallery', async () => {
     await testGetViewRowList(customerGalleryView);
   });
-
   it('Get view row list kanban', async () => {
     await testGetViewRowListKanban(filmKanbanView);
   });
-
   it('Get view row list form', async () => {
     await testGetViewRowList(customerFormView);
   });
-
   it('Get view row list grid', async () => {
     await testGetViewRowList(customerGridView);
   });
@@ -248,15 +179,12 @@ function viewRowTests() {
       throw new Error('Wrong columns');
     }
   };
-
   it('Get view data list with required columns gallery', async () => {
     await testGetViewDataListWithRequiredColumns(customerGalleryView);
   });
-
   it('Get view data list with required columns form', async () => {
     await testGetViewDataListWithRequiredColumns(customerFormView);
   });
-
   it('Get view data list with required columns grid', async () => {
     await testGetViewDataListWithRequiredColumns(customerGridView);
   });
@@ -289,7 +217,6 @@ function viewRowTests() {
         .join(','),
     ).to.equal('FilmId,Title');
   };
-
   it('Get grouped view data list with required columns kanban', async () => {
     await testGetGroupedViewDataListWithRequiredColumns(filmKanbanView);
   });
@@ -350,15 +277,12 @@ function viewRowTests() {
       throw new Error('Wrong sort on last page');
     }
   };
-
   it('Get desc sorted table data list with required columns gallery', async function () {
     await testDescSortedViewDataList(customerGalleryView);
   });
-
   it('Get desc sorted table data list with required columns form', async function () {
     await testDescSortedViewDataList(customerFormView);
   });
-
   it('Get desc sorted table data list with required columns grid', async function () {
     await testDescSortedViewDataList(customerGridView);
   });
@@ -392,7 +316,6 @@ function viewRowTests() {
       response.body.find((e) => e.key === 'PG').value.list[0].Title,
     ).to.equal('WORST BANGER');
   };
-
   it('Get desc sorted table data list with required columns kanban', async function () {
     await testDescSortedGroupedViewDataList(filmKanbanView);
   });
@@ -453,15 +376,12 @@ function viewRowTests() {
       throw new Error('Wrong sort on last page');
     }
   };
-
   it('Get asc sorted view data list with required columns gallery', async function () {
     await testAscSortedViewDataList(customerGalleryView);
   });
-
   it('Get asc sorted view data list with required columns form', async function () {
     await testAscSortedViewDataList(customerFormView);
   });
-
   it('Get asc sorted view data list with required columns grid', async function () {
     await testAscSortedViewDataList(customerGridView);
   });
@@ -495,16 +415,56 @@ function viewRowTests() {
       response.body.find((e) => e.key === 'PG').value.list[0].Title,
     ).to.equal('ACADEMY DINOSAUR');
   };
-
   it('Get asc sorted table data list with required columns kanban', async function () {
     await testAscSortedGroupedViewDataList(filmKanbanView);
+  });
+}
+
+function viewRowTests() {
+  beforeEach(async function () {
+    console.time('#### viewRowTests');
+    context = await init();
+    sakilaProject = await createSakilaProject(context);
+    base = await createProject(context);
+    customerTable = await getTable({
+      base: sakilaProject,
+      name: 'customer',
+    });
+    customerColumns = await customerTable.getColumns();
+    customerGridView = await createView(context, {
+      title: 'Customer Gallery',
+      table: customerTable,
+      type: ViewTypes.GRID,
+    });
+    customerGalleryView = await createView(context, {
+      title: 'Customer Gallery',
+      table: customerTable,
+      type: ViewTypes.GALLERY,
+    });
+    customerFormView = await createView(context, {
+      title: 'Customer Form',
+      table: customerTable,
+      type: ViewTypes.FORM,
+    });
+
+    filmTable = await getTable({
+      base: sakilaProject,
+      name: 'film',
+    });
+    filmColumns = await filmTable.getColumns();
+    filmKanbanView = await createView(context, {
+      title: 'Film Kanban',
+      table: filmTable,
+      type: ViewTypes.KANBAN,
+    });
+    console.timeEnd('#### viewRowTests');
   });
 
   const testGetViewDataListWithRequiredColumnsAndFilter = async (
     viewType: ViewTypes,
   ) => {
     const rentalTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'rental',
     });
     const view = await createView(context, {
@@ -514,16 +474,12 @@ function viewRowTests() {
     });
 
     const lookupColumn = await createLookupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'Lookup',
       table: rentalTable,
       relatedTableName: customerTable.table_name,
       relatedTableColumnTitle: 'FirstName',
     });
-
-    const paymentListColumn = (await rentalTable.getColumns()).find(
-      (c) => c.title === 'Payment List',
-    );
 
     const nestedFilter = {
       is_group: true,
@@ -536,12 +492,6 @@ function viewRowTests() {
           logical_op: 'and',
           comparison_op: 'like',
           value: '%a%',
-        },
-        {
-          fk_column_id: paymentListColumn?.id,
-          status: 'create',
-          logical_op: 'and',
-          comparison_op: 'notblank',
         },
       ],
     };
@@ -614,7 +564,7 @@ function viewRowTests() {
     });
 
     const rollupColumn = await createRollupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'Number of rentals',
       rollupFunction: 'count',
       table: customerTable,
@@ -622,16 +572,12 @@ function viewRowTests() {
       relatedTableColumnTitle: 'RentalDate',
     });
 
-    const paymentListColumn = (await customerTable.getColumns()).find(
-      (c) => c.title === 'Payment List',
-    );
-
     const activeColumn = (await customerTable.getColumns()).find(
       (c) => c.title === 'Active',
     );
 
     const nestedFields = {
-      'Rental List': { fields: ['RentalDate', 'ReturnDate'] },
+      Rentals: { fields: ['RentalDate', 'ReturnDate'] },
     };
 
     const nestedFilter = [
@@ -653,12 +599,6 @@ function viewRowTests() {
             logical_op: 'and',
             comparison_op: 'lte',
             value: 30,
-          },
-          {
-            fk_column_id: paymentListColumn?.id,
-            status: 'create',
-            logical_op: 'and',
-            comparison_op: 'notblank',
           },
           {
             is_group: true,
@@ -701,19 +641,7 @@ function viewRowTests() {
       throw new Error('Wrong filter');
     }
 
-    const nestedRentalResponse = Object.keys(
-      ascResponse.body.list[0]['Rental List'][0],
-    );
-
-    if (
-      !(
-        nestedRentalResponse.includes('ReturnDate') &&
-        nestedRentalResponse.includes('RentalDate') &&
-        nestedRentalResponse.length === 2
-      )
-    ) {
-      throw new Error('Wrong nested fields');
-    }
+    expect(+ascResponse.body.list[0]['Rentals']).to.equal(12);
   };
 
   it('Get nested sorted filtered table with nested fields data list with a rollup column in customer table view grid', async () => {
@@ -728,7 +656,7 @@ function viewRowTests() {
   // })
 
   const testCreateRowView = async (viewType: ViewTypes) => {
-    const table = await createTable(context, project);
+    const table = await createTable(context, base);
     const view = await createView(context, {
       title: 'View',
       table: table,
@@ -736,7 +664,7 @@ function viewRowTests() {
     });
 
     const response = await request(context.app)
-      .post(`/api/v1/db/data/noco/${project.id}/${table.id}/views/${view.id}`)
+      .post(`/api/v1/db/data/noco/${base.id}/${table.id}/views/${view.id}`)
       .set('xc-auth', context.token)
       .send({
         title: 'Test',
@@ -744,7 +672,7 @@ function viewRowTests() {
       .expect(200);
 
     const row = response.body;
-    if (row['Title'] !== 'Test') throw new Error('Wrong row title');
+    if (row['Title'] !== 'Test') throw new Error('Wrong record title');
   };
 
   it('Create table row grid', async function () {
@@ -764,7 +692,7 @@ function viewRowTests() {
   });
 
   const testCreateRowViewWithWrongView = async (viewType: ViewTypes) => {
-    const table = await createTable(context, project);
+    const table = await createTable(context, base);
     const nonRelatedView = await createView(context, {
       title: 'View',
       table: customerTable,
@@ -773,7 +701,7 @@ function viewRowTests() {
 
     await request(context.app)
       .post(
-        `/api/v1/db/data/noco/${project.id}/${table.id}/views/${nonRelatedView.id}`,
+        `/api/v1/db/data/noco/${base.id}/${table.id}/views/${nonRelatedView.id}`,
       )
       .set('xc-auth', context.token)
       .send({
@@ -872,7 +800,7 @@ function viewRowTests() {
     viewType: ViewTypes,
   ) => {
     const rollupColumn = await createRollupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'Number of rentals',
       rollupFunction: 'count',
       table: customerTable,
@@ -891,16 +819,12 @@ function viewRowTests() {
       attr: { show: true },
     });
 
-    const paymentListColumn = (await customerTable.getColumns()).find(
-      (c) => c.title === 'Payment List',
-    );
-
     const activeColumn = (await customerTable.getColumns()).find(
       (c) => c.title === 'Active',
     );
 
     const nestedFields = {
-      'Rental List': { f: 'RentalDate,ReturnDate' },
+      Rentals: { f: 'RentalDate,ReturnDate' },
     };
 
     const nestedFilter = [
@@ -922,12 +846,6 @@ function viewRowTests() {
             logical_op: 'and',
             comparison_op: 'lte',
             value: 30,
-          },
-          {
-            fk_column_id: paymentListColumn?.id,
-            status: 'create',
-            logical_op: 'and',
-            comparison_op: 'notblank',
           },
           {
             is_group: true,
@@ -964,7 +882,7 @@ function viewRowTests() {
       throw new Error('Wrong filter');
     }
 
-    const nestedRentalResponse = Object.keys(ascResponse.body['Rental List']);
+    const nestedRentalResponse = Object.keys(ascResponse.body['Rentals']);
     if (
       nestedRentalResponse.includes('RentalId') &&
       nestedRentalResponse.includes('RentalDate') &&
@@ -975,7 +893,7 @@ function viewRowTests() {
   };
 
   // todo: gallery view doesnt seem to support rollup
-  // it.only('Find one sorted filtered view with nested fields data list with a rollup column in customer table GALLERY', async function () {
+  // it('Find one sorted filtered view with nested fields data list with a rollup column in customer table GALLERY', async function () {
   //   await testFindOneSortedFilteredNestedFieldsDataWithRollup(ViewTypes.GALLERY);
   // });
 
@@ -998,7 +916,7 @@ function viewRowTests() {
     );
 
     const rollupColumn = await createRollupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'Rollup',
       rollupFunction: 'count',
       table: customerTable,
@@ -1022,20 +940,17 @@ function viewRowTests() {
       .expect(200);
 
     if (
-      response.body.list[4]['first_name'] !== 'WILLIE' ||
+      response.body.list[4]['FirstName'] !== 'WILLIE' ||
       parseInt(response.body.list[4]['count']) !== 2
     )
       throw new Error('Wrong groupby');
   };
-
   it('Groupby desc sorted and with rollup view data  list with required columns GRID', async function () {
     await testGroupDescSorted(ViewTypes.GRID);
   });
-
   it('Groupby desc sorted and with rollup view data  list with required columns FORM', async function () {
     await testGroupDescSorted(ViewTypes.FORM);
   });
-
   it('Groupby desc sorted and with rollup view data  list with required columns GALLERY', async function () {
     await testGroupDescSorted(ViewTypes.GALLERY);
   });
@@ -1052,7 +967,7 @@ function viewRowTests() {
     );
 
     const rollupColumn = await createRollupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'Rollup',
       rollupFunction: 'count',
       table: customerTable,
@@ -1071,26 +986,23 @@ function viewRowTests() {
       .query({
         fields: visibleColumns.map((c) => c.title),
         sort: sortInfo,
-        column_name: firstNameColumn.column_name,
+        column_name: firstNameColumn.title,
         offset: 4,
       })
       .expect(200);
 
     if (
-      response.body.list[0]['first_name'] !== 'WILLIE' ||
+      response.body.list[0]['FirstName'] !== 'WILLIE' ||
       parseInt(response.body.list[0]['count']) !== 2
     )
       throw new Error('Wrong groupby');
   };
-
   it('Groupby desc sorted and with rollup view data  list with required columns GALLERY', async function () {
     await testGroupWithOffset(ViewTypes.GALLERY);
   });
-
   it('Groupby desc sorted and with rollup view data  list with required columns FORM', async function () {
     await testGroupWithOffset(ViewTypes.FORM);
   });
-
   it('Groupby desc sorted and with rollup view data  list with required columns GRID', async function () {
     await testGroupWithOffset(ViewTypes.GRID);
   });
@@ -1113,16 +1025,9 @@ function viewRowTests() {
       throw new Error('Wrong count');
     }
   };
-
-  it('Count view data  list with required columns GRID', async function () {
+  it('Count view data list with required columns', async function () {
     await testCount(ViewTypes.GRID);
-  });
-
-  it('Count view data  list with required columns FORM', async function () {
     await testCount(ViewTypes.FORM);
-  });
-
-  it('Count view data  list with required columns GALLERY', async function () {
     await testCount(ViewTypes.GALLERY);
   });
 
@@ -1156,22 +1061,15 @@ function viewRowTests() {
       throw new Error('Wrong read');
     }
   };
-
-  it('Read view row GALLERY', async function () {
+  it('Read view row', async function () {
     await testReadViewRow(ViewTypes.GALLERY);
-  });
-
-  it('Read view row FORM', async function () {
     await testReadViewRow(ViewTypes.FORM);
-  });
-
-  it('Read view row GRID', async function () {
     await testReadViewRow(ViewTypes.GRID);
   });
 
   const testUpdateViewRow = async (viewType: ViewTypes) => {
-    const table = await createTable(context, project);
-    const row = await createRow(context, { project, table });
+    const table = await createTable(context, base);
+    const row = await createRow(context, { base, table });
     const view = await createView(context, {
       title: 'View',
       table: table,
@@ -1180,7 +1078,7 @@ function viewRowTests() {
 
     const updateResponse = await request(context.app)
       .patch(
-        `/api/v1/db/data/noco/${project.id}/${table.id}/views/${view.id}/${row['Id']}`,
+        `/api/v1/db/data/noco/${base.id}/${table.id}/views/${view.id}/${row['Id']}`,
       )
       .set('xc-auth', context.token)
       .send({
@@ -1192,15 +1090,12 @@ function viewRowTests() {
       throw new Error('Wrong update');
     }
   };
-
   it('Update view row GALLERY', async function () {
     await testUpdateViewRow(ViewTypes.GALLERY);
   });
-
   it('Update view row GRID', async function () {
     await testUpdateViewRow(ViewTypes.GRID);
   });
-
   it('Update view row FORM', async function () {
     await testUpdateViewRow(ViewTypes.FORM);
   });
@@ -1208,7 +1103,7 @@ function viewRowTests() {
   const testUpdateViewRowWithValidationAndInvalidData = async (
     viewType: ViewTypes,
   ) => {
-    const table = await createTable(context, project);
+    const table = await createTable(context, base);
     const emailColumn = await createColumn(context, table, {
       title: 'Email',
       column_name: 'email',
@@ -1223,11 +1118,11 @@ function viewRowTests() {
       type: viewType,
     });
 
-    const row = await createRow(context, { project, table });
+    const row = await createRow(context, { base, table });
 
     await request(context.app)
       .patch(
-        `/api/v1/db/data/noco/${project.id}/${table.id}/views/${view.id}/${row['Id']}`,
+        `/api/v1/db/data/noco/${base.id}/${table.id}/views/${view.id}/${row['Id']}`,
       )
       .set('xc-auth', context.token)
       .send({
@@ -1235,15 +1130,12 @@ function viewRowTests() {
       })
       .expect(400);
   };
-
   it('Update view row with validation and invalid data GALLERY', async function () {
     await testUpdateViewRowWithValidationAndInvalidData(ViewTypes.GALLERY);
   });
-
   it('Update view row with validation and invalid data GRID', async function () {
     await testUpdateViewRowWithValidationAndInvalidData(ViewTypes.GRID);
   });
-
   it('Update view row with validation and invalid data FORM', async function () {
     await testUpdateViewRowWithValidationAndInvalidData(ViewTypes.FORM);
   });
@@ -1254,7 +1146,7 @@ function viewRowTests() {
   const testUpdateViewRowWithValidationAndValidData = async (
     viewType: ViewTypes,
   ) => {
-    const table = await createTable(context, project);
+    const table = await createTable(context, base);
     const emailColumn = await createColumn(context, table, {
       title: 'Email',
       column_name: 'email',
@@ -1268,11 +1160,11 @@ function viewRowTests() {
       table: table,
       type: viewType,
     });
-    const row = await createRow(context, { project, table });
+    const row = await createRow(context, { base, table });
 
     const response = await request(context.app)
       .patch(
-        `/api/v1/db/data/noco/${project.id}/${table.id}/views/${view.id}/${row['Id']}`,
+        `/api/v1/db/data/noco/${base.id}/${table.id}/views/${view.id}/${row['Id']}`,
       )
       .set('xc-auth', context.token)
       .send({
@@ -1281,7 +1173,7 @@ function viewRowTests() {
       .expect(200);
 
     const updatedRow = await getRow(context, {
-      project,
+      base,
       table,
       id: response.body['Id'],
     });
@@ -1289,22 +1181,19 @@ function viewRowTests() {
       throw new Error('Wrong update');
     }
   };
-
   it('Update view row with validation and valid data GALLERY', async function () {
     await testUpdateViewRowWithValidationAndValidData(ViewTypes.GALLERY);
   });
-
   it('Update view row with validation and valid data GRID', async function () {
     await testUpdateViewRowWithValidationAndValidData(ViewTypes.GRID);
   });
-
   it('Update view row with validation and valid data FORM', async function () {
     await testUpdateViewRowWithValidationAndValidData(ViewTypes.FORM);
   });
 
   const testDeleteViewRow = async (viewType: ViewTypes) => {
-    const table = await createTable(context, project);
-    const row = await createRow(context, { project, table });
+    const table = await createTable(context, base);
+    const row = await createRow(context, { base, table });
     const view = await createView(context, {
       title: 'View',
       table: table,
@@ -1313,26 +1202,23 @@ function viewRowTests() {
 
     await request(context.app)
       .delete(
-        `/api/v1/db/data/noco/${project.id}/${table.id}/views/${view.id}/${row['Id']}`,
+        `/api/v1/db/data/noco/${base.id}/${table.id}/views/${view.id}/${row['Id']}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
 
-    const deleteRow = await getRow(context, { project, table, id: row['Id'] });
+    const deleteRow = await getRow(context, { base, table, id: row['Id'] });
     if (deleteRow && Object.keys(deleteRow).length > 0) {
       console.log(deleteRow);
       throw new Error('Wrong delete');
     }
   };
-
   it('Delete view row GALLERY', async function () {
     await testDeleteViewRow(ViewTypes.GALLERY);
   });
-
   it('Delete view row GRID', async function () {
     await testDeleteViewRow(ViewTypes.GRID);
   });
-
   it('Delete view row FORM', async function () {
     await testDeleteViewRow(ViewTypes.FORM);
   });
@@ -1340,8 +1226,8 @@ function viewRowTests() {
   const testDeleteViewRowWithForeignKeyConstraint = async (
     viewType: ViewTypes,
   ) => {
-    const table = await createTable(context, project);
-    const relatedTable = await createTable(context, project, {
+    const table = await createTable(context, base);
+    const relatedTable = await createTable(context, base, {
       table_name: 'Table2',
       title: 'Table2_Title',
     });
@@ -1357,10 +1243,10 @@ function viewRowTests() {
       type: viewType,
     });
 
-    const row = await createRow(context, { project, table });
+    const row = await createRow(context, { base, table });
 
     await createChildRow(context, {
-      project,
+      base,
       table,
       childTable: relatedTable,
       column: ltarColumn,
@@ -1370,32 +1256,29 @@ function viewRowTests() {
 
     await request(context.app)
       .delete(
-        `/api/v1/db/data/noco/${project.id}/${table.id}/views/${view.id}/${row['Id']}`,
+        `/api/v1/db/data/noco/${base.id}/${table.id}/views/${view.id}/${row['Id']}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
 
-    const deleteRow = await getRow(context, { project, table, id: row['Id'] });
+    const deleteRow = await getRow(context, { base, table, id: row['Id'] });
     if (deleteRow !== undefined) {
       throw new Error('Record should have been deleted!');
     }
   };
-
   it('Delete view row with ltar foreign key constraint GALLERY', async function () {
     await testDeleteViewRowWithForeignKeyConstraint(ViewTypes.GALLERY);
   });
-
   it('Delete view row with ltar foreign key constraint GRID', async function () {
     await testDeleteViewRowWithForeignKeyConstraint(ViewTypes.GRID);
   });
-
   it('Delete view row with ltar foreign key constraint FORM', async function () {
     await testDeleteViewRowWithForeignKeyConstraint(ViewTypes.FORM);
   });
 
   const testViewRowExists = async (viewType: ViewTypes) => {
     const row = await getOneRow(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       table: customerTable,
     });
     const view = await createView(context, {
@@ -1415,16 +1298,9 @@ function viewRowTests() {
       throw new Error('Should exist');
     }
   };
-
-  it('Exist should be true view row when it exists GALLERY', async function () {
+  it(`Exist view row : should return true when row exists in view`, async function () {
     await testViewRowExists(ViewTypes.GALLERY);
-  });
-
-  it('Exist should be true view row when it exists GRID', async function () {
     await testViewRowExists(ViewTypes.GRID);
-  });
-
-  it('Exist should be true view row when it exists FORM', async function () {
     await testViewRowExists(ViewTypes.FORM);
   });
 
@@ -1445,16 +1321,9 @@ function viewRowTests() {
       throw new Error('Should not exist');
     }
   };
-
-  it('Exist should be false view row when it does not exist GALLERY', async function () {
+  it(`Exist view row : should return false when row doesn't exist in view`, async function () {
     await testViewRowNotExists(ViewTypes.GALLERY);
-  });
-
-  it('Exist should be false view row when it does not exist GRID', async function () {
     await testViewRowNotExists(ViewTypes.GRID);
-  });
-
-  it('Exist should be false view row when it does not exist FORM', async function () {
     await testViewRowNotExists(ViewTypes.FORM);
   });
 
@@ -1509,4 +1378,5 @@ function viewRowTests() {
 
 export default function () {
   describe('ViewRow', viewRowTests);
+  describe('ViewRow', viewRowStaticTests);
 }

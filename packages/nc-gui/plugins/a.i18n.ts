@@ -1,8 +1,7 @@
 import { createI18n } from 'vue-i18n'
 import { isClient } from '@vueuse/core'
-import { applyLanguageDirection, defineNuxtPlugin, isRtlLang, nextTick } from '#imports'
-import type { Language, NocoI18n } from '~/lib'
-import { LanguageAlias } from '~/lib'
+import { LanguageAlias, applyLanguageDirection, defineNuxtPlugin, isEeUI, isRtlLang, nextTick } from '#imports'
+import type { Language, NocoI18n } from '#imports'
 
 let globalI18n: NocoI18n
 
@@ -44,10 +43,16 @@ export async function loadLocaleMessages(
   return nextTick()
 }
 
-export default defineNuxtPlugin(async (nuxtApp) => {
+const i18nPlugin = async (nuxtApp) => {
   globalI18n = await createI18nPlugin()
 
   nuxtApp.vueApp.i18n = globalI18n
 
   nuxtApp.vueApp.use(globalI18n)
+}
+
+export default defineNuxtPlugin(async function (nuxtApp) {
+  if (!isEeUI) return await i18nPlugin(nuxtApp)
 })
+
+export { i18nPlugin }

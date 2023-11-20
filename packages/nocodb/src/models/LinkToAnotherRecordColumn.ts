@@ -1,13 +1,14 @@
-import Noco from '../Noco';
-import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../helpers/extractProps';
-import Model from './Model';
-import Column from './Column';
 import type { BoolType } from 'nocodb-sdk';
+import Model from '~/models/Model';
+import Column from '~/models/Column';
+import Noco from '~/Noco';
+import NocoCache from '~/cache/NocoCache';
+import { extractProps } from '~/helpers/extractProps';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 
 export default class LinkToAnotherRecordColumn {
-  fk_column_id?: string;
+  id: string;
+  fk_column_id: string;
   fk_child_column_id?: string;
   fk_parent_column_id?: string;
   fk_mm_model_id?: string;
@@ -126,6 +127,4 @@ export default class LinkToAnotherRecordColumn {
     }
     return colData ? new LinkToAnotherRecordColumn(colData) : null;
   }
-
-  id: string;
 }

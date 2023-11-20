@@ -1,5 +1,5 @@
-import { RelationTypes, UITypes } from 'nocodb-sdk';
-import type { LinkToAnotherRecordColumn } from '../../../../models';
+import { isLinksOrLTAR, RelationTypes, UITypes } from 'nocodb-sdk';
+import type { LinkToAnotherRecordColumn } from '~/models';
 import type { SwaggerColumn } from '../getSwaggerColumnMetas';
 
 export const rowIdParam = {
@@ -100,7 +100,7 @@ export const columnNameQueryParam = {
 export const columnNameParam = (columns: SwaggerColumn[]) => {
   const columnNames = [];
   for (const { column } of columns) {
-    if (column.uidt !== UITypes.LinkToAnotherRecord || column.system) continue;
+    if (!isLinksOrLTAR(column) || column.system) continue;
     columnNames.push(column.title);
   }
 
@@ -197,6 +197,10 @@ export const getNestedParams = async (
 ): Promise<any[]> => {
   return await columns.reduce(async (paramsArr, { column }) => {
     if (column.uidt === UITypes.LinkToAnotherRecord) {
+      // exclude system columns(relations to junction table)
+      if (column.system) {
+        return paramsArr;
+      }
       const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>();
       if (colOpt.type !== RelationTypes.BELONGS_TO) {
         return [

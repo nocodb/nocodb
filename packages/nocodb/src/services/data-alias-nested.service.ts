@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { UITypes } from 'nocodb-sdk';
-import { NcError } from '../helpers/catchError';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { Base, Model } from '../models';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
+import type { PathParams } from '~/modules/datas/helpers';
+import { NcError } from '~/helpers/catchError';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import {
   getColumnByIdOrName,
   getViewAndModelByAliasOrId,
-} from '../modules/datas/helpers';
-import type { PathParams } from '../modules/datas/helpers';
+} from '~/modules/datas/helpers';
+import { Model, Source } from '~/models';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class DataAliasNestedService {
@@ -24,17 +24,20 @@ export class DataAliasNestedService {
 
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const column = await getColumnByIdOrName(param.columnName, model);
 
-    if (column.uidt !== UITypes.LinkToAnotherRecord)
+    if (
+      !column ||
+      ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
+    )
       NcError.badRequest('Column is not LTAR');
 
     const data = await baseModel.mmList(
@@ -44,10 +47,13 @@ export class DataAliasNestedService {
       },
       param.query as any,
     );
-    const count: any = await baseModel.mmListCount({
-      colId: column.id,
-      parentId: param.rowId,
-    });
+    const count: any = await baseModel.mmListCount(
+      {
+        colId: column.id,
+        parentId: param.rowId,
+      },
+      param.query,
+    );
 
     return new PagedResponseImpl(data, {
       count,
@@ -65,12 +71,12 @@ export class DataAliasNestedService {
     const { model, view } = await getViewAndModelByAliasOrId(param);
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
     const column = await getColumnByIdOrName(param.columnName, model);
 
@@ -107,12 +113,12 @@ export class DataAliasNestedService {
 
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const column = await getColumnByIdOrName(param.columnName, model);
@@ -149,12 +155,12 @@ export class DataAliasNestedService {
     const { model, view } = await getViewAndModelByAliasOrId(param);
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const column = await getColumnByIdOrName(param.columnName, model);
@@ -193,17 +199,17 @@ export class DataAliasNestedService {
 
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const column = await getColumnByIdOrName(param.columnName, model);
 
-    if (column.uidt !== UITypes.LinkToAnotherRecord)
+    if (![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt))
       NcError.badRequest('Column is not LTAR');
 
     const data = await baseModel.hmList(
@@ -214,10 +220,13 @@ export class DataAliasNestedService {
       param.query,
     );
 
-    const count = await baseModel.hmListCount({
-      colId: column.id,
-      id: param.rowId,
-    });
+    const count = await baseModel.hmListCount(
+      {
+        colId: column.id,
+        id: param.rowId,
+      },
+      param.query,
+    );
 
     return new PagedResponseImpl(data, {
       count,
@@ -236,12 +245,12 @@ export class DataAliasNestedService {
     const { model, view } = await getViewAndModelByAliasOrId(param);
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const column = await getColumnByIdOrName(param.columnName, model);
@@ -268,12 +277,12 @@ export class DataAliasNestedService {
     const { model, view } = await getViewAndModelByAliasOrId(param);
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const column = await getColumnByIdOrName(param.columnName, model);

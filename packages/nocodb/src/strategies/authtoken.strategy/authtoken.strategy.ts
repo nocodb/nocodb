@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
+import { extractRolesObj, ProjectRoles } from 'nocodb-sdk';
 import { Strategy } from 'passport-custom';
-import { ApiToken, ProjectUser, User } from '../../models';
+import type { Request } from 'express';
+import { ApiToken, BaseUser, User } from '~/models';
+import { sanitiseUserObj } from '~/utils';
 
 @Injectable()
 export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
   // eslint-disable-next-line @typescript-eslint/ban-types
-  async validate(req: any, callback: Function) {
+  async validate(req: Request, callback: Function) {
     try {
       let user;
       if (req.headers['xc-token']) {
@@ -15,9 +18,12 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
           return callback({ msg: 'Invalid token' });
         }
 
-        user = {};
+        user = {
+          is_api_token: true,
+        };
+
         if (!apiToken.fk_user_id) {
-          user.roles = 'editor';
+          user.base_roles = extractRolesObj(ProjectRoles.EDITOR);
           return callback(null, user);
         }
 
@@ -28,21 +34,19 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
 
         Object.assign(user, {
           id: dbUser.id,
-          roles: dbUser.roles,
+          roles: extractRolesObj(dbUser.roles),
         });
 
-        dbUser.is_api_token = true;
         if (req['ncProjectId']) {
-          const projectUser = await ProjectUser.get(
-            req['ncProjectId'],
-            dbUser.id,
-          );
-          user.roles = projectUser?.roles || dbUser.roles;
-          user.roles = user.roles === 'owner' ? 'owner,creator' : user.roles;
-          return callback(null, user);
+          const baseUser = await BaseUser.get(req['ncProjectId'], dbUser.id);
+          user.base_roles = extractRolesObj(baseUser?.roles);
+          if (user.base_roles.owner) {
+            user.base_roles.creator = true;
+          }
+          return callback(null, sanitiseUserObj(user));
         }
       }
-      return callback(null, user);
+      return callback(null, sanitiseUserObj(user));
     } catch (error) {
       return callback(error);
     }

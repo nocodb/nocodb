@@ -370,7 +370,7 @@ class ModelXcMetaOracle extends BaseModelXcMeta {
       case 'set':
         return 'MultiSelect';
       case 'json':
-        return 'LongText';
+        return 'JSON';
     }
   }
 

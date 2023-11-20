@@ -8,6 +8,8 @@ import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
+  EditColumnInj,
+  EditModeInj,
   IsKanbanInj,
   ReadonlyInj,
   RowHeightInj,
@@ -21,9 +23,9 @@ import {
   onMounted,
   reactive,
   ref,
+  useBase,
   useEventListener,
   useMetas,
-  useProject,
   useRoles,
   useSelectedCellKeyupListener,
   watch,
@@ -41,15 +43,27 @@ const { modelValue, disableOptionCreation } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
+const { isMobileMode } = useGlobal()
+
 const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
 
-const active = inject(ActiveCellInj, ref(false))
+const isLockedMode = inject(IsLockedInj, ref(false))
+
+const isEditable = inject(EditModeInj, ref(false))
+
+const activeCell = inject(ActiveCellInj, ref(false))
+
+// use both ActiveCellInj or EditModeInj to determine the active state
+// since active will be false in case of form view
+const active = computed(() => activeCell.value || isEditable.value)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isEditColumn = inject(EditColumnInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
@@ -67,9 +81,9 @@ const { $api } = useNuxtApp()
 
 const { getMeta } = useMetas()
 
-const { hasRole } = useRoles()
+const { isUIAllowed } = useRoles()
 
-const { isPg, isMysql } = useProject()
+const { isPg, isMysql } = useBase()
 
 // a variable to keep newly created options value
 // temporary until it's add the option to column meta
@@ -92,7 +106,7 @@ const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
 })
 
-const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
+const hasEditRoles = computed(() => isUIAllowed('dataEdit'))
 
 const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 
@@ -121,7 +135,7 @@ const vModel = computed({
 const selectedTitles = computed(() =>
   modelValue
     ? typeof modelValue === 'string'
-      ? isMysql(column.value.base_id)
+      ? isMysql(column.value.source_id)
         ? modelValue.split(',').sort((a, b) => {
             const opa = options.value.find((el) => el.title === a)
             const opb = options.value.find((el) => el.title === b)
@@ -137,7 +151,7 @@ const selectedTitles = computed(() =>
 
 onMounted(() => {
   selectedIds.value = selectedTitles.value.flatMap((el) => {
-    const item = options.value.find((op) => op.title === el)
+    const item = options.value.find((op) => op.title === el || op.title === el?.trim())
     const itemIdOrTitle = item?.id || item?.title
     if (itemIdOrTitle) {
       return [itemIdOrTitle]
@@ -151,7 +165,7 @@ watch(
   () => modelValue,
   () => {
     selectedIds.value = selectedTitles.value.flatMap((el) => {
-      const item = options.value.find((op) => op.title === el)
+      const item = options.value.find((op) => op.title === el || op.title === el?.trim())
       if (item && (item.id || item.title)) {
         return [(item.id || item.title)!]
       }
@@ -173,7 +187,7 @@ watch(isOpen, (n, _o) => {
   }
 })
 
-useSelectedCellKeyupListener(active, (e) => {
+useSelectedCellKeyupListener(activeCell, (e) => {
   switch (e.key) {
     case 'Escape':
       isOpen.value = false
@@ -235,7 +249,7 @@ async function addIfMissingAndSave() {
       // todo: refactor and avoid repetition
       if (updatedColMeta.cdf) {
         // Postgres returns default value wrapped with single quotes & casted with type so we have to get value between single quotes to keep it unified for all databases
-        if (isPg(column.value.base_id)) {
+        if (isPg(column.value.source_id)) {
           updatedColMeta.cdf = updatedColMeta.cdf.substring(
             updatedColMeta.cdf.indexOf(`'`) + 1,
             updatedColMeta.cdf.lastIndexOf(`'`),
@@ -243,7 +257,7 @@ async function addIfMissingAndSave() {
         }
 
         // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
-        if (!isMysql(column.value.base_id)) {
+        if (!isMysql(column.value.source_id) && !isPg(column.value.source_id)) {
           updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
         }
       }
@@ -309,6 +323,8 @@ const handleClose = (e: MouseEvent) => {
     !aselect.value.$el.contains(e.target) &&
     !document.querySelector('.nc-dropdown-multi-select-cell.active')?.contains(e.target as Node)
   ) {
+    // loose focus when clicked outside
+    isEditable.value = false
     isOpen.value = false
   }
 }
@@ -316,10 +332,10 @@ const handleClose = (e: MouseEvent) => {
 useEventListener(document, 'click', handleClose, true)
 
 const selectedOpts = computed(() => {
-  return options.value.reduce<(SelectOptionType & { index: number })[]>((selectedOptions, option) => {
-    const index = vModel.value.indexOf(option.value!)
-    if (index !== -1) {
-      selectedOptions.push({ ...option, index })
+  return vModel.value.reduce<SelectOptionType[]>((selectedOptions, option) => {
+    const selectedOption = options.value.find((o) => o.value === option)
+    if (selectedOption) {
+      selectedOptions.push(selectedOption)
     }
     return selectedOptions
   }, [])
@@ -327,7 +343,11 @@ const selectedOpts = computed(() => {
 </script>
 
 <template>
-  <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
+  <div
+    class="nc-multi-select h-full w-full flex items-center"
+    :class="{ 'read-only': readOnly || isLockedMode }"
+    @click="toggleMenu"
+  >
     <div
       v-if="!active"
       class="flex flex-wrap"
@@ -340,7 +360,7 @@ const selectedOpts = computed(() => {
       }"
     >
       <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
-        <a-tag class="rounded-tag" :color="selectedOpt.color" :style="{ order: selectedOpt.index }">
+        <a-tag class="rounded-tag" :color="selectedOpt.color">
           <span
             :style="{
               'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
@@ -362,17 +382,21 @@ const selectedOpts = computed(() => {
       v-model:value="vModel"
       mode="multiple"
       class="w-full overflow-hidden"
+      :placeholder="isEditColumn ? $t('labels.optional') : ''"
       :bordered="false"
       clear-icon
-      show-search
-      :show-arrow="editAllowed && !readOnly"
+      :show-search="!isMobileMode"
+      :show-arrow="editAllowed && !(readOnly || isLockedMode)"
       :open="isOpen && editAllowed"
-      :disabled="readOnly || !editAllowed"
+      :disabled="readOnly || !editAllowed || isLockedMode"
       :class="{ 'caret-transparent': !hasEditRoles }"
       :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
       @search="search"
       @keydown.stop
     >
+      <template #suffixIcon>
+        <GeneralIcon icon="arrowDown" class="text-gray-700 nc-select-expand-btn" />
+      </template>
       <a-select-option
         v-for="op of options"
         :key="op.id || op.title"
@@ -397,20 +421,14 @@ const selectedOpts = computed(() => {
       </a-select-option>
 
       <a-select-option
-        v-if="
-          searchVal &&
-          isOptionMissing &&
-          !isPublic &&
-          !disableOptionCreation &&
-          (hasRole('owner', true) || hasRole('creator', true))
-        "
+        v-if="searchVal && isOptionMissing && !isPublic && !disableOptionCreation && isUIAllowed('fieldEdit')"
         :key="searchVal"
         :value="searchVal"
       >
         <div class="flex gap-2 text-gray-500 items-center h-full">
           <component :is="iconMap.plusThick" class="min-w-4" />
           <div class="text-xs whitespace-normal">
-            Create new option named <strong>{{ searchVal }}</strong>
+            {{ $t('msg.selectOption.createNewOptionNamed') }} <strong>{{ searchVal }}</strong>
           </div>
         </div>
       </a-select-option>
@@ -472,6 +490,12 @@ const selectedOpts = computed(() => {
 
 .ms-close-icon:hover {
   color: rgba(0, 0, 0, 0.45);
+}
+
+.read-only {
+  .ms-close-icon {
+    display: none;
+  }
 }
 
 .rounded-tag {

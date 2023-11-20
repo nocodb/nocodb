@@ -3,11 +3,13 @@ import { Injectable, Optional } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-google-oauth20';
 import bcrypt from 'bcryptjs';
-import { Plugin, ProjectUser, User } from '../../models';
-import Noco from '../../Noco';
-import { UsersService } from '../../services/users/users.service';
+import type { Request } from 'express';
 import type { VerifyCallback } from 'passport-google-oauth20';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
+import Noco from '~/Noco';
+import { UsersService } from '~/services/users/users.service';
+import { BaseUser, Plugin, User } from '~/models';
+import { sanitiseUserObj } from '~/utils';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -19,7 +21,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   }
 
   async validate(
-    req: any,
+    req: Request,
     accessToken: string,
     refreshToken: string,
     profile: any,
@@ -30,34 +32,31 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     try {
       const user = await User.getByEmail(email);
       if (user) {
-        // if project id defined extract project level roles
+        // if base id defined extract base level roles
         if (req.ncProjectId) {
-          ProjectUser.get(req.ncProjectId, user.id)
-            .then(async (projectUser) => {
-              user.roles = projectUser?.roles || user.roles;
-              user.roles =
-                user.roles === 'owner' ? 'owner,creator' : user.roles;
+          BaseUser.get(req.ncProjectId, user.id)
+            .then(async (baseUser) => {
+              user.roles = baseUser?.roles || user.roles;
               // + (user.roles ? `,${user.roles}` : '');
 
-              done(null, user);
+              done(null, sanitiseUserObj(user));
             })
             .catch((e) => done(e));
         } else {
-          return done(null, user);
+          return done(null, sanitiseUserObj(user));
         }
         // if user not found create new user if allowed
         // or return error
       } else {
         const salt = await promisify(bcrypt.genSalt)(10);
         const user = await this.usersService.registerNewUserIfAllowed({
-          firstname: null,
-          lastname: null,
           email_verification_token: null,
           email: profile.emails[0].value,
           password: '',
           salt,
+          req,
         });
-        return done(null, user);
+        return done(null, sanitiseUserObj(user));
       }
     } catch (err) {
       return done(err);
@@ -74,7 +73,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     return params;
   }
 
-  async authenticate(req: any, options?: any): Promise<void> {
+  async authenticate(req: Request, options?: any): Promise<void> {
     const googlePlugin = await Plugin.getPluginByTitle('Google');
 
     if (googlePlugin && googlePlugin.input) {

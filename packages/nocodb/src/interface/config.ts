@@ -1,6 +1,9 @@
+import type { UserType } from 'nocodb-sdk';
+import type { ReqId } from 'pino-http';
 import type { Handler } from 'express';
 import type * as e from 'express';
 import type { Knex } from 'knex';
+import type { User } from '~/models';
 
 export interface Route {
   path: string;
@@ -200,7 +203,7 @@ export interface NcConfig {
   seedsFolder?: string | string[];
   queriesFolder?: string | string[];
   apisFolder?: string | string[];
-  projectType?: 'rest' | 'graphql' | 'grpc';
+  baseType?: 'rest' | 'graphql' | 'grpc';
   type?: 'mvc' | 'package' | 'docker';
   language?: 'ts' | 'js';
   meta?: {
@@ -290,4 +293,41 @@ export interface XcRoute {
   handler: e.Handler;
   dbAlias?: string;
   isCustom?: boolean;
+}
+
+export interface AppConfig {
+  throttler: {
+    data?: {
+      ttl: number;
+      max_apis: number;
+    };
+    meta?: {
+      ttl: number;
+      max_apis: number;
+    };
+    public?: {
+      ttl: number;
+      max_apis: number;
+    };
+    calc_execution_time: boolean;
+  };
+  basicAuth: {
+    username: string;
+    password: string;
+  };
+  auth: {
+    emailPattern?: RegExp | null;
+    disableEmailAuth: boolean;
+  };
+  mainSubDomain: string;
+  dashboardPath: string;
+}
+
+export interface NcRequest {
+  id?: ReqId;
+  user?: UserType | User;
+  ncWorkspaceId?: string;
+  ncProjectId?: string;
+  headers?: Record<string, string | undefined> | IncomingHttpHeaders;
+  clientIp?: string;
 }

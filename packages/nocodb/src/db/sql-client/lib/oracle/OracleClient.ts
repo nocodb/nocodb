@@ -1914,7 +1914,7 @@ class OracleClient extends KnexClient {
    * @returns {String} message
    */
   async totalRecords(_args: any = {}): Promise<Result> {
-    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const func = this.totalRecords.name;
     throw new Error('Function not supported for oracle yet');
   }

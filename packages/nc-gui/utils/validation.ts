@@ -1,4 +1,4 @@
-import { getI18n } from '~/plugins/a.i18n'
+import { getI18n } from '../plugins/a.i18n'
 
 export const validateEmail = (v: string) =>
   /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(v)
@@ -11,6 +11,10 @@ export const validateTableName = {
       if (!value) {
         // return 'Table name required'
         return reject(new Error(t('msg.error.tableNameRequired')))
+      }
+
+      if (value.length > 52) {
+        return reject(new Error(t('msg.error.columnNameExceedsCharacters', { value: 52 })))
       }
 
       // exclude . / \
@@ -53,7 +57,25 @@ export const validateColumnName = {
   },
 }
 
-export const projectTitleValidator = {
+export const layoutTitleValidator = {
+  validator: (rule: any, value: any) => {
+    const { t } = getI18n().global
+
+    return new Promise((resolve, reject) => {
+      if (value?.length > 250) {
+        reject(new Error(t('msg.error.layoutNameExceeds50Characters')))
+      }
+
+      if (value[0] === ' ') {
+        reject(new Error(t('msg.error.layoutNameCannotStartWithSpace')))
+      }
+
+      resolve(true)
+    })
+  },
+}
+
+export const baseTitleValidator = {
   validator: (rule: any, value: any) => {
     const { t } = getI18n().global
 

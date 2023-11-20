@@ -9,10 +9,10 @@ import type {
   LinkToAnotherRecordType,
   StringOrNullType,
   TableType,
-  ViewType,
 } from 'nocodb-sdk'
-import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { isString } from '@vueuse/core'
+import { ErrorMessages, RelationTypes, UITypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import { isString } from '@vue/shared'
+import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
 import {
   SharedViewPasswordInj,
   computed,
@@ -23,14 +23,15 @@ import {
   ref,
   storeToRefs,
   useApi,
+  useBase,
   useI18n,
   useInjectionState,
   useMetas,
-  useProject,
   useProvideSmartsheetRowStore,
+  useViewsStore,
   watch,
 } from '#imports'
-import type { SharedViewMeta } from '~/lib'
+import type { SharedViewMeta } from '#imports'
 
 const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((sharedViewId: string) => {
   const progress = ref(false)
@@ -41,9 +42,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const passwordError = ref<string | null>(null)
   const secondsRemain = ref(0)
 
+  const { sharedView } = storeToRefs(useViewsStore())
+
   provide(SharedViewPasswordInj, password)
 
-  const sharedView = ref<ViewType>()
   const sharedFormView = ref<FormType>()
   const meta = ref<TableType>()
   const columns =
@@ -55,8 +57,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { metas, setMeta } = useMetas()
 
-  const projectStore = useProject()
-  const { project } = storeToRefs(projectStore)
+  const baseStore = useBase()
+  const { base } = storeToRefs(baseStore)
 
   const { t } = useI18n()
 
@@ -74,7 +76,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const fieldRequired = (fieldName = 'Value') => helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), required)
 
   const formColumns = computed(() =>
-    columns.value?.filter((c) => c.show).filter((col) => !isVirtualCol(col) || col.uidt === UITypes.LinkToAnotherRecord),
+    columns.value?.filter((c) => c.show).filter((col) => !isVirtualCol(col) || isLinksOrLTAR(col.uidt)),
   )
 
   const loadSharedView = async () => {
@@ -111,12 +113,12 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       await setMeta(viewMeta.model)
 
-      // if project is not defined then set it with an object containing base
-      if (!project.value?.bases)
-        projectStore.setProject({
-          bases: [
+      // if base is not defined then set it with an object containing source
+      if (!base.value?.sources)
+        baseStore.setProject({
+          sources: [
             {
-              id: viewMeta.base_id,
+              id: viewMeta.source_id,
               type: viewMeta.client,
             },
           ],
@@ -151,7 +153,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       ) {
         obj.localState[column.title!] = { required: fieldRequired(column.label || column.title) }
       } else if (
-        column.uidt === UITypes.LinkToAnotherRecord &&
+        isLinksOrLTAR(column) &&
         column.colOptions &&
         (column.colOptions as LinkToAnotherRecordType).type === RelationTypes.BELONGS_TO
       ) {
@@ -197,23 +199,19 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         }
       }
 
-      await api.public.dataCreate(
-        sharedView.value!.uuid!,
-        {
-          data,
-          ...attachment,
+      const filtedData = filterNullOrUndefinedObjectProperties({
+        data,
+        ...attachment,
+      })
+
+      await api.public.dataCreate(sharedView.value!.uuid!, filtedData, {
+        headers: {
+          'xc-password': password.value,
         },
-        {
-          headers: {
-            'xc-password': password.value,
-          },
-        },
-      )
+      })
 
       submitted.value = true
       progress.value = false
-
-      await message.success(sharedFormView.value?.success_msg || 'Saved successfully.')
     } catch (e: any) {
       console.log(e)
       await message.error(await extractSdkResponseErrorMsg(e))

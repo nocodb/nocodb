@@ -1,29 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import {
-  AuditOperationSubTypes,
-  AuditOperationTypes,
+  AppEvents,
+  extractRolesObj,
   OrgUserRoles,
   PluginCategory,
 } from 'nocodb-sdk';
-import validator from 'validator';
 import { v4 as uuidv4 } from 'uuid';
-import { T } from 'nc-help';
-import { NC_APP_SETTINGS } from '../constants';
-import { validatePayload } from '../helpers';
-import { NcError } from '../helpers/catchError';
-import { extractProps } from '../helpers/extractProps';
-import { randomTokenString } from '../helpers/stringHelpers';
-import { Audit, ProjectUser, Store, SyncSource, User } from '../models';
-
-import Noco from '../Noco';
-import extractRolesObj from '../utils/extractRolesObj';
-import { MetaTable } from '../utils/globals';
-import { ProjectUsersService } from './project-users/project-users.service';
+import validator from 'validator';
 import type { UserType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { BaseUsersService } from '~/services/base-users/base-users.service';
+import { NC_APP_SETTINGS } from '~/constants';
+import { validatePayload } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import { extractProps } from '~/helpers/extractProps';
+import { randomTokenString } from '~/helpers/stringHelpers';
+import { BaseUser, Store, SyncSource, User } from '~/models';
+
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class OrgUsersService {
-  constructor(private projectUSerService: ProjectUsersService) {}
+  constructor(
+    private readonly baseUsersService: BaseUsersService,
+    private readonly appHooksService: AppHooksService,
+  ) {}
 
   async userList(param: {
     // todo: add better typing
@@ -49,7 +52,7 @@ export class OrgUsersService {
 
     return await User.update(param.userId, {
       ...updateBody,
-      token_version: null,
+      token_version: randomTokenString(),
     });
   }
 
@@ -62,21 +65,14 @@ export class OrgUsersService {
         NcError.badRequest('Cannot delete super admin');
       }
 
-      // delete project user entry and assign to super admin
-      const projectUsers = await ProjectUser.getProjectsIdList(
-        param.userId,
-        ncMeta,
-      );
+      // delete base user entry and assign to super admin
+      const baseUsers = await BaseUser.getProjectsIdList(param.userId, ncMeta);
 
       // todo: clear cache
 
-      // TODO: assign super admin as project owner
-      for (const projectUser of projectUsers) {
-        await ProjectUser.delete(
-          projectUser.project_id,
-          projectUser.fk_user_id,
-          ncMeta,
-        );
+      // TODO: assign super admin as base owner
+      for (const baseUser of baseUsers) {
+        await BaseUser.delete(baseUser.base_id, baseUser.fk_user_id, ncMeta);
       }
 
       // delete sync source entry
@@ -95,9 +91,8 @@ export class OrgUsersService {
 
   async userAdd(param: {
     user: UserType;
-    projectId: string;
     // todo: refactor
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload('swagger.json#/components/schemas/OrgUserReq', param.user);
 
@@ -131,15 +126,15 @@ export class OrgUsersService {
     const error = [];
 
     for (const email of emails) {
-      // add user to project if user already exist
-      const user = await User.getByEmail(email);
+      // add user to base if user already exist
+      let user = await User.getByEmail(email);
 
       if (user) {
         NcError.badRequest('User already exist');
       } else {
         try {
           // create new user with invite token
-          await User.insert({
+          user = await User.insert({
             invite_token,
             invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
             email,
@@ -148,20 +143,20 @@ export class OrgUsersService {
           });
 
           const count = await User.count();
-          T.emit('evt', { evt_type: 'org:user:invite', count });
 
-          await Audit.insert({
-            op_type: AuditOperationTypes.ORG_USER,
-            op_sub_type: AuditOperationSubTypes.INVITE,
-            user: param.req.user.email,
-            description: `${email} has been invited to ${param.projectId} project`,
+          this.appHooksService.emit(AppEvents.ORG_USER_INVITE, {
+            invitedBy: param.req.user,
+            user,
+            count,
             ip: param.req.clientIp,
+            req: param.req,
           });
+
           // in case of single user check for smtp failure
           // and send back token if failed
           if (
             emails.length === 1 &&
-            !(await this.projectUSerService.sendInviteEmail(
+            !(await this.baseUsersService.sendInviteEmail(
               email,
               invite_token,
               param.req,
@@ -169,7 +164,7 @@ export class OrgUsersService {
           ) {
             return { invite_token, email };
           } else {
-            this.projectUSerService.sendInviteEmail(
+            this.baseUsersService.sendInviteEmail(
               email,
               invite_token,
               param.req,
@@ -199,7 +194,10 @@ export class OrgUsersService {
     NcError.notImplemented();
   }
 
-  async userInviteResend(param: { userId: string; req: any }): Promise<any> {
+  async userInviteResend(param: {
+    userId: string;
+    req: NcRequest;
+  }): Promise<any> {
     const user = await User.get(param.userId);
 
     if (!user) {
@@ -229,18 +227,17 @@ export class OrgUsersService {
       );
     }
 
-    await this.projectUSerService.sendInviteEmail(
+    await this.baseUsersService.sendInviteEmail(
       user.email,
       invite_token,
       param.req,
     );
 
-    await Audit.insert({
-      op_type: AuditOperationTypes.ORG_USER,
-      op_sub_type: AuditOperationSubTypes.RESEND_INVITE,
-      user: user.email,
-      description: `${user.email} has been re-invited`,
+    this.appHooksService.emit(AppEvents.ORG_USER_RESEND_INVITE, {
+      invitedBy: param.req.user,
+      user,
       ip: param.req.clientIp,
+      req: param.req,
     });
 
     return true;
@@ -257,12 +254,12 @@ export class OrgUsersService {
       email: user.email,
       reset_password_token: token,
       reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
-      token_version: null,
+      token_version: randomTokenString(),
     });
 
     return {
       reset_password_token: token,
-      reset_password_url: param.siteUrl + `/auth/password/reset/${token}`,
+      reset_password_url: param.siteUrl + `/dashboard/#/reset/${token}`,
     };
   }
 

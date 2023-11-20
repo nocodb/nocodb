@@ -14,8 +14,8 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 </p>
 
 <div align="center">
- 
-[![Node version](https://img.shields.io/badge/node-%3E%3D%2016.14.0-brightgreen)](http://nodejs.org/download/)
+
+[![Node version](https://img.shields.io/badge/node-%3E%3D%2018.14.0-brightgreen)](http://nodejs.org/download/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
 
 </div>
@@ -29,7 +29,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
     <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
 </p>
 
-![All Views](https://user-images.githubusercontent.com/35857179/194825053-3aa3373d-3e0f-4b42-b3f1-42928332054a.gif)
+![video avi](https://github.com/nocodb/nocodb/assets/86527202/e2fad786-f211-4dcb-9bd3-aaece83a6783)
 
 <div align="center">
 
@@ -64,30 +64,9 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 </a>
  -->
 
-[![Stargazers repo roster for @nocodb/nocodb](https://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
+[![Stargazers repo roster for @nocodb/nocodb](http://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
 
 # Quick try
-
-## NPX
-
-You can run the below command if you need an interactive configuration.
-
-```
-npx create-nocodb-app
-```
-
-<img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
-
-## Node Application
-
-We provide a simple NodeJS Application for getting started.
-
-```bash
-git clone https://github.com/nocodb/nocodb-seed
-cd nocodb-seed
-npm install
-npm start
-```
 
 ## Docker
 
@@ -127,6 +106,8 @@ nocodb/nocodb:latest
 
 > If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for [MySQL Docker](https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043).
 
+> Different commands just indicate the database that NocoDB will use internally for metadata storage, but that doesn't influence the ability to connect to a different database type. 
+
 ## Binaries
 
 ##### MacOS (x64)
@@ -156,14 +137,14 @@ curl http://get.nocodb.com/linux-arm64 -o nocodb -L && chmod +x nocodb && ./noco
 ##### Windows (x64)
 
 ```bash
-iwr http://get.nocodb.com/win-x64.exe
+iwr http://get.nocodb.com/win-x64.exe -o Noco-win-x64.exe
 .\Noco-win-x64.exe
 ```
 
 ##### Windows (arm64)
 
 ```bash
-iwr http://get.nocodb.com/win-arm64.exe
+iwr http://get.nocodb.com/win-arm64.exe -o Noco-win-arm64.exe
 .\Noco-win-arm64.exe
 ```
 
@@ -186,19 +167,42 @@ docker-compose up -d
 
 > If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for [MySQL Docker Compose](https://github.com/nocodb/nocodb/issues/1313#issuecomment-1046625974).
 
+## NPX
+
+You can run the below command if you need an interactive configuration.
+
+```
+npx create-nocodb-app
+```
+
+<img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
+
+## Node Application
+
+We provide a simple NodeJS Application for getting started.
+
+```bash
+git clone https://github.com/nocodb/nocodb-seed
+cd nocodb-seed
+npm install
+npm start
+```
+
+
 # GUI
 
 Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
 # Screenshots
+![2](https://github.com/nocodb/nocodb/assets/86527202/a127c05e-2121-4af2-a342-128e0e2d0291)
+![3](https://github.com/nocodb/nocodb/assets/86527202/674da952-8a06-4848-a0e8-a7b02d5f5c88)
+![4](https://github.com/nocodb/nocodb/assets/86527202/cbc5152a-9caf-4f77-a8f7-92a9d06d025b)
+![5](https://github.com/nocodb/nocodb/assets/86527202/dc75dfdc-c486-4f5a-a853-2a8f9e6b569a)
 
-![1](https://user-images.githubusercontent.com/35857179/194844858-d353bd15-1edf-406c-889b-ba60f76831f4.png)
-![2](https://user-images.githubusercontent.com/35857179/194844872-1a1094b9-761b-4ab6-a0ab-8e11dcae6571.png)
-![3](https://user-images.githubusercontent.com/35857179/194844881-23f12c4c-7a5f-403e-928c-ef4c53b2665d.png)
-![4](https://user-images.githubusercontent.com/35857179/194844885-faaf042f-bad2-4924-84f0-2c08813271d8.png)
 ![5](https://user-images.githubusercontent.com/35857179/194844886-a17006e0-979d-493f-83c4-0e72f5a9b716.png)
-![6](https://user-images.githubusercontent.com/35857179/194844890-b9f265ae-6e40-4fa5-9267-d1367c27c8e6.png)
-![7](https://user-images.githubusercontent.com/35857179/194844891-bee9aea3-aff3-4247-a918-b2f3fbbc672e.png)
+![7](https://github.com/nocodb/nocodb/assets/86527202/be64e619-7295-43e2-aa95-cace4462b17f)
+![8](https://github.com/nocodb/nocodb/assets/86527202/4538bf5a-371f-4ec1-a867-8197e5824286)
+
 ![8](https://user-images.githubusercontent.com/35857179/194844893-82d5e21b-ae61-41bd-9990-31ad659bf490.png)
 ![9](https://user-images.githubusercontent.com/35857179/194844897-cfd79946-e413-4c97-b16d-eb4d7678bb79.png)
 ![10](https://user-images.githubusercontent.com/35857179/194844902-c0122570-0dd5-41cf-a26f-6f8d71fefc99.png)
@@ -208,22 +212,22 @@ Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/
 # Table of Contents
 
 - [Quick try](#quick-try)
-  - [NPX](#npx)
-  - [Node Application](#node-application)
-  - [Docker](#docker)
-  - [Docker Compose](#docker-compose)
+    - [NPX](#npx)
+    - [Node Application](#node-application)
+    - [Docker](#docker)
+    - [Docker Compose](#docker-compose)
 - [GUI](#gui)
 - [Join Our Community](#join-our-community)
 - [Screenshots](#screenshots)
 - [Table of Contents](#table-of-contents)
 - [Features](#features)
-  - [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
-  - [App Store for Workflow Automations](#app-store-for-workflow-automations)
-  - [Programmatic Access](#programmatic-access)
-  - [Sync Schema](#sync-schema)
-  - [Audit](#audit)
+    - [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
+    - [App Store for Workflow Automations](#app-store-for-workflow-automations)
+    - [Programmatic Access](#programmatic-access)
+    - [Sync Schema](#sync-schema)
+    - [Audit](#audit)
 - [Production Setup](#production-setup)
-  - [Environment variables](#environment-variables)
+    - [Environment variables](#environment-variables)
 - [Development Setup](#development-setup)
 - [Contributing](#contributing)
 - [Why are we building this?](#why-are-we-building-this)

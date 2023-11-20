@@ -1,24 +1,33 @@
 <script setup lang="ts">
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { ColumnInj, IsFormInj, IsKanbanInj, inject, provide, ref, toRef, useUIPermission } from '#imports'
+import { ColumnInj, IsExpandedFormOpenInj, IsFormInj, IsKanbanInj, inject, provide, ref, toRef, useRoles } from '#imports'
 
 interface Props {
   column: ColumnType
   required?: boolean | number
   hideMenu?: boolean
+  hideIcon?: boolean
 }
 
 const props = defineProps<Props>()
+
+const { isMobileMode } = useGlobal()
 
 const hideMenu = toRef(props, 'hideMenu')
 
 const isForm = inject(IsFormInj, ref(false))
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+
+const isDropDownOpen = ref(false)
+
 const isKanban = inject(IsKanbanInj, ref(false))
 
 const column = toRef(props, 'column')
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 provide(ColumnInj, column)
 
@@ -26,7 +35,7 @@ const editColumnDropdown = ref(false)
 
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
-const addField = async (payload) => {
+const addField = async (payload: any) => {
   columnOrder.value = payload
   editColumnDropdown.value = true
 }
@@ -37,9 +46,27 @@ const closeAddColumnDropdown = () => {
 }
 
 const openHeaderMenu = () => {
-  if (!isForm.value && isUIAllowed('edit-column')) {
+  if (!isForm.value && !isExpandedForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value) {
     editColumnDropdown.value = true
   }
+}
+
+const openDropDown = (e: Event) => {
+  if (isForm.value || isExpandedForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value)) return
+
+  e.preventDefault()
+  e.stopPropagation()
+
+  isDropDownOpen.value = !isDropDownOpen.value
+}
+
+const onClick = (e: Event) => {
+  if (isDropDownOpen.value) {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  isDropDownOpen.value = false
 }
 </script>
 
@@ -47,24 +74,39 @@ const openHeaderMenu = () => {
   <div
     class="flex items-center w-full text-xs text-gray-500 font-weight-medium"
     :class="{ 'h-full': column, '!text-gray-400': isKanban }"
+    @dblclick="openHeaderMenu"
+    @click.right="openDropDown"
+    @click="onClick"
   >
-    <SmartsheetHeaderCellIcon v-if="column" />
-    <span
+    <SmartsheetHeaderCellIcon
+      v-if="column && !props.hideIcon"
+      :class="{
+        'self-start': isForm || isSurveyForm,
+      }"
+    />
+    <div
       v-if="column"
-      class="name"
-      :class="{ 'cursor-pointer': !isForm && isUIAllowed('edit-column') && !hideMenu }"
-      style="white-space: pre-line"
-      :title="column.title"
-      @dblclick="openHeaderMenu"
-      >{{ column.title }}</span
+      class="name pl-1"
+      :class="{
+        'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu && !isExpandedForm,
+        'cursor-default': isForm || !isUIAllowed('fieldEdit') || hideMenu,
+        '!truncate': !isForm,
+      }"
+      :data-test-id="column.title"
     >
+      {{ column.title }}
+    </div>
 
     <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 
     <template v-if="!hideMenu">
       <div class="flex-1" />
-
-      <LazySmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" @add-column="addField" @edit="openHeaderMenu" />
+      <LazySmartsheetHeaderMenu
+        v-if="!isForm && !isExpandedForm && isUIAllowed('fieldEdit')"
+        v-model:is-open="isDropDownOpen"
+        @add-column="addField"
+        @edit="openHeaderMenu"
+      />
     </template>
 
     <a-dropdown
@@ -94,7 +136,8 @@ const openHeaderMenu = () => {
 
 <style scoped>
 .name {
-  max-width: calc(100% - 40px);
-  word-break: break-all;
+  max-width: calc(100% - 10px);
+  word-break: break-word;
+  white-space: pre-line;
 }
 </style>

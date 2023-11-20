@@ -19,11 +19,15 @@ export class ImportTemplatePage extends BasePage {
 
   async getImportTableList() {
     await this.get().locator(`.ant-collapse-header`).nth(0).waitFor();
-    const tr = await this.get().locator(`.ant-collapse-header`);
+    const tr = this.get().locator(`.ant-collapse-header`);
     const rowCount = await tr.count();
     const tableList: string[] = [];
     for (let i = 0; i < rowCount; i++) {
-      const tableName = await getTextExcludeIconText(tr.nth(i));
+      const tableName = await this.get()
+        .locator(`.ant-collapse-header`)
+        .nth(i)
+        .locator('input[type="text"]')
+        .inputValue();
       tableList.push(tableName);
     }
     return tableList;
@@ -32,7 +36,7 @@ export class ImportTemplatePage extends BasePage {
   async getImportColumnList() {
     // return an array
     const columnList: { type: string; name: string }[] = [];
-    const tr = await this.get().locator(`tr.ant-table-row-level-0:visible`);
+    const tr = this.get().locator(`tr.ant-table-row-level-0:visible`);
     const rowCount = await tr.count();
     for (let i = 0; i < rowCount; i++) {
       // replace \n and \t from innerText
@@ -51,9 +55,9 @@ export class ImportTemplatePage extends BasePage {
 
     const tblList = await this.getImportTableList();
     for (let i = 0; i < result.length; i++) {
-      await expect(tblList[i]).toBe(result[i].name);
+      expect(tblList[i]).toBe(result[i].name);
       const columnList = await this.getImportColumnList();
-      await expect(columnList).toEqual(result[i].columns);
+      expect(columnList).toEqual(result[i].columns);
       if (i < result.length - 1) {
         await this.expandTableList({ index: i + 1 });
       }
@@ -61,8 +65,8 @@ export class ImportTemplatePage extends BasePage {
 
     await this.get().locator('button:has-text("Back"):visible').waitFor();
     await this.waitForResponse({
-      requestUrlPathToMatch: '/api/v1/db/data/noco/',
-      httpMethodsToMatch: ['GET'],
+      requestUrlPathToMatch: '/api/v1/db/data/bulk/',
+      httpMethodsToMatch: ['POST'],
       uiAction: () => this.get().locator('button:has-text("Import"):visible').click(),
     });
     await this.dashboard.waitForTabRender({

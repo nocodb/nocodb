@@ -38,6 +38,7 @@ enum UITypes {
   Barcode = 'Barcode',
   QrCode = 'QrCode',
   Button = 'Button',
+  Links = 'Links',
 }
 
 export const numericUITypes = [
@@ -49,6 +50,7 @@ export const numericUITypes = [
   UITypes.Rating,
   UITypes.Rollup,
   UITypes.Year,
+  UITypes.Links,
 ];
 
 export function isNumericCol(
@@ -79,8 +81,17 @@ export function isVirtualCol(
     UITypes.Barcode,
     UITypes.Rollup,
     UITypes.Lookup,
+    UITypes.Links,
     // UITypes.Count,
   ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
+}
+
+export function isLinksOrLTAR(
+  colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string
+) {
+  return [UITypes.LinkToAnotherRecord, UITypes.Links].includes(
+    <UITypes>(typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt)
+  );
 }
 
 export default UITypes;

@@ -1,25 +1,11 @@
 import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
-import {
-  AuditOperationSubTypes,
-  AuditOperationTypes,
-  OrgUserRoles,
-  validatePassword,
-} from 'nocodb-sdk';
+import { AppEvents, OrgUserRoles, validatePassword } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import { isEmail } from 'validator';
+import isEmail from 'validator/lib/isEmail';
 import { T } from 'nc-help';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
-import { NC_APP_SETTINGS } from '../../constants';
-import { validatePayload } from '../../helpers';
-import { NcError } from '../../helpers/catchError';
-import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
-import { randomTokenString } from '../../helpers/stringHelpers';
-import { MetaService, MetaTable } from '../../meta/meta.service';
-import { Audit, Store, User } from '../../models';
-import Noco from '../../Noco';
-import { genJwt, setTokenCookie } from './helpers';
 import type {
   PasswordChangeReqType,
   PasswordForgotReqType,
@@ -27,10 +13,39 @@ import type {
   SignUpReqType,
   UserType,
 } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
+import { genJwt, setTokenCookie } from '~/services/users/helpers';
+import { NC_APP_SETTINGS } from '~/constants';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { validatePayload } from '~/helpers';
+import { MetaService } from '~/meta/meta.service';
+import { MetaTable } from '~/utils/globals';
+import Noco from '~/Noco';
+import { Store, User } from '~/models';
+import { randomTokenString } from '~/helpers/stringHelpers';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { NcError } from '~/helpers/catchError';
+import { BasesService } from '~/services/bases.service';
+import { extractProps } from '~/helpers/extractProps';
 
 @Injectable()
 export class UsersService {
-  constructor(private metaService: MetaService) {}
+  constructor(
+    protected metaService: MetaService,
+    protected appHooksService: AppHooksService,
+    protected basesService: BasesService,
+  ) {}
+
+  // allow signup/signin only if email matches against pattern
+  validateEmailPattern(email: string) {
+    const emailPattern = process.env.NC_AUTH_EMAIL_PATTERN;
+    if (emailPattern) {
+      const regex = new RegExp(emailPattern);
+      if (!regex.test(email)) {
+        NcError.forbidden('Not allowed to signup/signin with this email');
+      }
+    }
+  }
 
   async findOne(_email: string) {
     const email = _email.toLowerCase();
@@ -51,32 +66,52 @@ export class UsersService {
     email: string;
     lastname: any;
   }) {
-    return this.metaService.metaInsert2(null, null, MetaTable.USERS, { ...param, email: param.email?.toLowerCase() });
+    return this.metaService.metaInsert2(null, null, MetaTable.USERS, {
+      ...param,
+      email: param.email?.toLowerCase(),
+    });
+  }
+
+  async profileUpdate({
+    id,
+    params,
+  }: {
+    id: number;
+    params: {
+      display_name?: string;
+      avatar?: string;
+    };
+  }) {
+    const updateObj = extractProps(params, ['display_name', 'avatar']);
+
+    return await User.update(id, updateObj);
   }
 
   async registerNewUserIfAllowed({
-    firstname,
-    lastname,
     email,
     salt,
     password,
     email_verification_token,
+    req,
   }: {
-    firstname;
-    lastname;
     email: string;
     salt: any;
     password;
     email_verification_token;
+    req: NcRequest;
   }) {
+    this.validateEmailPattern(email);
+
     let roles: string = OrgUserRoles.CREATOR;
 
-    if (await User.isFirst()) {
+    const isFirstUser = await User.isFirst();
+
+    if (isFirstUser && process.env.NC_CLOUD !== 'true') {
       roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
       // todo: update in nc_store
       // roles = 'owner,creator,editor'
       T.emit('evt', {
-        evt_type: 'project:invite',
+        evt_type: 'base:invite',
         count: 1,
       });
     } else {
@@ -93,10 +128,7 @@ export class UsersService {
     }
 
     const token_version = randomTokenString();
-
-    return await User.insert({
-      firstname,
-      lastname,
+    const user = await User.insert({
       email,
       salt,
       password,
@@ -104,12 +136,21 @@ export class UsersService {
       roles,
       token_version,
     });
+
+    // if first user and super admin, create a base
+    if (isFirstUser && process.env.NC_CLOUD !== 'true') {
+      // todo: update swagger type
+      (user as any).createdProject = await this.createDefaultProject(user, req);
+    }
+
+    // todo: update swagger type
+    return user as any;
   }
 
   async passwordChange(param: {
     body: PasswordChangeReqType;
     user: UserType;
-    req: any;
+    req: NcRequest;
   }): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/PasswordChangeReq',
@@ -147,15 +188,13 @@ export class UsersService {
       salt,
       password,
       email: user.email,
-      token_version: null,
+      token_version: randomTokenString(),
     });
 
-    await Audit.insert({
-      op_type: AuditOperationTypes.AUTHENTICATION,
-      op_sub_type: AuditOperationSubTypes.PASSWORD_CHANGE,
-      user: user.email,
-      description: `Password has been changed`,
+    this.appHooksService.emit(AppEvents.USER_PASSWORD_CHANGE, {
+      user: user,
       ip: param.req?.clientIp,
+      req: param.req,
     });
 
     return true;
@@ -164,7 +203,7 @@ export class UsersService {
   async passwordForgot(param: {
     body: PasswordForgotReqType;
     siteUrl: string;
-    req: any;
+    req: NcRequest;
   }): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/PasswordForgotReq',
@@ -186,13 +225,11 @@ export class UsersService {
         email: user.email,
         reset_password_token: token,
         reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
-        token_version: null,
+        token_version: randomTokenString(),
       });
       try {
         const template = (
-          await import(
-            '../../controllers/users/ui/emailTemplates/forgotPassword'
-          )
+          await import('~/controllers/auth/ui/emailTemplates/forgotPassword')
         ).default;
         await NcPluginMgrv2.emailAdapter().then((adapter) =>
           adapter.mailSend({
@@ -211,12 +248,10 @@ export class UsersService {
         );
       }
 
-      await Audit.insert({
-        op_type: AuditOperationTypes.AUTHENTICATION,
-        op_sub_type: AuditOperationSubTypes.PASSWORD_FORGOT,
-        user: user.email,
-        description: `Password Reset has been requested`,
+      this.appHooksService.emit(AppEvents.USER_PASSWORD_FORGOT, {
+        user: user,
         ip: param.req?.clientIp,
+        req: param.req,
       });
     } else {
       return NcError.badRequest('Your email has not been registered.');
@@ -245,15 +280,14 @@ export class UsersService {
   async passwordReset(param: {
     body: PasswordResetReqType;
     token: string;
-    // todo: exclude
-    req: any;
+    req: NcRequest;
   }): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/PasswordResetReq',
       param.body,
     );
 
-    const { token, body, req } = param;
+    const { token, body } = param;
 
     const user = await Noco.ncMeta.metaGet(null, null, MetaTable.USERS, {
       reset_password_token: token,
@@ -284,15 +318,13 @@ export class UsersService {
       email: user.email,
       reset_password_expires: null,
       reset_password_token: '',
-      token_version: null,
+      token_version: randomTokenString(),
     });
 
-    await Audit.insert({
-      op_type: AuditOperationTypes.AUTHENTICATION,
-      op_sub_type: AuditOperationSubTypes.PASSWORD_RESET,
-      user: user.email,
-      description: `Password has been reset`,
-      ip: req.clientIp,
+    this.appHooksService.emit(AppEvents.USER_PASSWORD_RESET, {
+      user: user,
+      ip: param.req?.clientIp,
+      req: param.req,
     });
 
     return true;
@@ -301,7 +333,7 @@ export class UsersService {
   async emailVerification(param: {
     token: string;
     // todo: exclude
-    req: any;
+    req: NcRequest;
   }): Promise<any> {
     const { token, req } = param;
 
@@ -319,12 +351,10 @@ export class UsersService {
       email_verified: true,
     });
 
-    await Audit.insert({
-      op_type: AuditOperationTypes.AUTHENTICATION,
-      op_sub_type: AuditOperationSubTypes.EMAIL_VERIFICATION,
-      user: user.email,
-      description: `Email has been verified`,
-      ip: req.clientIp,
+    this.appHooksService.emit(AppEvents.USER_EMAIL_VERIFICATION, {
+      user: user,
+      ip: req?.clientIp,
+      req,
     });
 
     return true;
@@ -372,13 +402,7 @@ export class UsersService {
   }): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SignUpReq', param.body);
 
-    const {
-      email: _email,
-      firstname,
-      lastname,
-      token,
-      ignore_subscribe,
-    } = param.req.body;
+    const { email: _email, token, ignore_subscribe } = param.req.body;
 
     let { password } = param.req.body;
 
@@ -393,6 +417,8 @@ export class UsersService {
     }
 
     const email = _email.toLowerCase();
+
+    this.validateEmailPattern(email);
 
     let user = await User.getByEmail(email);
 
@@ -418,12 +444,11 @@ export class UsersService {
     if (!ignore_subscribe) {
       T.emit('evt_subscribe', email);
     }
+    let createdProject = undefined;
 
     if (user) {
       if (token) {
         await User.update(user.id, {
-          firstname,
-          lastname,
           salt,
           password,
           email_verification_token,
@@ -435,20 +460,21 @@ export class UsersService {
         NcError.badRequest('User already exist');
       }
     } else {
-      await this.registerNewUserIfAllowed({
-        firstname,
-        lastname,
-        email,
-        salt,
-        password,
-        email_verification_token,
-      });
+      const { createdProject: _createdProject } =
+        await this.registerNewUserIfAllowed({
+          email,
+          salt,
+          password,
+          email_verification_token,
+          req: param.req,
+        });
+      createdProject = _createdProject;
     }
     user = await User.getByEmail(email);
 
     try {
       const template = (
-        await import('../../controllers/users/ui/emailTemplates/verify')
+        await import('~/controllers/auth/ui/emailTemplates/verify')
       ).default;
       await (
         await NcPluginMgrv2.emailAdapter()
@@ -476,18 +502,25 @@ export class UsersService {
 
     setTokenCookie(param.res, refreshToken);
 
-    await Audit.insert({
-      op_type: AuditOperationTypes.AUTHENTICATION,
-      op_sub_type: AuditOperationSubTypes.SIGNUP,
-      user: user.email,
-      description: `User has signed up`,
-      ip: (param.req as any).clientIp,
+    this.appHooksService.emit(AppEvents.USER_SIGNUP, {
+      user: user,
+      ip: param.req?.clientIp,
+      req: param.req,
     });
 
-    return this.login(user);
+    this.appHooksService.emit(AppEvents.WELCOME, {
+      user,
+      req: param.req,
+    });
+
+    return { ...(await this.login(user, param.req)), createdProject };
   }
 
-  login(user: UserType) {
+  async login(user: UserType & { provider?: string }, req: any) {
+    this.appHooksService.emit(AppEvents.USER_SIGNIN, {
+      user,
+      req,
+    });
     return {
       token: genJwt(user, Noco.getConfig()),
     };
@@ -495,17 +528,31 @@ export class UsersService {
 
   async signOut(param: { res: any; req: any }) {
     try {
-      param.res.clearCookie('refresh_token');
+      this.clearCookie(param);
       const user = (param.req as any).user;
       if (user?.id) {
         await User.update(user.id, {
           refresh_token: null,
-          token_version: null,
+          token_version: randomTokenString(),
         });
       }
       return { msg: 'Signed out successfully' };
     } catch (e) {
       NcError.badRequest(e.message);
     }
+  }
+
+  protected clearCookie(param: { res: any; req: any }) {
+    param.res.clearCookie('refresh_token');
+  }
+
+  private async createDefaultProject(user: User, req: any) {
+    // create new base for user
+    const base = await this.basesService.createDefaultBase({
+      user,
+      req,
+    });
+
+    return base;
   }
 }

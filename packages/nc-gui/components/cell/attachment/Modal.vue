@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { onKeyDown } from '@vueuse/core'
+import { onKeyDown, useEventListener } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import { iconMap, isImage, ref, useAttachment, useDropZone, useUIPermission, watch } from '#imports'
+import { iconMap, isImage, ref, useAttachment, useDropZone, useRoles, watch } from '#imports'
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const {
   open,
@@ -25,8 +25,7 @@ const {
   renameFile,
 } = useAttachmentCell()!
 
-// todo: replace placeholder var
-const isLocked = ref(false)
+const isLocked = inject(IsLockedInj, ref(false))
 
 const dropZoneRef = ref<HTMLDivElement>()
 
@@ -59,21 +58,29 @@ function onClick(item: Record<string, any>) {
   })
 }
 
+const isModalOpen = ref(false)
+const filetoDelete = reactive({
+  title: '',
+  i: 0,
+})
+
 function onRemoveFileClick(title: any, i: number) {
-  Modal.confirm({
-    title: `Do you want to delete '${title}'?`,
-    wrapClassName: 'nc-modal-attachment-delete',
-    okText: 'Yes',
-    okType: 'danger',
-    cancelText: 'No',
-    onOk() {
-      try {
-        removeFile(i)
-      } catch (e: any) {
-        message.error(e.message)
-      }
-    },
-  })
+  isModalOpen.value = true
+  filetoDelete.i = i
+  filetoDelete.title = title
+}
+
+// when user paste on modal
+useEventListener(dropZoneRef, 'paste', (event: ClipboardEvent) => {
+  if (event.clipboardData?.files) {
+    onDrop(event.clipboardData.files)
+  }
+})
+const handleFileDelete = (i: number) => {
+  removeFile(i)
+  isModalOpen.value = false
+  filetoDelete.i = 0
+  filetoDelete.title = ''
 }
 </script>
 
@@ -89,28 +96,29 @@ function onRemoveFileClick(title: any, i: number) {
     <template #title>
       <div class="flex gap-4">
         <div
-          v-if="isSharedForm || (!readOnly && isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
+          v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic && !isLocked)"
           class="nc-attach-file group"
           data-testid="attachment-expand-file-picker-button"
           @click="open"
         >
           <MaterialSymbolsAttachFile class="transform group-hover:(text-accent scale-120)" />
-          Attach File
+          {{ $t('activity.attachFile') }}
         </div>
 
         <div class="flex items-center gap-2">
-          <div v-if="readOnly" class="text-gray-400">[Readonly]</div>
-          Viewing Attachments of
+          <div v-if="readOnly" class="text-gray-400">[{{ $t('labels.readOnly') }}]</div>
+          {{ $t('labels.viewingAttachmentsOf') }}
           <div class="font-semibold underline">{{ column?.title }}</div>
         </div>
 
         <div v-if="selectedVisibleItems.includes(true)" class="flex flex-1 items-center gap-3 justify-end mr-[30px]">
-          <a-button type="primary" class="nc-attachment-download-all" @click="bulkDownloadFiles"> Bulk Download </a-button>
+          <NcButton type="primary" class="nc-attachment-download-all" @click="bulkDownloadFiles">
+            {{ $t('activity.bulkDownload') }}
+          </NcButton>
         </div>
       </div>
     </template>
-
-    <div ref="dropZoneRef">
+    <div ref="dropZoneRef" tabindex="0">
       <template v-if="isSharedForm || (!readOnly && !dragging)">
         <general-overlay
           v-model="isOverDropZone"
@@ -118,7 +126,7 @@ function onRemoveFileClick(title: any, i: number) {
           class="text-white ring ring-accent ring-opacity-100 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
         >
           <MaterialSymbolsFileCopyOutline class="text-accent" height="35" width="35" />
-          <div class="text-white text-3xl">Drop here</div>
+          <div class="text-white text-3xl">{{ $t('labels.dropHere') }}</div>
         </general-overlay>
       </template>
 
@@ -132,28 +140,25 @@ function onRemoveFileClick(title: any, i: number) {
             />
 
             <a-tooltip v-if="!readOnly">
-              <template #title> Remove File </template>
+              <template #title> {{ $t('title.removeFile') }} </template>
               <component
                 :is="iconMap.closeCircle"
-                v-if="isSharedForm || (isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
+                v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic && !isLocked)"
                 class="nc-attachment-remove"
                 @click.stop="onRemoveFileClick(item.title, i)"
               />
             </a-tooltip>
 
             <a-tooltip placement="bottom">
-              <template #title> Download File </template>
+              <template #title> {{ $t('title.downloadFile') }} </template>
 
               <div class="nc-attachment-download group-hover:(opacity-100)">
                 <component :is="iconMap.download" @click.stop="downloadFile(item)" />
               </div>
             </a-tooltip>
 
-            <a-tooltip
-              v-if="isSharedForm || (!readOnly && isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
-              placement="bottom"
-            >
-              <template #title> Rename File </template>
+            <a-tooltip v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic && !isLocked)" placement="bottom">
+              <template #title> {{ $t('title.renameFile') }} </template>
 
               <div class="nc-attachment-download group-hover:(opacity-100) mr-[35px]">
                 <component :is="iconMap.edit" @click.stop="renameFile(item, i)" />
@@ -167,7 +172,7 @@ function onRemoveFileClick(title: any, i: number) {
               <LazyCellAttachmentImage
                 v-if="isImage(item.title, item.mimetype)"
                 :srcs="getPossibleAttachmentSrc(item)"
-                class="max-w-full max-h-full m-auto justify-center"
+                class="object-cover h-64 m-auto justify-center"
                 @click.stop="onClick(item)"
               />
 
@@ -197,6 +202,21 @@ function onRemoveFileClick(title: any, i: number) {
         </div>
       </div>
     </div>
+    <GeneralDeleteModal v-model:visible="isModalOpen" entity-name="File" :on-delete="() => handleFileDelete(filetoDelete.i)">
+      <template #entity-preview>
+        <span>
+          <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
+            <GeneralIcon icon="file" class="nc-view-icon"></GeneralIcon>
+            <div
+              class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+            >
+              {{ filetoDelete.title }}
+            </div>
+          </div>
+        </span>
+      </template>
+    </GeneralDeleteModal>
   </a-modal>
 </template>
 

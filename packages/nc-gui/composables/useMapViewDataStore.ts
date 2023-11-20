@@ -1,7 +1,7 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { ColumnType, MapType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import { IsPublicInj, ref, storeToRefs, useInjectionState, useMetas, useProject } from '#imports'
-import type { Row } from '~/lib'
+import { IsPublicInj, ref, storeToRefs, useBase, useInjectionState, useMetas } from '#imports'
+import type { Row } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map(
@@ -30,11 +30,11 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     const { api } = useApi()
 
-    const { project } = storeToRefs(useProject())
+    const { base } = storeToRefs(useBase())
 
     const { $api } = useNuxtApp()
 
-    const { isUIAllowed } = useUIPermission()
+    const { isUIAllowed } = useRoles()
 
     const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
 
@@ -56,7 +56,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     async function syncCount() {
       const { count } = await $api.dbViewRow.count(
         NOCO,
-        project?.value?.title as string,
+        base?.value?.title as string,
         meta?.value?.id as string,
         viewMeta?.value?.id as string,
       )
@@ -72,10 +72,10 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     }
 
     async function loadMapData() {
-      if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return
+      if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return
 
       const res = !isPublic.value
-        ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
+        ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
             ...queryParams.value,
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             where: where?.value,
@@ -86,7 +86,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     }
 
     async function updateMapMeta(updateObj: Partial<MapType>) {
-      if (!viewMeta?.value?.id || !isUIAllowed('xcDatatableEditable')) return
+      if (!viewMeta?.value?.id || !isUIAllowed('dataEdit')) return
       await $api.dbView.mapUpdate(viewMeta.value.id, updateObj)
     }
 
@@ -114,7 +114,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
         const insertedData = await $api.dbViewRow.create(
           NOCO,
-          project?.value.id as string,
+          base?.value.id as string,
           metaValue?.id as string,
           viewMetaValue?.id as string,
           insertObj,

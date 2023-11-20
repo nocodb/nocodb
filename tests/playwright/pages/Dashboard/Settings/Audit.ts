@@ -29,7 +29,7 @@ export class AuditSettingsPage extends BasePage {
     user?: string;
     created?: string;
   }) {
-    const table = await this.get();
+    const table = this.get();
     const row = table.locator(`tr.ant-table-row`).nth(index);
 
     if (opType) {
@@ -37,7 +37,7 @@ export class AuditSettingsPage extends BasePage {
         .locator(`td.ant-table-cell`)
         .nth(0)
         .textContent()
-        .then(async text => await expect(text).toContain(opType));
+        .then(async text => expect(text).toContain(opType));
     }
 
     if (opSubtype) {
@@ -45,7 +45,7 @@ export class AuditSettingsPage extends BasePage {
         .locator(`td.ant-table-cell`)
         .nth(1)
         .textContent()
-        .then(async text => await expect(text).toContain(opSubtype));
+        .then(async text => expect(text).toContain(opSubtype));
     }
 
     if (description) {
@@ -53,7 +53,7 @@ export class AuditSettingsPage extends BasePage {
         .locator(`td.ant-table-cell`)
         .nth(2)
         .textContent()
-        .then(async text => await expect(text).toContain(description));
+        .then(async text => expect(text).toContain(description));
     }
 
     if (user) {
@@ -61,7 +61,7 @@ export class AuditSettingsPage extends BasePage {
         .locator(`td.ant-table-cell`)
         .nth(3)
         .textContent()
-        .then(async text => await expect(text).toContain(user));
+        .then(async text => expect(text).toContain(user));
     }
 
     if (created) {
@@ -69,7 +69,7 @@ export class AuditSettingsPage extends BasePage {
         .locator(`td.ant-table-cell`)
         .nth(4)
         .textContent()
-        .then(async text => await expect(text).toContain(created));
+        .then(async text => expect(text).toContain(created));
     }
   }
 }

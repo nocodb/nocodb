@@ -15,6 +15,6 @@ export class ToolbarSearchDataPage extends BasePage {
   }
 
   async verify(query: string) {
-    await expect(await this.get().inputValue()).toBe(query);
+    expect(await this.get().inputValue()).toBe(query);
   }
 }

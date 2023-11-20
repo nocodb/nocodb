@@ -1,8 +1,8 @@
 import { OrgUserRoles } from 'nocodb-sdk';
 import { NC_APP_SETTINGS } from '../constants';
-import Store from '../models/Store';
-import { MetaTable } from '../utils/globals';
 import type { NcUpgraderCtx } from './NcUpgrader';
+import Store from '~/models/Store';
+import { MetaTable } from '~/utils/globals';
 
 /** Upgrader for upgrading roles */
 export default async function ({ ncMeta }: NcUpgraderCtx) {

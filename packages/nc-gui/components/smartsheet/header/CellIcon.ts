@@ -1,4 +1,4 @@
-import type { ColumnType } from 'nocodb-sdk'
+import { type ColumnType } from 'nocodb-sdk'
 import type { PropType } from '@vue/runtime-core'
 import {
   ColumnInj,
@@ -17,6 +17,7 @@ import {
   isEmail,
   isFloat,
   isGeoData,
+  isGeometry,
   isInt,
   isJSON,
   isPercent,
@@ -33,7 +34,7 @@ import {
   isYear,
   storeToRefs,
   toRef,
-  useProject,
+  useBase,
 } from '#imports'
 
 const renderIcon = (column: ColumnType, abstractType: any) => {
@@ -62,7 +63,7 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
   } else if (isYear(column, abstractType)) {
     return iconMap.calendar
   } else if (isTime(column, abstractType)) {
-    return iconMap.calendar
+    return iconMap.clock
   } else if (isRating(column)) {
     return iconMap.rating
   } else if (isAttachment(column)) {
@@ -79,6 +80,8 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
     return iconMap.duration
   } else if (isPercent(column)) {
     return iconMap.percent
+  } else if (isGeometry(column)) {
+    return iconMap.calculator
   } else if (isInt(column, abstractType) || isFloat(column, abstractType)) {
     return iconMap.number
   } else if (isString(column, abstractType)) {
@@ -102,16 +105,18 @@ export default defineComponent({
 
     const column = inject(ColumnInj, columnMeta)
 
-    const { sqlUis } = storeToRefs(useProject())
+    const { sqlUis } = storeToRefs(useBase())
 
-    const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : Object.values(sqlUis.value)[0])
+    const sqlUi = ref(column.value?.source_id ? sqlUis.value[column.value?.source_id] : Object.values(sqlUis.value)[0])
 
     const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
     return () => {
       if (!column.value) return null
 
-      return h(renderIcon(column.value, abstractType.value), { class: 'text-gray-500 mx-1' })
+      return h(renderIcon(column.value, abstractType.value), {
+        class: 'text-inherit mx-1',
+      })
     }
   },
 })

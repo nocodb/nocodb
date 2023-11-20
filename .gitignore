@@ -2,8 +2,10 @@
 # ===========
 .DS_Store
 ehthumbs.db
-Icon?
 Thumbs.db
+Icon
+
+
 
 # Node and related ecosystem
 # ==========================
@@ -82,8 +84,8 @@ mongod
 *.sln
 
 .history
-/packages/nocodb-legacy/docker/main.js.LICENSE.txt
-/packages/nocodb-legacy/noco_log.db
+/packages/nocodb/docker/main.js.LICENSE.txt
+/packages/nocodb/noco_log.db
 
 # NC_DBs
 #=========
@@ -92,3 +94,5 @@ test_noco.db
 
 # ngrok config
 httpbin
+.run/test-debug.run.xml
+

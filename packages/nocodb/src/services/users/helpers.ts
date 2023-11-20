@@ -1,15 +1,13 @@
 import crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';
-import type User from '../../models/User';
-import type { NcConfig } from '../../interface/config';
+import type User from '~/models/User';
+import type { NcConfig } from '~/interface/config';
 import type { Response } from 'express';
 
 export function genJwt(user: User, config: NcConfig) {
   return jwt.sign(
     {
       email: user.email,
-      firstname: user.firstname,
-      lastname: user.lastname,
       id: user.id,
       roles: user.roles,
       token_version: user.token_version,
@@ -29,6 +27,7 @@ export function setTokenCookie(res: Response, token): void {
   const cookieOptions = {
     httpOnly: true,
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    domain: process.env.NC_BASE_HOST_NAME || undefined,
   };
   res.cookie('refresh_token', token, cookieOptions);
 }

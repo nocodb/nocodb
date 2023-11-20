@@ -1,19 +1,3 @@
-export enum Role {
-  Super = 'super',
-  Admin = 'admin',
-  OrgLevelCreator = 'org-level-creator',
-  OrgLevelViewer = 'org-level-viewer',
-  Guest = 'guest',
-}
-
-export enum ProjectRole {
-  Owner = 'owner',
-  Creator = 'creator',
-  Editor = 'editor',
-  Commenter = 'commenter',
-  Viewer = 'viewer',
-}
-
 export enum ClientType {
   MYSQL = 'mysql2',
   MSSQL = 'mssql',
@@ -41,7 +25,7 @@ export enum Language {
   id = 'Bahasa Indonesia',
   it = 'Italiano',
   ja = '日本語',
-  ko = '한국인',
+  ko = '한국어',
   lv = 'Latviešu',
   nl = 'Nederlandse',
   no = 'Norsk',
@@ -80,15 +64,22 @@ export enum TabType {
   TABLE = 'table',
   VIEW = 'view',
   AUTH = 'auth',
+  SQL = 'sql',
+  ERD = 'erd',
+  DOCUMENT = 'doc',
+  LAYOUT = 'layout',
+  DB = 'db',
 }
 
 export enum SmartsheetStoreEvents {
   SORT_RELOAD = 'sort-reload',
   FILTER_RELOAD = 'filter-reload',
+  GROUP_BY_RELOAD = 'group-by-reload',
   DATA_RELOAD = 'data-reload',
   FIELD_RELOAD = 'field-reload',
   FIELD_ADD = 'field-add',
   MAPPED_BY_COLUMN_CHANGE = 'mapped-by-column-change',
+  CLEAR_NEW_ROW = 'clear-new-row',
 }
 
 export enum DataSourcesSubTab {
@@ -96,6 +87,7 @@ export enum DataSourcesSubTab {
   Metadata = 'Metadata',
   ERD = 'ERD',
   UIAcl = 'UI ACL',
+  Audit = 'Audit',
   Misc = 'Misc',
   Edit = 'Edit',
 }
@@ -114,4 +106,33 @@ export enum JobStatus {
   FAILED = 'failed',
   PAUSED = 'paused',
   REFRESH = 'refresh',
+}
+
+export enum ImportWorkerOperations {
+  PROCESS = 'process',
+  SET_TABLES = 'setTables',
+  SET_CONFIG = 'setConfig',
+  GET_SINGLE_SELECT_OPTIONS = 'getSingleSelectOptions',
+  GET_MULTI_SELECT_OPTIONS = 'getMultiSelectOptions',
+  INIT_SDK = 'initSDK',
+}
+
+export enum ImportWorkerResponse {
+  PROCESSED_DATA = 'processedData',
+  PROGRESS = 'progress',
+  SINGLE_SELECT_OPTIONS = 'singleSelectOptions',
+  MULTI_SELECT_OPTIONS = 'multiSelectOptions',
+  ERROR = 'error',
+}
+
+export enum ImportType {
+  EXCEL = 'excel',
+  CSV = 'csv',
+  JSON = 'json',
+}
+
+export enum ImportSource {
+  FILE = 'file',
+  URL = 'url',
+  STRING = 'string',
 }

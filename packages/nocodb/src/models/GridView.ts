@@ -1,15 +1,15 @@
-import Noco from '../Noco';
-import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../helpers/extractProps';
-import GridViewColumn from './GridViewColumn';
-import View from './View';
 import type { GridType, MetaType } from 'nocodb-sdk';
+import GridViewColumn from '~/models/GridViewColumn';
+import View from '~/models/View';
+import Noco from '~/Noco';
+import NocoCache from '~/cache/NocoCache';
+import { extractProps } from '~/helpers/extractProps';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 
 export default class GridView implements GridType {
   fk_view_id: string;
-  project_id?: string;
   base_id?: string;
+  source_id?: string;
   meta?: MetaType;
   row_height?: number;
   columns?: GridViewColumn[];
@@ -42,15 +42,15 @@ export default class GridView implements GridType {
   static async insert(view: Partial<GridView>, ncMeta = Noco.ncMeta) {
     const insertObj = extractProps(view, [
       'fk_view_id',
-      'project_id',
       'base_id',
+      'source_id',
       'row_height',
     ]);
 
-    if (!(insertObj.project_id && insertObj.base_id)) {
+    if (!(insertObj.base_id && insertObj.source_id)) {
       const viewRef = await View.get(insertObj.fk_view_id, ncMeta);
-      insertObj.project_id = viewRef.project_id;
       insertObj.base_id = viewRef.base_id;
+      insertObj.source_id = viewRef.source_id;
     }
 
     await ncMeta.metaInsert2(null, null, MetaTable.GRID_VIEW, insertObj, true);

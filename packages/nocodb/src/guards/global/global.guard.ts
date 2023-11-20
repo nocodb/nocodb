@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { lastValueFrom, Observable } from 'rxjs';
-import { JwtStrategy } from '../../strategies/jwt.strategy';
-import extractRolesObj from '../../utils/extractRolesObj';
+import { extractRolesObj } from 'nocodb-sdk';
+import type { Request } from 'express';
 import type { ExecutionContext } from '@nestjs/common';
+import { JwtStrategy } from '~/strategies/jwt.strategy';
 
 @Injectable()
 export class GlobalGuard extends AuthGuard(['jwt']) {
@@ -51,7 +52,7 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
         return this.authenticate(req, {
           ...req.user,
           isAuthorized: true,
-          roles: req.user.roles === 'owner' ? 'owner,creator' : req.user.roles,
+          roles: req.user.roles,
         });
       }
     } else if (req.headers['xc-shared-base-id']) {
@@ -75,7 +76,7 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
   }
 
   private async authenticate(
-    req: any,
+    req: Request,
     user: any = {
       roles: {
         guest: true,

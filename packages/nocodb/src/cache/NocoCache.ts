@@ -1,7 +1,7 @@
-import { CacheGetType } from '../utils/globals';
 import RedisCacheMgr from './RedisCacheMgr';
 import RedisMockCacheMgr from './RedisMockCacheMgr';
 import type CacheMgr from './CacheMgr';
+import { CacheGetType } from '~/utils/globals';
 
 export default class NocoCache {
   private static client: CacheMgr;
@@ -27,6 +27,20 @@ export default class NocoCache {
   public static async set(key, value): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
     return this.client.set(`${this.prefix}:${key}`, value);
+  }
+
+  public static async setExpiring(key, value, expireSeconds): Promise<boolean> {
+    if (this.cacheDisabled) return Promise.resolve(true);
+    return this.client.setExpiring(
+      `${this.prefix}:${key}`,
+      value,
+      expireSeconds,
+    );
+  }
+
+  public static async incrby(key, value): Promise<boolean> {
+    if (this.cacheDisabled) return Promise.resolve(true);
+    return this.client.incrby(`${this.prefix}:${key}`, value);
   }
 
   public static async get(key, type): Promise<any> {

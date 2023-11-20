@@ -1,34 +1,50 @@
 <script setup lang="ts">
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
-import { storeToRefs, useGlobal, useProject, watch } from '#imports'
+import { onMounted } from '@vue/runtime-core'
+import { ProjectIdInj, storeToRefs, useBase, useGlobal, watch } from '#imports'
 
 const { includeM2M, showNull } = useGlobal()
 
-const projectStore = useProject()
-const { updateProject, loadTables, hasEmptyOrNullFilters } = projectStore
-const { project, projectMeta } = storeToRefs(projectStore)
+const baseStore = useBase()
+const basesStore = useBases()
+const { loadTables, hasEmptyOrNullFilters } = baseStore
+const { base } = storeToRefs(baseStore)
+const _projectId = inject(ProjectIdInj, undefined)
+const baseId = computed(() => _projectId?.value ?? base.value?.id)
+
+const { t } = useI18n()
 
 watch(includeM2M, async () => await loadTables())
 
-const showNullAndEmptyInFilter = ref(projectMeta.value.showNullAndEmptyInFilter)
+const showNullAndEmptyInFilter = ref()
+
+onMounted(async () => {
+  await basesStore.loadProject(baseId.value!, true)
+  showNullAndEmptyInFilter.value = basesStore.getProjectMeta(baseId.value!)?.showNullAndEmptyInFilter
+})
 
 async function showNullAndEmptyInFilterOnChange(evt: CheckboxChangeEvent) {
+  const base = basesStore.bases.get(baseId.value!)
+  if (!base) throw new Error(`Base ${baseId.value} not found`)
+
+  const meta = basesStore.getProjectMeta(baseId.value!) ?? {}
+
   // users cannot hide null & empty option if there is existing null / empty filters
   if (!evt.target.checked) {
     if (await hasEmptyOrNullFilters()) {
       showNullAndEmptyInFilter.value = true
-      message.warning('Null / Empty filters exist. Please remove them first.')
+      message.warning(t('msg.error.nullFilterExists'))
     }
   }
   const newProjectMeta = {
-    ...projectMeta.value,
+    ...meta,
     showNullAndEmptyInFilter: showNullAndEmptyInFilter.value,
   }
   // update local state
-  project.value.meta = newProjectMeta
+  base.meta = newProjectMeta
   // update db
-  await updateProject({
-    meta: newProjectMeta,
+  await basesStore.updateProject(baseId.value!, {
+    meta: JSON.stringify(newProjectMeta),
   })
 }
 </script>

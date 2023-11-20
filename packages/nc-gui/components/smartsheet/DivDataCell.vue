@@ -1,17 +1,13 @@
 <script lang="ts" setup>
-import { CellClickHookInj, CurrentCellInj, createEventHook, ref } from '#imports'
+import { CurrentCellInj, ref } from '#imports'
 
 const el = ref()
-
-const cellClickHook = createEventHook()
-
-provide(CellClickHookInj, cellClickHook)
 
 provide(CurrentCellInj, el)
 </script>
 
 <template>
-  <div ref="el" class="select-none" @click="cellClickHook.trigger($event)">
+  <div ref="el" class="select-none">
     <slot />
   </div>
 </template>

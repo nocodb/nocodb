@@ -15,8 +15,9 @@ import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
 import ncHookUpgrader from './ncHookUpgrader';
 import ncProjectConfigUpgrader from './ncProjectConfigUpgrader';
 import ncXcdbLTARUpgrader from './ncXcdbLTARUpgrader';
-import type { MetaService } from '../meta/meta.service';
-import type { NcConfig } from '../interface/config';
+import ncXcdbLTARIndexUpgrader from './ncXcdbLTARIndexUpgrader';
+import type { MetaService } from '~/meta/meta.service';
+import type { NcConfig } from '~/interface/config';
 
 const log = debug('nc:version-upgrader');
 
@@ -25,7 +26,7 @@ export interface NcUpgraderCtx {
 }
 
 export default class NcUpgrader {
-  private static STORE_KEY = 'NC_CONFIG_MAIN';
+  protected static STORE_KEY = 'NC_CONFIG_MAIN';
 
   // Todo: transaction
   public static async upgrade(ctx: NcUpgraderCtx): Promise<any> {
@@ -35,24 +36,6 @@ export default class NcUpgrader {
     try {
       ctx.ncMeta = await ctx.ncMeta.startTransaction();
 
-      const NC_VERSIONS: any[] = [
-        { name: '0009000', handler: null },
-        { name: '0009044', handler: null },
-        { name: '0011043', handler: ncProjectEnvUpgrader },
-        { name: '0011045', handler: ncProjectEnvUpgrader0011045 },
-        { name: '0090000', handler: ncProjectUpgraderV2_0090000 },
-        { name: '0098004', handler: ncDataTypesUpgrader },
-        { name: '0098005', handler: ncProjectRolesUpgrader },
-        { name: '0100002', handler: ncFilterUpgrader },
-        { name: '0101002', handler: ncAttachmentUpgrader },
-        { name: '0104002', handler: ncAttachmentUpgrader_0104002 },
-        { name: '0104004', handler: ncFilterUpgrader_0104004 },
-        { name: '0105002', handler: ncStickyColumnUpgrader },
-        { name: '0105003', handler: ncFilterUpgrader_0105003 },
-        { name: '0105004', handler: ncHookUpgrader },
-        { name: '0107004', handler: ncProjectConfigUpgrader },
-        { name: '0108002', handler: ncXcdbLTARUpgrader },
-      ];
       if (!(await ctx.ncMeta.knexConnection?.schema?.hasTable?.('nc_store'))) {
         return;
       }
@@ -61,6 +44,8 @@ export default class NcUpgrader {
       const config = await ctx.ncMeta.metaGet('', '', 'nc_store', {
         key: this.STORE_KEY,
       });
+
+      const NC_VERSIONS: any[] = this.getUpgraderList();
 
       if (config) {
         const configObj: NcConfig = JSON.parse(config.value);
@@ -83,7 +68,7 @@ export default class NcUpgrader {
                 '',
                 'nc_store',
                 {
-                  value: JSON.stringify(config),
+                  value: JSON.stringify({ version: config.version }),
                 },
                 {
                   key: NcUpgrader.STORE_KEY,
@@ -101,7 +86,9 @@ export default class NcUpgrader {
       } else {
         this.log(`upgrade : Inserting config to meta database`);
         const configObj: any = {};
-        const isOld = (await ctx.ncMeta.projectList())?.length;
+        const isOld =
+          process.env.NC_CLOUD !== 'true' &&
+          (await ctx.ncMeta.baseList())?.length;
         configObj.version = isOld ? '0009000' : process.env.NC_VERSION;
         await ctx.ncMeta.metaInsert('', '', 'nc_store', {
           key: NcUpgrader.STORE_KEY,
@@ -131,8 +118,33 @@ export default class NcUpgrader {
     }
   }
 
-  private static log(str, ...args): void {
+  protected static log(str, ...args): void {
     log(`${str}`, ...args);
+  }
+
+  protected static getUpgraderList(): {
+    name: string;
+    handler: (ctx?: NcUpgraderCtx) => Promise<void> | void;
+  }[] {
+    return [
+      { name: '0009000', handler: null },
+      { name: '0009044', handler: null },
+      { name: '0011043', handler: ncProjectEnvUpgrader },
+      { name: '0011045', handler: ncProjectEnvUpgrader0011045 },
+      { name: '0090000', handler: ncProjectUpgraderV2_0090000 },
+      { name: '0098004', handler: ncDataTypesUpgrader },
+      { name: '0098005', handler: ncProjectRolesUpgrader },
+      { name: '0100002', handler: ncFilterUpgrader },
+      { name: '0101002', handler: ncAttachmentUpgrader },
+      { name: '0104002', handler: ncAttachmentUpgrader_0104002 },
+      { name: '0104004', handler: ncFilterUpgrader_0104004 },
+      { name: '0105002', handler: ncStickyColumnUpgrader },
+      { name: '0105003', handler: ncFilterUpgrader_0105003 },
+      { name: '0105004', handler: ncHookUpgrader },
+      { name: '0107004', handler: ncProjectConfigUpgrader },
+      { name: '0108002', handler: ncXcdbLTARUpgrader },
+      { name: '0111002', handler: ncXcdbLTARIndexUpgrader },
+    ];
   }
 }
 

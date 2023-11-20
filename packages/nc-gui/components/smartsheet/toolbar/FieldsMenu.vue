@@ -2,15 +2,14 @@
 import type { ColumnType, GalleryType, KanbanType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
+
 import type { SelectProps } from 'ant-design-vue'
-import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
+
 import {
   ActiveViewInj,
   FieldsInj,
   IsLockedInj,
   IsPublicInj,
-  MetaInj,
-  ReloadViewDataHookInj,
   computed,
   iconMap,
   inject,
@@ -20,17 +19,15 @@ import {
   useNuxtApp,
   useSmartsheetStoreOrThrow,
   useUndoRedo,
-  useViewColumns,
+  useViewColumnsOrThrow,
   watch,
 } from '#imports'
 
-const meta = inject(MetaInj, ref())
-
 const activeView = inject(ActiveViewInj, ref())
 
-const reloadDataHook = inject(ReloadViewDataHookInj)!
-
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj, undefined)!
+
+const reloadViewDataHook = inject(ReloadViewDataHookInj, undefined)!
 
 const rootFields = inject(FieldsInj)
 
@@ -53,7 +50,8 @@ const {
   saveOrUpdate,
   metaColumnById,
   loadViewColumns,
-} = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
+  toggleFieldVisibility,
+} = useViewColumnsOrThrow()
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
@@ -83,7 +81,7 @@ const gridDisplayValueField = computed(() => {
   return filteredFieldList.value?.find((field) => field.fk_column_id === pvCol?.id)
 })
 
-const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }, undo = false) => {
+const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } }, undo = false) => {
   // todo : sync with server
   if (!fields.value) return
 
@@ -123,12 +121,17 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }, undo 
 
   if (fields.value.length < 2) return
 
-  fields.value.forEach((field, index) => {
-    if (field.order !== index + 1) {
-      field.order = index + 1
-      saveOrUpdate(field, index)
-    }
-  })
+  await Promise.all(
+    fields.value.map(async (field, index) => {
+      if (field.order !== index + 1) {
+        field.order = index + 1
+        await saveOrUpdate(field, index, true)
+      }
+    }),
+  )
+
+  await loadViewColumns()
+  reloadViewDataHook?.trigger()
 
   $e('a:fields:reorder')
 }
@@ -198,52 +201,6 @@ const coverImageColumnId = computed({
   },
 })
 
-const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: c,
-  })
-
-const open = ref(false)
-
-const toggleFieldVisibility = (e: CheckboxChangeEvent, field: any, index: number) => {
-  addUndo({
-    undo: {
-      fn: (v: boolean) => {
-        field.show = !v
-        saveOrUpdate(field, index)
-      },
-      args: [e.target.checked],
-    },
-    redo: {
-      fn: (v: boolean) => {
-        field.show = v
-        saveOrUpdate(field, index)
-      },
-      args: [e.target.checked],
-    },
-    scope: defineViewScope({ view: activeView.value }),
-  })
-  saveOrUpdate(field, index)
-}
-
-const toggleSystemFields = (e: CheckboxChangeEvent) => {
-  addUndo({
-    undo: {
-      fn: (v: boolean) => {
-        showSystemFields.value = !v
-      },
-      args: [e.target.checked],
-    },
-    redo: {
-      fn: (v: boolean) => {
-        showSystemFields.value = v
-      },
-      args: [e.target.checked],
-    },
-    scope: defineViewScope({ view: activeView.value }),
-  })
-}
-
 const onShowAll = () => {
   addUndo({
     undo: {
@@ -282,137 +239,226 @@ const onHideAll = () => {
   hideAll()
 }
 
+const showAllColumns = computed({
+  get: () => {
+    return filteredFieldList.value?.every((field) => field.show)
+  },
+  set: async (val) => {
+    if (val) {
+      await onShowAll()
+    } else {
+      await onHideAll()
+    }
+  },
+})
+
+const getIcon = (c: ColumnType) =>
+  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
+    columnMeta: c,
+  })
+
+const open = ref(false)
+
+const showSystemField = computed({
+  get: () => {
+    return showSystemFields.value
+  },
+  set: (val) => {
+    addUndo({
+      undo: {
+        fn: (v: boolean) => {
+          showSystemFields.value = !v
+        },
+        args: [val],
+      },
+      redo: {
+        fn: (v: boolean) => {
+          showSystemFields.value = v
+        },
+        args: [val],
+      },
+      scope: defineViewScope({ view: activeView.value }),
+    })
+    showSystemFields.value = val
+  },
+})
+
 useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu">
+  <NcDropdown
+    v-model:visible="open"
+    :trigger="['click']"
+    overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown"
+    class="!xs:hidden"
+  >
     <div :class="{ 'nc-active-btn': numberOfHiddenFields }">
       <a-button v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
-        <div class="flex items-center gap-1">
-          <component :is="iconMap.eye" />
+        <div class="flex items-center gap-2">
+          <GeneralIcon
+            v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY"
+            icon="creditCard"
+            class="h-4 w-4"
+          />
+          <component :is="iconMap.fields" v-else class="h-4 w-4" />
 
           <!-- Fields -->
-          <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('objects.fields') }}</span>
-
-          <component :is="iconMap.arrowDown" class="text-grey" />
-
-          <span v-if="numberOfHiddenFields" class="nc-count-badge">{{ numberOfHiddenFields }}</span>
+          <span v-if="!isMobileMode" class="text-capitalize text-sm font-medium">
+            <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY">
+              {{ $t('title.editCards') }}
+            </template>
+            <template v-else>
+              {{ $t('objects.fields') }}
+            </template>
+          </span>
+          <span v-if="numberOfHiddenFields" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">
+            {{ numberOfHiddenFields }}
+          </span>
         </div>
       </a-button>
     </div>
 
     <template #overlay>
-      <div
-        class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
-        data-testid="nc-fields-menu"
-        @click.stop
-      >
-        <a-card
-          v-if="activeView.type === ViewTypes.GALLERY || activeView.type === ViewTypes.KANBAN"
-          size="small"
-          title="Cover image"
+      <div class="p-4 pr-0 bg-white w-90 rounded-2xl nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
+        <div
+          v-if="!filterQuery && !isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
+          class="flex flex-col gap-y-2 pr-4 mb-6"
         >
+          <div class="flex text-sm select-none">Select cover image field</div>
           <a-select
             v-model:value="coverImageColumnId"
             class="w-full"
             :options="coverOptions"
             dropdown-class-name="nc-dropdown-cover-image"
             @click.stop
-          />
-        </a-card>
-
-        <div class="p-1" @click.stop>
-          <a-input v-model:value="filterQuery" size="small" :placeholder="$t('placeholder.searchFields')" />
+          >
+            <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
+          </a-select>
         </div>
 
-        <div class="nc-fields-list py-1">
-          <Draggable v-model="fields" item-key="id" @change="onMove($event)">
-            <template #item="{ element: field, index: index }">
-              <div
-                v-if="filteredFieldList.filter((el) => el !== gridDisplayValueField).includes(field)"
-                :key="field.id"
-                class="px-2 py-1 flex items-center"
-                :data-testid="`nc-fields-menu-${field.title}`"
-                @click.stop
-              >
-                <a-checkbox
-                  v-model:checked="field.show"
-                  v-e="['a:fields:show-hide']"
-                  class="shrink"
-                  :disabled="field.isViewEssentialField"
-                  @change="toggleFieldVisibility($event, field, index)"
+        <div class="pr-4" @click.stop>
+          <a-input v-model:value="filterQuery" :placeholder="$t('placeholder.searchFields')" class="!rounded-lg">
+            <template #prefix> <img src="~/assets/nc-icons/search.svg" class="h-3.5 w-3.5 mr-1" /> </template
+          ></a-input>
+        </div>
+
+        <div v-if="!filterQuery" class="pr-4">
+          <div class="pt-0.25 w-full bg-gray-50"></div>
+        </div>
+
+        <div class="flex flex-col my-1.5 nc-scrollbar-md max-h-[47.5vh] pr-3">
+          <div class="nc-fields-list">
+            <div
+              v-if="!fields?.filter((el) => el.title.toLowerCase().includes(filterQuery.toLowerCase())).length"
+              class="px-0.5 py-2 text-gray-500"
+            >
+              {{ $t('title.noFieldsFound') }}
+            </div>
+            <Draggable v-model="fields" item-key="id" @change="onMove($event)">
+              <template #item="{ element: field }">
+                <div
+                  v-if="
+                    filteredFieldList
+                      .filter((el) => el !== gridDisplayValueField && el.title.toLowerCase().includes(filterQuery.toLowerCase()))
+                      .includes(field)
+                  "
+                  :key="field.id"
+                  class="px-2 py-2 flex flex-row items-center first:border-t-1 border-b-1 border-x-1 first:rounded-t-lg last:rounded-b-lg border-gray-200"
+                  :data-testid="`nc-fields-menu-${field.title}`"
+                  @click.stop
                 >
-                  <div class="flex items-center">
-                    <component :is="getIcon(metaColumnById[field.fk_column_id])" />
+                  <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
+                  <div
+                    v-e="['a:fields:show-hide']"
+                    class="flex flex-row items-center justify-between w-full cursor-pointer ml-1"
+                    @click="
+                      () => {
+                        field.show = !field.show
+                        toggleFieldVisibility(field.show, field)
+                      }
+                    "
+                  >
+                    <div class="flex items-center -ml-0.75">
+                      <component :is="getIcon(metaColumnById[field.fk_column_id])" />
+                      <NcTooltip :disabled="field.title.length < 30">
+                        <template #title>
+                          {{ field.title }}
+                        </template>
+                        <span class="mx-0.65 break-all line-clamp-1">{{ field.title }}</span>
+                      </NcTooltip>
+                    </div>
 
-                    <span>{{ field.title }}</span>
+                    <NcSwitch v-e="['a:fields:show-hide']" :checked="field.show" :disabled="field.isViewEssentialField" />
                   </div>
-                </a-checkbox>
 
-                <div class="flex-1" />
-
-                <component :is="iconMap.drag" class="cursor-move" />
-              </div>
-            </template>
-            <template v-if="activeView?.type === ViewTypes.GRID" #header>
-              <div
-                v-if="gridDisplayValueField"
-                :key="`pv-${gridDisplayValueField.id}`"
-                class="px-2 py-1 flex items-center"
-                :data-testid="`nc-fields-menu-${gridDisplayValueField.title}`"
-                @click.stop
-              >
-                <a-tooltip placement="bottom">
-                  <template #title>
-                    <span class="text-sm">Display Value</span>
-                  </template>
-
-                  <component :is="iconMap.tableKey" class="text-xs" />
-                </a-tooltip>
-
-                <div class="flex items-center px-[8px]">
-                  <component :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])" />
-
-                  <span>{{ filteredFieldList[0].title }}</span>
+                  <div class="flex-1" />
                 </div>
+              </template>
+              <template v-if="activeView?.type === ViewTypes.GRID" #header>
+                <div
+                  v-if="gridDisplayValueField && filteredFieldList[0].title.toLowerCase().includes(filterQuery.toLowerCase())"
+                  :key="`pv-${gridDisplayValueField.id}`"
+                  class="pl-7.5 pr-2.1 py-2 flex flex-row items-center border-1 border-gray-200"
+                  :class="{
+                    'rounded-t-lg': filteredFieldList.length > 1,
+                    'rounded-lg': filteredFieldList.length === 1,
+                  }"
+                  :data-testid="`nc-fields-menu-${gridDisplayValueField.title}`"
+                  @click.stop
+                >
+                  <div class="flex flex-row items-center justify-between w-full">
+                    <div class="flex items">
+                      <a-tooltip placement="bottom">
+                        <template #title>
+                          <span class="text-sm">$t('title.displayValue') </span>
+                        </template>
+                      </a-tooltip>
 
-                <div class="flex-1" />
-              </div>
-            </template>
-          </Draggable>
+                      <div class="flex items-center">
+                        <component :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])" />
+
+                        <span>{{ filteredFieldList[0].title }}</span>
+                      </div>
+                    </div>
+                    <NcSwitch v-e="['a:fields:show-hide']" :checked="true" :disabled="true" />
+                  </div>
+                </div>
+              </template>
+            </Draggable>
+          </div>
         </div>
-
-        <a-divider class="!my-2" />
-
-        <div v-if="!isPublic" class="p-2 py-1 flex nc-fields-show-system-fields" @click.stop>
-          <a-checkbox v-model:checked="showSystemFields" class="!items-center" @change="toggleSystemFields">
-            <span class="text-xs"> {{ $t('activity.showSystemFields') }}</span>
-          </a-checkbox>
-        </div>
-
-        <div class="p-2 flex gap-2" @click.stop>
-          <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="onShowAll">
-            <!-- Show All -->
-            {{ $t('general.showAll') }}
-          </a-button>
-
-          <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="onHideAll">
-            <!-- Hide All -->
-            {{ $t('general.hideAll') }}
-          </a-button>
+        <div class="flex pr-4 mt-1 gap-2">
+          <NcButton
+            v-if="!filterQuery"
+            type="ghost"
+            size="sm"
+            class="nc-fields-show-all-fields !text-gray-500 !w-1/2"
+            @click="showAllColumns = !showAllColumns"
+          >
+            {{ showAllColumns ? $t('title.hideAll') : $t('general.showAll') }} {{ $t('objects.fields').toLowerCase() }}
+          </NcButton>
+          <NcButton
+            v-if="!isPublic && !filterQuery"
+            type="ghost"
+            size="sm"
+            class="nc-fields-show-system-fields !text-gray-500 !w-1/2"
+            @click="showSystemField = !showSystemField"
+          >
+            {{ showSystemField ? $t('title.hideSystemFields') : $t('activity.showSystemFields') }}
+          </NcButton>
         </div>
       </div>
     </template>
-  </a-dropdown>
+  </NcDropdown>
 </template>
 
 <style scoped lang="scss">
-:deep(.ant-checkbox-inner) {
-  @apply transform scale-60;
-}
+// :deep(.ant-checkbox-inner) {
+//   @apply transform scale-60;
+// }
 
-:deep(.ant-checkbox) {
-  @apply top-auto;
-}
+// :deep(.ant-checkbox) {
+//   @apply top-auto;
+// }
 </style>

@@ -1,14 +1,20 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
-import { iconMap } from '~/utils/iconUtils'
+import { iconMap } from '#imports'
 import LinkVariant from '~icons/mdi/link-variant'
 import ID from '~icons/mdi/identifier'
 
 const uiTypes = [
   {
+    name: UITypes.Links,
+    icon: iconMap.link,
+    virtual: 1,
+  },
+  {
     name: UITypes.LinkToAnotherRecord,
     icon: iconMap.link,
     virtual: 1,
+    deprecated: 1,
   },
   {
     name: UITypes.Lookup,
@@ -22,6 +28,14 @@ const uiTypes = [
   {
     name: UITypes.LongText,
     icon: iconMap.longText,
+  },
+  {
+    name: UITypes.Number,
+    icon: iconMap.number,
+  },
+  {
+    name: UITypes.Decimal,
+    icon: iconMap.decimal,
   },
   {
     name: UITypes.Attachment,
@@ -62,14 +76,6 @@ const uiTypes = [
   {
     name: UITypes.URL,
     icon: iconMap.web,
-  },
-  {
-    name: UITypes.Number,
-    icon: iconMap.number,
-  },
-  {
-    name: UITypes.Decimal,
-    icon: iconMap.decimal,
   },
   {
     name: UITypes.Currency,

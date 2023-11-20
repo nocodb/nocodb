@@ -1,27 +1,4 @@
 import { PluginCategory } from 'nocodb-sdk';
-import BackblazePluginConfig from '../plugins/backblaze';
-import DiscordPluginConfig from '../plugins/discord';
-import GcsPluginConfig from '../plugins/gcs';
-import LinodePluginConfig from '../plugins/linode';
-import MattermostPluginConfig from '../plugins/mattermost';
-import MinioPluginConfig from '../plugins/mino';
-import OvhCloudPluginConfig from '../plugins/ovhCloud';
-import S3PluginConfig from '../plugins/s3';
-import ScalewayPluginConfig from '../plugins/scaleway';
-import SlackPluginConfig from '../plugins/slack';
-import SMTPPluginConfig from '../plugins/smtp';
-import MailerSendConfig from '../plugins/mailerSend';
-import SpacesPluginConfig from '../plugins/spaces';
-import TeamsPluginConfig from '../plugins/teams';
-import TwilioPluginConfig from '../plugins/twilio';
-import TwilioWhatsappPluginConfig from '../plugins/twilioWhatsapp';
-import UpcloudPluginConfig from '../plugins/upcloud';
-import VultrPluginConfig from '../plugins/vultr';
-import SESPluginConfig from '../plugins/ses';
-import Noco from '../Noco';
-import Local from '../plugins/storage/Local';
-import { MetaTable } from '../utils/globals';
-import Plugin from '../models/Plugin';
 import { NcError } from './catchError';
 import type {
   IEmailAdapter,
@@ -32,6 +9,29 @@ import type {
   // XcStoragePlugin,
   // XcWebhookNotificationPlugin
 } from 'nc-plugin';
+import BackblazePluginConfig from '~/plugins/backblaze';
+import DiscordPluginConfig from '~/plugins/discord';
+import GcsPluginConfig from '~/plugins/gcs';
+import LinodePluginConfig from '~/plugins/linode';
+import MattermostPluginConfig from '~/plugins/mattermost';
+import MinioPluginConfig from '~/plugins/mino';
+import OvhCloudPluginConfig from '~/plugins/ovhCloud';
+import S3PluginConfig from '~/plugins/s3';
+import ScalewayPluginConfig from '~/plugins/scaleway';
+import SlackPluginConfig from '~/plugins/slack';
+import SMTPPluginConfig from '~/plugins/smtp';
+import MailerSendConfig from '~/plugins/mailerSend';
+import SpacesPluginConfig from '~/plugins/spaces';
+import TeamsPluginConfig from '~/plugins/teams';
+import TwilioPluginConfig from '~/plugins/twilio';
+import TwilioWhatsappPluginConfig from '~/plugins/twilioWhatsapp';
+import UpcloudPluginConfig from '~/plugins/upcloud';
+import VultrPluginConfig from '~/plugins/vultr';
+import SESPluginConfig from '~/plugins/ses';
+import Noco from '~/Noco';
+import Local from '~/plugins/storage/Local';
+import { MetaTable } from '~/utils/globals';
+import Plugin from '~/models/Plugin';
 
 const defaultPlugins = [
   SlackPluginConfig,

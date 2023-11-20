@@ -1,12 +1,13 @@
 import { message } from 'ant-design-vue'
 import type { WatchStopHandle } from 'vue'
 import type { TableType } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, storeToRefs, useNuxtApp, useProject, useState, watch } from '#imports'
+import { extractSdkResponseErrorMsg, storeToRefs, useBase, useNuxtApp, useState, watch } from '#imports'
 
 export function useMetas() {
   const { $api } = useNuxtApp()
 
-  const { tables } = storeToRefs(useProject())
+  const { tables: _tables } = storeToRefs(useBase())
+  const { baseTables } = storeToRefs(useTablesStore())
 
   const metas = useState<{ [idOrTitle: string]: TableType | any }>('metas', () => ({}))
 
@@ -26,14 +27,25 @@ export function useMetas() {
   }
 
   // todo: this needs a proper refactor, arbitrary waiting times are usually not a good idea
-  const getMeta = async (tableIdOrTitle: string, force = false): Promise<TableType | null> => {
+  const getMeta = async (
+    tableIdOrTitle: string,
+    force = false,
+    skipIfCacheMiss = false,
+    baseId?: string,
+  ): Promise<TableType | null> => {
     if (!tableIdOrTitle) return null
-    /** wait until loading is finished if requesting same meta */
-    if (!force && loadingState.value[tableIdOrTitle]) {
+
+    const tables = (baseId ? baseTables.value.get(baseId) : _tables.value) ?? []
+
+    /** wait until loading is finished if requesting same meta
+     * use while to recheck loading state since it can be changed by other requests
+     * */
+    // eslint-disable-next-line no-unmodified-loop-condition
+    while (!force && loadingState.value[tableIdOrTitle]) {
       await new Promise((resolve) => {
         let unwatch: WatchStopHandle
 
-        // set maximum 20sec timeout to wait loading meta
+        // set maximum 10sec timeout to wait loading meta
         const timeout = setTimeout(() => {
           unwatch?.()
           clearTimeout(timeout)
@@ -59,6 +71,9 @@ export function useMetas() {
       }
     }
 
+    // return null if cache miss
+    if (skipIfCacheMiss) return null
+
     loadingState.value[tableIdOrTitle] = true
 
     try {
@@ -66,7 +81,7 @@ export function useMetas() {
         return metas.value[tableIdOrTitle]
       }
 
-      const modelId = tableIdOrTitle.startsWith('md_') ? tableIdOrTitle : tables.value.find((t) => t.title === tableIdOrTitle)?.id
+      const modelId = (tables.find((t) => t.id === tableIdOrTitle) || tables.find((t) => t.title === tableIdOrTitle))?.id
 
       if (!modelId) {
         console.warn(`Table '${tableIdOrTitle}' is not found in the table list`)

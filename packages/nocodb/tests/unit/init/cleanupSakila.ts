@@ -1,5 +1,4 @@
-
-import { Audit, Project } from '../../../src/models'
+import { Audit, Base } from '../../../src/models'
 import TestDbMngr from '../TestDbMngr';
 
 const dropTablesOfSakila = async () => {
@@ -40,14 +39,14 @@ const resetAndSeedSakila = async () => {
   }
 };
 
-const cleanUpSakila = async () => {
+const cleanUpSakila = async (forceReset) => {
   try {
-    const sakilaProject = await Project.getByTitle('sakila');
+    const sakilaProject = await Base.getByTitle('sakila');
 
     const audits =
-      sakilaProject && (await Audit.projectAuditList(sakilaProject.id, {}));
+      sakilaProject && (await Audit.baseAuditList(sakilaProject.id, {}));
 
-    if (audits?.length > 0) {
+    if (audits?.length > 0 || forceReset) {
       // if PG, drop schema
       if (TestDbMngr.isPg()) {
         return await dropSchemaAndSeedSakila();

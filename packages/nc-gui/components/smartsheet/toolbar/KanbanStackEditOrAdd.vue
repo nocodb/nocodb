@@ -9,10 +9,10 @@ import {
   ref,
   useKanbanViewStoreOrThrow,
   useMenuCloseOnEsc,
-  useUIPermission,
+  useRoles,
 } from '#imports'
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { groupingFieldColumn } = useKanbanViewStoreOrThrow()
 
@@ -33,7 +33,7 @@ provide(IsKanbanInj, ref(true))
 
 <template>
   <a-dropdown
-    v-if="!IsPublic && isUIAllowed('edit-column')"
+    v-if="!IsPublic && isUIAllowed('fieldEdit')"
     v-model:visible="open"
     :trigger="['click']"
     overlay-class-name="nc-dropdown-kanban-add-edit-stack-menu"
@@ -45,11 +45,12 @@ provide(IsKanbanInj, ref(true))
         :disabled="isLocked"
       >
         <div class="flex items-center gap-1">
-          <component :is="iconMap.plusCircle" />
-          <span class="text-capitalize !text-sm font-weight-normal">
-            {{ $t('activity.kanban.addOrEditStack') }}
+          <component :is="iconMap.edit" v-if="groupingFieldColumn" />
+          <component :is="iconMap.plus" v-else />
+          <span class="capitalize ml-1 text-sm">
+            {{ groupingFieldColumn ? 'Edit' : 'Add' }}
+            Stack
           </span>
-          <component :is="iconMap.arrowDown" class="text-grey" />
         </div>
       </a-button>
     </div>

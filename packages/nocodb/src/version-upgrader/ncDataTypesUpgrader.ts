@@ -1,6 +1,6 @@
 import { UITypes } from 'nocodb-sdk';
-import { MetaTable } from '../utils/globals';
 import type { NcUpgraderCtx } from './NcUpgrader';
+import { MetaTable } from '~/utils/globals';
 
 // The Count and AutoNumber types are removed
 // so convert all existing Count and AutoNumber fields to Number type

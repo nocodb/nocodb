@@ -1,15 +1,16 @@
 import { T } from 'nc-help';
-import { MetaService } from '../../meta/meta.service';
-import Noco from '../../Noco';
-import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
-import NcUpgrader from '../../version-upgrader/NcUpgrader';
-import NocoCache from '../../cache/NocoCache';
-import getInstance from '../../utils/getInstance';
-import initAdminFromEnv from '../../helpers/initAdminFromEnv';
-import { User } from '../../models';
-import { NcConfig, prepareEnv } from '../../utils/nc-config';
 import type { Provider } from '@nestjs/common';
-import type { IEventEmitter } from '../event-emitter/event-emitter.interface';
+import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
+import { populatePluginsForCloud } from '~/utils/cloud/populateCloudPlugins';
+import { MetaService } from '~/meta/meta.service';
+import Noco from '~/Noco';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import NcUpgrader from '~/version-upgrader/NcUpgrader';
+import NocoCache from '~/cache/NocoCache';
+import getInstance from '~/utils/getInstance';
+import initAdminFromEnv from '~/helpers/initAdminFromEnv';
+import { User } from '~/models';
+import { NcConfig, prepareEnv } from '~/utils/nc-config';
 
 export const InitMetaServiceProvider: Provider = {
   // initialize app,
@@ -26,7 +27,7 @@ export const InitMetaServiceProvider: Provider = {
     const config = await NcConfig.createByEnv();
 
     // set version
-    process.env.NC_VERSION = '0108002';
+    process.env.NC_VERSION = '0111002';
 
     // init cache
     await NocoCache.init();
@@ -49,6 +50,10 @@ export const InitMetaServiceProvider: Provider = {
     // init plugin manager
     await NcPluginMgrv2.init(Noco.ncMeta);
     await Noco.loadEEState();
+
+    if (process.env.NC_CLOUD === 'true') {
+      await populatePluginsForCloud({ ncMeta: Noco.ncMeta });
+    }
 
     // run upgrader
     await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });

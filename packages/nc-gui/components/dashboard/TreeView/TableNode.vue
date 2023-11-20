@@ -251,40 +251,43 @@ const isTableOpened = computed(() => {
 
               <template #overlay>
                 <NcMenu>
-                  <div v-if="isUIAllowed('tableRename', { roles: baseRole })" v-e="['c:table:rename']">
-                    <NcMenuItem
-                      :data-testid="`sidebar-table-rename-${table.title}`"
-                      @click="openRenameTableDialog(table, base.sources[sourceIndex].id)"
-                    >
+                  <NcMenuItem
+                    v-if="isUIAllowed('tableRename', { roles: baseRole })"
+                    :data-testid="`sidebar-table-rename-${table.title}`"
+                    @click="openRenameTableDialog(table, base.sources[sourceIndex].id)"
+                  >
+                    <div v-e="['c:table:rename']" class="flex gap-2 items-center">
                       <GeneralIcon icon="edit" class="text-gray-700" />
                       {{ $t('general.rename') }}
-                    </NcMenuItem>
-                  </div>
+                    </div>
+                  </NcMenuItem>
 
-                  <div
+                  <NcMenuItem
                     v-if="
                       isUIAllowed('tableDuplicate') &&
                       base.sources?.[sourceIndex] &&
                       (base.sources[sourceIndex].is_meta || base.sources[sourceIndex].is_local)
                     "
-                    v-e="['c:table:duplicate']"
+                    :data-testid="`sidebar-table-duplicate-${table.title}`"
+                    @click="duplicateTable(table)"
                   >
-                    <NcMenuItem :data-testid="`sidebar-table-duplicate-${table.title}`" @click="duplicateTable(table)">
+                    <div v-e="['c:table:duplicate']" class="flex gap-2 items-center">
                       <GeneralIcon icon="duplicate" class="text-gray-700" />
                       {{ $t('general.duplicate') }}
-                    </NcMenuItem>
-                  </div>
+                    </div>
+                  </NcMenuItem>
 
-                  <div v-if="isUIAllowed('tableDelete', { roles: baseRole })" v-e="['c:table:delete']">
-                    <NcMenuItem
-                      :data-testid="`sidebar-table-delete-${table.title}`"
-                      class="!text-red-500 !hover:bg-red-50"
-                      @click="isTableDeleteDialogVisible = true"
-                    >
+                  <NcMenuItem
+                    v-if="isUIAllowed('tableDelete', { roles: baseRole })"
+                    :data-testid="`sidebar-table-delete-${table.title}`"
+                    class="!text-red-500 !hover:bg-red-50"
+                    @click="isTableDeleteDialogVisible = true"
+                  >
+                    <div v-e="['c:table:delete']" class="flex gap-2 items-center">
                       <GeneralIcon icon="delete" />
                       {{ $t('general.delete') }}
-                    </NcMenuItem>
-                  </div>
+                    </div>
+                  </NcMenuItem>
                 </NcMenu>
               </template>
             </NcDropdown>

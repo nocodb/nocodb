@@ -1471,150 +1471,146 @@ onKeyStroke('ArrowDown', onDown)
                   ></td>
                 </tr>
               </template>
-              <LazySmartsheetRow
-                v-for="(row, rowIndex) of dataRef"
-                v-show="!showSkeleton"
-                ref="rowRefs"
-                :key="rowIndex"
-                :row="row"
-              >
-                <template #default="{ state }">
-                  <tr
-                    class="nc-grid-row !xs:h-14"
-                    :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
-                    :data-testid="`grid-row-${rowIndex}`"
-                  >
-                    <td
-                      key="row-index"
-                      class="caption nc-grid-cell pl-5 pr-1"
-                      :data-testid="`cell-Id-${rowIndex}`"
-                      @contextmenu="contextMenuTarget = null"
+              <template v-else>
+                <LazySmartsheetRow v-for="(row, rowIndex) of dataRef" ref="rowRefs" :key="rowIndex" :row="row">
+                  <template #default="{ state }">
+                    <tr
+                      class="nc-grid-row !xs:h-14"
+                      :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
+                      :data-testid="`grid-row-${rowIndex}`"
                     >
-                      <div class="items-center flex gap-1 min-w-[60px]">
-                        <div
-                          v-if="!readOnly || !isLocked || isMobileMode"
-                          class="nc-row-no sm:min-w-4 text-xs text-gray-500"
-                          :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
-                        >
-                          {{ ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 }}
-                        </div>
-                        <div
-                          v-if="!readOnly"
-                          :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
-                          class="nc-row-expand-and-checkbox"
-                        >
-                          <a-checkbox v-model:checked="row.rowMeta.selected" />
-                        </div>
-                        <span class="flex-1" />
+                      <td
+                        key="row-index"
+                        class="caption nc-grid-cell pl-5 pr-1"
+                        :data-testid="`cell-Id-${rowIndex}`"
+                        @contextmenu="contextMenuTarget = null"
+                      >
+                        <div class="items-center flex gap-1 min-w-[60px]">
+                          <div
+                            v-if="!readOnly || !isLocked || isMobileMode"
+                            class="nc-row-no sm:min-w-4 text-xs text-gray-500"
+                            :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
+                          >
+                            {{ ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 }}
+                          </div>
+                          <div
+                            v-if="!readOnly"
+                            :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
+                            class="nc-row-expand-and-checkbox"
+                          >
+                            <a-checkbox v-model:checked="row.rowMeta.selected" />
+                          </div>
+                          <span class="flex-1" />
 
-                        <div
-                          v-if="isUIAllowed('expandedForm')"
-                          class="nc-expand"
-                          :data-testid="`nc-expand-${rowIndex}`"
-                          :class="{ 'nc-comment': row.rowMeta?.commentCount }"
-                        >
-                          <a-spin
-                            v-if="row.rowMeta.saving"
-                            class="!flex items-center"
-                            :data-testid="`row-save-spinner-${rowIndex}`"
-                          />
-                          <template v-else-if="!isLocked">
-                            <span
-                              v-if="row.rowMeta?.commentCount && expandForm"
-                              v-e="['c:expanded-form:open']"
-                              class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
-                              :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
-                              @click="expandAndLooseFocus(row, state)"
-                            >
-                              {{ row.rowMeta.commentCount }}
-                            </span>
-                            <div
-                              v-else
-                              class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
-                            >
-                              <component
-                                :is="iconMap.expand"
-                                v-if="expandForm"
-                                v-e="['c:row-expand:open']"
-                                class="select-none transform hover:(text-black scale-120) nc-row-expand"
+                          <div
+                            v-if="isUIAllowed('expandedForm')"
+                            class="nc-expand"
+                            :data-testid="`nc-expand-${rowIndex}`"
+                            :class="{ 'nc-comment': row.rowMeta?.commentCount }"
+                          >
+                            <a-spin
+                              v-if="row.rowMeta.saving"
+                              class="!flex items-center"
+                              :data-testid="`row-save-spinner-${rowIndex}`"
+                            />
+                            <template v-else-if="!isLocked">
+                              <span
+                                v-if="row.rowMeta?.commentCount && expandForm"
+                                v-e="['c:expanded-form:open']"
+                                class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
+                                :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
                                 @click="expandAndLooseFocus(row, state)"
-                              />
-                            </div>
-                          </template>
+                              >
+                                {{ row.rowMeta.commentCount }}
+                              </span>
+                              <div
+                                v-else
+                                class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
+                              >
+                                <component
+                                  :is="iconMap.expand"
+                                  v-if="expandForm"
+                                  v-e="['c:row-expand:open']"
+                                  class="select-none transform hover:(text-black scale-120) nc-row-expand"
+                                  @click="expandAndLooseFocus(row, state)"
+                                />
+                              </div>
+                            </template>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <SmartsheetTableDataCell
-                      v-for="(columnObj, colIndex) of fields"
-                      :key="columnObj.id"
-                      class="cell relative nc-grid-cell cursor-pointer"
-                      :class="{
-                        'active': isCellSelected(rowIndex, colIndex),
-                        'active-cell':
-                          (activeCell.row === rowIndex && activeCell.col === colIndex) ||
-                          (selectedRange._start?.row === rowIndex && selectedRange._start?.col === colIndex),
-                        'last-cell':
-                          rowIndex === (isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) &&
-                          colIndex === (isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col),
-                        'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row) && !isPublicView,
-                        'align-middle': !rowHeight || rowHeight === 1,
-                        'align-top': rowHeight && rowHeight !== 1,
-                        'filling': isCellInFillRange(rowIndex, colIndex),
-                        'readonly':
-                          (isLookup(columnObj) || isRollup(columnObj) || isFormula(columnObj)) &&
-                          hasEditPermission &&
-                          isCellSelected(rowIndex, colIndex),
-                        '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
-                      }"
-                      :style="{
-                        'min-width': gridViewCols[columnObj.id]?.width || '200px',
-                        'max-width': gridViewCols[columnObj.id]?.width || '200px',
-                        'width': gridViewCols[columnObj.id]?.width || '200px',
-                      }"
-                      :data-testid="`cell-${columnObj.title}-${rowIndex}`"
-                      :data-key="`data-key-${rowIndex}-${columnObj.id}`"
-                      :data-col="columnObj.id"
-                      :data-title="columnObj.title"
-                      :data-row-index="rowIndex"
-                      :data-col-index="colIndex"
-                      @mousedown="handleMouseDown($event, rowIndex, colIndex)"
-                      @mouseover="handleMouseOver($event, rowIndex, colIndex)"
-                      @click="handleCellClick($event, rowIndex, colIndex)"
-                      @dblclick="makeEditable(row, columnObj)"
-                      @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
-                    >
-                      <div v-if="!switchingTab" class="w-full h-full">
-                        <LazySmartsheetVirtualCell
-                          v-if="isVirtualCol(columnObj) && columnObj.title"
-                          v-model="row.row[columnObj.title]"
-                          :column="columnObj"
-                          :active="activeCell.col === colIndex && activeCell.row === rowIndex"
-                          :row="row"
-                          :read-only="!hasEditPermission"
-                          @navigate="onNavigate"
-                          @save="updateOrSaveRow?.(row, '', state)"
-                        />
+                      </td>
+                      <SmartsheetTableDataCell
+                        v-for="(columnObj, colIndex) of fields"
+                        :key="columnObj.id"
+                        class="cell relative nc-grid-cell cursor-pointer"
+                        :class="{
+                          'active': isCellSelected(rowIndex, colIndex),
+                          'active-cell':
+                            (activeCell.row === rowIndex && activeCell.col === colIndex) ||
+                            (selectedRange._start?.row === rowIndex && selectedRange._start?.col === colIndex),
+                          'last-cell':
+                            rowIndex === (isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) &&
+                            colIndex === (isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col),
+                          'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row) && !isPublicView,
+                          'align-middle': !rowHeight || rowHeight === 1,
+                          'align-top': rowHeight && rowHeight !== 1,
+                          'filling': isCellInFillRange(rowIndex, colIndex),
+                          'readonly':
+                            (isLookup(columnObj) || isRollup(columnObj) || isFormula(columnObj)) &&
+                            hasEditPermission &&
+                            isCellSelected(rowIndex, colIndex),
+                          '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
+                        }"
+                        :style="{
+                          'min-width': gridViewCols[columnObj.id]?.width || '200px',
+                          'max-width': gridViewCols[columnObj.id]?.width || '200px',
+                          'width': gridViewCols[columnObj.id]?.width || '200px',
+                        }"
+                        :data-testid="`cell-${columnObj.title}-${rowIndex}`"
+                        :data-key="`data-key-${rowIndex}-${columnObj.id}`"
+                        :data-col="columnObj.id"
+                        :data-title="columnObj.title"
+                        :data-row-index="rowIndex"
+                        :data-col-index="colIndex"
+                        @mousedown="handleMouseDown($event, rowIndex, colIndex)"
+                        @mouseover="handleMouseOver($event, rowIndex, colIndex)"
+                        @click="handleCellClick($event, rowIndex, colIndex)"
+                        @dblclick="makeEditable(row, columnObj)"
+                        @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
+                      >
+                        <div v-if="!switchingTab" class="w-full h-full">
+                          <LazySmartsheetVirtualCell
+                            v-if="isVirtualCol(columnObj) && columnObj.title"
+                            v-model="row.row[columnObj.title]"
+                            :column="columnObj"
+                            :active="activeCell.col === colIndex && activeCell.row === rowIndex"
+                            :row="row"
+                            :read-only="!hasEditPermission"
+                            @navigate="onNavigate"
+                            @save="updateOrSaveRow?.(row, '', state)"
+                          />
 
-                        <LazySmartsheetCell
-                          v-else-if="columnObj.title"
-                          v-model="row.row[columnObj.title]"
-                          :column="columnObj"
-                          :edit-enabled="
-                            !!hasEditPermission && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
-                          "
-                          :row-index="rowIndex"
-                          :active="activeCell.col === colIndex && activeCell.row === rowIndex"
-                          :read-only="!hasEditPermission"
-                          @update:edit-enabled="editEnabled = $event"
-                          @save="updateOrSaveRow?.(row, columnObj.title, state)"
-                          @navigate="onNavigate"
-                          @cancel="editEnabled = false"
-                        />
-                      </div>
-                    </SmartsheetTableDataCell>
-                  </tr>
-                </template>
-              </LazySmartsheetRow>
+                          <LazySmartsheetCell
+                            v-else-if="columnObj.title"
+                            v-model="row.row[columnObj.title]"
+                            :column="columnObj"
+                            :edit-enabled="
+                              !!hasEditPermission && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
+                            "
+                            :row-index="rowIndex"
+                            :active="activeCell.col === colIndex && activeCell.row === rowIndex"
+                            :read-only="!hasEditPermission"
+                            @update:edit-enabled="editEnabled = $event"
+                            @save="updateOrSaveRow?.(row, columnObj.title, state)"
+                            @navigate="onNavigate"
+                            @cancel="editEnabled = false"
+                          />
+                        </div>
+                      </SmartsheetTableDataCell>
+                    </tr>
+                  </template>
+                </LazySmartsheetRow>
+              </template>
 
               <tr
                 v-if="isAddingEmptyRowAllowed && !isGroupBy"

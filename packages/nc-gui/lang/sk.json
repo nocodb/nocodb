@@ -591,6 +591,7 @@
     "goToDashboard": "Prejsť na prístrojový panel",
     "importing": "Importovanie",
     "formatJson": "Format JSON",
+    "autoSelectFieldTypes": "Auto-Select Field Types",
     "firstRowAsHeaders": "Use First Record as Headers",
     "flattenNested": "Sploštenie vnorených",
     "downloadAllowed": "Stiahnuť povolené",

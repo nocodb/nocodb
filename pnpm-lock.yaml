@@ -248,14 +248,14 @@ importers:
         specifier: ^1.1.12
         version: 1.1.12
       '@iconify-json/simple-icons':
-        specifier: ^1.1.78
-        version: 1.1.78
+        specifier: ^1.1.79
+        version: 1.1.79
       '@iconify-json/system-uicons':
         specifier: ^1.1.9
         version: 1.1.9
       '@iconify-json/tabler':
-        specifier: ^1.1.96
-        version: 1.1.96
+        specifier: ^1.1.97
+        version: 1.1.97
       '@iconify-json/vscode-icons':
         specifier: ^1.1.29
         version: 1.1.29
@@ -4418,8 +4418,8 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/simple-icons@1.1.78:
-    resolution: {integrity: sha512-0EIy9T1YXyZyYj10rSqgcqswtfs30Rc6lTGW0xnLKn2O8rLR9gStvxzNfodLSRzb1zXDvx+vDuFJVKPXI7ty4g==}
+  /@iconify-json/simple-icons@1.1.79:
+    resolution: {integrity: sha512-QayoZelr/QyYn0ALkOoBQDEseUGeNAZoQ9i25qfCeKxc7HEdvUU8cUc4/V/1n3FxohAtdi3oPdyILIhR5T1TVw==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -4430,8 +4430,8 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/tabler@1.1.96:
-    resolution: {integrity: sha512-BozRq6622JUEOBlZhF/l6UxqwHoWFiaLP6UCH9/mOvuek/tZureuQ2DSEaz5SdpKJamtBQjtJCH6zzsim6YKUQ==}
+  /@iconify-json/tabler@1.1.97:
+    resolution: {integrity: sha512-XyKEKHvDgfdjrD1pU0MN9ufHeIWMUm1Hr9FSKO7Ssdsx8eIx4KqO8jnPdoPIUXK38xrf6GPEN9Ux9wnE2qpENQ==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -18599,6 +18599,7 @@ packages:
 
   /napi-wasm@1.1.0:
     resolution: {integrity: sha512-lHwIAJbmLSjF9VDRm9GoVOy9AGp3aIvkjv+Kvz9h16QR3uSVYH78PNQUnT2U4X53mhlnV2M7wrhibQ3GHicDmg==}
+    requiresBuild: true
     dev: true
 
   /native-duplexpair@1.0.0:

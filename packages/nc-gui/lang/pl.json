@@ -591,6 +591,7 @@
     "goToDashboard": "Przejdź do panelu",
     "importing": "Importowanie",
     "formatJson": "Format JSON",
+    "autoSelectFieldTypes": "Auto-Select Field Types",
     "firstRowAsHeaders": "Use First Record as Headers",
     "flattenNested": "Spłaszcz zagnieżdżone",
     "downloadAllowed": "Pobieranie dozwolone",

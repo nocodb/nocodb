@@ -374,7 +374,6 @@ const projectDelete = () => {
       <div class="flex items-center gap-0.75 py-0.25 cursor-pointer" @contextmenu="setMenuContext('base', base)">
         <div
           ref="baseNodeRefs"
-          v-e="['c:base:expand']"
           :class="{
             'bg-primary-selected active': activeProjectId === base.id && baseViewOpen && !isMobileMode,
             'hover:bg-gray-200': !(activeProjectId === base.id && baseViewOpen),
@@ -383,6 +382,7 @@ const projectDelete = () => {
           class="nc-sidebar-node base-title-node h-7.25 flex-grow rounded-md group flex items-center w-full pr-1"
         >
           <NcButton
+            v-e="['c:base:expand']"
             type="text"
             size="xxsmall"
             class="nc-sidebar-node-btn nc-sidebar-expand ml-0.75 !xs:visible"
@@ -398,19 +398,18 @@ const projectDelete = () => {
           <div class="flex items-center mr-1" @click="onProjectClick(base)">
             <div class="flex items-center select-none w-6 h-full">
               <a-spin v-if="base.isLoading" class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8" :indicator="indicator" />
-              <div v-else v-e="['c:base:emojiSelect']">
-                <LazyGeneralEmojiPicker
-                  :key="base.meta?.icon"
-                  :emoji="base.meta?.icon"
-                  :readonly="true"
-                  size="small"
-                  @emoji-selected="setIcon($event, base)"
-                >
-                  <template #default>
-                    <GeneralProjectIcon :type="base.type" />
-                  </template>
-                </LazyGeneralEmojiPicker>
-              </div>
+              <LazyGeneralEmojiPicker
+                v-else
+                :key="base.meta?.icon"
+                :emoji="base.meta?.icon"
+                :readonly="true"
+                size="small"
+                @emoji-selected="setIcon($event, base)"
+              >
+                <div v-e="['c:base:emojiSelect']">
+                  <GeneralProjectIcon :type="base.type" />
+                </div>
+              </LazyGeneralEmojiPicker>
             </div>
           </div>
 

@@ -62,50 +62,37 @@ function openQuickImportDialog(type: string) {
   <NcSubMenu class="py-0" data-testid="nc-sidebar-base-import">
     <template #title>
       <GeneralIcon icon="download" />
-
       {{ $t('labels.importData') }}
     </template>
 
     <template #expandIcon></template>
 
-    <NcMenuItem
-      v-if="isUIAllowed('airtableImport', { roles: baseRole })"
-      key="quick-import-airtable"
-      v-e="['c:import:airtable']"
-      @click="openAirtableImportDialog(source.base_id, source.id)"
-    >
-      <GeneralIcon icon="airtable" class="max-w-3.75 group-hover:text-black" />
-      <div class="ml-0.5">{{ $t('labels.airtable') }}</div>
-    </NcMenuItem>
+    <template v-if="isUIAllowed('airtableImport', { roles: baseRole })" v-e="['c:import:airtable']">
+      <NcMenuItem key="quick-import-airtable" @click="openAirtableImportDialog(source.base_id, source.id)">
+        <GeneralIcon icon="airtable" class="max-w-3.75 group-hover:text-black" />
+        <div class="ml-0.5">{{ $t('labels.airtable') }}</div>
+      </NcMenuItem>
+    </template>
 
-    <NcMenuItem
-      v-if="isUIAllowed('csvImport', { roles: baseRole })"
-      key="quick-import-csv"
-      v-e="['c:import:csv']"
-      @click="openQuickImportDialog('csv')"
-    >
-      <GeneralIcon icon="csv" class="w-4 group-hover:text-black" />
-      {{ $t('labels.csvFile') }}
-    </NcMenuItem>
+    <template v-if="isUIAllowed('csvImport', { roles: baseRole })" key="quick-import-csv" v-e="['c:import:csv']">
+      <NcMenuItem @click="openQuickImportDialog('csv')">
+        <GeneralIcon icon="csv" class="w-4 group-hover:text-black" />
+        {{ $t('labels.csvFile') }}
+      </NcMenuItem>
+    </template>
 
-    <NcMenuItem
-      v-if="isUIAllowed('jsonImport', { roles: baseRole })"
-      key="quick-import-json"
-      v-e="['c:import:json']"
-      @click="openQuickImportDialog('json')"
-    >
-      <GeneralIcon icon="code" class="w-4 group-hover:text-black" />
-      {{ $t('labels.jsonFile') }}
-    </NcMenuItem>
+    <template v-if="isUIAllowed('jsonImport', { roles: baseRole })" v-e="['c:import:json']">
+      <NcMenuItem key="quick-import-json" @click="openQuickImportDialog('json')">
+        <GeneralIcon icon="code" class="w-4 group-hover:text-black" />
+        {{ $t('labels.jsonFile') }}
+      </NcMenuItem>
+    </template>
 
-    <NcMenuItem
-      v-if="isUIAllowed('excelImport', { roles: baseRole })"
-      key="quick-import-excel"
-      v-e="['c:import:excel']"
-      @click="openQuickImportDialog('excel')"
-    >
-      <GeneralIcon icon="excel" class="max-w-4 group-hover:text-black" />
-      {{ $t('labels.microsoftExcel') }}
-    </NcMenuItem>
+    <template v-if="isUIAllowed('excelImport', { roles: baseRole })" v-e="['c:import:excel']">
+      <NcMenuItem key="quick-import-excel" @click="openQuickImportDialog('excel')">
+        <GeneralIcon icon="excel" class="max-w-4 group-hover:text-black" />
+        {{ $t('labels.microsoftExcel') }}
+      </NcMenuItem>
+    </template>
   </NcSubMenu>
 </template>

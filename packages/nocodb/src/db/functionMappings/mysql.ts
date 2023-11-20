@@ -146,6 +146,20 @@ const mysql2 = {
       builder: knex.raw(`${args.join(' XOR ')} ${colAlias}`),
     };
   },
+
+  VALUE: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder.toString();
+
+    return {
+      builder: knex.raw(
+        `ROUND(CASE
+  WHEN ${value} IS NULL OR REGEXP_REPLACE(${value}, '[^0-9.]+', '') IN ('.', '') OR LENGTH(REGEXP_REPLACE(${value}, '[^.]+', '')) > 1 THEN NULL
+  WHEN LENGTH(REGEXP_REPLACE(${value}, '[^%]', '')) > 0 THEN POW(-1, LENGTH(REGEXP_REPLACE(${value}, '[^-]',''))) * (REGEXP_REPLACE(${value}, '[^0-9.]+', '')) / 100
+  ELSE POW(-1, LENGTH(REGEXP_REPLACE(${value}, '[^-]', ''))) * (REGEXP_REPLACE(${value}, '[^0-9.]+', ''))
+END) ${colAlias}`,
+      ),
+    };
+  },
 };
 
 export default mysql2;

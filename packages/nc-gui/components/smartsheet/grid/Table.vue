@@ -1652,53 +1652,48 @@ onKeyStroke('ArrowDown', onDown)
 
         <template #overlay>
           <NcMenu class="!rounded !py-0" @click="contextMenu = false">
-            <NcMenuItem
+            <div
               v-if="isEeUI && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
               v-e="['a:row:update-bulk']"
-              @click="emits('bulkUpdateDlg')"
             >
-              <component :is="iconMap.edit" />
+              <NcMenuItem @click="emits('bulkUpdateDlg')">
+                <component :is="iconMap.edit" />
+                {{ $t('title.updateSelectedRows') }}
+              </NcMenuItem>
+            </div>
 
-              {{ $t('title.updateSelectedRows') }}
-            </NcMenuItem>
-
-            <NcMenuItem
+            <div
               v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
               v-e="['a:row:delete-bulk']"
-              class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
-              data-testid="nc-delete-row"
-              @click="deleteSelectedRows"
             >
-              <component :is="iconMap.delete" />
-              <!-- Delete Selected Rows -->
-              {{ $t('activity.deleteSelectedRow') }}
-            </NcMenuItem>
+              <NcMenuItem
+                class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+                data-testid="nc-delete-row"
+                @click="deleteSelectedRows"
+              >
+                <component :is="iconMap.delete" />
+                <!-- Delete Selected Rows -->
+                {{ $t('activity.deleteSelectedRow') }}
+              </NcMenuItem>
+            </div>
 
-            <!-- <NcMenuItem -->
-            <!-- v-if="contextMenuTarget && selectedRange.isSingleCell()" -->
-            <!-- v-e="['a:row:insert']" -->
-            <!-- class="nc-base-menu-item" -->
-            <!-- @click="addEmptyRow(contextMenuTarget.row + 1)" -->
-            <!-- > -->
-            <!-- <GeneralIcon icon="plus" /> -->
-            <!-- Insert New Row -->
-            <!-- {{ $t('activity.insertRow') }} -->
-            <!-- </NcMenuItem> -->
+            <div v-if="contextMenuTarget && selectedRange.isSingleCell()" v-e="['a:row:insert']">
+              <NcMenuItem class="nc-base-menu-item" @click="addEmptyRow(contextMenuTarget.row + 1)">
+                <GeneralIcon icon="plus" />
+                Insert New Row
+                {{ $t('activity.insertRow') }}
+              </NcMenuItem>
+            </div>
 
-            <NcMenuItem
-              v-if="contextMenuTarget"
-              v-e="['a:row:copy']"
-              class="nc-base-menu-item"
-              data-testid="context-menu-item-copy"
-              @click="copyValue(contextMenuTarget)"
-            >
-              <GeneralIcon icon="copy" />
-              <!-- Copy -->
-              {{ $t('general.copy') }}
-            </NcMenuItem>
+            <div v-if="contextMenuTarget" v-e="['a:row:copy']">
+              <NcMenuItem class="nc-base-menu-item" data-testid="context-menu-item-copy" @click="copyValue(contextMenuTarget)">
+                <GeneralIcon icon="copy" />
+                <!-- Copy -->
+                {{ $t('general.copy') }}
+              </NcMenuItem>
+            </div>
 
-            <!--            Clear cell -->
-            <NcMenuItem
+            <div
               v-if="
                 contextMenuTarget &&
                 hasEditPermission &&
@@ -1706,52 +1701,51 @@ onKeyStroke('ArrowDown', onDown)
                 (isLinksOrLTAR(fields[contextMenuTarget.col]) || !isVirtualCol(fields[contextMenuTarget.col]))
               "
               v-e="['a:row:clear']"
-              class="nc-base-menu-item"
-              @click="clearCell(contextMenuTarget)"
             >
-              <GeneralIcon icon="close" />
-              {{ $t('general.clear') }}
-            </NcMenuItem>
+              <!-- Clear cell -->
+              <NcMenuItem class="nc-base-menu-item" @click="clearCell(contextMenuTarget)">
+                <GeneralIcon icon="close" />
+                {{ $t('general.clear') }}
+              </NcMenuItem>
+            </div>
 
-            <!--            Clear cell -->
-            <NcMenuItem
-              v-else-if="contextMenuTarget && hasEditPermission"
-              v-e="['a:row:clear-range']"
-              class="nc-base-menu-item"
-              @click="clearSelectedRangeOfCells()"
-            >
-              <GeneralIcon icon="closeBox" class="text-gray-500" />
+            <div v-else-if="contextMenuTarget && hasEditPermission" v-e="['a:row:clear-range']">
+              <!-- Clear cell -->
+              <NcMenuItem class="nc-base-menu-item" @click="clearSelectedRangeOfCells()">
+                <GeneralIcon icon="closeBox" class="text-gray-500" />
+                {{ $t('general.clear') }}
+              </NcMenuItem>
+            </div>
 
-              {{ $t('general.clear') }}
-            </NcMenuItem>
-            <template
+            <div
               v-if="contextMenuTarget && !isLocked && selectedRange.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode"
+              v-e="['a:row:comment']"
             >
               <NcDivider />
-              <NcMenuItem v-e="['a:row:comment']" class="nc-base-menu-item" @click="commentRow(contextMenuTarget.row)">
+              <NcMenuItem class="nc-base-menu-item" @click="commentRow(contextMenuTarget.row)">
                 <MdiMessageOutline class="h-4 w-4" />
 
                 {{ $t('general.comment') }}
               </NcMenuItem>
-            </template>
+            </div>
+
             <template v-if="hasEditPermission">
               <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected))" />
-              <NcMenuItem
+              <div
                 v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
                 v-e="['a:row:delete']"
-                class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
-                @click="confirmDeleteRow(contextMenuTarget.row)"
               >
-                <GeneralIcon icon="delete" />
-                <!-- Delete Row -->
-                {{ $t('activity.deleteRow') }}
-              </NcMenuItem>
-              <div v-else-if="contextMenuTarget && deleteRangeOfRows">
                 <NcMenuItem
-                  v-e="['a:row:delete']"
                   class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
-                  @click="deleteSelectedRangeOfRows"
+                  @click="confirmDeleteRow(contextMenuTarget.row)"
                 >
+                  <GeneralIcon icon="delete" />
+                  <!-- Delete Row -->
+                  {{ $t('activity.deleteRow') }}
+                </NcMenuItem>
+              </div>
+              <div v-else-if="contextMenuTarget && deleteRangeOfRows" v-e="['a:row:delete']">
+                <NcMenuItem class="nc-base-menu-item !text-red-600 !hover:bg-red-50" @click="deleteSelectedRangeOfRows">
                   <GeneralIcon icon="delete" class="text-gray-500 text-red-600" />
                   <!-- Delete Rows -->
                   {{ $t('activity.deleteRows') }}

@@ -1675,17 +1675,17 @@ onKeyStroke('ArrowDown', onDown)
               </div>
             </NcMenuItem>
 
-            <!--            <NcMenuItem-->
-            <!--              v-if="contextMenuTarget && selectedRange.isSingleCell()"-->
-            <!--              class="nc-base-menu-item"-->
-            <!--              @click="addEmptyRow(contextMenuTarget.row + 1)"-->
-            <!--            >-->
-            <!--              <div v-e="['a:row:insert']" class="flex gap-2 items-center">-->
-            <!--                <GeneralIcon icon="plus" />-->
-            <!--                Insert New Row-->
-            <!--                {{ $t('activity.insertRow') }}-->
-            <!--              </div>-->
-            <!--            </NcMenuItem>-->
+            <!--            <NcMenuItem -->
+            <!--              v-if="contextMenuTarget && selectedRange.isSingleCell()" -->
+            <!--              class="nc-base-menu-item" -->
+            <!--              @click="addEmptyRow(contextMenuTarget.row + 1)" -->
+            <!--            > -->
+            <!--              <div v-e="['a:row:insert']" class="flex gap-2 items-center"> -->
+            <!--                <GeneralIcon icon="plus" /> -->
+            <!--                Insert New Row -->
+            <!--                {{ $t('activity.insertRow') }} -->
+            <!--              </div> -->
+            <!--            </NcMenuItem> -->
 
             <NcMenuItem
               v-if="contextMenuTarget"

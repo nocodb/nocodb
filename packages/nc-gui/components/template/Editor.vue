@@ -536,11 +536,13 @@ async function importTemplate() {
           columns: table.columns || [],
         })
 
-        // column_name could have been updated in tableCreate
-        // e.g. sanitize column name to something like field_1, field_2, and etc
-        createdTable.columns.forEach((column, i) => {
-          table.columns[i].column_name = column.column_name
-        })
+        if (process.env.NC_SANITIZE_COLUMN_NAME !== 'false') {
+          // column_name could have been updated in tableCreate
+          // e.g. sanitize column name to something like field_1, field_2, and etc
+          createdTable.columns.forEach((column, i) => {
+            table.columns[i].column_name = column.column_name
+          })
+        }
 
         table.id = createdTable.id
         table.title = createdTable.title

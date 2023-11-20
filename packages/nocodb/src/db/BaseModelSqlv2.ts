@@ -877,10 +877,13 @@ class BaseModelSqlv2 {
   }
 
   async multipleHmList(
-    { colId, ids },
+    { colId, ids: _ids }: { colId: string; ids: any[] },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
     try {
+      // skip duplicate id
+      const ids = [...new Set(_ids)];
+
       const { where, sort, ...rest } = this._getListArgs(args as any);
       // todo: get only required fields
 
@@ -1136,9 +1139,17 @@ class BaseModelSqlv2 {
   }
 
   public async multipleMmList(
-    { colId, parentIds },
+    {
+      colId,
+      parentIds: _parentIds,
+    }: {
+      colId: string;
+      parentIds: any[];
+    },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
+    // skip duplicate id
+    const parentIds = [...new Set(_parentIds)];
     const { where, sort, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId,
@@ -1213,7 +1224,7 @@ class BaseModelSqlv2 {
       }),
       GROUP_COL,
     );
-    return parentIds.map((id) => gs[id] || []);
+    return _parentIds.map((id) => gs[id] || []);
   }
 
   public async mmList(

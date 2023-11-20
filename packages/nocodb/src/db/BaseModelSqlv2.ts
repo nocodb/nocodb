@@ -877,10 +877,13 @@ class BaseModelSqlv2 {
   }
 
   async multipleHmList(
-    { colId, ids },
+    { colId, ids: _ids }: { colId: string; ids: any[] },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
     try {
+      // skip duplicate id
+      const ids = [...new Set(_ids)];
+
       const { where, sort, ...rest } = this._getListArgs(args as any);
       // todo: get only required fields
 
@@ -1136,9 +1139,17 @@ class BaseModelSqlv2 {
   }
 
   public async multipleMmList(
-    { colId, parentIds },
+    {
+      colId,
+      parentIds: _parentIds,
+    }: {
+      colId: string;
+      parentIds: any[];
+    },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
+    // skip duplicate id
+    const parentIds = [...new Set(_parentIds)];
     const { where, sort, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId,
@@ -1213,7 +1224,7 @@ class BaseModelSqlv2 {
       }),
       GROUP_COL,
     );
-    return parentIds.map((id) => gs[id] || []);
+    return _parentIds.map((id) => gs[id] || []);
   }
 
   public async mmList(
@@ -3032,7 +3043,7 @@ class BaseModelSqlv2 {
 
       // insert one by one as fallback to get ids for sqlite and mysql
       if (insertOneByOneAsFallback && (this.isSqlite || this.isMySQL)) {
-        // sqlite and mysql doesnt support returning, so insert one by one and return ids
+        // sqlite and mysql doesn't support returning, so insert one by one and return ids
         response = [];
 
         const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
@@ -4679,10 +4690,11 @@ class BaseModelSqlv2 {
                   `${parentTable.table_name}.${parentColumn.column_name}`,
                 ).andOn(
                   `${vTable.table_name}.${vChildCol.column_name}`,
-                  row[childColumn.column_name],
+                  this.dbDriver.raw('?', [
+                    row[childColumn.title] ?? row[childColumn.column_name],
+                  ]),
                 );
               });
-            // .where(_wherePk(parentTable.primaryKeys, childId))
 
             if (parentTable.primaryKeys.length > 1) {
               childRowsQb.where((qb) => {
@@ -4900,8 +4912,6 @@ class BaseModelSqlv2 {
 
     const childTn = this.getTnPath(childTable);
     const parentTn = this.getTnPath(parentTable);
-
-    // const prevData = await this.readByPk(rowId);
 
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
@@ -5127,7 +5137,6 @@ class BaseModelSqlv2 {
         parentCol.column_name,
         this.dbDriver(childTn)
           .select(chilCol.column_name)
-          // .where(parentTable.primaryKey.cn, p)
           .where(_wherePk(childTable.primaryKeys, id)),
       );
 
@@ -5194,9 +5203,7 @@ export function extractSortsObject(
     else sort.fk_column_id = aliasColObjMap[s.replace(/^\+/, '')]?.id;
 
     if (throwErrorIfInvalid && !sort.fk_column_id)
-      NcError.unprocessableEntity(
-        `Invalid column '${s.replace(/^[+-]/, '')}' in sort`,
-      );
+      NcError.unprocessableEntity(`Invalid field: ${s.replace(/^[+-]/, '')}`);
 
     return new Sort(sort);
   });
@@ -5360,7 +5367,7 @@ export function extractCondition(
 
       validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
     } else if (throwErrorIfInvalid) {
-      NcError.unprocessableEntity(`Column '${alias}' not found.`);
+      NcError.unprocessableEntity(`Invalid field: ${alias}`);
     }
 
     return new Filter({
@@ -5404,7 +5411,7 @@ export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
       }
     }
 
-    return id;
+    return where;
   }
 
   const ids = Array.isArray(id) ? id : (id + '').split('___');

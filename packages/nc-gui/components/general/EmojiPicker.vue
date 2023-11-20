@@ -2,7 +2,6 @@
 import data from 'emoji-mart-vue-fast/data/apple.json'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
 import { Icon } from '@iconify/vue'
-
 import { EmojiIndex, Picker } from 'emoji-mart-vue-fast/src'
 
 const props = defineProps<{
@@ -21,6 +20,7 @@ const clearable = computed(() => {
 })
 
 const isOpen = ref(false)
+
 const emojiIndex = new EmojiIndex(data, {
   emojisToShowFilter: (emoji: any) => {
     if (Number(emoji.added_in) >= 14) {

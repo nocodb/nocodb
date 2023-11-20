@@ -1,4 +1,4 @@
-import { NormalColumnRequestType } from '../Api'
+import { NormalColumnRequestType } from '../Api';
 import UITypes from '../UITypes';
 import { IDType } from './index';
 
@@ -938,7 +938,7 @@ export class OracleUi {
   }
 
   static getUnsupportedFnList() {
-    return [];
+    return ['XOR', 'REGEX_MATCH', 'REGEX_EXTRACT', 'REGEX_REPLACE', 'VALUE'];
   }
 }
 

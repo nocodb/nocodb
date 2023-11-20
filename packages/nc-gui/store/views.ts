@@ -54,7 +54,12 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const { activeTable } = storeToRefs(useTablesStore())
 
   const activeViewTitleOrId = computed(() => {
-    if (!route.value.params.viewTitle?.length) return views.value.length ? views.value[0].id : undefined
+    if (!route.value.params.viewTitle?.length) {
+      // find the default view and navigate to it, if not found navigate to the first one
+      const defaultView = views.value?.find((v) => v.is_default) || views.value?.[0]
+
+      return defaultView?.id
+    }
 
     return route.value.params.viewTitle
   })

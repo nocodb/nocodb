@@ -556,14 +556,15 @@ export default {
                   <NcDivider v-if="isUIAllowed('dataEdit') && !isNew" />
                   <NcMenuItem
                     v-if="isUIAllowed('dataEdit') && !isNew"
-                    v-e="['c:row-expand:delete']"
                     class="!text-red-500 !hover:bg-red-50"
                     @click="!isNew && onDeleteRowClick()"
                   >
-                    <component :is="iconMap.delete" data-testid="nc-expanded-form-delete" class="cursor-pointer nc-delete-row" />
-                    <span class="-ml-0.5">
-                      {{ $t('activity.deleteRecord') }}
-                    </span>
+                    <div v-e="['c:row-expand:delete']" data-testid="nc-expanded-form-delete" class="flex gap-2 items-center">
+                      <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
+                      <span class="-ml-0.25">
+                        {{ $t('activity.deleteRecord') }}
+                      </span>
+                    </div>
                   </NcMenuItem>
                 </NcMenu>
               </template>

@@ -261,15 +261,29 @@ watch(isDropdownOpen, async () => {
           </NcButton>
 
           <template #overlay>
-            <SmartsheetToolbarViewActionMenu
-              :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`"
-              :view="vModel"
-              :table="table"
-              in-sidebar
-              @close-modal="isDropdownOpen = false"
-              @rename="onRename"
-              @delete="onDelete"
-            />
+            <NcMenu class="min-w-27" :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`">
+              <NcMenuItem @click.stop="onDblClick">
+                <div class="flex gap-2 items-center" v-e="['c:view:rename']">
+                  <GeneralIcon icon="edit" />
+                  <div class="-ml-0.25">{{ $t('general.rename') }}</div>
+                </div>
+              </NcMenuItem>
+              <NcMenuItem @click.stop="onDuplicate">
+                <div class="flex gap-2 items-center" v-e="['c:view:duplicate']">
+                  <GeneralIcon icon="duplicate" class="nc-view-copy-icon" />
+                  {{ $t('general.duplicate') }}
+                </div>
+              </NcMenuItem>
+
+              <NcDivider />
+
+              <NcMenuItem -if="!vModel.is_default" class="!text-red-500 !hover:bg-red-50" @click.stop="onDelete">
+                <div class="flex gap-2 items-center" v-e="['c:view:delete']">
+                  <GeneralIcon icon="delete" class="text-sm nc-view-delete-icon" />
+                  <div class="-ml-0.25">{{ $t('general.delete') }}</div>
+                </div>
+              </NcMenuItem>
+            </NcMenu>
           </template>
         </NcDropdown>
       </template>

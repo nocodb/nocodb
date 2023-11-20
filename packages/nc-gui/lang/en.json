@@ -227,7 +227,7 @@
       "editor": "Editor",
       "commenter": "Commenter",
       "viewer": "Viewer",
-      "noaccess":"No Access",
+      "noaccess": "No Access",
       "superAdmin": "Super Admin",
       "orgLevelCreator": "Organization Level Creator",
       "orgLevelViewer": "Organization Level Viewer"
@@ -812,12 +812,12 @@
     "fullWidth": "Full width",
     "exitFullWidth": "Exit full width",
     "markAllAsRead": "Mark all as read",
-    "column":{
+    "column": {
       "delete": "Delete Field",
       "addNumber": "Add Number Field",
       "addSingleLineText": "Add SingleLineText Field",
       "addLongText": "Add LongText Field",
-      "addOther":"Add Other Field"
+      "addOther": "Add Other Field"
     },
     "erd": {
       "showColumns": "Show Fields",
@@ -1181,9 +1181,9 @@
       "tokenNameNotEmpty": "Token name should not be empty",
       "tokenNameMaxLength": "Token name should not be more than 255 characters",
       "dbNameRequired": "Database name is required",
-      "wsNameRequired":"Workspace name required",
-      "wsNameMinLength":"Workspace name must be at least 3 characters long",
-      "wsNameMaxLength":"Workspace name must be at most 50 characters long",
+      "wsNameRequired": "Workspace name required",
+      "wsNameMinLength": "Workspace name must be at least 3 characters long",
+      "wsNameMaxLength": "Workspace name must be at most 50 characters long",
       "wsDeleteDlg": "Delete this workspace and all it’s contents.",
       "userConfirmation": "I understand that this action is irreversible",
       "pageNotFound": "Page Not Found",

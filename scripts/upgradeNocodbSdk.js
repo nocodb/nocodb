@@ -22,7 +22,7 @@ const replacePackageVersion = (filePath) => {
     return new Promise((resolve, reject) => {
         return fs.readFile(filePath, 'utf8', function (err, data) {
             if (err) return reject(err)
-            const rgx = new RegExp(`"${nocodbSdkPackage.name}": "(.*)"`, "g");
+            const rgx = new RegExp(`"${nocodbSdkPackage.name}": ".*"`, "g");
             var result = data.replace(rgx, `"${nocodbSdkPackage.name}": "${nocodbSdkPackage.version}"`);
             return fs.writeFile(filePath, result, 'utf8', function (err) {
                 if (err) return reject(err)

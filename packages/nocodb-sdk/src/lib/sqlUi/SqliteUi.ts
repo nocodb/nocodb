@@ -878,6 +878,11 @@ export class SqliteUi {
       'REGEX_EXTRACT',
       'REGEX_REPLACE',
       'VALUE',
+      'COUNTA',
+      'COUNT',
+      'ROUNDDOWN',
+      'ROUNDUP',
+
     ];
   }
 }

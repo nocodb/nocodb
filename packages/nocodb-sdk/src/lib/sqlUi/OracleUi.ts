@@ -183,8 +183,8 @@ export class OracleUi {
   //       return '';
   //       break;
   //     case "longtext":
-  //       return ''
   //       break;
+  //       return ''
   //     case "binary":
   //       return 255;
   //       break;
@@ -938,7 +938,17 @@ export class OracleUi {
   }
 
   static getUnsupportedFnList() {
-    return ['XOR', 'REGEX_MATCH', 'REGEX_EXTRACT', 'REGEX_REPLACE', 'VALUE'];
+    return [
+      'XOR',
+      'REGEX_MATCH',
+      'REGEX_EXTRACT',
+      'REGEX_REPLACE',
+      'VALUE',
+      'COUNTA',
+      'COUNT',
+      'ROUNDDOWN',
+      'ROUNDUP',
+    ];
   }
 }
 

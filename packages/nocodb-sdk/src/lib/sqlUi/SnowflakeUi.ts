@@ -972,7 +972,15 @@ export class SnowflakeUi {
   }
 
   static getUnsupportedFnList() {
-    return ['XOR', 'REGEX_MATCH', 'REGEX_EXTRACT', 'REGEX_REPLACE', 'VALUE'];
+    return [
+      'XOR',
+      'REGEX_MATCH',
+      'REGEX_EXTRACT',
+      'REGEX_REPLACE',
+      'VALUE',
+      'COUNTA',
+      'COUNT',
+    ];
   }
 }
 

@@ -761,6 +761,9 @@ onClickOutside(tableBodyEl, (e) => {
 
   if (activeCell.row === null || activeCell.col === null) return
 
+  const isRichModalOpen = isExpandedCellInputExist()
+  if (isRichModalOpen) return
+
   const activeCol = fields.value[activeCell.col]
 
   if (editEnabled.value && (isVirtualCol(activeCol) || activeCol.uidt === UITypes.JSON)) return

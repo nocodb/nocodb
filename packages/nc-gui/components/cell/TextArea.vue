@@ -236,7 +236,7 @@ watch(editEnabled, () => {
         v-if="!isVisible"
         placement="bottom"
         class="!absolute right-0 bottom-1 !hidden nc-text-area-expand-btn"
-        :class="{ 'right-0 bottom-2': editEnabled }"
+        :class="{ 'right-0 bottom-1': editEnabled, '!bottom-0': !isRichMode }"
       >
         <template #title>{{ $t('title.expand') }}</template>
         <NcButton type="secondary" size="xsmall" data-testid="attachment-cell-file-picker-button" @click.stop="onExpand">

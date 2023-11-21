@@ -1066,14 +1066,18 @@ useEventListener(document, 'mouseup', () => {
 
 /** handle keypress events */
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
-  if (e.key === 'Alt') {
+  const isRichModalOpen = isExpandedCellInputExist()
+
+  if (e.key === 'Alt' && !isRichModalOpen) {
     altModifier.value = true
   }
 })
 
 /** handle keypress events */
 useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
-  if (e.key === 'Alt') {
+  const isRichModalOpen = isExpandedCellInputExist()
+
+  if (e.key === 'Alt' && !isRichModalOpen) {
     altModifier.value = false
     disableUrlOverlay.value = false
   }

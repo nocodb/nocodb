@@ -591,6 +591,7 @@
     "goToDashboard": "Go to Dashboard",
     "importing": "מייבא",
     "formatJson": "Format JSON",
+    "autoSelectFieldTypes": "Auto-Select Field Types",
     "firstRowAsHeaders": "Use First Record as Headers",
     "flattenNested": "Flatten Nested",
     "downloadAllowed": "Download allowed",

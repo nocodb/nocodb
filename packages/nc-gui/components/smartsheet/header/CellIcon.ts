@@ -103,7 +103,9 @@ export default defineComponent({
   setup(props) {
     const columnMeta = toRef(props, 'columnMeta')
 
-    const column = inject(ColumnInj, columnMeta)
+    const injectedColumn = inject(ColumnInj, columnMeta)
+
+    const column = computed(() => columnMeta.value ?? injectedColumn.value)
 
     const { sqlUis } = storeToRefs(useBase())
 

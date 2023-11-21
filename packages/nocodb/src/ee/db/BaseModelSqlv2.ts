@@ -176,7 +176,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
 
     if (!options.skipSubstitutingColumnIds) {
-      data = this.substituteColumnIdsWithColumnTitles(data, childTable);
+      data = await this.substituteColumnIdsWithColumnTitles(data, childTable);
     }
 
     if (options.first) {

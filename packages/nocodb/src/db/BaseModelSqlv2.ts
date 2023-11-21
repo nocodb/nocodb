@@ -1734,7 +1734,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await parentModel.getProto();
-    const data = await this.execAndParse(qb, childTable);
+    const data = await this.execAndParse(qb, parentTable);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -4346,7 +4346,7 @@ class BaseModelSqlv2 {
     }
 
     if (!options.skipSubstitutingColumnIds) {
-      data = this.substituteColumnIdsWithColumnTitles(data, childTable);
+      data = await this.substituteColumnIdsWithColumnTitles(data, childTable);
     }
 
     if (options.first) {
@@ -4356,7 +4356,7 @@ class BaseModelSqlv2 {
     return data;
   }
 
-  protected substituteColumnIdsWithColumnTitles(
+  protected async substituteColumnIdsWithColumnTitles(
     data: Record<string, any>[],
     childTable?: Model,
   ) {
@@ -4367,16 +4367,55 @@ class BaseModelSqlv2 {
     }
 
     const idToAliasMap: Record<string, string> = {};
+    const idToAliasPromiseMap: Record<string, Promise<string>> = {};
+    const btMap: Record<string, boolean> = {};
 
     modelColumns.forEach((col) => {
       idToAliasMap[col.id] = col.title;
+      if (col.colOptions?.type === 'bt') {
+        btMap[col.id] = true;
+        const btData = Object.values(data).find(
+          (d) => d[col.id] && Object.keys(d[col.id]),
+        );
+        if (btData) {
+          for (const k of Object.keys(btData[col.id])) {
+            const btAlias = idToAliasMap[k];
+            if (!btAlias) {
+              idToAliasPromiseMap[k] = Column.get({ colId: k }).then((col) => {
+                return col.title;
+              });
+            }
+          }
+        }
+      } else {
+        btMap[col.id] = false;
+      }
     });
+
+    for (const k of Object.keys(idToAliasPromiseMap)) {
+      idToAliasMap[k] = await idToAliasPromiseMap[k];
+    }
 
     data.forEach((item) => {
       Object.entries(item).forEach(([key, value]) => {
         const alias = idToAliasMap[key];
         if (alias) {
-          item[alias] = value;
+          if (btMap[key]) {
+            if (value) {
+              const tempObj = {};
+              Object.entries(value).forEach(([k, v]) => {
+                const btAlias = idToAliasMap[k];
+                if (btAlias) {
+                  tempObj[btAlias] = v;
+                }
+              });
+              item[alias] = tempObj;
+            } else {
+              item[alias] = value;
+            }
+          } else {
+            item[alias] = value;
+          }
           delete item[key];
         }
       });

@@ -591,6 +591,7 @@
     "goToDashboard": "转到仪表板",
     "importing": "导入中",
     "formatJson": "Format JSON",
+    "autoSelectFieldTypes": "Auto-Select Field Types",
     "firstRowAsHeaders": "Use First Record as Headers",
     "flattenNested": "扁平化嵌套",
     "downloadAllowed": "允许下载",

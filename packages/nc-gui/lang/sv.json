@@ -591,6 +591,7 @@
     "goToDashboard": "Gå till instrumentpanelen",
     "importing": "Importera",
     "formatJson": "Format JSON",
+    "autoSelectFieldTypes": "Auto-Select Field Types",
     "firstRowAsHeaders": "Use First Record as Headers",
     "flattenNested": "Platta och inbäddade",
     "downloadAllowed": "Nedladdning tillåten",

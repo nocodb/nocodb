@@ -103,7 +103,7 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
       },
       {
         formula: 'REGEX_MATCH({City}, "a[a-z]a")',
-        result: ['false', 'false', 'false', 'false', 'true'],
+        result: ['0', '0', '0', '0', '1'],
       },
       {
         formula: 'REGEX_EXTRACT({City}, "a[a-z]a")',

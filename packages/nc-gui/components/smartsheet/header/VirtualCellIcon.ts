@@ -78,7 +78,9 @@ export default defineComponent({
   setup(props) {
     const columnMeta = toRef(props, 'columnMeta')
 
-    const column = inject(ColumnInj, columnMeta) as Ref<ColumnType & { colOptions: LookupType | RollupType }>
+    const injectedColumn = inject(ColumnInj, columnMeta) as Ref<ColumnType & { colOptions: LookupType | RollupType }>
+
+    const column = computed(() => columnMeta.value ?? injectedColumn.value)
 
     let relationColumn: ColumnType
 

@@ -591,6 +591,7 @@
     "goToDashboard": "رفتن به داشبورد",
     "importing": "در حال ایمپورت",
     "formatJson": "Format JSON",
+    "autoSelectFieldTypes": "Auto-Select Field Types",
     "firstRowAsHeaders": "Use First Record as Headers",
     "flattenNested": "مسطح کردن تو در تو",
     "downloadAllowed": "اجازه دانلود",

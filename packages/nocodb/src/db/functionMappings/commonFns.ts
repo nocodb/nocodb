@@ -201,7 +201,7 @@ export default {
 
     return {
       builder: knex.raw(
-        `ROUND(FLOOR((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))${colAlias}`,
+        `ROUND((FLOOR((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder})::numeric(30,${precisionBuilder})))${colAlias}`,
       ),
     };
   },
@@ -215,7 +215,7 @@ export default {
 
     return {
       builder: knex.raw(
-        `ROUND(CEIL((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))${colAlias}`,
+        `ROUND((CEIL((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))::numeric(30,${precisionBuilder}))${colAlias}`,
       ),
     };
   },

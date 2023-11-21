@@ -273,7 +273,7 @@ test.describe('Virtual Columns', () => {
     await dashboard.closeTab({ title: 'City' });
   }
 
-  test.only('Formula - suite 0', async () => {
+  test('Formula - suite 0', async () => {
     await formulaTestSpec(0);
   });
   test('Formula - suite 1', async () => {

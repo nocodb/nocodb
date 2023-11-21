@@ -552,7 +552,7 @@ const formulas: Record<string, any> = {
   COUNTALL: {
     validation: {
       args: {
-        rqd: 0,
+        min: 1,
       },
     },
     description: '',
@@ -592,6 +592,26 @@ const formulas: Record<string, any> = {
     description: '',
     syntax: 'VALUE()',
     examples: ['VALUE()'],
+  },
+  CREATED_TIME: {
+    validation: {
+      args: {
+        rqd: 0,
+      },
+    },
+    description: '',
+    syntax: 'CREATED_TIME()',
+    examples: ['CREATED_TIME()'],
+  },
+  LAST_MODIFIED_TIME: {
+    validation: {
+      args: {
+        rqd: 0,
+      },
+    },
+    description: '',
+    syntax: ' LAST_MODIFIED_TIME()',
+    examples: [' LAST_MODIFIED_TIME()'],
   },
 }
 

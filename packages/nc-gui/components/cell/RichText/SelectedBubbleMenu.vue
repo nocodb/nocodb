@@ -260,17 +260,6 @@ const onToggleLink = () => {
     </NcTooltip>
 
     <NcTooltip>
-      <template #title> {{ $t('labels.taskList') }}</template>
-      <NcButton
-        size="small"
-        type="text"
-        :class="{ 'is-active': editor.isActive('taskList') }"
-        @click="editor!.chain().focus().toggleTaskList().run()"
-      >
-        <MdiFormatListCheckbox />
-      </NcButton>
-    </NcTooltip>
-    <NcTooltip>
       <template #title> {{ $t('labels.bulletList') }}</template>
       <NcButton
         size="small"
@@ -291,6 +280,18 @@ const onToggleLink = () => {
         @click="editor!.chain().focus().toggleOrderedList().run()"
       >
         <MdiFormatListNumber />
+      </NcButton>
+    </NcTooltip>
+
+    <NcTooltip>
+      <template #title> {{ $t('labels.taskList') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :class="{ 'is-active': editor.isActive('taskList') }"
+        @click="editor!.chain().focus().toggleTaskList().run()"
+      >
+        <MdiFormatListCheckbox />
       </NcButton>
     </NcTooltip>
 
@@ -343,13 +344,25 @@ const onToggleLink = () => {
   @apply border-transparent !shadow-none;
 }
 
+.embed-mode.bubble-menu {
+  @apply !py-0 !my-0 !border-0;
+
+  .divider {
+    @apply my-0 !h-11 border-gray-100;
+  }
+
+  .nc-button {
+    @apply !mt-1.65;
+  }
+}
+
 .bubble-menu {
   // shadow
   @apply bg-white;
   border-width: 1px;
 
-  .is-active {
-    @apply !hover:outline-gray-200 bg-gray-100;
+  .nc-button.is-active {
+    @apply !hover:outline-gray-200 bg-gray-100 text-brand-500;
     outline: 1px;
   }
   .divider {

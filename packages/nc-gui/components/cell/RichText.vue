@@ -160,12 +160,19 @@ const focusEditorEnd = () => {
       'flex flex-col flex-grow': props.fullMode,
     }"
   >
-    <div v-if="props.showMenu" class="absolute top-1 right-3">
+    <div v-if="props.showMenu" class="absolute top-0 right-0.5">
       <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode />
     </div>
     <CellRichTextSelectedBubbleMenuPopup v-if="editor" :editor="editor" />
     <CellRichTextLinkOptions v-if="editor" :editor="editor" />
-    <EditorContent ref="editorDom" :editor="editor" class="nc-textarea-rich w-full h-full nc-text-rich-scroll nc-scrollbar-md" />
+    <EditorContent
+      ref="editorDom"
+      :editor="editor"
+      class="nc-textarea-rich w-full h-full nc-text-rich-scroll nc-scrollbar-md"
+      :class="{
+        'ml-1.5 mt-0.5': props.fullMode,
+      }"
+    />
     <div v-if="props.fullMode" class="flex flex-grow" @click="focusEditorEnd"></div>
   </div>
 </template>

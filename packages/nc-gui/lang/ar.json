@@ -591,6 +591,7 @@
     "goToDashboard": "الذهاب إلى لوحة التحكم",
     "importing": "الاستيراد",
     "formatJson": "Format JSON",
+    "autoSelectFieldTypes": "Auto-Select Field Types",
     "firstRowAsHeaders": "Use First Record as Headers",
     "flattenNested": "متداخلة متقطعة",
     "downloadAllowed": "التحميل المسموح به",

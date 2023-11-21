@@ -4779,7 +4779,9 @@ class BaseModelSqlv2 {
             if (parentTable.primaryKey.column_name !== parentColumn.column_name)
               childRowsQb.select(parentTable.primaryKey.column_name);
 
-            const childRows = await childRowsQb;
+            const childRows = await this.execAndParse(childRowsQb, null, {
+              raw: true,
+            });
 
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
@@ -4838,7 +4840,9 @@ class BaseModelSqlv2 {
               );
             }
 
-            const childRows = await childRowsQb;
+            const childRows = await this.execAndParse(childRowsQb, null, {
+              raw: true,
+            });
 
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
@@ -4890,7 +4894,10 @@ class BaseModelSqlv2 {
               .where(_wherePk(parentTable.primaryKeys, childIds[0]))
               .first();
 
-            const childRow = await childRowsQb;
+            const childRow = await this.execAndParse(childRowsQb, null, {
+              first: true,
+              raw: true,
+            });
 
             if (!childRow) {
               NcError.unprocessableEntity(
@@ -5011,7 +5018,9 @@ class BaseModelSqlv2 {
             if (parentTable.primaryKey.column_name !== parentColumn.column_name)
               childRowsQb.select(parentTable.primaryKey.column_name);
 
-            const childRows = await childRowsQb;
+            const childRows = await this.execAndParse(childRowsQb, null, {
+              raw: true,
+            });
 
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
@@ -5057,7 +5066,9 @@ class BaseModelSqlv2 {
               .select(childTable.primaryKey.column_name)
               .whereIn(childTable.primaryKey.column_name, childIds);
 
-            const childRows = await childRowsQb;
+            const childRows = await this.execAndParse(childRowsQb, null, {
+              raw: true,
+            });
 
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
@@ -5113,7 +5124,10 @@ class BaseModelSqlv2 {
               .where(_wherePk(parentTable.primaryKeys, childIds[0]))
               .first();
 
-            const childRow = await childRowsQb;
+            const childRow = await this.execAndParse(childRowsQb, null, {
+              first: true,
+              raw: true,
+            });
 
             if (!childRow) {
               NcError.unprocessableEntity(
@@ -5206,7 +5220,7 @@ class BaseModelSqlv2 {
 
       await parentModel.selectObject({ qb, fieldsSet: args.fieldSet });
 
-      const parent = await this.execAndParse(qb, childTable, {
+      const parent = await this.execAndParse(qb, parentTable, {
         first: true,
       });
 

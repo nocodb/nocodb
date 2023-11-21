@@ -565,7 +565,9 @@ const {
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     const altOrOptionKey = e.altKey
     if (e.key === ' ') {
-      if (isCellActive.value && !editEnabled.value && hasEditPermission.value && activeCell.row !== null) {
+      const isRichModalOpen = isExpandedCellInputExist()
+
+      if (isCellActive.value && !editEnabled.value && hasEditPermission.value && activeCell.row !== null && !isRichModalOpen) {
         e.preventDefault()
         const row = dataRef.value[activeCell.row]
         expandForm?.(row)

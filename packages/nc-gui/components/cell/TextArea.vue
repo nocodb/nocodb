@@ -256,7 +256,7 @@ watch(editEnabled, () => {
       >
         <div
           v-if="column"
-          class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 mb-1 border-b-1 border-gray-100 cursor-move"
+          class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 border-b-1 border-gray-100 cursor-move"
           :class="{
             'select-none': isDragging,
           }"
@@ -282,17 +282,7 @@ watch(editEnabled, () => {
           @keydown.escape="isVisible = false"
         />
 
-        <LazyCellRichText
-          v-else-if="isVisible"
-          v-model:value="vModel"
-          class="ml-2 nc-scrollbar-md"
-          :style="{
-            'max-height': 'calc(min(60vh, 100rem))',
-          }"
-          show-menu
-          full-mode
-          :read-only="readOnly"
-        />
+        <LazyCellRichText v-else-if="isVisible" v-model:value="vModel" show-menu full-mode :read-only="readOnly" />
       </div>
     </template>
   </NcDropdown>

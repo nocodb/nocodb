@@ -193,7 +193,9 @@ const pg = {
     const source = (await fn(pt.arguments[0])).builder;
     const pattern = (await fn(pt.arguments[1])).builder;
     return {
-      builder: knex.raw(`(${source}::TEXT ~ ${pattern}::TEXT) ${colAlias}`),
+      builder: knex.raw(
+        `CASE WHEN (${source}::TEXT ~ ${pattern}::TEXT) THEN 1 ELSE 0 END ${colAlias}`,
+      ),
     };
   },
   REGEX_EXTRACT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {

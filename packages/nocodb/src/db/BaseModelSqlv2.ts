@@ -4197,11 +4197,11 @@ class BaseModelSqlv2 {
 
       const groupedResult = result.reduce<Map<string | number | null, any[]>>(
         (aggObj, row) => {
-          if (!aggObj.has(row[column.id])) {
-            aggObj.set(row[column.id], []);
+          if (!aggObj.has(row[column.title])) {
+            aggObj.set(row[column.title], []);
           }
 
-          aggObj.get(row[column.id]).push(row);
+          aggObj.get(row[column.title]).push(row);
 
           return aggObj;
         },

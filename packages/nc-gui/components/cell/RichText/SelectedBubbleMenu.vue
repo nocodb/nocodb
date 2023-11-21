@@ -85,7 +85,7 @@ const onToggleLink = () => {
       'full-mode': !embedMode,
     }"
   >
-    <NcTooltip>
+    <NcTooltip :disabled="editor.isActive('codeBlock')">
       <template #title>
         <div class="flex flex-col items-center">
           <div>
@@ -98,13 +98,14 @@ const onToggleLink = () => {
         size="small"
         type="text"
         :class="{ 'is-active': editor.isActive('bold') }"
+        :disabled="editor.isActive('codeBlock')"
         @click="editor!.chain().focus().toggleBold().run()"
       >
         <MdiFormatBold />
       </NcButton>
     </NcTooltip>
 
-    <NcTooltip>
+    <NcTooltip :disabled="editor.isActive('codeBlock')">
       <template #title>
         <div class="flex flex-col items-center">
           <div>
@@ -116,13 +117,14 @@ const onToggleLink = () => {
       <NcButton
         size="small"
         type="text"
+        :disabled="editor.isActive('codeBlock')"
         :class="{ 'is-active': editor.isActive('italic') }"
         @click=";(editor!.chain().focus() as any).toggleItalic().run()"
       >
         <MdiFormatItalic />
       </NcButton>
     </NcTooltip>
-    <NcTooltip>
+    <NcTooltip :disabled="editor.isActive('codeBlock')">
       <template #title>
         <div class="flex flex-col items-center">
           <div>
@@ -136,12 +138,13 @@ const onToggleLink = () => {
         size="small"
         type="text"
         :class="{ 'is-active': editor.isActive('underline') }"
+        :disabled="editor.isActive('codeBlock')"
         @click="editor!.chain().focus().toggleUnderline().run()"
       >
         <MdiFormatUnderline />
       </NcButton>
     </NcTooltip>
-    <NcTooltip>
+    <NcTooltip :disabled="editor.isActive('codeBlock')">
       <template #title>
         <div class="flex flex-col items-center">
           <div>
@@ -154,6 +157,7 @@ const onToggleLink = () => {
         size="small"
         type="text"
         :class="{ 'is-active': editor.isActive('strike') }"
+        :disabled="editor.isActive('codeBlock')"
         @click="editor!.chain().focus().toggleStrike().run()"
       >
         <MdiFormatStrikeThrough />
@@ -170,12 +174,13 @@ const onToggleLink = () => {
         <MsCode />
       </NcButton>
     </NcTooltip>
-    <NcTooltip v-else>
+    <NcTooltip v-else :disabled="editor.isActive('codeBlock')">
       <template #title> {{ $t('general.quote') }}</template>
       <NcButton
         size="small"
         type="text"
         :class="{ 'is-active': editor.isActive('code') }"
+        :disabled="editor.isActive('codeBlock')"
         @click="editor!.chain().focus().toggleCode().run()"
       >
         <MsFormatQuote />
@@ -291,9 +296,15 @@ const onToggleLink = () => {
 
     <div class="divider"></div>
 
-    <NcTooltip>
+    <NcTooltip :disabled="editor.isActive('codeBlock')">
       <template #title> {{ $t('general.link') }}</template>
-      <NcButton size="small" type="text" :class="{ 'is-active': editor.isActive('link') }" @click="onToggleLink">
+      <NcButton
+        size="small"
+        type="text"
+        :class="{ 'is-active': editor.isActive('link') }"
+        :disabled="editor.isActive('codeBlock')"
+        @click="onToggleLink"
+      >
         <div class="flex flex-row items-center px-0.5">
           <MdiLink />
           <div class="!text-xs !ml-1">{{ $t('general.link') }}</div>
@@ -338,7 +349,8 @@ const onToggleLink = () => {
   border-width: 1px;
 
   .is-active {
-    @apply border-1 !hover:bg-gray-200 border-1 border-gray-200 bg-gray-100;
+    @apply !hover:outline-gray-200 bg-gray-100;
+    outline: 1px;
   }
   .divider {
     @apply border-r-1 border-gray-200 !h-6 !mx-0.5 my-1;

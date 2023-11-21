@@ -188,6 +188,7 @@ watch(editorDom, () => {
     @apply !p-2;
 
     max-height: calc(min(60vh, 100rem));
+    min-height: 8rem;
   }
 }
 

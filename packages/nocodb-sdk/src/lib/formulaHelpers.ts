@@ -108,6 +108,8 @@ export function substituteColumnIdWithAliasInFormula(
   return jsepTreeToFormula(parsedFormula);
 }
 
+// isCallExpId - is the identifier part of a call expression
+// in case of call expression, we don't want to wrap the identifier in curly brackets
 export function jsepTreeToFormula(node, isCallExpId = false) {
   if (node.type === 'BinaryExpression' || node.type === 'LogicalExpression') {
     return (

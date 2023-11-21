@@ -112,9 +112,9 @@ export default defineComponent({
     const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
     return () => {
-      if (!column.value) return null
+      if (!column.value && !columnMeta.value) return null
 
-      return h(renderIcon(column.value, abstractType.value), {
+      return h(renderIcon((columnMeta.value ?? column.value)!, abstractType.value), {
         class: 'text-inherit mx-1',
       })
     }

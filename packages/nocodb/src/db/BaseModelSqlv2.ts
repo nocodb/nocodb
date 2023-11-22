@@ -2296,7 +2296,7 @@ class BaseModelSqlv2 {
 
       // exclude auto increment columns in body
       for (const col of columns) {
-        if (col.ai === true) {
+        if (col.ai) {
           const keyName =
             data?.[col.column_name] !== undefined ? col.column_name : col.title;
 

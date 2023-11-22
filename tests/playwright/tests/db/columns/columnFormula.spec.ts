@@ -14,7 +14,7 @@ import { enableQuickRun, isPg, isSqlite } from '../../../setup/db';
  * Adana                  2006-02-15 04:45:25     663 Baha Blanca Parkway     Turkey
  */
 const formulaDataByDbType = (context: NcContext, index: number) => {
-  if (index === false)
+  if (index === 0)
     return [
       {
         formula: '1 + 1',

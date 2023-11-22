@@ -189,6 +189,116 @@ const pg = {
       builder: knex.raw(`MOD((${x})::NUMERIC, (${y})::NUMERIC) ${colAlias}`),
     };
   },
+  REGEX_MATCH: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    const pattern = (await fn(pt.arguments[1])).builder;
+    return {
+      builder: knex.raw(
+        `CASE WHEN (${source}::TEXT ~ ${pattern}::TEXT) THEN 1 ELSE 0 END ${colAlias}`,
+      ),
+    };
+  },
+  REGEX_EXTRACT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    const pattern = (await fn(pt.arguments[1])).builder;
+    return {
+      builder: knex.raw(
+        // use `SUBSTRING` since REGEXP_MATCH returns array value
+        // `REGEXP_MATCH(${source}::TEXT, ${pattern}::TEXT) ${colAlias}`,
+        `SUBSTRING(${source}::TEXT from ${pattern}::TEXT) ${colAlias}`,
+      ),
+    };
+  },
+  REGEX_REPLACE: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    const pattern = (await fn(pt.arguments[1])).builder;
+    const replacement = (await fn(pt.arguments[2])).builder;
+    return {
+      builder: knex.raw(
+        `REGEXP_REPLACE(${source}::TEXT, ${pattern}::TEXT, ${replacement}::TEXT, 'g') ${colAlias}`,
+      ),
+    };
+  },
+  XOR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const args = await Promise.all(
+      pt.arguments.map(async (arg) => {
+        const query = (await fn(arg)).builder.toString();
+        return `CASE WHEN ${query}  IS NOT NULL AND ${query}::boolean = true THEN 1 ELSE 0 END`;
+      }),
+    );
+    return {
+      builder: knex.raw(`${args.join(' # ')} ${colAlias}`),
+    };
+  },
+  COUNT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `${(
+          await Promise.all(
+            pt.arguments.map(async (arg) => {
+              const { builder } = await fn(arg);
+              return `CASE WHEN pg_typeof(${builder}) IN ('smallint', 'integer', 'bigint', 'decimal', 'numeric', 'real', 'double precision') AND ${builder} IS NOT NULL THEN 1 ELSE 0 END`;
+            }),
+          )
+        ).join(' + ')} ${colAlias}`,
+      ),
+    };
+  },
+  COUNTA: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `${(
+          await Promise.all(
+            pt.arguments.map(async (arg) => {
+              const { builder } = await fn(arg);
+              return `CASE WHEN ${builder} IS NOT NULL AND ${builder}::text != '' THEN 1 ELSE 0 END`;
+            }),
+          )
+        ).join(' + ')} ${colAlias}`,
+      ),
+    };
+  },
+  VALUE: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder.toString();
+
+    return {
+      builder: knex.raw(
+        `ROUND(CASE 
+  WHEN ${value} IS NULL OR REGEXP_REPLACE(${value}::TEXT, '[^\\d.]+', '', 'g') IN ('.', '') OR LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^.]+', '', 'g')) > 1 THEN NULL
+  WHEN LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^%]', '','g')) > 0 THEN POW(-1, LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^-]','', 'g'))) * (REGEXP_REPLACE(${value}::TEXT, '[^\\d.]+', '', 'g'))::NUMERIC / 100
+  ELSE POW(-1, LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^-]', '', 'g'))) * (REGEXP_REPLACE(${value}::TEXT, '[^\\d.]+', '', 'g'))::NUMERIC
+END) ${colAlias}`,
+      ),
+    };
+  },
+  ROUNDDOWN: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const { builder: valueBuilder } = await fn(pt.arguments[0]);
+    let precisionBuilder = knex.raw('0');
+    if (pt.arguments[1]) {
+      const { builder } = await fn(pt.arguments[1]);
+      precisionBuilder = builder;
+    }
+
+    return {
+      builder: knex.raw(
+        `ROUND((FLOOR((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder})::numeric(30,${precisionBuilder})))${colAlias}`,
+      ),
+    };
+  },
+  ROUNDUP: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const { builder: valueBuilder } = await fn(pt.arguments[0]);
+    let precisionBuilder = knex.raw('0');
+    if (pt.arguments[1]) {
+      const { builder } = await fn(pt.arguments[1]);
+      precisionBuilder = builder;
+    }
+
+    return {
+      builder: knex.raw(
+        `ROUND((CEIL((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))::numeric(30,${precisionBuilder}))${colAlias}`,
+      ),
+    };
+  },
 };
 
 export default pg;

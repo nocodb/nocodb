@@ -416,6 +416,208 @@ const formulas: Record<string, any> = {
     syntax: 'WEEKDAY(date, [startDayOfWeek])',
     examples: ['WEEKDAY("2021-06-09")', 'WEEKDAY(NOW(), "sunday")'],
   },
+
+  TRUE: {
+    type: formulaTypes.NUMERIC,
+    validation: {
+      args: {
+        max: 0,
+      },
+    },
+    description: 'Returns 1',
+    syntax: 'TRUE()',
+    examples: ['TRUE()'],
+  },
+
+  FALSE: {
+    type: formulaTypes.NUMERIC,
+    validation: {
+      args: {
+        max: 0,
+      },
+    },
+    description: 'Returns 0',
+    syntax: 'FALSE()',
+    examples: ['FALSE()'],
+  },
+
+  REGEX_MATCH: {
+    type: formulaTypes.STRING,
+    validation: {
+      args: {
+        rqd: 2,
+      },
+    },
+    description: 'Returns 1 if the input text matches a regular expression or 0 if it does not.',
+    syntax: 'REGEX_MATCH(string, regex)',
+    examples: ['REGEX_MATCH({title}, "abc.*")'],
+  },
+
+  REGEX_EXTRACT: {
+    type: formulaTypes.STRING,
+    validation: {
+      args: {
+        rqd: 2,
+      },
+    },
+    description: 'Returns the first match of a regular expression in a string.',
+    syntax: 'REGEX_EXTRACT(string, regex)',
+    examples: ['REGEX_EXTRACT({title}, "abc.*")'],
+  },
+  REGEX_REPLACE: {
+    type: formulaTypes.STRING,
+    validation: {
+      args: {
+        rqd: 3,
+      },
+    },
+    description: 'Replaces all matches of a regular expression in a string with a replacement string',
+    syntax: 'REGEX_MATCH(string, regex, replacement)',
+    examples: ['REGEX_EXTRACT({title}, "abc.*", "abcd")'],
+  },
+  BLANK: {
+    type: formulaTypes.STRING,
+    validation: {
+      args: {
+        rqd: 0,
+      },
+    },
+    description: 'Returns a blank value(null)',
+    syntax: 'BLANK()',
+    examples: ['BLANK()'],
+  },
+  XOR: {
+    type: formulaTypes.NUMERIC,
+    validation: {
+      args: {
+        min: 1,
+      },
+    },
+    description: 'Returns true if an odd number of arguments are true, and false otherwise.',
+    syntax: 'XOR(expression, [exp2, ...])',
+    examples: ['XOR(TRUE(), FALSE(), TRUE())'],
+  },
+  EVEN: {
+    type: formulaTypes.NUMERIC,
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    description: 'Returns the nearest even integer that is greater than or equal to the specified value',
+    syntax: 'EVEN(value)',
+    examples: ['EVEN({column})'],
+  },
+  ODD: {
+    type: formulaTypes.NUMERIC,
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    description: 'Returns the nearest odd integer that is greater than or equal to the specified value',
+    syntax: 'ODD(value)',
+    examples: ['ODD({column})'],
+  },
+  RECORD_ID: {
+    validation: {
+      args: {
+        rqd: 0,
+      },
+    },
+    description: 'Returns the record id of the current record',
+    syntax: 'RECORD_ID()',
+    examples: ['RECORD_ID()'],
+  },
+  COUNTA: {
+    validation: {
+      args: {
+        min: 1,
+      },
+    },
+    description: 'Counts the number of non-empty arguments',
+    syntax: 'COUNTA(value1, [value2, ...])',
+    examples: ['COUNTA({field1}, {field2})'],
+  },
+  COUNT: {
+    validation: {
+      args: {
+        min: 1,
+      },
+    },
+    description: 'Count the number of arguments that are numbers',
+    syntax: 'COUNT(value1, [value2, ...])',
+    examples: ['COUNT({field1}, {field2})'],
+  },
+  COUNTALL: {
+    validation: {
+      args: {
+        min: 1,
+      },
+    },
+    description: 'Counts the number of arguments',
+    syntax: 'COUNTALL(value1, [value2, ...])',
+    examples: ['COUNTALL({field1}, {field2})'],
+  },
+  ROUNDDOWN: {
+    type: formulaTypes.NUMERIC,
+    validation: {
+      args: {
+        min: 1,
+        max: 2,
+      },
+    },
+    description:
+      'Round down the value after the decimal point to the number of decimal places given by "precision"(default is 0)',
+    syntax: 'ROUNDDOWN(value, [precision])',
+    examples: ['ROUNDDOWN({field1})', 'ROUNDDOWN({field1}, 2)'],
+  },
+  ROUNDUP: {
+    type: formulaTypes.NUMERIC,
+    validation: {
+      args: {
+        min: 1,
+        max: 2,
+      },
+    },
+    description: 'Round up the value after the decimal point to the number of decimal places given by "precision"(default is 0)',
+    syntax: 'ROUNDUP(value, [precision])',
+    examples: ['ROUNDUP({field1})', 'ROUNDUP({field1}, 2)'],
+  },
+  VALUE: {
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    description:
+      'Extract the numeric value from a string, if `%` or `-` is present, it will handle it accordingly and return the numeric value',
+    syntax: 'VALUE(value)',
+    examples: ['VALUE({field})', 'VALUE("abc10000%")', 'VALUE("$10000")'],
+  },
+  // Disabling these functions for now; these act as alias for CreatedAt & UpdatedAt fields;
+  // Issue: Error noticed if CreatedAt & UpdatedAt fields are removed from the table after creating these formulas
+  //
+  // CREATED_TIME: {
+  //   validation: {
+  //     args: {
+  //       rqd: 0,
+  //     },
+  //   },
+  //   description: 'Returns the created time of the current record if it exists',
+  //   syntax: 'CREATED_TIME()',
+  //   examples: ['CREATED_TIME()'],
+  // },
+  // LAST_MODIFIED_TIME: {
+  //   validation: {
+  //     args: {
+  //       rqd: 0,
+  //     },
+  //   },
+  //   description: 'Returns the last modified time of the current record if it exists',
+  //   syntax: ' LAST_MODIFIED_TIME()',
+  //   examples: [' LAST_MODIFIED_TIME()'],
+  // },
 }
 
 const formulaList = Object.keys(formulas)

@@ -1,5 +1,6 @@
 import type { XKnex } from '~/db/CustomKnex';
 import type { Knex } from 'knex';
+import type { Model } from '~/models';
 import mssql from '~/db/functionMappings/mssql';
 import mysql from '~/db/functionMappings/mysql';
 import pg from '~/db/functionMappings/pg';
@@ -17,6 +18,7 @@ export interface MapFnArgs {
   fn: (...args: any) => Promise<{ builder: Knex.QueryBuilder | any }>;
   colAlias: string;
   prevBinaryOp?: any;
+  model: Model;
 }
 
 const mapFunctionName = async (args: MapFnArgs): Promise<any> => {

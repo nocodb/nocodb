@@ -142,7 +142,12 @@ const { getMeta } = useMetas()
 
 const { addUndo, clone, defineViewScope } = useUndoRedo()
 
-const { isViewColumnsLoading, updateGridViewColumn, gridViewCols, resizingColOldWith } = useViewColumnsOrThrow()
+const {
+  isViewColumnsLoading: _isViewColumnsLoading,
+  updateGridViewColumn,
+  gridViewCols,
+  resizingColOldWith,
+} = useViewColumnsOrThrow()
 
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
@@ -178,6 +183,8 @@ const tableBodyEl = ref<HTMLElement>()
 const fillHandle = ref<HTMLElement>()
 
 const gridRect = useElementBounding(gridWrapper)
+
+const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta.value)
 
 // #Permissions
 const { isUIAllowed } = useRoles()
@@ -409,7 +416,9 @@ const dummyRowDataForLoading = computed(() => {
 })
 
 const showSkeleton = computed(
-  () => disableSkeleton !== true && (isViewDataLoading.value || isPaginationLoading.value || isViewColumnsLoading.value),
+  () =>
+    (disableSkeleton !== true && (isViewDataLoading.value || isPaginationLoading.value || isViewColumnsLoading.value)) ||
+    !meta.value,
 )
 
 // #Grid

@@ -2539,7 +2539,7 @@ class BaseModelSqlv2 {
         .update(updateObj)
         .where(await this._wherePk(id));
 
-      await this.execAndParse(query);
+      await this.execAndParse(query, null, { raw: true });
 
       // const newData = await this.readByPk(id, false, {}, { ignoreView: true , getHiddenColumn: true});
 

@@ -82,7 +82,7 @@
     "aws-jwt-verify": "^4.0.0",
     "aws-kcl": "^2.2.2",
     "aws-sdk": "^2.1419.0",
-    "axios": "^0.21.1",
+    "axios": "^1.6.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.1",
     "boxen": "^5.1.0",

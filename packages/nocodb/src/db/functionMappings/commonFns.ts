@@ -151,4 +151,38 @@ export default {
       ),
     };
   },
+  CREATED_AT: async (args: MapFnArgs) => {
+    const createdAtCol = args.model?.columns?.find(
+      (col) => col.column_name === 'created_at',
+    );
+    if (!createdAtCol) {
+      NcError.badRequest('Created at field not found');
+    }
+
+    return {
+      builder: args.knex.raw(
+        `${
+          (await args.fn({ type: 'Identifier', name: createdAtCol.id }, args.a))
+            .builder
+        } ${args.colAlias}`,
+      ),
+    };
+  },
+  UPDATED_AT: async (args: MapFnArgs) => {
+    const createdAtCol = args.model?.columns?.find(
+      (col) => col.column_name === 'updated_at',
+    );
+    if (!createdAtCol) {
+      NcError.badRequest('Created at field not found');
+    }
+
+    return {
+      builder: args.knex.raw(
+        `${
+          (await args.fn({ type: 'Identifier', name: createdAtCol.id }, args.a))
+            .builder
+        } ${args.colAlias}`,
+      ),
+    };
+  },
 };

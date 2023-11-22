@@ -64,7 +64,7 @@ export class DatasService {
 
   async dataInsert(
     param: PathParams & {
-      body: unknown;
+      body: any;
       cookie: any;
       disableOptimization?: boolean;
     },
@@ -79,7 +79,11 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    return await baseModel.nestedInsert(param.body, null, param.cookie);
+    if (param?.body?.Id) {
+      delete param?.body?.Id
+    }
+
+    return await baseModel.insert(param.body, null, param.cookie);
   }
 
   async dataUpdate(
@@ -933,7 +937,7 @@ export class DatasService {
           .sort((c1, c2) =>
             Array.isArray(fields)
               ? fields.indexOf(c1.title as any) -
-                fields.indexOf(c2.title as any)
+              fields.indexOf(c2.title as any)
               : 0,
           )
           .filter(

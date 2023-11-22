@@ -482,7 +482,7 @@ const formulas: Record<string, any> = {
         rqd: 0,
       },
     },
-    description: 'Returns an empty string.',
+    description: 'Returns a blank value.',
     syntax: 'BLANK()',
     examples: ['BLANK()'],
   },

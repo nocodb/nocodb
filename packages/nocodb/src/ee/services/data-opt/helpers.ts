@@ -84,14 +84,14 @@ export async function extractColumns({
   alias?: string;
   baseModel: BaseModelSqlv2;
   // dependencyFields: DependantFields;
-  ast: Record<string, any> | boolean;
+  ast: Record<string, any> | boolean | 0 | 1;
   throwErrorIfInvalidParams: boolean;
 }) {
   const extractColumnPromises = [];
   for (const column of columns) {
     if (
       // if ast is `true` then extract primary key and primary value
-      !(ast === true && (column.pv || column.pk)) &&
+      !((ast === true || ast === 1) && (column.pv || column.pk)) &&
       !ast?.[column.title]
     )
       continue;

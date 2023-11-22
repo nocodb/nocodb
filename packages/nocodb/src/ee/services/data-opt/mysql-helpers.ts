@@ -97,7 +97,7 @@ export async function extractColumns({
   for (const column of columns) {
     if (
       // if ast is `true` then extract primary key and primary value
-      !(ast === true && (column.pv || column.pk)) &&
+      !((ast === true || ast === 1) && (column.pv || column.pk)) &&
       !ast?.[column.title]
     )
       continue;

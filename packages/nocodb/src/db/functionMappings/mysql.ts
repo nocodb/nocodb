@@ -114,6 +114,13 @@ const mysql2 = {
       ),
     };
   },
+  REGEX_MATCH: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    const pattern = (await fn(pt.arguments[1])).builder;
+    return {
+      builder: knex.raw(`(${source} REGEXP ${pattern}) ${colAlias}`),
+    };
+  },
 };
 
 export default mysql2;

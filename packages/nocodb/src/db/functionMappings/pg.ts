@@ -283,6 +283,19 @@ const pg = {
       ),
     };
   },
+  VALUE: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder.toString();
+
+    return {
+      builder: knex.raw(
+        `ROUND(CASE 
+  WHEN ${value} IS NULL OR REGEXP_REPLACE(${value}::TEXT, '[^\\d.]+', '', 'g') IN ('.', '') OR LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^.]+', '', 'g')) > 1 THEN NULL
+  WHEN LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^%]', '','g')) > 0 THEN POW(-1, LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^-]','', 'g'))) * (REGEXP_REPLACE(${value}::TEXT, '[^\\d.]+', '', 'g'))::NUMERIC / 100
+  ELSE POW(-1, LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^-]', '', 'g'))) * (REGEXP_REPLACE(${value}::TEXT, '[^\\d.]+', '', 'g'))::NUMERIC
+END) ${colAlias}`,
+      ),
+    };
+  },
 };
 
 export default pg;

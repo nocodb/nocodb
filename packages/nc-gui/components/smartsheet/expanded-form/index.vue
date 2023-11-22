@@ -200,6 +200,8 @@ const save = async () => {
     await _save(undefined, undefined, {
       kanbanClbk,
     })
+
+    _loadRow()
     reloadTrigger?.trigger()
   }
   isUnsavedFormExist.value = false

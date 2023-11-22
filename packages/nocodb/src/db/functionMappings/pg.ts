@@ -225,6 +225,34 @@ const pg = {
       builder: knex.raw(`${args.join(' # ')} ${colAlias}`),
     };
   },
+  COUNT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `${(
+          await Promise.all(
+            pt.arguments.map(async (arg) => {
+              const { builder } = await fn(arg);
+              return `CASE WHEN ${builder} IS NOT NULL AND ${builder}::text != '' THEN 1 ELSE 0 END`;
+            }),
+          )
+        ).join(' + ')} ${colAlias}`,
+      ),
+    };
+  },
+  COUNTA: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `${(
+          await Promise.all(
+            pt.arguments.map(async (arg) => {
+              const { builder } = await fn(arg);
+              return `CASE WHEN ${builder} IS NOT NULL AND ${builder}::text != '' THEN 1 ELSE 0 END`;
+            }),
+          )
+        ).join(' + ')} ${colAlias}`,
+      ),
+    };
+  },
 };
 
 export default pg;

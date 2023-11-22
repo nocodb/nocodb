@@ -186,7 +186,7 @@ export default {
     };
   },
   // todo: verify the behaviour of this function
-  COUNTALL: async ({ knex, pt }: MapFnArgs) => {
+  COUNTALL: async ({ knex, pt, colAlias }: MapFnArgs) => {
     return {
       builder: knex.raw(`? ${colAlias}`, [pt.arguments.length]),
     };

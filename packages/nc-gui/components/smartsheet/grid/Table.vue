@@ -1509,7 +1509,7 @@ onKeyStroke('ArrowDown', onDown)
                             {{ row.rowMeta.commentCount }}
                           </span>
                           <div
-                            v-else
+                            v-else-if="!row.rowMeta.saving"
                             class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
                           >
                             <component

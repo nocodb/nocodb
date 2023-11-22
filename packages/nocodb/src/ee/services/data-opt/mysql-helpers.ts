@@ -90,7 +90,7 @@ export async function extractColumns({
   alias?: string;
   baseModel: BaseModelSqlv2;
   // dependencyFields: DependantFields;
-  ast: Record<string, any> | boolean;
+  ast: Record<string, any> | boolean | 0 | 1;
   throwErrorIfInvalidParams: boolean;
 }) {
   const extractColumnPromises = [];

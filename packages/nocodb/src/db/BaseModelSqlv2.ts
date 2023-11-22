@@ -570,6 +570,7 @@ class BaseModelSqlv2 {
               .getColOptions<BarcodeColumn | QrCodeColumn>()
               .then((col) => col.getValueColumn())),
             title: column.title,
+            id: column.id,
           });
 
         groupByColumns[column.id] = column;
@@ -753,6 +754,7 @@ class BaseModelSqlv2 {
                 .getColOptions<BarcodeColumn | QrCodeColumn>()
                 .then((col) => col.getValueColumn())),
               title: column.title,
+              id: column.id,
             });
 
           switch (column.uidt) {

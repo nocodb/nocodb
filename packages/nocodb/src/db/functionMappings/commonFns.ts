@@ -112,4 +112,8 @@ export default {
       builder: (await args.fn(args.pt?.arguments?.[0])).builder.wrap('(', ')'),
     };
   },
+
+  BLANK: async (args: MapFnArgs) => {
+    return { builder: args.knex.raw(`?`, ['']) };
+  },
 };

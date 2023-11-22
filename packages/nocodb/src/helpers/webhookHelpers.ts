@@ -182,6 +182,18 @@ export async function handleHttpWebHook(
   prevData,
   newData,
 ): Promise<any> {
+  const contentType = apiMeta.headers?.find(
+    (header) => header.name?.toLowerCase() === 'content-type' && header.enabled,
+  );
+
+  if (!contentType) {
+    apiMeta.headers.push({
+      name: 'Content-Type',
+      enabled: true,
+      value: 'application/json',
+    });
+  }
+
   const req = axiosRequestMake(
     apiMeta,
     user,

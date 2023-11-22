@@ -416,6 +416,65 @@ const formulas: Record<string, any> = {
     syntax: 'WEEKDAY(date, [startDayOfWeek])',
     examples: ['WEEKDAY("2021-06-09")', 'WEEKDAY(NOW(), "sunday")'],
   },
+
+  TRUE: {
+    type: formulaTypes.NUMERIC,
+    validation: {
+      args: {
+        max: 0,
+      },
+    },
+    description: 'Returns 1',
+    syntax: 'TRUE()',
+    examples: ['TRUE()'],
+  },
+
+  FALSE: {
+    type: formulaTypes.NUMERIC,
+    validation: {
+      args: {
+        max: 0,
+      },
+    },
+    description: 'Returns 0',
+    syntax: 'FALSE()',
+    examples: ['FALSE()'],
+  },
+
+  REGEX_MATCH: {
+    type: formulaTypes.NUMERIC,
+    validation: {
+      args: {
+        rqd: 2,
+      },
+    },
+    description: 'Returns whether the input text matches a regular expression.',
+    syntax: 'REGEX_MATCH(string, regex)',
+    examples: ['REGEX_MATCH({title}, "abc.*")'],
+  },
+
+  REGEX_EXTRACT: {
+    type: formulaTypes.STRING,
+    validation: {
+      args: {
+        rqd: 2,
+      },
+    },
+    description: 'Returns the first substring that matches a regular expression.',
+    syntax: 'REGEX_MATCH(string, regex)',
+    examples: ['REGEX_EXTRACT({title}, "abc.*")'],
+  },
+  REGEX_REPLACE: {
+    type: formulaTypes.STRING,
+    validation: {
+      args: {
+        rqd: 3,
+      },
+    },
+    description: '"Substitutes all matching substrings with a replacement string value."',
+    syntax: 'REGEX_MATCH(string, regex, replacement)',
+    examples: ['REGEX_EXTRACT({title}, "abc.*", "abcd")'],
+  },
 }
 
 const formulaList = Object.keys(formulas)

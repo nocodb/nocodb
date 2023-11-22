@@ -486,6 +486,17 @@ const formulas: Record<string, any> = {
     syntax: 'BLANK()',
     examples: ['BLANK()'],
   },
+  XOR: {
+    type: formulaTypes.NUMERIC,
+    validation: {
+      args: {
+        min: 1,
+      },
+    },
+    description: 'Returns true if an odd number of arguments are true.',
+    syntax: 'XOR(expression, [exp2, ...])',
+    examples: ['XOR(TRUE(), FALSE(), TRUE())'],
+  },
 }
 
 const formulaList = Object.keys(formulas)

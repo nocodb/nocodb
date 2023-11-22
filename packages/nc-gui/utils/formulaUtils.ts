@@ -532,7 +532,7 @@ const formulas: Record<string, any> = {
   COUNTA: {
     validation: {
       args: {
-        min:1,
+        min: 1,
       },
     },
     description: '',
@@ -558,6 +558,30 @@ const formulas: Record<string, any> = {
     description: '',
     syntax: 'COUNTALL()',
     examples: ['COUNTALL()'],
+  },
+  ROUNDDOWN: {
+    type: formulaTypes.NUMERIC,
+    validation: {
+      args: {
+        min: 1,
+        max: 2,
+      },
+    },
+    description: '',
+    syntax: 'ROUNDDOWN()',
+    examples: ['ROUNDDOWN()'],
+  },
+  ROUNDUP: {
+    type: formulaTypes.NUMERIC,
+    validation: {
+      args: {
+        min: 1,
+        max: 2,
+      },
+    },
+    description: '',
+    syntax: 'ROUNDUP()',
+    examples: ['ROUNDUP()'],
   },
 }
 

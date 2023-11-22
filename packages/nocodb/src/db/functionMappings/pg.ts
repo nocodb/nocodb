@@ -253,6 +253,36 @@ const pg = {
       ),
     };
   },
+
+  // todo: move to common and use existing functions
+  ROUNDDOWN: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const { builder: valueBuilder } = await fn(pt.arguments[0]);
+    let precisionBuilder = knex.raw('0');
+    if (pt.arguments[1]) {
+      const { builder } = await fn(pt.arguments[1]);
+      precisionBuilder = builder;
+    }
+
+    return {
+      builder: knex.raw(
+        `ROUND(FLOOR(${valueBuilder} * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))${colAlias}`,
+      ),
+    };
+  },
+  ROUNDUP: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const { builder: valueBuilder } = await fn(pt.arguments[0]);
+    let precisionBuilder = knex.raw('0');
+    if (pt.arguments[1]) {
+      const { builder } = await fn(pt.arguments[1]);
+      precisionBuilder = builder;
+    }
+
+    return {
+      builder: knex.raw(
+        `ROUND(CEIL(${valueBuilder} * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))${colAlias}`,
+      ),
+    };
+  },
 };
 
 export default pg;

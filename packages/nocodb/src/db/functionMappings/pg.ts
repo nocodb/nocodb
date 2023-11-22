@@ -189,6 +189,32 @@ const pg = {
       builder: knex.raw(`MOD((${x})::NUMERIC, (${y})::NUMERIC) ${colAlias}`),
     };
   },
+  REGEX_MATCH: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    const pattern = (await fn(pt.arguments[1])).builder;
+    return {
+      builder: knex.raw(`${source}::text ~ ${pattern}::text) ${colAlias}`),
+    };
+  },
+  REGEX_EXTRACT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    const pattern = (await fn(pt.arguments[1])).builder;
+    return {
+      builder: knex.raw(
+        `regexp_matches(${source}::text, ${pattern}::text) ${colAlias}`,
+      ),
+    };
+  },
+  REGEX_REPLACE: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    const pattern = (await fn(pt.arguments[1])).builder;
+    const replacement = (await fn(pt.arguments[2])).builder;
+    return {
+      builder: knex.raw(
+        `regexp_matches(${source}::text, ${pattern}::text, ${replacement}::text) ${colAlias}`,
+      ),
+    };
+  },
 };
 
 export default pg;

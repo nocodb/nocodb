@@ -2277,6 +2277,22 @@ class BaseModelSqlv2 {
 
   async insert(data, trx?, cookie?, _disableOptimization = false) {
     try {
+
+      const columns = await this.model.getColumns();
+
+      // exclude auto increment columns in body
+      for (const col of columns) {
+        if (col.ai) {
+          const keyName =
+            data?.[col.column_name] !== undefined ? col.column_name : col.title;
+
+          if (data[keyName]) {
+            delete data[keyName];
+          }
+
+        }
+      }
+
       await populatePk(this.model, data);
 
       // todo: filter based on view
@@ -2291,9 +2307,6 @@ class BaseModelSqlv2 {
       if ('beforeInsert' in this) {
         await this.beforeInsert(insertObj, trx, cookie);
       }
-
-      await this.model.getColumns();
-
       await this.prepareAttachmentData(insertObj);
 
       let response;

@@ -2277,7 +2277,6 @@ class BaseModelSqlv2 {
 
   async insert(data, trx?, cookie?, _disableOptimization = false) {
     try {
-
       const columns = await this.model.getColumns();
 
       // exclude auto increment columns in body
@@ -2289,7 +2288,6 @@ class BaseModelSqlv2 {
           if (data[keyName]) {
             delete data[keyName];
           }
-
         }
       }
 
@@ -2307,6 +2305,7 @@ class BaseModelSqlv2 {
       if ('beforeInsert' in this) {
         await this.beforeInsert(insertObj, trx, cookie);
       }
+
       await this.prepareAttachmentData(insertObj);
 
       let response;

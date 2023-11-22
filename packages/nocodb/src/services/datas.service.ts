@@ -79,7 +79,7 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    return await baseModel.insert(param.body, null, param.cookie);
+    return await baseModel.nestedInsert(param.body, null, param.cookie);
   }
 
   async dataUpdate(

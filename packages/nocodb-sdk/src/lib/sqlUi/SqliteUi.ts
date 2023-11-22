@@ -868,6 +868,16 @@ export class SqliteUi {
   }
 
   static getUnsupportedFnList() {
-    return ['LOG', 'EXP', 'POWER', 'SQRT'];
+    return [
+      'LOG',
+      'EXP',
+      'POWER',
+      'SQRT',
+      'XOR',
+      'REGEX_MATCH',
+      'REGEX_EXTRACT',
+      'REGEX_REPLACE',
+      'VALUE',
+    ];
   }
 }

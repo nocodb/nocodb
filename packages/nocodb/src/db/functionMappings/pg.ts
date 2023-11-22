@@ -232,7 +232,7 @@ const pg = {
           await Promise.all(
             pt.arguments.map(async (arg) => {
               const { builder } = await fn(arg);
-              return `CASE WHEN ${builder} IS NOT NULL AND ${builder}::text != '' THEN 1 ELSE 0 END`;
+              return `CASE WHEN pg_typeof(${builder}) IN ('smallint', 'integer', 'bigint', 'decimal', 'numeric', 'real', 'double precision') AND ${builder} IS NOT NULL THEN 1 ELSE 0 END`;
             }),
           )
         ).join(' + ')} ${colAlias}`,

@@ -583,7 +583,11 @@ export async function extractColumn({
         const barcodeValCol = await barcodeCol.getValueColumn();
 
         return extractColumn({
-          column: new Column({ ...barcodeValCol, title: column.id }),
+          column: new Column({
+            ...barcodeValCol,
+            title: column.title,
+            id: column.id,
+          }),
           qb,
           rootAlias,
           knex,
@@ -603,7 +607,11 @@ export async function extractColumn({
         const qrValCol = await qrCol.getValueColumn();
 
         return extractColumn({
-          column: new Column({ ...qrValCol, title: column.id }),
+          column: new Column({
+            ...qrValCol,
+            title: column.title,
+            id: column.id,
+          }),
           qb,
           rootAlias,
           knex,

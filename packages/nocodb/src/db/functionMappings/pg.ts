@@ -219,14 +219,10 @@ const pg = {
   },
   XOR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const args = await Promise.all(
-      pt.arguments.map(async (arg) => {
-        return knex.raw(
-          `(${(await fn(pt.arguments[0])).builder} IS NOT NULL)::INTEGER`,
-        );
-      }),
+      pt.arguments.map(async (arg) => `${(await fn(arg)).builder}`),
     );
     return {
-      builder: knex.raw(`check (${args.join(' + ')} = 1)`),
+      builder: knex.raw(`${args.join(' # ')} ${colAlias}`),
     };
   },
 };

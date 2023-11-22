@@ -4288,7 +4288,8 @@ class BaseModelSqlv2 {
 
     await this.selectObject({
       qb,
-      columns: [new Column({ ...column, title: 'key' })],
+      // replace id with 'key' as we select as id
+      columns: [new Column({ ...column, title: 'key', id: 'key' })],
     });
 
     return await this.execAndParse(qb);

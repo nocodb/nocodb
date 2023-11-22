@@ -124,7 +124,7 @@ export default {
     const query = (await args.fn(args.pt.arguments[0])).builder;
     return {
       builder: args.knex.raw(
-        `CASE WHEN ${query} % 2 = 0 THEN CEILING(${query})\nELSE CEILING(${query} / 2.0) * 2\n END${args.colAlias}`,
+        `CASE WHEN ${query} % 2 = 0 THEN CEIL(${query})\nELSE CEIL(${query} / 2.0) * 2\n END${args.colAlias}`,
       ),
     };
   },
@@ -201,7 +201,7 @@ export default {
 
     return {
       builder: knex.raw(
-        `ROUND((FLOOR((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder})::numeric(30,${precisionBuilder})))${colAlias}`,
+        `ROUND(FLOOR((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder})))${colAlias}`,
       ),
     };
   },
@@ -215,7 +215,7 @@ export default {
 
     return {
       builder: knex.raw(
-        `ROUND((CEIL((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))::numeric(30,${precisionBuilder}))${colAlias}`,
+        `ROUND(CEIL((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))${colAlias}`,
       ),
     };
   },

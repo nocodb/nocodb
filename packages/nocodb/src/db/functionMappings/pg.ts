@@ -221,7 +221,10 @@ const pg = {
   },
   XOR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const args = await Promise.all(
-      pt.arguments.map(async (arg) => `${(await fn(arg)).builder}`),
+      pt.arguments.map(async (arg) => {
+        const query = (await fn(arg)).builder.toString();
+        return `CASE WHEN ${query}  IS NOT NULL AND ${query}::boolean = true THEN 1 ELSE 0 END`;
+      }),
     );
     return {
       builder: knex.raw(`${args.join(' # ')} ${colAlias}`),
@@ -265,6 +268,34 @@ const pg = {
   WHEN LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^%]', '','g')) > 0 THEN POW(-1, LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^-]','', 'g'))) * (REGEXP_REPLACE(${value}::TEXT, '[^\\d.]+', '', 'g'))::NUMERIC / 100
   ELSE POW(-1, LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^-]', '', 'g'))) * (REGEXP_REPLACE(${value}::TEXT, '[^\\d.]+', '', 'g'))::NUMERIC
 END) ${colAlias}`,
+      ),
+    };
+  },
+  ROUNDDOWN: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const { builder: valueBuilder } = await fn(pt.arguments[0]);
+    let precisionBuilder = knex.raw('0');
+    if (pt.arguments[1]) {
+      const { builder } = await fn(pt.arguments[1]);
+      precisionBuilder = builder;
+    }
+
+    return {
+      builder: knex.raw(
+        `ROUND((FLOOR((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder})::numeric(30,${precisionBuilder})))${colAlias}`,
+      ),
+    };
+  },
+  ROUNDUP: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const { builder: valueBuilder } = await fn(pt.arguments[0]);
+    let precisionBuilder = knex.raw('0');
+    if (pt.arguments[1]) {
+      const { builder } = await fn(pt.arguments[1]);
+      precisionBuilder = builder;
+    }
+
+    return {
+      builder: knex.raw(
+        `ROUND((CEIL((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))::numeric(30,${precisionBuilder}))${colAlias}`,
       ),
     };
   },

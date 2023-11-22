@@ -595,26 +595,29 @@ const formulas: Record<string, any> = {
     syntax: 'VALUE(value)',
     examples: ['VALUE({field})', 'VALUE("abc10000%")', 'VALUE("$10000")'],
   },
-  CREATED_TIME: {
-    validation: {
-      args: {
-        rqd: 0,
-      },
-    },
-    description: 'Returns the created time of the current record if it exists',
-    syntax: 'CREATED_TIME()',
-    examples: ['CREATED_TIME()'],
-  },
-  LAST_MODIFIED_TIME: {
-    validation: {
-      args: {
-        rqd: 0,
-      },
-    },
-    description: 'Returns the last modified time of the current record if it exists',
-    syntax: ' LAST_MODIFIED_TIME()',
-    examples: [' LAST_MODIFIED_TIME()'],
-  },
+  // Disabling these functions for now; these act as alias for CreatedAt & UpdatedAt fields;
+  // Issue: Error noticed if CreatedAt & UpdatedAt fields are removed from the table after creating these formulas
+  //
+  // CREATED_TIME: {
+  //   validation: {
+  //     args: {
+  //       rqd: 0,
+  //     },
+  //   },
+  //   description: 'Returns the created time of the current record if it exists',
+  //   syntax: 'CREATED_TIME()',
+  //   examples: ['CREATED_TIME()'],
+  // },
+  // LAST_MODIFIED_TIME: {
+  //   validation: {
+  //     args: {
+  //       rqd: 0,
+  //     },
+  //   },
+  //   description: 'Returns the last modified time of the current record if it exists',
+  //   syntax: ' LAST_MODIFIED_TIME()',
+  //   examples: [' LAST_MODIFIED_TIME()'],
+  // },
 }
 
 const formulaList = Object.keys(formulas)

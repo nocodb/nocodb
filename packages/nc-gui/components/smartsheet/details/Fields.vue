@@ -625,9 +625,7 @@ onKeyDown('ArrowUp', () => {
 })
 
 onKeyDown('Delete', () => {
-  if (document.activeElement?.tagName === 'INPUT') return
   if (document.activeElement?.tagName === 'TEXTAREA') return
-
   const isDeletedField = fieldStatus(activeField.value) === 'delete'
   if (!isDeletedField && activeField.value) {
     onFieldDelete(activeField.value)
@@ -635,9 +633,7 @@ onKeyDown('Delete', () => {
 })
 
 onKeyDown('Backspace', () => {
-  if (document.activeElement?.tagName === 'INPUT') return
   if (document.activeElement?.tagName === 'TEXTAREA') return
-
   const isDeletedField = fieldStatus(activeField.value) === 'delete'
   if (!isDeletedField && activeField.value) {
     onFieldDelete(activeField.value)
@@ -645,9 +641,7 @@ onKeyDown('Backspace', () => {
 })
 
 onKeyDown('ArrowRight', () => {
-  if (document.activeElement?.tagName === 'INPUT') return
   if (document.activeElement?.tagName === 'TEXTAREA') return
-
   if (activeField.value) {
     const input = document.querySelector('.nc-fields-input')
     if (input) {

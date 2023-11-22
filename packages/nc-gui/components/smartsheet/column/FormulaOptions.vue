@@ -74,7 +74,7 @@ const validators = {
 
 const availableFunctions = formulaList
 
-const availableBinOps = ['+', '-', '*', '/', '>', '<', '==', '<=', '>=', '!=']
+const availableBinOps = ['+', '-', '*', '/', '>', '<', '==', '<=', '>=', '!=', '&']
 
 const autocomplete = ref(false)
 
@@ -434,7 +434,7 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
     }
 
     if (col.uidt === UITypes.Formula) {
-      const foundType = getRootDataType(jsep((col as any).formula_raw))
+      const foundType = getRootDataType(jsep(col.colOptions?.formula_raw))
       if (foundType === 'N/A') {
         typeErrors.add(t('msg.formula.notSupportedToReferenceColumn', { columnName: col.title }))
       } else if (expectedType !== foundType) {

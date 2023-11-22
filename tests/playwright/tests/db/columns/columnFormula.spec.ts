@@ -76,6 +76,67 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
         formula: `DATETIME_DIFF("2023/01/12", "2023/10/14", "y")`,
         result: ['0', '0', '0', '0', '0'],
       },
+
+      {
+        formula: 'IF({CityId} == 1, "TRUE", BLANK())',
+        result: ['TRUE', '', '', '', ''],
+      },
+      {
+        formula: 'EVEN({CityId})',
+        result: ['2', '2', '4', '4', '6'],
+      },
+      {
+        formula: 'ODD({CityId})',
+        result: ['1', '3', '3', '5', '5'],
+      },
+      {
+        formula: 'VALUE("12ab-c345")',
+        result: ['-12345', '-12345', '-12345', '-12345', '-12345'],
+      },
+      {
+        formula: 'TRUE()',
+        result: ['1', '1', '1', '1', '1'],
+      },
+      {
+        formula: 'FALSE()',
+        result: ['0', '0', '0', '0', '0'],
+      },
+      {
+        formula: 'REGEX_MATCH({City}, "a[a-z]a")',
+        result: ['0', '0', '0', '0', '1'],
+      },
+      {
+        formula: 'REGEX_EXTRACT({City}, "a[a-z]a")',
+        result: ['', '', '', '', 'ana'],
+      },
+      {
+        formula: 'REGEX_REPLACE({City}, "a[a-z]a","...")',
+        result: ['A Corua (La Corua)', 'Abha', 'Abu Dhabi', 'Acua', 'Ad...'],
+      },
+
+      {
+        formula: '"City Name: " & {City}',
+        result: [
+          'City Name: A Corua (La Corua)',
+          'City Name: Abha',
+          'City Name: Abu Dhabi',
+          'City Name: Acua',
+          'City Name: Adana',
+        ],
+      },
+
+      {
+        formula: 'ROUNDDOWN({CityId} + 2.49, 1)',
+        result: ['3', '4', '5', '6', '7'],
+      },
+      {
+        formula: 'ROUNDUP({CityId} + 2.49, 1)',
+        result: ['4', '5', '6', '7', '8'],
+      },
+      {
+        formula: 'RECORD_ID()',
+        result: ['1', '2', '3', '4', '5'],
+      },
     ];
   else
     return [

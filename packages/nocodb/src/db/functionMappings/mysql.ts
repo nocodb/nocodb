@@ -114,6 +114,52 @@ const mysql2 = {
       ),
     };
   },
+  REGEX_MATCH: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    const pattern = (await fn(pt.arguments[1])).builder;
+    return {
+      builder: knex.raw(`(${source} REGEXP ${pattern}) ${colAlias}`),
+    };
+  },
+  REGEX_EXTRACT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    const pattern = (await fn(pt.arguments[1])).builder;
+    return {
+      builder: knex.raw(`REGEXP_SUBSTR(${source}, ${pattern}) ${colAlias}`),
+    };
+  },
+  REGEX_REPLACE: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    const pattern = (await fn(pt.arguments[1])).builder;
+    const replacement = (await fn(pt.arguments[2])).builder;
+    return {
+      builder: knex.raw(
+        `REGEXP_REPLACE(${source}, ${pattern}, ${replacement}) ${colAlias}`,
+      ),
+    };
+  },
+  XOR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const args = await Promise.all(
+      pt.arguments.map(async (arg) => `${(await fn(arg)).builder}`),
+    );
+    return {
+      builder: knex.raw(`${args.join(' XOR ')} ${colAlias}`),
+    };
+  },
+
+  VALUE: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder.toString();
+
+    return {
+      builder: knex.raw(
+        `ROUND(CASE
+  WHEN ${value} IS NULL OR REGEXP_REPLACE(${value}, '[^0-9.]+', '') IN ('.', '') OR LENGTH(REGEXP_REPLACE(${value}, '[^.]+', '')) > 1 THEN NULL
+  WHEN LENGTH(REGEXP_REPLACE(${value}, '[^%]', '')) > 0 THEN POW(-1, LENGTH(REGEXP_REPLACE(${value}, '[^-]',''))) * (REGEXP_REPLACE(${value}, '[^0-9.]+', '')) / 100
+  ELSE POW(-1, LENGTH(REGEXP_REPLACE(${value}, '[^-]', ''))) * (REGEXP_REPLACE(${value}, '[^0-9.]+', ''))
+END) ${colAlias}`,
+      ),
+    };
+  },
 };
 
 export default mysql2;

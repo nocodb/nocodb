@@ -5,11 +5,12 @@ import { message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
 
 import { ProjectRoleInj, TreeViewInj, useNuxtApp, useRoles, useTabs } from '#imports'
+import type { SidebarTableNode } from '~/lib'
 
 const props = withDefaults(
   defineProps<{
     base: BaseType
-    table: TableType & { isViewsLoading?: boolean }
+    table: SidebarTableNode
     sourceIndex: number
   }>(),
   { sourceIndex: 0 },
@@ -44,7 +45,7 @@ provide(SidebarTableInj, table)
 const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeViewInj)!
 
 const { loadViews: _loadViews } = useViewsStore()
-const { activeView } = storeToRefs(useViewsStore())
+const { activeView, activeViewTitleOrId } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 // todo: temp
@@ -135,7 +136,7 @@ watch(
 )
 
 const isTableOpened = computed(() => {
-  return openedTableId.value === table.value?.id && activeView.value?.is_default
+  return openedTableId.value === table.value?.id && (activeView.value?.is_default || !activeViewTitleOrId.value)
 })
 </script>
 
@@ -176,7 +177,7 @@ const isTableOpened = computed(() => {
           >
             <GeneralLoader
               v-if="table.isViewsLoading"
-              class="flex w-4 h-4 !text-gray-600"
+              class="flex w-4 h-4 !text-gray-600 !mt-0.75"
               :class="{
                 '!visible': !isExpanded,
               }"

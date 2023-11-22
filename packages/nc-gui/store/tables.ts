@@ -1,6 +1,7 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { TableType } from 'nocodb-sdk'
 import { useTitle } from '@vueuse/core'
+import type { SidebarTableNode } from '~/lib'
 
 export const useTablesStore = defineStore('tablesStore', () => {
   const { includeM2M, ncNavigateTo } = useGlobal()
@@ -12,7 +13,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
   const router = useRouter()
   const route = router.currentRoute
 
-  const baseTables = ref<Map<string, TableType[]>>(new Map())
+  const baseTables = ref<Map<string, SidebarTableNode[]>>(new Map())
   const basesStore = useBases()
   // const baseStore = useBase()
 

@@ -184,9 +184,13 @@ export const useViewsStore = defineStore('viewsStore', () => {
       isViewDataLoading.value = true
 
       try {
+        if (tablesStore.activeTable) tablesStore.activeTable.isViewsLoading = true
+
         await loadViews()
       } catch (e) {
         console.error(e)
+      } finally {
+        if (tablesStore.activeTable) tablesStore.activeTable.isViewsLoading = false
       }
     },
     { immediate: true },
@@ -270,10 +274,6 @@ export const useViewsStore = defineStore('viewsStore', () => {
         })
     }
   }
-
-  watch(activeViewTitleOrId, () => {
-    isPaginationLoading.value = true
-  })
 
   watch(activeView, (view) => {
     if (!view) return

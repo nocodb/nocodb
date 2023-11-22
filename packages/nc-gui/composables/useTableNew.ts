@@ -1,5 +1,7 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import type { SidebarTableNode } from '~/lib'
+
 import {
   Modal,
   SYSTEM_COLUMNS,
@@ -58,12 +60,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
   const tables = computed(() => baseTables.value.get(param.baseId) || [])
   const base = computed(() => bases.value.get(param.baseId))
 
-  const openTable = async (
-    table: TableType & {
-      isMetaLoading?: boolean
-      isViewsLoading?: boolean
-    },
-  ) => {
+  const openTable = async (table: SidebarTableNode) => {
     if (!table.base_id) return
 
     let base = bases.value.get(table.base_id)

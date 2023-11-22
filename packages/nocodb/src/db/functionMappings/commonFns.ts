@@ -119,4 +119,20 @@ export default {
   FALSE: async (args: MapFnArgs) => {
     return { builder: args.knex.raw(`?`, [0]) };
   },
+  EVEN: async (args: MapFnArgs) => {
+    const query = (await args.fn(args.pt.arguments[0])).builder;
+    return {
+      builder: args.knex.raw(
+        `CASE WHEN ${query} % 2 = 0 THEN CEILING(${query})\nELSE CEILING(${query} / 2.0) * 2\n END${args.colAlias}`,
+      ),
+    };
+  },
+  ODD: async (args: MapFnArgs) => {
+    const query = (await args.fn(args.pt.arguments[0])).builder;
+    return {
+      builder: args.knex.raw(
+        `CASE WHEN ${query} >= 0 THEN CEIL(${query} / 2.0) * 2 + 1 \n ELSE FLOOR(${query} / 2.0) * 2 - 1\n END${args.colAlias}`,
+      ),
+    };
+  },
 };

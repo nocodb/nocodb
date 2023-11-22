@@ -1289,6 +1289,6 @@ export class MysqlUi {
   }
 
   static getUnsupportedFnList() {
-    return [];
+    return ['COUNTA', 'COUNT'];
   }
 }

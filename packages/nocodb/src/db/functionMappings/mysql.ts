@@ -138,6 +138,14 @@ const mysql2 = {
       ),
     };
   },
+  XOR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const args = await Promise.all(
+      pt.arguments.map(async (arg) => `${(await fn(arg)).builder}`),
+    );
+    return {
+      builder: knex.raw(`${args.join(' XOR ')} ${colAlias}`),
+    };
+  },
 };
 
 export default mysql2;

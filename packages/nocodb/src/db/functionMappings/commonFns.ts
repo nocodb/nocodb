@@ -151,7 +151,7 @@ export default {
       ),
     };
   },
-  CREATED_AT: async (args: MapFnArgs) => {
+  CREATED_TIME: async (args: MapFnArgs) => {
     const createdAtCol = args.model?.columns?.find(
       (col) => col.column_name === 'created_at',
     );
@@ -168,12 +168,12 @@ export default {
       ),
     };
   },
-  UPDATED_AT: async (args: MapFnArgs) => {
+  LAST_MODIFIED_TIME: async (args: MapFnArgs) => {
     const createdAtCol = args.model?.columns?.find(
       (col) => col.column_name === 'updated_at',
     );
     if (!createdAtCol) {
-      NcError.badRequest('Created at field not found');
+      NcError.badRequest('Updated at field not found');
     }
 
     return {

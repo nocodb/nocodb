@@ -133,6 +133,10 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
         formula: 'ROUNDUP({CityId} + 2.49, 1)',
         result: ['4', '5', '6', '7', '8'],
       },
+      {
+        formula: 'RECORD_ID()',
+        result: ['1', '2', '3', '4', '5'],
+      },
     ];
   else
     return [

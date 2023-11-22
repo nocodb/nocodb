@@ -549,6 +549,16 @@ const formulas: Record<string, any> = {
     syntax: 'COUNT()',
     examples: ['COUNT()'],
   },
+  COUNTALL: {
+    validation: {
+      args: {
+        rqd: 0,
+      },
+    },
+    description: '',
+    syntax: 'COUNTALL()',
+    examples: ['COUNTALL()'],
+  },
 }
 
 const formulaList = Object.keys(formulas)

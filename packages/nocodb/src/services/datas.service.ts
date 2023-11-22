@@ -64,7 +64,7 @@ export class DatasService {
 
   async dataInsert(
     param: PathParams & {
-      body: any;
+      body: unknown;
       cookie: any;
       disableOptimization?: boolean;
     },
@@ -78,10 +78,6 @@ export class DatasService {
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
-
-    if (param?.body?.Id) {
-      delete param?.body?.Id
-    }
 
     return await baseModel.insert(param.body, null, param.cookie);
   }

@@ -40,6 +40,8 @@ const { getMeta } = useMetas()
 
 const { meta, view } = useSmartsheetStoreOrThrow()
 
+const isLocked = inject(IsLockedInj, ref(false))
+
 const { openedViewsTab } = storeToRefs(useViewsStore())
 
 const moveOps = ref<moveOp[]>([])
@@ -587,6 +589,8 @@ const toggleVisibility = async (checked: boolean, field: Field) => {
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
 
+  if (isLocked.value) return
+
   if (cmdOrCtrl && e.key.toLowerCase() === 's') {
     if (openedViewsTab.value !== 'field') return
     e.preventDefault()
@@ -625,7 +629,11 @@ onKeyDown('ArrowUp', () => {
 })
 
 onKeyDown('Delete', () => {
+  if (isLocked.value) return
+
+  if (document.activeElement?.tagName === 'INPUT') return
   if (document.activeElement?.tagName === 'TEXTAREA') return
+
   const isDeletedField = fieldStatus(activeField.value) === 'delete'
   if (!isDeletedField && activeField.value) {
     onFieldDelete(activeField.value)
@@ -633,7 +641,11 @@ onKeyDown('Delete', () => {
 })
 
 onKeyDown('Backspace', () => {
+  if (isLocked.value) return
+
+  if (document.activeElement?.tagName === 'INPUT') return
   if (document.activeElement?.tagName === 'TEXTAREA') return
+
   const isDeletedField = fieldStatus(activeField.value) === 'delete'
   if (!isDeletedField && activeField.value) {
     onFieldDelete(activeField.value)
@@ -659,11 +671,15 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
 const keys = useMagicKeys()
 
 whenever(keys.meta_s, () => {
+  if (isLocked.value) return
+
   if (!meta.value?.id) return
   if (openedViewsTab.value === 'field') saveChanges()
 })
 
 whenever(keys.ctrl_s, () => {
+  if (isLocked.value) return
+
   if (!meta.value?.id) return
   if (openedViewsTab.value === 'field') saveChanges()
 })
@@ -718,9 +734,9 @@ const onFieldOptionUpdate = () => {
             </template>
           </a-input>
           <div class="flex gap-2">
-            <NcTooltip>
+            <NcTooltip :disabled="isLocked">
               <template #title> {{ `${renderAltOrOptlKey()} + C` }} </template>
-              <NcButton type="secondary" size="small" class="mr-1" :disabled="loading" @click="addField()">
+              <NcButton type="secondary" size="small" class="mr-1" :disabled="loading || isLocked" @click="addField()">
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="plus" class="w-3" />
                   New Field
@@ -730,19 +746,22 @@ const onFieldOptionUpdate = () => {
             <NcButton
               type="secondary"
               size="small"
-              :disabled="!loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1"
+              :disabled="(!loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1) || isLocked"
               @click="clearChanges()"
             >
               Reset
             </NcButton>
-            <NcTooltip>
+            <NcTooltip :disabled="isLocked">
               <template #title> {{ `${renderCmdOrCtrlKey()} + S` }} </template>
 
               <NcButton
                 type="primary"
                 size="small"
                 :loading="loading"
-                :disabled="isColumnsValid ? !loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1 : true"
+                :disabled="
+                  (isColumnsValid ? !loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1 : true) ||
+                  isLocked
+                "
                 @click="saveChanges()"
               >
                 Save changes
@@ -752,7 +771,7 @@ const onFieldOptionUpdate = () => {
         </div>
         <div class="flex flex-row rounded-lg border-1 border-gray-200">
           <div ref="fieldsListWrapperDomRef" class="nc-scrollbar-md !overflow-auto w-full flex-grow-1 nc-fields-height">
-            <Draggable v-model="fields" item-key="id" @change="onMove($event)">
+            <Draggable v-model="fields" :disabled="isLocked" item-key="id" @change="onMove($event)">
               <template #item="{ element: field }">
                 <div
                   v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"
@@ -761,9 +780,16 @@ const onFieldOptionUpdate = () => {
                   @click="changeField(field, $event)"
                 >
                   <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
-                    <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
+                    <component
+                      :is="iconMap.drag"
+                      class="cursor-move !h-3.75 text-gray-600 mr-1"
+                      :class="{
+                        'opacity-0 !cursor-default': isLocked,
+                      }"
+                    />
                     <NcCheckbox
                       v-if="field.id && viewFieldsMap[field.id]"
+                      :disabled="isLocked"
                       :checked="
                         visibilityOps.find((op) => op.column.fk_column_id === field.id)?.visible ?? viewFieldsMap[field.id].show
                       "
@@ -882,27 +908,29 @@ const onFieldOptionUpdate = () => {
                                 </NcButton>
                               </div>
                             </NcTooltip>
-                            <a-menu-divider class="my-1.5" />
+                            <a-menu-divider v-if="!isLocked" class="my-1.5" />
                           </template>
 
-                          <NcMenuItem key="table-explorer-duplicate" @click="duplicateField(field)">
-                            <Icon class="iconify text-gray-800" icon="lucide:copy" /><span>Duplicate</span>
-                          </NcMenuItem>
-                          <NcMenuItem v-if="!field.pv" key="table-explorer-insert-above" @click="addField(field, true)">
-                            <Icon class="iconify text-gray-800" icon="lucide:arrow-up" /><span>Insert above</span>
-                          </NcMenuItem>
-                          <NcMenuItem key="table-explorer-insert-below" @click="addField(field)">
-                            <Icon class="iconify text-gray-800" icon="lucide:arrow-down" /><span>Insert below</span>
-                          </NcMenuItem>
+                          <template v-if="!isLocked">
+                            <NcMenuItem key="table-explorer-duplicate" @click="duplicateField(field)">
+                              <Icon class="iconify text-gray-800" icon="lucide:copy" /><span>Duplicate</span>
+                            </NcMenuItem>
+                            <NcMenuItem v-if="!field.pv" key="table-explorer-insert-above" @click="addField(field, true)">
+                              <Icon class="iconify text-gray-800" icon="lucide:arrow-up" /><span>Insert above</span>
+                            </NcMenuItem>
+                            <NcMenuItem key="table-explorer-insert-below" @click="addField(field)">
+                              <Icon class="iconify text-gray-800" icon="lucide:arrow-down" /><span>Insert below</span>
+                            </NcMenuItem>
 
-                          <a-menu-divider class="my-1.5" />
+                            <a-menu-divider class="my-1.5" />
 
-                          <NcMenuItem key="table-explorer-delete" class="!hover:bg-red-50" @click="onFieldDelete(field)">
-                            <div class="text-red-500">
-                              <GeneralIcon icon="delete" class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" />
-                              Delete
-                            </div>
-                          </NcMenuItem>
+                            <NcMenuItem key="table-explorer-delete" class="!hover:bg-red-50" @click="onFieldDelete(field)">
+                              <div class="text-red-500">
+                                <GeneralIcon icon="delete" class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" />
+                                Delete
+                              </div>
+                            </NcMenuItem>
+                          </template>
                         </NcMenu>
                       </template>
                     </NcDropdown>
@@ -927,7 +955,13 @@ const onFieldOptionUpdate = () => {
                   @click="changeField(displayColumn, $event)"
                 >
                   <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
-                    <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-200 mr-1" />
+                    <component
+                      :is="iconMap.drag"
+                      class="cursor-move !h-3.75 text-gray-200 mr-1"
+                      :class="{
+                        'opacity-0 !cursor-default': isLocked,
+                      }"
+                    />
                     <NcCheckbox :disabled="true" :checked="true" />
                     <SmartsheetHeaderCellIcon
                       v-if="displayColumn"
@@ -1046,6 +1080,7 @@ const onFieldOptionUpdate = () => {
                 :preload="fieldState(activeField)"
                 :table-explorer-columns="fields"
                 embed-mode
+                :readonly="isLocked"
                 from-table-explorer
                 @update="onFieldUpdate"
                 @add="onFieldAdd"

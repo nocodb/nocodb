@@ -16,6 +16,8 @@ const { metas } = useMetas()
 
 const workspaceStore = useWorkspace()
 
+const isLocked = inject(IsLockedInj, ref(false))
+
 const isUpdating = ref({
   public: false,
   password: false,
@@ -269,10 +271,6 @@ function onChangeTheme(color: string) {
 const isPublicShared = computed(() => {
   return !!activeView.value?.uuid
 })
-
-const isPublicShareDisabled = computed(() => {
-  return false
-})
 </script>
 
 <template>
@@ -286,7 +284,7 @@ const isPublicShareDisabled = computed(() => {
           :checked="isPublicShared"
           :loading="isUpdating.public"
           class="share-view-toggle !mt-0.25"
-          :disabled="isPublicShareDisabled"
+          :disabled="isLocked"
           @click="toggleShare"
         />
       </div>

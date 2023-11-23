@@ -28,6 +28,11 @@ export async function getDisplayValueOfRefTable(
     .then((cols) => cols.find((col) => col.pv));
 }
 
+// this function will generate the query for lookup column
+// or for  LTAR column and return the query builder
+// query result will be aggregated json array string in case of Myssql and Postgres
+// and string with separator in case of sqlite and mysql
+// this function is used for sorting and grouping of lookup/LTAR column at the moment
 export default async function generateLookupSelectQuery({
   column,
   baseModelSqlv2,
@@ -392,8 +397,23 @@ export default async function generateLookupSelectQuery({
           )
           .from(selectQb.as(subQueryAlias)),
       };
+    } else if (baseModelSqlv2.isMssql) {
+      // ref: https://stackoverflow.com/questions/13382856/sqlite3-join-group-concat-using-distinct-with-custom-separator
+      // selectQb.orderBy(`${lookupColumn.title}`, 'asc');
+      return {
+        builder: knex
+          .select(
+            knex.raw(`STRING_AGG(??, ?)`, [
+              lookupColumn.title,
+              LOOKUP_VAL_SEPARATOR,
+            ]),
+          )
+          .from(selectQb.as(subQueryAlias)),
+      };
     }
 
-    NcError.notImplemented('Database not supported Group by on Lookup');
+    NcError.notImplemented(
+      'Database not supported this operation on Lookup/LTAR',
+    );
   }
 }

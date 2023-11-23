@@ -249,14 +249,14 @@ watch(editEnabled, () => {
       <div
         v-if="isVisible"
         ref="inputWrapperRef"
-        class="flex flex-col min-w-200 min-h-70 py-3 pl-3 pr-1 expanded-cell-input relative"
+        class="flex flex-col min-w-200 min-h-70 py-3 expanded-cell-input relative"
         :class="{
           'cursor-move': isDragging,
         }"
       >
         <div
           v-if="column"
-          class="flex flex-row gap-x-1 items-center font-medium pb-2.5 mb-1 py-1 mr-3 ml-1 border-b-1 border-gray-100 cursor-move"
+          class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 mb-1 border-b-1 border-gray-100 cursor-move"
           :class="{
             'select-none': isDragging,
           }"

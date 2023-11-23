@@ -58,10 +58,23 @@ const checkLinkMark = (editor: Editor) => {
   return showLinkOptions
 }
 
+function notStartingWithNetworkProtocol(inputString: string) {
+  const pattern = /^(?![^:]+:\/\/).*/
+
+  const isMatch = pattern.test(inputString)
+
+  return isMatch
+}
+
 const onChange = () => {
   const isLinkMarkedStoredInEditor = editor.value.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
   let formatedHref = href.value
-  if (isValidURL(href.value) && href.value.length > 0 && !href.value.startsWith('/') && !href.value.startsWith('http')) {
+  if (
+    isValidURL(href.value) &&
+    href.value.length > 0 &&
+    !href.value.startsWith('/') &&
+    notStartingWithNetworkProtocol(href.value)
+  ) {
     formatedHref = `https://${href.value}`
   }
 

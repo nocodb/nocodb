@@ -110,7 +110,7 @@ watch(editEnabled, () => {
           minHeight: `${height}px !important`,
         }"
       >
-        <CellRichText v-model:value="vModel" sync-value-change readonly />
+        <CellRichText v-model:value="vModel" sync-value-change readonly class="!pointer-events-none" />
       </div>
       <textarea
         v-else-if="editEnabled && !isVisible"
@@ -199,6 +199,7 @@ watch(editEnabled, () => {
 
         <CellRichText
           v-else
+          :key="String(isVisible)"
           v-model:value="vModel"
           class="ml-2 mt-2 nc-scrollbar-md"
           :style="{

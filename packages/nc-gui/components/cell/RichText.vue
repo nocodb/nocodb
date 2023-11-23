@@ -110,8 +110,6 @@ const editor = useEditor({
 
 const setEditorContent = (contentMd: any) => {
   if (!editor.value) return
-  ;(editor.value.state as any).history$.prevRanges = null
-  ;(editor.value.state as any).history$.done.eventCount = 0
 
   const selection = editor.value.view.state.selection
 
@@ -120,6 +118,11 @@ const setEditorContent = (contentMd: any) => {
   const content = generateJSON(contentHtml, tiptapExtensions)
 
   editor.value.chain().setContent(content).setTextSelection(selection.to).run()
+
+  setTimeout(() => {
+    ;(editor.value!.state as any).history$.prevRanges = null
+    ;(editor.value!.state as any).history$.done.eventCount = 0
+  }, 100)
 }
 
 if (props.syncValueChange) {

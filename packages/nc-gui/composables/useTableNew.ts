@@ -1,5 +1,7 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import type { SidebarTableNode } from '~/lib'
+
 import {
   Modal,
   SYSTEM_COLUMNS,
@@ -58,7 +60,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
   const tables = computed(() => baseTables.value.get(param.baseId) || [])
   const base = computed(() => bases.value.get(param.baseId))
 
-  const openTable = async (table: TableType) => {
+  const openTable = async (table: SidebarTableNode) => {
     if (!table.base_id) return
 
     let base = bases.value.get(table.base_id)
@@ -82,24 +84,49 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
       baseIdOrBaseId = route.value.params.baseId as string
     }
 
-    await getMeta(table.id as string, (route.value.params?.viewId as string) !== table.id)
+    const navigateToTable = async () => {
+      if (openedViewsTab.value === 'view') {
+        await navigateTo({
+          path: `/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}`,
+          query: route.value.query,
+        })
+      }
 
-    await loadViews({ tableId: table.id as string })
+      table.isViewsLoading = true
 
-    const views = viewsByTable.value.get(table.id as string) ?? []
-    if (openedViewsTab.value !== 'view' && views.length && views[0].id) {
-      // find the default view and navigate to it, if not found navigate to the first one
-      const defaultView = views.find((v) => v.is_default) || views[0]
+      try {
+        await loadViews({ tableId: table.id as string })
 
-      await navigateTo({
-        path: `/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${defaultView.id}/${openedViewsTab.value}`,
-        query: route.value.query,
-      })
-    } else
-      await navigateTo({
-        path: `/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}`,
-        query: route.value.query,
-      })
+        const views = viewsByTable.value.get(table.id as string) ?? []
+        if (openedViewsTab.value !== 'view' && views.length && views[0].id) {
+          // find the default view and navigate to it, if not found navigate to the first one
+          const defaultView = views.find((v) => v.is_default) || views[0]
+
+          await navigateTo({
+            path: `/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${defaultView.id}/${openedViewsTab.value}`,
+            query: route.value.query,
+          })
+        }
+      } catch (e) {
+        console.error(e)
+      } finally {
+        table.isViewsLoading = false
+      }
+    }
+
+    const loadTableMeta = async () => {
+      table.isMetaLoading = true
+
+      try {
+        await getMeta(table.id as string)
+      } catch (e) {
+        console.error(e)
+      } finally {
+        table.isMetaLoading = false
+      }
+    }
+
+    await Promise.all([navigateToTable(), loadTableMeta()])
   }
 
   const createTable = async () => {

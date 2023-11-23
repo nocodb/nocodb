@@ -48,15 +48,15 @@ const size = computed(() => vPaginationData.value?.pageSize ?? 25)
 const page = computed({
   get: () => vPaginationData?.value?.page ?? 1,
   set: async (p) => {
-    isViewDataLoading.value = true
+    isPaginationLoading.value = true
     try {
       await changePage?.(p)
-      isViewDataLoading.value = false
+      isPaginationLoading.value = false
     } catch (e) {
       if (axios.isCancel(e)) {
         return
       }
-      isViewDataLoading.value = false
+      isPaginationLoading.value = false
     }
   },
 })
@@ -100,7 +100,7 @@ const renderAltOrOptlKey = () => {
         'ml-8': alignLeft,
       }"
     >
-      <div v-if="isPaginationLoading" class="flex flex-row justify-center item-center min-h-10 min-w-42">
+      <div v-if="isViewDataLoading" class="flex flex-row justify-center item-center min-h-10 min-w-42">
         <a-skeleton :active="true" :title="true" :paragraph="false" class="-mt-1 max-w-60" />
       </div>
       <NcPagination

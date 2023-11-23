@@ -102,6 +102,14 @@ export class TelemetryService {
     // await this.producer.sendMessages('cloud-telemetry', messages);
   }
 
+  /*
+    - events:
+      - event_type: source_create
+        user: { id: string; email: string }
+        source: Source
+        base: Base
+        workspace: Workspace
+  */
   public async sendSystemEvent({
     event_type,
     ...payload

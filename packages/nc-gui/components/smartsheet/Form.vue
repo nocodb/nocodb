@@ -48,6 +48,8 @@ const formState = reactive({})
 
 const secondsRemain = ref(0)
 
+const isLocked = inject(IsLockedInj, ref(false))
+
 const isEditable = isUIAllowed('viewFieldEdit' as Permission)
 
 const meta = inject(MetaInj, ref())
@@ -347,6 +349,8 @@ watch(submitted, (v) => {
 })
 
 function handleMouseUp(col: Record<string, any>, hiddenColIndex: number) {
+  if (isLocked.value) return
+
   if (!moved.value) {
     const index = localColumns.value.length
     col.order = (index ? localColumns.value[index - 1].order : 0) + 1
@@ -378,6 +382,12 @@ watch(view, (nextView) => {
     reloadEventHook.trigger()
   }
 })
+
+const onFormItemClick = (element: any) => {
+  if (isLocked.value) return
+
+  activeRow.value = element.title
+}
 </script>
 
 <template>
@@ -427,6 +437,7 @@ watch(view, (nextView) => {
               type="secondary"
               class="nc-form-add-all"
               data-testid="nc-form-add-all"
+              :disabled="isLocked"
               @click="addAllColumns"
             >
               <!-- Add all -->
@@ -438,6 +449,7 @@ watch(view, (nextView) => {
               type="secondary"
               class="nc-form-remove-all"
               data-testid="nc-form-remove-all"
+              :disabled="isLocked"
               @click="removeAllColumns"
             >
               <!-- Remove all -->
@@ -451,6 +463,7 @@ watch(view, (nextView) => {
           item-key="id"
           draggable=".item"
           group="form-inputs"
+          :disabled="isLocked"
           class="flex flex-col gap-2"
           @start="drag = true"
           @end="drag = false"
@@ -459,6 +472,9 @@ watch(view, (nextView) => {
             <a-card
               size="small"
               class="!border-0 color-transition cursor-pointer item hover:(bg-primary ring-1 ring-accent ring-opacity-100) bg-opacity-10 !rounded !shadow-lg"
+              :class="{
+                '!bg-gray-50 !hover:bg-gray-50 !hover:ring-transparent !cursor-not-allowed': isLocked,
+              }"
               :data-testid="`nc-form-hidden-column-${element.label || element.title}`"
               @mousedown="moved = false"
               @mousemove="moved = false"
@@ -484,7 +500,7 @@ watch(view, (nextView) => {
             </a-card>
           </template>
 
-          <template #footer>
+          <template v-if="!isLocked" #footer>
             <div
               class="my-4 select-none border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center nc-drag-n-drop-to-hide"
               data-testid="nc-drag-n-drop-to-hide"
@@ -553,6 +569,7 @@ watch(view, (nextView) => {
                     autosize
                     size="large"
                     hide-details
+                    :disabled="isLocked"
                     placeholder="Form Title"
                     :bordered="false"
                     data-testid="nc-form-heading"
@@ -580,7 +597,7 @@ watch(view, (nextView) => {
                     hide-details
                     :placeholder="$t('msg.info.formDesc')"
                     :bordered="false"
-                    :disabled="!isEditable"
+                    :disabled="!isEditable || isLocked"
                     data-testid="nc-form-sub-heading"
                     @blur="updateView"
                     @click="updateView"
@@ -598,6 +615,7 @@ watch(view, (nextView) => {
                 group="form-inputs"
                 class="h-full"
                 :move="onMoveCallback"
+                :disabled="isLocked"
                 @change="onMove($event)"
                 @start="drag = true"
                 @end="drag = false"
@@ -610,12 +628,15 @@ watch(view, (nextView) => {
                       {
                         'bg-primary bg-opacity-5 ring-0.5 ring-accent ring-opacity-100': activeRow === element.title,
                       },
+                      {
+                        '!hover:bg-white !ring-0 !cursor-auto': isLocked,
+                      },
                     ]"
                     data-testid="nc-form-fields"
-                    @click="activeRow = element.title"
+                    @click="onFormItemClick(element)"
                   >
                     <div
-                      v-if="isUIAllowed('viewFieldEdit') && !isRequired(element, element.required)"
+                      v-if="isUIAllowed('viewFieldEdit') && !isRequired(element, element.required) && !isLocked"
                       class="absolute flex top-2 right-2"
                     >
                       <component
@@ -795,9 +816,9 @@ watch(view, (nextView) => {
             </a-card>
           </a-form>
 
-          <a-divider />
+          <a-divider v-if="!isLocked" />
 
-          <div v-if="isEditable" class="px-4 flex flex-col gap-2">
+          <div v-if="isEditable && !isLocked" class="px-4 flex flex-col gap-2">
             <!-- After form is submitted -->
             <div class="text-lg text-gray-700">
               {{ $t('msg.info.afterFormSubmitted') }}

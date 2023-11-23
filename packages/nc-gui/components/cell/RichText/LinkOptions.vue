@@ -4,11 +4,13 @@ import { BubbleMenu } from '@tiptap/vue-3'
 import { getMarkRange } from '@tiptap/core'
 import type { Mark } from 'prosemirror-model'
 
-const { editor } = defineProps<Props>()
+const props = defineProps<Props>()
 
 interface Props {
   editor: Editor
 }
+
+const editor = computed(() => props.editor)
 
 const inputRef = ref<HTMLInputElement>()
 const linkNodeMark = ref<Mark | undefined>()
@@ -57,40 +59,42 @@ const checkLinkMark = (editor: Editor) => {
 }
 
 const onChange = () => {
-  const isLinkMarkedStoredInEditor = editor?.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
+  const isLinkMarkedStoredInEditor = editor.value.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
   let formatedHref = href.value
   if (isValidURL(href.value) && href.value.length > 0 && !href.value.startsWith('/') && !href.value.startsWith('http')) {
     formatedHref = `https://${href.value}`
   }
 
   if (isLinkMarkedStoredInEditor) {
-    editor.view.dispatch(
-      editor.view.state.tr
-        .removeStoredMark(editor?.schema.marks.link)
-        .addStoredMark(editor?.schema.marks.link.create({ href: formatedHref })),
+    editor.value.view.dispatch(
+      editor.value.view.state.tr
+        .removeStoredMark(editor.value.schema.marks.link)
+        .addStoredMark(editor.value.schema.marks.link.create({ href: formatedHref })),
     )
   } else if (linkNodeMark.value) {
-    const selection = editor?.state?.selection
-    const markSelection = getMarkRange(selection.$anchor, editor?.schema.marks.link) as any
+    const selection = editor.value.state?.selection
+    const markSelection = getMarkRange(selection.$anchor, editor.value.schema.marks.link) as any
 
-    editor.view.dispatch(
-      editor.view.state.tr
-        .removeMark(markSelection.from, markSelection.to, editor?.schema.marks.link)
-        .addMark(markSelection.from, markSelection.to, editor?.schema.marks.link.create({ href: formatedHref })),
+    editor.value.view.dispatch(
+      editor.value.view.state.tr
+        .removeMark(markSelection.from, markSelection.to, editor.value.schema.marks.link)
+        .addMark(markSelection.from, markSelection.to, editor.value.schema.marks.link.create({ href: formatedHref })),
     )
   }
 }
 
 const onDelete = () => {
-  const isLinkMarkedStoredInEditor = editor?.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
+  const isLinkMarkedStoredInEditor = editor.value.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
 
   if (isLinkMarkedStoredInEditor) {
-    editor.view.dispatch(editor.view.state.tr.removeStoredMark(editor?.schema.marks.link))
+    editor.value.view.dispatch(editor.value.view.state.tr.removeStoredMark(editor.value.schema.marks.link))
   } else if (linkNodeMark.value) {
-    const selection = editor?.state?.selection
-    const markSelection = getMarkRange(selection.$anchor, editor?.schema.marks.link) as any
+    const selection = editor.value.state.selection
+    const markSelection = getMarkRange(selection.$anchor, editor.value.schema.marks.link) as any
 
-    editor.view.dispatch(editor.view.state.tr.removeMark(markSelection.from, markSelection.to, editor?.schema.marks.link))
+    editor.value.view.dispatch(
+      editor.value.view.state.tr.removeMark(markSelection.from, markSelection.to, editor.value.schema.marks.link),
+    )
   }
 
   justDeleted.value = true
@@ -100,31 +104,31 @@ const handleKeyDown = (e: any) => {
   // Ctrl + Z/ Meta + Z
   if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
     e.preventDefault()
-    editor.commands.undo()
+    editor.value.commands.undo()
   }
 
   // Ctrl + Shift + Z/ Meta + Shift + Z
   if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z') {
     e.preventDefault()
-    editor.commands.redo()
+    editor.value.commands.redo()
   }
 }
 
 const onInputBoxEnter = () => {
   inputRef.value?.blur()
-  editor.chain().focus().run()
+  editor.value.chain().focus().run()
 }
 
 const handleInputBoxKeyDown = (e: any) => {
   if (e.key === 'ArrowDown' || e.key === 'Escape') {
-    editor.chain().focus().run()
+    editor.value.chain().focus().run()
   }
 }
 
 watch(isLinkOptionsVisible, (value, oldValue) => {
   if (value && !oldValue) {
     const isPlaceholderEmpty =
-      !editor?.state?.selection.$from.nodeBefore?.textContent && !editor?.state?.selection.$from.nodeAfter?.textContent
+      !editor.value.state.selection.$from.nodeBefore?.textContent && !editor.value.state.selection.$from.nodeAfter?.textContent
 
     if (!isPlaceholderEmpty) return
 

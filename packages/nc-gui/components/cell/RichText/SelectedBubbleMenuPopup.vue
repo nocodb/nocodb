@@ -2,17 +2,19 @@
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
 
-const { editor } = defineProps<Props>()
+const props = defineProps<Props>()
 
 interface Props {
   editor: Editor
 }
 
+const editor = computed(() => props.editor)
+
 // Debounce show menu to prevent flickering
 const showMenu = computed(() => {
   if (!editor) return false
 
-  return !editor.state.selection.empty
+  return !editor.value.state.selection.empty
 })
 const showMenuDebounced = ref(false)
 

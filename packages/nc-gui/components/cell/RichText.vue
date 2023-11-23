@@ -156,7 +156,7 @@ watch(editorDom, () => {
     <EditorContent
       ref="editorDom"
       :editor="editor"
-      class="flex flex-col nc-textarea-rich w-full flex-grow"
+      class="flex flex-col nc-textarea-rich-editor w-full flex-grow"
       :class="{
         'ml-1 mt-2.5': props.fullMode,
       }"
@@ -192,7 +192,7 @@ watch(editorDom, () => {
   }
 }
 
-.nc-textarea-rich {
+.nc-textarea-rich-editor {
   .ProseMirror {
     @apply flex-grow pt-1 border-1 border-gray-200 rounded-lg pr-1 mr-2;
 

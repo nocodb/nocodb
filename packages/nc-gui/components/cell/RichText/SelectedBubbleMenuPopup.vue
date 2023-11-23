@@ -35,7 +35,7 @@ const handleEditorMouseDown = (e: MouseEvent) => {
   const isBubble = domsInEvent.some((dom) => dom?.classList?.contains('bubble-menu'))
   if (isBubble) return
 
-  const pageContent = document.querySelector('.nc-docs-page-wrapper')
+  const pageContent = document.querySelector('.nc-textarea-rich-editor')
   pageContent?.classList.add('bubble-menu-hidden')
 }
 
@@ -45,7 +45,7 @@ const handleEditorMouseUp = (e: MouseEvent) => {
   if (isBubble) return
 
   setTimeout(() => {
-    const pageContent = document.querySelector('.nc-docs-page-wrapper')
+    const pageContent = document.querySelector('.nc-textarea-rich-editor')
     pageContent?.classList.remove('bubble-menu-hidden')
   }, 100)
 }

@@ -279,5 +279,12 @@ const focusEditorEnd = () => {
     margin: 1em 0;
     font-style: italic;
   }
+
+  hr {
+    @apply !border-gray-300;
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 1.5em 0;
+  }
 }
 </style>

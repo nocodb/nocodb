@@ -109,7 +109,7 @@ watch(editEnabled, () => {
           maxHeight: `${height}px !important`,
         }"
       >
-        <CellRichText v-model:value="vModel" read-only />
+        <CellRichText v-model:value="vModel" sync-value-change readonly />
       </div>
       <textarea
         v-else-if="editEnabled && !isVisible"
@@ -194,13 +194,20 @@ watch(editEnabled, () => {
           @keydown.escape="isVisible = false"
         />
 
-        <CellRichText v-else v-model:value="vModel" class="ml-2 mt-2 max-h-70vh nc-scrollbar-md" />
+        <CellRichText
+          v-else
+          v-model:value="vModel"
+          class="ml-2 mt-2 nc-scrollbar-md"
+          :style="{
+            'max-height': 'calc(min(60vh, 100rem))',
+          }"
+        />
       </div>
     </template>
   </NcDropdown>
 </template>
 
-<style>
+<style lang="scss">
 textarea:focus {
   box-shadow: none;
 }

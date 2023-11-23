@@ -12,6 +12,7 @@ import { Link } from '@/helpers/dbTiptapExtensions/links'
 const props = defineProps<{
   value?: string | null
   readonly?: boolean
+  syncValueChange?: boolean
 }>()
 
 const emits = defineEmits(['update:value'])
@@ -54,6 +55,12 @@ const setEditorContent = (contentMd: any) => {
   editor.value.chain().setContent(content).setTextSelection(selection.to).run()
 }
 
+if (props.syncValueChange) {
+  watch(vModel, () => {
+    setEditorContent(vModel.value)
+  })
+}
+
 onMounted(() => {
   setTimeout(() => {
     setEditorContent(vModel.value)
@@ -65,11 +72,22 @@ onMounted(() => {
   <div class="h-full">
     <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" />
     <CellRichTextLinkOptions v-if="editor" :editor="editor" />
-    <EditorContent :editor="editor" class="nc-textarea-rich w-full h-full nc-scrollbar-md" />
+    <EditorContent :editor="editor" class="nc-textarea-rich w-full h-full nc-text-rich-scroll nc-scrollbar-md" />
   </div>
 </template>
 
 <style lang="scss">
+.nc-text-rich-scroll {
+  &::-webkit-scrollbar-thumb {
+    @apply bg-transparent;
+  }
+}
+.nc-text-rich-scroll:hover {
+  &::-webkit-scrollbar-thumb {
+    @apply bg-gray-200;
+  }
+}
+
 .nc-textarea-rich {
   .ProseMirror-focused {
     // remove all border

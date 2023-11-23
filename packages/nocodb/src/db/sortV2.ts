@@ -78,6 +78,7 @@ export default async function sortV2(
         }
         break;
       case UITypes.Lookup:
+      case UITypes.LinkToAnotherRecord:
         {
           const rootAlias = alias;
           {
@@ -90,39 +91,6 @@ export default async function sortV2(
 
             qb.orderBy(selectQb?.builder, sort.direction || 'asc', nulls);
           }
-        }
-        break;
-      case UITypes.LinkToAnotherRecord:
-        {
-          const relation =
-            await column.getColOptions<LinkToAnotherRecordColumn>();
-          if (relation.type !== 'bt') return;
-
-          const colOptions =
-            (await column.getColOptions()) as LinkToAnotherRecordColumn;
-          const childColumn = await colOptions.getChildColumn();
-          const parentColumn = await colOptions.getParentColumn();
-          const childModel = await childColumn.getModel();
-          await childModel.getColumns();
-          const parentModel = await parentColumn.getModel();
-          await parentModel.getColumns();
-
-          const selectQb = knex(
-            baseModelSqlv2.getTnPath(parentModel.table_name),
-          )
-            .select(parentModel?.displayValue?.column_name)
-            .where(
-              `${baseModelSqlv2.getTnPath(parentModel.table_name)}.${
-                parentColumn.column_name
-              }`,
-              knex.raw(`??`, [
-                `${baseModelSqlv2.getTnPath(childModel.table_name)}.${
-                  childColumn.column_name
-                }`,
-              ]),
-            );
-
-          qb.orderBy(selectQb, sort.direction || 'asc', nulls);
         }
         break;
       case UITypes.SingleSelect: {

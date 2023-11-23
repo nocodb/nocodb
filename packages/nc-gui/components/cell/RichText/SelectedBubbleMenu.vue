@@ -9,6 +9,7 @@ import MsFormatH2 from '~icons/material-symbols/format-h2'
 import MsFormatH3 from '~icons/material-symbols/format-h3'
 import TablerBlockQuote from '~icons/tabler/blockquote'
 import MsCode from '~icons/material-symbols/code'
+import MsFormatQuote from '~icons/material-symbols/format-quote'
 
 interface Props {
   editor: Editor
@@ -117,15 +118,26 @@ const onToggleLink = () => {
         <MdiFormatStrikeThrough />
       </NcButton>
     </NcTooltip>
-    <NcTooltip>
+    <NcTooltip v-if="embedMode">
       <template #title> {{ $t('general.code') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :class="{ 'is-active': editor.isActive('codeBlock') }"
+        @click="editor!.chain().focus().toggleCodeBlock().run()"
+      >
+        <MsCode />
+      </NcButton>
+    </NcTooltip>
+    <NcTooltip v-else>
+      <template #title> {{ $t('general.quote') }}</template>
       <NcButton
         size="small"
         type="text"
         :class="{ 'is-active': editor.isActive('code') }"
         @click="editor!.chain().focus().toggleCode().run()"
       >
-        <MsCode />
+        <MsFormatQuote />
       </NcButton>
     </NcTooltip>
     <div class="divider"></div>

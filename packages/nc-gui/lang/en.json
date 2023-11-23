@@ -75,6 +75,7 @@
     "matterMost": "Mattermost",
     "twilio": "Twilio",
     "whatsappTwilio": "WhatsApp Twilio",
+    "quote": "Quote",
     "submit": "Submit",
     "create": "Create",
     "createEntity": "Create {entity}",

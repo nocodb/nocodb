@@ -87,8 +87,6 @@ const isGrid = inject(IsGridInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const isLocked = inject(IsLockedInj, ref(false))
-
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isEditColumnMenu = inject(EditColumnInj, ref(false))
@@ -255,11 +253,7 @@ onUnmounted(() => {
         <LazyCellJson v-else-if="isJSON(column)" v-model="vModel" />
         <LazyCellText v-else v-model="vModel" />
         <div
-          v-if="
-            (isLocked || (isPublic && readOnly && !isForm) || isSystemColumn(column)) &&
-            !isAttachment(column) &&
-            !isTextArea(column)
-          "
+          v-if="(isPublic && readOnly && !isForm) || (isSystemColumn(column) && !isAttachment(column) && !isTextArea(column))"
           class="nc-locked-overlay"
         />
       </template>

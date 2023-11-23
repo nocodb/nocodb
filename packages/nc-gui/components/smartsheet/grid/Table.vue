@@ -188,7 +188,7 @@ const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta
 
 // #Permissions
 const { isUIAllowed } = useRoles()
-const hasEditPermission = computed(() => isUIAllowed('dataEdit') && !isLocked.value)
+const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
 const { onDrag, onDragStart, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
@@ -351,7 +351,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 }
 
 function makeEditable(row: Row, col: ColumnType) {
-  if (!hasEditPermission.value || editEnabled.value || isView || isLocked.value || readOnly.value || isSystemColumn(col)) {
+  if (!hasEditPermission.value || editEnabled.value || isView || readOnly.value || isSystemColumn(col)) {
     return
   }
 
@@ -382,9 +382,7 @@ function makeEditable(row: Row, col: ColumnType) {
 
 // #Computed
 
-const isAddingEmptyRowAllowed = computed(
-  () => !isView && !isLocked.value && hasEditPermission.value && !isSqlView.value && !isPublicView.value,
-)
+const isAddingEmptyRowAllowed = computed(() => !isView && hasEditPermission.value && !isSqlView.value && !isPublicView.value)
 
 const visibleColLength = computed(() => fields.value?.length)
 
@@ -452,9 +450,7 @@ async function openNewRecordHandler() {
 }
 
 const onDraftRecordClick = () => {
-  if (!isLocked?.value) {
-    openNewRecordFormHook.trigger()
-  }
+  openNewRecordFormHook.trigger()
 }
 
 const onNewRecordToGridClick = () => {
@@ -987,7 +983,6 @@ const refreshFillHandle = () => {
 const showFillHandle = computed(
   () =>
     !readOnly.value &&
-    !isLocked.value &&
     !editEnabled.value &&
     (!selectedRange.isEmpty() || (activeCell.row !== null && activeCell.col !== null)) &&
     !dataRef.value[(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) ?? -1]?.rowMeta?.new,
@@ -1477,7 +1472,7 @@ onKeyStroke('ArrowDown', onDown)
                     >
                       <div class="items-center flex gap-1 min-w-[60px]">
                         <div
-                          v-if="!readOnly || !isLocked || isMobileMode"
+                          v-if="!readOnly || isMobileMode"
                           class="nc-row-no sm:min-w-4 text-xs text-gray-500"
                           :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
                         >
@@ -1503,29 +1498,28 @@ onKeyStroke('ArrowDown', onDown)
                             class="!flex items-center"
                             :data-testid="`row-save-spinner-${rowIndex}`"
                           />
-                          <template v-else-if="!isLocked">
-                            <span
-                              v-if="row.rowMeta?.commentCount && expandForm"
-                              v-e="['c:expanded-form:open']"
-                              class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
-                              :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
+
+                          <span
+                            v-if="row.rowMeta?.commentCount && expandForm"
+                            v-e="['c:expanded-form:open']"
+                            class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
+                            :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
+                            @click="expandAndLooseFocus(row, state)"
+                          >
+                            {{ row.rowMeta.commentCount }}
+                          </span>
+                          <div
+                            v-else-if="!row.rowMeta.saving"
+                            class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
+                          >
+                            <component
+                              :is="iconMap.expand"
+                              v-if="expandForm"
+                              v-e="['c:row-expand:open']"
+                              class="select-none transform hover:(text-black scale-120) nc-row-expand"
                               @click="expandAndLooseFocus(row, state)"
-                            >
-                              {{ row.rowMeta.commentCount }}
-                            </span>
-                            <div
-                              v-else
-                              class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
-                            >
-                              <component
-                                :is="iconMap.expand"
-                                v-if="expandForm"
-                                v-e="['c:row-expand:open']"
-                                class="select-none transform hover:(text-black scale-120) nc-row-expand"
-                                @click="expandAndLooseFocus(row, state)"
-                              />
-                            </div>
-                          </template>
+                            />
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -1717,16 +1711,14 @@ onKeyStroke('ArrowDown', onDown)
                 {{ $t('general.clear') }}
               </div>
             </NcMenuItem>
-
             <NcDivider />
             <NcMenuItem
-              v-if="contextMenuTarget && !isLocked && selectedRange.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode"
+              v-if="contextMenuTarget && selectedRange.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode"
               class="nc-base-menu-item"
               @click="commentRow(contextMenuTarget.row)"
             >
               <div v-e="['a:row:comment']" class="flex gap-2 items-center">
                 <MdiMessageOutline class="h-4 w-4" />
-
                 {{ $t('general.comment') }}
               </div>
             </NcMenuItem>
@@ -1810,8 +1802,7 @@ onKeyStroke('ArrowDown', onDown)
                 >
                   <div
                     v-e="['c:row:add:grid']"
-                    :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
-                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-grid"
+                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
                     @click="onNewRecordToGridClick"
                   >
                     <div class="flex flex-row items-center justify-between w-full">
@@ -1827,8 +1818,7 @@ onKeyStroke('ArrowDown', onDown)
                   </div>
                   <div
                     v-e="['c:row:add:form']"
-                    :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
-                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-form"
+                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
                     @click="onNewRecordToFormClick"
                   >
                     <div class="flex flex-row items-center justify-between w-full">

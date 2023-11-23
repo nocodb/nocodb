@@ -4,7 +4,6 @@ import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   IsFormInj,
-  IsLockedInj,
   ReadonlyInj,
   iconMap,
   inject,
@@ -37,13 +36,11 @@ const active = inject(ActiveCellInj, ref(false))
 
 const isForm = inject(IsFormInj)!
 
-const isLocked = inject(IsLockedInj, ref(false))
-
 const { open } = useExpandedFormDetached()
 
 function openExpandedForm() {
   const rowId = extractPkFromRow(item, relatedTableMeta.value.columns as ColumnType[])
-  if (!readOnly.value && !isLocked.value && !readonlyProp && rowId) {
+  if (!readOnly.value && !readonlyProp && rowId) {
     open({
       isOpen: true,
       row: { row: item, rowMeta: {}, oldRow: { ...item } },
@@ -98,11 +95,7 @@ export default {
       </template>
     </span>
 
-    <div
-      v-show="active || isForm"
-      v-if="showUnlinkButton && !readOnly && !isLocked && isUIAllowed('dataEdit')"
-      class="flex items-center"
-    >
+    <div v-show="active || isForm" v-if="showUnlinkButton && !readOnly && isUIAllowed('dataEdit')" class="flex items-center">
       <component
         :is="iconMap.closeThick"
         class="nc-icon unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500"

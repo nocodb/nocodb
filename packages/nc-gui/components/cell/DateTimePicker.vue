@@ -37,8 +37,6 @@ const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
 
-const isLockedMode = inject(IsLockedInj, ref(false))
-
 const { t } = useI18n()
 
 const isEditColumn = inject(EditColumnInj, ref(false))
@@ -126,9 +124,7 @@ const open = ref(false)
 const isOpen = computed(() => {
   if (readOnly.value) return false
 
-  return readOnly.value || (localState.value && isPk) || isLockedMode.value
-    ? false
-    : open.value && (active.value || editable.value)
+  return readOnly.value || (localState.value && isPk) ? false : open.value && (active.value || editable.value)
 })
 
 const randomClass = `picker_${Math.floor(Math.random() * 99999)}`

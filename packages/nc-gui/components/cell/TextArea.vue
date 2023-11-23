@@ -166,7 +166,7 @@ watch(editEnabled, () => {
           <template #title>{{ $t('title.expand') }}</template>
           <component
             :is="iconMap.expand"
-            class="transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-xs"
+            class="transform dark:(!text-white) group-hover:(!text-grey-800 ) scale-120 text-gray-700 text-xs"
           />
         </NcTooltip>
       </div>

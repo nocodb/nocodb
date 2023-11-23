@@ -1033,6 +1033,7 @@
       "duplicateTable": "Are you sure you want to duplicate the table?"
     },
     "info": {
+      "disabledAsViewLocked": "Disabled as View is locked",
       "basesMigrated": "Bases are migrated. Please try again.",
       "pasteNotSupported": "L'opération de collage n'est pas prise en charge sur la cellule active",
       "roles": {

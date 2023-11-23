@@ -119,5 +119,26 @@ onMounted(() => {
       list-style-type: none;
     }
   }
+
+  // Pre tag is the parent wrapper for Code block
+  pre {
+    border-color: #d0d5dd;
+    border: 1px;
+    color: black;
+    font-family: 'JetBrainsMono', monospace;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    @apply overflow-auto mt-3 bg-gray-100;
+
+    code {
+      @apply !px-0;
+    }
+  }
+
+  code {
+    @apply rounded-md px-2 py-1 bg-gray-100;
+    color: inherit;
+    font-size: 0.8rem;
+  }
 }
 </style>

@@ -110,6 +110,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     },
   })
 
+  const isActiveViewLocked = computed(() => activeView.value?.lock_type === 'locked')
+
   // Used for Grid View Pagination
   const isPaginationLoading = ref(true)
 
@@ -317,6 +319,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     removeFromRecentViews,
     activeSorts,
     activeNestedFilters,
+    isActiveViewLocked,
   }
 })
 

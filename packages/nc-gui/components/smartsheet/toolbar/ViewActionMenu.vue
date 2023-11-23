@@ -18,8 +18,6 @@ const { isUIAllowed } = useRoles()
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
-const isLocked = inject(IsLockedInj, ref(false))
-
 const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
@@ -28,7 +26,7 @@ const view = computed(() => props.view)
 
 const table = computed(() => props.table)
 
-const { viewsByTable } = storeToRefs(useViewsStore())
+const { viewsByTable, isActiveViewLocked: isLocked } = storeToRefs(useViewsStore())
 const { loadViews, navigateToView } = useViewsStore()
 
 const { base } = storeToRefs(useBase())
@@ -274,7 +272,18 @@ const onDelete = async () => {
     </NcSubMenu>
     <template v-if="!view.is_default">
       <NcDivider />
-      <NcMenuItem class="!hover:bg-red-50 !text-red-500" @click="onDelete">
+      <NcTooltip v-if="isLocked">
+        <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
+        <NcMenuItem class="!cursor-not-allowed !text-gray-400">
+          <GeneralIcon icon="delete" class="nc-view-delete-icon" />
+          {{
+            $t('general.deleteEntity', {
+              entity: $t('objects.view'),
+            })
+          }}
+        </NcMenuItem>
+      </NcTooltip>
+      <NcMenuItem v-else class="!hover:bg-red-50 !text-red-500" @click="onDelete">
         <GeneralIcon icon="delete" class="nc-view-delete-icon" />
         {{
           $t('general.deleteEntity', {

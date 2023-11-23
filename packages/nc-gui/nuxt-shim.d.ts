@@ -3,7 +3,7 @@ import type { UseGlobalReturn } from './composables/useGlobal/types'
 import type { NocoI18n } from './lib'
 import type { TabType } from './composables'
 
-declare module '#app/nuxt' {
+declare module '#app' {
   interface NuxtApp {
     $api: BaseAPI<any>
     /** {@link import('./plugins/tele') Telemetry} */

@@ -557,6 +557,8 @@ const {
       return true
     }
 
+    if (isExpandedCellInputExist()) return
+
     // skip keyboard event handling if there is a drawer / modal
     if (isDrawerOrModalExist()) {
       return true

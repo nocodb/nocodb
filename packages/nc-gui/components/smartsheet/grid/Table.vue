@@ -1711,14 +1711,17 @@ onKeyStroke('ArrowDown', onDown)
                 {{ $t('general.clear') }}
               </div>
             </NcMenuItem>
-            <template v-if="contextMenuTarget && selectedRange.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode">
-              <NcDivider />
-              <NcMenuItem v-e="['a:row:comment']" class="nc-base-menu-item" @click="commentRow(contextMenuTarget.row)">
+            <NcDivider />
+            <NcMenuItem
+              v-if="contextMenuTarget && selectedRange.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode"
+              class="nc-base-menu-item"
+              @click="commentRow(contextMenuTarget.row)"
+            >
+              <div v-e="['a:row:comment']" class="flex gap-2 items-center">
                 <MdiMessageOutline class="h-4 w-4" />
-
                 {{ $t('general.comment') }}
-              </NcMenuItem>
-            </template>
+              </div>
+            </NcMenuItem>
 
             <template v-if="hasEditPermission">
               <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected))" />

@@ -37,6 +37,19 @@ const vModel = useVModel(props, 'modelValue', emits, { defaultValue: column?.val
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
+const position = ref<
+  | {
+      top: number
+      left: number
+    }
+  | undefined
+>({
+  top: 200,
+  left: 600,
+})
+
+const isDragging = ref(false)
+
 const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLTextAreaElement)?.focus()
 
 const height = computed(() => {
@@ -46,6 +59,7 @@ const height = computed(() => {
 })
 
 const isVisible = ref(false)
+
 const inputWrapperRef = ref<HTMLElement | null>(null)
 const inputRef = ref<HTMLTextAreaElement | null>(null)
 
@@ -84,10 +98,72 @@ const isRichMode = computed(() => {
 
   return meta?.richMode
 })
+
+const onExpand = () => {
+  isVisible.value = true
+
+  const { top, left } = inputWrapperRef.value?.getBoundingClientRect() ?? { top: 0, left: 0 }
+
+  position.value = {
+    top: top + 42,
+    left,
+  }
+}
+
+const onMouseMove = (e: MouseEvent) => {
+  if (!isDragging.value) return
+
+  e.stopPropagation()
+
+  position.value = {
+    top: e.clientY - 22,
+    left: e.clientX - 46,
+  }
+}
+
+const onMouseUp = (e: MouseEvent) => {
+  if (!isDragging.value) return
+
+  e.stopPropagation()
+
+  isDragging.value = false
+  position.value = undefined
+
+  document.removeEventListener('mousemove', onMouseMove)
+  document.removeEventListener('mouseup', onMouseUp)
+}
+
+watch(position, () => {
+  const dom = document.querySelector('.nc-textarea-dropdown-active') as HTMLElement
+  if (!dom) return
+
+  if (!position.value) return
+
+  // Set left and top of dom
+  setTimeout(() => {
+    if (!position.value) return
+
+    dom.style.left = `${position.value.left}px`
+    dom.style.top = `${position.value.top}px`
+  }, 100)
+})
+
+const dragStart = () => {
+  document.addEventListener('mousemove', onMouseMove)
+  document.addEventListener('mouseup', onMouseUp)
+
+  isDragging.value = true
+}
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isVisible" class="overflow-visible" :trigger="[]" placement="bottomLeft">
+  <NcDropdown
+    v-model:visible="isVisible"
+    class="overflow-visible"
+    :trigger="[]"
+    placement="bottomLeft"
+    :overlay-class-name="isVisible ? 'nc-textarea-dropdown-active' : undefined"
+  >
     <div
       class="flex flex-row pt-0.5 w-full"
       :class="{
@@ -103,7 +179,7 @@ const isRichMode = computed(() => {
           maxHeight: `${height}px !important`,
           minHeight: `${height}px !important`,
         }"
-        @click="isVisible = true"
+        @click="onExpand"
       >
         <LazyCellRichText v-model:value="vModel" sync-value-change readonly class="!pointer-events-none" />
       </div>
@@ -156,12 +232,7 @@ const isRichMode = computed(() => {
         :class="{ 'right-0 bottom-2': editEnabled }"
       >
         <template #title>{{ $t('title.expand') }}</template>
-        <NcButton
-          type="secondary"
-          size="xsmall"
-          data-testid="attachment-cell-file-picker-button"
-          @click.stop="isVisible = !isVisible"
-        >
+        <NcButton type="secondary" size="xsmall" data-testid="attachment-cell-file-picker-button" @click.stop="onExpand">
           <component :is="iconMap.expand" class="transform group-hover:(!text-grey-800 ) scale-120 text-gray-700 text-xs" />
         </NcButton>
       </NcTooltip>
@@ -172,10 +243,17 @@ const isRichMode = computed(() => {
         v-if="isVisible"
         ref="inputWrapperRef"
         class="flex flex-col min-w-200 min-h-70 py-3 pl-3 pr-1 expanded-cell-input relative"
+        :class="{
+          'cursor-move': isDragging,
+        }"
       >
         <div
           v-if="column"
-          class="flex flex-row gap-x-1 items-center font-medium pb-2.5 mb-1 py-1 mr-3 ml-1 border-b-1 border-gray-100"
+          class="flex flex-row gap-x-1 items-center font-medium pb-2.5 mb-1 py-1 mr-3 ml-1 border-b-1 border-gray-100 cursor-move"
+          :class="{
+            'select-none': isDragging,
+          }"
+          @mousedown="dragStart"
         >
           <SmartsheetHeaderCellIcon class="flex" />
           <div class="flex max-w-38">

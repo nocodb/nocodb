@@ -200,7 +200,7 @@ const isRichMode = computed(() => {
         <LazyCellRichText
           v-else-if="isVisible"
           v-model:value="vModel"
-          class="ml-2 mt-2 nc-scrollbar-md"
+          class="ml-2 nc-scrollbar-md"
           :style="{
             'max-height': 'calc(min(60vh, 100rem))',
           }"

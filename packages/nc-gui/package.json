@@ -90,7 +90,16 @@
     "vue3-grid-layout-next": "^1.0.6",
     "vue3-text-clamp": "^0.1.2",
     "vuedraggable": "^4.1.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "@tiptap/extension-link": "2.0.3",
+    "@tiptap/extension-task-list": "2.0.3",
+    "@tiptap/extension-underline": "^2.1.8",
+    "@tiptap/html": "2.0.3",
+    "@tiptap/pm": "^2.1.12",
+    "@tiptap/starter-kit": "^2.1.12",
+    "marked": "^4.3.0",
+    "turndown": "^7.1.2",
+    "@tiptap/vue-3": "2.0.3"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.26.3",
@@ -131,6 +140,7 @@
     "@types/tinycolor2": "^1.4.6",
     "@types/validator": "^13.11.7",
     "@types/vue-barcode-reader": "^0.0.3",
+    "@types/turndown": "^5.0.4",
     "@unocss/nuxt": "^0.51.13",
     "@vitest/ui": "^0.18.1",
     "@vue/compiler-sfc": "^3.3.8",

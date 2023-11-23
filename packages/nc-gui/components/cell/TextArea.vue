@@ -33,19 +33,33 @@ const isForm = inject(IsFormInj, ref(false))
 
 const { showNull } = useGlobal()
 
-const vModel = useVModel(props, 'modelValue', emits, { defaultValue: '' })
+const vModel = useVModel(props, 'modelValue', emits, { defaultValue: column?.value.cdf ? String(column?.value.cdf) : '' })
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
+const position = ref<
+  | {
+      top: number
+      left: number
+    }
+  | undefined
+>({
+  top: 200,
+  left: 600,
+})
+
+const isDragging = ref(false)
 
 const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLTextAreaElement)?.focus()
 
 const height = computed(() => {
-  if (!rowHeight.value) return 60
+  if (!rowHeight.value || rowHeight.value === 1) return 36
 
-  return rowHeight.value * 60
+  return rowHeight.value * 36
 })
 
 const isVisible = ref(false)
+
 const inputWrapperRef = ref<HTMLElement | null>(null)
 const inputRef = ref<HTMLTextAreaElement | null>(null)
 
@@ -67,16 +81,95 @@ onClickOutside(inputWrapperRef, (e) => {
   isVisible.value = false
 })
 
-const onDblClick = () => {
+const onTextClick = () => {
   if (!props.virtual) return
 
   isVisible.value = true
   editEnabled.value = true
 }
+
+const isRichMode = computed(() => {
+  let meta: any = {}
+  if (typeof column?.value?.meta === 'string') {
+    meta = JSON.parse(column?.value?.meta)
+  } else {
+    meta = column?.value?.meta ?? {}
+  }
+
+  return meta?.richMode
+})
+
+const onExpand = () => {
+  isVisible.value = true
+
+  const { top, left } = inputWrapperRef.value?.getBoundingClientRect() ?? { top: 0, left: 0 }
+
+  position.value = {
+    top: top + 42,
+    left,
+  }
+}
+
+const onMouseMove = (e: MouseEvent) => {
+  if (!isDragging.value) return
+
+  e.stopPropagation()
+
+  position.value = {
+    top: e.clientY - 22,
+    left: e.clientX - 46,
+  }
+}
+
+const onMouseUp = (e: MouseEvent) => {
+  if (!isDragging.value) return
+
+  e.stopPropagation()
+
+  isDragging.value = false
+  position.value = undefined
+
+  document.removeEventListener('mousemove', onMouseMove)
+  document.removeEventListener('mouseup', onMouseUp)
+}
+
+watch(position, () => {
+  const dom = document.querySelector('.nc-textarea-dropdown-active') as HTMLElement
+  if (!dom) return
+
+  if (!position.value) return
+
+  // Set left and top of dom
+  setTimeout(() => {
+    if (!position.value) return
+
+    dom.style.left = `${position.value.left}px`
+    dom.style.top = `${position.value.top}px`
+  }, 100)
+})
+
+const dragStart = () => {
+  document.addEventListener('mousemove', onMouseMove)
+  document.addEventListener('mouseup', onMouseUp)
+
+  isDragging.value = true
+}
+
+watch(editEnabled, () => {
+  if (editEnabled.value) {
+    isVisible.value = true
+  }
+})
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isVisible" class="overflow-visible" :trigger="[]" placement="bottomLeft">
+  <NcDropdown
+    v-model:visible="isVisible"
+    class="overflow-visible"
+    :trigger="[]"
+    placement="bottomLeft"
+    :overlay-class-name="isVisible ? 'nc-textarea-dropdown-active' : undefined"
+  >
     <div
       class="flex flex-row pt-0.5 w-full"
       :class="{
@@ -85,8 +178,19 @@ const onDblClick = () => {
         'h-full': isForm,
       }"
     >
+      <div
+        v-if="isRichMode"
+        class="w-full cursor-pointer"
+        :style="{
+          maxHeight: `${height}px !important`,
+          minHeight: `${height}px !important`,
+        }"
+        @dblclick="onExpand"
+      >
+        <LazyCellRichText v-model:value="vModel" sync-value-change readonly class="!pointer-events-none" />
+      </div>
       <textarea
-        v-if="editEnabled && !isVisible"
+        v-else-if="editEnabled && !isVisible"
         :ref="focus"
         v-model="vModel"
         rows="4"
@@ -123,39 +227,50 @@ const onDblClick = () => {
           'word-break': 'break-word',
           'white-space': 'pre-line',
         }"
-        @click="onDblClick"
+        @click="onTextClick"
       />
 
       <span v-else>{{ vModel }}</span>
 
-      <div
-        v-if="active && !isExpandedFormOpen"
-        class="!absolute right-0 bottom-0 h-6 w-5 group cursor-pointer flex justify-end gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none p-1 hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
-        :class="{ 'right-2 bottom-2': editEnabled }"
-        data-testid="attachment-cell-file-picker-button"
-        @click.stop="isVisible = !isVisible"
+      <NcTooltip
+        v-if="!isVisible"
+        placement="bottom"
+        class="!absolute right-0 bottom-1 !hidden nc-text-area-expand-btn"
+        :class="{ 'right-0 bottom-1': editEnabled, '!bottom-0': !isRichMode }"
       >
-        <NcTooltip placement="bottom">
-          <template #title>{{ $t('title.expand') }}</template>
-          <component
-            :is="iconMap.expand"
-            class="transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-xs"
-          />
-        </NcTooltip>
-      </div>
+        <template #title>{{ $t('title.expand') }}</template>
+        <NcButton type="secondary" size="xsmall" data-testid="attachment-cell-file-picker-button" @click.stop="onExpand">
+          <component :is="iconMap.expand" class="transform group-hover:(!text-grey-800 ) scale-120 text-gray-700 text-xs" />
+        </NcButton>
+      </NcTooltip>
     </div>
+
     <template #overlay>
-      <div ref="inputWrapperRef" class="flex flex-col min-w-120 min-h-70 py-3 pl-3 pr-1 expanded-cell-input">
+      <div
+        v-if="isVisible"
+        ref="inputWrapperRef"
+        class="flex flex-col min-w-200 min-h-70 py-3 expanded-cell-input relative"
+        :class="{
+          'cursor-move': isDragging,
+        }"
+      >
         <div
           v-if="column"
-          class="flex flex-row gap-x-1 items-center font-medium pb-2.5 mb-1 py-1 mr-3 ml-1 border-b-1 border-gray-100"
+          class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 border-b-1 border-gray-100 cursor-move"
+          :class="{
+            'select-none': isDragging,
+          }"
+          @mousedown="dragStart"
         >
           <SmartsheetHeaderCellIcon class="flex" />
-          <div class="flex">
-            {{ column.title }}
+          <div class="flex max-w-38">
+            <span class="truncate">
+              {{ column.title }}
+            </span>
           </div>
         </div>
         <a-textarea
+          v-if="!isRichMode"
           ref="inputRef"
           v-model:value="vModel"
           class="p-1 !pt-1 !pr-3 !border-0 !border-r-0 !focus:outline-transparent nc-scrollbar-md !text-black !cursor-text"
@@ -166,13 +281,19 @@ const onDblClick = () => {
           @keydown.stop
           @keydown.escape="isVisible = false"
         />
+
+        <LazyCellRichText v-else-if="isVisible" v-model:value="vModel" show-menu full-mode :read-only="readOnly" />
       </div>
     </template>
   </NcDropdown>
 </template>
 
-<style>
+<style lang="scss" scoped>
 textarea:focus {
   box-shadow: none;
+}
+
+:deep(.nc-text-area-expand-btn) {
+  @apply !block;
 }
 </style>

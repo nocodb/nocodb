@@ -206,6 +206,7 @@ watch(editEnabled, () => {
             'max-height': 'calc(min(60vh, 100rem))',
           }"
           show-menu
+          full-mode
         />
       </div>
     </template>

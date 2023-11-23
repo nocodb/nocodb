@@ -92,9 +92,10 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
       :style="{ height: rowHeight ? `${rowHeight * 1.4}rem` : `1.4rem` }"
       :src="qrCode"
       :alt="$t('title.qrCode')"
+      class="min-w-[1.4em]"
       @click="showQrModal"
     />
-    <img v-else-if="showQrCode" class="mx-auto" :src="qrCode" :alt="$t('title.qrCode')" @click="showQrModal" />
+    <img v-else-if="showQrCode" class="mx-auto min-w-[1.4em]" :src="qrCode" :alt="$t('title.qrCode')" @click="showQrModal" />
   </div>
   <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('msg.warning.nonEditableFields.computedFieldUnableToClear') }}

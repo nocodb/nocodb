@@ -9,7 +9,7 @@ export interface TaskItemOptions {
   taskListTypeName: string
 }
 
-export const inputRegex = /^\s*(\[([( |x])?\])\s$/
+export const inputRegex = /^\s*\[( |x)?\]\s$/i
 
 export const TaskItem = Node.create<TaskItemOptions>({
   name: 'taskItem',
@@ -178,7 +178,7 @@ export const TaskItem = Node.create<TaskItemOptions>({
         find: inputRegex,
         type: this.type,
         getAttributes: (match) => ({
-          checked: match[match.length - 1] === 'x',
+          checked: match[match.length - 1].toLowerCase() === 'x',
         }),
       }),
     ]

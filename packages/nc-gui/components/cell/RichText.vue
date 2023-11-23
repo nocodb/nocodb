@@ -4,7 +4,7 @@ import TaskItem from '@tiptap/extension-task-item'
 import TaskList from '@tiptap/extension-task-list'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import TurndownService from 'turndown'
-import { parse } from 'marked'
+import { marked } from 'marked'
 import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import { Link } from '@/helpers/dbTiptapExtensions/links'
@@ -20,6 +20,59 @@ const props = defineProps<{
 const emits = defineEmits(['update:value'])
 
 const turndownService = new TurndownService()
+
+turndownService.addRule('taskList', {
+  filter: (node) => {
+    return node.nodeName === 'LI' && !!node.getAttribute('data-checked')
+  },
+  replacement: (content) => {
+    // Remove the first \n\n and last \n\n
+    const processContent = content.replace(/^\n\n/, '').replace(/\n\n$/, '')
+    return `[ ] ${processContent}\n\n`
+  },
+})
+
+const checkListItem = {
+  name: 'checkListItem',
+  level: 'block',
+  tokenizer(src: string) {
+    src = src.split('\n\n')[0]
+    const isMatched = src.startsWith('[ ]') || src.startsWith('[x]') || src.startsWith('[X]')
+
+    if (isMatched) {
+      const isNotChecked = src.startsWith('[ ]')
+      let text = src.slice(3)
+      if (text[0] === ' ') text = text.slice(1)
+
+      const token = {
+        // Token to generate
+        type: 'checkListItem',
+        raw: src,
+        text,
+        tokens: [],
+        checked: !isNotChecked,
+      }
+
+      ;(this as any).lexer.inline(token.text, token.tokens) // Queue this data to be processed for inline tokens
+      return token
+    }
+
+    return false
+  },
+  renderer(token: any) {
+    return `<ul data-type="taskList">
+      <li data-checked="false">
+        <label>
+          <input type="checkbox" />
+        </label>
+      <div>
+        <p>${(this as any).parser.parseInline(token.tokens)}</p>
+      </div>
+    </ul>` // parseInline to turn child tokens into HTML
+  },
+}
+
+marked.use({ extensions: [checkListItem] })
 
 const editorDom = ref<HTMLElement | null>(null)
 
@@ -52,7 +105,7 @@ const setEditorContent = (contentMd: any) => {
 
   const selection = editor.value.view.state.selection
 
-  const contentHtml = contentMd ? parse(contentMd) : '<p></p>'
+  const contentHtml = contentMd ? marked.parse(contentMd) : '<p></p>'
 
   const content = generateJSON(contentHtml, tiptapExtensions)
 

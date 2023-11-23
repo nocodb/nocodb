@@ -22,6 +22,18 @@ const editor = computed(() => props.editor)
 
 const embedMode = computed(() => props.embedMode)
 
+const cmdOrCtrlKey = computed(() => {
+  return isMac() ? '⌘' : 'CTRL'
+})
+
+const shiftKey = computed(() => {
+  return isMac() ? '⇧' : 'Shift'
+})
+
+const altKey = computed(() => {
+  return isMac() ? '⌥' : 'Alt'
+})
+
 const onToggleLink = () => {
   const activeNode = editor.value?.state?.selection?.$from?.nodeBefore || editor.value?.state?.selection?.$from?.nodeAfter
 
@@ -74,7 +86,14 @@ const onToggleLink = () => {
     }"
   >
     <NcTooltip>
-      <template #title> {{ $t('labels.bold') }}</template>
+      <template #title>
+        <div class="flex flex-col items-center">
+          <div>
+            {{ $t('labels.bold') }}
+          </div>
+          <div class="text-xs">{{ cmdOrCtrlKey }} B</div>
+        </div>
+      </template>
       <NcButton
         size="small"
         type="text"
@@ -86,7 +105,14 @@ const onToggleLink = () => {
     </NcTooltip>
 
     <NcTooltip>
-      <template #title> {{ $t('labels.italic') }}</template>
+      <template #title>
+        <div class="flex flex-col items-center">
+          <div>
+            {{ $t('labels.italic') }}
+          </div>
+          <div>{{ cmdOrCtrlKey }} I</div>
+        </div>
+      </template>
       <NcButton
         size="small"
         type="text"
@@ -97,7 +123,15 @@ const onToggleLink = () => {
       </NcButton>
     </NcTooltip>
     <NcTooltip>
-      <template #title> {{ $t('labels.underline') }}</template>
+      <template #title>
+        <div class="flex flex-col items-center">
+          <div>
+            {{ $t('labels.underline') }}
+          </div>
+          <div>{{ cmdOrCtrlKey }} U</div>
+        </div>
+      </template>
+
       <NcButton
         size="small"
         type="text"
@@ -108,7 +142,14 @@ const onToggleLink = () => {
       </NcButton>
     </NcTooltip>
     <NcTooltip>
-      <template #title> {{ $t('labels.strike') }}</template>
+      <template #title>
+        <div class="flex flex-col items-center">
+          <div>
+            {{ $t('labels.strike') }}
+          </div>
+          <div>{{ shiftKey }} {{ cmdOrCtrlKey }} S</div>
+        </div>
+      </template>
       <NcButton
         size="small"
         type="text"
@@ -144,7 +185,14 @@ const onToggleLink = () => {
 
     <template v-if="embedMode">
       <NcTooltip>
-        <template #title> {{ $t('labels.heading1') }} </template>
+        <template #title>
+          <div class="flex flex-col items-center">
+            <div>
+              {{ $t('labels.heading1') }}
+            </div>
+            <div>{{ cmdOrCtrlKey }} {{ altKey }} 1</div>
+          </div>
+        </template>
         <NcButton
           size="small"
           type="text"
@@ -155,7 +203,14 @@ const onToggleLink = () => {
         </NcButton>
       </NcTooltip>
       <NcTooltip>
-        <template #title> {{ $t('labels.heading2') }}</template>
+        <template #title>
+          <div class="flex flex-col items-center">
+            <div>
+              {{ $t('labels.heading2') }}
+            </div>
+            <div>{{ cmdOrCtrlKey }} {{ altKey }} 2</div>
+          </div>
+        </template>
         <NcButton
           size="small"
           type="text"
@@ -166,7 +221,14 @@ const onToggleLink = () => {
         </NcButton>
       </NcTooltip>
       <NcTooltip>
-        <template #title> {{ $t('labels.heading3') }} </template>
+        <template #title>
+          <div class="flex flex-col items-center">
+            <div>
+              {{ $t('labels.heading3') }}
+            </div>
+            <div>{{ cmdOrCtrlKey }} {{ altKey }} 3</div>
+          </div>
+        </template>
         <NcButton
           size="small"
           type="text"

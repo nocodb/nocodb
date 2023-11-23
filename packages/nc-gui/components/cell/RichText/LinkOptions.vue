@@ -167,7 +167,7 @@ const openLink = () => {
       ref="wrapperRef"
       class="relative bubble-menu nc-text-area-rich-link-options flex flex-col bg-gray-50 py-1 px-1 rounded-lg"
       data-testid="nc-text-area-rich-link-options"
-      @keydown="handleKeyDown"
+      @keydown.stop="handleKeyDown"
     >
       <div class="flex items-center gap-x-1">
         <div class="!border-1 !border-gray-200 !py-0.5 bg-gray-100 rounded-md !z-10">

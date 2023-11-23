@@ -288,14 +288,12 @@ watch(editEnabled, () => {
   </NcDropdown>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 textarea:focus {
   box-shadow: none;
 }
 
-.nc-grid-cell:hover {
-  .nc-text-area-expand-btn {
-    @apply !block;
-  }
+:deep(.nc-text-area-expand-btn) {
+  @apply !block;
 }
 </style>

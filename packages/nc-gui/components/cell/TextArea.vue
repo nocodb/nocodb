@@ -155,22 +155,24 @@ watch(editEnabled, () => {
 
       <span v-else>{{ vModel }}</span>
 
-      <div
+      <NcTooltip
         v-if="active && !isExpandedFormOpen"
-        class="!absolute right-0 bottom-0 h-6 w-5 group cursor-pointer flex justify-end gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none p-1 hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+        placement="bottom"
+        class="!absolute right-0 bottom-1"
         :class="{ 'right-2 bottom-2': editEnabled }"
-        data-testid="attachment-cell-file-picker-button"
-        @click.stop="isVisible = !isVisible"
       >
-        <NcTooltip placement="bottom">
-          <template #title>{{ $t('title.expand') }}</template>
-          <component
-            :is="iconMap.expand"
-            class="transform dark:(!text-white) group-hover:(!text-grey-800 ) scale-120 text-gray-700 text-xs"
-          />
-        </NcTooltip>
-      </div>
+        <template #title>{{ $t('title.expand') }}</template>
+        <NcButton
+          type="secondary"
+          size="xsmall"
+          data-testid="attachment-cell-file-picker-button"
+          @click.stop="isVisible = !isVisible"
+        >
+          <component :is="iconMap.expand" class="transform group-hover:(!text-grey-800 ) scale-120 text-gray-700 text-xs" />
+        </NcButton>
+      </NcTooltip>
     </div>
+
     <template #overlay>
       <div ref="inputWrapperRef" class="flex flex-col min-w-200 min-h-70 py-3 pl-3 pr-1 expanded-cell-input relative">
         <div
@@ -198,8 +200,7 @@ watch(editEnabled, () => {
         />
 
         <LazyCellRichText
-          v-else
-          :key="String(isVisible)"
+          v-else-if="isVisible"
           v-model:value="vModel"
           class="ml-2 mt-2 nc-scrollbar-md"
           :style="{

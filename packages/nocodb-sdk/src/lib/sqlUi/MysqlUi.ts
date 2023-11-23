@@ -987,7 +987,7 @@ export class MysqlUi {
         colProp.dt = 'set';
         if (
           col.colOptions?.options.length > 64 ||
-          col.dtxp?.split(',').length > 64
+          col.dtxp?.toString?.()?.split(',').length > 64
         ) {
           colProp.dt = 'text';
         }

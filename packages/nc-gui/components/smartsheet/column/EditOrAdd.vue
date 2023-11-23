@@ -306,6 +306,7 @@ if (props.fromTableExplorer) {
           <LazySmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
           <LazySmartsheetColumnLinkedToAnotherRecordOptions
             v-if="!isEdit && (formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links)"
+            :key="formState.uidt"
             v-model:value="formState"
           />
           <LazySmartsheetColumnLinkOptions v-if="isEdit && formState.uidt === UITypes.Links" v-model:value="formState" />

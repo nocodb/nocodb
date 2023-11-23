@@ -68,7 +68,7 @@ const onToggleLink = () => {
     }
 
     setTimeout(() => {
-      const linkInput = document.querySelector('.docs-link-option-input')
+      const linkInput = document.querySelector('.nc-text-area-rich-link-option-input')
       if (linkInput) {
         ;(linkInput as any).focus()
       }

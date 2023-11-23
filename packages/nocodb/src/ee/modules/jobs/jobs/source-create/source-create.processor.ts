@@ -6,7 +6,7 @@ import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { SourcesService } from '~/services/sources.service';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
-import { Base, Workspace } from '~/models';
+import { Base, Model, Workspace } from '~/models';
 import { WorkspacesService } from '~/modules/workspaces/workspaces.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -90,6 +90,19 @@ export class SourceCreateProcessor {
       needUpgrade = false;
     }
 
+    const models = await Model.list({
+      base_id: baseId,
+      source_id: createdSource.id,
+    });
+
+    const promises = [];
+
+    for (const model of models) {
+      promises.push(model.getColumns());
+    }
+
+    await Promise.all(promises);
+
     await this.telemetryService.sendSystemEvent({
       event_type: 'source_create',
       user: {
@@ -99,6 +112,10 @@ export class SourceCreateProcessor {
       source,
       base,
       workspace,
+      stats: {
+        models: models.length,
+        columns: models.reduce((acc, m) => acc + m.columns.length, 0),
+      },
     });
 
     this.debugLog(`job completed for ${job.id}`);

@@ -876,8 +876,8 @@ importers:
   packages/nocodb-sdk:
     dependencies:
       axios:
-        specifier: ^0.21.1
-        version: 0.21.1
+        specifier: ^1.6.2
+        version: 1.6.2
       dayjs:
         specifier: ^1.11.9
         version: 1.11.9
@@ -10383,14 +10383,6 @@ packages:
     dependencies:
       '@babel/runtime': 7.22.11
       is-retry-allowed: 2.2.0
-    dev: false
-
-  /axios@0.21.1:
-    resolution: {integrity: sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA==}
-    dependencies:
-      follow-redirects: 1.15.2(debug@3.2.7)
-    transitivePeerDependencies:
-      - debug
     dev: false
 
   /axios@0.21.1(debug@4.3.4):

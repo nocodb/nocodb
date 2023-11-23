@@ -56,6 +56,11 @@ const config: AppConfig = {
       topicArn: process.env.NC_SQL_EX_SNS_TOPIC_ARN,
     },
   },
+  systemEvents: {
+    sns: {
+      topicArn: process.env.NC_SYSTEM_EVENTS_SNS_TOPIC_ARN,
+    },
+  },
   auth: {
     emailPattern:
       process.env.NC_EMAIL_PATTERN && new RegExp(process.env.NC_EMAIL_PATTERN),

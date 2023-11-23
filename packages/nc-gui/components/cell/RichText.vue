@@ -151,5 +151,23 @@ watch(editorDom, () => {
     color: inherit;
     font-size: 0.8rem;
   }
+
+  h1 {
+    font-weight: 700;
+    font-size: 1.85rem;
+    margin-bottom: 0.1rem;
+  }
+
+  h2 {
+    font-weight: 600;
+    font-size: 1.55rem;
+    margin-bottom: 0.1em;
+  }
+
+  h3 {
+    font-weight: 600;
+    font-size: 1.15rem;
+    margin-bottom: 0.1em;
+  }
 }
 </style>

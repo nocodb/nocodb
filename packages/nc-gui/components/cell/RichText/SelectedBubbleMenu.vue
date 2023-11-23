@@ -4,6 +4,9 @@ import MdiFormatBulletList from '~icons/mdi/format-list-bulleted'
 import MdiFormatStrikeThrough from '~icons/mdi/format-strikethrough'
 import MdiFormatListNumber from '~icons/mdi/format-list-numbered'
 import MdiFormatListCheckbox from '~icons/mdi/format-list-checkbox'
+import MsFormatH1 from '~icons/material-symbols/format-h1'
+import MsFormatH2 from '~icons/material-symbols/format-h2'
+import MsFormatH3 from '~icons/material-symbols/format-h3'
 
 interface Props {
   editor: Editor
@@ -67,6 +70,44 @@ const onToggleLink = () => {
       'full-mode': !embedMode,
     }"
   >
+    <template v-if="embedMode">
+      <NcTooltip>
+        <template #title> {{ $t('labels.heading1') }} </template>
+        <NcButton
+          size="small"
+          type="text"
+          :class="{ 'is-active': editor.isActive('heading', { level: 1 }) }"
+          @click="editor!.chain().focus().toggleHeading({ level: 1 }).run()"
+        >
+          <MsFormatH1 />
+        </NcButton>
+      </NcTooltip>
+      <NcTooltip>
+        <template #title> {{ $t('labels.heading2') }}</template>
+        <NcButton
+          size="small"
+          type="text"
+          :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }"
+          @click="editor!.chain().focus().toggleHeading({ level: 2 }).run()"
+        >
+          <MsFormatH2 />
+        </NcButton>
+      </NcTooltip>
+      <NcTooltip>
+        <template #title> {{ $t('labels.heading3') }} </template>
+        <NcButton
+          size="small"
+          type="text"
+          :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }"
+          @click="editor!.chain().focus().toggleHeading({ level: 3 }).run()"
+        >
+          <MsFormatH3 />
+        </NcButton>
+      </NcTooltip>
+
+      <div class="divider"></div>
+    </template>
+
     <a-button
       type="text"
       :class="{ 'is-active': editor.isActive('bold') }"

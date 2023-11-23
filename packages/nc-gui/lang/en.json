@@ -411,6 +411,9 @@
     }
   },
   "labels": {
+    "heading1": "Heading 1",
+    "heading2": "Heading 2",
+    "heading3": "Heading 3",
     "downloadData": "Download Data",
     "noToken": "No Token",
     "tokenLimit": "Only one token per user is allowed",

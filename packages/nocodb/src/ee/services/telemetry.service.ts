@@ -1,8 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { packageInfo } from 'nc-help';
 import { PostHog } from 'posthog-node';
+import AWS from 'aws-sdk';
+import { ConfigService } from '@nestjs/config';
 import { Producer } from './producer/producer';
-import type { NcRequest } from '~/interface/config';
+import type { AppConfig, NcRequest } from '~/interface/config';
 
 @Injectable()
 export class TelemetryService {
@@ -10,7 +12,10 @@ export class TelemetryService {
   private defaultPayload: any;
   private phClient: PostHog;
 
-  constructor(@Inject(Producer) private producer: Producer) {
+  constructor(
+    @Inject(Producer) private producer: Producer,
+    private configService: ConfigService<AppConfig>,
+  ) {
     this.defaultPayload = {
       package_id: packageInfo.version,
     };
@@ -95,5 +100,60 @@ export class TelemetryService {
 
     // commented out for now since we are not using kafka for now
     // await this.producer.sendMessages('cloud-telemetry', messages);
+  }
+
+  public async sendSystemEvent({
+    event_type,
+    ...payload
+  }: {
+    event_type: string;
+    [key: string]: any;
+  }) {
+    const snsConfig = this.configService.get('sns', {
+      infer: true,
+    });
+    const systemEventsSnsTopic = this.configService.get(
+      'systemEvents.sns.topicArn',
+      {
+        infer: true,
+      },
+    );
+
+    if (
+      !systemEventsSnsTopic ||
+      !snsConfig.credentials ||
+      !snsConfig.credentials.secretAccessKey ||
+      !snsConfig.credentials.accessKeyId
+    ) {
+      this.logger.error('SNS is not configured');
+      return;
+    }
+
+    // Create publish parameters
+    const params = {
+      Message: JSON.stringify({
+        event_type,
+        ...payload,
+      }),
+      TopicArn: systemEventsSnsTopic,
+    };
+
+    // Create promise and SNS service object
+    const publishTextPromise = new AWS.SNS({
+      apiVersion: snsConfig.apiVersion,
+      region: snsConfig.region,
+      credentials: {
+        accessKeyId: snsConfig.credentials.accessKeyId,
+        secretAccessKey: snsConfig.credentials.secretAccessKey,
+      },
+    })
+      .publish(params)
+      .promise();
+
+    try {
+      await publishTextPromise;
+    } catch (err) {
+      this.logger.error(err, 'Error publishing to SNS');
+    }
   }
 }

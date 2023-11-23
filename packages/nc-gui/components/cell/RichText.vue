@@ -138,26 +138,14 @@ watch(editorDom, () => {
     editor.value?.chain().focus().run()
   }, 50)
 })
-
-const focusEditorEnd = () => {
-  setTimeout(() => {
-    if (!editor.value) return
-    const docSize = editor.value.state.doc.content.size
-
-    editor.value
-      ?.chain()
-      .setTextSelection(docSize - 2)
-      .focus()
-      .run()
-  }, 50)
-}
 </script>
 
 <template>
   <div
     class="h-full"
     :class="{
-      'flex flex-col flex-grow': props.fullMode,
+      'flex flex-col flex-grow nc-rich-text-full': props.fullMode,
+      'nc-rich-text-embed': !props.fullMode,
     }"
   >
     <div v-if="props.showMenu" class="absolute top-0 right-0.5">
@@ -168,12 +156,11 @@ const focusEditorEnd = () => {
     <EditorContent
       ref="editorDom"
       :editor="editor"
-      class="nc-textarea-rich w-full h-full nc-text-rich-scroll nc-scrollbar-md"
+      class="flex flex-col nc-textarea-rich w-full flex-grow"
       :class="{
-        'ml-1.5 mt-0.5': props.fullMode,
+        'ml-1 mt-2.5': props.fullMode,
       }"
     />
-    <div v-if="props.fullMode" class="flex flex-grow" @click="focusEditorEnd"></div>
   </div>
 </template>
 
@@ -189,9 +176,55 @@ const focusEditorEnd = () => {
   }
 }
 
+.nc-rich-text-embed {
+  .ProseMirror {
+    @apply !border-transparent;
+  }
+}
+
+.nc-rich-text-full {
+  @apply px-1.75;
+  .ProseMirror {
+    @apply pl-1 mt-0.75;
+
+    max-height: calc(min(60vh, 100rem));
+
+    overflow-y: scroll;
+    overflow-x: hidden;
+    scrollbar-width: thin !important;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    &::-webkit-scrollbar-track {
+      -webkit-border-radius: 10px;
+      border-radius: 10px;
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+    &::-webkit-scrollbar-track-piece {
+      width: 0px;
+    }
+    &::-webkit-scrollbar {
+      @apply bg-transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      -webkit-border-radius: 10px;
+      border-radius: 10px;
+
+      width: 4px;
+      @apply bg-gray-300;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      @apply bg-gray-400;
+    }
+  }
+}
+
 .nc-textarea-rich {
   .ProseMirror {
-    @apply pt-1;
+    @apply flex flex-col flex-grow pt-1 border-1 border-gray-200 rounded-lg mr-2;
 
     > * {
       @apply ml-1;
@@ -200,6 +233,7 @@ const focusEditorEnd = () => {
   .ProseMirror-focused {
     // remove all border
     outline: none;
+    @apply border-brand-500;
   }
 
   p {

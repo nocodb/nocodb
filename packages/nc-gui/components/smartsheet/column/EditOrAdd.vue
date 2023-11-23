@@ -220,7 +220,7 @@ if (props.fromTableExplorer) {
     :class="{
       'bg-white': !props.fromTableExplorer,
       'w-[400px]': !props.embedMode,
-      '!w-150': isTextArea(formState) && formState.meta.richMode,
+      '!w-146': isTextArea(formState) && formState.meta.richMode,
       '!w-[600px]': formState.uidt === UITypes.Formula && !props.embedMode,
       '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode && !appInfo.ee,
       'shadow-lg border-1 border-gray-50 shadow-gray-100 rounded-md p-6': !embedMode,

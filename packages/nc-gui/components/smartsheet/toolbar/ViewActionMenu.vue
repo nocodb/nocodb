@@ -18,8 +18,6 @@ const { isUIAllowed } = useRoles()
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
-const isLocked = inject(IsLockedInj, ref(false))
-
 const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
@@ -58,7 +56,7 @@ const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<bo
 ) as Record<QuickImportDialogType, Ref<boolean>>
 
 const onImportClick = (dialog: any) => {
-  if (isLocked.value) return
+  if (lockType.value === LockType.Locked) return
 
   emits('closeModal')
   dialog.value = true
@@ -163,10 +161,17 @@ const onDelete = async () => {
     </NcTooltip>
     <NcDivider />
     <template v-if="!view?.is_default">
-      <NcMenuItem @click="onRenameMenuClick">
+      <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
         <GeneralIcon icon="edit" />
         {{ $t('activity.renameView') }}
       </NcMenuItem>
+      <NcTooltip v-else>
+        <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
+        <NcMenuItem class="!cursor-not-allowed !text-gray-400">
+          <GeneralIcon icon="edit" />
+          {{ $t('activity.renameView') }}
+        </NcMenuItem>
+      </NcTooltip>
       <NcMenuItem @click="onDuplicate">
         <GeneralIcon icon="duplicate" class="nc-view-copy-icon" />
         {{ $t('labels.duplicateView') }}
@@ -205,7 +210,7 @@ const onDelete = async () => {
                   },
                 ]"
                 class="nc-base-menu-item"
-                :class="{ disabled: isLocked }"
+                :class="{ disabled: lockType === LockType.Locked }"
               >
                 <component :is="iconMap.upload" />
                 {{ `${$t('general.upload')} ${type.toUpperCase()}` }}
@@ -274,7 +279,18 @@ const onDelete = async () => {
     </NcSubMenu>
     <template v-if="!view.is_default">
       <NcDivider />
-      <NcMenuItem class="!hover:bg-red-50 !text-red-500" @click="onDelete">
+      <NcTooltip v-if="lockType === LockType.Locked">
+        <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
+        <NcMenuItem class="!cursor-not-allowed !text-gray-400">
+          <GeneralIcon icon="delete" class="nc-view-delete-icon" />
+          {{
+            $t('general.deleteEntity', {
+              entity: $t('objects.view'),
+            })
+          }}
+        </NcMenuItem>
+      </NcTooltip>
+      <NcMenuItem v-else class="!hover:bg-red-50 !text-red-500" @click="onDelete">
         <GeneralIcon icon="delete" class="nc-view-delete-icon" />
         {{
           $t('general.deleteEntity', {

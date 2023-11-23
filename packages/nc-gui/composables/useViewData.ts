@@ -190,6 +190,8 @@ export function useViewData(
 
     controller.value = CancelToken.source()
 
+    isPaginationLoading.value = true
+
     const response = !isPublic.value
       ? await api.dbViewRow.list(
           'noco',

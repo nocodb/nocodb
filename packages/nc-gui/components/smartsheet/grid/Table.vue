@@ -142,7 +142,12 @@ const { getMeta } = useMetas()
 
 const { addUndo, clone, defineViewScope } = useUndoRedo()
 
-const { isViewColumnsLoading, updateGridViewColumn, gridViewCols, resizingColOldWith } = useViewColumnsOrThrow()
+const {
+  isViewColumnsLoading: _isViewColumnsLoading,
+  updateGridViewColumn,
+  gridViewCols,
+  resizingColOldWith,
+} = useViewColumnsOrThrow()
 
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
@@ -179,9 +184,11 @@ const fillHandle = ref<HTMLElement>()
 
 const gridRect = useElementBounding(gridWrapper)
 
+const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta.value)
+
 // #Permissions
 const { isUIAllowed } = useRoles()
-const hasEditPermission = computed(() => isUIAllowed('dataEdit') && !isLocked.value)
+const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
 const { onDrag, onDragStart, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
@@ -344,7 +351,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 }
 
 function makeEditable(row: Row, col: ColumnType) {
-  if (!hasEditPermission.value || editEnabled.value || isView || isLocked.value || readOnly.value || isSystemColumn(col)) {
+  if (!hasEditPermission.value || editEnabled.value || isView || readOnly.value || isSystemColumn(col)) {
     return
   }
 
@@ -375,9 +382,7 @@ function makeEditable(row: Row, col: ColumnType) {
 
 // #Computed
 
-const isAddingEmptyRowAllowed = computed(
-  () => !isView && !isLocked.value && hasEditPermission.value && !isSqlView.value && !isPublicView.value,
-)
+const isAddingEmptyRowAllowed = computed(() => !isView && hasEditPermission.value && !isSqlView.value && !isPublicView.value)
 
 const visibleColLength = computed(() => fields.value?.length)
 
@@ -409,7 +414,9 @@ const dummyRowDataForLoading = computed(() => {
 })
 
 const showSkeleton = computed(
-  () => disableSkeleton !== true && (isViewDataLoading.value || isPaginationLoading.value || isViewColumnsLoading.value),
+  () =>
+    (disableSkeleton !== true && (isViewDataLoading.value || isPaginationLoading.value || isViewColumnsLoading.value)) ||
+    !meta.value,
 )
 
 // #Grid
@@ -443,9 +450,7 @@ async function openNewRecordHandler() {
 }
 
 const onDraftRecordClick = () => {
-  if (!isLocked?.value) {
-    openNewRecordFormHook.trigger()
-  }
+  openNewRecordFormHook.trigger()
 }
 
 const onNewRecordToGridClick = () => {
@@ -978,7 +983,6 @@ const refreshFillHandle = () => {
 const showFillHandle = computed(
   () =>
     !readOnly.value &&
-    !isLocked.value &&
     !editEnabled.value &&
     (!selectedRange.isEmpty() || (activeCell.row !== null && activeCell.col !== null)) &&
     !dataRef.value[(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) ?? -1]?.rowMeta?.new,
@@ -1111,22 +1115,6 @@ onBeforeUnmount(async () => {
 reloadViewDataHook?.on(reloadViewDataHandler)
 openNewRecordFormHook?.on(openNewRecordHandler)
 
-// TODO: Use CSS animations
-const showLoaderAfterDelay = ref(false)
-watch([isViewDataLoading, showSkeleton, isPaginationLoading], () => {
-  if (!isViewDataLoading.value && !showSkeleton.value && !isPaginationLoading.value) {
-    showLoaderAfterDelay.value = false
-
-    return
-  }
-
-  showLoaderAfterDelay.value = false
-
-  setTimeout(() => {
-    showLoaderAfterDelay.value = true
-  }, 500)
-})
-
 // #Watchers
 
 // reset context menu target on hide
@@ -1217,7 +1205,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
 }
 
 const loaderText = computed(() => {
-  if (isViewDataLoading.value) {
+  if (isPaginationLoading.value) {
     if (paginationDataRef.value?.totalRows && paginationDataRef.value?.pageSize) {
       return `Loading page<br/>${paginationDataRef.value.page} of ${Math.ceil(
         paginationDataRef.value?.totalRows / paginationDataRef.value?.pageSize,
@@ -1256,10 +1244,7 @@ onKeyStroke('ArrowDown', onDown)
       ></div>
     </div>
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative" :class="gridWrapperClass">
-      <div
-        v-show="showSkeleton && !isPaginationLoading && showLoaderAfterDelay"
-        class="flex items-center justify-center absolute l-0 t-0 w-full h-full z-10 pb-10"
-      >
+      <div v-show="isPaginationLoading" class="flex items-center justify-center absolute l-0 t-0 w-full h-full z-10 pb-10">
         <div class="flex flex-col justify-center gap-2">
           <GeneralLoader size="xlarge" />
           <span class="text-center" v-html="loaderText"></span>
@@ -1471,15 +1456,10 @@ onKeyStroke('ArrowDown', onDown)
                   ></td>
                 </tr>
               </template>
-              <LazySmartsheetRow
-                v-for="(row, rowIndex) of dataRef"
-                v-show="!showSkeleton"
-                ref="rowRefs"
-                :key="rowIndex"
-                :row="row"
-              >
+              <LazySmartsheetRow v-for="(row, rowIndex) of dataRef" ref="rowRefs" :key="rowIndex" :row="row">
                 <template #default="{ state }">
                   <tr
+                    v-show="!showSkeleton"
                     class="nc-grid-row !xs:h-14"
                     :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
                     :data-testid="`grid-row-${rowIndex}`"
@@ -1492,7 +1472,7 @@ onKeyStroke('ArrowDown', onDown)
                     >
                       <div class="items-center flex gap-1 min-w-[60px]">
                         <div
-                          v-if="!readOnly || !isLocked || isMobileMode"
+                          v-if="!readOnly || isMobileMode"
                           class="nc-row-no sm:min-w-4 text-xs text-gray-500"
                           :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
                         >
@@ -1518,29 +1498,28 @@ onKeyStroke('ArrowDown', onDown)
                             class="!flex items-center"
                             :data-testid="`row-save-spinner-${rowIndex}`"
                           />
-                          <template v-else-if="!isLocked">
-                            <span
-                              v-if="row.rowMeta?.commentCount && expandForm"
-                              v-e="['c:expanded-form:open']"
-                              class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
-                              :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
+
+                          <span
+                            v-if="row.rowMeta?.commentCount && expandForm"
+                            v-e="['c:expanded-form:open']"
+                            class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
+                            :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
+                            @click="expandAndLooseFocus(row, state)"
+                          >
+                            {{ row.rowMeta.commentCount }}
+                          </span>
+                          <div
+                            v-else-if="!row.rowMeta.saving"
+                            class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
+                          >
+                            <component
+                              :is="iconMap.expand"
+                              v-if="expandForm"
+                              v-e="['c:row-expand:open']"
+                              class="select-none transform hover:(text-black scale-120) nc-row-expand"
                               @click="expandAndLooseFocus(row, state)"
-                            >
-                              {{ row.rowMeta.commentCount }}
-                            </span>
-                            <div
-                              v-else
-                              class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
-                            >
-                              <component
-                                :is="iconMap.expand"
-                                v-if="expandForm"
-                                v-e="['c:row-expand:open']"
-                                class="select-none transform hover:(text-black scale-120) nc-row-expand"
-                                @click="expandAndLooseFocus(row, state)"
-                              />
-                            </div>
-                          </template>
+                            />
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -1658,50 +1637,53 @@ onKeyStroke('ArrowDown', onDown)
           <NcMenu class="!rounded !py-0" @click="contextMenu = false">
             <NcMenuItem
               v-if="isEeUI && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
-              v-e="['a:row:update-bulk']"
               @click="emits('bulkUpdateDlg')"
             >
-              <component :is="iconMap.edit" />
-
-              {{ $t('title.updateSelectedRows') }}
+              <div v-e="['a:row:update-bulk']" class="flex gap-2 items-center">
+                <component :is="iconMap.edit" />
+                {{ $t('title.updateSelectedRows') }}
+              </div>
             </NcMenuItem>
 
             <NcMenuItem
               v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
-              v-e="['a:row:delete-bulk']"
               class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
               data-testid="nc-delete-row"
               @click="deleteSelectedRows"
             >
-              <component :is="iconMap.delete" />
-              <!-- Delete Selected Rows -->
-              {{ $t('activity.deleteSelectedRow') }}
+              <div v-e="['a:row:delete-bulk']" class="flex gap-2 items-center">
+                <component :is="iconMap.delete" />
+                <!-- Delete Selected Rows -->
+                {{ $t('activity.deleteSelectedRow') }}
+              </div>
             </NcMenuItem>
 
-            <!-- <NcMenuItem -->
-            <!-- v-if="contextMenuTarget && selectedRange.isSingleCell()" -->
-            <!-- v-e="['a:row:insert']" -->
-            <!-- class="nc-base-menu-item" -->
-            <!-- @click="addEmptyRow(contextMenuTarget.row + 1)" -->
-            <!-- > -->
-            <!-- <GeneralIcon icon="plus" /> -->
-            <!-- Insert New Row -->
-            <!-- {{ $t('activity.insertRow') }} -->
-            <!-- </NcMenuItem> -->
+            <!--            <NcMenuItem -->
+            <!--              v-if="contextMenuTarget && selectedRange.isSingleCell()" -->
+            <!--              class="nc-base-menu-item" -->
+            <!--              @click="addEmptyRow(contextMenuTarget.row + 1)" -->
+            <!--            > -->
+            <!--              <div v-e="['a:row:insert']" class="flex gap-2 items-center"> -->
+            <!--                <GeneralIcon icon="plus" /> -->
+            <!--                Insert New Row -->
+            <!--                {{ $t('activity.insertRow') }} -->
+            <!--              </div> -->
+            <!--            </NcMenuItem> -->
 
             <NcMenuItem
               v-if="contextMenuTarget"
-              v-e="['a:row:copy']"
               class="nc-base-menu-item"
               data-testid="context-menu-item-copy"
               @click="copyValue(contextMenuTarget)"
             >
-              <GeneralIcon icon="copy" />
-              <!-- Copy -->
-              {{ $t('general.copy') }}
+              <div v-e="['a:row:copy']" class="flex gap-2 items-center">
+                <GeneralIcon icon="copy" />
+                <!-- Copy -->
+                {{ $t('general.copy') }}
+              </div>
             </NcMenuItem>
 
-            <!--            Clear cell -->
+            <!-- Clear cell -->
             <NcMenuItem
               v-if="
                 contextMenuTarget &&
@@ -1709,58 +1691,62 @@ onKeyStroke('ArrowDown', onDown)
                 selectedRange.isSingleCell() &&
                 (isLinksOrLTAR(fields[contextMenuTarget.col]) || !isVirtualCol(fields[contextMenuTarget.col]))
               "
-              v-e="['a:row:clear']"
               class="nc-base-menu-item"
               @click="clearCell(contextMenuTarget)"
             >
-              <GeneralIcon icon="close" />
-              {{ $t('general.clear') }}
+              <div v-e="['a:row:clear']" class="flex gap-2 items-center">
+                <GeneralIcon icon="close" />
+                {{ $t('general.clear') }}
+              </div>
             </NcMenuItem>
 
-            <!--            Clear cell -->
+            <!-- Clear cell -->
             <NcMenuItem
               v-else-if="contextMenuTarget && hasEditPermission"
-              v-e="['a:row:clear-range']"
               class="nc-base-menu-item"
               @click="clearSelectedRangeOfCells()"
             >
-              <GeneralIcon icon="closeBox" class="text-gray-500" />
-
-              {{ $t('general.clear') }}
+              <div v-e="['a:row:clear-range']" class="flex gap-2 items-center">
+                <GeneralIcon icon="closeBox" class="text-gray-500" />
+                {{ $t('general.clear') }}
+              </div>
             </NcMenuItem>
-            <template
-              v-if="contextMenuTarget && !isLocked && selectedRange.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode"
+            <NcDivider />
+            <NcMenuItem
+              v-if="contextMenuTarget && selectedRange.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode"
+              class="nc-base-menu-item"
+              @click="commentRow(contextMenuTarget.row)"
             >
-              <NcDivider />
-              <NcMenuItem v-e="['a:row:comment']" class="nc-base-menu-item" @click="commentRow(contextMenuTarget.row)">
+              <div v-e="['a:row:comment']" class="flex gap-2 items-center">
                 <MdiMessageOutline class="h-4 w-4" />
-
                 {{ $t('general.comment') }}
-              </NcMenuItem>
-            </template>
+              </div>
+            </NcMenuItem>
+
             <template v-if="hasEditPermission">
               <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected))" />
               <NcMenuItem
                 v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
-                v-e="['a:row:delete']"
                 class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
                 @click="confirmDeleteRow(contextMenuTarget.row)"
               >
-                <GeneralIcon icon="delete" />
-                <!-- Delete Row -->
-                {{ $t('activity.deleteRow') }}
+                <div v-e="['a:row:delete']" class="flex gap-2 items-center">
+                  <GeneralIcon icon="delete" />
+                  <!-- Delete Row -->
+                  {{ $t('activity.deleteRow') }}
+                </div>
               </NcMenuItem>
-              <div v-else-if="contextMenuTarget && deleteRangeOfRows">
-                <NcMenuItem
-                  v-e="['a:row:delete']"
-                  class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
-                  @click="deleteSelectedRangeOfRows"
-                >
+              <NcMenuItem
+                v-else-if="contextMenuTarget && deleteRangeOfRows"
+                class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+                @click="deleteSelectedRangeOfRows"
+              >
+                <div v-e="['a:row:delete']" class="flex gap-2 items-center">
                   <GeneralIcon icon="delete" class="text-gray-500 text-red-600" />
                   <!-- Delete Rows -->
                   {{ $t('activity.deleteRows') }}
-                </NcMenuItem>
-              </div>
+                </div>
+              </NcMenuItem>
             </template>
           </NcMenu>
         </template>
@@ -1780,7 +1766,7 @@ onKeyStroke('ArrowDown', onDown)
       :extra-style="paginationStyleRef?.extraStyle"
     >
       <template #add-record>
-        <div v-if="isAddingEmptyRowAllowed" class="flex ml-1">
+        <div v-if="isAddingEmptyRowAllowed && !showSkeleton && !isPaginationLoading" class="flex ml-1">
           <NcButton
             v-if="isMobileMode"
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
@@ -1816,8 +1802,7 @@ onKeyStroke('ArrowDown', onDown)
                 >
                   <div
                     v-e="['c:row:add:grid']"
-                    :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
-                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-grid"
+                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
                     @click="onNewRecordToGridClick"
                   >
                     <div class="flex flex-row items-center justify-between w-full">
@@ -1833,8 +1818,7 @@ onKeyStroke('ArrowDown', onDown)
                   </div>
                   <div
                     v-e="['c:row:add:form']"
-                    :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
-                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-form"
+                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
                     @click="onNewRecordToFormClick"
                   >
                     <div class="flex flex-row items-center justify-between w-full">

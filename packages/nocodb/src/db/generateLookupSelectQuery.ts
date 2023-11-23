@@ -54,7 +54,7 @@ export default async function generateLookupSelectQuery({
     if (column.uidt === UITypes.Lookup) {
       lookupColOpt = await column.getColOptions<LookupColumn>();
     } else if (column.uidt !== UITypes.LinkToAnotherRecord) {
-      NcError.badRequest('Invalid column type');
+      NcError.badRequest('Invalid field type');
     }
 
     await column.getColOptions<LookupColumn>();

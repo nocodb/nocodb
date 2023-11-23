@@ -725,6 +725,7 @@ async function _formulaQueryBuilder(
               fn,
               colAlias,
               prevBinaryOp,
+              model,
             });
             if (res) return res;
           }
@@ -775,6 +776,22 @@ async function _formulaQueryBuilder(
       }
       return { builder: knex.raw(`??${colAlias}`, [builder || pt.name]) };
     } else if (pt.type === 'BinaryExpression') {
+      // treat `&` as shortcut for concat
+      if (pt.operator === '&') {
+        return fn(
+          {
+            type: 'CallExpression',
+            arguments: [pt.left, pt.right],
+            callee: {
+              type: 'Identifier',
+              name: 'CONCAT',
+            },
+          },
+          alias,
+          prevBinaryOp,
+        );
+      }
+
       if (pt.operator === '==') {
         pt.operator = '=';
       }

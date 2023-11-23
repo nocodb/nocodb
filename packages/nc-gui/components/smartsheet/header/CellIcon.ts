@@ -103,7 +103,9 @@ export default defineComponent({
   setup(props) {
     const columnMeta = toRef(props, 'columnMeta')
 
-    const column = inject(ColumnInj, columnMeta)
+    const injectedColumn = inject(ColumnInj, columnMeta)
+
+    const column = computed(() => columnMeta.value ?? injectedColumn.value)
 
     const { sqlUis } = storeToRefs(useBase())
 
@@ -112,9 +114,9 @@ export default defineComponent({
     const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
     return () => {
-      if (!column.value) return null
+      if (!column.value && !columnMeta.value) return null
 
-      return h(renderIcon(column.value, abstractType.value), {
+      return h(renderIcon((columnMeta.value ?? column.value)!, abstractType.value), {
         class: 'text-inherit mx-1',
       })
     }

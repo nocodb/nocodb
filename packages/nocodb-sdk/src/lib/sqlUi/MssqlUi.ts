@@ -620,16 +620,17 @@ export class MssqlUi {
   } {
     const colProp: any = {};
     switch (col.uidt) {
-      case 'ID': {
-        const isAutoIncId = idType === 'AI';
-        const isAutoGenId = idType === 'AG';
-        colProp.dt = isAutoGenId ? 'varchar' : 'int';
-        colProp.pk = true;
-        colProp.un = isAutoIncId;
-        colProp.ai = isAutoIncId;
-        colProp.rqd = true;
-        colProp.meta = isAutoGenId ? {ag: 'nc'} : undefined;
-      }
+      case 'ID':
+        {
+          const isAutoIncId = idType === 'AI';
+          const isAutoGenId = idType === 'AG';
+          colProp.dt = isAutoGenId ? 'varchar' : 'int';
+          colProp.pk = true;
+          colProp.un = isAutoIncId;
+          colProp.ai = isAutoIncId;
+          colProp.rqd = true;
+          colProp.meta = isAutoGenId ? { ag: 'nc' } : undefined;
+        }
         break;
       case 'ForeignKey':
         colProp.dt = 'varchar';
@@ -908,6 +909,16 @@ export class MssqlUi {
   }
 
   static getUnsupportedFnList() {
-    return [];
+    return [
+      'XOR',
+      'REGEX_MATCH',
+      'REGEX_EXTRACT',
+      'REGEX_REPLACE',
+      'VALUE',
+      'COUNTA',
+      'COUNT',
+      'ROUNDDOWN',
+      'ROUNDUP',
+    ];
   }
 }

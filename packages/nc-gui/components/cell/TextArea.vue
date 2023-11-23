@@ -154,6 +154,12 @@ const dragStart = () => {
 
   isDragging.value = true
 }
+
+watch(editEnabled, () => {
+  if (editEnabled.value) {
+    isVisible.value = true
+  }
+})
 </script>
 
 <template>
@@ -179,7 +185,7 @@ const dragStart = () => {
           maxHeight: `${height}px !important`,
           minHeight: `${height}px !important`,
         }"
-        @click="onExpand"
+        @dblclick="onExpand"
       >
         <LazyCellRichText v-model:value="vModel" sync-value-change readonly class="!pointer-events-none" />
       </div>
@@ -227,6 +233,7 @@ const dragStart = () => {
       <span v-else>{{ vModel }}</span>
 
       <NcTooltip
+        v-if="!isVisible"
         placement="bottom"
         class="!absolute right-0 bottom-1 !hidden nc-text-area-expand-btn"
         :class="{ 'right-0 bottom-2': editEnabled }"

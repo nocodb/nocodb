@@ -195,8 +195,10 @@ const openLink = () => {
         </NcTooltip>
         <div class="absolute -bottom-1.5 left-0 right-0 w-full flex flex-row justify-center">
           <div
-            class="flex h-2.5 w-2.5 bg-gray-50 border-gray-100 border-r-1 border-b-1"
-            :style="{ transform: 'rotate(45deg)' }"
+            class="flex h-2.5 w-2.5 bg-white border-gray-200 border-r-1 border-b-1 transform rotate-45"
+            :style="{
+              boxShadow: '1px 1px 3px rgba(231, 231, 233, 1)',
+            }"
           ></div>
         </div>
       </div>

@@ -1033,6 +1033,7 @@
       "duplicateTable": "테이블을 복제하려고 합니다. 계속하시겠습니까?"
     },
     "info": {
+      "disabledAsViewLocked": "Disabled as View is locked",
       "basesMigrated": "베이스가 마이그레이션되었습니다. 다시 시도하십시오.",
       "pasteNotSupported": "활성 셀에서는 붙여넣기 작업이 지원되지 않습니다.",
       "roles": {

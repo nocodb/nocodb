@@ -1033,6 +1033,7 @@
       "duplicateTable": "Are you sure you want to duplicate the table?"
     },
     "info": {
+      "disabledAsViewLocked": "Disabled as View is locked",
       "basesMigrated": "Bases are migrated. Please try again.",
       "pasteNotSupported": "处于活动状态的单元格不能粘贴内容",
       "roles": {

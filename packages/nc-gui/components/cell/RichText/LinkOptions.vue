@@ -114,14 +114,16 @@ const onDelete = () => {
 }
 
 const handleKeyDown = (e: any) => {
+  const isCtrlPressed = isMac() ? e.metaKey : e.ctrlKey
+
   // Ctrl + Z/ Meta + Z
-  if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+  if (isCtrlPressed && e.key === 'z') {
     e.preventDefault()
     editor.value.commands.undo()
   }
 
   // Ctrl + Shift + Z/ Meta + Shift + Z
-  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z') {
+  if (isCtrlPressed && e.shiftKey && e.key === 'z') {
     e.preventDefault()
     editor.value.commands.redo()
   }

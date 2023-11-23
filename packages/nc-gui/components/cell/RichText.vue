@@ -7,6 +7,7 @@ import TurndownService from 'turndown'
 import { parse } from 'marked'
 import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
+import { Link } from '@/helpers/dbTiptapExtensions/links'
 
 const props = defineProps<{
   value?: string | null
@@ -26,6 +27,7 @@ const tiptapExtensions = [
     nested: true,
   }),
   Underline,
+  Link,
 ]
 
 const editor = useEditor({
@@ -60,8 +62,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <EditorContent :editor="editor" class="nc-textarea-rich w-full h-full" />
   <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" />
+  <CellRichTextLinkOptions v-if="editor" :editor="editor" />
+  <EditorContent :editor="editor" class="nc-textarea-rich w-full h-full" />
 </template>
 
 <style lang="scss">

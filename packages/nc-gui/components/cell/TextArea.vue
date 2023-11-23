@@ -33,7 +33,7 @@ const isForm = inject(IsFormInj, ref(false))
 
 const { showNull } = useGlobal()
 
-const vModel = useVModel(props, 'modelValue', emits, { defaultValue: '' })
+const vModel = useVModel(props, 'modelValue', emits, { defaultValue: column?.value.cdf ? String(column?.value.cdf) : '' })
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 

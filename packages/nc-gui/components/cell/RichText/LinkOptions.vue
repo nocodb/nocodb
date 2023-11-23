@@ -53,8 +53,6 @@ const checkLinkMark = (editor: Editor) => {
   const showLinkOptions = isActiveNodeMarkActive && !isTextSelected
   isLinkOptionsVisible.value = !!showLinkOptions
 
-  console.log('showLinkOptions', showLinkOptions)
-
   return showLinkOptions
 }
 

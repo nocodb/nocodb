@@ -47,7 +47,7 @@ const setEditorContent = (contentMd: any) => {
 
   const selection = editor.value.view.state.selection
 
-  const contentHtml = parse(contentMd)
+  const contentHtml = contentMd ? parse(contentMd) : '<p></p>'
 
   const content = generateJSON(contentHtml, tiptapExtensions)
 
@@ -57,24 +57,27 @@ const setEditorContent = (contentMd: any) => {
 onMounted(() => {
   setTimeout(() => {
     setEditorContent(vModel.value)
-  }, 300)
+  }, 0)
 })
 </script>
 
 <template>
-  <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" />
-  <CellRichTextLinkOptions v-if="editor" :editor="editor" />
-  <EditorContent :editor="editor" class="nc-textarea-rich w-full h-full" />
+  <div class="h-full">
+    <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" />
+    <CellRichTextLinkOptions v-if="editor" :editor="editor" />
+    <EditorContent :editor="editor" class="nc-textarea-rich w-full h-full nc-scrollbar-md" />
+  </div>
 </template>
 
 <style lang="scss">
 .nc-textarea-rich {
-  .ProseMirror {
-    @apply min-h-full;
-  }
   .ProseMirror-focused {
     // remove all border
     outline: none;
+  }
+
+  p {
+    @apply !mb-1;
   }
 
   ul {

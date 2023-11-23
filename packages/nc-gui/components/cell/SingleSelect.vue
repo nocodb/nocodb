@@ -43,8 +43,6 @@ const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
 
-const isLockedMode = inject(IsLockedInj, ref(false))
-
 const isEditable = inject(EditModeInj, ref(false))
 
 const activeCell = inject(ActiveCellInj, ref(false))
@@ -264,11 +262,7 @@ const selectedOpt = computed(() => {
 </script>
 
 <template>
-  <div
-    class="h-full w-full flex items-center nc-single-select"
-    :class="{ 'read-only': readOnly || isLockedMode }"
-    @click="toggleMenu"
-  >
+  <div class="h-full w-full flex items-center nc-single-select" :class="{ 'read-only': readOnly }" @click="toggleMenu">
     <div v-if="!(active || isEditable)">
       <a-tag v-if="selectedOpt" class="rounded-tag" :color="selectedOpt.color">
         <span
@@ -295,8 +289,8 @@ const selectedOpt = computed(() => {
       :allow-clear="!column.rqd && editAllowed"
       :bordered="false"
       :open="isOpen && editAllowed"
-      :disabled="readOnly || !editAllowed || isLockedMode"
-      :show-arrow="hasEditRoles && !(readOnly || isLockedMode) && active && vModel === null"
+      :disabled="readOnly || !editAllowed"
+      :show-arrow="hasEditRoles && !readOnly && active && vModel === null"
       :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && active ? 'active' : ''}`"
       :show-search="!isMobileMode && isOpen && active"
       @select="onSelect"

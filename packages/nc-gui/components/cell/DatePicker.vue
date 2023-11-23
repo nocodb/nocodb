@@ -32,8 +32,6 @@ const columnMeta = inject(ColumnInj, null)!
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
-const isLockedMode = inject(IsLockedInj, ref(false))
-
 const isEditColumn = inject(EditColumnInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
@@ -188,9 +186,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
 const isOpen = computed(() => {
   if (readOnly.value) return false
 
-  return ((readOnly.value || (localState.value && isPk)) && !active.value && !editable.value) || isLockedMode.value
-    ? false
-    : open.value
+  return (readOnly.value || (localState.value && isPk)) && !active.value && !editable.value ? false : open.value
 })
 
 // use the default date picker open sync only to close the picker

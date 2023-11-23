@@ -43,8 +43,6 @@ const sortableRef = ref<HTMLDivElement>()
 
 const currentCellRef = inject(CurrentCellInj, dropZoneInjection.value)
 
-const isLockedMode = inject(IsLockedInj, ref(false))
-
 const isGallery = inject(IsGalleryInj, ref(false))
 
 const isKanban = inject(IsKanbanInj, ref(false))
@@ -69,17 +67,13 @@ const {
   open: _open,
   FileIcon,
   selectedImage,
-  isReadonly: _isReadonly,
+  isReadonly,
   storedFiles,
 } = useProvideAttachmentCell(updateModelValue)
 
-const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, _isReadonly)
+const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
 
 const active = inject(ActiveCellInj, ref(false))
-
-const isReadonly = computed(() => {
-  return isLockedMode.value || _isReadonly.value
-})
 
 const { state: rowState } = useSmartsheetRowStoreOrThrow()
 

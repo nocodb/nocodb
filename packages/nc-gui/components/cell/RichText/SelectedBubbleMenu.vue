@@ -70,6 +70,53 @@ const onToggleLink = () => {
       'full-mode': !embedMode,
     }"
   >
+    <NcTooltip>
+      <template #title> {{ $t('labels.bold') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :class="{ 'is-active': editor.isActive('bold') }"
+        @click="editor!.chain().focus().toggleBold().run()"
+      >
+        <MdiFormatBold />
+      </NcButton>
+    </NcTooltip>
+
+    <NcTooltip>
+      <template #title> {{ $t('labels.italic') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :class="{ 'is-active': editor.isActive('italic') }"
+        @click=";(editor!.chain().focus() as any).toggleItalic().run()"
+      >
+        <MdiFormatItalic />
+      </NcButton>
+    </NcTooltip>
+    <NcTooltip>
+      <template #title> {{ $t('labels.underline') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :class="{ 'is-active': editor.isActive('underline') }"
+        @click="editor!.chain().focus().toggleUnderline().run()"
+      >
+        <MdiFormatUnderline />
+      </NcButton>
+    </NcTooltip>
+    <NcTooltip>
+      <template #title> {{ $t('labels.strike') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :class="{ 'is-active': editor.isActive('strike') }"
+        @click="editor!.chain().focus().toggleStrike().run()"
+      >
+        <MdiFormatStrikeThrough />
+      </NcButton>
+    </NcTooltip>
+    <div class="divider"></div>
+
     <template v-if="embedMode">
       <NcTooltip>
         <template #title> {{ $t('labels.heading1') }} </template>
@@ -108,93 +155,52 @@ const onToggleLink = () => {
       <div class="divider"></div>
     </template>
 
-    <a-button
-      type="text"
-      :class="{ 'is-active': editor.isActive('bold') }"
-      :aria-active="editor.isActive('bold')"
-      class="menu-button"
-      data-testid="nc-docs-editor-bold-button"
-      @click="editor!.chain().focus().toggleBold().run()"
-    >
-      <MdiFormatBold />
-    </a-button>
-    <a-button
-      type="text"
-      :class="{ 'is-active': editor.isActive('italic') }"
-      :aria-active="editor.isActive('italic')"
-      class="menu-button"
-      data-testid="nc-docs-editor-italic-button"
-      @click=";(editor!.chain().focus() as any).toggleItalic().run()"
-    >
-      <MdiFormatItalic />
-    </a-button>
-    <a-button
-      type="text"
-      :class="{ 'is-active': editor.isActive('underline') }"
-      :aria-active="editor.isActive('underline')"
-      class="menu-button"
-      data-testid="nc-docs-editor-underline-button"
-      @click="editor!.chain().focus().toggleUnderline().run()"
-    >
-      <MdiFormatUnderline />
-    </a-button>
-    <a-button
-      type="text"
-      :class="{ 'is-active': editor.isActive('strike') }"
-      :aria-active="editor.isActive('strike')"
-      class="menu-button"
-      data-testid="nc-docs-editor-strike-button"
-      @click="editor!.chain().focus().toggleStrike().run()"
-    >
-      <MdiFormatStrikeThrough />
-    </a-button>
+    <NcTooltip>
+      <template #title> {{ $t('labels.taskList') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :class="{ 'is-active': editor.isActive('taskList') }"
+        @click="editor!.chain().focus().toggleTaskList().run()"
+      >
+        <MdiFormatListCheckbox />
+      </NcButton>
+    </NcTooltip>
+    <NcTooltip>
+      <template #title> {{ $t('labels.bulletList') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :class="{ 'is-active': editor.isActive('bulletList') }"
+        @click="editor!.chain().focus().toggleBulletList().run()"
+      >
+        <MdiFormatBulletList />
+      </NcButton>
+    </NcTooltip>
+
+    <NcTooltip>
+      <template #title> {{ $t('labels.numberedList') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :class="{ 'is-active': editor.isActive('orderedList') }"
+        @click="editor!.chain().focus().toggleOrderedList().run()"
+      >
+        <MdiFormatListNumber />
+      </NcButton>
+    </NcTooltip>
+
     <div class="divider"></div>
 
-    <a-button
-      type="text"
-      :class="{ 'is-active': editor.isActive('taskList') }"
-      :aria-active="editor.isActive('taskList')"
-      class="menu-button"
-      data-testid="nc-docs-editor-task-button"
-      @click="editor!.chain().focus().toggleTaskList().run()"
-    >
-      <MdiFormatListCheckbox />
-    </a-button>
-    <a-button
-      type="text"
-      :class="{ 'is-active': editor.isActive('bulletList') }"
-      :aria-active="editor.isActive('bulletList')"
-      class="menu-button"
-      data-testid="nc-docs-editor-bullet-button"
-      @click="editor!.chain().focus().toggleBulletList().run()"
-    >
-      <MdiFormatBulletList />
-    </a-button>
-    <a-button
-      type="text"
-      :class="{ 'is-active': editor.isActive('orderedList') }"
-      :aria-active="editor.isActive('orderedList')"
-      class="menu-button"
-      data-testid="nc-docs-editor-ordered-button"
-      @click="editor!.chain().focus().toggleOrderedList().run()"
-    >
-      <MdiFormatListNumber />
-    </a-button>
-    <div class="divider"></div>
-
-    <a-button
-      type="text"
-      :class="{ 'is-active': editor.isActive('link') }"
-      :aria-active="editor.isActive('link')"
-      class="menu-button"
-      data-testid="nc-docs-editor-link-button"
-      @click="onToggleLink"
-    >
-      <div class="flex flex-row items-center px-0.5">
-        <MdiLink />
-        <div class="!text-xs !ml-1">Link</div>
-      </div>
-    </a-button>
+    <NcTooltip>
+      <template #title> {{ $t('general.link') }}</template>
+      <NcButton size="small" type="text" :class="{ 'is-active': editor.isActive('link') }" @click="onToggleLink">
+        <div class="flex flex-row items-center px-0.5">
+          <MdiLink />
+          <div class="!text-xs !ml-1">{{ $t('general.link') }}</div>
+        </div>
+      </NcButton>
+    </NcTooltip>
   </div>
 </template>
 
@@ -234,9 +240,6 @@ const onToggleLink = () => {
 
   .is-active {
     @apply border-1 !hover:bg-gray-200 border-1 border-gray-200 bg-gray-100;
-  }
-  .menu-button {
-    @apply rounded-md !py-0 !my-0 !px-1.5 !h-8 hover:bg-gray-100;
   }
   .divider {
     @apply border-r-1 border-gray-200 !h-6 !mx-0.5 my-1;

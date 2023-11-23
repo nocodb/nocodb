@@ -453,6 +453,10 @@ export class AtImportProcessor {
           const options = [];
           let order = 1;
           for (const [, value] of Object.entries(col.typeOptions.choices)) {
+            // max length of option is 255 chars
+            // truncate to 255 chars if character if exceeds above 255
+            (value as any).name = (value as any).name?.slice(0, 255);
+
             // replace commas with dot for multiselect
             if (col.type === 'multiSelect') {
               (value as any).name = (value as any).name.replace(/,/g, '.');

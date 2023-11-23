@@ -113,7 +113,7 @@ onMounted(() => {
     op.title = op.title.replace(/^'/, '').replace(/'$/, '')
   }
 
-  if (vModel.value.cdf) {
+  if (vModel.value.cdf && typeof vModel.value.cdf === 'string') {
     const fndDefaultOption = options.value.find((el) => el.title === vModel.value.cdf)
     if (!fndDefaultOption) {
       vModel.value.cdf = vModel.value.cdf.replace(/^'/, '').replace(/'$/, '')
@@ -249,7 +249,7 @@ const undoRemoveRenderedOption = (index: number) => {
 
 // Removes the Select Option from cdf if the option is removed
 watch(vModel.value, (next) => {
-  const cdfs = (next.cdf ?? '').split(',')
+  const cdfs = (next.cdf ?? '').toString().split(',')
   const values = (next.colOptions.options ?? []).map((col) => {
     return col.title.replace(/^'/, '').replace(/'$/, '')
   })

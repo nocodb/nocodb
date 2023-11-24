@@ -54,6 +54,12 @@ export interface AppConfig {
     };
   };
 
+  systemEvents: {
+    sns: {
+      topicArn: string;
+    };
+  };
+
   auth: {
     emailPattern?: RegExp | null;
     disableEmailAuth: boolean;

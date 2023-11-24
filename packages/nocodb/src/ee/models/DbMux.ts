@@ -42,7 +42,9 @@ export default class DbMux {
       await NocoCache.setList(CacheScope.DB_MUX, [], dbMuxList);
     }
 
-    dbMuxList.sort((a, b) => a.priority - b.priority);
+    dbMuxList.sort(
+      (a, b) => (a?.priority ?? Infinity) - (b?.priority ?? Infinity),
+    );
 
     return dbMuxList.map((dbMux) => dbMux && new DbMux(dbMux));
   }

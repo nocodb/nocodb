@@ -6,8 +6,9 @@ import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { SourcesService } from '~/services/sources.service';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
-import { Workspace } from '~/models';
+import { Base, Model, Workspace } from '~/models';
 import { WorkspacesService } from '~/modules/workspaces/workspaces.service';
+import { TelemetryService } from '~/services/telemetry.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Processor(JOBS_QUEUE)
@@ -18,6 +19,7 @@ export class SourceCreateProcessor {
     private readonly sourcesService: SourcesService,
     private readonly workspacesService: WorkspacesService,
     private readonly jobsLogService: JobsLogService,
+    private readonly telemetryService: TelemetryService,
   ) {}
 
   @Process(JobTypes.SourceCreate)
@@ -30,6 +32,8 @@ export class SourceCreateProcessor {
 
     const workspace = await Workspace.get(workspaceId);
 
+    const base = await Base.get(baseId);
+
     let needUpgrade = false;
 
     if (workspace.plan !== WorkspacePlan.BUSINESS) {
@@ -41,15 +45,15 @@ export class SourceCreateProcessor {
       this.debugLog(log);
     };
 
-    const createdBase = await this.sourcesService.baseCreate({
+    const createdSource = await this.sourcesService.baseCreate({
       baseId,
       source,
       logger: logBasic,
       req: {},
     });
 
-    if (createdBase.isMeta()) {
-      delete createdBase.config;
+    if (createdSource.isMeta()) {
+      delete createdSource.config;
     }
 
     logBasic('🚀 Your data source schema is loaded successfully!');
@@ -75,7 +79,7 @@ export class SourceCreateProcessor {
         );
         logBasic(' ');
 
-        await NcConnectionMgrv2.deleteAwait(createdBase);
+        await NcConnectionMgrv2.deleteAwait(createdSource);
 
         await this.workspacesService.upgrade({
           workspaceId,
@@ -86,10 +90,38 @@ export class SourceCreateProcessor {
       needUpgrade = false;
     }
 
+    const models = await Model.list({
+      base_id: baseId,
+      source_id: createdSource.id,
+    });
+
+    const promises = [];
+
+    for (const model of models) {
+      promises.push(model.getColumns());
+    }
+
+    await Promise.all(promises);
+
+    await this.telemetryService.sendSystemEvent({
+      event_type: 'source_create',
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+      source,
+      base,
+      workspace,
+      stats: {
+        models: models.length,
+        columns: models.reduce((acc, m) => acc + m.columns.length, 0),
+      },
+    });
+
     this.debugLog(`job completed for ${job.id}`);
 
     return {
-      base: createdBase,
+      base: createdSource,
       needUpgrade,
     };
   }

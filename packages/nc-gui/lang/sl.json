@@ -75,6 +75,7 @@
     "matterMost": "Mattermost",
     "twilio": "Twilio",
     "whatsappTwilio": "WhatsApp Twilio",
+    "quote": "Quote",
     "submit": "Pošlji",
     "create": "Ustvari",
     "createEntity": "Create {entity}",
@@ -82,6 +83,7 @@
     "creatingEntity": "Creating {entity}",
     "details": "Details",
     "skip": "Skip",
+    "code": "Code",
     "duplicate": "Duplikatni",
     "duplicating": "Duplicating",
     "activate": "Activate",
@@ -411,7 +413,18 @@
     }
   },
   "labels": {
+    "heading1": "Heading 1",
+    "heading2": "Heading 2",
+    "heading3": "Heading 3",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "strike": "Strike",
+    "taskList": "Task List",
+    "bulletList": "Bullet List",
+    "numberedList": "Numbered List",
     "downloadData": "Download Data",
+    "blockQuote": "Block Quote",
     "noToken": "No Token",
     "tokenLimit": "Only one token per user is allowed",
     "duplicateAttachment": "File with name {filename} already attached",
@@ -423,6 +436,7 @@
     "headerName": "Header Name",
     "icon": "Icon",
     "max": "Max",
+    "enableRichText": "Enable Rich Text",
     "idColon": "Id:",
     "copiedRecordURL": "Copied Record URL",
     "copyRecordURL": "Copy Record URL",
@@ -1033,6 +1047,7 @@
       "duplicateTable": "Are you sure you want to duplicate the table?"
     },
     "info": {
+      "disabledAsViewLocked": "Disabled as View is locked",
       "basesMigrated": "Bases are migrated. Please try again.",
       "pasteNotSupported": "Operacija Vstavi ni podprta v aktivni celici",
       "roles": {

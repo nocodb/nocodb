@@ -12,6 +12,7 @@ import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { Sort } from '~/models';
+import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 
 export default async function sortV2(
   baseModelSqlv2: BaseModelSqlv2,
@@ -77,174 +78,19 @@ export default async function sortV2(
         }
         break;
       case UITypes.Lookup:
+      case UITypes.LinkToAnotherRecord:
         {
           const rootAlias = alias;
           {
-            let aliasCount = 0,
-              selectQb;
-            const alias = `__nc_sort${aliasCount++}`;
-            const lookup = await column.getColOptions<LookupColumn>();
-            {
-              const relationCol = await lookup.getRelationColumn();
-              const relation =
-                await relationCol.getColOptions<LinkToAnotherRecordColumn>();
-              if (relation.type !== RelationTypes.BELONGS_TO) return;
+            const selectQb = await generateLookupSelectQuery({
+              baseModelSqlv2,
+              column,
+              alias: rootAlias,
+              model,
+            });
 
-              const childColumn = await relation.getChildColumn();
-              const parentColumn = await relation.getParentColumn();
-              const childModel = await childColumn.getModel();
-              await childModel.getColumns();
-              const parentModel = await parentColumn.getModel();
-              await parentModel.getColumns();
-
-              selectQb = knex(
-                `${baseModelSqlv2.getTnPath(
-                  parentModel.table_name,
-                )} as ${alias}`,
-              ).where(
-                `${alias}.${parentColumn.column_name}`,
-                knex.raw(`??`, [
-                  `${
-                    rootAlias || baseModelSqlv2.getTnPath(childModel.table_name)
-                  }.${childColumn.column_name}`,
-                ]),
-              );
-            }
-            let lookupColumn = await lookup.getLookupColumn();
-            let prevAlias = alias;
-            while (lookupColumn.uidt === UITypes.Lookup) {
-              const nestedAlias = `__nc_sort${aliasCount++}`;
-              const nestedLookup =
-                await lookupColumn.getColOptions<LookupColumn>();
-              const relationCol = await nestedLookup.getRelationColumn();
-              const relation =
-                await relationCol.getColOptions<LinkToAnotherRecordColumn>();
-              // if any of the relation in nested lookup is
-              // not belongs to then ignore the sort option
-              if (relation.type !== 'bt') return;
-
-              const childColumn = await relation.getChildColumn();
-              const parentColumn = await relation.getParentColumn();
-              const childModel = await childColumn.getModel();
-              await childModel.getColumns();
-              const parentModel = await parentColumn.getModel();
-              await parentModel.getColumns();
-
-              selectQb.join(
-                `${baseModelSqlv2.getTnPath(
-                  parentModel.table_name,
-                )} as ${nestedAlias}`,
-                `${nestedAlias}.${parentColumn.column_name}`,
-                `${prevAlias}.${childColumn.column_name}`,
-              );
-
-              lookupColumn = await nestedLookup.getLookupColumn();
-              prevAlias = nestedAlias;
-            }
-
-            switch (lookupColumn.uidt) {
-              case UITypes.Links:
-              case UITypes.Rollup:
-                {
-                  const builder = (
-                    await genRollupSelectv2({
-                      baseModelSqlv2,
-                      knex,
-                      columnOptions:
-                        (await lookupColumn.getColOptions()) as RollupColumn,
-                      alias: prevAlias,
-                    })
-                  ).builder;
-                  selectQb.select(builder);
-                }
-                break;
-              case UITypes.LinkToAnotherRecord:
-                {
-                  const nestedAlias = `__nc_sort${aliasCount++}`;
-                  const relation =
-                    await lookupColumn.getColOptions<LinkToAnotherRecordColumn>();
-                  if (relation.type !== 'bt') return;
-
-                  const colOptions =
-                    (await column.getColOptions()) as LinkToAnotherRecordColumn;
-                  const childColumn = await colOptions.getChildColumn();
-                  const parentColumn = await colOptions.getParentColumn();
-                  const childModel = await childColumn.getModel();
-                  await childModel.getColumns();
-                  const parentModel = await parentColumn.getModel();
-                  await parentModel.getColumns();
-
-                  selectQb
-                    .join(
-                      `${baseModelSqlv2.getTnPath(
-                        parentModel.table_name,
-                      )} as ${nestedAlias}`,
-                      `${nestedAlias}.${parentColumn.column_name}`,
-                      `${prevAlias}.${childColumn.column_name}`,
-                    )
-                    .select(parentModel?.displayValue?.column_name);
-                }
-                break;
-              case UITypes.Formula:
-                {
-                  const builder = (
-                    await formulaQueryBuilderv2(
-                      baseModelSqlv2,
-                      (
-                        await column.getColOptions<FormulaColumn>()
-                      ).formula,
-                      null,
-                      model,
-                      column,
-                    )
-                  ).builder;
-
-                  selectQb.select(builder);
-                }
-                break;
-              default:
-                {
-                  selectQb.select(`${prevAlias}.${lookupColumn.column_name}`);
-                }
-
-                break;
-            }
-
-            qb.orderBy(selectQb, sort.direction || 'asc', nulls);
+            qb.orderBy(selectQb?.builder, sort.direction || 'asc', nulls);
           }
-        }
-        break;
-      case UITypes.LinkToAnotherRecord:
-        {
-          const relation =
-            await column.getColOptions<LinkToAnotherRecordColumn>();
-          if (relation.type !== 'bt') return;
-
-          const colOptions =
-            (await column.getColOptions()) as LinkToAnotherRecordColumn;
-          const childColumn = await colOptions.getChildColumn();
-          const parentColumn = await colOptions.getParentColumn();
-          const childModel = await childColumn.getModel();
-          await childModel.getColumns();
-          const parentModel = await parentColumn.getModel();
-          await parentModel.getColumns();
-
-          const selectQb = knex(
-            baseModelSqlv2.getTnPath(parentModel.table_name),
-          )
-            .select(parentModel?.displayValue?.column_name)
-            .where(
-              `${baseModelSqlv2.getTnPath(parentModel.table_name)}.${
-                parentColumn.column_name
-              }`,
-              knex.raw(`??`, [
-                `${baseModelSqlv2.getTnPath(childModel.table_name)}.${
-                  childColumn.column_name
-                }`,
-              ]),
-            );
-
-          qb.orderBy(selectQb, sort.direction || 'asc', nulls);
         }
         break;
       case UITypes.SingleSelect: {

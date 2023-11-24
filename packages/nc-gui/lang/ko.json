@@ -75,6 +75,7 @@
     "matterMost": "Mattermost",
     "twilio": "Twilio",
     "whatsappTwilio": "WhatsApp Twilio",
+    "quote": "Quote",
     "submit": "제출",
     "create": "생성",
     "createEntity": "{entity} 생성",
@@ -82,6 +83,7 @@
     "creatingEntity": "{entity} 생성 중",
     "details": "세부사항",
     "skip": "건너뛰기",
+    "code": "Code",
     "duplicate": "복사",
     "duplicating": "복사 중",
     "activate": "활성화",
@@ -411,7 +413,18 @@
     }
   },
   "labels": {
+    "heading1": "Heading 1",
+    "heading2": "Heading 2",
+    "heading3": "Heading 3",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "strike": "Strike",
+    "taskList": "Task List",
+    "bulletList": "Bullet List",
+    "numberedList": "Numbered List",
     "downloadData": "데이터 다운로드",
+    "blockQuote": "Block Quote",
     "noToken": "토큰 없음",
     "tokenLimit": "사용자당 하나의 토큰만 허용됩니다",
     "duplicateAttachment": "이름이 {filename}인 파일이 이미 연결됨",
@@ -423,6 +436,7 @@
     "headerName": "헤더 이름",
     "icon": "아이콘",
     "max": "최대",
+    "enableRichText": "Enable Rich Text",
     "idColon": "ID:",
     "copiedRecordURL": "레코드 URL을 복사했습니다.",
     "copyRecordURL": "레코드 URL 복사",
@@ -1033,6 +1047,7 @@
       "duplicateTable": "테이블을 복제하려고 합니다. 계속하시겠습니까?"
     },
     "info": {
+      "disabledAsViewLocked": "Disabled as View is locked",
       "basesMigrated": "베이스가 마이그레이션되었습니다. 다시 시도하십시오.",
       "pasteNotSupported": "활성 셀에서는 붙여넣기 작업이 지원되지 않습니다.",
       "roles": {

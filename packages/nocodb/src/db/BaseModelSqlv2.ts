@@ -2977,6 +2977,8 @@ class BaseModelSqlv2 {
               }
             }
 
+            await this.validateOptions(col, insertObj);
+
             // validate data
             if (col?.meta?.validate && col?.validate) {
               const validate = col.getValidators();
@@ -3763,36 +3765,7 @@ class BaseModelSqlv2 {
     // let cols = Object.keys(this.columns);
     for (let i = 0; i < this.model.columns.length; ++i) {
       const column = this.model.columns[i];
-
-      // if SingleSelect or MultiSelect, then validate the options
-      if (
-        column.uidt === UITypes.SingleSelect ||
-        column.uidt === UITypes.MultiSelect
-      ) {
-        const options = await column
-          .getColOptions<{ options: SelectOption[] }>()
-          .then(({ options }) => options.map((opt) => opt.title));
-        const columnTitle = column.title;
-        const columnName = column.column_name;
-        const columnValue = columns?.[columnTitle] ?? columns?.[columnName];
-        if (columnValue) {
-          // if multi select, then split the values
-          const columnValueArr =
-            column.uidt === UITypes.MultiSelect
-              ? columnValue.split(',')
-              : [columnValue];
-          for (let j = 0; j < columnValueArr.length; ++j) {
-            const val = columnValueArr[j];
-            if (!options.includes(val)) {
-              NcError.badRequest(
-                `Invalid option "${val}" provided for column "${columnTitle}". Valid options are "${options.join(
-                  ', ',
-                )}"`,
-              );
-            }
-          }
-        }
-      }
+      await this.validateOptions(column, columns);
 
       // skip validation if `validate` is undefined or false
       if (!column?.meta?.validate || !column?.validate) continue;
@@ -3826,6 +3799,49 @@ class BaseModelSqlv2 {
       }
     }
     return true;
+  }
+
+  // method for validating otpions if column is single/multi select
+  private async validateOptions(
+    column: Column<any>,
+    insertOrUpdateObject: Record<string, any>,
+  ) {
+    // if SingleSelect or MultiSelect, then validate the options
+    if (
+      !(
+        column.uidt === UITypes.SingleSelect ||
+        column.uidt === UITypes.MultiSelect
+      )
+    ) {
+      return;
+    }
+
+    const options = await column
+      .getColOptions<{ options: SelectOption[] }>()
+      .then(({ options }) => options.map((opt) => opt.title));
+    const columnTitle = column.title;
+    const columnName = column.column_name;
+    const columnValue =
+      insertOrUpdateObject?.[columnTitle] ?? insertOrUpdateObject?.[columnName];
+    if (!columnValue) {
+      return;
+    }
+
+    // if multi select, then split the values
+    const columnValueArr =
+      column.uidt === UITypes.MultiSelect
+        ? columnValue.split(',')
+        : [columnValue];
+    for (let j = 0; j < columnValueArr.length; ++j) {
+      const val = columnValueArr[j];
+      if (!options.includes(val)) {
+        NcError.badRequest(
+          `Invalid option "${val}" provided for column "${columnTitle}". Valid options are "${options.join(
+            ', ',
+          )}"`,
+        );
+      }
+    }
   }
 
   async addChild({

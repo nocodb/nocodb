@@ -35,7 +35,6 @@ export class WorkspacesController {
   @Get('/api/v1/workspaces/')
   @Acl('workspaceList', {
     scope: 'org',
-    blockApiTokenAccess: true,
   })
   async list(@Req() req: Request) {
     return await this.workspacesService.list({
@@ -47,7 +46,6 @@ export class WorkspacesController {
   @Get('/api/v1/workspaces/:workspaceId')
   @Acl('workspaceGet', {
     scope: 'workspace',
-    blockApiTokenAccess: true,
   })
   async get(@Param('workspaceId') workspaceId: string, @Req() req: Request) {
     const workspace: WorkspaceType & {
@@ -148,7 +146,6 @@ export class WorkspacesController {
   @Get('/api/v1/workspaces/:workspaceId/bases')
   @Acl('workspaceBaseList', {
     scope: 'workspace',
-    blockApiTokenAccess: true,
   })
   async listProjects(
     @Param('workspaceId') workspaceId: string,

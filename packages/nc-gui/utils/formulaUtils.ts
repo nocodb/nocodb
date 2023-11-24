@@ -6,6 +6,8 @@ enum formulaTypes {
   DATE = 'date',
   LOGICAL = 'logical',
   COND_EXP = 'conditional_expression',
+  NULL = 'null',
+  BOOLEAN = 'boolean',
 }
 
 interface FormulaMeta {
@@ -35,6 +37,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Average of input parameters',
     syntax: 'AVG(value1, [value2, ...])',
     examples: ['AVG(10, 5) => 7.5', 'AVG({column1}, {column2})', 'AVG({column1}, {column2}, {column3})'],
+    returnType: formulaTypes.NUMERIC,
   },
   ADD: {
     type: formulaTypes.NUMERIC,
@@ -46,6 +49,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Sum of input parameters',
     syntax: 'ADD(value1, [value2, ...])',
     examples: ['ADD(5, 5) => 10', 'ADD({column1}, {column2})', 'ADD({column1}, {column2}, {column3})'],
+    returnType: formulaTypes.NUMERIC,
   },
   DATEADD: {
     type: formulaTypes.DATE,
@@ -66,6 +70,7 @@ const formulas: Record<string, FormulaMeta> = {
       'DATEADD({column1}, 2, "year")',
       'DATEADD({column1}, -2, "year")',
     ],
+    returnType: formulaTypes.DATE,
   },
   DATETIME_DIFF: {
     type: formulaTypes.DATE,
@@ -89,6 +94,7 @@ const formulas: Record<string, FormulaMeta> = {
       'DATEDIFF({column1}, {column2}, "days")',
       'DATEDIFF({column1}, {column2}, "d")',
     ],
+    returnType: formulaTypes.NUMERIC,
   },
   AND: {
     type: formulaTypes.COND_EXP,
@@ -100,6 +106,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'TRUE if all expr evaluate to TRUE',
     syntax: 'AND(expr1, [expr2, ...])',
     examples: ['AND(5 > 2, 5 < 10) => 1', 'AND({column1} > 2, {column2} < 10)'],
+    returnType: formulaTypes.COND_EXP,
   },
   OR: {
     type: formulaTypes.COND_EXP,
@@ -111,6 +118,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'TRUE if at least one expr evaluates to TRUE',
     syntax: 'OR(expr1, [expr2, ...])',
     examples: ['OR(5 > 2, 5 < 10) => 1', 'OR({column1} > 2, {column2} < 10)'],
+    returnType: formulaTypes.COND_EXP,
   },
   CONCAT: {
     type: formulaTypes.STRING,
@@ -122,6 +130,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Concatenated string of input parameters',
     syntax: 'CONCAT(str1, [str2, ...])',
     examples: ['CONCAT("AA", "BB", "CC") => "AABBCC"', 'CONCAT({column1}, {column2}, {column3})'],
+    returnType: formulaTypes.STRING,
   },
   TRIM: {
     type: formulaTypes.STRING,
@@ -133,6 +142,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Remove trailing and leading whitespaces from input parameter',
     syntax: 'TRIM(str)',
     examples: ['TRIM("         HELLO WORLD  ") => "HELLO WORLD"', 'TRIM({column1})'],
+    returnType: formulaTypes.STRING,
   },
   UPPER: {
     type: formulaTypes.STRING,
@@ -144,6 +154,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Upper case converted string of input parameter',
     syntax: 'UPPER(str)',
     examples: ['UPPER("nocodb") => "NOCODB"', 'UPPER({column1})'],
+    returnType: formulaTypes.STRING,
   },
   LOWER: {
     type: formulaTypes.STRING,
@@ -155,6 +166,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Lower case converted string of input parameter',
     syntax: 'LOWER(str)',
     examples: ['LOWER("NOCODB") => "nocodb"', 'LOWER({column1})'],
+    returnType: formulaTypes.STRING,
   },
   LEN: {
     type: formulaTypes.STRING,
@@ -166,6 +178,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Input parameter character length',
     syntax: 'LEN(value)',
     examples: ['LEN("NocoDB") => 6', 'LEN({column1})'],
+    returnType: formulaTypes.NUMERIC,
   },
   MIN: {
     type: formulaTypes.NUMERIC,
@@ -177,6 +190,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Minimum value amongst input parameters',
     syntax: 'MIN(value1, [value2, ...])',
     examples: ['MIN(1000, 2000) => 1000', 'MIN({column1}, {column2})'],
+    returnType: formulaTypes.NUMERIC,
   },
   MAX: {
     type: formulaTypes.NUMERIC,
@@ -188,6 +202,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Maximum value amongst input parameters',
     syntax: 'MAX(value1, [value2, ...])',
     examples: ['MAX(1000, 2000) => 2000', 'MAX({column1}, {column2})'],
+    returnType: formulaTypes.NUMERIC,
   },
   CEILING: {
     type: formulaTypes.NUMERIC,
@@ -199,6 +214,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Rounded next largest integer value of input parameter',
     syntax: 'CEILING(value)',
     examples: ['CEILING(1.01) => 2', 'CEILING({column1})'],
+    returnType: formulaTypes.NUMERIC,
   },
   FLOOR: {
     type: formulaTypes.NUMERIC,
@@ -210,6 +226,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Rounded largest integer less than or equal to input parameter',
     syntax: 'FLOOR(value)',
     examples: ['FLOOR(3.1415) => 3', 'FLOOR({column1})'],
+    returnType: formulaTypes.NUMERIC,
   },
   ROUND: {
     type: formulaTypes.NUMERIC,
@@ -222,6 +239,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Rounded number to a specified number of decimal places or the nearest integer if not specified',
     syntax: 'ROUND(value, precision), ROUND(value)',
     examples: ['ROUND(3.1415) => 3', 'ROUND(3.1415, 2) => 3.14', 'ROUND({column1}, 3)'],
+    returnType: formulaTypes.NUMERIC,
   },
   MOD: {
     type: formulaTypes.NUMERIC,
@@ -233,6 +251,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Remainder after integer division of input parameters',
     syntax: 'MOD(value1, value2)',
     examples: ['MOD(1024, 1000) => 24', 'MOD({column}, 2)'],
+    returnType: formulaTypes.NUMERIC,
   },
   REPEAT: {
     type: formulaTypes.STRING,
@@ -244,6 +263,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Specified copies of the input parameter string concatenated together',
     syntax: 'REPEAT(str, count)',
     examples: ['REPEAT("A", 5) => "AAAAA"', 'REPEAT({column}, 5)'],
+    returnType: formulaTypes.STRING,
   },
   LOG: {
     type: formulaTypes.NUMERIC,
@@ -251,6 +271,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Logarithm of input parameter to the base (default = e) specified',
     syntax: 'LOG([base], value)',
     examples: ['LOG(2, 1024) => 10', 'LOG(2, {column1})'],
+    returnType: formulaTypes.NUMERIC,
   },
   EXP: {
     type: formulaTypes.NUMERIC,
@@ -258,6 +279,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Exponential value of input parameter (e ^ power)',
     syntax: 'EXP(power)',
     examples: ['EXP(1) => 2.718281828459045', 'EXP({column1})'],
+    returnType: formulaTypes.NUMERIC,
   },
   POWER: {
     type: formulaTypes.NUMERIC,
@@ -269,6 +291,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'base to the exponent power, as in base ^ exponent',
     syntax: 'POWER(base, exponent)',
     examples: ['POWER(2, 10) => 1024', 'POWER({column1}, 10)'],
+    returnType: formulaTypes.NUMERIC,
   },
   SQRT: {
     type: formulaTypes.NUMERIC,
@@ -280,6 +303,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Square root of the input parameter',
     syntax: 'SQRT(value)',
     examples: ['SQRT(100) => 10', 'SQRT({column1})'],
+    returnType: formulaTypes.NUMERIC,
   },
   ABS: {
     type: formulaTypes.NUMERIC,
@@ -291,6 +315,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Absolute value of the input parameter',
     syntax: 'ABS(value)',
     examples: ['ABS({column1})'],
+    returnType: formulaTypes.NUMERIC,
   },
   NOW: {
     type: formulaTypes.DATE,
@@ -302,6 +327,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Returns the current time and day',
     syntax: 'NOW()',
     examples: ['NOW() => 2022-05-19 17:20:43'],
+    returnType: formulaTypes.DATE,
   },
   REPLACE: {
     type: formulaTypes.STRING,
@@ -313,6 +339,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'String, after replacing all occurrences of srchStr with rplcStr',
     syntax: 'REPLACE(str, srchStr, rplcStr)',
     examples: ['REPLACE("AABBCC", "AA", "BB") => "BBBBCC"', 'REPLACE({column1}, {column2}, {column3})'],
+    returnType: formulaTypes.STRING,
   },
   SEARCH: {
     type: formulaTypes.STRING,
@@ -324,6 +351,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Index of srchStr specified if found, 0 otherwise',
     syntax: 'SEARCH(str, srchStr)',
     examples: ['SEARCH("HELLO WORLD", "WORLD") => 7', 'SEARCH({column1}, "abc")'],
+    returnType: formulaTypes.NUMERIC,
   },
   INT: {
     type: formulaTypes.NUMERIC,
@@ -335,6 +363,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Integer value of input parameter',
     syntax: 'INT(value)',
     examples: ['INT(3.1415) => 3', 'INT({column1})'],
+    returnType: formulaTypes.NUMERIC,
   },
   RIGHT: {
     type: formulaTypes.STRING,
@@ -346,6 +375,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'n characters from the end of input parameter',
     syntax: 'RIGHT(str, n)',
     examples: ['RIGHT("HELLO WORLD", 5) => WORLD', 'RIGHT({column1}, 3)'],
+    returnType: formulaTypes.STRING,
   },
   LEFT: {
     type: formulaTypes.STRING,
@@ -357,6 +387,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'n characters from the beginning of input parameter',
     syntax: 'LEFT(str, n)',
     examples: ['LEFT({column1}, 2)', 'LEFT("ABCD", 2) => "AB"'],
+    returnType: formulaTypes.STRING,
   },
   SUBSTR: {
     type: formulaTypes.STRING,
@@ -369,6 +400,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Substring of length n of input string from the postition specified',
     syntax: '	SUBTR(str, position, [n])',
     examples: ['SUBSTR("HELLO WORLD", 7) => WORLD', 'SUBSTR("HELLO WORLD", 7, 3) => WOR', 'SUBSTR({column1}, 7, 5)'],
+    returnType: formulaTypes.STRING,
   },
   MID: {
     type: formulaTypes.STRING,
@@ -380,6 +412,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Alias for SUBSTR',
     syntax: 'MID(str, position, [count])',
     examples: ['MID("NocoDB", 3, 2) => "co"', 'MID({column1}, 3, 2)'],
+    returnType: formulaTypes.STRING,
   },
   IF: {
     type: formulaTypes.COND_EXP,
@@ -392,6 +425,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'SuccessCase if expr evaluates to TRUE, elseCase otherwise',
     syntax: 'IF(expr, successCase, elseCase)',
     examples: ['IF(5 > 1, "YES", "NO") => "YES"', 'IF({column} > 1, "YES", "NO")'],
+    returnType: formulaTypes.STRING,
   },
   SWITCH: {
     type: formulaTypes.COND_EXP,
@@ -408,6 +442,10 @@ const formulas: Record<string, FormulaMeta> = {
       'SWITCH(3, 1, "One", 2, "Two", "N/A") => "N/A"',
       'SWITCH({column1}, 1, "One", 2, "Two", "N/A")',
     ],
+    // todo: resolve return type based on the args
+    returnType: () => {
+      return formulaTypes.STRING;
+    },
   },
   URL: {
     type: formulaTypes.STRING,
@@ -419,6 +457,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Convert to a hyperlink if it is a valid URL',
     syntax: 'URL(str)',
     examples: ['URL("https://github.com/nocodb/nocodb")', 'URL({column1})'],
+    returnType: formulaTypes.STRING,
   },
   WEEKDAY: {
     type: formulaTypes.NUMERIC,
@@ -431,6 +470,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Returns the day of the week as an integer between 0 and 6 inclusive starting from Monday by default',
     syntax: 'WEEKDAY(date, [startDayOfWeek])',
     examples: ['WEEKDAY("2021-06-09")', 'WEEKDAY(NOW(), "sunday")'],
+    returnType: formulaTypes.NUMERIC,
   },
 
   TRUE: {
@@ -443,6 +483,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Returns 1',
     syntax: 'TRUE()',
     examples: ['TRUE()'],
+    returnType: formulaTypes.NUMERIC,
   },
 
   FALSE: {
@@ -455,6 +496,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Returns 0',
     syntax: 'FALSE()',
     examples: ['FALSE()'],
+    returnType: formulaTypes.NUMERIC,
   },
 
   REGEX_MATCH: {
@@ -467,6 +509,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Returns 1 if the input text matches a regular expression or 0 if it does not.',
     syntax: 'REGEX_MATCH(string, regex)',
     examples: ['REGEX_MATCH({title}, "abc.*")'],
+    returnType: formulaTypes.NUMERIC,
   },
 
   REGEX_EXTRACT: {
@@ -479,6 +522,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Returns the first match of a regular expression in a string.',
     syntax: 'REGEX_EXTRACT(string, regex)',
     examples: ['REGEX_EXTRACT({title}, "abc.*")'],
+    returnType: formulaTypes.STRING,
   },
   REGEX_REPLACE: {
     type: formulaTypes.STRING,
@@ -490,6 +534,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Replaces all matches of a regular expression in a string with a replacement string',
     syntax: 'REGEX_MATCH(string, regex, replacement)',
     examples: ['REGEX_EXTRACT({title}, "abc.*", "abcd")'],
+    returnType: formulaTypes.STRING,
   },
   BLANK: {
     type: formulaTypes.STRING,
@@ -501,6 +546,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Returns a blank value(null)',
     syntax: 'BLANK()',
     examples: ['BLANK()'],
+    returnType: formulaTypes.NULL,
   },
   XOR: {
     type: formulaTypes.NUMERIC,
@@ -512,6 +558,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Returns true if an odd number of arguments are true, and false otherwise.',
     syntax: 'XOR(expression, [exp2, ...])',
     examples: ['XOR(TRUE(), FALSE(), TRUE())'],
+    returnType: formulaTypes.BOOLEAN,
   },
   EVEN: {
     type: formulaTypes.NUMERIC,
@@ -523,6 +570,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Returns the nearest even integer that is greater than or equal to the specified value',
     syntax: 'EVEN(value)',
     examples: ['EVEN({column})'],
+    returnType: formulaTypes.NUMERIC,
   },
   ODD: {
     type: formulaTypes.NUMERIC,
@@ -534,6 +582,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Returns the nearest odd integer that is greater than or equal to the specified value',
     syntax: 'ODD(value)',
     examples: ['ODD({column})'],
+    returnType: formulaTypes.NUMERIC,
   },
   RECORD_ID: {
     validation: {
@@ -544,6 +593,11 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Returns the record id of the current record',
     syntax: 'RECORD_ID()',
     examples: ['RECORD_ID()'],
+
+    // todo: resolve return type based on the args
+    returnType: () => {
+      return formulaTypes.STRING;
+    },
   },
   COUNTA: {
     validation: {
@@ -554,6 +608,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Counts the number of non-empty arguments',
     syntax: 'COUNTA(value1, [value2, ...])',
     examples: ['COUNTA({field1}, {field2})'],
+    returnType: formulaTypes.NUMERIC,
   },
   COUNT: {
     validation: {
@@ -564,6 +619,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Count the number of arguments that are numbers',
     syntax: 'COUNT(value1, [value2, ...])',
     examples: ['COUNT({field1}, {field2})'],
+    returnType: formulaTypes.NUMERIC,
   },
   COUNTALL: {
     validation: {
@@ -574,6 +630,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Counts the number of arguments',
     syntax: 'COUNTALL(value1, [value2, ...])',
     examples: ['COUNTALL({field1}, {field2})'],
+    returnType: formulaTypes.NUMERIC,
   },
   ROUNDDOWN: {
     type: formulaTypes.NUMERIC,
@@ -587,6 +644,7 @@ const formulas: Record<string, FormulaMeta> = {
       'Round down the value after the decimal point to the number of decimal places given by "precision"(default is 0)',
     syntax: 'ROUNDDOWN(value, [precision])',
     examples: ['ROUNDDOWN({field1})', 'ROUNDDOWN({field1}, 2)'],
+    returnType: formulaTypes.NUMERIC,
   },
   ROUNDUP: {
     type: formulaTypes.NUMERIC,
@@ -599,6 +657,7 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'Round up the value after the decimal point to the number of decimal places given by "precision"(default is 0)',
     syntax: 'ROUNDUP(value, [precision])',
     examples: ['ROUNDUP({field1})', 'ROUNDUP({field1}, 2)'],
+    returnType: formulaTypes.NUMERIC,
   },
   VALUE: {
     validation: {
@@ -610,6 +669,7 @@ const formulas: Record<string, FormulaMeta> = {
       'Extract the numeric value from a string, if `%` or `-` is present, it will handle it accordingly and return the numeric value',
     syntax: 'VALUE(value)',
     examples: ['VALUE({field})', 'VALUE("abc10000%")', 'VALUE("$10000")'],
+    returnType: formulaTypes.NUMERIC,
   },
   // Disabling these functions for now; these act as alias for CreatedAt & UpdatedAt fields;
   // Issue: Error noticed if CreatedAt & UpdatedAt fields are removed from the table after creating these formulas

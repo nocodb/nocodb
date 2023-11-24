@@ -167,7 +167,9 @@ class BaseModelSqlv2 {
     let data;
 
     try {
-      data = await this.execAndParse(qb, null, { first: true });
+      data = await this.execAndParse(qb, null, {
+        first: true,
+      });
     } catch (e) {
       if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
         throw e;
@@ -568,6 +570,7 @@ class BaseModelSqlv2 {
               .getColOptions<BarcodeColumn | QrCodeColumn>()
               .then((col) => col.getValueColumn())),
             title: column.title,
+            id: column.id,
           });
 
         groupByColumns[column.id] = column;
@@ -587,9 +590,9 @@ class BaseModelSqlv2 {
                   knex: this.dbDriver,
                   columnOptions: (await column.getColOptions()) as RollupColumn,
                 })
-              ).builder.as(sanitize(column.title)),
+              ).builder.as(sanitize(column.id)),
             );
-            groupBySelectors.push(sanitize(column.title));
+            groupBySelectors.push(sanitize(column.id));
             break;
           case UITypes.Formula:
             {
@@ -601,18 +604,18 @@ class BaseModelSqlv2 {
 
                 selectQb = this.dbDriver.raw(`?? as ??`, [
                   _selectQb.builder,
-                  sanitize(column.title),
+                  sanitize(column.id),
                 ]);
               } catch (e) {
                 console.log(e);
                 // return dummy select
                 selectQb = this.dbDriver.raw(`'ERR' as ??`, [
-                  sanitize(column.title),
+                  sanitize(column.id),
                 ]);
               }
 
               selectors.push(selectQb);
-              groupBySelectors.push(column.title);
+              groupBySelectors.push(column.id);
             }
             break;
           case UITypes.Lookup:
@@ -628,18 +631,18 @@ class BaseModelSqlv2 {
 
               const selectQb = this.dbDriver.raw(`?? as ??`, [
                 this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
-                sanitize(column.title),
+                sanitize(column.id),
               ]);
 
               selectors.push(selectQb);
-              groupBySelectors.push(sanitize(column.title));
+              groupBySelectors.push(sanitize(column.id));
             }
             break;
           default:
             selectors.push(
-              this.dbDriver.raw('?? as ??', [column.column_name, column.title]),
+              this.dbDriver.raw('?? as ??', [column.column_name, column.id]),
             );
-            groupBySelectors.push(sanitize(column.title));
+            groupBySelectors.push(sanitize(column.id));
             break;
         }
       }),
@@ -704,7 +707,7 @@ class BaseModelSqlv2 {
       }
 
       qb.orderBy(
-        groupByColumns[sort.fk_column_id].title,
+        groupByColumns[sort.fk_column_id].id,
         sort.direction,
         sort.direction === 'desc' ? 'LAST' : 'FIRST',
       );
@@ -751,6 +754,7 @@ class BaseModelSqlv2 {
                 .getColOptions<BarcodeColumn | QrCodeColumn>()
                 .then((col) => col.getValueColumn())),
               title: column.title,
+              id: column.id,
             });
 
           switch (column.uidt) {
@@ -772,9 +776,9 @@ class BaseModelSqlv2 {
                     columnOptions:
                       (await column.getColOptions()) as RollupColumn,
                   })
-                ).builder.as(sanitize(column.title)),
+                ).builder.as(sanitize(column.id)),
               );
-              groupBySelectors.push(sanitize(column.title));
+              groupBySelectors.push(sanitize(column.id));
               break;
             case UITypes.Formula: {
               let selectQb;
@@ -785,18 +789,18 @@ class BaseModelSqlv2 {
 
                 selectQb = this.dbDriver.raw(`?? as ??`, [
                   _selectQb.builder,
-                  sanitize(column.title),
+                  sanitize(column.id),
                 ]);
               } catch (e) {
                 console.log(e);
                 // return dummy select
                 selectQb = this.dbDriver.raw(`'ERR' as ??`, [
-                  sanitize(column.title),
+                  sanitize(column.id),
                 ]);
               }
 
               selectors.push(selectQb);
-              groupBySelectors.push(column.title);
+              groupBySelectors.push(column.id);
               break;
             }
             case UITypes.Lookup:
@@ -812,21 +816,18 @@ class BaseModelSqlv2 {
 
                 const selectQb = this.dbDriver.raw(`?? as ??`, [
                   this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
-                  sanitize(column.title),
+                  sanitize(column.id),
                 ]);
 
                 selectors.push(selectQb);
-                groupBySelectors.push(sanitize(column.title));
+                groupBySelectors.push(sanitize(column.id));
               }
               break;
             default:
               selectors.push(
-                this.dbDriver.raw('?? as ??', [
-                  column.column_name,
-                  column.title,
-                ]),
+                this.dbDriver.raw('?? as ??', [column.column_name, column.id]),
               );
-              groupBySelectors.push(sanitize(column.title));
+              groupBySelectors.push(sanitize(column.id));
               break;
           }
         }),
@@ -1746,7 +1747,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await parentModel.getProto();
-    const data = await this.execAndParse(qb, childTable);
+    const data = await this.execAndParse(qb, parentTable);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -2099,11 +2100,10 @@ class BaseModelSqlv2 {
             // the value 2023-01-01 10:00:00 (UTC) would display as 2023-01-01 18:00:00 (UTC+8)
             // our existing logic is based on UTC, during the query, we need to take the UTC value
             // hence, we use CONVERT_TZ to convert back to UTC value
-            res[sanitize(column.title || column.column_name)] =
-              this.dbDriver.raw(
-                `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
-                [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
-              );
+            res[sanitize(column.id || column.column_name)] = this.dbDriver.raw(
+              `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
+              [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
+            );
             break;
           } else if (this.isPg) {
             // if there is no timezone info,
@@ -2113,7 +2113,7 @@ class BaseModelSqlv2 {
               column.dt !== 'timestamp with time zone' &&
               column.dt !== 'timestamptz'
             ) {
-              res[sanitize(column.title || column.column_name)] = this.dbDriver
+              res[sanitize(column.id || column.column_name)] = this.dbDriver
                 .raw(
                   `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
                   [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
@@ -2126,7 +2126,7 @@ class BaseModelSqlv2 {
             // convert to database timezone,
             // then convert to UTC
             if (column.dt !== 'datetimeoffset') {
-              res[sanitize(column.title || column.column_name)] =
+              res[sanitize(column.id || column.column_name)] =
                 this.dbDriver.raw(
                   `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
                   [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
@@ -2134,7 +2134,7 @@ class BaseModelSqlv2 {
               break;
             }
           }
-          res[sanitize(column.title || column.column_name)] = sanitize(
+          res[sanitize(column.id || column.column_name)] = sanitize(
             `${alias || this.tnPath}.${column.column_name}`,
           );
           break;
@@ -2197,7 +2197,7 @@ class BaseModelSqlv2 {
                   aliasToColumnBuilder,
                 );
                 qb.select({
-                  [column.title]: selectQb.builder,
+                  [column.id]: selectQb.builder,
                 });
               } catch {
                 continue;
@@ -2205,7 +2205,7 @@ class BaseModelSqlv2 {
               break;
             default: {
               qb.select({
-                [column.title]: barcodeValueColumn.column_name,
+                [column.id]: barcodeValueColumn.column_name,
               });
               break;
             }
@@ -2225,14 +2225,14 @@ class BaseModelSqlv2 {
               qb.select(
                 this.dbDriver.raw(`?? as ??`, [
                   selectQb.builder,
-                  sanitize(column.title),
+                  sanitize(column.id),
                 ]),
               );
             } catch (e) {
               console.log(e);
               // return dummy select
               qb.select(
-                this.dbDriver.raw(`'ERR' as ??`, [sanitize(column.title)]),
+                this.dbDriver.raw(`'ERR' as ??`, [sanitize(column.id)]),
               );
             }
           }
@@ -2249,13 +2249,13 @@ class BaseModelSqlv2 {
                 alias,
                 columnOptions: (await column.getColOptions()) as RollupColumn,
               })
-            ).builder.as(sanitize(column.title)),
+            ).builder.as(sanitize(column.id)),
           );
           break;
         default:
           if (this.isPg) {
             if (column.dt === 'bytea') {
-              res[sanitize(column.title || column.column_name)] =
+              res[sanitize(column.id || column.column_name)] =
                 this.dbDriver.raw(
                   `encode(??.??, '${
                     column.meta?.format === 'hex' ? 'hex' : 'escape'
@@ -2266,7 +2266,7 @@ class BaseModelSqlv2 {
             }
           }
 
-          res[sanitize(column.title || column.column_name)] = sanitize(
+          res[sanitize(column.id || column.column_name)] = sanitize(
             `${alias || this.tnPath}.${column.column_name}`,
           );
           break;
@@ -2314,9 +2314,9 @@ class BaseModelSqlv2 {
       const query = this.dbDriver(this.tnPath).insert(insertObj);
       if ((this.isPg || this.isMssql) && this.model.primaryKey) {
         query.returning(
-          `${this.model.primaryKey.column_name} as ${this.model.primaryKey.title}`,
+          `${this.model.primaryKey.column_name} as ${this.model.primaryKey.id}`,
         );
-        response = await this.execAndParse(query);
+        response = await this.execAndParse(query, null, { raw: true });
       }
 
       const ai = this.model.columns.find((c) => c.ai);
@@ -2328,7 +2328,7 @@ class BaseModelSqlv2 {
       if (ag) {
         if (!response) await this.execAndParse(query);
         response = await this.readByPk(
-          data[ag.title],
+          insertObj[ag.column_name],
           false,
           {},
           { ignoreView: true, getHiddenColumn: true },
@@ -2379,8 +2379,8 @@ class BaseModelSqlv2 {
         }
       } else if (ai) {
         const id = Array.isArray(response)
-          ? response?.[0]?.[ai.title]
-          : response?.[ai.title];
+          ? response?.[0]?.[ai.id]
+          : response?.[ai.id];
         response = await this.readByPk(
           id,
           false,
@@ -2562,7 +2562,7 @@ class BaseModelSqlv2 {
         .update(updateObj)
         .where(await this._wherePk(id));
 
-      await this.execAndParse(query);
+      await this.execAndParse(query, null, { raw: true });
 
       // const newData = await this.readByPk(id, false, {}, { ignoreView: true , getHiddenColumn: true});
 
@@ -2676,9 +2676,9 @@ class BaseModelSqlv2 {
 
       if (this.isPg || this.isMssql) {
         query.returning(
-          `${this.model.primaryKey.column_name} as ${this.model.primaryKey.title}`,
+          `${this.model.primaryKey.column_name} as ${this.model.primaryKey.id}`,
         );
-        response = await this.execAndParse(query);
+        response = await this.execAndParse(query, null, { raw: true });
       }
 
       const ai = this.model.columns.find((c) => c.ai);
@@ -2690,7 +2690,7 @@ class BaseModelSqlv2 {
       if (ag) {
         if (!response) await this.execAndParse(query);
         response = await this.readByPk(
-          data[ag.title],
+          insertObj[ag.column_name],
           false,
           {},
           { ignoreView: true, getHiddenColumn: true },
@@ -2748,8 +2748,8 @@ class BaseModelSqlv2 {
         }
       } else if (ai) {
         rowId = Array.isArray(response)
-          ? response?.[0]?.[ai.title]
-          : response?.[ai.title];
+          ? response?.[0]?.[ai.id]
+          : response?.[ai.id];
       }
 
       await Promise.all(postInsertOps.map((f) => f(rowId)));
@@ -4311,7 +4311,8 @@ class BaseModelSqlv2 {
 
     await this.selectObject({
       qb,
-      columns: [new Column({ ...column, title: 'key' })],
+      // replace id with 'key' as we select as id
+      columns: [new Column({ ...column, title: 'key', id: 'key' })],
     });
 
     return await this.execAndParse(qb);
@@ -4323,11 +4324,13 @@ class BaseModelSqlv2 {
     options: {
       skipDateConversion?: boolean;
       skipAttachmentConversion?: boolean;
+      skipSubstitutingColumnIds?: boolean;
       raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
       first?: boolean;
     } = {
       skipDateConversion: false,
       skipAttachmentConversion: false,
+      skipSubstitutingColumnIds: false,
       raw: false,
       first: false,
     },
@@ -4335,6 +4338,7 @@ class BaseModelSqlv2 {
     if (options.raw) {
       options.skipDateConversion = true;
       options.skipAttachmentConversion = true;
+      options.skipSubstitutingColumnIds = true;
     }
 
     if (options.first && typeof qb !== 'string') {
@@ -4367,9 +4371,81 @@ class BaseModelSqlv2 {
       data = this.convertDateFormat(data, childTable);
     }
 
+    if (!options.skipSubstitutingColumnIds) {
+      data = await this.substituteColumnIdsWithColumnTitles(data, childTable);
+    }
+
     if (options.first) {
       return data?.[0];
     }
+
+    return data;
+  }
+
+  protected async substituteColumnIdsWithColumnTitles(
+    data: Record<string, any>[],
+    childTable?: Model,
+  ) {
+    const modelColumns = this.model?.columns.concat(childTable?.columns ?? []);
+
+    if (!modelColumns || !data.length) {
+      return data;
+    }
+
+    const idToAliasMap: Record<string, string> = {};
+    const idToAliasPromiseMap: Record<string, Promise<string>> = {};
+    const btMap: Record<string, boolean> = {};
+
+    modelColumns.forEach((col) => {
+      idToAliasMap[col.id] = col.title;
+      if (col.colOptions?.type === 'bt') {
+        btMap[col.id] = true;
+        const btData = Object.values(data).find(
+          (d) => d[col.id] && Object.keys(d[col.id]),
+        );
+        if (btData) {
+          for (const k of Object.keys(btData[col.id])) {
+            const btAlias = idToAliasMap[k];
+            if (!btAlias) {
+              idToAliasPromiseMap[k] = Column.get({ colId: k }).then((col) => {
+                return col.title;
+              });
+            }
+          }
+        }
+      } else {
+        btMap[col.id] = false;
+      }
+    });
+
+    for (const k of Object.keys(idToAliasPromiseMap)) {
+      idToAliasMap[k] = await idToAliasPromiseMap[k];
+    }
+
+    data.forEach((item) => {
+      Object.entries(item).forEach(([key, value]) => {
+        const alias = idToAliasMap[key];
+        if (alias) {
+          if (btMap[key]) {
+            if (value) {
+              const tempObj = {};
+              Object.entries(value).forEach(([k, v]) => {
+                const btAlias = idToAliasMap[k];
+                if (btAlias) {
+                  tempObj[btAlias] = v;
+                }
+              });
+              item[alias] = tempObj;
+            } else {
+              item[alias] = value;
+            }
+          } else {
+            item[alias] = value;
+          }
+          delete item[key];
+        }
+      });
+    });
 
     return data;
   }
@@ -4382,12 +4458,12 @@ class BaseModelSqlv2 {
       if (d) {
         const promises = [];
         for (const col of attachmentColumns) {
-          if (d[col.title] && typeof d[col.title] === 'string') {
-            d[col.title] = JSON.parse(d[col.title]);
+          if (d[col.id] && typeof d[col.id] === 'string') {
+            d[col.id] = JSON.parse(d[col.id]);
           }
 
-          if (d[col.title]?.length) {
-            for (const attachment of d[col.title]) {
+          if (d[col.id]?.length) {
+            for (const attachment of d[col.id]) {
               // we expect array of array of attachments in case of lookup
               if (Array.isArray(attachment)) {
                 for (const lookedUpAttachment of attachment) {
@@ -4501,24 +4577,24 @@ class BaseModelSqlv2 {
   ) {
     if (!d) return d;
     for (const col of dateTimeColumns) {
-      if (!d[col.title]) continue;
+      if (!d[col.id]) continue;
 
       if (col.uidt === UITypes.Formula) {
-        if (!d[col.title] || typeof d[col.title] !== 'string') {
+        if (!d[col.id] || typeof d[col.id] !== 'string') {
           continue;
         }
 
         // remove milliseconds
         if (this.isMySQL) {
-          d[col.title] = d[col.title].replace(/\.000000/g, '');
+          d[col.id] = d[col.id].replace(/\.000000/g, '');
         } else if (this.isMssql) {
-          d[col.title] = d[col.title].replace(/\.0000000 \+00:00/g, '');
+          d[col.id] = d[col.id].replace(/\.0000000 \+00:00/g, '');
         }
 
-        if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g.test(d[col.title])) {
+        if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g.test(d[col.id])) {
           // convert ISO string (e.g. in MSSQL) to YYYY-MM-DD hh:mm:ssZ
           // e.g. 2023-05-18T05:30:00.000Z -> 2023-05-18 11:00:00+05:30
-          d[col.title] = d[col.title].replace(
+          d[col.id] = d[col.id].replace(
             /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g,
             (d: string) => {
               if (!dayjs(d).isValid()) return d;
@@ -4535,7 +4611,7 @@ class BaseModelSqlv2 {
         // convert all date time values to utc
         // the datetime is either YYYY-MM-DD hh:mm:ss (xcdb)
         // or YYYY-MM-DD hh:mm:ss+/-xx:yy (ext)
-        d[col.title] = d[col.title].replace(
+        d[col.id] = d[col.id].replace(
           /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2})?/g,
           (d: string) => {
             if (!dayjs(d).isValid()) {
@@ -4575,15 +4651,15 @@ class BaseModelSqlv2 {
       if (this.isSqlite) {
         if (!col.cdf) {
           if (
-            d[col.title].indexOf('-') === -1 &&
-            d[col.title].indexOf('+') === -1 &&
-            d[col.title].slice(-1) !== 'Z'
+            d[col.id].indexOf('-') === -1 &&
+            d[col.id].indexOf('+') === -1 &&
+            d[col.id].slice(-1) !== 'Z'
           ) {
             // if there is no timezone info,
             // we assume the input is on NocoDB server timezone
             // then we convert to UTC from server timezone
             // e.g. 2023-04-27 10:00:00 (IST) -> 2023-04-27 04:30:00+00:00
-            d[col.title] = dayjs(d[col.title])
+            d[col.id] = dayjs(d[col.id])
               .tz(Intl.DateTimeFormat().resolvedOptions().timeZone)
               .utc()
               .format('YYYY-MM-DD HH:mm:ssZ');
@@ -4601,14 +4677,14 @@ class BaseModelSqlv2 {
         keepLocalTime = false;
       }
 
-      if (d[col.title] instanceof Date) {
+      if (d[col.id] instanceof Date) {
         // e.g. MSSQL
         // Wed May 10 2023 17:47:46 GMT+0800 (Hong Kong Standard Time)
         keepLocalTime = false;
       }
       // e.g. 01.01.2022 10:00:00+05:30 -> 2022-01-01 04:30:00+00:00
       // e.g. 2023-05-09 11:41:49 -> 2023-05-09 11:41:49+00:00
-      d[col.title] = dayjs(d[col.title])
+      d[col.id] = dayjs(d[col.id])
         // keep the local time
         .utc(keepLocalTime)
         // show the timezone even for Mysql
@@ -4730,7 +4806,9 @@ class BaseModelSqlv2 {
             if (parentTable.primaryKey.column_name !== parentColumn.column_name)
               childRowsQb.select(parentTable.primaryKey.column_name);
 
-            const childRows = await childRowsQb;
+            const childRows = await this.execAndParse(childRowsQb, null, {
+              raw: true,
+            });
 
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
@@ -4789,7 +4867,9 @@ class BaseModelSqlv2 {
               );
             }
 
-            const childRows = await childRowsQb;
+            const childRows = await this.execAndParse(childRowsQb, null, {
+              raw: true,
+            });
 
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
@@ -4841,7 +4921,10 @@ class BaseModelSqlv2 {
               .where(_wherePk(parentTable.primaryKeys, childIds[0]))
               .first();
 
-            const childRow = await childRowsQb;
+            const childRow = await this.execAndParse(childRowsQb, null, {
+              first: true,
+              raw: true,
+            });
 
             if (!childRow) {
               NcError.unprocessableEntity(
@@ -4960,7 +5043,9 @@ class BaseModelSqlv2 {
             if (parentTable.primaryKey.column_name !== parentColumn.column_name)
               childRowsQb.select(parentTable.primaryKey.column_name);
 
-            const childRows = await childRowsQb;
+            const childRows = await this.execAndParse(childRowsQb, null, {
+              raw: true,
+            });
 
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
@@ -5006,7 +5091,9 @@ class BaseModelSqlv2 {
               .select(childTable.primaryKey.column_name)
               .whereIn(childTable.primaryKey.column_name, childIds);
 
-            const childRows = await childRowsQb;
+            const childRows = await this.execAndParse(childRowsQb, null, {
+              raw: true,
+            });
 
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
@@ -5062,7 +5149,10 @@ class BaseModelSqlv2 {
               .where(_wherePk(parentTable.primaryKeys, childIds[0]))
               .first();
 
-            const childRow = await childRowsQb;
+            const childRow = await this.execAndParse(childRowsQb, null, {
+              first: true,
+              raw: true,
+            });
 
             if (!childRow) {
               NcError.unprocessableEntity(
@@ -5154,7 +5244,7 @@ class BaseModelSqlv2 {
 
       await parentModel.selectObject({ qb, fieldsSet: args.fieldSet });
 
-      const parent = await this.execAndParse(qb, childTable, {
+      const parent = await this.execAndParse(qb, parentTable, {
         first: true,
       });
 
@@ -5412,7 +5502,9 @@ export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
   if (id && typeof id === 'object' && !Array.isArray(id)) {
     // verify all pk columns are present in id object
     for (const pk of primaryKeys) {
-      if (pk.title in id) {
+      if (pk.id in id) {
+        where[pk.column_name] = id[pk.id];
+      } else if (pk.title in id) {
         where[pk.column_name] = id[pk.title];
       } else if (pk.column_name in id) {
         where[pk.column_name] = id[pk.column_name];

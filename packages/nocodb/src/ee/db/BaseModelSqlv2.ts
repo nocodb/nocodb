@@ -126,11 +126,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     options: {
       skipDateConversion?: boolean;
       skipAttachmentConversion?: boolean;
+      skipSubstitutingColumnIds?: boolean;
       raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
       first?: boolean;
     } = {
       skipDateConversion: false,
       skipAttachmentConversion: false,
+      skipSubstitutingColumnIds: false,
       raw: false,
       first: false,
     },
@@ -138,6 +140,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     if (options.raw) {
       options.skipDateConversion = true;
       options.skipAttachmentConversion = true;
+      options.skipSubstitutingColumnIds = true;
     }
 
     if (options.first && typeof qb !== 'string') {
@@ -170,6 +173,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     // update date time fields
     if (!options.skipDateConversion) {
       data = this.convertDateFormat(data, childTable);
+    }
+
+    if (!options.skipSubstitutingColumnIds) {
+      data = await this.substituteColumnIdsWithColumnTitles(data, childTable);
     }
 
     if (options.first) {
@@ -205,9 +212,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const query = this.dbDriver(this.tnPath).insert(insertObj);
       if ((this.isPg || this.isMssql) && this.model.primaryKey) {
         query.returning(
-          `${this.model.primaryKey.column_name} as ${this.model.primaryKey.title}`,
+          `${this.model.primaryKey.column_name} as ${this.model.primaryKey.id}`,
         );
-        response = await this.execAndParse(query);
+        response = await this.execAndParse(query, null, { raw: true });
       }
 
       const ai = this.model.columns.find((c) => c.ai);
@@ -226,14 +233,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }))
           ? getSingleQueryReadFn(source)({
               model: this.model,
-              id: data[ag.title],
+              id: insertObj[ag.column_name],
               params: {},
               view: null,
               source,
               getHiddenColumn: true,
             })
           : this.readByPk(
-              data[ag.title],
+              insertObj[ag.column_name],
               false,
               {},
               { ignoreView: true, getHiddenColumn: true },
@@ -284,8 +291,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       } else if (ai) {
         const id = Array.isArray(response)
-          ? response?.[0]?.[ai.title]
-          : response?.[ai.title];
+          ? response?.[0]?.[ai.id]
+          : response?.[ai.id];
         response = (await canUseOptimisedQuery({
           source,
           disableOptimization,

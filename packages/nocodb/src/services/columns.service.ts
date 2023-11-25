@@ -546,7 +546,10 @@ export class ColumnsService {
                 ]);
               } else {
                 await baseModel.bulkUpdateAll(
-                  { where: `(${column.title},eq,${option.title})` },
+                  {
+                    where: `(${column.title},eq,${option.title})`,
+                    skipValidationAndHooks: true,
+                  },
                   { [column.column_name]: null },
                   { cookie },
                 );

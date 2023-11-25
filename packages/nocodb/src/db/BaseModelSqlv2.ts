@@ -3211,7 +3211,12 @@ class BaseModelSqlv2 {
   }
 
   async bulkUpdateAll(
-    args: { where?: string; filterArr?: Filter[]; viewId?: string } = {},
+    args: {
+      where?: string;
+      filterArr?: Filter[];
+      viewId?: string;
+      skipValidationAndHooks?: boolean;
+    } = {},
     data,
     { cookie }: { cookie?: any } = {},
   ) {
@@ -3222,7 +3227,7 @@ class BaseModelSqlv2 {
         this.clientMeta,
         this.dbDriver,
       );
-      await this.validate(updateData);
+      if (!args.skipValidationAndHooks) await this.validate(updateData);
       const pkValues = await this._extractPksValues(updateData);
       if (pkValues) {
         // pk is specified - by pass
@@ -3256,7 +3261,7 @@ class BaseModelSqlv2 {
           );
         }
 
-        await conditionV2(this, conditionObj, qb);
+        await conditionV2(this, conditionObj, qb, undefined, true);
 
         count = (
           await this.execAndParse(
@@ -3274,7 +3279,8 @@ class BaseModelSqlv2 {
         await this.execAndParse(qb, null, { raw: true });
       }
 
-      await this.afterBulkUpdate(null, count, this.dbDriver, cookie, true);
+      if (!args.skipValidationAndHooks)
+        await this.afterBulkUpdate(null, count, this.dbDriver, cookie, true);
 
       return count;
     } catch (e) {

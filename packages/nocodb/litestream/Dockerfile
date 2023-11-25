@@ -16,7 +16,7 @@ FROM node:20.9.0-alpine as builder
 WORKDIR /usr/src/app
 
 # install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@8.11.0 --activate
 
 # Copy application dependency manifests to the container image.
 COPY ./package*.json ./

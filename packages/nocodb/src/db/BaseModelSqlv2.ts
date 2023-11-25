@@ -2978,6 +2978,8 @@ class BaseModelSqlv2 {
               }
             }
 
+            await this.validateOptions(col, insertObj);
+
             // validate data
             if (col?.meta?.validate && col?.validate) {
               const validate = col.getValidators();
@@ -3209,7 +3211,12 @@ class BaseModelSqlv2 {
   }
 
   async bulkUpdateAll(
-    args: { where?: string; filterArr?: Filter[]; viewId?: string } = {},
+    args: {
+      where?: string;
+      filterArr?: Filter[];
+      viewId?: string;
+      skipValidationAndHooks?: boolean;
+    } = {},
     data,
     { cookie }: { cookie?: any } = {},
   ) {
@@ -3220,7 +3227,7 @@ class BaseModelSqlv2 {
         this.clientMeta,
         this.dbDriver,
       );
-      await this.validate(updateData);
+      if (!args.skipValidationAndHooks) await this.validate(updateData);
       const pkValues = await this._extractPksValues(updateData);
       if (pkValues) {
         // pk is specified - by pass
@@ -3254,7 +3261,7 @@ class BaseModelSqlv2 {
           );
         }
 
-        await conditionV2(this, conditionObj, qb);
+        await conditionV2(this, conditionObj, qb, undefined, true);
 
         count = (
           await this.execAndParse(
@@ -3272,7 +3279,8 @@ class BaseModelSqlv2 {
         await this.execAndParse(qb, null, { raw: true });
       }
 
-      await this.afterBulkUpdate(null, count, this.dbDriver, cookie, true);
+      if (!args.skipValidationAndHooks)
+        await this.afterBulkUpdate(null, count, this.dbDriver, cookie, true);
 
       return count;
     } catch (e) {
@@ -3764,6 +3772,8 @@ class BaseModelSqlv2 {
     // let cols = Object.keys(this.columns);
     for (let i = 0; i < this.model.columns.length; ++i) {
       const column = this.model.columns[i];
+      await this.validateOptions(column, columns);
+
       // skip validation if `validate` is undefined or false
       if (!column?.meta?.validate || !column?.validate) continue;
 
@@ -3796,6 +3806,49 @@ class BaseModelSqlv2 {
       }
     }
     return true;
+  }
+
+  // method for validating otpions if column is single/multi select
+  private async validateOptions(
+    column: Column<any>,
+    insertOrUpdateObject: Record<string, any>,
+  ) {
+    // if SingleSelect or MultiSelect, then validate the options
+    if (
+      !(
+        column.uidt === UITypes.SingleSelect ||
+        column.uidt === UITypes.MultiSelect
+      )
+    ) {
+      return;
+    }
+
+    const options = await column
+      .getColOptions<{ options: SelectOption[] }>()
+      .then(({ options }) => options.map((opt) => opt.title));
+    const columnTitle = column.title;
+    const columnName = column.column_name;
+    const columnValue =
+      insertOrUpdateObject?.[columnTitle] ?? insertOrUpdateObject?.[columnName];
+    if (!columnValue) {
+      return;
+    }
+
+    // if multi select, then split the values
+    const columnValueArr =
+      column.uidt === UITypes.MultiSelect
+        ? columnValue.split(',')
+        : [columnValue];
+    for (let j = 0; j < columnValueArr.length; ++j) {
+      const val = columnValueArr[j];
+      if (!options.includes(val)) {
+        NcError.badRequest(
+          `Invalid option "${val}" provided for column "${columnTitle}". Valid options are "${options.join(
+            ', ',
+          )}"`,
+        );
+      }
+    }
   }
 
   async addChild({

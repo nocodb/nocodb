@@ -144,7 +144,7 @@
     "@types/turndown": "^5.0.4",
     "@unocss/nuxt": "^0.57.7",
     "@vitest/ui": "^0.18.1",
-    "@vue/compiler-sfc": "^3.3.8",
+    "@vue/compiler-sfc": "^3.3.9",
     "@vue/test-utils": "^2.0.2",
     "@vueuse/nuxt": "^10.6.1",
     "@windicss/plugin-animations": "^1.0.9",

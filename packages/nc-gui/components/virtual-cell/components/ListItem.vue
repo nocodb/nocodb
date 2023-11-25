@@ -77,6 +77,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
       '!bg-white': isLoading,
       '!border-1': isLinked && !isLoading,
       '!hover:border-gray-400': !isLinked,
+      '!cursor-auto !hover:bg-white': readonly,
     }"
     :body-style="{ padding: 0 }"
     :hoverable="false"
@@ -109,7 +110,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
             v-if="isLinked && !isLoading"
             class="text-brand-500 text-0.875"
             :class="{
-              '!group-hover:mr-12': fields.length === 0,
+              '!group-hover:mr-12': fields.length === 0 && !readonly,
             }"
           >
             <LinkIcon class="w-4 h-4" />
@@ -118,7 +119,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
           <MdiLoading
             v-else-if="isLoading"
             :class="{
-              '!group-hover:mr-8': fields.length === 0,
+              '!group-hover:mr-8': fields.length === 0 && !readonly,
             }"
             class="w-6 h-6 !text-brand-500 animate-spin"
           />

@@ -93,7 +93,7 @@ export function substituteColumnIdWithAliasInFormula(
           c.column_name === colNameOrId ||
           c.title === colNameOrId
       );
-      pt.name = column?.id || ptRaw?.name || pt?.name;
+      pt.name = column?.title || ptRaw?.name || pt?.name;
     } else if (pt.type === 'BinaryExpression') {
       substituteId(pt.left, ptRaw?.left);
       substituteId(pt.right, ptRaw?.right);

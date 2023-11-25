@@ -7,7 +7,6 @@
     "name": "NocoDB Inc",
     "url": "https://nocodb.com/"
   },
-  "packageManager": "pnpm@8.11.0",
   "homepage": "https://github.com/nocodb/nocodb",
   "repository": {
     "type": "git",

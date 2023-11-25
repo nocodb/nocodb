@@ -136,7 +136,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
               })
             },
           },
-          fieldLengthValidator(source.value?.type || ClientType.MYSQL),
+          fieldLengthValidator(),
         ],
         uidt: [
           {

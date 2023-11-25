@@ -33,7 +33,7 @@ jobs:
       - run: |
           echo 'triggering pr-to-master'
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: develop
 

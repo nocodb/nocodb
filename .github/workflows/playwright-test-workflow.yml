@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 100
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: remove use-node-version from .npmrc 
         run:  sed -i '/^use-node-version/d' .npmrc
       - name: Setup Node

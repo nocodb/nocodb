@@ -160,6 +160,7 @@ export enum CacheScope {
   WORKSPACE_CREATE_DELETE_COUNTER = 'workspace_cd_counter',
   WORKSPACE_UPDATED_MODELS = 'workspace_updated_models',
   DB_MUX = 'sqlExecutor',
+  STORE = 'store',
 }
 
 export enum DbMuxStatus {

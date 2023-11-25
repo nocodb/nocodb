@@ -731,7 +731,10 @@ export class ColumnsService {
                 ]);
               } else {
                 await baseModel.bulkUpdateAll(
-                  { where: `(${column.title},eq,${option.title})` },
+                  {
+                    where: `(${column.title},eq,${option.title})`,
+                    skipValidationAndHooks: true,
+                  },
                   { [column.column_name]: newOp.title },
                   { cookie },
                 );
@@ -817,7 +820,10 @@ export class ColumnsService {
               ]);
             } else {
               await baseModel.bulkUpdateAll(
-                { where: `(${column.title},eq,${ch.temp_title})` },
+                {
+                  where: `(${column.title},eq,${ch.temp_title})`,
+                  skipValidationAndHooks: true,
+                },
                 { [column.column_name]: newOp.title },
                 { cookie },
               );

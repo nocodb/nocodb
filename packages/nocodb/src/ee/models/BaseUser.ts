@@ -21,8 +21,8 @@ export default class BaseUser extends BaseUserCE {
     }: {
       base_id: string;
       workspace_id?: string;
-      limit: number;
-      offset: number;
+      limit?: number;
+      offset?: number;
       query?: string;
     },
     ncMeta = Noco.ncMeta,
@@ -37,11 +37,17 @@ export default class BaseUser extends BaseUserCE {
         `${MetaTable.USERS}.created_at as created_at`,
         `${MetaTable.PROJECT_USERS}.base_id`,
         `${MetaTable.PROJECT_USERS}.roles as roles`,
-        `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
-        `${MetaTable.WORKSPACE_USER}.fk_workspace_id as workspace_id`,
-      )
-      .offset(offset)
-      .limit(limit);
+        ...(workspace_id
+          ? [
+              `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
+              `${MetaTable.WORKSPACE_USER}.fk_workspace_id as workspace_id`,
+            ]
+          : []),
+      );
+
+    if (limit) {
+      queryBuilder.offset(offset).limit(limit);
+    }
 
     if (query) {
       queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
@@ -60,7 +66,7 @@ export default class BaseUser extends BaseUserCE {
             ncMeta.knex.raw('?', [workspace_id]),
           );
         })
-        .leftJoin(MetaTable.PROJECT_USERS, function () {
+        .innerJoin(MetaTable.PROJECT_USERS, function () {
           this.on(
             `${MetaTable.PROJECT_USERS}.fk_user_id`,
             '=',
@@ -72,7 +78,7 @@ export default class BaseUser extends BaseUserCE {
           );
         });
     } else {
-      queryBuilder.leftJoin(MetaTable.PROJECT_USERS, function () {
+      queryBuilder.innerJoin(MetaTable.PROJECT_USERS, function () {
         this.on(
           `${MetaTable.PROJECT_USERS}.fk_user_id`,
           '=',

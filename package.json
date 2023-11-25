@@ -47,7 +47,9 @@
   "pnpm": {
     "overrides": {
       "vue": "latest",
-      "typescript": "latest"
+      "typescript": "latest",
+      "nuxt-windicss@2.6.1>@nuxt/kit": "^3.8.2",
+      "@azure/identity": "^3.3.2"
     }
   }
 }

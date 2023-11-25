@@ -184,7 +184,7 @@ function navigateForgotPassword() {
               </a>
             </div>
 
-            <div class="text-end prose-sm">
+            <div class="text-end prose-sm" v-if="!appInfo.inviteOnlySignup">
               {{ $t('msg.info.signUp.dontHaveAccount') }}
               <nuxt-link @click="navigateSignUp">{{ $t('general.signUp') }}</nuxt-link>
             </div>

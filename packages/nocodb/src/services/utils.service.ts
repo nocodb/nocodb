@@ -5,10 +5,10 @@ import { ViewTypes } from 'nocodb-sdk';
 import { ConfigService } from '@nestjs/config';
 import { useAgent } from 'request-filtering-agent';
 import type { AppConfig } from '~/interface/config';
-import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
+import { NC_APP_SETTINGS, NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
-import { Base, User } from '~/models';
+import { Base, Store, User } from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
@@ -365,6 +365,12 @@ export class UtilsService {
 
   async appInfo(param: { req: { ncSiteUrl: string } }) {
     const baseHasAdmin = !(await User.isFirst());
+
+    let settings: { invite_only_signup?: boolean } = {};
+    try {
+      settings = JSON.parse((await Store.get(NC_APP_SETTINGS, true))?.value);
+    } catch {}
+
     const oidcAuthEnabled = !!(
       process.env.NC_OIDC_ISSUER &&
       process.env.NC_OIDC_AUTHORIZATION_URL &&
@@ -415,6 +421,7 @@ export class UtilsService {
       }),
       mainSubDomain: this.configService.get('mainSubDomain', { infer: true }),
       dashboardPath: this.configService.get('dashboardPath', { infer: true }),
+      inviteOnlySignup: settings.invite_only_signup,
     };
 
     return result;

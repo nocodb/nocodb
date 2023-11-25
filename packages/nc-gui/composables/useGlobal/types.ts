@@ -34,6 +34,7 @@ export interface AppInfo {
   disableEmailAuth: boolean
   mainSubDomain?: string
   dashboardPath: string
+  inviteOnlySignup: boolean
 }
 
 export interface StoredState {

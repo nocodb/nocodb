@@ -68,7 +68,7 @@ jobs:
               ref: "refs/tags/${{ github.event.inputs.tag || inputs.tag }}",
               sha: "${{ steps.get-sha.outputs.TARGET_SHA }}"
             })
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
       - run: "npx github-release-notes@0.17.2  release --token ${{ secrets.GITHUB_TOKEN }}  --draft --tags ${{ github.event.inputs.tag || inputs.tag }}..${{ github.event.inputs.prev_tag || inputs.prev_tag }}"

@@ -56,7 +56,7 @@ test.describe('Import', () => {
 
     await dashboard.treeView.openTable({ title: 'Sheet2' });
 
-    const recordCells = { Number: '1', Float: '1.1', Text: 'abc' };
+    const recordCells = { number: '1', float: '1.1', text: 'abc' };
 
     for (const [key, value] of Object.entries(recordCells)) {
       await dashboard.grid.cell.verify({

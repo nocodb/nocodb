@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 18.14.0
+          node-version: 20.10.0
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
@@ -58,7 +58,9 @@ jobs:
       - name: Set NC Edition
         run: export EE=false
       - name: install dependencies
-        run: pnpm bootstrap
+        run: |
+          pnpm install -g node-gyp-build node-pre-gyp
+          pnpm bootstrap
       - name: Setup mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./packages/nocodb/tests/mysql-sakila-db

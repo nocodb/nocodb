@@ -88,6 +88,8 @@ const isRecordLinkCopied = ref(false)
 
 const { isUIAllowed } = useRoles()
 
+const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
+
 const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
@@ -669,6 +671,7 @@ export default {
                       :class="{
                         'px-1': isReadOnlyVirtualCell(col),
                       }"
+                      :read-only="readOnly"
                     />
 
                     <LazySmartsheetCell
@@ -677,7 +680,7 @@ export default {
                       :column="col"
                       :edit-enabled="true"
                       :active="true"
-                      :read-only="isPublic"
+                      :read-only="readOnly"
                       @update:model-value="changedColumns.add(col.title)"
                     />
                   </SmartsheetDivDataCell>
@@ -737,6 +740,7 @@ export default {
                         v-model="_row.row[col.title]"
                         :row="_row"
                         :column="col"
+                        :read-only="readOnly"
                       />
 
                       <LazySmartsheetCell
@@ -745,7 +749,7 @@ export default {
                         :column="col"
                         :edit-enabled="true"
                         :active="true"
-                        :read-only="isPublic"
+                        :read-only="readOnly"
                         @update:model-value="changedColumns.add(col.title)"
                       />
                     </LazySmartsheetDivDataCell>

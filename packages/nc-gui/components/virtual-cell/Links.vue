@@ -112,7 +112,7 @@ const openListDlg = () => {
         v-e="['c:cell:links:modal:open']"
         :title="textVal"
         class="text-center nc-datatype-link underline-transparent"
-        :class="{ '!text-gray-300': !textVal }"
+        :class="{ '!text-gray-300': !textVal, 'pointer-events-none': readOnly }"
         @click.stop.prevent="openChildList"
       >
         {{ textVal }}
@@ -127,7 +127,6 @@ const openListDlg = () => {
         @click.stop="openListDlg"
       />
     </div>
-
     <LazyVirtualCellComponentsListItems
       v-if="listItemsDlg || childListDlg"
       v-model="listItemsDlg"

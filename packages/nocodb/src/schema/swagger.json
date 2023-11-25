@@ -679,7 +679,7 @@
                   "properties": {
                     "token": {
                       "type": "string",
-                      "description": "New access token for user",
+                      "description": "New JWT auth token for user",
                       "example": "96751db2d53fb834382b682268874a2ea9ee610e4d904e688d1513f11d3c30d62d36d9e05dec0d63"
                     }
                   }
@@ -698,7 +698,7 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "description": "Regenerate user refresh token",
+        "description": "Creates a new refresh token and JWT auth token for the user. The refresh token is sent as a cookie, while the JWT auth token is included in the response body.",
         "tags": [
           "Auth"
         ],

@@ -26,7 +26,6 @@ interface FormulaMeta {
 }
 
 const formulas: Record<string, FormulaMeta> = {
-
   AVG: {
     type: formulaTypes.NUMERIC,
     validation: {
@@ -425,7 +424,17 @@ const formulas: Record<string, FormulaMeta> = {
     description: 'SuccessCase if expr evaluates to TRUE, elseCase otherwise',
     syntax: 'IF(expr, successCase, elseCase)',
     examples: ['IF(5 > 1, "YES", "NO") => "YES"', 'IF({column} > 1, "YES", "NO")'],
-    returnType: formulaTypes.STRING,
+    returnType: (argsTypes: formulaTypes[]) => {
+      if (argsTypes.slice(1).includes(formulaTypes.STRING)) {
+        return formulaTypes.STRING
+      } else if (argsTypes.slice(1).includes(formulaTypes.NUMERIC)) {
+        return formulaTypes.NUMERIC
+      } else if (argsTypes.slice(1).includes(formulaTypes.BOOLEAN)) {
+        return formulaTypes.BOOLEAN
+      }
+
+      return argsTypes[1]
+    },
   },
   SWITCH: {
     type: formulaTypes.COND_EXP,
@@ -443,8 +452,8 @@ const formulas: Record<string, FormulaMeta> = {
       'SWITCH({column1}, 1, "One", 2, "Two", "N/A")',
     ],
     // todo: resolve return type based on the args
-    returnType: () => {
-      return formulaTypes.STRING;
+    returnType: (argTypes: formulaTypes[]) => {
+      return formulaTypes.STRING
     },
   },
   URL: {
@@ -596,7 +605,7 @@ const formulas: Record<string, FormulaMeta> = {
 
     // todo: resolve return type based on the args
     returnType: () => {
-      return formulaTypes.STRING;
+      return formulaTypes.STRING
     },
   },
   COUNTA: {

@@ -223,7 +223,7 @@ if (props.fromTableExplorer) {
       '!w-146': isTextArea(formState) && formState.meta.richMode,
       '!w-[600px]': formState.uidt === UITypes.Formula && !props.embedMode,
       '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode && !appInfo.ee,
-      'shadow-lg border-1 border-gray-50 shadow-gray-100 rounded-md p-6': !embedMode,
+      'shadow-lg border-1 border-gray-100 shadow-gray-300 rounded-xl p-6': !embedMode,
     }"
     @keydown="handleEscape"
     @click.stop

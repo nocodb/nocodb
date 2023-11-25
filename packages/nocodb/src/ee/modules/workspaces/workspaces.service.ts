@@ -86,7 +86,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       roles: WorkspaceUserRoles.OWNER,
     });
 
-    const source = (await templateBase.getBases())[0];
+    const source = (await templateBase.getSources())[0];
 
     const dupBase = await this.basesService.baseCreate({
       base: {

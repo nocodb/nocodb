@@ -58,7 +58,7 @@ export default class Base extends BaseCE {
       (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
     );
     return baseList
-      .map((m) => new Base(m))
+      .map((m) => this.castType(m))
       .filter((p) => !param?.type || p.type === param.type);
   }
 
@@ -176,7 +176,7 @@ export default class Base extends BaseCE {
     let base: Base = await super.getWithInfo(baseId, ncMeta);
 
     if (base && base.type === ProjectTypes.DASHBOARD) {
-      base = new Base(base);
+      base = this.castType(base);
       await base.getLinkedDbProjects(ncMeta);
     }
 
@@ -348,7 +348,7 @@ export default class Base extends BaseCE {
 
     const castedProjectList = bases.map((m) => this.castType(m));
 
-    await Promise.all(castedProjectList.map((base) => base.getBases(ncMeta)));
+    await Promise.all(castedProjectList.map((base) => base.getSources(ncMeta)));
 
     return castedProjectList;
   };
@@ -369,7 +369,7 @@ export default class Base extends BaseCE {
 
     const castedProjectList = bases.map((m) => this.castType(m));
 
-    await Promise.all(castedProjectList.map((base) => base.getBases(ncMeta)));
+    await Promise.all(castedProjectList.map((base) => base.getSources(ncMeta)));
 
     return castedProjectList;
   }

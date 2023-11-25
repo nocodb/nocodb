@@ -381,7 +381,7 @@ export default class BaseUser {
       .filter((p) => !params?.type || p.type === params.type)
       .map((m) => Base.castType(m));
 
-    await Promise.all(castedProjectList.map((base) => base.getBases(ncMeta)));
+    await Promise.all(castedProjectList.map((base) => base.getSources(ncMeta)));
 
     return castedProjectList;
   }

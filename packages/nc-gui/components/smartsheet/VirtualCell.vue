@@ -31,6 +31,7 @@ const props = defineProps<{
   modelValue: any
   row?: Row
   active?: boolean
+  readOnly?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue', 'navigate', 'save'])
@@ -38,12 +39,14 @@ const emit = defineEmits(['update:modelValue', 'navigate', 'save'])
 const column = toRef(props, 'column')
 const active = toRef(props, 'active', false)
 const row = toRef(props, 'row')
+const readOnly = toRef(props, 'readOnly', false)
 
 provide(ColumnInj, column)
 provide(ActiveCellInj, active)
 provide(RowInj, row)
 provide(CellValueInj, toRef(props, 'modelValue'))
 provide(SaveRowInj, () => emit('save'))
+provide(ReadonlyInj, readOnly)
 
 const isGrid = inject(IsGridInj, ref(false))
 
@@ -94,7 +97,9 @@ onUnmounted(() => {
   <div
     ref="elementToObserve"
     class="nc-virtual-cell w-full flex items-center"
-    :class="{ 'text-right justify-end': isGrid && !isForm && isRollup(column) && !isExpandedForm }"
+    :class="{
+      'text-right justify-end': isGrid && !isForm && isRollup(column) && !isExpandedForm,
+    }"
     @keydown.enter.exact="onNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
   >

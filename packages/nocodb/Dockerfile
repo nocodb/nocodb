@@ -25,7 +25,7 @@ WORKDIR /usr/src/app
 RUN apk add --no-cache python3 make g++
 
 # install pnpm
-RUN corepack enable && corepack prepare pnpm@8.11.0 --activate
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy application dependency manifests to the container image.
 COPY ./package.json ./package.json

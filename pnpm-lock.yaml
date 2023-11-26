@@ -227,38 +227,38 @@ importers:
         specifier: ^0.2.2
         version: 0.2.2(esbuild@0.19.7)
       '@iconify-json/ant-design':
-        specifier: ^1.1.10
-        version: 1.1.10
+        specifier: ^1.1.11
+        version: 1.1.11
       '@iconify-json/bi':
         specifier: ^1.1.21
         version: 1.1.21
       '@iconify-json/carbon':
-        specifier: ^1.1.21
-        version: 1.1.21
+        specifier: ^1.1.22
+        version: 1.1.22
       '@iconify-json/cil':
-        specifier: ^1.1.5
-        version: 1.1.5
+        specifier: ^1.1.6
+        version: 1.1.6
       '@iconify-json/clarity':
-        specifier: ^1.1.9
-        version: 1.1.9
+        specifier: ^1.1.10
+        version: 1.1.10
       '@iconify-json/eva':
-        specifier: ^1.1.7
-        version: 1.1.7
+        specifier: ^1.1.8
+        version: 1.1.8
       '@iconify-json/ic':
-        specifier: ^1.1.14
-        version: 1.1.14
+        specifier: ^1.1.15
+        version: 1.1.15
       '@iconify-json/ion':
-        specifier: ^1.1.12
-        version: 1.1.12
+        specifier: ^1.1.13
+        version: 1.1.13
       '@iconify-json/la':
-        specifier: ^1.1.5
-        version: 1.1.5
+        specifier: ^1.1.6
+        version: 1.1.6
       '@iconify-json/logos':
-        specifier: ^1.1.38
-        version: 1.1.38
+        specifier: ^1.1.39
+        version: 1.1.39
       '@iconify-json/lucide':
-        specifier: ^1.1.141
-        version: 1.1.141
+        specifier: ^1.1.142
+        version: 1.1.142
       '@iconify-json/material-symbols':
         specifier: ^1.1.63
         version: 1.1.63
@@ -4181,8 +4181,8 @@ packages:
     engines: {node: '>=6.9.0'}
     dev: true
 
-  /@iconify-json/ant-design@1.1.10:
-    resolution: {integrity: sha512-XgBEAl+3N0QIn3nDN9xFPw5WlU9IgnmJvis2Ev1au4Y6ITG4zReMglXi+I21xmfK3mnjFnfAteZ4EzLVKHm7Hw==}
+  /@iconify-json/ant-design@1.1.11:
+    resolution: {integrity: sha512-aR+C7kvD+se2EKxqfqu/7qw8JOGn7sjDdxAFzIX6Kqw74h++MPBm7eIavMHJU/5+F0BH+5r3FUxvXzmMzBTQIw==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -4193,56 +4193,56 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/carbon@1.1.21:
-    resolution: {integrity: sha512-bK2cMVM4noBU+FGlay433flpXLRzQu0ED095iAnoO6ka3yb4uz0lvb8acpN5gthyGLJ89C4HpfIbQZLQnMKQww==}
+  /@iconify-json/carbon@1.1.22:
+    resolution: {integrity: sha512-kQqCxiRkXtT7RO612GosIgvmQ8M8Ltgwl8LZZ4LKO8jip77W4rLK2PFjuS1uXRM1Lu879uzH73mMUClqFLsA0Q==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/cil@1.1.5:
-    resolution: {integrity: sha512-vyeEU3EIVGA43zOI0o/hwYaFFkWlzn8l1bbuPpxzZyGfizAIJdJA4I9+zm4zWRWzqj5WPusilX9wAxKTBwlazA==}
+  /@iconify-json/cil@1.1.6:
+    resolution: {integrity: sha512-oLxF8YBEziANWfiGsvVA5CPqz53YjxKt5fXlvD6ET82Cs4w1wP45cN5jZI0HPCTfH41oYnGMY25peh2E7dlNKQ==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/clarity@1.1.9:
-    resolution: {integrity: sha512-U9Pj2YKZ1zVp2pikA1EOstEPmv7NuXRZR8wc31VXrZUrlMjvSWMwvcr8/VIcMBVK6smb7z/Ab3iZLvCs3mtyBw==}
+  /@iconify-json/clarity@1.1.10:
+    resolution: {integrity: sha512-U7KS12IWkkRYwYKZQaBb9duWrYLak8N/0HS4Zzcc3a7uc/FNt30O8S/WhIRFSXt9ue+xvq3OfuPstcmjbiE49w==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/eva@1.1.7:
-    resolution: {integrity: sha512-W0FPdsnvF4sKDO1E6I1morEh73K+kbB3ClSGMHkLMZxkYPeRsHZbKM3fj09X1ofH2LjYDdso4JPhFFY742hGcQ==}
+  /@iconify-json/eva@1.1.8:
+    resolution: {integrity: sha512-4FciS7szx4fbk6814BuSRpULrpswVwvvShUYbe4EkE7T+wrY5ZX+EpRCpTUy2TImZJWkl8sNyk9QjWExSIbW+g==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/ic@1.1.14:
-    resolution: {integrity: sha512-vbATa9uwb9pIsRWQ+iXObQCgLTePk/0vo4shBr3Td0GnTjsAU/7VUGTkrZFVf5vpgiG6OsXkcKMPzBPvt966sg==}
+  /@iconify-json/ic@1.1.15:
+    resolution: {integrity: sha512-/L7Yq5i+cao42RlDKArMKWgJ64f/M3PnNhBwJnutkRabvOKVk3p4Vli55bJywjA79c8S5yyXfemsHt+1C3hRZg==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/ion@1.1.12:
-    resolution: {integrity: sha512-YvVxa9pVUJFEp7S5n97VIYZv1/qU/aX1RSehDBQRfI0YsZCZhBQY77SxYXGCb/Gc0fP4//b9wtx8UE4hfwr0eQ==}
+  /@iconify-json/ion@1.1.13:
+    resolution: {integrity: sha512-wiTseSqxRJRKsi9wJWtfjMIIDiwTWELRFfMV+b6TPdA2XUR+NnlUC/4MH7XEd9fC3Rcj7Tp9Wlpm2pFM/+flLQ==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/la@1.1.5:
-    resolution: {integrity: sha512-4zFJlnSxNSe3vTQWXlpZESEz0um5qmXj2EtjYTYdLRfe5HWmzSEuSq+9fOmbyXW+RSAFtbesODxXe8xA+FsIjg==}
+  /@iconify-json/la@1.1.6:
+    resolution: {integrity: sha512-8ba/4AkJQ93MULS/PYejOFzXeBg0wGBt+dJFgelIqUkOlDSMnWBhBL6Thbi/HHfJXffSmRYJ617sAiv+kVYJLQ==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/logos@1.1.38:
-    resolution: {integrity: sha512-26sPSWn/Y3nY4Kx3kbHOPU8zzEFaDMeuStFhDbW2SpLy6grusqTAgf0o4r4irNAPkdI1gPF8kuSyGDKeSPFzZw==}
+  /@iconify-json/logos@1.1.39:
+    resolution: {integrity: sha512-ABYVTpbgNh9qDer1p2Jz3oDNHoRL/OlSS/jpo/OLI1buCmw/lI6mHk7D6nBB6w2AY7DQ60yyck/WN+zGD/fpLA==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/lucide@1.1.141:
-    resolution: {integrity: sha512-sqVopjdB7m8JOnpZilQbLCM1sOq3snE2OEP2BnP1EIefAd6uhzBBrV7Zy6hkkvdHVKYmX4aVzOHF6enDFO7kHA==}
+  /@iconify-json/lucide@1.1.142:
+    resolution: {integrity: sha512-iV3I3FlLvwkr+FTZZCljPd9BEIR3SEDvURz24LQjXwuEoizpOSk7Pp27wsyaHlFjnDcetdTNa+lZ7Pgc6W8bgQ==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -9562,15 +9562,6 @@ packages:
       - supports-color
     dev: true
 
-  /@vue/compiler-core@3.3.8:
-    resolution: {integrity: sha512-hN/NNBUECw8SusQvDSqqcVv6gWq8L6iAktUR0UF3vGu2OhzRqcOiAno0FmBJWwxhYEXRlQJT5XnoKsVq1WZx4g==}
-    dependencies:
-      '@babel/parser': 7.23.4
-      '@vue/shared': 3.3.8
-      estree-walker: 2.0.2
-      source-map-js: 1.0.2
-    dev: true
-
   /@vue/compiler-core@3.3.9:
     resolution: {integrity: sha512-+/Lf68Vr/nFBA6ol4xOtJrW+BQWv3QWKfRwGSm70jtXwfhZNF4R/eRgyVJYoxFRhdCTk/F6g99BP0ffPgZihfQ==}
     dependencies:
@@ -9578,13 +9569,6 @@ packages:
       '@vue/shared': 3.3.9
       estree-walker: 2.0.2
       source-map-js: 1.0.2
-
-  /@vue/compiler-dom@3.3.8:
-    resolution: {integrity: sha512-+PPtv+p/nWDd0AvJu3w8HS0RIm/C6VGBIRe24b9hSyNWOAPEUosFZ5diwawwP8ip5sJ8n0Pe87TNNNHnvjs0FQ==}
-    dependencies:
-      '@vue/compiler-core': 3.3.8
-      '@vue/shared': 3.3.8
-    dev: true
 
   /@vue/compiler-dom@3.3.9:
     resolution: {integrity: sha512-nfWubTtLXuT4iBeDSZ5J3m218MjOy42Vp2pmKVuBKo2/BLcrFUX8nCSr/bKRFiJ32R8qbdnnnBgRn9AdU5v0Sg==}
@@ -24753,7 +24737,7 @@ packages:
       '@babel/plugin-syntax-import-meta': 7.10.4(@babel/core@7.23.3)
       '@babel/plugin-transform-typescript': 7.22.15(@babel/core@7.23.3)
       '@vue/babel-plugin-jsx': 1.1.5(@babel/core@7.23.3)
-      '@vue/compiler-dom': 3.3.8
+      '@vue/compiler-dom': 3.3.9
       kolorist: 1.8.0
       magic-string: 0.30.5
       vite: 4.5.0(@types/node@20.3.1)(sass@1.69.5)

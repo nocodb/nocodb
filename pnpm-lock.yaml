@@ -260,32 +260,32 @@ importers:
         specifier: ^1.1.142
         version: 1.1.142
       '@iconify-json/material-symbols':
-        specifier: ^1.1.63
-        version: 1.1.63
+        specifier: ^1.1.64
+        version: 1.1.64
       '@iconify-json/mdi':
-        specifier: ^1.1.55
-        version: 1.1.55
+        specifier: ^1.1.56
+        version: 1.1.56
       '@iconify-json/mi':
-        specifier: ^1.1.5
-        version: 1.1.5
-      '@iconify-json/ph':
         specifier: ^1.1.6
         version: 1.1.6
+      '@iconify-json/ph':
+        specifier: ^1.1.7
+        version: 1.1.7
       '@iconify-json/ri':
-        specifier: ^1.1.12
-        version: 1.1.12
+        specifier: ^1.1.13
+        version: 1.1.13
       '@iconify-json/simple-icons':
-        specifier: ^1.1.79
-        version: 1.1.79
+        specifier: ^1.1.80
+        version: 1.1.80
       '@iconify-json/system-uicons':
-        specifier: ^1.1.9
-        version: 1.1.9
+        specifier: ^1.1.10
+        version: 1.1.10
       '@iconify-json/tabler':
-        specifier: ^1.1.98
-        version: 1.1.98
+        specifier: ^1.1.99
+        version: 1.1.99
       '@iconify-json/vscode-icons':
-        specifier: ^1.1.29
-        version: 1.1.29
+        specifier: ^1.1.30
+        version: 1.1.30
       '@intlify/unplugin-vue-i18n':
         specifier: ^0.12.3
         version: 0.12.3(vue-i18n@9.2.2)
@@ -4247,56 +4247,56 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/material-symbols@1.1.63:
-    resolution: {integrity: sha512-khNlplaY/iEQtnhVgegAZalH32QPohu7gjQDFK2cChjO1FELzixh3iDwEzOonue4ZZPiCT/EPzxT+rWDrSF0hg==}
+  /@iconify-json/material-symbols@1.1.64:
+    resolution: {integrity: sha512-he6VUP4mXtcS7ypTE10irRr0RbIdak0KDpPvi3ol+UKqVj+e7xBaoBqutTEBq1YjJIcccfqoIz49BHJbC2Wb6g==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/mdi@1.1.55:
-    resolution: {integrity: sha512-ycnFub+EQx+3D/aDCg6iC7sjexOUa5GzxUNIZFFl0Pq7aDxbmhIludoyYnguEO3REyWf9FcOOmvVcQkdtwKHTw==}
+  /@iconify-json/mdi@1.1.56:
+    resolution: {integrity: sha512-a06ZCKGLa8DMcb95QbVfnL2qdhADB2laYwd//auU6unwl77t2ncxpxdCa62scAYk9IMzRR7SAXi3H64QsgRsGw==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/mi@1.1.5:
-    resolution: {integrity: sha512-b50nma0KOXcF3WzD4Y0xgzW6HGjD/iTyVK0j6ggVj09tIJ5vPirDzDvJEPLzU9edguH9mPIiz0p+6LQrEZzLyA==}
+  /@iconify-json/mi@1.1.6:
+    resolution: {integrity: sha512-XbttXVpWCGpTe5tPyc4kUBmj7XRA+qE3lGrBmI9H3Dy2MQBNJOtVE5jg0fxoWGbNMgHPLXdZU1zR/4GTIwlIew==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/ph@1.1.6:
-    resolution: {integrity: sha512-dexzEndlXQX/sbQhnEpA94Pby6JCGV2tZToSGcPPQpbilDGyk5VMd0ymusYoocRAn6+qLpGRvMoz5XFKGqP+VA==}
+  /@iconify-json/ph@1.1.7:
+    resolution: {integrity: sha512-DvP4RYvMp/1LHVh6/xW/dJf0HpbkZP9mJ8dV3jRW/nRQkaOo5RHdkAZ+nPu3l5te6qmfdi/fu5MF1nf44Ufrdg==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/ri@1.1.12:
-    resolution: {integrity: sha512-s5VsyMWYuUuTB5bATJRoDQKGqo6W0dsxvOBrJI/P2H9QI7IAaAWl8zHxseSjoUGG6AwZwWwDMW9YPULPt+vA6w==}
+  /@iconify-json/ri@1.1.13:
+    resolution: {integrity: sha512-NWpLjELhM8hgokl574m/vHCGp0GWwKYZhCubiEjao8iWlc6C79fHlraEOVsq/g65GA7ccs9r9jebuFNDkhgYOw==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/simple-icons@1.1.79:
-    resolution: {integrity: sha512-QayoZelr/QyYn0ALkOoBQDEseUGeNAZoQ9i25qfCeKxc7HEdvUU8cUc4/V/1n3FxohAtdi3oPdyILIhR5T1TVw==}
+  /@iconify-json/simple-icons@1.1.80:
+    resolution: {integrity: sha512-HDTFgpAfOru6/T/c+aAZkpmNd6HtXioEmTK7/Oa7ESGYg+y3Uk2jJ+Ug9LhlQvrlBhjweAQOFx8xBKGfAnAXfg==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/system-uicons@1.1.9:
-    resolution: {integrity: sha512-QcXEzU28f60RQaAnP69Ggpio/K73f1CsEFoMWEiUs6HNEzRUYQGwuHO9dcYzIuBretAGTlp1G93wROo9BZfKcg==}
+  /@iconify-json/system-uicons@1.1.10:
+    resolution: {integrity: sha512-uXEmD4/O/75Dr0rR7M6AfqhXztu+dxNhQHuwLZQLleF2d1W6talfggFvtW5Op5zqkst8mhh6l/jEmGFsQXM6jA==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/tabler@1.1.98:
-    resolution: {integrity: sha512-icA0KXNyhaREHZmIDD570lXZnC5TNApiCVwrWOla+Z5KlNNgwfCh1J76MCb3TYQ5gTdB0eC+MGsLqDdBSayR6Q==}
+  /@iconify-json/tabler@1.1.99:
+    resolution: {integrity: sha512-JLdoXtmenkQLA2yO6+D+WLTLi3J6bXH6gMo8Tf1uL8SHwQfv7UF7ZSknTM7PFSx5VV+aRupZ4dz2/SQV9BBs6w==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/vscode-icons@1.1.29:
-    resolution: {integrity: sha512-wJMxrnA5DZcFYgfEQBV7zH4gDk15GbViQ9bHTYror+jKR6bNDkX6wvAyEApb3Tuo6RDJkAY/WbgwoIfqFGyKZg==}
+  /@iconify-json/vscode-icons@1.1.30:
+    resolution: {integrity: sha512-f+sEjKk5BX5d5xERRn0dEgb9cOlQso+6rS6hEIWIw/nWs6YzF6y8A0CWQ3gT5fyPj9upWpgMQc1USmKPrwL1IQ==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true

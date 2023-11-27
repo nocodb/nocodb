@@ -1685,7 +1685,7 @@ export function validateFormulaAndExtractTreeWithType(
         res.dataType = formulas[calleeName].returnType as FormulaDataTypes;
       }
     } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
-      const col = columns.find[parsedTree.name] as Record<
+      const col = (colIdToColMap[parsedTree.name] || colAliasToColMap[parsedTree.name]) as Record<
         string,
         any
       >;

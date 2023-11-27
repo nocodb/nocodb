@@ -7,12 +7,12 @@ import {
 } from 'nocodb-sdk';
 import mapFunctionName from '../mapFunctionName';
 import genRollupSelectv2 from '../genRollupSelectv2';
-import type Column from '~/models/Column';
 import type Model from '~/models/Model';
 import type RollupColumn from '~/models/RollupColumn';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type Column from '~/models/Column';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import {
@@ -21,7 +21,7 @@ import {
 } from '~/helpers/formulaFnHelper';
 import FormulaColumn from '~/models/FormulaColumn';
 
-// todo: switch function based on database
+const logger = new Logger('FormulaQueryBuilderv2');
 
 // @ts-ignore
 const getAggregateFn: (fnName: string) => (args: { qb; knex?; cn }) => any = (
@@ -64,6 +64,7 @@ async function _formulaQueryBuilder(
   aliasToColumn: Record<string, () => Promise<{ builder: any }>> = {},
   tableAlias?: string,
   parsedTree?: any,
+  column: Column = null,
 ) {
   const knex = baseModelSqlv2.dbDriver;
 
@@ -78,6 +79,18 @@ async function _formulaQueryBuilder(
       _tree.replaceAll('{{', '{').replaceAll('}}', '}'),
       columns,
     );
+
+    // populate and save parsedTree to column if not exist
+    if (column) {
+      FormulaColumn.update(column.id, { parsed_tree: tree }).then(
+        () => {
+          // ignore
+        },
+        (err) => {
+          logger.error(err);
+        },
+      );
+    }
   }
 
   const columnIdToUidt = {};

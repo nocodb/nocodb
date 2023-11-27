@@ -435,17 +435,6 @@ const formulas: Record<string, FormulaMeta> = {
 
       return argsTypes[1]
     },
-    returnType: (argTypes: formulaTypes[]) => {
-      if (argTypes.slice(1).includes(formulaTypes.STRING)) {
-        return formulaTypes.STRING
-      } else if (argTypes.slice(1).includes(formulaTypes.NUMERIC)) {
-        return formulaTypes.NUMERIC
-      } else if (argTypes.slice(1).includes(formulaTypes.BOOLEAN)) {
-        return formulaTypes.BOOLEAN
-      }
-
-      return argTypes[1]
-    },
   },
   SWITCH: {
     type: formulaTypes.COND_EXP,

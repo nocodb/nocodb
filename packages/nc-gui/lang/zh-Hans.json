@@ -1,17 +1,17 @@
 {
   "dashboards": {
-    "create_new_dashboard_project": "Create New Interface",
-    "connect_data_sources": "Connect data sources",
+    "create_new_dashboard_project": "创建新界面",
+    "connect_data_sources": "连接数据源",
     "alert": "警告",
     "alert-message": "尚未连接数据库，连接数据库以构建界面。跳过此步骤，稍后从数据库主页添加数据库。",
     "select_database_projects_that_you_want_to_link_to_this_dashboard_projects": "选择要链接到此界面的数据库。",
     "create_interface": "创建界面",
-    "project_name": "Base Name",
-    "connect": "Connect",
+    "project_name": "项目名",
+    "connect": "连接",
     "buttonActionTypes": {
-      "open_external_url": "Open external link",
-      "delete_record": "Delete record",
-      "update_record": "Update record",
+      "open_external_url": "打开外部链接",
+      "delete_record": "删除行",
+      "update_record": "更新记录",
       "open_layout": "Open layout"
     },
     "widgets": {

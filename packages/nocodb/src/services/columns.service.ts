@@ -5,7 +5,8 @@ import {
   isVirtualCol,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
-  UITypes, validateFormulaAndExtractTreeWithType,
+  UITypes,
+  validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
@@ -184,6 +185,7 @@ export class ColumnsService {
     let colBody = { ...param.column } as Column & {
       formula?: string;
       formula_raw?: string;
+      parsed_tree?: any;
     };
     if (
       [
@@ -208,6 +210,10 @@ export class ColumnsService {
             colBody.formula_raw || colBody.formula,
             table.columns,
           );
+          colBody.parsed_tree = validateFormulaAndExtractTreeWithType(
+            colBody.formula_raw || colBody.formula,
+            table.columns,
+          );
 
           try {
             const baseModel = await reuseOrSave('baseModel', reuse, async () =>
@@ -227,6 +233,7 @@ export class ColumnsService {
               {},
               null,
               true,
+              colBody.parsed_tree
             );
           } catch (e) {
             console.error(e);
@@ -931,6 +938,7 @@ export class ColumnsService {
                       ]);
                     await FormulaColumn.update(c.id, {
                       formula_raw: new_formula_raw,
+                      parsed_tree: validateFormulaAndExtractTreeWithType(new_formula_raw, table.columns)
                     });
                   }
                 }
@@ -992,6 +1000,10 @@ export class ColumnsService {
                       ]);
                     await FormulaColumn.update(c.id, {
                       formula_raw: new_formula_raw,
+                      parsed_tree: validateFormulaAndExtractTreeWithType(
+                        new_formula_raw,
+                        table.columns,
+                      ),
                     });
                   }
                 }

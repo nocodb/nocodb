@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { dateFormats } from 'nocodb-sdk'
+import { dateFormats, dateMonthFormats } from 'nocodb-sdk'
 import { useVModel } from '#imports'
 
 const props = defineProps<{
@@ -19,7 +19,7 @@ if (!vModel.value.meta?.date_format) {
 <template>
   <a-form-item :label="$t('labels.dateFormat')">
     <a-select v-model:value="vModel.meta.date_format" class="nc-date-select" dropdown-class-name="nc-dropdown-date-format">
-      <a-select-option v-for="(format, i) of dateFormats" :key="i" :value="format">
+      <a-select-option v-for="(format, i) of [...dateFormats, ...dateMonthFormats]" :key="i" :value="format">
         <div class="flex flex-row items-center">
           <div class="text-xs">
             {{ format }}

@@ -190,7 +190,7 @@ function parseAndValidateFormula(formula: string) {
 }
 
 function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = new Set()) {
-  let type: formulaTypes;
+  let returnType: formulaTypes
   if (parsedTree.type === JSEPNode.CALL_EXP) {
     const calleeName = parsedTree.callee.name.toUpperCase()
     // validate function name
@@ -203,17 +203,41 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
       if (validation.args.rqd !== undefined && validation.args.rqd !== parsedTree.arguments.length) {
         errors.add(t('msg.formula.requiredArgumentsFormula', { requiredArguments: validation.args.rqd, calleeName }))
       } else if (validation.args.min !== undefined && validation.args.min > parsedTree.arguments.length) {
-        errors.add(t('msg.formula.minRequiredArgumentsFormula', { minRequiredArguments: validation.args.min, calleeName }))
+        errors.add(
+          t('msg.formula.minRequiredArgumentsFormula', {
+            minRequiredArguments: validation.args.min,
+            calleeName,
+          }),
+        )
       } else if (validation.args.max !== undefined && validation.args.max < parsedTree.arguments.length) {
-        errors.add(t('msg.formula.maxRequiredArgumentsFormula', { maxRequiredArguments: validation.args.max, calleeName }))
+        errors.add(
+          t('msg.formula.maxRequiredArgumentsFormula', {
+            maxRequiredArguments: validation.args.max,
+            calleeName,
+          }),
+        )
       }
     }
 
     parsedTree.arguments.map((arg: Record<string, any>) => validateAgainstMeta(arg, errors))
 
+    // get args type and validate
+    const validateResult = parsedTree.arguments.map((arg) => {
+      return validateAgainstMeta(arg, errors, typeErrors)
+    })
+
+    const argsTypes = validateResult.map((v: any) => v.returnType);
+
+    if (typeof validateResult[0].returnType === 'function') {
+      returnType = formulas[calleeName].returnType(argsTypes)
+    } else if (validateResult[0]) {
+      returnType = formulas[calleeName].returnType
+    }
+
     // validate data type
     if (parsedTree.callee.type === JSEPNode.IDENTIFIER) {
       const expectedType = formulas[calleeName.toUpperCase()].type
+
       if (expectedType === formulaTypes.NUMERIC) {
         if (calleeName === 'WEEKDAY') {
           // parsedTree.arguments[0] = date
@@ -242,7 +266,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
             typeErrors,
           )
         } else {
-          parsedTree.arguments.map((arg: Record<string, any>) => validateAgainstType(arg, expectedType, null, typeErrors))
+          parsedTree.arguments.map((arg: Record<string, any>) => validateAgainstType(arg, expectedType, null, typeErrors, argsTypes))
         }
       } else if (expectedType === formulaTypes.DATE) {
         if (calleeName === 'DATEADD') {
@@ -438,7 +462,21 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
     }
     validateAgainstMeta(parsedTree.left, errors)
     validateAgainstMeta(parsedTree.right, errors)
+
+    // todo: type extraction for binary exps
+    returnType = formulaTypes.NUMERIC
   } else if (parsedTree.type === JSEPNode.LITERAL || parsedTree.type === JSEPNode.UNARY_EXP) {
+    if (parsedTree.type === JSEPNode.LITERAL) {
+      if (typeof parsedTree.value === 'number') {
+        returnType = formulaTypes.NUMERIC
+      } else if (typeof parsedTree.value === 'string') {
+        returnType = formulaTypes.STRING
+      } else if (typeof parsedTree.value === 'boolean') {
+        returnType = formulaTypes.BOOLEAN
+      } else {
+        returnType = formulaTypes.STRING
+      }
+    }
     // do nothing
   } else if (parsedTree.type === JSEPNode.COMPOUND) {
     if (parsedTree.body.length) {
@@ -447,10 +485,11 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
   } else {
     errors.add(t('msg.formula.cantSaveFieldFormulaInvalid'))
   }
-  return {errors, type}
+  return { errors, returnType }
 }
 
-function validateAgainstType(parsedTree: any, expectedType: string, func: any, typeErrors = new Set()) {
+function validateAgainstType(parsedTree: any, expectedType: string, func: any, typeErrors = new Set(), argTypes: formulaTypes = []) {
+  let type
   if (parsedTree === false || typeof parsedTree === 'undefined') {
     return typeErrors
   }
@@ -460,10 +499,14 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
     } else if (expectedType === formulaTypes.NUMERIC) {
       if (typeof parsedTree.value !== 'number') {
         typeErrors.add(t('msg.formula.numericTypeIsExpected'))
+      } else {
+        type = formulaTypes.NUMERIC
       }
     } else if (expectedType === formulaTypes.STRING) {
       if (typeof parsedTree.value !== 'string') {
         typeErrors.add(t('msg.formula.stringTypeIsExpected'))
+      } else {
+        type = formulaTypes.STRING
       }
     }
   } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
@@ -475,6 +518,7 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
 
     if (col.uidt === UITypes.Formula) {
       const foundType = getRootDataType(jsep(col.colOptions?.formula_raw))
+      type = foundType
       if (foundType === 'N/A') {
         typeErrors.add(t('msg.formula.notSupportedToReferenceColumn', { columnName: col.title }))
       } else if (expectedType !== foundType) {
@@ -504,6 +548,7 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
               }),
             )
           }
+          type = formulaTypes.STRING
           break
 
         // numeric
@@ -523,6 +568,7 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
               }),
             )
           }
+          type = formulaTypes.NUMERIC
           break
 
         // date
@@ -539,6 +585,7 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
               }),
             )
           }
+          type = formulaTypes.DATE
           break
 
         case UITypes.Rollup: {
@@ -616,6 +663,8 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
         }),
       )
     }
+
+    type = formulaTypes.NUMERIC
   } else if (parsedTree.type === JSEPNode.CALL_EXP) {
     const calleeName = parsedTree.callee.name.toUpperCase()
     if (formulas[calleeName]?.type && expectedType !== formulas[calleeName].type) {
@@ -626,8 +675,10 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
         }),
       )
     }
+    // todo: derive type from returnType
+    type = formulas[calleeName]?.type
   }
-  return typeErrors
+  return { type, typeErrors }
 }
 
 function getRootDataType(parsedTree: any): any {

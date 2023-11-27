@@ -16,7 +16,7 @@ export default class FormulaColumn {
   }
 
   public static async insert(
-    formulaColumn: Partial<FormulaColumn & { parsed_tree?: any }>,
+    formulaColumn: Partial<FormulaColumn> & { parsed_tree?: any },
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(formulaColumn, [
@@ -72,7 +72,7 @@ export default class FormulaColumn {
       'parsed_tree',
     ]);
 
-    updateObj.parsed_tree = stringifyMetaProp(insertObj, 'parsed_tree');
+    updateObj.parsed_tree = stringifyMetaProp(updateObj, 'parsed_tree');
 
     // get existing cache
     const key = `${CacheScope.COL_FORMULA}:${id}`;

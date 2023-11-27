@@ -713,7 +713,11 @@ export default class Column<T = any> implements ColumnType {
             title: col?.title,
           })
         )
-          await FormulaColumn.update(formulaCol.id, formula, ncMeta);
+          await FormulaColumn.update(
+            formulaCol.id,
+            formula as FormulaColumn & { parsed_tree?: any },
+            ncMeta,
+          );
       }
     }
 

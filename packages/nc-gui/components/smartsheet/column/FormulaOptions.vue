@@ -307,7 +307,7 @@ onMounted(() => {
         {{ example }}
       </div>
     </div>
-    <a-form-item v-bind="validateInfos.formula_raw" :label="$t('datatype.Formula')">
+    <a-form-item v-bind="validateInfos.formula_raw" class="!pb-1" :label="$t('datatype.Formula')">
       <!-- <GeneralIcon
         v-if="isEeUI"
         icon="magic"
@@ -318,7 +318,7 @@ onMounted(() => {
       <a-textarea
         ref="formulaRef"
         v-model:value="vModel.formula_raw"
-        class="!mb-4 nc-formula-input !rounded-md"
+        class="nc-formula-input !rounded-md !mb-1"
         @keydown.down.prevent="suggestionListDown"
         @keydown.up.prevent="suggestionListUp"
         @keydown.enter.prevent="selectText"
@@ -402,6 +402,9 @@ onMounted(() => {
           </template>
         </a-list>
       </template>
+      <div v-if="suggestion.length === 0">
+        <span class="text-gray-500">Empty</span>
+      </div>
     </div>
   </div>
 </template>

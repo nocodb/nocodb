@@ -27,7 +27,6 @@ export const dateFormats = [
   'DD MM YYYY',
   'MM DD YYYY',
   'YYYY MM DD',
-  ...dateMonthFormats,
 ];
 
 export const isDateMonthFormat = (format: string) =>

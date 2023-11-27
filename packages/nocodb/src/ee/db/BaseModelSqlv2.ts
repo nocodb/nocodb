@@ -735,7 +735,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       await this.afterDelete(data, null, cookie);
 
-      return responses.pop();
+      return responses.pop()?.rowCount;
     } catch (e) {
       console.log(e);
       await this.errorDelete(e, id, null, cookie);

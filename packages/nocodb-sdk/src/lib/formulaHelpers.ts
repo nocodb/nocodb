@@ -2,7 +2,6 @@ import jsep from 'jsep';
 
 import { ColumnType } from './Api';
 import UITypes from './UITypes';
-import { formulaTypes } from '../../../nc-gui/utils';
 
 export const jsepCurlyHook = {
   name: 'curly',
@@ -221,7 +220,7 @@ interface FormulaMeta {
       min?: number;
       max?: number;
       rqd?: number;
-      validator?: (args: formulaTypes[]) => boolean;
+      validator?: (args: FormulaDataTypes[]) => boolean;
     };
   };
   description?: string;
@@ -1180,6 +1179,7 @@ export function validateFormulaAndExtractTreeWithType(
   const result = validateAndExtract(parsedFormula);
   return result;
 }
+/*
 
 function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {
   // check circular reference
@@ -1272,3 +1272,4 @@ function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {
     }
   }
 }
+*/

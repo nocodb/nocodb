@@ -346,10 +346,13 @@ onMounted(() => {
             >
               <a-list-item-meta>
                 <template #title>
-                  <div class="flex">
-                    <a-col :span="6">
-                      <span class="prose-sm text-gray-600">{{ item.text }}</span>
-                    </a-col>
+                  <div class="flex items-center gap-x-1">
+                    <component :is="iconMap.function" v-if="item.type === 'function'" class="text-lg" />
+
+                    <component :is="iconMap.calculator" v-if="item.type === 'op'" class="text-lg" />
+
+                    <component :is="item.icon" v-if="item.type === 'column'" class="text-lg" />
+                    <span class="prose-sm text-gray-600">{{ item.text }}</span>
                   </div>
                 </template>
               </a-list-item-meta>
@@ -379,15 +382,11 @@ onMounted(() => {
             >
               <a-list-item-meta>
                 <template #title>
-                  <div class="flex">
-                    <a-col :span="6">
-                      <span class="prose-sm text-gray-600">{{ item.text }}</span>
-                    </a-col>
-                  </div>
-                </template>
+                  <div class="flex items-center gap-x-1">
+                    <component :is="item.icon" class="text-lg" />
 
-                <template #avatar>
-                  <component :is="item.icon" class="text-lg" />
+                    <span class="prose-sm text-gray-600">{{ item.text }}</span>
+                  </div>
                 </template>
               </a-list-item-meta>
             </a-list-item>
@@ -400,6 +399,6 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 :deep(.ant-list-item) {
-  @apply !pt-1.75 pb-0.75 !px-3;
+  @apply !pt-1.75 pb-0.75 !px-2;
 }
 </style>

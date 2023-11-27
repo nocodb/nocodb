@@ -145,19 +145,20 @@ const suggestionsList = computed(() => {
 // set default suggestion list
 const suggestion: Ref<Record<string, any>[]> = ref(suggestionsList.value)
 
-const suggestedFormulas = computed(() => {
-  return suggestion.value.filter((s) => s && s.type !== 'column')
-})
-const variableList = computed(() => {
-  return suggestion.value.filter((s) => s && s.type === 'column')
-})
-
 const acTree = computed(() => {
   const ref = new NcAutocompleteTree()
   for (const sug of suggestionsList.value) {
     ref.add(sug)
   }
   return ref
+})
+
+const suggestedFormulas = computed(() => {
+  return suggestion.value.filter((s) => s && s.type !== 'column')
+})
+
+const variableList = computed(() => {
+  return suggestion.value.filter((s) => s && s.type === 'column')
 })
 
 function isCurlyBracketBalanced() {
@@ -252,7 +253,6 @@ function suggestionListDown() {
 function scrollToSelectedOption() {
   nextTick(() => {
     if (sugOptionsRef.value[selected.value]) {
-      console.log('scrollToSelectedOption', selected.value, sugOptionsRef.value[selected.value].$el, sugListRef.value)
       try {
         sugOptionsRef.value[selected.value].$el.scrollIntoView({
           block: 'nearest',

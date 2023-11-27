@@ -1063,7 +1063,7 @@ export async function singleQueryList(ctx: {
   let res: any;
   if (skipCache) {
     const startTime = process.hrtime();
-    res = await finalQb;
+    res = await baseModel.execAndParse(finalQb);
     dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   } else {
     const { sql, bindings } = finalQb.toSQL();

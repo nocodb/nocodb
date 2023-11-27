@@ -131,7 +131,7 @@
     "@types/file-saver": "^2.0.7",
     "@types/leaflet": "^1.9.8",
     "@types/leaflet.markercluster": "^1.5.4",
-    "@types/papaparse": "^5.3.13",
+    "@types/papaparse": "^5.3.14",
     "@types/parse-github-url": "^1.0.3",
     "@types/qrcode": "^1.5.5",
     "@types/showdown": "^2.0.6",

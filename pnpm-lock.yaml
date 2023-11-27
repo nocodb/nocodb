@@ -308,8 +308,8 @@ importers:
         specifier: ^1.5.4
         version: 1.5.4
       '@types/papaparse':
-        specifier: ^5.3.13
-        version: 5.3.13
+        specifier: ^5.3.14
+        version: 5.3.14
       '@types/parse-github-url':
         specifier: ^1.0.3
         version: 1.0.3
@@ -630,7 +630,7 @@ importers:
         version: 2.2.4
       knex:
         specifier: 2.4.2
-        version: 2.4.2(mysql2@3.6.5)(pg@8.10.0)(sqlite3@5.1.6)(tedious@16.6.0)
+        version: 2.4.2(mysql2@3.6.5)(pg@8.10.0)(sqlite3@5.1.6)(tedious@16.6.1)
       list-github-dir-content:
         specifier: ^3.0.0
         version: 3.0.0
@@ -770,8 +770,8 @@ importers:
         specifier: ^5.1.6
         version: 5.1.6
       tedious:
-        specifier: ^16.6.0
-        version: 16.6.0
+        specifier: ^16.6.1
+        version: 16.6.1
       tinycolor2:
         specifier: ^1.4.2
         version: 1.4.2
@@ -2649,7 +2649,7 @@ packages:
     engines: {node: '>=14.0.0'}
     dependencies:
       '@azure/abort-controller': 1.1.0
-      '@azure/core-util': 1.4.0
+      '@azure/core-util': 1.6.1
       tslib: 2.6.2
     dev: false
 
@@ -2661,7 +2661,7 @@ packages:
       '@azure/core-auth': 1.5.0
       '@azure/core-rest-pipeline': 1.12.0
       '@azure/core-tracing': 1.0.1
-      '@azure/core-util': 1.4.0
+      '@azure/core-util': 1.6.1
       '@azure/logger': 1.0.4
       tslib: 2.6.2
     transitivePeerDependencies:
@@ -2725,7 +2725,7 @@ packages:
       '@azure/abort-controller': 1.1.0
       '@azure/core-auth': 1.5.0
       '@azure/core-tracing': 1.0.1
-      '@azure/core-util': 1.4.0
+      '@azure/core-util': 1.6.1
       '@azure/logger': 1.0.4
       form-data: 4.0.0
       http-proxy-agent: 5.0.0
@@ -2758,26 +2758,32 @@ packages:
       tslib: 2.6.2
     dev: false
 
-  /@azure/identity@2.1.0:
-    resolution: {integrity: sha512-BPDz1sK7Ul9t0l9YKLEa8PHqWU4iCfhGJ+ELJl6c8CP3TpJt2urNCbm0ZHsthmxRsYoMPbz2Dvzj30zXZVmAFw==}
-    engines: {node: '>=12.0.0'}
+  /@azure/core-util@1.6.1:
+    resolution: {integrity: sha512-h5taHeySlsV9qxuK64KZxy4iln1BtMYlNt5jbuEFN3UFSAd1EwKg/Gjl5a6tZ/W8t6li3xPnutOx7zbDyXnPmQ==}
+    engines: {node: '>=16.0.0'}
+    dependencies:
+      '@azure/abort-controller': 1.1.0
+      tslib: 2.6.2
+    dev: false
+
+  /@azure/identity@3.4.1:
+    resolution: {integrity: sha512-oQ/r5MBdfZTMIUcY5Ch8G7Vv9aIXDkEYyU4Dfqjim4MQN+LY2uiQ57P1JDopMLeHCsZxM4yy8lEdne3tM9Xhzg==}
+    engines: {node: '>=14.0.0'}
     dependencies:
       '@azure/abort-controller': 1.1.0
       '@azure/core-auth': 1.5.0
       '@azure/core-client': 1.7.3
       '@azure/core-rest-pipeline': 1.12.0
       '@azure/core-tracing': 1.0.1
-      '@azure/core-util': 1.4.0
+      '@azure/core-util': 1.6.1
       '@azure/logger': 1.0.4
-      '@azure/msal-browser': 2.38.2
-      '@azure/msal-common': 7.6.0
-      '@azure/msal-node': 1.18.2
+      '@azure/msal-browser': 3.5.0
+      '@azure/msal-node': 2.5.1
       events: 3.3.0
       jws: 4.0.0
       open: 8.4.2
       stoppable: 1.1.0
       tslib: 2.6.2
-      uuid: 8.3.2
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -2808,30 +2814,23 @@ packages:
       tslib: 2.6.2
     dev: false
 
-  /@azure/msal-browser@2.38.2:
-    resolution: {integrity: sha512-71BeIn2we6LIgMplwCSaMq5zAwmalyJR3jFcVOZxNVfQ1saBRwOD+P77nLs5vrRCedVKTq8RMFhIOdpMLNno0A==}
+  /@azure/msal-browser@3.5.0:
+    resolution: {integrity: sha512-2NtMuel4CI3UEelCPKkNRXgKzpWEX48fvxIvPz7s0/sTcCaI08r05IOkH2GkXW+czUOtuY6+oGafJCpumnjRLg==}
     engines: {node: '>=0.8.0'}
-    deprecated: A newer major version of this library is available. Please upgrade to the latest available version.
     dependencies:
-      '@azure/msal-common': 13.3.0
+      '@azure/msal-common': 14.4.0
     dev: false
 
-  /@azure/msal-common@13.3.0:
-    resolution: {integrity: sha512-/VFWTicjcJbrGp3yQP7A24xU95NiDMe23vxIU1U6qdRPFsprMDNUohMudclnd+WSHE4/McqkZs/nUU3sAKkVjg==}
+  /@azure/msal-common@14.4.0:
+    resolution: {integrity: sha512-ffCymScQuMKVj+YVfwNI52A5Tu+uiZO2eTf+c+3TXxdAssks4nokJhtr+uOOMxH0zDi6d1OjFKFKeXODK0YLSg==}
     engines: {node: '>=0.8.0'}
     dev: false
 
-  /@azure/msal-common@7.6.0:
-    resolution: {integrity: sha512-XqfbglUTVLdkHQ8F9UQJtKseRr3sSnr9ysboxtoswvaMVaEfvyLtMoHv9XdKUfOc0qKGzNgRFd9yRjIWVepl6Q==}
-    engines: {node: '>=0.8.0'}
-    dev: false
-
-  /@azure/msal-node@1.18.2:
-    resolution: {integrity: sha512-bLbuhF9Q5cgwj9tt8R7EV9MbCwGuFgZiv6Gw0VvHx5AcWHhh2m8hYginGagB4EucxKueFDwZP6aZVAxfuD/lUQ==}
-    engines: {node: 10 || 12 || 14 || 16 || 18}
-    deprecated: A newer major version of this library is available. Please upgrade to the latest available version.
+  /@azure/msal-node@2.5.1:
+    resolution: {integrity: sha512-PsPRISqCG253HQk1cAS7eJW7NWTbnBGpG+vcGGz5z4JYRdnM2EIXlj1aBpXCdozenEPtXEVvHn2ELleW1w82nQ==}
+    engines: {node: 16|| 18 || 20}
     dependencies:
-      '@azure/msal-common': 13.3.0
+      '@azure/msal-common': 14.4.0
       jsonwebtoken: 9.0.2
       uuid: 8.3.2
     dev: false
@@ -8551,8 +8550,8 @@ packages:
     resolution: {integrity: sha512-5PjwB0uP2XDp3nt5u5NJAG2DORHIRClPzWT/TTZhJ2Ekwe8M5bA9tvPdi9NO/n2uvu2/ictat8kgqvLfcIE1SA==}
     dev: false
 
-  /@types/papaparse@5.3.13:
-    resolution: {integrity: sha512-tYSlZI3tIdBHXea8fZHcmwbsd1mSUikdMUyqpqj0Zzfu2GTGUSHEKmcnBg699WJ8UnxG31rXD4b1mLGPOAxS2w==}
+  /@types/papaparse@5.3.14:
+    resolution: {integrity: sha512-LxJ4iEFcpqc6METwp9f6BV6VVc43m6MfH0VqFosHvrUgfXiFe6ww7R3itkOQ+TCK6Y+Iv/+RnnvtRZnkc5Kc9g==}
     dependencies:
       '@types/node': 20.3.3
     dev: true
@@ -17493,7 +17492,7 @@ packages:
       - supports-color
     dev: false
 
-  /knex@2.4.2(mysql2@3.6.5)(pg@8.10.0)(sqlite3@5.1.6)(tedious@16.6.0):
+  /knex@2.4.2(mysql2@3.6.5)(pg@8.10.0)(sqlite3@5.1.6)(tedious@16.6.1):
     resolution: {integrity: sha512-tMI1M7a+xwHhPxjbl/H9K1kHX+VncEYcvCx5K00M16bWvpYPKAZd6QrCu68PtHAdIZNQPWZn0GVhqVBEthGWCg==}
     engines: {node: '>=12'}
     hasBin: true
@@ -17537,7 +17536,7 @@ packages:
       resolve-from: 5.0.0
       sqlite3: 5.1.6
       tarn: 3.0.2
-      tedious: 16.6.0
+      tedious: 16.6.1
       tildify: 2.0.0
     transitivePeerDependencies:
       - supports-color
@@ -18785,7 +18784,7 @@ packages:
       debug: 4.3.4(supports-color@8.1.1)
       rfdc: 1.3.0
       tarn: 3.0.2
-      tedious: 16.6.0
+      tedious: 16.6.1
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -18956,7 +18955,7 @@ packages:
       axios: 0.27.2(debug@4.3.4)
       emittery: 0.13.1
       is-docker: 2.2.1
-      knex: 2.4.2(mysql2@3.6.5)(pg@8.10.0)(sqlite3@5.1.6)(tedious@16.6.0)
+      knex: 2.4.2(mysql2@3.6.5)(pg@8.10.0)(sqlite3@5.1.6)(tedious@16.6.1)
       lodash: 4.17.21
       posthog-node: 1.3.0(debug@4.3.4)
       snowflake-sdk: 1.8.0(asn1.js@5.4.1)
@@ -23260,11 +23259,11 @@ packages:
     engines: {node: '>=8.0.0'}
     dev: false
 
-  /tedious@16.6.0:
-    resolution: {integrity: sha512-Gsi/XzWtJ+oyYsoDHSxjV5k/LzZb/3pJseC1NJoCkQ1VJF66rxj7pRLDF6jOFL4F52uSqOhtYTucs3K1sKYB7g==}
+  /tedious@16.6.1:
+    resolution: {integrity: sha512-KKSDB1OPrPk0WbMPug9YqRbPl44zMjdL2hFyzLEidr2IkItzpV0ZbzW8VA47QIS2oyWhCU7ifIEQY12n23IRDA==}
     engines: {node: '>=16'}
     dependencies:
-      '@azure/identity': 2.1.0
+      '@azure/identity': 3.4.1
       '@azure/keyvault-keys': 4.7.2
       '@js-joda/core': 5.5.3
       bl: 6.0.7

@@ -165,7 +165,7 @@
     "socket.io": "^4.4.1",
     "sql-query-identifier": "^2.5.0",
     "sqlite3": "^5.1.6",
-    "tedious": "^16.6.0",
+    "tedious": "^16.6.1",
     "tinycolor2": "^1.4.2",
     "twilio": "^3.55.1",
     "unique-names-generator": "^4.7.1",

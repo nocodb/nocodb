@@ -81,6 +81,10 @@ const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup, UITypes.Links]
 
+// To close column type dropdown on escape and
+// close modal only when the type popup is close
+const isColumnTypeOpen = ref(false)
+
 const geoDataToggleCondition = (t: { name: UITypes }) => {
   if (!appInfo.value.ee) return true
 
@@ -199,12 +203,24 @@ onMounted(() => {
 })
 
 const handleEscape = (event: KeyboardEvent): void => {
+  if (isColumnTypeOpen.value) return
+
   if (event.key === 'Escape') emit('cancel')
 }
 
 const isFieldsTab = computed(() => {
   return openedViewsTab.value === 'field'
 })
+
+const onDropdownChange = (value: boolean) => {
+  if (value) {
+    isColumnTypeOpen.value = value
+  } else {
+    setTimeout(() => {
+      isColumnTypeOpen.value = value
+    }, 300)
+  }
+}
 
 if (props.fromTableExplorer) {
   watch(
@@ -275,6 +291,7 @@ if (props.fromTableExplorer) {
               class="nc-column-type-input !rounded"
               :disabled="isKanban || readOnly"
               dropdown-class-name="nc-dropdown-column-type border-1 !rounded-md border-gray-200"
+              @dropdown-visible-change="onDropdownChange"
               @change="onUidtOrIdTypeChange"
               @dblclick="showDeprecated = !showDeprecated"
             >

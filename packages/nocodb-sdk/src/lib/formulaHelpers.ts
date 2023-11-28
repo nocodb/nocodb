@@ -1,8 +1,35 @@
 import jsep from 'jsep';
 
-import {ColumnType} from './Api';
+import { ColumnType } from './Api';
 import UITypes from './UITypes';
-import {validateDateWithUnknownFormat} from '../../../nc-gui/utils';
+import dayjs from 'dayjs';
+
+// todo: move to date utils and export, remove duplicate from gui
+
+export const dateFormats = [
+  'YYYY-MM-DD',
+  'YYYY/MM/DD',
+  'DD-MM-YYYY',
+  'MM-DD-YYYY',
+  'DD/MM/YYYY',
+  'MM/DD/YYYY',
+  'DD MM YYYY',
+  'MM DD YYYY',
+  'YYYY MM DD',
+];
+function validateDateWithUnknownFormat(v: string) {
+  for (const format of dateFormats) {
+    if (dayjs(v, format, true).isValid() as any) {
+      return true;
+    }
+    for (const timeFormat of ['HH:mm', 'HH:mm:ss', 'HH:mm:ss.SSS']) {
+      if (dayjs(v, `${format} ${timeFormat}`, true).isValid() as any) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
 export const jsepCurlyHook = {
   name: 'curly',
@@ -11,7 +38,7 @@ export const jsepCurlyHook = {
       const OCURLY_CODE = 123; // {
       const CCURLY_CODE = 125; // }
       let start = -1;
-      const {context} = env;
+      const { context } = env;
       if (
         !jsep.isIdentifierStart(context.code) &&
         context.code === OCURLY_CODE
@@ -28,10 +55,10 @@ export const jsepCurlyHook = {
             name: /{{(.*?)}}/.test(context.expr)
               ? // start would be the position of the first curly bracket
                 // add 2 to point to the first character for expressions like {{col1}}
-              context.expr.slice(start + 2, context.index - 1)
+                context.expr.slice(start + 2, context.index - 1)
               : // start would be the position of the first curly bracket
                 // add 1 to point to the first character for expressions like {col1}
-              context.expr.slice(start + 1, context.index - 1),
+                context.expr.slice(start + 1, context.index - 1),
           };
           return env.node;
         } else {
@@ -287,7 +314,7 @@ const formulas: Record<string, FormulaMeta> = {
           if (!validateDateWithUnknownFormat(parsedTree.arguments[0].value)) {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
-              {key: 'msg.formula.firstParamDateAddHaveDate'},
+              { key: 'msg.formula.firstParamDateAddHaveDate' },
               'First parameter of DATEADD should be a date'
             );
           }
@@ -297,7 +324,7 @@ const formulas: Record<string, FormulaMeta> = {
           if (typeof parsedTree.arguments[1].value !== 'number') {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
-              {key: 'msg.formula.secondParamDateAddHaveNumber'},
+              { key: 'msg.formula.secondParamDateAddHaveNumber' },
               'Second parameter of DATEADD should be a number'
             );
           }
@@ -310,7 +337,7 @@ const formulas: Record<string, FormulaMeta> = {
           ) {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
-              {key: 'msg.formula.thirdParamDateAddHaveDate'},
+              { key: 'msg.formula.thirdParamDateAddHaveDate' },
               "Third parameter of DATEADD should be one of 'day', 'week', 'month', 'year'"
             );
           }
@@ -340,12 +367,11 @@ const formulas: Record<string, FormulaMeta> = {
         max: 3,
       },
       custom: (args: FormulaDataTypes[], parsedTree: any) => {
-
         if (parsedTree.arguments[0].type === JSEPNode.LITERAL) {
           if (!validateDateWithUnknownFormat(parsedTree.arguments[0].value)) {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
-              {key: 'msg.formula.firstParamDateDiffHaveDate'},
+              { key: 'msg.formula.firstParamDateDiffHaveDate' },
               'First parameter of DATETIME_DIFF should be a date'
             );
           }
@@ -355,40 +381,42 @@ const formulas: Record<string, FormulaMeta> = {
           if (!validateDateWithUnknownFormat(parsedTree.arguments[1].value)) {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
-              {key: 'msg.formula.secondParamDateDiffHaveDate'},
+              { key: 'msg.formula.secondParamDateDiffHaveDate' },
               'Second parameter of DATETIME_DIFF should be a date'
             );
           }
         }
         if (parsedTree.arguments[2].type === JSEPNode.LITERAL) {
-          if (![
-            'milliseconds',
-            'ms',
-            'seconds',
-            's',
-            'minutes',
-            'm',
-            'hours',
-            'h',
-            'days',
-            'd',
-            'weeks',
-            'w',
-            'months',
-            'M',
-            'quarters',
-            'Q',
-            'years',
-            'y',
-          ].includes(parsedTree.arguments[0].value)) {
+          if (
+            ![
+              'milliseconds',
+              'ms',
+              'seconds',
+              's',
+              'minutes',
+              'm',
+              'hours',
+              'h',
+              'days',
+              'd',
+              'weeks',
+              'w',
+              'months',
+              'M',
+              'quarters',
+              'Q',
+              'years',
+              'y',
+            ].includes(parsedTree.arguments[0].value)
+          ) {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
-              {key: 'msg.formula.thirdParamDateDiffHaveDate'},
-              'Third parameter of DATETIME_DIFF should be one of \'milliseconds\', \'ms\', \'seconds\', \'s\', \'minutes\', \'m\', \'hours\', \'h\', \'days\', \'d\', \'weeks\', \'w\', \'months\', \'M\', \'quarters\', \'Q\', \'years\', \'y\''
+              { key: 'msg.formula.thirdParamDateDiffHaveDate' },
+              "Third parameter of DATETIME_DIFF should be one of 'milliseconds', 'ms', 'seconds', 's', 'minutes', 'm', 'hours', 'h', 'days', 'd', 'weeks', 'w', 'months', 'M', 'quarters', 'Q', 'years', 'y'"
             );
           }
         }
-      }
+      },
     },
     description:
       'Calculate the difference of two given date / datetime in specified units.',
@@ -851,7 +879,7 @@ const formulas: Record<string, FormulaMeta> = {
           if (!validateDateWithUnknownFormat(parsedTree.arguments[0].value)) {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
-              {key: 'msg.formula.firstParamWeekDayHaveDate'},
+              { key: 'msg.formula.firstParamWeekDayHaveDate' },
               'First parameter of WEEKDAY should be a date'
             );
           }
@@ -873,7 +901,7 @@ const formulas: Record<string, FormulaMeta> = {
           ) {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
-              {key: 'msg.formula.secondParamWeekDayHaveDate'},
+              { key: 'msg.formula.secondParamWeekDayHaveDate' },
               'Second parameter of WEEKDAY should be day of week string'
             );
           }
@@ -1150,7 +1178,7 @@ export function validateFormulaAndExtractTreeWithType(
       dataType?: FormulaDataTypes;
       errors?: Set<string>;
       [key: string]: any;
-    } = {...parsedTree};
+    } = { ...parsedTree };
 
     if (parsedTree.type === JSEPNode.CALL_EXP) {
       const calleeName = parsedTree.callee.name.toUpperCase();
@@ -1350,7 +1378,7 @@ function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {
       ];
       if (neighbours.length > 0) {
         // e.g. formula column 1 -> [formula column 2, formula column3]
-        res.push({[c.id]: neighbours});
+        res.push({ [c.id]: neighbours });
       }
       return res;
     }, []);

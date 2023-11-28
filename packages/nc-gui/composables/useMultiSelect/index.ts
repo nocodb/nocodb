@@ -752,7 +752,7 @@ export function useMultiSelect(
 
         const clipboardMatrix = parsedClipboard.data as string[][]
 
-        const selectionRowCount = selectedRange.end.row - selectedRange.start.row + 1
+        const selectionRowCount = clipboardMatrix.length
 
         const pasteMatrixRows = selectionRowCount
         const pasteMatrixCols = clipboardMatrix[0].length

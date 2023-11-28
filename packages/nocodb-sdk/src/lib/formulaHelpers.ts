@@ -976,17 +976,19 @@ enum FormulaErrorType {
 }
 
 class FormulaError extends Error {
-  public name: string;
   public type: FormulaErrorType;
+  public extra: Record<string, any>;
 
   constructor(
     type: FormulaErrorType,
-    name: string,
+    extra: {
+      [key: string]: any;
+    },
     message: string = 'Formula Error'
   ) {
     super(message);
-    this.name = name;
     this.type = type;
+    this.extra = extra;
   }
 }
 
@@ -1029,48 +1031,39 @@ export function validateFormulaAndExtractTreeWithType(
         ) {
           throw new FormulaError(
             FormulaErrorType.INVALID_ARG,
-            calleeName,
+            {
+              key: 'msg.formula.requiredArgumentsFormula',
+              requiredArguments: validation.args.rqd,
+              calleeName,
+            },
             'Required arguments missing'
           );
-
-          // errors.add(
-          // t('msg.formula.requiredArgumentsFormula', {
-          //   requiredArguments: validation.args.rqd,
-          //   calleeName,
-          // })
-          // );
         } else if (
           validation.args.min !== undefined &&
           validation.args.min > parsedTree.arguments.length
         ) {
           throw new FormulaError(
             FormulaErrorType.MIN_ARG,
-            calleeName,
+            {
+              key: 'msg.formula.minRequiredArgumentsFormula',
+              minRequiredArguments: validation.args.min,
+              calleeName,
+            },
             'Minimum arguments required'
           );
-
-          // errors.add(
-          //   t('msg.formula.minRequiredArgumentsFormula', {
-          //     minRequiredArguments: validation.args.min,
-          //     calleeName,
-          //   })
-          // );
         } else if (
           validation.args.max !== undefined &&
           validation.args.max < parsedTree.arguments.length
         ) {
           throw new FormulaError(
-            FormulaErrorType.MAX_ARG,
-            calleeName,
-            'Maximum arguments required'
+            FormulaErrorType.INVALID_ARG,
+            {
+              key: 'msg.formula.maxRequiredArgumentsFormula',
+              maxRequiredArguments: validation.args.max,
+              calleeName,
+            },
+            'Maximum arguments missing'
           );
-
-          // errors.add(
-          //   t('msg.formula.maxRequiredArgumentsFormula', {
-          //     maxRequiredArguments: validation.args.max,
-          //     calleeName,
-          //   })
-          // );
         }
       }
       // get args type and validate
@@ -1098,12 +1091,14 @@ export function validateFormulaAndExtractTreeWithType(
         // check for circular reference
         checkForCircularFormulaRef(col, parsedTree, columns);
 
-        const formulaRes = col.colOptions?.parsed_tree || validateFormulaAndExtractTreeWithType(
-          // formula may include double curly brackets in previous version
-          // convert to single curly bracket here for compatibility
-          col.colOptions.formula.replaceAll('{{', '{').replaceAll('}}', '}'),
-          columns
-        );
+        const formulaRes =
+          col.colOptions?.parsed_tree ||
+          validateFormulaAndExtractTreeWithType(
+            // formula may include double curly brackets in previous version
+            // convert to single curly bracket here for compatibility
+            col.colOptions.formula.replaceAll('{{', '{').replaceAll('}}', '}'),
+            columns
+          );
 
         res.dataType = formulaRes as any;
       } else {
@@ -1268,9 +1263,13 @@ function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {
     }
     // vertices not same as visited = cycle found
     if (vertices !== visited) {
-      // errors.add(t('msg.formula.cantSaveCircularReference'))
-      throw new FormulaError(FormulaErrorType.CIRCULAR_REFERENCE, '');
+      throw new FormulaError(
+        FormulaErrorType.CIRCULAR_REFERENCE,
+        {
+          key: 'msg.formula.cantSaveCircularReference',
+        },
+        'Circular reference detected'
+      );
     }
   }
 }
-

@@ -299,6 +299,15 @@ END) ${colAlias}`,
       ),
     };
   },
+  STRING: async (args: MapFnArgs) => {
+    return {
+      builder: args.knex.raw(
+        `(${(await args.fn(args.pt.arguments[0])).builder})::text ${
+          args.colAlias
+        }`,
+      ),
+    };
+  },
 };
 
 export default pg;

@@ -10,6 +10,11 @@ async function treatArgAsConditionalExp(
 
   let cond = condArg;
 
+  // based on the data type of the argument, we need to handle the condition
+  // if string - value is not null and not empty then true
+  // if number - value is not null and not 0 then true
+  // if boolean - value is not null and not false then true
+  // if date - value is not null then true
   switch (argument.dataType as FormulaDataTypes) {
     case FormulaDataTypes.NUMERIC:
       cond = `(${condArg}) IS NOT NULL AND (${condArg}) != 0`;

@@ -693,7 +693,7 @@ const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         min: 3,
-      }
+      },
     },
     description: 'Switch case value based on expr output',
     syntax: 'SWITCH(expr, [pattern, value, ..., default])',
@@ -1169,7 +1169,7 @@ export function validateFormulaAndExtractTreeWithType(
           case UITypes.Collaborator:
           case UITypes.QrCode:
           default:
-            throw new FormulaError(FormulaErrorType.NOT_SUPPORTED, '');
+            throw new FormulaError(FormulaErrorType.NOT_SUPPORTED, {});
         }
       }
     } else if (parsedTree.type === JSEPNode.LITERAL) {
@@ -1188,7 +1188,10 @@ export function validateFormulaAndExtractTreeWithType(
     ) {
       res.left = validateAndExtract(parsedTree.left);
       res.right = validateAndExtract(parsedTree.right);
-      res.dataType = FormulaDataTypes.NUMERIC;
+
+      if (['==', '<', '>', '<=', '>=', '!='].includes(parsedTree.operator)) {
+        res.dataType = FormulaDataTypes.COND_EXP;
+      } else res.dataType = FormulaDataTypes.NUMERIC;
     }
 
     return res;

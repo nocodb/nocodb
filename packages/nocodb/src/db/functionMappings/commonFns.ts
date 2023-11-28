@@ -2,6 +2,31 @@ import { FormulaDataTypes } from 'nocodb-sdk';
 import type { MapFnArgs } from '../mapFunctionName';
 import { NcError } from '~/helpers/catchError';
 
+async function treatArgAsConditionalExp(
+  args: MapFnArgs,
+  argument = args.pt?.arguments?.[0],
+) {
+  const condArg = (await args.fn(argument)).builder.toQuery();
+
+  let cond = condArg;
+
+  switch (argument.dataType as FormulaDataTypes) {
+    case FormulaDataTypes.NUMERIC:
+      cond = `(${condArg}) IS NOT NULL AND (${condArg}) != 0`;
+      break;
+    case FormulaDataTypes.STRING:
+      cond = `(${condArg}) IS NOT NULL AND (${condArg}) != ''`;
+      break;
+    case FormulaDataTypes.BOOLEAN:
+      cond = `(${condArg}) IS NOT NULL AND (${condArg}) != false`;
+      break;
+    case FormulaDataTypes.DATE:
+      cond = `(${condArg}) IS NOT NULL`;
+      break;
+  }
+  return { builder: args.knex.raw(cond) };
+}
+
 export default {
   // todo: handle default case
   SWITCH: async (args: MapFnArgs) => {
@@ -37,24 +62,7 @@ export default {
     };
   },
   IF: async (args: MapFnArgs) => {
-    const condArg = (await args.fn(args.pt.arguments[0])).builder.toQuery();
-
-    let cond = condArg;
-
-    switch (args.pt.arguments[0].dataType as FormulaDataTypes) {
-      case FormulaDataTypes.NUMERIC:
-        cond = `(${condArg}) IS NOT NULL AND (${condArg}) != 0`;
-        break;
-      case FormulaDataTypes.STRING:
-        cond = `(${condArg}) IS NOT NULL AND (${condArg}) != ''`;
-        break;
-      case FormulaDataTypes.BOOLEAN:
-        cond = `(${condArg}) IS NOT NULL AND (${condArg}) != false`;
-        break;
-      case FormulaDataTypes.DATE:
-        cond = `(${condArg}) IS NOT NULL`;
-        break;
-    }
+    const cond = await treatArgAsConditionalExp(args);
 
     let query = args.knex
       .raw(
@@ -80,7 +88,7 @@ export default {
             `${(
               await Promise.all(
                 args.pt.arguments.map(async (ar) =>
-                  (await args.fn(ar)).builder.toQuery(),
+                  (await treatArgAsConditionalExp(args, ar)).builder.toQuery(),
                 ),
               )
             ).join(' AND ')}`,
@@ -98,7 +106,7 @@ export default {
             `${(
               await Promise.all(
                 args.pt.arguments.map(async (ar) =>
-                  (await args.fn(ar)).builder.toQuery(),
+                  (await treatArgAsConditionalExp(args, ar)).builder.toQuery(),
                 ),
               )
             ).join(' OR ')}`,

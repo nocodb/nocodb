@@ -282,6 +282,40 @@ const formulas: Record<string, FormulaMeta> = {
       args: {
         rqd: 3,
       },
+      validator: (args: FormulaDataTypes[], parsedTree: any) => {
+        if (parsedTree.arguments[0].type === JSEPNode.LITERAL) {
+          if (!validateDateWithUnknownFormat(parsedTree.arguments[0].value)) {
+            throw new FormulaError(
+              FormulaErrorType.TYPE_MISMATCH,
+              { key: 'msg.formula.firstParamDateAddHaveDate' },
+              'First parameter of DATEADD should be a date'
+            );
+          }
+        }
+
+        if (parsedTree.arguments[1].type === JSEPNode.LITERAL) {
+          if (typeof parsedTree.arguments[1].value !== 'number') {
+            throw new FormulaError(
+              FormulaErrorType.TYPE_MISMATCH,
+              { key: 'msg.formula.secondParamDateAddHaveNumber' },
+              'Second parameter of DATEADD should be a number'
+            );
+          }
+        }
+        if (parsedTree.arguments[2].type === JSEPNode.LITERAL) {
+          if (
+            !['day', 'week', 'month', 'year'].includes(
+              parsedTree.arguments[2].value
+            )
+          ) {
+            throw new FormulaError(
+              FormulaErrorType.TYPE_MISMATCH,
+              { key: 'msg.formula.thirdParamDateAddHaveDate' },
+              "Third parameter of DATEADD should be one of 'day', 'week', 'month', 'year'"
+            );
+          }
+        }
+      },
     },
     description: 'Adds a "count" units to Datetime.',
     syntax:
@@ -768,7 +802,7 @@ const formulas: Record<string, FormulaMeta> = {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
               { key: 'msg.formula.firstParamWeekDayHaveDate' },
-              'First parameter of WEEKDY should be a date'
+              'First parameter of WEEKDAY should be a date'
             );
           }
         }
@@ -787,11 +821,10 @@ const formulas: Record<string, FormulaMeta> = {
               'saturday',
             ].includes(value.toLowerCase())
           ) {
-            typeErrors.add(t('msg.formula.secondParamWeekDayHaveDate'));
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
               { key: 'msg.formula.secondParamWeekDayHaveDate' },
-              'Second parameter of WEEKDY should be day of week string'
+              'Second parameter of WEEKDAY should be day of week string'
             );
           }
         }

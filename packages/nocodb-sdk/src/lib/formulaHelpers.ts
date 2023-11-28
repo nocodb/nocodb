@@ -973,6 +973,7 @@ enum FormulaErrorType {
   'INVALID_ARG_VALUE' = 'INVALID_ARG_VALUE',
   'INVALID_ARG_COUNT' = 'INVALID_ARG_COUNT',
   CIRCULAR_REFERENCE = 'CIRCULAR_REFERENCE',
+  INVALID_FUNCTION_NAME = 'INVALID_FUNCTION_NAME',
 }
 
 class FormulaError extends Error {
@@ -1016,7 +1017,8 @@ export function validateFormulaAndExtractTreeWithType(
       // validate function name
       if (!formulas[calleeName]) {
         throw new FormulaError(
-          FormulaErrorType.INVALID_ARG_TYPE,
+          FormulaErrorType.INVALID_FUNCTION_NAME,
+          {},
           'Function not available'
         );
         //t('msg.formula.functionNotAvailable', { function: calleeName })

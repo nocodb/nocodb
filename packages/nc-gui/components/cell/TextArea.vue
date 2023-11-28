@@ -187,7 +187,7 @@ watch(editEnabled, () => {
         }"
         @dblclick="onExpand"
       >
-        <LazyCellRichText v-model:value="vModel" sync-value-change readonly class="!pointer-events-none" />
+        <LazyCellRichText v-model:value="vModel" sync-value-change readonly />
       </div>
       <textarea
         v-else-if="editEnabled && !isVisible"

@@ -17,6 +17,7 @@ export const dateFormats = [
   'MM DD YYYY',
   'YYYY MM DD',
 ];
+
 function validateDateWithUnknownFormat(v: string) {
   for (const format of dateFormats) {
     if (dayjs(v, format, true).isValid() as any) {
@@ -1255,6 +1256,24 @@ export function validateFormulaAndExtractTreeWithType(
       // if validation function is present, call it
       if (formulas[calleeName].validation?.custom) {
         formulas[calleeName].validation?.custom(argTypes, parsedTree);
+      }
+      // validate against expected arg types if present
+      else if (formulas[calleeName].validation?.args?.type) {
+        const expectedArgType = formulas[calleeName].validation.args.type;
+        if (
+          argTypes.some(
+            (argType) =>
+              argType !== expectedArgType && argType !== FormulaDataTypes.NULL
+          )
+        )
+          throw new FormulaError(
+            FormulaErrorType.INVALID_ARG,
+            {
+              key: 'msg.formula.invalidArgumentType',
+              calleeName,
+            },
+            'Invalid argument type'
+          );
       }
 
       if (typeof formulas[calleeName].returnType === 'function') {

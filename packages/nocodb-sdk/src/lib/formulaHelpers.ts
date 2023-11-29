@@ -1301,7 +1301,7 @@ export function validateFormulaAndExtractTreeWithType(
             columns
           );
 
-        res.dataType = formulaRes as any;
+        res.dataType = (formulaRes as any)?.dataType;
       } else {
         switch (col?.uidt) {
           // string

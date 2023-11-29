@@ -1202,11 +1202,11 @@ export function validateFormulaAndExtractTreeWithType({
     | 'oracledb'
     | 'mariadb'
     | 'sqlite'
-    | MysqlUi
-    | MssqlUi
-    | SnowflakeUi
-    | PgUi
-    | OracleUi;
+    | typeof MysqlUi
+    | typeof MssqlUi
+    | typeof SnowflakeUi
+    | typeof PgUi
+    | typeof OracleUi;
   getMeta?: (tableId: string) => Promise<any>;
 }) {
   const colAliasToColMap = {};

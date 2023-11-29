@@ -256,12 +256,13 @@ export enum JSEPNode {
 }
 
 interface FormulaMeta {
-  type?: string;
   validation?: {
     args?: {
       min?: number;
       max?: number;
       rqd?: number;
+
+      type?: FormulaDataTypes;
     };
     custom?: (args: FormulaDataTypes[], parseTree: any) => void;
   };
@@ -276,6 +277,7 @@ const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         min: 1,
+        type: FormulaDataTypes.NUMERIC,
       },
     },
     description: 'Average of input parameters',
@@ -288,10 +290,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   ADD: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         min: 1,
+        type: FormulaDataTypes.NUMERIC,
       },
     },
     description: 'Sum of input parameters',
@@ -304,10 +306,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   DATEADD: {
-    type: FormulaDataTypes.DATE,
     validation: {
       args: {
         rqd: 3,
+        type: FormulaDataTypes.DATE,
       },
       custom: (_argTypes: FormulaDataTypes[], parsedTree: any) => {
         if (parsedTree.arguments[0].type === JSEPNode.LITERAL) {
@@ -360,11 +362,11 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.DATE,
   },
   DATETIME_DIFF: {
-    type: FormulaDataTypes.DATE,
     validation: {
       args: {
         min: 2,
         max: 3,
+        type: FormulaDataTypes.DATE,
       },
       custom: (_argTypes: FormulaDataTypes[], parsedTree: any) => {
         if (parsedTree.arguments[0].type === JSEPNode.LITERAL) {
@@ -458,10 +460,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.COND_EXP,
   },
   CONCAT: {
-    type: FormulaDataTypes.STRING,
     validation: {
       args: {
         min: 1,
+        type: FormulaDataTypes.STRING,
       },
     },
     description: 'Concatenated string of input parameters',
@@ -473,10 +475,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   TRIM: {
-    type: FormulaDataTypes.STRING,
     validation: {
       args: {
         rqd: 1,
+        type: FormulaDataTypes.STRING,
       },
     },
     description: 'Remove trailing and leading whitespaces from input parameter',
@@ -488,10 +490,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   UPPER: {
-    type: FormulaDataTypes.STRING,
     validation: {
       args: {
         rqd: 1,
+        type: FormulaDataTypes.STRING,
       },
     },
     description: 'Upper case converted string of input parameter',
@@ -500,10 +502,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   LOWER: {
-    type: FormulaDataTypes.STRING,
     validation: {
       args: {
         rqd: 1,
+        type: FormulaDataTypes.STRING,
       },
     },
     description: 'Lower case converted string of input parameter',
@@ -512,10 +514,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   LEN: {
-    type: FormulaDataTypes.STRING,
     validation: {
       args: {
         rqd: 1,
+        type: FormulaDataTypes.STRING,
       },
     },
     description: 'Input parameter character length',
@@ -524,10 +526,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   MIN: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         min: 1,
+        type: FormulaDataTypes.NUMERIC,
       },
     },
     description: 'Minimum value amongst input parameters',
@@ -536,10 +538,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   MAX: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         min: 1,
+        type: FormulaDataTypes.NUMERIC,
       },
     },
     description: 'Maximum value amongst input parameters',
@@ -548,10 +550,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   CEILING: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         rqd: 1,
+        type: FormulaDataTypes.NUMERIC,
       },
     },
     description: 'Rounded next largest integer value of input parameter',
@@ -560,10 +562,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   FLOOR: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         rqd: 1,
+        type: FormulaDataTypes.NUMERIC,
       },
     },
     description:
@@ -573,11 +575,11 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   ROUND: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         min: 1,
         max: 2,
+        type: FormulaDataTypes.NUMERIC,
       },
     },
     description:
@@ -591,10 +593,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   MOD: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         rqd: 2,
+        type: FormulaDataTypes.NUMERIC,
       },
     },
     description: 'Remainder after integer division of input parameters',
@@ -603,10 +605,11 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   REPEAT: {
-    type: FormulaDataTypes.STRING,
     validation: {
       args: {
         rqd: 2,
+
+        type: FormulaDataTypes.STRING,
       },
     },
     description:
@@ -616,8 +619,11 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   LOG: {
-    type: FormulaDataTypes.NUMERIC,
-    validation: {},
+    validation: {
+      args: {
+        type: FormulaDataTypes.NUMERIC,
+      },
+    },
     description:
       'Logarithm of input parameter to the base (default = e) specified',
     syntax: 'LOG([base], value)',
@@ -625,18 +631,21 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   EXP: {
-    type: FormulaDataTypes.NUMERIC,
-    validation: {},
+    validation: {
+      args: {
+        type: FormulaDataTypes.NUMERIC,
+      },
+    },
     description: 'Exponential value of input parameter (e ^ power)',
     syntax: 'EXP(power)',
     examples: ['EXP(1) => 2.718281828459045', 'EXP({column1})'],
     returnType: FormulaDataTypes.NUMERIC,
   },
   POWER: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         rqd: 2,
+        type: FormulaDataTypes.NUMERIC,
       },
     },
     description: 'base to the exponent power, as in base ^ exponent',
@@ -645,10 +654,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   SQRT: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         rqd: 1,
+        type: FormulaDataTypes.NUMERIC,
       },
     },
     description: 'Square root of the input parameter',
@@ -657,10 +666,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   ABS: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         rqd: 1,
+        type: FormulaDataTypes.NUMERIC,
       },
     },
     description: 'Absolute value of the input parameter',
@@ -669,10 +678,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   NOW: {
-    type: FormulaDataTypes.DATE,
     validation: {
       args: {
         rqd: 0,
+        type: FormulaDataTypes.DATE,
       },
     },
     description: 'Returns the current time and day',
@@ -681,10 +690,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.DATE,
   },
   REPLACE: {
-    type: FormulaDataTypes.STRING,
     validation: {
       args: {
         rqd: 3,
+        type: FormulaDataTypes.STRING,
       },
     },
     description:
@@ -697,10 +706,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   SEARCH: {
-    type: FormulaDataTypes.STRING,
     validation: {
       args: {
         rqd: 2,
+        type: FormulaDataTypes.STRING,
       },
     },
     description: 'Index of srchStr specified if found, 0 otherwise',
@@ -712,10 +721,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   INT: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         rqd: 1,
+        type: FormulaDataTypes.NUMERIC,
       },
     },
     description: 'Integer value of input parameter',
@@ -724,10 +733,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   RIGHT: {
-    type: FormulaDataTypes.STRING,
     validation: {
       args: {
         rqd: 2,
+        type: FormulaDataTypes.STRING,
       },
     },
     description: 'n characters from the end of input parameter',
@@ -736,10 +745,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   LEFT: {
-    type: FormulaDataTypes.STRING,
     validation: {
       args: {
         rqd: 2,
+        type: FormulaDataTypes.STRING,
       },
     },
     description: 'n characters from the beginning of input parameter',
@@ -748,11 +757,11 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   SUBSTR: {
-    type: FormulaDataTypes.STRING,
     validation: {
       args: {
         min: 2,
         max: 3,
+        type: FormulaDataTypes.STRING,
       },
     },
     description:
@@ -766,10 +775,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   MID: {
-    type: FormulaDataTypes.STRING,
     validation: {
       args: {
         rqd: 3,
+        type: FormulaDataTypes.STRING,
       },
     },
     description: 'Alias for SUBSTR',
@@ -778,7 +787,6 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   IF: {
-    type: FormulaDataTypes.COND_EXP,
     validation: {
       args: {
         min: 2,
@@ -816,10 +824,12 @@ const formulas: Record<string, FormulaMeta> = {
     },
   },
   SWITCH: {
-    type: FormulaDataTypes.COND_EXP,
     validation: {
       args: {
         min: 3,
+      },
+      custom: (_argTypes: any[], _parseTree) => {
+        // Todo: Add validation for switch
       },
     },
     description: 'Switch case value based on expr output',
@@ -856,10 +866,10 @@ const formulas: Record<string, FormulaMeta> = {
     },
   },
   URL: {
-    type: FormulaDataTypes.STRING,
     validation: {
       args: {
         rqd: 1,
+        type: FormulaDataTypes.STRING,
       },
     },
     description: 'Convert to a hyperlink if it is a valid URL',
@@ -868,11 +878,11 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   WEEKDAY: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         min: 1,
         max: 2,
+        type: FormulaDataTypes.NUMERIC,
       },
       custom(_argTypes: FormulaDataTypes[], parsedTree: any) {
         if (parsedTree.arguments[0].type === JSEPNode.LITERAL) {
@@ -916,7 +926,6 @@ const formulas: Record<string, FormulaMeta> = {
   },
 
   TRUE: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         max: 0,
@@ -929,7 +938,6 @@ const formulas: Record<string, FormulaMeta> = {
   },
 
   FALSE: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         max: 0,
@@ -942,10 +950,10 @@ const formulas: Record<string, FormulaMeta> = {
   },
 
   REGEX_MATCH: {
-    type: FormulaDataTypes.STRING,
     validation: {
       args: {
         rqd: 2,
+        type: FormulaDataTypes.STRING,
       },
     },
     description:
@@ -956,10 +964,10 @@ const formulas: Record<string, FormulaMeta> = {
   },
 
   REGEX_EXTRACT: {
-    type: FormulaDataTypes.STRING,
     validation: {
       args: {
         rqd: 2,
+        type: FormulaDataTypes.STRING,
       },
     },
     description: 'Returns the first match of a regular expression in a string.',
@@ -968,10 +976,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   REGEX_REPLACE: {
-    type: FormulaDataTypes.STRING,
     validation: {
       args: {
         rqd: 3,
+        type: FormulaDataTypes.STRING,
       },
     },
     description:
@@ -981,7 +989,6 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   BLANK: {
-    type: FormulaDataTypes.STRING,
     validation: {
       args: {
         rqd: 0,
@@ -993,11 +1000,11 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NULL,
   },
   XOR: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         min: 1,
       },
+      // todo: validation for boolean
     },
     description:
       'Returns true if an odd number of arguments are true, and false otherwise.',
@@ -1006,10 +1013,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.BOOLEAN,
   },
   EVEN: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         rqd: 1,
+        type: FormulaDataTypes.NUMERIC,
       },
     },
     description:
@@ -1019,10 +1026,10 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   ODD: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         rqd: 1,
+        type: FormulaDataTypes.NUMERIC,
       },
     },
     description:
@@ -1080,11 +1087,11 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   ROUNDDOWN: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         min: 1,
         max: 2,
+        type: FormulaDataTypes.NUMERIC,
       },
     },
     description:
@@ -1094,11 +1101,11 @@ const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   ROUNDUP: {
-    type: FormulaDataTypes.NUMERIC,
     validation: {
       args: {
         min: 1,
         max: 2,
+        type: FormulaDataTypes.NUMERIC,
       },
     },
     description:

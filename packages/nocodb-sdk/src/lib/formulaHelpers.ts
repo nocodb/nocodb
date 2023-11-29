@@ -309,7 +309,7 @@ const formulas: Record<string, FormulaMeta> = {
       args: {
         rqd: 3,
       },
-      custom: (args: FormulaDataTypes[], parsedTree: any) => {
+      custom: (_argTypes: FormulaDataTypes[], parsedTree: any) => {
         if (parsedTree.arguments[0].type === JSEPNode.LITERAL) {
           if (!validateDateWithUnknownFormat(parsedTree.arguments[0].value)) {
             throw new FormulaError(
@@ -366,7 +366,7 @@ const formulas: Record<string, FormulaMeta> = {
         min: 2,
         max: 3,
       },
-      custom: (args: FormulaDataTypes[], parsedTree: any) => {
+      custom: (_argTypes: FormulaDataTypes[], parsedTree: any) => {
         if (parsedTree.arguments[0].type === JSEPNode.LITERAL) {
           if (!validateDateWithUnknownFormat(parsedTree.arguments[0].value)) {
             throw new FormulaError(
@@ -874,7 +874,7 @@ const formulas: Record<string, FormulaMeta> = {
         min: 1,
         max: 2,
       },
-      custom(argTypes: FormulaDataTypes[], parsedTree: any) {
+      custom(_argTypes: FormulaDataTypes[], parsedTree: any) {
         if (parsedTree.arguments[0].type === JSEPNode.LITERAL) {
           if (!validateDateWithUnknownFormat(parsedTree.arguments[0].value)) {
             throw new FormulaError(

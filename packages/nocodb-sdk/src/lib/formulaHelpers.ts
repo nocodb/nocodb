@@ -26,6 +26,54 @@ export const dateFormats = [
   'YYYY MM DD',
 ];
 
+// opening and closing string code
+const OCURLY_CODE = 123; // '{'
+const CCURLY_CODE = 125; // '}'
+
+export const jsepCurlyHook = {
+  name: 'curly',
+  init(jsep) {
+    // Match identifier in following pattern: {abc-cde}
+    jsep.hooks.add('gobble-token', function escapedIdentifier(env) {
+      // check if the current token is an opening curly bracket
+      if (this.code === OCURLY_CODE) {
+        const patternIndex = this.index;
+        // move to the next character until we find a closing curly bracket
+        while (this.index < this.expr.length) {
+          ++this.index;
+          if (this.code === CCURLY_CODE) {
+            let identifier = this.expr.slice(patternIndex, ++this.index);
+
+            // if starting with double curley brace then check for ending double curley brace
+            // if found include with the identifier
+            if (
+              identifier.startsWith('{{') &&
+              this.expr.slice(patternIndex, this.index + 1).endsWith('}')
+            ) {
+              identifier = this.expr.slice(patternIndex, ++this.index);
+            }
+            env.node = {
+              type: jsep.IDENTIFIER,
+              name: /^{{.*}}$/.test(identifier)
+                ? // start would be the position of the first curly bracket
+                  // add 2 to point to the first character for expressions like {{col1}}
+                  identifier.slice(2, -2)
+                : // start would be the position of the first curly bracket
+                  // add 1 to point to the first character for expressions like {col1}
+                  identifier.slice(1, -1),
+              raw: identifier,
+            };
+
+            // env.node = this.gobbleTokenProperty(env.node);
+            return env.node;
+          }
+        }
+        this.throwError('Unclosed }');
+      }
+    });
+  },
+} as jsep.IPlugin;
+
 function validateDateWithUnknownFormat(v: string) {
   for (const format of dateFormats) {
     if (dayjs(v, format, true).isValid() as any) {
@@ -40,15 +88,13 @@ function validateDateWithUnknownFormat(v: string) {
   return false;
 }
 
+/*
 export const jsepCurlyHook = {
   name: 'curly',
   init(jsep) {
     jsep.hooks.add('gobble-token', function gobbleCurlyLiteral(env) {
       const OCURLY_CODE = 123; // {
       const CCURLY_CODE = 125; // }
-      // jsep.addIdentifierChar('.');
-      // jsep.addIdentifierChar('*');
-      // jsep.addIdentifierChar('?');
       let start = -1;
       const { context } = env;
       if (
@@ -80,6 +126,7 @@ export const jsepCurlyHook = {
     });
   },
 } as jsep.IPlugin;
+*/
 
 export async function substituteColumnAliasWithIdInFormula(
   formula,
@@ -125,6 +172,7 @@ export enum FormulaErrorType {
   INVALID_ARG_COUNT = 'INVALID_ARG_COUNT',
   CIRCULAR_REFERENCE = 'CIRCULAR_REFERENCE',
   INVALID_FUNCTION_NAME = 'INVALID_FUNCTION_NAME',
+  INVALID_COLUMN = 'INVALID_COLUMN',
 }
 
 export function substituteColumnIdWithAliasInFormula(
@@ -1341,6 +1389,18 @@ export function validateFormulaAndExtractTreeWithType({
     } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
       const col = (colIdToColMap[parsedTree.name] ||
         colAliasToColMap[parsedTree.name]) as Record<string, any>;
+
+      if (!col) {
+        throw new FormulaError(
+          FormulaErrorType.INVALID_COLUMN,
+          {
+            key: 'msg.formula.invalidColumn',
+            column: parsedTree.name,
+          },
+          `Invalid column name/id ${JSON.stringify(parsedTree.name)} in formula`
+        );
+      }
+
       res.name = col.id;
 
       if (col?.uidt === UITypes.Formula) {

@@ -46,6 +46,9 @@ export const jsepCurlyHook = {
     jsep.hooks.add('gobble-token', function gobbleCurlyLiteral(env) {
       const OCURLY_CODE = 123; // {
       const CCURLY_CODE = 125; // }
+      // jsep.addIdentifierChar('.');
+      // jsep.addIdentifierChar('*');
+      // jsep.addIdentifierChar('?');
       let start = -1;
       const { context } = env;
       if (
@@ -1408,7 +1411,7 @@ export function validateFormulaAndExtractTreeWithType({
             {
               const sqlUI =
                 typeof clientOrSqlUi === 'string'
-                  ? SqlUiFactory.create(clientOrSqlUi)
+                  ? SqlUiFactory.create({ client: clientOrSqlUi })
                   : clientOrSqlUi;
               if (sqlUI) {
                 const abstractType = sqlUI.getAbstractType(col);

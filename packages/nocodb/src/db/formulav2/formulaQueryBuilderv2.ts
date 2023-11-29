@@ -80,9 +80,16 @@ async function _formulaQueryBuilder(
     tree = validateFormulaAndExtractTreeWithType({
       formula: _tree.replaceAll('{{', '{').replaceAll('}}', '}'),
       columns,
-      clientOrSqlUi: await Source.get(
-        model?.source_id ?? column?.source_id,
-      ).then((source) => source.type),
+      clientOrSqlUi: baseModelSqlv2.clientType as
+        | 'mysql'
+        | 'pg'
+        | 'sqlite3'
+        | 'mssql'
+        | 'mysql2'
+        | 'oracledb'
+        | 'mariadb'
+        | 'sqlite'
+        | 'snowflake',
     });
 
     // populate and save parsedTree to column if not exist

@@ -90,18 +90,20 @@ const onClick = (e: Event) => {
         'self-start': isForm || isSurveyForm,
       }"
     />
-    <div
-      v-if="column"
-      class="name pl-1"
-      :class="{
-        'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu && !isExpandedForm,
-        'cursor-default': isForm || !isUIAllowed('fieldEdit') || hideMenu,
-        '!truncate': !isForm,
-      }"
-      :data-test-id="column.title"
-    >
-      {{ column.title }}
-    </div>
+    <a-tooltip placement="bottom" :title="column.title">
+      <div
+        v-if="column"
+        class="name pl-1"
+        :class="{
+          'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu && !isExpandedForm,
+          'cursor-default': isForm || !isUIAllowed('fieldEdit') || hideMenu,
+          '!truncate': !isForm,
+        }"
+        :data-test-id="column.title"
+      >
+        {{ column.title }}
+      </div>
+    </a-tooltip>
 
     <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 

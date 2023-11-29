@@ -233,7 +233,7 @@ export class ColumnsService {
               {},
               null,
               true,
-              colBody.parsed_tree
+              colBody.parsed_tree,
             );
           } catch (e) {
             console.error(e);
@@ -938,7 +938,10 @@ export class ColumnsService {
                       ]);
                     await FormulaColumn.update(c.id, {
                       formula_raw: new_formula_raw,
-                      parsed_tree: validateFormulaAndExtractTreeWithType(new_formula_raw, table.columns)
+                      parsed_tree: validateFormulaAndExtractTreeWithType(
+                        new_formula_raw,
+                        table.columns,
+                      ),
                     });
                   }
                 }
@@ -1209,10 +1212,15 @@ export class ColumnsService {
           colBody.formula_raw || colBody.formula,
           table.columns,
         );
+        console.log(
+          colBody.formula_raw ||
+            colBody.formula?.replaceAll('{{', '{').replaceAll('}}', '}'),
+        );
         colBody.parsed_tree = validateFormulaAndExtractTreeWithType(
           // formula may include double curly brackets in previous version
           // convert to single curly bracket here for compatibility
-          colBody.formula_raw || colBody.formula?.replaceAll('{{', '{').replaceAll('}}', '}'),
+          colBody.formula_raw ||
+            colBody.formula?.replaceAll('{{', '{').replaceAll('}}', '}'),
           table.columns,
         );
 

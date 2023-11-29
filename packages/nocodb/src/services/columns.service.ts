@@ -210,10 +210,11 @@ export class ColumnsService {
             colBody.formula_raw || colBody.formula,
             table.columns,
           );
-          colBody.parsed_tree = validateFormulaAndExtractTreeWithType(
-            colBody.formula_raw || colBody.formula,
-            table.columns,
-          );
+          colBody.parsed_tree = validateFormulaAndExtractTreeWithType({
+            formula: colBody.formula_raw || colBody.formula,
+            columns: table.columns,
+            clientOrSqlUi: source.type,
+          });
 
           try {
             const baseModel = await reuseOrSave('baseModel', reuse, async () =>
@@ -938,10 +939,11 @@ export class ColumnsService {
                       ]);
                     await FormulaColumn.update(c.id, {
                       formula_raw: new_formula_raw,
-                      parsed_tree: validateFormulaAndExtractTreeWithType(
-                        new_formula_raw,
-                        table.columns,
-                      ),
+                      parsed_tree: validateFormulaAndExtractTreeWithType({
+                        formula: new_formula_raw,
+                        columns: table.columns,
+                        clientOrSqlUi: source.type,
+                      }),
                     });
                   }
                 }
@@ -1003,10 +1005,11 @@ export class ColumnsService {
                       ]);
                     await FormulaColumn.update(c.id, {
                       formula_raw: new_formula_raw,
-                      parsed_tree: validateFormulaAndExtractTreeWithType(
-                        new_formula_raw,
-                        table.columns,
-                      ),
+                      parsed_tree: validateFormulaAndExtractTreeWithType({
+                        formula: new_formula_raw,
+                        columns: table.columns,
+                        clientOrSqlUi: source.type,
+                      }),
                     });
                   }
                 }
@@ -1216,13 +1219,15 @@ export class ColumnsService {
           colBody.formula_raw ||
             colBody.formula?.replaceAll('{{', '{').replaceAll('}}', '}'),
         );
-        colBody.parsed_tree = validateFormulaAndExtractTreeWithType(
+        colBody.parsed_tree = validateFormulaAndExtractTreeWithType({
           // formula may include double curly brackets in previous version
           // convert to single curly bracket here for compatibility
-          colBody.formula_raw ||
+          formula:
+            colBody.formula_raw ||
             colBody.formula?.replaceAll('{{', '{').replaceAll('}}', '}'),
-          table.columns,
-        );
+          columns: table.columns,
+          clientOrSqlUi: source.type,
+        });
 
         try {
           const baseModel = await reuseOrSave('baseModel', reuse, async () =>

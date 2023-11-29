@@ -3,6 +3,14 @@ import jsep from 'jsep';
 import { ColumnType } from './Api';
 import UITypes from './UITypes';
 import dayjs from 'dayjs';
+import {
+  MssqlUi,
+  MysqlUi,
+  OracleUi,
+  PgUi,
+  SnowflakeUi,
+  SqlUiFactory,
+} from './sqlUi';
 
 // todo: move to date utils and export, remove duplicate from gui
 
@@ -242,6 +250,7 @@ export enum FormulaDataTypes {
   COND_EXP = 'conditional_expression',
   NULL = 'null',
   BOOLEAN = 'boolean',
+  UNKNOWN = 'unknown',
 }
 
 export enum JSEPNode {
@@ -1176,10 +1185,30 @@ export class FormulaError extends Error {
   }
 }
 
-export function validateFormulaAndExtractTreeWithType(
+export function validateFormulaAndExtractTreeWithType({
   formula,
-  columns: ColumnType[]
-) {
+  columns,
+  clientOrSqlUi,
+  getMeta,
+}: {
+  formula: string;
+  columns: ColumnType[];
+  clientOrSqlUi:
+    | 'mysql'
+    | 'pg'
+    | 'sqlite3'
+    | 'mssql'
+    | 'mysql2'
+    | 'oracledb'
+    | 'mariadb'
+    | 'sqlite'
+    | MysqlUi
+    | MssqlUi
+    | SnowflakeUi
+    | PgUi
+    | OracleUi;
+  getMeta?: (tableId: string) => Promise<any>;
+}) {
   const colAliasToColMap = {};
   const colIdToColMap = {};
 
@@ -1270,7 +1299,9 @@ export function validateFormulaAndExtractTreeWithType(
         if (
           argTypes.some(
             (argType) =>
-              argType !== expectedArgType && argType !== FormulaDataTypes.NULL
+              argType !== expectedArgType &&
+              argType !== FormulaDataTypes.NULL &&
+              argType !== FormulaDataTypes.UNKNOWN
           )
         ) {
           let key = '';
@@ -1317,8 +1348,14 @@ export function validateFormulaAndExtractTreeWithType(
           validateFormulaAndExtractTreeWithType(
             // formula may include double curly brackets in previous version
             // convert to single curly bracket here for compatibility
-            col.colOptions.formula.replaceAll('{{', '{').replaceAll('}}', '}'),
-            columns
+            {
+              formula: col.colOptions.formula
+                .replaceAll('{{', '{')
+                .replaceAll('}}', '}'),
+              columns,
+              clientOrSqlUi,
+              getMeta,
+            }
           );
 
         res.dataType = (formulaRes as any)?.dataType;
@@ -1368,7 +1405,26 @@ export function validateFormulaAndExtractTreeWithType(
           case UITypes.ID:
           case UITypes.ForeignKey:
             {
-              res.dataType = FormulaDataTypes.NUMERIC;
+              const sqlUI =
+                typeof clientOrSqlUi === 'string'
+                  ? SqlUiFactory.create(clientOrSqlUi)
+                  : clientOrSqlUi;
+              if (sqlUI) {
+                const abstractType = sqlUI.getAbstractType(col);
+                if (['integer', 'float', 'decimal'].includes(abstractType)) {
+                  res.dataType = FormulaDataTypes.NUMERIC;
+                } else if (['boolean'].includes(abstractType)) {
+                  res.dataType = FormulaDataTypes.BOOLEAN;
+                } else if (
+                  ['date', 'datetime', 'time', 'year'].includes(abstractType)
+                ) {
+                  res.dataType = FormulaDataTypes.DATE;
+                } else {
+                  res.dataType = FormulaDataTypes.STRING;
+                }
+              } else {
+                res.dataType = FormulaDataTypes.UNKNOWN;
+              }
             }
             break;
           // not supported
@@ -1379,8 +1435,8 @@ export function validateFormulaAndExtractTreeWithType(
           case UITypes.Collaborator:
           case UITypes.QrCode:
           default:
+            res.dataType = FormulaDataTypes.UNKNOWN;
             break;
-          // throw new FormulaError(FormulaErrorType.NOT_SUPPORTED, {});
         }
       }
     } else if (parsedTree.type === JSEPNode.LITERAL) {

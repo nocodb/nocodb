@@ -255,13 +255,17 @@ export function jsepTreeToFormula(node, isCallExpId = false) {
     return (
       jsepTreeToFormula(node.callee, true) +
       '(' +
-      node.arguments.map(jsepTreeToFormula).join(', ') +
+      node.arguments.map((argPt) => jsepTreeToFormula(argPt)).join(', ') +
       ')'
     );
   }
 
   if (node.type === 'ArrayExpression') {
-    return '[' + node.elements.map(jsepTreeToFormula).join(', ') + ']';
+    return (
+      '[' +
+      node.elements.map((elePt) => jsepTreeToFormula(elePt)).join(', ') +
+      ']'
+    );
   }
 
   if (node.type === 'Compound') {

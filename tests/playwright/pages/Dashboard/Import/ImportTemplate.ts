@@ -23,7 +23,11 @@ export class ImportTemplatePage extends BasePage {
     const rowCount = await tr.count();
     const tableList: string[] = [];
     for (let i = 0; i < rowCount; i++) {
-      const tableName = await getTextExcludeIconText(tr.nth(i));
+      const tableName = await this.get()
+        .locator(`.ant-collapse-header`)
+        .nth(i)
+        .locator('input[type="text"]')
+        .inputValue();
       tableList.push(tableName);
     }
     return tableList;

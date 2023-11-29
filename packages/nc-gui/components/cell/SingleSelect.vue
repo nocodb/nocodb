@@ -43,8 +43,6 @@ const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
 
-const isLockedMode = inject(IsLockedInj, ref(false))
-
 const isEditable = inject(EditModeInj, ref(false))
 
 const activeCell = inject(ActiveCellInj, ref(false))
@@ -104,7 +102,7 @@ const hasEditRoles = computed(() => isUIAllowed('dataEdit'))
 const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 
 const vModel = computed({
-  get: () => tempSelectedOptState.value ?? modelValue?.trim(),
+  get: () => tempSelectedOptState.value ?? modelValue,
   set: (val) => {
     if (val && isNewOptionCreateEnabled.value && (options.value ?? []).every((op) => op.title !== val)) {
       tempSelectedOptState.value = val
@@ -259,16 +257,12 @@ const handleClose = (e: MouseEvent) => {
 useEventListener(document, 'click', handleClose, true)
 
 const selectedOpt = computed(() => {
-  return options.value.find((o) => o.value === vModel.value)
+  return options.value.find((o) => o.value === vModel.value || o.value === vModel.value?.trim())
 })
 </script>
 
 <template>
-  <div
-    class="h-full w-full flex items-center nc-single-select"
-    :class="{ 'read-only': readOnly || isLockedMode }"
-    @click="toggleMenu"
-  >
+  <div class="h-full w-full flex items-center nc-single-select" :class="{ 'read-only': readOnly }" @click="toggleMenu">
     <div v-if="!(active || isEditable)">
       <a-tag v-if="selectedOpt" class="rounded-tag" :color="selectedOpt.color">
         <span
@@ -295,8 +289,8 @@ const selectedOpt = computed(() => {
       :allow-clear="!column.rqd && editAllowed"
       :bordered="false"
       :open="isOpen && editAllowed"
-      :disabled="readOnly || !editAllowed || isLockedMode"
-      :show-arrow="hasEditRoles && !(readOnly || isLockedMode) && active && vModel === null"
+      :disabled="readOnly || !editAllowed"
+      :show-arrow="hasEditRoles && !readOnly && active && vModel === null"
       :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && active ? 'active' : ''}`"
       :show-search="!isMobileMode && isOpen && active"
       @select="onSelect"

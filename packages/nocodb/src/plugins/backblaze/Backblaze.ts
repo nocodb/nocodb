@@ -54,6 +54,7 @@ export default class Backblaze implements IStorageAdapterV2 {
         .get(url, {
           httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
           httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+          // TODO - use stream instead of buffer
           responseType: 'arraybuffer',
         })
         .then((response) => {

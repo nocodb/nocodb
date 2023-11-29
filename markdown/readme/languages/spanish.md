@@ -194,8 +194,8 @@ Por favor diríjase a [Contribution Guide](https://github.com/nocodb/nocodb/blob
 
 # Por qué estamos construyendo esto?
 
-La mayoría de las empresas de Internet emplean una hoja de cálculo o una base de datos para resolver sus necesidades comerciales. Las hojas de cálculo son utilizadas por billones de personas o más de manera colaborativa todos los días. Sin embargo, estamos lejos de trabajar a velocidades similares en bases de datos, ya que son herramientas computacionalmente más poderosas. Los intentos de resolver esto con soluciones SaaS han significado horribles controles de acceso, dependencia de un proveedor, dependencia de datos, cambios abruptos de precios y lo que es más importante, un techo de cristal sobre lo que es posible en el futuro."
+La mayoría de las empresas de Internet emplean una hoja de cálculo o una base de datos para resolver sus necesidades comerciales. Las hojas de cálculo son utilizadas por billones de personas o más de manera colaborativa todos los días. Sin embargo, estamos lejos de trabajar a velocidades similares en bases de datos, ya que son herramientas computacionalmente más poderosas. Los intentos de resolver esto con soluciones SaaS han significado horribles controles de acceso, dependencia de un proveedor, dependencia de datos, cambios abruptos de precios y lo que es más importante, un techo de cristal sobre lo que es posible en el futuro.
 
 # Nuestra misión
 
-Nuestra misión es proporcionar la interfaz sin-código más potente para bases de datos, la cual es open-source para negocios de Internet en el mundo. Esto no solo democratizaría el acceso a una poderosa herramienta de computación, sino que también producirá a billones de personas o más con habilidades radicales de perfección y construcción en Internet."
+Nuestra misión es proporcionar la interfaz sin-código más potente para bases de datos, la cual es open-source para negocios de Internet en el mundo. Esto no solo democratizaría el acceso a una poderosa herramienta de computación, sino que también producirá a miles de millones de personas o más con habilidades radicales de perfección y construcción en Internet.

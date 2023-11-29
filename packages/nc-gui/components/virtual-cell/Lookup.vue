@@ -98,7 +98,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
 
 <template>
   <div
-    class="h-full w-full"
+    class="h-full w-full nc-lookup-cell"
     :style="{ height: rowHeight && rowHeight !== 1 ? `${rowHeight * 2}rem` : `2.85rem` }"
     @dblclick="activateShowEditNonEditableFieldWarning"
   >
@@ -110,9 +110,13 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
     >
       <template v-if="lookupColumn">
         <!-- Render virtual cell -->
-        <div v-if="isVirtualCol(lookupColumn)">
+        <div v-if="isVirtualCol(lookupColumn)" class="flex">
+          <!-- If non-belongs-to LTAR column then pass the array value, else iterate and render -->
           <template
-            v-if="lookupColumn.uidt === UITypes.LinkToAnotherRecord && lookupColumn.colOptions.type === RelationTypes.BELONGS_TO"
+            v-if="
+              lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
+              (lookupColumn.uidt === UITypes.LinkToAnotherRecord && lookupColumn.colOptions.type === RelationTypes.BELONGS_TO)
+            "
           >
             <LazySmartsheetVirtualCell
               v-for="(v, i) of arrValue"
@@ -205,5 +209,9 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
   &::-webkit-scrollbar-thumb {
     @apply bg-gray-200;
   }
+}
+
+.nc-lookup-cell .nc-text-area-clamped-text {
+  @apply !mr-1;
 }
 </style>

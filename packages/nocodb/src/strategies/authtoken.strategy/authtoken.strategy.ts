@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { extractRolesObj, ProjectRoles } from 'nocodb-sdk';
 import { Strategy } from 'passport-custom';
 import type { Request } from 'express';
-import { ApiToken, BaseUser, User } from '~/models';
+import { ApiToken, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 
 @Injectable()
@@ -22,12 +22,21 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
           is_api_token: true,
         };
 
+        // old auth tokens will not have fk_user_id, so we return editor role
         if (!apiToken.fk_user_id) {
           user.base_roles = extractRolesObj(ProjectRoles.EDITOR);
           return callback(null, user);
         }
 
-        const dbUser: Record<string, any> = await User.get(apiToken.fk_user_id);
+        const dbUser: Record<string, any> = await User.getWithRoles(
+          apiToken.fk_user_id,
+          {
+            baseId: req['ncBaseId'],
+            ...(req['ncWorkspaceId']
+              ? { workspaceId: req['ncWorkspaceId'] }
+              : {}),
+          },
+        );
         if (!dbUser) {
           return callback({ msg: 'User not found' });
         }
@@ -35,16 +44,11 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
         Object.assign(user, {
           id: dbUser.id,
           roles: extractRolesObj(dbUser.roles),
+          base_roles: extractRolesObj(dbUser.base_roles),
+          ...(dbUser.workspace_roles
+            ? { workspace_roles: extractRolesObj(dbUser.workspace_roles) }
+            : {}),
         });
-
-        if (req['ncProjectId']) {
-          const baseUser = await BaseUser.get(req['ncProjectId'], dbUser.id);
-          user.base_roles = extractRolesObj(baseUser?.roles);
-          if (user.base_roles.owner) {
-            user.base_roles.creator = true;
-          }
-          return callback(null, sanitiseUserObj(user));
-        }
       }
       return callback(null, sanitiseUserObj(user));
     } catch (error) {

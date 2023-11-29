@@ -93,17 +93,21 @@ onMounted(() => {
       </div>
       <template #overlay>
         <NcMenu data-testid="nc-sidebar-userinfo">
-          <NcMenuItem v-e="['c:user:logout']" data-testid="nc-sidebar-user-logout" @click="logout">
-            <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
-            <GeneralIcon v-else icon="signout" class="menu-icon" />
-            <span class="menu-btn"> {{ $t('general.logout') }}</span>
+          <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
+            <div v-e="['c:user:logout']" class="flex gap-2 items-center">
+              <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
+              <GeneralIcon v-else icon="signout" class="menu-icon" />
+              <span class="menu-btn"> {{ $t('general.logout') }}</span>
+            </div>
           </NcMenuItem>
           <template v-if="!isMobileMode">
-            <NcMenuItem v-e="['c:auth-token:copy']" @click="onCopy">
-              <GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black menu-icon" />
-              <GeneralIcon v-else icon="copy" class="menu-icon" />
-              <template v-if="isAuthTokenCopied"> {{ $t('title.copiedAuthToken') }} </template>
-              <template v-else> {{ $t('title.copyAuthToken') }} </template>
+            <NcMenuItem @click="onCopy">
+              <div v-e="['c:auth-token:copy']" class="flex gap-2 items-center">
+                <GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black menu-icon" />
+                <GeneralIcon v-else icon="copy" class="menu-icon" />
+                <template v-if="isAuthTokenCopied"> {{ $t('title.copiedAuthToken') }} </template>
+                <template v-else> {{ $t('title.copyAuthToken') }} </template>
+              </div>
             </NcMenuItem>
           </template>
           <NcDivider />
@@ -140,13 +144,17 @@ onMounted(() => {
           <template v-if="!appInfo.ee">
             <NcDivider />
             <a-popover key="language" class="lang-menu !py-1.5" placement="rightBottom">
-              <NcMenuItem v-e="['c:translate:open']">
-                <GeneralIcon icon="translate" class="group-hover:text-black nc-language ml-0.25 menu-icon" />
-                {{ $t('labels.language') }}
-                <div class="flex items-center text-gray-400 text-xs">{{ $t('labels.community.communityTranslated') }}</div>
-                <div class="flex-1" />
+              <NcMenuItem>
+                <div v-e="['c:translate:open']" class="flex gap-2 items-center">
+                  <GeneralIcon icon="translate" class="group-hover:text-black nc-language ml-0.25 menu-icon" />
+                  {{ $t('labels.language') }}
+                  <div class="flex items-center text-gray-400 text-xs">{{ $t('labels.community.communityTranslated') }}</div>
+                  <div class="flex-1" />
 
-                <MaterialSymbolsChevronRightRounded class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400" />
+                  <MaterialSymbolsChevronRightRounded
+                    class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                  />
+                </div>
               </NcMenuItem>
 
               <template #content>

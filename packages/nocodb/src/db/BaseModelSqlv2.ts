@@ -35,7 +35,6 @@ import type {
   SelectOption,
 } from '~/models';
 import type { SortType } from 'nocodb-sdk';
-import generateBTLookupSelectQuery from '~/db/generateBTLookupSelectQuery';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import conditionV2 from '~/db/conditionV2';
@@ -60,10 +59,13 @@ import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
+  GROUPBY_COMPARISON_OPS,
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
+import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
+import { getAliasGenerator } from '~/utils';
 
 dayjs.extend(utc);
 
@@ -165,7 +167,9 @@ class BaseModelSqlv2 {
     let data;
 
     try {
-      data = await this.execAndParse(qb, null, { first: true });
+      data = await this.execAndParse(qb, null, {
+        first: true,
+      });
     } catch (e) {
       if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
         throw e;
@@ -265,10 +269,20 @@ class BaseModelSqlv2 {
       sort?: string | string[];
       fieldsSet?: Set<string>;
     } = {},
-    ignoreViewFilterAndSort = false,
-    validateFormula = false,
-    throwErrorIfInvalidParams = false,
+    options: {
+      ignoreViewFilterAndSort?: boolean;
+      ignorePagination?: boolean;
+      validateFormula?: boolean;
+      throwErrorIfInvalidParams?: boolean;
+    } = {},
   ): Promise<any> {
+    const {
+      ignoreViewFilterAndSort = false,
+      ignorePagination = false,
+      validateFormula = false,
+      throwErrorIfInvalidParams = false,
+    } = options;
+
     const { where, fields, ...rest } = this._getListArgs(args as any);
 
     const qb = this.dbDriver(this.tnPath);
@@ -359,7 +373,7 @@ class BaseModelSqlv2 {
       qb.orderBy('created_at');
     }
 
-    if (!ignoreViewFilterAndSort) applyPaginate(qb, rest);
+    if (!ignorePagination) applyPaginate(qb, rest);
     const proto = await this.getProto();
 
     let data;
@@ -370,8 +384,13 @@ class BaseModelSqlv2 {
       if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
         throw e;
       console.log(e);
-      return this.list(args, ignoreViewFilterAndSort, true);
+      return this.list(args, {
+        ignoreViewFilterAndSort,
+        ignorePagination,
+        validateFormula: true,
+      });
     }
+
     return data?.map((d) => {
       d.__proto__ = proto;
       return d;
@@ -535,18 +554,33 @@ class BaseModelSqlv2 {
 
     const selectors = [];
     const groupBySelectors = [];
+    const getAlias = getAliasGenerator('__nc_gb');
 
     await Promise.all(
       args.column_name.split(',').map(async (col) => {
-        const column = cols.find(
-          (c) => c.column_name === col || c.title === col,
-        );
-        groupByColumns[column.id] = column;
+        let column = cols.find((c) => c.column_name === col || c.title === col);
         if (!column) {
           throw NcError.notFound('Column not found');
         }
 
+        // if qrCode or Barcode replace it with value column nd keep the alias
+        if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
+          column = new Column({
+            ...(await column
+              .getColOptions<BarcodeColumn | QrCodeColumn>()
+              .then((col) => col.getValueColumn())),
+            title: column.title,
+            id: column.id,
+          });
+
+        groupByColumns[column.id] = column;
+
         switch (column.uidt) {
+          case UITypes.Attachment:
+            NcError.badRequest(
+              'Group by using attachment column is not supported',
+            );
+            break;
           case UITypes.Links:
           case UITypes.Rollup:
             selectors.push(
@@ -556,9 +590,9 @@ class BaseModelSqlv2 {
                   knex: this.dbDriver,
                   columnOptions: (await column.getColOptions()) as RollupColumn,
                 })
-              ).builder.as(sanitize(column.title)),
+              ).builder.as(sanitize(column.id)),
             );
-            groupBySelectors.push(sanitize(column.title));
+            groupBySelectors.push(sanitize(column.id));
             break;
           case UITypes.Formula:
             {
@@ -570,43 +604,45 @@ class BaseModelSqlv2 {
 
                 selectQb = this.dbDriver.raw(`?? as ??`, [
                   _selectQb.builder,
-                  sanitize(column.title),
+                  sanitize(column.id),
                 ]);
               } catch (e) {
                 console.log(e);
                 // return dummy select
                 selectQb = this.dbDriver.raw(`'ERR' as ??`, [
-                  sanitize(column.title),
+                  sanitize(column.id),
                 ]);
               }
 
               selectors.push(selectQb);
-              groupBySelectors.push(column.title);
+              groupBySelectors.push(column.id);
             }
             break;
           case UITypes.Lookup:
+          case UITypes.LinkToAnotherRecord:
             {
-              const _selectQb = await generateBTLookupSelectQuery({
+              const _selectQb = await generateLookupSelectQuery({
                 baseModelSqlv2: this,
                 column,
                 alias: null,
                 model: this.model,
+                getAlias,
               });
 
               const selectQb = this.dbDriver.raw(`?? as ??`, [
                 this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
-                sanitize(column.title),
+                sanitize(column.id),
               ]);
 
               selectors.push(selectQb);
-              groupBySelectors.push(sanitize(column.title));
+              groupBySelectors.push(sanitize(column.id));
             }
             break;
           default:
             selectors.push(
-              this.dbDriver.raw('?? as ??', [column.column_name, column.title]),
+              this.dbDriver.raw('?? as ??', [column.column_name, column.id]),
             );
-            groupBySelectors.push(sanitize(column.title));
+            groupBySelectors.push(sanitize(column.id));
             break;
         }
       }),
@@ -655,20 +691,23 @@ class BaseModelSqlv2 {
       qb,
     );
 
-    if (!sorts)
-      sorts = args.sortArr?.length
-        ? args.sortArr
-        : await Sort.list({ viewId: this.viewId });
+    if (!sorts) {
+      if (args.sortArr?.length) {
+        sorts = args.sortArr;
+      } else if (this.viewId) {
+        sorts = await Sort.list({ viewId: this.viewId });
+      }
+    }
 
     // if sort is provided filter out the group by columns sort and apply
     // since we are grouping by the column and applying sort on any other column is not required
-    for (const sort of sorts) {
+    for (const sort of sorts || []) {
       if (!groupByColumns[sort.fk_column_id]) {
         continue;
       }
 
       qb.orderBy(
-        groupByColumns[sort.fk_column_id].title,
+        groupByColumns[sort.fk_column_id].id,
         sort.direction,
         sort.direction === 'desc' ? 'LAST' : 'FIRST',
       );
@@ -678,6 +717,7 @@ class BaseModelSqlv2 {
     qb.groupBy(...groupBySelectors);
 
     applyPaginate(qb, rest);
+
     return await this.execAndParse(qb);
   }
 
@@ -694,18 +734,35 @@ class BaseModelSqlv2 {
 
     const selectors = [];
     const groupBySelectors = [];
+    const getAlias = getAliasGenerator('__nc_gb');
 
+    // todo: refactor and avoid duplicate code
     await this.model.getColumns().then((cols) =>
       Promise.all(
         args.column_name.split(',').map(async (col) => {
-          const column = cols.find(
+          let column = cols.find(
             (c) => c.column_name === col || c.title === col,
           );
           if (!column) {
             throw NcError.notFound('Column not found');
           }
 
+          // if qrCode or Barcode replace it with value column nd keep the alias
+          if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
+            column = new Column({
+              ...(await column
+                .getColOptions<BarcodeColumn | QrCodeColumn>()
+                .then((col) => col.getValueColumn())),
+              title: column.title,
+              id: column.id,
+            });
+
           switch (column.uidt) {
+            case UITypes.Attachment:
+              NcError.badRequest(
+                'Group by using attachment column is not supported',
+              );
+              break;
             case UITypes.Rollup:
             case UITypes.Links:
               selectors.push(
@@ -719,9 +776,9 @@ class BaseModelSqlv2 {
                     columnOptions:
                       (await column.getColOptions()) as RollupColumn,
                   })
-                ).builder.as(sanitize(column.title)),
+                ).builder.as(sanitize(column.id)),
               );
-              groupBySelectors.push(sanitize(column.title));
+              groupBySelectors.push(sanitize(column.id));
               break;
             case UITypes.Formula: {
               let selectQb;
@@ -732,46 +789,45 @@ class BaseModelSqlv2 {
 
                 selectQb = this.dbDriver.raw(`?? as ??`, [
                   _selectQb.builder,
-                  sanitize(column.title),
+                  sanitize(column.id),
                 ]);
               } catch (e) {
                 console.log(e);
                 // return dummy select
                 selectQb = this.dbDriver.raw(`'ERR' as ??`, [
-                  sanitize(column.title),
+                  sanitize(column.id),
                 ]);
               }
 
               selectors.push(selectQb);
-              groupBySelectors.push(column.title);
+              groupBySelectors.push(column.id);
               break;
             }
             case UITypes.Lookup:
+            case UITypes.LinkToAnotherRecord:
               {
-                const _selectQb = await generateBTLookupSelectQuery({
+                const _selectQb = await generateLookupSelectQuery({
                   baseModelSqlv2: this,
                   column,
                   alias: null,
                   model: this.model,
+                  getAlias,
                 });
 
                 const selectQb = this.dbDriver.raw(`?? as ??`, [
                   this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
-                  sanitize(column.title),
+                  sanitize(column.id),
                 ]);
 
                 selectors.push(selectQb);
-                groupBySelectors.push(sanitize(column.title));
+                groupBySelectors.push(sanitize(column.id));
               }
               break;
             default:
               selectors.push(
-                this.dbDriver.raw('?? as ??', [
-                  column.column_name,
-                  column.title,
-                ]),
+                this.dbDriver.raw('?? as ??', [column.column_name, column.id]),
               );
-              groupBySelectors.push(sanitize(column.title));
+              groupBySelectors.push(sanitize(column.id));
               break;
           }
         }),
@@ -822,10 +878,13 @@ class BaseModelSqlv2 {
   }
 
   async multipleHmList(
-    { colId, ids },
+    { colId, ids: _ids }: { colId: string; ids: any[] },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
     try {
+      // skip duplicate id
+      const ids = [...new Set(_ids)];
+
       const { where, sort, ...rest } = this._getListArgs(args as any);
       // todo: get only required fields
 
@@ -1081,9 +1140,17 @@ class BaseModelSqlv2 {
   }
 
   public async multipleMmList(
-    { colId, parentIds },
+    {
+      colId,
+      parentIds: _parentIds,
+    }: {
+      colId: string;
+      parentIds: any[];
+    },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
+    // skip duplicate id
+    const parentIds = [...new Set(_parentIds)];
     const { where, sort, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId,
@@ -1158,7 +1225,7 @@ class BaseModelSqlv2 {
       }),
       GROUP_COL,
     );
-    return parentIds.map((id) => gs[id] || []);
+    return _parentIds.map((id) => gs[id] || []);
   }
 
   public async mmList(
@@ -1680,7 +1747,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await parentModel.getProto();
-    const data = await this.execAndParse(qb, childTable);
+    const data = await this.execAndParse(qb, parentTable);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -1888,7 +1955,10 @@ class BaseModelSqlv2 {
                           }),
                         ],
                       },
-                      true,
+                      {
+                        ignoreViewFilterAndSort: true,
+                        ignorePagination: true,
+                      },
                     );
 
                     const groupedList = groupBy(data, pCol.title);
@@ -2030,11 +2100,10 @@ class BaseModelSqlv2 {
             // the value 2023-01-01 10:00:00 (UTC) would display as 2023-01-01 18:00:00 (UTC+8)
             // our existing logic is based on UTC, during the query, we need to take the UTC value
             // hence, we use CONVERT_TZ to convert back to UTC value
-            res[sanitize(column.title || column.column_name)] =
-              this.dbDriver.raw(
-                `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
-                [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
-              );
+            res[sanitize(column.id || column.column_name)] = this.dbDriver.raw(
+              `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
+              [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
+            );
             break;
           } else if (this.isPg) {
             // if there is no timezone info,
@@ -2044,7 +2113,7 @@ class BaseModelSqlv2 {
               column.dt !== 'timestamp with time zone' &&
               column.dt !== 'timestamptz'
             ) {
-              res[sanitize(column.title || column.column_name)] = this.dbDriver
+              res[sanitize(column.id || column.column_name)] = this.dbDriver
                 .raw(
                   `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
                   [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
@@ -2057,7 +2126,7 @@ class BaseModelSqlv2 {
             // convert to database timezone,
             // then convert to UTC
             if (column.dt !== 'datetimeoffset') {
-              res[sanitize(column.title || column.column_name)] =
+              res[sanitize(column.id || column.column_name)] =
                 this.dbDriver.raw(
                   `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
                   [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
@@ -2065,7 +2134,7 @@ class BaseModelSqlv2 {
               break;
             }
           }
-          res[sanitize(column.title || column.column_name)] = sanitize(
+          res[sanitize(column.id || column.column_name)] = sanitize(
             `${alias || this.tnPath}.${column.column_name}`,
           );
           break;
@@ -2128,7 +2197,7 @@ class BaseModelSqlv2 {
                   aliasToColumnBuilder,
                 );
                 qb.select({
-                  [column.column_name]: selectQb.builder,
+                  [column.id]: selectQb.builder,
                 });
               } catch {
                 continue;
@@ -2136,7 +2205,7 @@ class BaseModelSqlv2 {
               break;
             default: {
               qb.select({
-                [column.column_name]: barcodeValueColumn.column_name,
+                [column.id]: barcodeValueColumn.column_name,
               });
               break;
             }
@@ -2156,14 +2225,14 @@ class BaseModelSqlv2 {
               qb.select(
                 this.dbDriver.raw(`?? as ??`, [
                   selectQb.builder,
-                  sanitize(column.title),
+                  sanitize(column.id),
                 ]),
               );
             } catch (e) {
               console.log(e);
               // return dummy select
               qb.select(
-                this.dbDriver.raw(`'ERR' as ??`, [sanitize(column.title)]),
+                this.dbDriver.raw(`'ERR' as ??`, [sanitize(column.id)]),
               );
             }
           }
@@ -2180,13 +2249,13 @@ class BaseModelSqlv2 {
                 alias,
                 columnOptions: (await column.getColOptions()) as RollupColumn,
               })
-            ).builder.as(sanitize(column.title)),
+            ).builder.as(sanitize(column.id)),
           );
           break;
         default:
           if (this.isPg) {
             if (column.dt === 'bytea') {
-              res[sanitize(column.title || column.column_name)] =
+              res[sanitize(column.id || column.column_name)] =
                 this.dbDriver.raw(
                   `encode(??.??, '${
                     column.meta?.format === 'hex' ? 'hex' : 'escape'
@@ -2197,7 +2266,7 @@ class BaseModelSqlv2 {
             }
           }
 
-          res[sanitize(column.title || column.column_name)] = sanitize(
+          res[sanitize(column.id || column.column_name)] = sanitize(
             `${alias || this.tnPath}.${column.column_name}`,
           );
           break;
@@ -2208,6 +2277,20 @@ class BaseModelSqlv2 {
 
   async insert(data, trx?, cookie?, _disableOptimization = false) {
     try {
+      const columns = await this.model.getColumns();
+
+      // exclude auto increment columns in body
+      for (const col of columns) {
+        if (col.ai) {
+          const keyName =
+            data?.[col.column_name] !== undefined ? col.column_name : col.title;
+
+          if (data[keyName]) {
+            delete data[keyName];
+          }
+        }
+      }
+
       await populatePk(this.model, data);
 
       // todo: filter based on view
@@ -2222,9 +2305,6 @@ class BaseModelSqlv2 {
       if ('beforeInsert' in this) {
         await this.beforeInsert(insertObj, trx, cookie);
       }
-
-      await this.model.getColumns();
-
       await this.prepareAttachmentData(insertObj);
 
       let response;
@@ -2233,9 +2313,9 @@ class BaseModelSqlv2 {
       const query = this.dbDriver(this.tnPath).insert(insertObj);
       if ((this.isPg || this.isMssql) && this.model.primaryKey) {
         query.returning(
-          `${this.model.primaryKey.column_name} as ${this.model.primaryKey.title}`,
+          `${this.model.primaryKey.column_name} as ${this.model.primaryKey.id}`,
         );
-        response = await this.execAndParse(query);
+        response = await this.execAndParse(query, null, { raw: true });
       }
 
       const ai = this.model.columns.find((c) => c.ai);
@@ -2247,7 +2327,7 @@ class BaseModelSqlv2 {
       if (ag) {
         if (!response) await this.execAndParse(query);
         response = await this.readByPk(
-          data[ag.title],
+          insertObj[ag.column_name],
           false,
           {},
           { ignoreView: true, getHiddenColumn: true },
@@ -2298,8 +2378,8 @@ class BaseModelSqlv2 {
         }
       } else if (ai) {
         const id = Array.isArray(response)
-          ? response?.[0]?.[ai.title]
-          : response?.[ai.title];
+          ? response?.[0]?.[ai.id]
+          : response?.[ai.id];
         response = await this.readByPk(
           id,
           false,
@@ -2481,7 +2561,7 @@ class BaseModelSqlv2 {
         .update(updateObj)
         .where(await this._wherePk(id));
 
-      await this.execAndParse(query);
+      await this.execAndParse(query, null, { raw: true });
 
       // const newData = await this.readByPk(id, false, {}, { ignoreView: true , getHiddenColumn: true});
 
@@ -2595,13 +2675,26 @@ class BaseModelSqlv2 {
 
       if (this.isPg || this.isMssql) {
         query.returning(
-          `${this.model.primaryKey.column_name} as ${this.model.primaryKey.title}`,
+          `${this.model.primaryKey.column_name} as ${this.model.primaryKey.id}`,
         );
-        response = await this.execAndParse(query);
+        response = await this.execAndParse(query, null, { raw: true });
       }
 
       const ai = this.model.columns.find((c) => c.ai);
-      if (
+
+      let ag: Column;
+      if (!ai) ag = this.model.columns.find((c) => c.meta?.ag);
+
+      // handle if autogenerated primary key is used
+      if (ag) {
+        if (!response) await this.execAndParse(query);
+        response = await this.readByPk(
+          insertObj[ag.column_name],
+          false,
+          {},
+          { ignoreView: true, getHiddenColumn: true },
+        );
+      } else if (
         !response ||
         (typeof response?.[0] !== 'object' && response?.[0] !== null)
       ) {
@@ -2654,18 +2747,20 @@ class BaseModelSqlv2 {
         }
       } else if (ai) {
         rowId = Array.isArray(response)
-          ? response?.[0]?.[ai.title]
-          : response?.[ai.title];
+          ? response?.[0]?.[ai.id]
+          : response?.[ai.id];
       }
 
       await Promise.all(postInsertOps.map((f) => f(rowId)));
 
-      response = await this.readByPk(
-        rowId,
-        false,
-        {},
-        { ignoreView: true, getHiddenColumn: true },
-      );
+      if (rowId !== null && rowId !== undefined) {
+        response = await this.readByPk(
+          rowId,
+          false,
+          {},
+          { ignoreView: true, getHiddenColumn: true },
+        );
+      }
 
       await this.afterInsert(response, this.dbDriver, cookie);
 
@@ -2882,6 +2977,8 @@ class BaseModelSqlv2 {
               }
             }
 
+            await this.validateOptions(col, insertObj);
+
             // validate data
             if (col?.meta?.validate && col?.validate) {
               const validate = col.getValidators();
@@ -2959,7 +3056,7 @@ class BaseModelSqlv2 {
 
       // insert one by one as fallback to get ids for sqlite and mysql
       if (insertOneByOneAsFallback && (this.isSqlite || this.isMySQL)) {
-        // sqlite and mysql doesnt support returning, so insert one by one and return ids
+        // sqlite and mysql doesn't support returning, so insert one by one and return ids
         response = [];
 
         const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
@@ -2971,7 +3068,7 @@ class BaseModelSqlv2 {
         }
       } else {
         response =
-          this.isPg || this.isMssql
+          !raw && (this.isPg || this.isMssql)
             ? await trx
                 .batchInsert(this.tnPath, insertDatas, chunkSize)
                 .returning({
@@ -3113,7 +3210,12 @@ class BaseModelSqlv2 {
   }
 
   async bulkUpdateAll(
-    args: { where?: string; filterArr?: Filter[]; viewId?: string } = {},
+    args: {
+      where?: string;
+      filterArr?: Filter[];
+      viewId?: string;
+      skipValidationAndHooks?: boolean;
+    } = {},
     data,
     { cookie }: { cookie?: any } = {},
   ) {
@@ -3124,7 +3226,7 @@ class BaseModelSqlv2 {
         this.clientMeta,
         this.dbDriver,
       );
-      await this.validate(updateData);
+      if (!args.skipValidationAndHooks) await this.validate(updateData);
       const pkValues = await this._extractPksValues(updateData);
       if (pkValues) {
         // pk is specified - by pass
@@ -3158,7 +3260,7 @@ class BaseModelSqlv2 {
           );
         }
 
-        await conditionV2(this, conditionObj, qb);
+        await conditionV2(this, conditionObj, qb, undefined, true);
 
         count = (
           await this.execAndParse(
@@ -3176,7 +3278,8 @@ class BaseModelSqlv2 {
         await this.execAndParse(qb, null, { raw: true });
       }
 
-      await this.afterBulkUpdate(null, count, this.dbDriver, cookie, true);
+      if (!args.skipValidationAndHooks)
+        await this.afterBulkUpdate(null, count, this.dbDriver, cookie, true);
 
       return count;
     } catch (e) {
@@ -3668,6 +3771,8 @@ class BaseModelSqlv2 {
     // let cols = Object.keys(this.columns);
     for (let i = 0; i < this.model.columns.length; ++i) {
       const column = this.model.columns[i];
+      await this.validateOptions(column, columns);
+
       // skip validation if `validate` is undefined or false
       if (!column?.meta?.validate || !column?.validate) continue;
 
@@ -3700,6 +3805,49 @@ class BaseModelSqlv2 {
       }
     }
     return true;
+  }
+
+  // method for validating otpions if column is single/multi select
+  private async validateOptions(
+    column: Column<any>,
+    insertOrUpdateObject: Record<string, any>,
+  ) {
+    // if SingleSelect or MultiSelect, then validate the options
+    if (
+      !(
+        column.uidt === UITypes.SingleSelect ||
+        column.uidt === UITypes.MultiSelect
+      )
+    ) {
+      return;
+    }
+
+    const options = await column
+      .getColOptions<{ options: SelectOption[] }>()
+      .then(({ options }) => options.map((opt) => opt.title));
+    const columnTitle = column.title;
+    const columnName = column.column_name;
+    const columnValue =
+      insertOrUpdateObject?.[columnTitle] ?? insertOrUpdateObject?.[columnName];
+    if (!columnValue) {
+      return;
+    }
+
+    // if multi select, then split the values
+    const columnValueArr =
+      column.uidt === UITypes.MultiSelect
+        ? columnValue.split(',')
+        : [columnValue];
+    for (let j = 0; j < columnValueArr.length; ++j) {
+      const val = columnValueArr[j];
+      if (!options.includes(val)) {
+        NcError.badRequest(
+          `Invalid option "${val}" provided for column "${columnTitle}". Valid options are "${options.join(
+            ', ',
+          )}"`,
+        );
+      }
+    }
   }
 
   async addChild({
@@ -4215,7 +4363,8 @@ class BaseModelSqlv2 {
 
     await this.selectObject({
       qb,
-      columns: [new Column({ ...column, title: 'key' })],
+      // replace id with 'key' as we select as id
+      columns: [new Column({ ...column, title: 'key', id: 'key' })],
     });
 
     return await this.execAndParse(qb);
@@ -4227,11 +4376,13 @@ class BaseModelSqlv2 {
     options: {
       skipDateConversion?: boolean;
       skipAttachmentConversion?: boolean;
+      skipSubstitutingColumnIds?: boolean;
       raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
       first?: boolean;
     } = {
       skipDateConversion: false,
       skipAttachmentConversion: false,
+      skipSubstitutingColumnIds: false,
       raw: false,
       first: false,
     },
@@ -4239,6 +4390,7 @@ class BaseModelSqlv2 {
     if (options.raw) {
       options.skipDateConversion = true;
       options.skipAttachmentConversion = true;
+      options.skipSubstitutingColumnIds = true;
     }
 
     if (options.first && typeof qb !== 'string') {
@@ -4271,9 +4423,81 @@ class BaseModelSqlv2 {
       data = this.convertDateFormat(data, childTable);
     }
 
+    if (!options.skipSubstitutingColumnIds) {
+      data = await this.substituteColumnIdsWithColumnTitles(data, childTable);
+    }
+
     if (options.first) {
       return data?.[0];
     }
+
+    return data;
+  }
+
+  protected async substituteColumnIdsWithColumnTitles(
+    data: Record<string, any>[],
+    childTable?: Model,
+  ) {
+    const modelColumns = this.model?.columns.concat(childTable?.columns ?? []);
+
+    if (!modelColumns || !data.length) {
+      return data;
+    }
+
+    const idToAliasMap: Record<string, string> = {};
+    const idToAliasPromiseMap: Record<string, Promise<string>> = {};
+    const btMap: Record<string, boolean> = {};
+
+    modelColumns.forEach((col) => {
+      idToAliasMap[col.id] = col.title;
+      if (col.colOptions?.type === 'bt') {
+        btMap[col.id] = true;
+        const btData = Object.values(data).find(
+          (d) => d[col.id] && Object.keys(d[col.id]),
+        );
+        if (btData) {
+          for (const k of Object.keys(btData[col.id])) {
+            const btAlias = idToAliasMap[k];
+            if (!btAlias) {
+              idToAliasPromiseMap[k] = Column.get({ colId: k }).then((col) => {
+                return col.title;
+              });
+            }
+          }
+        }
+      } else {
+        btMap[col.id] = false;
+      }
+    });
+
+    for (const k of Object.keys(idToAliasPromiseMap)) {
+      idToAliasMap[k] = await idToAliasPromiseMap[k];
+    }
+
+    data.forEach((item) => {
+      Object.entries(item).forEach(([key, value]) => {
+        const alias = idToAliasMap[key];
+        if (alias) {
+          if (btMap[key]) {
+            if (value) {
+              const tempObj = {};
+              Object.entries(value).forEach(([k, v]) => {
+                const btAlias = idToAliasMap[k];
+                if (btAlias) {
+                  tempObj[btAlias] = v;
+                }
+              });
+              item[alias] = tempObj;
+            } else {
+              item[alias] = value;
+            }
+          } else {
+            item[alias] = value;
+          }
+          delete item[key];
+        }
+      });
+    });
 
     return data;
   }
@@ -4286,12 +4510,12 @@ class BaseModelSqlv2 {
       if (d) {
         const promises = [];
         for (const col of attachmentColumns) {
-          if (d[col.title] && typeof d[col.title] === 'string') {
-            d[col.title] = JSON.parse(d[col.title]);
+          if (d[col.id] && typeof d[col.id] === 'string') {
+            d[col.id] = JSON.parse(d[col.id]);
           }
 
-          if (d[col.title]?.length) {
-            for (const attachment of d[col.title]) {
+          if (d[col.id]?.length) {
+            for (const attachment of d[col.id]) {
               // we expect array of array of attachments in case of lookup
               if (Array.isArray(attachment)) {
                 for (const lookedUpAttachment of attachment) {
@@ -4405,24 +4629,24 @@ class BaseModelSqlv2 {
   ) {
     if (!d) return d;
     for (const col of dateTimeColumns) {
-      if (!d[col.title]) continue;
+      if (!d[col.id]) continue;
 
       if (col.uidt === UITypes.Formula) {
-        if (!d[col.title] || typeof d[col.title] !== 'string') {
+        if (!d[col.id] || typeof d[col.id] !== 'string') {
           continue;
         }
 
         // remove milliseconds
         if (this.isMySQL) {
-          d[col.title] = d[col.title].replace(/\.000000/g, '');
+          d[col.id] = d[col.id].replace(/\.000000/g, '');
         } else if (this.isMssql) {
-          d[col.title] = d[col.title].replace(/\.0000000 \+00:00/g, '');
+          d[col.id] = d[col.id].replace(/\.0000000 \+00:00/g, '');
         }
 
-        if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g.test(d[col.title])) {
+        if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g.test(d[col.id])) {
           // convert ISO string (e.g. in MSSQL) to YYYY-MM-DD hh:mm:ssZ
           // e.g. 2023-05-18T05:30:00.000Z -> 2023-05-18 11:00:00+05:30
-          d[col.title] = d[col.title].replace(
+          d[col.id] = d[col.id].replace(
             /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g,
             (d: string) => {
               if (!dayjs(d).isValid()) return d;
@@ -4439,7 +4663,7 @@ class BaseModelSqlv2 {
         // convert all date time values to utc
         // the datetime is either YYYY-MM-DD hh:mm:ss (xcdb)
         // or YYYY-MM-DD hh:mm:ss+/-xx:yy (ext)
-        d[col.title] = d[col.title].replace(
+        d[col.id] = d[col.id].replace(
           /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2})?/g,
           (d: string) => {
             if (!dayjs(d).isValid()) {
@@ -4479,15 +4703,15 @@ class BaseModelSqlv2 {
       if (this.isSqlite) {
         if (!col.cdf) {
           if (
-            d[col.title].indexOf('-') === -1 &&
-            d[col.title].indexOf('+') === -1 &&
-            d[col.title].slice(-1) !== 'Z'
+            d[col.id].indexOf('-') === -1 &&
+            d[col.id].indexOf('+') === -1 &&
+            d[col.id].slice(-1) !== 'Z'
           ) {
             // if there is no timezone info,
             // we assume the input is on NocoDB server timezone
             // then we convert to UTC from server timezone
             // e.g. 2023-04-27 10:00:00 (IST) -> 2023-04-27 04:30:00+00:00
-            d[col.title] = dayjs(d[col.title])
+            d[col.id] = dayjs(d[col.id])
               .tz(Intl.DateTimeFormat().resolvedOptions().timeZone)
               .utc()
               .format('YYYY-MM-DD HH:mm:ssZ');
@@ -4505,14 +4729,14 @@ class BaseModelSqlv2 {
         keepLocalTime = false;
       }
 
-      if (d[col.title] instanceof Date) {
+      if (d[col.id] instanceof Date) {
         // e.g. MSSQL
         // Wed May 10 2023 17:47:46 GMT+0800 (Hong Kong Standard Time)
         keepLocalTime = false;
       }
       // e.g. 01.01.2022 10:00:00+05:30 -> 2022-01-01 04:30:00+00:00
       // e.g. 2023-05-09 11:41:49 -> 2023-05-09 11:41:49+00:00
-      d[col.title] = dayjs(d[col.title])
+      d[col.id] = dayjs(d[col.id])
         // keep the local time
         .utc(keepLocalTime)
         // show the timezone even for Mysql
@@ -4606,10 +4830,11 @@ class BaseModelSqlv2 {
                   `${parentTable.table_name}.${parentColumn.column_name}`,
                 ).andOn(
                   `${vTable.table_name}.${vChildCol.column_name}`,
-                  row[childColumn.column_name],
+                  this.dbDriver.raw('?', [
+                    row[childColumn.title] ?? row[childColumn.column_name],
+                  ]),
                 );
               });
-            // .where(_wherePk(parentTable.primaryKeys, childId))
 
             if (parentTable.primaryKeys.length > 1) {
               childRowsQb.where((qb) => {
@@ -4633,7 +4858,9 @@ class BaseModelSqlv2 {
             if (parentTable.primaryKey.column_name !== parentColumn.column_name)
               childRowsQb.select(parentTable.primaryKey.column_name);
 
-            const childRows = await childRowsQb;
+            const childRows = await this.execAndParse(childRowsQb, null, {
+              raw: true,
+            });
 
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
@@ -4692,7 +4919,9 @@ class BaseModelSqlv2 {
               );
             }
 
-            const childRows = await childRowsQb;
+            const childRows = await this.execAndParse(childRowsQb, null, {
+              raw: true,
+            });
 
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
@@ -4744,7 +4973,10 @@ class BaseModelSqlv2 {
               .where(_wherePk(parentTable.primaryKeys, childIds[0]))
               .first();
 
-            const childRow = await childRowsQb;
+            const childRow = await this.execAndParse(childRowsQb, null, {
+              first: true,
+              raw: true,
+            });
 
             if (!childRow) {
               NcError.unprocessableEntity(
@@ -4828,8 +5060,6 @@ class BaseModelSqlv2 {
     const childTn = this.getTnPath(childTable);
     const parentTn = this.getTnPath(parentTable);
 
-    // const prevData = await this.readByPk(rowId);
-
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
         {
@@ -4865,7 +5095,9 @@ class BaseModelSqlv2 {
             if (parentTable.primaryKey.column_name !== parentColumn.column_name)
               childRowsQb.select(parentTable.primaryKey.column_name);
 
-            const childRows = await childRowsQb;
+            const childRows = await this.execAndParse(childRowsQb, null, {
+              raw: true,
+            });
 
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
@@ -4911,7 +5143,9 @@ class BaseModelSqlv2 {
               .select(childTable.primaryKey.column_name)
               .whereIn(childTable.primaryKey.column_name, childIds);
 
-            const childRows = await childRowsQb;
+            const childRows = await this.execAndParse(childRowsQb, null, {
+              raw: true,
+            });
 
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
@@ -4967,7 +5201,10 @@ class BaseModelSqlv2 {
               .where(_wherePk(parentTable.primaryKeys, childIds[0]))
               .first();
 
-            const childRow = await childRowsQb;
+            const childRow = await this.execAndParse(childRowsQb, null, {
+              first: true,
+              raw: true,
+            });
 
             if (!childRow) {
               NcError.unprocessableEntity(
@@ -5054,13 +5291,12 @@ class BaseModelSqlv2 {
         parentCol.column_name,
         this.dbDriver(childTn)
           .select(chilCol.column_name)
-          // .where(parentTable.primaryKey.cn, p)
           .where(_wherePk(childTable.primaryKeys, id)),
       );
 
       await parentModel.selectObject({ qb, fieldsSet: args.fieldSet });
 
-      const parent = await this.execAndParse(qb, childTable, {
+      const parent = await this.execAndParse(qb, parentTable, {
         first: true,
       });
 
@@ -5121,9 +5357,7 @@ export function extractSortsObject(
     else sort.fk_column_id = aliasColObjMap[s.replace(/^\+/, '')]?.id;
 
     if (throwErrorIfInvalid && !sort.fk_column_id)
-      NcError.unprocessableEntity(
-        `Invalid column '${s.replace(/^[+-]/, '')}' in sort`,
-      );
+      NcError.unprocessableEntity(`Invalid field: ${s.replace(/^[+-]/, '')}`);
 
     return new Sort(sort);
   });
@@ -5212,7 +5446,7 @@ export function extractFilterFromXwhere(
 
 // mark `op` and `sub_op` any for being assignable to parameter of type
 function validateFilterComparison(uidt: UITypes, op: any, sub_op?: any) {
-  if (!COMPARISON_OPS.includes(op)) {
+  if (!COMPARISON_OPS.includes(op) && !GROUPBY_COMPARISON_OPS.includes(op)) {
     NcError.badRequest(`${op} is not supported.`);
   }
 
@@ -5287,7 +5521,7 @@ export function extractCondition(
 
       validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
     } else if (throwErrorIfInvalid) {
-      NcError.unprocessableEntity(`Column '${alias}' not found.`);
+      NcError.unprocessableEntity(`Invalid field: ${alias}`);
     }
 
     return new Filter({
@@ -5320,7 +5554,9 @@ export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
   if (id && typeof id === 'object' && !Array.isArray(id)) {
     // verify all pk columns are present in id object
     for (const pk of primaryKeys) {
-      if (pk.title in id) {
+      if (pk.id in id) {
+        where[pk.column_name] = id[pk.id];
+      } else if (pk.title in id) {
         where[pk.column_name] = id[pk.title];
       } else if (pk.column_name in id) {
         where[pk.column_name] = id[pk.column_name];
@@ -5331,7 +5567,7 @@ export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
       }
     }
 
-    return id;
+    return where;
   }
 
   const ids = Array.isArray(id) ? id : (id + '').split('___');

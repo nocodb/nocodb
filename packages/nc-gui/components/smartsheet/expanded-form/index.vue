@@ -41,11 +41,13 @@ interface Props {
   showNextPrevIcons?: boolean
   firstRow?: boolean
   lastRow?: boolean
+  closeAfterSave?: boolean
+  newRecordHeader?: string
 }
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
+const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'createdRecord'])
 
 const { activeView } = storeToRefs(useViewsStore())
 
@@ -85,6 +87,8 @@ const isUnsavedFormExist = ref(false)
 const isRecordLinkCopied = ref(false)
 
 const { isUIAllowed } = useRoles()
+
+const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
 
 const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
@@ -198,9 +202,17 @@ const save = async () => {
     await _save(undefined, undefined, {
       kanbanClbk,
     })
+
+    _loadRow()
     reloadTrigger?.trigger()
   }
   isUnsavedFormExist.value = false
+
+  if (props.closeAfterSave) {
+    isExpanded.value = false
+  }
+
+  emits('createdRecord', _row.value.row)
 }
 
 const isPreventChangeModalOpen = ref(false)
@@ -486,12 +498,17 @@ export default {
             <div v-if="isLoading">
               <a-skeleton-input class="!h-8 !sm:mr-14 !w-52 mt-1 !rounded-md !overflow-hidden" active size="small" />
             </div>
+            <div
+              v-if="row.rowMeta?.new || props.newRecordHeader"
+              class="flex items-center truncate font-bold text-gray-800 text-xl"
+            >
+              {{ props.newRecordHeader ?? $t('activity.newRecord') }}
+            </div>
             <div v-else-if="displayValue && !row.rowMeta?.new" class="flex items-center font-bold text-gray-800 text-xl w-64">
               <span class="truncate">
                 {{ displayValue }}
               </span>
             </div>
-            <div v-if="row.rowMeta?.new" class="flex items-center truncate font-bold text-gray-800 text-xl">New Record</div>
           </div>
           <div class="flex gap-2">
             <NcButton
@@ -543,14 +560,15 @@ export default {
                   <NcDivider v-if="isUIAllowed('dataEdit') && !isNew" />
                   <NcMenuItem
                     v-if="isUIAllowed('dataEdit') && !isNew"
-                    v-e="['c:row-expand:delete']"
                     class="!text-red-500 !hover:bg-red-50"
                     @click="!isNew && onDeleteRowClick()"
                   >
-                    <component :is="iconMap.delete" data-testid="nc-expanded-form-delete" class="cursor-pointer nc-delete-row" />
-                    <span class="-ml-0.5">
-                      {{ $t('activity.deleteRecord') }}
-                    </span>
+                    <div v-e="['c:row-expand:delete']" data-testid="nc-expanded-form-delete" class="flex gap-2 items-center">
+                      <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
+                      <span class="-ml-0.25">
+                        {{ $t('activity.deleteRecord') }}
+                      </span>
+                    </div>
                   </NcMenuItem>
                 </NcMenu>
               </template>
@@ -653,6 +671,7 @@ export default {
                       :class="{
                         'px-1': isReadOnlyVirtualCell(col),
                       }"
+                      :read-only="readOnly"
                     />
 
                     <LazySmartsheetCell
@@ -661,7 +680,7 @@ export default {
                       :column="col"
                       :edit-enabled="true"
                       :active="true"
-                      :read-only="isPublic"
+                      :read-only="readOnly"
                       @update:model-value="changedColumns.add(col.title)"
                     />
                   </SmartsheetDivDataCell>
@@ -721,6 +740,7 @@ export default {
                         v-model="_row.row[col.title]"
                         :row="_row"
                         :column="col"
+                        :read-only="readOnly"
                       />
 
                       <LazySmartsheetCell
@@ -729,7 +749,7 @@ export default {
                         :column="col"
                         :edit-enabled="true"
                         :active="true"
-                        :read-only="isPublic"
+                        :read-only="readOnly"
                         @update:model-value="changedColumns.add(col.title)"
                       />
                     </LazySmartsheetDivDataCell>

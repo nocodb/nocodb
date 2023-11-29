@@ -1,4 +1,4 @@
-import type { BaseType, ColumnType, FilterType, MetaType, PaginatedType, Roles, RolesObj, ViewTypes } from 'nocodb-sdk'
+import type { BaseType, ColumnType, FilterType, MetaType, PaginatedType, Roles, RolesObj, TableType, ViewTypes } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
@@ -171,6 +171,11 @@ type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation'
 
 type NcButtonSize = 'xxsmall' | 'xsmall' | 'small' | 'medium'
 
+interface SidebarTableNode extends TableType {
+  isMetaLoading?: boolean
+  isViewsLoading?: boolean
+}
+
 export {
   User,
   ProjectMetaInfo,
@@ -195,4 +200,5 @@ export {
   Users,
   ViewPageType,
   NcButtonSize,
+  SidebarTableNode,
 }

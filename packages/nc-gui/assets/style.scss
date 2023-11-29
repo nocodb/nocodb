@@ -678,3 +678,7 @@ input[type='number'] {
     @apply xs:(visible opacity-100 !text-gray-500)
   }
 }
+
+.ant-message-notice-content {
+  @apply !rounded-md;
+}

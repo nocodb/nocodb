@@ -519,13 +519,13 @@ function filterSelectBased() {
           column_name: 'SingleSelect',
           title: 'SingleSelect',
           uidt: UITypes.SingleSelect,
-          dtxp: "'jan','feb','mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'",
+          dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
         },
         {
           column_name: 'MultiSelect',
           title: 'MultiSelect',
           uidt: UITypes.MultiSelect,
-          dtxp: "'jan','feb','mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'",
+          dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
         },
       ],
     });

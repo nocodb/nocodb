@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
-import { RelationTypes, UITypes } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   IsLockedInj,
@@ -15,20 +15,10 @@ import {
   useNuxtApp,
   useSmartsheetStoreOrThrow,
   useViewColumnsOrThrow,
+  watch,
 } from '#imports'
 
-const groupingUidt = [
-  UITypes.SingleSelect,
-  UITypes.MultiSelect,
-  UITypes.Checkbox,
-  UITypes.Date,
-  UITypes.SingleLineText,
-  UITypes.Number,
-  UITypes.Rollup,
-  UITypes.Lookup,
-  UITypes.Links,
-  UITypes.Formula,
-]
+const excludedGroupingUidt = [UITypes.Attachment]
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
@@ -62,16 +52,16 @@ const groupedByColumnIds = computed(() => groupBy.value.map((g) => g.fk_column_i
 const { eventBus } = useSmartsheetStoreOrThrow()
 
 const { isMobileMode } = useGlobal()
-const btLookups = ref([])
+const supportedLookups = ref([])
 
 const fieldsToGroupBy = computed(() => {
   const fields = meta.value?.columns || []
 
   return fields.filter((field) => {
-    if (!groupingUidt.includes(field.uidt as UITypes)) return false
+    if (excludedGroupingUidt.includes(field.uidt as UITypes)) return false
 
     if (field.uidt === UITypes.Lookup) {
-      return btLookups.value.includes(field.id)
+      return supportedLookups.value.includes(field.id)
     }
 
     return true
@@ -161,25 +151,18 @@ watch(open, () => {
   }
 })
 
-const loadBtLookups = async () => {
+const loadAllowedLookups = async () => {
   const filteredLookupCols = []
   try {
     for (const col of meta.value?.columns || []) {
       if (col.uidt !== UITypes.Lookup) continue
 
       let nextCol = col
-      let btLookup = true
-
-      // check all the relation of nested lookup columns is bt or not
-      // include the column only if all only if all relations are bt
-      while (btLookup && nextCol && nextCol.uidt === UITypes.Lookup) {
+      // check the lookup column is supported type or not
+      while (nextCol && nextCol.uidt === UITypes.Lookup) {
         const lookupRelation = (await getMeta(nextCol.fk_model_id))?.columns?.find(
           (c) => c.id === (nextCol.colOptions as LookupType).fk_relation_column_id,
         )
-        if ((lookupRelation.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO) {
-          btLookup = false
-          continue
-        }
 
         const relatedTableMeta = await getMeta((lookupRelation.colOptions as LinkToAnotherRecordType).fk_related_model_id)
 
@@ -190,22 +173,25 @@ const loadBtLookups = async () => {
         // if next column is same as root lookup column then break the loop
         // since it's going to be a circular loop, and ignore the column
         if (nextCol.id === col.id) {
-          btLookup = false
           break
         }
       }
 
-      if (btLookup) filteredLookupCols.push(col.id)
+      if (nextCol.uidt !== UITypes.Attachment) filteredLookupCols.push(col.id)
     }
 
-    btLookups.value = filteredLookupCols
+    supportedLookups.value = filteredLookupCols
   } catch (e) {
     console.error(e)
   }
 }
 
 onMounted(async () => {
-  await loadBtLookups()
+  await loadAllowedLookups()
+})
+
+watch(meta, async () => {
+  await loadAllowedLookups()
 })
 </script>
 
@@ -242,9 +228,7 @@ onMounted(async () => {
             <LazySmartsheetToolbarFieldListAutoCompleteDropdown
               v-model="group.fk_column_id"
               class="caption nc-sort-field-select"
-              :columns="
-                fieldsToGroupBy.filter((f) => (f.id && !groupedByColumnIds.includes(f.id)) || f.id === group.fk_column_id)
-              "
+              :columns="fieldsToGroupBy"
               :allow-empty="true"
               @change="saveGroupBy"
               @click.stop

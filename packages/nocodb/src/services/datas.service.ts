@@ -27,6 +27,7 @@ export class DatasService {
       model,
       view,
       query: param.query,
+      throwErrorIfInvalidParams: true,
     });
   }
 
@@ -51,7 +52,7 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    const countArgs: any = { ...param.query };
+    const countArgs: any = { ...param.query, throwErrorIfInvalidParams: true };
     try {
       countArgs.filterArr = JSON.parse(countArgs.filterArrJson);
     } catch (e) {}
@@ -134,8 +135,9 @@ export class DatasService {
     query: any;
     baseModel?: BaseModelSqlv2;
     throwErrorIfInvalidParams?: boolean;
+    ignoreViewFilterAndSort?: boolean;
   }) {
-    const { model, view, query = {} } = param;
+    const { model, view, query = {}, ignoreViewFilterAndSort = false } = param;
 
     const source = await Source.get(model.source_id);
 
@@ -163,18 +165,16 @@ export class DatasService {
     } catch (e) {}
 
     const [count, data] = await Promise.all([
-      baseModel.count(listArgs),
+      baseModel.count(listArgs, false, param.throwErrorIfInvalidParams),
       (async () => {
         let data = [];
         try {
           data = await nocoExecute(
             ast,
-            await baseModel.list(
-              listArgs,
-              false,
-              false,
-              param.throwErrorIfInvalidParams,
-            ),
+            await baseModel.list(listArgs, {
+              ignoreViewFilterAndSort,
+              throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
+            }),
             {},
             listArgs,
           );

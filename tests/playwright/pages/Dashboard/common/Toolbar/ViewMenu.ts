@@ -86,6 +86,9 @@ export class ToolbarViewMenuPage extends BasePage {
   // todo: Move verification out of the click method
   async click({ menu, subMenu, verificationInfo }: { menu: string; subMenu?: string; verificationInfo?: any }) {
     await this.viewsMenuBtn.click();
+
+    await this.rootPage.waitForTimeout(1000);
+
     await this.get().locator(`.ant-dropdown-menu-title-content:has-text("${menu}")`).first().click();
     if (subMenu) {
       // for CSV download, pass locator instead of clicking it here

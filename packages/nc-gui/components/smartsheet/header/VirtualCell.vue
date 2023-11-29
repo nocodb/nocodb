@@ -36,6 +36,8 @@ const editColumnDropdown = ref(false)
 
 const isDropDownOpen = ref(false)
 
+const isLocked = inject(IsLockedInj, ref(false))
+
 provide(ColumnInj, column)
 
 const { metas } = useMetas()
@@ -124,12 +126,16 @@ const closeAddColumnDropdown = () => {
 }
 
 const openHeaderMenu = () => {
+  if (isLocked.value) return
+
   if (!isForm.value && !isExpandedForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value) {
     editColumnDropdown.value = true
   }
 }
 
 const openDropDown = (e: Event) => {
+  if (isLocked.value) return
+
   if (isForm.value || isExpandedForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value)) return
 
   e.preventDefault()

@@ -212,8 +212,7 @@ export async function importData({
 
     return records;
   } catch (e) {
-    console.log(e);
-    return null;
+    throw e;
   }
 }
 

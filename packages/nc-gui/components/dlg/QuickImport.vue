@@ -172,7 +172,9 @@ const disablePreImportButton = computed(() => {
   }
 })
 
-const disableImportButton = computed(() => !templateEditorRef.value?.isValid)
+const isError = ref(false)
+
+const disableImportButton = computed(() => !templateEditorRef.value?.isValid || isError.value)
 
 const disableFormatJsonButton = computed(() => !jsonEditorRef.value?.isValid)
 
@@ -530,6 +532,14 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
     preImportLoading.value = false
   }
 }
+
+const onError = () => {
+  isError.value = true
+}
+
+const onChange = () => {
+  isError.value = false
+}
 </script>
 
 <template>
@@ -558,6 +568,8 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
             :import-worker="importWorker"
             class="nc-quick-import-template-editor"
             @import="handleImport"
+            @error="onError"
+            @change="onChange"
           />
 
           <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" tab-position="top">
@@ -641,7 +653,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
             <a-form-item v-if="!importDataOnly" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.autoSelectFieldTypes">
-                <span class="caption">Auto-Select Field Types</span>
+                <span class="caption">{{ $t('labels.autoSelectFieldTypes') }}</span>
               </a-checkbox>
             </a-form-item>
 

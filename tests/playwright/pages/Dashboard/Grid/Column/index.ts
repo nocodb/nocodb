@@ -319,12 +319,14 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.locator('.nc-more-options').click();
   }
 
-  async duplicateColumn({ title, expectedTitle = `${title}_copy` }: { title: string; expectedTitle?: string }) {
+  async duplicateColumn({ title, expectedTitle = `${title} copy` }: { title: string; expectedTitle?: string }) {
     await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Duplicate"):visible').click();
 
+    await this.rootPage.locator('.nc-modal-column-duplicate .nc-button:has-text("Confirm"):visible').click();
+
     // await this.verifyToast({ message: 'Column duplicated successfully' });
-    await this.grid.get().locator(`th[data-title="${expectedTitle}"]`).waitFor({ state: 'visible' });
+    await this.grid.get().locator(`th[data-title="${expectedTitle}"]`).waitFor({ state: 'visible', timeout: 10000 });
   }
 
   async hideColumn({ title, isDisplayValue = false }: { title: string; isDisplayValue?: boolean }) {

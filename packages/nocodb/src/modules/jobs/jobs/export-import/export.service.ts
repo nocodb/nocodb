@@ -129,6 +129,17 @@ export class ExportService {
                 }
                 break;
               case 'formula':
+                // rewrite formula_raw with aliases
+                column.colOptions['formula_raw'] = column.colOptions[k].replace(
+                  /\{\{.*?\}\}/gm,
+                  (match) => {
+                    const col = model.columns.find(
+                      (c) => c.id === match.slice(2, -2),
+                    );
+                    return `{${col?.title}}`;
+                  },
+                );
+
                 column.colOptions[k] = column.colOptions[k].replace(
                   /(?<=\{\{).*?(?=\}\})/gm,
                   (match) => idMap.get(match),
@@ -140,6 +151,19 @@ export class ExportService {
               case 'fk_column_id':
                 delete column.colOptions[k];
                 break;
+            }
+          }
+        }
+
+        // pg default value fix
+        if (source.type === 'pg') {
+          if (column.cdf) {
+            // check if column.cdf has unmatched single quotes
+            const matches = column.cdf.match(/'/g);
+            if (matches && matches.length % 2 !== 0) {
+              // if so remove after last single quote
+              const lastQuoteIndex = column.cdf.lastIndexOf("'");
+              column.cdf = column.cdf.substring(0, lastQuoteIndex);
             }
           }
         }
@@ -395,9 +419,13 @@ export class ExportService {
           .map((c) => c.title)
           .join(',');
 
-    const mmColumns = model.columns.filter(
-      (col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm',
-    );
+    const mmColumns = param._fieldIds
+      ? model.columns
+          .filter((c) => param._fieldIds?.includes(c.id))
+          .filter((col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm')
+      : model.columns.filter(
+          (col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm',
+        );
 
     const hasLink = mmColumns.length > 0;
 
@@ -564,6 +592,7 @@ export class ExportService {
           view,
           query: { limit, offset, fields },
           baseModel,
+          ignoreViewFilterAndSort: true,
         })
         .then((result) => {
           try {
@@ -612,6 +641,7 @@ export class ExportService {
           view,
           query: { limit, offset, fields },
           baseModel,
+          ignoreViewFilterAndSort: true,
         })
         .then((result) => {
           try {

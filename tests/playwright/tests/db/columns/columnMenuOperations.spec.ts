@@ -70,7 +70,7 @@ test.describe('Column menu operations', () => {
       });
       await dashboard.grid.column.duplicateColumn({
         title,
-        expectedTitle: `${title}_copy_1`,
+        expectedTitle: `${title} copy_1`,
       });
     }
     await dashboard.closeTab({ title: 'Film' });

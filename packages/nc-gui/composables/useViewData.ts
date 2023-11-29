@@ -42,10 +42,6 @@ export function useViewData(
   const meta = computed(() => _meta.value || activeTable.value)
   const metaId = computed(() => _meta.value?.id || activeTableId.value)
 
-  if (!meta.value) {
-    throw new Error('Table meta is not available')
-  }
-
   const { t } = useI18n()
 
   const optimisedQuery = useState('optimisedQuery', () => true)
@@ -189,6 +185,8 @@ export function useViewData(
     const CancelToken = axios.CancelToken
 
     controller.value = CancelToken.source()
+
+    isPaginationLoading.value = true
 
     const response = !isPublic.value
       ? await api.dbViewRow.list(

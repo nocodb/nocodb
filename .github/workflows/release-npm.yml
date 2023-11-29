@@ -61,7 +61,7 @@ jobs:
           fi
           echo $NOCODB_SDK_PKG_NAME
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
-          pnpm --filter=${NOCODB_SDK_PKG_NAME} install --ignore-scripts --no-frozen-lockfile && pnpm --filter=${NOCODB_SDK_PKG_NAME} run build && pnpm --filter=${NOCODB_SDK_PKG_NAME} publish --no-git-checks &&
+          pnpm --filter=${NOCODB_SDK_PKG_NAME} install --ignore-scripts --no-frozen-lockfile --ignore-workspace && pnpm --filter=${NOCODB_SDK_PKG_NAME} run build && pnpm --filter=${NOCODB_SDK_PKG_NAME} publish --no-git-checks &&
           sleep 90 &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNcGuiVersion.js &&

@@ -232,7 +232,7 @@ const listRow = async ({
 
   const ignorePagination = !options;
 
-  return await baseModel.list(options, ignorePagination);
+  return await baseModel.list(options, { ignorePagination });
 };
 
 const getOneRow = async (

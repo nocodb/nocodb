@@ -116,6 +116,7 @@ const permissionScopes = {
     'bulkDataDeleteAll',
     'relationDataRemove',
     'relationDataAdd',
+    'duplicateColumn',
 
     // Base API Tokens
     'baseApiTokenList',

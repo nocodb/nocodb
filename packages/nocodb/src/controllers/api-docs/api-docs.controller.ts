@@ -18,10 +18,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 export class ApiDocsController {
   constructor(private readonly apiDocsService: ApiDocsService) {}
 
-  @Get([
-    '/api/v1/db/meta/projects/:baseId/swagger.json',
-    '/api/v2/meta/bases/:baseId/swagger.json',
-  ])
+  @Get(['/api/v1/db/meta/projects/:baseId/swagger.json'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Acl('swaggerJson')
   async swaggerJson(@Param('baseId') baseId: string, @Request() req) {
@@ -33,21 +30,39 @@ export class ApiDocsController {
     return swagger;
   }
 
-  @Get([
-    '/api/v2/meta/bases/:baseId/swagger',
-    '/api/v1/db/meta/projects/:baseId/swagger',
-  ])
+  @Get(['/api/v2/meta/bases/:baseId/swagger.json'])
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Acl('swaggerJson')
+  async swaggerJsonV2(@Param('baseId') baseId: string, @Request() req) {
+    const swagger = await this.apiDocsService.swaggerJsonV2({
+      baseId: baseId,
+      siteUrl: req.ncSiteUrl,
+    });
+
+    return swagger;
+  }
+
+  @Get(['/api/v1/db/meta/projects/:baseId/swagger'])
   @UseGuards(PublicApiLimiterGuard)
   swaggerHtml(@Param('baseId') baseId: string, @Response() res) {
     res.send(getSwaggerHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));
   }
 
   @UseGuards(PublicApiLimiterGuard)
-  @Get([
-    '/api/v1/db/meta/projects/:baseId/redoc',
-    '/api/v2/meta/bases/:baseId/redoc',
-  ])
+  @Get(['/api/v1/db/meta/projects/:baseId/redoc'])
   redocHtml(@Param('baseId') baseId: string, @Response() res) {
+    res.send(getRedocHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));
+  }
+
+  @Get(['/api/v2/meta/bases/:baseId/swagger'])
+  @UseGuards(PublicApiLimiterGuard)
+  swaggerHtmlV2(@Param('baseId') baseId: string, @Response() res) {
+    res.send(getSwaggerHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));
+  }
+
+  @UseGuards(PublicApiLimiterGuard)
+  @Get(['/api/v2/meta/bases/:baseId/redoc'])
+  redocHtmlV2(@Param('baseId') baseId: string, @Response() res) {
     res.send(getRedocHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));
   }
 }

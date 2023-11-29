@@ -158,6 +158,7 @@ export enum CacheScope {
   SINGLE_QUERY = 'singleQuery',
   JOBS = 'nc_jobs',
   PRESIGNED_URL = 'presignedUrl',
+  STORE = 'store',
 }
 
 export enum CacheGetType {
@@ -171,6 +172,11 @@ export enum CacheDelDirection {
   CHILD_TO_PARENT = 'CHILD_TO_PARENT',
 }
 
+export const GROUPBY_COMPARISON_OPS = <const>[
+  // these are used for groupby
+  'gb_eq',
+  'gb_null',
+];
 export const COMPARISON_OPS = <const>[
   'eq',
   'neq',

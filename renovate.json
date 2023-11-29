@@ -3,7 +3,6 @@
   "extends": [
     "config:base",
     ":dependencyDashboard",
-    ":onlyNpm",
     ":prConcurrentLimit20",
     ":autodetectPinVersions",
     ":label(renovate)",
@@ -62,5 +61,5 @@
   "assignees": [
     "wingkwong"
   ],
-  "enabled": false
+  "enabled": true
 }

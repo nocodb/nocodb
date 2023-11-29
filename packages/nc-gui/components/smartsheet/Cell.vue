@@ -87,8 +87,6 @@ const isGrid = inject(IsGridInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const isLocked = inject(IsLockedInj, ref(false))
-
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isEditColumnMenu = inject(EditColumnInj, ref(false))
@@ -216,7 +214,7 @@ onUnmounted(() => {
   >
     <template v-if="column">
       <template v-if="intersected">
-        <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" />
+        <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" :virtual="props.virtual" />
         <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
         <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
         <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
@@ -255,11 +253,7 @@ onUnmounted(() => {
         <LazyCellJson v-else-if="isJSON(column)" v-model="vModel" />
         <LazyCellText v-else v-model="vModel" />
         <div
-          v-if="
-            (isLocked || (isPublic && readOnly && !isForm) || isSystemColumn(column)) &&
-            !isAttachment(column) &&
-            !isTextArea(column)
-          "
+          v-if="(isPublic && readOnly && !isForm) || (isSystemColumn(column) && !isAttachment(column) && !isTextArea(column))"
           class="nc-locked-overlay"
         />
       </template>

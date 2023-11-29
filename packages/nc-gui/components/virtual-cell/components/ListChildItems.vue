@@ -134,10 +134,10 @@ onKeyStroke('Escape', () => {
 })
 
 /*
-   to render same number of skelton as the number of cards
+   to render same number of skeleton as the number of cards
    displayed
  */
-const skeltonCount = computed(() => {
+const skeletonCount = computed(() => {
   if (props.items < 10 && childrenListPagination.page === 1) {
     return props.items
   }
@@ -166,6 +166,7 @@ const isDataExist = computed<boolean>(() => {
 
 const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
   if (isSharedBase.value) return
+  if (readonly.value) return
 
   if (isPublic.value && !isForm.value) return
   if (isNew.value || isChildrenListLinked.value[parseInt(id)]) {
@@ -192,7 +193,7 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
       :relation="relation"
       :linked-records="childrenListCount"
       :table-title="meta?.title"
-      :show-header="true"
+      :header="$t('activity.linkedRecords')"
       :related-table-title="relatedTableMeta?.title"
       :display-value="row.row[displayValueProp]"
     />
@@ -222,7 +223,7 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
         <div class="cursor-pointer pr-1">
           <template v-if="isChildrenLoading">
             <div
-              v-for="(x, i) in Array.from({ length: skeltonCount })"
+              v-for="(x, i) in Array.from({ length: skeletonCount })"
               :key="i"
               class="!border-2 flex flex-row gap-2 mb-2 transition-all !rounded-xl relative !border-gray-200 hover:bg-gray-50"
             >

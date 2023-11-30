@@ -4879,8 +4879,11 @@ class BaseModelSqlv2 {
               .filter((childRow) => !childRow[vChildCol.column_name])
               // generate insert data for new links
               .map((childRow) => ({
-                [vParentCol.column_name]: childRow[parentColumn.column_name],
-                [vChildCol.column_name]: row[childColumn.column_name],
+                [vParentCol.column_name]:
+                  childRow[parentColumn.title] ??
+                  childRow[parentColumn.column_name],
+                [vChildCol.column_name]:
+                  row[childColumn.title] ?? row[childColumn.column_name],
               }));
 
             // if no new links, return true

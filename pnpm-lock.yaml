@@ -257,8 +257,8 @@ importers:
         specifier: ^1.1.40
         version: 1.1.40
       '@iconify-json/lucide':
-        specifier: ^1.1.143
-        version: 1.1.143
+        specifier: ^1.1.144
+        version: 1.1.144
       '@iconify-json/material-symbols':
         specifier: ^1.1.65
         version: 1.1.65
@@ -272,8 +272,8 @@ importers:
         specifier: ^1.1.8
         version: 1.1.8
       '@iconify-json/ri':
-        specifier: ^1.1.14
-        version: 1.1.14
+        specifier: ^1.1.15
+        version: 1.1.15
       '@iconify-json/simple-icons':
         specifier: ^1.1.81
         version: 1.1.81
@@ -4287,8 +4287,8 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/lucide@1.1.143:
-    resolution: {integrity: sha512-RKqsZ34piLYL2vTM1STfPDcnsACNbRS+g5TrMVZgM+qRPoYOVrwauAW7VpxIEDwPS1V4b+oytd7obBQOsJo+xg==}
+  /@iconify-json/lucide@1.1.144:
+    resolution: {integrity: sha512-MdpwW2zrSmxgUUyZs5zX7GqlqoTMvK1fpIFQKkXOwsxWfijAjyEWP2oWFFdVIKUoDyMSbJzXXIwon68D/Q4PcQ==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -4317,8 +4317,8 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/ri@1.1.14:
-    resolution: {integrity: sha512-RpF9IzwxvrZ8b6aAnSosyLIzRIJlFd0fObKz1iSZgHtX6jUAlSmdgd+zwBCc3MSowBlKUIRtZL6P3oRXr1KdZg==}
+  /@iconify-json/ri@1.1.15:
+    resolution: {integrity: sha512-A1g6jPANPRC1aKthtBpWGn53NI/bf7HsjNr/Zi2n3fIlWLHp4SI8MGXw7POUKAefzipb7HSqlBNpQxGLJ5qe2g==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -13903,7 +13903,7 @@ packages:
     dependencies:
       escape-string-regexp: 1.0.5
       eslint: 8.54.0
-      ignore: 5.2.4
+      ignore: 5.3.0
     dev: true
 
   /eslint-plugin-functional@5.0.8(eslint@8.33.0):

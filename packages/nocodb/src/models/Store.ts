@@ -58,7 +58,7 @@ export default class Store {
       'tag',
     ]);
 
-    const existing = await Store.get(store.key,false, ncMeta);
+    const existing = await Store.get(store.key, false, ncMeta);
     if (existing) {
       await ncMeta.metaUpdate(null, null, MetaTable.STORE, insertObj, {
         key: store.key,

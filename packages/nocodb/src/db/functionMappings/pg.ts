@@ -263,11 +263,11 @@ const pg = {
 
     return {
       builder: knex.raw(
-        `ROUND(CASE 
+        `CASE 
   WHEN ${value} IS NULL OR REGEXP_REPLACE(${value}::TEXT, '[^\\d.]+', '', 'g') IN ('.', '') OR LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^.]+', '', 'g')) > 1 THEN NULL
   WHEN LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^%]', '','g')) > 0 THEN POW(-1, LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^-]','', 'g'))) * (REGEXP_REPLACE(${value}::TEXT, '[^\\d.]+', '', 'g'))::NUMERIC / 100
   ELSE POW(-1, LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^-]', '', 'g'))) * (REGEXP_REPLACE(${value}::TEXT, '[^\\d.]+', '', 'g'))::NUMERIC
-END) ${colAlias}`,
+END ${colAlias}`,
       ),
     };
   },

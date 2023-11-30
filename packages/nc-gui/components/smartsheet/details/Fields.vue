@@ -814,14 +814,16 @@ const onFieldOptionUpdate = () => {
                         'text-brand-500': compareCols(field, activeField),
                       }"
                     />
-                    <span
-                      :class="{
-                        'text-brand-500': compareCols(field, activeField),
-                      }"
-                      class="truncate max-w-64"
-                    >
-                      {{ fieldState(field)?.title || field.title }}
-                    </span>
+                    <a-tooltip :title="fieldState(field)?.title || field.title">
+                      <span
+                        :class="{
+                          'text-brand-500': compareCols(field, activeField),
+                        }"
+                        class="truncate flex-1"
+                      >
+                        {{ fieldState(field)?.title || field.title }}
+                      </span>
+                    </a-tooltip>
                   </div>
                   <div class="flex items-center justify-end gap-1">
                     <div class="flex items-center">
@@ -970,13 +972,16 @@ const onFieldOptionUpdate = () => {
                         'text-brand-500': compareCols(displayColumn, activeField),
                       }"
                     />
-                    <span
-                      :class="{
-                        'text-brand-500': compareCols(displayColumn, activeField),
-                      }"
-                    >
-                      {{ fieldState(displayColumn)?.title || displayColumn.title }}
-                    </span>
+                    <a-tooltip :title="fieldState(displayColumn)?.title || displayColumn.title">
+                      <span
+                        class="truncate flex-1"
+                        :class="{
+                          'text-brand-500': compareCols(displayColumn, activeField),
+                        }"
+                      >
+                        {{ fieldState(displayColumn)?.title || displayColumn.title }}
+                      </span>
+                    </a-tooltip>
                   </div>
                   <div class="flex items-center justify-end gap-1">
                     <div class="flex items-center">

@@ -4990,6 +4990,7 @@ class BaseModelSqlv2 {
               NcError.unprocessableEntity(
                 `Child record with id [${extractIdsString(
                   childIds,
+                  true,
                 )}] not found`,
               );
             }
@@ -5224,6 +5225,7 @@ class BaseModelSqlv2 {
               NcError.unprocessableEntity(
                 `Child record with id [${extractIdsString(
                   childIds,
+                  true,
                 )}] not found`,
               );
             }
@@ -5690,8 +5692,11 @@ export function getListArgs(
   return obj;
 }
 
-function extractIdsString(childIds: (string | number | Record<string, any>)[]) {
-  return childIds
+function extractIdsString(
+  childIds: (string | number | Record<string, any>)[],
+  isBt = false,
+) {
+  return (isBt ? childIds.slice(0, 1) : childIds)
     .map((r) => (typeof r === 'object' ? JSON.stringify(r) : r))
     .join(', ');
 }

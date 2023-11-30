@@ -27,46 +27,62 @@ export default class BaseUser extends BaseUserCE {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const queryBuilder = ncMeta
-      .knex(MetaTable.USERS)
-      .select(
-        `${MetaTable.USERS}.id`,
-        `${MetaTable.USERS}.email`,
-        `${MetaTable.USERS}.invite_token`,
-        `${MetaTable.USERS}.roles as main_roles`,
-        `${MetaTable.USERS}.created_at as created_at`,
-        `${MetaTable.PROJECT_USERS}.base_id`,
-        `${MetaTable.PROJECT_USERS}.roles as roles`,
-        ...(workspace_id
-          ? [
-              `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
-              `${MetaTable.WORKSPACE_USER}.fk_workspace_id as workspace_id`,
-            ]
-          : []),
-      );
+    const cachedList = await NocoCache.getList(CacheScope.BASE_USER, [base_id]);
+    let { list: baseUsers } = cachedList;
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !baseUsers.length) {
+      const queryBuilder = ncMeta
+        .knex(MetaTable.USERS)
+        .select(
+          `${MetaTable.USERS}.id`,
+          `${MetaTable.USERS}.email`,
+          `${MetaTable.USERS}.invite_token`,
+          `${MetaTable.USERS}.roles as main_roles`,
+          `${MetaTable.USERS}.created_at as created_at`,
+          `${MetaTable.PROJECT_USERS}.base_id`,
+          `${MetaTable.PROJECT_USERS}.roles as roles`,
+          ...(workspace_id
+            ? [
+                `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
+                `${MetaTable.WORKSPACE_USER}.fk_workspace_id as workspace_id`,
+              ]
+            : []),
+        );
 
-    if (limit) {
-      queryBuilder.offset(offset).limit(limit);
-    }
+      if (limit) {
+        queryBuilder.offset(offset).limit(limit);
+      }
 
-    if (query) {
-      queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
-    }
+      if (query) {
+        queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
+      }
 
-    if (workspace_id) {
-      queryBuilder
-        .innerJoin(MetaTable.WORKSPACE_USER, function () {
-          this.on(
-            `${MetaTable.WORKSPACE_USER}.fk_user_id`,
-            '=',
-            `${MetaTable.USERS}.id`,
-          ).andOn(
-            `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
-            '=',
-            ncMeta.knex.raw('?', [workspace_id]),
-          );
-        })
-        .innerJoin(MetaTable.PROJECT_USERS, function () {
+      if (workspace_id) {
+        queryBuilder
+          .innerJoin(MetaTable.WORKSPACE_USER, function () {
+            this.on(
+              `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+              '=',
+              `${MetaTable.USERS}.id`,
+            ).andOn(
+              `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+              '=',
+              ncMeta.knex.raw('?', [workspace_id]),
+            );
+          })
+          .leftJoin(MetaTable.PROJECT_USERS, function () {
+            this.on(
+              `${MetaTable.PROJECT_USERS}.fk_user_id`,
+              '=',
+              `${MetaTable.USERS}.id`,
+            ).andOn(
+              `${MetaTable.PROJECT_USERS}.base_id`,
+              '=',
+              ncMeta.knex.raw('?', [base_id]),
+            );
+          });
+      } else {
+        queryBuilder.innerJoin(MetaTable.PROJECT_USERS, function () {
           this.on(
             `${MetaTable.PROJECT_USERS}.fk_user_id`,
             '=',
@@ -77,25 +93,18 @@ export default class BaseUser extends BaseUserCE {
             ncMeta.knex.raw('?', [base_id]),
           );
         });
-    } else {
-      queryBuilder.innerJoin(MetaTable.PROJECT_USERS, function () {
-        this.on(
-          `${MetaTable.PROJECT_USERS}.fk_user_id`,
-          '=',
-          `${MetaTable.USERS}.id`,
-        ).andOn(
-          `${MetaTable.PROJECT_USERS}.base_id`,
-          '=',
-          ncMeta.knex.raw('?', [base_id]),
-        );
+      }
+
+      baseUsers = await queryBuilder;
+
+      baseUsers = baseUsers.map((baseUser) => {
+        return this.castType(baseUser);
       });
+
+      await NocoCache.setList(CacheScope.BASE_USER, [base_id], baseUsers);
     }
 
-    const baseUsers = await queryBuilder;
-
-    return baseUsers.map((baseUser) => {
-      return this.castType(baseUser);
-    });
+    return baseUsers;
   }
 
   static async getProjectsList(
@@ -103,18 +112,7 @@ export default class BaseUser extends BaseUserCE {
     params: any,
     ncMeta = Noco.ncMeta,
   ): Promise<BaseType[]> {
-    // let baseList: BaseType[];
-
-    // todo: pagination
-    // todo: caching based on filter type
-    //   = await NocoCache.getList(CacheScope.USER_PROJECT, [
-    //   userId,
-    // ]);
-
-    // if (baseList.length) {
-    //   return baseList;
-    // }
-
+    // TODO implement CacheScope.USER_BASE
     const qb = ncMeta
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.id`)
@@ -189,8 +187,6 @@ export default class BaseUser extends BaseUserCE {
       for (const base of baseList) {
         base.meta = parseMetaProp(base);
       }
-
-      await NocoCache.setList(CacheScope.USER_PROJECT, [userId], baseList);
     }
 
     return baseList.filter((p) => !params?.type || p.type === params.type);

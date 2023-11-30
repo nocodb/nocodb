@@ -220,8 +220,6 @@ export default class Base extends BaseCE {
       await NocoCache.del(`${CacheScope.PROJECT}:ref:${base.id}`);
     }
 
-    await NocoCache.delAll(CacheScope.USER_PROJECT, '*');
-
     await NocoCache.deepDel(
       CacheScope.PROJECT,
       `${CacheScope.PROJECT}:${baseId}`,
@@ -255,8 +253,6 @@ export default class Base extends BaseCE {
       await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.title}`);
       await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.id}`);
     }
-
-    await NocoCache.delAll(CacheScope.USER_PROJECT, '*');
 
     await NocoCache.del(CacheScope.INSTANCE_META);
 

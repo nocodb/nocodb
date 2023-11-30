@@ -108,9 +108,6 @@ export default class User extends UserCE implements UserType {
     // delete the email-based cache to avoid unexpected behaviour since we can update email as well
     await NocoCache.del(`${CacheScope.USER}:${existingUser.email}`);
 
-    // as <baseId> is unknown, delete user:<email>___<baseId> in cache
-    await NocoCache.delAll(CacheScope.USER, `${existingUser.email}___*`);
-
     // get existing cache
     const keys = [
       // update user:<id>

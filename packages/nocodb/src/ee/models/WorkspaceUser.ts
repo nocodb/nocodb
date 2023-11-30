@@ -1,8 +1,14 @@
 import { ProjectRoles } from 'nocodb-sdk';
 import Noco from '~/Noco';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import {
+  CacheDelDirection,
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+} from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
+import Base from '~/models/Base';
 
 export default class WorkspaceUser {
   fk_workspace_id: string;
@@ -42,7 +48,22 @@ export default class WorkspaceUser {
       `${CacheScope.WORKSPACE}:${baseUser.fk_workspace_id}:userCount`,
     );
 
-    return this.get(fk_workspace_id, fk_user_id, ncMeta);
+    // clear base user list caches
+    const bases = await Base.listByWorkspace(baseUser.fk_workspace_id, ncMeta);
+    for (const base of bases) {
+      await NocoCache.del(`${CacheScope.BASE_USER}:${base.id}:list`);
+    }
+
+    const res = this.get(fk_workspace_id, fk_user_id, ncMeta);
+
+    // add to workspace user list cache
+    await NocoCache.appendToList(
+      CacheScope.WORKSPACE_USER,
+      [fk_workspace_id],
+      `${CacheScope.BASE_USER}:${fk_workspace_id}:${fk_user_id}`,
+    );
+
+    return res;
   }
 
   static async get(workspaceId: string, userId: string, ncMeta = Noco.ncMeta) {
@@ -65,7 +86,7 @@ export default class WorkspaceUser {
       );
       if (workspaceUser)
         await NocoCache.set(
-          `${CacheScope.PROJECT_USER}:${workspaceId}:${userId}`,
+          `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
           workspaceUser,
         );
     }
@@ -174,41 +195,54 @@ export default class WorkspaceUser {
     { fk_workspace_id }: { fk_workspace_id: any },
     ncMeta = Noco.ncMeta,
   ) {
-    // todo: caching
-
-    const queryBuilder = ncMeta.knex(MetaTable.USERS).select(
-      `${MetaTable.USERS}.id`,
-      `${MetaTable.USERS}.email`,
-      // `${MetaTable.USERS}.invite_token`,
-      `${MetaTable.USERS}.roles as main_roles`,
-      `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
-      `${MetaTable.WORKSPACE_USER}.invite_token`,
-      `${MetaTable.WORKSPACE_USER}.invite_accepted`,
-      `${MetaTable.WORKSPACE_USER}.created_at`,
-      `${MetaTable.WORKSPACE_USER}.roles as roles`,
-    );
-    // todo : pagination
-    // .offset(offset)
-    // .limit(limit);
-
-    // todo : search
-    // if (query) {
-    //   queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
-    // }
-
-    queryBuilder.innerJoin(MetaTable.WORKSPACE_USER, function () {
-      this.on(
-        `${MetaTable.WORKSPACE_USER}.fk_user_id`,
-        '=',
+    const cachedList = await NocoCache.getList(CacheScope.WORKSPACE_USER, [
+      fk_workspace_id,
+    ]);
+    let { list: workspaceUsers } = cachedList;
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !workspaceUsers.length) {
+      const queryBuilder = ncMeta.knex(MetaTable.USERS).select(
         `${MetaTable.USERS}.id`,
-      ).andOn(
+        `${MetaTable.USERS}.email`,
+        // `${MetaTable.USERS}.invite_token`,
+        `${MetaTable.USERS}.roles as main_roles`,
         `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
-        '=',
-        ncMeta.knex.raw('?', [fk_workspace_id]),
+        `${MetaTable.WORKSPACE_USER}.invite_token`,
+        `${MetaTable.WORKSPACE_USER}.invite_accepted`,
+        `${MetaTable.WORKSPACE_USER}.created_at`,
+        `${MetaTable.WORKSPACE_USER}.roles as roles`,
       );
-    });
+      // todo : pagination
+      // .offset(offset)
+      // .limit(limit);
 
-    return await queryBuilder;
+      // todo : search
+      // if (query) {
+      //   queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
+      // }
+
+      queryBuilder.innerJoin(MetaTable.WORKSPACE_USER, function () {
+        this.on(
+          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+          '=',
+          `${MetaTable.USERS}.id`,
+        ).andOn(
+          `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+          '=',
+          ncMeta.knex.raw('?', [fk_workspace_id]),
+        );
+      });
+
+      workspaceUsers = await queryBuilder;
+
+      await NocoCache.setList(
+        CacheScope.WORKSPACE_USER,
+        [fk_workspace_id],
+        workspaceUsers,
+      );
+    }
+
+    return workspaceUsers;
   }
 
   static async count({ workspaceId }: { workspaceId: any }) {
@@ -240,10 +274,9 @@ export default class WorkspaceUser {
     workspaceId: any,
     userId: any,
     _updateData: Partial<WorkspaceUser>,
+    ncMeta = Noco.ncMeta,
   ) {
-    // get existing cache
     const key = `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
 
     const updateData = extractProps(_updateData, [
       'roles',
@@ -255,7 +288,7 @@ export default class WorkspaceUser {
       'order',
     ]);
 
-    const res = await Noco.ncMeta.metaUpdate(
+    await Noco.ncMeta.metaUpdate(
       null,
       null,
       MetaTable.WORKSPACE_USER,
@@ -266,25 +299,33 @@ export default class WorkspaceUser {
       },
     );
 
-    if (o) {
-      Object.assign(o, updateData);
-      // set cache
-      await NocoCache.set(key, o);
-    }
+    // clear existing cache
+    await NocoCache.del(key);
 
-    return res;
+    // cache and return
+    return this.get(workspaceId, userId, ncMeta);
   }
 
   static async delete(workspaceId: any, userId: any) {
-    await NocoCache.del(
+    const res = await Noco.ncMeta.metaDelete(
+      null,
+      null,
+      MetaTable.WORKSPACE_USER,
+      {
+        fk_user_id: userId,
+        fk_workspace_id: workspaceId,
+      },
+    );
+
+    // delete cache
+    await NocoCache.deepDel(
+      CacheScope.WORKSPACE_USER,
       `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
     );
     await NocoCache.del(`${CacheScope.WORKSPACE}:${workspaceId}:userCount`);
 
-    return await Noco.ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USER, {
-      fk_user_id: userId,
-      fk_workspace_id: workspaceId,
-    });
+    return res;
   }
 
   static async getByToken(invitationToken: any, userId: string) {

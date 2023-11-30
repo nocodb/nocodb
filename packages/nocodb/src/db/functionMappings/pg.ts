@@ -139,7 +139,16 @@ const pg = {
       builder: knex.raw(
         `TO_DATE(${
           (await fn(pt?.arguments[0])).builder
-        }, 'YYYY-MM-DD') ${colAlias}`,
+        }, 'YYYY-MM-DD')::text ${colAlias}`,
+      ),
+    };
+  },
+  DAY: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `EXTRACT('Day' FROM DATE ${
+          (await fn(pt?.arguments[0])).builder
+        }) ${colAlias}`,
       ),
     };
   },

@@ -152,6 +152,24 @@ const pg = {
       ),
     };
   },
+  MONTH: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `EXTRACT('Month' FROM DATE ${
+          (await fn(pt?.arguments[0])).builder
+        }) ${colAlias}`,
+      ),
+    };
+  },
+  HOUR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `EXTRACT('Hour' FROM  (${
+          (await fn(pt?.arguments[0])).builder
+        })::TIMESTAMP) ${colAlias}`,
+      ),
+    };
+  },
   AND: async (args: MapFnArgs) => {
     return {
       builder: args.knex.raw(

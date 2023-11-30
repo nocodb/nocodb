@@ -8,7 +8,6 @@ import {
   EditModeInj,
   IsExpandedFormOpenInj,
   IsFormInj,
-  IsLockedInj,
   IsPublicInj,
   IsSurveyFormInj,
   NavigateDir,

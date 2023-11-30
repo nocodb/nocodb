@@ -1508,11 +1508,11 @@ export function validateFormulaAndExtractTreeWithType({
 
       if (['==', '<', '>', '<=', '>=', '!='].includes(parsedTree.operator)) {
         res.dataType = FormulaDataTypes.COND_EXP;
-      }
-        else if (parsedTree.operator === '+') {
+      } else if (parsedTree.operator === '+') {
         res.dataType = FormulaDataTypes.NUMERIC;
         // if any side is string/date/other type, then the result will be concatenated string
         // e.g. 1 + '2' = '12'
+        if (
           [res.left, res.right].some(
             (r) =>
               ![
@@ -1525,9 +1525,8 @@ export function validateFormulaAndExtractTreeWithType({
         ) {
           res.dataType = FormulaDataTypes.STRING;
         }
-      } else {
-        res.dataType = FormulaDataTypes.NUMERIC;
       }
+      res.dataType = FormulaDataTypes.NUMERIC;
     }
 
     return res;

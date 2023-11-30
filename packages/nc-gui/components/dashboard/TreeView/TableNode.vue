@@ -149,7 +149,7 @@ const isTableOpened = computed(() => {
     :class="[`nc-base-tree-tbl nc-base-tree-tbl-${table.title}`]"
     :data-active="openedTableId === table.id"
   >
-    <GeneralTooltip
+    <NcTooltip
       class="nc-tree-item-inner nc-sidebar-node pl-11 pr-0.75 mb-0.25 rounded-md h-7.1 w-full group cursor-pointer hover:bg-gray-200"
       :class="{
         'hover:bg-gray-200': openedTableId !== table.id,
@@ -313,7 +313,7 @@ const isTableOpened = computed(() => {
         :table-id="table.id"
         :base-id="base.id"
       />
-    </GeneralTooltip>
+    </NcTooltip>
     <DashboardTreeViewViewsList v-if="isExpanded" :table-id="table.id" :base-id="base.id" />
   </div>
 </template>

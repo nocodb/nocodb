@@ -95,19 +95,14 @@ const onClick = (e: Event) => {
       :class="{
         'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu && !isExpandedForm,
         'cursor-default': isForm || !isUIAllowed('fieldEdit') || hideMenu,
-        '!truncate': !isForm,
+        'truncate': !isForm,
       }"
       class="name pl-1"
       placement="bottom"
     >
       <template #title> {{ column.title }} </template>
 
-      <div
-        :class="{
-          '!truncate': !isForm,
-        }"
-        :data-test-id="column.title"
-      >
+      <div :class="{ truncate: !isForm }" :data-test-id="column.title">
         {{ column.title }}
       </div>
     </NcTooltip>

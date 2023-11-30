@@ -74,7 +74,7 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links)
           v-model:value="vModel.childId"
           show-search
           :filter-option="filterOption"
-          dropdown-class-name="nc-dropdown-ltar-child-table "
+          dropdown-class-name="nc-dropdown-ltar-child-table"
           @change="onDataTypeChange"
         >
           <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">

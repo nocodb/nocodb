@@ -814,16 +814,17 @@ const onFieldOptionUpdate = () => {
                         'text-brand-500': compareCols(field, activeField),
                       }"
                     />
-                    <a-tooltip :title="fieldState(field)?.title || field.title">
-                      <span
-                        :class="{
-                          'text-brand-500': compareCols(field, activeField),
-                        }"
-                        class="truncate flex-1"
-                      >
+                    <NcTooltip
+                      :class="{
+                        'text-brand-500': compareCols(field, activeField),
+                      }"
+                      class="truncate flex-1"
+                    >
+                      <template #title> {{ fieldState(field)?.title || field.title }} </template>
+                      <span>
                         {{ fieldState(field)?.title || field.title }}
                       </span>
-                    </a-tooltip>
+                    </NcTooltip>
                   </div>
                   <div class="flex items-center justify-end gap-1">
                     <div class="flex items-center">
@@ -972,16 +973,17 @@ const onFieldOptionUpdate = () => {
                         'text-brand-500': compareCols(displayColumn, activeField),
                       }"
                     />
-                    <a-tooltip :title="fieldState(displayColumn)?.title || displayColumn.title">
-                      <span
-                        class="truncate flex-1"
-                        :class="{
-                          'text-brand-500': compareCols(displayColumn, activeField),
-                        }"
-                      >
+                    <NcTooltip
+                      class="truncate flex-1"
+                      :class="{
+                        'text-brand-500': compareCols(displayColumn, activeField),
+                      }"
+                    >
+                      <template #title> {{ fieldState(displayColumn)?.title || displayColumn.title }} </template>
+                      <span>
                         {{ fieldState(displayColumn)?.title || displayColumn.title }}
                       </span>
-                    </a-tooltip>
+                    </NcTooltip>
                   </div>
                   <div class="flex items-center justify-end gap-1">
                     <div class="flex items-center">

@@ -290,8 +290,8 @@ importers:
         specifier: ^0.12.3
         version: 0.12.3(vue-i18n@9.2.2)
       '@nuxt/image-edge':
-        specifier: 1.1.0-28346300.6030589
-        version: 1.1.0-28346300.6030589
+        specifier: 1.1.0-28355789.b3279fe
+        version: 1.1.0-28355789.b3279fe
       '@types/d3-scale':
         specifier: ^4.0.8
         version: 4.0.8
@@ -5723,8 +5723,8 @@ packages:
       - xml2js
     dev: true
 
-  /@nuxt/image-edge@1.1.0-28346300.6030589:
-    resolution: {integrity: sha512-t45//lWv1e7QKZ3Rq8ofh+qQjQSWfGUKvr+QaAaXcWF4vDyTqW3fMdaYj04YWW7iVNjL8BieEI2HGFzXHcRssA==}
+  /@nuxt/image-edge@1.1.0-28355789.b3279fe:
+    resolution: {integrity: sha512-3lNVqNqVjt1NYjxFzLz0A/19ghZyKviu51g+A3vDdZeee0iTwHP024DFDXS+UU9GNh5aEXsyZy0WN+0DVFnESQ==}
     engines: {node: ^14.16.0 || >=16.11.0}
     dependencies:
       '@nuxt/kit': 3.8.2

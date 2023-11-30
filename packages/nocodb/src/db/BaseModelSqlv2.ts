@@ -4981,7 +4981,10 @@ class BaseModelSqlv2 {
 
             if (!childRow) {
               NcError.unprocessableEntity(
-                `Child record with id [${childIds[0]}] not found`,
+                `Child record with id [${extractIdsString(
+                  childIds,
+                  true,
+                )}] not found`,
               );
             }
           }
@@ -5209,7 +5212,10 @@ class BaseModelSqlv2 {
 
             if (!childRow) {
               NcError.unprocessableEntity(
-                `Child record with id [${childIds[0]}] not found`,
+                `Child record with id [${extractIdsString(
+                  childIds,
+                  true,
+                )}] not found`,
               );
             }
           }
@@ -5673,6 +5679,15 @@ export function getListArgs(
     args?.fields || args?.f || (ignoreAssigningWildcardSelect ? null : '*');
   obj.sort = args?.sort || args?.s || model.primaryKey?.[0]?.column_name;
   return obj;
+}
+
+function extractIdsString(
+  childIds: (string | number | Record<string, any>)[],
+  isBt = false,
+) {
+  return (isBt ? childIds.slice(0, 1) : childIds)
+    .map((r) => (typeof r === 'object' ? JSON.stringify(r) : r))
+    .join(', ');
 }
 
 export { BaseModelSqlv2 };

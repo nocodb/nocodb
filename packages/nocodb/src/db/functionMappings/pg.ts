@@ -57,9 +57,9 @@ const pg = {
   DATEADD: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     return {
       builder: knex.raw(
-        `(${(await fn(pt.arguments[0])).builder})::DATE + (${
-          (await fn(pt.arguments[1])).builder
-        } || 
+        `(${(await fn(pt.arguments[0])).builder})${
+          pt.arguments[0].type !== 'DATE' ? '::DATE' : ''
+        } + (${(await fn(pt.arguments[1])).builder} || 
       '${String((await fn(pt.arguments[2])).builder).replace(
         /["']/g,
         '',

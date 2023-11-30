@@ -302,54 +302,19 @@ export class AtImportProcessor {
     // aTbl helper routines
     //
 
-    const nc_getSanitizedColumnName = (table, name) => {
-      let col_name = sanitizeColumnName(name);
+    const nc_getSanitizedColumnName = (name, table_name) => {
+      const uniqueColNameGen = getUniqueNameGenerator('column', table_name);
+      const uniqueFieldNameGen = getUniqueNameGenerator('field', table_name);
 
       // truncate to 50 chars if character if exceeds above 50
-      col_name = col_name?.slice(0, 50);
+      const col_name = sanitizeColumnName(name)?.slice(0, 50);
 
       // for knex, replace . with _
-      let col_alias = name.trim().replace(/\./g, '_');
-
-      // check if already a column exists with same name?
-      const duplicateTitle = table.columns.find(
-        (x) => x.title?.toLowerCase() === col_alias?.toLowerCase(),
-      );
-      const duplicateColumn = table.columns.find(
-        (x) => x.column_name?.toLowerCase() === col_name?.toLowerCase(),
-      );
-
-      if (duplicateTitle) {
-        let tempAlias = col_alias;
-        let suffix = 1;
-        while (
-          table.columns.find(
-            (x) => x.title?.toLowerCase() === tempAlias?.toLowerCase(),
-          )
-        ) {
-          tempAlias = col_alias;
-          tempAlias += `_${suffix++}`;
-        }
-        col_alias = tempAlias;
-      }
-
-      if (duplicateColumn) {
-        let tempName = col_name;
-        let suffix = 1;
-        while (
-          table.columns.find(
-            (x) => x.column_name?.toLowerCase() === tempName?.toLowerCase(),
-          )
-        ) {
-          tempName = col_name;
-          tempName += `_${suffix++}`;
-        }
-        col_name = tempName;
-      }
+      const col_alias = name.trim().replace(/\./g, '_');
 
       return {
-        title: col_alias,
-        column_name: col_name,
+        title: uniqueFieldNameGen(col_alias),
+        column_name: uniqueColNameGen(col_name),
       };
     };
 
@@ -379,7 +344,7 @@ export class AtImportProcessor {
       const ncColId = await sMap.getNcIdFromAtId(aTblFieldId);
 
       // not migrated column, skip
-      if (ncColId === undefined || ncTblId === undefined) return 0;
+      if (!ncColId || !ncTblId) return 0;
 
       return ncSchema.tablesById[ncTblId].columns.find((x) => x.id === ncColId);
     };
@@ -453,6 +418,10 @@ export class AtImportProcessor {
           const options = [];
           let order = 1;
           for (const [, value] of Object.entries(col.typeOptions.choices)) {
+            // max length of option is 255 chars
+            // truncate to 255 chars if character if exceeds above 255
+            (value as any).name = (value as any).name?.slice(0, 255);
+
             // replace commas with dot for multiselect
             if (col.type === 'multiSelect') {
               (value as any).name = (value as any).name.replace(/,/g, '.');
@@ -526,7 +495,6 @@ export class AtImportProcessor {
         // check for duplicate and populate a unique name if already exist
         table.table_name = uniqueTableNameGen(sanitizedName);
 
-        const uniqueColNameGen = getUniqueNameGenerator('field');
         table.columns = [];
         const sysColumns = [
           {
@@ -554,11 +522,14 @@ export class AtImportProcessor {
           }
 
           // base column schema
-          const ncName: any = nc_getSanitizedColumnName(table, col.name);
+          const ncName: any = nc_getSanitizedColumnName(
+            col.name,
+            table.table_name,
+          );
           const ncCol: any = {
             // Enable to use aTbl identifiers as is: id: col.id,
             title: ncName.title,
-            column_name: uniqueColNameGen(ncName.column_name),
+            column_name: ncName.column_name,
             uidt: getNocoType(col),
           };
 
@@ -753,8 +724,8 @@ export class AtImportProcessor {
 
               // create link
               const ncName = nc_getSanitizedColumnName(
-                srcTbl,
                 aTblLinkColumns[i].name,
+                srcTbl.table_name,
               );
 
               // LTAR alias ref to AT
@@ -907,8 +878,8 @@ export class AtImportProcessor {
               // note that: current rename API requires us to send all parameters,
               // not just title being renamed
               const ncName = nc_getSanitizedColumnName(
-                childTblSchema,
                 aTblLinkColumns[i].name,
+                childTblSchema.table_name,
               );
 
               logDetailed(
@@ -987,18 +958,15 @@ export class AtImportProcessor {
               aTblColumns[i].typeOptions.foreignTableRollupColumnId,
             );
 
-            if (
-              ncLookupColumnId === undefined ||
-              ncRelationColumnId === undefined
-            ) {
+            if (!ncLookupColumnId || !ncRelationColumnId) {
               aTblColumns[i]['srcTableId'] = srcTableId;
               nestedLookupTbl.push(aTblColumns[i]);
               continue;
             }
 
             const ncName = nc_getSanitizedColumnName(
-              srcTableSchema,
               aTblColumns[i].name,
+              srcTableSchema.table_name,
             );
 
             logDetailed(`NC API: dbTableColumn.create LOOKUP ${ncName.title}`);
@@ -1062,6 +1030,7 @@ export class AtImportProcessor {
         nestedCnt = nestedLookupTbl.length;
         for (let i = 0; i < nestedLookupTbl.length; i++) {
           const srcTableId = nestedLookupTbl[0].srcTableId;
+
           const srcTableSchema = ncSchema.tablesById[srcTableId];
 
           const ncRelationColumnId = await sMap.getNcIdFromAtId(
@@ -1071,16 +1040,13 @@ export class AtImportProcessor {
             nestedLookupTbl[0].typeOptions.foreignTableRollupColumnId,
           );
 
-          if (
-            ncLookupColumnId === undefined ||
-            ncRelationColumnId === undefined
-          ) {
+          if (!ncLookupColumnId || !ncRelationColumnId) {
             continue;
           }
 
           const ncName = nc_getSanitizedColumnName(
-            srcTableSchema,
             nestedLookupTbl[0].name,
+            srcTableSchema.table_name,
           );
 
           logDetailed(
@@ -1208,7 +1174,7 @@ export class AtImportProcessor {
               aTblColumns[i].typeOptions.foreignTableRollupColumnId,
             );
 
-            if (ncRollupColumnId === undefined) {
+            if (!ncRollupColumnId) {
               aTblColumns[i]['srcTableId'] = srcTableId;
               nestedRollupTbl.push(aTblColumns[i]);
               continue;
@@ -1234,8 +1200,8 @@ export class AtImportProcessor {
             }
 
             const ncName = nc_getSanitizedColumnName(
-              srcTableSchema,
               aTblColumns[i].name,
+              srcTableSchema.table_name,
             );
 
             logDetailed(`NC API: dbTableColumn.create ROLLUP ${ncName.title}`);
@@ -1279,6 +1245,7 @@ export class AtImportProcessor {
       const nestedCnt = nestedLookupTbl.length;
       for (let i = 0; i < nestedLookupTbl.length; i++) {
         const srcTableId = nestedLookupTbl[0].srcTableId;
+
         const srcTableSchema = ncSchema.tablesById[srcTableId];
 
         const ncRelationColumnId = await sMap.getNcIdFromAtId(
@@ -1288,16 +1255,13 @@ export class AtImportProcessor {
           nestedLookupTbl[0].typeOptions.foreignTableRollupColumnId,
         );
 
-        if (
-          ncLookupColumnId === undefined ||
-          ncRelationColumnId === undefined
-        ) {
+        if (!ncLookupColumnId || !ncRelationColumnId) {
           continue;
         }
 
         const ncName = nc_getSanitizedColumnName(
-          srcTableSchema,
           nestedLookupTbl[0].name,
+          srcTableSchema.table_name,
         );
 
         logDetailed(
@@ -2553,16 +2517,18 @@ export class AtImportProcessor {
   }
 }
 
-export const getUniqueNameGenerator = (defaultName = 'name') => {
-  const namesRef = {};
+const namesRef = {};
 
+const getUniqueNameGenerator = (defaultName = 'name', context = 'default') => {
+  const finalContext = `${context}_${defaultName}}`;
+  if (!namesRef[finalContext]) namesRef[finalContext] = {};
   return (initName: string = defaultName): string => {
     let name = initName === '_' ? defaultName : initName;
     let c = 0;
-    while (name in namesRef) {
+    while (name in namesRef[finalContext]) {
       name = `${initName}_${++c}`;
     }
-    namesRef[name] = true;
+    namesRef[finalContext][name] = true;
     return name;
   };
 };

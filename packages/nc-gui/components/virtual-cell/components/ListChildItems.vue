@@ -166,6 +166,7 @@ const isDataExist = computed<boolean>(() => {
 
 const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
   if (isSharedBase.value) return
+  if (readonly.value) return
 
   if (isPublic.value && !isForm.value) return
   if (isNew.value || isChildrenListLinked.value[parseInt(id)]) {

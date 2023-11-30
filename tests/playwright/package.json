@@ -40,6 +40,7 @@
     "preinstall": "npx only-allow pnpm"
   },
   "dependencies": {
+    "axios": "^1.6.1",
     "body-parser": "^1.20.1",
     "dayjs": "^1.11.9",
     "express": "^4.18.1",
@@ -52,7 +53,6 @@
     "@playwright/test": "1.38.0",
     "@typescript-eslint/eslint-plugin": "^6.1.0",
     "@typescript-eslint/parser": "^6.1.0",
-    "axios": "^0.24.0",
     "dotenv": "^16.0.3",
     "eslint": "^8.22.0",
     "eslint-config-prettier": "^6.15.0",

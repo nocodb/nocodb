@@ -25,8 +25,6 @@ const {
   renameFile,
 } = useAttachmentCell()!
 
-const isLocked = inject(IsLockedInj, ref(false))
-
 const dropZoneRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
@@ -96,7 +94,7 @@ const handleFileDelete = (i: number) => {
     <template #title>
       <div class="flex gap-4">
         <div
-          v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic && !isLocked)"
+          v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic)"
           class="nc-attach-file group"
           data-testid="attachment-expand-file-picker-button"
           @click="open"
@@ -143,7 +141,7 @@ const handleFileDelete = (i: number) => {
               <template #title> {{ $t('title.removeFile') }} </template>
               <component
                 :is="iconMap.closeCircle"
-                v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic && !isLocked)"
+                v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)"
                 class="nc-attachment-remove"
                 @click.stop="onRemoveFileClick(item.title, i)"
               />
@@ -157,7 +155,7 @@ const handleFileDelete = (i: number) => {
               </div>
             </a-tooltip>
 
-            <a-tooltip v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic && !isLocked)" placement="bottom">
+            <a-tooltip v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic)" placement="bottom">
               <template #title> {{ $t('title.renameFile') }} </template>
 
               <div class="nc-attachment-download group-hover:(opacity-100) mr-[35px]">

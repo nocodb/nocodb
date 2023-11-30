@@ -142,7 +142,12 @@ const { getMeta } = useMetas()
 
 const { addUndo, clone, defineViewScope } = useUndoRedo()
 
-const { isViewColumnsLoading, updateGridViewColumn, gridViewCols, resizingColOldWith } = useViewColumnsOrThrow()
+const {
+  isViewColumnsLoading: _isViewColumnsLoading,
+  updateGridViewColumn,
+  gridViewCols,
+  resizingColOldWith,
+} = useViewColumnsOrThrow()
 
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
@@ -179,9 +184,11 @@ const fillHandle = ref<HTMLElement>()
 
 const gridRect = useElementBounding(gridWrapper)
 
+const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta.value)
+
 // #Permissions
 const { isUIAllowed } = useRoles()
-const hasEditPermission = computed(() => isUIAllowed('dataEdit') && !isLocked.value)
+const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
 const { onDrag, onDragStart, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
@@ -344,7 +351,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 }
 
 function makeEditable(row: Row, col: ColumnType) {
-  if (!hasEditPermission.value || editEnabled.value || isView || isLocked.value || readOnly.value || isSystemColumn(col)) {
+  if (!hasEditPermission.value || editEnabled.value || isView || readOnly.value || isSystemColumn(col)) {
     return
   }
 
@@ -375,9 +382,7 @@ function makeEditable(row: Row, col: ColumnType) {
 
 // #Computed
 
-const isAddingEmptyRowAllowed = computed(
-  () => !isView && !isLocked.value && hasEditPermission.value && !isSqlView.value && !isPublicView.value,
-)
+const isAddingEmptyRowAllowed = computed(() => !isView && hasEditPermission.value && !isSqlView.value && !isPublicView.value)
 
 const visibleColLength = computed(() => fields.value?.length)
 
@@ -409,7 +414,9 @@ const dummyRowDataForLoading = computed(() => {
 })
 
 const showSkeleton = computed(
-  () => disableSkeleton !== true && (isViewDataLoading.value || isPaginationLoading.value || isViewColumnsLoading.value),
+  () =>
+    (disableSkeleton !== true && (isViewDataLoading.value || isPaginationLoading.value || isViewColumnsLoading.value)) ||
+    !meta.value,
 )
 
 // #Grid
@@ -443,9 +450,7 @@ async function openNewRecordHandler() {
 }
 
 const onDraftRecordClick = () => {
-  if (!isLocked?.value) {
-    openNewRecordFormHook.trigger()
-  }
+  openNewRecordFormHook.trigger()
 }
 
 const onNewRecordToGridClick = () => {
@@ -552,6 +557,8 @@ const {
       return true
     }
 
+    if (isExpandedCellInputExist()) return
+
     // skip keyboard event handling if there is a drawer / modal
     if (isDrawerOrModalExist()) {
       return true
@@ -560,7 +567,9 @@ const {
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     const altOrOptionKey = e.altKey
     if (e.key === ' ') {
-      if (isCellActive.value && !editEnabled.value && hasEditPermission.value && activeCell.row !== null) {
+      const isRichModalOpen = isExpandedCellInputExist()
+
+      if (isCellActive.value && !editEnabled.value && hasEditPermission.value && activeCell.row !== null && !isRichModalOpen) {
         e.preventDefault()
         const row = dataRef.value[activeCell.row]
         expandForm?.(row)
@@ -755,6 +764,9 @@ onClickOutside(tableBodyEl, (e) => {
   if (contextMenu.value) return
 
   if (activeCell.row === null || activeCell.col === null) return
+
+  const isRichModalOpen = isExpandedCellInputExist()
+  if (isRichModalOpen) return
 
   const activeCol = fields.value[activeCell.col]
 
@@ -978,7 +990,6 @@ const refreshFillHandle = () => {
 const showFillHandle = computed(
   () =>
     !readOnly.value &&
-    !isLocked.value &&
     !editEnabled.value &&
     (!selectedRange.isEmpty() || (activeCell.row !== null && activeCell.col !== null)) &&
     !dataRef.value[(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) ?? -1]?.rowMeta?.new,
@@ -1057,14 +1068,18 @@ useEventListener(document, 'mouseup', () => {
 
 /** handle keypress events */
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
-  if (e.key === 'Alt') {
+  const isRichModalOpen = isExpandedCellInputExist()
+
+  if (e.key === 'Alt' && !isRichModalOpen) {
     altModifier.value = true
   }
 })
 
 /** handle keypress events */
 useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
-  if (e.key === 'Alt') {
+  const isRichModalOpen = isExpandedCellInputExist()
+
+  if (e.key === 'Alt' && !isRichModalOpen) {
     altModifier.value = false
     disableUrlOverlay.value = false
   }
@@ -1110,22 +1125,6 @@ onBeforeUnmount(async () => {
 
 reloadViewDataHook?.on(reloadViewDataHandler)
 openNewRecordFormHook?.on(openNewRecordHandler)
-
-// TODO: Use CSS animations
-const showLoaderAfterDelay = ref(false)
-watch([isViewDataLoading, showSkeleton, isPaginationLoading], () => {
-  if (!isViewDataLoading.value && !showSkeleton.value && !isPaginationLoading.value) {
-    showLoaderAfterDelay.value = false
-
-    return
-  }
-
-  showLoaderAfterDelay.value = false
-
-  setTimeout(() => {
-    showLoaderAfterDelay.value = true
-  }, 500)
-})
 
 // #Watchers
 
@@ -1217,7 +1216,7 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
 }
 
 const loaderText = computed(() => {
-  if (isViewDataLoading.value) {
+  if (isPaginationLoading.value) {
     if (paginationDataRef.value?.totalRows && paginationDataRef.value?.pageSize) {
       return `Loading page<br/>${paginationDataRef.value.page} of ${Math.ceil(
         paginationDataRef.value?.totalRows / paginationDataRef.value?.pageSize,
@@ -1256,10 +1255,7 @@ onKeyStroke('ArrowDown', onDown)
       ></div>
     </div>
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative" :class="gridWrapperClass">
-      <div
-        v-show="showSkeleton && !isPaginationLoading && showLoaderAfterDelay"
-        class="flex items-center justify-center absolute l-0 t-0 w-full h-full z-10 pb-10"
-      >
+      <div v-show="isPaginationLoading" class="flex items-center justify-center absolute l-0 t-0 w-full h-full z-10 pb-10">
         <div class="flex flex-col justify-center gap-2">
           <GeneralLoader size="xlarge" />
           <span class="text-center" v-html="loaderText"></span>
@@ -1487,7 +1483,7 @@ onKeyStroke('ArrowDown', onDown)
                     >
                       <div class="items-center flex gap-1 min-w-[60px]">
                         <div
-                          v-if="!readOnly || !isLocked || isMobileMode"
+                          v-if="!readOnly || isMobileMode"
                           class="nc-row-no sm:min-w-4 text-xs text-gray-500"
                           :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
                         >
@@ -1513,29 +1509,28 @@ onKeyStroke('ArrowDown', onDown)
                             class="!flex items-center"
                             :data-testid="`row-save-spinner-${rowIndex}`"
                           />
-                          <template v-else-if="!isLocked">
-                            <span
-                              v-if="row.rowMeta?.commentCount && expandForm"
-                              v-e="['c:expanded-form:open']"
-                              class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
-                              :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
+
+                          <span
+                            v-if="row.rowMeta?.commentCount && expandForm"
+                            v-e="['c:expanded-form:open']"
+                            class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
+                            :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
+                            @click="expandAndLooseFocus(row, state)"
+                          >
+                            {{ row.rowMeta.commentCount }}
+                          </span>
+                          <div
+                            v-else-if="!row.rowMeta.saving"
+                            class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
+                          >
+                            <component
+                              :is="iconMap.expand"
+                              v-if="expandForm"
+                              v-e="['c:row-expand:open']"
+                              class="select-none transform hover:(text-black scale-120) nc-row-expand"
                               @click="expandAndLooseFocus(row, state)"
-                            >
-                              {{ row.rowMeta.commentCount }}
-                            </span>
-                            <div
-                              v-else
-                              class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
-                            >
-                              <component
-                                :is="iconMap.expand"
-                                v-if="expandForm"
-                                v-e="['c:row-expand:open']"
-                                class="select-none transform hover:(text-black scale-120) nc-row-expand"
-                                @click="expandAndLooseFocus(row, state)"
-                              />
-                            </div>
-                          </template>
+                            />
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -1727,16 +1722,14 @@ onKeyStroke('ArrowDown', onDown)
                 {{ $t('general.clear') }}
               </div>
             </NcMenuItem>
-
             <NcDivider />
             <NcMenuItem
-              v-if="contextMenuTarget && !isLocked && selectedRange.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode"
+              v-if="contextMenuTarget && selectedRange.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode"
               class="nc-base-menu-item"
               @click="commentRow(contextMenuTarget.row)"
             >
               <div v-e="['a:row:comment']" class="flex gap-2 items-center">
                 <MdiMessageOutline class="h-4 w-4" />
-
                 {{ $t('general.comment') }}
               </div>
             </NcMenuItem>
@@ -1784,7 +1777,7 @@ onKeyStroke('ArrowDown', onDown)
       :extra-style="paginationStyleRef?.extraStyle"
     >
       <template #add-record>
-        <div v-if="isAddingEmptyRowAllowed" class="flex ml-1">
+        <div v-if="isAddingEmptyRowAllowed && !showSkeleton && !isPaginationLoading" class="flex ml-1">
           <NcButton
             v-if="isMobileMode"
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
@@ -1820,8 +1813,7 @@ onKeyStroke('ArrowDown', onDown)
                 >
                   <div
                     v-e="['c:row:add:grid']"
-                    :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
-                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-grid"
+                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
                     @click="onNewRecordToGridClick"
                   >
                     <div class="flex flex-row items-center justify-between w-full">
@@ -1837,8 +1829,7 @@ onKeyStroke('ArrowDown', onDown)
                   </div>
                   <div
                     v-e="['c:row:add:form']"
-                    :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
-                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-form"
+                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
                     @click="onNewRecordToFormClick"
                   >
                     <div class="flex flex-row items-center justify-between w-full">

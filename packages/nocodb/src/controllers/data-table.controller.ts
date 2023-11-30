@@ -153,7 +153,13 @@ export class DataTableController {
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
     @Body()
-    refRowIds: string | string[] | number | number[] | Record<string, any>,
+    refRowIds:
+      | string
+      | string[]
+      | number
+      | number[]
+      | Record<string, any>
+      | Record<string, any>[],
   ) {
     return await this.dataTableService.nestedLink({
       modelId,

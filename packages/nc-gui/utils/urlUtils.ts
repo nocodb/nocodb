@@ -6,8 +6,15 @@ export const replaceUrlsWithLink = (text: string): boolean | string => {
   }
 
   const rawText = text.toString()
+
+  // create a temporary element to sanitise the string
+  // by encoding any html code
+  const tempEl = document.createElement('div')
+  tempEl.textContent = rawText
+  const sanitisedText = tempEl.innerHTML
+
   let found = false
-  const out = rawText.replace(/URI::\((.*?)\)/g, (_, url) => {
+  const out = sanitisedText.replace(/URI::\((.*?)\)/g, (_, url) => {
     found = true
     const a = document.createElement('a')
     a.textContent = url

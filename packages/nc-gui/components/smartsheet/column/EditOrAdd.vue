@@ -37,6 +37,7 @@ const props = defineProps<{
   hideType?: boolean
   hideAdditionalOptions?: boolean
   fromTableExplorer?: boolean
+  readonly?: boolean
 }>()
 
 const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
@@ -65,6 +66,8 @@ const meta = inject(MetaInj, ref())
 const isForm = inject(IsFormInj, ref(false))
 
 const isKanban = inject(IsKanbanInj, ref(false))
+
+const readOnly = computed(() => props.readonly)
 
 const { isMysql, isMssql, isXcdbBase } = useBase()
 
@@ -114,6 +117,8 @@ const reloadMetaAndData = async () => {
 const saving = ref(false)
 
 async function onSubmit() {
+  if (readOnly.value) return
+
   saving.value = true
   const saved = await addOrUpdate(reloadMetaAndData, props.columnPosition)
   saving.value = false
@@ -134,7 +139,7 @@ async function onSubmit() {
 // focus and select the column name field
 const antInput = ref()
 watchEffect(() => {
-  if (antInput.value && formState.value) {
+  if (antInput.value && formState.value && !readOnly.value) {
     // todo: replace setTimeout
     setTimeout(() => {
       // focus and select input only if active element is not an input or textarea
@@ -215,9 +220,10 @@ if (props.fromTableExplorer) {
     :class="{
       'bg-white': !props.fromTableExplorer,
       'w-[400px]': !props.embedMode,
+      '!w-146': isTextArea(formState) && formState.meta.richMode,
       '!w-[600px]': formState.uidt === UITypes.Formula && !props.embedMode,
       '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode && !appInfo.ee,
-      'shadow-lg border-1 border-gray-50 shadow-gray-100 rounded-md p-6': !embedMode,
+      'shadow-lg border-1 border-gray-100 shadow-gray-300 rounded-xl p-6': !embedMode,
     }"
     @keydown="handleEscape"
     @click.stop
@@ -232,6 +238,7 @@ if (props.fromTableExplorer) {
             <input
               ref="antInput"
               v-model="formState.title"
+              :disabled="readOnly"
               class="flex flex-grow nc-fields-input text-lg font-bold outline-none bg-inherit"
               :contenteditable="true"
             />
@@ -247,7 +254,7 @@ if (props.fromTableExplorer) {
             ref="antInput"
             v-model:value="formState.title"
             class="nc-column-name-input !rounded !mt-1"
-            :disabled="isKanban"
+            :disabled="isKanban || readOnly"
             @input="onAlter(8)"
           />
         </a-form-item>
@@ -263,7 +270,7 @@ if (props.fromTableExplorer) {
               v-model:value="formState.uidt"
               show-search
               class="nc-column-type-input !rounded"
-              :disabled="isKanban"
+              :disabled="isKanban || readOnly"
               dropdown-class-name="nc-dropdown-column-type "
               @change="onUidtOrIdTypeChange"
               @dblclick="showDeprecated = !showDeprecated"
@@ -285,28 +292,32 @@ if (props.fromTableExplorer) {
           </div> -->
         </div>
 
-        <LazySmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
-        <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
-        <LazySmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
-        <LazySmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
-        <LazySmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
-        <LazySmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
-        <LazySmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
-        <LazySmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" v-model:value="formState" />
-        <LazySmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
-        <LazySmartsheetColumnDecimalOptions v-if="formState.uidt === UITypes.Decimal" v-model:value="formState" />
-        <LazySmartsheetColumnDateTimeOptions v-if="formState.uidt === UITypes.DateTime" v-model:value="formState" />
-        <LazySmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
-        <LazySmartsheetColumnLinkedToAnotherRecordOptions
-          v-if="!isEdit && (formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links)"
-          v-model:value="formState"
-        />
-        <LazySmartsheetColumnLinkOptions v-if="isEdit && formState.uidt === UITypes.Links" v-model:value="formState" />
-        <LazySmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
-        <SmartsheetColumnSelectOptions
-          v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
-          v-model:value="formState"
-        />
+        <template v-if="!readOnly">
+          <LazySmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
+          <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
+          <LazySmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
+          <LazySmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
+          <LazySmartsheetColumnLongTextOptions v-if="formState.uidt === UITypes.LongText" v-model:value="formState" />
+          <LazySmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
+          <LazySmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
+          <LazySmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
+          <LazySmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" v-model:value="formState" />
+          <LazySmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
+          <LazySmartsheetColumnDecimalOptions v-if="formState.uidt === UITypes.Decimal" v-model:value="formState" />
+          <LazySmartsheetColumnDateTimeOptions v-if="formState.uidt === UITypes.DateTime" v-model:value="formState" />
+          <LazySmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
+          <LazySmartsheetColumnLinkedToAnotherRecordOptions
+            v-if="!isEdit && (formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links)"
+            :key="formState.uidt"
+            v-model:value="formState"
+          />
+          <LazySmartsheetColumnLinkOptions v-if="isEdit && formState.uidt === UITypes.Links" v-model:value="formState" />
+          <LazySmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
+          <SmartsheetColumnSelectOptions
+            v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
+            v-model:value="formState"
+          />
+        </template>
       </div>
       <a-checkbox
         v-if="formState.meta && columnToValidate.includes(formState.uidt)"
@@ -317,41 +328,47 @@ if (props.fromTableExplorer) {
           {{ `${$t('msg.acceptOnlyValid')} ${formState.uidt}` }}
         </span>
       </a-checkbox>
-      <div class="!my-3">
-        <!--
-        Default Value for JSON & LongText is not supported in MySQL
-         Default Value is Disabled for MSSQL -->
-        <LazySmartsheetColumnDefaultValue
-          v-if="
+      <template v-if="!readOnly">
+        <div class="!my-3">
+          <!--
+            Default Value for JSON & LongText is not supported in MySQL
+            Default Value is Disabled for MSSQL -->
+          <LazySmartsheetColumnRichLongTextDefaultValue
+            v-if="isTextArea(formState) && formState.meta.richMode"
+            v-model:value="formState"
+          />
+          <LazySmartsheetColumnDefaultValue
+            v-else-if="
           !isVirtualCol(formState) &&
           !isAttachment(formState) &&
           !isMssql(meta!.source_id) &&
           !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState)))
           "
-          v-model:value="formState"
-        />
-      </div>
-
-      <div
-        v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
-        class="text-xs cursor-pointer text-gray-400 nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
-        @click="advancedOptions = !advancedOptions"
-      >
-        {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
-        <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
-      </div>
-
-      <Transition name="layout" mode="out-in">
-        <div v-if="advancedOptions" class="overflow-hidden">
-          <LazySmartsheetColumnAttachmentOptions v-if="appInfo.ee && isAttachment(formState)" v-model:value="formState" />
-
-          <LazySmartsheetColumnAdvancedOptions
-            v-if="formState.uidt !== UITypes.Attachment"
             v-model:value="formState"
-            :advanced-db-options="advancedOptions || formState.uidt === UITypes.SpecificDBType"
           />
         </div>
-      </Transition>
+
+        <div
+          v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
+          class="text-xs cursor-pointer text-gray-400 nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
+          @click="advancedOptions = !advancedOptions"
+        >
+          {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
+          <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
+        </div>
+
+        <Transition name="layout" mode="out-in">
+          <div v-if="advancedOptions" class="overflow-hidden">
+            <LazySmartsheetColumnAttachmentOptions v-if="appInfo.ee && isAttachment(formState)" v-model:value="formState" />
+
+            <LazySmartsheetColumnAdvancedOptions
+              v-if="formState.uidt !== UITypes.Attachment"
+              v-model:value="formState"
+              :advanced-db-options="advancedOptions || formState.uidt === UITypes.SpecificDBType"
+            />
+          </div>
+        </Transition>
+      </template>
 
       <template v-if="props.fromTableExplorer">
         <a-form-item></a-form-item>

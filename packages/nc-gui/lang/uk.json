@@ -1,15 +1,15 @@
 {
   "dashboards": {
-    "create_new_dashboard_project": "Create New Interface",
-    "connect_data_sources": "Connect data sources",
-    "alert": "Alert",
-    "alert-message": "No databases have been connected. Connect database bases to build interfaces. Skip this step and add databases from the base home page later.",
-    "select_database_projects_that_you_want_to_link_to_this_dashboard_projects": "Select Database Bases that you want to link to this Interface.",
-    "create_interface": "Create interface",
-    "project_name": "Base Name",
-    "connect": "Connect",
+    "create_new_dashboard_project": "Створити новий інтерфейс",
+    "connect_data_sources": "Підключення джерел даних",
+    "alert": "Оповіщення",
+    "alert-message": "Немає баз даних підключено. З’єднайте бази даних для створення інтерфейсів. Пропустіть цей крок і додайте бази даних з основної домашньої сторінки пізніше.",
+    "select_database_projects_that_you_want_to_link_to_this_dashboard_projects": "Виберіть базу даних, які Ви хочете прив'язати до цього інтерфейсу.",
+    "create_interface": "Створення інтерфейсу",
+    "project_name": "Назва бази",
+    "connect": "Підключитися",
     "buttonActionTypes": {
-      "open_external_url": "Open external link",
+      "open_external_url": "Відкрити зовнішнє посилання",
       "delete_record": "Delete record",
       "update_record": "Update record",
       "open_layout": "Open layout"
@@ -75,6 +75,7 @@
     "matterMost": "Mattermost",
     "twilio": "Twilio",
     "whatsappTwilio": "WhatsApp Twilio",
+    "quote": "Quote",
     "submit": "Надіслати",
     "create": "Створити",
     "createEntity": "Create {entity}",
@@ -82,6 +83,7 @@
     "creatingEntity": "Creating {entity}",
     "details": "Details",
     "skip": "Skip",
+    "code": "Code",
     "duplicate": "Дублювати",
     "duplicating": "Duplicating",
     "activate": "Activate",
@@ -411,7 +413,18 @@
     }
   },
   "labels": {
+    "heading1": "Heading 1",
+    "heading2": "Heading 2",
+    "heading3": "Heading 3",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "strike": "Strike",
+    "taskList": "Task List",
+    "bulletList": "Bullet List",
+    "numberedList": "Numbered List",
     "downloadData": "Download Data",
+    "blockQuote": "Block Quote",
     "noToken": "No Token",
     "tokenLimit": "Only one token per user is allowed",
     "duplicateAttachment": "File with name {filename} already attached",
@@ -423,6 +436,7 @@
     "headerName": "Header Name",
     "icon": "Icon",
     "max": "Max",
+    "enableRichText": "Enable Rich Text",
     "idColon": "Id:",
     "copiedRecordURL": "Copied Record URL",
     "copyRecordURL": "Copy Record URL",
@@ -591,6 +605,7 @@
     "goToDashboard": "Панель керування",
     "importing": "Імпорт",
     "formatJson": "Format JSON",
+    "autoSelectFieldTypes": "Auto-Select Field Types",
     "firstRowAsHeaders": "Use First Record as Headers",
     "flattenNested": "Вкладені",
     "downloadAllowed": "Завантаження дозволене",
@@ -1032,6 +1047,7 @@
       "duplicateTable": "Are you sure you want to duplicate the table?"
     },
     "info": {
+      "disabledAsViewLocked": "Disabled as View is locked",
       "basesMigrated": "Bases are migrated. Please try again.",
       "pasteNotSupported": "Операція вставки не підтримується в активній комірці",
       "roles": {

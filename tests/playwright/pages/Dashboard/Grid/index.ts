@@ -55,7 +55,7 @@ export class GridPage extends BasePage {
 
   async verifyLockMode() {
     // add new row button
-    expect(await this.btn_addNewRow.count()).toBe(0);
+    expect(await this.btn_addNewRow.count()).toBe(1);
 
     await this.toolbar.verifyLockMode();
     await this.footbar.verifyLockMode();

@@ -26,6 +26,8 @@ const usePaginationShortcuts = ({
   }
 
   const onLeft = async (e: KeyboardEvent) => {
+    if (isExpandedCellInputExist()) return
+
     if (!e.altKey) return
     e.preventDefault()
 
@@ -36,6 +38,8 @@ const usePaginationShortcuts = ({
   }
 
   const onRight = async (e: KeyboardEvent) => {
+    if (isExpandedCellInputExist()) return
+
     if (!e.altKey) return
     e.preventDefault()
 
@@ -47,6 +51,8 @@ const usePaginationShortcuts = ({
   }
 
   const onDown = async (e: KeyboardEvent) => {
+    if (isExpandedCellInputExist()) return
+
     if (!e.altKey) return
     e.preventDefault()
 
@@ -56,6 +62,8 @@ const usePaginationShortcuts = ({
   }
 
   const onUp = async (e: KeyboardEvent) => {
+    if (isExpandedCellInputExist()) return
+
     if (!e.altKey) return
     e.preventDefault()
 

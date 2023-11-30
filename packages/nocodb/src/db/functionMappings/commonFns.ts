@@ -1,4 +1,5 @@
 import type { MapFnArgs } from '../mapFunctionName';
+import { NcError } from '~/helpers/catchError';
 
 export default {
   // todo: handle default case
@@ -53,8 +54,6 @@ export default {
     }
     return { builder: args.knex.raw(`CASE ${query}\n END${args.colAlias}`) };
   },
-  TRUE: 1,
-  FALSE: 0,
   AND: async (args: MapFnArgs) => {
     return {
       builder: args.knex.raw(
@@ -110,6 +109,114 @@ export default {
   FLOAT: async (args: MapFnArgs) => {
     return {
       builder: (await args.fn(args.pt?.arguments?.[0])).builder.wrap('(', ')'),
+    };
+  },
+  BLANK: async (args: MapFnArgs) => {
+    return { builder: args.knex.raw(`?`, [null]) };
+  },
+  TRUE: async (args: MapFnArgs) => {
+    return { builder: args.knex.raw(`?`, [1]) };
+  },
+  FALSE: async (args: MapFnArgs) => {
+    return { builder: args.knex.raw(`?`, [0]) };
+  },
+  EVEN: async (args: MapFnArgs) => {
+    const query = (await args.fn(args.pt.arguments[0])).builder;
+    return {
+      builder: args.knex.raw(
+        `CASE WHEN ${query} % 2 = 0 THEN CEIL(${query})\nELSE CEIL(${query} / 2.0) * 2\n END${args.colAlias}`,
+      ),
+    };
+  },
+  ODD: async (args: MapFnArgs) => {
+    const query = (await args.fn(args.pt.arguments[0])).builder;
+    return {
+      builder: args.knex.raw(
+        `CASE WHEN ${query} >= 0 THEN CEIL((${query} - 1) / 2.0) * 2 + 1 \n ELSE FLOOR((${query} + 1) / 2.0) * 2 - 1\n END${args.colAlias}`,
+      ),
+    };
+  },
+  RECORD_ID: async (args: MapFnArgs) => {
+    const pkCol = args.model?.primaryKey;
+    if (!pkCol) {
+      NcError.badRequest('Primary key not found');
+    }
+
+    return {
+      builder: args.knex.raw(
+        `${
+          (await args.fn({ type: 'Identifier', name: pkCol.id }, args.a))
+            .builder
+        } ${args.colAlias}`,
+      ),
+    };
+  },
+  CREATED_TIME: async (args: MapFnArgs) => {
+    const createdAtCol = args.model?.columns?.find(
+      (col) => col.column_name === 'created_at',
+    );
+    if (!createdAtCol) {
+      NcError.badRequest('Created at field not found');
+    }
+
+    return {
+      builder: args.knex.raw(
+        `${
+          (await args.fn({ type: 'Identifier', name: createdAtCol.id }, args.a))
+            .builder
+        } ${args.colAlias}`,
+      ),
+    };
+  },
+  LAST_MODIFIED_TIME: async (args: MapFnArgs) => {
+    const createdAtCol = args.model?.columns?.find(
+      (col) => col.column_name === 'updated_at',
+    );
+    if (!createdAtCol) {
+      NcError.badRequest('Updated at field not found');
+    }
+
+    return {
+      builder: args.knex.raw(
+        `${
+          (await args.fn({ type: 'Identifier', name: createdAtCol.id }, args.a))
+            .builder
+        } ${args.colAlias}`,
+      ),
+    };
+  },
+  // todo: verify the behaviour of this function
+  COUNTALL: async ({ knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(`? ${colAlias}`, [pt.arguments.length]),
+    };
+  },
+  ROUNDDOWN: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const { builder: valueBuilder } = await fn(pt.arguments[0]);
+    let precisionBuilder = knex.raw('0');
+    if (pt.arguments[1]) {
+      const { builder } = await fn(pt.arguments[1]);
+      precisionBuilder = builder;
+    }
+
+    return {
+      builder: knex.raw(
+        `ROUND(FLOOR((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))${colAlias}`,
+      ),
+    };
+  },
+  ROUNDUP: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const { builder: valueBuilder } = await fn(pt.arguments[0]);
+    let precisionBuilder = knex.raw('0');
+    if (pt.arguments[1]) {
+      const { builder } = await fn(pt.arguments[1]);
+      precisionBuilder = builder;
+    }
+
+    return {
+      builder: knex.raw(
+        `ROUND(CEIL((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))${colAlias}`,
+      ),
     };
   },
 };

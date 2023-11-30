@@ -17,8 +17,6 @@ const isForm = inject(IsFormInj)
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
-const isLocked = inject(IsLockedInj, ref(false))
-
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const colTitle = computed(() => column.value?.title || '')
@@ -79,15 +77,13 @@ const onAttachRecord = () => {
 const openChildList = () => {
   if (isUnderLookup.value) return
 
-  if (!isLocked.value) {
-    childListDlg.value = true
-  }
+  childListDlg.value = true
 }
 
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
-      if (isLocked.value || listItemsDlg.value) return
+      if (listItemsDlg.value) return
       childListDlg.value = true
       e.stopPropagation()
       break
@@ -112,7 +108,7 @@ const openListDlg = () => {
   <div class="flex w-full group items-center nc-links-wrapper" @dblclick.stop="openChildList">
     <div class="block flex-shrink truncate">
       <component
-        :is="isLocked || isUnderLookup ? 'span' : 'a'"
+        :is="isUnderLookup ? 'span' : 'a'"
         v-e="['c:cell:links:modal:open']"
         :title="textVal"
         class="text-center nc-datatype-link underline-transparent"
@@ -124,14 +120,13 @@ const openListDlg = () => {
     </div>
     <div class="flex-grow" />
 
-    <div v-if="!isLocked && !isUnderLookup" class="!xs:hidden flex justify-end hidden group-hover:flex items-center">
+    <div v-if="!isUnderLookup" class="!xs:hidden flex justify-end hidden group-hover:flex items-center">
       <MdiPlus
         v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
         class="select-none !text-md text-gray-700 nc-action-icon nc-plus"
         @click.stop="openListDlg"
       />
     </div>
-
     <LazyVirtualCellComponentsListItems
       v-if="listItemsDlg || childListDlg"
       v-model="listItemsDlg"

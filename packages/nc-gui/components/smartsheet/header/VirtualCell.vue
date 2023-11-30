@@ -154,8 +154,8 @@ const openDropDown = (e: Event) => {
   >
     <LazySmartsheetHeaderVirtualCellIcon v-if="column && !props.hideIcon" />
 
-    <NcTooltip placement="bottom" :class="{ truncate: !isForm }" class="name pl-1">
-      <template v-if="!isForm && !isExpandedForm" #title>
+    <NcTooltip placement="bottom" class="truncate name pl-1">
+      <template #title>
         {{ tooltipMsg }}
       </template>
       <span :data-test-id="column.title">

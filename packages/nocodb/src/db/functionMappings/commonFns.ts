@@ -226,7 +226,7 @@ export default {
     const query = (await args.fn(args.pt.arguments[0])).builder;
     return {
       builder: args.knex.raw(
-        `CASE WHEN ${query} % 2 = 0 THEN CEIL(${query})\nELSE CEIL(${query} / 2.0) * 2\n END${args.colAlias}`,
+        `CASE WHEN ${query} >= 0 THEN CEIL((${query}) / 2.0) * 2 \n ELSE FLOOR((${query} + 2) / 2.0) * 2 - 2\n END${args.colAlias}`,
       ),
     };
   },

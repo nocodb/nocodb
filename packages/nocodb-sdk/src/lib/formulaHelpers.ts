@@ -88,46 +88,6 @@ function validateDateWithUnknownFormat(v: string) {
   return false;
 }
 
-/*
-export const jsepCurlyHook = {
-  name: 'curly',
-  init(jsep) {
-    jsep.hooks.add('gobble-token', function gobbleCurlyLiteral(env) {
-      const OCURLY_CODE = 123; // {
-      const CCURLY_CODE = 125; // }
-      let start = -1;
-      const { context } = env;
-      if (
-        !jsep.isIdentifierStart(context.code) &&
-        context.code === OCURLY_CODE
-      ) {
-        if (start == -1) {
-          start = context.index;
-        }
-        context.index += 1;
-        context.gobbleExpressions(CCURLY_CODE);
-        if (context.code === CCURLY_CODE) {
-          context.index += 1;
-          env.node = {
-            type: jsep.IDENTIFIER,
-            name: /{{(.*?)}}/.test(context.expr)
-              ? // start would be the position of the first curly bracket
-                // add 2 to point to the first character for expressions like {{col1}}
-                context.expr.slice(start + 2, context.index - 1)
-              : // start would be the position of the first curly bracket
-                // add 1 to point to the first character for expressions like {col1}
-                context.expr.slice(start + 1, context.index - 1),
-          };
-          return env.node;
-        } else {
-          context.throwError('Unclosed }');
-        }
-      }
-    });
-  },
-} as jsep.IPlugin;
-*/
-
 export async function substituteColumnAliasWithIdInFormula(
   formula,
   columns: ColumnType[]

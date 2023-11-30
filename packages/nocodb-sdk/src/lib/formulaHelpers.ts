@@ -386,6 +386,16 @@ const formulas: Record<string, FormulaMeta> = {
     ],
     returnType: FormulaDataTypes.DATE,
   },
+  DATESTR: {
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    description: 'Formats a datetime into a string (YYYY-MM-DD)',
+    examples: ['DATESTR({column1})'],
+    returnType: FormulaDataTypes.STRING,
+  },
   DATETIME_DIFF: {
     validation: {
       args: {

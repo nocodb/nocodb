@@ -134,6 +134,15 @@ const pg = {
       ),
     };
   },
+  DATESTR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `TO_DATE(${
+          (await fn(pt?.arguments[0])).builder
+        }, 'YYYY-MM-DD') ${colAlias}`,
+      ),
+    };
+  },
   AND: async (args: MapFnArgs) => {
     return {
       builder: args.knex.raw(

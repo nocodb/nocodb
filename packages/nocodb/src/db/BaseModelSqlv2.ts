@@ -4870,7 +4870,9 @@ class BaseModelSqlv2 {
               );
 
               NcError.unprocessableEntity(
-                `Child record with id [${missingIds.join(', ')}] not found`,
+                `Child record with id [${extractIdsString(
+                  missingIds,
+                )}] not found`,
               );
             }
 
@@ -4934,7 +4936,9 @@ class BaseModelSqlv2 {
               );
 
               NcError.unprocessableEntity(
-                `Child record with id [${missingIds.join(', ')}] not found`,
+                `Child record with id [${extractIdsString(
+                  missingIds,
+                )}] not found`,
               );
             }
           }
@@ -4984,7 +4988,9 @@ class BaseModelSqlv2 {
 
             if (!childRow) {
               NcError.unprocessableEntity(
-                `Child record with id [${childIds[0]}] not found`,
+                `Child record with id [${extractIdsString(
+                  childIds,
+                )}] not found`,
               );
             }
           }
@@ -5110,7 +5116,9 @@ class BaseModelSqlv2 {
               );
 
               NcError.unprocessableEntity(
-                `Child record with id [${missingIds.join(', ')}] not found`,
+                `Child record with id [${extractIdsString(
+                  missingIds,
+                )}] not found`,
               );
             }
           }
@@ -5158,7 +5166,9 @@ class BaseModelSqlv2 {
               );
 
               NcError.unprocessableEntity(
-                `Child record with id [${missingIds.join(', ')}] not found`,
+                `Child record with id [${extractIdsString(
+                  missingIds,
+                )}] not found`,
               );
             }
           }
@@ -5212,7 +5222,9 @@ class BaseModelSqlv2 {
 
             if (!childRow) {
               NcError.unprocessableEntity(
-                `Child record with id [${childIds[0]}] not found`,
+                `Child record with id [${extractIdsString(
+                  childIds,
+                )}] not found`,
               );
             }
           }
@@ -5676,6 +5688,12 @@ export function getListArgs(
     args?.fields || args?.f || (ignoreAssigningWildcardSelect ? null : '*');
   obj.sort = args?.sort || args?.s || model.primaryKey?.[0]?.column_name;
   return obj;
+}
+
+function extractIdsString(childIds: (string | number | Record<string, any>)[]) {
+  return childIds
+    .map((r) => (typeof r === 'object' ? JSON.stringify(r) : r))
+    .join(', ');
 }
 
 export { BaseModelSqlv2 };

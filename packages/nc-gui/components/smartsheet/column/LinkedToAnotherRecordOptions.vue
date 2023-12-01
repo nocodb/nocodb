@@ -74,16 +74,18 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links)
           v-model:value="vModel.childId"
           show-search
           :filter-option="filterOption"
-          dropdown-class-name="nc-dropdown-ltar-child-table"
+          dropdown-class-name="nc-dropdown-ltar-child-table "
           @change="onDataTypeChange"
         >
           <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
-            <div class="flex items-center gap-2">
+            <div class="flex w-full items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
                 <GeneralTableIcon :meta="table" class="text-gray-500" />
               </div>
-
-              <span class="overflow-ellipsis min-w-0 shrink-1">{{ table.title }}</span>
+              <NcTooltip class="flex-1 truncate">
+                <template #title>{{ table.title }}</template>
+                <span>{{ table.title }}</span>
+              </NcTooltip>
             </div>
           </a-select-option>
         </a-select>

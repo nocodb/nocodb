@@ -68,16 +68,19 @@ watch(
 <template>
   <div class="h-full nc-base-view">
     <div
-      class="flex flex-row pl-2 pr-2 border-b-1 border-gray-200 justify-between w-full"
+      class="flex flex-row pl-2 pr-2 gap-1 border-b-1 border-gray-200 justify-between w-full"
       :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     >
       <div class="flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />
         <div class="flex flex-row items-center h-full gap-x-2.5">
           <GeneralProjectIcon :type="openedProject?.type" />
-          <div class="flex font-medium text-sm capitalize">
-            {{ openedProject?.title }}
-          </div>
+          <NcTooltip class="flex font-medium text-sm capitalize truncate max-w-150">
+            <template #title> {{ openedProject?.title }}</template>
+            <span class="truncate">
+              {{ openedProject?.title }}
+            </span>
+          </NcTooltip>
         </div>
       </div>
       <LazyGeneralShareProject />

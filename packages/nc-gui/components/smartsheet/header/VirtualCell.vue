@@ -92,6 +92,7 @@ const tooltipMsg = computed(() => {
   if (!column.value) {
     return ''
   }
+
   if (isHm(column.value)) {
     return `'${tableTile.value}' ${t('labels.hasMany')} '${relatedTableTitle.value}'`
   } else if (isMm(column.value)) {
@@ -110,7 +111,7 @@ const tooltipMsg = computed(() => {
   } else if (isRollup(column.value)) {
     return `'${childColumn.value.title}' of '${relatedTableTitle.value}' (${childColumn.value.uidt})`
   }
-  return ''
+  return column?.value?.title || ''
 })
 
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
@@ -153,14 +154,14 @@ const openDropDown = (e: Event) => {
   >
     <LazySmartsheetHeaderVirtualCellIcon v-if="column && !props.hideIcon" />
 
-    <a-tooltip placement="bottom">
-      <template v-if="!isForm && !isExpandedForm" #title>
+    <NcTooltip placement="bottom" class="truncate name pl-1">
+      <template #title>
         {{ tooltipMsg }}
       </template>
-      <span class="name truncate pl-1" :class="{ truncate: !isForm }" :data-test-id="column.title">
+      <span :data-test-id="column.title">
         {{ column.title }}
       </span>
-    </a-tooltip>
+    </NcTooltip>
 
     <span v-if="isVirtualColRequired(column, meta?.columns || []) || required" class="text-red-500">&nbsp;*</span>
 

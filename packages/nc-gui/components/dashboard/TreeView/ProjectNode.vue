@@ -424,15 +424,17 @@ const projectDelete = () => {
             @keyup.esc="updateProjectTitle"
             @blur="updateProjectTitle"
           />
-          <span
+          <NcTooltip
             v-else
             class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             :class="{ 'text-black font-semibold': activeProjectId === base.id && baseViewOpen }"
-            @click="onProjectClick(base)"
           >
-            {{ base.title }}
-          </span>
+            <template #title>{{ base.title }}</template>
+            <span @click="onProjectClick(base)">
+              {{ base.title }}
+            </span>
+          </NcTooltip>
           <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(base)"></div>
 
           <NcDropdown v-if="!isSharedBase" v-model:visible="isOptionsOpen" :trigger="['click']">

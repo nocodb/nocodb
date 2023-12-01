@@ -379,13 +379,13 @@ useMenuCloseOnEsc(open)
                       }
                     "
                   >
-                    <div class="flex items-center -ml-0.75">
+                    <div class="flex items-center">
                       <component :is="getIcon(metaColumnById[field.fk_column_id])" />
                       <NcTooltip :disabled="field.title.length < 30">
                         <template #title>
                           {{ field.title }}
                         </template>
-                        <span class="mx-0.65 break-all line-clamp-1">{{ field.title }}</span>
+                        <span class="px-1.5 max-w-60 line-clamp-1">{{ field.title }}</span>
                       </NcTooltip>
                     </div>
 
@@ -408,19 +408,14 @@ useMenuCloseOnEsc(open)
                   @click.stop
                 >
                   <div class="flex flex-row items-center justify-between w-full">
-                    <div class="flex items">
-                      <a-tooltip placement="bottom">
-                        <template #title>
-                          <span class="text-sm">$t('title.displayValue') </span>
-                        </template>
-                      </a-tooltip>
-
-                      <div class="flex items-center">
-                        <component :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])" />
-
+                    <div class="flex items-center truncate">
+                      <component :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])" />
+                      <NcTooltip class="px-1.5 truncate">
+                        <template #title>{{ filteredFieldList[0].title }}</template>
                         <span>{{ filteredFieldList[0].title }}</span>
-                      </div>
+                      </NcTooltip>
                     </div>
+
                     <NcSwitch v-e="['a:fields:show-hide']" :checked="true" :disabled="true" />
                   </div>
                 </div>

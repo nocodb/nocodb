@@ -1565,8 +1565,9 @@ export function validateFormulaAndExtractTreeWithType({
         ) {
           res.dataType = FormulaDataTypes.STRING;
         }
+      } else {
+        res.dataType = FormulaDataTypes.NUMERIC;
       }
-      res.dataType = FormulaDataTypes.NUMERIC;
     }
 
     return res;

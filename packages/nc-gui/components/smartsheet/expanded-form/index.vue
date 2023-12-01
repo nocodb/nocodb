@@ -619,9 +619,7 @@ export default {
             'w-2/3': showRightSections,
           }"
         >
-          <div
-            class="flex flex-col flex-grow mt-2 h-full max-h-full nc-scrollbar-md pb-6 items-center w-full bg-white p-4 xs:p-0"
-          >
+          <div class="flex flex-col flex-grow mt-2 h-full max-h-full nc-scrollbar-md pb-6 w-full bg-white p-4 xs:p-0">
             <div
               v-for="(col, i) of fields"
               v-show="isFormula(col) || !isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
@@ -632,24 +630,21 @@ export default {
               :data-testid="`nc-expand-col-${col.title}`"
             >
               <div class="flex items-start flex-row sm:(gap-x-6) xs:(flex-col w-full) nc-expanded-cell min-h-10">
-                <div class="w-48 xs:(w-full) mt-0.25 !h-[35px]">
+                <div class="flex-1 xs:(w-full) mt-0.25 !h-[35px]">
                   <LazySmartsheetHeaderVirtualCell
                     v-if="isVirtualCol(col)"
-                    class="nc-expanded-cell-header h-full"
+                    class="nc-expanded-cell-header h-full !max-w-80"
                     :column="col"
                   />
 
-                  <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header" :column="col" />
+                  <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header !max-w-80" :column="col" />
                 </div>
 
                 <template v-if="isLoading">
-                  <div
-                    v-if="isMobileMode"
-                    class="!h-8.5 !xs:h-12 !xs:bg-white !sm:mr-21 !w-60 mt-0.75 !rounded-lg !overflow-hidden"
-                  ></div>
+                  <div v-if="isMobileMode" class="!h-8.5 !xs:h-12 !xs:bg-white flex-1 mt-0.75 !rounded-lg !overflow-hidden"></div>
                   <a-skeleton-input
                     v-else
-                    class="!h-8.5 !xs:h-9.5 !xs:bg-white !sm:mr-21 !w-60 mt-0.75 !rounded-lg !overflow-hidden"
+                    class="!h-8.5 !xs:h-9.5 !xs:bg-white flex-1 mt-0.75 !rounded-lg !overflow-hidden"
                     active
                     size="small"
                   />
@@ -658,7 +653,7 @@ export default {
                   <SmartsheetDivDataCell
                     v-if="col.title"
                     :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                    class="bg-white rounded-lg !w-[20rem] !xs:w-full border-1 border-gray-200 overflow-hidden px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
+                    class="bg-white rounded-lg flex-1 !xs:w-full border-1 border-gray-200 overflow-hidden px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
                     :class="{
                       '!bg-gray-50 !px-0 !select-text': isReadOnlyVirtualCell(col),
                     }"
@@ -701,7 +696,7 @@ export default {
               </NcButton>
               <div class="flex-grow h-px ml-1 bg-gray-100"></div>
             </div>
-            <div v-if="hiddenFields.length > 0 && showHiddenFields" class="flex flex-col w-full mb-3 items-center">
+            <div v-if="hiddenFields.length > 0 && showHiddenFields" class="flex flex-col w-full mb-3">
               <div
                 v-for="(col, i) of hiddenFields"
                 v-show="isFormula(col) || !isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
@@ -711,20 +706,24 @@ export default {
                 :data-testid="`nc-expand-col-${col.title}`"
               >
                 <div class="sm:gap-x-6 flex sm:flex-row xs:(flex-col) items-start min-h-10">
-                  <div class="sm:w-48 xs:w-full scale-110 !h-[35px]">
-                    <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" class="nc-expanded-cell-header" />
+                  <div class="flex-1 xs:w-full scale-110 !h-[35px]">
+                    <LazySmartsheetHeaderVirtualCell
+                      v-if="isVirtualCol(col)"
+                      :column="col"
+                      class="nc-expanded-cell-header max-w-80"
+                    />
 
-                    <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header" :column="col" />
+                    <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header max-w-80" :column="col" />
                   </div>
 
                   <template v-if="isLoading">
                     <div
                       v-if="isMobileMode"
-                      class="!h-8.5 !xs:h-9.5 !xs:bg-white !sm:mr-21 !w-60 mt-0.75 !rounded-lg !overflow-hidden"
+                      class="!h-8.5 !xs:h-9.5 !xs:bg-white flex-1 mt-0.75 !rounded-lg !overflow-hidden"
                     ></div>
                     <a-skeleton-input
                       v-else
-                      class="!h-8.5 !xs:h-12 !xs:bg-white !sm:mr-21 !w-60 mt-0.75 !rounded-lg !overflow-hidden"
+                      class="!h-8.5 !xs:h-12 !xs:bg-white flex-1 mt-0.75 !rounded-lg !overflow-hidden"
                       active
                       size="small"
                     />
@@ -733,7 +732,7 @@ export default {
                     <LazySmartsheetDivDataCell
                       v-if="col.title"
                       :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                      class="!bg-white rounded-lg !w-[20rem] border-1 overflow-hidden border-gray-200 px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
+                      class="!bg-white rounded-lg flex-1 border-1 overflow-hidden border-gray-200 px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
                     >
                       <LazySmartsheetVirtualCell
                         v-if="isVirtualCol(col)"

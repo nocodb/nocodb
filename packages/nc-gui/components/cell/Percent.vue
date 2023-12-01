@@ -12,6 +12,8 @@ const emits = defineEmits(['update:modelValue'])
 
 const { showNull } = useGlobal()
 
+const column = inject(ColumnInj)!
+
 const editEnabled = inject(EditModeInj)
 
 const isEditColumn = inject(EditColumnInj, ref(false))
@@ -32,6 +34,13 @@ const vModel = computed({
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
+
+const percentMeta = computed(() => {
+  return {
+    is_progress: false,
+    ...parseProp(column.value?.meta),
+  }
+})
 </script>
 
 <template>
@@ -53,5 +62,8 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value
     @mousedown.stop
   />
   <span v-else-if="vModel === null && showNull" class="nc-null capitalize">{{ $t('general.null') }}</span>
+  <div v-else-if="percentMeta.is_progress === true && vModel !== null" class="px-3">
+    <a-progress :percent="Number(vModel)" size="small" />
+  </div>
   <span v-else>{{ vModel }}</span>
 </template>

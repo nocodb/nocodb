@@ -232,19 +232,18 @@ watch(isDropdownOpen, async () => {
         @blur="onRename"
         @keydown.stop="onKeyDown($event)"
       />
-
-      <div
-        v-else
-        class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none w-full"
-        data-testid="sidebar-view-title"
-        :class="{
-          'font-medium': activeView?.id === vModel.id,
-        }"
-        :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-      >
-        {{ vModel.alias || vModel.title }}
-      </div>
-
+      <NcTooltip v-else class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none w-full">
+        <template #title> {{ vModel.alias || vModel.title }}</template>
+        <div
+          data-testid="sidebar-view-title"
+          :class="{
+            'font-medium': activeView?.id === vModel.id,
+          }"
+          :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+        >
+          {{ vModel.alias || vModel.title }}
+        </div>
+      </NcTooltip>
       <div class="flex-1" />
 
       <template v-if="!isEditing && !isLocked && isUIAllowed('viewCreateOrEdit')">

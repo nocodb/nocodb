@@ -147,7 +147,10 @@ const toggleSelectAll = (role: Role) => {
 <template>
   <div class="flex flex-row w-full items-center justify-center">
     <div class="flex flex-col w-[900px]">
-      <span class="mb-4 first-letter:capital font-bold"> UI ACL : {{ base.title }} </span>
+      <NcTooltip class="mb-4 first-letter:capital font-bold max-w-100 truncate">
+        <template #title>{{ base.title }}</template>
+        <span> UI ACL : {{ base.title }} </span>
+      </NcTooltip>
       <div class="flex flex-row items-center w-full mb-4 gap-2 justify-between">
         <a-input v-model:value="searchInput" :placeholder="$t('placeholder.searchModels')" class="nc-acl-search !w-[400px]">
           <template #prefix>
@@ -208,9 +211,10 @@ const toggleSelectAll = (role: Role) => {
                 <div class="min-w-5 flex items-center justify-center">
                   <GeneralTableIcon :meta="{ meta: record.table_meta, type: record.ptype }" class="text-gray-500" />
                 </div>
-                <GeneralTruncateText>
-                  <span class="overflow-ellipsis min-w-0 shrink-1">{{ record._ptn }}</span>
-                </GeneralTruncateText>
+                <NcTooltip class="overflow-ellipsis min-w-0 shrink-1 truncate">
+                  <template #title>{{ record._ptn }}</template>
+                  <span>{{ record._ptn }}</span>
+                </NcTooltip>
               </div>
             </div>
 
@@ -219,7 +223,10 @@ const toggleSelectAll = (role: Role) => {
                 <div class="min-w-5 flex items-center justify-center">
                   <GeneralViewIcon :meta="record" class="text-gray-500"></GeneralViewIcon>
                 </div>
-                <span class="overflow-ellipsis min-w-0 shrink-1">{{ record.title }}</span>
+                <NcTooltip class="overflow-ellipsis min-w-0 shrink-1 truncate">
+                  <template #title>{{ record.title }}</template>
+                  <span>{{ record.title }}</span>
+                </NcTooltip>
               </div>
             </div>
 

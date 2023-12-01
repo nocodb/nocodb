@@ -82,13 +82,15 @@ if (!localValue.value && allowEmpty !== true) {
     <a-select-option v-for="option in options" :key="option.value" :label="option.label" :value="option.value">
       <div class="flex gap-2 items-center items-center h-full">
         <component :is="option.icon" class="min-w-5 !mx-0" />
-
-        <div
-          class="min-w-0 text-ellipsis overflow-hidden select-none"
+        <NcTooltip
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+          class="max-w-[15rem] truncate select-none"
         >
-          {{ option.label }}
-        </div>
+          <template #title> {{ option.label }}</template>
+          <span>
+            {{ option.label }}
+          </span>
+        </NcTooltip>
       </div>
     </a-select-option>
   </NcSelect>

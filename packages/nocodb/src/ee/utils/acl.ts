@@ -207,6 +207,7 @@ const rolePermissions:
     include: {
       workspaceBaseList: true,
       workspaceGet: true,
+      workspaceUserList: true,
     },
   },
   [WorkspaceUserRoles.COMMENTER]: {

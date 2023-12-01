@@ -51,6 +51,7 @@ import {
   PresignedUrl,
   Sort,
   Source,
+  User,
   View,
 } from '~/models';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
@@ -2304,7 +2305,7 @@ class BaseModelSqlv2 {
         await this.beforeInsert(insertObj, trx, cookie);
       }
 
-      await this.prepareAttachmentData(insertObj);
+      await this.prepareNocoData(insertObj);
 
       let response;
       // const driver = trx ? trx : this.dbDriver;
@@ -2547,7 +2548,7 @@ class BaseModelSqlv2 {
 
       await this.beforeUpdate(data, trx, cookie);
 
-      await this.prepareAttachmentData(updateObj);
+      await this.prepareNocoData(updateObj);
 
       const prevData = await this.readByPk(
         id,
@@ -3015,7 +3016,7 @@ class BaseModelSqlv2 {
             }
           }
 
-          await this.prepareAttachmentData(insertObj);
+          await this.prepareNocoData(insertObj);
 
           // prepare nested link data for insert only if it is single record insertion
           if (isSingleRecordInsertion) {
@@ -3153,7 +3154,7 @@ class BaseModelSqlv2 {
           continue;
         }
         if (!raw) {
-          await this.prepareAttachmentData(d);
+          await this.prepareNocoData(d);
 
           const oldRecord = await this.readByPk(pkValues);
           if (!oldRecord) {
@@ -4376,12 +4377,14 @@ class BaseModelSqlv2 {
       skipDateConversion?: boolean;
       skipAttachmentConversion?: boolean;
       skipSubstitutingColumnIds?: boolean;
+      skipUserConversion?: boolean;
       raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
       first?: boolean;
     } = {
       skipDateConversion: false,
       skipAttachmentConversion: false,
       skipSubstitutingColumnIds: false,
+      skipUserConversion: false,
       raw: false,
       first: false,
     },
@@ -4390,6 +4393,7 @@ class BaseModelSqlv2 {
       options.skipDateConversion = true;
       options.skipAttachmentConversion = true;
       options.skipSubstitutingColumnIds = true;
+      options.skipUserConversion = true;
     }
 
     if (options.first && typeof qb !== 'string') {
@@ -4420,6 +4424,11 @@ class BaseModelSqlv2 {
     // update date time fields
     if (!options.skipDateConversion) {
       data = this.convertDateFormat(data, childTable);
+    }
+
+    // update user fields
+    if (!options.skipUserConversion) {
+      data = await this.convertUserFormat(data, childTable);
     }
 
     if (!options.skipSubstitutingColumnIds) {
@@ -4513,6 +4522,102 @@ class BaseModelSqlv2 {
     });
 
     return data;
+  }
+
+  protected async convertUserFormat(
+    data: Record<string, any>,
+    childTable?: Model,
+  ) {
+    // user is stored as id within the database
+    // convertUserFormat is used to convert the response in id to user object in API response
+    if (data) {
+      if (childTable && !childTable?.columns) {
+        await childTable.getColumns();
+      } else if (!this.model?.columns) {
+        await this.model.getColumns();
+      }
+
+      const userColumns = [];
+
+      const columns = childTable ? childTable.columns : this.model.columns;
+
+      for (const col of columns) {
+        if (col.uidt === UITypes.Lookup) {
+          if ((await this.getNestedUidt(col)) === UITypes.User) {
+            userColumns.push(col);
+          }
+        } else {
+          if (col.uidt === UITypes.User) {
+            userColumns.push(col);
+          }
+        }
+      }
+
+      if (userColumns.length) {
+        if (Array.isArray(data)) {
+          data = await Promise.all(
+            data.map((d) => this._convertUserFormat(userColumns, d)),
+          );
+        } else {
+          data = await this._convertUserFormat(userColumns, data);
+        }
+      }
+    }
+    return data;
+  }
+
+  protected async _convertUserFormat(
+    userColumns: Record<string, any>[],
+    d: Record<string, any>,
+  ) {
+    try {
+      if (d) {
+        const promises = [];
+
+        for (const col of userColumns) {
+          // we expect array of string of comma separated user ids in case of lookup
+          if (Array.isArray(d[col.id])) {
+          } else {
+            if (d[col.id] && d[col.id].length) {
+              d[col.id] = d[col.id].split(',');
+            } else {
+              d[col.id] = [];
+            }
+
+            if (d[col.id]?.length) {
+              promises.push(
+                new Promise((resolve) => {
+                  const users = [];
+                  for (const userId of d[col.id]) {
+                    users.push(
+                      User.get(userId)
+                        .then((user) => {
+                          const { id, email, display_name } = user;
+                          return {
+                            id,
+                            email,
+                            display_name,
+                          };
+                        })
+                        .catch((e) => {
+                          console.log(e);
+                          return null;
+                        }),
+                    );
+                  }
+                  Promise.all(users).then((users) => {
+                    d[col.id] = users;
+                    resolve(true);
+                  });
+                }),
+              );
+            }
+          }
+        }
+        await Promise.all(promises);
+      }
+    } catch {}
+    return d;
   }
 
   protected async _convertAttachmentType(
@@ -5353,8 +5458,12 @@ class BaseModelSqlv2 {
     }
   }
 
-  prepareAttachmentData(data) {
-    if (this.model.columns.some((c) => c.uidt === UITypes.Attachment)) {
+  async prepareNocoData(data) {
+    if (
+      this.model.columns.some((c) =>
+        [UITypes.Attachment, UITypes.User].includes(c.uidt),
+      )
+    ) {
       for (const column of this.model.columns) {
         if (column.uidt === UITypes.Attachment) {
           if (data[column.column_name]) {
@@ -5370,6 +5479,63 @@ class BaseModelSqlv2 {
                 ]);
               }
             }
+          }
+        } else if (column.uidt === UITypes.User) {
+          if (data[column.column_name]) {
+            const userIds = [];
+            if (typeof data[column.column_name] === 'string') {
+              const users = data[column.column_name].split(',');
+              for (const user of users) {
+                try {
+                  if (user.includes('@')) {
+                    const u = await User.getByEmail(user);
+                    if (!u) {
+                      throw new Error(`User with email '${user}' not found`);
+                    }
+                    userIds.push(u.id);
+                  } else {
+                    const u = await User.get(user);
+                    if (!u) {
+                      throw new Error(`User with id '${user}' not found`);
+                    }
+                    userIds.push(u.id);
+                  }
+                } catch (e) {
+                  NcError.unprocessableEntity(e.message);
+                }
+              }
+            } else {
+              const users: { id?: string; email?: string }[] = Array.isArray(
+                data[column.column_name],
+              )
+                ? data[column.column_name]
+                : [data[column.column_name]];
+              for (const userObj of users) {
+                const user = extractProps(userObj, ['id', 'email']);
+                try {
+                  if (user.id) {
+                    const u = await User.get(user.id);
+                    if (!u) {
+                      throw new Error(`User with id '${user.id}' not found`);
+                    }
+                    userIds.push(u.id);
+                  } else if (user.email) {
+                    const u = await User.getByEmail(user.email);
+                    if (!u) {
+                      throw new Error(
+                        `User with email '${user.email}' not found`,
+                      );
+                    }
+                    userIds.push(u.id);
+                  } else {
+                    throw new Error('Invalid user object');
+                  }
+                } catch (e) {
+                  NcError.unprocessableEntity(e.message);
+                }
+              }
+            }
+            data[column.column_name] = userIds.join(',');
           }
         }
       }

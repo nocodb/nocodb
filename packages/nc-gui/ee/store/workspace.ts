@@ -10,6 +10,7 @@ interface NcWorkspace extends WorkspaceType {
   edit?: boolean
   temp_title?: string | null
   roles?: string
+  collaborators?: WorkspaceUserType[]
 }
 
 export const useWorkspace = defineStore('workspaceStore', () => {
@@ -184,6 +185,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       })
 
       collaborators.value = list
+      activeWorkspace.value.collaborators = list
       workspaceUserCount.value = pageInfo.totalRows
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -277,6 +279,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (force || !wsState || !(wsState as any)?.limits) {
       await loadWorkspace(workspaceId)
       await loadRoles()
+      await loadCollaborators()
     }
 
     if (activeWorkspace.value?.status === WorkspaceStatus.CREATED) {

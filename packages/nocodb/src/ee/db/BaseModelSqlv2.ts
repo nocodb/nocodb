@@ -27,7 +27,6 @@ import type CustomKnex from '~/db/CustomKnex';
 import { Audit, Column, Filter, Model, ModelStat, Source } from '~/models';
 import { getSingleQueryReadFn } from '~/services/data-opt/helpers';
 import { canUseOptimisedQuery } from '~/utils';
-import { extractProps } from '~/helpers/extractProps';
 import {
   UPDATE_MODEL_STAT,
   UPDATE_WORKSPACE_COUNTER,
@@ -127,12 +126,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       skipDateConversion?: boolean;
       skipAttachmentConversion?: boolean;
       skipSubstitutingColumnIds?: boolean;
+      skipUserConversion?: boolean;
       raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
       first?: boolean;
     } = {
       skipDateConversion: false,
       skipAttachmentConversion: false,
       skipSubstitutingColumnIds: false,
+      skipUserConversion: false,
       raw: false,
       first: false,
     },
@@ -141,6 +142,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       options.skipDateConversion = true;
       options.skipAttachmentConversion = true;
       options.skipSubstitutingColumnIds = true;
+      options.skipUserConversion = true;
     }
 
     if (options.first && typeof qb !== 'string') {
@@ -175,6 +177,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       data = this.convertDateFormat(data, childTable);
     }
 
+    // update user fields
+    if (!options.skipUserConversion) {
+      data = await this.convertUserFormat(data, childTable);
+    }
+
     if (!options.skipSubstitutingColumnIds) {
       data = await this.substituteColumnIdsWithColumnTitles(data, childTable);
     }
@@ -203,7 +210,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         await this.beforeInsert(insertObj, trx, cookie);
       }
 
-      await this.prepareAttachmentData(insertObj);
+      await this.prepareNocoData(insertObj);
 
       await this.model.getColumns();
       let response;
@@ -334,6 +341,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       await this.beforeUpdate(data, trx, cookie);
 
+      await this.prepareNocoData(updateObj);
+
       const source = await Source.get(this.model.source_id);
       const prevData = (await canUseOptimisedQuery({
         source,
@@ -391,27 +400,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
   }
 
-  prepareAttachmentData(data) {
-    if (this.model.columns.some((c) => c.uidt === UITypes.Attachment)) {
-      for (const column of this.model.columns) {
-        if (column.uidt === UITypes.Attachment) {
-          if (data[column.column_name]) {
-            if (Array.isArray(data[column.column_name])) {
-              for (let attachment of data[column.column_name]) {
-                attachment = extractProps(attachment, [
-                  'url',
-                  'path',
-                  'title',
-                  'mimetype',
-                  'size',
-                  'icon',
-                ]);
-              }
-            }
-          }
-        }
-      }
-    }
+  async prepareNocoData(data) {
+    return super.prepareNocoData(data);
   }
 
   public async beforeInsert(data: any, _trx: any, req): Promise<void> {
@@ -896,7 +886,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }
           }
 
-          await this.prepareAttachmentData(insertObj);
+          await this.prepareNocoData(insertObj);
 
           insertDatas.push(insertObj);
         }
@@ -1065,7 +1055,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           continue;
         }
         if (!raw) {
-          await this.prepareAttachmentData(d);
+          await this.prepareNocoData(d);
 
           const oldRecord = await this.readByPk(pkValues);
           if (!oldRecord) {

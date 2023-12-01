@@ -204,6 +204,7 @@ export default class WorkspaceUser {
       const queryBuilder = ncMeta.knex(MetaTable.USERS).select(
         `${MetaTable.USERS}.id`,
         `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.display_name`,
         // `${MetaTable.USERS}.invite_token`,
         `${MetaTable.USERS}.roles as main_roles`,
         `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,

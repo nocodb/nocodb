@@ -952,6 +952,134 @@ export class ColumnsService {
       await Column.update(param.columnId, {
         ...colBody,
       });
+    } else if (colBody.uidt === UITypes.User) {
+      if (column.uidt === UITypes.User) {
+        // multi user to single user
+        if (
+          colBody.meta?.is_multi === false &&
+          column.meta?.is_multi === true
+        ) {
+          const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+            Model.getBaseModelSQL({
+              id: table.id,
+              dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+                NcConnectionMgrv2.get(source),
+              ),
+            }),
+          );
+
+          const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
+            NcConnectionMgrv2.get(source),
+          );
+          const driverType = dbDriver.clientType();
+
+          // MultiSelect to SingleSelect
+          if (driverType === 'mysql' || driverType === 'mysql2') {
+            await sqlClient.raw(
+              `UPDATE ?? SET ?? = SUBSTRING_INDEX(??, ',', 1) WHERE ?? LIKE '%,%';`,
+              [
+                baseModel.getTnPath(table.table_name),
+                column.column_name,
+                column.column_name,
+                column.column_name,
+              ],
+            );
+          } else if (driverType === 'pg') {
+            await sqlClient.raw(`UPDATE ?? SET ?? = split_part(??, ',', 1);`, [
+              baseModel.getTnPath(table.table_name),
+              column.column_name,
+              column.column_name,
+            ]);
+          } else if (driverType === 'mssql') {
+            await sqlClient.raw(
+              `UPDATE ?? SET ?? = LEFT(cast(?? as varchar(max)), CHARINDEX(',', ??) - 1) WHERE CHARINDEX(',', ??) > 0;`,
+              [
+                baseModel.getTnPath(table.table_name),
+                column.column_name,
+                column.column_name,
+                column.column_name,
+                column.column_name,
+              ],
+            );
+          } else if (driverType === 'sqlite3') {
+            await sqlClient.raw(
+              `UPDATE ?? SET ?? = substr(??, 1, instr(??, ',') - 1) WHERE ?? LIKE '%,%';`,
+              [
+                baseModel.getTnPath(table.table_name),
+                column.column_name,
+                column.column_name,
+                column.column_name,
+                column.column_name,
+              ],
+            );
+          }
+        }
+
+        colBody = await getColumnPropsFromUIDT(colBody, source);
+        const tableUpdateBody = {
+          ...table,
+          tn: table.table_name,
+          originalColumns: table.columns.map((c) => ({
+            ...c,
+            cn: c.column_name,
+            cno: c.column_name,
+          })),
+          columns: await Promise.all(
+            table.columns.map(async (c) => {
+              if (c.id === param.columnId) {
+                const res = {
+                  ...c,
+                  ...colBody,
+                  cn: colBody.column_name,
+                  cno: c.column_name,
+                  altered: Altered.UPDATE_COLUMN,
+                };
+
+                // update formula with new column name
+                if (c.column_name != colBody.column_name) {
+                  const formulas = await Noco.ncMeta
+                    .knex(MetaTable.COL_FORMULA)
+                    .where('formula', 'like', `%${c.id}%`);
+                  if (formulas) {
+                    const new_column = c;
+                    new_column.column_name = colBody.column_name;
+                    new_column.title = colBody.title;
+                    for (const f of formulas) {
+                      // the formula with column IDs only
+                      const formula = f.formula;
+                      // replace column IDs with alias to get the new formula_raw
+                      const new_formula_raw =
+                        substituteColumnIdWithAliasInFormula(formula, [
+                          new_column,
+                        ]);
+                      await FormulaColumn.update(c.id, {
+                        formula_raw: new_formula_raw,
+                      });
+                    }
+                  }
+                }
+                return Promise.resolve(res);
+              } else {
+                (c as any).cn = c.column_name;
+              }
+              return Promise.resolve(c);
+            }),
+          ),
+        };
+
+        const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+          ProjectMgrv2.getSqlMgr({ id: source.base_id }),
+        );
+        await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+
+        await Column.update(param.columnId, {
+          ...colBody,
+        });
+      } else {
+        NcError.notImplemented(
+          `Updating ${column.uidt} => ${colBody.uidt} is not supported at the moment`,
+        );
+      }
     } else {
       colBody = await getColumnPropsFromUIDT(colBody, source);
       const tableUpdateBody = {

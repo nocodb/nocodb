@@ -3,7 +3,25 @@ import commonFns from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
-
+const replaceCharClassShorthandlers = (str: string) => {
+  return str.replace(/(.|^)\\([dDsSwW])/g, (fullMatch, prevChar, alias) => {
+    if (prevChar === '\\') return fullMatch;
+    switch (alias) {
+      case 'd':
+        return `${prevChar}[0-9]`;
+      case 'D':
+        return `${prevChar}[^0-9]`;
+      case 's':
+        return `${prevChar}[\f\n\r\t\v\u0020\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]`;
+      case 'S':
+        return `${prevChar}[^\f\n\r\t\v\u0020\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]`;
+      case 'w':
+        return `${prevChar}[A-Za-z0-9_]`;
+      case 'W':
+        return `${prevChar}[^A-Za-z0-9_]`;
+    }
+  });
+};
 const pg = {
   ...commonFns,
   LEN: 'length',
@@ -227,15 +245,31 @@ const pg = {
   },
   REGEX_MATCH: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
+
+    // replace shorthand character classes with their equivalent character sets
+    if (pt.arguments[1].type === 'Literal') {
+      pt.arguments[1].value = replaceCharClassShorthandlers(
+        pt.arguments[1].value,
+      );
+    }
+
     const pattern = (await fn(pt.arguments[1])).builder;
     return {
       builder: knex.raw(
-        `CASE WHEN (${source}::TEXT ~ ${pattern}::TEXT) THEN 1 ELSE 0 END ${colAlias}`,
+        `CASE WHEN REGEXP_MATCH(${source}::TEXT, ${pattern}::TEXT) IS NULL THEN 0 ELSE 1 END ${colAlias}`,
       ),
     };
   },
   REGEX_EXTRACT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
+
+    // replace shorthand character classes with their equivalent character sets
+    if (pt.arguments[1].type === 'Literal') {
+      pt.arguments[1].value = replaceCharClassShorthandlers(
+        pt.arguments[1].value,
+      );
+    }
+
     const pattern = (await fn(pt.arguments[1])).builder;
     return {
       builder: knex.raw(
@@ -248,6 +282,14 @@ const pg = {
   REGEX_REPLACE: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
     const pattern = (await fn(pt.arguments[1])).builder;
+
+    // replace shorthand character classes with their equivalent character sets
+    if (pt.arguments[1].type === 'Literal') {
+      pt.arguments[1].value = replaceCharClassShorthandlers(
+        pt.arguments[1].value,
+      );
+    }
+
     const replacement = (await fn(pt.arguments[2])).builder;
     return {
       builder: knex.raw(

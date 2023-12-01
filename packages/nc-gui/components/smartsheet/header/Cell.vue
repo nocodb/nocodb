@@ -92,19 +92,24 @@ const onClick = (e: Event) => {
     />
     <NcTooltip
       v-if="column"
-      class="name pl-1"
       :class="{
         'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu && !isExpandedForm,
         'cursor-default': isForm || !isUIAllowed('fieldEdit') || hideMenu,
         '!truncate': !isForm,
       }"
+      class="name pl-1"
       placement="bottom"
     >
       <template #title> {{ column.title }} </template>
 
-      <span :data-test-id="column.title">
+      <div
+        :class="{
+          '!truncate': !isForm,
+        }"
+        :data-test-id="column.title"
+      >
         {{ column.title }}
-      </span>
+      </div>
     </NcTooltip>
 
     <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>

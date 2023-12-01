@@ -770,7 +770,7 @@ const onFieldOptionUpdate = () => {
           </div>
         </div>
         <div class="flex flex-row rounded-lg border-1 border-gray-200">
-          <div ref="fieldsListWrapperDomRef" class="nc-scrollbar-md !overflow-auto w-full flex-grow-1 nc-fields-height">
+          <div ref="fieldsListWrapperDomRef" class="nc-scrollbar-md !overflow-auto flex-1 flex-grow-1 nc-fields-height">
             <Draggable v-model="fields" :disabled="isLocked" item-key="id" @change="onMove($event)">
               <template #item="{ element: field }">
                 <div
@@ -1077,7 +1077,7 @@ const onFieldOptionUpdate = () => {
             </Draggable>
           </div>
           <Transition v-if="!changingField" name="slide-fade">
-            <div class="border-gray-200 border-l-1 rounded-r-xl h-[calc(100vh-(var(--topbar-height)*3.85))]">
+            <div class="border-gray-200 border-l-1 rounded-r-xl nc-scrollbar-md nc-fields-height !overflow-y-auto">
               <SmartsheetColumnEditOrAddProvider
                 v-if="activeField"
                 class="p-4 w-[25rem]"

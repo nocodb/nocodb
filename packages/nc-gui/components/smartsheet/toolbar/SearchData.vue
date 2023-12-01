@@ -112,7 +112,7 @@ watch(columns, () => {
         @change="onPressEnter"
       >
         <a-select-option v-for="op of columns" :key="op.value" v-e="['c:search:field:select']" :value="op.value">
-          <div class="text-[0.75rem] flex items-center truncate -ml-1 gap-2">
+          <div class="text-[0.75rem] flex items-center -ml-1 gap-2">
             <SmartsheetHeaderIcon class="text-sm" :column="op.column" />
             <NcTooltip class="truncate" placement="top">
               <template #title>{{ op.label }}</template>

@@ -91,7 +91,7 @@ const onArrowUp = () => {
     <div class="flex pb-3 px-4 border-b-1 border-gray-100">
       <input ref="inputRef" v-model="search" class="w-full focus:outline-none" :placeholder="$t('msg.selectFieldToSort')" />
     </div>
-    <div class="flex-col w-full max-h-100 nc-scrollbar-md !overflow-y-auto">
+    <div class="flex-col w-full max-h-100 max-w-76 nc-scrollbar-md !overflow-y-auto">
       <div v-if="!options.length" class="flex text-gray-500 px-4 py-2.25">{{ $t('general.empty') }}</div>
       <div
         v-for="(option, index) in options"
@@ -104,9 +104,12 @@ const onArrowUp = () => {
         @click="onClick(option)"
       >
         <SmartsheetHeaderIcon :column="option" />
-        <div>
-          {{ option.title }}
-        </div>
+        <NcTooltip class="truncate">
+          <template #title> {{ option.title }}</template>
+          <span>
+            {{ option.title }}
+          </span>
+        </NcTooltip>
       </div>
     </div>
   </div>

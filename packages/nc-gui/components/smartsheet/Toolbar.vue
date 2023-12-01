@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { IsPublicInj, inject, ref, useRoles, useSharedView, useSmartsheetStoreOrThrow, useViewsStore } from '#imports'
+import {
+  IsPublicInj,
+  inject,
+  ref,
+  storeToRefs,
+  useGlobal,
+  useSharedView,
+  useSmartsheetStoreOrThrow,
+  useViewsStore,
+} from '#imports'
 
 const { isGrid, isGallery, isKanban, isMap } = useSmartsheetStoreOrThrow()
 
@@ -8,8 +17,6 @@ const isPublic = inject(IsPublicInj, ref(false))
 const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { isMobileMode } = useGlobal()
-
-const { isUIAllowed } = useRoles()
 
 const { allowCSVDownload } = useSharedView()
 </script>

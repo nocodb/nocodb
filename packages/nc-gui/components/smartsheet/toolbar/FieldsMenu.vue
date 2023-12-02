@@ -371,7 +371,7 @@ useMenuCloseOnEsc(open)
                   <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
                   <div
                     v-e="['a:fields:show-hide']"
-                    class="flex flex-row items-center justify-between w-full cursor-pointer ml-1"
+                    class="flex flex-row items-center w-full truncate cursor-pointer ml-1"
                     @click="
                       () => {
                         field.show = !field.show
@@ -379,15 +379,13 @@ useMenuCloseOnEsc(open)
                       }
                     "
                   >
-                    <div class="flex items-center -ml-0.75">
-                      <component :is="getIcon(metaColumnById[field.fk_column_id])" />
-                      <NcTooltip :disabled="field.title.length < 30">
-                        <template #title>
-                          {{ field.title }}
-                        </template>
-                        <span class="mx-0.65 break-all line-clamp-1">{{ field.title }}</span>
-                      </NcTooltip>
-                    </div>
+                    <component :is="getIcon(metaColumnById[field.fk_column_id])" />
+                    <NcTooltip :disabled="field.title.length < 30" class="flex-1 px-1 truncate">
+                      <template #title>
+                        {{ field.title }}
+                      </template>
+                      <span>{{ field.title }}</span>
+                    </NcTooltip>
 
                     <NcSwitch v-e="['a:fields:show-hide']" :checked="field.show" :disabled="field.isViewEssentialField" />
                   </div>
@@ -399,7 +397,7 @@ useMenuCloseOnEsc(open)
                 <div
                   v-if="gridDisplayValueField && filteredFieldList[0].title.toLowerCase().includes(filterQuery.toLowerCase())"
                   :key="`pv-${gridDisplayValueField.id}`"
-                  class="pl-7.5 pr-2.1 py-2 flex flex-row items-center border-1 border-gray-200"
+                  class="pl-7.4 pr-2 py-2 flex flex-row items-center border-1 border-gray-200"
                   :class="{
                     'rounded-t-lg': filteredFieldList.length > 1,
                     'rounded-lg': filteredFieldList.length === 1,
@@ -407,22 +405,13 @@ useMenuCloseOnEsc(open)
                   :data-testid="`nc-fields-menu-${gridDisplayValueField.title}`"
                   @click.stop
                 >
-                  <div class="flex flex-row items-center justify-between w-full">
-                    <div class="flex items">
-                      <a-tooltip placement="bottom">
-                        <template #title>
-                          <span class="text-sm">$t('title.displayValue') </span>
-                        </template>
-                      </a-tooltip>
+                  <component :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])" />
+                  <NcTooltip :disabled="filteredFieldList?.[0]?.title?.length < 30" class="px-1 flex-1 truncate">
+                    <template #title>{{ filteredFieldList[0].title }}</template>
+                    <span>{{ filteredFieldList[0].title }}</span>
+                  </NcTooltip>
 
-                      <div class="flex items-center">
-                        <component :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])" />
-
-                        <span>{{ filteredFieldList[0].title }}</span>
-                      </div>
-                    </div>
-                    <NcSwitch v-e="['a:fields:show-hide']" :checked="true" :disabled="true" />
-                  </div>
+                  <NcSwitch v-e="['a:fields:show-hide']" :checked="true" :disabled="true" />
                 </div>
               </template>
             </Draggable>

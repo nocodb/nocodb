@@ -68,7 +68,7 @@ const getAst = async ({
     fields = Array.isArray(fields) ? fields : fields.split(',');
     if (throwErrorIfInvalidParams) {
       const colAliasMap = await model.getColAliasMapping();
-      const aliasColMap = await model.getAliasColMapping();
+      const aliasColMap = await model.getAliasColObjMap();
       const invalidFields = fields.filter(
         (f) => !colAliasMap[f] && !aliasColMap[f],
       );

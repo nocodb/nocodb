@@ -90,8 +90,10 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
         columns.push(...normalizedNestedColumns)
       }
     } else {
+      const title = path.join(' ').trim()
       const cn = path.join('_').replace(/\W/g, '_').trim()
       const column: Record<string, any> = {
+        title,
         column_name: cn,
         ref_column_name: cn,
         uidt: UITypes.SingleLineText,

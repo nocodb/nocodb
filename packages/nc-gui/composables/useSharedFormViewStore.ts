@@ -12,6 +12,7 @@ import type {
 } from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
+import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
 import {
   SharedViewPasswordInj,
   computed,
@@ -198,18 +199,16 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         }
       }
 
-      await api.public.dataCreate(
-        sharedView.value!.uuid!,
-        {
-          data,
-          ...attachment,
+      const filtedData = filterNullOrUndefinedObjectProperties({
+        data,
+        ...attachment,
+      })
+
+      await api.public.dataCreate(sharedView.value!.uuid!, filtedData, {
+        headers: {
+          'xc-password': password.value,
         },
-        {
-          headers: {
-            'xc-password': password.value,
-          },
-        },
-      )
+      })
 
       submitted.value = true
       progress.value = false

@@ -113,6 +113,10 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             )
 
             for (let col = 0; col < rows[0].length; col++) {
+              const title = (
+                (this.config.firstRowAsHeaders && rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
+                `Field ${col + 1}`
+              ).trim()
               let cn: string = (
                 (this.config.firstRowAsHeaders && rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
                 `field_${col + 1}`
@@ -126,6 +130,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
               columnNamePrefixRef[cn] = 0
 
               const column: Record<string, any> = {
+                title,
                 column_name: cn,
                 ref_column_name: cn,
                 meta: {},

@@ -8,8 +8,8 @@ export class JobsRedisService {
   private redisSubscriber: Redis;
   private unsubscribeCallbacks: { [key: string]: () => void } = {};
 
-  public primaryCallbacks: { [key: string]: () => void } = {};
-  public workerCallbacks: { [key: string]: () => void } = {};
+  public primaryCallbacks: { [key: string]: (...args) => void } = {};
+  public workerCallbacks: { [key: string]: (...args) => void } = {};
 
   constructor() {
     this.redisClient = new Redis(process.env.NC_REDIS_JOB_URL);
@@ -22,10 +22,13 @@ export class JobsRedisService {
     }
 
     const onMessage = (channel, message) => {
+      const args = message.split(':');
+      const command = args.shift();
       if (channel === InstanceTypes.WORKER) {
-        this.workerCallbacks[message] && this.workerCallbacks[message]();
+        this.workerCallbacks[command] && this.workerCallbacks[command](...args);
       } else if (channel === InstanceTypes.PRIMARY) {
-        this.primaryCallbacks[message] && this.primaryCallbacks[message]();
+        this.primaryCallbacks[command] &&
+          this.primaryCallbacks[command](...args);
       }
     };
 

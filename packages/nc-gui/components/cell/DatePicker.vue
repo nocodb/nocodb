@@ -22,6 +22,7 @@ interface Props {
 }
 
 const { modelValue, isPk } = defineProps<Props>()
+
 const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()

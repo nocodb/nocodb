@@ -133,7 +133,7 @@ const validators = computed(() =>
     table.columns?.forEach((column, columnIdx) => {
       acc[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = [
         fieldRequiredValidator(),
-        fieldLengthValidator(base.value?.sources?.[0].type || ClientType.MYSQL),
+        fieldLengthValidator(),
       ]
       acc[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = [fieldRequiredValidator()]
       if (isSelect(column)) {

@@ -77,7 +77,7 @@ const tempTitle = ref('')
 
 const activeBaseId = ref('')
 
-const isErdModalOpen = ref<boolean>(false)
+const isErdModalOpen = ref<Boolean>(false)
 
 const { t } = useI18n()
 
@@ -116,7 +116,7 @@ const showBaseOption = computed(() => {
   return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission))
 })
 
-function enableEditMode() {
+const enableEditMode = () => {
   editMode.value = true
   tempTitle.value = base.value.title!
   nextTick(() => {
@@ -126,7 +126,7 @@ function enableEditMode() {
   })
 }
 
-async function updateProjectTitle() {
+const updateProjectTitle = async () => {
   if (!tempTitle.value) return
 
   try {
@@ -146,7 +146,7 @@ async function updateProjectTitle() {
 
 const { copy } = useCopy(true)
 
-async function copyProjectInfo() {
+const copyProjectInfo = async () => {
   try {
     if (
       await copy(
@@ -168,7 +168,7 @@ defineExpose({
   enableEditMode,
 })
 
-async function setIcon(icon: string, base: BaseType) {
+const setIcon = async (icon: string, base: BaseType) => {
   try {
     const meta = {
       ...((base.meta as object) || {}),
@@ -249,7 +249,7 @@ async function addNewProjectChildEntity() {
   }
 }
 
-async function onProjectClick(base: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) {
+const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
   if (!base) {
     return
   }
@@ -348,17 +348,17 @@ onKeyStroke('Escape', () => {
 const isDuplicateDlgOpen = ref(false)
 const selectedProjectToDuplicate = ref()
 
-function duplicateProject(base: BaseType) {
+const duplicateProject = (base: BaseType) => {
   selectedProjectToDuplicate.value = base
   isDuplicateDlgOpen.value = true
 }
 
-function tableDelete() {
+const tableDelete = () => {
   isTableDeleteDialogVisible.value = true
   $e('c:table:delete')
 }
 
-function projectDelete() {
+const projectDelete = () => {
   isProjectDeleteDialogVisible.value = true
   $e('c:project:delete')
 }

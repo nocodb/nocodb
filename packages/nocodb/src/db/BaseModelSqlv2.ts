@@ -2305,6 +2305,7 @@ class BaseModelSqlv2 {
       if ('beforeInsert' in this) {
         await this.beforeInsert(insertObj, trx, cookie);
       }
+
       await this.prepareAttachmentData(insertObj);
 
       let response;

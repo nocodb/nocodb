@@ -327,7 +327,6 @@ export default class CSVTemplateAdapter {
   }
 
   getTemplate() {
-    console.log(this)
     return this.base
   }
 

@@ -1,20 +1,13 @@
 <script lang="ts" setup></script>
 
 <template>
-  <div class="flex flex-row items-center w-full bg-white rounded-lg border-1 shadow-sm mb-0.5 overflow-hidden">
+  <div class="flex flex-row items-center w-full bg-white rounded-lg border-1 border-brand-500 shadow-sm mb-0.5 overflow-hidden">
     <a
       v-e="['c:navbar:join-cloud']"
       class="flex flex-grow !no-underline items-center justify-center border-r-1 h-full hover:bg-gray-100"
       href="https://app.nocodb.com/#/signin?utm_source=OSS&utm_medium=OSS&utm_campaign=OSS&utm_content=OSS"
     >
       <div class="px-1 text-gray-500 prose-sm" style="line-height: 1.3125rem">Try NocoDB Cloud</div>
-      <div class="relative absolute h-8 w-8">
-        <img
-          src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOTVtdDhhaTBlYjN3NTR0bmR2aXc0YzlvNmkwMGg0c3E3NzM1ajEzaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/iicVNq4tGrWfYJiPM0/giphy.gif"
-          width="48"
-          class="mt-2 absolute -top-1 left-0"
-        />
-      </div>
     </a>
     <a-tooltip overlay-class-name="nc-join-cloud-tooltip">
       <template #title>

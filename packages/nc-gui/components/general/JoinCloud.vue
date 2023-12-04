@@ -7,61 +7,68 @@
       class="flex flex-grow !no-underline items-center justify-center border-r-1 h-full hover:bg-gray-100"
       href="https://app.nocodb.com/#/signin?utm_source=OSS&utm_medium=OSS&utm_campaign=OSS&utm_content=OSS"
     >
-      <div class="px-1 font-semibold text-gray-700 prose-sm" style="line-height: 1.3125rem">
-        {{ $t('labels.joinCloudForFree') }}
+      <div class="px-1 text-gray-500 prose-sm" style="line-height: 1.3125rem">Try NocoDB Cloud</div>
+      <div class="relative absolute h-8 w-8">
+        <img
+          src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOTVtdDhhaTBlYjN3NTR0bmR2aXc0YzlvNmkwMGg0c3E3NzM1ajEzaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/iicVNq4tGrWfYJiPM0/giphy.gif"
+          width="48"
+          class="mt-2 absolute -top-1 left-0"
+        />
       </div>
     </a>
     <a-tooltip overlay-class-name="nc-join-cloud-tooltip">
       <template #title>
-        <div class="w-68 bg-transparent overflow-hidden rounded-3xl shadow border border-zinc-100">
-          <div class="p-6 bg-white flex-col justify-start items-center gap-4 inline-flex pb-7">
+        <div class="w-72 bg-transparent overflow-hidden rounded-3xl shadow border border-zinc-100">
+          <div class="p-6 bg-white flex-col justify-start items-center gap-4 inline-flex pb-7 w-full">
             <div class="self-stretch justify-start items-center gap-3 inline-flex">
-              <div class="text-slate-800 text-2xl font-bold leading-9">Business</div>
+              <div class="text-slate-800 text-lg font-semibold leading-9">NocoDB Cloud</div>
               <div class="px-2 py-1 bg-brand-50 rounded-lg justify-center items-center gap-2 flex">
                 <div class="text-brand-500 text-sm font-medium leading-tight">Usage based</div>
               </div>
             </div>
             <div class="self-stretch justify-start items-center gap-2 inline-flex">
-              <div class="text-gray-500 text-base font-bold leading-normal">$</div>
-              <div class="text-gray-500 text-base font-bold line-through leading-normal">99 Onwards</div>
+              <div class="text-gray-500 text-base font-bold line-through leading-normal">
+                $ 99
+                <span class="font-thin text-gray-500"> Onwards </span>
+              </div>
               <div class="text-neutral-900 text-4xl font-bold leading-10">Free</div>
             </div>
             <div class="self-stretch text-gray-500 text-base font-bold leading-normal">/ month / workspace</div>
-            <div
-              class="self-stretch px-4 bg-white rounded-lg shadow border border-gray-200 justify-center items-center gap-2 inline-flex"
-            >
-              <div class="text-gray-700 text-sm font-semibold leading-tight">Start for Free</div>
-            </div>
-            <div class="self-stretch text-center text-gray-500 text-xs font-medium leading-none">No credit card required</div>
-            <div class="self-stretch opacity-0 text-center text-gray-500 text-xs font-medium leading-none">
+
+            <a href="https://app.nocodb.com/#/signin" target="_blank" class="!no-underline">
+              <NcButton class="text-gray-700 text-base font-semibold leading-tight py-4 w-full">Start for Free</NcButton>
+            </a>
+            <div class="self-stretch text-center text-gray-500 text-xs font-medium leading-none mb-4">
               No credit card required
             </div>
-            <div class="self-stretch text-slate-600 text-sm font-semibold leading-tight">Everything in Team plus:</div>
-            <div class="self-stretch justify-between items-center inline-flex">
-              <div class="justify-end items-center gap-3 flex">
-                <GeneralIcon icon="check" class="text-brand-500" />
-                <div class="text-brand-500 text-lg font-bold leading-normal">20 Users Included</div>
+            <div class="flex flex-col items-start w-full">
+              <div class="self-stretch text-gray-500 text-xs font-semibold leading-tight mb-2">Includes</div>
+              <div class="self-stretch justify-between items-center inline-flex">
+                <div class="justify-end items-center gap-3 flex">
+                  <GeneralIcon icon="check" class="text-brand-500" />
+                  <div class="text-brand-500 text-lg font-bold leading-normal">20 Users</div>
+                </div>
               </div>
             </div>
             <div class="self-stretch justify-between items-center inline-flex">
               <div class="justify-start items-center gap-3 flex">
                 <GeneralIcon icon="check" class="text-brand-500" />
 
-                <div class="text-slate-800 text-sm font-semibold leading-tight">300k + rows/workspace</div>
+                <div class="text-slate-800 text-sm font-semibold leading-tight">300k rows / workspace</div>
               </div>
             </div>
             <div class="self-stretch justify-between items-center inline-flex">
               <div class="justify-start items-center gap-3 flex">
                 <GeneralIcon icon="check" class="text-brand-500" />
 
-                <div class="text-slate-800 text-sm font-semibold leading-tight">25 GB + storage</div>
+                <div class="text-slate-800 text-sm font-semibold leading-tight">25 GB+ storage</div>
               </div>
             </div>
             <div class="self-stretch justify-between items-center inline-flex">
               <div class="justify-start items-center gap-3 flex">
                 <GeneralIcon icon="check" class="text-brand-500" />
 
-                <div class="text-slate-800 text-sm font-semibold leading-tight">APIs - 10+ Requests/second</div>
+                <div class="text-slate-800 text-sm font-semibold leading-tight">APIs - 10+ requests / second</div>
               </div>
             </div>
             <div class="self-stretch justify-start items-center gap-3 inline-flex">

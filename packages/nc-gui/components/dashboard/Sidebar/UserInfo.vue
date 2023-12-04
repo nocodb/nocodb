@@ -80,9 +80,6 @@ onMounted(() => {
 
 <template>
   <div class="flex w-full flex-col p-1 border-t-1 border-gray-200 gap-y-1">
-    <div v-if="!appInfo.ee && isMounted && !isMobileMode" class="flex flex-row w-full justify-between pt-0.5 truncate">
-      <GeneralJoinCloud />
-    </div>
     <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-64">
       <div
         class="flex flex-row py-2 px-3 gap-x-2 items-center hover:bg-gray-200 rounded-lg cursor-pointer h-10"
@@ -209,6 +206,9 @@ onMounted(() => {
 
     <template v-if="isMobileMode"></template>
     <div v-else-if="appInfo.ee" class="text-gray-500 text-xs pl-3 mt-1">© 2023 NocoDB. Inc</div>
+    <div v-else class="flex flex-row w-full justify-between pt-0.5 truncate">
+      <GeneralJoinCloud />
+    </div>
   </div>
 </template>
 

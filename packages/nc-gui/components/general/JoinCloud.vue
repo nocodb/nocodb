@@ -26,7 +26,7 @@
               </div>
               <div class="text-neutral-900 text-4xl font-bold leading-10">Free</div>
             </div>
-            <div class="self-stretch text-gray-500 text-base font-bold leading-normal">/ month / workspace</div>
+            <div class="self-stretch text-gray-500 text-base leading-normal">/ month / workspace</div>
 
             <a href="https://app.nocodb.com/#/signin" target="_blank" class="!no-underline">
               <NcButton class="text-gray-700 text-base font-semibold leading-tight py-4 w-full">Start for Free</NcButton>
@@ -61,18 +61,13 @@
               <div class="justify-start items-center gap-3 flex">
                 <GeneralIcon icon="check" class="text-brand-500" />
 
-                <div class="text-slate-800 text-sm font-semibold leading-tight">APIs - 10+ requests / second</div>
+                <div class="text-slate-800 text-sm font-semibold leading-tight">APIs : 10+ requests / second</div>
               </div>
             </div>
             <div class="self-stretch justify-start items-center gap-3 inline-flex">
               <GeneralIcon icon="check" class="text-brand-500" />
 
               <div class="text-slate-800 text-sm font-semibold leading-tight">Support for External Database</div>
-            </div>
-            <div class="self-stretch justify-start items-center gap-3 inline-flex">
-              <GeneralIcon icon="check" class="text-brand-500" />
-
-              <div class="text-slate-800 text-sm font-semibold leading-tight">Folders for views</div>
             </div>
           </div>
         </div>

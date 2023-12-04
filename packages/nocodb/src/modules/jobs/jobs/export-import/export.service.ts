@@ -453,6 +453,17 @@ export class ExportService {
                   row[colId] = v;
                 }
                 break;
+              case UITypes.User:
+                if (v) {
+                  const userIds = [];
+                  for (const user of v as { id: string }[]) {
+                    userIds.push(user.id);
+                  }
+                  row[colId] = userIds.join(',');
+                } else {
+                  row[colId] = v;
+                }
+                break;
               case UITypes.Formula:
               case UITypes.Lookup:
               case UITypes.Rollup:

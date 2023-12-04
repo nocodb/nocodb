@@ -21,6 +21,7 @@ import {
   isSingleSelect,
   isTextArea,
   isTime,
+  isUser,
   isYear,
   provide,
   ref,
@@ -42,6 +43,7 @@ import Decimal from '~/components/cell/Decimal.vue'
 import Integer from '~/components/cell/Integer.vue'
 import Float from '~/components/cell/Float.vue'
 import Text from '~/components/cell/Text.vue'
+import User from '~/components/cell/User.vue'
 
 interface Props {
   column: ColumnType
@@ -82,6 +84,7 @@ const checkTypeFunctions = {
   isFloat,
   isTextArea,
   isLinks: (col: ColumnType) => col.uidt === UITypes.Links,
+  isUser,
 }
 
 type FilterType = keyof typeof checkTypeFunctions
@@ -148,6 +151,7 @@ const componentMap: Partial<Record<FilterType, any>> = computed(() => {
     isInt: Integer,
     isFloat: Float,
     isLinks: Integer,
+    isUser: User,
   }
 })
 
@@ -170,6 +174,9 @@ const componentProps = computed(() => {
     }
     case 'isDuration': {
       return { showValidationError: false }
+    }
+    case 'isUser': {
+      return { forceMulti: true }
     }
     default: {
       return {}

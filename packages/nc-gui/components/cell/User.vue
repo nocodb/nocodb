@@ -25,12 +25,13 @@ import {
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
-  modelValue?: { id: string; email: string; display_name: string }[] | null
+  modelValue?: { id: string; email: string; display_name: string }[] | string | null
   rowIndex?: number
   location?: 'cell' | 'filter'
+  forceMulti?: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, forceMulti } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -56,7 +57,7 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
-const isMultiple = computed(() => (column.value.meta as { is_multi: boolean; notify: boolean })?.is_multi)
+const isMultiple = computed(() => forceMulti || (column.value.meta as { is_multi: boolean; notify: boolean })?.is_multi)
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
@@ -80,20 +81,6 @@ const options = computed<{ id: string; email: string; display_name: string }[]>(
       display_name: user.display_name,
     })) || []),
   )
-
-  collaborators.push(
-    ...(modelValue
-      ?.filter((user) => {
-        const userExists = collaborators.find((u) => u.id === user.id)
-        return !userExists
-      })
-      .map((user) => ({
-        id: user.id,
-        email: user.email,
-        display_name: user.display_name,
-      })) || []),
-  )
-
   return collaborators
 })
 
@@ -103,32 +90,48 @@ const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && activ
 
 const vModel = computed({
   get: () => {
-    const selected = modelValue?.reduce((acc, item) => {
-      const label = item?.display_name || item?.email
-      if (label) {
-        acc.push({
-          label,
-          value: item.id,
-        })
-      }
-      return acc
-    }, [] as { label: string; value: string }[])
+    let selected: { label: string; value: string }[] = []
+    if (typeof modelValue === 'string') {
+      const ids = modelValue.split(',')
+      selected = ids.reduce((acc, id) => {
+        const user = options.value.find((u) => u.id === id)
+        if (user) {
+          acc.push({
+            label: user?.display_name || user?.email,
+            value: user.id,
+          })
+        }
+        return acc
+      }, [] as { label: string; value: string }[])
+    } else {
+      selected =
+        modelValue?.reduce((acc, item) => {
+          const label = item?.display_name || item?.email
+          if (label) {
+            acc.push({
+              label,
+              value: item.id,
+            })
+          }
+          return acc
+        }, [] as { label: string; value: string }[]) || []
+    }
 
     return selected
   },
   set: (val) => {
-    const value: { id: string; email: string; display_name: string }[] = []
+    const value: string[] = []
     if (val && val.length) {
       val.forEach((item) => {
         // @ts-expect-error antd select returns string[] instead of { label: string, value: string }[]
         const user = options.value.find((u) => u.id === item)
         if (user) {
-          value.push(user)
+          value.push(user.id)
         }
       })
     }
     if (isMultiple.value) {
-      emit('update:modelValue', val?.length ? value : null)
+      emit('update:modelValue', val?.length ? value.join(',') : null)
     } else {
       emit('update:modelValue', val?.length ? value[value.length - 1] : null)
       isOpen.value = false

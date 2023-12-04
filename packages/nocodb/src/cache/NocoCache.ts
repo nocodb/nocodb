@@ -86,9 +86,10 @@ export default class NocoCache {
     scope: string,
     subListKeys: string[],
     list: any[],
+    props: string[] = [],
   ): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
-    return this.client.setList(scope, subListKeys, list);
+    return this.client.setList(scope, subListKeys, list, props);
   }
 
   public static async deepDel(

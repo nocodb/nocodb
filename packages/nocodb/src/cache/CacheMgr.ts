@@ -21,6 +21,7 @@ export default abstract class CacheMgr {
     scope: string,
     subListKeys: string[],
     list: any[],
+    props?: string[],
   ): Promise<boolean>;
   public abstract deepDel(
     scope: string,

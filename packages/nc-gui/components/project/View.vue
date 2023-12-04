@@ -122,8 +122,8 @@ watch(
                 v-if="workspaceUserCount"
                 class="tab-info"
                 :class="{
-                  'bg-primary-selected': projectPageTab === 'data-source',
-                  'bg-gray-50': projectPageTab !== 'data-source',
+                  'bg-primary-selected': projectPageTab === 'collaborator',
+                  'bg-gray-50': projectPageTab !== 'collaborator',
                 }"
               >
                 {{ workspaceUserCount }}

@@ -73,8 +73,21 @@ export default class BaseUser {
         base_id: baseId,
       });
       if (baseUser) {
-        const user = await User.get(userId, ncMeta);
-        baseUser = { ...user, ...baseUser };
+        const {
+          id,
+          email,
+          invite_token,
+          roles: main_roles,
+        } = await User.get(userId, ncMeta);
+
+        baseUser = {
+          ...baseUser,
+          id,
+          email,
+          invite_token,
+          main_roles,
+        };
+
         await NocoCache.set(
           `${CacheScope.BASE_USER}:${baseId}:${userId}`,
           baseUser,
@@ -137,10 +150,14 @@ export default class BaseUser {
       baseUsers = await queryBuilder;
 
       baseUsers = baseUsers.map((baseUser) => {
+        baseUser.base_id = base_id;
         return this.castType(baseUser);
       });
 
-      await NocoCache.setList(CacheScope.BASE_USER, [base_id], baseUsers);
+      await NocoCache.setList(CacheScope.BASE_USER, [base_id], baseUsers, [
+        'base_id',
+        'id',
+      ]);
     }
 
     return baseUsers;

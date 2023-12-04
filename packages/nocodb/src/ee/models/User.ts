@@ -4,7 +4,7 @@ import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
 import { BaseUser, WorkspaceUser } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { mapWorkspaceRolesObjToProjectRolesObj } from '~/utils/roleHelper';
@@ -108,22 +108,12 @@ export default class User extends UserCE implements UserType {
     // delete the email-based cache to avoid unexpected behaviour since we can update email as well
     await NocoCache.del(`${CacheScope.USER}:${existingUser.email}`);
 
-    // get existing cache
-    const keys = [
-      // update user:<id>
-      `${CacheScope.USER}:${id}`,
-    ];
-    for (const key of keys) {
-      let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-      if (o) {
-        o = { ...o, ...updateObj };
-        // set cache
-        await NocoCache.set(key, o);
-      }
-    }
+    await ncMeta.metaUpdate(null, null, MetaTable.USERS, updateObj, id);
 
-    // set meta
-    return await ncMeta.metaUpdate(null, null, MetaTable.USERS, updateObj, id);
+    // clear all user related cache
+    await this.clearCache(id);
+
+    return this.get(id, ncMeta);
   }
 
   // TODO: cache
@@ -426,5 +416,40 @@ export default class User extends UserCE implements UserType {
         ? baseRoles
         : mapWorkspaceRolesObjToProjectRolesObj(workspaceRoles),
     } as any;
+  }
+
+  protected static async clearCache(userId: string) {
+    const user = await this.get(userId);
+    if (!user) NcError.badRequest('User not found');
+
+    const bases = await BaseUser.getProjectsList(userId, {});
+
+    const workspaces = [];
+
+    for (const base of bases) {
+      // clear base user list caches
+      await NocoCache.deepDel(
+        CacheScope.BASE_USER,
+        `${CacheScope.BASE_USER}:${base.id}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
+
+      // clear workspace user list caches
+      if (
+        base['fk_workspace_id'] &&
+        !workspaces.includes(base['fk_workspace_id'])
+      ) {
+        workspaces.push(base['fk_workspace_id']);
+        await NocoCache.deepDel(
+          CacheScope.WORKSPACE_USER,
+          `${CacheScope.WORKSPACE_USER}:${base['fk_workspace_id']}:list`,
+          CacheDelDirection.PARENT_TO_CHILD,
+        );
+      }
+    }
+
+    // clear all user related cache
+    await NocoCache.del(`${CacheScope.USER}:${userId}`);
+    await NocoCache.del(`${CacheScope.USER}:${user.email}`);
   }
 }

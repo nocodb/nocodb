@@ -1,4 +1,5 @@
 import { ProjectRoles } from 'nocodb-sdk';
+import { User } from 'src/models';
 import Noco from '~/Noco';
 import {
   CacheDelDirection,
@@ -9,7 +10,6 @@ import {
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import Base from '~/models/Base';
-import { User } from 'src/models';
 
 export default class WorkspaceUser {
   fk_workspace_id: string;
@@ -52,11 +52,7 @@ export default class WorkspaceUser {
     // clear base user list caches
     const bases = await Base.listByWorkspace(baseUser.fk_workspace_id, ncMeta);
     for (const base of bases) {
-      await NocoCache.deepDel(
-        CacheScope.BASE_USER,
-        `${CacheScope.BASE_USER}:${base.id}:list`,
-        CacheDelDirection.PARENT_TO_CHILD,
-      );
+      await NocoCache.del(`${CacheScope.BASE_USER}:${base.id}:list`);
     }
 
     const res = await this.get(fk_workspace_id, fk_user_id, ncMeta);
@@ -90,11 +86,21 @@ export default class WorkspaceUser {
         },
       );
       if (workspaceUser) {
-        const user = await User.get(userId, ncMeta);
+        const {
+          id,
+          email,
+          display_name,
+          roles: main_roles,
+        } = await User.get(userId, ncMeta);
+
         workspaceUser = {
-          ...user,
           ...workspaceUser,
+          id,
+          email,
+          display_name,
+          main_roles,
         };
+
         await NocoCache.set(
           `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
           workspaceUser,
@@ -251,6 +257,7 @@ export default class WorkspaceUser {
         CacheScope.WORKSPACE_USER,
         [fk_workspace_id],
         workspaceUsers,
+        ['fk_workspace_id', 'id'],
       );
     }
 

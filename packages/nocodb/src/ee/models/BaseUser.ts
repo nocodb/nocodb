@@ -7,6 +7,8 @@ import NocoCache from '~/cache/NocoCache';
 import { parseMetaProp } from '~/utils/modelUtils';
 
 export default class BaseUser extends BaseUserCE {
+  fk_workspace_id?: string;
+
   protected static castType(baseUser: BaseUser): BaseUser {
     return baseUser && new BaseUser(baseUser);
   }
@@ -98,10 +100,14 @@ export default class BaseUser extends BaseUserCE {
       baseUsers = await queryBuilder;
 
       baseUsers = baseUsers.map((baseUser) => {
+        baseUser.base_id = base_id;
         return this.castType(baseUser);
       });
 
-      await NocoCache.setList(CacheScope.BASE_USER, [base_id], baseUsers);
+      await NocoCache.setList(CacheScope.BASE_USER, [base_id], baseUsers, [
+        'base_id',
+        'id',
+      ]);
     }
 
     return baseUsers;
@@ -126,6 +132,7 @@ export default class BaseUser extends BaseUserCE {
       .select(`${MetaTable.PROJECT}.type`)
       .select(`${MetaTable.PROJECT}.created_at`)
       .select(`${MetaTable.PROJECT}.updated_at`)
+      .select(`${MetaTable.PROJECT}.fk_workspace_id`)
       // .select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)
       // .select(`${MetaTable.WORKSPACE}.title as workspace_title`)
       .select(`${MetaTable.PROJECT_USERS}.starred`)

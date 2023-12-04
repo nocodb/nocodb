@@ -300,7 +300,7 @@ export default async function generateLookupSelectQuery({
                 (
                   await lookupColumn.getColOptions<FormulaColumn>()
                 ).formula,
-                lookupColumn.title,
+                lookupColumn.id,
                 model,
                 lookupColumn,
                 await model.getAliasColMapping(),
@@ -323,7 +323,7 @@ export default async function generateLookupSelectQuery({
         default:
           {
             selectQb.select(
-              `${prevAlias}.${lookupColumn.column_name} as ${lookupColumn.title}`,
+              `${prevAlias}.${lookupColumn.column_name} as ${lookupColumn.id}`,
             );
           }
 
@@ -343,14 +343,14 @@ export default async function generateLookupSelectQuery({
       // alternate approach with array_agg
       return {
         builder: knex
-          .select(knex.raw('json_agg(??)::text', [lookupColumn.title]))
+          .select(knex.raw('json_agg(??)::text', [lookupColumn.id]))
           .from(selectQb.as(subQueryAlias)),
       };
       /*
       // alternate approach with array_agg
       return {
         builder: knex
-          .select(knex.raw('array_agg(??)', [lookupColumn.title]))
+          .select(knex.raw('array_agg(??)', [lookupColumn.id]))
           .from(selectQb),
       };*/
       // alternate approach with string aggregation
@@ -358,7 +358,7 @@ export default async function generateLookupSelectQuery({
       //   builder: knex
       //     .select(
       //       knex.raw('STRING_AGG(??::text, ?)', [
-      //         lookupColumn.title,
+      //         lookupColumn.id,
       //         LOOKUP_VAL_SEPARATOR,
       //       ]),
       //     )
@@ -368,7 +368,7 @@ export default async function generateLookupSelectQuery({
       return {
         builder: knex
           .select(
-            knex.raw('cast(JSON_ARRAYAGG(??) as NCHAR)', [lookupColumn.title]),
+            knex.raw('cast(JSON_ARRAYAGG(??) as NCHAR)', [lookupColumn.id]),
           )
           .from(selectQb.as(subQueryAlias)),
       };
@@ -377,8 +377,8 @@ export default async function generateLookupSelectQuery({
       //   builder: knex
       //     .select(
       //       knex.raw('GROUP_CONCAT(?? ORDER BY ?? ASC SEPARATOR ?)', [
-      //         lookupColumn.title,
-      //         lookupColumn.title,
+      //         lookupColumn.id,
+      //         lookupColumn.id,
       //         LOOKUP_VAL_SEPARATOR,
       //       ]),
       //     )
@@ -386,12 +386,12 @@ export default async function generateLookupSelectQuery({
       // };
     } else if (baseModelSqlv2.isSqlite) {
       // ref: https://stackoverflow.com/questions/13382856/sqlite3-join-group-concat-using-distinct-with-custom-separator
-      // selectQb.orderBy(`${lookupColumn.title}`, 'asc');
+      // selectQb.orderBy(`${lookupColumn.id}`, 'asc');
       return {
         builder: knex
           .select(
             knex.raw(`group_concat(??, ?)`, [
-              lookupColumn.title,
+              lookupColumn.id,
               LOOKUP_VAL_SEPARATOR,
             ]),
           )
@@ -399,12 +399,12 @@ export default async function generateLookupSelectQuery({
       };
     } else if (baseModelSqlv2.isMssql) {
       // ref: https://stackoverflow.com/questions/13382856/sqlite3-join-group-concat-using-distinct-with-custom-separator
-      // selectQb.orderBy(`${lookupColumn.title}`, 'asc');
+      // selectQb.orderBy(`${lookupColumn.id}`, 'asc');
       return {
         builder: knex
           .select(
             knex.raw(`STRING_AGG(??, ?)`, [
-              lookupColumn.title,
+              lookupColumn.id,
               LOOKUP_VAL_SEPARATOR,
             ]),
           )

@@ -42,7 +42,7 @@
               No credit card required
             </div>
             <div class="flex flex-col items-start w-full">
-              <div class="self-stretch text-gray-500 text-xs font-semibold leading-tight mb-2">Includes</div>
+              <div class="self-stretch text-gray-500 text-base font-semibold leading-tight mb-2">Includes</div>
               <div class="self-stretch justify-between items-center inline-flex">
                 <div class="justify-end items-center gap-3 flex">
                   <GeneralIcon icon="check" class="text-brand-500" />

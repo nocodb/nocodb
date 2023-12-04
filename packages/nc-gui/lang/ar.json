@@ -581,6 +581,7 @@
     "childTable": "جدول فرعي",
     "childColumn": "عمود فرعي",
     "childField": "Child field",
+    "joinCloudForFree": "Join Cloud for Free",
     "linkToAnotherRecord": "Link to another record",
     "links": "Links",
     "onUpdate": "عند التحديث",

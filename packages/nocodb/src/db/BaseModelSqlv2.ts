@@ -4457,10 +4457,24 @@ class BaseModelSqlv2 {
           (d) => d[col.id] && Object.keys(d[col.id]),
         );
         if (btData) {
-          for (const k of Object.keys(btData[col.id])) {
-            const btAlias = idToAliasMap[k];
+          if (typeof btData[col.id] === 'object') {
+            for (const k of Object.keys(btData[col.id])) {
+              const btAlias = idToAliasMap[k];
+              if (!btAlias) {
+                idToAliasPromiseMap[k] = Column.get({ colId: k }).then(
+                  (col) => {
+                    return col.title;
+                  },
+                );
+              }
+            }
+          } else {
+            // Has Many BT
+            const btAlias = idToAliasMap[col.id];
             if (!btAlias) {
-              idToAliasPromiseMap[k] = Column.get({ colId: k }).then((col) => {
+              idToAliasPromiseMap[col.id] = Column.get({
+                colId: col.id,
+              }).then((col) => {
                 return col.title;
               });
             }
@@ -4480,7 +4494,7 @@ class BaseModelSqlv2 {
         const alias = idToAliasMap[key];
         if (alias) {
           if (btMap[key]) {
-            if (value) {
+            if (value && typeof value === 'object') {
               const tempObj = {};
               Object.entries(value).forEach(([k, v]) => {
                 const btAlias = idToAliasMap[k];

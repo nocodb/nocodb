@@ -16,13 +16,11 @@ ajv.addSchema(swagger, 'swagger.json');
 addFormats(ajv);
 
 // A middleware generator to validate the request body
-export const getAjvValidatorMw = (schema) => {
+export const getAjvValidatorMw = (schema: string) => {
   return (req: Request, res: Response, next: NextFunction) => {
+    const validate = ajv.getSchema(schema);
     // Validate the request body against the schema
-    const valid = ajv.validate(
-      typeof schema === 'string' ? { $ref: schema } : schema,
-      req.body,
-    );
+    const valid = validate(req.body);
 
     // If the request body is valid, call the next middleware
     if (valid) {
@@ -40,12 +38,10 @@ export const getAjvValidatorMw = (schema) => {
 };
 
 // a function to validate the payload against the schema
-export const validatePayload = (schema, payload) => {
+export const validatePayload = (schema: string, payload: any) => {
+  const validate = ajv.getSchema(schema);
   // Validate the request body against the schema
-  const valid = ajv.validate(
-    typeof schema === 'string' ? { $ref: schema } : schema,
-    payload,
-  );
+  const valid = validate(payload);
 
   // If the request body is not valid, throw error
   if (!valid) {

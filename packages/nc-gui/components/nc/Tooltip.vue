@@ -11,9 +11,9 @@ interface Props {
   // force disable tooltip
   disabled?: boolean
   placement?: TooltipPlacement | undefined
-  showOnTruncateOnly?: boolean
   hideOnClick?: boolean
   overlayClassName?: string
+  showOnTruncateOnly?: boolean
 }
 
 const props = defineProps<Props>()

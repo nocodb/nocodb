@@ -99,6 +99,7 @@ const onClick = (e: Event) => {
       }"
       class="name pl-1"
       placement="bottom"
+      :showOnTruncateOnly="true"
     >
       <template #title> {{ column.title }} </template>
 

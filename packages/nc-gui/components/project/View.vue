@@ -75,7 +75,7 @@ watch(
         <GeneralOpenLeftSidebarBtn />
         <div class="flex flex-row items-center h-full gap-x-2.5">
           <GeneralProjectIcon :type="openedProject?.type" />
-          <NcTooltip class="flex font-medium text-sm capitalize truncate max-w-150">
+          <NcTooltip class="flex font-medium text-sm capitalize truncate max-w-150" :showOnTruncateOnly="true">
             <template #title> {{ openedProject?.title }}</template>
             <span class="truncate">
               {{ openedProject?.title }}

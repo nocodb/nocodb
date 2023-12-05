@@ -231,7 +231,10 @@ const isTableOpened = computed(() => {
           </div>
         </div>
       </div>
-      <NcTooltip class="nc-tbl-title nc-sidebar-node-title text-ellipsis w-full overflow-hidden select-none">
+      <NcTooltip
+        class="nc-tbl-title nc-sidebar-node-title text-ellipsis w-full overflow-hidden select-none"
+        :showOnTruncateOnly="true"
+      >
         <template #title>{{ table.title }}</template>
         <span
           :class="{

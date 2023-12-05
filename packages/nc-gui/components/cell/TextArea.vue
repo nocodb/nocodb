@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-
 import {
-  ActiveCellInj,
+  ColumnInj,
   EditColumnInj,
   EditModeInj,
   IsExpandedFormOpenInj,
+  IsFormInj,
   ReadonlyInj,
   RowHeightInj,
+  computed,
   iconMap,
   inject,
+  onClickOutside,
+  ref,
+  useGlobal,
   useVModel,
+  watch,
 } from '#imports'
 
 const props = defineProps<{
@@ -61,9 +66,8 @@ const height = computed(() => {
 const isVisible = ref(false)
 
 const inputWrapperRef = ref<HTMLElement | null>(null)
-const inputRef = ref<HTMLTextAreaElement | null>(null)
 
-const active = inject(ActiveCellInj, ref(false))
+const inputRef = ref<HTMLTextAreaElement | null>(null)
 
 const readOnly = inject(ReadonlyInj)
 

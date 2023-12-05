@@ -42,3 +42,4 @@ pnpm-workspace.yaml
 packages/nocodb-sdk/src/lib/Api.ts
 *.sh
 packages/nc-sql-executor/**
+renovate.json

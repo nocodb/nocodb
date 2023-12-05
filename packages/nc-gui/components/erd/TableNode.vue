@@ -54,7 +54,7 @@ watch(
     </template>
 
     <div
-      class="relative h-full flex flex-col justify-center bg-white min-w-16 min-h-8 rounded-lg nc-erd-table-node"
+      class="relative h-full max-w-76 flex flex-col justify-center bg-white min-w-16 min-h-8 rounded-lg nc-erd-table-node"
       :class="[
         `nc-erd-table-node-${table.table_name}`,
         showSkeleton ? 'cursor-pointer items-center min-h-200px min-w-300px' : '',

@@ -581,6 +581,7 @@
     "childTable": "子表",
     "childColumn": "子欄",
     "childField": "Child field",
+    "joinCloudForFree": "Join Cloud for Free",
     "linkToAnotherRecord": "連結到另一個紀錄",
     "links": "Links",
     "onUpdate": "更新時",

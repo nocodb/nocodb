@@ -769,8 +769,8 @@ const onFieldOptionUpdate = () => {
             </NcTooltip>
           </div>
         </div>
-        <div class="flex flex-row rounded-lg border-1 border-gray-200">
-          <div ref="fieldsListWrapperDomRef" class="nc-scrollbar-md !overflow-auto w-full flex-grow-1 nc-fields-height">
+        <div class="flex flex-row rounded-lg border-1 overflow-clip border-gray-200">
+          <div ref="fieldsListWrapperDomRef" class="nc-scrollbar-md !overflow-auto flex-1 flex-grow-1 nc-fields-height">
             <Draggable v-model="fields" :disabled="isLocked" item-key="id" @change="onMove($event)">
               <template #item="{ element: field }">
                 <div
@@ -814,14 +814,17 @@ const onFieldOptionUpdate = () => {
                         'text-brand-500': compareCols(field, activeField),
                       }"
                     />
-                    <span
+                    <NcTooltip
                       :class="{
                         'text-brand-500': compareCols(field, activeField),
                       }"
-                      class="truncate max-w-64"
+                      class="truncate flex-1"
                     >
-                      {{ fieldState(field)?.title || field.title }}
-                    </span>
+                      <template #title> {{ fieldState(field)?.title || field.title }} </template>
+                      <span>
+                        {{ fieldState(field)?.title || field.title }}
+                      </span>
+                    </NcTooltip>
                   </div>
                   <div class="flex items-center justify-end gap-1">
                     <div class="flex items-center">
@@ -970,13 +973,17 @@ const onFieldOptionUpdate = () => {
                         'text-brand-500': compareCols(displayColumn, activeField),
                       }"
                     />
-                    <span
+                    <NcTooltip
+                      class="truncate flex-1"
                       :class="{
                         'text-brand-500': compareCols(displayColumn, activeField),
                       }"
                     >
-                      {{ fieldState(displayColumn)?.title || displayColumn.title }}
-                    </span>
+                      <template #title> {{ fieldState(displayColumn)?.title || displayColumn.title }} </template>
+                      <span>
+                        {{ fieldState(displayColumn)?.title || displayColumn.title }}
+                      </span>
+                    </NcTooltip>
                   </div>
                   <div class="flex items-center justify-end gap-1">
                     <div class="flex items-center">
@@ -1072,7 +1079,7 @@ const onFieldOptionUpdate = () => {
             </Draggable>
           </div>
           <Transition v-if="!changingField" name="slide-fade">
-            <div class="border-gray-200 border-l-1 rounded-r-xl h-[calc(100vh-(var(--topbar-height)*3.85))]">
+            <div class="border-gray-200 border-l-1 nc-scrollbar-md nc-fields-height !overflow-y-auto">
               <SmartsheetColumnEditOrAddProvider
                 v-if="activeField"
                 class="p-4 w-[25rem]"

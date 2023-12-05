@@ -173,7 +173,7 @@ function openDeleteDialog() {
   >
     <div
       v-e="['c:breadcrumb:view-actions']"
-      class="truncate nc-active-view-title !hover:(bg-gray-100 text-gray-800) ml-0.25 pl-1 pr-0.25 rounded-md py-1 cursor-pointer"
+      class="truncate nc-active-view-title flex gap-0.5 items-center !hover:(bg-gray-100 text-gray-800) ml-1 pl-1 pr-0.25 rounded-md py-1 cursor-pointer"
       :class="{
         'max-w-2/5': !isSharedBase && !isMobileMode && activeView?.is_default,
         'max-w-3/5': !isSharedBase && !isMobileMode && !activeView?.is_default,
@@ -182,14 +182,16 @@ function openDeleteDialog() {
         'text-gray-800 font-medium': !activeView?.is_default,
       }"
     >
-      <span
-        class="truncate xs:pl-1.25 text-inherit"
-        :class="{
-          'max-w-28/100': !isMobileMode,
-        }"
-      >
-        {{ activeView?.is_default ? $t('title.defaultView') : activeView?.title }}
-      </span>
+      <NcTooltip class="truncate xs:pl-1.25 flex-1 text-inherit">
+        <template #title>{{ activeView?.is_default ? $t('title.defaultView') : activeView?.title }} </template>
+        <span
+          :class="{
+            'max-w-28/100': !isMobileMode,
+          }"
+        >
+          {{ activeView?.is_default ? $t('title.defaultView') : activeView?.title }}
+        </span>
+      </NcTooltip>
       <GeneralIcon icon="arrowDown" class="ml-1" />
     </div>
     <template #overlay>

@@ -131,9 +131,9 @@ const validators = computed(() =>
     hasSelectColumn.value[tableIdx] = false
 
     table.columns?.forEach((column, columnIdx) => {
-      acc[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = [
+      acc[`tables.${tableIdx}.columns.${columnIdx}.title`] = [
         fieldRequiredValidator(),
-        fieldLengthValidator(base.value?.sources?.[0].type || ClientType.MYSQL),
+        fieldLengthValidator(),
       ]
       acc[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = [fieldRequiredValidator()]
       if (isSelect(column)) {
@@ -252,6 +252,7 @@ function deleteTableColumn(tableIdx: number, columnKey: number) {
 function addNewColumnRow(tableIdx: number, uidt: string) {
   data.tables[tableIdx].columns.push({
     key: data.tables[tableIdx].columns.length,
+    title: `title${data.tables[tableIdx].columns.length + 1}`,
     column_name: `title${data.tables[tableIdx].columns.length + 1}`,
     uidt,
   })
@@ -275,7 +276,7 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
       // then only col.column_name exists in data, else col.ref_column_name
       // for csv, col.column_name always exists in data
       // since it streams the data in getData() with the updated col.column_name
-      const key = col.column_name in data ? col.column_name : col.ref_column_name
+      const key = col.title in data ? col.title : col.ref_column_name
       let d = data[key]
       if (col.uidt === UITypes.Date && d) {
         let dateFormat
@@ -295,7 +296,7 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
       }
       return {
         ...aggObj,
-        [col.column_name]: d,
+        [col.title]: d,
       }
     }, {}),
   )
@@ -901,7 +902,7 @@ watch(modelRef, async () => {
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'column_name'">
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
-                    <a-input :ref="(el: HTMLInputElement) => (inputRefs[record.key] = el)" v-model:value="record.column_name" />
+                    <a-input :ref="(el: HTMLInputElement) => (inputRefs[record.key] = el)" v-model:value="record.title" />
                   </a-form-item>
                 </template>
 

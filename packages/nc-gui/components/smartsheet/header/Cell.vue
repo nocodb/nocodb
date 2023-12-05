@@ -99,14 +99,12 @@ const onClick = (e: Event) => {
       }"
       class="name pl-1"
       placement="bottom"
-      :data-test-id="column.title"
-      
     >
       <template #title> {{ column.title }} </template>
 
-      <template #default>
+      <span :data-test-id="column.title">
         {{ column.title }}
-      </template>
+      </span>
     </NcTooltip>
 
     <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>

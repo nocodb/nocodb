@@ -451,7 +451,7 @@ const toggleModal = (val: boolean) => {
               <a-select
                 v-model:value="formState.dataSource.client"
                 class="nc-extdb-db-type"
-                dropdown-class-name="nc-dropdown-ext-db-type border-1 border-gray-200"
+                dropdown-class-name="nc-dropdown-ext-db-type"
                 @change="onClientChange"
               >
                 <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
@@ -532,7 +532,7 @@ const toggleModal = (val: boolean) => {
                   <a-form-item label="SSL mode">
                     <a-select
                       v-model:value="formState.sslUse"
-                      dropdown-class-name="nc-dropdown-ssl-mode border-1 border-gray-200"
+                      dropdown-class-name="nc-dropdown-ssl-mode"
                       @select="onSSLModeChange"
                     >
                       <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }} </a-select-option>
@@ -617,7 +617,7 @@ const toggleModal = (val: boolean) => {
                   <a-form-item :label="$t('labels.inflection.tableName')">
                     <a-select
                       v-model:value="formState.inflection.inflectionTable"
-                      dropdown-class-name="nc-dropdown-inflection-table-name border-1 border-gray-200"
+                      dropdown-class-name="nc-dropdown-inflection-table-name"
                     >
                       <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }} </a-select-option>
                     </a-select>
@@ -626,7 +626,7 @@ const toggleModal = (val: boolean) => {
                   <a-form-item :label="$t('labels.inflection.columnName')">
                     <a-select
                       v-model:value="formState.inflection.inflectionColumn"
-                      dropdown-class-name="nc-dropdown-inflection-column-name border-1 border-gray-200"
+                      dropdown-class-name="nc-dropdown-inflection-column-name"
                     >
                       <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }} </a-select-option>
                     </a-select>

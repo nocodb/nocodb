@@ -93,7 +93,6 @@ const pagesList = computed(() => {
       <a-select
         v-model:value="current"
         class="!mr-[2px]"
-        dropdown-class-name="border-1 border-gray-200"
         :options="pagesList"
       >
         <template #suffixIcon>

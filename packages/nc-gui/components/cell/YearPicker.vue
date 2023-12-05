@@ -121,7 +121,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :allow-clear="(!readOnly && !localState && !isPk) || isEditColumn"
     :input-read-only="true"
     :open="isOpen"
-    :dropdown-class-name="`${randomClass} nc-picker-year ${open ? 'active' : ''}`"
+    :dropdown-class-name="`${randomClass} nc-picker-year children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
     @click="open = (active || editable) && !open"
     @change="open = (active || editable) && !open"
     @ok="open = !open"

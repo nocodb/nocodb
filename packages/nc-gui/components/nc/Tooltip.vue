@@ -65,12 +65,14 @@ onKeyStroke(
 )
 
 watch([isHovering, () => modifierKey.value, () => disabled.value], ([hovering, key, isDisabled]) => {
-  if (!hovering || isDisabled) {
+  const targetElement = el?.value
+  const isElementTruncated = targetElement?.scrollWidth > targetElement?.clientWidth
+  if (!hovering || isDisabled || !isElementTruncated) {
     showTooltip.value = false
     return
   }
 
-  // Show tooltip on mouseover if no modifier key is provided
+  // Show tooltip on mouseover if no modifier key is providedInvy
   if (hovering && !key) {
     showTooltip.value = true
     return

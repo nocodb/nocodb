@@ -581,6 +581,7 @@
     "childTable": "子テーブル",
     "childColumn": "子カラム",
     "childField": "Child field",
+    "joinCloudForFree": "Join Cloud for Free",
     "linkToAnotherRecord": "他のレコードへのリンク",
     "links": "Links",
     "onUpdate": "更新中",

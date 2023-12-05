@@ -581,6 +581,7 @@
     "childTable": "Lapsipöytä",
     "childColumn": "Lapsipylväs",
     "childField": "Child field",
+    "joinCloudForFree": "Join Cloud for Free",
     "linkToAnotherRecord": "Linkki toiseen tietueeseen",
     "links": "Links",
     "onUpdate": "Päivitys",

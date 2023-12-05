@@ -581,6 +581,7 @@
     "childTable": "Podřízená tabulka",
     "childColumn": "Podřízený sloupec",
     "childField": "Child field",
+    "joinCloudForFree": "Join Cloud for Free",
     "linkToAnotherRecord": "Odkaz na jiný záznam",
     "links": "Links",
     "onUpdate": "Při aktualizaci",

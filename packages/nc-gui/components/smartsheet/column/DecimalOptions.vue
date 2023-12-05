@@ -37,7 +37,7 @@ onMounted(() => {
     <a-select
       v-if="vModel.meta?.precision"
       v-model:value="vModel.meta.precision"
-      dropdown-class-name="nc-dropdown-decimal-format"
+      dropdown-class-name="nc-dropdown-decimal-format border-1 border-gray-200"
     >
       <a-select-option v-for="(format, i) of precisionFormats" :key="i" :value="format">
         <div class="flex flex-row items-center">

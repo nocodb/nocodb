@@ -1,12 +1,15 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
 import NcLayout from '~icons/nc-icons/layout'
+import { isEeUI } from '#imports'
+
 const basesStore = useBases()
+
 const { getProjectUsers } = basesStore
+
 const { openedProject, activeProjectId, baseUserCount } = storeToRefs(basesStore)
 const { activeTables } = storeToRefs(useTablesStore())
 const { activeWorkspace, workspaceUserCount } = storeToRefs(useWorkspace())
-import { isEeUI } from '#imports'
 
 const { navigateToProjectPage } = useBase()
 
@@ -28,6 +31,8 @@ const { projectPageTab } = storeToRefs(useConfigStore())
 const { isMobileMode } = useGlobal()
 
 const baseSettingsState = ref('')
+
+const userCount = isEeUI ? workspaceUserCount : baseUserCount
 
 const updateBaseUserCount = async () => {
   try {
@@ -148,14 +153,14 @@ watch(
               <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
               <div>{{ $t('labels.members') }}</div>
               <div
-                v-if="isEeUI ? workspaceUserCount : baseUserCount"
+                v-if="userCount"
                 class="tab-info"
                 :class="{
                   'bg-primary-selected': projectPageTab === 'collaborator',
                   'bg-gray-50': projectPageTab !== 'collaborator',
                 }"
               >
-                {{ isEeUI ? workspaceUserCount : baseUserCount }}
+                {{ userCount }}
               </div>
             </div>
           </template>

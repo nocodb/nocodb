@@ -103,9 +103,9 @@ const onClick = (e: Event) => {
     >
       <template #title> {{ column.title }} </template>
 
-      <div :class="{ truncate: !isForm }" :data-test-id="column.title">
+      <span :class="{ truncate: !isForm }" :data-test-id="column.title">
         {{ column.title }}
-      </div>
+      </span>
     </NcTooltip>
 
     <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>

@@ -1,9 +1,12 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
 import NcLayout from '~icons/nc-icons/layout'
-const { openedProject } = storeToRefs(useBases())
+const basesStore = useBases()
+const { getProjectUsers } = basesStore
+const { openedProject, activeProjectId, baseUserCount } = storeToRefs(basesStore)
 const { activeTables } = storeToRefs(useTablesStore())
 const { activeWorkspace, workspaceUserCount } = storeToRefs(useWorkspace())
+import { isEeUI } from '#imports'
 
 const { navigateToProjectPage } = useBase()
 
@@ -25,6 +28,21 @@ const { projectPageTab } = storeToRefs(useConfigStore())
 const { isMobileMode } = useGlobal()
 
 const baseSettingsState = ref('')
+
+const updateBaseUserCount = async () => {
+  try {
+    const { totalRows } = await getProjectUsers({
+      baseId: activeProjectId.value!,
+      page: 1,
+      searchText: undefined,
+      limit: 20,
+    })
+
+    baseUserCount.value = totalRows
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 
 watch(
   () => route.value.query?.page,
@@ -56,6 +74,17 @@ watch(projectPageTab, () => {
     })
   }
 })
+
+watch(
+  () => route.value.params.baseId,
+  (newVal, oldVal) => {
+    if (newVal && oldVal === undefined) {
+      updateBaseUserCount()
+    }
+    return
+  },
+  { immediate: true },
+)
 
 watch(
   () => openedProject.value?.title,
@@ -119,14 +148,14 @@ watch(
               <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
               <div>{{ $t('labels.members') }}</div>
               <div
-                v-if="workspaceUserCount"
+                v-if="`${isEeUI ? workspaceUserCount : baseUserCount}`"
                 class="tab-info"
                 :class="{
                   'bg-primary-selected': projectPageTab === 'collaborator',
                   'bg-gray-50': projectPageTab !== 'collaborator',
                 }"
               >
-                {{ workspaceUserCount }}
+                {{ isEeUI ? workspaceUserCount : baseUserCount }}
               </div>
             </div>
           </template>

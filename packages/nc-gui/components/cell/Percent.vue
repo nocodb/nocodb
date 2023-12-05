@@ -70,7 +70,7 @@ const onMouseleave = () => {
 </script>
 
 <template>
-  <div class="w-full" @mouseover="onMouseover" @mouseleave="onMouseleave">
+  <div class="nc-filter-value-select w-full" @mouseover="onMouseover" @mouseleave="onMouseleave">
     <input
       v-if="(!isExpandedFormOpen && editEnabled) || (isExpandedFormOpen && expandedEditEnabled)"
       :ref="focus"

@@ -581,6 +581,7 @@
     "childTable": "Barnbord",
     "childColumn": "Barnkolonn",
     "childField": "Child field",
+    "joinCloudForFree": "Join Cloud for Free",
     "linkToAnotherRecord": "Länk till en annan post",
     "links": "Links",
     "onUpdate": "Vid uppdatering",

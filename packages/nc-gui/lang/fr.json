@@ -581,6 +581,7 @@
     "childTable": "Table enfant",
     "childColumn": "Colonne enfant",
     "childField": "Child field",
+    "joinCloudForFree": "Join Cloud for Free",
     "linkToAnotherRecord": "Lien vers un autre enregistrement",
     "links": "Links",
     "onUpdate": "Mise à jour en cours",

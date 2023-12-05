@@ -72,7 +72,7 @@ watch([isHovering, () => modifierKey.value, () => disabled.value], ([hovering, k
     return
   }
 
-  // Show tooltip on mouseover if no modifier key is providedInvy
+  // Show tooltip on mouseover if no modifier key is provided
   if (hovering && !key) {
     showTooltip.value = true
     return

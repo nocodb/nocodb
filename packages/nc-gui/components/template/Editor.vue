@@ -913,7 +913,7 @@ watch(modelRef, async () => {
                       class="w-52"
                       show-search
                       :filter-option="filterOption"
-                      dropdown-class-name="nc-dropdown-template-uidt"
+                      dropdown-class-name="nc-dropdown-template-uidt  border-1 border-gray-200"
                       @change="handleUIDTChange(record, table)"
                     >
                       <a-select-option v-for="(option, i) of uiTypeOptions" :key="i" :value="option.value">

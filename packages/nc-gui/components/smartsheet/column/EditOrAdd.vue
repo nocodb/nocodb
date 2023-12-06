@@ -271,7 +271,7 @@ if (props.fromTableExplorer) {
               show-search
               class="nc-column-type-input !rounded"
               :disabled="isKanban || readOnly"
-              dropdown-class-name="nc-dropdown-column-type "
+              dropdown-class-name="nc-dropdown-column-type border-1 border-gray-200"
               @change="onUidtOrIdTypeChange"
               @dblclick="showDeprecated = !showDeprecated"
             >

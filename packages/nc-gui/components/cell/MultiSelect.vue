@@ -387,7 +387,7 @@ const selectedOpts = computed(() => {
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
       :class="{ 'caret-transparent': !hasEditRoles }"
-      :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
+      :dropdown-class-name="`nc-dropdown-multi-select-cell border-1 border-gray-200 ${isOpen ? 'active' : ''}`"
       @search="search"
       @keydown.stop
     >

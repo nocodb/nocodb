@@ -135,6 +135,7 @@ const columns = [
         v-model:page-size="currentLimit"
         :total="+totalRows"
         show-less-items
+        class="pagination"
         @change="loadAudits"
       />
     </div>

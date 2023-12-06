@@ -58,6 +58,16 @@ watch(projectPageTab, () => {
 })
 
 watch(
+  () => route.value.params.baseId,
+  (newVal, oldVal) => {
+    if (newVal && oldVal === undefined) {
+      updateBaseUserCount()
+    }
+  },
+  { immediate: true },
+)
+
+watch(
   () => openedProject.value?.title,
   () => {
     useTitle(`${openedProject.value?.title ?? activeWorkspace.value?.title ?? 'NocoDB'}`)

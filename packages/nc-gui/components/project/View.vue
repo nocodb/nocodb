@@ -148,7 +148,7 @@ watch(
               <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
               <div>{{ $t('labels.members') }}</div>
               <div
-                v-if="`${isEeUI ? workspaceUserCount : baseUserCount}`"
+                v-if="isEeUI ? workspaceUserCount : baseUserCount"
                 class="tab-info"
                 :class="{
                   'bg-primary-selected': projectPageTab === 'collaborator',

@@ -104,7 +104,7 @@ const onArrowUp = () => {
         @click="onClick(option)"
       >
         <SmartsheetHeaderIcon :column="option" />
-        <NcTooltip class="truncate" :showOnTruncateOnly="true">
+        <NcTooltip class="truncate" show-on-truncate-only>
           <template #title> {{ option.title }}</template>
           <template #default>
             {{ option.title }}

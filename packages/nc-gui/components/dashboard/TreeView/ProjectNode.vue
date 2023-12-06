@@ -429,7 +429,7 @@ const projectDelete = () => {
             class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             :class="{ 'text-black font-semibold': activeProjectId === base.id && baseViewOpen }"
-            :showOnTruncateOnly="true"
+            show-on-truncate-only
           >
             <template #title>{{ base.title }}</template>
             <span @click="onProjectClick(base)">

@@ -85,7 +85,7 @@ if (!localValue.value && allowEmpty !== true) {
         <NcTooltip
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
           class="max-w-[15rem] truncate select-none"
-          :showOnTruncateOnly="true"
+          show-on-truncate-only
         >
           <template #title> {{ option.label }}</template>
           <template #default>

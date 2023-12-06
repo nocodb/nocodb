@@ -70,7 +70,7 @@ async function queryHandler(req, res) {
     if (dynamicPoolSize) {
       // mysql SHOW VARIABLES LIKE 'max_connections'; { Variable_name: 'max_connections', Value: '151' }
       // pg SHOW max_connections; { max_connections: '100' }
-      const tempKnex = knex({ ...config, pool: { min: 0, max: 1 } });
+      const tempKnex = knex({ ...config, typeCast, pool: { min: 0, max: 1 } });
       let maxConnections;
       if (config.client === 'mysql2' || config.client === 'mysql') {
         maxConnections = (
@@ -92,10 +92,11 @@ async function queryHandler(req, res) {
 
       connectionPools[connectionKey] = knex({
         ...config,
+        typeCast,
         pool: { min: 0, max: poolSize },
       });
     } else {
-      connectionPools[connectionKey] = knex(config);
+      connectionPools[connectionKey] = knex({...config, typeCast});
     }
     fromPool = false;
 
@@ -275,3 +276,24 @@ defaults.parseInt8 = true;
 // parse float values
 types.setTypeParser(pgTypes.FLOAT8, parseFloatVal);
 types.setTypeParser(pgTypes.NUMERIC, parseFloatVal);
+
+
+// a custom type parser for mysql to convert bit and decimal types
+function typeCast(field, next) {
+  const res = next();
+
+  // mysql `bit` datatype returns value as Buffer, convert it to integer number
+  if (field.type == 'BIT' && res && res instanceof Buffer) {
+    return parseInt(
+      [...res].map((v) => ('00' + v.toString(16)).slice(-2)).join(''),
+      16,
+    );
+  }
+
+  // mysql `decimal` datatype returns value as string, convert it to float number
+  if (field.type == 'NEWDECIMAL') {
+    return res && parseFloat(res);
+  }
+
+  return res;
+}

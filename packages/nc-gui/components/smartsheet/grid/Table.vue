@@ -1703,6 +1703,7 @@ onKeyStroke('ArrowDown', onDown)
                 (isLinksOrLTAR(fields[contextMenuTarget.col]) || !isVirtualCol(fields[contextMenuTarget.col]))
               "
               class="nc-base-menu-item"
+              :disabled="!!isSystemColumn(fields[contextMenuTarget.col])"
               @click="clearCell(contextMenuTarget)"
             >
               <div v-e="['a:row:clear']" class="flex gap-2 items-center">

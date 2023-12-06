@@ -148,7 +148,7 @@ const onRoleToggle = async () => {
   <div class="flex flex-col py-2 px-3 gap-2 w-full" data-testid="nc-share-base-sub-modal">
     <div class="flex flex-col w-full p-3 border-1 border-gray-100 rounded-md">
       <div class="flex flex-row w-full justify-between">
-        <div class="text-black font-medium">{{ $t('activity.enablePublicAccess') }}</div>
+        <div class="text-gray-900 font-medium">{{ $t('activity.enablePublicAccess') }}</div>
         <a-switch
           v-e="['c:share:base:enable:toggle']"
           :checked="isSharedBaseEnabled"

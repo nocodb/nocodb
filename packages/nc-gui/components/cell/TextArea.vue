@@ -296,8 +296,10 @@ watch(editEnabled, () => {
 textarea:focus {
   box-shadow: none;
 }
+</style>
 
-:deep(.nc-text-area-expand-btn) {
+<style lang="scss">
+.cell:hover .nc-text-area-expand-btn {
   @apply !block;
 }
 </style>

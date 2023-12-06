@@ -131,7 +131,7 @@ class Vitess extends MysqlClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `select *, table_name as tn from information_schema.columns where table_name = ?? ORDER by ordinal_position`,
+        `select *, table_name as tn from information_schema.columns where table_name = ? ORDER by ordinal_position`,
         [args.tn],
       );
 

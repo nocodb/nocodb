@@ -20,6 +20,7 @@ import {
   useNuxtApp,
   watch,
 } from '#imports'
+import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
   hook?: HookType
@@ -49,13 +50,13 @@ const titleDomRef = ref<HTMLInputElement | undefined>()
 
 const useForm = Form.useForm
 
-const defaultWebhookName = 'Webhook'
+const defaultHookName = t('labels.webhook')
 
 let hookRef = reactive<
   Omit<HookType, 'notification'> & { notification: Record<string, any>; eventOperation?: string; condition: boolean }
 >({
   id: '',
-  title: defaultWebhookName,
+  title: defaultHookName,
   event: undefined,
   operation: undefined,
   eventOperation: undefined,
@@ -474,28 +475,8 @@ async function testWebhook() {
   await webhookTestRef.value.testWebhook()
 }
 
-function getDefaultTokenValue(hooks: HookType[]) {
-  let extractedSortedTokenNumbers =
-    [...hooks]
-      .map((hook) => {
-        let hookName = hook.title?.split('-')
-        if (hookName && hookName[hookName.length - 1] && !isNaN(Number(hookName[hookName.length - 1]?.trim()))) {
-          return Number(hookName[hookName.length - 1]?.trim())
-        }
-      })
-      .filter((e) => e)
-      .sort((a, b) => {
-        if (a !== undefined && b !== undefined) {
-          return a - b
-        }
-        return 0
-      }) || []
-
-  if (extractedSortedTokenNumbers.length) {
-    return `${defaultWebhookName}-${(extractedSortedTokenNumbers[extractedSortedTokenNumbers.length - 1] || 0) + 1}`
-  } else {
-    return `${defaultWebhookName}-1`
-  }
+const getDefaultHookName = (hooks: HookType[]) => {
+  return extractNextDefaultName([...hooks.map((el) => el?.title || '')], defaultHookName)
 }
 
 watch(
@@ -528,7 +509,7 @@ onMounted(async () => {
   } else {
     hookRef.eventOperation = eventList.value[0].value.join(' ')
   }
-  hookRef.title = getDefaultTokenValue(hooks.value)
+  hookRef.title = getDefaultHookName(hooks.value)
 
   onNotificationTypeChange()
 

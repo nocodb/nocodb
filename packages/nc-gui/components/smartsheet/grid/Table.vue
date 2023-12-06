@@ -1703,7 +1703,7 @@ onKeyStroke('ArrowDown', onDown)
                 (isLinksOrLTAR(fields[contextMenuTarget.col]) || !isVirtualCol(fields[contextMenuTarget.col]))
               "
               class="nc-base-menu-item"
-              :disabled="!!isSystemColumn(fields[contextMenuTarget.col])"
+              :disabled="isSystemColumn(fields[contextMenuTarget.col])"
               @click="clearCell(contextMenuTarget)"
             >
               <div v-e="['a:row:clear']" class="flex gap-2 items-center">
@@ -1717,7 +1717,7 @@ onKeyStroke('ArrowDown', onDown)
               v-else-if="contextMenuTarget && hasEditPermission"
               class="nc-base-menu-item"
               @click="clearSelectedRangeOfCells()"
-              :disabled="!!isSystemColumn(fields[contextMenuTarget.col])"
+              :disabled="isSystemColumn(fields[contextMenuTarget.col])"
             >
               <div v-e="['a:row:clear-range']" class="flex gap-2 items-center">
                 <GeneralIcon icon="closeBox" class="text-gray-500" />

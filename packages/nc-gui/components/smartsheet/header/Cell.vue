@@ -49,7 +49,7 @@ const closeAddColumnDropdown = () => {
 }
 
 const openHeaderMenu = () => {
-  if (isLocked.value || (!!isSystemColumn(column.value) && column.value.uidt !== UITypes.ID)) return
+  if (isLocked.value || (isSystemColumn(column.value) && column.value.uidt !== UITypes.ID)) return
 
   if (!isForm.value && !isExpandedForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value) {
     editColumnDropdown.value = true

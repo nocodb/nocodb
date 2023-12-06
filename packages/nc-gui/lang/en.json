@@ -640,7 +640,8 @@
     "sourceNameRequired": "Source name is required",
     "changeWsName": "Change Workspace Name",
     "pressEnter": "Press Enter",
-    "newFormLoaded": "New form will be loaded after"
+    "newFormLoaded": "New form will be loaded after",
+    "webhook": "Webhook"
   },
   "activity": {
     "openInANewTab": "Open in a new tab",

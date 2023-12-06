@@ -150,7 +150,14 @@ watch(isExpanded, () => {
 </script>
 
 <template>
-  <component :is="isExpanded ? NcModal : 'div'" v-model:visible="isExpanded" :closable="false" centered :footer="null">
+  <component
+    :is="isExpanded ? NcModal : 'div'"
+    v-model:visible="isExpanded"
+    :closable="false"
+    centered
+    :footer="null"
+    :wrap-class-name="isExpanded ? '!z-1051' : null"
+  >
     <div v-if="editEnabled && !readonly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
       <div class="flex flex-row justify-between pt-1 pb-2 nc-json-action" @mousedown.stop>
         <a-button type="text" size="small" @click="isExpanded = !isExpanded">

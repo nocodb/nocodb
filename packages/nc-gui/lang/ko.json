@@ -581,6 +581,7 @@
     "childTable": "자식 테이블",
     "childColumn": "자식 컬럼",
     "childField": "자식 필드",
+    "joinCloudForFree": "Join Cloud for Free",
     "linkToAnotherRecord": "다른 레코드에 링크",
     "links": "링크",
     "onUpdate": "업데이트 시 ",

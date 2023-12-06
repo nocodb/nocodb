@@ -581,6 +581,7 @@
     "childTable": "ตารางลูก",
     "childColumn": "คอลัมน์เด็ก",
     "childField": "Child field",
+    "joinCloudForFree": "Join Cloud for Free",
     "linkToAnotherRecord": "เชื่อมไปยังตารางอื่น",
     "links": "Links",
     "onUpdate": "เมื่ออัปเดต",

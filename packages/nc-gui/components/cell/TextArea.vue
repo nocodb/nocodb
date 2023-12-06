@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-
 import {
-  ActiveCellInj,
+  ColumnInj,
   EditColumnInj,
   EditModeInj,
   IsExpandedFormOpenInj,
+  IsFormInj,
   ReadonlyInj,
   RowHeightInj,
+  computed,
   iconMap,
   inject,
+  onClickOutside,
+  ref,
+  useGlobal,
   useVModel,
+  watch,
 } from '#imports'
 
 const props = defineProps<{
@@ -61,9 +66,8 @@ const height = computed(() => {
 const isVisible = ref(false)
 
 const inputWrapperRef = ref<HTMLElement | null>(null)
-const inputRef = ref<HTMLTextAreaElement | null>(null)
 
-const active = inject(ActiveCellInj, ref(false))
+const inputRef = ref<HTMLTextAreaElement | null>(null)
 
 const readOnly = inject(ReadonlyInj)
 
@@ -171,7 +175,7 @@ watch(editEnabled, () => {
     :overlay-class-name="isVisible ? 'nc-textarea-dropdown-active' : undefined"
   >
     <div
-      class="flex flex-row pt-0.5 w-full"
+      class="flex flex-row pt-0.5 w-full rich-wrapper"
       :class="{
         'min-h-10': rowHeight !== 1,
         'min-h-6.5': rowHeight === 1,
@@ -235,7 +239,7 @@ watch(editEnabled, () => {
       <NcTooltip
         v-if="!isVisible"
         placement="bottom"
-        class="!absolute right-0 bottom-1 !hidden nc-text-area-expand-btn"
+        class="!absolute right-0 bottom-1 nc-text-area-expand-btn"
         :class="{ 'right-0 bottom-1': editEnabled, '!bottom-0': !isRichMode }"
       >
         <template #title>{{ $t('title.expand') }}</template>
@@ -292,8 +296,13 @@ watch(editEnabled, () => {
 textarea:focus {
   box-shadow: none;
 }
-
 :deep(.nc-text-area-expand-btn) {
-  @apply !block;
+  @apply !hidden;
+}
+.rich-wrapper:hover,
+.rich-wrapper:active {
+  :deep(.nc-text-area-expand-btn) {
+    @apply !block cursor-pointer;
+  }
 }
 </style>

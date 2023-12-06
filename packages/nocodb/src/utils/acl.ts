@@ -223,7 +223,6 @@ const rolePermissions:
       relationDataRemove: true,
       relationDataAdd: true,
 
-      nestedDataList: true,
       nestedDataLink: true,
       nestedDataUnlink: true,
       // TODO add ACL with base scope

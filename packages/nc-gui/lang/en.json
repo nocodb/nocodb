@@ -1020,6 +1020,7 @@
     "acceptOnlyValid": "Accepts only",
     "apiTokenCreate": "Create personal API tokens to use in automation or external apps.",
     "selectFieldToSort": "Select Field to Sort",
+    "selectFieldToGroup": "Select Field to Group",
     "thereAreNoRecordsInTable": "There are no records in table",
     "createWebhookMsg1": "Get started with web-hooks!",
     "createWebhookMsg2": "Create web-hooks to power you automations,",

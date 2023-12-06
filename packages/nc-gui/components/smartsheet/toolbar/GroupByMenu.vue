@@ -250,7 +250,11 @@ watch(meta, async () => {
         class="flex flex-col bg-white overflow-auto menu-filter-dropdown max-h-[max(80vh,500px)] py-6 pl-6"
         data-testid="nc-group-by-menu"
       >
-        <div class="group-by-grid pb-1 mb-2 max-h-100 nc-scrollbar-md pr-5" @click.stop>
+        <div
+          class="group-by-grid pb-1 max-h-100 nc-scrollbar-md pr-5"
+          :class="{ 'mb-2': availableColumns.length && fieldsToGroupBy.length > _groupBy.length && _groupBy.length < 3 }"
+          @click.stop
+        >
           <template v-for="[i, group] of Object.entries(_groupBy)" :key="`grouped-by-${group.fk_column_id}`">
             <LazySmartsheetToolbarFieldListAutoCompleteDropdown
               v-model="group.fk_column_id"

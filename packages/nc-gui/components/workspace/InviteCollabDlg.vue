@@ -214,7 +214,7 @@ const emailInput = ref((el) => {
                   <a-form-item name="role" :rules="[{ required: true, message: $t('msg.roleRequired') }]">
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
 
-                    <a-select v-model:value="usersData.role" class="nc-user-roles" dropdown-class-name="nc-dropdown-user-role border-1 border-gray-200">
+                    <a-select v-model:value="usersData.role" class="nc-user-roles" dropdown-class-name="nc-dropdown-user-role">
                       <a-select-option
                         class="nc-role-option"
                         :value="WorkspaceUserRoles.CREATOR"

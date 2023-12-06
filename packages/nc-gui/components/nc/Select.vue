@@ -16,7 +16,7 @@ const emits = defineEmits(['update:value', 'change'])
 const placeholder = computed(() => props.placeholder)
 
 const dropdownClassName = computed(() => {
-  let className = 'nc-select-dropdown border-1 border-gray-200'
+  let className = 'nc-select-dropdown'
   if (props.dropdownClassName) {
     className += ` ${props.dropdownClassName}`
   }

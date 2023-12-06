@@ -107,7 +107,7 @@ watch(columns, () => {
         :open="isDropdownOpen"
         size="small"
         :dropdown-match-select-width="false"
-        dropdown-class-name="!rounded-lg nc-dropdown-toolbar-search-field-option w-48 border-1 border-gray-200"
+        dropdown-class-name="!rounded-lg nc-dropdown-toolbar-search-field-option w-48"
         class="py-1 !absolute top-0 left-0 w-full h-full z-10 text-xs opacity-0"
         @change="onPressEnter"
       >

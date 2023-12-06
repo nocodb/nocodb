@@ -128,6 +128,16 @@ onKeyStroke('Enter', (event) => {
   }
 })
 
+const onRenameMenuClick = () => {
+  if (isMobileMode.value || !isUIAllowed('viewCreateOrEdit')) return
+
+  if (!isEditing.value) {
+    isEditing.value = true
+    _title.value = vModel.value.title
+    $e('c:view:rename', { view: vModel.value?.type })
+  }
+}
+
 const focusInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
 /** Rename a view */
@@ -268,7 +278,7 @@ watch(isDropdownOpen, async () => {
               :table="table"
               in-sidebar
               @close-modal="isDropdownOpen = false"
-              @rename="onRename"
+              @rename="onRenameMenuClick"
               @delete="onDelete"
             />
           </template>

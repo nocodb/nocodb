@@ -226,7 +226,7 @@ const clickHandler = () => {
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
-    :dropdown-class-name="`${randomClass} nc-picker-date ${open ? 'active' : ''}`"
+    :dropdown-class-name="`${randomClass} nc-picker-date  children:border-1 children:border-gray-200  ${open ? 'active' : ''} `"
     :open="isOpen"
     @click="clickHandler"
     @update:open="updateOpen"

@@ -1,10 +1,10 @@
 {
   "dashboards": {
-    "create_new_dashboard_project": "Create New Interface",
-    "connect_data_sources": "Connect data sources",
-    "alert": "Alert",
-    "alert-message": "No databases have been connected. Connect database bases to build interfaces. Skip this step and add databases from the base home page later.",
-    "select_database_projects_that_you_want_to_link_to_this_dashboard_projects": "Select Database Bases that you want to link to this Interface.",
+    "create_new_dashboard_project": "インターフェースを作成",
+    "connect_data_sources": "データソースに接続",
+    "alert": "アラート",
+    "alert-message": "データベースが接続されていません。DBベースを接続してインターフェースを構成してください。スキップして後でベースのホームページを追加することもできます。",
+    "select_database_projects_that_you_want_to_link_to_this_dashboard_projects": "このインターフェースに接続するDBベースを選択します。",
     "create_interface": "Create interface",
     "project_name": "Base Name",
     "connect": "Connect",

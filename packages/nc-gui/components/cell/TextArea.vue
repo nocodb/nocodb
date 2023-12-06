@@ -120,8 +120,8 @@ const onMouseMove = (e: MouseEvent) => {
   e.stopPropagation()
 
   position.value = {
-    top: e.clientY - 22,
-    left: e.clientX - 46,
+    top: e.clientY - 30,
+    left: e.clientX - 120,
   }
 }
 
@@ -149,7 +149,7 @@ watch(position, () => {
 
     dom.style.left = `${position.value.left}px`
     dom.style.top = `${position.value.top}px`
-  }, 100)
+  }, 1)
 })
 
 const dragStart = () => {
@@ -191,7 +191,7 @@ watch(editEnabled, () => {
         }"
         @dblclick="onExpand"
       >
-        <LazyCellRichText v-model:value="vModel" sync-value-change readonly class="!pointer-events-none" />
+        <LazyCellRichText v-model:value="vModel" sync-value-change readonly />
       </div>
       <textarea
         v-else-if="editEnabled && !isVisible"
@@ -296,8 +296,10 @@ watch(editEnabled, () => {
 textarea:focus {
   box-shadow: none;
 }
+</style>
 
-:deep(.nc-text-area-expand-btn) {
+<style lang="scss">
+.cell:hover .nc-text-area-expand-btn {
   @apply !block;
 }
 </style>

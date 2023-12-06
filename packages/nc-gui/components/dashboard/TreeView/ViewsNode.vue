@@ -129,8 +129,7 @@ onKeyStroke('Enter', (event) => {
 })
 
 const onRenameMenuClick = () => {
-  if (isMobileMode.value) return
-  if (!isUIAllowed('viewCreateOrEdit')) return
+  if (isMobileMode.value || !isUIAllowed('viewCreateOrEdit')) return
 
   if (!isEditing.value) {
     isEditing.value = true

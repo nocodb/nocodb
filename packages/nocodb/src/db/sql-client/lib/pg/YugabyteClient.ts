@@ -119,7 +119,9 @@ class YBClient extends PGClient {
         // column['unique'] = response.rows[i]['cst'].indexOf('UNIQUE') === -1 ? false : true;
 
         column.cdf = response.rows[i].cdf
-          ? response.rows[i].cdf.replace(/::[\w ]+$/, '').replace(/^'|'$/g, '')
+          ? response.rows[i].cdf
+              .replace(/::[\w (),]+$/, '')
+              .replace(/^'|'$/g, '')
           : response.rows[i].cdf;
 
         // todo : need to find column comment

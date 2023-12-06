@@ -31,7 +31,7 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
         const dbUser: Record<string, any> = await User.getWithRoles(
           apiToken.fk_user_id,
           {
-            baseId: req['ncBaseId'],
+            baseId: req['ncProjectId'],
             ...(req['ncWorkspaceId']
               ? { workspaceId: req['ncWorkspaceId'] }
               : {}),

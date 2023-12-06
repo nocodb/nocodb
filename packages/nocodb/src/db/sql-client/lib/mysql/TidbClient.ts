@@ -24,7 +24,8 @@ class Tidb extends MysqlClient {
 
     try {
       const response = await this.sqlClient.raw(
-        `select *, TABLE_NAME as tn from INFORMATION_SCHEMA.KEY_COLUMN_USAGE where CONSTRAINT_SCHEMA='${this.connectionConfig.connection.database}' and TABLE_NAME='${args.tn}'`,
+        `select *, TABLE_NAME as tn from INFORMATION_SCHEMA.KEY_COLUMN_USAGE where CONSTRAINT_SCHEMA=? and TABLE_NAME=?`,
+        [this.connectionConfig.connection.database, args.tn],
       );
 
       if (response.length === 2) {

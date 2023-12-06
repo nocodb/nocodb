@@ -752,11 +752,13 @@ export function useMultiSelect(
 
         const clipboardMatrix = parsedClipboard.data as string[][]
 
-        const pasteMatrixRows = clipboardMatrix.length
+        const selectionRowCount = selectedRange.end.row - selectedRange.start.row + 1
+
+        const pasteMatrixRows = selectionRowCount
         const pasteMatrixCols = clipboardMatrix[0].length
 
         const colsToPaste = unref(fields).slice(activeCell.col, activeCell.col + pasteMatrixCols)
-        const rowsToPaste = unref(data).slice(activeCell.row, activeCell.row + pasteMatrixRows)
+        const rowsToPaste = unref(data).slice(activeCell.row, activeCell.row + selectionRowCount)
         const propsToPaste: string[] = []
 
         let pastedRows = 0
@@ -780,7 +782,8 @@ export function useMultiSelect(
 
             const pasteValue = convertCellData(
               {
-                value: clipboardMatrix[i][j],
+                // Repeat the clipboard data array if the matrix is smaller than the selection
+                value: clipboardMatrix[i % clipboardMatrix.length][j],
                 to: pasteCol.uidt as UITypes,
                 column: pasteCol,
                 appInfo: unref(appInfo),

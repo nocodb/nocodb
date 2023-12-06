@@ -103,7 +103,7 @@ const onClick = (e: Event) => {
     >
       <template #title> {{ column.title }} </template>
 
-      <span  :data-test-id="column.title">
+      <span :data-test-id="column.title">
         {{ column.title }}
       </span>
     </NcTooltip>

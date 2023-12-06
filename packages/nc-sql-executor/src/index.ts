@@ -60,6 +60,26 @@ async function queryHandler(req, res) {
 
   const query = queries.length === 1 ? queries[0] : queries;
 
+  // define a custom type parser for mysql to convert bit and decimal types
+  config.typeCast = function(field, next) {
+    const res = next();
+
+    // mysql `bit` datatype returns value as Buffer, convert it to integer number
+    if (field.type == 'BIT' && res && res instanceof Buffer) {
+      return parseInt(
+        [...res].map((v) => ('00' + v.toString(16)).slice(-2)).join(''),
+        16,
+      );
+    }
+
+    // mysql `decimal` datatype returns value as string, convert it to float number
+    if (field.type == 'NEWDECIMAL') {
+      return res && parseFloat(res);
+    }
+
+    return res;
+  }
+
   const { pool, ...configWithoutPool } = config;
 
   const connectionKey = hash(configWithoutPool);

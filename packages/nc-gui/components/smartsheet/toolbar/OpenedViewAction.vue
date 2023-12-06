@@ -182,7 +182,7 @@ function openDeleteDialog() {
         'text-gray-800 font-medium': !activeView?.is_default,
       }"
     >
-      <NcTooltip class="truncate xs:pl-1.25 flex-1 text-inherit">
+      <NcTooltip class="truncate xs:pl-1.25 flex-1 text-inherit" show-on-truncate-only>
         <template #title>{{ activeView?.is_default ? $t('title.defaultView') : activeView?.title }} </template>
         <span
           :class="{

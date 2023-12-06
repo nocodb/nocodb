@@ -380,11 +380,11 @@ useMenuCloseOnEsc(open)
                     "
                   >
                     <component :is="getIcon(metaColumnById[field.fk_column_id])" />
-                    <NcTooltip :disabled="field.title.length < 30" class="flex-1 px-1 truncate">
+                    <NcTooltip show-on-truncate-only class="flex-1 px-1 truncate">
                       <template #title>
                         {{ field.title }}
                       </template>
-                      <span>{{ field.title }}</span>
+                      <template #default>{{ field.title }}</template>
                     </NcTooltip>
 
                     <NcSwitch v-e="['a:fields:show-hide']" :checked="field.show" :disabled="field.isViewEssentialField" />
@@ -406,9 +406,9 @@ useMenuCloseOnEsc(open)
                   @click.stop
                 >
                   <component :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])" />
-                  <NcTooltip :disabled="filteredFieldList?.[0]?.title?.length < 30" class="px-1 flex-1 truncate">
+                  <NcTooltip show-on-truncate-only class="px-1 flex-1 truncate">
                     <template #title>{{ filteredFieldList[0].title }}</template>
-                    <span>{{ filteredFieldList[0].title }}</span>
+                    <template #default>{{ filteredFieldList[0].title }}</template>
                   </NcTooltip>
 
                   <NcSwitch v-e="['a:fields:show-hide']" :checked="true" :disabled="true" />

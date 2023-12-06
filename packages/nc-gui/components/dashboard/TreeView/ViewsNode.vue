@@ -232,7 +232,7 @@ watch(isDropdownOpen, async () => {
         @blur="onRename"
         @keydown.stop="onKeyDown($event)"
       />
-      <NcTooltip v-else class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none w-full">
+      <NcTooltip v-else class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none w-full" show-on-truncate-only>
         <template #title> {{ vModel.alias || vModel.title }}</template>
         <div
           data-testid="sidebar-view-title"

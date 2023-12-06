@@ -1735,6 +1735,7 @@ onKeyStroke('ArrowDown', onDown)
               class="nc-base-menu-item"
               :disabled="isSystemColumn(fields[contextMenuTarget.col])"
               @click="clearSelectedRangeOfCells()"
+              :disabled="!!isSystemColumn(fields[contextMenuTarget.col])"
             >
               <div v-e="['a:row:clear-range']" class="flex gap-2 items-center">
                 <GeneralIcon icon="closeBox" class="text-gray-500" />

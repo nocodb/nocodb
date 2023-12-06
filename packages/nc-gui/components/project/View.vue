@@ -86,7 +86,6 @@ watch(
     if (newVal && oldVal === undefined) {
       updateBaseUserCount()
     }
-    return
   },
   { immediate: true },
 )

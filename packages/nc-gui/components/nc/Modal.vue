@@ -66,7 +66,7 @@ const height = computed(() => {
   return 'auto'
 })
 
-const wrapClassName = computed(() => {
+const newWrapClassName = computed(() => {
   let className = 'nc-modal-wrapper'
   if (_wrapClassName) {
     className += ` ${_wrapClassName}`
@@ -86,7 +86,7 @@ const slots = useSlots()
     :width="width"
     :centered="true"
     :closable="false"
-    :wrap-class-name="wrapClassName"
+    :wrap-class-name="newWrapClassName"
     :footer="null"
     :mask-closable="maskClosable"
     :destroy-on-close="destroyOnClose"

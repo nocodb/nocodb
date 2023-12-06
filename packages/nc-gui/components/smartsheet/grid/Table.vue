@@ -1847,7 +1847,7 @@ onKeyStroke('ArrowDown', onDown)
               </div>
             </template>
             <template #icon>
-              <component :is="iconMap.arrowUp" class="text-gray-600 h-4" />
+              <component :is="iconMap.arrowUp" class="text-gray-600 h-4 w-4" />
             </template>
           </a-dropdown-button>
         </div>

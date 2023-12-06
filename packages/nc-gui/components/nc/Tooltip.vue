@@ -21,7 +21,7 @@ const props = defineProps<Props>()
 const modifierKey = computed(() => props.modifierKey)
 const tooltipStyle = computed(() => props.tooltipStyle)
 const disabled = computed(() => props.disabled)
-const showOnTruncateOnly = computed(() => props?.showOnTruncateOnly)
+const showOnTruncateOnly = computed(() => props.showOnTruncateOnly)
 const hideOnClick = computed(() => props.hideOnClick)
 const placement = computed(() => props.placement ?? 'top')
 
@@ -69,7 +69,7 @@ onKeyStroke(
 watch([isHovering, () => modifierKey.value, () => disabled.value], ([hovering, key, isDisabled]) => {
   if (showOnTruncateOnly?.value) {
     const targetElement = el?.value
-    const isElementTruncated = targetElement?.scrollWidth > targetElement?.clientWidth
+    const isElementTruncated = targetElement && targetElement.scrollWidth > targetElement.clientWidth
     if (!isElementTruncated) {
       showTooltip.value = false
       return

@@ -819,7 +819,7 @@ const onFieldOptionUpdate = () => {
                         'text-brand-500': compareCols(field, activeField),
                       }"
                       class="truncate flex-1"
-                      :showOnTruncateOnly="true"
+                      show-on-truncate-only
                     >
                       <template #title> {{ fieldState(field)?.title || field.title }} </template>
                       <span>
@@ -979,7 +979,7 @@ const onFieldOptionUpdate = () => {
                       :class="{
                         'text-brand-500': compareCols(displayColumn, activeField),
                       }"
-                      :showOnTruncateOnly="true"
+                      show-on-truncate-only
                     >
                       <template #title> {{ fieldState(displayColumn)?.title || displayColumn.title }} </template>
                       <span>

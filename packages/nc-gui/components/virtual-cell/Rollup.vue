@@ -42,7 +42,10 @@ const childColumn = computed(() => {
 
 <template>
   <div @dblclick="activateShowEditNonEditableFieldWarning">
-    <LazySmartsheetCell v-model="value" :column="childColumn" :edit-enabled="false" :read-only="true" />
+    <div v-if="['count', 'avg', 'sum', 'countDistinct', 'sumDistinct', 'avgDistinct'].includes(colOptions.rollup_function)">
+      {{ value }}
+    </div>
+    <LazySmartsheetCell v-else v-model="value" :column="childColumn" :edit-enabled="false" :read-only="true" />
     <div>
       <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
         {{ $t('msg.info.computedFieldEditWarning') }}

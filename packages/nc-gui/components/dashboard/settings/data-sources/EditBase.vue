@@ -441,7 +441,7 @@ onMounted(async () => {
                 </div>
               </template>
               <a-form-item label="SSL mode">
-                <a-select v-model:value="formState.sslUse" dropdown-class-name="nc-dropdown-ssl-mode" @select="onSSLModeChange">
+                <a-select v-model:value="formState.sslUse" dropdown-class-name="nc-dropdown-ssl-mode border-1 border-gray-200" @select="onSSLModeChange">
                   <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }}</a-select-option>
                 </a-select>
               </a-form-item>

@@ -85,6 +85,7 @@ const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeVa
             :options="columnsAllowedAsBarcodeValue"
             :placeholder="$t('placeholder.barcodeColumn')"
             :not-found-content="$t('placeholder.notFoundContent')"
+            dropdown-class-name="border-1 border-gray-200"
             @click.stop
           />
           <div v-if="showBarcodeValueColumnInfoIcon" class="pl-2">
@@ -108,6 +109,7 @@ const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeVa
           v-model:value="vModel.meta.barcodeFormat"
           :options="supportedBarcodeFormats"
           :placeholder="$t('placeholder.selectBarcodeFormat')"
+          dropdown-class-name="border-1 border-gray-200"
           @click.stop
         />
       </a-form-item>

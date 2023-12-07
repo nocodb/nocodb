@@ -52,16 +52,13 @@ main {
   @apply m-0 h-full w-full bg-white;
 }
 
+
 .nc-input-md {
   @apply !rounded-lg !py-2 !px-3 mb-1;
 }
 
 .mobile {
-  .nc-scrollbar-md,
-  .nc-scrollbar-x-md,
-  .nc-scrollbar-dark-md,
-  .nc-scrollbar-x-md-dark,
-  .nc-scrollbar-x-lg {
+  .nc-scrollbar-md, .nc-scrollbar-x-md, .nc-scrollbar-dark-md, .nc-scrollbar-x-md-dark, .nc-scrollbar-x-lg {
     &::-webkit-scrollbar {
       width: 0px;
     }
@@ -96,6 +93,7 @@ main {
   overflow-x: scroll;
   scrollbar-width: thin !important;
 
+
   &::-webkit-scrollbar {
     width: 4px;
     height: 4px;
@@ -110,6 +108,7 @@ main {
     -webkit-border-radius: 10px;
     border-radius: 10px;
 
+
     width: 4px;
     @apply bg-gray-200;
   }
@@ -122,6 +121,7 @@ main {
   overflow-y: scroll;
   overflow-x: hidden;
   scrollbar-width: thin !important;
+
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -154,6 +154,7 @@ main {
   overflow-x: scroll;
   scrollbar-width: thin !important;
 
+  
   &::-webkit-scrollbar {
     width: 4px;
     height: 4px;
@@ -168,11 +169,14 @@ main {
     -webkit-border-radius: 10px;
     border-radius: 10px;
 
+
     width: 4px;
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: rgba(0, 0, 0, 0.3)
+
   }
   &::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(0, 0, 0, 0.4)
+
   }
 }
 
@@ -193,6 +197,7 @@ main {
     -webkit-border-radius: 10px;
     border-radius: 10px;
 
+
     width: 8px;
     @apply bg-gray-200;
   }
@@ -207,7 +212,7 @@ main {
 }
 
 a {
-  @apply !text-primary !underline hover: !text-accent;
+  @apply !text-primary !underline hover:!text-accent;
 }
 
 .nc-icon {
@@ -222,7 +227,7 @@ a {
 }
 // select dropdown border style
 .ant-select-dropdown {
-  @apply border-1 border-gray-200;
+  @apply border-1 border-gray-200
 }
 
 // menu item styling
@@ -425,11 +430,10 @@ a {
 
 .ant-dropdown-menu-submenu {
   @apply !py-0;
-
-  &.ant-dropdown-menu-submenu-popup {
-    @apply border-1 border-gray-200;
+  
+  &.ant-dropdown-menu-submenu-popup{
+    @apply border-1 border-gray-200
   }
-
   .ant-dropdown-menu,
   .ant-menu {
     @apply m-0 p-0;
@@ -482,7 +486,6 @@ a {
 .nc-toolbar-btn {
   @apply !shadow-none rounded hover:(ring-1 ring-gray-200 ring-opacity-100 bg-gray-100 !text-gray-800) focus:(ring-1 ring-gray-300 ring-opacity-100 !text-gray-800 bg-gray-100) text-gray-600 text-xs font-medium px-2 border-0;
 }
-
 .nc-toolbar-btn[disabled] {
   @apply !text-gray-400 !cursor-not-allowed !hover:ring-0;
 }
@@ -555,11 +558,9 @@ a {
   0% {
     opacity: 0.2;
   }
-
   50% {
     opacity: 1;
   }
-
   100% {
     opacity: 0.2;
   }
@@ -642,7 +643,7 @@ input[type='number'] {
 }
 
 .ant-pagination .ant-pagination-next {
-  @apply !border-1 !rounded-md !border-gray-200 scale-95;
+  @apply !border-1  !rounded-md !border-gray-200 scale-95;
 }
 
 .ant-pagination .ant-pagination-item-active {
@@ -669,8 +670,7 @@ input[type='number'] {
   .nc-emoji {
     @apply xs:(text-lg);
   }
-  .material-symbols,
-  .nc-icon {
+  .material-symbols, .nc-icon {
     @apply !xs:(text-xl -mt-0.25);
   }
 
@@ -679,7 +679,7 @@ input[type='number'] {
   }
 
   .nc-sidebar-node-btn:not(.nc-sidebar-expand) {
-    @apply !xs:(hidden);
+    @apply !xs:(hidden)
   }
 }
 
@@ -687,11 +687,12 @@ input[type='number'] {
   @apply opacity-0 group-hover:(opacity-100) text-gray-600 hover:(bg-gray-400 bg-opacity-20 text-gray-900) duration-100;
 }
 
+
 .nc-button.ant-btn.nc-sidebar-node-btn.nc-sidebar-expand {
   @apply xs:(opacity-100 hover:bg-gray-50);
 
   .nc-icon {
-    @apply xs:(visible opacity-100 !text-gray-500);
+    @apply xs:(visible opacity-100 !text-gray-500)
   }
 }
 

@@ -164,7 +164,7 @@ onMounted(() => {
                   <component
                     v-if="sort.direction === option.value"
                     id="selected-item-icon"
-                    class="text-primary w-5 h-5"
+                    class="text-primary w-4 h-4"
                     :is="iconMap.check"
                   />
                 </div>

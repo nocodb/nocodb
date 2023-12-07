@@ -1,8 +1,15 @@
 <script lang="ts" setup>
+import {
+  OrderedProjectRoles,
+  OrgUserRoles,
+  ProjectRoles,
+  WorkspaceRolesToProjectRoles,
+  extractRolesObj,
+  timeAgo,
+} from 'nocodb-sdk'
 import type { WorkspaceUserRoles } from 'nocodb-sdk'
-import { OrderedProjectRoles, OrgUserRoles, ProjectRoles, WorkspaceRolesToProjectRoles, extractRolesObj } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
-import { isEeUI, storeToRefs, timeAgo } from '#imports'
+import { isEeUI, storeToRefs } from '#imports'
 
 const basesStore = useBases()
 const { getProjectUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore

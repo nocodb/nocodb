@@ -4716,8 +4716,8 @@ class BaseModelSqlv2 {
         const dateFormat = col.meta?.date_format;
         if (dateFormat && isDateMonthFormat(dateFormat)) {
           d[col.title] = dayjs(d[col.title], dateFormat).format(dateFormat);
+          continue;
         }
-        continue;
       }
       let keepLocalTime = true;
 

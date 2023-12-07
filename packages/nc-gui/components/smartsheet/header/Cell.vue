@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import { ColumnInj, IsExpandedFormOpenInj, IsFormInj, IsKanbanInj, inject, provide, ref, toRef, useRoles } from '#imports'
 
 interface Props {
@@ -49,7 +48,7 @@ const closeAddColumnDropdown = () => {
 }
 
 const openHeaderMenu = () => {
-  if (isLocked.value || (isSystemColumn(column.value) && column.value.uidt !== UITypes.ID)) return
+  if (isLocked.value) return
 
   if (!isForm.value && !isExpandedForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value) {
     editColumnDropdown.value = true

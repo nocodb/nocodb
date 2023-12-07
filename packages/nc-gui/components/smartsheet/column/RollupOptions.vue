@@ -107,24 +107,27 @@ watch(
   () => {
     const childFieldColumn = columns.value?.find((column: ColumnType) => column.id === vModel.value.fk_rollup_column_id)
     const showNumericFunctions = isNumericCol(childFieldColumn)
-    aggFunctionsList.value = [
+    const nonNumericFunctions = [
       // functions for non-numeric types,
-      // e.g. count / min / max date field
+      // e.g. count / min / max / countDistinct date field
       { text: t('datatype.Count'), value: 'count' },
       { text: t('general.min'), value: 'min' },
       { text: t('general.max'), value: 'max' },
       { text: t('general.countDistinct'), value: 'countDistinct' },
-      ...(showNumericFunctions
-        ? [
-            // functions for numeric type only
-            { text: t('general.avg'), value: 'avg' },
-            { text: t('general.sum'), value: 'sum' },
-            { text: t('general.sumDistinct'), value: 'sumDistinct' },
-            { text: t('general.avgDistinct'), value: 'avgDistinct' },
-          ]
-        : []),
     ]
-    if (!showNumericFunctions) {
+    const numericFunctions = showNumericFunctions
+      ? [
+          { text: t('general.avg'), value: 'avg' },
+          { text: t('general.sum'), value: 'sum' },
+          { text: t('general.sumDistinct'), value: 'sumDistinct' },
+          { text: t('general.avgDistinct'), value: 'avgDistinct' },
+        ]
+      : []
+
+    aggFunctionsList.value = [...nonNumericFunctions, ...numericFunctions]
+
+    if (!showNumericFunctions && ['avg', 'sum', 'sumDistinct', 'avgDistinct'].includes(vModel.value.rollup_function)) {
+      // when the previous roll up function was numeric type and the current child field is non-numeric
       // reset rollup function with a non-numeric type
       vModel.value.rollup_function = aggFunctionsList.value[0].value
     }

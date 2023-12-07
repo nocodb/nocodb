@@ -237,7 +237,7 @@ const handleClose = (e: MouseEvent) => {
     isOpen.value &&
     aselect.value &&
     !aselect.value.$el.contains(e.target) &&
-    !document.querySelector('.nc-dropdown-multi-select-cell.active')?.contains(e.target as Node)
+    !document.querySelector('.nc-dropdown-user-select-cell.active')?.contains(e.target as Node)
   ) {
     // loose focus when clicked outside
     isEditable.value = false
@@ -258,7 +258,7 @@ const filterOption = (input: string, option: any) => {
 </script>
 
 <template>
-  <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
+  <div class="nc-user-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
     <div
       v-if="!active || isPublic"
       class="flex flex-wrap"
@@ -301,7 +301,7 @@ const filterOption = (input: string, option: any) => {
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
       :class="{ 'caret-transparent': !hasEditRoles }"
-      :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
+      :dropdown-class-name="`nc-dropdown-user-select-cell ${isOpen ? 'active' : ''}`"
       :filter-option="filterOption"
       @search="search"
       @keydown.stop
@@ -396,7 +396,7 @@ const filterOption = (input: string, option: any) => {
 }
 
 .rounded-tag {
-  @apply py-0 px-[12px] rounded-[12px];
+  @apply bg-gray-200 py-0 px-[12px] rounded-[12px];
 }
 
 :deep(.ant-tag) {
@@ -415,7 +415,7 @@ const filterOption = (input: string, option: any) => {
   @apply flex-nowrap overflow-hidden;
 }
 
-.nc-multi-select:not(.read-only) {
+.nc-user-select:not(.read-only) {
   :deep(.ant-select-selector),
   :deep(.ant-select-selector input) {
     @apply "!cursor-pointer";

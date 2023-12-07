@@ -136,7 +136,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
     :open="isOpen"
-    :popup-class-name="`${randomClass} nc-picker-time ${open ? 'active' : ''}`"
+    :popup-class-name="`${randomClass} nc-picker-time children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
     @click="open = (active || editable) && !open"
     @ok="open = !open"
   >

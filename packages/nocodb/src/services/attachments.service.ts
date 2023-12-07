@@ -161,6 +161,14 @@ export class AttachmentsService {
     return { path: filePath, type };
   }
 
+  previewAvailable(mimetype: string) {
+    const available = ['image', 'pdf', 'text/plain'];
+    if (available.some((type) => mimetype.includes(type))) {
+      return true;
+    }
+    return false;
+  }
+
   sanitizeUrlPath(paths) {
     return paths.map((url) => url.replace(/[/.?#]+/g, '_'));
   }

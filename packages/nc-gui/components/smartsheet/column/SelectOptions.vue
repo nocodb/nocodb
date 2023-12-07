@@ -339,7 +339,7 @@ const loadListData = async ($state: any) => {
               <a-dropdown
                 v-model:visible="colorMenus[index]"
                 :trigger="['click']"
-                overlay-class-name="nc-dropdown-select-color-options"
+                overlay-class-name="nc-dropdown-select-color-options rounded-md overflow-hidden border-1 border-gray-200 "
               >
                 <template #overlay>
                   <LazyGeneralColorPicker

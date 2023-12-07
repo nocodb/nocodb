@@ -6,17 +6,19 @@ const props = withDefaults(
     size?: 'small' | 'medium' | 'large'
     destroyOnClose?: boolean
     maskClosable?: boolean
+    wrapClassName?: string
   }>(),
   {
     size: 'medium',
     destroyOnClose: true,
     maskClosable: true,
+    wrapClassName: '',
   },
 )
 
 const emits = defineEmits(['update:visible'])
 
-const { width: propWidth, destroyOnClose, maskClosable } = props
+const { width: propWidth, destroyOnClose, maskClosable, wrapClassName: _wrapClassName } = props
 
 const { isMobileMode } = useGlobal()
 
@@ -64,6 +66,14 @@ const height = computed(() => {
   return 'auto'
 })
 
+const newWrapClassName = computed(() => {
+  let className = 'nc-modal-wrapper'
+  if (_wrapClassName) {
+    className += ` ${_wrapClassName}`
+  }
+  return className
+})
+
 const visible = useVModel(props, 'visible', emits)
 
 const slots = useSlots()
@@ -76,7 +86,7 @@ const slots = useSlots()
     :width="width"
     :centered="true"
     :closable="false"
-    wrap-class-name="nc-modal-wrapper"
+    :wrap-class-name="newWrapClassName"
     :footer="null"
     :mask-closable="maskClosable"
     :destroy-on-close="destroyOnClose"

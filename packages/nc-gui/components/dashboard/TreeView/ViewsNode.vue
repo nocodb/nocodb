@@ -128,6 +128,16 @@ onKeyStroke('Enter', (event) => {
   }
 })
 
+const onRenameMenuClick = () => {
+  if (isMobileMode.value || !isUIAllowed('viewCreateOrEdit')) return
+
+  if (!isEditing.value) {
+    isEditing.value = true
+    _title.value = vModel.value.title
+    $e('c:view:rename', { view: vModel.value?.type })
+  }
+}
+
 const focusInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
 /** Rename a view */
@@ -232,7 +242,7 @@ watch(isDropdownOpen, async () => {
         @blur="onRename"
         @keydown.stop="onKeyDown($event)"
       />
-      <NcTooltip v-else class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none w-full">
+      <NcTooltip v-else class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none w-full" show-on-truncate-only>
         <template #title> {{ vModel.alias || vModel.title }}</template>
         <div
           data-testid="sidebar-view-title"
@@ -268,7 +278,7 @@ watch(isDropdownOpen, async () => {
               :table="table"
               in-sidebar
               @close-modal="isDropdownOpen = false"
-              @rename="onRename"
+              @rename="onRenameMenuClick"
               @delete="onDelete"
             />
           </template>

@@ -148,7 +148,7 @@ watch(editorDom, () => {
     class="h-full"
     :class="{
       'flex flex-col flex-grow nc-rich-text-full': props.fullMode,
-      'nc-rich-text-embed': !props.fullMode,
+      'nc-rich-text-embed flex flex-col pl-1 w-full': !props.fullMode,
     }"
   >
     <div v-if="props.showMenu" class="absolute top-0 right-0.5">
@@ -159,9 +159,10 @@ watch(editorDom, () => {
     <EditorContent
       ref="editorDom"
       :editor="editor"
-      class="flex flex-col nc-textarea-rich-editor w-full flex-grow"
+      class="flex flex-col nc-textarea-rich-editor w-full"
       :class="{
-        'ml-1 mt-2.5': props.fullMode,
+        'ml-1 mt-2.5 flex-grow': props.fullMode,
+        'nc-scrollbar-md': !props.fullMode && !props.readonly,
       }"
     />
   </div>
@@ -181,7 +182,7 @@ watch(editorDom, () => {
 
 .nc-rich-text-embed {
   .ProseMirror {
-    @apply !border-transparent;
+    @apply !border-transparent max-h-full;
   }
 }
 

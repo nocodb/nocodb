@@ -225,6 +225,10 @@ a {
     @apply !rounded-md;
   }
 }
+// select dropdown border style
+.ant-select-dropdown {
+  @apply border-1 border-gray-200
+}
 
 // menu item styling
 .nc-menu-item {
@@ -426,7 +430,10 @@ a {
 
 .ant-dropdown-menu-submenu {
   @apply !py-0;
-
+  
+  &.ant-dropdown-menu-submenu-popup{
+    @apply border-1 border-gray-200
+  }
   .ant-dropdown-menu,
   .ant-menu {
     @apply m-0 p-0;

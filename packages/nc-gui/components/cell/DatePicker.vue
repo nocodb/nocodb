@@ -63,12 +63,17 @@ const localState = computed({
       return undefined
     }
 
-    return /^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)
+    return dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue, dateFormat.value)
   },
   set(val?: dayjs.Dayjs) {
     if (!val) {
       emit('update:modelValue', null)
       return
+    }
+
+    if (picker.value === 'month') {
+      // reset day to 1st
+      val = dayjs(val).date(1)
     }
 
     if (val.isValid()) {

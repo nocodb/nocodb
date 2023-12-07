@@ -8,7 +8,6 @@ import { nocoExecute } from 'nc-help';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
-  isDateMonthFormat,
   isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
@@ -4714,11 +4713,12 @@ class BaseModelSqlv2 {
 
       if (col.uidt === UITypes.Date) {
         const dateFormat = col.meta?.date_format;
-        if (dateFormat && isDateMonthFormat(dateFormat)) {
+        if (dateFormat) {
           d[col.title] = dayjs(d[col.title], dateFormat).format(dateFormat);
-          continue;
         }
+        continue;
       }
+
       let keepLocalTime = true;
 
       if (this.isSqlite) {

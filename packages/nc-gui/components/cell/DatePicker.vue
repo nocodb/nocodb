@@ -1,17 +1,24 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { isDateMonthFormat } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
   EditColumnInj,
   EditModeInj,
+  IsLockedInj,
   ReadonlyInj,
   computed,
   inject,
   isDrawerOrModalExist,
+  onClickOutside,
+  onMounted,
+  onUnmounted,
   parseProp,
   ref,
+  useGlobal,
+  useI18n,
   useSelectedCellKeyupListener,
   watch,
 } from '#imports'
@@ -43,6 +50,8 @@ const isDateInvalid = ref(false)
 
 const dateFormat = computed(() => parseProp(columnMeta?.value?.meta)?.date_format ?? 'YYYY-MM-DD')
 
+const picker = computed(() => (isDateMonthFormat(dateFormat.value) ? 'month' : ''))
+
 const localState = computed({
   get() {
     if (!modelValue) {
@@ -54,12 +63,19 @@ const localState = computed({
       return undefined
     }
 
-    return /^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)
+    const format = picker.value === 'month' ? dateFormat : 'YYYY-MM-DD'
+
+    return dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue, format)
   },
   set(val?: dayjs.Dayjs) {
     if (!val) {
       emit('update:modelValue', null)
       return
+    }
+
+    if (picker.value === 'month') {
+      // reset day to 1st
+      val = dayjs(val).date(1)
     }
 
     if (val.isValid()) {
@@ -198,12 +214,15 @@ const updateOpen = (next: boolean) => {
 }
 
 const cellClickHook = inject(CellClickHookInj, null)
+
 const cellClickHandler = () => {
   open.value = (active.value || editable.value) && !open.value
 }
+
 onMounted(() => {
   cellClickHook?.on(cellClickHandler)
 })
+
 onUnmounted(() => {
   cellClickHook?.on(cellClickHandler)
 })
@@ -219,6 +238,7 @@ const clickHandler = () => {
 <template>
   <a-date-picker
     v-model:value="localState"
+    :picker="picker"
     :bordered="false"
     class="!w-full !px-1 !border-none"
     :class="{ 'nc-null': modelValue === null && showNull }"

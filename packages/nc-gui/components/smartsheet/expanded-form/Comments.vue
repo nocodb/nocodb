@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import type { AuditType } from 'nocodb-sdk'
+import { timeAgo } from 'nocodb-sdk'
 import { Icon } from '@iconify/vue'
-import { ref, timeAgo, useExpandedFormStoreOrThrow, useGlobal, useRoles, watch } from '#imports'
+import { ref, useExpandedFormStoreOrThrow, useGlobal, useRoles, watch } from '#imports'
 
 const props = defineProps<{
   loading: boolean

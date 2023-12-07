@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Empty } from 'ant-design-vue'
 import type { BaseType } from 'nocodb-sdk'
-import { ProjectRoles, ProjectStatus, WorkspaceUserRoles } from 'nocodb-sdk'
+import { ProjectRoles, ProjectStatus, WorkspaceUserRoles, timeAgo } from 'nocodb-sdk'
 import { nextTick } from '@vue/runtime-core'
 import {
   NcProjectType,
@@ -12,7 +12,6 @@ import {
   navigateTo,
   ref,
   storeToRefs,
-  timeAgo,
   useBases,
   useGlobal,
   useNuxtApp,

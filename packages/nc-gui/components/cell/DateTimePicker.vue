@@ -133,6 +133,10 @@ watch(
   (next) => {
     if (next) {
       onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, () => (open.value = false))
+
+      if (!modelValue) {
+        localState.value = dayjs(new Date())
+      }
     } else {
       editable.value = false
     }
@@ -264,6 +268,7 @@ const isColDisabled = computed(() => {
 <template>
   <a-date-picker
     v-model:value="localState"
+    :default-picker-value="dayjs(new Date())"
     :disabled="isColDisabled"
     :show-time="true"
     :bordered="false"

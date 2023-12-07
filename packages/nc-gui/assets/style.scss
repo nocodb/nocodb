@@ -207,7 +207,7 @@ main {
 }
 
 a {
-  @apply !text-primary !underline hover:!text-accent;
+  @apply !text-primary !underline hover: !text-accent;
 }
 
 .nc-icon {
@@ -429,6 +429,7 @@ a {
   &.ant-dropdown-menu-submenu-popup {
     @apply border-1 border-gray-200;
   }
+
   .ant-dropdown-menu,
   .ant-menu {
     @apply m-0 p-0;
@@ -481,6 +482,7 @@ a {
 .nc-toolbar-btn {
   @apply !shadow-none rounded hover:(ring-1 ring-gray-200 ring-opacity-100 bg-gray-100 !text-gray-800) focus:(ring-1 ring-gray-300 ring-opacity-100 !text-gray-800 bg-gray-100) text-gray-600 text-xs font-medium px-2 border-0;
 }
+
 .nc-toolbar-btn[disabled] {
   @apply !text-gray-400 !cursor-not-allowed !hover:ring-0;
 }
@@ -505,8 +507,8 @@ a {
   @apply bg-gray-300 bg-opacity-20;
 }
 
-/* Hide the element with id selected-item-icon inside NcSelect */
-.ant-select-selection-item #selected-item-icon {
+/* Hide the element with id nc-selected-item-icon */
+.ant-select-selection-item #nc-selected-item-icon {
   display: none;
 }
 
@@ -553,9 +555,11 @@ a {
   0% {
     opacity: 0.2;
   }
+
   50% {
     opacity: 1;
   }
+
   100% {
     opacity: 0.2;
   }
@@ -638,7 +642,7 @@ input[type='number'] {
 }
 
 .ant-pagination .ant-pagination-next {
-  @apply !border-1  !rounded-md !border-gray-200 scale-95;
+  @apply !border-1 !rounded-md !border-gray-200 scale-95;
 }
 
 .ant-pagination .ant-pagination-item-active {

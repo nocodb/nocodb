@@ -1247,10 +1247,10 @@ onKeyStroke('ArrowDown', onDown)
       <div
         v-if="draggedCol"
         :style="{
-                'min-width': gridViewCols[draggedCol.id!]?.width || '200px',
-                'max-width': gridViewCols[draggedCol.id!]?.width || '200px',
-                'width': gridViewCols[draggedCol.id!]?.width || '200px',
-              }"
+        'min-width': gridViewCols[draggedCol.id!]?.width || '200px',
+        'max-width': gridViewCols[draggedCol.id!]?.width || '200px',
+        'width': gridViewCols[draggedCol.id!]?.width || '200px',
+      }"
         class="border-r-1 border-l-1 border-gray-200 h-full"
       ></div>
     </div>
@@ -1821,9 +1821,8 @@ onKeyStroke('ArrowDown', onDown)
                         <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
                         {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}
                       </div>
-                      <div class="h-4 w-4 flex flex-row items-center justify-center">
-                        <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
-                      </div>
+
+                      <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
                     </div>
                     <div class="flex flex-row text-xs text-gray-400 ml-7.25">{{ $t('labels.addRowGrid') }}</div>
                   </div>
@@ -1837,9 +1836,8 @@ onKeyStroke('ArrowDown', onDown)
                         <GeneralIcon class="h-4.5 w-4.5" icon="article" />
                         {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
                       </div>
-                      <div class="h-4 w-4 flex flex-row items-center justify-center">
-                        <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
-                      </div>
+
+                      <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
                     </div>
                     <div class="flex flex-row text-xs text-gray-400 ml-7.05">{{ $t('labels.addRowForm') }}</div>
                   </div>
@@ -1879,6 +1877,7 @@ onKeyStroke('ArrowDown', onDown)
   .nc-grid-add-edit-column {
     @apply bg-gray-50;
   }
+
   .nc-grid-add-new-cell:hover td {
     @apply text-black !bg-gray-50;
   }
@@ -1999,6 +1998,7 @@ onKeyStroke('ArrowDown', onDown)
     thead th:nth-child(2) {
       @apply border-r-1 !border-r-gray-50;
     }
+
     tbody td:nth-child(2) {
       @apply border-r-1 !border-r-gray-50;
     }

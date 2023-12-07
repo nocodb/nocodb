@@ -121,7 +121,7 @@ watch(columns, () => {
             <component
               :is="iconMap.check"
               v-if="search.field === op.value"
-              id="selected-item-icon"
+              id="nc-selected-item-icon"
               class="text-primary w-4 h-4"
             />
           </div>

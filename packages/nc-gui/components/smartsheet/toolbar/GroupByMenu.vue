@@ -253,7 +253,7 @@ watch(meta, async () => {
                   <component
                     :is="iconMap.check"
                     v-if="group.sort === option.value"
-                    id="selected-item-icon"
+                    id="nc-selected-item-icon"
                     class="text-primary w-4 h-4"
                   />
                 </div>

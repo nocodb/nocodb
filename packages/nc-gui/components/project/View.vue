@@ -35,6 +35,8 @@ const baseSettingsState = ref('')
 const userCount = isEeUI ? workspaceUserCount : baseUserCount
 
 const updateBaseUserCount = async () => {
+  if (!baseUserCount) return
+
   try {
     const { totalRows } = await getProjectUsers({
       baseId: activeProjectId.value!,
@@ -86,7 +88,6 @@ watch(
     if (newVal && oldVal === undefined) {
       updateBaseUserCount()
     }
-    return
   },
   { immediate: true },
 )

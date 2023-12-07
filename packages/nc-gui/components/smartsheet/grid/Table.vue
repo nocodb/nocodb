@@ -1005,7 +1005,13 @@ const showFillHandle = computed(
     !readOnly.value &&
     !editEnabled.value &&
     (!selectedRange.isEmpty() || (activeCell.row !== null && activeCell.col !== null)) &&
-    !dataRef.value[(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) ?? -1]?.rowMeta?.new,
+    !dataRef.value[(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) ?? -1]?.rowMeta?.new &&
+    activeCell.col !== null &&
+    !(
+      isLookup(fields.value[activeCell.col]) ||
+      isRollup(fields.value[activeCell.col]) ||
+      isFormula(fields.value[activeCell.col])
+    ),
 )
 
 watch(

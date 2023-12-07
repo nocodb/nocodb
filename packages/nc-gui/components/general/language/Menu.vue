@@ -21,7 +21,7 @@ async function changeLanguage(lang: string) {
 </script>
 
 <template>
-  <a-menu-item class="mt-1 group">
+  <a-menu-item class="group rounded-md !my-0.5">
     <a
       href="https://docs.nocodb.com/engineering/translation/#how-to-contribute--for-community-members"
       target="_blank"
@@ -36,7 +36,7 @@ async function changeLanguage(lang: string) {
     v-for="[key, lang] of languages"
     :key="key"
     :class="key === locale ? '!bg-primary bg-opacity-10 text-primary' : ''"
-    class="group rounded-md"
+    class="group rounded-md !my-0.5"
     :value="key"
     @click="changeLanguage(key)"
   >

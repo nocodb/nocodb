@@ -2,6 +2,7 @@
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, TableType, UITypes } from 'nocodb-sdk'
 import { isLinksOrLTAR, isNumericCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import type { Ref } from '#imports'
 import {
   MetaInj,
   computed,
@@ -99,12 +100,12 @@ const cellIcon = (column: ColumnType) =>
     columnMeta: column,
   })
 
-const aggFunctionsList: Record<string, string>[] = ref([])
+const aggFunctionsList: Ref<Record<string, string>[]> = ref([])
 
 watch(
   () => vModel.value.fk_rollup_column_id,
   () => {
-    const childFieldColumn = columns.value?.find((column) => column.id === vModel.value.fk_rollup_column_id)
+    const childFieldColumn = columns.value?.find((column: ColumnType) => column.id === vModel.value.fk_rollup_column_id)
     const showNumericFunctions = isNumericCol(childFieldColumn)
     aggFunctionsList.value = [
       // functions for non-numeric types,
@@ -112,12 +113,12 @@ watch(
       { text: t('datatype.Count'), value: 'count' },
       { text: t('general.min'), value: 'min' },
       { text: t('general.max'), value: 'max' },
+      { text: t('general.countDistinct'), value: 'countDistinct' },
       ...(showNumericFunctions
         ? [
             // functions for numeric type only
             { text: t('general.avg'), value: 'avg' },
             { text: t('general.sum'), value: 'sum' },
-            { text: t('general.countDistinct'), value: 'countDistinct' },
             { text: t('general.sumDistinct'), value: 'sumDistinct' },
             { text: t('general.avgDistinct'), value: 'avgDistinct' },
           ]

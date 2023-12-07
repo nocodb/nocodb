@@ -63,7 +63,9 @@ const localState = computed({
       return undefined
     }
 
-    return dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue, dateFormat.value)
+    const format = picker.value === 'month' ? dateFormat : 'YYYY-MM-DD'
+
+    return dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue, format)
   },
   set(val?: dayjs.Dayjs) {
     if (!val) {

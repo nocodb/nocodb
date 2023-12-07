@@ -4713,8 +4713,8 @@ class BaseModelSqlv2 {
       }
 
       if (col.uidt === UITypes.Date) {
-        const dateFormat = col.meta.date_format;
-        if (isDateMonthFormat(dateFormat)) {
+        const dateFormat = col.meta?.date_format;
+        if (dateFormat && isDateMonthFormat(dateFormat)) {
           d[col.title] = dayjs(d[col.title], dateFormat).format(dateFormat);
         }
         continue;

@@ -279,10 +279,16 @@ if (props.fromTableExplorer) {
                 <GeneralIcon icon="arrowDown" class="text-gray-700" />
               </template>
               <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
-                <div class="flex gap-1 items-center">
+                <div class="flex gap-2 items-center">
                   <component :is="opt.icon" class="text-gray-700 mx-1" />
-                  {{ opt.name }}
+                  <div class="flex-1">{{ opt.name }}</div>
                   <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
+                  <component
+                    :is="iconMap.check"
+                    v-if="formState.uidt === opt.name"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4"
+                  />
                 </div>
               </a-select-option>
             </a-select>

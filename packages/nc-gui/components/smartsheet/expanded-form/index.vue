@@ -585,6 +585,7 @@ export default {
         </template>
         <template v-else>
           <div class="flex flex-row w-full">
+            
             <NcButton
               v-if="props.showNextPrevIcons && !isFirstRow"
               v-e="['c:row-expand:prev']"
@@ -663,6 +664,7 @@ export default {
                       '!bg-gray-50 !px-0 !select-text': isReadOnlyVirtualCell(col),
                     }"
                   >
+                  
                     <LazySmartsheetVirtualCell
                       v-if="isVirtualCol(col)"
                       v-model="_row.row[col.title]"

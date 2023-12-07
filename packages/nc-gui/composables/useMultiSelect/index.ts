@@ -161,6 +161,9 @@ export function useMultiSelect(
         // therefore, we reformat the value here to display with the formatted one
         // e.g. 2023-06-03 -> 2023-06
         textToCopy = dayjs(textToCopy, dateFormat).format(dateFormat)
+      } else {
+        // e.g. 2023-06-03 (in DB) -> 03/06/2023 (in UI)
+        textToCopy = dayjs(textToCopy, 'YYYY-MM-DD').format(dateFormat)
       }
     }
 

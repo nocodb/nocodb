@@ -451,11 +451,19 @@ const toggleModal = (val: boolean) => {
               <a-select
                 v-model:value="formState.dataSource.client"
                 class="nc-extdb-db-type"
-                dropdown-class-name="nc-dropdown-ext-db-type"
+                dropdown-class-name="nc-dropdown-ext-db-type !px-1.5"
                 @change="onClientChange"
               >
-                <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
-                  >{{ client.text }}
+                <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value">
+                  <div class="flex items-center gap-2 justify-between">
+                    <div>{{ client.text }}</div>
+                    <component
+                      :is="iconMap.check"
+                      v-if="formState.dataSource.client === client.value"
+                      id="nc-selected-item-icon"
+                      class="text-primary w-4 h-4"
+                    />
+                  </div>
                 </a-select-option>
               </a-select>
             </a-form-item>
@@ -532,10 +540,20 @@ const toggleModal = (val: boolean) => {
                   <a-form-item label="SSL mode">
                     <a-select
                       v-model:value="formState.sslUse"
-                      dropdown-class-name="nc-dropdown-ssl-mode"
+                      dropdown-class-name="nc-dropdown-ssl-mode !px-1.5"
                       @select="onSSLModeChange"
                     >
-                      <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }} </a-select-option>
+                      <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">
+                        <div class="flex items-center gap-2 justify-between">
+                          <div>{{ opt }}</div>
+                          <component
+                            :is="iconMap.check"
+                            v-if="formState?.sslUse === opt"
+                            id="nc-selected-item-icon"
+                            class="text-primary w-4 h-4"
+                          />
+                        </div>
+                      </a-select-option>
                     </a-select>
                   </a-form-item>
 
@@ -617,18 +635,38 @@ const toggleModal = (val: boolean) => {
                   <a-form-item :label="$t('labels.inflection.tableName')">
                     <a-select
                       v-model:value="formState.inflection.inflectionTable"
-                      dropdown-class-name="nc-dropdown-inflection-table-name"
+                      dropdown-class-name="nc-dropdown-inflection-table-name !px-1.5"
                     >
-                      <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }} </a-select-option>
+                      <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">
+                        <div class="flex items-center gap-2 justify-between">
+                          <div>{{ tp }}</div>
+                          <component
+                            :is="iconMap.check"
+                            v-if="formState?.inflection?.inflectionTable === tp"
+                            id="nc-selected-item-icon"
+                            class="text-primary w-4 h-4"
+                          />
+                        </div>
+                      </a-select-option>
                     </a-select>
                   </a-form-item>
 
                   <a-form-item :label="$t('labels.inflection.columnName')">
                     <a-select
                       v-model:value="formState.inflection.inflectionColumn"
-                      dropdown-class-name="nc-dropdown-inflection-column-name"
+                      dropdown-class-name="nc-dropdown-inflection-column-name !px-1.5"
                     >
-                      <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }} </a-select-option>
+                      <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp"
+                        ><div class="flex items-center gap-2 justify-between">
+                          <div>{{ tp }}</div>
+                          <component
+                            :is="iconMap.check"
+                            v-if="formState?.inflection?.inflectionColumn === tp"
+                            id="nc-selected-item-icon"
+                            class="text-primary w-4 h-4"
+                          />
+                        </div>
+                      </a-select-option>
                     </a-select>
                   </a-form-item>
 

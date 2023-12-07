@@ -18,12 +18,12 @@ export const dateMonthFormats = ['YYYY-MM', 'YYYY MM'];
 export const timeFormats = ['HH:mm', 'HH:mm:ss', 'HH:mm:ss.SSS'];
 
 export const dateFormats = [
+  'YYYY-MM-DD',
+  'YYYY/MM/DD',
   'DD-MM-YYYY',
   'MM-DD-YYYY',
-  'YYYY-MM-DD',
   'DD/MM/YYYY',
   'MM/DD/YYYY',
-  'YYYY/MM/DD',
   'DD MM YYYY',
   'MM DD YYYY',
   'YYYY MM DD',

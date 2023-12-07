@@ -472,8 +472,11 @@ onBeforeUnmount(() => {
             >
               <template v-for="compSubOp of comparisonSubOpList(filter.comparison_op)" :key="compSubOp.value">
                 <a-select-option v-if="isComparisonSubOpAllowed(filter, compSubOp)" :value="compSubOp.value">
-                  <div class="flex items-center w-full justify-between w-full gap-2">
-                    <div class="truncate flex-1">{{ compSubOp.text }}</div>
+                  <div class="flex items-center w-full justify-between w-full gap-2 max-w-40">
+                    <NcTooltip show-on-truncate-only class="truncate flex-1">
+                      <template #title>{{ compSubOp.text }}</template>
+                      {{ compSubOp.text }}
+                    </NcTooltip>
                     <component
                       v-if="filter.comparison_sub_op === compSubOp.value"
                       id="selected-item-icon"

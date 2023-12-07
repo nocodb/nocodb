@@ -666,7 +666,7 @@
     "enablePublicAccess": "Povolit veřejný přístup",
     "doYouWantToSaveTheChanges": "Do you want to save the changes ?",
     "editingAccess": "Editing access",
-    "enabledPublicViewing": "Enable public viewing",
+    "enabledPublicViewing": "Enable Public Viewing",
     "restrictAccessWithPassword": "Restrict access with password",
     "manageProjectAccess": "Správa přístupu k projektu",
     "allowDownload": "Allow Download",
@@ -719,7 +719,7 @@
     "groupBy": "Seskupit dle",
     "addSubGroup": "Add subgroup",
     "shareBase": {
-      "label": "Sdílet projekt",
+      "label": "Share Base",
       "disable": "Zakázat sdílenou základnu",
       "enable": "Kdokoli s odkazem",
       "link": "Sdílený základní odkaz"

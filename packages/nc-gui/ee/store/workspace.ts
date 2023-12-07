@@ -10,13 +10,11 @@ interface NcWorkspace extends WorkspaceType {
   edit?: boolean
   temp_title?: string | null
   roles?: string
-  collaborators?: WorkspaceUserType[]
 }
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   // todo: update type in swagger
   const basesStore = useBases()
-  const { clearBases } = basesStore
 
   const { loadRoles } = useRoles()
 
@@ -185,7 +183,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       })
 
       collaborators.value = list
-      activeWorkspace.value.collaborators = list
       workspaceUserCount.value = pageInfo.totalRows
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -279,7 +276,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (force || !wsState || !(wsState as any)?.limits) {
       await loadWorkspace(workspaceId)
       await loadRoles()
-      await loadCollaborators()
     }
 
     if (activeWorkspace.value?.status === WorkspaceStatus.CREATED) {
@@ -382,7 +378,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const clearWorkspaces = async () => {
-    await clearBases()
+    await basesStore.clearBases()
     workspaces.value.clear()
   }
   const upgradeActiveWorkspace = async () => {

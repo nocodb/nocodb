@@ -45,9 +45,11 @@ const isEditable = inject(EditModeInj, ref(false))
 
 const activeCell = inject(ActiveCellInj, ref(false))
 
-const workspaceStore = useWorkspace()
+const basesStore = useBases()
 
-const { activeWorkspace } = storeToRefs(workspaceStore)
+const { basesUser, activeProjectId } = storeToRefs(basesStore)
+
+const baseUsers = computed(() => (activeProjectId.value ? basesUser.value.get(activeProjectId.value) || [] : []))
 
 // use both ActiveCellInj or EditModeInj to determine the active state
 // since active will be false in case of form view
@@ -75,7 +77,7 @@ const options = computed<{ id: string; email: string; display_name: string }[]>(
   const collaborators: { id: string; email: string; display_name: string }[] = []
 
   collaborators.push(
-    ...(activeWorkspace.value.collaborators?.map((user: any) => ({
+    ...(baseUsers.value?.map((user: any) => ({
       id: user.id,
       email: user.email,
       display_name: user.display_name,
@@ -149,6 +151,11 @@ watch(isOpen, (n, _o) => {
       aselect.value?.$el?.querySelector('input')?.focus()
     }
   }
+})
+
+// set isOpen to false when active cell is changed
+watch(active, (n, _o) => {
+  if (!n) isOpen.value = false
 })
 
 useSelectedCellKeyupListener(activeCell, (e) => {
@@ -240,9 +247,10 @@ useEventListener(document, 'click', handleClose, true)
 
 // search with email
 const filterOption = (input: string, option: any) => {
-  const email = options.value.find((o) => o.id === option.value)?.email
-  if (email) {
-    return email.toLowerCase().includes(input.toLowerCase())
+  const opt = options.value.find((o) => o.id === option.value)
+  const searchVal = opt?.display_name || opt?.email
+  if (searchVal) {
+    return searchVal.toLowerCase().includes(input.toLowerCase())
   }
 }
 </script>

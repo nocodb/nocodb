@@ -189,8 +189,6 @@ export default class Base extends BaseCE {
       {
         base_id: baseId,
         workspace_id: (base as Base).fk_workspace_id,
-        offset: 0,
-        limit: 1000,
       },
       ncMeta,
     );

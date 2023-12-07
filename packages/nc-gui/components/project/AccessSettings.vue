@@ -8,11 +8,10 @@ import {
   timeAgo,
 } from 'nocodb-sdk'
 import type { WorkspaceUserRoles } from 'nocodb-sdk'
-import InfiniteLoading from 'v3-infinite-loading'
 import { isEeUI, storeToRefs } from '#imports'
 
 const basesStore = useBases()
-const { getProjectUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
+const { getBaseUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
 const { activeProjectId } = storeToRefs(basesStore)
 
 const { orgRoles, baseRoles } = useRoles()
@@ -30,7 +29,6 @@ interface Collaborators {
 const collaborators = ref<Collaborators[]>([])
 const totalCollaborators = ref(0)
 const userSearchText = ref('')
-const currentPage = ref(0)
 
 const isLoading = ref(false)
 const isSearching = ref(false)
@@ -38,18 +36,14 @@ const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>(
 
 const loadCollaborators = async () => {
   try {
-    currentPage.value += 1
-
-    const { users, totalRows } = await getProjectUsers({
+    const { users, totalRows } = await getBaseUsers({
       baseId: activeProjectId.value!,
-      page: currentPage.value,
       ...(!userSearchText.value ? {} : ({ searchText: userSearchText.value } as any)),
-      limit: 20,
+      force: true,
     })
 
     totalCollaborators.value = totalRows
     collaborators.value = [
-      ...collaborators.value,
       ...users.map((user: any) => ({
         ...user,
         base_roles: user.roles,
@@ -64,24 +58,6 @@ const loadCollaborators = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
-}
-
-const loadListData = async ($state: any) => {
-  const prevUsersCount = collaborators.value?.length || 0
-  if (collaborators.value?.length === totalCollaborators.value) {
-    $state.complete()
-    return
-  }
-  $state.loading()
-  // const oldPagesCount = currentPage.value || 0
-
-  await loadCollaborators()
-
-  if (prevUsersCount === collaborators.value?.length) {
-    $state.complete()
-    return
-  }
-  $state.loaded()
 }
 
 const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
@@ -120,7 +96,6 @@ watchDebounced(
   async () => {
     isSearching.value = true
 
-    currentPage.value = 0
     totalCollaborators.value = 0
     collaborators.value = []
 
@@ -224,17 +199,6 @@ onMounted(async () => {
             </div>
           </div>
         </div>
-
-        <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
-          <template #spinner>
-            <div class="flex flex-row w-full justify-center mt-2">
-              <GeneralLoader />
-            </div>
-          </template>
-          <template #complete>
-            <span></span>
-          </template>
-        </InfiniteLoading>
       </div>
     </template>
   </div>

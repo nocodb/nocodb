@@ -5,7 +5,7 @@ import { isEeUI } from '#imports'
 
 const basesStore = useBases()
 
-const { getProjectUsers } = basesStore
+const { getBaseUsers } = basesStore
 
 const { openedProject, activeProjectId, baseUserCount } = storeToRefs(basesStore)
 const { activeTables } = storeToRefs(useTablesStore())
@@ -38,7 +38,7 @@ const updateBaseUserCount = async () => {
   if (!baseUserCount || !isUIAllowed('newUser')) return
 
   try {
-    const { totalRows } = await getProjectUsers({
+    const { totalRows } = await getBaseUsers({
       baseId: activeProjectId.value!,
       page: 1,
       searchText: undefined,

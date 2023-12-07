@@ -295,8 +295,6 @@ export default class Base implements BaseType {
     let base = await this.get(baseId);
     const users = await BaseUser.getUsersList({
       base_id: baseId,
-      offset: 0,
-      limit: 1000,
     });
 
     for (const user of users) {

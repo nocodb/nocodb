@@ -1,10 +1,11 @@
 import { ProjectRoles } from 'nocodb-sdk';
 import { BaseUser as BaseUserCE } from 'src/models';
 import type { BaseType } from 'nocodb-sdk';
-import { CacheScope, MetaTable } from '~/utils/globals';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { parseMetaProp } from '~/utils/modelUtils';
+import Base from '~/models/Base';
 
 export default class BaseUser extends BaseUserCE {
   fk_workspace_id?: string;
@@ -13,12 +14,78 @@ export default class BaseUser extends BaseUserCE {
     return baseUser && new BaseUser(baseUser);
   }
 
+  static async get(baseId: string, userId: string, ncMeta = Noco.ncMeta) {
+    let baseUser =
+      baseId &&
+      userId &&
+      (await NocoCache.get(
+        `${CacheScope.BASE_USER}:${baseId}:${userId}`,
+        CacheGetType.TYPE_OBJECT,
+      ));
+    if (!baseUser || !baseUser.roles) {
+      const base = await Base.get(baseId, ncMeta);
+      const workspace_id = (base as any)?.fk_workspace_id;
+      const queryBuilder = ncMeta
+        .knex(MetaTable.USERS)
+        .select(
+          `${MetaTable.USERS}.id`,
+          `${MetaTable.USERS}.email`,
+          `${MetaTable.USERS}.display_name`,
+          `${MetaTable.USERS}.invite_token`,
+          `${MetaTable.USERS}.roles as main_roles`,
+          `${MetaTable.USERS}.created_at as created_at`,
+          `${MetaTable.PROJECT_USERS}.base_id`,
+          `${MetaTable.PROJECT_USERS}.roles as roles`,
+          ...(workspace_id
+            ? [
+                `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
+                `${MetaTable.WORKSPACE_USER}.fk_workspace_id as workspace_id`,
+              ]
+            : []),
+        );
+
+      queryBuilder
+        .innerJoin(MetaTable.WORKSPACE_USER, function () {
+          this.on(
+            `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+            '=',
+            `${MetaTable.USERS}.id`,
+          ).andOn(
+            `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+            '=',
+            ncMeta.knex.raw('?', [workspace_id]),
+          );
+        })
+        .leftJoin(MetaTable.PROJECT_USERS, function () {
+          this.on(
+            `${MetaTable.PROJECT_USERS}.fk_user_id`,
+            '=',
+            `${MetaTable.USERS}.id`,
+          ).andOn(
+            `${MetaTable.PROJECT_USERS}.base_id`,
+            '=',
+            ncMeta.knex.raw('?', [baseId]),
+          );
+        });
+
+      queryBuilder.where(`${MetaTable.USERS}.id`, userId);
+
+      baseUser = await queryBuilder.first();
+
+      if (baseUser) {
+        await NocoCache.set(
+          `${CacheScope.BASE_USER}:${baseId}:${userId}`,
+          baseUser,
+        );
+      }
+    }
+    return this.castType(baseUser);
+  }
+
   public static async getUsersList(
     {
       base_id,
       workspace_id,
-      limit = 25,
-      offset = 0,
       query,
     }: {
       base_id: string;
@@ -38,6 +105,7 @@ export default class BaseUser extends BaseUserCE {
         .select(
           `${MetaTable.USERS}.id`,
           `${MetaTable.USERS}.email`,
+          `${MetaTable.USERS}.display_name`,
           `${MetaTable.USERS}.invite_token`,
           `${MetaTable.USERS}.roles as main_roles`,
           `${MetaTable.USERS}.created_at as created_at`,
@@ -50,10 +118,6 @@ export default class BaseUser extends BaseUserCE {
               ]
             : []),
         );
-
-      if (limit) {
-        queryBuilder.offset(offset).limit(limit);
-      }
 
       if (query) {
         queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);

@@ -175,7 +175,7 @@ watch(editEnabled, () => {
     :overlay-class-name="isVisible ? 'nc-textarea-dropdown-active' : undefined"
   >
     <div
-      class="flex flex-row pt-0.5 w-full"
+      class="flex flex-row pt-0.5 w-full rich-wrapper"
       :class="{
         'min-h-10': rowHeight !== 1,
         'min-h-6.5': rowHeight === 1,
@@ -239,7 +239,7 @@ watch(editEnabled, () => {
       <NcTooltip
         v-if="!isVisible"
         placement="bottom"
-        class="!absolute right-0 bottom-1 !hidden nc-text-area-expand-btn"
+        class="!absolute right-0 bottom-1 nc-text-area-expand-btn"
         :class="{ 'right-0 bottom-1': editEnabled, '!bottom-0': !isRichMode }"
       >
         <template #title>{{ $t('title.expand') }}</template>

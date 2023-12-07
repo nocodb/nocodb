@@ -154,7 +154,7 @@ const openDropDown = (e: Event) => {
   >
     <LazySmartsheetHeaderVirtualCellIcon v-if="column && !props.hideIcon" />
 
-    <NcTooltip placement="bottom" class="truncate name pl-1">
+    <NcTooltip placement="bottom" class="truncate name pl-1" show-on-truncate-only>
       <template #title>
         {{ tooltipMsg }}
       </template>

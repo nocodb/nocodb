@@ -3839,7 +3839,7 @@ class BaseModelSqlv2 {
         : [columnValue];
     for (let j = 0; j < columnValueArr.length; ++j) {
       const val = columnValueArr[j];
-      if (!options.includes(val)) {
+      if (!options.includes(val) && !options.includes(`'${val}'`)) {
         NcError.badRequest(
           `Invalid option "${val}" provided for column "${columnTitle}". Valid options are "${options.join(
             ', ',

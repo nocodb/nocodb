@@ -256,10 +256,10 @@ watch(
                   <GeneralIcon icon="threeDotVertical" class="text-inherit" />
                 </NcButton>
                 <template #overlay>
-                  <div class="flex flex-col p-0 items-start">
+                  <div class="flex flex-col p-1.5 items-start">
                     <NcButton
                       type="text"
-                      class="w-full !rounded-none"
+                      class="w-full !rounded-md !px-2"
                       :loading="isCopying"
                       :centered="false"
                       @click="copyWebhook(hook)"
@@ -267,7 +267,7 @@ watch(
                       <template #loading> {{ $t('general.duplicating') }} </template>
                       <div class="flex items-center gap-x-1"><GeneralIcon icon="copy" /> {{ $t('general.duplicate') }}</div>
                     </NcButton>
-                    <NcButton type="text" class="w-full !rounded-none" :centered="false" @click="openDeleteModal(hook.id!)">
+                    <NcButton type="text" class="w-full !rounded-md !px-2" :centered="false" @click="openDeleteModal(hook.id!)">
                       <div class="flex items-center justify-start gap-x-1 !text-red-500">
                         <GeneralIcon icon="delete" />
                         {{ $t('general.delete') }}

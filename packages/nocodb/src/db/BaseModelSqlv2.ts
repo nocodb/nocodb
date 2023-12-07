@@ -8,6 +8,7 @@ import { nocoExecute } from 'nc-help';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  isDateMonthFormat,
   isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
@@ -4711,6 +4712,13 @@ class BaseModelSqlv2 {
         continue;
       }
 
+      if (col.uidt === UITypes.Date) {
+        const dateFormat = col.meta.date_format;
+        if (isDateMonthFormat(dateFormat)) {
+          d[col.title] = dayjs(d[col.title], dateFormat).format(dateFormat);
+        }
+        continue;
+      }
       let keepLocalTime = true;
 
       if (this.isSqlite) {
@@ -4765,7 +4773,10 @@ class BaseModelSqlv2 {
       const dateTimeColumns = (
         childTable ? childTable.columns : this.model.columns
       ).filter(
-        (c) => c.uidt === UITypes.DateTime || c.uidt === UITypes.Formula,
+        (c) =>
+          c.uidt === UITypes.DateTime ||
+          c.uidt === UITypes.Date ||
+          c.uidt === UITypes.Formula,
       );
       if (dateTimeColumns.length) {
         if (Array.isArray(data)) {

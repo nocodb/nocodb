@@ -119,10 +119,10 @@ watch(columns, () => {
               {{ op.label }}
             </NcTooltip>
             <component
+              :is="iconMap.check"
               v-if="search.field === op.value"
               id="selected-item-icon"
               class="text-primary w-4 h-4"
-              :is="iconMap.check"
             />
           </div>
         </a-select-option>
@@ -143,7 +143,6 @@ watch(columns, () => {
     </a-input>
   </div>
 </template>
-
 
 <style scoped>
 :deep(input::placeholder) {

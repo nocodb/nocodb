@@ -251,10 +251,10 @@ watch(meta, async () => {
                 <div class="flex items-center justify-between gap-2">
                   <div class="truncate flex-1">{{ option.text }}</div>
                   <component
+                    :is="iconMap.check"
                     v-if="group.sort === option.value"
                     id="selected-item-icon"
                     class="text-primary w-4 h-4"
-                    :is="iconMap.check"
                   />
                 </div>
               </a-select-option>

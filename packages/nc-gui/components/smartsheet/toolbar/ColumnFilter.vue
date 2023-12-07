@@ -355,10 +355,10 @@ onBeforeUnmount(() => {
                       <div class="flex items-center w-full justify-between w-full gap-2">
                         <div class="truncate flex-1 capitalize">{{ op.value }}</div>
                         <component
+                          :is="iconMap.check"
                           v-if="filter.logical_op === op.value"
                           id="selected-item-icon"
                           class="text-primary w-4 h-4"
-                          :is="iconMap.check"
                         />
                       </div>
                     </a-select-option>
@@ -409,10 +409,10 @@ onBeforeUnmount(() => {
                 <div class="flex items-center w-full justify-between w-full gap-2">
                   <div class="truncate flex-1 capitalize">{{ op.value }}</div>
                   <component
+                    :is="iconMap.check"
                     v-if="filter.logical_op === op.value"
                     id="selected-item-icon"
                     class="text-primary w-4 h-4"
-                    :is="iconMap.check"
                   />
                 </div>
               </a-select-option>
@@ -444,10 +444,10 @@ onBeforeUnmount(() => {
                   <div class="flex items-center w-full justify-between w-full gap-2">
                     <div class="truncate flex-1">{{ compOp.text }}</div>
                     <component
+                      :is="iconMap.check"
                       v-if="filter.comparison_op === compOp.value"
                       id="selected-item-icon"
                       class="text-primary w-4 h-4"
-                      :is="iconMap.check"
                     />
                   </div>
                 </a-select-option>
@@ -478,10 +478,10 @@ onBeforeUnmount(() => {
                       {{ compSubOp.text }}
                     </NcTooltip>
                     <component
+                      :is="iconMap.check"
                       v-if="filter.comparison_sub_op === compSubOp.value"
                       id="selected-item-icon"
                       class="text-primary w-4 h-4"
-                      :is="iconMap.check"
                     />
                   </div>
                 </a-select-option>

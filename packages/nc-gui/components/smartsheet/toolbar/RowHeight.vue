@@ -73,12 +73,12 @@ useMenuCloseOnEsc(open)
           <div class="nc-row-height-option" @click="updateRowHeight(0)">
             <GeneralIcon icon="heightShort" class="nc-row-height-icon" />
             {{ $t('objects.heightClass.short') }}
-            <component v-if="!(view?.view as GridType).row_height" class="text-primary w-4 h-4" :is="iconMap.check" />
+            <component :is="iconMap.check" v-if="!(view?.view as GridType).row_height" class="text-primary w-4 h-4" />
           </div>
           <div class="nc-row-height-option" @click="updateRowHeight(1)">
             <GeneralIcon icon="heightMedium" class="nc-row-height-icon" />
             {{ $t('objects.heightClass.medium') }}
-            <component v-if=" (view?.view as GridType).row_height === 1" class="text-primary w-4 h-4" :is="iconMap.check" />
+            <component :is="iconMap.check" v-if=" (view?.view as GridType).row_height === 1" class="text-primary w-4 h-4" />
           </div>
           <div
             class="nc-row-height-option"
@@ -87,7 +87,7 @@ useMenuCloseOnEsc(open)
           >
             <GeneralIcon icon="heightTall" class="nc-row-height-icon" />
             {{ $t('objects.heightClass.tall') }}
-            <component v-if=" (view?.view as GridType).row_height === 2" class="text-primary w-4 h-4" :is="iconMap.check" />
+            <component :is="iconMap.check" v-if=" (view?.view as GridType).row_height === 2" class="text-primary w-4 h-4" />
           </div>
           <div
             class="nc-row-height-option"
@@ -96,7 +96,7 @@ useMenuCloseOnEsc(open)
           >
             <GeneralIcon icon="heightExtra" class="nc-row-height-icon" />
             {{ $t('objects.heightClass.extra') }}
-            <component v-if=" (view?.view as GridType).row_height === 3" class="text-primary w-4 h-4" :is="iconMap.check" />
+            <component :is="iconMap.check" v-if=" (view?.view as GridType).row_height === 3" class="text-primary w-4 h-4" />
           </div>
         </div>
       </div>

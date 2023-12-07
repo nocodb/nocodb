@@ -248,7 +248,15 @@ watch(meta, async () => {
                 :key="j"
                 :value="option.value"
               >
-                <span>{{ option.text }}</span>
+                <div class="flex items-center justify-between gap-2">
+                  <div class="truncate flex-1">{{ option.text }}</div>
+                  <component
+                    v-if="group.sort === option.value"
+                    id="selected-item-icon"
+                    class="text-primary w-5 h-5"
+                    :is="iconMap.check"
+                  />
+                </div>
               </a-select-option>
             </NcSelect>
 

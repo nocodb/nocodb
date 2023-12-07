@@ -162,7 +162,7 @@ watch(editorDom, () => {
       class="flex flex-col nc-textarea-rich-editor w-full"
       :class="{
         'ml-1 mt-2.5 flex-grow': props.fullMode,
-        'nc-scrollbar-md': !props.fullMode && !props.readonly,
+        'nc-scrollbar-md': !props.fullMode,
       }"
     />
   </div>

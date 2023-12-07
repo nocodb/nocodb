@@ -68,6 +68,12 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 
 # Quick try
 
+## One Click Deploy
+
+Deploy a self-hosted version in one-click with [Dome](https://app.trydome.io/signup?package=nocodb):
+
+[![Deploy to Dome](https://trydome.io/button.svg)](https://app.trydome.io/signup?package=nocodb)
+
 ## Docker
 
 ```bash

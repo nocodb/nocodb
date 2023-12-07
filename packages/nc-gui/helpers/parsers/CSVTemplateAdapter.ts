@@ -57,6 +57,7 @@ export default class CSVTemplateAdapter {
     this.tables[tableIdx] = []
 
     for (const [columnIdx, columnName] of columnNames.entries()) {
+      const title = ((columnNameRowExist && columnName.toString().trim()) || `Field ${columnIdx + 1}`).trim()
       let cn: string = ((columnNameRowExist && columnName.toString().trim()) || `field_${columnIdx + 1}`)
         .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
         .trim()
@@ -69,6 +70,7 @@ export default class CSVTemplateAdapter {
       this.distinctValues[columnIdx] = new Set<string>()
       this.columnValues[columnIdx] = []
       tableObj.columns.push({
+        title,
         column_name: cn,
         ref_column_name: cn,
         meta: {},

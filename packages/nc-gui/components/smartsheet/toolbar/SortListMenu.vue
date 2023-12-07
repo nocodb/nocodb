@@ -138,7 +138,7 @@ onMounted(() => {
           <template v-for="(sort, i) of sorts" :key="i">
             <SmartsheetToolbarFieldListAutoCompleteDropdown
               v-model="sort.fk_column_id"
-              class="flex caption nc-sort-field-select min-w-40 flex-grow"
+              class="flex caption nc-sort-field-select w-44 flex-grow"
               :columns="columns"
               is-sort
               @click.stop

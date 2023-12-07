@@ -127,7 +127,6 @@ const openListDlg = () => {
         @click.stop="openListDlg"
       />
     </div>
-
     <LazyVirtualCellComponentsListItems
       v-if="listItemsDlg || childListDlg"
       v-model="listItemsDlg"

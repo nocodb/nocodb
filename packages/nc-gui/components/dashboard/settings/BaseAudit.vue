@@ -136,13 +136,14 @@ const columns = [
         v-model:page-size="currentLimit"
         :total="+totalRows"
         show-less-items
+        class="pagination"
         @change="loadAudits"
       />
     </div>
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .nc-audit-table pre {
   display: table;
   table-layout: fixed;
@@ -150,5 +151,10 @@ const columns = [
   white-space: break-spaces;
   font-size: unset;
   font-family: unset;
+}
+.pagination {
+  .ant-select-dropdown {
+    @apply !border-1 !border-gray-200;
+  }
 }
 </style>

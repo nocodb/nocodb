@@ -75,6 +75,7 @@
     "matterMost": "Mattermost",
     "twilio": "Twilio",
     "whatsappTwilio": "WhatsApp Twilio",
+    "quote": "Quote",
     "submit": "Iesniegt",
     "create": "Izveidot",
     "createEntity": "Create {entity}",
@@ -82,6 +83,7 @@
     "creatingEntity": "Creating {entity}",
     "details": "Details",
     "skip": "Skip",
+    "code": "Code",
     "duplicate": "Dublikāts",
     "duplicating": "Duplicating",
     "activate": "Activate",
@@ -411,7 +413,18 @@
     }
   },
   "labels": {
+    "heading1": "Heading 1",
+    "heading2": "Heading 2",
+    "heading3": "Heading 3",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "strike": "Strike",
+    "taskList": "Task List",
+    "bulletList": "Bullet List",
+    "numberedList": "Numbered List",
     "downloadData": "Download Data",
+    "blockQuote": "Block Quote",
     "noToken": "No Token",
     "tokenLimit": "Only one token per user is allowed",
     "duplicateAttachment": "File with name {filename} already attached",
@@ -423,6 +436,7 @@
     "headerName": "Header Name",
     "icon": "Icon",
     "max": "Max",
+    "enableRichText": "Enable Rich Text",
     "idColon": "Id:",
     "copiedRecordURL": "Copied Record URL",
     "copyRecordURL": "Copy Record URL",
@@ -567,6 +581,7 @@
     "childTable": "Apakštabula",
     "childColumn": "Apakškolonna",
     "childField": "Child field",
+    "joinCloudForFree": "Join Cloud for Free",
     "linkToAnotherRecord": "Saite uz citu ierakstu",
     "links": "Links",
     "onUpdate": "Atjaunojot",
@@ -651,7 +666,7 @@
     "enablePublicAccess": "Enable Public Access",
     "doYouWantToSaveTheChanges": "Do you want to save the changes ?",
     "editingAccess": "Editing access",
-    "enabledPublicViewing": "Enable public viewing",
+    "enabledPublicViewing": "Enable Public Viewing",
     "restrictAccessWithPassword": "Restrict access with password",
     "manageProjectAccess": "Manage Base Access",
     "allowDownload": "Allow Download",
@@ -704,7 +719,7 @@
     "groupBy": "Group By",
     "addSubGroup": "Add subgroup",
     "shareBase": {
-      "label": "Share base",
+      "label": "Share Base",
       "disable": "Atspējot koplietošanu",
       "enable": "Jebkurš ar saiti",
       "link": "Koplietota pamatsaite"
@@ -1033,6 +1048,7 @@
       "duplicateTable": "Are you sure you want to duplicate the table?"
     },
     "info": {
+      "disabledAsViewLocked": "Disabled as View is locked",
       "basesMigrated": "Bases are migrated. Please try again.",
       "pasteNotSupported": "Aktīvajā šūnā netiek atbalstīta operācija \"ielīmēt\".",
       "roles": {

@@ -172,7 +172,8 @@ useEventListener(NcButton, 'mousedown', () => {
   @apply p-0 h-5.75 min-w-5.75 rounded-md;
 }
 
-.nc-button.ant-btn[disabled] {
+.nc-button.ant-btn[disabled],
+.ant-btn-text.nc-button.ant-btn[disabled] {
   box-shadow: none !important;
   @apply bg-gray-50 border-0 text-gray-300 cursor-not-allowed md:(hover:bg-gray-50);
 }

@@ -34,10 +34,6 @@ export function useData(args: {
 }) {
   const { meta, viewMeta, formattedData, paginationData, callbacks } = args
 
-  if (!meta) {
-    throw new Error('Table meta is not available')
-  }
-
   const { t } = useI18n()
 
   const { getMeta, metas } = useMetas()

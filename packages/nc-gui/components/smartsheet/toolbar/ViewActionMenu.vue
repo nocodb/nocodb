@@ -239,44 +239,48 @@ const onDelete = async () => {
 
         <LazySmartsheetToolbarExportSubActions />
       </NcSubMenu>
-      <NcDivider />
     </template>
 
-    <NcSubMenu v-if="isUIAllowed('viewCreateOrEdit')" key="lock-type" class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0">
-      <template #title>
-        <div
-          v-e="[
-            'c:navdraw:preview-as',
-            {
-              sidebar: props.inSidebar,
-            },
-          ]"
-          class="flex flex-row items-center gap-x-3"
-        >
-          <div>
-            {{ $t('labels.viewMode') }}
-          </div>
-          <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-brand-50">
-            <LazySmartsheetToolbarLockType
-              hide-tick
-              :type="lockType"
-              class="flex nc-view-actions-lock-type !text-brand-500 !flex-shrink"
-            />
-          </div>
-          <div class="flex flex-grow"></div>
-        </div>
-      </template>
+    <template v-if="isUIAllowed('viewCreateOrEdit')">
+      <NcDivider />
 
-      <template #expandIcon></template>
-      <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('labels.viewMode') }}</div>
-      <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">
-        <LazySmartsheetToolbarLockType :type="LockType.Collaborative" @click="changeLockType(LockType.Collaborative)" />
-      </a-menu-item>
+      <NcSubMenu key="lock-type" class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0">
+        <template #title>
+          <div
+            v-e="[
+              'c:navdraw:preview-as',
+              {
+                sidebar: props.inSidebar,
+              },
+            ]"
+            class="flex flex-row items-center gap-x-3"
+          >
+            <div>
+              {{ $t('labels.viewMode') }}
+            </div>
+            <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-brand-50">
+              <LazySmartsheetToolbarLockType
+                hide-tick
+                :type="lockType"
+                class="flex nc-view-actions-lock-type !text-brand-500 !flex-shrink"
+              />
+            </div>
+            <div class="flex flex-grow"></div>
+          </div>
+        </template>
 
-      <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">
-        <LazySmartsheetToolbarLockType :type="LockType.Locked" @click="changeLockType(LockType.Locked)" />
-      </a-menu-item>
-    </NcSubMenu>
+        <template #expandIcon></template>
+        <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('labels.viewMode') }}</div>
+        <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">
+          <LazySmartsheetToolbarLockType :type="LockType.Collaborative" @click="changeLockType(LockType.Collaborative)" />
+        </a-menu-item>
+
+        <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">
+          <LazySmartsheetToolbarLockType :type="LockType.Locked" @click="changeLockType(LockType.Locked)" />
+        </a-menu-item>
+      </NcSubMenu>
+    </template>
+
     <template v-if="!view.is_default">
       <NcDivider />
       <NcTooltip v-if="lockType === LockType.Locked">

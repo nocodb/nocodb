@@ -271,7 +271,7 @@ const isColDisabled = computed(() => {
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
-    :dropdown-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''}`"
+    :dropdown-class-name="`${randomClass} nc-picker-datetime children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
     :open="isOpen"
     @click="clickHandler"
     @ok="open = !open"

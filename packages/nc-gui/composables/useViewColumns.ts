@@ -275,9 +275,9 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     }
 
     // reload view columns when active view changes
-    // or when columns count changes(delete/add)
+    // or when columns changes(delete/add)
     watch(
-      [() => view?.value?.id, () => meta.value?.columns?.length],
+      [() => view?.value?.id, () => meta.value?.columns],
       async ([newViewId]) => {
         // reload only if view belongs to current table
         if (newViewId && view.value?.fk_model_id === meta.value?.id) {

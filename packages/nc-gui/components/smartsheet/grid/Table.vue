@@ -557,6 +557,8 @@ const {
       return true
     }
 
+    if (isExpandedCellInputExist()) return
+
     // skip keyboard event handling if there is a drawer / modal
     if (isDrawerOrModalExist()) {
       return true
@@ -565,7 +567,9 @@ const {
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     const altOrOptionKey = e.altKey
     if (e.key === ' ') {
-      if (isCellActive.value && !editEnabled.value && hasEditPermission.value && activeCell.row !== null) {
+      const isRichModalOpen = isExpandedCellInputExist()
+
+      if (isCellActive.value && !editEnabled.value && hasEditPermission.value && activeCell.row !== null && !isRichModalOpen) {
         e.preventDefault()
         const row = dataRef.value[activeCell.row]
         expandForm?.(row)
@@ -760,6 +764,9 @@ onClickOutside(tableBodyEl, (e) => {
   if (contextMenu.value) return
 
   if (activeCell.row === null || activeCell.col === null) return
+
+  const isRichModalOpen = isExpandedCellInputExist()
+  if (isRichModalOpen) return
 
   const activeCol = fields.value[activeCell.col]
 
@@ -1061,14 +1068,18 @@ useEventListener(document, 'mouseup', () => {
 
 /** handle keypress events */
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
-  if (e.key === 'Alt') {
+  const isRichModalOpen = isExpandedCellInputExist()
+
+  if (e.key === 'Alt' && !isRichModalOpen) {
     altModifier.value = true
   }
 })
 
 /** handle keypress events */
 useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
-  if (e.key === 'Alt') {
+  const isRichModalOpen = isExpandedCellInputExist()
+
+  if (e.key === 'Alt' && !isRichModalOpen) {
     altModifier.value = false
     disableUrlOverlay.value = false
   }
@@ -1793,7 +1804,7 @@ onKeyStroke('ArrowDown', onDown)
             <template #overlay>
               <div class="relative overflow-visible min-h-17 w-10">
                 <div
-                  class="absolute -top-19 flex flex-col h-34.5 w-70 bg-white rounded-lg justify-start overflow-hidden"
+                  class="absolute -top-19 flex flex-col h-34.5 w-70 bg-white rounded-lg border-1 border-gray-200 justify-start overflow-hidden"
                   style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
                   :class="{
                     '-left-44': !isAddNewRecordGridMode,
@@ -1836,7 +1847,7 @@ onKeyStroke('ArrowDown', onDown)
               </div>
             </template>
             <template #icon>
-              <component :is="iconMap.arrowUp" class="text-gray-600 h-4" />
+              <component :is="iconMap.arrowUp" class="text-gray-600 h-4 w-4" />
             </template>
           </a-dropdown-button>
         </div>

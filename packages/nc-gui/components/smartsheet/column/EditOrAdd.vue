@@ -220,9 +220,10 @@ if (props.fromTableExplorer) {
     :class="{
       'bg-white': !props.fromTableExplorer,
       'w-[400px]': !props.embedMode,
+      '!w-146': isTextArea(formState) && formState.meta.richMode,
       '!w-[600px]': formState.uidt === UITypes.Formula && !props.embedMode,
       '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode && !appInfo.ee,
-      'shadow-lg border-1 border-gray-50 shadow-gray-100 rounded-md p-6': !embedMode,
+      'shadow-lg border-1 border-gray-200 shadow-gray-300 rounded-xl p-6': !embedMode,
     }"
     @keydown="handleEscape"
     @click.stop
@@ -270,7 +271,7 @@ if (props.fromTableExplorer) {
               show-search
               class="nc-column-type-input !rounded"
               :disabled="isKanban || readOnly"
-              dropdown-class-name="nc-dropdown-column-type "
+              dropdown-class-name="nc-dropdown-column-type border-1 border-gray-200"
               @change="onUidtOrIdTypeChange"
               @dblclick="showDeprecated = !showDeprecated"
             >
@@ -296,6 +297,7 @@ if (props.fromTableExplorer) {
           <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
           <LazySmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
           <LazySmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
+          <LazySmartsheetColumnLongTextOptions v-if="formState.uidt === UITypes.LongText" v-model:value="formState" />
           <LazySmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
           <LazySmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
           <LazySmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
@@ -306,9 +308,11 @@ if (props.fromTableExplorer) {
           <LazySmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
           <LazySmartsheetColumnLinkedToAnotherRecordOptions
             v-if="!isEdit && (formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links)"
+            :key="formState.uidt"
             v-model:value="formState"
           />
           <LazySmartsheetColumnLinkOptions v-if="isEdit && formState.uidt === UITypes.Links" v-model:value="formState" />
+          <LazySmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
           <LazySmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
           <SmartsheetColumnSelectOptions
             v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
@@ -330,8 +334,12 @@ if (props.fromTableExplorer) {
           <!--
             Default Value for JSON & LongText is not supported in MySQL
             Default Value is Disabled for MSSQL -->
+          <LazySmartsheetColumnRichLongTextDefaultValue
+            v-if="isTextArea(formState) && formState.meta.richMode"
+            v-model:value="formState"
+          />
           <LazySmartsheetColumnDefaultValue
-            v-if="
+            v-else-if="
           !isVirtualCol(formState) &&
           !isAttachment(formState) &&
           !isMssql(meta!.source_id) &&

@@ -28,7 +28,7 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.3",
-    "nocodb": "0.202.8",
+    "nocodb": "0.202.9",
     "@nestjs/common": "^10.2.10",
     "@nestjs/core": "^10.2.10"
   }

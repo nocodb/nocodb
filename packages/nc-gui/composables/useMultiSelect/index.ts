@@ -3,14 +3,13 @@ import dayjs from 'dayjs'
 import type { Ref } from 'vue'
 import type { MaybeRef } from '@vueuse/core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, dateFormats, isDateMonthFormat, isSystemColumn, isVirtualCol, timeFormats } from 'nocodb-sdk'
 import { parse } from 'papaparse'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import convertCellData from './convertCellData'
 import type { Nullable, Row } from '#imports'
 import {
-  dateFormats,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
   isDrawerOrModalExist,
@@ -20,7 +19,6 @@ import {
   message,
   reactive,
   ref,
-  timeFormats,
   unref,
   useBase,
   useCopy,
@@ -152,6 +150,20 @@ export function useMultiSelect(
       if (!dayjs(textToCopy).isValid()) {
         // return empty string for invalid datetime
         return ''
+      }
+    }
+
+    if (columnObj.uidt === UITypes.Date) {
+      const dateFormat = columnObj.meta?.date_format
+      if (dateFormat && isDateMonthFormat(dateFormat)) {
+        // any date month format (e.g. YYYY-MM) couldn't be stored in database
+        // with date type since it is not a valid date
+        // therefore, we reformat the value here to display with the formatted one
+        // e.g. 2023-06-03 -> 2023-06
+        textToCopy = dayjs(textToCopy, dateFormat).format(dateFormat)
+      } else {
+        // e.g. 2023-06-03 (in DB) -> 03/06/2023 (in UI)
+        textToCopy = dayjs(textToCopy, 'YYYY-MM-DD').format(dateFormat)
       }
     }
 

@@ -15,6 +15,7 @@ import {
   useSelectedCellKeyupListener,
   watch,
 } from '#imports'
+import { isDateMonthFormat } from '~/utils'
 
 interface Props {
   modelValue?: string | null
@@ -42,6 +43,8 @@ const editable = inject(EditModeInj, ref(false))
 const isDateInvalid = ref(false)
 
 const dateFormat = computed(() => parseProp(columnMeta?.value?.meta)?.date_format ?? 'YYYY-MM-DD')
+
+const picker = computed(() => (isDateMonthFormat(dateFormat.value) ? 'month' : ''))
 
 const localState = computed({
   get() {
@@ -219,6 +222,7 @@ const clickHandler = () => {
 <template>
   <a-date-picker
     v-model:value="localState"
+    :picker="picker"
     :bordered="false"
     class="!w-full !px-1 !border-none"
     :class="{ 'nc-null': modelValue === null && showNull }"

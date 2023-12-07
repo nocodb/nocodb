@@ -201,7 +201,7 @@ export default function convertCellData(
         try {
           parsedVal = typeof value === 'string' ? JSON.parse(value) : value
         } catch {
-          parsedVal = null
+          parsedVal = value
         }
       } catch (e) {
         if (isMultiple) {

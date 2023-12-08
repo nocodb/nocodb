@@ -227,7 +227,7 @@ a {
 }
 // select dropdown border style
 .ant-select-dropdown {
-  @apply border-1 border-gray-200
+  @apply border-1 border-gray-200 !min-w-max
 }
 
 // menu item styling

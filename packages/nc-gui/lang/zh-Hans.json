@@ -666,7 +666,7 @@
     "enablePublicAccess": "启用公共访问",
     "doYouWantToSaveTheChanges": "您要保存这些更改吗？",
     "editingAccess": "编辑访问权限",
-    "enabledPublicViewing": "启用公开查看",
+    "enabledPublicViewing": "Enable Public Viewing",
     "restrictAccessWithPassword": "使用密码限制访问",
     "manageProjectAccess": "管理项目访问",
     "allowDownload": "允许下载",
@@ -719,7 +719,7 @@
     "groupBy": "分组",
     "addSubGroup": "添加子分组",
     "shareBase": {
-      "label": "分享项目",
+      "label": "Share Base",
       "disable": "停止分享项目",
       "enable": "任何有链接的人",
       "link": "分享项目链接"

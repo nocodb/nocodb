@@ -666,7 +666,7 @@
     "enablePublicAccess": "Enable Public Access",
     "doYouWantToSaveTheChanges": "Do you want to save the changes ?",
     "editingAccess": "Editing access",
-    "enabledPublicViewing": "Enable public viewing",
+    "enabledPublicViewing": "Enable Public Viewing",
     "restrictAccessWithPassword": "Restrict access with password",
     "manageProjectAccess": "Manage Base Access",
     "allowDownload": "Allow Download",
@@ -719,7 +719,7 @@
     "groupBy": "Group By",
     "addSubGroup": "Add subgroup",
     "shareBase": {
-      "label": "Share base",
+      "label": "Share Base",
       "disable": "Schakel de gedeelde database uit",
       "enable": "Iedereen met de link",
       "link": "Gedeelde databaselink"

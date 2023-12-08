@@ -6,17 +6,19 @@ const props = withDefaults(
     size?: 'small' | 'medium' | 'large'
     destroyOnClose?: boolean
     maskClosable?: boolean
+    wrapClassName?: string
   }>(),
   {
     size: 'medium',
     destroyOnClose: true,
     maskClosable: true,
+    wrapClassName: '',
   },
 )
 
 const emits = defineEmits(['update:visible'])
 
-const { width: propWidth, destroyOnClose, maskClosable } = props
+const { width: propWidth, destroyOnClose, maskClosable, wrapClassName: _wrapClassName } = props
 
 const { isMobileMode } = useGlobal()
 

@@ -1804,7 +1804,7 @@ onKeyStroke('ArrowDown', onDown)
             <template #overlay>
               <div class="relative overflow-visible min-h-17 w-10">
                 <div
-                  class="absolute -top-19 flex flex-col h-34.5 w-70 bg-white rounded-lg justify-start overflow-hidden"
+                  class="absolute -top-19 flex flex-col h-34.5 w-70 bg-white rounded-lg border-1 border-gray-200 justify-start overflow-hidden"
                   style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
                   :class="{
                     '-left-44': !isAddNewRecordGridMode,
@@ -1847,7 +1847,7 @@ onKeyStroke('ArrowDown', onDown)
               </div>
             </template>
             <template #icon>
-              <component :is="iconMap.arrowUp" class="text-gray-600 h-4" />
+              <component :is="iconMap.arrowUp" class="text-gray-600 h-4 w-4" />
             </template>
           </a-dropdown-button>
         </div>

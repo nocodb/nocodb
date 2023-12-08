@@ -147,7 +147,7 @@ const toggleSelectAll = (role: Role) => {
 <template>
   <div class="flex flex-row w-full items-center justify-center">
     <div class="flex flex-col w-[900px]">
-      <NcTooltip class="mb-4 first-letter:capital font-bold max-w-100 truncate">
+      <NcTooltip class="mb-4 first-letter:capital font-bold max-w-100 truncate" show-on-truncate-only>
         <template #title>{{ base.title }}</template>
         <span> UI ACL : {{ base.title }} </span>
       </NcTooltip>
@@ -211,7 +211,7 @@ const toggleSelectAll = (role: Role) => {
                 <div class="min-w-5 flex items-center justify-center">
                   <GeneralTableIcon :meta="{ meta: record.table_meta, type: record.ptype }" class="text-gray-500" />
                 </div>
-                <NcTooltip class="overflow-ellipsis min-w-0 shrink-1 truncate">
+                <NcTooltip class="overflow-ellipsis min-w-0 shrink-1 truncate" show-on-truncate-only>
                   <template #title>{{ record._ptn }}</template>
                   <span>{{ record._ptn }}</span>
                 </NcTooltip>
@@ -223,7 +223,7 @@ const toggleSelectAll = (role: Role) => {
                 <div class="min-w-5 flex items-center justify-center">
                   <GeneralViewIcon :meta="record" class="text-gray-500"></GeneralViewIcon>
                 </div>
-                <NcTooltip class="overflow-ellipsis min-w-0 shrink-1 truncate">
+                <NcTooltip class="overflow-ellipsis min-w-0 shrink-1 truncate" show-on-truncate-only>
                   <template #title>{{ record.title }}</template>
                   <span>{{ record.title }}</span>
                 </NcTooltip>

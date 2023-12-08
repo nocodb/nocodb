@@ -1,7 +1,13 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
 import NcLayout from '~icons/nc-icons/layout'
-const { openedProject } = storeToRefs(useBases())
+import { isEeUI } from '#imports'
+
+const basesStore = useBases()
+
+const { getProjectUsers } = basesStore
+
+const { openedProject, activeProjectId, baseUserCount } = storeToRefs(basesStore)
 const { activeTables } = storeToRefs(useTablesStore())
 const { activeWorkspace, workspaceUserCount } = storeToRefs(useWorkspace())
 
@@ -25,6 +31,25 @@ const { projectPageTab } = storeToRefs(useConfigStore())
 const { isMobileMode } = useGlobal()
 
 const baseSettingsState = ref('')
+
+const userCount = isEeUI ? workspaceUserCount : baseUserCount
+
+const updateBaseUserCount = async () => {
+  if (!baseUserCount) return
+
+  try {
+    const { totalRows } = await getProjectUsers({
+      baseId: activeProjectId.value!,
+      page: 1,
+      searchText: undefined,
+      limit: 20,
+    })
+
+    baseUserCount.value = totalRows
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 
 watch(
   () => route.value.query?.page,
@@ -85,7 +110,7 @@ watch(
         <GeneralOpenLeftSidebarBtn />
         <div class="flex flex-row items-center h-full gap-x-2.5">
           <GeneralProjectIcon :type="openedProject?.type" />
-          <NcTooltip class="flex font-medium text-sm capitalize truncate max-w-150">
+          <NcTooltip class="flex font-medium text-sm capitalize truncate max-w-150" show-on-truncate-only>
             <template #title> {{ openedProject?.title }}</template>
             <span class="truncate">
               {{ openedProject?.title }}
@@ -129,14 +154,14 @@ watch(
               <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
               <div>{{ $t('labels.members') }}</div>
               <div
-                v-if="workspaceUserCount"
+                v-if="userCount"
                 class="tab-info"
                 :class="{
-                  'bg-primary-selected': projectPageTab === 'data-source',
-                  'bg-gray-50': projectPageTab !== 'data-source',
+                  'bg-primary-selected': projectPageTab === 'collaborator',
+                  'bg-gray-50': projectPageTab !== 'collaborator',
                 }"
               >
-                {{ workspaceUserCount }}
+                {{ userCount }}
               </div>
             </div>
           </template>

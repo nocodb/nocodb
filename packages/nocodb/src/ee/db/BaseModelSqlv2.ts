@@ -70,7 +70,7 @@ async function execAndGetRows(
   kn = kn || baseModel.dbDriver;
   return baseModel.isPg || baseModel.isSnowflake
     ? (await kn.raw(query))?.rows
-    : query.slice(0, 6) === 'select' && !baseModel.isMssql
+    : /^(\(|)select/.test(query) && !baseModel.isMssql
     ? await kn.from(kn.raw(query).wrap('(', ') __nc_alias'))
     : await kn.raw(query);
 }

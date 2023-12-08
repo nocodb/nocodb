@@ -141,7 +141,7 @@ watch(
       <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.links')" v-bind="validateInfos.fk_relation_column_id">
         <a-select
           v-model:value="vModel.fk_relation_column_id"
-          dropdown-class-name="!w-64 nc-dropdown-relation-table"
+          dropdown-class-name="!w-64 nc-dropdown-relation-table !rounded-md"
           @change="onRelationColChange"
         >
           <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
@@ -172,7 +172,7 @@ watch(
         <a-select
           v-model:value="vModel.fk_rollup_column_id"
           name="fk_rollup_column_id"
-          dropdown-class-name="nc-dropdown-relation-column"
+          dropdown-class-name="nc-dropdown-relation-column !rounded-xl"
           @change="onDataTypeChange"
         >
           <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">

@@ -156,7 +156,7 @@ watch(isExpanded, () => {
     :closable="false"
     centered
     :footer="null"
-    v-bind:wrap-class-name="isExpanded ? '!z-1051' : null"
+    :wrap-class-name="isExpanded ? '!z-1051' : null"
   >
     <div v-if="editEnabled && !readonly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
       <div class="flex flex-row justify-between pt-1 pb-2 nc-json-action" @mousedown.stop>

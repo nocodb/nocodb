@@ -123,7 +123,7 @@ export default class DbMux {
       NcError.badRequest('Nothing to update');
     }
 
-    await ncMeta.metaUpdate(null, null, MetaTable.DB_MUX, updateObject);
+    await ncMeta.metaUpdate(null, null, MetaTable.DB_MUX, updateObject, {});
 
     await NocoCache.deepDel(
       CacheScope.DB_MUX,

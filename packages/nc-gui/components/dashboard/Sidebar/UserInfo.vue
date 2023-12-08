@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import GithubButton from 'vue-github-button'
 import {
   computed,
   message,

@@ -104,18 +104,18 @@ export class ColumnPageObject extends BasePage {
             .click();
         }
         break;
-      case 'Date':
-        // Date Format
-        await this.get().locator('.nc-date-select').click();
-        await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
-        break;
       case 'DateTime':
         // Date Format
         await this.get().locator('.nc-date-select').click();
-        await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
+        await this.rootPage.locator('.ant-select-item').locator(`[data-testid="nc-date-${dateFormat}"]`).click();
         // Time Format
         await this.get().locator('.nc-time-select').click();
-        await this.rootPage.locator('.ant-select-item').locator(`text="${timeFormat}"`).click();
+        await this.rootPage.locator('.ant-select-item').locator(`[data-testid="nc-time-${timeFormat}"]`).click();
+        break;
+      case 'Date':
+        // Date Format
+        await this.get().locator('.nc-date-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`[data-testid="nc-${dateFormat}"]`).click();
         break;
       case 'Formula':
         await this.get().locator('.nc-formula-input').fill(formula);
@@ -123,9 +123,8 @@ export class ColumnPageObject extends BasePage {
       case 'QrCode':
         await this.get().locator('.ant-select-single').nth(1).click();
         await this.rootPage
-          .locator(`.ant-select-item`, {
-            hasText: new RegExp(`^${qrCodeValueColumnTitle}$`),
-          })
+          .locator(`.ant-select-item`)
+          .locator(`[data-testid="nc-qr-${qrCodeValueColumnTitle}"]`)
           .click();
         break;
       case 'Barcode':
@@ -318,7 +317,7 @@ export class ColumnPageObject extends BasePage {
       case 'Date':
         // Date Format
         await this.get().locator('.nc-date-select').click();
-        await this.rootPage.locator('.ant-select-item').locator(`[data-testid="${dateFormat}"]`).click();
+        await this.rootPage.locator('.ant-select-item').locator(`[data-testid="nc-${dateFormat}"]`).click();
         break;
       default:
         break;

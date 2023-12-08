@@ -296,8 +296,11 @@ watch(editEnabled, () => {
 textarea:focus {
   box-shadow: none;
 }
-:deep(.nc-text-area-expand-btn) {
-  @apply !hidden;
+</style>
+
+<style lang="scss">
+.cell:hover .nc-text-area-expand-btn {
+  @apply !block;
 }
 .rich-wrapper:hover,
 .rich-wrapper:active {

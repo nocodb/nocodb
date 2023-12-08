@@ -117,6 +117,9 @@ const permissionScopes = {
     'relationDataRemove',
     'relationDataAdd',
     'duplicateColumn',
+    'nestedDataList',
+    'nestedDataLink',
+    'nestedDataUnlink',
 
     // Base API Tokens
     'baseApiTokenList',
@@ -179,6 +182,8 @@ const rolePermissions:
       list: true,
       dataCount: true,
       swaggerJson: true,
+
+      nestedDataList: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -217,6 +222,9 @@ const rolePermissions:
       bulkDataDeleteAll: true,
       relationDataRemove: true,
       relationDataAdd: true,
+
+      nestedDataLink: true,
+      nestedDataUnlink: true,
       // TODO add ACL with base scope
       // upload: true,
       // uploadViaURL: true,

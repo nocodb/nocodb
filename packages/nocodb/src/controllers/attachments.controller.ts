@@ -68,7 +68,11 @@ export class AttachmentsController {
         path: path.join('nc', 'uploads', filename),
       });
 
-      res.sendFile(file.path);
+      if (this.attachmentsService.previewAvailable(file.type)) {
+        res.sendFile(file.path);
+      } else {
+        res.download(file.path);
+      }
     } catch (e) {
       res.status(404).send('Not found');
     }
@@ -94,7 +98,11 @@ export class AttachmentsController {
         ),
       });
 
-      res.sendFile(file.path);
+      if (this.attachmentsService.previewAvailable(file.type)) {
+        res.sendFile(file.path);
+      } else {
+        res.download(file.path);
+      }
     } catch (e) {
       res.status(404).send('Not found');
     }
@@ -109,7 +117,11 @@ export class AttachmentsController {
         path: path.join('nc', 'uploads', fpath),
       });
 
-      res.sendFile(file.path);
+      if (this.attachmentsService.previewAvailable(file.type)) {
+        res.sendFile(file.path);
+      } else {
+        res.download(file.path);
+      }
     } catch (e) {
       res.status(404).send('Not found');
     }

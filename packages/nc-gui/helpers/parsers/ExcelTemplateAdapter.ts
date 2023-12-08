@@ -1,5 +1,4 @@
-import { UITypes } from 'nocodb-sdk'
-import { getDateFormat } from '../../utils/dateTimeUtils'
+import { UITypes, getDateFormat } from 'nocodb-sdk'
 import TemplateGenerator from './TemplateGenerator'
 import {
   extractMultiOrSingleSelectProps,

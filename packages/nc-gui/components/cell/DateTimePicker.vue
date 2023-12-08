@@ -1,18 +1,16 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { isSystemColumn } from 'nocodb-sdk'
+import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
   EditColumnInj,
   ReadonlyInj,
-  dateFormats,
   inject,
   isDrawerOrModalExist,
   parseProp,
   ref,
-  timeFormats,
   useBase,
   useSelectedCellKeyupListener,
   watch,
@@ -278,7 +276,7 @@ const isColDisabled = computed(() => {
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
-    :dropdown-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''}`"
+    :dropdown-class-name="`${randomClass} nc-picker-datetime children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
     :open="isOpen"
     @click="clickHandler"
     @ok="open = !open"

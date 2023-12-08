@@ -1,8 +1,23 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, TableType, UITypes } from 'nocodb-sdk'
-import { isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { MetaInj, inject, ref, storeToRefs, useBase, useColumnCreateStoreOrThrow, useMetas, useVModel } from '#imports'
+import { isLinksOrLTAR, isNumericCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import type { Ref } from '#imports'
+import {
+  MetaInj,
+  computed,
+  h,
+  inject,
+  ref,
+  resolveComponent,
+  storeToRefs,
+  useBase,
+  useColumnCreateStoreOrThrow,
+  useI18n,
+  useMetas,
+  useVModel,
+  watch,
+} from '#imports'
 
 const props = defineProps<{
   value: any
@@ -17,6 +32,7 @@ const meta = inject(MetaInj, ref())
 const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit } = useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
+
 const { tables } = storeToRefs(baseStore)
 
 const { metas } = useMetas()
@@ -28,17 +44,6 @@ setAdditionalValidations({
   fk_rollup_column_id: [{ required: true, message: t('general.required') }],
   rollup_function: [{ required: true, message: t('general.required') }],
 })
-
-const aggrFunctionsList = [
-  { text: t('datatype.Count'), value: 'count' },
-  { text: t('general.min'), value: 'min' },
-  { text: t('general.max'), value: 'max' },
-  { text: t('general.avg'), value: 'avg' },
-  { text: t('general.sum'), value: 'sum' },
-  { text: t('general.countDistinct'), value: 'countDistinct' },
-  { text: t('general.sumDistinct'), value: 'sumDistinct' },
-  { text: t('general.avgDistinct'), value: 'avgDistinct' },
-]
 
 if (!vModel.value.fk_relation_column_id) vModel.value.fk_relation_column_id = null
 if (!vModel.value.fk_rollup_column_id) vModel.value.fk_rollup_column_id = null
@@ -94,6 +99,40 @@ const cellIcon = (column: ColumnType) =>
   h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
     columnMeta: column,
   })
+
+const aggFunctionsList: Ref<Record<string, string>[]> = ref([])
+
+watch(
+  () => vModel.value.fk_rollup_column_id,
+  () => {
+    const childFieldColumn = columns.value?.find((column: ColumnType) => column.id === vModel.value.fk_rollup_column_id)
+    const showNumericFunctions = isNumericCol(childFieldColumn)
+    const nonNumericFunctions = [
+      // functions for non-numeric types,
+      // e.g. count / min / max / countDistinct date field
+      { text: t('datatype.Count'), value: 'count' },
+      { text: t('general.min'), value: 'min' },
+      { text: t('general.max'), value: 'max' },
+      { text: t('general.countDistinct'), value: 'countDistinct' },
+    ]
+    const numericFunctions = showNumericFunctions
+      ? [
+          { text: t('general.avg'), value: 'avg' },
+          { text: t('general.sum'), value: 'sum' },
+          { text: t('general.sumDistinct'), value: 'sumDistinct' },
+          { text: t('general.avgDistinct'), value: 'avgDistinct' },
+        ]
+      : []
+
+    aggFunctionsList.value = [...nonNumericFunctions, ...numericFunctions]
+
+    if (!showNumericFunctions && ['avg', 'sum', 'sumDistinct', 'avgDistinct'].includes(vModel.value.rollup_function)) {
+      // when the previous roll up function was numeric type and the current child field is non-numeric
+      // reset rollup function with a non-numeric type
+      vModel.value.rollup_function = aggFunctionsList.value[0].value
+    }
+  },
+)
 </script>
 
 <template>
@@ -141,7 +180,7 @@ const cellIcon = (column: ColumnType) =>
         dropdown-class-name="nc-dropdown-rollup-function"
         @change="onDataTypeChange"
       >
-        <a-select-option v-for="(func, index) of aggrFunctionsList" :key="index" :value="func.value">
+        <a-select-option v-for="(func, index) of aggFunctionsList" :key="index" :value="func.value">
           {{ func.text }}
         </a-select-option>
       </a-select>

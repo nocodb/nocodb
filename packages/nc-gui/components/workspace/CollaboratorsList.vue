@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { OrderedWorkspaceRoles, WorkspaceUserRoles } from 'nocodb-sdk'
-import { storeToRefs, timeAgo, useWorkspace } from '#imports'
+import { OrderedWorkspaceRoles, WorkspaceUserRoles, timeAgo } from 'nocodb-sdk'
+import { storeToRefs, useWorkspace } from '#imports'
 
 const { workspaceRoles, loadRoles } = useRoles()
 

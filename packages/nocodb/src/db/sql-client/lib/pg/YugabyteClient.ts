@@ -68,7 +68,8 @@ class YBClient extends PGClient {
     try {
       args.databaseName = this.connectionConfig.connection.database;
 
-      const response = await this.raw(`
+      const response = await this.raw(
+        `
       select c.relname as tn, a.attname as cn, pg_catalog.format_type(a.atttypid, a.atttypmod) as "dt",a.attnotnull as "not_nullable",
       pg_catalog.pg_get_expr(ad.adbin, ad.adrelid, true) as cdf, dsc.description as comment,a.attnum as cop,
       coalesce(i.indisprimary,false) as pk,
@@ -77,8 +78,12 @@ class YBClient extends PGClient {
       INNER JOIN pg_catalog.pg_class c ON (a.attrelid=c.oid)
       LEFT OUTER JOIN pg_catalog.pg_attrdef ad ON (a.attrelid=ad.adrelid AND a.attnum = ad.adnum)
       LEFT OUTER JOIN pg_catalog.pg_description dsc ON (c.oid=dsc.objoid AND a.attnum = dsc.objsubid)
-      LEFT JOIN pg_index i ON (a.attnum = any(i.indkey) and a.attrelid = i.indrelid and i.indrelid = '${args.tn}'::regclass AND i.indisprimary)
-      WHERE NOT a.attisdropped AND c.relname = '${args.tn}' and a.attnum > 0 ORDER BY a.attnum`);
+      LEFT JOIN pg_index i ON (a.attnum = any(i.indkey) and a.attrelid = i.indrelid and i.indrelid = :table::regclass AND i.indisprimary)
+      WHERE NOT a.attisdropped AND c.relname = :table and a.attnum > 0 ORDER BY a.attnum`,
+        {
+          table: args.tn,
+        },
+      );
 
       const columns = [];
 
@@ -114,7 +119,9 @@ class YBClient extends PGClient {
         // column['unique'] = response.rows[i]['cst'].indexOf('UNIQUE') === -1 ? false : true;
 
         column.cdf = response.rows[i].cdf
-          ? response.rows[i].cdf.split('::')[0].replace(/'/g, '')
+          ? response.rows[i].cdf
+              .replace(/::[\w (),]+$/, '')
+              .replace(/^'|'$/g, '')
           : response.rows[i].cdf;
 
         // todo : need to find column comment

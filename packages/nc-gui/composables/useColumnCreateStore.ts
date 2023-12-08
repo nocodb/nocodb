@@ -40,8 +40,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const { sqlUis } = storeToRefs(baseStore)
 
-    const { bases } = storeToRefs(useBases())
-
     const { $api } = useNuxtApp()
 
     const { getMeta } = useMetas()
@@ -64,12 +62,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const isXcdbBase = computed(() =>
       isXcdbBaseFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]),
-    )
-
-    const source = computed(() =>
-      meta.value && meta.value.source_id && meta.value.base_id
-        ? bases.value.get(meta.value?.base_id as string)?.sources?.find((s) => s.id === meta.value!.source_id)
-        : undefined,
     )
 
     const idType = null

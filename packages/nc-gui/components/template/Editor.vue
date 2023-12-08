@@ -2,7 +2,7 @@
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, getDateFormat, getDateTimeFormat, isSystemColumn, isVirtualCol, parseStringDate } from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import {
@@ -18,15 +18,12 @@ import {
   extractSdkResponseErrorMsg,
   fieldLengthValidator,
   fieldRequiredValidator,
-  getDateFormat,
-  getDateTimeFormat,
   getUIDTIcon,
   iconMap,
   inject,
   message,
   nextTick,
   onMounted,
-  parseStringDate,
   reactive,
   ref,
   storeToRefs,
@@ -131,10 +128,7 @@ const validators = computed(() =>
     hasSelectColumn.value[tableIdx] = false
 
     table.columns?.forEach((column, columnIdx) => {
-      acc[`tables.${tableIdx}.columns.${columnIdx}.title`] = [
-        fieldRequiredValidator(),
-        fieldLengthValidator(),
-      ]
+      acc[`tables.${tableIdx}.columns.${columnIdx}.title`] = [fieldRequiredValidator(), fieldLengthValidator()]
       acc[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = [fieldRequiredValidator()]
       if (isSelect(column)) {
         hasSelectColumn.value[tableIdx] = true

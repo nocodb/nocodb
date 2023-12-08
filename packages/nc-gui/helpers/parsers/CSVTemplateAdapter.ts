@@ -1,7 +1,6 @@
 import { parse } from 'papaparse'
 import type { UploadFile } from 'ant-design-vue'
-import { UITypes } from 'nocodb-sdk'
-import { getDateFormat, validateDateWithUnknownFormat } from '../../utils/dateTimeUtils'
+import { UITypes, getDateFormat, validateDateWithUnknownFormat } from 'nocodb-sdk'
 import {
   extractMultiOrSingleSelectProps,
   getCheckboxValue,
@@ -58,7 +57,7 @@ export default class CSVTemplateAdapter {
     this.tables[tableIdx] = []
 
     for (const [columnIdx, columnName] of columnNames.entries()) {
-      let title = ((columnNameRowExist && columnName.toString().trim()) || `Field ${columnIdx + 1}`).trim()
+      const title = ((columnNameRowExist && columnName.toString().trim()) || `Field ${columnIdx + 1}`).trim()
       let cn: string = ((columnNameRowExist && columnName.toString().trim()) || `field_${columnIdx + 1}`)
         .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
         .trim()

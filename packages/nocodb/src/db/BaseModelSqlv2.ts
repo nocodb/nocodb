@@ -1208,10 +1208,8 @@ class BaseModelSqlv2 {
       !this.isSqlite,
     );
 
-    let children = await this.execAndParse(finalQb, childTable);
-    if (this.isMySQL) {
-      children = children[0];
-    }
+    const children = await this.execAndParse(finalQb, childTable);
+
     const proto = await (
       await Model.getBaseModelSQL({
         id: rtnId,
@@ -3841,7 +3839,7 @@ class BaseModelSqlv2 {
         : [columnValue];
     for (let j = 0; j < columnValueArr.length; ++j) {
       const val = columnValueArr[j];
-      if (!options.includes(val)) {
+      if (!options.includes(val) && !options.includes(`'${val}'`)) {
         NcError.badRequest(
           `Invalid option "${val}" provided for column "${columnTitle}". Valid options are "${options.join(
             ', ',
@@ -4408,7 +4406,7 @@ class BaseModelSqlv2 {
     let data =
       this.isPg || this.isSnowflake
         ? (await this.dbDriver.raw(query))?.rows
-        : query.slice(0, 6) === 'select' && !this.isMssql
+        : /^(\(|)select/.test(query) && !this.isMssql
         ? await this.dbDriver.from(
             this.dbDriver.raw(query).wrap('(', ') __nc_alias'),
           )
@@ -4713,6 +4711,14 @@ class BaseModelSqlv2 {
         continue;
       }
 
+      if (col.uidt === UITypes.Date) {
+        const dateFormat = col.meta?.date_format;
+        if (dateFormat) {
+          d[col.title] = dayjs(d[col.title], dateFormat).format(dateFormat);
+        }
+        continue;
+      }
+
       let keepLocalTime = true;
 
       if (this.isSqlite) {
@@ -4767,7 +4773,10 @@ class BaseModelSqlv2 {
       const dateTimeColumns = (
         childTable ? childTable.columns : this.model.columns
       ).filter(
-        (c) => c.uidt === UITypes.DateTime || c.uidt === UITypes.Formula,
+        (c) =>
+          c.uidt === UITypes.DateTime ||
+          c.uidt === UITypes.Date ||
+          c.uidt === UITypes.Formula,
       );
       if (dateTimeColumns.length) {
         if (Array.isArray(data)) {

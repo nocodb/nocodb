@@ -6,6 +6,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { parseMetaProp } from '~/utils/modelUtils';
 import Base from '~/models/Base';
+import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 
 export default class BaseUser extends BaseUserCE {
   fk_workspace_id?: string;
@@ -85,17 +86,14 @@ export default class BaseUser extends BaseUserCE {
   public static async getUsersList(
     {
       base_id,
-      workspace_id,
       query,
     }: {
       base_id: string;
-      workspace_id?: string;
-      limit?: number;
-      offset?: number;
       query?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
+    const workspace_id = await getWorkspaceForBase(base_id);
     const cachedList = await NocoCache.getList(CacheScope.BASE_USER, [base_id]);
     let { list: baseUsers } = cachedList;
     const { isNoneList } = cachedList;
@@ -111,44 +109,27 @@ export default class BaseUser extends BaseUserCE {
           `${MetaTable.USERS}.created_at as created_at`,
           `${MetaTable.PROJECT_USERS}.base_id`,
           `${MetaTable.PROJECT_USERS}.roles as roles`,
-          ...(workspace_id
-            ? [
-                `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
-                `${MetaTable.WORKSPACE_USER}.fk_workspace_id as workspace_id`,
-              ]
-            : []),
+          `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
+          `${MetaTable.WORKSPACE_USER}.fk_workspace_id as workspace_id`,
         );
 
       if (query) {
         queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
       }
 
-      if (workspace_id) {
-        queryBuilder
-          .innerJoin(MetaTable.WORKSPACE_USER, function () {
-            this.on(
-              `${MetaTable.WORKSPACE_USER}.fk_user_id`,
-              '=',
-              `${MetaTable.USERS}.id`,
-            ).andOn(
-              `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
-              '=',
-              ncMeta.knex.raw('?', [workspace_id]),
-            );
-          })
-          .leftJoin(MetaTable.PROJECT_USERS, function () {
-            this.on(
-              `${MetaTable.PROJECT_USERS}.fk_user_id`,
-              '=',
-              `${MetaTable.USERS}.id`,
-            ).andOn(
-              `${MetaTable.PROJECT_USERS}.base_id`,
-              '=',
-              ncMeta.knex.raw('?', [base_id]),
-            );
-          });
-      } else {
-        queryBuilder.innerJoin(MetaTable.PROJECT_USERS, function () {
+      queryBuilder
+        .innerJoin(MetaTable.WORKSPACE_USER, function () {
+          this.on(
+            `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+            '=',
+            `${MetaTable.USERS}.id`,
+          ).andOn(
+            `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+            '=',
+            ncMeta.knex.raw('?', [workspace_id]),
+          );
+        })
+        .leftJoin(MetaTable.PROJECT_USERS, function () {
           this.on(
             `${MetaTable.PROJECT_USERS}.fk_user_id`,
             '=',
@@ -159,7 +140,6 @@ export default class BaseUser extends BaseUserCE {
             ncMeta.knex.raw('?', [base_id]),
           );
         });
-      }
 
       baseUsers = await queryBuilder;
 

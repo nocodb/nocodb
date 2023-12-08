@@ -643,9 +643,6 @@ async function _formulaQueryBuilder(
           const base = await Base.get(model.base_id);
           const baseUsers = await BaseUser.getUsersList({
             base_id: base.id,
-            ...((base as any)?.fk_workspace_id
-              ? { workspace_id: (base as any).fk_workspace_id }
-              : {}),
           });
 
           // create nested replace statement for each user

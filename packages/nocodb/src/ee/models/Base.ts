@@ -188,7 +188,6 @@ export default class Base extends BaseCE {
     const users = await BaseUser.getUsersList(
       {
         base_id: baseId,
-        workspace_id: (base as Base).fk_workspace_id,
       },
       ncMeta,
     );

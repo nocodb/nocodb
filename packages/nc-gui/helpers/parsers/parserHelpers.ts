@@ -211,6 +211,7 @@ export const extractNextDefaultName = (namesData: string[], defaultName: string,
         if (_defaultName === defaultName && !isNaN(Number(number?.trim()))) {
           return Number(number?.trim())
         }
+        return undefined
       })
       .filter((e) => e)
       .sort((a, b) => {

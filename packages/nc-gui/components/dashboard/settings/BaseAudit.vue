@@ -137,7 +137,6 @@ const columns = [
         show-less-items
         class="pagination"
         @change="loadAudits"
-        class="pagination"
       />
     </div>
   </div>

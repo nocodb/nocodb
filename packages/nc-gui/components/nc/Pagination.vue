@@ -90,11 +90,7 @@ const pagesList = computed(() => {
     </component>
 
     <div v-if="!isMobileMode" class="text-gray-600">
-      <a-select
-        v-model:value="current"
-        class="!mr-[2px]"
-        :options="pagesList"
-      >
+      <a-select v-model:value="current" class="!mr-[2px]" :options="pagesList">
         <template #suffixIcon>
           <GeneralIcon icon="arrowDown" class="text-gray-500 nc-select-expand-btn" />
         </template>
